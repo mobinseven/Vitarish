@@ -2,11 +2,12 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Vitarish.Modules.Base.Client;
 using Vitarish.Requests.Contracts;
 
 namespace Vitarish.Requests.Client;
 
-public sealed class RequestsHttpClient(HttpClient httpClient)
+public sealed class RequestsHttpClient(HttpClient httpClient) : AuthenticatedModuleApiClient(httpClient)
 {
     public Task<RequestsClientResult<RequestIdentityPageResponse>> QueryRequestIdentitiesAsync(
         RequestIdentityQueryParameters parameters,
@@ -125,8 +126,7 @@ public sealed class RequestsHttpClient(HttpClient httpClient)
         {
             Add(query, "sort", sort.Descending ? $"-{sort.Field}" : sort.Field);
         }
-        {
-            Add(query, "sort", sort.Descending ? $"-{sort.Field}" : sort.Field);
-        }
     }
+    protected override ModuleApiClientFailure CreateFailure(HttpStatusCode statusCode, string message, int? statusCodeValue) => new(statusCode.ToString(), message, statusCodeValue);
+
 }

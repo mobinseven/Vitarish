@@ -19,7 +19,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Contracts\Files.Contracts.csproj" />
+		<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+    <ProjectReference Include="..\Contracts\Files.Contracts.csproj" />
 		<ProjectReference Include="..\Client\Files.Client.csproj" />
 		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
 	</ItemGroup>

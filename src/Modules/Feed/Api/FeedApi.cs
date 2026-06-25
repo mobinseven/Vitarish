@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Vitarish.Modules.Base.Endpoints;
 using Vitarish.Feed.Application.Queries;
 using Vitarish.Feed.Contracts;
 using Vitarish.Feed.Domain.Abstractions;
@@ -13,7 +14,7 @@ public static class FeedApi
 {
     public static IEndpointRouteBuilder MapFeedApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder feed = endpoints.MapGroup(FeedRoutes.Base);
+        RouteGroupBuilder feed = endpoints.MapProtectedModuleGroup(FeedRoutes.Base);
 
         _ = feed.MapGet(FeedRoutes.Items, QueryFeedItemsAsync);
         _ = feed.MapGet(FeedRoutes.Sources, QueryFeedSourcesAsync);

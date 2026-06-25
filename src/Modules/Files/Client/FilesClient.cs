@@ -8,9 +8,11 @@ using Vitarish.Files.Contracts.Responses;
 using Vitarish.Files.Contracts.Results;
 using Vitarish.Files.Contracts.Routes;
 
+using Vitarish.Modules.Base.Client;
+
 namespace Vitarish.Files.Client;
 
-public sealed class FilesClient(HttpClient httpClient) : IFilesClient
+public sealed class FilesClient(HttpClient httpClient) : AuthenticatedModuleApiClient(httpClient), IFilesClient
 {
     public async Task<FilesResult<FileInformationDto>> GetFileInformationAsync(Guid fileId, CancellationToken cancellationToken)
     {
@@ -151,31 +153,6 @@ public sealed class FilesClient(HttpClient httpClient) : IFilesClient
         return new FilesError(code, "Files API request failed.", (int)response.StatusCode);
     }
 
-    public async Task<FilesResult<Stream>> DownloadFileAsync(Guid fileId, CancellationToken cancellationToken)
-    {
-        try
-        {
-            HttpResponseMessage response = await httpClient.GetAsync($"{FilesApiRoutes.Base}/{fileId}/content", HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
-            {
-                Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-                return FilesResult<Stream>.Success(new HttpResponseStream(stream, response));
-            }
-
-            FilesError error = await CreateErrorAsync(response, cancellationToken).ConfigureAwait(false);
-            response.Dispose();
-            return FilesResult<Stream>.Failed(error);
-        }
-        catch (OperationCanceledException)
-        {
-            return FilesResult<Stream>.Failed(CreateCancellationError(cancellationToken));
-        }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException or NotSupportedException or IOException)
-        {
-            return FilesResult<Stream>.Failed(new FilesError(FilesErrorCode.Transport, ex.Message));
-        }
-    }
-
     private static FilesError CreateCancellationError(CancellationToken cancellationToken) => cancellationToken.IsCancellationRequested
         ? new FilesError(FilesErrorCode.Canceled, "Files request was canceled.")
         : new FilesError(FilesErrorCode.Timeout, "Files request timed out.");
@@ -208,4 +185,6 @@ public sealed class FilesClient(HttpClient httpClient) : IFilesClient
             await base.DisposeAsync().ConfigureAwait(false);
         }
     }
+    protected override ModuleApiClientFailure CreateFailure(HttpStatusCode statusCode, string message, int? statusCodeValue) => new(statusCode.ToString(), message, statusCodeValue);
+
 }

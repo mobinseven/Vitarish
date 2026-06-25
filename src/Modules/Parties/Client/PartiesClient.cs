@@ -5,8 +5,10 @@ using Vitarish.Parties.Contracts.Errors;
 using Vitarish.Parties.Contracts.Results;
 using Vitarish.Parties.Contracts.Routes;
 using Vitarish.Parties.Contracts.Tenants;
+using Vitarish.Modules.Base.Client;
+
 namespace Vitarish.Parties.Client;
-public sealed class PartiesClient(HttpClient httpClient) : IPartiesClient
+public sealed class PartiesClient(HttpClient httpClient) : AuthenticatedModuleApiClient(httpClient), IPartiesClient
 {
     public Task<PartiesResult<TenantReadDto>> CreateTenantAsync(TenantWriteDto request, CancellationToken cancellationToken = default) => SendAsync<TenantWriteDto,TenantReadDto>(HttpMethod.Post, PartiesApiRoutes.Base + PartiesApiRoutes.Tenants, request, cancellationToken);
     public Task<PartiesResult<TenantReadDto>> UpdateTenantAsync(TenantWriteDto request, CancellationToken cancellationToken = default) => SendAsync<TenantWriteDto,TenantReadDto>(HttpMethod.Put, PartiesApiRoutes.Base + $"/tenants/{request.Id}", request, cancellationToken);
@@ -19,4 +21,6 @@ public sealed class PartiesClient(HttpClient httpClient) : IPartiesClient
     }
     private static async Task<PartiesError> CreateErrorAsync(HttpResponseMessage response,CancellationToken cancellationToken)
     { try { PartiesError? error=await response.Content.ReadFromJsonAsync<PartiesError>(cancellationToken); if(error is not null) return error; } catch(Exception ex) when (ex is JsonException or NotSupportedException) { } PartiesErrorCode code=response.StatusCode switch { HttpStatusCode.BadRequest=>PartiesErrorCode.Validation, HttpStatusCode.Unauthorized=>PartiesErrorCode.Unauthorized, HttpStatusCode.Forbidden=>PartiesErrorCode.Forbidden, HttpStatusCode.NotFound=>PartiesErrorCode.NotFound, HttpStatusCode.Conflict=>PartiesErrorCode.Conflict, _=>PartiesErrorCode.Unexpected}; return new(code,"Parties API request failed."); }
+    protected override ModuleApiClientFailure CreateFailure(HttpStatusCode statusCode, string message, int? statusCodeValue) => new(statusCode.ToString(), message, statusCodeValue);
+
 }

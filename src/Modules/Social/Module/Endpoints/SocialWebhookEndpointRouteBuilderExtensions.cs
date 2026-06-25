@@ -5,6 +5,7 @@ using Microsoft.Extensions.Primitives;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Text;
+using Vitarish.Modules.Base.Endpoints;
 using Vitarish.Social.Application.Abstractions;
 using Vitarish.Social.Domain.Enums;
 
@@ -16,13 +17,13 @@ public static class SocialWebhookEndpointRouteBuilderExtensions
 
     public static IEndpointRouteBuilder MapSocialWebhookEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        _ = endpoints.MapPost("/webhooks/social/{provider}", HandleWebhookAsync)
-            .WithName("social-webhook-ingest")
-            .AllowAnonymous();
+        RouteGroupBuilder webhooks = endpoints.MapAnonymousModuleGroup("/webhooks/social", "External social providers cannot send internal module API access tokens; webhook authenticity is handled by the Social application gateway.");
 
-        _ = endpoints.MapGet("/webhooks/social/{provider}", HandleWebhookChallengeAsync)
-            .WithName("social-webhook-challenge")
-            .AllowAnonymous();
+        _ = webhooks.MapPost("/{provider}", HandleWebhookAsync)
+            .WithName("social-webhook-ingest");
+
+        _ = webhooks.MapGet("/{provider}", HandleWebhookChallengeAsync)
+            .WithName("social-webhook-challenge");
 
         return endpoints;
     }

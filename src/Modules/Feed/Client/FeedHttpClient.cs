@@ -2,11 +2,12 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Vitarish.Modules.Base.Client;
 using Vitarish.Feed.Contracts;
 
 namespace Vitarish.Feed.Client;
 
-public sealed class FeedHttpClient(HttpClient httpClient)
+public sealed class FeedHttpClient(HttpClient httpClient) : AuthenticatedModuleApiClient(httpClient)
 {
     public Task<FeedClientResult<IReadOnlyList<FeedItemResponse>>> QueryFeedItemsAsync(
         FeedQueryParameters parameters,
@@ -125,4 +126,6 @@ public sealed class FeedHttpClient(HttpClient httpClient)
             Add(query, key, value);
         }
     }
+    protected override ModuleApiClientFailure CreateFailure(HttpStatusCode statusCode, string message, int? statusCodeValue) => new(statusCode.ToString(), message, statusCodeValue);
+
 }
