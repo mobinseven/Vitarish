@@ -116,7 +116,7 @@ public static class FilesApiEndpointMapping
         {
             return Results.Conflict(new FilesError(FilesErrorCode.Conflict, ex.Message));
         }
-        finally
+finally
         {
             if (!pumpCancellation.IsCancellationRequested)
             {
@@ -124,8 +124,15 @@ public static class FilesApiEndpointMapping
             }
 
             _ = channel.Writer.TryComplete();
+            try
+            {
+                await pump.ConfigureAwait(false);
+            }
+            catch
+            {
+                // Suppress background pump exceptions to avoid masking the primary exception
+            }
         }
-    }
 
     private static async Task<IResult> DownloadFileAsync(Guid fileId, HttpContext context, IObjectStorageService storageService, IFileInformationService fileInfoService)
     {
