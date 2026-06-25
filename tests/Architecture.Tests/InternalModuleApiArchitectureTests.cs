@@ -29,9 +29,13 @@ public sealed class InternalModuleApiArchitectureTests
             string text = File.ReadAllText(file);
             if (allowedFiles.Contains(relative)) continue;
 
-            foreach (Match match in Regex.Matches(text, @"\bendpoints\.Map(Group|Get|Post|Put|Delete|Patch)\s*\("))
+            foreach (string routeBuilderName in FindEndpointRouteBuilderParameterNames(text))
             {
-                failures.Add($"{relative}: bypasses protected module endpoint mapping at {match.Value}");
+                string escapedName = Regex.Escape(routeBuilderName);
+                foreach (Match match in Regex.Matches(text, $@"\b{escapedName}\s*\.\s*Map(Group|Get|Post|Put|Delete|Patch)\s*\("))
+                {
+                    failures.Add($"{relative}: bypasses protected module endpoint mapping at {match.Value}");
+                }
             }
         }
 
@@ -50,9 +54,16 @@ public sealed class InternalModuleApiArchitectureTests
         {
             string relative = Normalize(Path.GetRelativePath(RepositoryRoot, file));
             string text = File.ReadAllText(file);
+            if (relative == "src/Modules/Base/Client/AuthenticatedModuleApiClient.cs") continue;
+
             if (text.Contains("HttpClient", StringComparison.Ordinal) && !text.Contains("AuthenticatedModuleApiClient", StringComparison.Ordinal))
             {
-                failures.Add($"{relative}: client injects or uses raw HttpClient without inheriting AuthenticatedModuleApiClient.");
+                failures.Add($"{relative}: client injects raw HttpClient without inheriting AuthenticatedModuleApiClient.");
+            }
+
+            foreach (Match match in Regex.Matches(text, @"\bhttpClient\s*\.\s*(GetAsync|PostAsync|PutAsync|PatchAsync|DeleteAsync|SendAsync|GetFromJsonAsync|PostAsJsonAsync|PutAsJsonAsync|PatchAsJsonAsync)\s*\("))
+            {
+                failures.Add($"{relative}: direct HttpClient call {match.Value}; use AuthenticatedModuleApiClient helpers.");
             }
         }
 
@@ -71,6 +82,12 @@ public sealed class InternalModuleApiArchitectureTests
 
         failures.Should().BeEmpty("internal module clients must share authenticated HTTP behavior and registration");
     }
+
+    private static IReadOnlyList<string> FindEndpointRouteBuilderParameterNames(string text) =>
+        Regex.Matches(text, @"\bIEndpointRouteBuilder\s+(?<name>[A-Za-z_][A-Za-z0-9_]*)")
+            .Select(match => match.Groups["name"].Value)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
 
     private static string Normalize(string path) => path.Replace('\\', '/');
 

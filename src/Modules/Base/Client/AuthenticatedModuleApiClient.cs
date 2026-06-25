@@ -62,6 +62,25 @@ public abstract class AuthenticatedModuleApiClient(HttpClient httpClient)
         if (!sent.IsSuccess) return ModuleApiClientResult<TResponse>.Failed(sent.Failure!);
         using HttpResponseMessage response = sent.Value!;
         if (!response.IsSuccessStatusCode) return ModuleApiClientResult<TResponse>.Failed(await CreateFailureAsync(response, cancellationToken).ConfigureAwait(false));
+        if (response.Content is null)
+        {
+            return default(TResponse) is null
+                ? ModuleApiClientResult<TResponse>.Success(default!)
+                : ModuleApiClientResult<TResponse>.Failed(CreateFailure(response.StatusCode, "Response content is empty.", (int)response.StatusCode));
+        }
+
+        return await ReadResponseJsonAsync<TResponse>(response, cancellationToken).ConfigureAwait(false);
+    }
+
+    protected async Task<ModuleApiClientResult<TResponse>> ReadResponseJsonAsync<TResponse>(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
+        if (response.Content is null)
+        {
+            return default(TResponse) is null
+                ? ModuleApiClientResult<TResponse>.Success(default!)
+                : ModuleApiClientResult<TResponse>.Failed(CreateFailure(response.StatusCode, "Response content is empty.", (int)response.StatusCode));
+        }
+
         try
         {
             TResponse? value = await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken).ConfigureAwait(false);
