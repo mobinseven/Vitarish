@@ -181,6 +181,7 @@
     {
         _componentCancellation.Cancel();
         _componentCancellation.Dispose();
+        base.Dispose();
     }
 
     private static Guid? NormalizeFileId(Guid? fileId) => fileId is { } value && value != Guid.Empty
