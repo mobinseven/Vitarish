@@ -11,7 +11,7 @@
       "temporaryExceptions": []
     },
     "Communications": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Contents": {

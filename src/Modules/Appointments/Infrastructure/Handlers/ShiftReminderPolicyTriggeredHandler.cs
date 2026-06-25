@@ -70,7 +70,7 @@ internal class ShiftReminderPolicyTriggeredHandler(
                 notification.ShiftId,
                 [new ReminderRecipientReadDto
                 {
-                    Kind = policy.Channel,
+                    Kind = ToCommunicationsReminderKind(policy.Channel),
                     RecipientUserId = notification.ReservingPartyId,
                     Recipient = recipient
                 }],
@@ -80,6 +80,13 @@ internal class ShiftReminderPolicyTriggeredHandler(
                 cancellationToken);
         }
     }
+
+    private static Vitarish.Communications.Domain.Enums.ReminderKind ToCommunicationsReminderKind(ShiftReminderChannel channel) => channel switch
+    {
+        ShiftReminderChannel.Email => Vitarish.Communications.Domain.Enums.ReminderKind.Email,
+        ShiftReminderChannel.Sms => Vitarish.Communications.Domain.Enums.ReminderKind.Sms,
+        _ => throw new ArgumentOutOfRangeException(nameof(channel), channel, "Unsupported reminder channel.")
+    };
 
     private static DateTime GetOccurrenceStart(Shift shift, DateOnly date)
     {
@@ -103,7 +110,7 @@ internal class ShiftReminderPolicyTriggeredHandler(
 
     private async Task<string?> ResolveRecipientAsync(
         string userId,
-        ReminderKind channel,
+        ShiftReminderChannel channel,
         CancellationToken cancellationToken)
     {
         Vitarish.Users.Domain.Entities.User? user = await mediator.Send(new GetUserQuery(userId), cancellationToken);
@@ -111,8 +118,8 @@ internal class ShiftReminderPolicyTriggeredHandler(
             ? null
             : channel switch
             {
-                ReminderKind.Email => user.Email,
-                ReminderKind.Sms => user.PhoneNumber,
+                ShiftReminderChannel.Email => user.Email,
+                ShiftReminderChannel.Sms => user.PhoneNumber,
                 _ => null
             };
     }

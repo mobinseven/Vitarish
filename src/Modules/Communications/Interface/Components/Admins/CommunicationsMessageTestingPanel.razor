@@ -1,6 +1,5 @@
-@using Vitarish.Communications.Domain.Models
-
 @inherits CommonBase
+@implements IDisposable
 <Stack>
     <StackField Label="@Localizer["CommunicationsMessages"]" />
     <StackTextField Label="@Localizer["Recipient"]" @bind-Value="recipient" />
@@ -44,8 +43,9 @@
 </Stack>
 
 @code {
-    [Inject] private ICommunicationCommandQueue CommunicationCommandQueue { get; set; } = default!;
-    [Inject] private IMessagesService MessagesService { get; set; } = default!;
+    private readonly CancellationTokenSource componentCancellation = new();
+    [Inject] private ICommunicationsClient CommunicationsClient { get; set; } = default!;
+    private CancellationToken ComponentCancellationToken => componentCancellation.Token;
 
     private string recipient = string.Empty;
     private string subject = "Manual Communications Test";
@@ -60,93 +60,53 @@
     private string? status;
     private Severity statusSeverity = Severity.Info;
 
-    private Task SendEmailAsync()
+    private async Task SendEmailAsync()
     {
         if (string.IsNullOrWhiteSpace(recipient))
         {
             SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
-            return Task.CompletedTask;
+            return;
         }
 
-        try
-        {
-            CommunicationCommandQueue.Enqueue(new EmailCommunicationCommand(recipient, subject, body, htmlBody));
-            SetStatus(GetLocalizedText("EmailQueued", "Email queued."), Severity.Success);
-        }
-        catch (Exception ex)
-        {
-            SetStatus(ex.Message, Severity.Error);
-        }
-
-        return Task.CompletedTask;
+        CommunicationsCommandResult result = await CommunicationsClient.SendEmailAsync(new SendEmailRequest(recipient, subject, body, htmlBody), ComponentCancellationToken);
+        SetCommandStatus(result, GetLocalizedText("EmailQueued", "Email queued."));
     }
 
-    private Task SendSmsAsync()
+    private async Task SendSmsAsync()
     {
         if (string.IsNullOrWhiteSpace(recipient))
         {
             SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
-            return Task.CompletedTask;
+            return;
         }
 
-        try
-        {
-            CommunicationCommandQueue.Enqueue(new SmsCommunicationCommand(recipient, body));
-            SetStatus(GetLocalizedText("SmsQueued", "SMS queued."), Severity.Success);
-        }
-        catch (Exception ex)
-        {
-            SetStatus(ex.Message, Severity.Error);
-        }
-
-        return Task.CompletedTask;
+        CommunicationsCommandResult result = await CommunicationsClient.SendSmsAsync(new SendSmsRequest(recipient, body), ComponentCancellationToken);
+        lastSmsMessageId = result.MessageId;
+        SetCommandStatus(result, GetLocalizedText("SmsQueued", "SMS queued."));
     }
 
-    private Task SendSmsCodeAsync()
+    private async Task SendSmsCodeAsync()
     {
         if (string.IsNullOrWhiteSpace(recipient))
         {
             SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
-            return Task.CompletedTask;
+            return;
         }
 
-        try
-        {
-            CommunicationCommandQueue.Enqueue(new SmsCodeCommunicationCommand(recipient, body));
-            SetStatus(GetLocalizedText("SmsCodeQueued", "SMS code queued."), Severity.Success);
-        }
-        catch (Exception ex)
-        {
-            SetStatus(ex.Message, Severity.Error);
-        }
-
-        return Task.CompletedTask;
+        CommunicationsCommandResult result = await CommunicationsClient.SendSmsCodeAsync(new SendSmsCodeRequest(recipient, body), ComponentCancellationToken);
+        SetCommandStatus(result, GetLocalizedText("SmsCodeQueued", "SMS code queued."));
     }
 
-    private Task SendSmsReminderAsync()
+    private async Task SendSmsReminderAsync()
     {
         if (string.IsNullOrWhiteSpace(recipient))
         {
             SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
-            return Task.CompletedTask;
+            return;
         }
 
-        try
-        {
-            CommunicationCommandQueue.Enqueue(new SmsReminderCommunicationCommand(
-                recipient,
-                Project: reminderProject,
-                Procedure: reminderProcedure,
-                Event: reminderEvent,
-                Tenant: reminderTenant));
-            SetStatus(GetLocalizedText("SmsReminderQueued", "SMS reminder queued."), Severity.Success);
-        }
-        catch (Exception ex)
-        {
-            SetStatus(ex.Message, Severity.Error);
-        }
-
-        return Task.CompletedTask;
+        CommunicationsCommandResult result = await CommunicationsClient.SendSmsReminderAsync(new SendSmsReminderRequest(recipient, reminderProject, reminderProcedure, reminderEvent, reminderTenant), ComponentCancellationToken);
+        SetCommandStatus(result, GetLocalizedText("SmsReminderQueued", "SMS reminder queued."));
     }
 
     private async Task CheckDeliveryStateAsync()
@@ -157,25 +117,35 @@
             return;
         }
 
-        try
+        CommunicationsQueryResult<Vitarish.Communications.Contracts.Responses.SmsDeliveryStateResponse> result = await CommunicationsClient.GetSmsDeliveryStateAsync(messageId, ComponentCancellationToken);
+        if (!result.IsSuccess || result.Value is null)
         {
-            SmsDeliveryState state = await MessagesService.GetSmsDeliveryStateAsync(messageId, CancellationToken.None);
-            string stateStatus = state.Status ?? Localizer["Unknown"].Value;
-            string stateMessage = string.IsNullOrWhiteSpace(state.MessageText)
-                ? stateStatus
-                : $"{stateStatus}: {state.MessageText}";
-            SetStatus(stateMessage, Severity.Info);
+            SetStatus(result.Error?.Message ?? GetLocalizedText("DeliveryStateUnavailable", "Delivery state is unavailable."), Severity.Error);
+            return;
         }
-        catch (Exception ex)
-        {
-            SetStatus(ex.Message, Severity.Error);
-        }
+
+        string stateStatus = result.Value.Status ?? Localizer["Unknown"].Value;
+        string stateMessage = string.IsNullOrWhiteSpace(result.Value.MessageText)
+            ? stateStatus
+            : $"{stateStatus}: {result.Value.MessageText}";
+        SetStatus(stateMessage, Severity.Info);
+    }
+
+    private void SetCommandStatus(CommunicationsCommandResult result, string successMessage)
+    {
+        SetStatus(result.IsSuccess ? successMessage : result.Error?.Message ?? result.Status.ToString(), result.IsSuccess ? Severity.Success : Severity.Error);
     }
 
     private void SetStatus(string message, Severity severity)
     {
         status = message;
         statusSeverity = severity;
+    }
+
+    public void Dispose()
+    {
+        componentCancellation.Cancel();
+        componentCancellation.Dispose();
     }
 
     private string GetLocalizedText(string key, string fallback)

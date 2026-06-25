@@ -12,5 +12,5 @@ public record ShiftReminderPolicyDescriptorDto : EntityDescriptorDto
 
     [JsonPropertyName("channel")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public ReminderKind? Channel { get; set; }
+    public ShiftReminderChannel? Channel { get; set; }
 }

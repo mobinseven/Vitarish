@@ -9,7 +9,7 @@ public record ReminderReadDto : EntityReadDto
     public ReminderKind Kind { get; set; }
 
     [JsonPropertyName("recipientUserId")]
-    public string RecipientUserId { get; set; } = default!;
+    public string? RecipientUserId { get; set; }
 
     [JsonPropertyName("recipient")]
     public string Recipient { get; set; } = default!;

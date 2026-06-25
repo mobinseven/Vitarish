@@ -1,11 +1,10 @@
 @inherits ShiftReminderPoliciesBase
-@using Vitarish.Communications.Domain.Enums
 
 <Stack>
     <StackField Label="@Localizer["Channel"]">
-        <MudRadioGroup T="ReminderKind" @bind-Value="dto.Channel">
-            <MudRadio T="ReminderKind" Value="ReminderKind.Email" Label="@Localizer["Email"]" />
-            <MudRadio T="ReminderKind" Value="ReminderKind.Sms" Label="@Localizer["Sms"]" />
+        <MudRadioGroup T="ShiftReminderChannel" @bind-Value="dto.Channel">
+            <MudRadio T="ShiftReminderChannel" Value="ShiftReminderChannel.Email" Label="@Localizer["Email"]" />
+            <MudRadio T="ShiftReminderChannel" Value="ShiftReminderChannel.Sms" Label="@Localizer["Sms"]" />
         </MudRadioGroup>
     </StackField>
 
