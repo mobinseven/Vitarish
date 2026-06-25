@@ -1,4 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
-  <ItemGroup><ProjectReference Include="..\Contracts\Parties.Contracts.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="..\Contracts\Parties.Contracts.csproj" /><ProjectReference Include="..\..\Base\Modules.Base.csproj" /></ItemGroup>
 </Project>

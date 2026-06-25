@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Files.Application.Abstractions;
+using Vitarish.Modules.Base.Endpoints;
 
 namespace Vitarish.Files.Infrastructure.Api;
 
@@ -9,7 +10,7 @@ public static class FilesApi
 {
     public static IEndpointRouteBuilder MapFilesApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder filesGroup = endpoints.MapGroup("/files");
+        RouteGroupBuilder filesGroup = endpoints.MapProtectedModuleGroup("/files");
 
         _ = filesGroup.MapGet("/{id:guid}", GetFileByIdAsync);
         _ = filesGroup.MapMethods("/{id:guid}", ["HEAD"], GetFileByIdAsync);

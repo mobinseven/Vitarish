@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Vitarish.Modules.Base.Endpoints;
 using Vitarish.Search.Application.Queries;
 using Vitarish.Search.Contracts.Errors;
 using Vitarish.Search.Contracts.Requests;
@@ -11,7 +12,7 @@ using Vitarish.Search.Domain.Models;
 namespace Vitarish.Search.Api;
 public static class SearchApiEndpointMapping
 {
-    public static IEndpointRouteBuilder MapSearchApi(this IEndpointRouteBuilder endpoints){ var group=endpoints.MapGroup(SearchApiRoutes.Base); _=group.MapPost(SearchApiRoutes.Search, SearchAsync); _=group.MapGet(SearchApiRoutes.IndexStatus, GetIndexStatusAsync); return endpoints; }
+    public static IEndpointRouteBuilder MapSearchApi(this IEndpointRouteBuilder endpoints){ var group=endpoints.MapProtectedModuleGroup(SearchApiRoutes.Base); _=group.MapPost(SearchApiRoutes.Search, SearchAsync); _=group.MapGet(SearchApiRoutes.IndexStatus, GetIndexStatusAsync); return endpoints; }
     private static async Task<IResult> SearchAsync(SearchRequest request, IMediator mediator, CancellationToken cancellationToken){ if(string.IsNullOrWhiteSpace(request.Query)) return Results.BadRequest(new SearchError(SearchErrorCode.Validation,"Search query is required.")); SearchResult result=await mediator.Send(new SearchQuery(request.IndexName, request.Query, ToDomain(request.Options)), cancellationToken); return Results.Ok(ToDto(result)); }
     private static async Task<IResult> GetIndexStatusAsync(IMediator mediator, CancellationToken cancellationToken){ IReadOnlyList<IndexStatusReport> reports=await mediator.Send(new GetIndexStatusQuery(), cancellationToken); return Results.Ok(reports.Select(ToDto).ToArray()); }
     private static SearchOptions ToDomain(SearchOptionsDto? dto)

@@ -1,17 +1,41 @@
 using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json;
+using Vitarish.Modules.Base.Client;
 using Vitarish.Search.Contracts.Errors;
 using Vitarish.Search.Contracts.Requests;
 using Vitarish.Search.Contracts.Responses;
 using Vitarish.Search.Contracts.Results;
 using Vitarish.Search.Contracts.Routes;
+
 namespace Vitarish.Search.Client;
-public sealed class SearchClient(HttpClient httpClient) : ISearchClient
+
+public sealed class SearchClient(HttpClient httpClient) : AuthenticatedModuleApiClient(httpClient), ISearchClient
 {
-    public Task<SearchClientResult<SearchResultDto>> SearchAsync(SearchRequest request, CancellationToken cancellationToken = default) => PostAsync<SearchRequest,SearchResultDto>(SearchApiRoutes.Base, request, cancellationToken);
-    public async Task<SearchClientResult<IReadOnlyList<SearchIndexStatusReportDto>>> GetIndexStatusAsync(GetSearchIndexStatusRequest request, CancellationToken cancellationToken = default)
-    { try { using HttpResponseMessage response=await httpClient.GetAsync(SearchApiRoutes.Base+SearchApiRoutes.IndexStatus,cancellationToken); if(response.IsSuccessStatusCode){ var value=await response.Content.ReadFromJsonAsync<IReadOnlyList<SearchIndexStatusReportDto>>(cancellationToken); return value is null ? SearchClientResult<IReadOnlyList<SearchIndexStatusReportDto>>.Failed(new(SearchErrorCode.Deserialization,"Search API returned an empty response.",(int)response.StatusCode)) : SearchClientResult<IReadOnlyList<SearchIndexStatusReportDto>>.Success(value);} return SearchClientResult<IReadOnlyList<SearchIndexStatusReportDto>>.Failed(await CreateErrorAsync(response,cancellationToken)); } catch(OperationCanceledException){return SearchClientResult<IReadOnlyList<SearchIndexStatusReportDto>>.Failed(new(cancellationToken.IsCancellationRequested?SearchErrorCode.Canceled:SearchErrorCode.Timeout,cancellationToken.IsCancellationRequested?"Search request was canceled.":"Search request timed out."));} catch(Exception ex) when(ex is HttpRequestException or JsonException or NotSupportedException){return SearchClientResult<IReadOnlyList<SearchIndexStatusReportDto>>.Failed(new(SearchErrorCode.Transport,ex.Message));} }
-    private async Task<SearchClientResult<TResponse>> PostAsync<TRequest,TResponse>(string uri,TRequest request,CancellationToken cancellationToken){ try{ using HttpResponseMessage response=await httpClient.PostAsJsonAsync(uri,request,cancellationToken); if(response.IsSuccessStatusCode){ TResponse? value=await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken); return value is null?SearchClientResult<TResponse>.Failed(new(SearchErrorCode.Deserialization,"Search API returned an empty response.",(int)response.StatusCode)):SearchClientResult<TResponse>.Success(value);} return SearchClientResult<TResponse>.Failed(await CreateErrorAsync(response,cancellationToken)); } catch(OperationCanceledException){return SearchClientResult<TResponse>.Failed(new(cancellationToken.IsCancellationRequested?SearchErrorCode.Canceled:SearchErrorCode.Timeout,cancellationToken.IsCancellationRequested?"Search request was canceled.":"Search request timed out."));} catch(Exception ex) when(ex is HttpRequestException or JsonException or NotSupportedException){return SearchClientResult<TResponse>.Failed(new(SearchErrorCode.Transport,ex.Message));} }
-    private static async Task<SearchError> CreateErrorAsync(HttpResponseMessage response,CancellationToken cancellationToken){ try{ SearchError? error=await response.Content.ReadFromJsonAsync<SearchError>(cancellationToken); if(error is not null)return error;}catch(Exception ex) when(ex is JsonException or NotSupportedException){} SearchErrorCode code=response.StatusCode switch{HttpStatusCode.BadRequest=>SearchErrorCode.Validation,HttpStatusCode.Unauthorized=>SearchErrorCode.Unauthorized,HttpStatusCode.Forbidden=>SearchErrorCode.Forbidden,_=>SearchErrorCode.Unexpected}; return new(code,"Search API request failed.",(int)response.StatusCode); }
+    public async Task<SearchClientResult<SearchResultDto>> SearchAsync(SearchRequest request, CancellationToken cancellationToken = default) =>
+        MapResult(await PostJsonAsync<SearchRequest, SearchResultDto>(SearchApiRoutes.Base, request, cancellationToken).ConfigureAwait(false));
+
+    public async Task<SearchClientResult<IReadOnlyList<SearchIndexStatusReportDto>>> GetIndexStatusAsync(GetSearchIndexStatusRequest request, CancellationToken cancellationToken = default) =>
+        MapResult(await GetJsonAsync<IReadOnlyList<SearchIndexStatusReportDto>>(SearchApiRoutes.Base + SearchApiRoutes.IndexStatus, cancellationToken).ConfigureAwait(false));
+
+    protected override ModuleApiClientFailure CreateFailure(HttpStatusCode statusCode, string message, int? statusCodeValue) =>
+        new(statusCode.ToString(), message, statusCodeValue);
+
+    private static SearchClientResult<T> MapResult<T>(ModuleApiClientResult<T> result) =>
+        result.IsSuccess
+            ? SearchClientResult<T>.Success(result.Value!)
+            : SearchClientResult<T>.Failed(MapFailure(result.Failure!));
+
+    private static SearchError MapFailure(ModuleApiClientFailure failure) =>
+        new(MapCode(failure), failure.Message, failure.StatusCode);
+
+    private static SearchErrorCode MapCode(ModuleApiClientFailure failure) => failure.Code switch
+    {
+        "Canceled" => SearchErrorCode.Canceled,
+        "Timeout" => SearchErrorCode.Timeout,
+        "Transport" => SearchErrorCode.Transport,
+        "Deserialization" => SearchErrorCode.Deserialization,
+        nameof(HttpStatusCode.BadRequest) => SearchErrorCode.Validation,
+        nameof(HttpStatusCode.Unauthorized) => SearchErrorCode.Unauthorized,
+        nameof(HttpStatusCode.Forbidden) => SearchErrorCode.Forbidden,
+        _ => SearchErrorCode.Unexpected
+    };
 }

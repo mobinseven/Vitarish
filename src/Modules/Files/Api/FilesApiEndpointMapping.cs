@@ -3,6 +3,7 @@ using System.Threading.Channels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Vitarish.Modules.Base.Endpoints;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Contracts.Errors;
 using Vitarish.Files.Contracts.Requests;
@@ -17,7 +18,7 @@ public static class FilesApiEndpointMapping
 {
     public static IEndpointRouteBuilder MapFilesApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapGroup(FilesApiRoutes.Base);
+        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(FilesApiRoutes.Base);
         _ = group.MapGet(FilesApiRoutes.ById, GetFileInformationAsync);
         _ = group.MapPost("/search", FindFilesAsync);
         _ = group.MapPost(string.Empty, CreateFileRecordAsync);
@@ -133,6 +134,7 @@ finally
                 // Suppress background pump exceptions to avoid masking the primary exception
             }
         }
+    }
 
     private static async Task<IResult> DownloadFileAsync(Guid fileId, HttpContext context, IObjectStorageService storageService, IFileInformationService fileInfoService)
     {
