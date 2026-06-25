@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Modules.Base;
+using Vitarish.Requests.Api;
 using Vitarish.Requests.Module.DependencyInjection;
 
 namespace Vitarish.Requests.Module;
@@ -19,5 +20,9 @@ public sealed class RequestsModule : Vitarish.Modules.Base.Module
         return Task.CompletedTask;
     }
 
-    public override Task Initialize(WebApplication app) => Task.CompletedTask;
+    public override Task Initialize(WebApplication app)
+    {
+        _ = app.MapRequestsApi();
+        return Task.CompletedTask;
+    }
 }
