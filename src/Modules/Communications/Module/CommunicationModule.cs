@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Options;
+using Vitarish.Communications.Api;
 using Vitarish.Communications.Infrastructure.Data;
 using Vitarish.Communications.Infrastructure.DependencyInjection;
 using Vitarish.Communications.Infrastructure.Serializers;
@@ -32,7 +33,11 @@ public class CommunicationModule : Vitarish.Modules.Base.Module, ICommunications
             .ValidateOnStart();
     }
 
-    public override Task Initialize(WebApplication app) => app.MigrateDatabaseAsync<CommunicationsDbContext>();
+    public override async Task Initialize(WebApplication app)
+    {
+        _ = await app.MigrateDatabaseAsync<CommunicationsDbContext>();
+        _ = app.MapCommunicationsApi();
+    }
     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         RegisterOptions(builder.Services, builder.Configuration, OptionsSectionPath);
