@@ -56,10 +56,13 @@ public static class RequestsApi
 
     private static IReadOnlyCollection<RequestIdentitySort> ToSorts(IReadOnlyList<string> sortValues)
         => sortValues
+            .Select(value => value?.Trim())
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .Select(value => value.StartsWith("-", StringComparison.Ordinal)
-                ? new RequestIdentitySort(value[1..], true)
-                : new RequestIdentitySort(value, false))
+                ? (Field: value[1..].Trim(), Descending: true)
+                : (Field: value, Descending: false))
+            .Where(x => !string.IsNullOrWhiteSpace(x.Field))
+            .Select(x => new RequestIdentitySort(x.Field, x.Descending))
             .ToArray();
 
     private static RequestIdentityResponse ToResponse(Request request) => new(
