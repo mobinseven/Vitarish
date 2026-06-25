@@ -43,7 +43,7 @@ public static class FilesApiEndpointMapping
 
     private static async Task<IResult> CreateFileRecordAsync(CreateFileRecordRequest request, IFileInformationService service, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.File.ContentType))
+        if (request.File is null || string.IsNullOrWhiteSpace(request.File.ContentType))
         {
             return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "Content type is required."));
         }
