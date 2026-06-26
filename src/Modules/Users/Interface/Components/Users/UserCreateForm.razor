@@ -75,16 +75,33 @@
         {
             if (!autoLinkExisting)
             {
-                if (phone is not null && (await UsersClient.CheckUserPhoneNumberInUseAsync(new CheckUserPhoneNumberInUseQueryParameters(phone), submitCts.Token)).Value?.Exists == true)
+               if (phone is not null)
                 {
-                    error = Localizer["UserWithPhoneExists"];
-                    return;
+                    var checkResult = await UsersClient.CheckUserPhoneNumberInUseAsync(new CheckUserPhoneNumberInUseQueryParameters(phone), submitCts.Token);
+                    if (!checkResult.IsSuccess)
+                    {
+                        error = GetFailureMessage(checkResult.Failure);
+                        return;
+                    }
+                    if (checkResult.Value?.Exists == true)
+                    {
+                        error = Localizer["UserWithPhoneExists"];
+                        return;
+                    }
                 }
-
-                if (mail is not null && (await UsersClient.CheckUserEmailInUseAsync(new CheckUserEmailInUseQueryParameters(mail), submitCts.Token)).Value?.Exists == true)
+                if (mail is not null)
                 {
-                    error = Localizer["UserWithEmailExists"];
-                    return;
+                    var checkResult = await UsersClient.CheckUserEmailInUseAsync(new CheckUserEmailInUseQueryParameters(mail), submitCts.Token);
+                    if (!checkResult.IsSuccess)
+                    {
+                        error = GetFailureMessage(checkResult.Failure);
+                        return;
+                    }
+                    if (checkResult.Value?.Exists == true)
+                    {
+                        error = Localizer["UserWithEmailExists"];
+                        return;
+                    }
                 }
             }
 
