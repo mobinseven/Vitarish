@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Contracts\Sea.Contracts.csproj" />
+    <ProjectReference Include="..\Application\Sea.Application.csproj" />
+    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+  </ItemGroup>
+
+</Project>

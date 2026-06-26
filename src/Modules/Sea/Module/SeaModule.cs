@@ -7,6 +7,7 @@ using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.DependencyInjection;
 using Vitarish.Sea.Infrastructure.Services;
 using Vitarish.Sea.Interface.DependencyInjection;
+using Vitarish.Sea.Api;
 using Vitarish.Sea.Presentation.Serializers;
 using Vitarish.Entities.Server.Extensions;
 
@@ -39,5 +40,6 @@ public class SeaModule : Vitarish.Modules.Base.Module, ISeaModule
     {
         _ = await app.MigrateDatabaseAsync<SeaDbContext>();
         await app.InitializeViews();
+        app.MapSeaApi();
     }
 }

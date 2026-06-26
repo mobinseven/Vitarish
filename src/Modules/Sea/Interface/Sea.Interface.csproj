@@ -9,19 +9,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\Modules\Parties\Application\Parties.Application.csproj" />
-		<ProjectReference Include="..\..\..\Modules\Parties\Domain\Parties.Domain.csproj" />
-		<ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
-		<ProjectReference Include="..\..\..\Modules\Users\Application\Users.Application.csproj" />
-		<ProjectReference Include="..\..\..\Modules\Users\Domain\Users.Domain.csproj" />
 		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
+		<ProjectReference Include="..\Client\Sea.Client.csproj" />
+		<ProjectReference Include="..\Contracts\Sea.Contracts.csproj" />
 		<ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
 		<ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" />
 		<ProjectReference Include="..\..\Communications\Interface\Communications.Interface.csproj" />
-		<ProjectReference Include="..\Application\Sea.Application.csproj" />
-		<ProjectReference Include="..\Domain\Sea.Domain.csproj" />
-		<ProjectReference Include="..\Infrastructure\Sea.Infrastructure.csproj" />
 	</ItemGroup>
 
 </Project>

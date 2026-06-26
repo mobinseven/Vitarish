@@ -1,5 +1,3 @@
-using Vitarish.Sea.Domain.Mappers;
-
 namespace Vitarish.Sea.Interface.Components.Procedures;
 
 public partial class ProcedureEditDialog : ProceduresBase
@@ -15,7 +13,7 @@ public partial class ProcedureEditDialog : ProceduresBase
     {
         if (Procedure is not null)
         {
-            procedure = Procedure.ToWrite();
+            procedure = Procedure.ToUpdateRequest();
         }
     }
 

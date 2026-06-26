@@ -1,5 +1,3 @@
-using Vitarish.Sea.Domain.Mappers;
-
 namespace Vitarish.Sea.Interface.Components.Projects;
 
 public partial class ProjectEditForm : ProjectsBase
@@ -20,7 +18,7 @@ public partial class ProjectEditForm : ProjectsBase
     {
         if (Project is not null)
         {
-            projectWriteDto = Project.ToWrite();
+            projectWriteDto = Project.ToUpdateRequest();
         }
     }
     protected virtual async Task SaveAsync()
