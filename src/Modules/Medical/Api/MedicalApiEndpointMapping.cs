@@ -65,6 +65,8 @@ public static class MedicalApiEndpointMapping
         MedicalErrorCode.Conflict => Results.Conflict(error),
         MedicalErrorCode.ProviderUnavailable => Results.StatusCode(StatusCodes.Status503ServiceUnavailable),
         MedicalErrorCode.Timeout => Results.StatusCode(StatusCodes.Status504GatewayTimeout),
+        MedicalErrorCode.ProviderRejected => Results.UnprocessableEntity(error),
+        MedicalErrorCode.CredentialInvalid or MedicalErrorCode.CredentialExpired or MedicalErrorCode.CredentialRevoked => Results.BadRequest(error),
         _ => Results.Problem(error.Message)
     };
 }
