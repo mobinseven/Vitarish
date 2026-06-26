@@ -1,7 +1,8 @@
 using Vitarish.Interfaces.Admins.Components;
-using Vitarish.Parties.Domain;
-using Vitarish.Parties.Domain.Dtos;
-using Vitarish.Parties.Domain.Mappers;
+using Vitarish.Parties.Client;
+using Vitarish.Parties.Contracts.Results;
+using Vitarish.Parties.Contracts.Tenants;
+
 
 namespace Vitarish.Main.Pages.Platform;
 
@@ -31,8 +32,8 @@ public partial class PlatformAdminTenantPage : PlatformAdminCommonBase
         tenantGuid = id;
         _ownerGuid = OwnerId ?? Guid.Empty;
 
-        TenantReadDto? ten = await PartiesService.GetTenantAsync(tenantGuid);
-        if (ten is not null)
+        PartiesResult<TenantReadDto> tenantResult = await PartiesClient.GetTenantAsync(tenantGuid);
+        if (tenantResult.IsSuccess && tenantResult.Value is { } ten)
         {
             SetTenant(ten);
         }
@@ -46,8 +47,8 @@ public partial class PlatformAdminTenantPage : PlatformAdminCommonBase
     private void SetTenant(TenantReadDto updated)
     {
         Tenant = updated;
-        selectedModules = new HashSet<string>(TenantMetadata.GetActiveModules(updated.Metadata), StringComparer.OrdinalIgnoreCase);
-        selectedApps = new HashSet<string>(TenantMetadata.GetActiveApps(updated.Metadata), StringComparer.OrdinalIgnoreCase);
+        selectedModules = new HashSet<string>(TenantMetadataValues.GetActiveModules(updated.Metadata), StringComparer.OrdinalIgnoreCase);
+        selectedApps = new HashSet<string>(TenantMetadataValues.GetActiveApps(updated.Metadata), StringComparer.OrdinalIgnoreCase);
     }
 
     private async Task Save()
@@ -61,17 +62,17 @@ public partial class PlatformAdminTenantPage : PlatformAdminCommonBase
         try
         {
             TenantWriteDto write = Tenant.ToWriteWithMetadata();
-            TenantMetadata.SetActiveModules(write.Metadata, selectedModules);
-            TenantMetadata.SetActiveApps(write.Metadata, selectedApps);
+            TenantMetadataValues.SetActiveModules(write.Metadata, selectedModules);
+            TenantMetadataValues.SetActiveApps(write.Metadata, selectedApps);
 
-            TenantReadDto? updated = await PartiesService.UpdateTenantAsync(write);
-            if (updated is null)
+            PartiesResult<TenantReadDto> updatedResult = await PartiesClient.UpdateTenantAsync(write);
+            if (!updatedResult.IsSuccess || updatedResult.Value is null)
             {
                 _ = Snackbar.Add(Localizer["Error"], Severity.Error);
                 return;
             }
 
-            SetTenant(updated);
+            SetTenant(updatedResult.Value);
             _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
         }
         finally
@@ -82,7 +83,7 @@ public partial class PlatformAdminTenantPage : PlatformAdminCommonBase
 
     private async Task RemoveTenant()
     {
-        await PartiesService.DeleteTenantAsync(tenantGuid);
+        _ = await PartiesClient.DeleteTenantAsync(tenantGuid);
         Back();
     }
 

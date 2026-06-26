@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Vitarish.Medical.Contracts.Errors;
 using Vitarish.Medical.Contracts.Imports;
 using Vitarish.Medical.Contracts.Requests;
@@ -48,23 +49,44 @@ public sealed class MedicalClient(HttpClient httpClient) : AuthenticatedModuleAp
     public Task<MedicalResult<MedicalCommandResult>> ManualReconcileAsync(ManualReconcileRequest request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.Reconciliation + "/manual", request, cancellationToken);
     public Task<MedicalResult<MedicalCommandResult>> EscalatePrescriptionAsync(EscalatePrescriptionRequest request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.Escalation, request, cancellationToken);
 
-    public async Task<TResponse> Send<TResponse>(object request, CancellationToken cancellationToken = default)
-    {
-        MedicalResult<TResponse> result = await Post<TResponse>("/compat", request, cancellationToken).ConfigureAwait(false);
-        if (!result.IsSuccess)
-        {
-            throw new HttpRequestException($"Compatibility request failed: {result.Failure?.Message} (Code: {result.Failure?.Code})");
-        }
-        return result.Value!;
-    }
 
-    private async Task<MedicalResult<T>> Post<T>(string route, object request, CancellationToken cancellationToken)
-    {
-        var result = await PostJsonAsync<object, T>(MedicalApiRoutes.Base + route, request, cancellationToken).ConfigureAwait(false);
-        return result.IsSuccess ? MedicalResult<T>.Success(result.Value!) : MedicalResult<T>.Failed(MapFailure(result.Failure!));
-    }
+    public Task<MedicalResult<CodeSystemResponse?>> GetCodeSystemByKeyAsync(GetCodeSystemByKeyRequest request, CancellationToken cancellationToken) => Post<CodeSystemResponse?>(MedicalApiRoutes.CodeSystemByKey, request, cancellationToken);
+    public Task<MedicalResult<CodeSystemReleaseResponse?>> GetActiveCodeSystemReleaseAsync(GetActiveCodeSystemReleaseRequest request, CancellationToken cancellationToken) => Post<CodeSystemReleaseResponse?>(MedicalApiRoutes.ActiveCodeSystemRelease, request, cancellationToken);
+    public Task<MedicalResult<MedicalCodeResponse?>> ResolveMedicalCodeAsync(ResolveMedicalCodeRequest request, CancellationToken cancellationToken) => Post<MedicalCodeResponse?>(MedicalApiRoutes.MedicalCodeResolve, request, cancellationToken);
+    public Task<MedicalResult<DrugResponse?>> GetDrugAsync(GetDrugRequest request, CancellationToken cancellationToken) => Post<DrugResponse?>(MedicalApiRoutes.DrugById.Replace("{drugId:guid}", request.DrugId.ToString()), request, cancellationToken);
+    public Task<MedicalResult<DrugResponse?>> ResolveDrugIdentifierAsync(ResolveDrugIdentifierRequest request, CancellationToken cancellationToken) => Post<DrugResponse?>(MedicalApiRoutes.DrugIdentifierResolve, request, cancellationToken);
+    public Task<MedicalResult<DrugProductResponse?>> GetDrugProductAsync(GetDrugProductRequest request, CancellationToken cancellationToken) => Post<DrugProductResponse?>(MedicalApiRoutes.DrugProductById.Replace("{drugProductId:guid}", request.DrugProductId.ToString()), request, cancellationToken);
+    public Task<MedicalResult<PackagedDrugResponse?>> GetPackagedDrugAsync(GetPackagedDrugRequest request, CancellationToken cancellationToken) => Post<PackagedDrugResponse?>(MedicalApiRoutes.PackagedDrugById.Replace("{packagedDrugId:guid}", request.PackagedDrugId.ToString()), request, cancellationToken);
+    public Task<MedicalResult<MedicalServiceResponse?>> GetMedicalServiceAsync(GetMedicalServiceRequest request, CancellationToken cancellationToken) => Post<MedicalServiceResponse?>(MedicalApiRoutes.MedicalServiceById.Replace("{serviceId:guid}", request.ServiceId.ToString()), request, cancellationToken);
+    public Task<MedicalResult<ServiceCodeResponse?>> ResolveServiceCodeAsync(ResolveServiceCodeRequest request, CancellationToken cancellationToken) => Post<ServiceCodeResponse?>(MedicalApiRoutes.ServiceCodeResolve, request, cancellationToken);
+    public Task<MedicalResult<ServiceValuationResponse?>> GetServiceValuationAsync(GetServiceValuationRequest request, CancellationToken cancellationToken) => Post<ServiceValuationResponse?>(MedicalApiRoutes.ServiceValuation, request, cancellationToken);
+    public Task<MedicalResult<IReadOnlyList<CodeMapResponse>>> GetCodeMapsAsync(GetCodeMapsRequest request, CancellationToken cancellationToken) => Post<IReadOnlyList<CodeMapResponse>>(MedicalApiRoutes.CodeMaps, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> RegisterCodeSystemAsync(RegisterCodeSystemCommand request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.RegisterCodeSystem, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> RegisterCodeSystemReleaseAsync(RegisterCodeSystemReleaseCommand request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.RegisterCodeSystemRelease, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> ActivateCodeSystemReleaseAsync(ActivateCodeSystemReleaseCommand request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.ActivateCodeSystemRelease, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> DeactivateCodeSystemReleaseAsync(DeactivateCodeSystemReleaseCommand request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.DeactivateCodeSystemRelease, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> CreateLocalMedicalCodeAsync(CreateLocalMedicalCodeCommand request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.CreateLocalMedicalCode, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> CreateCodeMapAsync(CreateCodeMapCommand request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.CreateCodeMap, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> CreateMedicalServiceAsync(CreateMedicalServiceCommand request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.CreateMedicalService, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> UpdateLocalMedicalServiceAsync(UpdateLocalMedicalServiceCommand request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.UpdateLocalMedicalService, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> RetireMedicalServiceAsync(RetireMedicalServiceCommand request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.RetireMedicalService, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> CreateDrugAsync(CreateDrugCommand request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.CreateDrug, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> UpdateLocalDrugAsync(UpdateLocalDrugCommand request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.UpdateLocalDrug, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> RetireDrugAsync(RetireDrugCommand request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.RetireDrug, request, cancellationToken);
+    public Task<MedicalResult<ValidationResultDto>> ValidatePrescriptionDraftAsync(ValidatePrescriptionDraftRequest request, CancellationToken cancellationToken) => Post<ValidationResultDto>(MedicalApiRoutes.PrescriptionDraftValidation.Replace("{prescriptionId:guid}", request.PrescriptionId.ToString()), request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> EditPrescriptionAsync(EditPrescriptionRequest request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.PrescriptionEdit.Replace("{prescriptionId:guid}", request.PrescriptionId.ToString()), request, cancellationToken);
+    public Task<MedicalResult<IReadOnlyList<AvailableProviderDto>>> GetAvailableProvidersAsync(GetAvailableProvidersRequest request, CancellationToken cancellationToken) => Post<IReadOnlyList<AvailableProviderDto>>(MedicalApiRoutes.AvailableProviders, request, cancellationToken);
+    public Task<MedicalResult<IReadOnlyList<CredentialSetupDto>>> GetCredentialSetupGridAsync(GetCredentialSetupGridRequest request, CancellationToken cancellationToken) => Post<IReadOnlyList<CredentialSetupDto>>(MedicalApiRoutes.CredentialSetupGrid, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> TestCredentialAsync(TestCredentialRequest request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.CredentialTest, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> RevokeCredentialAsync(RevokeCredentialRequest request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.CredentialRevoke, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> ArchivePrescriptionTemplateAsync(ArchivePrescriptionTemplateRequest request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.PrescriptionTemplateArchive, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> AddPrescriptionTemplateItemAsync(AddPrescriptionTemplateItemRequest request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.PrescriptionTemplateItems, request, cancellationToken);
+    public Task<MedicalResult<MedicalCommandResult>> RemovePrescriptionTemplateItemAsync(RemovePrescriptionTemplateItemRequest request, CancellationToken cancellationToken) => Post<MedicalCommandResult>(MedicalApiRoutes.PrescriptionTemplateItemRemove, request, cancellationToken);
+    public Task<MedicalResult<IReadOnlyList<ProviderTransactionMetricsDto>>> GetProviderTransactionMetricsAsync(GetProviderTransactionMetricsRequest request, CancellationToken cancellationToken) => Post<IReadOnlyList<ProviderTransactionMetricsDto>>(MedicalApiRoutes.TransactionMetrics, request, cancellationToken);
+    public Task<MedicalResult<IReadOnlyList<RejectionDistributionDto>>> GetRejectionDistributionAsync(GetRejectionDistributionRequest request, CancellationToken cancellationToken) => Post<IReadOnlyList<RejectionDistributionDto>>(MedicalApiRoutes.RejectionDistribution, request, cancellationToken);
+    public Task<MedicalResult<CredentialHealthResult>> GetCredentialHealthAsync(GetCredentialHealthRequest request, CancellationToken cancellationToken) => Post<CredentialHealthResult>(MedicalApiRoutes.CredentialHealth, request, cancellationToken);
+    public Task<MedicalResult<DuplicateRiskIncidentsResult>> GetDuplicateRiskIncidentsAsync(GetDuplicateRiskIncidentsRequest request, CancellationToken cancellationToken) => Post<DuplicateRiskIncidentsResult>(MedicalApiRoutes.DuplicateRiskIncidents, request, cancellationToken);
 
-    protected override ModuleApiClientFailure CreateFailure(HttpStatusCode statusCode, string message, int? statusCodeValue) => new(statusCode.ToString(), message, statusCodeValue);
     private async Task<MedicalResult<T>> Post<T>(string route, object request, CancellationToken cancellationToken)
     {
         var result = await PostJsonAsync<object, T>(MedicalApiRoutes.Base + route, request, cancellationToken).ConfigureAwait(false);
@@ -74,20 +96,24 @@ public sealed class MedicalClient(HttpClient httpClient) : AuthenticatedModuleAp
         }
 
         MedicalError? error = null;
-        if (result.Failure?.Content != null)
+        if (result.Failure?.Message is { } content)
         {
             try
             {
-                error = System.Text.Json.JsonSerializer.Deserialize<MedicalError>(result.Failure.Content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                error = JsonSerializer.Deserialize<MedicalError>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
-            catch
+            catch (JsonException)
             {
-                // Fallback to status-code mapping if parsing fails
+                error = null;
             }
         }
 
         return MedicalResult<T>.Failed(error ?? MapFailure(result.Failure!));
     }
+
+    private static MedicalError MapFailure(ModuleApiClientFailure failure) => new(MapCode(failure), failure.Message, failure.StatusCode);
+
+    protected override ModuleApiClientFailure CreateFailure(HttpStatusCode statusCode, string message, int? statusCodeValue) => new(statusCode.ToString(), message, statusCodeValue);
     private static MedicalErrorCode MapCode(ModuleApiClientFailure failure) => failure.Code switch
     {
         "Canceled" => MedicalErrorCode.Cancellation,

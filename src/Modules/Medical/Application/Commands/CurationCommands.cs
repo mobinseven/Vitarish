@@ -34,7 +34,9 @@ public record UpdateLocalDrugCommand(
     Guid DrugId,
     string PrimaryName,
     DateOnly? EffectiveFrom,
-    DateOnly? EffectiveTo) : IRequest<EntityResult<Guid>>;
+    DateOnly? EffectiveTo,
+    DrugIdentifierType? PrimaryIdentifierType = null,
+    string? PrimaryIdentifierValue = null) : IRequest<EntityResult<Guid>>;
 
 public record RetireDrugCommand(Guid DrugId) : IRequest<EntityResult<Guid>>;
 

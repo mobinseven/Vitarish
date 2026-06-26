@@ -11,7 +11,7 @@ public partial class PrescriptionItemsGrid : PrescriptionBase
 
     private async Task RemoveItemAsync(Guid itemId)
     {
-        RemoveItemResult result = await Mediator.Send(new RemoveItemCommand
+        RemoveItemResult result = await MedicalClient.Send(new RemoveItemCommand
         {
             PrescriptionId = Prescription.Id,
             ItemId = itemId

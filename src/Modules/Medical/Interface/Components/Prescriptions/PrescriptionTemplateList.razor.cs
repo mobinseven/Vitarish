@@ -16,7 +16,7 @@ public partial class PrescriptionTemplateList : PrescriptionBase
     {
         try
         {
-            templates = await Mediator.Send(new GetPrescriptionTemplatesQuery
+            templates = await MedicalClient.Send(new GetPrescriptionTemplatesQuery
             {
                 TenantId = RequestContext.TenantId ?? string.Empty,
                 IncludeArchived = includeArchived,
@@ -46,7 +46,7 @@ public partial class PrescriptionTemplateList : PrescriptionBase
             return;
         }
 
-        PrescriptionTemplateCommandResult result = await Mediator.Send(new ArchivePrescriptionTemplateCommand
+        PrescriptionTemplateCommandResult result = await MedicalClient.Send(new ArchivePrescriptionTemplateCommand
         {
             TemplateId = templateId,
             TenantId = RequestContext.TenantId ?? string.Empty

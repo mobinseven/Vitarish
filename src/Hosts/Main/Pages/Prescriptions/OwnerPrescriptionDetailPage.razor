@@ -14,7 +14,7 @@
 
     private PrescriptionDto? prescription;
 
-    [Inject] private IMediator Mediator { get; set; } = default!;
+    [Inject] private IMedicalClient MedicalClient { get; set; } = default!;
 
     protected override async Task ReloadRequired()
     {
@@ -24,10 +24,7 @@
             return;
         }
 
-        prescription = await Mediator.Send(new GetPrescriptionQuery
-        {
-            PrescriptionId = PrescriptionId.Value
-        });
+        prescription = (await MedicalClient.GetPrescriptionAsync(new GetPrescriptionRequest { PrescriptionId = PrescriptionId.Value }, CancellationToken.None)).Value;
 
         if (prescription is null)
         {

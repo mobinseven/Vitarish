@@ -20,7 +20,7 @@ public partial class CodeSystemReleaseForm : MedicalBase
             return;
         }
 
-        EntityResult<Guid> result = await Mediator.Send(new RegisterCodeSystemReleaseCommand(
+        MedicalCommandResult result = await MedicalClient.Send(new RegisterCodeSystemReleaseCommand(
             CodeSystemId,
             writeDto.ReleaseName,
             writeDto.ReleaseDate,
@@ -31,7 +31,7 @@ public partial class CodeSystemReleaseForm : MedicalBase
 
         if (result.IsSuccess)
         {
-            await OnSaved.InvokeAsync(result.Value);
+            await OnSaved.InvokeAsync(result.EntityId ?? Guid.Empty);
         }
     }
 

@@ -10,7 +10,7 @@ public partial class MedicalCodeSearch : MedicalBase
 
     protected override async Task ReloadRequired()
     {
-        codeSystems = [.. await QueryService.ListCodeSystemsAsync(activeOnly: true)];
+        codeSystems = [.. await MedicalClient.ListCodeSystemsAsync(activeOnly: true)];
         if (codeSystems.Count > 0 && string.IsNullOrEmpty(systemKey))
         {
             systemKey = codeSystems[0].SystemKey;
@@ -26,7 +26,7 @@ public partial class MedicalCodeSearch : MedicalBase
             return;
         }
 
-        results = [.. await QueryService.SearchMedicalCodesAsync(systemKey, searchText)];
+        results = [.. await MedicalClient.SearchMedicalCodesAsync(systemKey, searchText)];
         searched = true;
         await InvokeAsync(StateHasChanged);
     }

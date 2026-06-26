@@ -1,5 +1,5 @@
-global using MediatR;
 global using Microsoft.AspNetCore.Components;
+global using Vitarish.Interfaces.Base.Common;
 global using Vitarish.Medical.Client;
 global using Vitarish.Medical.Contracts.Requests;
 global using Vitarish.Medical.Contracts.Responses;
@@ -21,12 +21,11 @@ global using MedicalService = Vitarish.Medical.Contracts.Responses.MedicalServic
 global using CodeMap = Vitarish.Medical.Contracts.Responses.CodeMapResponse;
 global using ImportBatch = Vitarish.Medical.Contracts.Imports.ImportBatchResponse;
 global using ImportResult = Vitarish.Medical.Contracts.Imports.MedicalImportResultResponse;
-global using EntityResultGuid = Vitarish.Medical.Contracts.Results.MedicalResult<System.Guid>;
 global using ImportSourceType = Vitarish.Medical.Contracts.Enums.MedicalImportSourceType;
 global using CodeSystemCategory = Vitarish.Medical.Contracts.Enums.MedicalCodeSystemCategory;
-global using MappingType = System.String;
-global using DrugIdentifierType = System.String;
+global using MappingType = Vitarish.Medical.Contracts.Enums.MappingType;
+global using DrugIdentifierType = Vitarish.Medical.Contracts.Enums.DrugIdentifierType;
 global using ServiceValuation = Vitarish.Medical.Contracts.Responses.ServiceValuationResponse;
 global using CredentialSetupDto = Vitarish.Medical.Contracts.Responses.CredentialSetupDto;
 global using PrescriptionTemplateCommandResult = Vitarish.Medical.Contracts.Results.MedicalCommandResult;
-global using DuplicateRiskResolution = System.String;
+global using DuplicateRiskResolution = Vitarish.Medical.Contracts.Enums.DuplicateRiskResolution;

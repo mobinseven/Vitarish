@@ -19,7 +19,7 @@ public partial class PaperFallbackDialog : PrescriptionBase
         }
 
         string correlationId = Guid.NewGuid().ToString("N");
-        PaperFallbackResult result = await Mediator.Send(new PaperFallbackCommand
+        PaperFallbackResult result = await MedicalClient.Send(new PaperFallbackCommand
         {
             PrescriptionId = PrescriptionId,
             Reason = reason,

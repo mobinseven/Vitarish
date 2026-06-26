@@ -16,8 +16,8 @@ public partial class LocalMedicalCodeForm : MedicalBase
 
     protected override async Task ReloadRequired()
     {
-        IReadOnlyList<CodeSystem> systems = [.. await QueryService.ListCodeSystemsAsync(activeOnly: true)];
-        Task<IReadOnlyList<CodeSystemRelease>>[] releaseTasks = [.. systems.Select(cs => QueryService.ListReleasesAsync(cs.Id, activeOnly: true))];
+        IReadOnlyList<CodeSystem> systems = [.. await MedicalClient.ListCodeSystemsAsync(activeOnly: true)];
+        Task<IReadOnlyList<CodeSystemRelease>>[] releaseTasks = [.. systems.Select(cs => MedicalClient.ListReleasesAsync(cs.Id, activeOnly: true))];
         IReadOnlyList<CodeSystemRelease>[] releaseResults = await Task.WhenAll(releaseTasks);
 
         releases = [.. releaseResults.SelectMany(static result => result)];
@@ -41,7 +41,7 @@ public partial class LocalMedicalCodeForm : MedicalBase
             return;
         }
 
-        EntityResult<Guid> result = await Mediator.Send(new CreateLocalMedicalCodeCommand(
+        MedicalCommandResult result = await MedicalClient.Send(new CreateLocalMedicalCodeCommand(
             writeDto.CodeSystemReleaseId,
             writeDto.Code,
             writeDto.DisplayName,
@@ -51,7 +51,7 @@ public partial class LocalMedicalCodeForm : MedicalBase
 
         if (result.IsSuccess)
         {
-            await OnSaved.InvokeAsync(result.Value);
+            await OnSaved.InvokeAsync(result.EntityId ?? Guid.Empty);
         }
     }
 
