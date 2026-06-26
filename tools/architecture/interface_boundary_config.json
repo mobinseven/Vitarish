@@ -71,7 +71,7 @@
       "temporaryExceptions": []
     },
     "Users": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     }
   }

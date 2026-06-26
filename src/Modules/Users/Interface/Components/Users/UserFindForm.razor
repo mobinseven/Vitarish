@@ -41,14 +41,14 @@
     [Parameter] public bool ShowSearchScopeSelector { get; set; } = true;
     [Parameter] public EventCallback<string> OnUserSelected { get; set; }
 
-    [Inject] private IUsersService UsersService { get; set; } = default!;
+    [Inject] private IUsersClient UsersClient { get; set; } = default!;
 
     private const int MaxResults = 50;
     private const int DebounceMs = 300;
 
     private string query = string.Empty;
     private bool searching;
-    private IReadOnlyList<UserDto> results = [];
+    private IReadOnlyList<UserSummaryResponse> results = [];
     private CancellationTokenSource? debounceCts;
 
     protected override Task OnInitializedAsync() => RefreshResultsAsync();
@@ -98,11 +98,11 @@
         }
     }
 
-    private async Task<IEnumerable<UserDto>> GetResultsAsync(CancellationToken ct = default)
+    private async Task<IEnumerable<UserSummaryResponse>> GetResultsAsync(CancellationToken ct = default)
     {
         if (SearchScope == UserSearchScope.TenantUsers)
         {
-            IEnumerable<UserDto> tenantUsers = GetUsers();
+            IEnumerable<UserSummaryResponse> tenantUsers = GetUsers().Select(u => new UserSummaryResponse(u.Id, u.UserName, u.FirstName, u.LastName, u.Email, u.PhoneNumber, u.IdentificationCode, u.DateOfBirth, u.BirthCountryCode, u.BirthCity, u.FullName));
             if (string.IsNullOrWhiteSpace(query))
             {
                 return tenantUsers.Take(MaxResults);
@@ -116,11 +116,11 @@
             return [];
         }
 
-        IEnumerable<User> found = await UsersService.SearchUsersAsync(query.Trim(), MaxResults, ct);
-        return found.Select(u => new UserDto(u));
+        UsersClientResult<IReadOnlyList<UserSummaryResponse>> result = await UsersClient.SearchUsersAsync(new SearchUsersQueryParameters(query.Trim(), MaxResults), ct);
+        return result.IsSuccess ? result.Value! : [];
     }
 
-    private bool MatchesQuery(UserDto user)
+    private bool MatchesQuery(UserSummaryResponse user)
     {
         if (string.IsNullOrWhiteSpace(query))
         {
@@ -141,10 +141,10 @@
 
     private async Task SelectUserAsync(string userId) => await OnUserSelected.InvokeAsync(userId);
 
-    private static string GetDisplayName(UserDto user)
+    private static string GetDisplayName(UserSummaryResponse user)
         => string.IsNullOrWhiteSpace(user.FullName) ? user.UserName ?? user.Id : user.FullName;
 
-    private static string GetHelperText(UserDto user)
+    private static string GetHelperText(UserSummaryResponse user)
     {
         List<string> parts = [];
         if (!string.IsNullOrWhiteSpace(user.PhoneNumber))

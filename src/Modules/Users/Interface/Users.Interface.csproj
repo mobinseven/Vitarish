@@ -3,8 +3,8 @@
     <SupportedPlatform Include="browser" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Application\Users.Application.csproj" />
-    <ProjectReference Include="..\Domain\Users.Domain.csproj" />
+    <ProjectReference Include="..\Contracts\Users.Contracts.csproj" />
+    <ProjectReference Include="..\Client\Users.Client.csproj" />
     <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
     <ProjectReference Include="..\..\..\Modules\Base\Modules.Base.csproj" />
   </ItemGroup>
