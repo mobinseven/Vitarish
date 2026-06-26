@@ -1,78 +1,137 @@
 {
-  "adr": "docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md",
-  "defaultMode": "FailFast",
-  "modules": {
-    "Appointments": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
+    "adr": "docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md",
+    "defaultMode": "FailFast",
+    "frontendSafeDependencyAllowlist": [
+        {
+            "project": "src/Interfaces/Interfaces.Base/Interfaces.Base.csproj",
+            "reason": "Shared UI primitives and presentation services only."
+        },
+        {
+            "project": "src/Libraries/Entities/Entities.Contracts/Entities.Contracts.csproj",
+            "reason": "Shared serialization DTO base types for contracts."
+        },
+        {
+            "project": "src/Modules/Base/Modules.Base.csproj",
+            "reason": "Shared frontend-safe HTTP client and endpoint base abstractions."
+        }
+    ],
+    "crossModuleFrontendSafeAllowlist": [
+        {
+            "sourceModule": "Appointments",
+            "targetProject": "src/Modules/Users/Interface/Users.Interface.csproj",
+            "owningUiCompositionUseCase": "Appointment screens render user selector UI owned by Users.Interface.",
+            "reason": "Approved frontend-safe UI composition dependency; no backend layers are exposed."
+        },
+        {
+            "sourceModule": "Sea",
+            "targetProject": "src/Modules/Files/Interface/Files.Interface.csproj",
+            "owningUiCompositionUseCase": "Sea workflows compose file upload/display widgets.",
+            "reason": "Approved frontend-safe UI composition dependency."
+        },
+        {
+            "sourceModule": "Sea",
+            "targetProject": "src/Modules/Intelligence/Interface/Intelligence.Interface.csproj",
+            "owningUiCompositionUseCase": "Sea workflows compose intelligence UI widgets.",
+            "reason": "Approved frontend-safe UI composition dependency."
+        },
+        {
+            "sourceModule": "Sea",
+            "targetProject": "src/Modules/Communications/Interface/Communications.Interface.csproj",
+            "owningUiCompositionUseCase": "Sea workflows compose communications UI widgets.",
+            "reason": "Approved frontend-safe UI composition dependency."
+        }
+    ],
+    "globalInterfaces": {
+        "Interfaces.Base": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Interfaces.Accounts": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Interfaces.Admins": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Interfaces.Aggregator": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        }
     },
-    "Commerce": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
+    "modules": {
+        "Appointments": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Commerce": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Communications": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Contents": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Feed": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Files": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Financial": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Intelligence": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Knowledge": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Links": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Medical": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Parties": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Platform": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Requests": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Sea": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Search": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Social": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Users": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        }
     },
-    "Communications": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Contents": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Feed": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Files": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Financial": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Intelligence": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Knowledge": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Links": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Medical": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Parties": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Platform": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Requests": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Sea": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Search": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Social": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    },
-    "Users": {
-      "mode": "FailFast",
-      "temporaryExceptions": []
-    }
-  }
+    "temporaryExceptions": []
 }

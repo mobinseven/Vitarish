@@ -8,9 +8,9 @@
 		<PackageReference Include="MudBlazor" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Modules\Parties\Application\Parties.Application.csproj" />
-	  <ProjectReference Include="..\..\Modules\Requests\Application\Requests.Application.csproj" />
-	  <ProjectReference Include="..\..\Modules\Users\Application\Users.Application.csproj" />
 	  <ProjectReference Include="..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
-	</ItemGroup>
+	    <ProjectReference Include="..\..\Modules\Parties\Contracts\Parties.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Requests\Contracts\Requests.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Users\Contracts\Users.Contracts.csproj" />
+</ItemGroup>
 </Project>

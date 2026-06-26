@@ -4,7 +4,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Users.Contracts.csproj" />
     <ProjectReference Include="..\Application\Users.Application.csproj" />
-    <ProjectReference Include="..\Domain\Users.Domain.csproj" />
     <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
   </ItemGroup>
 </Project>

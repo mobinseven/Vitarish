@@ -7,10 +7,13 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Interfaces.Base\Interfaces.Base.csproj" />
-	  <ProjectReference Include="..\..\Modules\Communications\Application\Communications.Application.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<SupportedPlatform Include="browser" />
-	</ItemGroup>
+	    <ProjectReference Include="..\..\Modules\Communications\Client\Communications.Client.csproj" />
+    <ProjectReference Include="..\..\Modules\Users\Contracts\Users.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Parties\Contracts\Parties.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Requests\Contracts\Requests.Contracts.csproj" />
+</ItemGroup>
 
 </Project>
