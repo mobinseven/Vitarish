@@ -79,10 +79,16 @@
     <Project Path="tests/Modules/Feed.Tests/Feed.Tests.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Files/">
-    <Project Path="src/Modules/Files/Api/Files.Api.csproj" />
-    <Project Path="src/Modules/Files/Client/Files.Client.csproj" />
-    <Project Path="src/Modules/Files/Contracts/Files.Contracts.csproj" />
+    <Project Path="src/Modules/Files/Api/Files.Api.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Modules/Files/Application/Files.Application.csproj" />
+    <Project Path="src/Modules/Files/Client/Files.Client.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/Modules/Files/Contracts/Files.Contracts.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Modules/Files/Domain/Files.Domain.csproj" />
     <Project Path="src/Modules/Files/Infrastructure/Files.Infrastructure.csproj" />
     <Project Path="src/Modules/Files/Interface/Files.Interface.csproj" />
