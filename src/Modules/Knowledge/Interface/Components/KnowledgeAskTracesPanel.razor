@@ -7,7 +7,7 @@
     <StackTextField Label="Trace kind" @bind-Value="traceKind" />
     <StackTextField Label="Question contains" @bind-Value="questionContains" />
     <StackButton Label="Apply trace filters" Color="Color.Primary" OnClick="LoadAsync" />
-    @foreach (KnowledgeAskTraceDiagnostics trace in traces)
+    @foreach (KnowledgeAskTraceDiagnosticsModel trace in traces)
     {
         <StackCard Label="@trace.Question" Caption="@trace.CreatedAt.ToString("u")" HelperText="@($"Answered {trace.IsAnswered} · Retrieved {trace.RetrievedChunkIds.Count} · Citations {trace.Citations.Count} · Kind {trace.TraceKind ?? "-"}")">
             <MudText>@trace.MissingInformation</MudText>
@@ -30,14 +30,18 @@
 @code {
     [Parameter, EditorRequired] public string CorpusId { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string TenantId { get; set; } = string.Empty;
-    [Inject] private IKnowledgeDiagnosticsService Diagnostics { get; set; } = default!;
-    private IReadOnlyList<KnowledgeAskTraceDiagnostics> traces = [];
-    private KnowledgeAskTraceDiagnostics? opened;
+    [Inject] private IKnowledgeClient KnowledgeClient { get; set; } = default!;
+    private IReadOnlyList<KnowledgeAskTraceDiagnosticsModel> traces = [];
+    private KnowledgeAskTraceDiagnosticsModel? opened;
     private bool? answered;
     private string? traceKind;
     private string? questionContains;
     protected override async Task OnParametersSetAsync() => await LoadAsync();
-    private async Task LoadAsync() => traces = await Diagnostics.GetAskTracesAsync(ParseId(CorpusId), TenantId, new KnowledgeAskTraceDiagnosticsQuery { IsAnswered = answered, TraceKind = Blank(traceKind), QuestionContains = Blank(questionContains) }, CancellationToken.None);
+    private async Task LoadAsync()
+    {
+        var response = await KnowledgeClient.LoadAskTraceDiagnosticsAsync(new KnowledgeAskTraceDiagnosticsRequest(ParseId(CorpusId), answered, Blank(traceKind), Blank(questionContains)), CancellationToken.None);
+        traces = response.Value ?? [];
+    }
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     private static Guid ParseId(string id) => Guid.TryParse(id?.Trim(), out Guid value) ? value : throw new InvalidOperationException("CorpusId must be a GUID.");
     private static string CitationSummary(IReadOnlyList<KnowledgeCitation> citations) => citations.Count == 0 ? "None" : string.Join("\n", citations.Select(citation => $"{citation.ChunkId} · {citation.SourceId} · {citation.DocumentId}"));

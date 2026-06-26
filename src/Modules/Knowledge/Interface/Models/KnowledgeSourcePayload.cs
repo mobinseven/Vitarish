@@ -1,4 +1,4 @@
-using Vitarish.Knowledge.Application.Enums;
+using Vitarish.Knowledge.Contracts.Enums;
 
 namespace Vitarish.Knowledge.Interface.Models;
 

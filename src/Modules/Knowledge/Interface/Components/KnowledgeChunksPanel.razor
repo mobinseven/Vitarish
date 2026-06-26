@@ -4,7 +4,7 @@
     <StackTextField Label="Heading contains" @bind-Value="heading" />
     <StackTextField Label="Text contains" @bind-Value="text" />
     <StackButton Label="Apply chunk filters" Color="Color.Primary" OnClick="LoadAsync" />
-    @foreach (KnowledgeChunkDiagnostics chunk in chunks)
+    @foreach (KnowledgeChunkDiagnosticsModel chunk in chunks)
     {
         <StackCard Label="@chunk.Title" Caption="@chunk.ChunkId.ToString()" HelperText="@($"Heading {chunk.HeadingPath ?? "-"} · Order {chunk.Order} · Length {chunk.TextLength}")">
             <MudText Typo="Typo.body2">@chunk.TextPreview</MudText>
@@ -23,15 +23,19 @@
 @code {
     [Parameter, EditorRequired] public string CorpusId { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string TenantId { get; set; } = string.Empty;
-    [Inject] private IKnowledgeDiagnosticsService Diagnostics { get; set; } = default!;
-    private IReadOnlyList<KnowledgeChunkDiagnostics> chunks = [];
-    private KnowledgeChunkDiagnostics? opened;
+    [Inject] private IKnowledgeClient KnowledgeClient { get; set; } = default!;
+    private IReadOnlyList<KnowledgeChunkDiagnosticsModel> chunks = [];
+    private KnowledgeChunkDiagnosticsModel? opened;
     private string? sourceId;
     private string? documentId;
     private string? heading;
     private string? text;
     protected override async Task OnParametersSetAsync() => await LoadAsync();
-    private async Task LoadAsync() => chunks = await Diagnostics.GetChunksAsync(ParseId(CorpusId), TenantId, new KnowledgeChunkDiagnosticsQuery { SourceId = OptionalId(sourceId), DocumentId = OptionalId(documentId), HeadingContains = Blank(heading), TextContains = Blank(text) }, CancellationToken.None);
+    private async Task LoadAsync()
+    {
+        var response = await KnowledgeClient.LoadChunkDiagnosticsAsync(new KnowledgeChunkDiagnosticsRequest(ParseId(CorpusId), OptionalId(sourceId), OptionalId(documentId), Blank(heading), Blank(text)), CancellationToken.None);
+        chunks = response.Value ?? [];
+    }
     private static Guid ParseId(string id) => Guid.TryParse(id?.Trim(), out Guid value) ? value : throw new InvalidOperationException("CorpusId must be a GUID.");
     private static Guid? OptionalId(string? value) => string.IsNullOrWhiteSpace(value) ? null : Guid.Parse(value.Trim());
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

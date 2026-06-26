@@ -20,6 +20,7 @@ using Vitarish.Entities.Server.Extensions;
 using Vitarish.Knowledge.Infrastructure.Handlers;
 using Vitarish.Knowledge.Infrastructure.Services.RetrievalPlanning;
 using Vitarish.Knowledge.Application.Queries;
+using Vitarish.Knowledge.Api;
 
 namespace Vitarish.Knowledge.Module;
 
@@ -60,6 +61,7 @@ public sealed class KnowledgeModule : Vitarish.Modules.Base.Module, IKnowledgeMo
     public override async Task Initialize(WebApplication app)
     {
       await  app.MigrateDatabaseAsync<KnowledgeDbContext>();
+      _ = app.MapKnowledgeApi();
     }
 
 }

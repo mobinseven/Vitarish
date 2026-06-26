@@ -1,5 +1,5 @@
 @inherits CommonBase
-@using Vitarish.Knowledge.Application.Enums
+@using Vitarish.Knowledge.Contracts.Enums
 
 <StackButton Label="@Localizer["AddItem", Localizer["Source"]]" EndIcon="fa-solid fa-plus" OnClick="OpenImportSourceDialog" />
 
@@ -32,7 +32,7 @@
 @code {
     private StackFileInput? fileTransfer;
     private bool importSourceDialogOpen;
-    private FileInformationReadDto? uploadedFile;
+    private FileInformationDto? uploadedFile;
     private string sourceName = "Uploaded file";
     private KnowledgeSourceInputFormat format = KnowledgeSourceInputFormat.Markdown;
     private DialogOptions ActiveDialogOptions => new() { BackdropClick = !IsBusy, CloseOnEscapeKey = !IsBusy };

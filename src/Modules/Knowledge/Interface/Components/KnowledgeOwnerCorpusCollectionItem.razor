@@ -1,7 +1,7 @@
 @inherits CommonBase
 @using Microsoft.AspNetCore.Components
-@using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
-@using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
+@using CorpusItemModel = Vitarish.Knowledge.Contracts.Models.KnowledgeOwnerCorpusCollectionItem
+@using SourceItemModel = Vitarish.Knowledge.Contracts.Models.KnowledgeOwnerSourceCollectionItem
 
 <StackExpandable Label="@Item.CorpusName" HelperText="@Localizer["Corpus"]">
     <TitleContent>
@@ -27,7 +27,7 @@
         {
             @foreach(SourceItemModel source in Item.Sources)
             {
-                <KnowledgeOwnerSourceCollectionItem Item="source" DeleteRequested="sourceId => DeleteRequested.InvokeAsync(new DeleteKnowledgeSourceInput(Item.CorpusId, sourceId))" IndexRequested="IndexRequested" IsBusy="IsBusy" />
+                <KnowledgeOwnerSourceCollectionItem Item="source" DeleteRequested="sourceId => DeleteRequested.InvokeAsync(new DeleteKnowledgeSourceRequest(Item.CorpusId, sourceId))" IndexRequested="IndexRequested" IsBusy="IsBusy" />
             }
         }
         <KnowledgeSourcePayloadFileInput IsBusy="@IsBusy"
@@ -44,16 +44,16 @@
     public CorpusItemModel Item { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<DeleteKnowledgeSourceInput> DeleteRequested { get; set; }
+    public EventCallback<DeleteKnowledgeSourceRequest> DeleteRequested { get; set; }
 
     [Parameter, EditorRequired]
     public EventCallback<Guid> IndexRequested { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<ImportKnowledgeSourceFromFileInput> ImportRequested { get; set; }
+    public EventCallback<ImportKnowledgeSourceFromFileRequest> ImportRequested { get; set; }
 
     private async Task ImportFileAsync(KnowledgeSourcePayload payload)
     {
-        await ImportRequested.InvokeAsync(new ImportKnowledgeSourceFromFileInput(Item.CorpusId, payload.FileId, payload.SourceName, payload.Format));
+        await ImportRequested.InvokeAsync(new ImportKnowledgeSourceFromFileRequest(Item.CorpusId, payload.FileId, payload.SourceName, payload.Format));
     }
 }

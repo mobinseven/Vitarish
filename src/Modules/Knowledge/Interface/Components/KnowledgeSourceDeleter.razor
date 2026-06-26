@@ -1,7 +1,7 @@
 @using Vitarish.Interfaces.Base.Common
 @using Vitarish.Modules.Base
 @using Microsoft.AspNetCore.Components
-@using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
+@using SourceItemModel = Vitarish.Knowledge.Contracts.Models.KnowledgeOwnerSourceCollectionItem
 @inherits CommonBase
 
 <MudButton Color="Color.Error" EndIcon="@(IsBusy ? "fa-solid fa-circle-notch fa-spin" : "fa-solid fa-trash")" Disabled="@(IsBusy)" OnClick="ConfirmDeleteAsync">
