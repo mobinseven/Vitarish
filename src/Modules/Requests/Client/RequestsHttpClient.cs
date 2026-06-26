@@ -125,8 +125,5 @@ public sealed class RequestsHttpClient(HttpClient httpClient)
         {
             Add(query, "sort", sort.Descending ? $"-{sort.Field}" : sort.Field);
         }
-        {
-            Add(query, "sort", sort.Descending ? $"-{sort.Field}" : sort.Field);
-        }
     }
 }
