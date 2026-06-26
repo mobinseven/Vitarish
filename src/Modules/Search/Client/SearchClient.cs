@@ -16,6 +16,19 @@ public sealed class SearchClient(HttpClient httpClient) : AuthenticatedModuleApi
     public async Task<SearchClientResult<IReadOnlyList<SearchIndexStatusReportDto>>> GetIndexStatusAsync(GetSearchIndexStatusRequest request, CancellationToken cancellationToken = default) =>
         MapResult(await GetJsonAsync<IReadOnlyList<SearchIndexStatusReportDto>>(SearchApiRoutes.Base + SearchApiRoutes.IndexStatus, cancellationToken).ConfigureAwait(false));
 
+
+    public async Task<SearchClientResult<IReadOnlyList<SearchIndexPolicyReportDto>>> GetIndexPolicyReportsAsync(CancellationToken cancellationToken = default) =>
+        MapResult(await GetJsonAsync<IReadOnlyList<SearchIndexPolicyReportDto>>(SearchApiRoutes.Base + SearchApiRoutes.IndexPolicyReports, cancellationToken).ConfigureAwait(false));
+
+    public async Task<SearchClientResult<SearchCommandResult>> RebuildIndexAsync(RebuildSearchIndexRequest request, CancellationToken cancellationToken = default) =>
+        MapResult(await PostJsonAsync<RebuildSearchIndexRequest, SearchCommandResult>(SearchApiRoutes.Base + SearchApiRoutes.RebuildIndex, request, cancellationToken).ConfigureAwait(false));
+
+    public async Task<SearchClientResult<SearchCommandResult>> IndexDocumentAsync(IndexSearchDocumentRequest request, CancellationToken cancellationToken = default) =>
+        MapResult(await PostJsonAsync<IndexSearchDocumentRequest, SearchCommandResult>(SearchApiRoutes.Base + SearchApiRoutes.IndexDocument, request, cancellationToken).ConfigureAwait(false));
+
+    public async Task<SearchClientResult<SearchCommandResult>> DeleteDocumentAsync(DeleteSearchDocumentRequest request, CancellationToken cancellationToken = default) =>
+        MapResult(await PostJsonAsync<DeleteSearchDocumentRequest, SearchCommandResult>(SearchApiRoutes.Base + SearchApiRoutes.DeleteDocument, request, cancellationToken).ConfigureAwait(false));
+
     protected override ModuleApiClientFailure CreateFailure(HttpStatusCode statusCode, string message, int? statusCodeValue) =>
         new(statusCode.ToString(), message, statusCodeValue);
 

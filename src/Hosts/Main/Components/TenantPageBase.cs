@@ -1,5 +1,7 @@
 using Vitarish.Modules.Base;
-using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Parties.Client;
+using Vitarish.Parties.Contracts.Results;
+using Vitarish.Parties.Contracts.Tenants;
 using Vitarish.Users.Domain.Models;
 using Metadata = Vitarish.Entities.Contracts.Metadata;
 
@@ -7,7 +9,7 @@ namespace Vitarish.Main.Components;
 
 public class TenantPageBase : PageBase, IDisposable
 {
-    [Inject] protected IPartiesService PartiesService { get; set; } = default!;
+    [Inject] protected IPartiesClient PartiesClient { get; set; } = default!;
     [Inject] protected ITenantService TenantService { get; set; } = default!;
     [Inject] protected IUsersService UsersService { get; set; } = default!;
 
@@ -26,9 +28,10 @@ public class TenantPageBase : PageBase, IDisposable
             return;
         }
 
-        Tenant = await PartiesService.GetTenantAsync(Guid.Parse(RequestContext.TenantId));
+        PartiesResult<TenantReadDto> tenantResult = await PartiesClient.GetTenantAsync(Guid.Parse(RequestContext.TenantId));
+        Tenant = tenantResult.Value;
 
-        if (Tenant is null)
+        if (!tenantResult.IsSuccess || Tenant is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Home);
             return;
@@ -69,10 +72,10 @@ public class TenantPageBase : PageBase, IDisposable
             Description = Tenant.Description,
             Metadata = metadata
         };
-        TenantReadDto? updated = await PartiesService.UpdateTenantAsync(dto);
-        if (updated is not null)
+        PartiesResult<TenantReadDto> updated = await PartiesClient.UpdateTenantAsync(dto);
+        if (updated.IsSuccess && updated.Value is not null)
         {
-            Tenant = updated;
+            Tenant = updated.Value;
         }
     }
 

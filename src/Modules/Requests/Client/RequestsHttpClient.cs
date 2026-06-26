@@ -5,7 +5,7 @@ using Vitarish.Requests.Contracts;
 
 namespace Vitarish.Requests.Client;
 
-public sealed class RequestsHttpClient(HttpClient httpClient) : AuthenticatedModuleApiClient(httpClient)
+public sealed class RequestsHttpClient(HttpClient httpClient) : AuthenticatedModuleApiClient(httpClient), IRequestsClient
 {
     public Task<RequestsClientResult<RequestIdentityPageResponse>> QueryRequestIdentitiesAsync(
         RequestIdentityQueryParameters parameters,

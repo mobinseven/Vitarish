@@ -1,4 +1,6 @@
-using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Parties.Client;
+using Vitarish.Parties.Contracts.Results;
+using Vitarish.Parties.Contracts.Tenants;
 
 namespace Vitarish.Main.Pages.Parties;
 
@@ -16,7 +18,8 @@ public partial class OwnerDashboardPage
             return;
         }
 
-        tenants = [.. await PartiesService.GetTenantsByOwnerAsync(ownerGuid.Value)];
+        PartiesResult<IReadOnlyList<TenantReadDto>> result = await PartiesClient.GetTenantsByOwnerAsync(ownerGuid.Value);
+        tenants = result.IsSuccess && result.Value is not null ? [.. result.Value] : [];
         initialized = true;
     }
 }

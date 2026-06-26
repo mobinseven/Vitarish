@@ -65,29 +65,6 @@ public sealed class MedicalClient(HttpClient httpClient) : AuthenticatedModuleAp
     }
 
     protected override ModuleApiClientFailure CreateFailure(HttpStatusCode statusCode, string message, int? statusCodeValue) => new(statusCode.ToString(), message, statusCodeValue);
-    private async Task<MedicalResult<T>> Post<T>(string route, object request, CancellationToken cancellationToken)
-    {
-        var result = await PostJsonAsync<object, T>(MedicalApiRoutes.Base + route, request, cancellationToken).ConfigureAwait(false);
-        if (result.IsSuccess)
-        {
-            return MedicalResult<T>.Success(result.Value!);
-        }
-
-        MedicalError? error = null;
-        if (result.Failure?.Content != null)
-        {
-            try
-            {
-                error = System.Text.Json.JsonSerializer.Deserialize<MedicalError>(result.Failure.Content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            }
-            catch
-            {
-                // Fallback to status-code mapping if parsing fails
-            }
-        }
-
-        return MedicalResult<T>.Failed(error ?? MapFailure(result.Failure!));
-    }
     private static MedicalErrorCode MapCode(ModuleApiClientFailure failure) => failure.Code switch
     {
         "Canceled" => MedicalErrorCode.Cancellation,

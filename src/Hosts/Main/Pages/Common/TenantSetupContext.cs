@@ -1,4 +1,4 @@
-using Vitarish.Parties.Domain.Enums;
+using Vitarish.Parties.Contracts.Tenants;
 
 namespace Vitarish.Main.Pages.Common;
 

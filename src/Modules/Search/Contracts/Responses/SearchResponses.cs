@@ -5,3 +5,7 @@ public sealed record SearchDocumentDto { public required string Id { get; init; 
 public sealed record SearchDiagnosticsDto { public SearchRetrievalModeDto RetrievalMode { get; init; } public IReadOnlyList<string> AppliedStrategies { get; init; } = []; public IReadOnlyDictionary<string, object?> Data { get; init; } = new Dictionary<string, object?>(); }
 public sealed record SearchResultDto { public required IReadOnlyList<SearchDocumentDto> Items { get; init; } public required long TotalCount { get; init; } public required string Query { get; init; } public SearchDiagnosticsDto? Diagnostics { get; init; } }
 public sealed record SearchIndexStatusReportDto { public required string IndexName { get; init; } public long DocumentCount { get; init; } public long StoreSizeBytes { get; init; } }
+public enum SearchPriorityTierDto { Low = 0, Normal = 1, High = 2, Critical = 3 }
+public sealed record SearchExactMatchPolicyDto { public bool IsExactMatchFirst { get; init; } public IReadOnlyList<string> FieldNames { get; init; } = []; public SearchPriorityTierDto PriorityTier { get; init; } = SearchPriorityTierDto.Normal; }
+public sealed record SearchIndexPolicyReportDto { public required string IndexName { get; init; } public required SearchExactMatchPolicyDto ExactMatchPolicy { get; init; } }
+public sealed record SearchCommandResult(bool Succeeded, string? Error = null);
