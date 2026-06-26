@@ -1,11 +1,15 @@
 <Project>
-	<PropertyGroup>
-		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-		<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-		<CentralPackageVersionOverrideEnabled>false</CentralPackageVersionOverrideEnabled>
-	</PropertyGroup>
+<PropertyGroup>
+<ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+<CentralPackageVersionOverrideEnabled>false</CentralPackageVersionOverrideEnabled>
+</PropertyGroup>
 
-	<ItemGroup>
-		<PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
-	</ItemGroup>
+<ItemGroup>
+<PackageVersion Include="DnsClient" Version="1.8.0" />
+<PackageVersion Include="Finbuckle.MultiTenant.AspNetCore" Version="9.4.0" />
+<PackageVersion Include="Injectio" Version="5.0.0" />
+<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+<PackageVersion Include="Riok.Mapperly" Version="4.3.1" />
+</ItemGroup>
 </Project>
