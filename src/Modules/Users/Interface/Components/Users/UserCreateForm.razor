@@ -1,4 +1,5 @@
 @inherits TenantCommonBase
+@implements IDisposable
 
 <Stack>
     <StackTextField @bind-Value="firstName" Label="@Localizer["FirstName"]" />
@@ -36,7 +37,7 @@
     [Parameter] public EventCallback<string> OnUserReady { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
 
-    [Inject] private IUsersService UsersService { get; set; } = default!;
+    [Inject] private IUsersClient UsersClient { get; set; } = default!;
 
     private string? firstName;
     private string? lastName;
@@ -46,6 +47,7 @@
     private string? error;
     private bool submitting;
     private bool autoLinkExisting;
+    private CancellationTokenSource? submitCts;
 
     protected override void OnParametersSet() => autoLinkExisting = AutoLinkExistingUser;
 
@@ -64,44 +66,66 @@
             return;
         }
 
+        submitCts?.Cancel();
+        submitCts?.Dispose();
+        submitCts = new CancellationTokenSource();
         submitting = true;
         await InvokeAsync(StateHasChanged);
         try
         {
             if (!autoLinkExisting)
             {
-                if (phone is not null && await UsersService.CheckUserPhoneNumberInUseAsync(phone, null, CancellationToken.None))
+               if (phone is not null)
                 {
-                    error = Localizer["UserWithPhoneExists"];
-                    return;
+                    var checkResult = await UsersClient.CheckUserPhoneNumberInUseAsync(new CheckUserPhoneNumberInUseQueryParameters(phone), submitCts.Token);
+                    if (!checkResult.IsSuccess)
+                    {
+                        error = GetFailureMessage(checkResult.Failure);
+                        return;
+                    }
+                    if (checkResult.Value?.Exists == true)
+                    {
+                        error = Localizer["UserWithPhoneExists"];
+                        return;
+                    }
                 }
-
-                if (mail is not null && await UsersService.CheckUserEmailInUseAsync(mail, null, CancellationToken.None))
+                if (mail is not null)
                 {
-                    error = Localizer["UserWithEmailExists"];
-                    return;
+                    var checkResult = await UsersClient.CheckUserEmailInUseAsync(new CheckUserEmailInUseQueryParameters(mail), submitCts.Token);
+                    if (!checkResult.IsSuccess)
+                    {
+                        error = GetFailureMessage(checkResult.Failure);
+                        return;
+                    }
+                    if (checkResult.Value?.Exists == true)
+                    {
+                        error = Localizer["UserWithEmailExists"];
+                        return;
+                    }
                 }
             }
 
-            User? user = phone is not null
-                ? await UsersService.CreateUserWithPhoneAsync(new CreateUserWithPhoneCommand(phone, fName, lName, idCode), CancellationToken.None)
-                : await UsersService.CreateUserWithEmailAsync(new CreateUserWithEmailCommand(mail!, fName, lName, idCode), CancellationToken.None);
+            UsersClientResult<UserSummaryResponse> createResult = phone is not null
+                ? await UsersClient.CreateUserWithPhoneAsync(new CreateUserWithPhoneRequest(phone, fName, lName, idCode), submitCts.Token)
+                : await UsersClient.CreateUserWithEmailAsync(new CreateUserWithEmailRequest(mail!, fName, lName, idCode), submitCts.Token);
 
-            if (user is null)
+            if (!createResult.IsSuccess || createResult.Value is null)
             {
-                error = Localizer["FailedToCreateOrLinkUser"];
+                error = GetFailureMessage(createResult.Failure);
                 return;
             }
 
+            UserSummaryResponse user = createResult.Value;
+
             if (mail is not null && !string.Equals(user.Email, mail, StringComparison.OrdinalIgnoreCase))
             {
-                bool emailInUse = await UsersService.CheckUserEmailInUseAsync(mail, user.Id, CancellationToken.None);
+                bool emailInUse = (await UsersClient.CheckUserEmailInUseAsync(new CheckUserEmailInUseQueryParameters(mail, user.Id), submitCts.Token)).Value?.Exists == true;
                 if (!emailInUse)
                 {
-                    IdentityResult emailResult = await UsersService.SetUserEmailAsync(user.Id, mail, CancellationToken.None);
-                    if (!emailResult.Succeeded)
+                    UsersClientResult<UsersCommandResponse> emailResult = await UsersClient.SetUserEmailAsync(user.Id, new SetUserEmailRequest(mail), submitCts.Token);
+                    if (!emailResult.IsSuccess || emailResult.Value?.Succeeded != true)
                     {
-                        error = string.Join("; ", emailResult.Errors.Select(e => e.Description));
+                        error = GetFailureMessage(emailResult.Failure);
                         return;
                     }
                 }
@@ -116,6 +140,20 @@
         }
     }
 
+    private string GetFailureMessage(UsersClientFailure? failure) => failure?.Kind switch
+    {
+        UsersClientFailureKind.Conflict => Localizer["FailedToCreateOrLinkUser"],
+        UsersClientFailureKind.Canceled => string.Empty,
+        UsersClientFailureKind.Validation => Localizer["Error"],
+        _ => Localizer["FailedToCreateOrLinkUser"]
+    };
+
     private static string? Normalize(string? value)
         => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    public void Dispose()
+    {
+        submitCts?.Cancel();
+        submitCts?.Dispose();
+    }
 }

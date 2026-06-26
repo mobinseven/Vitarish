@@ -59,10 +59,10 @@
 @code {
     [Parameter] public string? Value { get; set; }
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
-    [Parameter] public EventCallback<UserDto?> SelectedUserChanged { get; set; }
+    [Parameter] public EventCallback<UserSummaryResponse?> SelectedUserChanged { get; set; }
     [Parameter] public UserFindOrCreateOptions? Options { get; set; }
 
-    [Inject] private IUsersService UsersService { get; set; } = default!;
+    [Inject] private IUsersClient UsersClient { get; set; } = default!;
 
     private bool showCreateForm;
     private UserSearchScope searchScope = UserSearchScope.TenantUsers;
@@ -110,12 +110,14 @@
     private async Task OnUserSelectedAsync(string userId)
     {
         warning = null;
-        User? user = await UsersService.GetUserAsync(userId, lifecycleCts.Token);
-        if (user is null)
+        UsersClientResult<UserSummaryResponse> userResult = await UsersClient.GetUserAsync(userId, lifecycleCts.Token);
+        if (!userResult.IsSuccess || userResult.Value is null)
         {
             warning = Localizer["Error"];
             return;
         }
+
+        UserSummaryResponse user = userResult.Value;
 
         if (ResolvedOptions.EnsureTenantUserRoleOnLink)
         {
@@ -124,10 +126,10 @@
 
         showCreateForm = false;
         await SetValueAsync(user.Id);
-        await SelectedUserChanged.InvokeAsync(new UserDto(user));
+        await SelectedUserChanged.InvokeAsync(user);
     }
 
-    private async Task EnsureTenantUserRoleAsync(User user)
+    private async Task EnsureTenantUserRoleAsync(UserSummaryResponse user)
     {
         if (string.IsNullOrWhiteSpace(RequestContext.TenantId))
         {
@@ -135,21 +137,14 @@
         }
 
         string tenantUserRole = $"{RequestContext.TenantId}:{IdentityDefinitions.TenantUser}";
-        bool hasRole = await UsersService.CheckUserRoleAsync(user.Id, tenantUserRole, lifecycleCts.Token);
-        if (hasRole)
+        UsersClientResult<UserRoleCheckResponse> roleResult = await UsersClient.CheckUserRoleAsync(new CheckUserRoleQueryParameters(user.Id, tenantUserRole), lifecycleCts.Token);
+        if (roleResult.Value?.IsInRole == true)
         {
             return;
         }
 
-        try
-        {
-            await UsersService.AddToRoleAsync(user, tenantUserRole, lifecycleCts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            // component disposed or operation superseded
-        }
-        catch (Exception)
+        UsersClientResult<UsersCommandResponse> addResult = await UsersClient.AddUserToRoleAsync(user.Id, new AddUserToRoleRequest(tenantUserRole), lifecycleCts.Token);
+        if (!addResult.IsSuccess || addResult.Value?.Succeeded != true)
         {
             warning = Localizer["FailedToAssignTenantRole"];
         }
@@ -178,18 +173,18 @@
             return string.Empty;
         }
 
-        User? user = await UsersService.GetUserAsync(userId, lifecycleCts.Token);
-        if (user is null)
+        UsersClientResult<UserSummaryResponse> userResult = await UsersClient.GetUserAsync(userId, lifecycleCts.Token);
+        if (!userResult.IsSuccess || userResult.Value is null)
         {
             return userId;
         }
 
-        UserDto dto = new(user);
+        UserSummaryResponse user = userResult.Value;
         return string.Join(" · ", new[]
         {
-            string.IsNullOrWhiteSpace(dto.FullName) ? dto.UserName ?? dto.Id : dto.FullName,
-            dto.PhoneNumber,
-            dto.Email
+            string.IsNullOrWhiteSpace(user.FullName) ? user.UserName ?? user.Id : user.FullName,
+            user.PhoneNumber,
+            user.Email
         }.Where(v => !string.IsNullOrWhiteSpace(v)));
     }
 

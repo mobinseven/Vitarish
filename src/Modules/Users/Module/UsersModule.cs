@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Modules.Base;
 using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Module.DependencyInjection;
+using Vitarish.Users.Api;
 
 namespace Vitarish.Users.Module;
 
@@ -24,5 +25,6 @@ public sealed class UsersModule : Vitarish.Modules.Base.Module
     {
         _ = await app.MigrateDatabaseAsync<UsersDbContext>();
         await app.InitializeUsers();
+        _ = app.MapUsersApi();
     }
 }
