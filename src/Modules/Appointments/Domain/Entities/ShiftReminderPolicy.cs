@@ -14,7 +14,7 @@ public class ShiftReminderPolicy : Entity
         set => SetField(ref field, value, nameof(IsEnabled));
     } = true;
 
-    public ReminderKind Channel
+    public ShiftReminderChannel Channel
     {
         get;
         set => SetField(ref field, value, nameof(Channel));

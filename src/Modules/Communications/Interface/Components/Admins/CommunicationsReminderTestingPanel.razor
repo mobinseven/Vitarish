@@ -8,9 +8,7 @@
                  EndIcon="fa-solid fa-shuffle"
                  OnClick="GenerateSourceId" Color="Color.Secondary" />
 
-    <UserFindOrCreate Value="@recipientUserId"
-                      ValueChanged="OnRecipientUserChangedAsync"
-                      Options="@UserPickerOptions" />
+    <StackTextField Label="@Localizer["RecipientUserId"]" @bind-Value="recipientUserId" />
 
     <StackSelect T="ReminderKind" Label="@Localizer["Kind"]" Value="@kind" ValueChanged="OnKindChanged">
         <StackSelectItem T="ReminderKind" Value="ReminderKind.Email">@Localizer["Email"]</StackSelectItem>
@@ -83,16 +81,7 @@
     private IReadOnlyList<ReminderReadDto> sourceReminders = [];
     private string? status;
     private Severity statusSeverity = Severity.Info;
-    private static readonly UserFindOrCreateOptions UserPickerOptions = new()
-    {
-        AllowCreate = true,
-        AllowUnlink = true,
-        ShowSearchScopeSelector = true,
-        DefaultSearchScope = UserSearchScope.TenantUsers,
-        AutoLinkExistingUser = true,
-        AllowAutoLinkToggle = true,
-        EnsureTenantUserRoleOnLink = true
-    };
+
 
     protected override void OnInitialized()
     {
@@ -162,7 +151,7 @@
         DateTime remindAtDateTime = date.Add(time);
         DateTime remindAt = DateTime.SpecifyKind(remindAtDateTime, DateTimeKind.Local).ToUniversalTime();
 
-        ReminderReadDto? created = await RemindersService.AddAsync(new ReminderWriteDto(
+        CommunicationsQueryResult<ReminderReadDto> createResult = await CommunicationsClient.CreateReminderAsync(new ReminderWriteDto(
             sourceId,
             kind,
             recipientUserId,
@@ -172,11 +161,12 @@
             remindAt,
             null,
             false
-        ), CancellationToken.None).GetValueOrDefaultAsync();
+        ), ComponentCancellationToken);
+        ReminderReadDto? created = createResult.Value;
 
-        if (created is null)
+        if (!createResult.IsSuccess || created is null)
         {
-            SetStatus(Localizer["ReminderCreationFailed"].Value, Severity.Error);
+            SetStatus(createResult.Error?.Message ?? Localizer["ReminderCreationFailed"].Value, Severity.Error);
             return;
         }
 
@@ -193,7 +183,8 @@
             return;
         }
 
-        sourceReminders = await RemindersService.GetBySourceAsync(sourceId, CancellationToken.None);
+        CommunicationsQueryResult<IReadOnlyList<ReminderReadDto>> result = await CommunicationsClient.GetRemindersBySourceAsync(sourceId, ComponentCancellationToken);
+        sourceReminders = result.Value ?? [];
     }
 
     private void SetStatus(string message, Severity severity)

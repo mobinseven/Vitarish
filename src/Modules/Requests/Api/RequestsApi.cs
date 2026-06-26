@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Vitarish.Modules.Base.Endpoints;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Application.Queries;
 using Vitarish.Requests.Contracts;
@@ -12,7 +13,7 @@ public static class RequestsApi
 {
     public static IEndpointRouteBuilder MapRequestsApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder requests = endpoints.MapGroup(RequestsRoutes.Base);
+        RouteGroupBuilder requests = endpoints.MapProtectedModuleGroup(RequestsRoutes.Base);
 
         _ = requests.MapGet(RequestsRoutes.Identities, QueryRequestIdentitiesAsync);
 

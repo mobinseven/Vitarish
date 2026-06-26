@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
-using Vitarish.Files.Infrastructure.Api;
+using Vitarish.Files.Api;
 using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Files.Infrastructure.DependencyInjection;
 using Vitarish.Files.Infrastructure.Services;

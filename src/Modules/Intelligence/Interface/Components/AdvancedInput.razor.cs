@@ -1,13 +1,9 @@
-using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Interface.Models;
-using Vitarish.Intelligence.Application.Abstractions;
 
 namespace Vitarish.Intelligence.Interface.Components;
 
 public partial class AdvancedInput : CommonBase
 {
-    [Inject] protected IFilesModule FilesModule { get; set; } = default!;
-    [Inject] protected IIntelligenceModule IntelligenceModule { get; set; } = default!;
 
     private AiStreamTranscriber? _transcriber;
     private AiStreamRewriter? _rewriter;
@@ -26,7 +22,7 @@ public partial class AdvancedInput : CommonBase
     [Parameter] public RenderFragment? EndContent { get; set; }
     [Parameter] public RenderFragment? BusyContent { get; set; }
     [Parameter] public string? UserId { get; set; }
-    [Parameter] public EventCallback<FileInformationReadDto> FileUploaded { get; set; }
+    [Parameter] public EventCallback<FileInformationDto> FileUploaded { get; set; }
     [Parameter] public EventCallback<string> OnSubmit { get; set; }
     [Parameter] public bool FileUploadEnabled { get; set; } = true;
     [Parameter] public bool DisplaySubmit { get; set; } = true;
@@ -188,7 +184,7 @@ public partial class AdvancedInput : CommonBase
 
     private async Task OnRewriteValueChanged(string value) => await UpdateValueAsync(value, notifyParent: true);
 
-    private async Task HandleFileUploaded(FileInformationReadDto file)
+    private async Task HandleFileUploaded(FileInformationDto file)
     {
         if (FileUploaded.HasDelegate)
         {

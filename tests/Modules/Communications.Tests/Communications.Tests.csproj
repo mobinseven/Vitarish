@@ -18,5 +18,8 @@
 	  <ProjectReference Include="..\..\..\src\Modules\Communications\Domain\Communications.Domain.csproj" />
 	  <ProjectReference Include="..\..\..\src\Modules\Communications\Module\Communications.Module.csproj" />
 	  <ProjectReference Include="..\..\..\src\Modules\Communications\Infrastructure\Communications.Infrastructure.csproj" />
+		  <ProjectReference Include="..\..\..\src\Modules\Communications\Contracts\Communications.Contracts.csproj" />
+		  <ProjectReference Include="..\..\..\src\Modules\Communications\Client\Communications.Client.csproj" />
+		  <ProjectReference Include="..\..\..\src\Modules\Communications\Api\Communications.Api.csproj" />
 	</ItemGroup>
 </Project>

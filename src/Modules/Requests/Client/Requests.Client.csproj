@@ -5,5 +5,5 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Requests.Contracts.csproj" />
-  </ItemGroup>
+  <ProjectReference Include="..\..\Base\Modules.Base.csproj" /></ItemGroup>
 </Project>

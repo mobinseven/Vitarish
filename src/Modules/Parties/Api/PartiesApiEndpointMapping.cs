@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Vitarish.Modules.Base.Endpoints;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Contracts.Errors;
 using Vitarish.Parties.Contracts.Routes;
@@ -11,7 +12,7 @@ using DEN = Vitarish.Parties.Domain.Enums;
 namespace Vitarish.Parties.Api;
 public static class PartiesApiEndpointMapping
 {
-    public static IEndpointRouteBuilder MapPartiesApi(this IEndpointRouteBuilder endpoints){ var group=endpoints.MapGroup(PartiesApiRoutes.Base); _=group.MapPost(PartiesApiRoutes.Tenants, CreateTenantAsync); _=group.MapPut(PartiesApiRoutes.TenantById, UpdateTenantAsync); _=group.MapPost(PartiesApiRoutes.TenantIndicators, CreateTenantIndicatorAsync); return endpoints; }
+    public static IEndpointRouteBuilder MapPartiesApi(this IEndpointRouteBuilder endpoints){ var group=endpoints.MapProtectedModuleGroup(PartiesApiRoutes.Base); _=group.MapPost(PartiesApiRoutes.Tenants, CreateTenantAsync); _=group.MapPut(PartiesApiRoutes.TenantById, UpdateTenantAsync); _=group.MapPost(PartiesApiRoutes.TenantIndicators, CreateTenantIndicatorAsync); return endpoints; }
     private static async Task<IResult> CreateTenantAsync(C.TenantWriteDto request, IPartiesService service, CancellationToken cancellationToken){ if(string.IsNullOrWhiteSpace(request.Name)||string.IsNullOrWhiteSpace(request.AppId)) return Results.BadRequest(new PartiesError(PartiesErrorCode.Validation,"Tenant name and app id are required.")); D.TenantReadDto? tenant=await service.CreateTenantAsync(ToDomain(request), cancellationToken); return tenant is null?Results.Conflict(new PartiesError(PartiesErrorCode.Conflict,"Tenant could not be created.")):Results.Ok(ToContract(tenant)); }
     private static async Task<IResult> UpdateTenantAsync(Guid tenantId, C.TenantWriteDto request, IPartiesService service, CancellationToken cancellationToken){ if(tenantId!=request.Id) return Results.BadRequest(new PartiesError(PartiesErrorCode.Validation,"Tenant route id must match request id.")); D.TenantReadDto? tenant=await service.UpdateTenantAsync(ToDomain(request), cancellationToken); return tenant is null?Results.NotFound(new PartiesError(PartiesErrorCode.NotFound,"Tenant was not found.")):Results.Ok(ToContract(tenant)); }
     private static async Task<IResult> CreateTenantIndicatorAsync(C.TenantIndicatorWriteDto request, IPartiesService service, CancellationToken cancellationToken){ if(string.IsNullOrWhiteSpace(request.Value)) return Results.BadRequest(new PartiesError(PartiesErrorCode.Validation,"Tenant indicator value is required.")); D.TenantIndicatorReadDto? indicator=await service.CreateTenantIndicatorAsync(ToDomain(request), cancellationToken); return indicator is null?Results.Conflict(new PartiesError(PartiesErrorCode.Conflict,"Tenant indicator could not be created.")):Results.Ok(ToContract(indicator)); }

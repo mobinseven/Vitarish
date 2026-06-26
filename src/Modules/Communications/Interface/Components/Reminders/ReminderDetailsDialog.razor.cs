@@ -26,7 +26,7 @@ public partial class ReminderDetailsDialog : RemindersBase
         {
             return;
         }
-        _ = await RemindersService.RemoveAsync(Reminder.Id, CancellationToken.None);
+        _ = await CommunicationsClient.DeleteReminderAsync(Reminder.Id, ComponentCancellationToken);
         MudDialog.Close(true);
     }
 

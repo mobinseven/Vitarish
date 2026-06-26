@@ -1,88 +1,19 @@
 using System.Globalization;
 using System.Net;
-using System.Net.Http.Json;
-using System.Text.Json;
+using Vitarish.Modules.Base.Client;
 using Vitarish.Requests.Contracts;
 
 namespace Vitarish.Requests.Client;
 
-public sealed class RequestsHttpClient(HttpClient httpClient)
+public sealed class RequestsHttpClient(HttpClient httpClient) : AuthenticatedModuleApiClient(httpClient)
 {
     public Task<RequestsClientResult<RequestIdentityPageResponse>> QueryRequestIdentitiesAsync(
         RequestIdentityQueryParameters parameters,
         CancellationToken cancellationToken) =>
         SendQueryAsync<RequestIdentityPageResponse>(BuildIdentitiesUri(parameters), cancellationToken);
 
-    private async Task<RequestsClientResult<T>> SendQueryAsync<T>(string requestUri, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using HttpResponseMessage response = await httpClient.GetAsync(requestUri, cancellationToken);
-
-            if (response.IsSuccessStatusCode)
-            {
-                T? value = await response.Content.ReadFromJsonAsync<T>(cancellationToken);
-
-                return value is null
-                    ? RequestsClientResult<T>.Failed(new RequestsClientFailure(RequestsClientFailureKind.Deserialization, "Requests API returned an empty or invalid response.", (int)response.StatusCode))
-                    : RequestsClientResult<T>.Success(value);
-            }
-
-            return RequestsClientResult<T>.Failed(await CreateFailureAsync(response, cancellationToken));
-        }
-        catch (OperationCanceledException ex)
-        {
-            bool isTimeout = ex is TaskCanceledException && !cancellationToken.IsCancellationRequested;
-            return RequestsClientResult<T>.Failed(new RequestsClientFailure(
-                isTimeout ? RequestsClientFailureKind.Timeout : RequestsClientFailureKind.Canceled,
-                isTimeout ? "Requests request timed out." : "Requests request was canceled."));
-        }
-        catch (TimeoutException)
-        {
-            return RequestsClientResult<T>.Failed(new RequestsClientFailure(RequestsClientFailureKind.Timeout, "Requests request timed out."));
-        }
-        catch (HttpRequestException ex)
-        {
-            return RequestsClientResult<T>.Failed(new RequestsClientFailure(RequestsClientFailureKind.Transport, ex.Message));
-        }
-        catch (Exception ex) when (ex is JsonException or NotSupportedException)
-        {
-            return RequestsClientResult<T>.Failed(new RequestsClientFailure(RequestsClientFailureKind.Deserialization, ex.Message));
-        }
-    }
-
-    private static async Task<RequestsClientFailure> CreateFailureAsync(HttpResponseMessage response, CancellationToken cancellationToken)
-    {
-        RequestsErrorResponse? error = null;
-        bool errorPayloadWasUnreadable = false;
-
-        try
-        {
-            error = response.Content is not null
-                ? await response.Content.ReadFromJsonAsync<RequestsErrorResponse>(cancellationToken)
-                : null;
-        }
-        catch (Exception ex) when (ex is JsonException or NotSupportedException)
-        {
-            errorPayloadWasUnreadable = true;
-        }
-
-        RequestsClientFailureKind kind = response.StatusCode switch
-        {
-            HttpStatusCode.BadRequest => RequestsClientFailureKind.Validation,
-            HttpStatusCode.Unauthorized => RequestsClientFailureKind.Unauthorized,
-            HttpStatusCode.Forbidden => RequestsClientFailureKind.Forbidden,
-            HttpStatusCode.NotFound => RequestsClientFailureKind.NotFound,
-            HttpStatusCode.Conflict => RequestsClientFailureKind.Conflict,
-            _ => RequestsClientFailureKind.UnexpectedServerFailure
-        };
-
-        return new RequestsClientFailure(
-            kind,
-            error?.Message ?? (errorPayloadWasUnreadable ? "Requests API returned an unreadable error response." : "Requests API request failed."),
-            (int)response.StatusCode,
-            error?.ValidationErrors);
-    }
+    private async Task<RequestsClientResult<T>> SendQueryAsync<T>(string requestUri, CancellationToken cancellationToken) =>
+        MapResult(await GetJsonAsync<T>(requestUri, cancellationToken).ConfigureAwait(false));
 
     private static string BuildIdentitiesUri(RequestIdentityQueryParameters parameters)
     {
@@ -126,4 +57,27 @@ public sealed class RequestsHttpClient(HttpClient httpClient)
             Add(query, "sort", sort.Descending ? $"-{sort.Field}" : sort.Field);
         }
     }
+    protected override ModuleApiClientFailure CreateFailure(HttpStatusCode statusCode, string message, int? statusCodeValue) =>
+        new(statusCode.ToString(), message, statusCodeValue);
+
+    private static RequestsClientResult<T> MapResult<T>(ModuleApiClientResult<T> result) =>
+        result.IsSuccess ? RequestsClientResult<T>.Success(result.Value!) : RequestsClientResult<T>.Failed(MapFailure(result.Failure!));
+
+    private static RequestsClientFailure MapFailure(ModuleApiClientFailure failure) =>
+        new(MapKind(failure), failure.Message, failure.StatusCode);
+
+    private static RequestsClientFailureKind MapKind(ModuleApiClientFailure failure) => failure.Code switch
+    {
+        "Canceled" => RequestsClientFailureKind.Canceled,
+        "Timeout" => RequestsClientFailureKind.Timeout,
+        "Transport" => RequestsClientFailureKind.Transport,
+        "Deserialization" => RequestsClientFailureKind.Deserialization,
+        nameof(HttpStatusCode.BadRequest) => RequestsClientFailureKind.Validation,
+        nameof(HttpStatusCode.Unauthorized) => RequestsClientFailureKind.Unauthorized,
+        nameof(HttpStatusCode.Forbidden) => RequestsClientFailureKind.Forbidden,
+        nameof(HttpStatusCode.NotFound) => RequestsClientFailureKind.NotFound,
+        nameof(HttpStatusCode.Conflict) => RequestsClientFailureKind.Conflict,
+        _ => RequestsClientFailureKind.UnexpectedServerFailure
+    };
+
 }

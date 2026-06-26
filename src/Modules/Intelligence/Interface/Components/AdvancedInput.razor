@@ -1,22 +1,19 @@
 @inherits CommonBase
 
-@if(IntelligenceModule.IsAvailable)
-{
-    <AiStreamTranscriber @ref="_transcriber"
-                         Value="@_value"
-                         OnChunk="OnChunk"
-                         OnSupportStatusChanged="()=>StateHasChanged()"
-                         OnTransciptionEnd="OnTranscriptionEnded"
-                         OnRecordingStateChanged="OnRecordingChanged"
-                         OnTranscribingStateChanged="OnTranscribingChanged" />
+<AiStreamTranscriber @ref="_transcriber"
+                     Value="@_value"
+                     OnChunk="OnChunk"
+                     OnSupportStatusChanged="()=>StateHasChanged()"
+                     OnTransciptionEnd="OnTranscriptionEnded"
+                     OnRecordingStateChanged="OnRecordingChanged"
+                     OnTranscribingStateChanged="OnTranscribingChanged" />
 
-    <AiStreamRewriter @ref="_rewriter"
-                      Value="@_value"
-                      ValueChanged="OnRewriteValueChanged"
-                      OnRewriteStarted="OnRewriteStarted"
-                      OnRewriteCompleted="OnRewriteCompleted"
-                      OnRewriteError="OnRewriteError" />
-}
+<AiStreamRewriter @ref="_rewriter"
+                  Value="@_value"
+                  ValueChanged="OnRewriteValueChanged"
+                  OnRewriteStarted="OnRewriteStarted"
+                  OnRewriteCompleted="OnRewriteCompleted"
+                  OnRewriteError="OnRewriteError" />
 @if(FileUploadEnabled)
 {
     <StreamTransfer @ref="_streamTransferComponent"
@@ -25,7 +22,7 @@
         <ActivatorContent>
             <MudIconButton Icon="fa-solid fa-photo-film"
                            HtmlTag="div"
-                           Disabled=@(_busy || !FilesModule.IsAvailable)
+                           Disabled=@_busy
                            Size="Size.Small"
                            Color="Color.Primary"
                            DropShadow=false />

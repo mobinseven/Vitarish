@@ -3,9 +3,9 @@
 <MudDialog>
     <DialogContent>
         <Stack>
-            @foreach(var user in GetUsers().Where(u => !string.IsNullOrEmpty(GetUserAddressById(u.Id, Kind))))
+            @foreach(var user in GetAddressBookUsers())
             {
-                <StackCheckbox ValueChanged="() => ToggleUser(user)" Value="IsSelected(user)" Label="@user.FullName" />
+                <StackCheckbox ValueChanged="() => ToggleUser(user)" Value="IsSelected(user)" Label="@GetUserLabel(user)" />
             }
             @foreach(var recipient in selected.Where(r => r.RecipientUserId is null))
             {

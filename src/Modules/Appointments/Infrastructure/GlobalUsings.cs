@@ -11,7 +11,6 @@ global using Vitarish.Appointments.Domain.Enums;
 global using Vitarish.Appointments.Domain.Models;
 global using Vitarish.Appointments.Infrastructure.Data;
 global using Vitarish.Appointments.Infrastructure.Repositories;
-global using Vitarish.Communications.Domain.Enums;
 global using Vitarish.Entities.Server.Abstractions;
 global using Vitarish.Entities.Server.Core;
 global using Vitarish.Entities.Server.Infrastructure;

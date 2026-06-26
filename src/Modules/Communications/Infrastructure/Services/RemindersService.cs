@@ -39,7 +39,7 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
     public async Task<ReminderReadDto?> UpdateAsync(
         Guid id,
         ReminderKind kind,
-        string recipientUserId,
+        string? recipientUserId,
         string recipient,
         string subject,
         string textBody,

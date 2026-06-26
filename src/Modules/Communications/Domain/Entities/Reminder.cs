@@ -20,11 +20,11 @@ public class Reminder : Entity
         set => SetField(ref field, value, nameof(Recipient));
     } = string.Empty;
 
-    public string RecipientUserId
+    public string? RecipientUserId
     {
         get;
         set => SetField(ref field, value, nameof(RecipientUserId));
-    } = string.Empty;
+    }
 
     public string Subject
     {

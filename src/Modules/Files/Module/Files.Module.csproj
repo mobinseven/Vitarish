@@ -10,6 +10,9 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.*" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Api\Files.Api.csproj" />
+    <ProjectReference Include="..\Client\Files.Client.csproj" />
+    <ProjectReference Include="..\Contracts\Files.Contracts.csproj" />
     <ProjectReference Include="..\Interface\Files.Interface.csproj" />
     <ProjectReference Include="..\Infrastructure\Files.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Files.Application.csproj" />

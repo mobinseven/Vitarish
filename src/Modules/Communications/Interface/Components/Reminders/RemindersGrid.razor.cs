@@ -8,7 +8,8 @@ public partial class RemindersGrid : RemindersBase
 
     protected override async Task ReloadRequired()
     {
-        Reminders = await RemindersService.GetListAsync(new ReminderDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        CommunicationsQueryResult<IReadOnlyList<ReminderReadDto>> result = await CommunicationsClient.GetRemindersAsync(new ReminderDescriptorDto(), ComponentCancellationToken);
+        Reminders = result.Value ?? [];
         await InvokeAsync(StateHasChanged);
     }
 

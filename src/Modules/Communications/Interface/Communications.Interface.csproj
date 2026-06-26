@@ -6,13 +6,10 @@
     <PackageReference Include="Injectio" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
-    <ProjectReference Include="..\..\..\Modules\Users\Interface\Users.Interface.csproj" ReferenceOutputAssembly="true" BuildReference="true" />
     <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
     <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
-    <ProjectReference Include="..\Application\Communications.Application.csproj" />
-    <ProjectReference Include="..\Domain\Communications.Domain.csproj" />
-    <ProjectReference Include="..\Infrastructure\Communications.Infrastructure.csproj" />
+    <ProjectReference Include="..\Client\Communications.Client.csproj" />
+    <ProjectReference Include="..\Contracts\Communications.Contracts.csproj" />
   </ItemGroup>
 </Project>

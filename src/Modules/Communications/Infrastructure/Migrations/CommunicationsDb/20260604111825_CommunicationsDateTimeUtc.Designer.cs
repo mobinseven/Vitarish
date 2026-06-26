@@ -52,7 +52,6 @@ namespace Vitarish.Communications.Infrastructure.Migrations.CommunicationsDb
                         .HasColumnType("text");
 
                     b.Property<string>("RecipientUserId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("RemindAt")

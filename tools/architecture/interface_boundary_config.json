@@ -11,7 +11,7 @@
       "temporaryExceptions": []
     },
     "Communications": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Contents": {
@@ -23,7 +23,7 @@
       "temporaryExceptions": []
     },
     "Files": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Financial": {
@@ -31,7 +31,7 @@
       "temporaryExceptions": []
     },
     "Intelligence": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Knowledge": {
