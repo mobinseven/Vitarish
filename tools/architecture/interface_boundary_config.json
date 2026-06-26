@@ -59,7 +59,7 @@
       "temporaryExceptions": []
     },
     "Sea": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Search": {

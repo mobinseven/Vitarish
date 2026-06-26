@@ -1,5 +1,3 @@
-using Vitarish.Sea.Domain.Mappers;
-
 namespace Vitarish.Sea.Interface.Components.Events;
 
 public partial class EventEditDialog : EventsBase
@@ -18,7 +16,7 @@ public partial class EventEditDialog : EventsBase
             MudDialog.Cancel();
             return;
         }
-        EventWrite = Event.ToWrite();
+        EventWrite = Event.ToUpdateRequest();
     }
 
     private async Task SaveAsync()
