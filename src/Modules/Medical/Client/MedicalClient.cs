@@ -51,7 +51,11 @@ public sealed class MedicalClient(HttpClient httpClient) : AuthenticatedModuleAp
     public async Task<TResponse> Send<TResponse>(object request, CancellationToken cancellationToken = default)
     {
         MedicalResult<TResponse> result = await Post<TResponse>("/compat", request, cancellationToken).ConfigureAwait(false);
-        return result.IsSuccess ? result.Value! : default!;
+        if (!result.IsSuccess)
+        {
+            throw new HttpRequestException($"Compatibility request failed: {result.Failure?.Message} (Code: {result.Failure?.Code})");
+        }
+        return result.Value!;
     }
 
     private async Task<MedicalResult<T>> Post<T>(string route, object request, CancellationToken cancellationToken)
