@@ -1,81 +1,36 @@
 @using Vitarish.Interfaces.Base.Common
 @using Vitarish.Modules.Base
 @using Microsoft.AspNetCore.Components
+@using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
+@inherits CommonBase
 
-@if (CanDelete)
-{
-    <Stack>
-        <StackField Label="Delete source" HelperText="Delete the focused or chosen source and its dependent chunks, questions, and search index entries from the selected corpus." />
-
-        <KnowledgeSourceSelector Label="Focused source to delete"
-                                 Disabled="@IsBusy"
-                                 FocusedSource="@FocusedSource"
-                                 Sources="@Sources"
-                                 SourcesVersion="@SourcesVersion"
-                                 SelectedSourceChanged="SelectSource" />
-
-        <StackButton Color="Color.Error" Disabled="@(IsBusy || source is null)" OnClick="ConfirmDeleteAsync">
-            @if (IsBusy)
-            {
-                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="me-2" />
-            }
-            Delete selected source
-        </StackButton>
-    </Stack>
-}
+<MudButton Color="Color.Error" EndIcon="@(IsBusy ? "fa-solid fa-circle-notch fa-spin" : "fa-solid fa-trash")" Disabled="@(IsBusy)" OnClick="ConfirmDeleteAsync">
+    @Localizer["Delete"]
+</MudButton>
 
 @code {
-    private KnowledgeOwnerSourceOption? source;
-    [Inject]
-    private IDialogService DialogService { get; set; } = default!;
-
-    [Parameter]
-    public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
-
-    [Parameter]
-    public KnowledgeOwnerSourceOption? FocusedSource { get; set; }
 
     [Parameter, EditorRequired]
-    public IReadOnlyList<KnowledgeOwnerSourceOption> Sources { get; set; } = [];
+    public SourceItemModel Source { get; set; }
 
-    [Parameter]
+    [Parameter, EditorRequired]
+    public EventCallback<Guid> DeleteRequested { get; set; }
+
+    [Parameter, EditorRequired]
     public bool IsBusy { get; set; }
-
-    [Parameter]
-    public bool CanDelete { get; set; }
-
-    [Parameter]
-    public int SourcesVersion { get; set; }
-
-    [Parameter, EditorRequired]
-    public EventCallback<DeleteKnowledgeSourceInput> DeleteRequested { get; set; }
-
-    protected override void OnParametersSet()
-    {
-        if (source is not null && !Sources.Any(option => option.SourceId == source.SourceId))
-        {
-            source = null;
-        }
-    }
-
-    private Task SelectSource(KnowledgeOwnerSourceOption? selected)
-    {
-        source = selected;
-        return Task.CompletedTask;
-    }
 
     private async Task ConfirmDeleteAsync()
     {
-        if (source is null)
+        if(Source is null)
         {
             return;
         }
 
         DialogParameters parameters = new()
         {
-            { nameof(StrictConfirmDialog.ContentText), "Delete this knowledge source and its indexed content?" },
-            { nameof(StrictConfirmDialog.ItemName), source.Label },
-            { nameof(StrictConfirmDialog.ButtonText), "Delete" },
+            { nameof(StrictConfirmDialog.ContentText), Localizer["DeleteItemConfirmation", Localizer["Source"]].Value },
+            { nameof(StrictConfirmDialog.ItemName), Source.SourceName },
+            { nameof(StrictConfirmDialog.ButtonText), Localizer["Delete"].Value },
             { nameof(StrictConfirmDialog.Color), Color.Error }
         };
 
@@ -86,6 +41,6 @@
             return;
         }
 
-        await DeleteRequested.InvokeAsync(new DeleteKnowledgeSourceInput(SelectedCorpus?.CorpusId, source.SourceId));
+        await DeleteRequested.InvokeAsync(Source.SourceId);
     }
 }

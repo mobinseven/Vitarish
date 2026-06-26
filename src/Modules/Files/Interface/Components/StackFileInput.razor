@@ -18,36 +18,40 @@
 
         @if(pendingFile is not null)
         {
-            <StackButton Label="@pendingFile.Name"
-                         HtmlTag="div"
-                         EndIcon="fa-solid fa-xmark"
-                         OnClick="() => RemovePendingFileAsync(pendingFile)"
-                         Disabled="@transferring"
-                         Size="@Size"
-                         Color="@Color">
+            <MudChip T="string"
+                     Text="@pendingFile.Name"
+                     Icon="fa-solid fa-xmark"
+                     Disabled="@transferring">
                 @if(transferring)
                 {
                     <MudProgressLinear Max="100" Min="0" Value="@pendingFile.Progress" />
                 }
-            </StackButton>
+            </MudChip>
+            <MudChip T="string"
+                     Icon="fa-solid fa-xmark"
+                     Size="@Size"
+                     Color="@Color"
+                     Text="@pendingFile.Name"
+                     Disabled="@transferring"
+                     OnClick="() => RemovePendingFileAsync(pendingFile)" />
         }
         else if(_file is not null)
         {
-            <StackButton Label="@_file.ContentType"
-                         HtmlTag="div"
-                         EndIcon="fa-solid fa-file"
-                         Disabled="@transferring"
-                         Size="@Size"
-                         Color="@Color" />
+            <MudChip T="string"
+                     Text="@_file.ContentType"
+                     Icon="fa-solid fa-file"
+                     Disabled="@transferring"
+                     Size="@Size"
+                     Color="@Color" />
         }
         else
         {
-            <StackButton Label="@Label"
-                         HtmlTag="div"
-                         EndIcon="fa-solid fa-file"
-                         Disabled="@transferring"
-                         Size="@Size"
-                         Color="@Color" />
+            <MudChip T="string"
+                     Text="@Label"
+                     Icon="fa-solid fa-file"
+                     Disabled="@transferring"
+                     Size="@Size"
+                     Color="@Color" />
         }
     </ActivatorContent>
 </StreamTransfer>

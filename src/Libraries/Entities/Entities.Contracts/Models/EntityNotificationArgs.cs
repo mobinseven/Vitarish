@@ -1,6 +1,6 @@
 namespace Vitarish.Entities.Contracts;
 
-public sealed record EntityNotificationArgs
+public sealed class EntityNotificationArgs : EventArgs
 {
     public required string EntityName { get; set; }
     public required string Id { get; set; }

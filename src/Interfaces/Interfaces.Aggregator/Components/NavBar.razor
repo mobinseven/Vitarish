@@ -21,7 +21,7 @@
         </div>
 
         <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Style="width: 100%;">
-            <Stack Class="glass white mt-1 pa-0" Style="width: 100%;">
+            <StackPill Class="glass white mt-1 pa-0" Style="width: 100%;">
                 <AdvancedInput FileUploadEnabled="false"
                                RewriteEnabled="false"
                                Busy="@ChatWaiting"
@@ -30,13 +30,13 @@
                         @ChatContext
                     </EndContent>
                 </AdvancedInput>
-            </Stack>
+            </StackPill>
         </MudStack>
     </MudStack>
 }
 else
 {
-    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Style="width: 100%;" Class="glass">
+    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Style="width: 100%;">
         @if(SearchActive)
         {
             <Stack>

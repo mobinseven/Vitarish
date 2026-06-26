@@ -2,7 +2,6 @@
 @using Microsoft.AspNetCore.Components
 @using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
 @using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
-@using SourceFileItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceFileCollectionItem
 
 <StackExpandable Label="@Item.CorpusName" HelperText="@Localizer["Corpus"]">
     <TitleContent>
@@ -12,22 +11,13 @@
             {
                 <MudChip T="string" Size="Size.Small" Color="Color.Success">@Localizer["Active"]</MudChip>
             }
-            @if(IsSelected)
-            {
-                <MudChip T="string" Size="Size.Small" Color="Color.Success">@Localizer["Selected"]</MudChip>
-            }
+
         </StackButton>
     </TitleContent>
     <ChildContent>
         @if (!string.IsNullOrWhiteSpace(Item.CorpusDescription))
         {
             <MudText Typo="Typo.body2">@Item.CorpusDescription</MudText>
-        }
-        @if(!IsSelected)
-        {
-            <Stack>
-                <StackButton Label="@Localizer["SelectItem", Localizer["Corpus"]]" EndIcon="fa-solid fa-check" OnClick="SelectCorpusAsync" Color="Color.Primary" />
-            </Stack>
         }
         @if (Item.Sources.Count == 0)
         {
@@ -37,27 +27,33 @@
         {
             @foreach(SourceItemModel source in Item.Sources)
             {
-                <KnowledgeOwnerSourceCollectionItem Item="source" IsFocused="@(FocusedSourceId == source.SourceId)" SelectedSourceChanged="SelectedSourceChanged" />
+                <KnowledgeOwnerSourceCollectionItem Item="source" DeleteRequested="sourceId => DeleteRequested.InvokeAsync(new DeleteKnowledgeSourceInput(Item.CorpusId, sourceId))" IndexRequested="IndexRequested" IsBusy="IsBusy" />
             }
         }
+        <KnowledgeSourcePayloadFileInput IsBusy="@IsBusy"
+                                         SubmitRequested="ImportFileAsync" />
     </ChildContent>
 </StackExpandable>
 
 @code {
-    [Parameter, EditorRequired]
-    public CorpusItemModel Item { get; set; } = new(Guid.Empty, string.Empty, null, false, []);
-
-    [Parameter]
-    public bool IsSelected { get; set; }
-
-    [Parameter]
-    public Guid? FocusedSourceId { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<Guid> SelectedCorpusChanged { get; set; }
+    public bool IsBusy { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<Guid> SelectedSourceChanged { get; set; }
+    public CorpusItemModel Item { get; set; }
 
-    private async Task SelectCorpusAsync() => await SelectedCorpusChanged.InvokeAsync(Item.CorpusId);
+    [Parameter, EditorRequired]
+    public EventCallback<DeleteKnowledgeSourceInput> DeleteRequested { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<Guid> IndexRequested { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<ImportKnowledgeSourceFromFileInput> ImportRequested { get; set; }
+
+    private async Task ImportFileAsync(KnowledgeSourcePayload payload)
+    {
+        await ImportRequested.InvokeAsync(new ImportKnowledgeSourceFromFileInput(Item.CorpusId, payload.FileId, payload.SourceName, payload.Format));
+    }
 }

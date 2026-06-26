@@ -4,16 +4,17 @@
 
 @inherits MudDatePicker
 
-<div class="@($"mud-calendar {(Outlined ? "stack-item" : string.Empty)} {Class}")"
+<div class="@($"mud-calendar ma-1 {(Outlined ? "stack-item" : string.Empty)} {Class}")"
      style="@("align-self: anchor-center;")"
      dir="@RootDirection">
 
     <div class="mud-calendar__header">
         <div>
-            <MudIconButton Icon="@PreviousIcon"
-                           Size="Size.Small"
-                           Disabled="@Disabled"
-                           OnClick="GoPreviousAsync" />
+            <MudFab StartIcon="@PreviousIcon"
+                    DropShadow="false"
+                    Size="Size.Small"
+                    Disabled="@Disabled"
+                    OnClick="GoPreviousAsync" />
         </div>
         <div>
             <MudButton Variant="Variant.Text"
@@ -23,10 +24,11 @@
             </MudButton>
         </div>
         <div>
-            <MudIconButton Icon="@NextIcon"
-                           Size="Size.Small"
-                           Disabled="@Disabled"
-                           OnClick="GoNextAsync" />
+            <MudFab StartIcon="@NextIcon"
+                    DropShadow="false"
+                    Size="Size.Small"
+                    Disabled="@Disabled"
+                    OnClick="GoNextAsync" />
         </div>
     </div>
 
@@ -245,13 +247,13 @@
 
     public new string PreviousIcon =>
         IsRtl
-            ? "fa-solid fa-square-caret-right"
-            : "fa-solid fa-square-caret-left";
+            ? "fa-solid fa-caret-right"
+            : "fa-solid fa-caret-left";
 
     public new string NextIcon =>
         IsRtl
-            ? "fa-solid fa-square-caret-left"
-            : "fa-solid fa-square-caret-right";
+            ? "fa-solid fa-caret-left"
+            : "fa-solid fa-caret-right";
 
     private string HeaderText =>
         _view switch

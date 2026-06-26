@@ -19,8 +19,8 @@
   <Folder Name="/src/Interfaces/">
     <Project Path="src/Interfaces/Interfaces.Accounts/Interfaces.Accounts.csproj" />
     <Project Path="src/Interfaces/Interfaces.Admins/Interfaces.Admins.csproj" />
-    <Project Path="src/Interfaces/Interfaces.Base/Interfaces.Base.csproj" />
     <Project Path="src/Interfaces/Interfaces.Aggregator/Interfaces.Aggregator.csproj" Id="58fae1cd-da6c-49d4-a500-516c6c509359" />
+    <Project Path="src/Interfaces/Interfaces.Base/Interfaces.Base.csproj" />
   </Folder>
   <Folder Name="/src/Libraries/" />
   <Folder Name="/src/Libraries/Audit/">
@@ -38,30 +38,30 @@
   <Folder Name="/src/Modules/Appointments/">
     <Project Path="src/Modules/Appointments/Application/Appointments.Application.csproj" />
     <Project Path="src/Modules/Appointments/Domain/Appointments.Domain.csproj" />
-    <Project Path="src/Modules/Appointments/Module/Appointments.Module.csproj" />
     <Project Path="src/Modules/Appointments/Infrastructure/Appointments.Infrastructure.csproj" />
     <Project Path="src/Modules/Appointments/Interface/Appointments.Interface.csproj" />
+    <Project Path="src/Modules/Appointments/Module/Appointments.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Commerce/">
     <Project Path="src/Modules/Commerce/Application/Commerce.Application.csproj" />
     <Project Path="src/Modules/Commerce/Domain/Commerce.Domain.csproj" />
-    <Project Path="src/Modules/Commerce/Module/Commerce.Module.csproj" />
     <Project Path="src/Modules/Commerce/Infrastructure/Commerce.Infrastructure.csproj" />
     <Project Path="src/Modules/Commerce/Interface/Commerce.Interface.csproj" />
+    <Project Path="src/Modules/Commerce/Module/Commerce.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Communications/">
     <Project Path="src/Modules/Communications/Application/Communications.Application.csproj" />
     <Project Path="src/Modules/Communications/Domain/Communications.Domain.csproj" />
-    <Project Path="src/Modules/Communications/Module/Communications.Module.csproj" />
     <Project Path="src/Modules/Communications/Infrastructure/Communications.Infrastructure.csproj" />
     <Project Path="src/Modules/Communications/Interface/Communications.Interface.csproj" />
+    <Project Path="src/Modules/Communications/Module/Communications.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Contents/">
     <Project Path="src/Modules/Contents/Application/Contents.Application.csproj" />
     <Project Path="src/Modules/Contents/Domain/Contents.Domain.csproj" />
-    <Project Path="src/Modules/Contents/Module/Contents.Module.csproj" />
     <Project Path="src/Modules/Contents/Infrastructure/Contents.Infrastructure.csproj" />
     <Project Path="src/Modules/Contents/Interface/Contents.Interface.csproj" />
+    <Project Path="src/Modules/Contents/Module/Contents.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Feed/">
     <Project Path="src/Modules/Feed/Api/Feed.Api.csproj" />
@@ -69,68 +69,72 @@
     <Project Path="src/Modules/Feed/Client/Feed.Client.csproj" />
     <Project Path="src/Modules/Feed/Contracts/Feed.Contracts.csproj" />
     <Project Path="src/Modules/Feed/Domain/Feed.Domain.csproj" />
-    <Project Path="src/Modules/Feed/Module/Feed.Module.csproj" />
     <Project Path="src/Modules/Feed/Infrastructure/Feed.Infrastructure.csproj" />
     <Project Path="src/Modules/Feed/Interface/Feed.Interface.csproj" />
+    <Project Path="src/Modules/Feed/Module/Feed.Module.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Modules/" />
   <Folder Name="/tests/Modules/Feed/">
     <Project Path="tests/Modules/Feed.Tests/Feed.Tests.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Files/">
     <Project Path="src/Modules/Files/Application/Files.Application.csproj" />
     <Project Path="src/Modules/Files/Domain/Files.Domain.csproj" />
-    <Project Path="src/Modules/Files/Module/Files.Module.csproj" />
     <Project Path="src/Modules/Files/Infrastructure/Files.Infrastructure.csproj" />
     <Project Path="src/Modules/Files/Interface/Files.Interface.csproj" />
+    <Project Path="src/Modules/Files/Module/Files.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Financial/">
     <Project Path="src/Modules/Financial/Application/Financial.Application.csproj" />
     <Project Path="src/Modules/Financial/Domain/Financial.Domain.csproj" />
-    <Project Path="src/Modules/Financial/Module/Financial.Module.csproj" />
     <Project Path="src/Modules/Financial/Infrastructure/Financial.Infrastructure.csproj" />
     <Project Path="src/Modules/Financial/Interface/Financial.Interface.csproj" />
+    <Project Path="src/Modules/Financial/Module/Financial.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Intelligence/">
     <Project Path="src/Modules/Intelligence/Application/Intelligence.Application.csproj" />
     <Project Path="src/Modules/Intelligence/Domain/Intelligence.Domain.csproj" />
-    <Project Path="src/Modules/Intelligence/Module/Intelligence.Module.csproj" />
     <Project Path="src/Modules/Intelligence/Infrastructure/Intelligence.Infrastructure.csproj" />
     <Project Path="src/Modules/Intelligence/Interface/Intelligence.Interface.csproj" />
+    <Project Path="src/Modules/Intelligence/Module/Intelligence.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Knowledge/">
     <Project Path="src/Modules/Knowledge/Application/Knowledge.Application.csproj" />
     <Project Path="src/Modules/Knowledge/Domain/Knowledge.Domain.csproj" />
-    <Project Path="src/Modules/Knowledge/Module/Knowledge.Module.csproj" />
     <Project Path="src/Modules/Knowledge/Infrastructure/Knowledge.Infrastructure.csproj" />
     <Project Path="src/Modules/Knowledge/Interface/Knowledge.Interface.csproj" />
+    <Project Path="src/Modules/Knowledge/Module/Knowledge.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Links/">
     <Project Path="src/Modules/Links/Application/Links.Application.csproj" />
     <Project Path="src/Modules/Links/Domain/Links.Domain.csproj" />
-    <Project Path="src/Modules/Links/Module/Links.Module.csproj" />
     <Project Path="src/Modules/Links/Infrastructure/Links.Infrastructure.csproj" />
     <Project Path="src/Modules/Links/Interface/Links.Interface.csproj" />
+    <Project Path="src/Modules/Links/Module/Links.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Medical/">
     <Project Path="src/Modules/Medical/Application/Medical.Application.csproj" />
     <Project Path="src/Modules/Medical/Domain/Medical.Domain.csproj" />
-    <Project Path="src/Modules/Medical/Module/Medical.Module.csproj" />
     <Project Path="src/Modules/Medical/Infrastructure/Medical.Infrastructure.csproj" />
     <Project Path="src/Modules/Medical/Interface/Medical.Interface.csproj" />
+    <Project Path="src/Modules/Medical/Module/Medical.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Parties/">
+    <Project Path="src/Modules/Parties/Api/Parties.Api.csproj" />
     <Project Path="src/Modules/Parties/Application/Parties.Application.csproj" />
+    <Project Path="src/Modules/Parties/Client/Parties.Client.csproj" />
     <Project Path="src/Modules/Parties/Domain/Parties.Domain.csproj" />
-    <Project Path="src/Modules/Parties/Module/Parties.Module.csproj" />
     <Project Path="src/Modules/Parties/Infrastructure/Parties.Infrastructure.csproj" />
     <Project Path="src/Modules/Parties/Interface/Parties.Interface.csproj" />
+    <Project Path="src/Modules/Parties/Module/Parties.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Platform/">
     <Project Path="src/Modules/Platform/Application/Platform.Application.csproj" />
     <Project Path="src/Modules/Platform/Domain/Platform.Domain.csproj" />
-    <Project Path="src/Modules/Platform/Module/Platform.Module.csproj" />
     <Project Path="src/Modules/Platform/Infrastructure/Platform.Infrastructure.csproj" />
     <Project Path="src/Modules/Platform/Interface/Platform.Interface.csproj" />
+    <Project Path="src/Modules/Platform/Module/Platform.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Requests/">
     <Project Path="src/Modules/Requests/Api/Requests.Api.csproj" />
@@ -138,37 +142,37 @@
     <Project Path="src/Modules/Requests/Client/Requests.Client.csproj" />
     <Project Path="src/Modules/Requests/Contracts/Requests.Contracts.csproj" />
     <Project Path="src/Modules/Requests/Domain/Requests.Domain.csproj" />
-    <Project Path="src/Modules/Requests/Module/Requests.Module.csproj" />
     <Project Path="src/Modules/Requests/Infrastructure/Requests.Infrastructure.csproj" />
     <Project Path="src/Modules/Requests/Interface/Requests.Interface.csproj" />
+    <Project Path="src/Modules/Requests/Module/Requests.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Sea/">
     <Project Path="src/Modules/Sea/Application/Sea.Application.csproj" />
     <Project Path="src/Modules/Sea/Domain/Sea.Domain.csproj" />
-    <Project Path="src/Modules/Sea/Module/Sea.Module.csproj" />
     <Project Path="src/Modules/Sea/Infrastructure/Sea.Infrastructure.csproj" />
     <Project Path="src/Modules/Sea/Interface/Sea.Interface.csproj" />
+    <Project Path="src/Modules/Sea/Module/Sea.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Search/">
     <Project Path="src/Modules/Search/Application/Search.Application.csproj" />
     <Project Path="src/Modules/Search/Domain/Search.Domain.csproj" />
-    <Project Path="src/Modules/Search/Module/Search.Module.csproj" />
     <Project Path="src/Modules/Search/Infrastructure/Search.Infrastructure.csproj" />
     <Project Path="src/Modules/Search/Interface/Search.Interface.csproj" />
+    <Project Path="src/Modules/Search/Module/Search.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Social/">
     <Project Path="src/Modules/Social/Application/Social.Application.csproj" />
     <Project Path="src/Modules/Social/Domain/Social.Domain.csproj" />
-    <Project Path="src/Modules/Social/Module/Social.Module.csproj" />
     <Project Path="src/Modules/Social/Infrastructure/Social.Infrastructure.csproj" />
     <Project Path="src/Modules/Social/Interface/Social.Interface.csproj" />
+    <Project Path="src/Modules/Social/Module/Social.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Users/">
     <Project Path="src/Modules/Users/Application/Users.Application.csproj" />
     <Project Path="src/Modules/Users/Domain/Users.Domain.csproj" />
-    <Project Path="src/Modules/Users/Module/Users.Module.csproj" />
     <Project Path="src/Modules/Users/Infrastructure/Users.Infrastructure.csproj" />
     <Project Path="src/Modules/Users/Interface/Users.Interface.csproj" />
+    <Project Path="src/Modules/Users/Module/Users.Module.csproj" />
   </Folder>
 
   <Folder Name="/src/Apps/Clinic/">

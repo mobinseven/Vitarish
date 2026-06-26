@@ -1,37 +1,50 @@
 @using MudBlazor
+@using Vitarish.Interfaces.Base.Common
 @if(FileId.HasValue)
 {
     <div class="@Class" style="@($"width:{_size}px;height:{_size}px;overflow:hidden;border-radius:{(Circle ? "50%" : "8px")};{Style}")">
         <FileImage FileId="@FileId.Value" />
+        @ChildContent
     </div>
+}
+else if(!string.IsNullOrWhiteSpace(Src))
+{
+    <MudAvatar Size="@Size">
+        <MudImage Src="@Src" Fluid />
+        @ChildContent
+    </MudAvatar>
 }
 else if(FileInformation is not null)
 {
 
-    <MudAvatar Size="@MudBlazor.Size.Large">
+    <MudAvatar Size="@Size">
         <MudImage Src="@FileInformation.Thumbnail" />
+        @ChildContent
     </MudAvatar>
 }
 else
 {
-    <MudAvatar Size="@MudBlazor.Size.Large">
+    <MudAvatar Size="@Size">
         <MudIcon Icon="fa-solid fa-camera" />
+        @ChildContent
     </MudAvatar>
 }
 
 @code {
     [Parameter] public Guid? FileId { get; set; }
     [Parameter] public FileInformationReadDto? FileInformation { get; set; }
+    [Parameter] public string? Src { get; set; }
     [Parameter] public Size Size { get; set; } = Size.Medium;
     [Parameter] public bool Circle { get; set; } = true;
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? Style { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
 
     private int _size => Size switch
     {
         Size.Small => 50,
-        Size.Medium => 100,
-        Size.Large => 150,
+        Size.Medium => 75,
+        Size.Large => 100,
         _ => 100
     };
 }

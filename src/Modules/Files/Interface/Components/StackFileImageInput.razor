@@ -15,48 +15,37 @@
         @{
             var pendingFile = _streamTransferComponent!.PendingFiles.FirstOrDefault();
         }
-        <StackButton Label="@Label"
-                     HtmlTag="div"
-                     Disabled=@(_streamTransferComponent.Transferring)
-                     Size="@Size"
-                     Color="@Color">
+        @if(pendingFile is not null)
+        {
+            <FileImageAvatar Src="@pendingFile.Thumbnail"
+                             Size="Size.Large">
+                @if(_streamTransferComponent.Transferring)
+                {
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
+                        <MudProgressCircular Max="100" Min="0" Value="@pendingFile.Progress" />
+                    </div>
+                }
+                else
+                {
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                        <MudFab OnClick="() => RemovePendingFile(_streamTransferComponent, pendingFile)" StartIcon="fa-solid fa-xmark" Size="Size.Small" DropShadow=false />
+                    </div>
+                }
+            </FileImageAvatar>
+        }
+        else if(_file is not null)
+        {
+            <FileImageAvatar FileInformation="_file"
+                             Size="Size.Large" />
+        }
+        else
+        {
+            <MudAvatar Color="@Color"
+                       Size="Size.Large">
+                <MudIcon Icon="fa-solid fa-camera" />
+            </MudAvatar>
+        }
 
-
-            @if(pendingFile is not null)
-            {
-                <div>
-                    <Chip Class="glass" Style="@($"white-space: pre-wrap;height:auto; overflow: auto; background-image: url('{pendingFile.Thumbnail}'); background-size: cover;")">
-                        <MudImage Src="@pendingFile.Thumbnail" Style="opacity:0; height: 100px;" />
-                        @if(_streamTransferComponent.Transferring)
-                        {
-                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
-                                <MudProgressCircular Max="100" Min="0" Value="@pendingFile.Progress" />
-                            </div>
-                        }
-                        else
-                        {
-                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                                <MudFab OnClick="() => RemovePendingFile(_streamTransferComponent, pendingFile)" StartIcon="fa-solid fa-xmark" Color="Color.Error" Size="Size.Small" DropShadow=false />
-                            </div>
-                        }
-                    </Chip>
-                </div>
-            }
-            else if(_file is not null)
-            {
-                <FileImageAvatar FileInformation="_file" />
-            }
-            else
-            {
-                <MudFab HtmlTag="div"
-                        Disabled="@Disabled"
-                        StartIcon="fa-solid fa-photo-film"
-                        DropShadow="false"
-                        Color="@Color"
-                        Size="Size.Small" />
-            }
-
-        </StackButton>
     </ActivatorContent>
 </StreamTransfer>
 

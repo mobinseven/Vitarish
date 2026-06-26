@@ -31,7 +31,7 @@
     --glass-neutral-rgb: var(--palette-body-bg);
     --glass-neutral-inverse-rgb: 0 0 0;
     --glass-border-rgb: 255 255 255;
-    --glass-shadow-rgb: 255 255 255;
+    --glass-shadow-rgb: 125 125 125;
     --glass-ring-rgb: 255 255 255;
     /* Neutral opacity layers */
     --glass-surface-a: 80%;

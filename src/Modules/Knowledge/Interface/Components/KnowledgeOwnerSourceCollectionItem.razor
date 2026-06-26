@@ -1,32 +1,26 @@
 @inherits CommonBase
 @using Microsoft.AspNetCore.Components
-@using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
 @using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
-@using SourceFileItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceFileCollectionItem
 
 <StackButton>
     <MudText Typo="Typo.caption">@Localizer["Source"]</MudText>
     <MudText>@Item.SourceName</MudText>
     <MudChip T="string" Size="Size.Small" Color="Color.Info">@Item.SourceType</MudChip>
-    @if(IsFocused)
-    {
-        <MudChip T="string" Size="Size.Small" Color="Color.Success">@Localizer["Focused for source actions"]</MudChip>
-    }
-    else
-    {
-        <MudButton Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" OnClick="SelectAsync">Focus source</MudButton>
-    }
+    <MudButton Disabled="IsBusy" EndIcon="fa-brands fa-searchengin" OnClick="() => IndexRequested.InvokeAsync(Item.SourceId)">@Localizer["Index"]</MudButton>
+    <KnowledgeSourceDeleter Source="@Item" DeleteRequested="DeleteRequested" IsBusy="IsBusy" />
 </StackButton>
 
 @code {
-    [Parameter, EditorRequired]
-    public SourceItemModel Item { get; set; } = new(Guid.Empty, string.Empty, string.Empty, DateTimeOffset.MinValue, null, []);
-
-    [Parameter]
-    public bool IsFocused { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<Guid> SelectedSourceChanged { get; set; }
+    public bool IsBusy { get; set; }
 
-    private async Task SelectAsync() => await SelectedSourceChanged.InvokeAsync(Item.SourceId);
+    [Parameter, EditorRequired]
+    public SourceItemModel Item { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<Guid> DeleteRequested { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<Guid> IndexRequested { get; set; }
 }

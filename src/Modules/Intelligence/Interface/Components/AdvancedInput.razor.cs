@@ -9,7 +9,6 @@ public partial class AdvancedInput : CommonBase
     [Inject] protected IFilesModule FilesModule { get; set; } = default!;
     [Inject] protected IIntelligenceModule IntelligenceModule { get; set; } = default!;
 
-    private MudTextField<string>? _textInput;
     private AiStreamTranscriber? _transcriber;
     private AiStreamRewriter? _rewriter;
     private StreamTransfer? _streamTransferComponent;

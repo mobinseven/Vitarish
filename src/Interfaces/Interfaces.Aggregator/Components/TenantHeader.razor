@@ -40,7 +40,7 @@
     public RenderFragment<TenantReadDto>? Content { get; set; }
     protected override async Task ReloadRequired()
     {
-        if(RequestContext.TenantId is not null)
-            tenant = await PartiesService.GetTenantAsync(Guid.Parse(RequestContext.TenantId));
+        // if(RequestContext.TenantId is not null)
+        //     tenant = await PartiesClient.GetTenantAsync(Guid.Parse(RequestContext.TenantId));
     }
 }

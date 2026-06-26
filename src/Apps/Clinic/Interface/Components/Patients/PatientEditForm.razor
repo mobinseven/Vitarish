@@ -6,260 +6,194 @@
 }
 
 <Stack>
-    <StackPersonIdField @bind-Value="patient.IdentificationCode"
-                    Adornment="Adornment.End"
-                    AdornmentIcon="@RequiredIcon(patient.IdentificationCode, "fa-solid fa-id-card")"
-                    AdornmentColor="@RequiredColor(patient.IdentificationCode)" />
-
-    <StackTextField @bind-Value="patient.FirstName"
-                    Label="@Localizer["FirstName"]"
-                    Adornment="Adornment.End"
-                    AdornmentIcon="@RequiredIcon(patient.FirstName)"
-                    AdornmentColor="@RequiredColor(patient.FirstName)" />
-
-    <StackTextField @bind-Value="patient.LastName"
-                    Label="@Localizer["LastName"]"
-                    DebounceInterval="500"
-                    Adornment="Adornment.End"
-                    AdornmentIcon="@RequiredIcon(patient.LastName)"
-                    AdornmentColor="@RequiredColor(patient.LastName)" />
-
-    <StackPhoneField @bind-Value="patient.Phone"
-                    Adornment="Adornment.End"
-                    AdornmentIcon="@RequiredIcon(patient.Phone, "fa-solid fa-phone")"
-                    AdornmentColor="@RequiredColor(patient.Phone)" />
-
-    <StackFileImageInput @ref="stackFileInput"
-                    Label="@Localizer["Photo"]"
-                    FileId="@patient.AvatarFileId"
-                    FileIdChanged="@AvatarUploaded" />
-</Stack>
-
-<Stack>
-    <StackExpandable>
-        <TitleContent>
-            <StackButton Label="@Localizer["PersonalDetails"]"
-                         OnClick="@context.ToggleAsync">
-                <MudStack Row
-                          AlignItems="AlignItems.Center"
-                          Justify="Justify.SpaceBetween">
-
-                    <MudStack Class="flex-grow-1">
-                        @if(!context.Expanded)
-                        {
-                            <ProjectInfoValue Visible="@HasValue(patient.FatherName)"
-                                              Label="@Localizer["FatherName"]">
-                                @patient.FatherName
-                            </ProjectInfoValue>
-
-                            <ProjectInfoValue Visible="@(patient.Gender != Gender.Unspecified)"
-                                              Label="@Localizer["Gender"]">
-                                @Localizer[patient.Gender.ToString()]
-                            </ProjectInfoValue>
-
-                            <ProjectInfoValue Visible="@patient.DateOfBirth.HasValue"
-                                              Label="@Localizer["DateOfBirth"]">
-                                @FormatDate(patient.DateOfBirth)
-                            </ProjectInfoValue>
-
-                            <ProjectInfoValue Visible="@HasValue(patient.PlaceOfBirth)"
-                                              Label="@Localizer["PlaceOfBirth"]">
-                                @patient.PlaceOfBirth
-                            </ProjectInfoValue>
-
-                            <ProjectInfoValue Visible="@(patient.Education != Education.Unspecified)"
-                                              Label="@Localizer["Education"]">
-                                @Localizer[patient.Education.ToString()]
-                            </ProjectInfoValue>
-
-                            <ProjectInfoValue Visible="@HasValue(patient.Occupation)"
-                                              Label="@Localizer["Occupation"]">
-                                @patient.Occupation
-                            </ProjectInfoValue>
-
-                            <ProjectInfoValue Visible="@(patient.Height > 0)"
-                                              Label="@Localizer["Height"]">
-                                @patient.Height
-                            </ProjectInfoValue>
-
-                            <ProjectInfoValue Visible="@(patient.Weight > 0)"
-                                              Label="@Localizer["Weight"]">
-                                @patient.Weight
-                            </ProjectInfoValue>
-
-                            <ProjectInfoValue Visible="@HasValue(patient.Referrer)"
-                                              Label="@Localizer["Referrer"]">
-                                @patient.Referrer
-                            </ProjectInfoValue>
-
-                            <ProjectInfoValue Visible="@HasValue(patient.Address)"
-                                              Label="@Localizer["Address"]"
-                                              Md="12">
-                                @patient.Address
-                            </ProjectInfoValue>
-                        }
+    <StackField>
+        <MudGrid Spacing="3" Class="mt-2">
+            <MudItem xs="12" md="4">
+                <MudPaper Class="pa-4 h-100" Elevation="0">
+                    <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                        <StackFileImageInput @ref="stackFileInput"
+                                             Label="@Localizer["Photo"]"
+                                             FileId="@patient.AvatarFileId"
+                                             FileIdChanged="@AvatarUploaded" />
                     </MudStack>
 
-                    <MudFab EndIcon="@ExpandIcon(context.Expanded)"
-                            OnClick="@context.ToggleAsync"
-                            Size="Size.Small" />
-                </MudStack>
-            </StackButton>
-        </TitleContent>
+                    <MudDivider Class="my-4" />
 
-        <ExpandableContent>
-            <StackTextField @bind-Value="patient.FatherName"
-                            Label="@Localizer["FatherName"]" />
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12">
+                            <StackPersonIdField @bind-Value="patient.IdentificationCode"
+                                                Adornment="Adornment.End"
+                                                AdornmentIcon="@RequiredIcon(patient.IdentificationCode, "fa-solid fa-id-card")"
+                                                AdornmentColor="@RequiredColor(patient.IdentificationCode)" />
+                        </MudItem>
 
-            <StackField Label="@Localizer["Gender"]">
-                <MudRadioGroup T="Gender"
-                               @bind-Value="patient.Gender">
-                    <MudRadio Value="@Gender.Unspecified">@Localizer["Unspecified"]</MudRadio>
-                    <MudRadio Value="@Gender.Female">@Localizer["Female"]</MudRadio>
-                    <MudRadio Value="@Gender.Male">@Localizer["Male"]</MudRadio>
-                </MudRadioGroup>
-            </StackField>
+                        <MudItem xs="12">
+                            <StackTextField @bind-Value="patient.FirstName"
+                                            Label="@Localizer["FirstName"]"
+                                            Adornment="Adornment.End"
+                                            AdornmentIcon="@RequiredIcon(patient.FirstName)"
+                                            AdornmentColor="@RequiredColor(patient.FirstName)" />
+                        </MudItem>
 
-            <StackDatePicker @bind-Date="patient.DateOfBirth"
-                             Label="@Localizer["DateOfBirth"]" />
+                        <MudItem xs="12">
+                            <StackTextField @bind-Value="patient.LastName"
+                                            Label="@Localizer["LastName"]"
+                                            DebounceInterval="500"
+                                            Adornment="Adornment.End"
+                                            AdornmentIcon="@RequiredIcon(patient.LastName)"
+                                            AdornmentColor="@RequiredColor(patient.LastName)" />
+                        </MudItem>
 
-            <StackTextField @bind-Value="patient.PlaceOfBirth"
-                            Label="@Localizer["PlaceOfBirth"]" />
+                        <MudItem xs="12">
+                            <StackPhoneField @bind-Value="patient.Phone"
+                                             Adornment="Adornment.End"
+                                             AdornmentIcon="@RequiredIcon(patient.Phone, "fa-solid fa-phone")"
+                                             AdornmentColor="@RequiredColor(patient.Phone)" />
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
 
-            <StackSelect @bind-Value="patient.Education"
-                         Label="@Localizer["Education"]">
-                <StackSelectItem Value="@Education.Unspecified">@Localizer["Unspecified"]</StackSelectItem>
-                <StackSelectItem Value="@Education.NoFormalEducation">@Localizer["NoFormalEducation"]</StackSelectItem>
-                <StackSelectItem Value="@Education.PrimarySchool">@Localizer["PrimarySchool"]</StackSelectItem>
-                <StackSelectItem Value="@Education.HighSchool">@Localizer["HighSchool"]</StackSelectItem>
-                <StackSelectItem Value="@Education.AssociateDegree">@Localizer["AssociateDegree"]</StackSelectItem>
-                <StackSelectItem Value="@Education.BachelorDegree">@Localizer["BachelorDegree"]</StackSelectItem>
-                <StackSelectItem Value="@Education.MasterDegree">@Localizer["MasterDegree"]</StackSelectItem>
-                <StackSelectItem Value="@Education.Doctorate">@Localizer["Doctorate"]</StackSelectItem>
-                <StackSelectItem Value="@Education.Professional">@Localizer["Professional"]</StackSelectItem>
-            </StackSelect>
+            <MudItem xs="12" md="8">
+                <MudGrid Spacing="3">
+                    <MudItem xs="12" lg="6">
+                        <MudPaper Class="pa-4 h-100" Elevation="0">
+                            <MudText Typo="Typo.h6" Class="mb-3">
+                                @Localizer["PersonalDetails"]
+                            </MudText>
 
-            <StackTextField @bind-Value="patient.Occupation"
-                            Label="@Localizer["Occupation"]" />
+                            <MudGrid Spacing="2">
+                                <MudItem xs="12" sm="6">
+                                    <StackTextField @bind-Value="patient.FatherName"
+                                                    Label="@Localizer["FatherName"]" />
+                                </MudItem>
 
-            <StackNumericField @bind-Value="patient.Height"
-                               Label="@Localizer["Height"]" />
+                                <MudItem xs="12" sm="6">
+                                    <StackField Label="@Localizer["Gender"]">
+                                        <MudRadioGroup T="Gender"
+                                                       @bind-Value="patient.Gender">
+                                            <MudRadio Value="@Gender.Unspecified">@Localizer["Unspecified"]</MudRadio>
+                                            <MudRadio Value="@Gender.Female">@Localizer["Female"]</MudRadio>
+                                            <MudRadio Value="@Gender.Male">@Localizer["Male"]</MudRadio>
+                                        </MudRadioGroup>
+                                    </StackField>
+                                </MudItem>
 
-            <StackNumericField @bind-Value="patient.Weight"
-                               Label="@Localizer["Weight"]" />
+                                <MudItem xs="12" sm="6">
+                                    <StackDatePicker @bind-Date="patient.DateOfBirth"
+                                                     Label="@Localizer["DateOfBirth"]" />
+                                </MudItem>
 
-            <StackAutocomplete @bind-Value="patient.Referrer"
-                               Items="@ReferrerItems"
-                               Label="@Localizer["Referrer"]" />
+                                <MudItem xs="12" sm="6">
+                                    <StackTextField @bind-Value="patient.PlaceOfBirth"
+                                                    Label="@Localizer["PlaceOfBirth"]" />
+                                </MudItem>
 
-            <StackTextField @bind-Value="patient.Address"
-                            Label="@Localizer["Address"]"
-                            Lines="2" />
-        </ExpandableContent>
-    </StackExpandable>
-</Stack>
+                                <MudItem xs="12" sm="6">
+                                    <StackSelect @bind-Value="patient.Education"
+                                                 Label="@Localizer["Education"]">
+                                        <StackSelectItem Value="@Education.Unspecified">@Localizer["Unspecified"]</StackSelectItem>
+                                        <StackSelectItem Value="@Education.NoFormalEducation">@Localizer["NoFormalEducation"]</StackSelectItem>
+                                        <StackSelectItem Value="@Education.PrimarySchool">@Localizer["PrimarySchool"]</StackSelectItem>
+                                        <StackSelectItem Value="@Education.HighSchool">@Localizer["HighSchool"]</StackSelectItem>
+                                        <StackSelectItem Value="@Education.AssociateDegree">@Localizer["AssociateDegree"]</StackSelectItem>
+                                        <StackSelectItem Value="@Education.BachelorDegree">@Localizer["BachelorDegree"]</StackSelectItem>
+                                        <StackSelectItem Value="@Education.MasterDegree">@Localizer["MasterDegree"]</StackSelectItem>
+                                        <StackSelectItem Value="@Education.Doctorate">@Localizer["Doctorate"]</StackSelectItem>
+                                        <StackSelectItem Value="@Education.Professional">@Localizer["Professional"]</StackSelectItem>
+                                    </StackSelect>
+                                </MudItem>
 
-<Stack>
-    <StackExpandable>
-        <TitleContent>
-            <StackButton Label="@Localizer["ClinicalData"]"
-                         OnClick="@context.ToggleAsync">
-                <MudStack Row
-                          AlignItems="AlignItems.Center"
-                          Justify="Justify.SpaceBetween">
+                                <MudItem xs="12" sm="6">
+                                    <StackTextField @bind-Value="patient.Occupation"
+                                                    Label="@Localizer["Occupation"]" />
+                                </MudItem>
 
-                    <MudStack Class="flex-grow-1">
-                        @if(!context.Expanded)
-                        {
-                            <ProjectInfoValue Visible="@patient.DateOfSurgery.HasValue"
-                                              Label="@Localizer["DateOf", Localizer["Surgery"]]">
-                                @FormatDate(patient.DateOfSurgery)
-                            </ProjectInfoValue>
+                                <MudItem xs="12" sm="6">
+                                    <StackNumericField @bind-Value="patient.Height"
+                                                       Label="@Localizer["Height"]" />
+                                </MudItem>
 
-                            <ProjectInfoValue Visible="@HasValue(patient.ClinicalNotes)"
-                                              Label="@Localizer["ClinicalNotes"]"
-                                              Md="12"
-                                              Class="py-3">
-                                @patient.ClinicalNotes
-                            </ProjectInfoValue>
+                                <MudItem xs="12" sm="6">
+                                    <StackNumericField @bind-Value="patient.Weight"
+                                                       Label="@Localizer["Weight"]" />
+                                </MudItem>
 
-                            <ProjectInfoValue Visible="@HasValue(patient.InsuranceProvider)"
-                                              Label="@Localizer["InsuranceProvider"]">
-                                @patient.InsuranceProvider
-                            </ProjectInfoValue>
+                                <MudItem xs="12" sm="6">
+                                    <StackAutocomplete @bind-Value="patient.Referrer"
+                                                       Items="@ReferrerItems"
+                                                       Label="@Localizer["Referrer"]" />
+                                </MudItem>
 
-                            <ProjectInfoValue Visible="@HasValue(patient.VisitReason)"
-                                              Label="@Localizer["VisitReason"]"
-                                              Md="12">
-                                @patient.VisitReason
-                            </ProjectInfoValue>
+                                <MudItem xs="12">
+                                    <StackTextField @bind-Value="patient.Address"
+                                                    Label="@Localizer["Address"]"
+                                                    Lines="2" />
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    </MudItem>
 
-                            <ProjectInfoValue Visible="@HasValue(patient.Allergies)"
-                                              Label="@Localizer["Allergies"]"
-                                              Md="12">
-                                @patient.Allergies
-                            </ProjectInfoValue>
+                    <MudItem xs="12" lg="6">
+                        <MudPaper Class="pa-4 h-100" Elevation="0">
+                            <MudText Typo="Typo.h6" Class="mb-3">
+                                @Localizer["ClinicalData"]
+                            </MudText>
 
-                            <ProjectInfoValue Visible="@HasValue(patient.CurrentMedications)"
-                                              Label="@Localizer["CurrentMedications"]"
-                                              Md="12">
-                                @patient.CurrentMedications
-                            </ProjectInfoValue>
+                            <MudGrid Spacing="2">
+                                <MudItem xs="12" sm="6">
+                                    <StackDatePicker @bind-Date="patient.DateOfSurgery"
+                                                     Label="@Localizer["DateOf", Localizer["Surgery"]]" />
+                                </MudItem>
 
-                            <ProjectInfoValue Visible="@HasValue(patient.EmergencyContactName)"
-                                              Label="@Localizer["EmergencyContactName"]">
-                                @patient.EmergencyContactName
-                            </ProjectInfoValue>
+                                <MudItem xs="12" sm="6">
+                                    <StackTextField @bind-Value="patient.InsuranceProvider"
+                                                    Label="@Localizer["InsuranceProvider"]" />
+                                </MudItem>
 
-                            <ProjectInfoValue Visible="@HasValue(patient.EmergencyContactPhone)"
-                                              Label="@Localizer["EmergencyContactPhone"]">
-                                @patient.EmergencyContactPhone
-                            </ProjectInfoValue>
-                        }
-                    </MudStack>
+                                <MudItem xs="12">
+                                    <StackTextField @bind-Value="patient.VisitReason"
+                                                    Label="@Localizer["VisitReason"]"
+                                                    Lines="2" />
+                                </MudItem>
 
-                    <MudFab EndIcon="@ExpandIcon(context.Expanded)"
-                            OnClick="@context.ToggleAsync"
-                            Size="Size.Small" />
-                </MudStack>
-            </StackButton>
-        </TitleContent>
+                                <MudItem xs="12">
+                                    <StackTextField @bind-Value="patient.Allergies"
+                                                    Label="@Localizer["Allergies"]"
+                                                    Lines="2" />
+                                </MudItem>
 
-        <ExpandableContent>
-            <StackDatePicker @bind-Date="patient.DateOfSurgery"
-                             Label="@Localizer["DateOf", Localizer["Surgery"]]" />
+                                <MudItem xs="12">
+                                    <StackTextField @bind-Value="patient.CurrentMedications"
+                                                    Label="@Localizer["CurrentMedications"]"
+                                                    Lines="2" />
+                                </MudItem>
 
-            <StackTextField @bind-Value="patient.ClinicalNotes"
-                            Label="@Localizer["ClinicalNotes"]"
-                            Lines="3" />
+                                <MudItem xs="12" sm="6">
+                                    <StackTextField @bind-Value="patient.EmergencyContactName"
+                                                    Label="@Localizer["EmergencyContactName"]" />
+                                </MudItem>
 
-            <StackTextField @bind-Value="patient.InsuranceProvider"
-                            Label="@Localizer["InsuranceProvider"]" />
+                                <MudItem xs="12" sm="6">
+                                    <StackTextField @bind-Value="patient.EmergencyContactPhone"
+                                                    Label="@Localizer["EmergencyContactPhone"]"
+                                                    Adornment="Adornment.End"
+                                                    AdornmentIcon="fa-solid fa-phone" />
+                                </MudItem>
 
-            <StackTextField @bind-Value="patient.VisitReason"
-                            Label="@Localizer["VisitReason"]"
-                            Lines="2" />
+                                <MudItem xs="12">
+                                    <StackTextField @bind-Value="patient.ClinicalNotes"
+                                                    Label="@Localizer["ClinicalNotes"]"
+                                                    Lines="3" />
+                                </MudItem>
+                            </MudGrid>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+        </MudGrid>
+    </StackField>
 
-            <StackTextField @bind-Value="patient.Allergies"
-                            Label="@Localizer["Allergies"]"
-                            Lines="2" />
-
-            <StackTextField @bind-Value="patient.CurrentMedications"
-                            Label="@Localizer["CurrentMedications"]"
-                            Lines="2" />
-
-            <StackTextField @bind-Value="patient.EmergencyContactName"
-                            Label="@Localizer["EmergencyContactName"]" />
-
-            <StackTextField @bind-Value="patient.EmergencyContactPhone"
-                            Label="@Localizer["EmergencyContactPhone"]"
-                            Adornment="Adornment.End"
-                            AdornmentIcon="fa-solid fa-phone" />
-        </ExpandableContent>
-    </StackExpandable>
-</Stack>
-
-<Stack>
     <StackButton Label="@Localizer["Save"]"
                  EndIcon="fa-solid fa-save"
                  Color="Color.Primary"
@@ -289,12 +223,6 @@
 
     private static Color RequiredColor(string? value)
         => HasValue(value) ? Color.Default : Color.Warning;
-
-    private static string ExpandIcon(bool expanded)
-        => expanded ? "fa-solid fa-xmark" : "fa-solid fa-caret-down";
-
-    private static string? FormatDate(DateTime? value)
-        => value?.ToShortDateString();
 
     private Task CancelAsync()
         => OnCancel.InvokeAsync();

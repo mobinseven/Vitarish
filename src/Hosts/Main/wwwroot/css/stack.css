@@ -116,3 +116,95 @@
         --stack-button-padding-x: 1rem;
     }
 }
+
+/* -----------------------------------------
+   Shared stack field primitives
+----------------------------------------- */
+
+.stack-field-trigger {
+    display: contents;
+    max-width: 100%;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+    .stack-field-trigger.stack-field-disabled,
+    .stack-field-trigger.stack-field-readonly {
+        cursor: default;
+        pointer-events: none;
+    }
+
+    .stack-field-trigger:focus-visible {
+        outline: 2px solid var(--mud-palette-primary);
+        outline-offset: 3px;
+        border-radius: 999px;
+    }
+
+    .stack-field-trigger .mud-chip {
+        max-width: 100%;
+    }
+
+    .stack-field-trigger .mud-chip-content {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+.stack-field-editor,
+.stack-field-input {
+    --stack-field-width: 30rem;
+    min-width: min(var(--stack-field-width), calc(100vw - 3rem));
+}
+
+.stack-field-editor-compact,
+.stack-field-input-compact {
+    --stack-field-width: 28rem;
+}
+
+.stack-field-editor-focus-root {
+    outline: none;
+}
+
+/* -----------------------------------------
+   StackTimePicker
+----------------------------------------- */
+
+.stack-time-picker-selects {
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+    .stack-time-picker-selects > .mud-input-control {
+        flex: 1 1 min(10rem, 100%);
+        min-width: min(10rem, 100%);
+    }
+
+.stack-time-picker-separator {
+    padding-block-start: 1.7rem;
+}
+
+@media (max-width: 420px) {
+    .stack-time-picker-separator {
+        display: none;
+    }
+
+    .stack-time-picker-selects > .mud-input-control {
+        flex-basis: 100%;
+    }
+}
+
+/* -----------------------------------------
+   StackDatePicker
+----------------------------------------- */
+
+.stack-date-picker-editor .mud-picker-inline-paper {
+    box-shadow: none;
+}
+
+/* -----------------------------------------
+   StackSelect
+----------------------------------------- */
+
+.stack-select-list {
+    max-width: 100%;
+}

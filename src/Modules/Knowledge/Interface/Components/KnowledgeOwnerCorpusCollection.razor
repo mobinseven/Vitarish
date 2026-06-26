@@ -1,8 +1,6 @@
 @inherits CommonBase
 @using Microsoft.AspNetCore.Components
 @using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
-@using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
-@using SourceFileItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceFileCollectionItem
 
     @if(Model.Corpora.Count == 0)
 {
@@ -13,18 +11,30 @@ else
     @foreach(CorpusItemModel corpus in Model.Corpora)
     {
         <Stack>
-            <KnowledgeOwnerCorpusCollectionItem Item="corpus" IsSelected="@(Model.SelectedCorpusId == corpus.CorpusId)" FocusedSourceId="Model.FocusedSourceId" SelectedCorpusChanged="SelectedCorpusChanged" SelectedSourceChanged="SelectedSourceChanged" />
+            <KnowledgeOwnerCorpusCollectionItem Item="corpus" DeleteRequested="DeleteRequested" IndexRequested="IndexRequested" ImportRequested="ImportRequested" IsBusy="IsBusy" />
         </Stack>
     }
 }
 
+<KnowledgeCorpusCreator CreateRequested="CreateRequested" IsBusy="IsBusy" />
+
 @code {
+
+    [Parameter, EditorRequired]
+    public bool IsBusy { get; set; }
+
     [Parameter, EditorRequired]
     public KnowledgeOwnerCollectionReadModel Model { get; set; } = KnowledgeOwnerCollectionReadModel.Empty;
 
     [Parameter, EditorRequired]
-    public EventCallback<Guid> SelectedCorpusChanged { get; set; }
+    public EventCallback<DeleteKnowledgeSourceInput> DeleteRequested { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<Guid> SelectedSourceChanged { get; set; }
+    public EventCallback<Guid> IndexRequested { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<ImportKnowledgeSourceFromFileInput> ImportRequested { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<CreateKnowledgeCorpusInput> CreateRequested { get; set; }
 }

@@ -1,13 +1,21 @@
-@using Vitarish.Modules.Base
+@inherits CommonBase
 @using Microsoft.AspNetCore.Components
 
-<Stack>
-    <StackField Label="Create corpus" HelperText="Use a meaningful name and optional description. The system creates the internal identifier automatically." />
-    <StackTextField @bind-Value="name" Label="Name" />
-    <StackTextField @bind-Value="description" Label="Description" Lines="2" />
-    @* <StackCheckbox @bind-Value="isActive" Label="Enabled" /> *@
-    <StackButton Label="Create corpus" Color="Color.Primary" OnClick="CreateAsync" Disabled="@IsBusy" />
-</Stack>
+<StackButton Label="@Localizer["AddItem", Localizer["Corpus"]]" OnClick="OpenCreateCorpusDialog" EndIcon="fa-solid fa-plus" Color="Color.Success" />
+<MudDialog @bind-Visible="createCorpusDialogOpen" Options="@ActiveDialogOptions">
+    <DialogContent>
+        <Stack>
+            <StackField Label="Create corpus" HelperText="Use a meaningful name and optional description. The system creates the internal identifier automatically." />
+            <StackTextField @bind-Value="name" Label="Name" />
+            <StackTextField @bind-Value="description" Label="Description" Lines="2" />
+            @* <StackCheckbox @bind-Value="isActive" Label="Enabled" /> *@
+        </Stack>
+        <Stack>
+            <StackButton Label="@Localizer["AddItem", Localizer["Corpus"]]" EndIcon="fa-solid fa-plus" Color="Color.Primary" OnClick="CreateAsync" Disabled="@IsBusy" />
+            <StackButton Label="Close" Color="Color.Secondary" OnClick="CloseCreateCorpusDialog" EndIcon="fa-solid fa-xmark" Disabled="@IsBusy" />
+        </Stack>
+    </DialogContent>
+</MudDialog>
 
 @code {
     private string name = string.Empty;
@@ -15,7 +23,13 @@
     private bool isActive = true;
     private int observedResetVersion = -1;
 
-    [Parameter]
+
+    private DialogOptions ActiveDialogOptions => new() { BackdropClick = !IsBusy, CloseOnEscapeKey = !IsBusy };
+    private bool createCorpusDialogOpen;
+    private void OpenCreateCorpusDialog() { createCorpusDialogOpen = true; }
+    private void CloseCreateCorpusDialog() => createCorpusDialogOpen = false;
+
+    [Parameter, EditorRequired]
     public bool IsBusy { get; set; }
 
     [Parameter]
@@ -38,6 +52,7 @@
     private async Task CreateAsync()
     {
         await CreateRequested.InvokeAsync(new CreateKnowledgeCorpusInput(name, description, isActive));
+        CloseCreateCorpusDialog();
     }
 
     private void ResetForm()

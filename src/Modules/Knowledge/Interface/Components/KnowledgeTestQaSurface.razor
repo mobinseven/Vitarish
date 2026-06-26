@@ -17,11 +17,6 @@
         <StackButton Label="@Localizer["Manage"]" OnClick="OnManagementClicked" />
         return;
     }
-    @if(!string.IsNullOrWhiteSpace(status))
-    {
-        <StackCard Label="@status"
-                   Color="@statusColor" />
-    }
 </Stack>
 
 @if(!string.IsNullOrWhiteSpace(question))

@@ -1,63 +1,18 @@
 @using Microsoft.Extensions.Logging
-@using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
-@using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
 @using Vitarish.Modules.Base
 @inherits TenantCommonBase
 @implements IDisposable
 @inject MediatR.ISender Sender
 @inject ILogger<KnowledgeOwnerManagementSurface> Logger
 
-<Stack>
-    <StackField Label="Knowledge management" HelperText="Manage corpora, sources, and imported source files from one owner workspace." />
-</Stack>
-
-<KnowledgeOwnerCorpusCollection Model="@collection" SelectedCorpusChanged="SelectCorpusByIdAsync" SelectedSourceChanged="SelectSourceByIdAsync" />
-
 <PaletteCard>
     <Stack>
-        <StackField Label="Owner actions" HelperText="Open focused dialogs for corpus creation, source import, deletion, and indexing." />
-        <div class="d-flex flex-wrap gap-2">
-            <StackButton Label="Create corpus" Color="Color.Primary" OnClick="OpenCreateCorpusDialog" Disabled="@isBusy" />
-            <StackButton Label="Import source" Color="Color.Secondary" OnClick="OpenImportSourceDialog" Disabled="@(isBusy || SelectedCorpusOption is null)" />
-            <StackButton Label="Delete source" Color="Color.Error" OnClick="OpenDeleteSourceDialog" Disabled="@(isBusy || !CanDeleteSources)" />
-            <StackButton Label="Index corpus" Color="Color.Primary" OnClick="OpenIndexCorpusDialog" Disabled="@(isBusy || SelectedCorpusOption is null)" />
-        </div>
+        <StackField Label="Knowledge management" HelperText="Manage corpora, sources, and imported source files from one owner workspace." />
     </Stack>
+    <KnowledgeOwnerCorpusCollection Model="@collection" DeleteRequested="DeleteSourceAsync" IndexRequested="IndexCorpusAsync" ImportRequested="ImportSourceFromFileAsync" CreateRequested="CreateCorpusAsync" IsBusy="isBusy" />
+
+    <KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
 </PaletteCard>
-
-<MudDialog @bind-Visible="createCorpusDialogOpen" Options="@ActiveDialogOptions">
-    <DialogContent>
-        <KnowledgeCorpusCreator IsBusy="@isBusy" ResetVersion="@createCorpusResetVersion" CreateRequested="CreateCorpusAndCloseOnSuccessAsync" />
-        <KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
-        <StackButton Label="Close" Color="Color.Secondary" OnClick="CloseCreateCorpusDialog" Disabled="@isBusy" />
-    </DialogContent>
-</MudDialog>
-
-<MudDialog @bind-Visible="importSourceDialogOpen" Options="@ActiveDialogOptions">
-    <DialogContent>
-        <KnowledgeSourceImporter SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" FileImportRequested="ImportSourceFromFileAndCloseOnSuccessAsync" ImportSummary="@importSummary" />
-        <KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
-        <StackButton Label="Close" Color="Color.Secondary" OnClick="CloseImportSourceDialog" Disabled="@isBusy" />
-    </DialogContent>
-</MudDialog>
-
-<MudDialog @bind-Visible="deleteSourceDialogOpen" Options="@ActiveDialogOptions">
-    <DialogContent>
-        <KnowledgeSourceDeleter SelectedCorpus="@SelectedCorpusOption" FocusedSource="@FocusedSourceOption" Sources="@SelectedSourceOptions" IsBusy="@isBusy" CanDelete="@CanDeleteSources" SourcesVersion="@sourcesVersion" DeleteRequested="DeleteSourceAndCloseOnSuccessAsync" />
-        <KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
-        <StackButton Label="Close" Color="Color.Secondary" OnClick="CloseDeleteSourceDialog" Disabled="@isBusy" />
-    </DialogContent>
-</MudDialog>
-
-<MudDialog @bind-Visible="indexCorpusDialogOpen" Options="@ActiveDialogOptions">
-    <DialogContent>
-        <KnowledgeCorpusIndexer SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" IndexRequested="IndexCorpusAndCloseOnSuccessAsync" />
-        <KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
-        <StackButton Label="Close" Color="Color.Secondary" OnClick="CloseIndexCorpusDialog" Disabled="@isBusy" />
-    </DialogContent>
-</MudDialog>
-
-<KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
 
 <PaletteCard>
     <PaletteButton Label="@Localizer["Start"]" OnClick="StartClicked" />
@@ -75,17 +30,7 @@
     private bool isBusy;
     private int createCorpusResetVersion;
     private int sourcesVersion;
-    private bool createCorpusDialogOpen;
-    private bool importSourceDialogOpen;
-    private bool deleteSourceDialogOpen;
-    private bool indexCorpusDialogOpen;
 
-    private CorpusItemModel? SelectedCorpus => collection.Corpora.FirstOrDefault(corpus => corpus.CorpusId == collection.SelectedCorpusId);
-    private SourceItemModel? FocusedSource => SelectedCorpus?.Sources.FirstOrDefault(source => source.SourceId == collection.FocusedSourceId);
-    private KnowledgeOwnerCorpusOption? SelectedCorpusOption => SelectedCorpus is null ? null : ToCorpusOption(SelectedCorpus);
-    private KnowledgeOwnerSourceOption? FocusedSourceOption => FocusedSource is null ? null : ToSourceOption(FocusedSource);
-    private IReadOnlyList<KnowledgeOwnerSourceOption> SelectedSourceOptions => SelectedCorpus?.Sources.Select(ToSourceOption).ToArray() ?? [];
-    private bool CanDeleteSources => !string.IsNullOrWhiteSpace(RequestContext.OwnerId) && SelectedCorpus is not null && SelectedSourceOptions.Count > 0;
     private string TenantId => RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again.");
     private DialogOptions ActiveDialogOptions => new() { BackdropClick = !isBusy, CloseOnEscapeKey = !isBusy };
 
@@ -95,7 +40,8 @@
     {
         KnowledgeOwnerCreateCorpusResult result = await Sender.Send(new CreateKnowledgeCorpusCommand(TenantId, input), token);
         Apply(result.Succeeded, result.Message);
-        if (!result.Succeeded || result.Corpus is null) return;
+        if(!result.Succeeded || result.Corpus is null)
+            return;
         await ReloadAsync(result.Corpus.CorpusId, null, token);
         createCorpusResetVersion++;
         ClearCorpusScopedResults();
@@ -107,57 +53,21 @@
     private async Task ImportSourceFromFileAsync(ImportKnowledgeSourceFromFileInput input) => await RunAsync(async token =>
     {
         KnowledgeOwnerImportCommandResult result = await Sender.Send(new ImportKnowledgeSourceFromFileCommand(TenantId, input), token);
-        Apply(result.Succeeded, result.Message); importSummary = result.Summary;
-        if (result.Succeeded) await ReloadSelectedAsync(token);
+        Apply(result.Succeeded, result.Message);
+        importSummary = result.Summary;
+        if(result.Succeeded)
+            await ReloadSelectedAsync(token);
     });
 
     private async Task DeleteSourceAsync(DeleteKnowledgeSourceInput input) => await RunAsync(async token =>
     {
         KnowledgeOwnerCommandResult result = await Sender.Send(new DeleteKnowledgeSourceCommand(TenantId, RequestContext.OwnerId, input), token);
         Apply(result);
-        if (result.Succeeded) await ReloadAsync(collection.SelectedCorpusId, null, token);
+        if(result.Succeeded)
+            await ReloadAsync(collection.SelectedCorpusId, null, token);
     });
 
-    private async Task IndexCorpusAsync() => await RunAsync(async token => Apply(await Sender.Send(new IndexKnowledgeCorpusCommand(TenantId, new IndexKnowledgeCorpusInput(collection.SelectedCorpusId)), token)));
-
-    private async Task CreateCorpusAndCloseOnSuccessAsync(CreateKnowledgeCorpusInput input)
-    {
-        await CreateCorpusAsync(input);
-        if (statusColor == Color.Success) createCorpusDialogOpen = false;
-    }
-
-    private async Task ImportSourceFromFileAndCloseOnSuccessAsync(ImportKnowledgeSourceFromFileInput input)
-    {
-        await ImportSourceFromFileAsync(input);
-        if (statusColor == Color.Success) importSourceDialogOpen = false;
-    }
-
-    private async Task DeleteSourceAndCloseOnSuccessAsync(DeleteKnowledgeSourceInput input)
-    {
-        await DeleteSourceAsync(input);
-        if (statusColor == Color.Success) deleteSourceDialogOpen = false;
-    }
-
-    private async Task IndexCorpusAndCloseOnSuccessAsync()
-    {
-        await IndexCorpusAsync();
-        if (statusColor == Color.Success) indexCorpusDialogOpen = false;
-    }
-
-    private void OpenCreateCorpusDialog() { ClearStatus(); createCorpusDialogOpen = true; }
-    private void CloseCreateCorpusDialog() => createCorpusDialogOpen = false;
-    private void OpenImportSourceDialog() { ClearStatus(); importSourceDialogOpen = true; }
-    private void CloseImportSourceDialog() => importSourceDialogOpen = false;
-    private void OpenDeleteSourceDialog() { ClearStatus(); deleteSourceDialogOpen = true; }
-    private void CloseDeleteSourceDialog() => deleteSourceDialogOpen = false;
-    private void OpenIndexCorpusDialog() { ClearStatus(); indexCorpusDialogOpen = true; }
-    private void CloseIndexCorpusDialog() => indexCorpusDialogOpen = false;
-
-    private static KnowledgeOwnerCorpusOption ToCorpusOption(CorpusItemModel corpus)
-        => new(corpus.CorpusName, $"{(corpus.IsActive ? "Enabled" : "Disabled")}{(string.IsNullOrWhiteSpace(corpus.CorpusDescription) ? string.Empty : $" · {corpus.CorpusDescription}")}") { CorpusId = corpus.CorpusId };
-
-    private static KnowledgeOwnerSourceOption ToSourceOption(SourceItemModel source)
-        => new($"{source.SourceName} · {source.SourceType} · imported {source.ImportedAt:g}") { SourceId = source.SourceId };
+    private async Task IndexCorpusAsync(Guid sourceId) => await RunAsync(async token => Apply(await Sender.Send(new IndexKnowledgeCorpusCommand(TenantId, new IndexKnowledgeCorpusInput(sourceId)), token)));
 
     private async Task ReloadSelectedAsync(CancellationToken token) { await ReloadAsync(collection.SelectedCorpusId, collection.FocusedSourceId, token); sourcesVersion++; }
     private async Task ReloadAsync(Guid? corpusId, Guid? sourceId, CancellationToken token) => collection = await Sender.Send(new KnowledgeOwnerCollectionQuery(TenantId, RequestContext.OwnerId, corpusId, sourceId), token);
@@ -165,9 +75,14 @@
 
     private async Task RunAsync(Func<CancellationToken, Task> action)
     {
-        if (isBusy) return; isBusy = true; status = null; statusColor = Color.Info;
-        try { await action(disposal.Token); }
-        catch (Exception ex) when (ex is not OperationCanceledException) { Logger.LogError(ex, "Knowledge management operation failed."); Apply(false, ex.Message); }
+        if(isBusy)
+            return;
+        isBusy = true;
+        status = null;
+        statusColor = Color.Info;
+        try
+        { await action(disposal.Token); }
+        catch(Exception ex) when(ex is not OperationCanceledException) { Logger.LogError(ex, "Knowledge management operation failed."); Apply(false, ex.Message); }
         finally { isBusy = false; }
     }
 

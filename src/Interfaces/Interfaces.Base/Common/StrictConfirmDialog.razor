@@ -4,6 +4,7 @@
         <Stack>
             <StackField Label="@ContentText" />
             <StackTextField @bind-Value="confirmation"
+                            HelperText="@Localizer["TypeNameToConfirm", ItemName]"
                             Immediate="true" />
             <MudText Typo="@Typo.caption">@Localizer["TypeNameToConfirm", ItemName]</MudText>
         </Stack>

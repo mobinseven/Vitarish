@@ -1,38 +1,47 @@
 @inherits CommonBase
 @using Vitarish.Knowledge.Application.Enums
 
-<StackTextField @bind-Value="sourceName" Label="@Localizer["NameItem", Localizer["Source"]]" />
+<StackButton Label="@Localizer["AddItem", Localizer["Source"]]" EndIcon="fa-solid fa-plus" OnClick="OpenImportSourceDialog" />
 
-<StackSelect T="KnowledgeSourceInputFormat" @bind-Value="format" Label="Source file format">
-    @foreach (KnowledgeSourceInputFormat option in KnowledgeSourceInputFormatLabels.Formats)
-    {
-        <StackSelectItem T="KnowledgeSourceInputFormat" Value="@option">@option.Label()</StackSelectItem>
-    }
-</StackSelect>
+<MudDialog @bind-Visible="importSourceDialogOpen" Options="@ActiveDialogOptions">
+    <DialogContent>
+        <Stack>
+            <StackTextField @bind-Value="sourceName" Label="@Localizer["NameItem", Localizer["Source"]]" />
 
-<StackFileInput @ref="fileTransfer" @bind-FileInfo="uploadedFile" Label="@Localizer["FileItem", Localizer["Source"]]" />
+            <StackSelect T="KnowledgeSourceInputFormat" @bind-Value="format" Label="Source file format">
+                @foreach(KnowledgeSourceInputFormat option in KnowledgeSourceInputFormatLabels.Formats)
+                {
+                    <StackSelectItem T="KnowledgeSourceInputFormat" Value="@option">@option.Label()</StackSelectItem>
+                }
+            </StackSelect>
 
-@if (uploadedFile is not null)
-{
-    <StackField Label="Selected file" HelperText="@DescribeUploadedFile()" Color="Color.Info" />
-}
+            <StackFileInput @ref="fileTransfer" @bind-FileInfo="uploadedFile" Label="@Localizer["FileItem", Localizer["Source"]]" />
 
-<StackButton Label="@ActionLabel" Color="@ActionColor" OnClick="StartFileUploadAsync" Disabled="@(IsBusy || isUploading)" />
+            @if(uploadedFile is not null)
+            {
+                <StackField Label="Selected file" HelperText="@DescribeUploadedFile()" Color="Color.Info" />
+            }
+        </Stack>
+        <Stack>
+            <StackButton Label="@Localizer["Import"]" EndIcon="fa-solid fa-cloud-arrow-up" Color="@Color.Primary" OnClick="StartFileUploadAsync" Disabled="@(IsBusy || isUploading)" />
+            <StackButton Label="Close" Color="Color.Secondary" EndIcon="fa-solid fa-xmark" OnClick="CloseImportSourceDialog" Disabled="@IsBusy" />
+        </Stack>
+    </DialogContent>
+</MudDialog>
 
 @code {
     private StackFileInput? fileTransfer;
+    private bool importSourceDialogOpen;
     private FileInformationReadDto? uploadedFile;
     private string sourceName = "Uploaded file";
     private KnowledgeSourceInputFormat format = KnowledgeSourceInputFormat.Markdown;
+    private DialogOptions ActiveDialogOptions => new() { BackdropClick = !IsBusy, CloseOnEscapeKey = !IsBusy };
 
-    [Parameter]
-    public bool IsBusy { get; set; }
+    private void OpenImportSourceDialog() { importSourceDialogOpen = true; }
+    private void CloseImportSourceDialog() => importSourceDialogOpen = false;
 
     [Parameter, EditorRequired]
-    public string ActionLabel { get; set; } = string.Empty;
-
-    [Parameter]
-    public Color ActionColor { get; set; } = Color.Primary;
+    public bool IsBusy { get; set; }
 
     [Parameter, EditorRequired]
     public EventCallback<KnowledgeSourcePayload> SubmitRequested { get; set; }
@@ -63,6 +72,7 @@
             return;
         }
         await SubmitRequested.InvokeAsync(new KnowledgeSourcePayload(sourceName, format, uploadedFile.Id));
+        CloseImportSourceDialog();
     }
 
     private string DescribeUploadedFile() => uploadedFile is null ? string.Empty : $"{uploadedFile.Tag ?? uploadedFile.Id.ToString()} ({uploadedFile.ContentType})";

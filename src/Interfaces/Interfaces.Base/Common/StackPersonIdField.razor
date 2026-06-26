@@ -1,39 +1,52 @@
 @using MudBlazor
+@using MudBlazor.State
 @inherits MudTextField<string>
 
-<MudTextField @key="guid"
-              @bind-Value:get="@_displayValue"
-              @bind-Value:set="SetIdentityValueAsync"
-              AdornmentColor="@EffectiveAdornmentColor"
-              AdornmentIcon="@EffectiveAdornmentIcon"
-              Adornment="@EffectiveAdornment"
-              AutoFocus="@AutoFocus"
-              Mask="@_identityMask"
-              OnAdornmentClick="@OnAdornmentClick"
-              Style="direction: ltr"
-              Class="@($"stack-item {(Centered ? "centered" : "")}")"
-              Underline="false"
-              Variant="Variant.Filled"
-              Required="@Required"
-              RequiredError="@RequiredError"
-              Placeholder="@Placeholder"
-              DebounceInterval="500"
-              Immediate="@Immediate"
-              HelperText="@Localizer["IdentificationCode"]"
-              InputType="@InputType"
-              Lines="@Lines"
-              MaxLines="@MaxLines"
-              MaxLength="@MaxLength"
-              InputMode="@InputMode"
-              UserAttributes="@UserAttributes"
-              ReadOnly="@ReadOnly"
-              Disabled="@Disabled" />
+<StackTextField @bind-Value:get="@_displayValue"
+                @bind-Value:set="@SetIdentityValueAsync"
+                Centered="@Centered"
+                Icon="@EffectiveIcon"
+                EmptyText="@EffectiveEmptyText"
+                DoneText="@DoneText"
+                DoneIcon="@EffectiveDoneIcon"
+                DoneAdornmentColor="@EffectiveAdornmentColor"
+                EditorVariant="@Variant"
+                ChipSize="@ChipSize"
+                ChipTextMaxLength="@ChipTextMaxLength"
+                TriggerAriaLabel="@EffectiveTriggerAriaLabel"
+                TriggerClass="@TriggerClass"
+                TriggerTabIndex="@TriggerTabIndex"
+                TriggerAttributes="@TriggerAttributes"
+                OpenOnTabFocus="@OpenOnTabFocus"
+                FocusOpenCooldownMilliseconds="@FocusOpenCooldownMilliseconds"
+                FocusEditorOnOpen="@FocusEditorOnOpen"
+                EditorFocusDelayMilliseconds="@EditorFocusDelayMilliseconds"
+                CloseOnEscape="@CloseOnEscape"
+                CloseOnEnter="@CloseOnEnter"
+                CloseOnCtrlEnter="@CloseOnCtrlEnter"
+                Opened="@Opened"
+                Closed="@Closed"
+                AutoFocus="@AutoFocus"
+                Mask="@_identityMask"
+                Style="@EffectiveStyle"
+                Class="@Class"
+                Required="@Required"
+                RequiredError="@RequiredError"
+                Placeholder="@Placeholder"
+                DebounceInterval="@DebounceInterval"
+                Immediate="@Immediate"
+                HelperText="@EffectiveHelperText"
+                InputType="@InputType"
+                Lines="@Lines"
+                MaxLines="@MaxLines"
+                MaxLength="@MaxLength"
+                InputMode="@InputMode"
+                UserAttributes="@UserAttributes"
+                ReadOnly="@ReadOnly"
+                Disabled="@Disabled" />
 
 @code {
-
     [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
-
-    private Guid guid = Guid.NewGuid();
 
     [Parameter] public bool Centered { get; set; }
 
@@ -44,42 +57,97 @@
     /// </summary>
     [Parameter] public string? PassportCountryIso3 { get; set; }
 
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string? EmptyText { get; set; }
+    [Parameter] public string DoneText { get; set; } = "Done";
+    [Parameter] public string DoneIcon { get; set; } = "fa-solid fa-circle-check";
+    [Parameter] public Color DoneAdornmentColor { get; set; } = Color.Primary;
+    [Parameter] public bool ShowDoneButton { get; set; } = true;
+    [Parameter] public Color DoneButtonColor { get; set; } = Color.Primary;
+    [Parameter] public Variant DoneButtonVariant { get; set; } = Variant.Filled;
+    [Parameter] public Size ChipSize { get; set; } = Size.Large;
+    [Parameter] public int ChipTextMaxLength { get; set; } = 80;
+
+    [Parameter] public string? TriggerAriaLabel { get; set; }
+    [Parameter] public string? TriggerClass { get; set; }
+    [Parameter] public int TriggerTabIndex { get; set; } = 0;
+    [Parameter] public IReadOnlyDictionary<string, object>? TriggerAttributes { get; set; }
+
+    [Parameter] public bool OpenOnTabFocus { get; set; }
+    [Parameter] public int FocusOpenCooldownMilliseconds { get; set; } = 250;
+
+    [Parameter] public bool FocusEditorOnOpen { get; set; } = true;
+    [Parameter] public int EditorFocusDelayMilliseconds { get; set; } = 75;
+
+    [Parameter] public bool CloseOnEscape { get; set; } = true;
+    [Parameter] public bool CloseOnEnter { get; set; } = true;
+    [Parameter] public bool CloseOnCtrlEnter { get; set; } = true;
+
+    [Parameter] public EventCallback Opened { get; set; }
+    [Parameter] public EventCallback Closed { get; set; }
+
     private readonly ParameterState<string?> _valueState;
 
     private string? _displayValue;
+    private string? _lastParameterValue;
+    private string? _lastValueSentByThisComponent;
+    private bool _hasLocalDisplayEdit;
     private bool _hasValue;
     private bool _isValidIdentity;
 
     private readonly MultiMask _identityMask = new(
-    // Default: کد ملی
-    "000-000000-0",
+        // Default: کد ملی
+        "000-000000-0",
 
-    // Passport: broad 6-9 alphanumeric.
-    // Mask length is 9 so shorter values still work while typing.
-    new MaskOption("Passport", "*********", @"^[A-Za-z]"),
+        // Passport: broad 6-9 alphanumeric.
+        // Mask length is 9 so shorter values still work while typing.
+        new MaskOption("Passport", "*********", @"^[A-Za-z]"),
 
-    // Numeric passport or کد ملی starts with a digit.
-    // This keeps کد ملی formatting as the default numeric experience.
-    new MaskOption("NationalCode", "000-000000-0", @"^\d")
+        // Numeric passport or کد ملی starts with a digit.
+        // This keeps کد ملی formatting as the default numeric experience.
+        new MaskOption("NationalCode", "000-000000-0", @"^\d")
     );
 
     private bool ShowUnknownIdentityWarning =>
         _hasValue && !_isValidIdentity;
 
-    private Adornment EffectiveAdornment => Adornment.End;
-    // ShowUnknownIdentityWarning
-    //     ? Adornment.End
-    //     : Adornment;
+    private string EffectiveDefaultLabel => Localizer["IdentificationCode"].Value;
 
-    private string? EffectiveAdornmentIcon =>
+    private string? EffectiveIcon =>
         ShowUnknownIdentityWarning
             ? Icons.Material.Filled.Warning
-            : AdornmentIcon is null ? "fa-solid fa-id-card" : AdornmentIcon;
+            : Icon ?? AdornmentIcon ?? "fa-solid fa-id-card";
+
+    private string EffectiveDoneIcon =>
+        ShowUnknownIdentityWarning
+            ? Icons.Material.Filled.Warning
+            : DoneIcon;
 
     private Color EffectiveAdornmentColor =>
         ShowUnknownIdentityWarning
             ? Color.Warning
-            : AdornmentColor;
+            : AdornmentColor == Color.Default
+                ? DoneAdornmentColor
+                : AdornmentColor;
+
+    private string EffectiveHelperText =>
+        !string.IsNullOrWhiteSpace(HelperText)
+            ? HelperText!
+            : !string.IsNullOrWhiteSpace(Label)
+                ? Label!
+                : EffectiveDefaultLabel;
+
+    private string EffectiveEmptyText =>
+        !string.IsNullOrWhiteSpace(EmptyText)
+            ? EmptyText!
+            : EffectiveHelperText;
+
+    private string EffectiveTriggerAriaLabel =>
+        !string.IsNullOrWhiteSpace(TriggerAriaLabel)
+            ? TriggerAriaLabel!
+            : $"Edit {EffectiveHelperText}";
+
+    private string EffectiveStyle => CombineStyles("direction: ltr", Style);
 
     public StackPersonIdField()
     {
@@ -91,13 +159,33 @@
 
         InputType = InputType.Text;
         MaxLength = 12; // 000-000000-0 is longest displayed mask here
+        Variant = MudBlazor.Variant.Filled;
+        DebounceInterval = 500;
     }
 
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
 
-        _displayValue = _valueState.Value;
+        var parameterValue = _valueState.Value;
+        var parameterChanged = !StringEquals(parameterValue, _lastParameterValue);
+
+        if(parameterChanged)
+        {
+            _lastParameterValue = parameterValue;
+
+            // A parameter echo caused by this component must not overwrite the text the user is editing.
+            // External value changes should still be reflected when the parent intentionally changes Value.
+            if(!_hasLocalDisplayEdit || !StringEquals(parameterValue, _lastValueSentByThisComponent))
+            {
+                _displayValue = parameterValue;
+                _hasLocalDisplayEdit = false;
+            }
+        }
+        else if(!_hasLocalDisplayEdit)
+        {
+            _displayValue = parameterValue;
+        }
 
         UpdateIdentityState(_displayValue);
     }
@@ -105,12 +193,22 @@
     private async Task SetIdentityValueAsync(string? input)
     {
         _displayValue = input;
+        _hasLocalDisplayEdit = true;
 
         var normalized = NormalizeIdentity(input);
+        var valueToCommit = normalized ?? PreserveUserInput(input);
 
         UpdateIdentityState(input);
 
-        await _valueState.SetValueAsync(normalized);
+        if(StringEquals(valueToCommit, _lastParameterValue))
+        {
+            _lastValueSentByThisComponent = valueToCommit;
+            return;
+        }
+
+        _lastValueSentByThisComponent = valueToCommit;
+
+        await _valueState.SetValueAsync(valueToCommit);
     }
 
     private void UpdateIdentityState(string? value)
@@ -122,7 +220,9 @@
     private string? NormalizeIdentity(string? value)
     {
         if(string.IsNullOrWhiteSpace(value))
+        {
             return null;
+        }
 
         return NormalizeNationalCode(value)
                ?? NormalizePassportNumber(value);
@@ -133,7 +233,9 @@
         var normalized = PassportValidator.NormalizePassport(value);
 
         if(normalized is null)
+        {
             return null;
+        }
 
         return PassportValidator.IsValidPassport(normalized, PassportCountryIso3)
             ? normalized
@@ -145,16 +247,24 @@
         var digits = OnlyDigits(value);
 
         if(string.IsNullOrWhiteSpace(digits))
+        {
             return null;
+        }
 
         if(digits.Length < 10)
+        {
             digits = digits.PadLeft(10, '0');
+        }
 
         if(digits.Length != 10)
+        {
             return null;
+        }
 
         if(!IsValidIranNationalCode(digits))
+        {
             return null;
+        }
 
         return digits;
     }
@@ -162,13 +272,19 @@
     private static bool IsValidIranNationalCode(string code)
     {
         if(code.Length != 10)
+        {
             return false;
+        }
 
         if(!code.All(char.IsDigit))
+        {
             return false;
+        }
 
         if(code.Distinct().Count() == 1)
+        {
             return false;
+        }
 
         var checkDigit = code[9] - '0';
 
@@ -192,13 +308,35 @@
         return checkDigit == expectedCheckDigit;
     }
 
+    private static string? PreserveUserInput(string? value)
+    {
+        if(string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return value.ConvertToEnglishNumerals().Trim();
+    }
+
     private static string OnlyDigits(string? value)
     {
         if(string.IsNullOrWhiteSpace(value))
+        {
             return string.Empty;
+        }
 
         return new string(value.ConvertToEnglishNumerals().Where(char.IsDigit).ToArray());
     }
 
+    private static bool StringEquals(string? left, string? right) =>
+        string.Equals(left, right, StringComparison.Ordinal);
 
+    private static string CombineStyles(params string?[] styles)
+    {
+        var parts = styles
+            .Where(style => !string.IsNullOrWhiteSpace(style))
+            .Select(style => style!.Trim().TrimEnd(';'));
+
+        return string.Join("; ", parts);
+    }
 }

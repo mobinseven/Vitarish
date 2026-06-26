@@ -1,31 +1,16 @@
 @using Microsoft.AspNetCore.Components
-
+@inherits CommonBase
+@using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
 <Stack>
-    <StackField Label="Import" HelperText="Imported file content is added to the selected corpus." />
-
-    @if(SelectedCorpus is null)
-    {
-        <StackCard Label="Select or create a corpus first" HelperText="Choose a corpus above before importing content." />
-    }
-    else
-    {
-        <StackCard Label="Importing into" HelperText="@SelectedCorpus.Label" />
-    }
-
-    <KnowledgeSourcePayloadFileInput ActionLabel="Import selected file into selected corpus"
-                                     ActionColor="Color.Secondary"
-                                     IsBusy="@IsBusy"
+    <StackField Label="@Localizer["ImportSource"]" HelperText="@Localizer["ImportSourceHelp"]" />
+    <StackCard Label="@Localizer["SelectedItem", Localizer["Corpus"]]" HelperText="@SelectedCorpus.CorpusName" />
+    <KnowledgeSourcePayloadFileInput IsBusy="@IsBusy"
                                      SubmitRequested="ImportFileAsync" />
-
-    @if(!string.IsNullOrWhiteSpace(ImportSummary))
-    {
-        <StackField Label="Import result" HelperText="@ImportSummary" Color="Color.Success" />
-    }
 </Stack>
 
 @code {
-    [Parameter]
-    public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
+    [Parameter, EditorRequired]
+    public CorpusItemModel SelectedCorpus { get; set; }
 
     [Parameter]
     public bool IsBusy { get; set; }

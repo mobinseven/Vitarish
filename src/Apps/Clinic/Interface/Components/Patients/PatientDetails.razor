@@ -1,187 +1,209 @@
 @inherits ProjectDetails
 
+@if(patient is null)
+{
+    return;
+}
+
 <Stack>
     <StackField>
-        <MudGrid Spacing="2" Class="mt-2">
+        <MudGrid Spacing="3" Class="mt-2">
+            <MudItem xs="12" md="4">
+                <MudPaper Class="pa-4 h-100" Elevation="0">
+                    <MudStack AlignItems="AlignItems.Center" Spacing="2">
+                        <FileImageAvatar FileId="@Project.AvatarFileId" />
 
-            <MudItem xs="12" md="6">
-                <MudText HtmlTag="p">
-                    <FileImageAvatar FileId="@Project.AvatarFileId" />
-                </MudText>
+                        <MudText Typo="Typo.h6" Align="Align.Center">
+                            @PatientDisplayName
+                        </MudText>
+
+                        <MudText Typo="Typo.caption" Align="Align.Center">
+                            @DisplayValue(patient.Phone)
+                        </MudText>
+                    </MudStack>
+
+                    <MudDivider Class="my-4" />
+
+                    <MudGrid Spacing="2">
+                        <ItemValue Label="@Localizer["IdentificationCode"]" Md="12">
+                            @DisplayValue(Project.IdentificationCode)
+                        </ItemValue>
+
+                        <ItemValue Label="@Localizer["FirstName"]" Md="12">
+                            @DisplayValue(patient.FirstName)
+                        </ItemValue>
+
+                        <ItemValue Label="@Localizer["LastName"]" Md="12">
+                            @DisplayValue(patient.LastName)
+                        </ItemValue>
+
+                        <ItemValue Label="@Localizer["Phone"]" Md="12">
+                            @DisplayValue(patient.Phone)
+                        </ItemValue>
+
+                        <ItemValue Visible="@HasValue(linkedUserId)"
+                                   Label="@Localizer["LinkedUser"]"
+                                   Md="12">
+                            @LinkedUserText
+                        </ItemValue>
+                    </MudGrid>
+                </MudPaper>
             </MudItem>
-            <MudItem xs="12" md="6">
-                <MudText HtmlTag="p" Typo="Typo.caption">
-                    <span class="font-weight-medium">@Localizer["IdentificationCode"]: </span>
-                    @Project.IdentificationCode
-                </MudText>
+
+            <MudItem xs="12" md="8">
+                <MudGrid Spacing="3">
+                    <MudItem xs="12" lg="6">
+                        <MudPaper Class="pa-4 h-100" Elevation="0">
+                            <MudText Typo="Typo.h6" Class="mb-3">
+                                @Localizer["PersonalDetails"]
+                            </MudText>
+
+                            <MudGrid Spacing="2">
+                                <ItemValue Label="@Localizer["FatherName"]">
+                                    @DisplayValue(patient.FatherName)
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["Gender"]">
+                                    @GenderText
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["DateOfBirth"]">
+                                    @DateOfBirthText
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["PlaceOfBirth"]">
+                                    @DisplayValue(patient.PlaceOfBirth)
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["Education"]">
+                                    @EducationText
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["Occupation"]">
+                                    @DisplayValue(patient.Occupation)
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["Height"]">
+                                    @HeightText
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["Weight"]">
+                                    @WeightText
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["Referrer"]">
+                                    @DisplayValue(patient.Referrer)
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["Address"]" Md="12">
+                                    @DisplayValue(patient.Address)
+                                </ItemValue>
+                            </MudGrid>
+                        </MudPaper>
+                    </MudItem>
+
+                    <MudItem xs="12" lg="6">
+                        <MudPaper Class="pa-4 h-100" Elevation="0">
+                            <MudText Typo="Typo.h6" Class="mb-3">
+                                @Localizer["ClinicalData"]
+                            </MudText>
+
+                            <MudGrid Spacing="2">
+                                <ItemValue Label="@Localizer["DateOf", Localizer["Surgery"]]">
+                                    @FormatDate(patient.DateOfSurgery)
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["InsuranceProvider"]">
+                                    @DisplayValue(patient.InsuranceProvider)
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["VisitReason"]" Md="12">
+                                    @DisplayValue(patient.VisitReason)
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["Allergies"]" Md="12">
+                                    @DisplayValue(patient.Allergies)
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["CurrentMedications"]" Md="12">
+                                    @DisplayValue(patient.CurrentMedications)
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["EmergencyContactName"]">
+                                    @DisplayValue(patient.EmergencyContactName)
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["EmergencyContactPhone"]">
+                                    @DisplayValue(patient.EmergencyContactPhone)
+                                </ItemValue>
+
+                                <ItemValue Label="@Localizer["ClinicalNotes"]" Md="12" Class="py-3">
+                                    @DisplayValue(patient.ClinicalNotes)
+                                </ItemValue>
+                            </MudGrid>
+                        </MudPaper>
+                    </MudItem>
+
+                    @if(HasValue(Project.Description) || Project.Stats is not null)
+                    {
+                        <MudItem xs="12">
+                            <MudPaper Class="pa-4" Elevation="0">
+                                <MudText Typo="Typo.h6" Class="mb-3">
+                                    @Localizer["Summary"]
+                                </MudText>
+
+                                <MudGrid Spacing="2">
+                                    <ItemValue Visible="@HasValue(Project.Description)"
+                                               Md="12"
+                                               Class="py-3">
+                                        @Project.Description
+                                    </ItemValue>
+
+                                    @if(Project.Stats is not null)
+                                    {
+                                        <ItemValue Label="@Localizer["Procedures"]"
+                                                   Color="Color.Secondary">
+                                            @Project.Stats.Procedures
+                                        </ItemValue>
+
+                                        <ItemValue Label="@Localizer["Events"]"
+                                                   Color="Color.Secondary">
+                                            @Project.Stats.Events
+                                        </ItemValue>
+
+                                        <ItemValue Label="@Localizer["LastUpdate"]"
+                                                   Color="Color.Secondary">
+                                            @LastUpdateText
+                                        </ItemValue>
+                                    }
+                                </MudGrid>
+                            </MudPaper>
+                        </MudItem>
+                    }
+                </MudGrid>
             </MudItem>
-
-            @if(patient is not null)
-            {
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.FirstName))"
-                                  Label="@Localizer["FirstName"]">
-                    @patient.FirstName
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.LastName))"
-                                  Label="@Localizer["LastName"]">
-                    @patient.LastName
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@patient.DateOfSurgery.HasValue"
-                                  Label="@Localizer["DateOf", Localizer["Surgery"]]">
-                    @patient.DateOfSurgery?.ToShortDateString()
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(patient.Gender != Gender.Unspecified)"
-                                  Label="@Localizer["Gender"]">
-                    @Localizer[patient.Gender.ToString()]
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@patient.DateOfBirth.HasValue"
-                                  Label="@Localizer["DateOfBirth"]">
-                    @patient.DateOfBirth?.ToShortDateString() (@AgeText)
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.FatherName))"
-                                  Label="@Localizer["FatherName"]">
-                    @patient.FatherName
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.PlaceOfBirth))"
-                                  Label="@Localizer["PlaceOfBirth"]">
-                    @patient.PlaceOfBirth
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.Address))"
-                                  Label="@Localizer["Address"]"
-                                  Md="12">
-                    @patient.Address
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(patient.Education != Education.Unspecified)"
-                                  Label="@Localizer["Education"]">
-                    @Localizer[patient.Education.ToString()]
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.Occupation))"
-                                  Label="@Localizer["Occupation"]">
-                    @patient.Occupation
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(patient.Height > 0)"
-                                  Label="@Localizer["Height"]">
-                    @patient.Height
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(patient.Weight > 0)"
-                                  Label="@Localizer["Weight"]">
-                    @patient.Weight
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.Phone))"
-                                  Label="@Localizer["Phone"]">
-                    @patient.Phone
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.Referrer))"
-                                  Label="@Localizer["Referrer"]">
-                    @patient.Referrer
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.InsuranceProvider))"
-                                  Label="@Localizer["InsuranceProvider"]">
-                    @patient.InsuranceProvider
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.VisitReason))"
-                                  Label="@Localizer["VisitReason"]"
-                                  Md="12">
-                    @patient.VisitReason
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.Allergies))"
-                                  Label="@Localizer["Allergies"]"
-                                  Md="12">
-                    @patient.Allergies
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.CurrentMedications))"
-                                  Label="@Localizer["CurrentMedications"]"
-                                  Md="12">
-                    @patient.CurrentMedications
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.EmergencyContactName))"
-                                  Label="@Localizer["EmergencyContactName"]">
-                    @patient.EmergencyContactName
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.EmergencyContactPhone))"
-                                  Label="@Localizer["EmergencyContactPhone"]">
-                    @patient.EmergencyContactPhone
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(linkedUserId))"
-                                  Label="@Localizer["LinkedUser"]">
-                    @GetUserFullNameById(linkedUserId!)
-                </ProjectInfoValue>
-
-                <MudDivider />
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(Project.Description))"
-                                  Md="12"
-                                  Class="py-3">
-                    @Project.Description
-                </ProjectInfoValue>
-
-                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.ClinicalNotes))"
-                                  Label="@Localizer["ClinicalNotes"]"
-                                  Md="12"
-                                  Class="py-3">
-                    @patient.ClinicalNotes
-                </ProjectInfoValue>
-
-                <MudDivider />
-
-                @if(Project.Stats is not null)
-                {
-                    <ProjectInfoValue Label="@Localizer["Procedures"]"
-                                      Color="Color.Secondary">
-                        @Project.Stats.Procedures
-                    </ProjectInfoValue>
-
-                    <ProjectInfoValue Label="@Localizer["Events"]"
-                                      Color="Color.Secondary">
-                        @Project.Stats.Events
-                    </ProjectInfoValue>
-
-                    <ProjectInfoValue Visible="@Project.Stats.LastUpdate.HasValue"
-                                      Label="@Localizer["LastUpdate"]"
-                                      Color="Color.Secondary">
-                        @Project.Stats.LastUpdate?.ToLocalTime().ToShortDateString()
-                    </ProjectInfoValue>
-                }
-            }
-
         </MudGrid>
     </StackField>
 
     @if(AdminMode)
     {
-        <StackButton OnClick="@(() => EditProject())"
+        <StackButton OnClick="@(() => EditPatient())"
                      EndIcon="fa-solid fa-pencil"
-                     Label="@Localizer["EditItem", Localizer["Project"]]" Color="Color.Secondary" />
-        <StackButton OnClick="@(() => DeleteProject())"
+                     Label="@Localizer["EditItem", Localizer["Patient"]]"
+                     Color="Color.Secondary" />
+
+        <StackButton OnClick="@(() => DeletePatient())"
                      Color="Color.Error"
                      EndIcon="fa-solid fa-folder-xmark"
-                     Label="@Localizer["DeleteItem", Localizer["Project"]]" />
+                     Label="@Localizer["DeleteItem", Localizer["Patient"]]" />
     }
 </Stack>
 
 @code {
-    PatientReadDto? patient;
+    private const string EmptyText = "—";
+
+    private PatientReadDto? patient;
+    private string? linkedUserId;
 
     protected override void OnInitialized()
     {
@@ -189,19 +211,73 @@
         patient = Project.ToPatientRead();
         linkedUserId = Project.UserIds.FirstOrDefault();
     }
-    private string? linkedUserId;
+
+    private string PatientDisplayName
+    {
+        get
+        {
+            string fullName = string.Join(" ", new[] { patient?.FirstName, patient?.LastName }
+                .Where(HasValue));
+
+            return HasValue(fullName) ? fullName : Localizer["Patient"].Value;
+        }
+    }
+
+    private string LinkedUserText
+        => HasValue(linkedUserId) ? GetUserFullNameById(linkedUserId!) : EmptyText;
+
+    private string DateOfBirthText
+        => patient?.DateOfBirth is DateTime dateOfBirth
+            ? $"{FormatDate(dateOfBirth)} ({AgeText})"
+            : EmptyText;
+
+    private string GenderText
+        => patient is null || patient.Gender == Gender.Unspecified
+            ? EmptyText
+            : Localizer[patient.Gender.ToString()].Value;
+
+    private string EducationText
+        => patient is null || patient.Education == Education.Unspecified
+            ? EmptyText
+            : Localizer[patient.Education.ToString()].Value;
+
+    private string HeightText
+        => patient is not null && patient.Height > 0 ? patient.Height.ToString() : EmptyText;
+
+    private string WeightText
+        => patient is not null && patient.Weight > 0 ? patient.Weight.ToString() : EmptyText;
+
+    private string LastUpdateText
+        => Project.Stats?.LastUpdate is DateTime lastUpdate
+            ? lastUpdate.ToLocalTime().ToShortDateString()
+            : EmptyText;
 
     private string AgeText
     {
         get
         {
             if(patient?.DateOfBirth is not DateTime dob)
-                return string.Empty;
+                return EmptyText;
+
             DateTime today = DateTime.Today;
             int age = today.Year - dob.Year;
+
             if(dob.AddYears(age) > today)
                 age--;
+
             return $"{age} {Localizer["Years"]}";
         }
     }
+
+    private static bool HasValue(string? value)
+        => !string.IsNullOrWhiteSpace(value);
+
+    private static string DisplayValue(string? value)
+        => HasValue(value) ? value! : EmptyText;
+
+    private static string FormatDate(DateTime? value)
+        => value?.ToShortDateString() ?? EmptyText;
+
+    private Task EditPatient() => EditProject();
+    private Task DeletePatient() => DeleteProject();
 }

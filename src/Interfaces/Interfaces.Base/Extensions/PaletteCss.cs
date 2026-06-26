@@ -973,13 +973,13 @@ public static class PaletteCss
         /// Raises the light-mode surface background from the page background.
         /// The default turns #f4f4f4 into #ffffff.
         /// </summary>
-        public int LightSurfaceBackgroundChannelLift { get; init; } = 18;
+        public int LightSurfaceBackgroundChannelLift { get; init; } = 5;
 
         /// <summary>
         /// Raises the dark-mode surface background from the page background.
         /// The default turns #2B2B2B into #3b3b3b.
         /// </summary>
-        public int DarkSurfaceBackgroundChannelLift { get; init; } = 16;
+        public int DarkSurfaceBackgroundChannelLift { get; init; } = 5;
 
         /// <summary>
         /// Controls the opacity of generated *-alpha CSS variables.

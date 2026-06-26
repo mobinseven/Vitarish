@@ -6,6 +6,8 @@
     return;
 }
 
+<PatientDetails Project="Patient" />
+
 <PatientEditForm Project="Patient"
                       OnUpdate="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(id)))"
                       OnCreate="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(id)))"
