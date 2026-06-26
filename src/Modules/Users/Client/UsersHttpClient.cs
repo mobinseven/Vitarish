@@ -34,7 +34,7 @@ public sealed class UsersHttpClient(HttpClient httpClient) : AuthenticatedModule
         Get<UserRoleCheckResponse>(BuildRoleUri(parameters), cancellationToken);
 
     public Task<UsersClientResult<UsersCommandResponse>> AddUserToRoleAsync(string userId, AddUserToRoleRequest request, CancellationToken cancellationToken) =>
-        Post<AddUserToRoleRequest, UsersCommandResponse>(UsersApiRoutes.ById.Replace("{userId}", Uri.EscapeDataString(userId)) + "/roles", request, cancellationToken);
+        Post<AddUserToRoleRequest, UsersCommandResponse>(UsersApiRoutes.AddRole.Replace("{userId}", Uri.EscapeDataString(userId)), request, cancellationToken);
 
     private async Task<UsersClientResult<T>> Get<T>(string requestUri, CancellationToken cancellationToken) => Map(await GetJsonAsync<T>(requestUri, cancellationToken).ConfigureAwait(false));
     private async Task<UsersClientResult<TResponse>> Post<TRequest,TResponse>(string route,TRequest request,CancellationToken cancellationToken) => Map(await PostJsonAsync<TRequest,TResponse>(UsersApiRoutes.Base + route, request, cancellationToken).ConfigureAwait(false));
