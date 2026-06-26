@@ -1,5 +1,4 @@
 using MudBlazor;
-using Vitarish.Medical.Domain.Entities;
 
 namespace Vitarish.Medical.Interface.Components.Prescriptions;
 
@@ -9,7 +8,7 @@ public partial class AddPrescriptionItemDialog : PrescriptionBase
     [Parameter] public Guid PrescriptionId { get; set; }
     [Parameter] public string? ProviderKey { get; set; }
 
-    [Inject] private Vitarish.Medical.Application.Abstractions.IMedicalQueryService MedicalQuery { get; set; } = default!;
+    [Inject] private IMedicalClient MedicalQuery { get; set; } = default!;
 
     private PrescriptionItemCategory category = PrescriptionItemCategory.Drug;
     private string? searchTerm;
