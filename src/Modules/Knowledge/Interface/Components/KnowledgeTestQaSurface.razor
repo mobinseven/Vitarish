@@ -3,7 +3,7 @@
 @using Vitarish.Modules.Base
 @inherits TenantCommonBase
 @implements IDisposable
-@inject IKnowledgeService Knowledge
+@inject IKnowledgeClient KnowledgeClient
 @inject IChatService ChatService
 
 <Stack>
@@ -39,8 +39,8 @@
     private string question = string.Empty;
     private int topK = 8;
 
-    private IReadOnlyList<KnowledgeCorpus> corpora = [];
-    private KnowledgeAnswer? answer;
+    private IReadOnlyList<KnowledgeOwnerCorpusOption> corpora = [];
+    private KnowledgeAnswerModel? answer;
 
     private bool isBusy;
     private string? status;
@@ -48,21 +48,10 @@
 
     private CancellationTokenSource? askCts;
 
-    private string CurrentTenantId =>
-        RequestContext.TenantId ?? throw new InvalidOperationException("tenant is unavailable.");
+    private KnowledgeOwnerCorpusOption? SelectedCorpus =>
+        corpora.FirstOrDefault(corpus => corpus.CorpusId.ToString() == selectedCorpusId);
 
-    private KnowledgeCorpus? SelectedCorpus =>
-        corpora.FirstOrDefault(corpus => corpus.Id.ToString() == selectedCorpusId);
-
-    private KnowledgeOwnerCorpusOption? SelectedCorpusOption =>
-        SelectedCorpus is null
-            ? null
-            : new KnowledgeOwnerCorpusOption(
-                SelectedCorpus.Name,
-                SelectedCorpus.Description ?? string.Empty)
-            {
-                CorpusId = SelectedCorpus.Id
-            };
+    private KnowledgeOwnerCorpusOption? SelectedCorpusOption => SelectedCorpus;
 
     private bool CanAsk =>
         !isBusy &&
@@ -82,12 +71,12 @@
                      Value="@selectedCorpusId"
                      ValueChanged="SelectCorpusAsync"
                      ShrinkLabel="false"
-                     ToStringFunc="@(v => $"{Localizer["Corpus"]}: {SelectedCorpus?.Name}")"
+                     ToStringFunc="@(v => $"{Localizer["Corpus"]}: {SelectedCorpus?.Label}")"
                      Underline="false"
                      Variant="Variant.Filled">
-            @foreach(KnowledgeCorpus corpus in corpora)
+            @foreach(KnowledgeOwnerCorpusOption corpus in corpora)
             {
-                <StackSelectItem T="string" Value="@corpus.Id.ToString()">
+                <StackSelectItem T="string" Value="@corpus.CorpusId.ToString()">
                     @CorpusLabel(corpus)
                 </StackSelectItem>
             }
@@ -147,7 +136,7 @@
         }
 
         KnowledgeQuestionInput input = ValidateAsk(
-            new KnowledgeQuestionInput(SelectedCorpus.Id, question, topK));
+            new KnowledgeQuestionInput(SelectedCorpus.CorpusId, question, topK));
 
         askCts?.Cancel();
         askCts?.Dispose();
@@ -155,28 +144,29 @@
 
         await RunBusyAsync(async cancellationToken =>
         {
-            answer = await Knowledge.AskAsync(
-                new KnowledgeAskRequest
-                {
-                    CorpusId = input.CorpusId!.Value,
-                    TenantId = CurrentTenantId,
-                    Question = input.Question,
-                    TopK = input.TopK,
-                    SaveTrace = false
-                },
-                cancellationToken);
-
-            status = "Answer generated.";
+            var result = await KnowledgeClient.AskAsync(new AskKnowledgeRequest(input.CorpusId!.Value, input.Question, input.TopK, SaveTrace: false), cancellationToken);
+            answer = result.Value;
+            status = result.Succeeded ? "Answer generated." : result.Error?.Message;
         }, askCts.Token);
     }
 
     private async Task RefreshCorporaAsync()
     {
-        corpora = await Knowledge.ListCorporaAsync(CurrentTenantId, CancellationToken.None);
+        var result = await KnowledgeClient.GetOwnerWorkspaceAsync(new KnowledgeOwnerWorkspaceRequest(), CancellationToken.None);
+        if (result.Succeeded && result.Value is not null)
+        {
+            corpora = result.Value.Corpora.Select(c => new KnowledgeOwnerCorpusOption(c.CorpusName, c.CorpusDescription ?? string.Empty) { CorpusId = c.CorpusId }).ToArray();
+        }
+        else
+        {
+            corpora = [];
+            status = result.Error?.Message ?? "Failed to load corpora.";
+            statusColor = Color.Error;
+        }
 
         selectedCorpusId = SelectedCorpus is not null
             ? selectedCorpusId
-            : corpora.FirstOrDefault()?.Id.ToString() ?? string.Empty;
+            : corpora.FirstOrDefault()?.CorpusId.ToString() ?? string.Empty;
 
         RefreshChatContext();
         await InvokeAsync(StateHasChanged);
@@ -312,8 +302,8 @@
         };
     }
 
-    private static string CorpusLabel(KnowledgeCorpus corpus) =>
-        string.IsNullOrWhiteSpace(corpus.Description)
-            ? corpus.Name
-            : $"{corpus.Name} — {corpus.Description}";
+    private static string CorpusLabel(KnowledgeOwnerCorpusOption corpus) =>
+        string.IsNullOrWhiteSpace(corpus.Details)
+            ? corpus.Label
+            : $"{corpus.Label} — {corpus.Details}";
 }

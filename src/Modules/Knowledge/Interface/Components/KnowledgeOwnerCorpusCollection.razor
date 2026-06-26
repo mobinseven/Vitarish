@@ -1,6 +1,6 @@
 @inherits CommonBase
 @using Microsoft.AspNetCore.Components
-@using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
+@using CorpusItemModel = Vitarish.Knowledge.Contracts.Models.KnowledgeOwnerCorpusCollectionItem
 
     @if(Model.Corpora.Count == 0)
 {
@@ -24,17 +24,17 @@ else
     public bool IsBusy { get; set; }
 
     [Parameter, EditorRequired]
-    public KnowledgeOwnerCollectionReadModel Model { get; set; } = KnowledgeOwnerCollectionReadModel.Empty;
+    public KnowledgeOwnerCollectionModel Model { get; set; } = KnowledgeOwnerCollectionModel.Empty;
 
     [Parameter, EditorRequired]
-    public EventCallback<DeleteKnowledgeSourceInput> DeleteRequested { get; set; }
+    public EventCallback<DeleteKnowledgeSourceRequest> DeleteRequested { get; set; }
 
     [Parameter, EditorRequired]
     public EventCallback<Guid> IndexRequested { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<ImportKnowledgeSourceFromFileInput> ImportRequested { get; set; }
+    public EventCallback<ImportKnowledgeSourceFromFileRequest> ImportRequested { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<CreateKnowledgeCorpusInput> CreateRequested { get; set; }
+    public EventCallback<CreateKnowledgeCorpusRequest> CreateRequested { get; set; }
 }

@@ -1,6 +1,6 @@
 @using Microsoft.AspNetCore.Components
 @inherits CommonBase
-@using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
+@using CorpusItemModel = Vitarish.Knowledge.Contracts.Models.KnowledgeOwnerCorpusCollectionItem
 <Stack>
     <StackField Label="@Localizer["ImportSource"]" HelperText="@Localizer["ImportSourceHelp"]" />
     <StackCard Label="@Localizer["SelectedItem", Localizer["Corpus"]]" HelperText="@SelectedCorpus.CorpusName" />
@@ -19,11 +19,11 @@
     public string? ImportSummary { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<ImportKnowledgeSourceFromFileInput> FileImportRequested { get; set; }
+    public EventCallback<ImportKnowledgeSourceFromFileRequest> FileImportRequested { get; set; }
 
 
     private async Task ImportFileAsync(KnowledgeSourcePayload payload)
     {
-        await FileImportRequested.InvokeAsync(new ImportKnowledgeSourceFromFileInput(SelectedCorpus?.CorpusId, payload.FileId, payload.SourceName, payload.Format));
+        await FileImportRequested.InvokeAsync(new ImportKnowledgeSourceFromFileRequest(SelectedCorpus?.CorpusId, payload.FileId, payload.SourceName, payload.Format));
     }
 }

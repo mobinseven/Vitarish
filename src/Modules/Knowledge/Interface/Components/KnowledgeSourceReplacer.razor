@@ -34,7 +34,7 @@
     public int SourcesVersion { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<ReplaceKnowledgeSourceFromFileInput> ReplaceRequested { get; set; }
+    public EventCallback<ReplaceKnowledgeSourceFromFileRequest> ReplaceRequested { get; set; }
 
     private Task SelectSource(KnowledgeOwnerSourceOption? selected)
     {
@@ -44,6 +44,6 @@
 
     private async Task ReplaceFileAsync(KnowledgeSourcePayload payload)
     {
-        await ReplaceRequested.InvokeAsync(new ReplaceKnowledgeSourceFromFileInput(SelectedCorpus?.CorpusId, source?.SourceId, payload.FileId, payload.SourceName, payload.Format));
+        await ReplaceRequested.InvokeAsync(new ReplaceKnowledgeSourceFromFileRequest(SelectedCorpus?.CorpusId, source?.SourceId, payload.FileId, payload.SourceName, payload.Format));
     }
 }

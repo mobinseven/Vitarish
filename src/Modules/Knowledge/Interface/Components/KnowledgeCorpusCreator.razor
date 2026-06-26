@@ -36,7 +36,7 @@
     public int ResetVersion { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<CreateKnowledgeCorpusInput> CreateRequested { get; set; }
+    public EventCallback<CreateKnowledgeCorpusRequest> CreateRequested { get; set; }
 
     protected override void OnParametersSet()
     {
@@ -51,7 +51,7 @@
 
     private async Task CreateAsync()
     {
-        await CreateRequested.InvokeAsync(new CreateKnowledgeCorpusInput(name, description, isActive));
+        await CreateRequested.InvokeAsync(new CreateKnowledgeCorpusRequest(name, description, isActive));
         CloseCreateCorpusDialog();
     }
 

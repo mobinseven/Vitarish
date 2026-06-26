@@ -4,11 +4,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
-    <ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" />
-    <ProjectReference Include="..\Application\Knowledge.Application.csproj" />
-    <ProjectReference Include="..\Infrastructure\Knowledge.Infrastructure.csproj" />
+    <ProjectReference Include="..\Client\Knowledge.Client.csproj" />
+    <ProjectReference Include="..\Contracts\Knowledge.Contracts.csproj" />
     <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
     <ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
-    <ProjectReference Include="..\..\Files\Domain\Files.Domain.csproj" />
+    <ProjectReference Include="..\..\Files\Contracts\Files.Contracts.csproj" />
   </ItemGroup>
 </Project>

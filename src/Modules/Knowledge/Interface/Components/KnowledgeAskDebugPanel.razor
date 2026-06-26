@@ -12,7 +12,7 @@
         <StackCard Label="Packed context chunk ids"><MudText>@string.Join(", ", result.ContextChunkIds)</MudText></StackCard>
         <StackCard Label="Generated answer" HelperText="@(result.Answer.MissingInformation ?? "No missing information")"><MudText Style="white-space: pre-wrap">@result.Answer.Answer</MudText></StackCard>
         <StackCard Label="Citations"><MudText>@string.Join(", ", result.Answer.Citations.Select(citation => citation.ChunkId))</MudText></StackCard>
-        @foreach (KnowledgeHit hit in result.RetrievedHits)
+        @foreach (KnowledgeRetrievalHit hit in result.RetrievedHits)
         {
             <StackCard Label="@(hit.Title ?? hit.ChunkId.ToString())" Caption="@hit.ChunkId.ToString()" HelperText="@($"Score {hit.Score:0.###} · Cited {result.Answer.Citations.Any(citation => citation.ChunkId == hit.ChunkId)}")">
                 <MudText Typo="Typo.body2">@Preview(hit.Text)</MudText>
@@ -24,15 +24,16 @@
 @code {
     [Parameter, EditorRequired] public string CorpusId { get; set; } = string.Empty;
     [Parameter, EditorRequired] public string TenantId { get; set; } = string.Empty;
-    [Inject] private IKnowledgeDiagnosticsService Diagnostics { get; set; } = default!;
+    [Inject] private IKnowledgeClient KnowledgeClient { get; set; } = default!;
     private string question = string.Empty;
     private int topK = 8;
     private KnowledgeRetrievalMode retrievalMode = KnowledgeRetrievalMode.Balanced;
-    private KnowledgeAskDebugResult? result;
+    private KnowledgeAskDebugModel? result;
     private async Task DebugAsync()
     {
         if (string.IsNullOrWhiteSpace(question)) return;
-        result = await Diagnostics.DebugAskAsync(new KnowledgeAskRequest { CorpusId = ParseId(CorpusId), TenantId = TenantId, Question = question.Trim(), TopK = topK, RetrievalMode = retrievalMode }, CancellationToken.None);
+        var response = await KnowledgeClient.DebugAskAsync(new AskKnowledgeRequest(ParseId(CorpusId), question.Trim(), topK, retrievalMode), CancellationToken.None);
+        result = response.Value;
     }
     private static Guid ParseId(string id) => Guid.TryParse(id?.Trim(), out Guid value) ? value : throw new InvalidOperationException("CorpusId must be a GUID.");
     private static string Preview(string text) => text.Length <= 240 ? text : text[..240];

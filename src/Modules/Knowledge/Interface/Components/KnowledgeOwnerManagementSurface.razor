@@ -2,7 +2,7 @@
 @using Vitarish.Modules.Base
 @inherits TenantCommonBase
 @implements IDisposable
-@inject MediatR.ISender Sender
+@inject IKnowledgeClient KnowledgeClient
 @inject ILogger<KnowledgeOwnerManagementSurface> Logger
 
 <PaletteCard>
@@ -23,7 +23,7 @@
     [Parameter] public EventCallback StartClicked { get; set; }
 
     private readonly CancellationTokenSource disposal = new();
-    private KnowledgeOwnerCollectionReadModel collection = KnowledgeOwnerCollectionReadModel.Empty;
+    private KnowledgeOwnerCollectionModel collection = KnowledgeOwnerCollectionModel.Empty;
     private string? importSummary;
     private string? status;
     private Color statusColor = Color.Info;
@@ -36,13 +36,15 @@
 
     protected override async Task OnInitializedAsync() => await ReloadAsync(null, null, disposal.Token);
 
-    private async Task CreateCorpusAsync(CreateKnowledgeCorpusInput input) => await RunAsync(async token =>
+    private async Task CreateCorpusAsync(CreateKnowledgeCorpusRequest input) => await RunAsync(async token =>
     {
-        KnowledgeOwnerCreateCorpusResult result = await Sender.Send(new CreateKnowledgeCorpusCommand(TenantId, input), token);
-        Apply(result.Succeeded, result.Message);
-        if(!result.Succeeded || result.Corpus is null)
+        var result = await KnowledgeClient.CreateCorpusAsync(input, token);
+        if (!result.Succeeded || result.Value is null) { Apply(false, result.Error?.Message ?? "SaveCorpusFailed"); return; }
+        var response = result.Value;
+        Apply(response.Succeeded, response.Message);
+        if(!response.Succeeded || response.Corpus is null)
             return;
-        await ReloadAsync(result.Corpus.CorpusId, null, token);
+        await ReloadAsync(response.Corpus.CorpusId, null, token);
         createCorpusResetVersion++;
         ClearCorpusScopedResults();
     });
@@ -50,27 +52,29 @@
     private async Task SelectCorpusByIdAsync(Guid corpusId) => await RunAsync(async token => { await ReloadAsync(corpusId, null, token); ClearCorpusScopedResults(); });
     private async Task SelectSourceByIdAsync(Guid sourceId) => await RunAsync(async token => await ReloadAsync(collection.SelectedCorpusId, sourceId, token));
 
-    private async Task ImportSourceFromFileAsync(ImportKnowledgeSourceFromFileInput input) => await RunAsync(async token =>
+    private async Task ImportSourceFromFileAsync(ImportKnowledgeSourceFromFileRequest input) => await RunAsync(async token =>
     {
-        KnowledgeOwnerImportCommandResult result = await Sender.Send(new ImportKnowledgeSourceFromFileCommand(TenantId, input), token);
-        Apply(result.Succeeded, result.Message);
-        importSummary = result.Summary;
-        if(result.Succeeded)
+        var result = await KnowledgeClient.ImportSourceFromFileAsync(input, token);
+        var response = result.Value;
+        Apply(result.Succeeded && response is not null && response.Succeeded, response?.Message ?? result.Error?.Message ?? "ImportFailed");
+        importSummary = response?.Summary;
+        if(result.Succeeded && response is not null && response.Succeeded)
             await ReloadSelectedAsync(token);
     });
 
-    private async Task DeleteSourceAsync(DeleteKnowledgeSourceInput input) => await RunAsync(async token =>
+    private async Task DeleteSourceAsync(DeleteKnowledgeSourceRequest input) => await RunAsync(async token =>
     {
-        KnowledgeOwnerCommandResult result = await Sender.Send(new DeleteKnowledgeSourceCommand(TenantId, RequestContext.OwnerId, input), token);
-        Apply(result);
-        if(result.Succeeded)
+        var result = await KnowledgeClient.DeleteSourceAsync(input, token);
+        var response = result.Value;
+        Apply(result.Succeeded && response is not null && response.Succeeded, response?.Message ?? result.Error?.Message ?? "DeleteSourceFailed");
+        if(result.Succeeded && response is not null && response.Succeeded)
             await ReloadAsync(collection.SelectedCorpusId, null, token);
     });
 
-    private async Task IndexCorpusAsync(Guid sourceId) => await RunAsync(async token => Apply(await Sender.Send(new IndexKnowledgeCorpusCommand(TenantId, new IndexKnowledgeCorpusInput(sourceId)), token)));
+    private async Task IndexCorpusAsync(Guid corpusId) => await RunAsync(async token => { var result = await KnowledgeClient.IndexCorpusAsync(new IndexKnowledgeCorpusRequest(corpusId), token); var response = result.Value; Apply(result.Succeeded && response is not null && response.Succeeded, response?.Message ?? result.Error?.Message ?? "IndexFailed"); });
 
     private async Task ReloadSelectedAsync(CancellationToken token) { await ReloadAsync(collection.SelectedCorpusId, collection.FocusedSourceId, token); sourcesVersion++; }
-    private async Task ReloadAsync(Guid? corpusId, Guid? sourceId, CancellationToken token) => collection = await Sender.Send(new KnowledgeOwnerCollectionQuery(TenantId, RequestContext.OwnerId, corpusId, sourceId), token);
+    private async Task ReloadAsync(Guid? corpusId, Guid? sourceId, CancellationToken token) { var result = await KnowledgeClient.GetOwnerWorkspaceAsync(new KnowledgeOwnerWorkspaceRequest(corpusId, sourceId), token); collection = result.Value ?? KnowledgeOwnerCollectionModel.Empty; if (!result.Succeeded) Apply(false, result.Error?.Message ?? "LoadWorkspaceFailed"); }
     private void ClearCorpusScopedResults() { importSummary = null; sourcesVersion++; }
 
     private async Task RunAsync(Func<CancellationToken, Task> action)
@@ -87,7 +91,6 @@
     }
 
     private void ClearStatus() { status = null; statusColor = Color.Info; }
-    private void Apply(KnowledgeOwnerCommandResult result) => Apply(result.Succeeded, result.Message);
     private void Apply(bool succeeded, string message) { status = Localizer[message]; statusColor = succeeded ? Color.Success : Color.Error; }
     public void Dispose() { disposal.Cancel(); disposal.Dispose(); }
 }

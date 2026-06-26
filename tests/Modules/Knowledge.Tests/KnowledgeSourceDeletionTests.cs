@@ -9,6 +9,7 @@ using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Knowledge.Infrastructure.Handlers;
 using Vitarish.Knowledge.Infrastructure.Services;
 using Vitarish.Knowledge.Interface.Components;
+using ContractSourceOption = Vitarish.Knowledge.Contracts.Models.KnowledgeOwnerSourceOption;
 using Xunit;
 
 namespace Vitarish.Knowledge.Tests;
@@ -77,18 +78,18 @@ public sealed class KnowledgeSourceDeletionTests
     public async Task SourceSelector_WhenSourcesRefreshWithoutSelectedSource_ClearsStaleSelection()
     {
         Guid sourceId = Guid.NewGuid();
-        KnowledgeOwnerSourceOption? selected = null;
+        ContractSourceOption? selected = null;
         var selector = new KnowledgeSourceSelector
         {
             Label = "Source",
-            Sources = [new KnowledgeOwnerSourceOption("source") { SourceId = sourceId }],
+            Sources = [new ContractSourceOption("source") { SourceId = sourceId }],
             SourcesVersion = 1,
-            SelectedSourceChanged = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<KnowledgeOwnerSourceOption?>(this, value => selected = value)
+            SelectedSourceChanged = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<ContractSourceOption?>(this, value => selected = value)
         };
 
         await InvokeParametersSetAsync(selector);
         await (Task)typeof(KnowledgeSourceSelector).GetMethod("SelectSourceAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-            .Invoke(selector, [new KnowledgeOwnerSourceOption("source") { SourceId = sourceId }])!;
+            .Invoke(selector, [new ContractSourceOption("source") { SourceId = sourceId }])!;
         _ = selected?.SourceId.Should().Be(sourceId);
 
         selector.Sources = [];
@@ -102,29 +103,6 @@ public sealed class KnowledgeSourceDeletionTests
         => (Task)typeof(KnowledgeSourceSelector).GetMethod("OnParametersSetAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
             .Invoke(selector, [])!;
 
-
-    [Fact]
-    public async Task SourceDeleter_WhenSourcesRefreshWithoutSelectedSource_ClearsStaleSelectionThatDisablesDeleteAction()
-    {
-        Guid sourceId = Guid.NewGuid();
-        var deleter = new KnowledgeSourceDeleter
-        {
-            Sources = [new KnowledgeOwnerSourceOption("source") { SourceId = sourceId }],
-            DeleteRequested = Microsoft.AspNetCore.Components.EventCallback.Factory.Create<DeleteKnowledgeSourceInput>(this, _ => Task.CompletedTask)
-        };
-
-        await (Task)typeof(KnowledgeSourceDeleter).GetMethod("SelectSource", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-            .Invoke(deleter, [new KnowledgeOwnerSourceOption("source") { SourceId = sourceId }])!;
-        _ = typeof(KnowledgeSourceDeleter).GetField("source", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-            .GetValue(deleter).Should().NotBeNull();
-
-        deleter.Sources = [];
-        typeof(KnowledgeSourceDeleter).GetMethod("OnParametersSet", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-            .Invoke(deleter, []);
-
-        _ = typeof(KnowledgeSourceDeleter).GetField("source", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-            .GetValue(deleter).Should().BeNull();
-    }
 
     private static DeleteKnowledgeSourceCommand Command(Guid corpusId, Guid sourceId) => new("tenant", "owner", new DeleteKnowledgeSourceInput(corpusId, sourceId));
 

@@ -19,7 +19,7 @@
             @if(Answer.RetrievedContext.Count > 0)
             {
                 <StackExpandable Size="Size.Small" Label="@Localizer["RetrievedContext"]">
-                    @foreach(KnowledgeHit hit in Answer.RetrievedContext)
+                    @foreach(KnowledgeRetrievalHit hit in Answer.RetrievedContext)
                     {
                         <StackCard Size="Size.Small" Label="@ReadableTitle(hit.Title)" HelperText="@($"Score {hit.Score:0.###} · {Preview(hit.Text)}")" />
                     }
@@ -42,7 +42,7 @@
 
 @code {
 
-    [Parameter] public KnowledgeAnswer? Answer { get; set; }
+    [Parameter] public KnowledgeAnswerModel? Answer { get; set; }
 
 
     private static string CorpusLabel(KnowledgeOwnerCorpusOption corpus) => string.IsNullOrWhiteSpace(corpus.Details) ? corpus.Label : $"{corpus.Label} — {corpus.Details}";
