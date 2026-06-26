@@ -20,3 +20,6 @@ jobs:
 
       - name: Validate Interface boundaries
         run: python3 tools/architecture/validate_interface_boundaries.py
+
+      - name: Validate ADR-004 protected module APIs
+        run: python3 tools/architecture/validate_module_api_boundaries.py

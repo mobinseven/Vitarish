@@ -12,7 +12,7 @@ public static class SeaApiEndpointMapping
     public static IEndpointRouteBuilder MapSeaApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(SeaApiRoutes.Base);
-        _ = group.MapGet(SeaApiRoutes.Health, (CancellationToken cancellationToken) => Results.Ok(new SeaCommandResult(true))).AllowAnonymous();
+        _ = group.MapGet(SeaApiRoutes.Health, (CancellationToken cancellationToken) => Results.Ok(new SeaCommandResult(true)));
         return endpoints;
     }
 }

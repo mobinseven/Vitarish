@@ -1,13 +1,13 @@
 {
   "adr": "docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md",
-  "defaultMode": "ReportOnly",
+  "defaultMode": "FailFast",
   "modules": {
     "Appointments": {
       "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Commerce": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Communications": {
@@ -15,7 +15,7 @@
       "temporaryExceptions": []
     },
     "Contents": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Feed": {
@@ -27,7 +27,7 @@
       "temporaryExceptions": []
     },
     "Financial": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Intelligence": {
@@ -39,7 +39,7 @@
       "temporaryExceptions": []
     },
     "Links": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Medical": {
@@ -67,7 +67,7 @@
       "temporaryExceptions": []
     },
     "Social": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Users": {

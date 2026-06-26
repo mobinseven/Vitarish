@@ -3,9 +3,6 @@
     <SupportedPlatform Include="browser" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Application\Contents.Application.csproj" />
-    <ProjectReference Include="..\Domain\Contents.Domain.csproj" />
-    <ProjectReference Include="..\Infrastructure\Contents.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
   </ItemGroup>
 </Project>
