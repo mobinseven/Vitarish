@@ -26,8 +26,12 @@ public static class SearchApiEndpointMapping
     }
     private static async Task<IResult> IndexDocumentAsync(IndexSearchDocumentRequest request, ISearchService service, CancellationToken cancellationToken)
     {
+        if (request is null) return Results.BadRequest(new SearchError(SearchErrorCode.Validation, "Request body is required."));
         if (string.IsNullOrWhiteSpace(request.IndexName)) return Results.BadRequest(new SearchError(SearchErrorCode.Validation, "Index name is required."));
+        if (request.Documents is null) return Results.BadRequest(new SearchError(SearchErrorCode.Validation, "Documents list is required."));
         await service.IndexAsync(request.IndexName, request.Documents.Select(ToDomain), cancellationToken);
+        return Results.Ok(new SearchCommandResult(true));
+    }
         return Results.Ok(new SearchCommandResult(true));
     }
     private static async Task<IResult> DeleteDocumentAsync(DeleteSearchDocumentRequest request, ISearchService service, CancellationToken cancellationToken)
