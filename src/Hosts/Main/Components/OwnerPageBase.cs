@@ -15,7 +15,7 @@ public class OwnerPageBase : PageBase
     [Inject] protected ISnackbar Snackbar { get; set; } = default!;
 
     /// <summary>
-    /// Parses <see cref="request context owner id"/> to a Guid.
+    /// Parses the request context owner ID to a Guid.
     /// Returns null when no owner claim is present or the value is not a valid Guid.
     /// </summary>
     protected Guid? GetOwnerGuid() => RequestContext.OwnerId is null ? null : Guid.TryParse(RequestContext.OwnerId, out Guid g) ? g : null;

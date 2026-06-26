@@ -7,6 +7,11 @@ namespace Vitarish.Medical.Interface.Components.Base;
 
 public static class MedicalClientPresentationExtensions
 {
+    private static MedicalCommandResult ToCommandResult(MedicalResult<MedicalCommandResult> result) =>
+        result.IsSuccess && result.Value is not null
+            ? result.Value
+            : new MedicalCommandResult(Accepted: false, UserSafeMessage: result.Failure?.Message);
+
     public static async Task<T> ValueOrDefault<T>(this Task<MedicalResult<T>> task, T fallback)
     {
         MedicalResult<T> result = await task.ConfigureAwait(false);
@@ -32,24 +37,33 @@ public static class MedicalClientPresentationExtensions
     public static async Task<ImportBatch?> GetImportBatchAsync(this IMedicalClient client, Guid importBatchId) =>
         await client.GetImportBatchAsync(new GetImportBatchRequest(importBatchId), CancellationToken.None).ValueOrDefault<ImportBatch?>(null);
 
-    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, RegisterCodeSystemCommand request) => (await client.RegisterCodeSystemAsync(request, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
-    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, RegisterCodeSystemReleaseCommand request) => (await client.RegisterCodeSystemReleaseAsync(request, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
-    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, ActivateCodeSystemReleaseCommand request) => (await client.ActivateCodeSystemReleaseAsync(request, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
-    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, DeactivateCodeSystemReleaseCommand request) => (await client.DeactivateCodeSystemReleaseAsync(request, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
-    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, CreateLocalMedicalCodeCommand request) => (await client.CreateLocalMedicalCodeAsync(request, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
-    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, CreateCodeMapCommand request) => (await client.CreateCodeMapAsync(request, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
-    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, CreateMedicalServiceCommand request) => (await client.CreateMedicalServiceAsync(request, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
-    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, UpdateLocalMedicalServiceCommand request) => (await client.UpdateLocalMedicalServiceAsync(request, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
-    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, RetireMedicalServiceCommand request) => (await client.RetireMedicalServiceAsync(request, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
-    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, CreateDrugCommand request) => (await client.CreateDrugAsync(request, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
-    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, UpdateLocalDrugCommand request) => (await client.UpdateLocalDrugAsync(request, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
-    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, RetireDrugCommand request) => (await client.RetireDrugAsync(request, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
+    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, RegisterCodeSystemCommand request) => ToCommandResult(await client.RegisterCodeSystemAsync(request, CancellationToken.None));
+    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, RegisterCodeSystemReleaseCommand request) => ToCommandResult(await client.RegisterCodeSystemReleaseAsync(request, CancellationToken.None));
+    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, ActivateCodeSystemReleaseCommand request) => ToCommandResult(await client.ActivateCodeSystemReleaseAsync(request, CancellationToken.None));
+    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, DeactivateCodeSystemReleaseCommand request) => ToCommandResult(await client.DeactivateCodeSystemReleaseAsync(request, CancellationToken.None));
+    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, CreateLocalMedicalCodeCommand request) => ToCommandResult(await client.CreateLocalMedicalCodeAsync(request, CancellationToken.None));
+    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, CreateCodeMapCommand request) => ToCommandResult(await client.CreateCodeMapAsync(request, CancellationToken.None));
+    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, CreateMedicalServiceCommand request) => ToCommandResult(await client.CreateMedicalServiceAsync(request, CancellationToken.None));
+    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, UpdateLocalMedicalServiceCommand request) => ToCommandResult(await client.UpdateLocalMedicalServiceAsync(request, CancellationToken.None));
+    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, RetireMedicalServiceCommand request) => ToCommandResult(await client.RetireMedicalServiceAsync(request, CancellationToken.None));
+    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, CreateDrugCommand request) => ToCommandResult(await client.CreateDrugAsync(request, CancellationToken.None));
+    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, UpdateLocalDrugCommand request) => ToCommandResult(await client.UpdateLocalDrugAsync(request, CancellationToken.None));
+    public static async Task<MedicalCommandResult> Send(this IMedicalClient client, RetireDrugCommand request) => ToCommandResult(await client.RetireDrugAsync(request, CancellationToken.None));
 
     public static async Task<IReadOnlyList<AvailableProviderDto>> Send(this IMedicalClient client, GetAvailableProvidersQuery request) => (await client.GetAvailableProvidersAsync(new GetAvailableProvidersRequest(), CancellationToken.None)).Value ?? [];
     public static async Task<CreateDraftResult> Send(this IMedicalClient client, CreateDraftCommand request) { MedicalCommandResult r = (await client.CreatePrescriptionDraftAsync(new CreatePrescriptionDraftRequest(request.PatientId, request.PatientNationalId, request.DoctorId, request.ClinicId), CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted:false); return new() { IsSuccess = r.Accepted, PrescriptionId = r.EntityId, ErrorMessage = r.UserSafeMessage }; }
     public static async Task<AddItemResult> Send(this IMedicalClient client, AddItemCommand request) { MedicalCommandResult r = (await client.AddPrescriptionItemAsync(new AddPrescriptionItemRequest { PrescriptionId=request.PrescriptionId, Category=request.Category, ReferenceCode=request.ReferenceCode, DisplayName=request.DisplayName, DosageJson=request.DosageJson, Quantity=request.Quantity, DurationDays=request.DurationDays }, CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted:false); return new() { IsSuccess = r.Accepted, ItemId = r.EntityId, ErrorMessage = r.UserSafeMessage }; }
     public static async Task<RemoveItemResult> Send(this IMedicalClient client, RemoveItemCommand request) { MedicalCommandResult r = (await client.RemovePrescriptionItemAsync(new RemovePrescriptionItemRequest(request.PrescriptionId, request.ItemId), CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted:false); return new() { IsSuccess = r.Accepted, ErrorMessage = r.UserSafeMessage }; }
-    public static async Task<ValidateDraftResult> Send(this IMedicalClient client, ValidateDraftCommand request) { ValidationResultDto r = (await client.ValidatePrescriptionDraftAsync(new ValidatePrescriptionDraftRequest(request.PrescriptionId), CancellationToken.None)).Value ?? new(); return new() { IsValid = r.IsValid, Errors = r.Errors, Warnings = r.Warnings }; }
+    public static async Task<ValidateDraftResult> Send(this IMedicalClient client, ValidateDraftCommand request)
+    {
+        MedicalResult<ValidationResultDto> result = await client.ValidatePrescriptionDraftAsync(new ValidatePrescriptionDraftRequest(request.PrescriptionId), CancellationToken.None);
+        if (result.IsSuccess && result.Value is not null)
+        {
+            return new() { IsValid = result.Value.IsValid, Errors = result.Value.Errors, Warnings = result.Value.Warnings };
+        }
+
+        return new() { IsValid = false, Errors = [result.Failure?.Message ?? "Validation failed."] };
+    }
     public static async Task<SubmitPrescriptionResult> Send(this IMedicalClient client, SubmitPrescriptionCommand request) { MedicalCommandResult r = (await client.SubmitPrescriptionAsync(new SubmitPrescriptionRequest(request.PrescriptionId, request.CorrelationId), CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted:false); return new() { IsSuccess = r.Accepted, ErrorMessage = r.UserSafeMessage }; }
     public static async Task<EditPrescriptionResult> Send(this IMedicalClient client, EditPrescriptionCommand request) { MedicalCommandResult r = (await client.EditPrescriptionAsync(new EditPrescriptionRequest(request.PrescriptionId, request.CorrelationId, request.EditReason), CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted:false); return new() { IsSuccess = r.Accepted, ErrorMessage = r.UserSafeMessage }; }
     public static async Task<CancelPrescriptionResult> Send(this IMedicalClient client, CancelPrescriptionCommand request) { MedicalCommandResult r = (await client.CancelPrescriptionAsync(new CancelPrescriptionRequest(request.PrescriptionId, request.Reason ?? string.Empty), CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted:false); return new() { IsSuccess = r.Accepted, ErrorMessage = r.UserSafeMessage }; }

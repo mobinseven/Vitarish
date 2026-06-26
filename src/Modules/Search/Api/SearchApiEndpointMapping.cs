@@ -27,6 +27,7 @@ public static class SearchApiEndpointMapping
     private static async Task<IResult> IndexDocumentAsync(IndexSearchDocumentRequest request, ISearchService service, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.IndexName)) return Results.BadRequest(new SearchError(SearchErrorCode.Validation, "Index name is required."));
+        if (request.Documents is null || request.Documents.Count == 0) return Results.BadRequest(new SearchError(SearchErrorCode.Validation, "Documents list cannot be null or empty."));
         await service.IndexAsync(request.IndexName, request.Documents.Select(ToDomain), cancellationToken);
         return Results.Ok(new SearchCommandResult(true));
     }

@@ -110,7 +110,15 @@ public static class MedicalApiEndpointMapping
     private static async Task<IResult> SearchPrescriptionReferenceCodesAsync(SearchPrescriptionReferenceCodesRequest request, IMedicalQueryService service, CancellationToken ct) => await SearchMedicalCodesAsync(new SearchMedicalCodesRequest(request.Category.ToString(), request.TextOrCode, request.ReleaseId, request.ActiveOnly, request.AsOfDate, request.Limit), service, ct);
     private static async Task<IResult> SearchDrugsAsync(SearchDrugsRequest request, IMedicalQueryService service, CancellationToken ct) => Ok((await service.SearchDrugsAsync(request.Text, request.ActiveOnly, request.AsOfDate, request.Limit, ct)).Select(ToSearchContract).ToArray());
     private static async Task<IResult> GetDrugAsync(GetDrugRequest request, IMedicalQueryService service, CancellationToken ct) => OkOrNotFound(ToContract(await service.GetDrugAsync(request.DrugId, request.AsOfDate, ct)));
-    private static async Task<IResult> ResolveDrugIdentifierAsync(ResolveDrugIdentifierRequest request, IMedicalQueryService service, CancellationToken ct) => OkOrNotFound(ToContract(await service.ResolveDrugIdentifierAsync(Enum.Parse<DE.DrugIdentifierType>(request.IdentifierType, true), request.IdentifierValue, request.AsOfDate, ct)));
+    private static async Task<IResult> ResolveDrugIdentifierAsync(ResolveDrugIdentifierRequest request, IMedicalQueryService service, CancellationToken ct)
+    {
+        if (!Enum.TryParse(request.IdentifierType, true, out DE.DrugIdentifierType identifierType))
+        {
+            return Results.BadRequest(new MedicalError(MedicalErrorCode.ValidationFailure, "Invalid drug identifier type."));
+        }
+
+        return OkOrNotFound(ToContract(await service.ResolveDrugIdentifierAsync(identifierType, request.IdentifierValue, request.AsOfDate, ct)));
+    }
     private static async Task<IResult> GetDrugProductAsync(GetDrugProductRequest request, IMedicalQueryService service, CancellationToken ct) => OkOrNotFound(ToContract(await service.GetDrugProductAsync(request.DrugProductId, request.AsOfDate, ct)));
     private static async Task<IResult> GetPackagedDrugAsync(GetPackagedDrugRequest request, IMedicalQueryService service, CancellationToken ct) => OkOrNotFound(ToContract(await service.GetPackagedDrugAsync(request.PackagedDrugId, ct)));
     private static async Task<IResult> SearchMedicalServicesAsync(SearchMedicalServicesRequest request, IMedicalQueryService service, CancellationToken ct) => Ok((await service.SearchMedicalServicesAsync(request.Text, request.Category, request.Specialty, request.ActiveOnly, request.AsOfDate, request.Limit, ct)).Select(ToContract).ToArray());
@@ -131,7 +139,21 @@ public static class MedicalApiEndpointMapping
     private static async Task<IResult> UpdateLocalMedicalServiceAsync(UpdateLocalMedicalServiceCommand request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new A.UpdateLocalMedicalServiceCommand(request.ServiceId, request.Name, request.Category, request.Specialty, null, request.EffectiveFrom, request.EffectiveTo), ct));
     private static async Task<IResult> RetireMedicalServiceAsync(RetireMedicalServiceCommand request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new A.RetireMedicalServiceCommand(request.ServiceId), ct));
     private static async Task<IResult> CreateDrugAsync(CreateDrugCommand request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new A.CreateDrugCommand(request.PrimaryName, Enum.Parse<DE.DrugIdentifierType>(request.PrimaryIdentifierType.ToString(), true), request.PrimaryIdentifierValue ?? request.PrimaryName, request.EffectiveFrom, request.EffectiveTo), ct));
-    private static async Task<IResult> UpdateLocalDrugAsync(UpdateLocalDrugCommand request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new A.UpdateLocalDrugCommand(request.DrugId, request.PrimaryName, request.EffectiveFrom, request.EffectiveTo), ct));
+    private static async Task<IResult> UpdateLocalDrugAsync(UpdateLocalDrugCommand request, IMediator mediator, CancellationToken ct)
+    {
+        DE.DrugIdentifierType? identifierType = null;
+        if (!string.IsNullOrWhiteSpace(request.PrimaryIdentifierType))
+        {
+            if (!Enum.TryParse(request.PrimaryIdentifierType, true, out DE.DrugIdentifierType parsedIdentifierType))
+            {
+                return Results.BadRequest(new MedicalError(MedicalErrorCode.ValidationFailure, "Invalid drug identifier type."));
+            }
+
+            identifierType = parsedIdentifierType;
+        }
+
+        return Command(await mediator.Send(new A.UpdateLocalDrugCommand(request.DrugId, request.PrimaryName, request.EffectiveFrom, request.EffectiveTo, identifierType, request.PrimaryIdentifierValue), ct));
+    }
     private static async Task<IResult> RetireDrugAsync(RetireDrugCommand request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new A.RetireDrugCommand(request.DrugId), ct));
 
     private static async Task<IResult> GetPrescriptionAsync(GetPrescriptionRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetPrescriptionQuery { PrescriptionId = request.PrescriptionId }, ct));
@@ -178,7 +200,23 @@ public static class MedicalApiEndpointMapping
 
     private static IResult Ok<T>(T value) => Results.Ok(value);
     private static IResult OkOrNotFound<T>(T? value) => value is null ? Results.NotFound() : Results.Ok(value);
-    private static IResult Command(dynamic result) => Results.Ok(new MedicalCommandResult((Guid?)(result.GetType().GetProperty("EntityId")?.GetValue(result) ?? result.GetType().GetProperty("PrescriptionId")?.GetValue(result) ?? result.GetType().GetProperty("ItemId")?.GetValue(result) ?? result.GetType().GetProperty("CredentialId")?.GetValue(result) ?? result.GetType().GetProperty("TemplateId")?.GetValue(result)), (bool)(result.GetType().GetProperty("IsSuccess")?.GetValue(result) ?? true), (string?)(result.GetType().GetProperty("ErrorMessage")?.GetValue(result))));
+    private static IResult Command(dynamic? result)
+    {
+        if (result is null)
+        {
+            return Results.Ok(new MedicalCommandResult(Accepted: false, UserSafeMessage: "No result returned."));
+        }
+
+        Type type = result.GetType();
+        Guid? id = type.GetProperty("EntityId")?.GetValue(result) as Guid?
+            ?? type.GetProperty("PrescriptionId")?.GetValue(result) as Guid?
+            ?? type.GetProperty("ItemId")?.GetValue(result) as Guid?
+            ?? type.GetProperty("CredentialId")?.GetValue(result) as Guid?
+            ?? type.GetProperty("TemplateId")?.GetValue(result) as Guid?;
+        bool isSuccess = type.GetProperty("IsSuccess")?.GetValue(result) as bool? ?? true;
+        string? errorMessage = type.GetProperty("ErrorMessage")?.GetValue(result) as string;
+        return Results.Ok(new MedicalCommandResult(id, isSuccess, errorMessage));
+    }
     private static CodeSystemResponse? ToContract(D.CodeSystem? e) => e is null ? null : new() { Id = e.Id, SystemKey = e.SystemKey, Name = e.Name, Category = (MedicalCodeSystemCategory)e.Category, IsActive = e.IsActive, CanRetire = true };
     private static CodeSystemReleaseResponse? ToContract(D.CodeSystemRelease? e) => e is null ? null : new() { Id = e.Id, CodeSystemId = e.CodeSystemId, Version = e.SourceVersion ?? e.ReleaseName, EffectiveFrom = e.EffectiveFrom ?? DateOnly.MinValue, EffectiveTo = e.EffectiveTo, IsActive = e.IsActive };
     private static MedicalCodeResponse? ToContract(D.MedicalCode? e) => e is null ? null : new() { Id = e.Id, CodeSystemReleaseId = e.CodeSystemReleaseId, Code = e.Code, DisplayName = e.DisplayName, Description = e.LongDescription, Status = (MedicalCodeStatus)e.Status };

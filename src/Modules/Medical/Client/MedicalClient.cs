@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Vitarish.Medical.Contracts.Errors;
 using Vitarish.Medical.Contracts.Imports;
 using Vitarish.Medical.Contracts.Requests;
@@ -89,7 +90,25 @@ public sealed class MedicalClient(HttpClient httpClient) : AuthenticatedModuleAp
     private async Task<MedicalResult<T>> Post<T>(string route, object request, CancellationToken cancellationToken)
     {
         var result = await PostJsonAsync<object, T>(MedicalApiRoutes.Base + route, request, cancellationToken).ConfigureAwait(false);
-        return result.IsSuccess ? MedicalResult<T>.Success(result.Value!) : MedicalResult<T>.Failed(MapFailure(result.Failure!));
+        if (result.IsSuccess)
+        {
+            return MedicalResult<T>.Success(result.Value!);
+        }
+
+        MedicalError? error = null;
+        if (result.Failure?.Message is { } content)
+        {
+            try
+            {
+                error = JsonSerializer.Deserialize<MedicalError>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch (JsonException)
+            {
+                error = null;
+            }
+        }
+
+        return MedicalResult<T>.Failed(error ?? MapFailure(result.Failure!));
     }
 
     private static MedicalError MapFailure(ModuleApiClientFailure failure) => new(MapCode(failure), failure.Message, failure.StatusCode);

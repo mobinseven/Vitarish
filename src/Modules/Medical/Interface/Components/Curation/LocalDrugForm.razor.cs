@@ -67,7 +67,9 @@ public partial class LocalDrugForm : MedicalBase
                 Drug.Id,
                 writeDto.PrimaryName,
                 writeDto.EffectiveFrom,
-                writeDto.EffectiveTo));
+                writeDto.EffectiveTo,
+                writeDto.PrimaryIdentifierType.ToString(),
+                writeDto.PrimaryIdentifierValue));
 
             if (result.IsSuccess)
             {

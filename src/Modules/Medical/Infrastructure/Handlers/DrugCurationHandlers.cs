@@ -71,11 +71,14 @@ internal sealed class UpdateLocalDrugHandler(MedicalDbContext dbContext)
             return EntityResult<Guid>.Failure(EntityError.Validation("EffectiveTo must be >= EffectiveFrom."));
         }
 
+        DrugIdentifierType identifierType = request.PrimaryIdentifierType ?? entity.PrimaryIdentifierType;
+        string identifierValue = string.IsNullOrWhiteSpace(request.PrimaryIdentifierValue) ? entity.PrimaryIdentifierValue : request.PrimaryIdentifierValue;
+
         bool hasOverlappingInterval = await dbContext.Drugs
             .AnyAsync(
                 d => d.Id != request.DrugId
-                    && d.PrimaryIdentifierType == entity.PrimaryIdentifierType
-                    && d.PrimaryIdentifierValue == entity.PrimaryIdentifierValue
+                    && d.PrimaryIdentifierType == identifierType
+                    && d.PrimaryIdentifierValue == identifierValue
                     && d.RecordOrigin == RecordOrigin.Local
                     && (
                         request.EffectiveTo == null || d.EffectiveFrom == null || d.EffectiveFrom <= request.EffectiveTo
@@ -92,6 +95,8 @@ internal sealed class UpdateLocalDrugHandler(MedicalDbContext dbContext)
 
         entity.PrimaryName = request.PrimaryName;
         entity.NormalizedName = request.PrimaryName.ToUpperInvariant();
+        entity.PrimaryIdentifierType = identifierType;
+        entity.PrimaryIdentifierValue = identifierValue;
         entity.EffectiveFrom = request.EffectiveFrom;
         entity.EffectiveTo = request.EffectiveTo;
 

@@ -54,6 +54,7 @@ public static class PartiesApiEndpointMapping
     private static async Task<IResult> UpdateOwnerAsync(Guid ownerId, C.OwnerWriteDto request, IPartiesService service, CancellationToken cancellationToken)
     {
         if (ownerId != request.Id) return BadRequest("Owner route id must match request id.");
+        if (string.IsNullOrWhiteSpace(request.Name)) return BadRequest("Owner name is required.");
         D.OwnerReadDto? owner = await service.UpdateOwnerAsync(ToDomain(request), cancellationToken);
         return owner is null ? NotFound("Owner was not found.") : Results.Ok(ToContract(owner));
     }
@@ -77,6 +78,7 @@ public static class PartiesApiEndpointMapping
     private static async Task<IResult> UpdateTenantAsync(Guid tenantId, C.TenantWriteDto request, IPartiesService service, CancellationToken cancellationToken)
     {
         if (tenantId != request.Id) return BadRequest("Tenant route id must match request id.");
+        if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.AppId)) return BadRequest("Tenant name and app id are required.");
         D.TenantReadDto? tenant = await service.UpdateTenantAsync(ToDomain(request), cancellationToken);
         return tenant is null ? NotFound("Tenant was not found.") : Results.Ok(ToContract(tenant));
     }
@@ -98,6 +100,7 @@ public static class PartiesApiEndpointMapping
     private static async Task<IResult> UpdateTenantIndicatorAsync(Guid tenantIndicatorId, C.TenantIndicatorWriteDto request, IPartiesService service, CancellationToken cancellationToken)
     {
         if (tenantIndicatorId != request.Id) return BadRequest("Tenant indicator route id must match request id.");
+        if (string.IsNullOrWhiteSpace(request.Value)) return BadRequest("Tenant indicator value is required.");
         D.TenantIndicatorReadDto? indicator = await service.UpdateTenantIndicatorAsync(ToDomain(request), cancellationToken);
         return indicator is null ? NotFound("Tenant indicator was not found.") : Results.Ok(ToContract(indicator));
     }
@@ -108,6 +111,7 @@ public static class PartiesApiEndpointMapping
     }
     private static async Task<IResult> SetupTenantAsync(C.SetupTenantRequest request, IPartiesService service, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.OwnerName) || string.IsNullOrWhiteSpace(request.TenantName) || string.IsNullOrWhiteSpace(request.AppId)) return BadRequest("Owner name, tenant name, and app id are required.");
         D.SetupTenantRequest domain = new(request.OwnerName, request.TenantName, request.AppId, (DEN.IndicatorMethod)request.IndicatorMethod, request.IndicatorValue, (DEN.IndicatorStatus)request.IndicatorStatus, request.SelectedModules, request.UserId);
         D.TenantReadDto? tenant = await service.SetupTenantAsync(domain, cancellationToken);
         return tenant is null ? Conflict("Tenant setup could not be completed.") : Results.Ok(ToContract(tenant));
@@ -118,7 +122,7 @@ public static class PartiesApiEndpointMapping
     private static C.OwnerReadDto ToContract(D.OwnerReadDto dto) => new() { Id = dto.Id, Name = dto.Name, LogoUrl = dto.LogoUrl, Description = dto.Description };
     private static C.TenantReadDto ToContract(D.TenantReadDto dto) => new() { Id = dto.Id, OwnerId = dto.OwnerId, Name = dto.Name, LogoUrl = dto.LogoUrl, Description = dto.Description, AppId = dto.AppId, Metadata = dto.Metadata };
     private static C.TenantIndicatorReadDto ToContract(D.TenantIndicatorReadDto dto) => new() { Id = dto.Id, TenantId = dto.TenantId, Method = (C.IndicatorMethod)dto.Method, Value = dto.Value, Status = (C.IndicatorStatus)dto.Status, IsPrimary = dto.IsPrimary, Verification = ToContract(dto.Verification), VerifiedAt = dto.VerifiedAt, LastCheckedAt = dto.LastCheckedAt };
-    private static C.UserTenantDto ToContract(M.UserTenant dto) => new(dto.Id, dto.OwnerId, dto.OwnerName, dto.Name, dto.AppId, dto.LogoUrl, dto.Description, dto.PrimaryIndicatorMethod is null ? null : (C.IndicatorMethod)dto.PrimaryIndicatorMethod, dto.PrimaryIndicatorValue);
+    private static C.UserTenantDto ToContract(M.UserTenant dto) => new(dto.TenantId, Guid.Empty, null, dto.TenantName, dto.TenantAppId, dto.TenantLogoUrl, dto.TenantDescription, null, dto.IndicatorValue);
     private static DE.VerificationInfo? ToDomain(C.VerificationInfoDto? dto) => dto is null ? null : new() { Method = (DEN.IndicatorVerificationMethod)dto.Method, Evidence = dto.Evidence, EvidenceExpectedHash = dto.EvidenceExpectedHash, Token = dto.Token };
     private static C.VerificationInfoDto? ToContract(DE.VerificationInfo? dto) => dto is null ? null : new() { Method = (C.IndicatorVerificationMethod)dto.Method, Evidence = dto.Evidence, EvidenceExpectedHash = dto.EvidenceExpectedHash, Token = dto.Token };
     private static IResult BadRequest(string message) => Results.BadRequest(new PartiesError(PartiesErrorCode.Validation, message));
