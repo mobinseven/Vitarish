@@ -28,7 +28,7 @@ public sealed class KnowledgeHttpClient(HttpClient httpClient) : AuthenticatedMo
     public Task<KnowledgeResult<KnowledgeAskDebugModel>> DebugAskAsync(AskKnowledgeRequest request, CancellationToken cancellationToken) => Post<AskKnowledgeRequest, KnowledgeAskDebugModel>(KnowledgeApiRoutes.DiagnosticsDebugAsk, request, cancellationToken);
     private async Task<KnowledgeResult<TResponse>> Post<TRequest,TResponse>(string route,TRequest request,CancellationToken token)=>Map(await PostJsonAsync<TRequest,TResponse>(KnowledgeApiRoutes.Base+route,request,token));
     protected override ModuleApiClientFailure CreateFailure(HttpStatusCode statusCode, string message, int? statusCodeValue) => new(statusCode.ToString(), message, statusCodeValue);
-    private static KnowledgeResult<T> Map<T>(ModuleApiClientResult<T> result)=> result.IsSuccess ? KnowledgeResult<T>.Success(result.Value!) : KnowledgeResult<T>.Failed(MapFailure(result.Failure!));
+    private static KnowledgeResult<T> Map<T>(ModuleApiClientResult<T> result)=> result.IsSuccess ? KnowledgeResult<T>.Success(result.Value!) : KnowledgeResult<T>.Failed(result.Failure is not null ? MapFailure(result.Failure) : new KnowledgeContractError(KnowledgeErrorCode.UnexpectedFailure, "An unexpected error occurred."));
     private static KnowledgeContractError MapFailure(ModuleApiClientFailure failure)=>new(MapCode(failure), failure.Message, null, failure.StatusCode);
     private static KnowledgeErrorCode MapCode(ModuleApiClientFailure failure)=> failure.Code switch
     {
