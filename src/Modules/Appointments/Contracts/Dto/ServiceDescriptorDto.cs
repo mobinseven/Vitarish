@@ -1,0 +1,12 @@
+namespace Vitarish.Appointments.Contracts.Dto;
+
+public record ServiceDescriptorDto : EntityDescriptorDto
+{
+    [JsonPropertyName("name")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("serviceTypeId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? ServiceTypeId { get; set; }
+}
