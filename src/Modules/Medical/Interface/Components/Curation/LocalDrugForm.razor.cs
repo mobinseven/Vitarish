@@ -22,7 +22,7 @@ public partial class LocalDrugForm : MedicalBase
             ? new DrugWriteDto
             {
                 PrimaryName = Drug.PrimaryName,
-                PrimaryIdentifierType = Drug.PrimaryIdentifierType,
+                PrimaryIdentifierType = Enum.TryParse<DrugIdentifierType>(Drug.PrimaryIdentifierType, true, out var identifierType) ? identifierType : DrugIdentifierType.Local,
                 PrimaryIdentifierValue = Drug.PrimaryIdentifierValue,
                 EffectiveFrom = Drug.EffectiveFrom,
                 EffectiveTo = Drug.EffectiveTo
@@ -49,7 +49,7 @@ public partial class LocalDrugForm : MedicalBase
                 return;
             }
 
-            EntityResult<Guid> result = await Mediator.Send(new CreateDrugCommand(
+            MedicalCommandResult result = await MedicalClient.Send(new CreateDrugCommand(
                 writeDto.PrimaryName,
                 writeDto.PrimaryIdentifierType,
                 writeDto.PrimaryIdentifierValue,
@@ -58,12 +58,12 @@ public partial class LocalDrugForm : MedicalBase
 
             if (result.IsSuccess)
             {
-                await OnSaved.InvokeAsync(result.Value);
+                await OnSaved.InvokeAsync(result.EntityId ?? Guid.Empty);
             }
         }
         else
         {
-            EntityResult<Guid> result = await Mediator.Send(new UpdateLocalDrugCommand(
+            MedicalCommandResult result = await MedicalClient.Send(new UpdateLocalDrugCommand(
                 Drug.Id,
                 writeDto.PrimaryName,
                 writeDto.EffectiveFrom,
@@ -71,7 +71,7 @@ public partial class LocalDrugForm : MedicalBase
 
             if (result.IsSuccess)
             {
-                await OnSaved.InvokeAsync(result.Value);
+                await OnSaved.InvokeAsync(result.EntityId ?? Guid.Empty);
             }
         }
     }
@@ -83,7 +83,7 @@ public partial class LocalDrugForm : MedicalBase
             return;
         }
 
-        EntityResult<Guid> result = await Mediator.Send(new RetireDrugCommand(Drug.Id));
+        MedicalCommandResult result = await MedicalClient.Send(new RetireDrugCommand(Drug.Id));
         if (result.IsSuccess)
         {
             await OnRetired.InvokeAsync();

@@ -14,7 +14,7 @@ public partial class CodeSystemsList : MedicalBase
 
     protected override async Task ReloadRequired()
     {
-        codeSystems = [.. await QueryService.ListCodeSystemsAsync(activeOnly: false)];
+        codeSystems = [.. await MedicalClient.ListCodeSystemsAsync(activeOnly: false)];
         await InvokeAsync(StateHasChanged);
     }
 }

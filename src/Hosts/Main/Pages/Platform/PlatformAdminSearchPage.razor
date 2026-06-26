@@ -2,7 +2,7 @@
 
 @using Vitarish.Search.Interface.Components
 
-@using Vitarish.Search.Domain.Models
+@using Vitarish.Search.Contracts.Responses
 
 <SearchIndexStatusPanel />
 
@@ -16,7 +16,7 @@
         }
     </StackSelect>
     <StackTextField Label="@Localizer["Type"]" @bind-Value="_searchType" />
-    <StackNumericField Label="@Localizer["PageSize"]" @bind-Value="SearchLimit" Min="1" Max="@SearchOptions.MaxLimit" />
+    <StackNumericField Label="@Localizer["PageSize"]" @bind-Value="SearchLimit" Min="1" Max="@SearchOptionsDto.MaxLimit" />
 </Stack>
 
 <SearchWidget IndexName="@IndexName" Type="@SearchType" Options="@_options" OnNavigate="NavigateFromSearch" />
@@ -26,8 +26,8 @@
 
     private string? _indexName;
     private string? _searchType;
-    private int _searchLimit = SearchOptions.DefaultLimit;
-    private SearchOptions _options = CreateOptions(SearchOptions.DefaultLimit);
+    private int _searchLimit = SearchOptionsDto.DefaultLimit;
+    private SearchOptionsDto _options = CreateOptions(SearchOptionsDto.DefaultLimit);
 
     private int SearchLimit
     {
@@ -35,7 +35,7 @@
         set
         {
             _searchLimit = value;
-            int normalizedLimit = SearchOptions.NormalizeLimit(value);
+            int normalizedLimit = SearchOptionsDto.NormalizeLimit(value);
             if (_options.Limit != normalizedLimit)
             {
                 _options = CreateOptions(normalizedLimit);
@@ -51,12 +51,12 @@
         ? null
         : _searchType.Trim();
 
-    private static SearchOptions CreateOptions(int limit) => new()
+    private static SearchOptionsDto CreateOptions(int limit) => new()
     {
         Limit = limit
     };
 
-    private Task NavigateFromSearch(SearchDocument item)
+    private Task NavigateFromSearch(SearchDocumentDto item)
     {
         if (!string.IsNullOrWhiteSpace(item.NavigationUrl))
         {

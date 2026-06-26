@@ -40,7 +40,7 @@
 @code {
     [Parameter] public Guid? PatientId { get; set; }
 
-    [Inject] private IMediator Mediator { get; set; } = default!;
+    [Inject] private IMedicalClient MedicalClient { get; set; } = default!;
 
     private string? patientNationalId;
     private string? selectedProviderKey;
@@ -58,7 +58,7 @@
 
         try
         {
-            availableProviders = await Mediator.Send(new GetAvailableProvidersQuery());
+            availableProviders = (await MedicalClient.GetAvailableProvidersAsync(new GetAvailableProvidersRequest(), CancellationToken.None)).Value ?? [];
             selectedProviderKey = availableProviders.Count == 1 ? availableProviders[0].ProviderKey : null;
             hasLoadedProviders = true;
         }
@@ -94,19 +94,11 @@
         Guid doctorId = UserId ?? Guid.Empty;
         Guid clinicId = Guid.TryParse(RequestContext.TenantId, out Guid tid) ? tid : Guid.Empty;
 
-        CreateDraftResult result = await Mediator.Send(new CreateDraftCommand
-        {
-            PatientId = effectivePatientId,
-            PatientNationalId = patientNationalId.Trim(),
-            DoctorId = doctorId,
-            ClinicId = clinicId,
-            SelectedProviderKey = selectedProviderKey,
-            TenantId = RequestContext.TenantId ?? string.Empty
-        });
+        MedicalCommandResult result = (await MedicalClient.CreatePrescriptionDraftAsync(new CreatePrescriptionDraftRequest(effectivePatientId, patientNationalId.Trim(), doctorId, clinicId), CancellationToken.None)).Value ?? new MedicalCommandResult(Accepted: false);
 
-        if (result.IsSuccess && result.PrescriptionId.HasValue)
+        if (result.IsSuccess && result.EntityId.HasValue)
         {
-            NavigationManager.NavigateTo(AppRoutes.Prescriptions.OwnerPrescription(result.PrescriptionId.Value));
+            NavigationManager.NavigateTo(AppRoutes.Prescriptions.OwnerPrescription(result.EntityId.Value));
         }
         else
         {

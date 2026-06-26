@@ -9,7 +9,7 @@ public partial class ReferenceDataAdminDashboard : PrescriptionBase
     private IReadOnlyList<AvailableProviderDto>? availableProviders;
     private bool isSyncing;
 
-    protected override async Task OnInitializedAsync() => availableProviders = await Mediator.Send(new GetAvailableProvidersQuery());
+    protected override async Task OnInitializedAsync() => availableProviders = await MedicalClient.Send(new GetAvailableProvidersQuery());
 
     private async Task TriggerSyncAsync(string providerKey, string codeSystem)
     {
@@ -18,7 +18,7 @@ public partial class ReferenceDataAdminDashboard : PrescriptionBase
 
         try
         {
-            SyncReferenceDataResult result = await Mediator.Send(new SyncReferenceDataCommand
+            SyncReferenceDataResult result = await MedicalClient.Send(new SyncReferenceDataCommand
             {
                 ProviderKey = providerKey,
                 CodeSystem = codeSystem,

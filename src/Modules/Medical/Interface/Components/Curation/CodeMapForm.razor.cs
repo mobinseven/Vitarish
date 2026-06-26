@@ -18,7 +18,7 @@ public partial class CodeMapForm : MedicalBase
 
     protected override async Task ReloadRequired()
     {
-        codeSystems = [.. await QueryService.ListCodeSystemsAsync(activeOnly: true)];
+        codeSystems = [.. await MedicalClient.ListCodeSystemsAsync(activeOnly: true)];
         if (codeSystems.Count > 0)
         {
             sourceSystemKey = string.IsNullOrWhiteSpace(sourceSystemKey) ? codeSystems[0].SystemKey : sourceSystemKey;
@@ -35,7 +35,7 @@ public partial class CodeMapForm : MedicalBase
             return;
         }
 
-        sourceCode = await QueryService.ResolveMedicalCodeAsync(sourceSystemKey, sourceCodeText);
+        sourceCode = await MedicalClient.ResolveMedicalCodeAsync(sourceSystemKey, sourceCodeText);
         await InvokeAsync(StateHasChanged);
     }
 
@@ -46,7 +46,7 @@ public partial class CodeMapForm : MedicalBase
             return;
         }
 
-        targetCode = await QueryService.ResolveMedicalCodeAsync(targetSystemKey, targetCodeText);
+        targetCode = await MedicalClient.ResolveMedicalCodeAsync(targetSystemKey, targetCodeText);
         await InvokeAsync(StateHasChanged);
     }
 
@@ -62,7 +62,7 @@ public partial class CodeMapForm : MedicalBase
             return;
         }
 
-        EntityResult<Guid> result = await Mediator.Send(new CreateCodeMapCommand(
+        MedicalCommandResult result = await MedicalClient.Send(new CreateCodeMapCommand(
             sourceCode.Id,
             targetCode.Id,
             mappingType,
@@ -73,7 +73,7 @@ public partial class CodeMapForm : MedicalBase
 
         if (result.IsSuccess)
         {
-            await OnSaved.InvokeAsync(result.Value);
+            await OnSaved.InvokeAsync(result.EntityId ?? Guid.Empty);
         }
     }
 }

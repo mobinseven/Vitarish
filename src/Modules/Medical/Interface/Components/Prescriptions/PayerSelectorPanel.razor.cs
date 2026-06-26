@@ -28,7 +28,7 @@ public partial class PayerSelectorPanel : PrescriptionBase
 
             try
             {
-                IReadOnlyList<AvailableProviderDto> result = await Mediator.Send(new GetAvailableProvidersQuery());
+                IReadOnlyList<AvailableProviderDto> result = await MedicalClient.Send(new GetAvailableProvidersQuery());
                 providers = [.. result];
             }
             finally
@@ -58,7 +58,7 @@ public partial class PayerSelectorPanel : PrescriptionBase
     {
         errorMessage = null;
 
-        SetProviderResult result = await Mediator.Send(new SetProviderCommand
+        SetProviderResult result = await MedicalClient.Send(new SetProviderCommand
         {
             PrescriptionId = Prescription.Id,
             ProviderKey = providerKey

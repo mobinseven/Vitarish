@@ -45,7 +45,7 @@ public partial class LocalMedicalServiceForm : MedicalBase
 
         if (Service is null)
         {
-            EntityResult<Guid> result = await Mediator.Send(new CreateMedicalServiceCommand(
+            MedicalCommandResult result = await MedicalClient.Send(new CreateMedicalServiceCommand(
                 writeDto.Name,
                 writeDto.Category,
                 writeDto.Specialty,
@@ -55,12 +55,12 @@ public partial class LocalMedicalServiceForm : MedicalBase
 
             if (result.IsSuccess)
             {
-                await OnSaved.InvokeAsync(result.Value);
+                await OnSaved.InvokeAsync(result.EntityId ?? Guid.Empty);
             }
         }
         else
         {
-            EntityResult<Guid> result = await Mediator.Send(new UpdateLocalMedicalServiceCommand(
+            MedicalCommandResult result = await MedicalClient.Send(new UpdateLocalMedicalServiceCommand(
                 Service.Id,
                 writeDto.Name,
                 writeDto.Category,
@@ -71,7 +71,7 @@ public partial class LocalMedicalServiceForm : MedicalBase
 
             if (result.IsSuccess)
             {
-                await OnSaved.InvokeAsync(result.Value);
+                await OnSaved.InvokeAsync(result.EntityId ?? Guid.Empty);
             }
         }
     }
@@ -83,7 +83,7 @@ public partial class LocalMedicalServiceForm : MedicalBase
             return;
         }
 
-        EntityResult<Guid> result = await Mediator.Send(new RetireMedicalServiceCommand(Service.Id));
+        MedicalCommandResult result = await MedicalClient.Send(new RetireMedicalServiceCommand(Service.Id));
         if (result.IsSuccess)
         {
             await OnRetired.InvokeAsync();

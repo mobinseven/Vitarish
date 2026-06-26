@@ -13,7 +13,7 @@ public partial class DrugSearch : MedicalBase
             return;
         }
 
-        results = [.. await QueryService.SearchDrugsAsync(searchText)];
+        results = [.. await MedicalClient.SearchDrugsAsync(searchText)];
         searched = true;
         await InvokeAsync(StateHasChanged);
     }

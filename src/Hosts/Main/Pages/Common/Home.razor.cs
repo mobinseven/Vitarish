@@ -2,14 +2,15 @@ using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Pages.Clinic.Owners;
 using Vitarish.Main.Pages.Commerce.Owners;
 using Vitarish.Main.Pages.Sea.Common;
-using Vitarish.Parties.Domain;
-using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Parties.Client;
+using Vitarish.Parties.Contracts.Results;
+using Vitarish.Parties.Contracts.Tenants;
 
 namespace Vitarish.Main.Pages.Common;
 
 public partial class Home
 {
-    [Inject] private IPartiesService PartiesService { get; set; } = default!;
+    [Inject] private IPartiesClient PartiesClient { get; set; } = default!;
 
     private bool hasTenantContext;
 
@@ -25,10 +26,10 @@ public partial class Home
 
         if (hasTenantContext && Guid.TryParse(RequestContext.TenantId, out Guid tenantGuid))
         {
-            TenantReadDto? tenant = await PartiesService.GetTenantAsync(tenantGuid);
-            if (tenant is not null)
+            PartiesResult<TenantReadDto> tenantResult = await PartiesClient.GetTenantAsync(tenantGuid);
+            if (tenantResult.IsSuccess && tenantResult.Value is { } tenant)
             {
-                IReadOnlyList<string> apps = TenantMetadata.GetActiveApps(tenant.Metadata);
+                IReadOnlyList<string> apps = TenantMetadataValues.GetActiveApps(tenant.Metadata);
                 var app = apps.FirstOrDefault();
                 if(app is null)
                 {

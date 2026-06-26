@@ -43,5 +43,42 @@ public interface IMedicalClient
     Task<MedicalResult<MedicalCommandResult>> ReconcilePaperFallbackAsync(ReconcilePaperFallbackRequest request, CancellationToken cancellationToken);
     Task<MedicalResult<MedicalCommandResult>> ManualReconcileAsync(ManualReconcileRequest request, CancellationToken cancellationToken);
     Task<MedicalResult<MedicalCommandResult>> EscalatePrescriptionAsync(EscalatePrescriptionRequest request, CancellationToken cancellationToken);
-    Task<TResponse> Send<TResponse>(object request, CancellationToken cancellationToken = default);
+
+    Task<MedicalResult<CodeSystemResponse?>> GetCodeSystemByKeyAsync(GetCodeSystemByKeyRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<CodeSystemReleaseResponse?>> GetActiveCodeSystemReleaseAsync(GetActiveCodeSystemReleaseRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCodeResponse?>> ResolveMedicalCodeAsync(ResolveMedicalCodeRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<DrugResponse?>> GetDrugAsync(GetDrugRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<DrugResponse?>> ResolveDrugIdentifierAsync(ResolveDrugIdentifierRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<DrugProductResponse?>> GetDrugProductAsync(GetDrugProductRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<PackagedDrugResponse?>> GetPackagedDrugAsync(GetPackagedDrugRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalServiceResponse?>> GetMedicalServiceAsync(GetMedicalServiceRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<ServiceCodeResponse?>> ResolveServiceCodeAsync(ResolveServiceCodeRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<ServiceValuationResponse?>> GetServiceValuationAsync(GetServiceValuationRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<IReadOnlyList<CodeMapResponse>>> GetCodeMapsAsync(GetCodeMapsRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> RegisterCodeSystemAsync(RegisterCodeSystemCommand request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> RegisterCodeSystemReleaseAsync(RegisterCodeSystemReleaseCommand request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> ActivateCodeSystemReleaseAsync(ActivateCodeSystemReleaseCommand request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> DeactivateCodeSystemReleaseAsync(DeactivateCodeSystemReleaseCommand request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> CreateLocalMedicalCodeAsync(CreateLocalMedicalCodeCommand request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> CreateCodeMapAsync(CreateCodeMapCommand request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> CreateMedicalServiceAsync(CreateMedicalServiceCommand request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> UpdateLocalMedicalServiceAsync(UpdateLocalMedicalServiceCommand request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> RetireMedicalServiceAsync(RetireMedicalServiceCommand request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> CreateDrugAsync(CreateDrugCommand request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> UpdateLocalDrugAsync(UpdateLocalDrugCommand request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> RetireDrugAsync(RetireDrugCommand request, CancellationToken cancellationToken);
+    Task<MedicalResult<ValidationResultDto>> ValidatePrescriptionDraftAsync(ValidatePrescriptionDraftRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> EditPrescriptionAsync(EditPrescriptionRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<IReadOnlyList<AvailableProviderDto>>> GetAvailableProvidersAsync(GetAvailableProvidersRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<IReadOnlyList<CredentialSetupDto>>> GetCredentialSetupGridAsync(GetCredentialSetupGridRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> TestCredentialAsync(TestCredentialRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> RevokeCredentialAsync(RevokeCredentialRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> ArchivePrescriptionTemplateAsync(ArchivePrescriptionTemplateRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> AddPrescriptionTemplateItemAsync(AddPrescriptionTemplateItemRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<MedicalCommandResult>> RemovePrescriptionTemplateItemAsync(RemovePrescriptionTemplateItemRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<IReadOnlyList<ProviderTransactionMetricsDto>>> GetProviderTransactionMetricsAsync(GetProviderTransactionMetricsRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<IReadOnlyList<RejectionDistributionDto>>> GetRejectionDistributionAsync(GetRejectionDistributionRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<CredentialHealthResult>> GetCredentialHealthAsync(GetCredentialHealthRequest request, CancellationToken cancellationToken);
+    Task<MedicalResult<DuplicateRiskIncidentsResult>> GetDuplicateRiskIncidentsAsync(GetDuplicateRiskIncidentsRequest request, CancellationToken cancellationToken);
+
 }

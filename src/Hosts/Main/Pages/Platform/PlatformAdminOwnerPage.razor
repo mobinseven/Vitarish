@@ -1,6 +1,8 @@
 
 @attribute [Route(AppRoutes.PlatformAdmin.OwnerTemplate)]
-@using Vitarish.Parties.Domain.Dtos
+@using Vitarish.Parties.Client
+@using Vitarish.Parties.Contracts.Results
+@using Vitarish.Parties.Contracts.Tenants
 
 @if(Owner is null)
 {
@@ -44,30 +46,32 @@
 
         ownerGuid = id;
 
-        Owner = await PartiesService.GetOwnerAsync(ownerGuid);
+        PartiesResult<OwnerReadDto> ownerResult = await PartiesClient.GetOwnerAsync(ownerGuid);
+        Owner = ownerResult.Value;
 
-        if(Owner == null)
+        if(!ownerResult.IsSuccess || Owner == null)
         {
             Back();
         }
 
-        Tenants = [.. await PartiesService.GetTenantsByOwnerAsync(ownerGuid)];
+        PartiesResult<IReadOnlyList<TenantReadDto>> tenantsResult = await PartiesClient.GetTenantsByOwnerAsync(ownerGuid);
+        Tenants = tenantsResult.IsSuccess && tenantsResult.Value is not null ? [.. tenantsResult.Value] : [];
     }
 
     private async Task AddTenant()
     {
-        TenantReadDto? added = await PartiesService.CreateTenantAsync(new TenantWriteDto { OwnerId = ownerGuid, Name = Localizer["Tenant"], AppId = "Default" });
-        if(added is null)
+        PartiesResult<TenantReadDto> addedResult = await PartiesClient.CreateTenantAsync(new TenantWriteDto { OwnerId = ownerGuid, Name = Localizer["Tenant"], AppId = "Default" });
+        if(!addedResult.IsSuccess || addedResult.Value is null)
         {
             Snackbar.Add(Localizer["Error"], Severity.Error);
             return;
         }
-        NavigationManager.NavigateTo(AppRoutes.PlatformAdmin.OwnerTenant(ownerGuid, added.Id));
+        NavigationManager.NavigateTo(AppRoutes.PlatformAdmin.OwnerTenant(ownerGuid, addedResult.Value.Id));
     }
 
     private async Task Remove()
     {
-        await PartiesService.DeleteOwnerAsync(ownerGuid);
+        _ = await PartiesClient.DeleteOwnerAsync(ownerGuid);
         Back();
     }
 }

@@ -6,5 +6,13 @@ public sealed record MedicalResult<T>(bool IsSuccess, T? Value, MedicalError? Fa
     public static MedicalResult<T> Success(T value) => new(true, value, null);
     public static MedicalResult<T> Failed(MedicalError failure) => new(false, default, failure);
 }
-public sealed record MedicalCommandResult(Guid? EntityId = null, bool Accepted = true, string? UserSafeMessage = null, string? CorrelationId = null);
+public sealed record MedicalItemFailure(string? DisplayName = null, string? ReferenceCode = null, Vitarish.Medical.Contracts.Enums.MedicalPrescriptionItemCategory Category = default, string? Message = null);
+public sealed record MedicalCommandResult(Guid? EntityId = null, bool Accepted = true, string? UserSafeMessage = null, string? CorrelationId = null)
+{
+    public bool IsSuccess => Accepted;
+    public Guid? Id => EntityId;
+    public Guid Value => EntityId.GetValueOrDefault();
+    public string? ErrorMessage => UserSafeMessage;
+    public IReadOnlyList<MedicalItemFailure> ItemFailures { get; init; } = [];
+}
 public sealed record MedicalQueryResult<T>(T? Value, string? CorrelationId = null);

@@ -35,7 +35,7 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
 
         try
         {
-            template = await Mediator.Send(new GetPrescriptionTemplateQuery
+            template = await MedicalClient.Send(new GetPrescriptionTemplateQuery
             {
                 TemplateId = TemplateId.Value,
                 TenantId = RequestContext.TenantId ?? string.Empty
@@ -54,8 +54,8 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
     private async Task SaveAsync()
     {
         PrescriptionTemplateCommandResult result = TemplateId is null || TemplateId == Guid.Empty
-            ? await Mediator.Send(new CreatePrescriptionTemplateCommand { TenantId = RequestContext.TenantId ?? string.Empty, Name = name, Description = description })
-            : await Mediator.Send(new UpdatePrescriptionTemplateCommand { TemplateId = TemplateId.Value, TenantId = RequestContext.TenantId ?? string.Empty, Name = name, Description = description });
+            ? await MedicalClient.Send(new CreatePrescriptionTemplateCommand { TenantId = RequestContext.TenantId ?? string.Empty, Name = name, Description = description })
+            : await MedicalClient.Send(new UpdatePrescriptionTemplateCommand { TemplateId = TemplateId.Value, TenantId = RequestContext.TenantId ?? string.Empty, Name = name, Description = description });
 
         if (!result.IsSuccess || result.Id is null)
         {
@@ -80,7 +80,7 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
             Snackbar.Add(Localizer["ItemCodeOrNameRequired"], MudBlazor.Severity.Error);
             return;
         }
-        PrescriptionTemplateCommandResult result = await Mediator.Send(new AddPrescriptionTemplateItemCommand
+        PrescriptionTemplateCommandResult result = await MedicalClient.Send(new AddPrescriptionTemplateItemCommand
         {
             TemplateId = TemplateId.Value,
             TenantId = RequestContext.TenantId ?? string.Empty,
@@ -107,7 +107,7 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
             Snackbar.Add(Localizer["UnknownError"], MudBlazor.Severity.Error);
             return;
         }
-        PrescriptionTemplateCommandResult result = await Mediator.Send(new RemovePrescriptionTemplateItemCommand { TemplateId = TemplateId.Value, ItemId = itemId, TenantId = RequestContext.TenantId ?? string.Empty });
+        PrescriptionTemplateCommandResult result = await MedicalClient.Send(new RemovePrescriptionTemplateItemCommand { TemplateId = TemplateId.Value, ItemId = itemId, TenantId = RequestContext.TenantId ?? string.Empty });
         if (result.IsSuccess) await ReloadRequired(); else Snackbar.Add(result.ErrorMessage ?? Localizer["UnknownError"], MudBlazor.Severity.Error);
     }
 

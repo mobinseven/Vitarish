@@ -1,12 +1,14 @@
 using Vitarish.Main.Infrastructure.Options;
-using Vitarish.Parties.Domain.Dtos;
-using Vitarish.Parties.Domain.Enums;
+using Vitarish.Parties.Client;
+using Vitarish.Parties.Contracts.Results;
+using Vitarish.Parties.Contracts.Tenants;
+
 
 namespace Vitarish.Main.Pages.Common;
 
 public partial class SetupPage
 {
-    [Inject] private IPartiesService PartiesService { get; set; } = default!;
+    [Inject] private IPartiesClient PartiesClient { get; set; } = default!;
     [Inject] private IOptions<FeaturesOptions> FeaturesOptions { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
@@ -92,9 +94,9 @@ public partial class SetupPage
                 SelectedModules: [.. context.SelectedModules],
                 UserId: RequestContext.UserId);
 
-            TenantReadDto? tenant = await PartiesService.SetupTenantAsync(request);
+            PartiesResult<TenantReadDto> tenantResult = await PartiesClient.SetupTenantAsync(request);
 
-            if (tenant is null)
+            if (!tenantResult.IsSuccess || tenantResult.Value is null)
             {
                 _ = Snackbar.Add(Localizer["Error"], Severity.Error);
                 return;

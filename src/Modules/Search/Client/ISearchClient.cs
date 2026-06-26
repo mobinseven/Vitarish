@@ -6,4 +6,8 @@ public interface ISearchClient
 {
     Task<SearchClientResult<SearchResultDto>> SearchAsync(SearchRequest request, CancellationToken cancellationToken = default);
     Task<SearchClientResult<IReadOnlyList<SearchIndexStatusReportDto>>> GetIndexStatusAsync(GetSearchIndexStatusRequest request, CancellationToken cancellationToken = default);
+    Task<SearchClientResult<IReadOnlyList<SearchIndexPolicyReportDto>>> GetIndexPolicyReportsAsync(CancellationToken cancellationToken = default);
+    Task<SearchClientResult<SearchCommandResult>> RebuildIndexAsync(RebuildSearchIndexRequest request, CancellationToken cancellationToken = default);
+    Task<SearchClientResult<SearchCommandResult>> IndexDocumentAsync(IndexSearchDocumentRequest request, CancellationToken cancellationToken = default);
+    Task<SearchClientResult<SearchCommandResult>> DeleteDocumentAsync(DeleteSearchDocumentRequest request, CancellationToken cancellationToken = default);
 }

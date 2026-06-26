@@ -1,6 +1,7 @@
-using Vitarish.Parties.Domain;
-using Vitarish.Parties.Domain.Dtos;
-using Vitarish.Parties.Domain.Mappers;
+using Vitarish.Parties.Client;
+using Vitarish.Parties.Contracts.Results;
+using Vitarish.Parties.Contracts.Tenants;
+
 
 namespace Vitarish.Main.Pages.Parties;
 
@@ -25,8 +26,8 @@ public partial class OwnerTenantSettingsPage
     private void SetTenant(TenantReadDto updated)
     {
         tenant = updated;
-        selectedModules = new HashSet<string>(TenantMetadata.GetActiveModules(updated.Metadata), StringComparer.OrdinalIgnoreCase);
-        selectedApps = new HashSet<string>(TenantMetadata.GetActiveApps(updated.Metadata), StringComparer.OrdinalIgnoreCase);
+        selectedModules = new HashSet<string>(TenantMetadataValues.GetActiveModules(updated.Metadata), StringComparer.OrdinalIgnoreCase);
+        selectedApps = new HashSet<string>(TenantMetadataValues.GetActiveApps(updated.Metadata), StringComparer.OrdinalIgnoreCase);
     }
 
     private async Task Save()
@@ -40,17 +41,17 @@ public partial class OwnerTenantSettingsPage
         try
         {
             TenantWriteDto write = tenant.ToWriteWithMetadata();
-            TenantMetadata.SetActiveModules(write.Metadata, selectedModules);
-            TenantMetadata.SetActiveApps(write.Metadata, selectedApps);
+            TenantMetadataValues.SetActiveModules(write.Metadata, selectedModules);
+            TenantMetadataValues.SetActiveApps(write.Metadata, selectedApps);
 
-            TenantReadDto? updated = await PartiesService.UpdateTenantAsync(write);
-            if (updated is null)
+            PartiesResult<TenantReadDto> updatedResult = await PartiesClient.UpdateTenantAsync(write);
+            if (!updatedResult.IsSuccess || updatedResult.Value is null)
             {
                 _ = Snackbar.Add(Localizer["Error"], Severity.Error);
                 return;
             }
 
-            SetTenant(updated);
+            SetTenant(updatedResult.Value);
             _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
         }
         finally

@@ -45,7 +45,7 @@ public partial class PrescriptionsList : PrescriptionBase
             return;
         }
 
-        IReadOnlyList<PrescriptionSummaryDto> items = await Mediator.Send(new GetPrescriptionHistoryQuery
+        IReadOnlyList<PrescriptionSummaryDto> items = await MedicalClient.Send(new GetPrescriptionHistoryQuery
         {
             PatientId = PatientId,
             ClinicId = PatientId is null ? clinicId : null,
