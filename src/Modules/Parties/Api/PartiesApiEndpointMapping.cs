@@ -47,6 +47,7 @@ public static class PartiesApiEndpointMapping
         Results.Ok((await service.GetOwnersAsync(cancellationToken)).Select(ToContract));
     private static async Task<IResult> CreateOwnerAsync(C.OwnerWriteDto request, IPartiesService service, CancellationToken cancellationToken)
     {
+        if (request is null) return BadRequest("Request body is required.");
         if (string.IsNullOrWhiteSpace(request.Name)) return BadRequest("Owner name is required.");
         D.OwnerReadDto? owner = await service.CreateOwnerAsync(ToDomain(request), cancellationToken);
         return owner is null ? Conflict("Owner could not be created.") : Results.Ok(ToContract(owner));
