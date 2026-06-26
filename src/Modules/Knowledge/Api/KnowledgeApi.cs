@@ -39,7 +39,7 @@ public static class KnowledgeApi
         _ = group.MapPost(KnowledgeApiRoutes.DiagnosticsDebugAsk, DebugAskAsync);
         return endpoints;
     }
-    private static string? Tenant(IRequestContext c)=>c.TenantId;
+    private static string Tenant(IRequestContext c)=>c.TenantId ?? string.Empty;
     private static async Task<IResult> OwnerWorkspaceAsync(KnowledgeOwnerWorkspaceRequest r, IRequestContext ctx, IMediator m, CancellationToken ct)=>Results.Ok(ToModel(await m.Send(new KnowledgeOwnerCollectionQuery(Tenant(ctx), ctx.OwnerId, r.SelectedCorpusId, r.FocusedSourceId), ct)));
     private static async Task<IResult> CreateCorpusAsync(CreateKnowledgeCorpusRequest r, IRequestContext ctx, IMediator m, CancellationToken ct){var x=await m.Send(new CreateKnowledgeCorpusCommand(Tenant(ctx), new CreateKnowledgeCorpusInput(r.Name,r.Description,r.IsActive)),ct);return Status(x.Succeeded,new CreateKnowledgeCorpusResponse(x.Succeeded,x.Message,x.Corpus is null?null:new Vitarish.Knowledge.Contracts.Models.KnowledgeOwnerCorpusOption(x.Corpus.Label,x.Corpus.Details){CorpusId=x.Corpus.CorpusId}));}
     private static async Task<IResult> ImportSourceAsync(ImportKnowledgeSourceRequest r, IRequestContext ctx, IMediator m, CancellationToken ct){var x=await m.Send(new ImportKnowledgeSourceCommand(Tenant(ctx), new ImportKnowledgeSourceInput(r.CorpusId,r.SourceName,ToApp(r.Format),r.Content)),ct);return Status(x.Succeeded,new ImportKnowledgeSourceResponse(x.Succeeded,x.Message,x.Summary));}
