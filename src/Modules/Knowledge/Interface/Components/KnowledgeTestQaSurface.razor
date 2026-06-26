@@ -152,7 +152,17 @@
 
     private async Task RefreshCorporaAsync()
     {
-        { var result = await KnowledgeClient.GetOwnerWorkspaceAsync(new KnowledgeOwnerWorkspaceRequest(), CancellationToken.None); corpora = result.Value?.Corpora.Select(c => new KnowledgeOwnerCorpusOption(c.CorpusName, c.CorpusDescription ?? string.Empty) { CorpusId = c.CorpusId }).ToArray() ?? []; }
+        var result = await KnowledgeClient.GetOwnerWorkspaceAsync(new KnowledgeOwnerWorkspaceRequest(), CancellationToken.None);
+        if (result.Succeeded && result.Value is not null)
+        {
+            corpora = result.Value.Corpora.Select(c => new KnowledgeOwnerCorpusOption(c.CorpusName, c.CorpusDescription ?? string.Empty) { CorpusId = c.CorpusId }).ToArray();
+        }
+        else
+        {
+            corpora = [];
+            status = result.Error?.Message ?? "Failed to load corpora.";
+            statusColor = Color.Error;
+        }
 
         selectedCorpusId = SelectedCorpus is not null
             ? selectedCorpusId
