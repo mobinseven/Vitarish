@@ -42,6 +42,17 @@
     <Project Path="src/Modules/Appointments/Interface/Appointments.Interface.csproj" />
     <Project Path="src/Modules/Appointments/Module/Appointments.Module.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Appointments/Api/">
+    <Project Path="src/Modules/Appointments/Api/Appointments.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Appointments/Application/" />
+  <Folder Name="/src/Modules/Appointments/Client/">
+    <Project Path="src/Modules/Appointments/Client/Appointments.Client.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Appointments/Contracts/">
+    <Project Path="src/Modules/Appointments/Contracts/Appointments.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Base/" />
   <Folder Name="/src/Modules/Commerce/">
     <Project Path="src/Modules/Commerce/Application/Commerce.Application.csproj" />
     <Project Path="src/Modules/Commerce/Domain/Commerce.Domain.csproj" />

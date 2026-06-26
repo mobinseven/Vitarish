@@ -6,6 +6,7 @@ using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Appointments.Infrastructure.DependencyInjection;
 using Vitarish.Appointments.Infrastructure.Serializers;
 using Vitarish.Appointments.Interface.DependencyInjection;
+using Vitarish.Appointments.Api;
 using Vitarish.Modules.Base;
 using Vitarish.Entities.Server.Extensions;
 
@@ -38,5 +39,6 @@ public class AppointmentsModule : Vitarish.Modules.Base.Module, IAppointmentsMod
     {
         _ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
         await app.InitializeViews();
+        _ = app.MapAppointmentsApi();
     }
 }

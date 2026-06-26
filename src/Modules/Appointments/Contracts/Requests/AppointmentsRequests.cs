@@ -1,0 +1,29 @@
+using Vitarish.Appointments.Contracts.Dto;
+using Vitarish.Appointments.Contracts.Enums;
+using Vitarish.Appointments.Contracts.Models;
+
+namespace Vitarish.Appointments.Contracts.Requests;
+
+public sealed record ListReservationsRequest(ReservationDescriptorDto Descriptor);
+public sealed record CreateReservationRequest(Guid ShiftId, DateOnly Date, Guid? UserId, TimeSpan? EstimatedSessionLengthOverride);
+public sealed record MoveReservationRequest(Guid ReservationId, Guid ShiftId, DateOnly Date);
+public sealed record UpdateReservationStatusRequest(Guid ReservationId, ReservationStatus Status);
+public sealed record CancelReservationRequest(Guid ReservationId);
+public sealed record ListShiftsRequest(ShiftDescriptorDto Descriptor);
+public sealed record ShiftWriteRequest(ShiftWriteDto Shift);
+public sealed record UpdateShiftStatusRequest(Guid ShiftId, ShiftStatus Status);
+public sealed record BookableDateQueryRequest(Guid ShiftId, DateOnly From, DateOnly To);
+public sealed record BookableSlotQueryRequest(Guid ShiftId, DateOnly Date);
+public sealed record ListServicesRequest(ServiceDescriptorDto Descriptor);
+public sealed record ServiceWriteRequest(ServiceWriteDto Service);
+public sealed record ListServiceTypesRequest(ServiceTypeDescriptorDto Descriptor);
+public sealed record ServiceTypeWriteRequest(ServiceTypeWriteDto ServiceType);
+public sealed record ListServiceProvidersRequest(ServiceProviderDescriptorDto Descriptor);
+public sealed record ServiceProviderWriteRequest(ServiceProviderWriteDto ServiceProvider);
+public sealed record LinkServiceProviderUserRequest(Guid ServiceProviderId, Guid UserId);
+public sealed record UnlinkServiceProviderUserRequest(Guid ServiceProviderId, string UserId);
+public sealed record ShiftReminderPolicyWriteRequest(ShiftReminderPolicyWriteDto Policy);
+public sealed record ShiftBookingPolicyWriteRequest(ShiftBookingPolicyWriteDto Policy);
+public sealed record CreateTemporaryHoldRequest(Guid ShiftId, DateOnly Date, TimeOnly? StartTime);
+public sealed record ConfirmTemporaryHoldRequest(Guid HoldId);
+public sealed record ReleaseTemporaryHoldRequest(Guid HoldId);

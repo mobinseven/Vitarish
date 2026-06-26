@@ -3,7 +3,7 @@
   "defaultMode": "ReportOnly",
   "modules": {
     "Appointments": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Commerce": {
