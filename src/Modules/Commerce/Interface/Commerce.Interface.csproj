@@ -1,20 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
-
-	<ItemGroup>
-		<SupportedPlatform Include="browser" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Injectio" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
-		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
-		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
-		<ProjectReference Include="..\Application\Commerce.Application.csproj" />
-		<ProjectReference Include="..\Domain\Commerce.Domain.csproj" />
-		<ProjectReference Include="..\Infrastructure\Commerce.Infrastructure.csproj" />
-	</ItemGroup>
-
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
+    <ProjectReference Include="..\Contracts\Commerce.Contracts.csproj" />
+    <ProjectReference Include="..\Client\Commerce.Client.csproj" />
+  </ItemGroup>
 </Project>

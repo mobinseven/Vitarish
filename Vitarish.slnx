@@ -54,6 +54,9 @@
   </Folder>
   <Folder Name="/src/Modules/Base/" />
   <Folder Name="/src/Modules/Commerce/">
+    <Project Path="src/Modules/Commerce/Contracts/Commerce.Contracts.csproj" />
+    <Project Path="src/Modules/Commerce/Client/Commerce.Client.csproj" />
+    <Project Path="src/Modules/Commerce/Api/Commerce.Api.csproj" />
     <Project Path="src/Modules/Commerce/Application/Commerce.Application.csproj" />
     <Project Path="src/Modules/Commerce/Domain/Commerce.Domain.csproj" />
     <Project Path="src/Modules/Commerce/Infrastructure/Commerce.Infrastructure.csproj" />
@@ -77,6 +80,9 @@
     <Project Path="src/Modules/Communications/Module/Communications.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Contents/">
+    <Project Path="src/Modules/Contents/Contracts/Contents.Contracts.csproj" />
+    <Project Path="src/Modules/Contents/Client/Contents.Client.csproj" />
+    <Project Path="src/Modules/Contents/Api/Contents.Api.csproj" />
     <Project Path="src/Modules/Contents/Application/Contents.Application.csproj" />
     <Project Path="src/Modules/Contents/Domain/Contents.Domain.csproj" />
     <Project Path="src/Modules/Contents/Infrastructure/Contents.Infrastructure.csproj" />
@@ -115,6 +121,9 @@
     <Project Path="src/Modules/Files/Module/Files.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Financial/">
+    <Project Path="src/Modules/Financial/Contracts/Financial.Contracts.csproj" />
+    <Project Path="src/Modules/Financial/Client/Financial.Client.csproj" />
+    <Project Path="src/Modules/Financial/Api/Financial.Api.csproj" />
     <Project Path="src/Modules/Financial/Application/Financial.Application.csproj" />
     <Project Path="src/Modules/Financial/Domain/Financial.Domain.csproj" />
     <Project Path="src/Modules/Financial/Infrastructure/Financial.Infrastructure.csproj" />
@@ -148,6 +157,9 @@
     <Project Path="src/Modules/Knowledge/Module/Knowledge.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Links/">
+    <Project Path="src/Modules/Links/Contracts/Links.Contracts.csproj" />
+    <Project Path="src/Modules/Links/Client/Links.Client.csproj" />
+    <Project Path="src/Modules/Links/Api/Links.Api.csproj" />
     <Project Path="src/Modules/Links/Application/Links.Application.csproj" />
     <Project Path="src/Modules/Links/Domain/Links.Domain.csproj" />
     <Project Path="src/Modules/Links/Infrastructure/Links.Infrastructure.csproj" />
@@ -226,6 +238,9 @@
     <Project Path="src/Modules/Search/Module/Search.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Social/">
+    <Project Path="src/Modules/Social/Contracts/Social.Contracts.csproj" />
+    <Project Path="src/Modules/Social/Client/Social.Client.csproj" />
+    <Project Path="src/Modules/Social/Api/Social.Api.csproj" />
     <Project Path="src/Modules/Social/Application/Social.Application.csproj" />
     <Project Path="src/Modules/Social/Domain/Social.Domain.csproj" />
     <Project Path="src/Modules/Social/Infrastructure/Social.Infrastructure.csproj" />

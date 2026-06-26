@@ -118,6 +118,18 @@ public sealed class AppointmentsClient(HttpClient httpClient) : AuthenticatedMod
     public Task<EntityResult> ConfirmHoldAsync(Guid holdId, CancellationToken cancellationToken)=>Failed();
     public Task<EntityResult> ReleaseHoldAsync(Guid holdId, CancellationToken cancellationToken)=>Failed();
     public Task ExpireStaleHoldsAsync(CancellationToken cancellationToken)=>Task.CompletedTask;
-    public Task<IReadOnlyList<ShiftReservationReadDto>> GetBookableDatesAsync(Guid shiftId, ShiftDateRangeQuery range, CancellationToken cancellationToken)=>Task.FromResult<IReadOnlyList<ShiftReservationReadDto>>([]);
-    public Task<IReadOnlyList<BookableShiftSlot>> GetBookableSlotsAsync(ShiftDescriptorDto descriptor, ShiftDateRangeQuery range, CancellationToken cancellationToken)=>Task.FromResult<IReadOnlyList<BookableShiftSlot>>([]);
+    public async Task<IReadOnlyList<ShiftReservationReadDto>> GetBookableDatesAsync(Guid shiftId, ShiftDateRangeQuery range, CancellationToken cancellationToken)
+    {
+        var request = new Vitarish.Appointments.Contracts.Requests.BookableDateQueryRequest(shiftId, range.DateFrom, range.DateTo);
+        ModuleApiClientResult<IReadOnlyList<ShiftReservationReadDto>> result = await PostJsonAsync<Vitarish.Appointments.Contracts.Requests.BookableDateQueryRequest, IReadOnlyList<ShiftReservationReadDto>>(Vitarish.Appointments.Contracts.Routes.AppointmentsApiRoutes.Base + Vitarish.Appointments.Contracts.Routes.AppointmentsApiRoutes.BookableDates, request, cancellationToken).ConfigureAwait(false);
+        if (!result.IsSuccess) throw new InvalidOperationException(result.Failure?.Message ?? "Appointments bookable dates request failed.");
+        return result.Value ?? [];
+    }
+    public async Task<IReadOnlyList<BookableShiftSlot>> GetBookableSlotsAsync(ShiftDescriptorDto descriptor, ShiftDateRangeQuery range, CancellationToken cancellationToken)
+    {
+        var request = new Vitarish.Appointments.Contracts.Requests.BookableSlotQueryRequest(descriptor.Id ?? Guid.Empty, range.DateFrom);
+        ModuleApiClientResult<IReadOnlyList<BookableShiftSlot>> result = await PostJsonAsync<Vitarish.Appointments.Contracts.Requests.BookableSlotQueryRequest, IReadOnlyList<BookableShiftSlot>>(Vitarish.Appointments.Contracts.Routes.AppointmentsApiRoutes.Base + Vitarish.Appointments.Contracts.Routes.AppointmentsApiRoutes.BookableSlots, request, cancellationToken).ConfigureAwait(false);
+        if (!result.IsSuccess) throw new InvalidOperationException(result.Failure?.Message ?? "Appointments bookable slots request failed.");
+        return result.Value ?? [];
+    }
 }

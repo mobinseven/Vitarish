@@ -12,7 +12,9 @@ public static class AppointmentsApiEndpointMapping
     public static IEndpointRouteBuilder MapAppointmentsApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(AppointmentsApiRoutes.Base);
-        _ = group.MapGet("/health", (CancellationToken cancellationToken) => Results.Ok(new AppointmentsCommandResult(true))).AllowAnonymous();
+        _ = group.MapGet("/health", (CancellationToken cancellationToken) => Results.Ok(new AppointmentsCommandResult(true)));
+        _ = group.MapPost(AppointmentsApiRoutes.BookableDates, (Vitarish.Appointments.Contracts.Requests.BookableDateQueryRequest request, CancellationToken cancellationToken) => Results.Ok(Array.Empty<Vitarish.Appointments.Contracts.Dto.ShiftReservationReadDto>()));
+        _ = group.MapPost(AppointmentsApiRoutes.BookableSlots, (Vitarish.Appointments.Contracts.Requests.BookableSlotQueryRequest request, CancellationToken cancellationToken) => Results.Ok(Array.Empty<Vitarish.Appointments.Contracts.Dto.BookableShiftSlot>()));
         return endpoints;
     }
 }
