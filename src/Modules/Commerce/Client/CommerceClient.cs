@@ -21,4 +21,10 @@ public sealed class CommerceClient(HttpClient httpClient) : AuthenticatedModuleA
     public Task<StoreReadDto?> GetStoreByTenantAsync(CancellationToken cancellationToken) => Task.FromResult<StoreReadDto?>(null);
     public void ScheduleCatalogSync() { } public void TriggerCatalogSync() { } public void ScheduleOrderSync() { } public void TriggerOrderSync() { } public void ScheduleCartCleanup() { }
 }
-internal static class CommerceClientResultExtensions { public static EntityResult<T> ToEntityResult<T>(this ModuleApiClientResult<T> result) => result.IsSuccess ? EntityResult<T>.Success(result.Value!) : EntityResult<T>.Failure(EntityError.Unknown(result.Failure?.Message ?? "Commerce API request failed.")); }
+internal static class CommerceClientResultExtensions
+{
+    public static EntityResult<T> ToEntityResult<T>(this ModuleApiClientResult<T> result) =>
+        result.IsSuccess
+            ? (result.Value is not null ? EntityResult<T>.Success(result.Value) : EntityResult<T>.Failure(EntityError.Unknown("Response body was empty.")))
+            : EntityResult<T>.Failure(EntityError.Unknown(result.Failure?.Message ?? "Commerce API request failed."));
+}
