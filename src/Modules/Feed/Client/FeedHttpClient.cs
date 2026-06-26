@@ -5,7 +5,7 @@ using Vitarish.Feed.Contracts;
 
 namespace Vitarish.Feed.Client;
 
-public sealed class FeedHttpClient(HttpClient httpClient) : AuthenticatedModuleApiClient(httpClient)
+public sealed class FeedHttpClient(HttpClient httpClient) : AuthenticatedModuleApiClient(httpClient), IFeedClient
 {
     public Task<FeedClientResult<IReadOnlyList<FeedItemResponse>>> QueryFeedItemsAsync(
         FeedQueryParameters parameters,

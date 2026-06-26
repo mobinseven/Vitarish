@@ -15,7 +15,7 @@ public partial class PrescriptionSubmitPanel : PrescriptionBase
 
         if (!string.IsNullOrEmpty(Prescription.SelectedProviderKey))
         {
-            providerAlerts = await Mediator.Send(new GetOperationalAlertsQuery
+            providerAlerts = await MedicalClient.Send(new GetOperationalAlertsQuery
             {
                 ProviderKey = Prescription.SelectedProviderKey
             });

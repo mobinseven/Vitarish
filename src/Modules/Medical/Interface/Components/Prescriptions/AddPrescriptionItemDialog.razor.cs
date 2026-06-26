@@ -61,7 +61,7 @@ public partial class AddPrescriptionItemDialog : PrescriptionBase
 
     private async Task AddAsync()
     {
-        AddItemResult result = await Mediator.Send(new AddItemCommand
+        AddItemResult result = await MedicalClient.Send(new AddItemCommand
         {
             PrescriptionId = PrescriptionId,
             Category = category,

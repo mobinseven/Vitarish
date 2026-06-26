@@ -14,7 +14,7 @@ public partial class PrescriptionDetail : PrescriptionBase
 
     private async Task ValidateAndSubmitAsync()
     {
-        ValidateDraftResult validation = await Mediator.Send(new ValidateDraftCommand
+        ValidateDraftResult validation = await MedicalClient.Send(new ValidateDraftCommand
         {
             PrescriptionId = Prescription.Id
         });
@@ -45,7 +45,7 @@ public partial class PrescriptionDetail : PrescriptionBase
         }
 
         string correlationId = Guid.NewGuid().ToString("N");
-        SubmitPrescriptionResult result = await Mediator.Send(new SubmitPrescriptionCommand
+        SubmitPrescriptionResult result = await MedicalClient.Send(new SubmitPrescriptionCommand
         {
             PrescriptionId = Prescription.Id,
             CorrelationId = correlationId
@@ -84,7 +84,7 @@ public partial class PrescriptionDetail : PrescriptionBase
         }
 
         string correlationId = Guid.NewGuid().ToString("N");
-        EditPrescriptionResult result = await Mediator.Send(new EditPrescriptionCommand
+        EditPrescriptionResult result = await MedicalClient.Send(new EditPrescriptionCommand
         {
             PrescriptionId = Prescription.Id,
             CorrelationId = correlationId,
@@ -120,7 +120,7 @@ public partial class PrescriptionDetail : PrescriptionBase
 
         string? reason = dialogResult.Data?.ToString();
         string correlationId = Guid.NewGuid().ToString("N");
-        CancelPrescriptionResult result = await Mediator.Send(new CancelPrescriptionCommand
+        CancelPrescriptionResult result = await MedicalClient.Send(new CancelPrescriptionCommand
         {
             PrescriptionId = Prescription.Id,
             CorrelationId = correlationId,
@@ -140,7 +140,7 @@ public partial class PrescriptionDetail : PrescriptionBase
 
     private async Task ReloadPrescription()
     {
-        PrescriptionDto? updated = await Mediator.Send(new GetPrescriptionQuery
+        PrescriptionDto? updated = await MedicalClient.Send(new GetPrescriptionQuery
         {
             PrescriptionId = Prescription.Id
         });

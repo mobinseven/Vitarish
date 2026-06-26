@@ -72,35 +72,35 @@ public partial class PrescriptionOperationalDashboard : PrescriptionBase
         }
     }
 
-    private async Task LoadAlertsAsync() => alerts = await Mediator.Send(new GetOperationalAlertsQuery
+    private async Task LoadAlertsAsync() => alerts = await MedicalClient.Send(new GetOperationalAlertsQuery
     {
         ProviderKey = selectedProviderKey
     });
 
-    private async Task LoadTransactionMetricsAsync() => transactionMetrics = await Mediator.Send(new GetProviderTransactionMetricsQuery
+    private async Task LoadTransactionMetricsAsync() => transactionMetrics = await MedicalClient.Send(new GetProviderTransactionMetricsQuery
     {
         ProviderKey = selectedProviderKey,
         From = DateTime.UtcNow.AddDays(-7)
     });
 
-    private async Task LoadRejectionDistributionAsync() => rejectionDistribution = await Mediator.Send(new GetRejectionDistributionQuery
+    private async Task LoadRejectionDistributionAsync() => rejectionDistribution = await MedicalClient.Send(new GetRejectionDistributionQuery
     {
         ProviderKey = selectedProviderKey,
         From = DateTime.UtcNow.AddDays(-30)
     });
 
-    private async Task LoadCredentialHealthAsync() => credentialHealth = await Mediator.Send(new GetCredentialHealthQuery
+    private async Task LoadCredentialHealthAsync() => credentialHealth = await MedicalClient.Send(new GetCredentialHealthQuery
     {
         ProviderKey = selectedProviderKey
     });
 
-    private async Task LoadDuplicateRiskAsync() => duplicateRiskResult = await Mediator.Send(new GetDuplicateRiskIncidentsQuery
+    private async Task LoadDuplicateRiskAsync() => duplicateRiskResult = await MedicalClient.Send(new GetDuplicateRiskIncidentsQuery
     {
         ProviderKey = selectedProviderKey,
         Take = 20
     });
 
-    private async Task LoadOutboxStatusAsync() => outboxStatus = await Mediator.Send(new GetOutboxStatusQuery
+    private async Task LoadOutboxStatusAsync() => outboxStatus = await MedicalClient.Send(new GetOutboxStatusQuery
     {
         ProviderKey = selectedProviderKey
     });

@@ -16,7 +16,7 @@ public partial class ReconciliationDesk : PrescriptionBase
 
     private async Task LoadQueueAsync()
     {
-        queueResult = await Mediator.Send(new GetReconciliationQueueQuery
+        queueResult = await MedicalClient.Send(new GetReconciliationQueueQuery
         {
             StatusFilter = statusFilter,
             Take = 50
@@ -27,7 +27,7 @@ public partial class ReconciliationDesk : PrescriptionBase
     private async Task RefreshStatusAsync(Guid prescriptionId)
     {
         string correlationId = Guid.NewGuid().ToString("N");
-        RefreshProviderStatusResult result = await Mediator.Send(new RefreshProviderStatusCommand
+        RefreshProviderStatusResult result = await MedicalClient.Send(new RefreshProviderStatusCommand
         {
             PrescriptionId = prescriptionId,
             CorrelationId = correlationId
@@ -58,7 +58,7 @@ public partial class ReconciliationDesk : PrescriptionBase
         }
 
         string correlationId = Guid.NewGuid().ToString("N");
-        ResolveDuplicateRiskResult result = await Mediator.Send(new ResolveDuplicateRiskCommand
+        ResolveDuplicateRiskResult result = await MedicalClient.Send(new ResolveDuplicateRiskCommand
         {
             PrescriptionId = prescriptionId,
             Resolution = resolution,
@@ -96,7 +96,7 @@ public partial class ReconciliationDesk : PrescriptionBase
         }
 
         string correlationId = Guid.NewGuid().ToString("N");
-        ManualReconcileResult result = await Mediator.Send(new ManualReconcileCommand
+        ManualReconcileResult result = await MedicalClient.Send(new ManualReconcileCommand
         {
             PrescriptionId = prescriptionId,
             Notes = notes,
@@ -128,7 +128,7 @@ public partial class ReconciliationDesk : PrescriptionBase
         }
 
         string correlationId = Guid.NewGuid().ToString("N");
-        EscalateResult result = await Mediator.Send(new EscalateCommand
+        EscalateResult result = await MedicalClient.Send(new EscalateCommand
         {
             PrescriptionId = prescriptionId,
             OperatorId = Guid.Empty, // Will be populated from auth context
@@ -161,7 +161,7 @@ public partial class ReconciliationDesk : PrescriptionBase
         }
 
         string correlationId = Guid.NewGuid().ToString("N");
-        ReconcilePaperFallbackResult result = await Mediator.Send(new ReconcilePaperFallbackCommand
+        ReconcilePaperFallbackResult result = await MedicalClient.Send(new ReconcilePaperFallbackCommand
         {
             PrescriptionId = prescriptionId,
             CorrelationId = correlationId

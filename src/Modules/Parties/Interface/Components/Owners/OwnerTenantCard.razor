@@ -7,6 +7,6 @@
 
     protected override void OnParametersSet()
     {
-        modules = TenantMetadata.GetActiveModules(Tenant?.Metadata);
+        modules = TenantMetadataValues.GetActiveModules(Tenant?.Metadata);
     }
 }

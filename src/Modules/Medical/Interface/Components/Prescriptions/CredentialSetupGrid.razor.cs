@@ -15,7 +15,7 @@ public partial class CredentialSetupGrid : PrescriptionBase
             return;
         }
 
-        credentials = await Mediator.Send(new GetCredentialSetupGridQuery
+        credentials = await MedicalClient.Send(new GetCredentialSetupGridQuery
         {
             ClinicId = clinicId.Value
         });
@@ -24,7 +24,7 @@ public partial class CredentialSetupGrid : PrescriptionBase
 
     private async Task TestCredentialAsync(Guid credentialId)
     {
-        TestCredentialResult result = await Mediator.Send(new TestCredentialCommand { CredentialId = credentialId });
+        TestCredentialResult result = await MedicalClient.Send(new TestCredentialCommand { CredentialId = credentialId });
         _ = result.IsSuccess
             ? Snackbar.Add(Localizer["CredentialTestPassed"], Severity.Success)
             : Snackbar.Add(result.ErrorMessage ?? Localizer["UnknownError"], Severity.Error);
@@ -49,7 +49,7 @@ public partial class CredentialSetupGrid : PrescriptionBase
             return;
         }
 
-        RevokeCredentialResult result = await Mediator.Send(new RevokeCredentialCommand { CredentialId = credentialId });
+        RevokeCredentialResult result = await MedicalClient.Send(new RevokeCredentialCommand { CredentialId = credentialId });
         _ = result.IsSuccess
             ? Snackbar.Add(Localizer["CredentialRevoked"], Severity.Success)
             : Snackbar.Add(result.ErrorMessage ?? Localizer["UnknownError"], Severity.Error);

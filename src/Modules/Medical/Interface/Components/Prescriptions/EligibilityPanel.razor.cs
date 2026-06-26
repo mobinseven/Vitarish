@@ -38,7 +38,7 @@ public partial class EligibilityPanel : PrescriptionBase
 
         try
         {
-            eligibility = await Mediator.Send(new GetEligibilityQuery
+            eligibility = await MedicalClient.Send(new GetEligibilityQuery
             {
                 PatientNationalId = PatientNationalId,
                 ProviderKey = ProviderKey,
@@ -49,7 +49,7 @@ public partial class EligibilityPanel : PrescriptionBase
             // Persist eligibility result on the prescription for submission gating
             if (eligibility is not null)
             {
-                _ = await Mediator.Send(new RecordEligibilityCommand
+                _ = await MedicalClient.Send(new RecordEligibilityCommand
                 {
                     PrescriptionId = PrescriptionId,
                     Status = eligibility.Status,

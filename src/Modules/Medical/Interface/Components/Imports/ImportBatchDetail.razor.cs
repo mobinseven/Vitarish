@@ -12,7 +12,7 @@ public partial class ImportBatchDetail : MedicalBase
         loading = true;
         await InvokeAsync(StateHasChanged);
 
-        batch = await QueryService.GetImportBatchAsync(ImportBatchId);
+        batch = await MedicalClient.GetImportBatchAsync(ImportBatchId);
         loading = false;
         await InvokeAsync(StateHasChanged);
     }

@@ -1,4 +1,6 @@
-using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Parties.Client;
+using Vitarish.Parties.Contracts.Results;
+using Vitarish.Parties.Contracts.Tenants;
 
 namespace Vitarish.Main.Components;
 
@@ -9,11 +11,11 @@ namespace Vitarish.Main.Components;
 /// </summary>
 public class OwnerPageBase : PageBase
 {
-    [Inject] protected IPartiesService PartiesService { get; set; } = default!;
+    [Inject] protected IPartiesClient PartiesClient { get; set; } = default!;
     [Inject] protected ISnackbar Snackbar { get; set; } = default!;
 
     /// <summary>
-    /// Parses <see cref="Vitarish.Requests.Application.Abstractions.IRequestContext.OwnerId"/> to a Guid.
+    /// Parses the request context owner ID to a Guid.
     /// Returns null when no owner claim is present or the value is not a valid Guid.
     /// </summary>
     protected Guid? GetOwnerGuid() => RequestContext.OwnerId is null ? null : Guid.TryParse(RequestContext.OwnerId, out Guid g) ? g : null;
@@ -30,8 +32,9 @@ public class OwnerPageBase : PageBase
             return null;
         }
 
-        TenantReadDto? tenant = await PartiesService.GetTenantAsync(tenantId.Value);
-        if (tenant is null)
+        PartiesResult<TenantReadDto> tenantResult = await PartiesClient.GetTenantAsync(tenantId.Value);
+        TenantReadDto? tenant = tenantResult.Value;
+        if (!tenantResult.IsSuccess || tenant is null)
         {
             NavigationManager.NavigateTo(fallbackRoute);
         }

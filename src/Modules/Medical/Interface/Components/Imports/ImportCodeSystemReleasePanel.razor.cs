@@ -11,7 +11,7 @@ public partial class ImportCodeSystemReleasePanel : MedicalBase
 
     protected override async Task ReloadRequired()
     {
-        codeSystems = [.. await QueryService.ListCodeSystemsAsync(activeOnly: false)];
+        codeSystems = [.. await MedicalClient.ListCodeSystemsAsync(activeOnly: false)];
         if (writeDto.CodeSystemId == Guid.Empty && codeSystems.Count > 0)
         {
             writeDto.CodeSystemId = codeSystems[0].Id;
@@ -36,7 +36,7 @@ public partial class ImportCodeSystemReleasePanel : MedicalBase
         lastResult = null;
         await InvokeAsync(StateHasChanged);
 
-        EntityResult<ImportResult> result = await Mediator.Send(new ImportCodeSystemReleaseCommand(
+        ImportResult? result = await MedicalClient.Send(new ImportCodeSystemReleaseCommand(
             writeDto.CodeSystemId,
             writeDto.ReleaseName,
             null,
@@ -51,10 +51,10 @@ public partial class ImportCodeSystemReleasePanel : MedicalBase
 
         running = false;
 
-        if (result.IsSuccess && result.Value is not null)
+        if (result is not null)
         {
-            lastResult = result.Value;
-            await OnImported.InvokeAsync(result.Value);
+            lastResult = result;
+            await OnImported.InvokeAsync(result);
         }
 
         await InvokeAsync(StateHasChanged);
