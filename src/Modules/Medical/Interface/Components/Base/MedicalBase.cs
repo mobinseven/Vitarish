@@ -4,6 +4,7 @@ namespace Vitarish.Medical.Interface.Components.Base;
 
 public class MedicalBase : TenantCommonBase
 {
-    [Inject] protected IMedicalQueryService QueryService { get; set; } = default!;
-    [Inject] protected IMediator Mediator { get; set; } = default!;
+    [Inject] protected IMedicalClient MedicalClient { get; set; } = default!;
+    protected IMedicalClient QueryService => MedicalClient;
+    protected IMedicalClient Mediator => MedicalClient;
 }

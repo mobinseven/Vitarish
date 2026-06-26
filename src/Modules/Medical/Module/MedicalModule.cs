@@ -6,6 +6,7 @@ using Vitarish.Medical.Infrastructure.Data;
 using Vitarish.Medical.Infrastructure.DependencyInjection;
 using Vitarish.Modules.Base;
 using Vitarish.Entities.Server.Extensions;
+using Vitarish.Medical.Api;
 
 namespace Vitarish.Medical.Module;
 
@@ -27,5 +28,6 @@ public sealed class MedicalModule : Vitarish.Modules.Base.Module, IMedicalModule
     {
         _ = await app.MigrateDatabaseAsync<MedicalDbContext>();
         _ = await app.MigrateDatabaseAsync<PrescriptionDbContext>();
+        _ = app.MapMedicalApi();
     }
 }

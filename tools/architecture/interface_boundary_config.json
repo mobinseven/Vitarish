@@ -43,7 +43,7 @@
       "temporaryExceptions": []
     },
     "Medical": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Parties": {
