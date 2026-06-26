@@ -16,7 +16,11 @@ public partial class ShiftDetail : ShiftsBase
     private string? serviceName;
     private Guid? lastShiftId;
 
-    private TimeSpan EffectiveEstimatedSessionLength => Shift.EndTime - Shift.StartTime;
+    private TimeSpan EffectiveEstimatedSessionLength => Shift is null
+        ? TimeSpan.Zero
+        : Shift.EndTime >= Shift.StartTime
+            ? Shift.EndTime - Shift.StartTime
+            : (Shift.EndTime - Shift.StartTime).Add(TimeSpan.FromDays(1));
 
     protected override async Task OnParametersSetAsync()
     {

@@ -16,5 +16,9 @@ public record ShiftReservationReadDto
     public DateTime SlotStart => DateTime.SpecifyKind(Date.ToDateTime(StartTime), DateTimeKind.Utc);
 
     [JsonIgnore]
-    public DateTime SlotEnd => DateTime.SpecifyKind(Date.ToDateTime(EndTime), DateTimeKind.Utc);
+    public DateTime SlotEnd => DateTime.SpecifyKind(
+        EndTime >= StartTime
+            ? Date.ToDateTime(EndTime)
+            : Date.AddDays(1).ToDateTime(EndTime),
+        DateTimeKind.Utc);
 }

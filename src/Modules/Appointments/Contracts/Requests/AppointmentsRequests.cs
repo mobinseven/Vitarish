@@ -23,9 +23,7 @@ public sealed record ServiceProviderWriteRequest(ServiceProviderWriteDto Service
 public sealed record LinkServiceProviderUserRequest(Guid ServiceProviderId, Guid UserId);
 public sealed record UnlinkServiceProviderUserRequest(Guid ServiceProviderId, string UserId);
 public sealed record ShiftReminderPolicyWriteRequest(ShiftReminderPolicyWriteDto Policy);
-public sealed record ShiftReminderPolicyDescriptorDto(Guid? ShiftId = null);
 public sealed record ShiftBookingPolicyWriteRequest(ShiftBookingPolicyWriteDto Policy);
-public sealed record ShiftBookingPolicyDescriptorDto(Guid? ShiftId = null);
 public sealed record CreateTemporaryHoldRequest(Guid ShiftId, DateOnly Date, TimeOnly? StartTime);
 public sealed record ConfirmTemporaryHoldRequest(Guid HoldId);
 public sealed record ReleaseTemporaryHoldRequest(Guid HoldId);

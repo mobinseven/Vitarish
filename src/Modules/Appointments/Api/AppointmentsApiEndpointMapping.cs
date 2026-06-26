@@ -12,7 +12,7 @@ public static class AppointmentsApiEndpointMapping
     public static IEndpointRouteBuilder MapAppointmentsApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(AppointmentsApiRoutes.Base);
-        _ = group.MapGet("/health", (CancellationToken cancellationToken) => Results.Ok(new AppointmentsCommandResult(true)));
+        _ = group.MapGet("/health", (CancellationToken cancellationToken) => Results.Ok(new AppointmentsCommandResult(true))).AllowAnonymous();
         return endpoints;
     }
 }
