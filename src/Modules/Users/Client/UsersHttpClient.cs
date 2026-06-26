@@ -28,7 +28,7 @@ public sealed class UsersHttpClient(HttpClient httpClient) : AuthenticatedModule
         Get<UserExistenceResponse>(BuildEmailUri(parameters), cancellationToken);
 
     public Task<UsersClientResult<UsersCommandResponse>> SetUserEmailAsync(string userId, SetUserEmailRequest request, CancellationToken cancellationToken) =>
-        Put<SetUserEmailRequest, UsersCommandResponse>(UsersApiRoutes.ById.Replace("{userId}", Uri.EscapeDataString(userId)) + "/email", request, cancellationToken);
+        Put<SetUserEmailRequest, UsersCommandResponse>(UsersApiRoutes.SetEmail.Replace("{userId}", Uri.EscapeDataString(userId)), request, cancellationToken);
 
     public Task<UsersClientResult<UserRoleCheckResponse>> CheckUserRoleAsync(CheckUserRoleQueryParameters parameters, CancellationToken cancellationToken) =>
         Get<UserRoleCheckResponse>(BuildRoleUri(parameters), cancellationToken);
