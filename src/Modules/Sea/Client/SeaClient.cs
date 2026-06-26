@@ -60,6 +60,11 @@ public sealed class SeaClient(HttpClient httpClient) : AuthenticatedModuleApiCli
             HttpStatusCode.RequestTimeout or HttpStatusCode.GatewayTimeout => SeaErrorCode.Timeout,
             _ => SeaErrorCode.UnexpectedFailure
         };
+        if (response.Content is null)
+        {
+            return Error(code, $"Sea API returned {(int)response.StatusCode} {response.ReasonPhrase} with no content.");
+        }
+
         try
         {
             SeaError? structured = await response.Content.ReadFromJsonAsync<SeaError>(cancellationToken).ConfigureAwait(false);
@@ -67,7 +72,7 @@ public sealed class SeaClient(HttpClient httpClient) : AuthenticatedModuleApiCli
         }
         catch (JsonException ex)
         {
-            return Error(SeaErrorCode.DeserializationFailure, $"Sea API error response could not be deserialized: {ex.Message}");
+            return Error(code, $"Sea API returned {(int)response.StatusCode} {response.ReasonPhrase}. Deserialization failed: {ex.Message}");
         }
     }
 
@@ -117,7 +122,7 @@ public sealed class SeaClient(HttpClient httpClient) : AuthenticatedModuleApiCli
     public Task<SeaResult<IReadOnlyList<RoleReadDto>>> PageRolesAsync(int page, int pageSize, CancellationToken cancellationToken) => SendAsync<IReadOnlyList<RoleReadDto>>(HttpMethod.Get, $"/roles?page={page}&pageSize={pageSize}", null, cancellationToken);
     public Task<SeaResult<SeaCommandResult>> CreateRoleAsync(RoleWriteDto role, CancellationToken cancellationToken) => SendAsync<SeaCommandResult>(HttpMethod.Post, SeaApiRoutes.Roles, role, cancellationToken);
     public Task<SeaResult<SeaCommandResult>> UpdateRoleAsync(RoleWriteDto role, CancellationToken cancellationToken) => SendAsync<SeaCommandResult>(HttpMethod.Put, SeaApiRoutes.Roles, role, cancellationToken);
-    public Task<SeaResult<IReadOnlyList<UserRoleReadDto>>> ListUserRolesAsync(string userId, CancellationToken cancellationToken) => SendAsync<IReadOnlyList<UserRoleReadDto>>(HttpMethod.Get, $"/users/{userId}/roles", null, cancellationToken);
+    public Task<SeaResult<IReadOnlyList<UserRoleReadDto>>> ListUserRolesAsync(string userId, CancellationToken cancellationToken) => SendAsync<IReadOnlyList<UserRoleReadDto>>(HttpMethod.Get, $"/users/{Uri.EscapeDataString(userId)}/roles", null, cancellationToken);
     public Task<SeaResult<SeaCommandResult>> AssignUserRoleAsync(UserRoleWriteDto userRole, CancellationToken cancellationToken) => SendAsync<SeaCommandResult>(HttpMethod.Post, SeaApiRoutes.UserRoles, userRole, cancellationToken);
     public Task<SeaResult<SeaCommandResult>> RemoveUserRoleAsync(Guid userRoleId, CancellationToken cancellationToken) => SendAsync<SeaCommandResult>(HttpMethod.Delete, $"/user-roles/{userRoleId}", null, cancellationToken);
     public Task<SeaResult<IReadOnlyList<Guid>>> GetEventRoleIdsAsync(Guid eventId, CancellationToken cancellationToken) => SendAsync<IReadOnlyList<Guid>>(HttpMethod.Get, $"/events/{eventId}/roles", null, cancellationToken);
@@ -128,7 +133,7 @@ public sealed class SeaClient(HttpClient httpClient) : AuthenticatedModuleApiCli
     public Task<SeaResult<SeaCommandResult>> UnassignEventRoleAsync(Guid eventRoleId, CancellationToken cancellationToken) => SendAsync<SeaCommandResult>(HttpMethod.Delete, $"/event-roles/{eventRoleId}", null, cancellationToken);
     public Task<SeaResult<SeaCommandResult>> AddReceiptAsync(ReceiptWriteDto receipt, CancellationToken cancellationToken) => SendAsync<SeaCommandResult>(HttpMethod.Post, SeaApiRoutes.Receipts, receipt, cancellationToken);
     public Task<SeaResult<IReadOnlyList<ReceiptReadDto>>> ListReadersAsync(Guid eventId, CancellationToken cancellationToken) => SendAsync<IReadOnlyList<ReceiptReadDto>>(HttpMethod.Get, $"/events/{eventId}/readers", null, cancellationToken);
-    public Task<SeaResult<bool>> HasReceiptAsync(Guid eventId, string userId, CancellationToken cancellationToken) => SendAsync<bool>(HttpMethod.Get, $"/events/{eventId}/receipts/{userId}", null, cancellationToken);
-    public Task<SeaResult<IReadOnlyDictionary<Guid, bool>>> HasReceiptsAsync(IReadOnlyList<Guid> eventIds, string userId, CancellationToken cancellationToken) => SendAsync<IReadOnlyDictionary<Guid, bool>>(HttpMethod.Post, $"/receipts/{userId}/events", eventIds, cancellationToken);
+    public Task<SeaResult<bool>> HasReceiptAsync(Guid eventId, string userId, CancellationToken cancellationToken) => SendAsync<bool>(HttpMethod.Get, $"/events/{eventId}/receipts/{Uri.EscapeDataString(userId)}", null, cancellationToken);
+    public Task<SeaResult<IReadOnlyDictionary<Guid, bool>>> HasReceiptsAsync(IReadOnlyList<Guid> eventIds, string userId, CancellationToken cancellationToken) => SendAsync<IReadOnlyDictionary<Guid, bool>>(HttpMethod.Post, $"/receipts/{Uri.EscapeDataString(userId)}/events", eventIds, cancellationToken);
     public Task<SeaResult<DatabaseStatisticsReadDto>> GetDatabaseStatisticsAsync(CancellationToken cancellationToken) => SendAsync<DatabaseStatisticsReadDto>(HttpMethod.Get, SeaApiRoutes.Statistics, null, cancellationToken);
 }

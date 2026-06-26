@@ -17,7 +17,6 @@ public static class SeaUiRequestMapping
         Id = procedure.Id,
         Name = procedure.Name,
         Description = procedure.Description,
-        AvatarFileId = procedure.AvatarFileId,
         ProjectId = procedure.ProjectId
     };
 

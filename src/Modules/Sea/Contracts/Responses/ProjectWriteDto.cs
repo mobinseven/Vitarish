@@ -7,4 +7,5 @@ public record ProjectWriteDto : EntityWriteDto
     public string? IdentificationCode { get; set; }
     public bool Template { get; set; }
     public IReadOnlyList<string>? UserIds { get; set; }
+    public Guid? AvatarFileId { get; set; }
 }
