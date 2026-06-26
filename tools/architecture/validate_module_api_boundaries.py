@@ -73,8 +73,7 @@ def scan_di(p:Path):
     text=(ROOT/p).read_text(errors='ignore')
     vs=[]
     for m in re.finditer(r'\.(AddHttpClient|AddScoped|AddTransient|AddSingleton)\s*<([^>]*Client[^>]*)>', text):
-        if 'AddInternalModuleApiClient' not in text[max(0,m.start()-200):m.start()+200]:
-            vs.append(V(p,line(text,m.start()),module_for(p),'DirectClientRegistration',m.group(1),'Internal module clients must be registered through AddInternalModuleApiClient<TClientContract,TClientImplementation>.'))
+        vs.append(V(p,line(text,m.start()),module_for(p),'DirectClientRegistration',m.group(1),'Internal module clients must be registered through AddInternalModuleApiClient<TClientContract,TClientImplementation>.'))
     return vs
 
 violations=[]
