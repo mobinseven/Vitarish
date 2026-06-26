@@ -1,11 +1,56 @@
 <Project>
-	<PropertyGroup>
-		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-		<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
-		<CentralPackageVersionOverrideEnabled>false</CentralPackageVersionOverrideEnabled>
-	</PropertyGroup>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <CentralPackageVersionOverrideEnabled>false</CentralPackageVersionOverrideEnabled>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.*" />
+    <PackageVersion Include="DnsClient" Version="1.8.0" />
+    <PackageVersion Include="Duende.IdentityServer" Version="7.*" />
+    <PackageVersion Include="Duende.IdentityServer.AspNetIdentity" Version="7.*" />
+    <PackageVersion Include="Duende.IdentityServer.EntityFramework" Version="7.*" />
+    <PackageVersion Include="Elastic.Clients.Elasticsearch" Version="9.4.*" />
+    <PackageVersion Include="Fido2" Version="4.0.*" />
+    <PackageVersion Include="Fido2.AspNet" Version="4.0.*" />
+    <PackageVersion Include="Finbuckle.MultiTenant.AspNetCore" Version="9.4.0" />
+    <PackageVersion Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="9.*" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
+    <PackageVersion Include="Google.Cloud.Speech.V2" Version="1.6.*" />
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.*" />
+    <PackageVersion Include="Hangfire.Core" Version="1.8.*" />
+    <PackageVersion Include="Hangfire.PostgreSql" Version="1.*" />
+    <PackageVersion Include="Injectio" Version="5.0.0" />
+    <PackageVersion Include="MailKit" Version="4.*" />
+    <PackageVersion Include="MediatR" Version="14.0.*" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client.Core" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.*" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.*" />
+    <PackageVersion Include="MimeTypesMap" Version="1.*" />
+    <PackageVersion Include="MudBlazor" Version="9.*" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageVersion Include="Npgsql" Version="10.0.*" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.*" />
+    <PackageVersion Include="OllamaSharp.ModelContextProtocol" Version="5.4.*" />
+    <PackageVersion Include="OpenAI" Version="2.11.*" />
+    <PackageVersion Include="Riok.Mapperly" Version="4.3.1" />
+    <PackageVersion Include="Scrutor" Version="7.0.*" />
+    <PackageVersion Include="SkiaSharp" Version="3.*" />
+    <PackageVersion Include="StackExchange.Redis" Version="3.0.*" />
+    <PackageVersion Include="Vorn.Tamin" Version="2.*" />
+  </ItemGroup>
 </Project>
