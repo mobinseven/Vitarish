@@ -398,9 +398,8 @@ FodyWeavers.xsd
 *.sln.iml
 
 */nuget.config
-/Vorn.Aaas.Host/appsettings*.json
-/Vorn.Aaas.Host/Keys/
-/src/Hosts/Host/appsettings.Development.json
-/src/Hosts/Sea/appsettings.Development.json
-/src/Hosts/Main/appsettings.Development.json
-/src/Hosts/Main/appsettings.json
+
+**/appsettings.Development.json
+**/appsettings.json
+
+**/packages.lock.json
