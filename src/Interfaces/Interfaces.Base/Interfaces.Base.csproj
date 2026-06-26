@@ -3,9 +3,9 @@
 		<EmbeddedResource Include="Resources\CalendarData\*.ics" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Injectio" Version="5.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.*" />
-		<PackageReference Include="MudBlazor" Version="9.*" />
+		<PackageReference Include="Injectio" />
+		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
+		<PackageReference Include="MudBlazor" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Modules\Parties\Application\Parties.Application.csproj" />

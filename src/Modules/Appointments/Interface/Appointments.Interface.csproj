@@ -5,7 +5,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Injectio" Version="5.0.0" />
+		<PackageReference Include="Injectio" />
 	</ItemGroup>
 
 	<ItemGroup>

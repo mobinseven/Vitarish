@@ -3,9 +3,9 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Duende.IdentityModel" Version="8.0.0" />
-    <PackageReference Include="MediatR" Version="14.0.*" />
-    <PackageReference Include="FluentValidation" Version="11.*" />
+    <PackageReference Include="Duende.IdentityModel" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Domain\Requests.Domain.csproj" />

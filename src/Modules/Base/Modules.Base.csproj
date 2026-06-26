@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.*" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
-		<PackageReference Include="Hangfire.Core" Version="1.8.*" />
+		<PackageReference Include="Hangfire.Core" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MediatR" Version="14.0.*" />
+		<PackageReference Include="MediatR" />
 	</ItemGroup>
 
 	<ItemGroup>

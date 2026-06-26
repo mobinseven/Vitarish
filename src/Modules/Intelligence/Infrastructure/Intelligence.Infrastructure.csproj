@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
-		<PackageReference Include="Google.Cloud.Speech.V2" Version="1.6.*" />
-		<PackageReference Include="OllamaSharp.ModelContextProtocol" Version="5.4.*" />
-		<PackageReference Include="OpenAI" Version="2.11.*" />
+		<PackageReference Include="Google.Cloud.Speech.V2" />
+		<PackageReference Include="OllamaSharp.ModelContextProtocol" />
+		<PackageReference Include="OpenAI" />
 	</ItemGroup>
 	<ItemGroup>
 				<ProjectReference Include="..\..\Base\Modules.Base.csproj" />

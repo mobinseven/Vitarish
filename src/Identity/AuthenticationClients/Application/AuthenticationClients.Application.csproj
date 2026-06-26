@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="14.0.*" />
-    <PackageReference Include="FluentValidation" Version="11.*" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Domain\AuthenticationClients.Domain.csproj" />
