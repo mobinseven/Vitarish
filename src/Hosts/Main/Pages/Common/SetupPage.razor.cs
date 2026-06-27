@@ -1,15 +1,13 @@
-using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Parties.Client;
 using Vitarish.Parties.Contracts.Results;
 using Vitarish.Parties.Contracts.Tenants;
-
 
 namespace Vitarish.Main.Pages.Common;
 
 public partial class SetupPage
 {
     [Inject] private IPartiesClient PartiesClient { get; set; } = default!;
-    [Inject] private IOptions<FeaturesOptions> FeaturesOptions { get; set; } = default!;
+    [Inject] private ITenantOnboardingAccess TenantOnboardingAccess { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private readonly TenantSetupContext context = new();
@@ -19,7 +17,7 @@ public partial class SetupPage
     {
         await base.OnInitializedAsync();
 
-        if (!FeaturesOptions.Value.TenantOnboarding)
+        if (!TenantOnboardingAccess.IsEnabled)
         {
             NavigationManager.NavigateTo(AppRoutes.Home);
             return;
