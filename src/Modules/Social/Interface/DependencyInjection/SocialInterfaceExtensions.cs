@@ -9,9 +9,7 @@ public static class SocialInterfaceExtensions
 {
     public static IServiceCollection AddSocialInterface(this IServiceCollection services)
     {
-        _ = services.AddInternalModuleApiClient<ISocialClient, SocialHttpClient>();
-        _ = services.AddInternalModuleApiClient<ISocialConnectionsClient, SocialHttpClient>();
-        _ = services.AddInternalModuleApiClient<ISocialWebhooksClient, SocialHttpClient>();
+        _ = services.AddInternalModuleApiClient<ISocialClient, SocialHttpClient, ISocialConnectionsClient, ISocialWebhooksClient>();
         return services;
     }
 }

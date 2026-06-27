@@ -19,9 +19,12 @@ public sealed class SocialHttpClient(HttpClient httpClient) : AuthenticatedModul
             new { },
             cancellationToken).ConfigureAwait(false);
 
-        return result.IsSuccess
-            ? result.Value ?? SocialReplayWebhookResponse.Queued()
-            : SocialReplayWebhookResponse.Failed(ToReplayStatus(result.Failure!), ToError(result.Failure!));
+        if (result.IsSuccess)
+        {
+            return result.Value ?? SocialReplayWebhookResponse.Queued();
+        }
+
+        return result.Value ?? SocialReplayWebhookResponse.Failed(ToReplayStatus(result.Failure!), ToError(result.Failure!));
     }
 
     protected override ModuleApiClientFailure CreateFailure(HttpStatusCode statusCode, string message, int? statusCodeValue) => new(statusCode.ToString(), message, statusCodeValue);

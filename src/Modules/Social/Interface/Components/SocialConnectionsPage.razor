@@ -135,6 +135,14 @@ else
             SocialQueryResult<SocialWebhookEventResponse?> latest = await SocialConnectionsClient.GetLastWebhookAsync(connectionId, componentCancellation.Token);
             latestWebhooks[connectionId] = latest.IsSuccess ? latest.Value : null;
         }
+        catch (OperationCanceledException) when (componentCancellation.IsCancellationRequested)
+        {
+            // Component disposal requested cancellation; no user-facing error is needed.
+        }
+        catch (Exception)
+        {
+            replayError = "An unexpected error occurred while replaying the webhook.";
+        }
         finally
         {
             replaying = false;
