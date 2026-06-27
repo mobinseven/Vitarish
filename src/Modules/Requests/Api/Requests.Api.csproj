@@ -9,5 +9,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\Requests.Application.csproj" />
     <ProjectReference Include="..\Contracts\Requests.Contracts.csproj" />
-  <ProjectReference Include="..\..\Base\Modules.Base.csproj" /></ItemGroup>
+  <ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" /></ItemGroup>
 </Project>

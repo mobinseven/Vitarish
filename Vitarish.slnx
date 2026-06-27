@@ -298,7 +298,7 @@
   </Folder>
   <Folder Name="/src/Modules/Common/">
     <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
-    <Project Path="src/Modules/Base/Modules.Base.csproj" />
+    <Project Path="src/Modules/Base/Core/Modules.Base.csproj" />
   </Folder>
   <Folder Name="/tests/Modules/Base/">
     <Project Path="tests/Modules/Base.Interface.Tests/Modules.Base.Interface.Tests.csproj" />

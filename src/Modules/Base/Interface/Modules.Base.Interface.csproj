@@ -19,9 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Client\Modules.Base.Client.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\TenantService.cs" Link="TenantService.cs" />
-    <Compile Include="..\TenantCommonBase.cs" Link="TenantCommonBase.cs" />
+    <ProjectReference Include="..\Core\Modules.Base.csproj" />
   </ItemGroup>
 </Project>

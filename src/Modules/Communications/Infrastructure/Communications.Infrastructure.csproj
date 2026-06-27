@@ -15,7 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     		            <ProjectReference Include="..\..\Parties\Application\Parties.Application.csproj" />
-<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+<ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
 <ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\Users\Application\Users.Application.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />

@@ -10,7 +10,7 @@
     <ProjectReference Include="..\Interface\Financial.Interface.csproj" />
     <ProjectReference Include="..\Infrastructure\Financial.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Financial.Application.csproj" />
-    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
 </Project>
