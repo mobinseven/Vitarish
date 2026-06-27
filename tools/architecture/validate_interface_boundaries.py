@@ -111,7 +111,7 @@ def classify_ref(root:Path,scope:ProjectScope,target:Path,cfg:dict)->tuple[str,s
     return None
 
 def scan_project(root:Path,scope:ProjectScope,cfg:dict)->list[Violation]:
-    text=scope.project.read_text(); v=[]
+    text=scope.project.read_text(encoding='utf-8'); v=[]
     try: xml=ET.fromstring(text)
     except ET.ParseError as e:
         return [Violation(scope.name,'FailFast','ProjectXml',scope.project.relative_to(root),getattr(e,'position',(1,))[0],scope.name,'Project XML could not be parsed.')]
