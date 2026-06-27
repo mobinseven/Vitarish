@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Client\Modules.Base.Client.csproj" />
+    <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\TenantService.cs" Link="TenantService.cs" />
+    <Compile Include="..\TenantCommonBase.cs" Link="TenantCommonBase.cs" />
+  </ItemGroup>
+</Project>

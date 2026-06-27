@@ -8,8 +8,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
-    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
     <ProjectReference Include="..\Client\Communications.Client.csproj" />
     <ProjectReference Include="..\Contracts\Communications.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
-  <ItemGroup><ProjectReference Include="..\Contracts\Intelligence.Contracts.csproj" /><ProjectReference Include="..\..\Base\Modules.Base.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="..\Contracts\Intelligence.Contracts.csproj" /><ProjectReference Include="..\..\Base\Client\Modules.Base.Client.csproj" /></ItemGroup>
 </Project>

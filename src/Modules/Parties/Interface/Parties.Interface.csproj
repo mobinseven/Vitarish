@@ -3,9 +3,11 @@
     <SupportedPlatform Include="browser" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
     <ProjectReference Include="..\Contracts\Parties.Contracts.csproj" />
     <ProjectReference Include="..\Client\Parties.Client.csproj" />
     <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
   </ItemGroup>
 </Project>
