@@ -44,8 +44,7 @@
     <Project Path="src/Modules/Appointments/Interface/Appointments.Interface.csproj" />
     <Project Path="src/Modules/Appointments/Module/Appointments.Module.csproj" />
   </Folder>
-  <Folder Name="/src/Modules/Base/" />
-  <Folder Name="/src/Modules/Base/Interface/">
+  <Folder Name="/src/Modules/Base/">
     <Project Path="src/Modules/Base/Interface/Modules.Base.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Commerce/">
