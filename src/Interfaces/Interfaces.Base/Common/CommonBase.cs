@@ -1,5 +1,5 @@
 using Vitarish.Entities.Contracts;
-using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Interfaces.Base.Abstractions;
 
 namespace Vitarish.Interfaces.Base.Common;
 

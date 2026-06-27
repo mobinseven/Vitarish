@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
-using Vitarish.Users.Application.Commands;
+using Vitarish.Users.Contracts;
 
 public class UserService : IUserService
 {

@@ -14,6 +14,11 @@
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />
-  </ItemGroup>
+      <ProjectReference Include="..\..\Modules\Parties\Contracts\Parties.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Parties\Client\Parties.Client.csproj" />
+    <ProjectReference Include="..\..\Modules\Files\Client\Files.Client.csproj" />
+    <ProjectReference Include="..\..\Modules\Feed\Contracts\Feed.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Requests\Client\Requests.Client.csproj" />
+</ItemGroup>
 
 </Project>

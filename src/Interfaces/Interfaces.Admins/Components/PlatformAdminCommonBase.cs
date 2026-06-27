@@ -1,5 +1,5 @@
 using Vitarish.Interfaces.Base.Common;
-using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Client;
 
 namespace Vitarish.Interfaces.Admins.Components
 {

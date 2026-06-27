@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
-using Vitarish.Parties.Application.Abstractions;
-using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Parties.Client;
+using Vitarish.Parties.Contracts.Tenants;
 
 namespace Vitarish.Interfaces.Aggregator.Components;
 

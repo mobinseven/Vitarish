@@ -12,13 +12,13 @@ permissions:
 
 jobs:
   interface-boundaries:
-    name: Validate ADR-0003 Interface boundaries
+    name: Validate ADR-0003 layer boundaries
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate Interface boundaries
+      - name: Validate ADR-0003 layer boundaries
         run: python3 tools/architecture/validate_interface_boundaries.py
 
       - name: Validate ADR-004 protected module APIs

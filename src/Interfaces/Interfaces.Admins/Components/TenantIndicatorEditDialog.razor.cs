@@ -1,6 +1,4 @@
-using Vitarish.Parties.Domain.Dtos;
-using Vitarish.Parties.Domain.Entities;
-using Vitarish.Parties.Domain.Enums;
+using Vitarish.Parties.Contracts.Tenants;
 
 namespace Vitarish.Interfaces.Admins.Components;
 
