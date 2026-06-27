@@ -170,6 +170,7 @@ skills/
   platform-artifact-placement-steward/
   platform-localization-maintenance/
   platform-frontend-backend-isolation/
+  platform-pr-delivery-loop/
 ```
 
 If the runtime expects native Codex skill discovery, mirror or symlink these folders under:
@@ -182,17 +183,53 @@ If the runtime expects native Codex skill discovery, mirror or symlink these fol
 
 | Situation                                                                 | Use this skill                      | Read                                                  |
 | ------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------- |
+| Single-PR delivery loop, objective → plan → implement → review → feedback → handoff | Platform PR Delivery Loop | `skills/platform-pr-delivery-loop/SKILL.md` |
 | User workflow, persona, design objective, pain points, journey stages     | Platform User Journey Curator       | `skills/platform-user-journey-curator/SKILL.md`       |
 | Roadmap, phases, MVP/short-term/long-term scope, implementation tickets   | Platform Feature Roadmap Curator    | `skills/platform-feature-roadmap-curator/SKILL.md`    |
 | Architecture decision, ADR need, supersession, architecture conflict      | Platform ADR Steward                | `skills/platform-adr-steward/SKILL.md`                |
 | Unit tests, required tests, hot test scenarios, risk-based test planning  | Platform Test Curator               | `skills/platform-test-curator/SKILL.md`               |
 | File placement, layer ownership, module boundary, artifact classification | Platform Artifact Placement Steward | `skills/platform-artifact-placement-steward/SKILL.md` |
-| Localization review, hard-coded UI text, `IStringLocalizer` usage | Platform Localization Maintenance | `.agents/skills/platform-localization-maintenance/SKILL.md` |
-| Frontend/backend isolation, Interface-to-backend dependency, HTTP Client/Contracts/Api/Application boundary | Platform Frontend/Backend Isolation | `.agents/skills/platform-frontend-backend-isolation/SKILL.md` |
+| Localization review, hard-coded UI text, `IStringLocalizer` usage                    | Platform Localization Maintenance  | `skills/platform-localization-maintenance/SKILL.md`  |
+| Frontend/backend isolation, Interface/backend dependency, HTTP/API boundaries          | Platform Frontend/Backend Isolation | `skills/platform-frontend-backend-isolation/SKILL.md` |
+
+### Platform Feature Roadmap Curator Contract
+
+Use `Platform Feature Roadmap Curator` whenever the task involves roadmap creation, roadmap review, MVP/phase sequencing, Now/Next/Later planning, release slicing, or deriving implementation tickets from a roadmap.
+
+Before producing roadmap or task output:
+
+1. Read `skills/platform-feature-roadmap-curator/SKILL.md`.
+2. Classify the owning scope: `App`, `Module`, `Capability`, `Related apps`, and `Related modules`.
+3. Start with intent: why, who benefits, first useful version, deferred scope, long-term direction, dependencies, and risks.
+4. Do not create execution-ready tickets unless the roadmap is explicitly approved, already has `Status: Approved`, or the user requests provisional tickets.
+5. Keep every roadmap/task set in exactly one scoped source-of-truth folder.
+6. Recommend an ADR when roadmap work changes architecture. Reference a journey map when roadmap work affects user workflow.
+
+### Platform PR Delivery Loop Contract
+
+Use `Platform PR Delivery Loop` when a task should be delivered as one focused pull request through objective clarification, planning, implementation, review, feedback triage, repeat decisions, and final handoff.
+
+Before implementation:
+
+1. Read `skills/platform-pr-delivery-loop/SKILL.md`.
+2. State the PR outcome, non-goals, constraints, and one-sentence scope.
+3. Load only the task-specific skills required by the slice.
+4. Define artifacts, responsibilities, dependency direction, state source of truth, command/query split, tests, and out-of-scope items.
+5. Run scope, architecture, CQRS, failure, test, regression, and delivery gates before handoff.
+6. Classify feedback as `Must-fix`, `Should-fix`, `Follow-up`, or `Reject/defer`; do not silently ignore feedback.
+
+Stop for a human decision when scope no longer fits one PR, a required architecture/product decision is missing, or material security, migration, data-loss, validation, or external-dependency risk appears.
 
 ### Default Skill Order
 
 Use only the skills needed for the task.
+
+
+For one focused pull-request delivery:
+
+```txt
+PR Delivery Loop → load only the needed task-specific skills → Implementation → Review Gates → Handoff
+```
 
 For a new user-facing feature:
 
@@ -224,7 +261,7 @@ Before creating or moving production code, answer:
 
 ```txt
 1. Is a journey needed?
-2. Is a roadmap or task derivation needed?
+2. Is a roadmap or task derivation needed? If yes, use `Platform Feature Roadmap Curator`.
 3. Is an ADR needed?
 4. Where should each artifact live?
 5. What unit tests are required?
