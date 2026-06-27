@@ -36,28 +36,27 @@
   </Folder>
   <Folder Name="/src/Modules/" />
   <Folder Name="/src/Modules/Appointments/">
+    <Project Path="src/Modules/Appointments/Api/Appointments.Api.csproj" />
     <Project Path="src/Modules/Appointments/Application/Appointments.Application.csproj" />
+    <Project Path="src/Modules/Appointments/Client/Appointments.Client.csproj" />
+    <Project Path="src/Modules/Appointments/Contracts/Appointments.Contracts.csproj" />
     <Project Path="src/Modules/Appointments/Domain/Appointments.Domain.csproj" />
     <Project Path="src/Modules/Appointments/Infrastructure/Appointments.Infrastructure.csproj" />
     <Project Path="src/Modules/Appointments/Interface/Appointments.Interface.csproj" />
     <Project Path="src/Modules/Appointments/Module/Appointments.Module.csproj" />
   </Folder>
-  <Folder Name="/src/Modules/Appointments/Api/">
-    <Project Path="src/Modules/Appointments/Api/Appointments.Api.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/Appointments/Application/" />
-  <Folder Name="/src/Modules/Appointments/Client/">
-    <Project Path="src/Modules/Appointments/Client/Appointments.Client.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/Appointments/Contracts/">
-    <Project Path="src/Modules/Appointments/Contracts/Appointments.Contracts.csproj" />
-  </Folder>
   <Folder Name="/src/Modules/Base/" />
   <Folder Name="/src/Modules/Commerce/">
-    <Project Path="src/Modules/Commerce/Contracts/Commerce.Contracts.csproj" />
-    <Project Path="src/Modules/Commerce/Client/Commerce.Client.csproj" />
-    <Project Path="src/Modules/Commerce/Api/Commerce.Api.csproj" />
+    <Project Path="src/Modules/Commerce/Api/Commerce.Api.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Modules/Commerce/Application/Commerce.Application.csproj" />
+    <Project Path="src/Modules/Commerce/Client/Commerce.Client.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/Modules/Commerce/Contracts/Commerce.Contracts.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Modules/Commerce/Domain/Commerce.Domain.csproj" />
     <Project Path="src/Modules/Commerce/Infrastructure/Commerce.Infrastructure.csproj" />
     <Project Path="src/Modules/Commerce/Interface/Commerce.Interface.csproj" />
@@ -80,10 +79,16 @@
     <Project Path="src/Modules/Communications/Module/Communications.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Contents/">
-    <Project Path="src/Modules/Contents/Contracts/Contents.Contracts.csproj" />
-    <Project Path="src/Modules/Contents/Client/Contents.Client.csproj" />
-    <Project Path="src/Modules/Contents/Api/Contents.Api.csproj" />
+    <Project Path="src/Modules/Contents/Api/Contents.Api.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Modules/Contents/Application/Contents.Application.csproj" />
+    <Project Path="src/Modules/Contents/Client/Contents.Client.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/Modules/Contents/Contracts/Contents.Contracts.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Modules/Contents/Domain/Contents.Domain.csproj" />
     <Project Path="src/Modules/Contents/Infrastructure/Contents.Infrastructure.csproj" />
     <Project Path="src/Modules/Contents/Interface/Contents.Interface.csproj" />
@@ -121,10 +126,16 @@
     <Project Path="src/Modules/Files/Module/Files.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Financial/">
-    <Project Path="src/Modules/Financial/Contracts/Financial.Contracts.csproj" />
-    <Project Path="src/Modules/Financial/Client/Financial.Client.csproj" />
-    <Project Path="src/Modules/Financial/Api/Financial.Api.csproj" />
+    <Project Path="src/Modules/Financial/Api/Financial.Api.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Modules/Financial/Application/Financial.Application.csproj" />
+    <Project Path="src/Modules/Financial/Client/Financial.Client.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/Modules/Financial/Contracts/Financial.Contracts.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Modules/Financial/Domain/Financial.Domain.csproj" />
     <Project Path="src/Modules/Financial/Infrastructure/Financial.Infrastructure.csproj" />
     <Project Path="src/Modules/Financial/Interface/Financial.Interface.csproj" />
@@ -157,10 +168,16 @@
     <Project Path="src/Modules/Knowledge/Module/Knowledge.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Links/">
-    <Project Path="src/Modules/Links/Contracts/Links.Contracts.csproj" />
-    <Project Path="src/Modules/Links/Client/Links.Client.csproj" />
-    <Project Path="src/Modules/Links/Api/Links.Api.csproj" />
+    <Project Path="src/Modules/Links/Api/Links.Api.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Modules/Links/Application/Links.Application.csproj" />
+    <Project Path="src/Modules/Links/Client/Links.Client.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/Modules/Links/Contracts/Links.Contracts.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Modules/Links/Domain/Links.Domain.csproj" />
     <Project Path="src/Modules/Links/Infrastructure/Links.Infrastructure.csproj" />
     <Project Path="src/Modules/Links/Interface/Links.Interface.csproj" />
@@ -215,7 +232,10 @@
     <Project Path="src/Modules/Requests/Module/Requests.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Sea/">
+    <Project Path="src/Modules/Sea/Api/Sea.Api.csproj" />
     <Project Path="src/Modules/Sea/Application/Sea.Application.csproj" />
+    <Project Path="src/Modules/Sea/Client/Sea.Client.csproj" />
+    <Project Path="src/Modules/Sea/Contracts/Sea.Contracts.csproj" />
     <Project Path="src/Modules/Sea/Domain/Sea.Domain.csproj" />
     <Project Path="src/Modules/Sea/Infrastructure/Sea.Infrastructure.csproj" />
     <Project Path="src/Modules/Sea/Interface/Sea.Interface.csproj" />
@@ -238,10 +258,16 @@
     <Project Path="src/Modules/Search/Module/Search.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Social/">
-    <Project Path="src/Modules/Social/Contracts/Social.Contracts.csproj" />
-    <Project Path="src/Modules/Social/Client/Social.Client.csproj" />
-    <Project Path="src/Modules/Social/Api/Social.Api.csproj" />
+    <Project Path="src/Modules/Social/Api/Social.Api.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Modules/Social/Application/Social.Application.csproj" />
+    <Project Path="src/Modules/Social/Client/Social.Client.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/Modules/Social/Contracts/Social.Contracts.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Modules/Social/Domain/Social.Domain.csproj" />
     <Project Path="src/Modules/Social/Infrastructure/Social.Infrastructure.csproj" />
     <Project Path="src/Modules/Social/Interface/Social.Interface.csproj" />
@@ -254,7 +280,6 @@
     <Project Path="src/Modules/Users/Interface/Users.Interface.csproj" />
     <Project Path="src/Modules/Users/Module/Users.Module.csproj" />
   </Folder>
-
   <Folder Name="/src/Apps/Clinic/">
     <Project Path="src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj" Id="4d5da5d0-ac72-4086-95e9-1f4cbf4a29f2">
       <Build Solution="Debug|x64" Project="false" />
@@ -270,7 +295,6 @@
     </Project>
     <Project Path="src/Apps/Clinic/Interface/Clinic.Interface.csproj" />
   </Folder>
-
   <Folder Name="/src/Modules/Common/">
     <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
     <Project Path="src/Modules/Base/Modules.Base.csproj" />
