@@ -10,6 +10,8 @@ using Vitarish.Requests.Infrastructure;
 using Vitarish.Requests.Infrastructure.Data;
 using Vitarish.Requests.Infrastructure.Services;
 using Vitarish.Entities.Server.Extensions;
+using Vitarish.Modules.Base.BackgroundJobs;
+using Vitarish.Requests.Module.BackgroundJobs;
 
 namespace Vitarish.Requests.Module.DependencyInjection;
 
@@ -39,6 +41,7 @@ public static class IdentityRequestsExtensions
         _ = builder.Services.AddScoped<RequestContext>();
         _ = builder.Services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
         _ = builder.Services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
+        _ = builder.Services.AddScoped<IBackgroundRequestContextWriter, RequestContextBackgroundWriter>();
         _ = builder.Services.AddScoped<IInterceptor, RequestContextInterceptor>();
     }
 }

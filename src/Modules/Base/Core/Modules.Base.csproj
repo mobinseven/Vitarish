@@ -1,13 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 		<PackageReference Include="Hangfire.Core" />
 		<PackageReference Include="MediatR" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\..\Parties\Application\Parties.Application.csproj" />
-		<ProjectReference Include="..\..\Requests\Application\Requests.Application.csproj" />
 	</ItemGroup>
 </Project>
