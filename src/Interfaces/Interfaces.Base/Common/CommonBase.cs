@@ -29,7 +29,7 @@ public class CommonBase : ComponentBase, IDisposable
     protected virtual Task ReloadRequired() => Task.CompletedTask;
 
     protected virtual void RenderNotificationReceived(object? sender, object args) =>
-        _ = InvokeAsync(async () => await HandleRenderNotificationAsync(args).ConfigureAwait(true));
+        _ = InvokeAsync(() => HandleRenderNotificationAsync(args));
 
     private async Task HandleRenderNotificationAsync(object args)
     {
