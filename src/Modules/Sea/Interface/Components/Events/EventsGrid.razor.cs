@@ -40,7 +40,14 @@ public partial class EventsGrid : EventsBase
         EventReadDto? created = createResult?.EntityId is Guid createdId ? await ValueOrNotifyAsync(SeaClient.GetEventAsync(createdId, CancellationToken.None)) : null;
         if (created is not null)
         {
-            EventReadDto? updated = await (await CommandOrNotifyAsync(SeaClient.UpdateEventAsync(new EventWriteDto { Id = created.Id, ProjectId = Project.Id, ProcedureId = Procedure.Id, Title = $"{Localizer["Event"]} {events.Count}", Description = string.Empty }, CancellationToken.None)) ? ValueOrNotifyAsync(SeaClient.GetEventAsync(created.Id, CancellationToken.None)) : Task.FromResult<EventReadDto?>(null));
+    private async Task AddEventAt(Guid? previousEventId)
+    {
+        SeaCommandResult? createResult = await ValueOrNotifyAsync(SeaClient.CreateEventAfterAsync(previousEventId, new EventWriteDto { ProjectId = Project.Id, ProcedureId = Procedure.Id, PreviousEventId = previousEventId }, CancellationToken.None));
+        EventReadDto? created = createResult?.EntityId is Guid createdId ? await ValueOrNotifyAsync(SeaClient.GetEventAsync(createdId, CancellationToken.None)) : null;
+        if (created is not null)
+        {
+            bool updateSuccess = await CommandOrNotifyAsync(SeaClient.UpdateEventAsync(new EventWriteDto { Id = created.Id, ProjectId = Project.Id, ProcedureId = Procedure.Id, Title = $"{Localizer["Event"]} {events.Count}", Description = string.Empty }, CancellationToken.None));
+            EventReadDto? updated = updateSuccess ? await ValueOrNotifyAsync(SeaClient.GetEventAsync(created.Id, CancellationToken.None)) : null;
             if (updated is not null)
             {
                 await EditEvent(updated);
