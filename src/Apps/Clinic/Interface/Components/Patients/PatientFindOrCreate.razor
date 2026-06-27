@@ -50,7 +50,7 @@ else
     [Inject] private ISeaClient ProjectsService { get; set; } = default!;
 
     private bool showCreateForm;
-    private PatientFindOrCreateRequest draft = new();
+    private PatientWriteDto draft = new();
     private int createFormKey;
 
     private async Task SelectPatientAsync(ProjectReadDto patient)
@@ -114,7 +114,7 @@ else
 
     private async Task OnPatientCreatedAsync(Guid patientId)
     {
-        ProjectReadDto created = await ProjectsService.GetAsync(patientId, CancellationToken.None).EnsureValueAsync();
+        ProjectReadDto created = (await ProjectsService.GetProjectAsync(patientId, CancellationToken.None)).Value ?? new ProjectReadDto { Id = patientId, Name = draft.Name ?? string.Empty, Description = draft.Description ?? string.Empty };
         CreateContext.NewPatientDraft = draft;
         await OnPatientCreated.InvokeAsync(created);
     }

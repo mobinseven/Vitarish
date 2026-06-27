@@ -13,9 +13,9 @@ public partial class PatientEditForm
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        if (Patient is not null)
+        if (Project is not null)
         {
-            patient = Project.ToPatientWrite()!;
+            patient = Project.ToPatientWrite();
         }
         else if (InitialProject is PatientWriteDto initialPatient)
         {
@@ -67,12 +67,15 @@ public partial class PatientEditForm
         patient.Name = $"{patient.FirstName} {patient.LastName}".TrimEnd(' ', ',');
         if (Project is null)
         {
-            ProjectReadDto created = await SeaClient.CreateProjectAsync(patient, CancellationToken.None).EnsureValueAsync();
-            await OnCreate.InvokeAsync(created.Id);
+            SeaCommandResult? created = await ValueOrNotifyAsync(SeaClient.CreateProjectAsync(patient, CancellationToken.None));
+            if (created?.EntityId is Guid createdId)
+            {
+                await OnCreate.InvokeAsync(createdId);
+            }
         }
         else
         {
-            _ = await SeaClient.UpdateProjectAsync(patient, CancellationToken.None);
+            _ = await CommandOrNotifyAsync(SeaClient.UpdateProjectAsync(patient, CancellationToken.None));
             await OnUpdate.InvokeAsync(Project.Id);
         }
     }

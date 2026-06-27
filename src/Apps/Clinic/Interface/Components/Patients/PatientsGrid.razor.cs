@@ -57,8 +57,8 @@ public partial class PatientsGrid
 
     private async Task<IReadOnlyList<ProjectReadDto>> QueryEditablePatientsAsync(int skip, int take, CancellationToken cancellationToken)
     {
-        ProjectDescriptorDto descriptor = CreatePatientsDescriptor(skip, take);
-        return await ProjectsService.GetListAsync(descriptor, cancellationToken).GetValueOrDefaultAsync() ?? [];
+        var result = await ClinicClient.ListPatientsAsync(CreatePatientsQuery(skip, take), cancellationToken);
+        return result.Value?.Select(patient => patient.ToProjectRead()).ToList() ?? [];
     }
 
     private async Task<int> CountPatientsAsync(CancellationToken cancellationToken)

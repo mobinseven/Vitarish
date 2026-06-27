@@ -85,7 +85,7 @@
     [Parameter, EditorRequired] public PatientCheckInContext Context { get; set; } = default!;
     [Parameter] public EventCallback OnStartAnother { get; set; }
     [Parameter] public EventCallback<Guid> OnGoToPatient { get; set; }
-    [Inject] private ICommunicationCommandQueue CommunicationCommandQueue { get; set; } = default!;
+    [Inject] private ICommunicationsClient CommunicationsClient { get; set; } = default!;
 
     private string GetNotificationLabel() => Context.NotificationStatus == CheckInNotificationStatus.Sent
         ? Localizer["SmsConfirmationSent"]
@@ -150,9 +150,11 @@
         try
         {
             string body = Localizer["SmsConfirmationBody", Context.SelectedPatient.Name, GetDateTimeLabel()];
-            CommunicationCommandQueue.Enqueue(new SmsCommunicationCommand(phoneNumber, body));
-            Context.NotificationStatus = CheckInNotificationStatus.Sent;
-            Context.NotificationMessage = GetLocalizedText("SmsConfirmationQueued", "SMS confirmation queued.");
+            CommunicationsCommandResult result = await CommunicationsClient.SendSmsAsync(new SendSmsRequest(phoneNumber, body), CancellationToken.None);
+            Context.NotificationStatus = result.IsSuccess ? CheckInNotificationStatus.Sent : CheckInNotificationStatus.Failed;
+            Context.NotificationMessage = result.IsSuccess
+                ? GetLocalizedText("SmsConfirmationQueued", "SMS confirmation queued.")
+                : result.Error?.Message ?? Localizer["SmsConfirmationSendFailed"];
         }
         catch (Exception)
         {
