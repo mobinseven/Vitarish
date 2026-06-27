@@ -73,7 +73,37 @@ public class CommonBase : ComponentBase, IDisposable
             if (args is SearchArgs search)
             {
                 SearchString = search.SearchedValue;
-                await OnSearchedAsync().ConfigureAwait(true);
+    protected virtual void RenderNotificationReceived(object? sender, object args) =>
+        _ = InvokeAsync(async () => await HandleRenderNotificationAsync(args));
+
+    private async Task HandleRenderNotificationAsync(object args)
+    {
+        try
+        {
+            if (args is UiReloadNotification reloadNotification && reloadSubscriptions.Count > 0)
+            {
+                if (MatchesReloadNotification(reloadNotification))
+                {
+                    await ReloadRequired();
+                }
+
+                return;
+            }
+
+            if (args is SearchArgs search)
+            {
+                SearchString = search.SearchedValue;
+                await OnSearchedAsync();
+                return;
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to handle UI render notification.");
+        }
+    }
                 return;
             }
 
