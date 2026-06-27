@@ -1,4 +1,5 @@
 using Vitarish.Interfaces.Accounts.Services;
+using Vitarish.Main.Pages.Common;
 
 namespace Vitarish.Main.Infrastructure.Options;
 
@@ -41,6 +42,8 @@ public static class ApplicationOptionsExtensions
 
         _ = services.AddOptions<FeaturesOptions>()
             .BindConfiguration($"{ApplicationOptions.Section}:Features");
+
+        _ = services.AddScoped<ITenantOnboardingAccess, OptionsTenantOnboardingAccess>();
 
         _ = services.AddOptions<VerificationSmsShieldOptions>()
             .BindConfiguration(VerificationSmsShieldOptions.SectionName)

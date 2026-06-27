@@ -107,6 +107,35 @@ public sealed class InternalModuleApiArchitectureTests
         failures.Should().BeEmpty("internal module clients must share authenticated HTTP behavior and registration");
     }
 
+    [Fact]
+    public void MainPageSharedImportsAndCommonPagesAvoidBackendLayerReferences()
+    {
+        string[] files =
+        [
+            "src/Hosts/Main/Pages/_Imports.razor",
+            "src/Hosts/Main/Pages/GlobalUsings.cs",
+            "src/Hosts/Main/Pages/Common/Home.razor.cs",
+            "src/Hosts/Main/Pages/Common/SetupPage.razor.cs"
+        ];
+
+        string[] forbiddenFragments = [".Application", ".Domain", ".Infrastructure", ".Api"];
+
+        List<string> failures = [];
+        foreach (string relative in files)
+        {
+            string text = File.ReadAllText(Path.Combine(RepositoryRoot, relative));
+            foreach (string fragment in forbiddenFragments)
+            {
+                if (text.Contains(fragment, StringComparison.Ordinal))
+                {
+                    failures.Add($"{relative}: references backend layer fragment {fragment}.");
+                }
+            }
+        }
+
+        failures.Should().BeEmpty("shared page imports and cleaned Common pages must not create ambient backend layer dependencies");
+    }
+
     private static IReadOnlyList<string> FindEndpointRouteBuilderParameterNames(string text) =>
         Regex.Matches(text, @"\bIEndpointRouteBuilder\s+(?<name>[A-Za-z_][A-Za-z0-9_]*)")
             .Select(match => match.Groups["name"].Value)
