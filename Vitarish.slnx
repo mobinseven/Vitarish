@@ -301,7 +301,10 @@
     <Project Path="src/Modules/Social/Module/Social.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Users/">
+    <Project Path="src/Modules/Users/Api/Users.Api.csproj" />
     <Project Path="src/Modules/Users/Application/Users.Application.csproj" />
+    <Project Path="src/Modules/Users/Client/Users.Client.csproj" />
+    <Project Path="src/Modules/Users/Contracts/Users.Contracts.csproj" />
     <Project Path="src/Modules/Users/Domain/Users.Domain.csproj" />
     <Project Path="src/Modules/Users/Infrastructure/Users.Infrastructure.csproj" />
     <Project Path="src/Modules/Users/Interface/Users.Interface.csproj" />

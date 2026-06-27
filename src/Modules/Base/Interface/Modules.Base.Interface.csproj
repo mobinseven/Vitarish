@@ -18,6 +18,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Requests\Client\Requests.Client.csproj" />
     <ProjectReference Include="..\Client\Modules.Base.Client.csproj" />
     <ProjectReference Include="..\Core\Modules.Base.Core.csproj" />
   </ItemGroup>

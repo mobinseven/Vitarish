@@ -102,7 +102,7 @@
     {
         if (SearchScope == UserSearchScope.TenantUsers)
         {
-            IEnumerable<UserSummaryResponse> tenantUsers = GetUsers().Select(u => new UserSummaryResponse(u.Id, u.UserName, u.FirstName, u.LastName, u.Email, u.PhoneNumber, u.IdentificationCode, u.DateOfBirth, u.BirthCountryCode, u.BirthCity, u.FullName));
+            IEnumerable<UserSummaryResponse> tenantUsers = GetUsers();
             if (string.IsNullOrWhiteSpace(query))
             {
                 return tenantUsers.Take(MaxResults);

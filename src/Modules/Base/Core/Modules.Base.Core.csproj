@@ -9,5 +9,6 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Requests\Application\Requests.Application.csproj" />
+	  <ProjectReference Include="..\..\Users\Contracts\Users.Contracts.csproj" />
 	</ItemGroup>
 </Project>

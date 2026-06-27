@@ -1,12 +1,13 @@
 using Microsoft.Extensions.Logging;
 using Vitarish.Modules.Base.Interface.Models;
+using Vitarish.Requests.Client;
 
 namespace Vitarish.Modules.Base.Interface.Common;
 
 public class CommonBase : ComponentBase, IDisposable
 {
     [CascadingParameter] protected string? SearchString { get; set; }
-
+    [Inject] protected IRequestContextAccessor RequestContext { get; set; } = default!;
     [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
     [Inject] protected IDialogService DialogService { get; set; } = default!;

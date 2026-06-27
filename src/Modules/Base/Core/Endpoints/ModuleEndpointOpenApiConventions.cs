@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Vitarish.Modules.Base.Endpoints;
 
 namespace Vitarish.Modules.Base.Core.Endpoints;
 
@@ -34,55 +32,55 @@ public static class ModuleEndpointOpenApiConventions
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(convention.OperationId);
 
-        builder.WithName(convention.OperationId);
-        builder.WithOpenApi(operation =>
+        _ = builder.WithName(convention.OperationId);
+        _ = builder.WithOpenApi(operation =>
         {
             operation.OperationId = convention.OperationId;
             return operation;
         });
-        builder.WithMetadata(convention);
+        _ = builder.WithMetadata(convention);
 
         if (convention.SuccessType is null)
         {
-            builder.Produces(convention.SuccessStatusCode, contentType: convention.ContentType);
+            _ = builder.Produces(convention.SuccessStatusCode, contentType: convention.ContentType);
         }
         else
         {
-            builder.Produces(convention.SuccessStatusCode, convention.SuccessType, convention.ContentType);
+            _ = builder.Produces(convention.SuccessStatusCode, convention.SuccessType, convention.ContentType);
         }
 
         if (convention.IncludeStandardErrors)
         {
             if (convention.Profile is not ModuleEndpointProfile.AnonymousWebhook)
             {
-                builder.Produces(StatusCodes.Status401Unauthorized);
-                builder.Produces(StatusCodes.Status403Forbidden);
-                builder.WithMetadata(new ProtectedModuleEndpointMetadata(DefaultBearerScheme));
+                _ = builder.Produces(StatusCodes.Status401Unauthorized);
+                _ = builder.Produces(StatusCodes.Status403Forbidden);
+                _ = builder.WithMetadata(new ProtectedModuleEndpointMetadata(DefaultBearerScheme));
             }
 
-            builder.ProducesProblem(StatusCodes.Status400BadRequest);
-            builder.ProducesProblem(StatusCodes.Status404NotFound);
-            builder.ProducesProblem(StatusCodes.Status409Conflict);
+            _ = builder.ProducesProblem(StatusCodes.Status400BadRequest);
+            _ = builder.ProducesProblem(StatusCodes.Status404NotFound);
+            _ = builder.ProducesProblem(StatusCodes.Status409Conflict);
         }
 
         switch (convention.Profile)
         {
             case ModuleEndpointProfile.AnonymousWebhook:
                 ArgumentException.ThrowIfNullOrWhiteSpace(convention.AnonymousJustification);
-                builder.WithMetadata(new AnonymousModuleEndpointMetadata(convention.AnonymousJustification));
+                _ = builder.WithMetadata(new AnonymousModuleEndpointMetadata(convention.AnonymousJustification));
                 break;
             case ModuleEndpointProfile.MultipartUpload:
-                builder.Accepts<IFormFile>(MultipartFormData);
-                builder.WithMetadata(new FileUploadEndpointMetadata("content"));
+                _ = builder.Accepts<IFormFile>(MultipartFormData);
+                _ = builder.WithMetadata(new FileUploadEndpointMetadata("content"));
                 break;
             case ModuleEndpointProfile.BinaryDownload:
-                builder.WithMetadata(new BinaryDownloadEndpointMetadata(convention.ContentType ?? BinaryStream));
+                _ = builder.WithMetadata(new BinaryDownloadEndpointMetadata(convention.ContentType ?? BinaryStream));
                 break;
             case ModuleEndpointProfile.Streaming:
-                builder.WithMetadata(new StreamingEndpointMetadata(convention.ContentType ?? JsonStream));
+                _ = builder.WithMetadata(new StreamingEndpointMetadata(convention.ContentType ?? JsonStream));
                 break;
             case ModuleEndpointProfile.LongRunningCommand:
-                builder.WithMetadata(new LongRunningCommandEndpointMetadata());
+                _ = builder.WithMetadata(new LongRunningCommandEndpointMetadata());
                 break;
         }
 
@@ -92,8 +90,8 @@ public static class ModuleEndpointOpenApiConventions
     public static IEndpointConventionBuilder ExcludeFromOpenApiWithJustification(this IEndpointConventionBuilder builder, string justification)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(justification);
-        builder.WithMetadata(new OpenApiExclusionJustificationMetadata(justification));
-        builder.ExcludeFromDescription();
+        _ = builder.WithMetadata(new OpenApiExclusionJustificationMetadata(justification));
+        _ = builder.ExcludeFromDescription();
         return builder;
     }
 }

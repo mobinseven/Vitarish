@@ -23,7 +23,7 @@ public partial class ProcedureCreateDialog : ProceduresBase
         }
     }
 
-    [Inject] private IAttachmentsService AttachmentsService { get; set; } = default!;
+    [Inject] private IAttachmentsClient AttachmentsService { get; set; } = default!;
     [Inject] private IEventRolesService EventRolesService { get; set; } = default!;
 
     private async Task SaveAsync()

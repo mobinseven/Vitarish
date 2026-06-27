@@ -1,18 +1,13 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Vitarish.Users.Contracts.Responses;
 
 namespace Vitarish.Modules.Base.Core;
-
-public sealed record TenantUserSummary(string Id, string? FullName)
-{
-    public string? Email { get; init; }
-    public string? PhoneNumber { get; init; }
-}
 
 public sealed record TenantPresentationState(
     string? TenantId,
     bool IsTenantOwner,
-    IReadOnlyList<TenantUserSummary> Users,
+    IReadOnlyList<UserSummaryResponse> Users,
     IReadOnlyDictionary<string, object?> Metadata);
 
 public interface ITenantPresentationContext
@@ -24,10 +19,10 @@ public class TenantService : ITenantService, ITenantPresentationContext
 {
     private Dictionary<string, object?> metadata = [];
 
-    public TenantPresentationState State => new(TenantId, IsTenantOwner, Users as IReadOnlyList<TenantUserSummary> ?? Users.ToArray(), metadata);
+    public TenantPresentationState State => new(TenantId, IsTenantOwner, Users as IReadOnlyList<UserSummaryResponse> ?? Users.ToArray(), metadata);
     public string? TenantId { get; set; }
     public bool IsTenantOwner { get; set; }
-    public IEnumerable<TenantUserSummary> Users { get; set; } = [];
+    public IEnumerable<UserSummaryResponse> Users { get; set; } = [];
     public IDictionary<string, object?> Metadata
     {
         get => metadata;
@@ -65,7 +60,7 @@ public interface ITenantService
 {
     string? PluginIdentifier { get; set; }
     IDictionary<string, object?> Metadata { get; set; }
-    IEnumerable<TenantUserSummary> Users { get; set; }
+    IEnumerable<UserSummaryResponse> Users { get; set; }
     string? TenantId { get; set; }
     bool IsTenantOwner { get; set; }
 
