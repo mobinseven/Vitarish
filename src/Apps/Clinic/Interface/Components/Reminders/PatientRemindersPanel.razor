@@ -22,7 +22,7 @@
 @code {
     [Parameter, EditorRequired] public Guid PatientId { get; set; }
 
-    [Inject] private IRemindersService RemindersService { get; set; } = default!;
+    [Inject] private ICommunicationsClient CommunicationsClient { get; set; } = default!;
 
     private IReadOnlyList<ReminderReadDto>? reminders;
 
@@ -33,7 +33,7 @@
 
     private async Task LoadAsync()
     {
-        reminders = await RemindersService.GetBySourceAsync(PatientId, CancellationToken.None);
+        reminders = (await CommunicationsClient.GetRemindersBySourceAsync(PatientId, CancellationToken.None)).Value ?? [];
         await InvokeAsync(StateHasChanged);
     }
 

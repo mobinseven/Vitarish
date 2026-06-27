@@ -40,7 +40,7 @@ else if(Context.IsIdentificationLookupFailed)
     [Parameter] public EventCallback<ProjectReadDto> OnPatientSelected { get; set; }
     [Parameter] public RenderFragment<string>? NotFoundContent { get; set; }
 
-    [Inject] private IAccessControlledProjectsService ProjectsService { get; set; } = default!;
+    [Inject] private IClinicClient ClinicClient { get; set; } = default!;
 
     private CancellationTokenSource? lookupCts;
     private int lookupVersion;
@@ -102,17 +102,12 @@ else if(Context.IsIdentificationLookupFailed)
 
     private async Task<ProjectReadDto?> FindExactIdentificationCodeMatchAsync(string code, CancellationToken ct)
     {
-        ProjectDescriptorDto descriptor = new()
+        ClinicResult<PatientViewDto> result = await ClinicClient.LookupPatientByIdentificationCodeAsync(new PatientIdentificationLookupRequest(code), ct);
+        if (!result.Succeeded)
         {
-            IdentificationCode = code,
-            Template = false,
-            Skip = 0,
-            Take = 1
-        };
-
-        IReadOnlyList<ProjectReadDto> results = await ProjectsService
-            .GetListAsync(descriptor, ct)
-            .GetValueOrDefaultAsync() ?? [];
+            throw new InvalidOperationException(result.Error?.Message ?? "Failed to lookup patient.");
+        }
+        IReadOnlyList<ProjectReadDto> results = result.Value is null ? [] : [result.Value.ToProjectRead()];
 
         return results.FirstOrDefault(project => PatientSearchMatcher.IsExactIdentificationCode(project, code));
     }

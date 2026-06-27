@@ -13,3 +13,8 @@ global using Vitarish.Appointments.Contracts.Dto;
 global using Vitarish.Appointments.Contracts.Models;
 global using Vitarish.Communications.Client;
 global using Vitarish.Communications.Contracts.Reminders;
+global using MudBlazor;
+global using Vitarish.Clinic.Contracts.Results;
+global using Vitarish.Communications.Contracts.Requests;
+global using Vitarish.Communications.Contracts.Results;
+global using Vitarish.Sea.Contracts.Results;

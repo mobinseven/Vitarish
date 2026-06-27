@@ -28,7 +28,7 @@ else
     [Parameter, EditorRequired] public PatientAdvancedSearchContext Context { get; set; } = default!;
     [Parameter] public EventCallback<ProjectReadDto> OnPatientSelected { get; set; }
 
-    [Inject] private IAccessControlledProjectsService ProjectsService { get; set; } = default!;
+    [Inject] private IClinicClient ClinicClient { get; set; } = default!;
 
     private CancellationTokenSource? searchCts;
     private int searchVersion;
@@ -93,20 +93,20 @@ else
 
     private async Task<IReadOnlyList<ProjectReadDto>> LoadCandidatesAsync(PatientAdvancedSearchCriteria criteria, CancellationToken ct)
     {
-        ProjectDescriptorDto descriptor = new()
-        {
-            IdentificationCode = criteria.IdentificationCode,
-            Search = criteria.IdentificationCode is null ? criteria.Name : null,
-            Template = false,
-            Skip = 0,
-            Take = criteria.NeedsLargeClientSideSearch
+        PatientSearchRequest request = new(
+            Search: criteria.IdentificationCode is null ? criteria.Name : criteria.IdentificationCode,
+            Skip: 0,
+            Take: criteria.NeedsLargeClientSideSearch
                 ? PatientSearchDefaults.MaxAdvancedSearchCandidates
-                : PatientSearchDefaults.MaxSearchResults
-        };
+                : PatientSearchDefaults.MaxSearchResults,
+            Template: false);
 
-        return await ProjectsService
-            .GetListAsync(descriptor, ct)
-            .GetValueOrDefaultAsync() ?? [];
+        ClinicResult<IReadOnlyList<PatientViewDto>> result = await ClinicClient.SearchPatientsAsync(request, ct);
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException(result.Error?.Message ?? "Failed to search patients.");
+        }
+        return result.Value?.Select(patient => patient.ToProjectRead()).ToList() ?? [];
     }
 
     private bool IsStale(int version, CancellationToken ct)
