@@ -33,7 +33,7 @@ def rel(root:Path,p:Path)->str:
 def line_no(text:str,offset:int)->int: return text.count('\n',0,max(offset,0))+1
 
 def load_config(root:Path,path:Path)->dict:
-    cfg=json.loads(path.read_text())
+    cfg=json.loads(path.read_text(encoding='utf-8'))
     if cfg.get('defaultMode')!='FailFast': raise ValueError('defaultMode must be FailFast')
     for name,settings in cfg.get('modules',{}).items():
         if settings.get('mode',cfg['defaultMode'])!='FailFast': raise ValueError(f'module {name} must be FailFast')
