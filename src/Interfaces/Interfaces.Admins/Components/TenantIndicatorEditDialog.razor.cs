@@ -1,6 +1,4 @@
 using Vitarish.Parties.Contracts.Tenants;
-using Vitarish.Parties.Contracts.Tenants;
-using Vitarish.Parties.Contracts.Tenants;
 
 namespace Vitarish.Interfaces.Admins.Components;
 
