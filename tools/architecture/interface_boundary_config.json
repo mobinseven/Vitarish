@@ -7,12 +7,8 @@
             "reason": "Shared UI primitives and presentation services only."
         },
         {
-            "project": "src/Libraries/Entities/Entities.Contracts/Entities.Contracts.csproj",
-            "reason": "Shared serialization DTO base types for contracts."
-        },
-        {
-            "project": "src/Modules/Base/Modules.Base.csproj",
-            "reason": "Shared frontend-safe HTTP client and endpoint base abstractions."
+            "project": "src/Modules/Base/Client/Modules.Base.Client.csproj",
+            "reason": "Shared frontend-safe HTTP client registration and transport base."
         }
     ],
     "crossModuleFrontendSafeAllowlist": [
@@ -129,6 +125,10 @@
             "temporaryExceptions": []
         },
         "Users": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Base": {
             "mode": "FailFast",
             "temporaryExceptions": []
         }

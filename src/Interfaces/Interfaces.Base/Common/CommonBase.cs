@@ -1,5 +1,5 @@
-using Vitarish.Entities.Contracts;
-using Vitarish.Interfaces.Base.Abstractions;
+using Microsoft.Extensions.Logging;
+using Vitarish.Interfaces.Base.Models;
 
 namespace Vitarish.Interfaces.Base.Common;
 
@@ -7,7 +7,6 @@ public class CommonBase : ComponentBase, IDisposable
 {
     [CascadingParameter] protected string? SearchString { get; set; }
 
-    [Inject] protected IRequestContext RequestContext { get; set; } = default!;
     [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
     [Inject] protected IDialogService DialogService { get; set; } = default!;
@@ -15,42 +14,118 @@ public class CommonBase : ComponentBase, IDisposable
     [Inject] private IRenderNotifier RenderNotifier { get; set; } = default!;
     [Inject] protected IThemeService ThemeService { get; set; } = default!;
     [Inject] protected INavService NavService { get; set; } = default!;
+    [Inject] private ILogger<CommonBase> Logger { get; set; } = default!;
     [CascadingParameter] public Breakpoint? PageBreakpoint { get; set; }
 
-    private readonly IList<Type> registeredTypes = [];
-    private readonly IList<string> registeredIds = [];
-    protected void RenderForType<T>() => registeredTypes.Add(typeof(T));
+    private readonly IList<UiReloadSubscription> reloadSubscriptions = [];
+
+    protected void RenderForType<T>() => RenderForSubject(typeof(T).Name);
+    protected void RenderForSubject(string? subject) => reloadSubscriptions.Add(new UiReloadSubscription(subject, null));
+    protected void RenderForSubjectId(string? subjectId) => reloadSubscriptions.Add(new UiReloadSubscription(null, subjectId));
+
     protected virtual Task OnSearchedAsync() => Task.CompletedTask;
     protected override void OnInitialized() => RenderNotifier.RenderRequired += RenderNotificationReceived;
     protected override Task OnInitializedAsync() => ReloadRequired();
     protected virtual Task ReloadRequired() => Task.CompletedTask;
 
-    protected virtual async void RenderNotificationReceived(object? sender, object args)
-    {
-        if (args is EntityNotificationArgs entityNotification && (registeredTypes.Count > 0 || registeredIds.Count > 0))
-        {
-            bool typeAndTenant = registeredTypes.Any(t => t.Name.StartsWith(entityNotification.EntityName) && entityNotification.CorrelationId == RequestContext.TenantId);
-            bool entityId = registeredIds.Any(id => entityNotification.Id == id);
+    protected virtual void RenderNotificationReceived(object? sender, object args) =>
+        _ = InvokeAsync(() => HandleRenderNotificationAsync(args));
 
-            if (typeAndTenant || entityId)
+    private async Task HandleRenderNotificationAsync(object args)
+    {
+        try
+        {
+            if (args is UiReloadNotification reloadNotification && reloadSubscriptions.Count > 0)
             {
-                await InvokeAsync(ReloadRequired);
+                if (MatchesReloadNotification(reloadNotification))
+                {
+    protected virtual void RenderNotificationReceived(object? sender, object args) =>
+        _ = InvokeAsync(async () => await HandleRenderNotificationAsync(args));
+
+    private async Task HandleRenderNotificationAsync(object args)
+    {
+        try
+        {
+            if (args is UiReloadNotification reloadNotification && reloadSubscriptions.Count > 0)
+            {
+                if (MatchesReloadNotification(reloadNotification))
+                {
+                    await ReloadRequired();
+                }
+
+                return;
             }
+
+            if (args is SearchArgs search)
+            {
+                SearchString = search.SearchedValue;
+                await OnSearchedAsync();
+                return;
+            }
+
+            StateHasChanged();
         }
-        else if (args is SearchArgs search)
+                }
+
+                return;
+            }
+
+            if (args is SearchArgs search)
+            {
+                SearchString = search.SearchedValue;
+    protected virtual void RenderNotificationReceived(object? sender, object args) =>
+        _ = InvokeAsync(async () => await HandleRenderNotificationAsync(args));
+
+    private async Task HandleRenderNotificationAsync(object args)
+    {
+        try
         {
-            SearchString = search.SearchedValue;
-            await OnSearchedAsync();
+            if (args is UiReloadNotification reloadNotification && reloadSubscriptions.Count > 0)
+            {
+                if (MatchesReloadNotification(reloadNotification))
+                {
+                    await ReloadRequired();
+                }
+
+                return;
+            }
+
+            if (args is SearchArgs search)
+            {
+                SearchString = search.SearchedValue;
+                await OnSearchedAsync();
+                return;
+            }
+
+            StateHasChanged();
         }
-        else
+        catch (Exception ex)
         {
-            await InvokeAsync(StateHasChanged);
+            Logger.LogError(ex, "Failed to handle UI render notification.");
         }
     }
+                return;
+            }
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to handle UI render notification.");
+        }
+    }
+
+    private bool MatchesReloadNotification(UiReloadNotification notification) =>
+        reloadSubscriptions.Any(subscription =>
+            MatchesOptional(subscription.Subject, notification.Subject) &&
+            MatchesOptional(subscription.SubjectId, notification.SubjectId));
+
+    private static bool MatchesOptional(string? expected, string? actual) =>
+        string.IsNullOrWhiteSpace(expected) || string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase);
+
     void IDisposable.Dispose()
     {
         RenderNotifier.RenderRequired -= RenderNotificationReceived;
         GC.SuppressFinalize(this);
     }
-
 }

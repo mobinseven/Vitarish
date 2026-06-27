@@ -6,4 +6,7 @@
     <ProjectReference Include="..\Contracts\Platform.Contracts.csproj" />
     <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
+  </ItemGroup>
 </Project>

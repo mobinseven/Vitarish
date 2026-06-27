@@ -1,9 +1,9 @@
 public static partial class IdentityDefinitions
 {
-    public const string UserIdClaim = "sub";
-    public const string ClientIdClaim = "client";
-    public const string TenantIdClaim = "tenant";
-    public const string OwnerIdClaim = "owner";
+    public const string UserIdClaim = Vitarish.Requests.Contracts.RequestContextClaimTypes.UserId;
+    public const string ClientIdClaim = Vitarish.Requests.Contracts.RequestContextClaimTypes.ClientId;
+    public const string TenantIdClaim = Vitarish.Requests.Contracts.RequestContextClaimTypes.TenantId;
+    public const string OwnerIdClaim = Vitarish.Requests.Contracts.RequestContextClaimTypes.OwnerId;
     public const string PersonalScope = "personal";
     public const string PartyScope = "party";
     public const string RolesScope = "role";

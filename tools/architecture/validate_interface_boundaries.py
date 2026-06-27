@@ -268,8 +268,9 @@ def classify_project_reference(
                     scope.module,
                     relative_target,
                 )
+                global_interface_client = scope.layer == "GlobalInterface"
 
-                if not same_module_client and not explicitly_allowed:
+                if not same_module_client and not explicitly_allowed and not global_interface_client:
                     return (
                         f"{target_module}.Client",
                         "Interface projects may only reference same-module Client projects or explicitly allowed cross-module Client projects.",

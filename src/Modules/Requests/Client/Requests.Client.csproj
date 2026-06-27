@@ -4,6 +4,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Contracts\Requests.Contracts.csproj" />
-  <ProjectReference Include="..\..\Base\Modules.Base.csproj" /></ItemGroup>
+  <ProjectReference Include="..\..\Base\Client\Modules.Base.Client.csproj" /></ItemGroup>
 </Project>

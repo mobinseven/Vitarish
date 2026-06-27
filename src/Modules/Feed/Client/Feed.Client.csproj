@@ -5,5 +5,5 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Feed.Contracts.csproj" />
-  <ProjectReference Include="..\..\Base\Modules.Base.csproj" /></ItemGroup>
+  <ProjectReference Include="..\..\Base\Client\Modules.Base.Client.csproj" /></ItemGroup>
 </Project>

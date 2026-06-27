@@ -1,7 +1,4 @@
-@using Microsoft.AspNetCore.Http
-@inject IHttpContextAccessor HttpContextAccessor
-
-@if(!string.IsNullOrEmpty(Status))
+@if (!string.IsNullOrEmpty(Status))
 {
     <Stack>
         <StackField Label="@Status" Color="Color.Warning" />
@@ -9,12 +6,5 @@
 }
 
 @code {
-    private string? Status;
-    [Parameter, EditorRequired] public string CookieName { get; set; }
-    protected override void OnInitialized()
-    {
-        Status = HttpContextAccessor.HttpContext?
-            .Request
-            .Cookies[CookieName];
-    }
+    [Parameter] public string? Status { get; set; }
 }

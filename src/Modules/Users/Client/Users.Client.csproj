@@ -5,6 +5,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Users.Contracts.csproj" />
-    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Client\Modules.Base.Client.csproj" />
   </ItemGroup>
 </Project>

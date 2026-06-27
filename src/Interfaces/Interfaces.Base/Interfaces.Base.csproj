@@ -6,11 +6,8 @@
 		<PackageReference Include="Injectio" />
 		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
 		<PackageReference Include="MudBlazor" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+		<PackageReference Include="Microsoft.Extensions.Http" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" />
 	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
-	    <ProjectReference Include="..\..\Modules\Parties\Contracts\Parties.Contracts.csproj" />
-    <ProjectReference Include="..\..\Modules\Requests\Contracts\Requests.Contracts.csproj" />
-    <ProjectReference Include="..\..\Modules\Users\Contracts\Users.Contracts.csproj" />
-</ItemGroup>
 </Project>

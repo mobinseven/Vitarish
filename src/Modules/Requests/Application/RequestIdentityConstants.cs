@@ -1,3 +1,5 @@
+using Vitarish.Requests.Contracts;
+
 namespace Vitarish.Requests.Application;
 
 /// <summary>
@@ -13,12 +15,12 @@ public static class RequestIdentityConstants
     /// <summary>
     /// The claim type for tenant identifier.
     /// </summary>
-    public const string TenantIdClaim = IdentityDefinitions.TenantIdClaim;
+    public const string TenantIdClaim = RequestContextClaimTypes.TenantId;
 
     /// <summary>
     /// The claim type for owner identifier.
     /// </summary>
-    public const string OwnerIdClaim = IdentityDefinitions.OwnerIdClaim;
+    public const string OwnerIdClaim = RequestContextClaimTypes.OwnerId;
 
     /// <summary>
     /// The HTTP header name for request identifier.

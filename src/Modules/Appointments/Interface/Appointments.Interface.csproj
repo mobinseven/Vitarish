@@ -16,4 +16,7 @@
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
 	</ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
+  </ItemGroup>
 </Project>
