@@ -1,21 +1,19 @@
 using Vitarish.Parties.Client;
 using Vitarish.Parties.Contracts.Tenants;
 
-namespace Vitarish.Interfaces.Admins.Components;
+namespace Vitarish.Modules.Aggregator.Interface.Components.Admins;
 
 public partial class UserRoleAssignmentDialog
 {
     private readonly List<TenantRoleOption> tenantRoles = [];
     private bool isLoading;
-    private readonly TenantRoleOption? selectedRole;
-
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter] public string UserName { get; set; } = string.Empty;
     [Parameter] public List<string> AvailableRoles { get; set; } = [];
     [Parameter] public List<string> AssignedRoles { get; set; } = [];
 
-    [Inject] private IPartiesService PartiesService { get; set; } = default!;
+    
     [Inject] private new IStringLocalizer Localizer { get; set; } = default!;
 
     private List<string> assignedRoles = [];
@@ -34,11 +32,18 @@ public partial class UserRoleAssignmentDialog
 
         try
         {
-            IEnumerable<TenantReadDto> tenants = await PartiesService.GetTenantsAsync();
+            var tenantsResult = await PartiesClient.GetTenantsAsync();
+            if (!tenantsResult.IsSuccess || tenantsResult.Value is null)
+            {
+                Snackbar.Add(Localizer["Error"], Severity.Error);
+                return;
+            }
+
+            IEnumerable<TenantReadDto> tenants = tenantsResult.Value;
             Dictionary<Guid, TenantReadDto> tenantDict = tenants.ToDictionary(t => t.Id);
 
             List<Guid> ownerIds = [.. tenants.Select(t => t.OwnerId).Distinct()];
-            Dictionary<Guid, Task<OwnerReadDto?>> ownerTasks = ownerIds.ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
+            Dictionary<Guid, Task<OwnerReadDto?>> ownerTasks = ownerIds.ToDictionary(id => id, id => GetOwnerOrNullAsync(id));
             Dictionary<Guid, OwnerReadDto?> owners = (await Task.WhenAll(
                 ownerTasks.Select(async kvp => new { kvp.Key, Value = await kvp.Value })
             )).ToDictionary(x => x.Key, x => x.Value);
@@ -96,4 +101,10 @@ public partial class UserRoleAssignmentDialog
     {
         public string DisplayName => $"{RoleName} ({TenantName})";
     }
+    private async Task<OwnerReadDto?> GetOwnerOrNullAsync(Guid ownerId)
+    {
+        var ownerResult = await PartiesClient.GetOwnerAsync(ownerId);
+        return ownerResult.IsSuccess ? ownerResult.Value : null;
+    }
+
 }

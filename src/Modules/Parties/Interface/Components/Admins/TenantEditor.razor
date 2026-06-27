@@ -1,3 +1,5 @@
+@namespace Vitarish.Parties.Interface.Components.Admins
+@inherits PartiesAdminComponentBase
 @using Vitarish.Parties.Contracts.Tenants
 <Stack>
 
@@ -39,7 +41,8 @@
             _ = Snackbar.Add(Localizer["App"], Severity.Error);
             return;
         }
-        TenantReadDto? updated = await PartiesService.UpdateTenantAsync(write);
+        var updatedResult = await PartiesClient.UpdateTenantAsync(write);
+        TenantReadDto? updated = updatedResult.IsSuccess ? updatedResult.Value : null;
         if(updated is null)
         {
             Snackbar.Add(Localizer["Error"], Severity.Error);

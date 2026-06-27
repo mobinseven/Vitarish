@@ -1,4 +1,3 @@
-using Vitarish.Interfaces.Admins.Components;
 using Vitarish.Parties.Client;
 using Vitarish.Parties.Contracts.Results;
 using Vitarish.Parties.Contracts.Tenants;
@@ -6,7 +5,7 @@ using Vitarish.Parties.Contracts.Tenants;
 
 namespace Vitarish.Main.Pages.Platform;
 
-public partial class PlatformAdminTenantPage : PlatformAdminCommonBase
+public partial class PlatformAdminTenantPage : PlatformAdminPageBase
 {
     [Parameter] public Guid? TenantId { get; set; }
     [Parameter] public Guid? OwnerId { get; set; }

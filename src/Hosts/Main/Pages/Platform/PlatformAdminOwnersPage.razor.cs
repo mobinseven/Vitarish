@@ -1,11 +1,10 @@
-using Vitarish.Interfaces.Admins.Components;
 using Vitarish.Parties.Client;
 using Vitarish.Parties.Contracts.Results;
 using Vitarish.Parties.Contracts.Tenants;
 
 namespace Vitarish.Main.Pages.Platform;
 
-public partial class PlatformAdminOwnersPage : PlatformAdminCommonBase
+public partial class PlatformAdminOwnersPage : PlatformAdminPageBase
 {
     private List<OwnerReadDto> Owners { get; set; } = [];
 
@@ -15,7 +14,7 @@ public partial class PlatformAdminOwnersPage : PlatformAdminCommonBase
         Owners = result.IsSuccess && result.Value is not null ? [.. result.Value] : [];
     }
 
-    private async void Add()
+    private async Task Add()
     {
         PartiesResult<OwnerReadDto> addedResult = await PartiesClient.CreateOwnerAsync(new OwnerWriteDto { Name = Localizer["NewItem", Localizer["Owner"]] });
         if (!addedResult.IsSuccess || addedResult.Value is null)

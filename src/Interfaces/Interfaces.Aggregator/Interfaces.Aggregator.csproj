@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Interfaces.Accounts\Interfaces.Accounts.csproj" />
-    <ProjectReference Include="..\Interfaces.Admins\Interfaces.Admins.csproj" />
   </ItemGroup>
 
 

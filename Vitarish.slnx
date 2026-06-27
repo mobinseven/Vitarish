@@ -43,7 +43,6 @@
   </Folder>
   <Folder Name="/src/Interfaces/">
     <Project Path="src/Interfaces/Interfaces.Accounts/Interfaces.Accounts.csproj" />
-    <Project Path="src/Interfaces/Interfaces.Admins/Interfaces.Admins.csproj" />
   </Folder>
   <Folder Name="/src/Libraries/" />
   <Folder Name="/src/Libraries/Audit/">

@@ -1,6 +1,6 @@
 using Vitarish.Parties.Contracts.Tenants;
 
-namespace Vitarish.Interfaces.Admins.Components;
+namespace Vitarish.Parties.Interface.Components.Admins;
 
 public partial class TenantIndicatorsEditor
 {
@@ -18,8 +18,16 @@ public partial class TenantIndicatorsEditor
     protected override async Task ReloadRequired()
     {
         Indicators.Clear();
-        IEnumerable<TenantIndicatorReadDto> indicators = await PartiesService.GetTenantIndicatorsByTenantAsync(Tenant.Id);
-        Indicators = [.. indicators];
+        var indicatorsResult = await PartiesClient.GetTenantIndicatorsByTenantAsync(Tenant.Id);
+        if (!indicatorsResult.IsSuccess || indicatorsResult.Value is null)
+        {
+            Snackbar.Add(Localizer["Error"], Severity.Error);
+            Indicators = [];
+            StateHasChanged();
+            return;
+        }
+
+        Indicators = [.. indicatorsResult.Value];
         StateHasChanged();
     }
 

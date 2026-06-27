@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -9,6 +13,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\Requests\Interface\Requests.Interface.csproj" Condition="'$(EnableRequestsModule)' == 'true'" />
 		<ProjectReference Include="..\..\Users\Interface\Users.Interface.csproj" Condition="'$(EnableUsersModule)' == 'true'" />
+		<ProjectReference Include="..\..\Users\Domain\Users.Domain.csproj" Condition="'$(EnableUsersModule)' == 'true'" />
 		<ProjectReference Include="..\..\Parties\Interface\Parties.Interface.csproj" Condition="'$(EnablePartiesModule)' == 'true'" />
 		<ProjectReference Include="..\..\Platform\Interface\Platform.Interface.csproj" Condition="'$(EnablePlatformModule)' == 'true'" />
 		<ProjectReference Include="..\..\Medical\Interface\Medical.Interface.csproj" Condition="'$(EnableMedicalModule)' == 'true'" />
