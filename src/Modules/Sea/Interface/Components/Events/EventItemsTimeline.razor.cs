@@ -18,7 +18,7 @@ public partial class EventItemsTimeline : EventsBase
     {
         await base.OnInitializedAsync();
         await UpdatePluginContexts();
-        CanWrite = await EventsService.CanWriteEvent(Event.Id);
+        CanWrite = (await ValueOrNotifyAsync(SeaClient.CanWriteEventAsync(Event.Id, CancellationToken.None)));
     }
 
     protected override async Task ReloadRequired()

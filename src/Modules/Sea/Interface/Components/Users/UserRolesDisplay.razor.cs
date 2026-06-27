@@ -2,21 +2,21 @@ namespace Vitarish.Sea.Interface.Components.Users;
 
 public partial class UserRolesDisplay : UsersBase
 {
-    [Parameter, EditorRequired] public UserDto User { get; set; } = default!;
+    [Parameter, EditorRequired] public UserSummaryResponse User { get; set; } = default!;
 
     private List<(string Name, RoleType Type)> roles = [];
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        IReadOnlyList<UserRoleReadDto> userRoles = [.. await UserRolesService.GetListAsync(new UserRoleDescriptorDto { UserId = Guid.Parse(User.Id) }, CancellationToken.None).GetValueOrDefaultAsync() ?? []];
+        IReadOnlyList<UserRoleReadDto> userRoles = [.. await ValueOrNotifyAsync(SeaClient.ListUserRolesAsync(User.Id, CancellationToken.None)) ?? []];
 
         if (userRoles.Count == 0)
         {
             return;
         }
 
-        IReadOnlyList<RoleReadDto> roleDtos = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? []];
+        IReadOnlyList<RoleReadDto> roleDtos = [.. await ValueOrNotifyAsync(SeaClient.ListRolesAsync(CancellationToken.None)) ?? []];
         Dictionary<Guid, string> roleNames = roleDtos.ToDictionary(r => r.Id, r => r.Name);
 
         roles = [.. userRoles

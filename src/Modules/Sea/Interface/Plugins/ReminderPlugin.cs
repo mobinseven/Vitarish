@@ -3,7 +3,7 @@ using Vitarish.Sea.Interface.Components.Events;
 
 namespace Vitarish.Sea.Interface.Plugins;
 
-internal sealed class ReminderPlugin(IRemindersService remindersService) : IEventItemPlugin
+internal sealed class ReminderPlugin(ICommunicationsClient communicationsClient) : IEventItemPlugin
 {
     public string Id => "event-items/reminders";
 
@@ -24,7 +24,8 @@ internal sealed class ReminderPlugin(IRemindersService remindersService) : IEven
     public async Task<IReadOnlyList<EventTimelineItem>> GetItemsAsync(EventTimelineContext context, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
-        IReadOnlyList<ReminderReadDto> reminders = await remindersService.GetBySourceAsync(context.Event.Id, cancellationToken);
+        Communications.Contracts.Results.CommunicationsQueryResult<IReadOnlyList<ReminderReadDto>> result = await communicationsClient.GetRemindersBySourceAsync(context.Event.Id, cancellationToken);
+        IReadOnlyList<ReminderReadDto> reminders = result.IsSuccess ? result.Value ?? [] : [];
 
         return [.. reminders
             .Select(reminder => new EventTimelineItem(

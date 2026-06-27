@@ -31,7 +31,7 @@ public partial class ProcedureEditDialog : ProceduresBase
             Search = procedure.Name
         };
 
-        IReadOnlyList<ProcedureReadDto> existing = await ProceduresService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        IReadOnlyList<ProcedureReadDto> existing = await ValueOrNotifyAsync(SeaClient.ListProceduresAsync(ProjectId, CancellationToken.None)) ?? [];
         if (existing.Any(p => p.Id != Procedure.Id && string.Equals(p.Name, procedure.Name, StringComparison.CurrentCultureIgnoreCase)))
         {
             _ = await DialogService.ShowMessageBoxAsync(
@@ -41,7 +41,7 @@ public partial class ProcedureEditDialog : ProceduresBase
             return;
         }
 
-        ProcedureReadDto? updated = await ProceduresService.UpdateAsync(procedure, CancellationToken.None).GetValueOrDefaultAsync();
+        bool updated = await CommandOrNotifyAsync(SeaClient.UpdateProcedureAsync(procedure, CancellationToken.None));
 
         MudDialog.Close(DialogResult.Ok(true));
     }

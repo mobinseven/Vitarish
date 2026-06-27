@@ -1,6 +1,5 @@
 @attribute [Route(AppRoutes.Sea.Dashboard)]
-@inherits TenantPageBase
-@inject IAccessControlledProjectsService ProjectsService
+@inherits SeaCommonBase
 
 <Stack>
     <StackButton Href="@AppRoutes.Sea.Projects" Label="@Localizer["Projects"]" EndIcon="fa-solid fa-3x fa-folders" Color="Color.Info">
@@ -30,7 +29,7 @@
     private int projectsCount;
     protected override async Task ReloadRequired()
     {
-        projectsCount = await ProjectsService.CountAsync(new ProjectDescriptorDto { }, CancellationToken.None).GetValueOrDefaultAsync();
+        projectsCount = (await ValueOrNotifyAsync(SeaClient.ListProjectsAsync(CancellationToken.None)))?.Count ?? 0;
         await InvokeAsync(StateHasChanged);
     }
 }

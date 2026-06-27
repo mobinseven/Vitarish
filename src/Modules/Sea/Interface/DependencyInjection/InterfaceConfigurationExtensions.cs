@@ -6,6 +6,7 @@ public static class InterfaceConfigurationExtensions
     {
         public IServiceCollection ConfigureInterface()
         {
+            _ = services.AddSeaInterface();
             _ = services.ConfigurePlugins();
             _ = services.AddScoped<IEventItemPlugin, AttachmentPlugin>();
             _ = services.AddScoped<IEventItemPlugin, ReminderPlugin>();

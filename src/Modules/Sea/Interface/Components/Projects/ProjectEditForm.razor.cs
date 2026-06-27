@@ -25,17 +25,20 @@ public partial class ProjectEditForm : ProjectsBase
     {
         if (Project is null)
         {
-            ProjectReadDto created = await ProjectsService.AddAsync(projectWriteDto, CancellationToken.None).EnsureValueAsync();
-            await OnCreate.InvokeAsync(created.Id);
+            SeaCommandResult? created = await ValueOrNotifyAsync(SeaClient.CreateProjectAsync(projectWriteDto, CancellationToken.None));
+            if (created?.EntityId is Guid createdId)
+            {
+                await OnCreate.InvokeAsync(createdId);
+            }
         }
         else
         {
-            _ = await ProjectsService.UpdateAsync(projectWriteDto, CancellationToken.None);
+            _ = await CommandOrNotifyAsync(SeaClient.UpdateProjectAsync(projectWriteDto, CancellationToken.None));
             await OnUpdate.InvokeAsync(Project.Id);
         }
     }
 
-    protected Task OnAvatarUploaded(FileInformationReadDto fileInfo)
+    protected Task OnAvatarUploaded(FileInformationDto fileInfo)
     {
         projectWriteDto.AvatarFileId = fileInfo.Id;
         return InvokeAsync(StateHasChanged);

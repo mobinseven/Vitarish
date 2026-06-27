@@ -57,7 +57,7 @@
         }
         else
         {
-            await ProceduresService.DeleteAsync(Procedure.Id, CancellationToken.None);
+            await CommandOrNotifyAsync(SeaClient.DeleteProcedureAsync(Procedure.Id, CancellationToken.None));
             await OnDelete.InvokeAsync();
         }
     }

@@ -13,8 +13,8 @@ public partial class EventRolesDisplay : EventsBase
     private async Task LoadRolesAsync()
     {
         roles.Clear();
-        (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds) = await EventRolesService.GetIdsAsync(Event.Id, CancellationToken.None);
-        IReadOnlyList<RoleReadDto> allRoles = await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds) = (await ValueOrNotifyAsync(SeaClient.GetEventReadRoleIdsAsync(Event.Id, CancellationToken.None)) ?? [], await ValueOrNotifyAsync(SeaClient.GetEventWriteRoleIdsAsync(Event.Id, CancellationToken.None)) ?? []);
+        IReadOnlyList<RoleReadDto> allRoles = await ValueOrNotifyAsync(SeaClient.ListRolesAsync(CancellationToken.None)) ?? [];
         foreach (Guid id in ReadRoleIds)
         {
             RoleReadDto? role = allRoles.FirstOrDefault(r => r.Id == id);
