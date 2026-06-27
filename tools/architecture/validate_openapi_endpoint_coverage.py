@@ -108,8 +108,9 @@ def scan_handler_request_types(text, handler):
     if not m: return []
     out=[]
     for part in split_args(m.group('params')):
-        bits=part.strip().split()
-        if len(bits)>=2 and not bits[0].startswith('['):
+        part_clean = re.sub('^(\\[[^\\]]+\\]\\s*)+', '', part.strip())
+        bits = part_clean.split()
+        if len(bits) >= 2:
             typ=bits[0].replace('readonly','').strip()
             param_text=part.strip()
             if typ.startswith('I') and len(typ) > 1 and typ[1].isupper(): continue
