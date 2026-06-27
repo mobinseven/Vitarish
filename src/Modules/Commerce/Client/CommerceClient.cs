@@ -34,5 +34,5 @@ internal static class CommerceClientResultExtensions
             : EntityResult<T>.Failure(EntityError.Unknown(result.Failure?.Message ?? "Commerce API request failed."));
 
     public static EntityResult ToCommandResult(this ModuleApiClientResult<EntityResult> result) =>
-        result.IsSuccess ? result.Value : EntityResult.Failure(EntityError.Unknown(result.Failure?.Message ?? "Commerce API request failed."));
+        result.IsSuccess ? (result.Value.Errors is null ? EntityResult.Success() : result.Value) : EntityResult.Failure(EntityError.Unknown(result.Failure?.Message ?? "Commerce API request failed."));
 }

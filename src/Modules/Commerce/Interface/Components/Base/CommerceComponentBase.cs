@@ -6,6 +6,7 @@ namespace Vitarish.Commerce.Interface.Components.Base;
 public abstract class CommerceComponentBase : ComponentBase, IDisposable
 {
     private readonly CancellationTokenSource componentCancellation = new();
+    private bool disposed;
 
     [Inject]
     protected ICommerceClient CommerceClient { get; set; } = default!;
@@ -14,13 +15,18 @@ public abstract class CommerceComponentBase : ComponentBase, IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!disposing)
+        if (disposed)
         {
             return;
         }
 
-        componentCancellation.Cancel();
-        componentCancellation.Dispose();
+        if (disposing)
+        {
+            componentCancellation.Cancel();
+            componentCancellation.Dispose();
+        }
+
+        disposed = true;
     }
 
     public void Dispose()

@@ -15,12 +15,12 @@ internal static class CommerceContractMapper
     public static C.StoreReadDto ToContract(D.StoreReadDto dto) => new() { Id = dto.Id, CreatedAt = dto.CreatedAt, CreatedBy = dto.CreatedBy, UpdatedAt = dto.UpdatedAt, UpdatedBy = dto.UpdatedBy, DeletedAt = dto.DeletedAt, DeletedBy = dto.DeletedBy, Name = dto.Name, CurrencyCode = dto.CurrencyCode, MedusaBaseUrl = dto.MedusaBaseUrl };
     public static C.MerchantRecoveryCartReadDto ToContract(D.MerchantRecoveryCartReadDto dto) => new() { CartId = dto.CartId, CustomerDisplay = dto.CustomerDisplay, CustomerId = dto.CustomerId, HasContact = dto.HasContact, EstimatedValue = dto.EstimatedValue, CreatedAt = dto.CreatedAt, LastActivityAt = dto.LastActivityAt, RecoveryStatus = MapCartRecoveryStatus(dto.RecoveryStatus), RecoveryNote = dto.RecoveryNote };
 
-    private static DE.ProductStatus? MapProductStatus(C.ProductStatus? status) => status is null ? null : Enum.Parse<DE.ProductStatus>(status.Value.ToString());
-    private static C.ProductStatus MapProductStatus(DE.ProductStatus status) => Enum.Parse<C.ProductStatus>(status.ToString());
-    private static DE.OrderStatus? MapOrderStatus(C.OrderStatus? status) => status is null ? null : Enum.Parse<DE.OrderStatus>(status.Value.ToString());
-    private static C.OrderStatus MapOrderStatus(DE.OrderStatus status) => Enum.Parse<C.OrderStatus>(status.ToString());
-    private static C.FulfillmentStatus MapFulfillmentStatus(DE.FulfillmentStatus status) => Enum.Parse<C.FulfillmentStatus>(status.ToString());
-    private static C.RefundStatus MapRefundStatus(DE.RefundStatus status) => Enum.Parse<C.RefundStatus>(status.ToString());
-    public static DE.CartRecoveryStatus MapCartRecoveryStatus(C.CartRecoveryStatus status) => Enum.Parse<DE.CartRecoveryStatus>(status.ToString());
-    private static C.CartRecoveryStatus MapCartRecoveryStatus(DE.CartRecoveryStatus status) => Enum.Parse<C.CartRecoveryStatus>(status.ToString());
+    private static DE.ProductStatus? MapProductStatus(C.ProductStatus? status) => (DE.ProductStatus?)status;
+    private static C.ProductStatus MapProductStatus(DE.ProductStatus status) => (C.ProductStatus)status;
+    private static DE.OrderStatus? MapOrderStatus(C.OrderStatus? status) => (DE.OrderStatus?)status;
+    private static C.OrderStatus MapOrderStatus(DE.OrderStatus status) => (C.OrderStatus)status;
+    private static C.FulfillmentStatus MapFulfillmentStatus(DE.FulfillmentStatus status) => (C.FulfillmentStatus)status;
+    private static C.RefundStatus MapRefundStatus(DE.RefundStatus status) => (C.RefundStatus)status;
+    public static DE.CartRecoveryStatus MapCartRecoveryStatus(C.CartRecoveryStatus status) => (DE.CartRecoveryStatus)status;
+    private static C.CartRecoveryStatus MapCartRecoveryStatus(DE.CartRecoveryStatus status) => (C.CartRecoveryStatus)status;
 }
