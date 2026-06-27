@@ -5,7 +5,7 @@
 		<PackageReference Include="OpenAI" />
 	</ItemGroup>
 	<ItemGroup>
-				<ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
+				<ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
 <ProjectReference Include="..\Application\Intelligence.Application.csproj" />
 	</ItemGroup>
 	<ItemGroup>

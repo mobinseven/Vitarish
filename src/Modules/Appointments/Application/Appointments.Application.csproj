@@ -6,6 +6,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 		<ProjectReference Include="..\Domain\Appointments.Domain.csproj" />
-		<ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
+		<ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
 	</ItemGroup>
 </Project>

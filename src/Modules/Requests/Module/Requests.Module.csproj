@@ -15,7 +15,7 @@
     <ProjectReference Include="..\Api\Requests.Api.csproj" />
     <ProjectReference Include="..\Infrastructure\Requests.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Requests.Application.csproj" />
-    <ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
 </Project>

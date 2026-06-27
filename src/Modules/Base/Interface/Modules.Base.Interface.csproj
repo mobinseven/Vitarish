@@ -19,6 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Client\Modules.Base.Client.csproj" />
-    <ProjectReference Include="..\Core\Modules.Base.csproj" />
+    <ProjectReference Include="..\Core\Modules.Base.Core.csproj" />
   </ItemGroup>
 </Project>

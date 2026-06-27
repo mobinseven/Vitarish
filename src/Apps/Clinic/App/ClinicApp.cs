@@ -7,7 +7,7 @@ using Vitarish.Clinic.Interface;
 using Vitarish.Clinic.Interface.DependencyInjection;
 using Vitarish.Entities.Server.Extensions;
 
-namespace Vitarish.Clinic.Module;
+namespace Vitarish.Clinic.App;
 
 public class ClinicApp : App, IClinicApp
 {

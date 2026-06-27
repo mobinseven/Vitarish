@@ -4,7 +4,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
-    <ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
     <ProjectReference Include="..\Domain\Links.Domain.csproj" />
   </ItemGroup>
 </Project>

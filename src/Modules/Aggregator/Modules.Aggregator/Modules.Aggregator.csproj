@@ -4,7 +4,7 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
     <ProjectReference Include="..\..\Requests\Module\Requests.Module.csproj" Condition="'$(EnableRequestsModule)' == 'true'" />
     <ProjectReference Include="..\..\Users\Module\Users.Module.csproj" Condition="'$(EnableUsersModule)' == 'true'" />
     <ProjectReference Include="..\..\Parties\Module\Parties.Module.csproj" Condition="'$(EnablePartiesModule)' == 'true'" />

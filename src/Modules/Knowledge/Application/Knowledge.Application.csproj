@@ -4,6 +4,6 @@
     <ProjectReference Include="..\..\Search\Domain\Search.Domain.csproj" />
     <ProjectReference Include="..\..\Search\Application\Search.Application.csproj" />
     <ProjectReference Include="..\..\Intelligence\Application\Intelligence.Application.csproj" />
-    <ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
   </ItemGroup>
 </Project>

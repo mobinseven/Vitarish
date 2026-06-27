@@ -3,6 +3,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Financial.Contracts.csproj" />
     <ProjectReference Include="..\Application\Financial.Application.csproj" />
-    <ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
   </ItemGroup>
 </Project>

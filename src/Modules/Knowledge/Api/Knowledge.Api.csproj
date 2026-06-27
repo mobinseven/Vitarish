@@ -4,6 +4,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\Knowledge.Application.csproj" />
     <ProjectReference Include="..\Contracts\Knowledge.Contracts.csproj" />
-    <ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
   </ItemGroup>
 </Project>

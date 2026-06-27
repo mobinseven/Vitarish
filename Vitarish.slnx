@@ -11,13 +11,22 @@
   <Folder Name="/src/Apps/" />
   <Folder Name="/src/Apps/Clinic/">
     <Project Path="src/Apps/Clinic/Api/Clinic.Api.csproj" />
-    <Project Path="src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj" />
+    <Project Path="src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj" Id="4d5da5d0-ac72-4086-95e9-1f4cbf4a29f2">
+      <Build Solution="Debug|x64" Project="false" />
+      <Build Solution="Debug|x86" Project="false" />
+    </Project>
     <Project Path="src/Apps/Clinic/Client/Clinic.Client.csproj" />
     <Project Path="src/Apps/Clinic/Contracts/Clinic.Contracts.csproj" />
-    <Project Path="src/Apps/Clinic/Domain/Clinic.Domain/Clinic.Domain.csproj" />
-    <Project Path="src/Apps/Clinic/Infrastructure/Clinic.Infrastructure.csproj" />
+    <Project Path="src/Apps/Clinic/Domain/Clinic.Domain/Clinic.Domain.csproj" Id="8e0682cf-e85e-4323-ba27-9068b49b1f86">
+      <Build Solution="Debug|x64" Project="false" />
+      <Build Solution="Debug|x86" Project="false" />
+    </Project>
+    <Project Path="src/Apps/Clinic/Infrastructure/Clinic.Infrastructure.csproj" Id="38ba156c-11d5-4ee7-939e-bbf73d2516ca">
+      <Build Solution="Debug|x64" Project="false" />
+      <Build Solution="Debug|x86" Project="false" />
+    </Project>
     <Project Path="src/Apps/Clinic/Interface/Clinic.Interface.csproj" />
-    <Project Path="src/Apps/Clinic/Module/Clinic.Module.csproj" />
+    <Project Path="src/Apps/Clinic/App/Clinic.App.csproj" />
   </Folder>
   <Folder Name="/src/Apps/Common/">
     <Project Path="src/Apps/Aggregator/Apps.Aggregator.csproj" />
@@ -56,7 +65,7 @@
   </Folder>
   <Folder Name="/src/Modules/Base/">
     <Project Path="src/Modules/Base/Client/Modules.Base.Client.csproj" />
-    <Project Path="src/Modules/Base/Core/Modules.Base.csproj" />
+    <Project Path="src/Modules/Base/Core/Modules.Base.Core.csproj" />
     <Project Path="src/Modules/Base/Interface/Modules.Base.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Commerce/">
@@ -292,21 +301,6 @@
     <Project Path="src/Modules/Users/Infrastructure/Users.Infrastructure.csproj" />
     <Project Path="src/Modules/Users/Interface/Users.Interface.csproj" />
     <Project Path="src/Modules/Users/Module/Users.Module.csproj" />
-  </Folder>
-  <Folder Name="/src/Apps/Clinic/">
-    <Project Path="src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj" Id="4d5da5d0-ac72-4086-95e9-1f4cbf4a29f2">
-      <Build Solution="Debug|x64" Project="false" />
-      <Build Solution="Debug|x86" Project="false" />
-    </Project>
-    <Project Path="src/Apps/Clinic/Domain/Clinic.Domain/Clinic.Domain.csproj" Id="8e0682cf-e85e-4323-ba27-9068b49b1f86">
-      <Build Solution="Debug|x64" Project="false" />
-      <Build Solution="Debug|x86" Project="false" />
-    </Project>
-    <Project Path="src/Apps/Clinic/Infrastructure/Clinic.Infrastructure.csproj" Id="38ba156c-11d5-4ee7-939e-bbf73d2516ca">
-      <Build Solution="Debug|x64" Project="false" />
-      <Build Solution="Debug|x86" Project="false" />
-    </Project>
-    <Project Path="src/Apps/Clinic/Interface/Clinic.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Common/">
     <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />

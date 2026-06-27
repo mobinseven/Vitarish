@@ -10,7 +10,7 @@
     <ProjectReference Include="..\Interface\Platform.Interface.csproj" />
     <ProjectReference Include="..\Infrastructure\Platform.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Platform.Application.csproj" />
-    <ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
 </Project>
