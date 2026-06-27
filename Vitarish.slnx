@@ -11,6 +11,7 @@
   <Folder Name="/src/Apps/" />
   <Folder Name="/src/Apps/Clinic/">
     <Project Path="src/Apps/Clinic/Api/Clinic.Api.csproj" />
+    <Project Path="src/Apps/Clinic/App/Clinic.App.csproj" />
     <Project Path="src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj" Id="4d5da5d0-ac72-4086-95e9-1f4cbf4a29f2">
       <Build Solution="Debug|x64" Project="false" />
       <Build Solution="Debug|x86" Project="false" />
@@ -26,7 +27,6 @@
       <Build Solution="Debug|x86" Project="false" />
     </Project>
     <Project Path="src/Apps/Clinic/Interface/Clinic.Interface.csproj" />
-    <Project Path="src/Apps/Clinic/App/Clinic.App.csproj" />
   </Folder>
   <Folder Name="/src/Apps/Common/">
     <Project Path="src/Apps/Aggregator/Apps.Aggregator.csproj" />
@@ -53,6 +53,9 @@
     <Project Path="src/Libraries/Entities/Entities.Server/Entities.Server.csproj" />
   </Folder>
   <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Aggregator/">
+    <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Appointments/">
     <Project Path="src/Modules/Appointments/Api/Appointments.Api.csproj" />
     <Project Path="src/Modules/Appointments/Application/Appointments.Application.csproj" />
@@ -296,8 +299,5 @@
     <Project Path="src/Modules/Users/Infrastructure/Users.Infrastructure.csproj" />
     <Project Path="src/Modules/Users/Interface/Users.Interface.csproj" />
     <Project Path="src/Modules/Users/Module/Users.Module.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/Common/">
-    <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
   </Folder>
 </Solution>
