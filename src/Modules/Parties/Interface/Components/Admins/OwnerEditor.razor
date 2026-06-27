@@ -1,3 +1,5 @@
+@namespace Vitarish.Parties.Interface.Components.Admins
+@inherits PartiesAdminComponentBase
 @using Vitarish.Parties.Contracts.Tenants
 
 <Stack>
@@ -21,12 +23,21 @@
 
     protected override void OnInitialized()
     {
-        write = Owner?.ToWrite() ?? new();
+        write = Owner is null ? new() : ToWrite(Owner);
     }
+
+    private static OwnerWriteDto ToWrite(OwnerReadDto owner) => new()
+    {
+        Id = owner.Id,
+        Name = owner.Name,
+        LogoUrl = owner.LogoUrl,
+        Description = owner.Description
+    };
 
     private async Task Save()
     {
-        OwnerReadDto? updated = await PartiesService.UpdateOwnerAsync(write);
+        var updatedResult = await PartiesClient.UpdateOwnerAsync(write);
+        OwnerReadDto? updated = updatedResult.IsSuccess ? updatedResult.Value : null;
         if(updated is null)
         {
             Snackbar.Add(Localizer["Error"], Severity.Error);
@@ -34,7 +45,7 @@
         }
         await OwnerChanged.InvokeAsync(updated);
         Owner = updated;
-        write = updated.ToWrite();
+        write = ToWrite(updated);
         await InvokeAsync(StateHasChanged);
         await OnSaved.InvokeAsync();
         Snackbar.Add(Localizer["Saved"], Severity.Success);

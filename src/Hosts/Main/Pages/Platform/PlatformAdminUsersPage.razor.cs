@@ -1,9 +1,9 @@
-using Vitarish.Interfaces.Admins.Components;
+using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Application.Commands;
 
 namespace Vitarish.Main.Pages.Platform;
 
-public partial class PlatformAdminUsersPage : PlatformAdminCommonBase
+public partial class PlatformAdminUsersPage : PlatformAdminPageBase
 {
     private List<User> Users { get; set; } = [];
     private User editUser = new();

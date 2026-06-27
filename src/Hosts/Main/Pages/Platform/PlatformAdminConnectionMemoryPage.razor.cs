@@ -1,11 +1,10 @@
-using Vitarish.Interfaces.Admins.Components;
 using Vitarish.Platform.Application.Abstractions;
 using Vitarish.Platform.Application.Contracts;
 using Vitarish.Platform.Domain.Entities;
 
 namespace Vitarish.Main.Pages.Platform;
 
-public partial class PlatformAdminConnectionMemoryPage : PlatformAdminCommonBase
+public partial class PlatformAdminConnectionMemoryPage : PlatformAdminPageBase
 {
     [Inject] private IPlatformConnectionMemoryQuery MemoryQuery { get; set; } = default!;
 

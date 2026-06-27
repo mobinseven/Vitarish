@@ -1,11 +1,10 @@
-using Vitarish.Interfaces.Admins.Components;
 using Vitarish.Platform.Application.Abstractions;
 using Vitarish.Platform.Application.Contracts;
 using Vitarish.Platform.Domain.Models;
 
 namespace Vitarish.Main.Pages.Platform;
 
-public partial class PlatformAdminThemesPage : PlatformAdminCommonBase
+public partial class PlatformAdminThemesPage : PlatformAdminPageBase
 {
     [Inject] private IPlatformThemeQuery ThemeQuery { get; set; } = default!;
     [Inject] private IPlatformThemeCommand ThemeCommand { get; set; } = default!;

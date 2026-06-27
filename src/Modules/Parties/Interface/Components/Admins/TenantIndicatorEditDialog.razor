@@ -1,4 +1,5 @@
-@inherits PlatformAdminCommonBase
+@namespace Vitarish.Parties.Interface.Components.Admins
+@inherits PartiesAdminComponentBase
 <MudDialog>
     <DialogContent>
         <Stack>
@@ -11,7 +12,7 @@
                             Placeholder="e.g., app.customer.com"
                             Required />
             <StackSelect @bind-Value="newVerificationMethod" Label="@Localizer["VerificationMethod"]" Required>
-                <StackSelectItem Value="@IndicatorVerificationMethod.Manual">Manual</StackSelectItem>
+                <StackSelectItem Value="@IndicatorVerificationMethod.DnsTxt">Manual</StackSelectItem>
                 <StackSelectItem Value="@IndicatorVerificationMethod.DnsTxt">DNS TXT Record</StackSelectItem>
             </StackSelect>
             <StackSelect @bind-Value="newStatus" Label="@Localizer["Status"]" Required>

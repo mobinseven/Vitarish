@@ -1,6 +1,9 @@
-namespace Vitarish.Interfaces.Admins.Components;
+using Microsoft.AspNetCore.Components;
+using Vitarish.Modules.Base.Interface.Common;
 
-public partial class RoleEditor : PlatformAdminCommonBase
+namespace Vitarish.Users.Interface.Components.Admins;
+
+public partial class RoleEditor : CommonBase
 {
     [Parameter] public string? Read { get; set; }
     [Parameter] public EventCallback<string?> ReadChanged { get; set; }

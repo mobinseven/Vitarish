@@ -1,6 +1,6 @@
 using Vitarish.Parties.Contracts.Tenants;
 
-namespace Vitarish.Interfaces.Admins.Components;
+namespace Vitarish.Modules.Aggregator.Interface.Components.Admins;
 
 internal static class RoleParser
 {

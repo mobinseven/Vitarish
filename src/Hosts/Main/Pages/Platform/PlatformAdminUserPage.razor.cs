@@ -1,9 +1,9 @@
-using Vitarish.Interfaces.Admins.Components;
+using Vitarish.Users.Domain.Entities;
 using Vitarish.Modules.Base.Interface.Common;
 using Vitarish.Users.Application.Commands;
 namespace Vitarish.Main.Pages.Platform;
 
-public partial class PlatformAdminUserPage : PlatformAdminCommonBase
+public partial class PlatformAdminUserPage : PlatformAdminPageBase
 {
     [Parameter] public Guid? UserId { get; set; }
     private string password = string.Empty;
@@ -28,7 +28,7 @@ public partial class PlatformAdminUserPage : PlatformAdminCommonBase
 
         NavService.OverridePageTitle(User.Id, User.FullName);
     }
-    private async void Delete()
+    private async Task Delete()
     {
         if (User is null)
         {
@@ -53,7 +53,7 @@ public partial class PlatformAdminUserPage : PlatformAdminCommonBase
         IdentityResult res = await UsersService.DeleteUserAsync(new DeleteUserCommand(User.Id));
         _ = res.Succeeded ? Snackbar.Add(Localizer["Deleted"], Severity.Success) : Snackbar.Add(Localizer["Error"], Severity.Warning);
     }
-    private async void Save()
+    private async Task Save()
     {
         if (User is null)
         {

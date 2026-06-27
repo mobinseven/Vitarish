@@ -1,6 +1,6 @@
 using Vitarish.Parties.Contracts.Tenants;
 
-namespace Vitarish.Interfaces.Admins.Components;
+namespace Vitarish.Modules.Aggregator.Interface.Components.Admins;
 
 public partial class UserRoleEditor
 {
@@ -18,13 +18,18 @@ public partial class UserRoleEditor
 
         try
         {
-            Task<IEnumerable<TenantReadDto>> tenantsTask = PartiesService.GetTenantsAsync();
+            var tenantsResult = await PartiesClient.GetTenantsAsync();
+            if (!tenantsResult.IsSuccess || tenantsResult.Value is null)
+            {
+                Snackbar.Add(Localizer["Error"], Severity.Error);
+                return;
+            }
 
-            IEnumerable<TenantReadDto> tenants = await tenantsTask;
+            IEnumerable<TenantReadDto> tenants = tenantsResult.Value;
             Dictionary<Guid, TenantReadDto> tenantDict = tenants.ToDictionary(t => t.Id);
 
             List<Guid> ownerIds = [.. tenants.Select(t => t.OwnerId).Distinct()];
-            Dictionary<Guid, Task<OwnerReadDto?>> ownerTasks = ownerIds.ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
+            Dictionary<Guid, Task<OwnerReadDto?>> ownerTasks = ownerIds.ToDictionary(id => id, id => GetOwnerOrNullAsync(id));
             Dictionary<Guid, OwnerReadDto?> owners = (await Task.WhenAll(
                 ownerTasks.Select(async kvp => new { kvp.Key, Value = await kvp.Value })
             )).ToDictionary(x => x.Key, x => x.Value);
@@ -179,4 +184,10 @@ public partial class UserRoleEditor
 
         return user;
     }
+    private async Task<OwnerReadDto?> GetOwnerOrNullAsync(Guid ownerId)
+    {
+        var ownerResult = await PartiesClient.GetOwnerAsync(ownerId);
+        return ownerResult.IsSuccess ? ownerResult.Value : null;
+    }
+
 }

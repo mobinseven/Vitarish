@@ -1,6 +1,6 @@
 using Vitarish.Parties.Contracts.Tenants;
 
-namespace Vitarish.Interfaces.Admins.Components;
+namespace Vitarish.Parties.Interface.Components.Admins;
 
 public partial class TenantIndicatorEditDialog
 {
@@ -44,10 +44,10 @@ public partial class TenantIndicatorEditDialog
             return;
         }
 
-        VerificationInfo? verification = null;
+        VerificationInfoDto? verification = null;
         if (!string.IsNullOrWhiteSpace(verificationEvidence) && !string.IsNullOrWhiteSpace(verificationExpectedHash))
         {
-            verification = new VerificationInfo
+            verification = new VerificationInfoDto
             {
                 Method = newVerificationMethod,
                 Evidence = verificationEvidence,
@@ -69,7 +69,8 @@ public partial class TenantIndicatorEditDialog
                 IsPrimary = newIsPrimary,
                 Verification = verification
             };
-            TenantIndicatorReadDto? created = await PartiesService.CreateTenantIndicatorAsync(dto);
+            var createdResult = await PartiesClient.CreateTenantIndicatorAsync(dto);
+            TenantIndicatorReadDto? created = createdResult.IsSuccess ? createdResult.Value : null;
             if (created is not null)
             {
                 _ = Snackbar.Add("Indicator created successfully", Severity.Success);
@@ -95,7 +96,8 @@ public partial class TenantIndicatorEditDialog
                 VerifiedAt = TenantIndicator.VerifiedAt,
                 LastCheckedAt = TenantIndicator.LastCheckedAt
             };
-            TenantIndicatorReadDto? updated = await PartiesService.UpdateTenantIndicatorAsync(dto);
+            var updatedResult = await PartiesClient.UpdateTenantIndicatorAsync(dto);
+            TenantIndicatorReadDto? updated = updatedResult.IsSuccess ? updatedResult.Value : null;
             if (updated is not null)
             {
                 _ = Snackbar.Add("Indicator updated successfully", Severity.Success);
@@ -108,7 +110,7 @@ public partial class TenantIndicatorEditDialog
         }
     }
 
-    private async void Delete()
+    private async Task Delete()
     {
         if (TenantIndicator is null)
         {
@@ -116,7 +118,13 @@ public partial class TenantIndicatorEditDialog
         }
         else
         {
-            await PartiesService.DeleteTenantIndicatorAsync(TenantIndicator.Id);
+            var deletedResult = await PartiesClient.DeleteTenantIndicatorAsync(TenantIndicator.Id);
+            if (!deletedResult.IsSuccess || !deletedResult.Value)
+            {
+                _ = Snackbar.Add("Failed to delete indicator", Severity.Error);
+                return;
+            }
+
             _ = Snackbar.Add("Indicator deleted successfully", Severity.Success);
             MudDialog.Close();
         }

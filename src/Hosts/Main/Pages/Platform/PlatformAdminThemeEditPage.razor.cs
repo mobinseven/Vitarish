@@ -1,4 +1,3 @@
-using Vitarish.Interfaces.Admins.Components;
 using Vitarish.Platform.Application.Abstractions;
 using Vitarish.Platform.Application.Contracts;
 using Vitarish.Platform.Domain.Models;
@@ -6,7 +5,7 @@ using Vitarish.Platform.Interface.Components;
 
 namespace Vitarish.Main.Pages.Platform;
 
-public partial class PlatformAdminThemeEditPage : PlatformAdminCommonBase
+public partial class PlatformAdminThemeEditPage : PlatformAdminPageBase
 {
     [Parameter] public Guid? ThemeId { get; set; }
     [Inject] private IPlatformThemeQuery ThemeQuery { get; set; } = default!;
