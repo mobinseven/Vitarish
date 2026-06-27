@@ -103,6 +103,10 @@ else if(Context.IsIdentificationLookupFailed)
     private async Task<ProjectReadDto?> FindExactIdentificationCodeMatchAsync(string code, CancellationToken ct)
     {
         ClinicResult<PatientViewDto> result = await ClinicClient.LookupPatientByIdentificationCodeAsync(new PatientIdentificationLookupRequest(code), ct);
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException(result.Error?.Message ?? "Failed to lookup patient.");
+        }
         IReadOnlyList<ProjectReadDto> results = result.Value is null ? [] : [result.Value.ToProjectRead()];
 
         return results.FirstOrDefault(project => PatientSearchMatcher.IsExactIdentificationCode(project, code));
