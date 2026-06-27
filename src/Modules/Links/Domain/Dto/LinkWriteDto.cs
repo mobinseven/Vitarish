@@ -1,3 +1,5 @@
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Links.Domain.Dto;
 
 public record LinkWriteDto : EntityWriteDto

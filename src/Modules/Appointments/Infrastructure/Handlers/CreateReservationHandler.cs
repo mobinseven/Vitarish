@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using Vitarish.Appointments.Application.Events;
 using Vitarish.Appointments.Infrastructure.Services;
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Entities.Server.Data;
 using Vitarish.Requests.Application.Abstractions;
 

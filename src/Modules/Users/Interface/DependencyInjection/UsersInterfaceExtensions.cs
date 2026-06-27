@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Modules.Base.DependencyInjection;
+using Vitarish.Modules.Base.Client.DependencyInjection;
 using Vitarish.Users.Client;
 
 namespace Vitarish.Users.Interface.DependencyInjection;

@@ -4,12 +4,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Links.Application.Abstractions;
 using Vitarish.Links.Infrastructure.Data;
 using Vitarish.Links.Infrastructure.DependencyInjection;
-using Vitarish.Modules.Base;
 using Vitarish.Entities.Server.Extensions;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Links.Module;
 
-public sealed class LinksModule : Vitarish.Modules.Base.Module, ILinksModule
+public sealed class LinksModule : Modules.Base.Core.Module, ILinksModule
 {
     public override string Name => "Links";
 

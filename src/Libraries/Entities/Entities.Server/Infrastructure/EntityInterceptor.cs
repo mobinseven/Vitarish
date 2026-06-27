@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Entities.Server.Abstractions;
 
 namespace Vitarish.Entities.Server.Infrastructure;

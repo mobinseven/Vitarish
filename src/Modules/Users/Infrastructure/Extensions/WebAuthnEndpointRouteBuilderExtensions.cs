@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Data;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Base.Core.Endpoints;
 
 namespace Vitarish.Users.Infrastructure.Extensions;
 

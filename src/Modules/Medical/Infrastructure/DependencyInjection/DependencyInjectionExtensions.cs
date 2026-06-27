@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Configuration;
-using Vitarish.Modules.Base.Platform.Retry;
-using Vitarish.Modules.Base.Platform.Transactions;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Infrastructure.Providers.Prescriptions;
 using Vitarish.Medical.Infrastructure.Providers.Prescriptions.Salamat;
 using Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 using Vitarish.Medical.Infrastructure.Services.Prescriptions;
+using Vitarish.Modules.Base.Core.Platform.Transactions;
+using Vitarish.Modules.Base.Core.Platform.Retry;
 
 namespace Vitarish.Medical.Infrastructure.DependencyInjection;
 

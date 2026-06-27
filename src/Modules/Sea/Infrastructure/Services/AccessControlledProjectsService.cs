@@ -1,3 +1,4 @@
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Sea.Infrastructure.Services;

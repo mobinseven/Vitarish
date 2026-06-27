@@ -1,6 +1,6 @@
 using System.Net;
 using Vitarish.Commerce.Contracts;
-using Vitarish.Entities.Contracts;
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Modules.Base.Client;
 
 namespace Vitarish.Commerce.Client;

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace Vitarish.Modules.Base.Endpoints;
+namespace Vitarish.Modules.Base.Core.Endpoints;
 
 public static class ProtectedModuleEndpointRouteBuilderExtensions
 {

@@ -3,7 +3,6 @@ using System.Threading.Channels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Vitarish.Modules.Base.Endpoints;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Contracts.Errors;
 using Vitarish.Files.Contracts.Requests;
@@ -11,6 +10,7 @@ using Vitarish.Files.Contracts.Responses;
 using Vitarish.Files.Contracts.Routes;
 using C = Vitarish.Files.Contracts.Metadata;
 using D = Vitarish.Files.Domain.Models;
+using Vitarish.Modules.Base.Core.Endpoints;
 
 namespace Vitarish.Files.Api;
 

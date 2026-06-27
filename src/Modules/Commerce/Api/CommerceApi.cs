@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Commerce.Application.Abstractions;
 using Vitarish.Commerce.Contracts;
-using Vitarish.Entities.Contracts;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Entities.Contracts.Models;
+using Vitarish.Modules.Base.Core.Endpoints;
 
 namespace Vitarish.Commerce.Api;
 

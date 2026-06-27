@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Application.Queries;
 using Vitarish.Requests.Contracts;

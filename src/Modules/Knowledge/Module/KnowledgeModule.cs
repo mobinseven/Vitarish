@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Infrastructure.Data;
 using Vitarish.Knowledge.Infrastructure.Repositories;
-using Vitarish.Modules.Base;
 using Vitarish.Knowledge.Infrastructure.Services.Answering;
 using Vitarish.Knowledge.Infrastructure.Services.Evaluation;
 using Vitarish.Knowledge.Infrastructure.Services.Retrieval;
@@ -21,10 +20,11 @@ using Vitarish.Knowledge.Infrastructure.Handlers;
 using Vitarish.Knowledge.Infrastructure.Services.RetrievalPlanning;
 using Vitarish.Knowledge.Application.Queries;
 using Vitarish.Knowledge.Api;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Knowledge.Module;
 
-public sealed class KnowledgeModule : Vitarish.Modules.Base.Module, IKnowledgeModule
+public sealed class KnowledgeModule : Modules.Base.Core.Module, IKnowledgeModule
 {
     public override string Name => "Knowledge";
 

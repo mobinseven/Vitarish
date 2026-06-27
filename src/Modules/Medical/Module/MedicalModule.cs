@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Medical.Infrastructure.Data;
 using Vitarish.Medical.Infrastructure.DependencyInjection;
-using Vitarish.Modules.Base;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Medical.Api;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Medical.Module;
 
-public sealed class MedicalModule : Vitarish.Modules.Base.Module, IMedicalModule
+public sealed class MedicalModule : Modules.Base.Core.Module, IMedicalModule
 {
     public override string Name => "Medical";
 

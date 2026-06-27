@@ -1,4 +1,6 @@
-namespace Vitarish.Social.Contracts;
+using Vitarish.Social.Contracts.Enums;
+
+namespace Vitarish.Social.Contracts.Responses;
 
 public sealed record SocialConnectionResponse(
     Guid Id,

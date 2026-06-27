@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Requests\Interface\Requests.Interface.csproj" Condition="'$(EnableRequestsModule)' == 'true'" />
+		<ProjectReference Include="..\..\Users\Interface\Users.Interface.csproj" Condition="'$(EnableUsersModule)' == 'true'" />
+		<ProjectReference Include="..\..\Parties\Interface\Parties.Interface.csproj" Condition="'$(EnablePartiesModule)' == 'true'" />
+		<ProjectReference Include="..\..\Platform\Interface\Platform.Interface.csproj" Condition="'$(EnablePlatformModule)' == 'true'" />
+		<ProjectReference Include="..\..\Medical\Interface\Medical.Interface.csproj" Condition="'$(EnableMedicalModule)' == 'true'" />
+		<ProjectReference Include="..\..\Appointments\Interface\Appointments.Interface.csproj" Condition="'$(EnableAppointmentsModule)' == 'true'" />
+		<ProjectReference Include="..\..\Commerce\Interface\Commerce.Interface.csproj" Condition="'$(EnableCommerceModule)' == 'true'" />
+		<ProjectReference Include="..\..\Sea\Interface\Sea.Interface.csproj" Condition="'$(EnableSeaModule)' == 'true'" />
+		<ProjectReference Include="..\..\Communications\Interface\Communications.Interface.csproj" Condition="'$(EnableCommunicationsModule)' == 'true'" />
+		<ProjectReference Include="..\..\Feed\Interface\Feed.Interface.csproj" Condition="'$(EnableFeedModule)' == 'true'" />
+		<ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" Condition="'$(EnableFilesModule)' == 'true'" />
+		<ProjectReference Include="..\..\Financial\Interface\Financial.Interface.csproj" Condition="'$(EnableFinancialModule)' == 'true'" />
+		<ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" Condition="'$(EnableIntelligenceModule)' == 'true'" />
+		<ProjectReference Include="..\..\Knowledge\Interface\Knowledge.Interface.csproj" Condition="'$(EnableKnowledgeModule)' == 'true'" />
+		<ProjectReference Include="..\..\Search\Interface\Search.Interface.csproj" Condition="'$(EnableSearchModule)' == 'true'" />
+		<ProjectReference Include="..\..\Contents\Interface\Contents.Interface.csproj" Condition="'$(EnableContentsModule)' == 'true'" />
+		<ProjectReference Include="..\..\Social\Interface\Social.Interface.csproj" Condition="'$(EnableSocialModule)' == 'true'" />
+		<ProjectReference Include="..\..\Links\Interface\Links.Interface.csproj" Condition="'$(EnableLinksModule)' == 'true'" />
+	</ItemGroup>
+
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+</Project>

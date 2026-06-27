@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System.Data;
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Entities.Server.Repositories.Operations;
 

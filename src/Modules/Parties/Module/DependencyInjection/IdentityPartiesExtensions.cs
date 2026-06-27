@@ -8,8 +8,8 @@ using Vitarish.Parties.Infrastructure.Abstractions;
 using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Parties.Infrastructure.Services;
 using Vitarish.Entities.Server.Extensions;
-using Vitarish.Modules.Base.BackgroundJobs;
 using Vitarish.Parties.Module.BackgroundJobs;
+using Vitarish.Modules.Base.Core.BackgroundJobs;
 
 namespace Vitarish.Parties.Module.DependencyInjection;
 

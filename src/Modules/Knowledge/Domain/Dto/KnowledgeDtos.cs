@@ -1,3 +1,5 @@
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Knowledge.Domain.Dto;
 
 public record KnowledgeCorpusReadDto : EntityReadDto { public string Name { get; set; } = string.Empty; public string TenantId { get; set; } = string.Empty; public string? Description { get; set; } public bool IsActive { get; set; } }

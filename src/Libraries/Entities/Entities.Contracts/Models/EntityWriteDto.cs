@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
-namespace Vitarish.Entities.Contracts;
+namespace Vitarish.Entities.Contracts.Models;
 /// <summary>
 /// Base DTO for write operations (Add/Update/Remove). Audit fields are
 /// excluded because the entity interceptor populates them automatically.

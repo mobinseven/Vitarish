@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.Platform.Capabilities;
+namespace Vitarish.Modules.Base.Core.Platform.Capabilities;
 
 /// <summary>
 /// Declares a set of capabilities for a specific provider/integration.

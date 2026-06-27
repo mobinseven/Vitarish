@@ -11,12 +11,12 @@ using Vitarish.Communications.Infrastructure.Serializers;
 using Vitarish.Communications.Infrastructure.Services;
 using Vitarish.Communications.Infrastructure.Wrappers.SmsDotIr;
 using Vitarish.Communications.Interface.DependencyInjection;
-using Vitarish.Modules.Base;
 using Vitarish.Entities.Server.Extensions;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Communications.Module;
 
-public class CommunicationModule : Vitarish.Modules.Base.Module, ICommunicationsModule
+public class CommunicationModule : Modules.Base.Core.Module, ICommunicationsModule
 {
     public override string Name => "Communications";
 

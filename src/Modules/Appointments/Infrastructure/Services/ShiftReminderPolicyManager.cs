@@ -2,6 +2,7 @@ using Vitarish.Appointments.Domain.Mappers;
 using Vitarish.Appointments.Domain.Rules;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Appointments.Infrastructure.Services;

@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.Platform.Retry;
+namespace Vitarish.Modules.Base.Core.Platform.Retry;
 
 /// <summary>
 /// Represents an outbox entry for a deferred/retryable operation.

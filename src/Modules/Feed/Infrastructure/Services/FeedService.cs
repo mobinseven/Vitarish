@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Vitarish.Feed.Domain.Abstractions;
 using Vitarish.Feed.Domain.Models;
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Feed.Infrastructure.Services;
 

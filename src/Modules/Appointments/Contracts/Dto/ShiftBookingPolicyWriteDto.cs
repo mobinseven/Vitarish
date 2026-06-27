@@ -1,3 +1,5 @@
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Appointments.Contracts.Dto;
 
 public record ShiftBookingPolicyWriteDto : EntityWriteDto

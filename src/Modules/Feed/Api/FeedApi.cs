@@ -2,11 +2,11 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Vitarish.Modules.Base.Endpoints;
 using Vitarish.Feed.Application.Queries;
 using Vitarish.Feed.Contracts;
 using Vitarish.Feed.Domain.Abstractions;
 using Vitarish.Feed.Domain.Models;
+using Vitarish.Modules.Base.Core.Endpoints;
 
 namespace Vitarish.Feed.Api;
 

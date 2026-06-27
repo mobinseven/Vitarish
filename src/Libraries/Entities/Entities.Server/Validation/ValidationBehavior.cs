@@ -1,4 +1,5 @@
 using FluentValidation.Results;
+using Vitarish.Entities.Contracts.Models;
 
 namespace Vitarish.Entities.Server.Validation;
 /// <summary>

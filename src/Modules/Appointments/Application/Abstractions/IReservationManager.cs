@@ -1,3 +1,5 @@
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Appointments.Application.Abstractions;
 
 public interface IReservationManager : IEntityService<ReservationReadDto, ReservationWriteDto, ReservationDescriptorDto>

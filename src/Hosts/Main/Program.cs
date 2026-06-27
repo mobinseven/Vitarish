@@ -13,9 +13,9 @@ using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.Handlers;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
-using Vitarish.Modules.Base;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Platform.Module.DependencyInjection;
+using Vitarish.Modules.Base.Core;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 

@@ -1,3 +1,4 @@
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Entities.Server.SignalR;

@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.Platform.Transactions;
+namespace Vitarish.Modules.Base.Core.Platform.Transactions;
 
 /// <summary>
 /// Records a single outbound API call to an external service.

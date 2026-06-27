@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
-namespace Vitarish.Entities.Contracts;
+namespace Vitarish.Entities.Contracts.Models;
 public static class MetadataHelpers
 {
 

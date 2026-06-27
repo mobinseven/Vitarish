@@ -1,4 +1,4 @@
-using Vitarish.Entities.Contracts;
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
 

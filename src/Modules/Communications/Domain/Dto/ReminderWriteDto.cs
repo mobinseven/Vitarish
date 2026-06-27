@@ -1,3 +1,5 @@
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Communications.Domain.Dto;
 
 public record ReminderWriteDto(

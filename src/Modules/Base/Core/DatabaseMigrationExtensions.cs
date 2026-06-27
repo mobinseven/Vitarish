@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Vitarish.Modules.Base;
+namespace Vitarish.Modules.Base.Core;
 
 public static class DatabaseMigrationExtensions
 {

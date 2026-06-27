@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Requests\Client\Requests.Client.csproj" Condition="'$(EnableRequestsModule)' == 'true'" />
+		<ProjectReference Include="..\..\Users\Client\Users.Client.csproj" Condition="'$(EnableUsersModule)' == 'true'" />
+		<ProjectReference Include="..\..\Parties\Client\Parties.Client.csproj" Condition="'$(EnablePartiesModule)' == 'true'" />
+		<ProjectReference Include="..\..\Medical\Client\Medical.Client.csproj" Condition="'$(EnableMedicalModule)' == 'true'" />
+		<ProjectReference Include="..\..\Appointments\Client\Appointments.Client.csproj" Condition="'$(EnableAppointmentsModule)' == 'true'" />
+		<ProjectReference Include="..\..\Commerce\Client\Commerce.Client.csproj" Condition="'$(EnableCommerceModule)' == 'true'" />
+		<ProjectReference Include="..\..\Sea\Client\Sea.Client.csproj" Condition="'$(EnableSeaModule)' == 'true'" />
+		<ProjectReference Include="..\..\Communications\Client\Communications.Client.csproj" Condition="'$(EnableCommunicationsModule)' == 'true'" />
+		<ProjectReference Include="..\..\Feed\Client\Feed.Client.csproj" Condition="'$(EnableFeedModule)' == 'true'" />
+		<ProjectReference Include="..\..\Files\Client\Files.Client.csproj" Condition="'$(EnableFilesModule)' == 'true'" />
+		<ProjectReference Include="..\..\Financial\Client\Financial.Client.csproj" Condition="'$(EnableFinancialModule)' == 'true'" />
+		<ProjectReference Include="..\..\Intelligence\Client\Intelligence.Client.csproj" Condition="'$(EnableIntelligenceModule)' == 'true'" />
+		<ProjectReference Include="..\..\Knowledge\Client\Knowledge.Client.csproj" Condition="'$(EnableKnowledgeModule)' == 'true'" />
+		<ProjectReference Include="..\..\Search\Client\Search.Client.csproj" Condition="'$(EnableSearchModule)' == 'true'" />
+		<ProjectReference Include="..\..\Contents\Client\Contents.Client.csproj" Condition="'$(EnableContentsModule)' == 'true'" />
+		<ProjectReference Include="..\..\Social\Client\Social.Client.csproj" Condition="'$(EnableSocialModule)' == 'true'" />
+		<ProjectReference Include="..\..\Links\Client\Links.Client.csproj" Condition="'$(EnableLinksModule)' == 'true'" />
+	</ItemGroup>
+
+</Project>

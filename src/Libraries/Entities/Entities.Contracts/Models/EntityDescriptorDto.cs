@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Vitarish.Entities.Contracts;
+namespace Vitarish.Entities.Contracts.Models;
 
 public record EntityDescriptorDto
 {

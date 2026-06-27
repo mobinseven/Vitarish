@@ -1,4 +1,4 @@
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Base.Interface;
 
 namespace Vitarish.Appointments.Interface.Components.Base;
 

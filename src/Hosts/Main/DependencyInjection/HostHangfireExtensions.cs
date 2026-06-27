@@ -3,7 +3,7 @@ using Hangfire.PostgreSql;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.Platform;
-using Vitarish.Modules.Base.Platform.Transactions;
+using Vitarish.Modules.Base.Core.Platform.Transactions;
 
 namespace Vitarish.Main.DependencyInjection;
 

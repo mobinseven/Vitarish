@@ -3,7 +3,7 @@ using Vitarish.Modules.Base.Interface.Common;
 using Vitarish.Parties.Client;
 using Vitarish.Parties.Contracts.Tenants;
 
-namespace Vitarish.Interfaces.Aggregator.Components;
+namespace Vitarish.Modules.Aggregator.Interface.Components;
 
 public partial class CurrentUserTenantsWidget : CommonBase
 {

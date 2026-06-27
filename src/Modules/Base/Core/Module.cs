@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Vitarish.Modules.Base;
+namespace Vitarish.Modules.Base.Core;
 
 public abstract class Module : IModule
 {

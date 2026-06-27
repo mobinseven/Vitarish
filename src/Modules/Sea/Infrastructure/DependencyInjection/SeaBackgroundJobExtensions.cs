@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Vitarish.Modules.Base.BackgroundJobs;
+using Vitarish.Modules.Base.Core.BackgroundJobs;
 using Vitarish.Sea.Infrastructure.BackgroundJobs;
 
 namespace Vitarish.Sea.Infrastructure.DependencyInjection;

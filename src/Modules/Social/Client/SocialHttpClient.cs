@@ -1,6 +1,10 @@
 using System.Net;
 using Vitarish.Modules.Base.Client;
-using Vitarish.Social.Contracts;
+using Vitarish.Social.Contracts.Clients;
+using Vitarish.Social.Contracts.Enums;
+using Vitarish.Social.Contracts.Responses;
+using Vitarish.Social.Contracts.Results;
+using Vitarish.Social.Contracts.Routing;
 
 namespace Vitarish.Social.Client;
 

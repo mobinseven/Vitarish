@@ -1,4 +1,4 @@
-using Vitarish.Modules.Base.BackgroundJobs;
+using Vitarish.Modules.Base.Core.BackgroundJobs;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Dtos;
 

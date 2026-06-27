@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.Endpoints;
+namespace Vitarish.Modules.Base.Core.Endpoints;
 
 public sealed record ProtectedModuleEndpointMetadata(string Scheme);
 public sealed record AnonymousModuleEndpointMetadata(string Justification);

@@ -1,3 +1,5 @@
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Medical.Infrastructure.Handlers;
 
 internal sealed class ImportServiceValuationsHandler(MedicalDbContext dbContext)

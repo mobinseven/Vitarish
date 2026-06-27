@@ -1,3 +1,5 @@
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Entities.Server.Core;
 /// <summary>
 /// Represents a domain specific failure during an entity operation.

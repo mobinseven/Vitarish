@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.BackgroundJobs;
+namespace Vitarish.Modules.Base.Core.BackgroundJobs;
 
 /// <summary>
 /// Provides tenant identities for tenant-scoped background work.

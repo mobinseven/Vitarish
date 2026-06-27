@@ -10,7 +10,7 @@ using Vitarish.Knowledge.Contracts.Models;
 using Vitarish.Knowledge.Contracts.Requests;
 using Vitarish.Knowledge.Contracts.Responses;
 using Vitarish.Knowledge.Contracts.Routes;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Requests.Application.Abstractions;
 using AppEnums = Vitarish.Knowledge.Application.Enums;
 using WireEnums = Vitarish.Knowledge.Contracts.Enums;

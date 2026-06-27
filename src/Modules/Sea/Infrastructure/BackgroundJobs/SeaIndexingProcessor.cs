@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Vitarish.Modules.Base.BackgroundJobs;
+using Vitarish.Modules.Base.Core.BackgroundJobs;
 using Vitarish.Search.Application.Abstractions;
 
 namespace Vitarish.Sea.Infrastructure.BackgroundJobs;

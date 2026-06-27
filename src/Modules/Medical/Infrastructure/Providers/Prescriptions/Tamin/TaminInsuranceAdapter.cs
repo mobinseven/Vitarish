@@ -2,12 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
-using Vitarish.Modules.Base.Platform.Errors;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Entities;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
 using Vorn.Tamin;
+using Vitarish.Modules.Base.Core.Platform.Errors;
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 

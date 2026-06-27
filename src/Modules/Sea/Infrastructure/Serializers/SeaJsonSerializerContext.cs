@@ -1,3 +1,5 @@
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Sea.Presentation.Serializers;
 
 [JsonSourceGenerationOptions(

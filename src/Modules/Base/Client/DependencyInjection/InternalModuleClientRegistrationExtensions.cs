@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Vitarish.Modules.Base.DependencyInjection;
+namespace Vitarish.Modules.Base.Client.DependencyInjection;
 
 public static class InternalModuleClientRegistrationExtensions
 {

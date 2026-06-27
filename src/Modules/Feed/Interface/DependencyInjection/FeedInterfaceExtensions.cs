@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Feed.Client;
-using Vitarish.Modules.Base.DependencyInjection;
+using Vitarish.Modules.Base.Client.DependencyInjection;
 
 namespace Vitarish.Feed.Interface.DependencyInjection;
 

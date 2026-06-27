@@ -10,8 +10,8 @@ using Vitarish.Requests.Infrastructure;
 using Vitarish.Requests.Infrastructure.Data;
 using Vitarish.Requests.Infrastructure.Services;
 using Vitarish.Entities.Server.Extensions;
-using Vitarish.Modules.Base.BackgroundJobs;
 using Vitarish.Requests.Module.BackgroundJobs;
+using Vitarish.Modules.Base.Core.BackgroundJobs;
 
 namespace Vitarish.Requests.Module.DependencyInjection;
 

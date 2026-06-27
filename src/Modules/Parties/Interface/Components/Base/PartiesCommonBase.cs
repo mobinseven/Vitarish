@@ -1,5 +1,5 @@
 using Vitarish.Modules.Base.Interface.Common;
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Base.Interface;
 
 namespace Vitarish.Parties.Interface.Components.Base;
 

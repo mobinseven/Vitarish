@@ -1,4 +1,4 @@
-using Vitarish.Modules.Base.BackgroundJobs;
+using Vitarish.Modules.Base.Core.BackgroundJobs;
 
 namespace Vitarish.Medical.Infrastructure.BackgroundJobs;
 

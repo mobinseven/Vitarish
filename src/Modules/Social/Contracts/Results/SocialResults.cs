@@ -1,4 +1,6 @@
-namespace Vitarish.Social.Contracts;
+using Vitarish.Social.Contracts.Enums;
+
+namespace Vitarish.Social.Contracts.Results;
 
 public sealed record SocialQueryResult<T>(T? Value, SocialErrorResponse? Error)
 {

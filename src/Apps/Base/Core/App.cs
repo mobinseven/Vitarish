@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 
-namespace Vitarish.Apps.Base;
+namespace Vitarish.Apps.Base.Core;
 /// <summary>
 /// App is a package supporting a certain functionality.
 /// </summary>

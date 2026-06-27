@@ -12,12 +12,12 @@ using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Files.Infrastructure.DependencyInjection;
 using Vitarish.Files.Infrastructure.Services;
 using Vitarish.Files.Interface.DependencyInjection;
-using Vitarish.Modules.Base;
 using Vitarish.Entities.Server.Extensions;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Files.Module;
 
-public class FilesModule : Vitarish.Modules.Base.Module, IFilesModule
+public class FilesModule : Modules.Base.Core.Module, IFilesModule
 {
     public override string Name => "Files";
 

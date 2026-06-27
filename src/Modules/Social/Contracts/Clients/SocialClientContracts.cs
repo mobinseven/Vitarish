@@ -1,4 +1,7 @@
-namespace Vitarish.Social.Contracts;
+using Vitarish.Social.Contracts.Responses;
+using Vitarish.Social.Contracts.Results;
+
+namespace Vitarish.Social.Contracts.Clients;
 
 public interface ISocialClient : ISocialConnectionsClient, ISocialWebhooksClient;
 

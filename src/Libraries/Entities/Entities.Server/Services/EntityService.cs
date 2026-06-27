@@ -1,3 +1,4 @@
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Entities.Server.Abstractions;
 
 namespace Vitarish.Entities.Server.Services;

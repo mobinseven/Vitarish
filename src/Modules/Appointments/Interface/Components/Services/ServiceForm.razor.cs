@@ -1,4 +1,6 @@
 
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Appointments.Interface.Components.Services;
 
 public partial class ServiceForm : ServicesBase

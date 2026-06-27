@@ -6,7 +6,7 @@ using System.Reflection;
 using Vitarish.Modules.Base.Interface.Attributes;
 using Vitarish.Modules.Base.Interface.Common;
 
-namespace Vitarish.Interfaces.Aggregator.Components;
+namespace Vitarish.Modules.Aggregator.Interface.Components;
 
 
 public partial class NavBar : CommonBase, IAsyncDisposable

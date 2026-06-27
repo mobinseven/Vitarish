@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Components;
+using Vitarish.Modules.Base.Core;
 using Vitarish.Modules.Base.Interface.Common;
 
-namespace Vitarish.Modules.Base;
+namespace Vitarish.Modules.Base.Interface;
 
 public class TenantCommonBase : CommonBase, IDisposable
 {

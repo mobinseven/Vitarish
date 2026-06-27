@@ -1,4 +1,4 @@
-using Vitarish.Entities.Contracts;
+using Vitarish.Entities.Contracts.Models;
 namespace Vitarish.Parties.Contracts.Tenants;
 public enum IndicatorMethod { Hostname = 1, Subdomain = 2 }
 public enum IndicatorStatus { PendingVerification = 1, Verified = 2, Active = 3, Disabled = 4 }

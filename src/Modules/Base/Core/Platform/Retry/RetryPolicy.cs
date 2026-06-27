@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.Platform.Retry;
+namespace Vitarish.Modules.Base.Core.Platform.Retry;
 
 /// <summary>
 /// Defines retry policy for a specific provider. Used by the outbox

@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Vitarish.Modules.Base.Endpoints;
 
-namespace Vitarish.Modules.Base.Endpoints;
+namespace Vitarish.Modules.Base.Core.Endpoints;
 
 public enum ModuleEndpointProfile
 {

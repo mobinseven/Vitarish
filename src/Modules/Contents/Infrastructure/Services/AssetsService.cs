@@ -1,3 +1,4 @@
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Models;
 

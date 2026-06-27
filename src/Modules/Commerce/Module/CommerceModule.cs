@@ -7,12 +7,12 @@ using Vitarish.Commerce.Infrastructure.Data;
 using Vitarish.Commerce.Infrastructure.DependencyInjection;
 using Vitarish.Commerce.Infrastructure.Services;
 using Vitarish.Commerce.Interface.DependencyInjection;
-using Vitarish.Modules.Base;
 using Vitarish.Entities.Server.Extensions;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Commerce.Module;
 
-public class CommerceModule : Vitarish.Modules.Base.Module, ICommerceModule
+public class CommerceModule : Modules.Base.Core.Module, ICommerceModule
 {
     public override string Name => "Commerce";
 

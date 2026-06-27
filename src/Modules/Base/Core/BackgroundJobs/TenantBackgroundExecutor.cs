@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Vitarish.Modules.Base.BackgroundJobs;
+namespace Vitarish.Modules.Base.Core.BackgroundJobs;
 
 /// <summary>
 /// Executes background job work for each tenant, ensuring the request context is populated per tenant scope.

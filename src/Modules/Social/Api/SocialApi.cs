@@ -1,15 +1,18 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Vitarish.Modules.Base.Endpoints;
 using Vitarish.Social.Application.Abstractions;
-using Vitarish.Social.Contracts;
 using DomainConnection = Vitarish.Social.Domain.Entities.SocialConnection;
 using DomainProvider = Vitarish.Social.Domain.Enums.SocialProvider;
 using DomainConnectionStatus = Vitarish.Social.Domain.Enums.SocialConnectionStatus;
 using DomainRawWebhookEvent = Vitarish.Social.Domain.Entities.RawWebhookEvent;
 using DomainWebhookProcessingStatus = Vitarish.Social.Domain.Enums.WebhookProcessingStatus;
 using DomainWebhookVerificationStatus = Vitarish.Social.Domain.Enums.WebhookVerificationStatus;
+using Vitarish.Modules.Base.Core.Endpoints;
+using Vitarish.Social.Contracts.Routing;
+using Vitarish.Social.Contracts.Responses;
+using Vitarish.Social.Contracts.Enums;
+using Vitarish.Social.Contracts.Results;
 
 namespace Vitarish.Social.Api;
 

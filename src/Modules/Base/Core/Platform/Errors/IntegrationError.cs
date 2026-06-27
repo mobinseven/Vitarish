@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.Platform.Errors;
+namespace Vitarish.Modules.Base.Core.Platform.Errors;
 
 /// <summary>
 /// Represents a classified error from an external integration.

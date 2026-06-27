@@ -1,9 +1,9 @@
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Base.Core;
 using Vitarish.Parties.Client;
 using Vitarish.Parties.Contracts.Results;
 using Vitarish.Parties.Contracts.Tenants;
 using Vitarish.Users.Domain.Models;
-using Metadata = Vitarish.Entities.Contracts.Metadata;
+using Metadata = Vitarish.Entities.Contracts.Models.Metadata;
 
 namespace Vitarish.Main.Components;
 

@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using Vitarish.Modules.Base.BackgroundJobs;
+using Vitarish.Modules.Base.Core.BackgroundJobs;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs;
 

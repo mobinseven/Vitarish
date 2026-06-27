@@ -1,3 +1,4 @@
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Sea.Domain.Mappers;
 
 namespace Vitarish.Sea.Infrastructure.Services;

@@ -1,18 +1,18 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Modules.Base;
 using Vitarish.Parties.Module.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Services;
 using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Parties.Api;
 using Vitarish.Parties.Interface.DependencyInjection;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Parties.Module;
 
 /// <summary>
 /// Module composition root for Parties registration.
 /// </summary>
-public sealed class PartiesModule : Vitarish.Modules.Base.Module
+public sealed class PartiesModule : Modules.Base.Core.Module
 {
     public override string Name => "Parties";
 

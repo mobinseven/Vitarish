@@ -1,3 +1,5 @@
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Knowledge.Domain.Models;
 
 public sealed record KnowledgeCorpus : EntityReadDto

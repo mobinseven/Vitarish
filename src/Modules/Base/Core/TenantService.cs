@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
-namespace Vitarish.Modules.Base;
+namespace Vitarish.Modules.Base.Core;
 
 public sealed record TenantUserSummary(string Id, string? FullName)
 {

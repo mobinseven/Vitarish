@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Modules.Base.DependencyInjection;
 using Vitarish.Files.Client;
 using Vitarish.Files.Interface.Services;
+using Vitarish.Modules.Base.Client.DependencyInjection;
 
 namespace Vitarish.Files.Interface.DependencyInjection;
 

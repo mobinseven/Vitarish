@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using Vitarish.Modules.Base.Platform.Transactions;
+using Vitarish.Modules.Base.Core.Platform.Transactions;
 
 namespace Vitarish.Main.Infrastructure.Platform;
 

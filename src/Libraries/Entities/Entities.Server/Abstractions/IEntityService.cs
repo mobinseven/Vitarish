@@ -1,3 +1,5 @@
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Entities.Server.Abstractions;
 
 public interface IEntityService<TReadDto, TWriteDto, TDescriptorDto>

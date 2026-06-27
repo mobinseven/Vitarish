@@ -1,4 +1,6 @@
 
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Appointments.Interface.Components.Shifts;
 
 public partial class ShiftReminderPolicyForm : ShiftReminderPoliciesBase

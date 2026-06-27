@@ -1,4 +1,4 @@
-using Vitarish.Entities.Contracts;
+using Vitarish.Entities.Contracts.Models;
 
 namespace Vitarish.Commerce.Contracts;
 

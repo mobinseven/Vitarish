@@ -1,12 +1,12 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-using Vitarish.Modules.Base.BackgroundJobs;
-using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Application.Commands.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
+using Vitarish.Modules.Base.Core.Platform.Retry;
+using Vitarish.Modules.Base.Core.BackgroundJobs;
 
 namespace Vitarish.Medical.Infrastructure.BackgroundJobs;
 

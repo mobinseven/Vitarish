@@ -17,10 +17,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Apps\Aggregator\Apps.Aggregator.csproj" />
-		<ProjectReference Include="..\..\Interfaces\Interfaces.Aggregator\Interfaces.Aggregator.csproj" />
+		<ProjectReference Include="..\..\Apps\Base\Client\Apps.Base.Client.csproj" />
+		<ProjectReference Include="..\..\Apps\Base\Core\Apps.Base.Core.csproj" />
+		<ProjectReference Include="..\..\Apps\Base\Interface\Apps.Base.Interface.csproj" />
 		<ProjectReference Include="..\..\Libraries\Audit\Audit.Server\Audit.Server.csproj" />
-		<ProjectReference Include="..\..\Modules\Aggregator\Modules.Aggregator\Modules.Aggregator.csproj" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(EnableAppointmentsModule)' != 'true'">

@@ -1,3 +1,5 @@
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Contents.Domain.Dto;
 
 public record TermWriteDto : EntityWriteDto

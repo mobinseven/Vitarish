@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Files.Application.Abstractions;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Base.Core.Endpoints;
 
 namespace Vitarish.Files.Infrastructure.Api;
 

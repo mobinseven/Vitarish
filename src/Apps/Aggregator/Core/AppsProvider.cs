@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Localization;
 using Vitarish.Apps.Base;
 
-namespace Vitarish.Apps.Aggregator;
+namespace Vitarish.Apps.Aggregator.Core;
 
 public record AppRecord(string Id, string Name);
 

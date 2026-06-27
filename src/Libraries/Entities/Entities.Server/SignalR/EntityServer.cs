@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
 

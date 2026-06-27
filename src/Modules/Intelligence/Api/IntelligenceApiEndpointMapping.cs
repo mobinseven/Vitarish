@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Contracts;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Base.Core.Endpoints;
 using D = Vitarish.Intelligence.Domain.Models;
 
 namespace Vitarish.Intelligence.Api;

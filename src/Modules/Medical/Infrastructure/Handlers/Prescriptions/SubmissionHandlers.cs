@@ -4,12 +4,13 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
-using Vitarish.Modules.Base.Platform.Errors;
 using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Application.Commands.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
+using Vitarish.Modules.Base.Core.Platform.Errors;
+using Vitarish.Modules.Base.Core.Platform.Retry;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 

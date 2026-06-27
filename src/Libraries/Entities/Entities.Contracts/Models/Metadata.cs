@@ -1,4 +1,4 @@
-namespace Vitarish.Entities.Contracts;
+namespace Vitarish.Entities.Contracts.Models;
 
 public class Metadata : Dictionary<string, object?>
 {

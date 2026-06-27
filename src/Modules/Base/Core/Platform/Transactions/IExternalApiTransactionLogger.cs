@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.Platform.Transactions;
+namespace Vitarish.Modules.Base.Core.Platform.Transactions;
 
 /// <summary>
 /// Centralized service for logging outbound API calls to external providers.

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using Vitarish.Contents.Infrastructure.SearchProviders;
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Search.Application.Abstractions;
 

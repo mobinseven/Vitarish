@@ -1,7 +1,7 @@
 using System.Net;
 using Vitarish.Appointments.Contracts.Dto;
 using Vitarish.Appointments.Contracts.Models;
-using Vitarish.Entities.Contracts;
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Modules.Base.Client;
 
 namespace Vitarish.Appointments.Client;

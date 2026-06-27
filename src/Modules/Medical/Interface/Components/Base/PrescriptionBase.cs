@@ -1,5 +1,5 @@
 using MudBlazor;
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Base.Interface;
 
 namespace Vitarish.Medical.Interface.Components.Base;
 

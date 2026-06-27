@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Models;
-using Vitarish.Modules.Base.BackgroundJobs;
+using Vitarish.Modules.Base.Core.BackgroundJobs;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Mappers;

@@ -1,4 +1,5 @@
 using Vitarish.Appointments.Domain.Mappers;
+using Vitarish.Entities.Contracts.Models;
 
 namespace Vitarish.Appointments.Infrastructure.Services;
 

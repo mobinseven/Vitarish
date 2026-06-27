@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Modules.Base.DependencyInjection;
+using Vitarish.Modules.Base.Client.DependencyInjection;
 using Vitarish.Social.Client;
-using Vitarish.Social.Contracts;
+using Vitarish.Social.Contracts.Clients;
 
 namespace Vitarish.Social.Interface.DependencyInjection;
 

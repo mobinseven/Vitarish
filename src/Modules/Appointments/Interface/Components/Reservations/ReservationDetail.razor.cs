@@ -1,4 +1,6 @@
 
+using Vitarish.Entities.Contracts.Models;
+
 namespace Vitarish.Appointments.Interface.Components.Reservations;
 
 public partial class ReservationDetail : ReservationsBase

@@ -1,3 +1,5 @@
+using Vitarish.Entities.Contracts.Models;
+
 public static class EntityResultExtensions
 {
     public static T EnsureValue<T>(this EntityResult<T> result, string? operationName = null) => result.IsSuccess && result.Value is { } value

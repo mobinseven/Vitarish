@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace Vitarish.Entities.Contracts;
+namespace Vitarish.Entities.Contracts.Models;
 /// <summary>
 /// Represents the outcome of an entity operation without a payload.
 /// </summary>

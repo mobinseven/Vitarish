@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.Platform.Capabilities;
+namespace Vitarish.Modules.Base.Core.Platform.Capabilities;
 
 /// <summary>
 /// Centralized registry for capability providers. Modules register their providers here;

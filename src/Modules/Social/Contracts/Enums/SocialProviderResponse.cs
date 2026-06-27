@@ -1,4 +1,4 @@
-namespace Vitarish.Social.Contracts;
+namespace Vitarish.Social.Contracts.Enums;
 
 public enum SocialProviderResponse
 {

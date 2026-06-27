@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.BackgroundJobs;
+namespace Vitarish.Modules.Base.Core.BackgroundJobs;
 
 /// <summary>
 /// Applies request identity values for background work running outside HTTP.

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Vitarish.Parties.Client;
 using Vitarish.Parties.Contracts.Tenants;
 
-namespace Vitarish.Interfaces.Aggregator.Components;
+namespace Vitarish.Modules.Aggregator.Interface.Components;
 
 public partial class TenantWidget
 {

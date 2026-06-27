@@ -1,4 +1,4 @@
-namespace Vitarish.Social.Contracts;
+namespace Vitarish.Social.Contracts.Routing;
 
 public static class SocialApiRoutes
 {

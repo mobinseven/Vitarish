@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Modules.Base.DependencyInjection;
+using Vitarish.Modules.Base.Client.DependencyInjection;
 using Vitarish.Parties.Client;
 namespace Vitarish.Parties.Interface.DependencyInjection;
 public static class PartiesInterfaceExtensions

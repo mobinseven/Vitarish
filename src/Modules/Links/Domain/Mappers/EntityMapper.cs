@@ -1,4 +1,5 @@
 using Riok.Mapperly.Abstractions;
+using Vitarish.Entities.Contracts.Models;
 
 [assembly: Vitarish.Entities.Generators.GenerateEntitiesRegistrationAttribute]
 

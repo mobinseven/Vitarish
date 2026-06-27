@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.Platform.Errors;
+namespace Vitarish.Modules.Base.Core.Platform.Errors;
 
 /// <summary>
 /// Platform-level canonical error taxonomy. Provider adapters and external integrations

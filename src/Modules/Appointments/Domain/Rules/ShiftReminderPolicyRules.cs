@@ -1,4 +1,5 @@
 using Vitarish.Appointments.Domain.Dto;
+using Vitarish.Entities.Contracts.Models;
 
 namespace Vitarish.Appointments.Domain.Rules;
 

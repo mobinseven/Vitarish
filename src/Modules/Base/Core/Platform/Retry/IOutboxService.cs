@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.Platform.Retry;
+namespace Vitarish.Modules.Base.Core.Platform.Retry;
 
 /// <summary>
 /// Centralized outbox service for deferred and retryable operations.

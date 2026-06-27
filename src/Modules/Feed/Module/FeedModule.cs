@@ -3,11 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Feed.Api;
 using Vitarish.Feed.Infrastructure;
-using Vitarish.Modules.Base;
 
 namespace Vitarish.Feed.Module;
 
-public sealed class FeedModule : Vitarish.Modules.Base.Module
+public sealed class FeedModule : Modules.Base.Core.Module
 {
     public override string Name => "Feed";
 

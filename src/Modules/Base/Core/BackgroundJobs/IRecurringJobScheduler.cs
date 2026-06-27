@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Base.BackgroundJobs;
+namespace Vitarish.Modules.Base.Core.BackgroundJobs;
 
 /// <summary>
 /// Schedules module-owned recurring background jobs through a host-neutral convention.
