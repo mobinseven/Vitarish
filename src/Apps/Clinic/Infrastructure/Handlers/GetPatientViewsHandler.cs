@@ -4,15 +4,14 @@ using Vitarish.Clinic.Application.Queries.Patients;
 using Vitarish.Clinic.Domain.Models;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Requests.Application.Abstractions;
-using Vitarish.Sea.Domain.Dto;
-using Vitarish.Sea.Domain.Models;
 
 namespace Vitarish.Clinic.Infrastructure.Handlers;
 
 internal sealed class GetPatientViewsHandler(
     ClinicDbContext dbContext,
     IRequestContext requestContext,
-    PatientViewQueryShape queryShape) : IRequestHandler<GetPatientsQuery, IReadOnlyList<PatientView>>
+    PatientViewQueryShape queryShape,
+    PatientViewStatsLoader statsLoader) : IRequestHandler<GetPatientsQuery, IReadOnlyList<PatientView>>
 {
     private const int DefaultTake = 100;
     private const int MaximumTake = 1000;
@@ -38,42 +37,9 @@ internal sealed class GetPatientViewsHandler(
             .Take(take)
             .ToListAsync(cancellationToken);
 
-        await PopulateStatsAsync(patients, cancellationToken);
+        await statsLoader.LoadAsync(patients, cancellationToken);
 
         return patients;
     }
 
-    private async Task PopulateStatsAsync(IReadOnlyList<PatientView> patients, CancellationToken cancellationToken)
-    {
-        if (patients.Count == 0)
-        {
-            return;
-        }
-
-        Guid[] patientIds = [.. patients.Select(patient => patient.Id)];
-
-        Dictionary<Guid, ProjectStats> statsByPatientId = await dbContext.ProjectStats
-                    .AsNoTracking()
-                    .Where(stat => patientIds.Contains(stat.ProjectId))
-                    .ToDictionaryAsync(stat => stat.ProjectId, cancellationToken);
-
-        foreach (PatientView patient in patients)
-        {
-            patient.Stats = statsByPatientId.TryGetValue(patient.Id, out ProjectStats? stats)
-                ? ToStatsReadDto(stats)
-                : new StatsReadDto();
-        }
-    }
-
-    private static StatsReadDto ToStatsReadDto(ProjectStats stats) => new()
-    {
-        State = stats.State,
-        Procedures = stats.Procedures,
-        Events = stats.Events,
-        CommittedEvents = stats.CommittedEvents,
-        EventItems = stats.EventItems,
-        NewItems = stats.NewItems,
-        Unread = stats.Unread,
-        LastUpdate = stats.LastUpdate
-    };
 }

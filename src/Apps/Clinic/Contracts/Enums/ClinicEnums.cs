@@ -2,10 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace Vitarish.Clinic.Contracts.Enums;
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter<Gender>))]
 public enum Gender { Unspecified, Female, Male }
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter<Education>))]
 public enum Education { Unspecified, NoFormalEducation, PrimarySchool, HighSchool, AssociateDegree, BachelorDegree, MasterDegree, Doctorate, Professional }
 
 [JsonConverter(typeof(JsonStringEnumConverter<PatientSortBy>))]

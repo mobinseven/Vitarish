@@ -6,6 +6,7 @@ namespace Vitarish.Clinic.Interface.Components.Patients;
 public partial class PatientsGrid
 {
     [Inject] private IClinicClient ClinicClient { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private readonly bool MassEditMode;
     private int patientsQueryVersion;
@@ -45,7 +46,13 @@ public partial class PatientsGrid
     private async Task<IReadOnlyList<PatientViewDto>> QueryPatientsAsync(int skip, int take, CancellationToken cancellationToken)
     {
         var result = await ClinicClient.ListPatientsAsync(CreatePatientsQuery(skip, take), cancellationToken);
-        return result.Succeeded ? result.Value ?? [] : [];
+        if (result.Succeeded)
+        {
+            return result.Value ?? [];
+        }
+
+        _ = Snackbar.Add(result.Error?.Message ?? Localizer["Error"].Value, Severity.Error);
+        return [];
     }
 
     private async Task<IReadOnlyList<ProjectReadDto>> QueryEditablePatientsAsync(int skip, int take, CancellationToken cancellationToken)

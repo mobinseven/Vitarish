@@ -10,6 +10,7 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
         {
             _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ClinicDbContext).Assembly));
             _ = services.AddTransient<PatientViewQueryShape>();
+            _ = services.AddTransient<PatientViewStatsLoader>();
 
             return services;
         }
