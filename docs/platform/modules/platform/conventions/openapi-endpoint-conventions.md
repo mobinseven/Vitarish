@@ -2,7 +2,7 @@
 
 ## Ownership
 
-OpenAPI document generation and document exposure are owned by the host composition root. Modules contribute endpoint metadata only through the platform helpers in `src/Modules/Base/Core/Endpoints/`.
+OpenAPI document generation and document exposure are owned by the host composition root. Modules contribute endpoint metadata only through the platform helpers in `src/Modules/Aggregator/Core/Endpoints/`.
 
 The main host registers `AddOpenApi()` next to `AddEndpointsApiExplorer()` and maps `/openapi/{documentName}.json` only when `IHostEnvironment.IsDevelopment()` is true. Production exposure must either remain disabled or be explicitly authorization-protected in the host.
 

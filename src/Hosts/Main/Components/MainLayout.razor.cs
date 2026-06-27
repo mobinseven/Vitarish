@@ -1,6 +1,6 @@
 using Vitarish.Interfaces.Accounts.Abstractions;
-using Vitarish.Modules.Base.Interface.Abstractions;
-using Vitarish.Modules.Base.Interface.Models;
+using Vitarish.Modules.Aggregator.Interface.Abstractions;
+using Vitarish.Modules.Aggregator.Interface.Models;
 
 namespace Vitarish.Main.Components;
 

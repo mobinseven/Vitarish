@@ -1,4 +1,4 @@
-using Vitarish.Modules.Base.Interface.Common;
+using Vitarish.Modules.Aggregator.Interface.Common;
 using Vitarish.Parties.Client;
 
 namespace Vitarish.Interfaces.Admins.Components

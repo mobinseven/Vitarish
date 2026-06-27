@@ -1,7 +1,7 @@
 global using Microsoft.AspNetCore.Components;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Localization;
-global using Vitarish.Apps.Base;
+global using Vitarish.Apps.Aggregator.Core;
 global using Vitarish.Clinic.Client;
 global using Vitarish.Clinic.Contracts.Enums;
 global using Vitarish.Clinic.Contracts.Responses;

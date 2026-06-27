@@ -6,7 +6,7 @@ using Vitarish.Communications.Contracts.Requests;
 using Vitarish.Communications.Contracts.Responses;
 using Vitarish.Communications.Contracts.Results;
 using Vitarish.Communications.Contracts.Routes;
-using Vitarish.Modules.Base.Client;
+using Vitarish.Modules.Aggregator.Client;
 namespace Vitarish.Communications.Client;
 public sealed class CommunicationsClient(HttpClient httpClient) : AuthenticatedModuleApiClient(httpClient), ICommunicationsClient
 {

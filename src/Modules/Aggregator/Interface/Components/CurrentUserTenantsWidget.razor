@@ -1,0 +1,14 @@
+
+@inherits CommonBase
+
+@if(userTenants.Count() > 0)
+{
+    <Stack>
+        <StackSelect T="UserTenantDto" Label="@Localizer["Workspaces"]" ValueChanged="t => NavigateToTenant(t)">
+            @foreach(var entry in userTenants)
+            {
+                <StackSelectItem Value="entry">@entry.Name</StackSelectItem>
+            }
+        </StackSelect>
+    </Stack>
+}

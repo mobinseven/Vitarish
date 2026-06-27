@@ -14,7 +14,7 @@ SCAN_PATTERNS = [
  'src/Modules/**/Infrastructure/Extensions/*Endpoint*.cs',
 ]
 RAW = {'MapGet','MapPost','MapPut','MapDelete','MapPatch','MapMethods','MapGroup'}
-ALLOW_RAW_FILES = {'src/Modules/Base/Core/Endpoints/ModuleEndpointMappingExtensions.cs','src/Modules/Base/Core/Endpoints/ProtectedModuleEndpointRouteBuilderExtensions.cs'}
+ALLOW_RAW_FILES = {'src/Modules/Aggregator/Core/Endpoints/ModuleEndpointMappingExtensions.cs','src/Modules/Aggregator/Core/Endpoints/ProtectedModuleEndpointRouteBuilderExtensions.cs'}
 CONTRACT_ROOT_RE = re.compile(r'^src/Modules/[^/]+/Contracts/')
 FORBIDDEN_SCHEMA_RE = re.compile(r'/((Domain|Application|Infrastructure|Persistence|Identity|Interfaces?|UI|Client|Clients)|Data|Entity|Entities)/|/Sdk/|/Vendor/', re.I)
 TYPE_INDEX = None

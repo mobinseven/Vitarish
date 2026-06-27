@@ -3,11 +3,11 @@
     "defaultMode": "FailFast",
     "frontendSafeDependencyAllowlist": [
         {
-            "project": "src/Modules/Base/Interface/Modules.Base.Interface.csproj",
+            "project": "src/Modules/Aggregator/Interface/Modules.Aggregator.Interface.csproj",
             "reason": "Shared UI primitives and presentation services only."
         },
         {
-            "project": "src/Modules/Base/Client/Modules.Base.Client.csproj",
+            "project": "src/Modules/Aggregator/Client/Modules.Aggregator.Client.csproj",
             "reason": "Shared frontend-safe HTTP client registration and transport base."
         }
     ],
@@ -83,6 +83,12 @@
             "targetProject": "src/Modules/Files/Interface/Files.Interface.csproj",
             "owningUiCompositionUseCase": "Clinic composes existing file components.",
             "reason": "Approved frontend-safe UI composition dependency."
+        },
+        {
+            "sourceModule": "Aggregator",
+            "targetProject": "src/Modules/Parties/Client/Parties.Client.csproj",
+            "owningUiCompositionUseCase": "Aggregator workspace widgets use Parties frontend API for tenant choices.",
+            "reason": "Approved frontend-safe Client dependency; no backend implementation reference."
         }
     ],
     "globalInterfaces": {
@@ -91,10 +97,6 @@
             "temporaryExceptions": []
         },
         "Interfaces.Admins": {
-            "mode": "FailFast",
-            "temporaryExceptions": []
-        },
-        "Interfaces.Aggregator": {
             "mode": "FailFast",
             "temporaryExceptions": []
         }
@@ -172,7 +174,7 @@
             "mode": "FailFast",
             "temporaryExceptions": []
         },
-        "Base": {
+        "Aggregator": {
             "mode": "FailFast",
             "temporaryExceptions": []
         }

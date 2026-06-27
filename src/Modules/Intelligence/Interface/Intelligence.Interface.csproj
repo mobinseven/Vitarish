@@ -2,7 +2,7 @@
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
   <ItemGroup><SupportedPlatform Include="browser" /></ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
+    <ProjectReference Include="..\..\Aggregator\Interface\Modules.Aggregator.Interface.csproj" />
     <ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
     <ProjectReference Include="..\..\Files\Contracts\Files.Contracts.csproj" />
     <ProjectReference Include="..\Client\Intelligence.Client.csproj" />

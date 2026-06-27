@@ -1,6 +1,6 @@
 namespace Vitarish.Appointments.Interface.Components.Shifts;
 
-public partial class BookableShiftsCalendar : Vitarish.Modules.Base.TenantCommonBase
+public partial class BookableShiftsCalendar : Vitarish.Modules.Aggregator.Interface.TenantCommonBase
 {
     [Parameter] public ShiftDescriptorDto? Descriptor { get; set; }
     [Parameter] public ShiftDateRangeQuery? Range { get; set; }

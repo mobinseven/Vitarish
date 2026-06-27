@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Net;
-using Vitarish.Modules.Base.Client;
+using Vitarish.Modules.Aggregator.Client;
 using Vitarish.Users.Contracts.Requests;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Contracts.Routes;

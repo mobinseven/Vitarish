@@ -13,7 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Search.Contracts.csproj" />
     <ProjectReference Include="..\Client\Search.Client.csproj" />
-    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
+    <ProjectReference Include="..\..\Aggregator\Interface\Modules.Aggregator.Interface.csproj" />
   </ItemGroup>
 
   <ItemGroup>

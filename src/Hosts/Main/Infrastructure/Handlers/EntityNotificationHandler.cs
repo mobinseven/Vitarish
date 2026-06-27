@@ -1,7 +1,7 @@
 using MediatR;
 using Vitarish.Entities.Server.Infrastructure;
-using Vitarish.Modules.Base.Interface.Abstractions;
-using Vitarish.Modules.Base.Interface.Models;
+using Vitarish.Modules.Aggregator.Interface.Abstractions;
+using Vitarish.Modules.Aggregator.Interface.Models;
 
 namespace Vitarish.Main.Infrastructure.Handlers;
 

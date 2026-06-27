@@ -7,7 +7,7 @@ using Vitarish.Clinic.Contracts.Errors;
 using Vitarish.Clinic.Contracts.Responses;
 using Vitarish.Clinic.Contracts.Routes;
 using Vitarish.Clinic.Domain.Models;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Aggregator.Core.Endpoints;
 using ContractEducation = Vitarish.Clinic.Contracts.Enums.Education;
 using ContractGender = Vitarish.Clinic.Contracts.Enums.Gender;
 using ContractPatientSortBy = Vitarish.Clinic.Contracts.Enums.PatientSortBy;

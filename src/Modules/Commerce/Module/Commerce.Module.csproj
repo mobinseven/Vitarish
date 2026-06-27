@@ -11,7 +11,7 @@
     <ProjectReference Include="..\Api\Commerce.Api.csproj" />
     <ProjectReference Include="..\Infrastructure\Commerce.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Commerce.Application.csproj" />
-    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+    <ProjectReference Include="..\..\Aggregator\Core\Modules.Aggregator.Core.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
 </Project>

@@ -5,7 +5,7 @@ using Vitarish.Appointments.Contracts.Dto;
 using Vitarish.Appointments.Contracts.Requests;
 using Vitarish.Appointments.Contracts.Results;
 using Vitarish.Appointments.Contracts.Routes;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Aggregator.Core.Endpoints;
 
 namespace Vitarish.Appointments.Api;
 

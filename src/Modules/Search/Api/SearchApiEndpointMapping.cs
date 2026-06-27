@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Aggregator.Core.Endpoints;
 using Vitarish.Search.Application.Abstractions;
 using Vitarish.Search.Application.Queries;
 using Vitarish.Search.Contracts.Errors;

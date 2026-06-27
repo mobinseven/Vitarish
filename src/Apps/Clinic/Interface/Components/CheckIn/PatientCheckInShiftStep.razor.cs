@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Vitarish.Clinic.Interface.Components.CheckIn;
 
-public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
+public partial class PatientCheckInShiftStep : Modules.Aggregator.Interface.TenantCommonBase
 {
     [Parameter, EditorRequired] public PatientCheckInContext Context { get; set; } = default!;
     [Parameter] public EventCallback OnBooked { get; set; }

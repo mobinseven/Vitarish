@@ -11,7 +11,7 @@
 		<ProjectReference Include="..\Api\Clinic.Api.csproj" />
 		<ProjectReference Include="..\Infrastructure\Clinic.Infrastructure.csproj" />
 		<ProjectReference Include="..\Interface\Clinic.Interface.csproj" />
-		<ProjectReference Include="..\..\Base\Apps.Base.csproj" />
+		<ProjectReference Include="..\..\Aggregator\Core\Apps.Aggregator.Core.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 	</ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-using Vitarish.Modules.Base.Interface.Models;
+using Vitarish.Modules.Aggregator.Interface.Models;
 
 namespace Vitarish.Communications.Interface.Components.Reminders;
 

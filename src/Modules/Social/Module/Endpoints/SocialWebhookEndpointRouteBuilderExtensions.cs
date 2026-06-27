@@ -5,7 +5,7 @@ using Microsoft.Extensions.Primitives;
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Text;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Aggregator.Core.Endpoints;
 using Vitarish.Social.Application.Abstractions;
 using Vitarish.Social.Domain.Enums;
 

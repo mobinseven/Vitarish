@@ -1,4 +1,4 @@
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Aggregator.Core;
 
 namespace Vitarish.Contents.Application.Abstractions;
 

@@ -1,19 +1,19 @@
 using Finbuckle.MultiTenant;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Apps.Aggregator;
+using Vitarish.Apps.Aggregator.Interface;
 using Vitarish.Audit.Server;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Feed.Infrastructure;
-using Vitarish.Modules.Base.Interface.Services;
+using Vitarish.Modules.Aggregator.Interface.Services;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.Handlers;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Aggregator.Core;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Platform.Module.DependencyInjection;
 
@@ -122,7 +122,6 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
     .WithDelegateStrategy(tenantResolver);
 
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
-builder.Services.AddVitarishInterfacesBase();
 builder.Services.AddVitarishInterfacesAggregator();
 
 builder.Services.AddSingleton(new NavServiceRoutes { ProfileRoute = AppRoutes.Account.Settings });

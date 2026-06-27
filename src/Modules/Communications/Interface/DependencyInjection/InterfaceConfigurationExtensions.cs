@@ -1,5 +1,5 @@
 using Vitarish.Communications.Client;
-using Vitarish.Modules.Base.DependencyInjection;
+using Vitarish.Modules.Aggregator.Core.DependencyInjection;
 
 namespace Vitarish.Communications.Interface.DependencyInjection;
 

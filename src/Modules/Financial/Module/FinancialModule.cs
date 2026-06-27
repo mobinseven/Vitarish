@@ -4,12 +4,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Financial.Application.Abstractions;
 using Vitarish.Financial.Infrastructure.Data;
 using Vitarish.Financial.Infrastructure.DependencyInjection;
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Aggregator.Core;
 using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Financial.Module;
 
-public sealed class FinancialModule : Vitarish.Modules.Base.Module, IFinancialModule
+public sealed class FinancialModule : Vitarish.Modules.Aggregator.Core.Module, IFinancialModule
 {
     public override string Name => "Financial";
 

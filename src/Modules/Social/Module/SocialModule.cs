@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Aggregator.Core;
 using Vitarish.Social.Api;
 using Vitarish.Social.Application.Abstractions;
 using Vitarish.Social.Module.Endpoints;
@@ -12,7 +12,7 @@ using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Social.Module;
 
-public sealed class SocialModule : Vitarish.Modules.Base.Module, ISocialModule
+public sealed class SocialModule : Vitarish.Modules.Aggregator.Core.Module, ISocialModule
 {
     public override string Name => "Social";
 

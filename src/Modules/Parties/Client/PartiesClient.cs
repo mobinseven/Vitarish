@@ -1,5 +1,5 @@
 using System.Net;
-using Vitarish.Modules.Base.Client;
+using Vitarish.Modules.Aggregator.Client;
 using Vitarish.Parties.Contracts.Errors;
 using Vitarish.Parties.Contracts.Results;
 using Vitarish.Parties.Contracts.Routes;

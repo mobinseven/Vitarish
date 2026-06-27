@@ -6,10 +6,12 @@
 
 	<ItemGroup>
 		<PackageReference Include="Injectio" />
+		<PackageReference Include="MudBlazor" />
 			</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Client\Clinic.Client.csproj" />
+	  <ProjectReference Include="..\..\..\Modules\Aggregator\Interface\Modules.Aggregator.Interface.csproj" />
 	  <ProjectReference Include="..\Contracts\Clinic.Contracts.csproj" />
 	  <ProjectReference Include="..\..\..\Modules\Sea\Client\Sea.Client.csproj" />
 	  <ProjectReference Include="..\..\..\Modules\Sea\Contracts\Sea.Contracts.csproj" />

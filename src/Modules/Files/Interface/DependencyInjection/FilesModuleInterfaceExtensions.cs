@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Modules.Base.DependencyInjection;
+using Vitarish.Modules.Aggregator.Core.DependencyInjection;
 using Vitarish.Files.Client;
 using Vitarish.Files.Interface.Services;
 

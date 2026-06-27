@@ -1,5 +1,5 @@
 using Vitarish.Appointments.Client;
-using Vitarish.Modules.Base.DependencyInjection;
+using Vitarish.Modules.Aggregator.Core.DependencyInjection;
 
 namespace Vitarish.Appointments.Interface.DependencyInjection;
 

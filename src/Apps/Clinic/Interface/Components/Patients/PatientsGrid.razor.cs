@@ -1,4 +1,4 @@
-using Vitarish.Modules.Base.Interface.Models;
+using Vitarish.Modules.Aggregator.Interface.Models;
 using SeaProjectSortBy = Vitarish.Sea.Contracts.Enums.ProjectSortBy;
 
 namespace Vitarish.Clinic.Interface.Components.Patients;

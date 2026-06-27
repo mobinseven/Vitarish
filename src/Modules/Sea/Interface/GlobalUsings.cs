@@ -3,7 +3,7 @@ global using Microsoft.AspNetCore.Components;
 global using Microsoft.Extensions.DependencyInjection;
 global using MudBlazor;
 global using System.Text;
-global using Vitarish.Modules.Base.Interface.Common;
+global using Vitarish.Modules.Aggregator.Interface.Common;
 global using Vitarish.Sea.Client;
 global using Vitarish.Sea.Contracts.Enums;
 global using Vitarish.Sea.Contracts.Errors;

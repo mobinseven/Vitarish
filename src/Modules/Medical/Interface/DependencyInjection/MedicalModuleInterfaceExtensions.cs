@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Medical.Client;
-using Vitarish.Modules.Base.DependencyInjection;
+using Vitarish.Modules.Aggregator.Core.DependencyInjection;
 
 namespace Vitarish.Medical.Interface.DependencyInjection;
 

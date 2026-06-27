@@ -28,9 +28,10 @@
     </Project>
     <Project Path="src/Apps/Clinic/Interface/Clinic.Interface.csproj" />
   </Folder>
-  <Folder Name="/src/Apps/Common/">
-    <Project Path="src/Apps/Aggregator/Apps.Aggregator.csproj" />
-    <Project Path="src/Apps/Base/Apps.Base.csproj" />
+  <Folder Name="/src/Apps/Aggregator/">
+    <Project Path="src/Apps/Aggregator/Core/Apps.Aggregator.Core.csproj" />
+    <Project Path="src/Apps/Aggregator/Client/Apps.Aggregator.Client.csproj" />
+    <Project Path="src/Apps/Aggregator/Interface/Apps.Aggregator.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Hosts/">
     <Project Path="src/Hosts/Main/Main.csproj" />
@@ -38,7 +39,6 @@
   <Folder Name="/src/Interfaces/">
     <Project Path="src/Interfaces/Interfaces.Accounts/Interfaces.Accounts.csproj" />
     <Project Path="src/Interfaces/Interfaces.Admins/Interfaces.Admins.csproj" />
-    <Project Path="src/Interfaces/Interfaces.Aggregator/Interfaces.Aggregator.csproj" Id="58fae1cd-da6c-49d4-a500-516c6c509359" />
   </Folder>
   <Folder Name="/src/Libraries/" />
   <Folder Name="/src/Libraries/Audit/">
@@ -54,7 +54,9 @@
   </Folder>
   <Folder Name="/src/Modules/" />
   <Folder Name="/src/Modules/Aggregator/">
-    <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
+    <Project Path="src/Modules/Aggregator/Core/Modules.Aggregator.Core.csproj" />
+    <Project Path="src/Modules/Aggregator/Client/Modules.Aggregator.Client.csproj" />
+    <Project Path="src/Modules/Aggregator/Interface/Modules.Aggregator.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Appointments/">
     <Project Path="src/Modules/Appointments/Api/Appointments.Api.csproj" />
@@ -65,11 +67,6 @@
     <Project Path="src/Modules/Appointments/Infrastructure/Appointments.Infrastructure.csproj" />
     <Project Path="src/Modules/Appointments/Interface/Appointments.Interface.csproj" />
     <Project Path="src/Modules/Appointments/Module/Appointments.Module.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/Base/">
-    <Project Path="src/Modules/Base/Client/Modules.Base.Client.csproj" />
-    <Project Path="src/Modules/Base/Core/Modules.Base.Core.csproj" />
-    <Project Path="src/Modules/Base/Interface/Modules.Base.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Commerce/">
     <Project Path="src/Modules/Commerce/Api/Commerce.Api.csproj">
@@ -223,9 +220,7 @@
     <Project Path="src/Modules/Parties/Api/Parties.Api.csproj" />
     <Project Path="src/Modules/Parties/Application/Parties.Application.csproj" />
     <Project Path="src/Modules/Parties/Client/Parties.Client.csproj" />
-    <Project Path="src/Modules/Parties/Contracts/Parties.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Parties/Contracts/Parties.Contracts.csproj" />
     <Project Path="src/Modules/Parties/Domain/Parties.Domain.csproj" />
     <Project Path="src/Modules/Parties/Infrastructure/Parties.Infrastructure.csproj" />
     <Project Path="src/Modules/Parties/Interface/Parties.Interface.csproj" />

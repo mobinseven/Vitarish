@@ -1,4 +1,4 @@
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Aggregator.Core;
 using Vitarish.Parties.Client;
 using Vitarish.Parties.Contracts.Results;
 using Vitarish.Parties.Contracts.Tenants;

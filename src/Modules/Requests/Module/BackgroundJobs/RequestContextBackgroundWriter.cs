@@ -1,4 +1,4 @@
-using Vitarish.Modules.Base.BackgroundJobs;
+using Vitarish.Modules.Aggregator.Core.BackgroundJobs;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Requests.Module.BackgroundJobs;

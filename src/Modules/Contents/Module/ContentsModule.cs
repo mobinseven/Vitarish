@@ -4,12 +4,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Contents.Application.Abstractions;
 using Vitarish.Contents.Infrastructure.Data;
 using Vitarish.Contents.Infrastructure.DependencyInjection;
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Aggregator.Core;
 using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Contents.Module;
 
-public sealed class ContentsModule : Vitarish.Modules.Base.Module, IContentsModule
+public sealed class ContentsModule : Vitarish.Modules.Aggregator.Core.Module, IContentsModule
 {
     public override string Name => "Contents";
 

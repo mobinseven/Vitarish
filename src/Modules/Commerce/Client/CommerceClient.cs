@@ -1,7 +1,7 @@
 using System.Net;
 using Vitarish.Commerce.Contracts;
 using Vitarish.Entities.Contracts;
-using Vitarish.Modules.Base.Client;
+using Vitarish.Modules.Aggregator.Client;
 
 namespace Vitarish.Commerce.Client;
 

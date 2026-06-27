@@ -5,7 +5,7 @@ using Vitarish.Knowledge.Contracts.Requests;
 using Vitarish.Knowledge.Contracts.Responses;
 using Vitarish.Knowledge.Contracts.Results;
 using Vitarish.Knowledge.Contracts.Routes;
-using Vitarish.Modules.Base.Client;
+using Vitarish.Modules.Aggregator.Client;
 
 namespace Vitarish.Knowledge.Client;
 

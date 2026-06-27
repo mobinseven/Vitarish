@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Routing;
 using Vitarish.Commerce.Application.Abstractions;
 using Vitarish.Commerce.Contracts;
 using Vitarish.Entities.Contracts;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Aggregator.Core.Endpoints;
 
 namespace Vitarish.Commerce.Api;
 

@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Apps.Base;
+using Vitarish.Apps.Aggregator.Core;
 using Vitarish.Clinic.Api;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Clinic.Infrastructure.Extensions;

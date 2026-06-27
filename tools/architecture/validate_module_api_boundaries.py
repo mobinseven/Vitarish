@@ -6,10 +6,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-BASE_ENDPOINT_FILE = Path('src/Modules/Base/Core/Endpoints/ProtectedModuleEndpointRouteBuilderExtensions.cs')
+BASE_ENDPOINT_FILE = Path('src/Modules/Aggregator/Core/Endpoints/ProtectedModuleEndpointRouteBuilderExtensions.cs')
 APPROVED_BASE_CLIENT_ABSTRACTIONS = {
- 'src/Modules/Base/Client/AuthenticatedModuleApiClient.cs',
- 'src/Modules/Base/Client/DependencyInjection/InternalModuleClientRegistrationExtensions.cs',
+ 'src/Modules/Aggregator/Client/AuthenticatedModuleApiClient.cs',
+ 'src/Modules/Aggregator/Client/DependencyInjection/InternalModuleClientRegistrationExtensions.cs',
 }
 EXTERNAL_CLIENT_EXCLUSIONS = {
  'src/Modules/Commerce/Infrastructure/Clients/MedusaAdminClient.cs',

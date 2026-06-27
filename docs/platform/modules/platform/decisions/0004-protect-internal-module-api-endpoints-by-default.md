@@ -18,7 +18,7 @@ ADR-0003 established frontend/backend isolation through module `Interface`, `Cli
 
 ## Decision
 
-All internal module API endpoints must require authorization by default. Module API mappings must create route groups through the platform-owned protected endpoint mapping abstraction in `Modules.Base`, which applies the platform endpoint authorization convention.
+All internal module API endpoints must require authorization by default. Module API mappings must create route groups through the platform-owned protected endpoint mapping abstraction in `Modules.Aggregator.Core`, which applies the platform endpoint authorization convention.
 
 Anonymous internal module endpoints are allowed only through an explicit, justified, reviewable exception path on the same platform abstraction. The exception must be visible in code at the route-group creation point and is reserved for use cases such as externally invoked webhooks that cannot carry the internal user access token.
 

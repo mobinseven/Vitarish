@@ -10,5 +10,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\Files.Application.csproj" />
     <ProjectReference Include="..\Contracts\Files.Contracts.csproj" />
-  <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" /></ItemGroup>
+  <ProjectReference Include="..\..\Aggregator\Core\Modules.Aggregator.Core.csproj" /></ItemGroup>
 </Project>

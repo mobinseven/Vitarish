@@ -8,14 +8,14 @@ using Vitarish.Intelligence.Api;
 using Vitarish.Intelligence.Infrastructure.DependencyInjection;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 using Vitarish.Intelligence.Interface.DependencyInjection;
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Aggregator.Core;
 
 namespace Vitarish.Intelligence.Module;
 
 /// <summary>
 /// Module wiring for the Intelligence stack using the shared module contracts.
 /// </summary>
-public class IntelligenceModule : Vitarish.Modules.Base.Module, IIntelligenceModule
+public class IntelligenceModule : Vitarish.Modules.Aggregator.Core.Module, IIntelligenceModule
 {
     /// <inheritdoc />
     public override string Name => "Intelligence";

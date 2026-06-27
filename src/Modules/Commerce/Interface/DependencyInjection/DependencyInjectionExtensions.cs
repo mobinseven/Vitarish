@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Commerce.Client;
 using Vitarish.Commerce.Contracts;
-using Vitarish.Modules.Base.DependencyInjection;
+using Vitarish.Modules.Aggregator.Core.DependencyInjection;
 
 namespace Vitarish.Commerce.Interface.DependencyInjection;
 

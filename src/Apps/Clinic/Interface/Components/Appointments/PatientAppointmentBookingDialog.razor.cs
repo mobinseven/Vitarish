@@ -2,7 +2,7 @@ using Vitarish.Communications.Interface.Components.Reminders;
 
 namespace Vitarish.Clinic.Interface.Components.Appointments;
 
-public partial class PatientAppointmentBookingDialog : Modules.Base.TenantCommonBase
+public partial class PatientAppointmentBookingDialog : Modules.Aggregator.Interface.TenantCommonBase
 {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 

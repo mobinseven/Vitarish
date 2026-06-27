@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
-using Vitarish.Modules.Base.Platform.Errors;
-using Vitarish.Modules.Base.Platform.Transactions;
+using Vitarish.Modules.Aggregator.Core.Platform.Errors;
+using Vitarish.Modules.Aggregator.Core.Platform.Transactions;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
 

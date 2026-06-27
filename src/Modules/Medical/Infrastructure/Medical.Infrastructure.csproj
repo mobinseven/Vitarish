@@ -10,7 +10,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    		<ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+    		<ProjectReference Include="..\..\Aggregator\Core\Modules.Aggregator.Core.csproj" />
 <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
     <ProjectReference Include="..\Application\Medical.Application.csproj" />

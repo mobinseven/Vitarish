@@ -6,7 +6,7 @@
     <PackageReference Include="Injectio" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
+    <ProjectReference Include="..\..\Aggregator\Interface\Modules.Aggregator.Interface.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
     <ProjectReference Include="..\Client\Communications.Client.csproj" />
     <ProjectReference Include="..\Contracts\Communications.Contracts.csproj" />

@@ -1,4 +1,4 @@
-using Vitarish.Modules.Base.Platform.Errors;
+using Vitarish.Modules.Aggregator.Core.Platform.Errors;
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Aggregator.Core;
 using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Module.DependencyInjection;
 using Vitarish.Users.Api;
@@ -10,7 +10,7 @@ namespace Vitarish.Users.Module;
 /// <summary>
 /// Module composition root for Users registration and initialization.
 /// </summary>
-public sealed class UsersModule : Vitarish.Modules.Base.Module
+public sealed class UsersModule : Vitarish.Modules.Aggregator.Core.Module
 {
     public override string Name => "Users";
 

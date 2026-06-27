@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Vitarish.Modules.Base.Interface.Abstractions;
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Aggregator.Interface.Abstractions;
+using Vitarish.Modules.Aggregator.Core;
 using Vitarish.Platform.Domain.Entities;
 using Vitarish.Platform.Infrastructure.Data;
 using Vitarish.Platform.Infrastructure.DependencyInjection;
@@ -12,7 +12,7 @@ using Vitarish.Platform.Module.Services;
 
 namespace Vitarish.Platform.Module;
 
-public sealed class PlatformModule : Vitarish.Modules.Base.Module
+public sealed class PlatformModule : Vitarish.Modules.Aggregator.Core.Module
 {
     private const int ThemeSelectionId = 1;
     public override string Name => "Platform";

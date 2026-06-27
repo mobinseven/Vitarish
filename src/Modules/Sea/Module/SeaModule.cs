@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Vitarish.Sea.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Aggregator.Core;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.DependencyInjection;
 using Vitarish.Sea.Infrastructure.Services;
@@ -15,7 +15,7 @@ namespace Vitarish.Sea.Module;
 /// <summary>
 /// SEA is short for state-event-action, which is the concept behind this module which provides project management features.
 /// </summary>
-public class SeaModule : Vitarish.Modules.Base.Module, ISeaModule
+public class SeaModule : Vitarish.Modules.Aggregator.Core.Module, ISeaModule
 {
     public override string Name => "Sea";
 

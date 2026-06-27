@@ -16,7 +16,7 @@
 	<ItemGroup>
 <ProjectReference Include="..\..\Files\Application\Files.Application.csproj" />
 <ProjectReference Include="..\..\Communications\Application\Communications.Application.csproj" />
-<ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+<ProjectReference Include="..\..\Aggregator\Core\Modules.Aggregator.Core.csproj" />
 <ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Users\Application\Users.Application.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />

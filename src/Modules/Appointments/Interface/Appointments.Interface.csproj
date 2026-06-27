@@ -12,7 +12,7 @@
 		<ProjectReference Include="..\..\..\Modules\Users\Interface\Users.Interface.csproj" ReferenceOutputAssembly="true" BuildReference="true" />
 		<ProjectReference Include="..\Contracts\Appointments.Contracts.csproj" />
 		<ProjectReference Include="..\Client\Appointments.Client.csproj" />
-		<ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
+		<ProjectReference Include="..\..\Aggregator\Interface\Modules.Aggregator.Interface.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
 	</ItemGroup>
 

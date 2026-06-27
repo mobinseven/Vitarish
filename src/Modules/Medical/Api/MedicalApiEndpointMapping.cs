@@ -10,7 +10,7 @@ using Vitarish.Medical.Contracts.Requests;
 using Vitarish.Medical.Contracts.Responses;
 using Vitarish.Medical.Contracts.Results;
 using Vitarish.Medical.Contracts.Routes;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Aggregator.Core.Endpoints;
 using A = Vitarish.Medical.Application.Commands;
 using AP = Vitarish.Medical.Application.Commands.Prescriptions;
 using AQ = Vitarish.Medical.Application.Queries.Prescriptions;

@@ -5,7 +5,7 @@ using Vitarish.Files.Contracts.Requests;
 using Vitarish.Files.Contracts.Responses;
 using Vitarish.Files.Contracts.Results;
 using Vitarish.Files.Contracts.Routes;
-using Vitarish.Modules.Base.Client;
+using Vitarish.Modules.Aggregator.Client;
 
 namespace Vitarish.Files.Client;
 

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Vitarish.Apps.Aggregator.Client</RootNamespace>
+    <AssemblyName>Vitarish.Apps.Aggregator.Client</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+  </ItemGroup>
+</Project>

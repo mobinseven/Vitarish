@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Aggregator.Core.Endpoints;
 using Vitarish.Social.Application.Abstractions;
 using Vitarish.Social.Contracts;
 using DomainConnection = Vitarish.Social.Domain.Entities.SocialConnection;

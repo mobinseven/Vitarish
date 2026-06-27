@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Vitarish.Modules.Base.Platform.Errors;
+using Vitarish.Modules.Aggregator.Core.Platform.Errors;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Entities;
 using Vorn.Tamin;

@@ -7,8 +7,8 @@
 		<PackageReference Include="Duende.IdentityModel" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Modules\Aggregator\Modules.Aggregator\Modules.Aggregator.csproj" />
-	  <ProjectReference Include="..\..\Modules\Base\Interface\Modules.Base.Interface.csproj" />
+	  <ProjectReference Include="..\..\Modules\Aggregator\Core\Modules.Aggregator.Core.csproj" />
+	  <ProjectReference Include="..\..\Modules\Aggregator\Interface\Modules.Aggregator.Interface.csproj" />
 	    <ProjectReference Include="..\..\Modules\Parties\Contracts\Parties.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Users\Client\Users.Client.csproj" />
     <ProjectReference Include="..\..\Modules\Requests\Client\Requests.Client.csproj" />

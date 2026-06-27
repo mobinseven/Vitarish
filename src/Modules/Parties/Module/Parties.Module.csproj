@@ -14,7 +14,7 @@
     <ProjectReference Include="..\Interface\Parties.Interface.csproj" />
     <ProjectReference Include="..\Infrastructure\Parties.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Parties.Application.csproj" />
-    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+    <ProjectReference Include="..\..\Aggregator\Core\Modules.Aggregator.Core.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
   <ItemGroup>

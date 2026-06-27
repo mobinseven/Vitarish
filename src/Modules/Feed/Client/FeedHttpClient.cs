@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Net;
-using Vitarish.Modules.Base.Client;
+using Vitarish.Modules.Aggregator.Client;
 using Vitarish.Feed.Contracts;
 
 namespace Vitarish.Feed.Client;

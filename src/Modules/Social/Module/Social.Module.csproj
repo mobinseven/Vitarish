@@ -10,7 +10,7 @@
     <ProjectReference Include="..\Api\Social.Api.csproj" />
     <ProjectReference Include="..\Infrastructure\Social.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Social.Application.csproj" />
-    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+    <ProjectReference Include="..\..\Aggregator\Core\Modules.Aggregator.Core.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
 </Project>

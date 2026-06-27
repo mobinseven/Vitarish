@@ -3,6 +3,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Links.Contracts.csproj" />
     <ProjectReference Include="..\Application\Links.Application.csproj" />
-    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+    <ProjectReference Include="..\..\Aggregator\Core\Modules.Aggregator.Core.csproj" />
   </ItemGroup>
 </Project>

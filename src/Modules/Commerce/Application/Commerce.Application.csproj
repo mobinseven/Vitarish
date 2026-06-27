@@ -5,7 +5,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
-		<ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+		<ProjectReference Include="..\..\Aggregator\Core\Modules.Aggregator.Core.csproj" />
 		<ProjectReference Include="..\Domain\Commerce.Domain.csproj" />
 	</ItemGroup>
 </Project>

@@ -5,7 +5,7 @@ using Vitarish.Clinic.Contracts.Errors;
 using Vitarish.Clinic.Contracts.Responses;
 using Vitarish.Clinic.Contracts.Results;
 using Vitarish.Clinic.Contracts.Routes;
-using Vitarish.Modules.Base.Client;
+using Vitarish.Modules.Aggregator.Client;
 
 namespace Vitarish.Clinic.Client;
 

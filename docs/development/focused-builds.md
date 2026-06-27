@@ -35,7 +35,7 @@ dotnet build src/Hosts/Main/Main.csproj -p:ModuleBuildProfile=Appointments
 dotnet build src/Hosts/Main/Main.csproj -p:ModuleBuildProfile=Custom -p:EnableUsersModule=true -p:EnableAppointmentsModule=true
 ```
 
-Available single-module profile names match the module names referenced by `src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj`, including `Users`, `Appointments`, `Communications`, `Files`, `Knowledge`, `Financial`, `Requests`, `Parties`, `Platform`, `Medical`, `Commerce`, `Sea`, `Feed`, `Intelligence`, `Search`, `Contents`, `Social`, and `Links`.
+Available single-module profile names match the module names referenced by `src/Modules/Aggregator/Core/Modules.Aggregator.Core.csproj`, including `Users`, `Appointments`, `Communications`, `Files`, `Knowledge`, `Financial`, `Requests`, `Parties`, `Platform`, `Medical`, `Commerce`, `Sea`, `Feed`, `Intelligence`, `Search`, `Contents`, `Social`, and `Links`.
 
 ## Custom focused builds
 

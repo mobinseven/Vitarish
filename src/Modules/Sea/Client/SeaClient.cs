@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Vitarish.Modules.Base.Client;
+using Vitarish.Modules.Aggregator.Client;
 using Vitarish.Sea.Contracts.Errors;
 using Vitarish.Sea.Contracts.Responses;
 using Vitarish.Sea.Contracts.Results;

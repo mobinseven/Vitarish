@@ -6,8 +6,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Modules\Base\Interface\Modules.Base.Interface.csproj" />
-	  <ProjectReference Include="..\..\Modules\Base\Core\Modules.Base.Core.csproj" />
+	  <ProjectReference Include="..\..\Modules\Aggregator\Interface\Modules.Aggregator.Interface.csproj" />
+	  <ProjectReference Include="..\..\Modules\Aggregator\Core\Modules.Aggregator.Core.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<SupportedPlatform Include="browser" />

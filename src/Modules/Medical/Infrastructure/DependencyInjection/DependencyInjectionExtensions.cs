@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
-using Vitarish.Modules.Base.Platform.Retry;
-using Vitarish.Modules.Base.Platform.Transactions;
+using Vitarish.Modules.Aggregator.Core.Platform.Retry;
+using Vitarish.Modules.Aggregator.Core.Platform.Transactions;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Infrastructure.Providers.Prescriptions;
 using Vitarish.Medical.Infrastructure.Providers.Prescriptions.Salamat;

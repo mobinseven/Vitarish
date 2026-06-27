@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Aggregator.Core.Endpoints;
 using Vitarish.Feed.Application.Queries;
 using Vitarish.Feed.Contracts;
 using Vitarish.Feed.Domain.Abstractions;

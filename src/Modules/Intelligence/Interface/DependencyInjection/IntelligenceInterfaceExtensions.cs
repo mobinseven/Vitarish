@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Intelligence.Client;
 using Vitarish.Intelligence.Interface.Services;
-using Vitarish.Modules.Base.DependencyInjection;
+using Vitarish.Modules.Aggregator.Core.DependencyInjection;
 
 namespace Vitarish.Intelligence.Interface.DependencyInjection;
 

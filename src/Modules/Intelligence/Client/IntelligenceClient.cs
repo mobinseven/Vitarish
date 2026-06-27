@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Vitarish.Intelligence.Contracts;
-using Vitarish.Modules.Base.Client;
+using Vitarish.Modules.Aggregator.Client;
 
 namespace Vitarish.Intelligence.Client;
 

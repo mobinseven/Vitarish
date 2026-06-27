@@ -7,12 +7,12 @@ using Vitarish.Appointments.Infrastructure.DependencyInjection;
 using Vitarish.Appointments.Infrastructure.Serializers;
 using Vitarish.Appointments.Interface.DependencyInjection;
 using Vitarish.Appointments.Api;
-using Vitarish.Modules.Base;
+using Vitarish.Modules.Aggregator.Core;
 using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Appointments.Module;
 
-public class AppointmentsModule : Vitarish.Modules.Base.Module, IAppointmentsModule
+public class AppointmentsModule : Vitarish.Modules.Aggregator.Core.Module, IAppointmentsModule
 {
     public override string Name => "Appointments";
 

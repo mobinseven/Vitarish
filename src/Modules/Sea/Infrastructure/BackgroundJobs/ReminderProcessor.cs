@@ -7,7 +7,7 @@ using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Dto;
 using Vitarish.Communications.Domain.Enums;
 using Vitarish.Communications.Domain.Models;
-using Vitarish.Modules.Base.BackgroundJobs;
+using Vitarish.Modules.Aggregator.Core.BackgroundJobs;
 using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;

@@ -1,6 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Modules.Base.Platform.Retry;
+using Vitarish.Modules.Aggregator.Core.Platform.Retry;
 using Vitarish.Medical.Application.Queries.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Infrastructure.BackgroundJobs;
-using Vitarish.Modules.Base.BackgroundJobs;
+using Vitarish.Modules.Aggregator.Core.BackgroundJobs;
 
 namespace Vitarish.Communications.Infrastructure.DependencyInjection;
 

@@ -22,7 +22,7 @@ global using Vitarish.Interfaces.Accounts.Abstractions;
 global using Vitarish.Interfaces.Accounts.Attributes;
 global using Vitarish.Interfaces.Accounts.Models;
 global using Vitarish.Interfaces.Accounts.Services;
-global using Vitarish.Modules.Base.Interface.Localization;
+global using Vitarish.Modules.Aggregator.Interface.Localization;
 // Project‑specific namespaces
 global using Vitarish.Users.Client;
 global using Vitarish.Users.Contracts;

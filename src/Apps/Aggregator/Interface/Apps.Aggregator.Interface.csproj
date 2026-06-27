@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Vitarish.Apps.Aggregator.Interface</RootNamespace>
+    <AssemblyName>Vitarish.Apps.Aggregator.Interface</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Apps.Aggregator.Core.csproj" />
+    <ProjectReference Include="..\Client\Apps.Aggregator.Client.csproj" />
+    <ProjectReference Include="..\..\Clinic\Interface\Clinic.Interface.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Aggregator\Interface\Modules.Aggregator.Interface.csproj" />
+  </ItemGroup>
+</Project>

@@ -3,7 +3,7 @@ using System.Threading.Channels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Vitarish.Modules.Base.Endpoints;
+using Vitarish.Modules.Aggregator.Core.Endpoints;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Contracts.Errors;
 using Vitarish.Files.Contracts.Requests;

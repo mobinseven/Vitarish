@@ -6,7 +6,7 @@ using Vitarish.Medical.Contracts.Requests;
 using Vitarish.Medical.Contracts.Responses;
 using Vitarish.Medical.Contracts.Results;
 using Vitarish.Medical.Contracts.Routes;
-using Vitarish.Modules.Base.Client;
+using Vitarish.Modules.Aggregator.Client;
 
 namespace Vitarish.Medical.Client;
 

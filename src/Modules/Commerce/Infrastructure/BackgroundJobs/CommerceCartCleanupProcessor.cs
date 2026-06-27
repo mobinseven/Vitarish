@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Commerce.Domain.Enums;
 using Vitarish.Commerce.Infrastructure.Data;
-using Vitarish.Modules.Base.BackgroundJobs;
+using Vitarish.Modules.Aggregator.Core.BackgroundJobs;
 
 namespace Vitarish.Commerce.Infrastructure.BackgroundJobs;
 

@@ -13,7 +13,7 @@
     <ProjectReference Include="..\Contracts\Intelligence.Contracts.csproj" />
     <ProjectReference Include="..\Infrastructure\Intelligence.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Intelligence.Application.csproj" />
-    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+    <ProjectReference Include="..\..\Aggregator\Core\Modules.Aggregator.Core.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
 </Project>
