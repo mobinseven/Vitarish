@@ -170,6 +170,9 @@ skills/
   platform-artifact-placement-steward/
   platform-localization-maintenance/
   platform-frontend-backend-isolation/
+  platform-openapi-contract-steward/
+  platform-generated-react-client-steward/
+  platform-feature-ui-integration-steward/
   platform-pr-delivery-loop/
 ```
 
@@ -191,6 +194,25 @@ If the runtime expects native Codex skill discovery, mirror or symlink these fol
 | File placement, layer ownership, module boundary, artifact classification | Platform Artifact Placement Steward | `skills/platform-artifact-placement-steward/SKILL.md` |
 | Localization review, hard-coded UI text, `IStringLocalizer` usage                    | Platform Localization Maintenance  | `skills/platform-localization-maintenance/SKILL.md`  |
 | Frontend/backend isolation, Interface/backend dependency, HTTP/API boundaries          | Platform Frontend/Backend Isolation | `skills/platform-frontend-backend-isolation/SKILL.md` |
+| OpenAPI module/app contract, operation IDs, schemas, auth, ProblemDetails, linting      | Platform OpenAPI Contract Steward | `skills/platform-openapi-contract-steward/SKILL.md` |
+| Orval generation, generated DTOs/hooks/query keys, custom apiFetch, MSW mocks           | Platform Generated React Client Steward | `skills/platform-generated-react-client-steward/SKILL.md` |
+| HeroUI/React feature hooks, forms, tables, dialogs, mutation invalidation, UI adapters  | Platform Feature UI Integration Steward | `skills/platform-feature-ui-integration-steward/SKILL.md` |
+
+### OpenAPI → React Client Contract
+
+Use this chain when a backend OpenAPI contract drives a HeroUI/React client:
+
+```txt
+OpenAPI Contract Steward → Generated React Client Steward → Feature UI Integration Steward
+```
+
+Load only the step required by the current task:
+
+1. Contract/spec work uses `platform-openapi-contract-steward`.
+2. Orval/generated-client/MSW/runtime-fetch work uses `platform-generated-react-client-steward`.
+3. HeroUI/page/form/table/dialog integration uses `platform-feature-ui-integration-steward`.
+
+Hard boundary: OpenAPI defines the transport contract, generated clients are infrastructure, feature hooks expose use-case contracts, and UI components consume feature hooks only.
 
 ### Platform Feature Roadmap Curator Contract
 
@@ -243,6 +265,12 @@ For an architecture-sensitive change:
 ADR → Artifact Placement → Test Plan → Implementation
 ```
 
+For an OpenAPI-driven React client change:
+
+```txt
+OpenAPI Contract → Generated React Client → Feature UI Integration → Test Plan → Implementation
+```
+
 For a code placement or refactor task:
 
 ```txt
@@ -263,9 +291,10 @@ Before creating or moving production code, answer:
 1. Is a journey needed?
 2. Is a roadmap or task derivation needed? If yes, use `Platform Feature Roadmap Curator`.
 3. Is an ADR needed?
-4. Where should each artifact live?
-5. What unit tests are required?
-6. What hot test scenarios are required?
+4. Does the change affect an OpenAPI contract, generated React client, or HeroUI feature integration?
+5. Where should each artifact live?
+6. What unit tests are required?
+7. What hot test scenarios are required?
 ```
 
 Skip irrelevant checks for small local bug fixes, styling changes, simple refactors, and test-only corrections.
