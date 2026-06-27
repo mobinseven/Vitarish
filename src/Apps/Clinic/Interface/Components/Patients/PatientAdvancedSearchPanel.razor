@@ -102,6 +102,10 @@ else
             Template: false);
 
         ClinicResult<IReadOnlyList<PatientViewDto>> result = await ClinicClient.SearchPatientsAsync(request, ct);
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException(result.Error?.Message ?? "Failed to search patients.");
+        }
         return result.Value?.Select(patient => patient.ToProjectRead()).ToList() ?? [];
     }
 
