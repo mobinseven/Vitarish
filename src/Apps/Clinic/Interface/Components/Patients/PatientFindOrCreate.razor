@@ -114,7 +114,11 @@ else
 
     private async Task OnPatientCreatedAsync(Guid patientId)
     {
-        ProjectReadDto created = (await ProjectsService.GetProjectAsync(patientId, CancellationToken.None)).Value ?? new ProjectReadDto { Id = patientId, Name = draft.Name ?? string.Empty, Description = draft.Description ?? string.Empty };
+        ProjectReadDto? created = await ValueOrNotifyAsync(ProjectsService.GetProjectAsync(patientId, CancellationToken.None));
+        if (created is null)
+        {
+            return;
+        }
         CreateContext.NewPatientDraft = draft;
         await OnPatientCreated.InvokeAsync(created);
     }
