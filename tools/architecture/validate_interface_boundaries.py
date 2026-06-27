@@ -138,7 +138,7 @@ def scan_source(root:Path,scope:ProjectScope,pats)->list[Violation]:
     if scope.layer not in {'Interface','Client','Contracts','GlobalInterface'}: return []
     v=[]
     for p in sorted(x for ext in SOURCE_EXT for x in scope.root.rglob(f'*{ext}') if 'bin/' not in x.as_posix() and 'obj/' not in x.as_posix()):
-        text=p.read_text(errors='ignore'); seen=set()
+        text=p.read_text(encoding='utf-8', errors='ignore'); seen=set()
         for pat,forb,reason in pats:
             for m in pat.finditer(text):
                 ln=line_no(text,m.start()); key=(ln,forb)
