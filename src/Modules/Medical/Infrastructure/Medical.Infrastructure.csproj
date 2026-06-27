@@ -13,6 +13,7 @@
     		<ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
 <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
+    <ProjectReference Include="..\..\Users\Application\Users.Application.csproj" />
     <ProjectReference Include="..\Application\Medical.Application.csproj" />
     <ProjectReference Include="..\Domain\Medical.Domain.csproj" />
   </ItemGroup>

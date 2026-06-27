@@ -1,4 +1,5 @@
 using Vitarish.Clinic.Interface.Components.Patients;
+using Vitarish.Sea.Interface.Plugins;
 
 namespace Vitarish.Clinic.Interface.Plugins;
 

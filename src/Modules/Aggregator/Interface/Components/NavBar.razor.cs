@@ -5,6 +5,7 @@ using MudBlazor;
 using System.Reflection;
 using Vitarish.Modules.Base.Interface.Attributes;
 using Vitarish.Modules.Base.Interface.Common;
+using Vitarish.Modules.Base.Interface.Models;
 
 namespace Vitarish.Modules.Aggregator.Interface.Components;
 
@@ -39,13 +40,13 @@ public partial class NavBar : CommonBase, IAsyncDisposable
         ChatService.OnChatContext += OnChatContext;
     }
 
-    private async void OnChatContext(object? sender, Base.Models.ChatContextEventArgs e)
+    private async void OnChatContext(object? sender, ChatContextEventArgs e)
     {
         ChatContext = e.ChatContext;
         await InvokeAsync(StateHasChanged);
     }
 
-    private async void OnChatWait(object? sender, Base.Models.ChatWaitEventArgs e)
+    private async void OnChatWait(object? sender, ChatWaitEventArgs e)
     {
         ChatWaiting = e.Waiting;
         await InvokeAsync(StateHasChanged);

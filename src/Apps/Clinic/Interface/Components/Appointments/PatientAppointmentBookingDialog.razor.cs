@@ -1,8 +1,11 @@
+using MudBlazor;
+using Vitarish.Appointments.Contracts.Enums;
 using Vitarish.Communications.Interface.Components.Reminders;
+using Vitarish.Modules.Base.Interface;
 
 namespace Vitarish.Clinic.Interface.Components.Appointments;
 
-public partial class PatientAppointmentBookingDialog : Modules.Base.TenantCommonBase
+public partial class PatientAppointmentBookingDialog : TenantCommonBase
 {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
@@ -66,7 +69,7 @@ public partial class PatientAppointmentBookingDialog : Modules.Base.TenantCommon
             return;
         }
 
-        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(
+        var result = await ReservationManager.ReserveAsync(
             shift.Id,
             shiftReservation.Date,
             reservingPartyId,

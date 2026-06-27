@@ -1,4 +1,4 @@
-@inherits ProjectDetails
+@inherits TenantCommonBase
 
 @if(patient is null)
 {
@@ -11,7 +11,7 @@
             <MudItem xs="12" md="4">
                 <MudPaper Class="pa-4 h-100" Elevation="0">
                     <MudStack AlignItems="AlignItems.Center" Spacing="2">
-                        <FileImageAvatar FileId="@Project.AvatarFileId" />
+                        <FileImageAvatar FileId="@Patient.AvatarFileId" />
 
                         <MudText Typo="Typo.h6" Align="Align.Center">
                             @PatientDisplayName
@@ -26,7 +26,7 @@
 
                     <MudGrid Spacing="2">
                         <ItemValue Label="@Localizer["IdentificationCode"]" Md="12">
-                            @DisplayValue(Project.IdentificationCode)
+                            @DisplayValue(Patient.IdentificationCode)
                         </ItemValue>
 
                         <ItemValue Label="@Localizer["FirstName"]" Md="12">
@@ -144,7 +144,7 @@
                         </MudPaper>
                     </MudItem>
 
-                    @if(HasValue(Project.Description) || Project.Stats is not null)
+                    @if(HasValue(Patient.Description) || Patient.Stats is not null)
                     {
                         <MudItem xs="12">
                             <MudPaper Class="pa-4" Elevation="0">
@@ -153,22 +153,22 @@
                                 </MudText>
 
                                 <MudGrid Spacing="2">
-                                    <ItemValue Visible="@HasValue(Project.Description)"
+                                    <ItemValue Visible="@HasValue(Patient.Description)"
                                                Md="12"
                                                Class="py-3">
-                                        @Project.Description
+                                        @Patient.Description
                                     </ItemValue>
 
-                                    @if(Project.Stats is not null)
+                                    @if(Patient.Stats is not null)
                                     {
                                         <ItemValue Label="@Localizer["Procedures"]"
                                                    Color="Color.Secondary">
-                                            @Project.Stats.Procedures
+                                            @Patient.Stats.Procedures
                                         </ItemValue>
 
                                         <ItemValue Label="@Localizer["Events"]"
                                                    Color="Color.Secondary">
-                                            @Project.Stats.Events
+                                            @Patient.Stats.Events
                                         </ItemValue>
 
                                         <ItemValue Label="@Localizer["LastUpdate"]"
@@ -187,29 +187,34 @@
 
     @if(AdminMode)
     {
-        <StackButton OnClick="@(() => EditPatient())"
+        <StackButton OnClick="@(() => OnDeleted.InvokeAsync())"
                      EndIcon="fa-solid fa-pencil"
                      Label="@Localizer["EditItem", Localizer["Patient"]]"
                      Color="Color.Secondary" />
 
-        <StackButton OnClick="@(() => DeletePatient())"
+        <StackButton OnClick="@(() => OnEdit.InvokeAsync(Patient.Id))"
                      Color="Color.Error"
                      EndIcon="fa-solid fa-folder-xmark"
                      Label="@Localizer["DeleteItem", Localizer["Patient"]]" />
     }
 </Stack>
 
-@code {
+    @code {
+
+    [Parameter, EditorRequired] public PatientViewDto Patient { get; set; }
+    [Parameter] public EventCallback<Guid> OnEdit { get; set; }
+    [Parameter] public EventCallback OnDeleted { get; set; }
+
     private const string EmptyText = "—";
 
-    private PatientReadDto? patient;
+    private PatientViewDto? patient;
     private string? linkedUserId;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        patient = Project.ToPatientRead();
-        linkedUserId = Project.UserIds.FirstOrDefault();
+        patient = Patient;
+        linkedUserId = Patient.UserIds.FirstOrDefault();
     }
 
     private string PatientDisplayName
@@ -248,7 +253,7 @@
         => patient is not null && patient.Weight > 0 ? patient.Weight.ToString() : EmptyText;
 
     private string LastUpdateText
-        => Project.Stats?.LastUpdate is DateTime lastUpdate
+        => Patient.Stats?.LastUpdate is DateTime lastUpdate
             ? lastUpdate.ToLocalTime().ToShortDateString()
             : EmptyText;
 
@@ -277,7 +282,4 @@
 
     private static string FormatDate(DateTime? value)
         => value?.ToShortDateString() ?? EmptyText;
-
-    private Task EditPatient() => EditProject();
-    private Task DeletePatient() => DeleteProject();
 }

@@ -1,16 +1,13 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using Vitarish.Parties.Application.Abstractions;
-using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Dto;
 using Vitarish.Communications.Domain.Enums;
 using Vitarish.Communications.Domain.Models;
-using Vitarish.Parties.Domain.Dtos;
-using Vitarish.Sea.Application.Abstractions;
-using Vitarish.Sea.Domain.Dto;
 using Vitarish.Modules.Base.Core.BackgroundJobs;
+using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Sea.Infrastructure.BackgroundJobs;
 

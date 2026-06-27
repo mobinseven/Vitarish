@@ -41,7 +41,7 @@
 </StackCard>
 
 @code {
-    [Parameter, EditorRequired] public FeedItem Item { get; set; } = default!;
+    [Parameter, EditorRequired] public Feed.Contracts.FeedItemResponse Item { get; set; } = default!;
     [Parameter] public EventCallback OnClick { get; set; }
 
     private async Task HandleClick()

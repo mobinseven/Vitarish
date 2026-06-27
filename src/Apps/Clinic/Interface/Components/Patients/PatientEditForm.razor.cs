@@ -1,5 +1,6 @@
 namespace Vitarish.Clinic.Interface.Components.Patients;
 
+using MudBlazor;
 using Vitarish.Files.Interface.Components;
 public partial class PatientEditForm
 {
@@ -12,7 +13,7 @@ public partial class PatientEditForm
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        if (Project is not null)
+        if (Patient is not null)
         {
             patient = Project.ToPatientWrite()!;
         }
@@ -66,13 +67,32 @@ public partial class PatientEditForm
         patient.Name = $"{patient.FirstName} {patient.LastName}".TrimEnd(' ', ',');
         if (Project is null)
         {
-            ProjectReadDto created = await ProjectsService.AddAsync(patient, CancellationToken.None).EnsureValueAsync();
+            ProjectReadDto created = await SeaClient.CreateProjectAsync(patient, CancellationToken.None).EnsureValueAsync();
             await OnCreate.InvokeAsync(created.Id);
         }
         else
         {
-            _ = await ProjectsService.UpdateAsync(patient, CancellationToken.None);
+            _ = await SeaClient.UpdateProjectAsync(patient, CancellationToken.None);
             await OnUpdate.InvokeAsync(Project.Id);
         }
     }
+
+
+    private static readonly string[] ReferrerItems =
+    [
+        "Site",
+        "Instagram"
+    ];
+
+    private static bool HasValue(string? value)
+        => !string.IsNullOrWhiteSpace(value);
+
+    private static string RequiredIcon(string? value, string validIcon = "")
+        => HasValue(value) ? validIcon : "fa-solid fa-triangle-exclamation";
+
+    private static Color RequiredColor(string? value)
+        => HasValue(value) ? Color.Default : Color.Warning;
+
+    private Task CancelAsync()
+        => OnCancel.InvokeAsync();
 }

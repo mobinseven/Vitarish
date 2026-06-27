@@ -1,8 +1,9 @@
 using Microsoft.Extensions.Configuration;
+using Vitarish.Appointments.Contracts.Enums;
 
 namespace Vitarish.Clinic.Interface.Components.CheckIn;
 
-public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
+public partial class PatientCheckInShiftStep : Vitarish.Modules.Base.Interface.TenantCommonBase
 {
     [Parameter, EditorRequired] public PatientCheckInContext Context { get; set; } = default!;
     [Parameter] public EventCallback OnBooked { get; set; }
@@ -81,7 +82,7 @@ public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
         booking = true;
         await InvokeAsync(StateHasChanged);
 
-        EntityResult<ReservationReadDto> reserveResult = capacityOverride
+        var reserveResult = capacityOverride
             ? await ReservationManager.ReserveWithOverrideAsync(shift.Id, occurrence.Date, GetReservingPartyId(), estimatedSessionLengthOverride, CancellationToken.None)
             : await ReservationManager.ReserveAsync(shift.Id, occurrence.Date, GetReservingPartyId(), estimatedSessionLengthOverride, CancellationToken.None);
 
@@ -97,7 +98,7 @@ public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
 
         if (Context.MarkAsArrived && occurrence.Date == today)
         {
-            EntityResult confirmResult = await ReservationManager
+            var confirmResult = await ReservationManager
                 .ConfirmReservationAsync(reservation.Id, CancellationToken.None);
 
             if (confirmResult.IsFailure)
@@ -106,7 +107,7 @@ public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
             }
             else
             {
-                EntityResult presentResult = await ReservationManager
+                var presentResult = await ReservationManager
                     .PresentReservationAsync(reservation.Id, CancellationToken.None);
                 if (presentResult.IsFailure)
                 {

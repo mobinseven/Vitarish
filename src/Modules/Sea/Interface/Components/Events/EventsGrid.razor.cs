@@ -34,12 +34,7 @@ public partial class EventsGrid : EventsBase
 
     private Task AddEventAfter(EventReadDto item) => AddEventAt(item.Id);
 
-    private async Task AddEventAt(Guid? previousEventId)
-    {
-        SeaCommandResult? createResult = await ValueOrNotifyAsync(SeaClient.CreateEventAfterAsync(previousEventId, new EventWriteDto { ProjectId = Project.Id, ProcedureId = Procedure.Id, PreviousEventId = previousEventId }, CancellationToken.None));
-        EventReadDto? created = createResult?.EntityId is Guid createdId ? await ValueOrNotifyAsync(SeaClient.GetEventAsync(createdId, CancellationToken.None)) : null;
-        if (created is not null)
-        {
+
     private async Task AddEventAt(Guid? previousEventId)
     {
         SeaCommandResult? createResult = await ValueOrNotifyAsync(SeaClient.CreateEventAfterAsync(previousEventId, new EventWriteDto { ProjectId = Project.Id, ProcedureId = Procedure.Id, PreviousEventId = previousEventId }, CancellationToken.None));

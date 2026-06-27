@@ -1,4 +1,4 @@
-@inherits Vitarish.Modules.Base.TenantCommonBase
+@inherits Vitarish.Modules.Base.Interface.TenantCommonBase
 
 
 @if(showCreateForm)
@@ -47,10 +47,10 @@ else
     [Parameter] public EventCallback<ProjectReadDto> OnPatientSelected { get; set; }
     [Parameter] public EventCallback<ProjectReadDto> OnPatientCreated { get; set; }
 
-    [Inject] private IAccessControlledProjectsService ProjectsService { get; set; } = default!;
+    [Inject] private ISeaClient ProjectsService { get; set; } = default!;
 
     private bool showCreateForm;
-    private PatientWriteDto draft = new();
+    private PatientFindOrCreateRequest draft = new();
     private int createFormKey;
 
     private async Task SelectPatientAsync(ProjectReadDto patient)
