@@ -6,7 +6,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Interfaces.Base\Interfaces.Base.csproj" />
+	  <ProjectReference Include="..\..\Modules\Base\Interface\Modules.Base.Interface.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<SupportedPlatform Include="browser" />

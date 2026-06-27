@@ -1,4 +1,4 @@
-using Vitarish.Interfaces.Base.Common;
+using Vitarish.Modules.Base.Interface.Common;
 using Vitarish.Modules.Base;
 
 namespace Vitarish.Parties.Interface.Components.Base;

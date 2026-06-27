@@ -1,5 +1,5 @@
 global using Microsoft.AspNetCore.Components;
-global using Vitarish.Interfaces.Base.Common;
+global using Vitarish.Modules.Base.Interface.Common;
 global using Vitarish.Medical.Client;
 global using Vitarish.Medical.Contracts.Requests;
 global using Vitarish.Medical.Contracts.Responses;

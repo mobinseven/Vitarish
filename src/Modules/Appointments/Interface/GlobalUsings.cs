@@ -10,5 +10,5 @@ global using Vitarish.Appointments.Interface.Components.Base;
 global using Vitarish.Appointments.Interface.Components.Mapping;
 global using Vitarish.Appointments.Interface.Plugins;
 global using Vitarish.Entities.Contracts;
-global using Vitarish.Interfaces.Base.Common;
+global using Vitarish.Modules.Base.Interface.Common;
 // Aliases for types that conflict with Microsoft.Extensions.DependencyInjection names

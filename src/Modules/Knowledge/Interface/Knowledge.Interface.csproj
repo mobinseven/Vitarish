@@ -3,13 +3,12 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
     <ProjectReference Include="..\Client\Knowledge.Client.csproj" />
     <ProjectReference Include="..\Contracts\Knowledge.Contracts.csproj" />
     <ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
     <ProjectReference Include="..\..\Files\Contracts\Files.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
   </ItemGroup>
 </Project>

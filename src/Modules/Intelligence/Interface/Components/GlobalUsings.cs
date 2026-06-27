@@ -6,4 +6,4 @@ global using Vitarish.Files.Interface.Components;
 global using Vitarish.Intelligence.Contracts;
 global using Vitarish.Intelligence.Client;
 global using Vitarish.Intelligence.Interface.Abstractions;
-global using Vitarish.Interfaces.Base.Common;
+global using Vitarish.Modules.Base.Interface.Common;

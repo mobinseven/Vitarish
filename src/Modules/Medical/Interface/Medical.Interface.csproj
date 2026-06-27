@@ -5,10 +5,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Client\Medical.Client.csproj" />
     <ProjectReference Include="..\Contracts\Medical.Contracts.csproj" />
-    <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
   </ItemGroup>
 </Project>

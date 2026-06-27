@@ -5,9 +5,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Users.Contracts.csproj" />
     <ProjectReference Include="..\Client\Users.Client.csproj" />
-    <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
   </ItemGroup>
 </Project>

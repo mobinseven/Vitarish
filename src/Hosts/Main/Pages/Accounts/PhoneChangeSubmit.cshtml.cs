@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Vitarish.Interfaces.Base.Extensions;
+using Vitarish.Modules.Base.Interface.Extensions;
 
 namespace Vitarish.Main.Pages.Accounts;
 

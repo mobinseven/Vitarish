@@ -1,6 +1,6 @@
 using MediatR;
 using Vitarish.Clinic.Application.Queries.Patients;
-using Vitarish.Interfaces.Base.Models;
+using Vitarish.Modules.Base.Interface.Models;
 using Vitarish.Sea.Domain.Enums;
 
 namespace Vitarish.Clinic.Interface.Components.Patients;

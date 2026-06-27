@@ -1,4 +1,4 @@
-using Vitarish.Interfaces.Base.Extensions;
+using Vitarish.Modules.Base.Interface.Extensions;
 
 namespace Vitarish.Interfaces.Accounts.Components;
 

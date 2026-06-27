@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Vitarish.Interfaces.Accounts.Abstractions;
-using Vitarish.Interfaces.Base.Common;
+using Vitarish.Modules.Base.Interface.Common;
 
 namespace Vitarish.Main.Pages.Accounts;
 

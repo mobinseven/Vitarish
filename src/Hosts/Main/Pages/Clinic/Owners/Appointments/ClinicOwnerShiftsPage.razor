@@ -1,6 +1,6 @@
 @attribute [Route(AppRoutes.Clinic.OwnerShifts)]
 @attribute [EnableSearch]
-@attribute [PageColor(Interfaces.Base.Enums.Palettes.Yellow)]
+@attribute [PageColor(Vitarish.Modules.Base.Interface.Enums.Palettes.Yellow)]
 
 <ShiftsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShift(id)))"
             OnAdd="@(dayOfWeek => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShiftCreateForDay(dayOfWeek is null ? null : (int)dayOfWeek)))"
