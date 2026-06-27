@@ -10,61 +10,61 @@ Related apps: All frontend hosts
 Related modules: All modules exposing APIs
 Supersedes:
 Superseded by:
-Related: docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md, docs/platform/modules/platform/decisions/0004-protect-internal-module-api-endpoints-by-default.md
+Related:
+- docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md
+- docs/platform/modules/platform/decisions/0004-protect-internal-module-api-endpoints-by-default.md
 
 ## Context
 
-Module APIs are the HTTP boundary between module clients, frontend hosts, and backend application use cases. ADR-0003 established that API projects adapt `Contracts` to application commands and queries, and ADR-0004 established that module API mappings must use approved protected endpoint abstractions.
+Module API endpoints are the HTTP boundary between frontend hosts, module clients, and backend application use cases.
 
-OpenAPI coverage is the platform source of truth for externally reviewable HTTP surface documentation. Endpoints that are not represented in OpenAPI, or that publish schemas not derived from `Contracts`, create a second source of truth for route shape, request shape, response shape, and review expectations.
+ADR-0003 requires module API projects to adapt `Contracts` artifacts to application commands and queries. ADR-0004 requires module API mappings to use approved protected endpoint abstractions.
+
+OpenAPI is the platform source of truth for reviewable HTTP surface documentation and generated client expectations. If an endpoint is missing from OpenAPI, or if its schema is derived from application, domain, persistence, infrastructure, or UI artifacts, the platform has multiple competing sources of truth for routes, request shapes, response shapes, and review expectations.
 
 ## Decision
 
-All API endpoints must be covered by OpenAPI by platform convention unless they are explicitly excluded with a written justification at the mapping site.
+All module API endpoints must be OpenAPI-covered by platform convention unless they are explicitly excluded with a written justification at the endpoint mapping site.
 
-Module APIs must use the approved platform endpoint helpers for route mapping and OpenAPI convention application. Direct endpoint mapping is not allowed when it bypasses the approved helpers.
+An endpoint is OpenAPI-covered when its route, HTTP method, request schema, response schema, status codes, and endpoint metadata are represented through approved platform endpoint helpers.
 
-OpenAPI request and response schemas must come from `Contracts` artifacts. API projects may adapt `Contracts` to application commands and queries, but they must not publish OpenAPI schemas from application, domain, persistence, infrastructure, or UI artifacts.
+Module API projects must use approved platform endpoint helpers for endpoint mapping, protection conventions, and OpenAPI convention application. Direct Minimal API mapping is allowed only inside the implementation of approved platform helpers.
 
-Explicit OpenAPI exclusions are allowed only when the endpoint should not be represented in generated API documentation. The exclusion and justification must be visible in code at the endpoint mapping site so reviewers can evaluate the exception.
+OpenAPI request and response schemas must be based on `Contracts` artifacts. API projects may adapt `Contracts` artifacts to application commands and queries, but OpenAPI must not publish schemas from application, domain, persistence, infrastructure, or UI artifacts.
+
+Explicit OpenAPI exclusion is allowed only through the approved exclusion helper and must include a non-empty justification string. The exclusion must be visible at the endpoint mapping site so reviewers can distinguish intentional exclusions from accidental omissions.
+
+Authorization and OpenAPI documentation are separate concerns. An endpoint may be protected, internal, or non-public and still be OpenAPI-covered unless it is explicitly excluded with justification.
 
 ## Consequences
 
-Positive consequences:
-
-- Module API documentation coverage is enforced consistently across modules.
-- `Contracts` remains the single source of truth for HTTP serialization shapes.
+- Module API documentation coverage becomes consistent across modules.
+- `Contracts` artifacts remain the single source of truth for HTTP serialization shapes.
 - Reviewers can distinguish intentional OpenAPI exclusions from accidental omissions.
-- API projects keep adapting transport contracts to application use cases without leaking domain, persistence, infrastructure, or UI models into OpenAPI.
+- API projects continue adapting transport contracts to application use cases without leaking internal implementation models into OpenAPI.
+- Static validation can enforce route mapping, schema ownership, and documented exception conventions.
 
-Negative consequences:
-
-- Existing module API mappings may need to migrate to approved endpoint helpers.
-- Legitimate undocumented endpoints require explicit justification at the mapping site.
-- Static validation must stay aligned with approved endpoint helper names and exception paths.
 
 ## Alternatives Considered
 
 ### Rely on manual review for OpenAPI coverage
 
-Rejected. Manual review is easy to miss and creates inconsistent endpoint documentation conventions across modules.
+Rejected. Manual review is inconsistent and easy to miss across modules.
 
-### Allow schemas from application or domain models
+### Allow OpenAPI schemas from application or domain models
 
-Rejected. Application and domain models are not transport contracts. Publishing them as OpenAPI schemas would couple HTTP documentation to core implementation details and duplicate the `Contracts` boundary from ADR-0003.
+Rejected. Application and domain models are implementation concerns, not HTTP transport contracts. Publishing them couples API documentation to core internals and weakens the `Contracts` boundary from ADR-0003.
 
 ### Allow direct Minimal API mapping with local OpenAPI calls
 
-Rejected. Local endpoint mapping and documentation calls would create multiple sources of truth for platform conventions and make static validation less reliable.
+Rejected. Local mapping and documentation calls create multiple convention sources and make static validation unreliable.
 
 ## Validation / Enforcement
 
-Static validation must fail API endpoint mappings that bypass approved endpoint helpers.
+Static validation must fail when a module API endpoint:
 
-Static validation must fail API endpoint mappings that are not OpenAPI-covered by platform convention and do not use the explicit OpenAPI exclusion path with justification.
-
-Static validation must fail OpenAPI request or response schemas that come from application, domain, persistence, infrastructure, or UI artifacts instead of `Contracts` artifacts.
-
-## Notes
-
-This ADR defines a platform API documentation convention. It does not require every endpoint to be public, nor does it change authorization requirements from ADR-0004. Authorization and OpenAPI documentation remain separate conventions enforced by platform-approved endpoint helpers and static validation.
+- bypasses approved platform endpoint helpers;
+- is not OpenAPI-covered and does not use the approved exclusion helper;
+- uses an OpenAPI exclusion without a non-empty written justification;
+- publishes request or response schemas from application, domain, persistence, infrastructure, or UI artifacts;
+- documents a schema shape that is not based on `Contracts` artifacts.
