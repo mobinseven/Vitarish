@@ -7,8 +7,18 @@
     <SupportedPlatform Include="browser" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\CalendarData\*.ics" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Injectio" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
+    <PackageReference Include="MudBlazor" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Client\Modules.Base.Client.csproj" />
-    <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\TenantService.cs" Link="TenantService.cs" />

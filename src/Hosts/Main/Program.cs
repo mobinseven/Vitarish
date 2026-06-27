@@ -6,7 +6,7 @@ using Vitarish.Audit.Server;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Feed.Infrastructure;
-using Vitarish.Interfaces.Base.Services;
+using Vitarish.Modules.Base.Interface.Services;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;

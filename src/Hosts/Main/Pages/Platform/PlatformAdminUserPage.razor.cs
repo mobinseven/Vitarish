@@ -1,5 +1,5 @@
 using Vitarish.Interfaces.Admins.Components;
-using Vitarish.Interfaces.Base.Common;
+using Vitarish.Modules.Base.Interface.Common;
 using Vitarish.Users.Application.Commands;
 namespace Vitarish.Main.Pages.Platform;
 

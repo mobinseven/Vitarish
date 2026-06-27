@@ -3,7 +3,7 @@
     "defaultMode": "FailFast",
     "frontendSafeDependencyAllowlist": [
         {
-            "project": "src/Interfaces/Interfaces.Base/Interfaces.Base.csproj",
+            "project": "src/Modules/Base/Interface/Modules.Base.Interface.csproj",
             "reason": "Shared UI primitives and presentation services only."
         },
         {
@@ -38,10 +38,6 @@
         }
     ],
     "globalInterfaces": {
-        "Interfaces.Base": {
-            "mode": "FailFast",
-            "temporaryExceptions": []
-        },
         "Interfaces.Accounts": {
             "mode": "FailFast",
             "temporaryExceptions": []

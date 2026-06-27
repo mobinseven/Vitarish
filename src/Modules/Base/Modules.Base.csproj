@@ -11,6 +11,10 @@
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Remove="Client\**" />
+		<Compile Remove="Interface\**" />
+		<EmbeddedResource Remove="Interface\**" />
+		<Content Remove="Interface\**" />
+		<None Remove="Interface\**" />
 		<Compile Remove="DependencyInjection\InternalModuleClientRegistrationExtensions.cs" />
 		<Compile Remove="TenantCommonBase.cs" />
 		<Compile Remove="TenantService.cs" />

@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 using System.Reflection;
-using Vitarish.Interfaces.Base.Attributes;
-using Vitarish.Interfaces.Base.Common;
+using Vitarish.Modules.Base.Interface.Attributes;
+using Vitarish.Modules.Base.Interface.Common;
 
 namespace Vitarish.Interfaces.Aggregator.Components;
 

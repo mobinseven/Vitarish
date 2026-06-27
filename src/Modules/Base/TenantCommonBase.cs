@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Components;
-using Vitarish.Interfaces.Base.Common;
+using Vitarish.Modules.Base.Interface.Common;
 
 namespace Vitarish.Modules.Base;
 
