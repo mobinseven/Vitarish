@@ -12,7 +12,7 @@ public class SeaCommonBase : TenantCommonBase, IDisposable
 
     protected async Task<T?> ValueOrNotifyAsync<T>(Task<SeaResult<T>> resultTask)
     {
-        SeaResult<T> result = await resultTask.ConfigureAwait(false);
+        SeaResult<T> result = await resultTask;
         if (result.Succeeded)
         {
             LastSeaError = null;
@@ -25,7 +25,7 @@ public class SeaCommonBase : TenantCommonBase, IDisposable
 
     protected async Task<bool> CommandOrNotifyAsync(Task<SeaResult<SeaCommandResult>> resultTask)
     {
-        SeaResult<SeaCommandResult> result = await resultTask.ConfigureAwait(false);
+        SeaResult<SeaCommandResult> result = await resultTask;
         if (result.Succeeded && result.Value?.Succeeded is true)
         {
             LastSeaError = null;
