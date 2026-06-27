@@ -14,7 +14,7 @@ SCAN_PATTERNS = [
 ]
 APPROVED = {'MapModuleGet','MapModulePost','MapModulePut','MapModuleDelete','MapModulePatch','MapModuleHead','MapProtectedModuleGroup','MapAnonymousModuleGroup'}
 RAW = {'MapGet','MapPost','MapPut','MapDelete','MapPatch','MapMethods','MapGroup'}
-ALLOW_RAW_FILES = {'src/Modules/Base/Endpoints/ModuleEndpointMappingExtensions.cs','src/Modules/Base/Endpoints/ProtectedModuleEndpointRouteBuilderExtensions.cs'}
+ALLOW_RAW_FILES = {'src/Modules/Base/Core/Endpoints/ModuleEndpointMappingExtensions.cs','src/Modules/Base/Core/Endpoints/ProtectedModuleEndpointRouteBuilderExtensions.cs'}
 @dataclass
 class V:
     path: Path; line: int; kind: str; expr: str; fix: str

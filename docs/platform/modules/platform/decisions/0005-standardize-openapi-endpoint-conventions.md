@@ -34,7 +34,7 @@ All module API endpoints must be OpenAPI-covered by platform convention unless t
 
 An endpoint is OpenAPI-covered when its route, HTTP method, stable operation ID, request schema, response schema, status codes, and endpoint metadata are represented through approved platform endpoint helpers.
 
-Module API projects must use the approved OpenAPI-aware endpoint helpers under `src/Modules/Base/Endpoints/` for endpoint mapping, protection conventions, and OpenAPI convention application. Direct Minimal API mapping is allowed only inside the implementation of approved platform helpers.
+Module API projects must use the approved OpenAPI-aware endpoint helpers under `src/Modules/Base/Core/Endpoints/` for endpoint mapping, protection conventions, and OpenAPI convention application. Direct Minimal API mapping is allowed only inside the implementation of approved platform helpers.
 
 OpenAPI request and response schemas must be based on `Contracts` artifacts. API projects may adapt `Contracts` artifacts to application commands and queries, but OpenAPI must not publish schemas from application, domain, persistence, infrastructure, identity, UI, or persistence artifacts.
 
