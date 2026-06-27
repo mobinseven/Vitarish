@@ -27,7 +27,8 @@ public sealed class TenantBackgroundExecutor(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        IEnumerable<BackgroundTenant> tenants = await tenantSource.GetTenantsAsync(cancellationToken);
+        IEnumerable<BackgroundTenant> tenants = await tenantSource.GetTenantsAsync(cancellationToken)
+            ?? Array.Empty<BackgroundTenant>();
 
         foreach (BackgroundTenant tenant in tenants)
         {

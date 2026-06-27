@@ -12,7 +12,8 @@ public sealed class PartiesBackgroundTenantSource(IPartiesService partiesService
     /// <inheritdoc />
     public async Task<IEnumerable<BackgroundTenant>> GetTenantsAsync(CancellationToken cancellationToken = default)
     {
-        IEnumerable<TenantReadDto> tenants = await partiesService.GetTenantsAsync(cancellationToken);
+        IEnumerable<TenantReadDto> tenants = await partiesService.GetTenantsAsync(cancellationToken)
+            ?? Array.Empty<TenantReadDto>();
         return tenants.Select(tenant => new BackgroundTenant(tenant.Id, tenant.OwnerId, tenant.AppId));
     }
 }

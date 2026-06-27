@@ -40,6 +40,29 @@ public class TenantBackgroundExecutorTests
         context.RequestId.Should().NotBeNullOrWhiteSpace();
     }
 
+    [Fact]
+    public async Task ExecutePerTenantAsync_WhenTenantSourceReturnsNull_CompletesWithoutExecutingWork()
+    {
+        NullTenantSource tenantSource = new();
+        CapturingBackgroundRequestContextWriter contextWriter = new();
+        ServiceCollection services = new();
+        _ = services.AddScoped<IBackgroundRequestContextWriter>(_ => contextWriter);
+        await using ServiceProvider serviceProvider = services.BuildServiceProvider();
+        TenantBackgroundExecutor executor = new(tenantSource, serviceProvider.GetRequiredService<IServiceScopeFactory>());
+        bool workExecuted = false;
+
+        await executor.ExecutePerTenantAsync(
+            "resource-id",
+            (_, _) =>
+            {
+                workExecuted = true;
+                return Task.CompletedTask;
+            });
+
+        workExecuted.Should().BeFalse();
+        contextWriter.Contexts.Should().BeEmpty();
+    }
+
     private sealed class CapturingTenantSource(IReadOnlyList<BackgroundTenant> tenants) : IBackgroundTenantSource
     {
         public CancellationToken RequestedCancellationToken { get; private set; }
@@ -48,6 +71,14 @@ public class TenantBackgroundExecutorTests
         {
             RequestedCancellationToken = cancellationToken;
             return Task.FromResult<IEnumerable<BackgroundTenant>>(tenants);
+        }
+    }
+
+    private sealed class NullTenantSource : IBackgroundTenantSource
+    {
+        public Task<IEnumerable<BackgroundTenant>> GetTenantsAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<IEnumerable<BackgroundTenant>>(null!);
         }
     }
 
