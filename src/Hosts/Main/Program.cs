@@ -90,6 +90,9 @@ _ = builder.Services.AddControllers();
 _ = builder.Services.AddEndpointsApiExplorer();
 // OpenAPI document generation is host-owned and exposed only in Development.
 _ = builder.Services.AddOpenApi();
+_ = builder.Services.AddModuleOpenApiDocument("files", "Files");
+_ = builder.Services.AddModuleOpenApiDocument("users", "Users");
+_ = builder.Services.AddModuleOpenApiDocument("medical", "Medical");
 _ = builder.Services.AddLocalization();
 Func<object, Task<string?>> tenantResolver = async context =>
 {
