@@ -82,7 +82,7 @@ else
             CreatedTo = _toDate is null ? null : DateTime.SpecifyKind(_toDate.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc)
         };
 
-        _orders = await OrderService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        _orders = await CommerceClient.GetListAsync(descriptor, ComponentCancellationToken).GetValueOrDefaultAsync() ?? [];
     }
 
     private int? GetOrderNumberFilter()
@@ -107,7 +107,7 @@ else
 
     private async Task RequestRefundAsync(Guid orderId)
     {
-        _ = await OrderService.RequestRefundAsync(orderId, "Requested by merchant.", CancellationToken.None);
+        _ = await CommerceClient.RequestRefundAsync(orderId, "Requested by merchant.", ComponentCancellationToken);
         await LoadOrdersAsync();
     }
 }

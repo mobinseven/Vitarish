@@ -30,8 +30,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _products = await ProductService.GetListAsync(
+        _products = await CommerceClient.GetListAsync(
             new ProductDescriptorDto { Status = ProductStatus.Published },
-            CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+            ComponentCancellationToken).GetValueOrDefaultAsync() ?? [];
     }
 }

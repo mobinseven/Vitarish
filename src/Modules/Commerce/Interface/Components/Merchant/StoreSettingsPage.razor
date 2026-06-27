@@ -1,7 +1,5 @@
 @inherits CommerceComponentBase
 
-@inject IStoreService StoreService
-
 <MudText Typo="Typo.h4">Store Settings</MudText>
 
 @if (_store is null)
@@ -26,6 +24,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _store = await StoreService.GetStoreByTenantAsync(CancellationToken.None);
+        _store = await CommerceClient.GetStoreByTenantAsync(ComponentCancellationToken);
     }
 }

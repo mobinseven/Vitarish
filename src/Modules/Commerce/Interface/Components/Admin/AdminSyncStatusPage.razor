@@ -1,4 +1,4 @@
-@inject ICommerceJobManager CommerceJobManager
+@inherits CommerceComponentBase
 
 <MudText Typo="Typo.h4">Commerce Sync Status</MudText>
 
@@ -12,6 +12,6 @@
 </MudStack>
 
 @code {
-    private void TriggerCatalogSync() => CommerceJobManager.TriggerCatalogSync();
-    private void TriggerOrderSync() => CommerceJobManager.TriggerOrderSync();
+    private async Task TriggerCatalogSync() => _ = await CommerceClient.TriggerCatalogSyncAsync(ComponentCancellationToken);
+    private async Task TriggerOrderSync() => _ = await CommerceClient.TriggerOrderSyncAsync(ComponentCancellationToken);
 }

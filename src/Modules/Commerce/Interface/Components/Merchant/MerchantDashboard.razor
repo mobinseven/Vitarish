@@ -34,29 +34,29 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _orderCount = await OrderService.CountAsync(new OrderDescriptorDto(), CancellationToken.None)
+        _orderCount = await CommerceClient.CountAsync(new OrderDescriptorDto(), ComponentCancellationToken)
             .GetValueOrDefaultAsync();
-        _productCount = await ProductService.CountAsync(new ProductDescriptorDto(), CancellationToken.None)
+        _productCount = await CommerceClient.CountAsync(new ProductDescriptorDto(), ComponentCancellationToken)
             .GetValueOrDefaultAsync();
-        _recoveryQueueCount = await CartService.CountRecoveryQueueAsync(CancellationToken.None);
+        _recoveryQueueCount = await CommerceClient.CountRecoveryQueueAsync(ComponentCancellationToken);
 
-        IReadOnlyList<OrderReadDto> pending = await OrderService.GetListAsync(
+        IReadOnlyList<OrderReadDto> pending = await CommerceClient.GetListAsync(
             new OrderDescriptorDto { Status = OrderStatus.Pending },
-            CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+            ComponentCancellationToken).GetValueOrDefaultAsync() ?? [];
         _pendingFulfillment = pending.Count(order => order.FulfillmentStatus != FulfillmentStatus.Fulfilled);
 
         DateTime now = DateTime.UtcNow;
         DateTime dayStart = DateTime.SpecifyKind(now.Date, DateTimeKind.Utc);
         DateTime weekStart = DateTime.SpecifyKind(now.Date.AddDays(-7), DateTimeKind.Utc);
 
-        IReadOnlyList<OrderReadDto> todayOrders = await OrderService.GetListAsync(
+        IReadOnlyList<OrderReadDto> todayOrders = await CommerceClient.GetListAsync(
             new OrderDescriptorDto { CreatedFrom = dayStart },
-            CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+            ComponentCancellationToken).GetValueOrDefaultAsync() ?? [];
         _todaySales = todayOrders.Sum(order => order.TotalAmount);
 
-        IReadOnlyList<OrderReadDto> weekOrders = await OrderService.GetListAsync(
+        IReadOnlyList<OrderReadDto> weekOrders = await CommerceClient.GetListAsync(
             new OrderDescriptorDto { CreatedFrom = weekStart },
-            CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+            ComponentCancellationToken).GetValueOrDefaultAsync() ?? [];
         _weekSales = weekOrders.Sum(order => order.TotalAmount);
     }
 }
