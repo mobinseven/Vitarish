@@ -8,6 +8,8 @@ using Vitarish.Parties.Infrastructure.Abstractions;
 using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Parties.Infrastructure.Services;
 using Vitarish.Entities.Server.Extensions;
+using Vitarish.Modules.Base.BackgroundJobs;
+using Vitarish.Parties.Module.BackgroundJobs;
 
 namespace Vitarish.Parties.Module.DependencyInjection;
 
@@ -31,6 +33,7 @@ public static class IdentityPartiesExtensions
 
         _ = builder.Services.AddTransient<ITenantResolver, TenantResolver>();
         _ = builder.Services.AddTransient<IPartiesService, PartiesService>();
+        _ = builder.Services.AddTransient<IBackgroundTenantSource, PartiesBackgroundTenantSource>();
         _ = builder.Services.AddSingleton<ILookupClient>(sp =>
         {
             LookupClientOptions lookupClientOptions = new()

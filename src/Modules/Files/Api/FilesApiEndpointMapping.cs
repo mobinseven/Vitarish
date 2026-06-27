@@ -19,12 +19,12 @@ public static class FilesApiEndpointMapping
     public static IEndpointRouteBuilder MapFilesApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(FilesApiRoutes.Base);
-        _ = group.MapModuleGet(FilesApiRoutes.ById, GetFileInformationAsync, "FilesGetFileInformation");
-        _ = group.MapModulePost("/search", FindFilesAsync, "FilesFindFiles");
-        _ = group.MapModulePost(string.Empty, CreateFileRecordAsync, "FilesCreateFileRecord");
-        _ = group.MapModulePost(FilesApiRoutes.Upload, UploadFileAsync, "FilesUploadFile", profile: ModuleEndpointProfile.MultipartUpload).DisableAntiforgery();
-        _ = group.MapModuleGet(FilesApiRoutes.ContentById, DownloadFileAsync, "FilesDownloadFile", profile: ModuleEndpointProfile.BinaryDownload, contentType: ModuleEndpointOpenApiConventions.BinaryStream);
-        _ = group.MapModuleHead(FilesApiRoutes.ContentById, DownloadFileAsync, "FilesDownloadFileHead", contentType: ModuleEndpointOpenApiConventions.BinaryStream);
+        _ = group.MapModuleGet(FilesApiRoutes.ById, GetFileInformationAsync, "FilesGetFileInformation", typeof(C.FileInformationDto));
+        _ = group.MapModulePost("/search", FindFilesAsync, "FilesFindFiles", typeof(C.FileInformationDto[]));
+        _ = group.MapModulePost(string.Empty, CreateFileRecordAsync, "FilesCreateFileRecord", typeof(C.FileInformationDto));
+        _ = group.MapModulePost(FilesApiRoutes.Upload, UploadFileAsync, "FilesUploadFile", typeof(FileUploadResponse), profile: ModuleEndpointProfile.MultipartUpload).DisableAntiforgery();
+        _ = group.MapModuleGet(FilesApiRoutes.ContentById, DownloadFileAsync, "FilesDownloadFile", successStatusCode: StatusCodes.Status200OK, profile: ModuleEndpointProfile.BinaryDownload, contentType: ModuleEndpointOpenApiConventions.BinaryStream);
+        _ = group.MapModuleHead(FilesApiRoutes.ContentById, DownloadFileAsync, "FilesDownloadFileHead", successStatusCode: StatusCodes.Status200OK, contentType: ModuleEndpointOpenApiConventions.BinaryStream);
         return endpoints;
     }
 

@@ -1,6 +1,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Vitarish.Modules.Base.Endpoints;
 
 namespace Vitarish.Interfaces.Accounts.Extensions;
 
@@ -11,7 +12,7 @@ public static class IdentityComponentsEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         RouteGroupBuilder accountGroup = endpoints.MapGroup("/Account");
-        accountGroup.WithMetadata("OpenApiExclusionJustification:Razor account endpoints use antiforgery and cookie authentication rather than module contract OpenAPI semantics.").ExcludeFromDescription();
+        accountGroup.ExcludeFromOpenApiWithJustification("Razor account endpoints use antiforgery and cookie authentication rather than module contract OpenAPI semantics.");
 
         _ = accountGroup.MapPost("/Logout", async (
             ClaimsPrincipal user,
@@ -21,7 +22,7 @@ public static class IdentityComponentsEndpointRouteBuilderExtensions
             await signInManager.SignOutAsync();
             return TypedResults.LocalRedirect($"~/{returnUrl}");
         })
-        .WithMetadata("OpenApiExclusionJustification:Razor account form endpoint uses antiforgery and cookie authentication rather than module contract OpenAPI semantics.").ExcludeFromDescription();
+        .ExcludeFromOpenApiWithJustification("Razor account form endpoint uses antiforgery and cookie authentication rather than module contract OpenAPI semantics.");
 
         return accountGroup;
     }
