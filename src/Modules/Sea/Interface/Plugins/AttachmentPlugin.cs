@@ -2,7 +2,7 @@ using Vitarish.Sea.Interface.Components.Attachments;
 
 namespace Vitarish.Sea.Interface.Plugins;
 
-internal sealed class AttachmentPlugin(IAttachmentsService attachmentsService) : IEventItemPlugin
+internal sealed class AttachmentPlugin(ISeaClient seaClient) : IEventItemPlugin
 {
     public string Id => "event-items/attachments";
 
@@ -24,7 +24,8 @@ internal sealed class AttachmentPlugin(IAttachmentsService attachmentsService) :
     public async Task<IReadOnlyList<EventTimelineItem>> GetItemsAsync(EventTimelineContext context, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
-        IReadOnlyList<AttachmentReadDto> attachments = await attachmentsService.GetByEventAsync(context.Event.Id, cancellationToken);
+        SeaResult<IReadOnlyList<AttachmentReadDto>> result = await seaClient.ListAttachmentsByEventAsync(context.Event.Id, cancellationToken);
+        IReadOnlyList<AttachmentReadDto> attachments = result.Succeeded ? result.Value ?? [] : [];
 
         return [.. attachments
             .Select(attachment => new EventTimelineItem(

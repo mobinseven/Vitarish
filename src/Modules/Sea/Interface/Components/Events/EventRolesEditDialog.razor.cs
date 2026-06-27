@@ -3,9 +3,7 @@ namespace Vitarish.Sea.Interface.Components.Events;
 public partial class EventRolesEditDialog : SeaCommonBase
 {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
-    [Inject] private IRolesService RolesService { get; set; } = default!;
-    [Inject] private IEventRolesService EventRolesService { get; set; } = default!;
-
+        
     [Parameter] public EventReadDto? Event { get; set; }
 
     private HashSet<Guid> readRoleIds = [];
@@ -22,8 +20,8 @@ public partial class EventRolesEditDialog : SeaCommonBase
             MudDialog.Cancel();
             return;
         }
-        roles = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? []];
-        (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds) = await EventRolesService.GetIdsAsync(Event.Id, CancellationToken.None);
+        roles = [.. await ValueOrNotifyAsync(SeaClient.ListRolesAsync(CancellationToken.None)) ?? []];
+        (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds) = (await ValueOrNotifyAsync(SeaClient.GetEventReadRoleIdsAsync(Event.Id, CancellationToken.None)) ?? [], await ValueOrNotifyAsync(SeaClient.GetEventWriteRoleIdsAsync(Event.Id, CancellationToken.None)) ?? []);
         readRoleIds = [.. ReadRoleIds];
         writeRoleIds = [.. WriteRoleIds];
         initialReadRoleIds = [.. readRoleIds];
@@ -39,22 +37,22 @@ public partial class EventRolesEditDialog : SeaCommonBase
         }
         foreach (Guid r in readRoleIds.Except(initialReadRoleIds))
         {
-            await EventRolesService.AssignAsync(Event.Id, r, false, CancellationToken.None);
+            await CommandOrNotifyAsync(SeaClient.AssignEventRoleAsync(new EventRoleWriteDto(Event.Id, r, RoleType.Read), CancellationToken.None));
         }
 
         foreach (Guid r in initialReadRoleIds.Except(readRoleIds))
         {
-            await EventRolesService.UnassignAsync(Event.Id, r, false, CancellationToken.None);
+            await CommandOrNotifyAsync(SeaClient.UnassignEventRoleAsync(r, CancellationToken.None));
         }
 
         foreach (Guid r in writeRoleIds.Except(initialWriteRoleIds))
         {
-            await EventRolesService.AssignAsync(Event.Id, r, true, CancellationToken.None);
+            await CommandOrNotifyAsync(SeaClient.AssignEventRoleAsync(new EventRoleWriteDto(Event.Id, r, RoleType.Write), CancellationToken.None));
         }
 
         foreach (Guid r in initialWriteRoleIds.Except(writeRoleIds))
         {
-            await EventRolesService.UnassignAsync(Event.Id, r, true, CancellationToken.None);
+            await CommandOrNotifyAsync(SeaClient.UnassignEventRoleAsync(r, CancellationToken.None));
         }
 
         MudDialog.Close(DialogResult.Ok(true));

@@ -103,7 +103,7 @@
         }
         else
         {
-            _ = await EventsService.RemoveEventAsync(Procedure.Id, Event.Id, CancellationToken.None);
+            _ = await CommandOrNotifyAsync(SeaClient.RemoveEventAsync(Event.Id, CancellationToken.None));
             await OnDelete.InvokeAsync();
         }
     }
@@ -114,7 +114,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        CanWrite = await EventsService.CanWriteEvent(Event.Id);
+        CanWrite = (await ValueOrNotifyAsync(SeaClient.CanWriteEventAsync(Event.Id, CancellationToken.None)));
     }
 
 
@@ -141,15 +141,15 @@
                 return;
             }
 
-            await EventsService.UncommitAsync(Event.Id, CancellationToken.None);
+            await CommandOrNotifyAsync(SeaClient.UncommitEventAsync(Event.Id, CancellationToken.None));
             string uncommitMessage = Localizer["Uncommitted"];
-            await AttachmentsService.AddAsync(Event.Id, uncommitMessage, "text/plain", null, Encoding.UTF8.GetByteCount(uncommitMessage), CancellationToken.None);
+            await CommandOrNotifyAsync(SeaClient.AddTextAttachmentMetadataAsync(new AttachmentWriteDto(Event.Id, uncommitMessage, "text/plain", null, Encoding.UTF8.GetByteCount(uncommitMessage)), CancellationToken.None));
         }
         else
         {
-            await EventsService.CommitAsync(Event.Id, CancellationToken.None);
+            await CommandOrNotifyAsync(SeaClient.CommitEventAsync(Event.Id, CancellationToken.None));
             string commitMessage = Localizer["Committed"];
-            await AttachmentsService.AddAsync(Event.Id, commitMessage, "text/plain", null, Encoding.UTF8.GetByteCount(commitMessage), CancellationToken.None);
+            await CommandOrNotifyAsync(SeaClient.AddTextAttachmentMetadataAsync(new AttachmentWriteDto(Event.Id, commitMessage, "text/plain", null, Encoding.UTF8.GetByteCount(commitMessage)), CancellationToken.None));
         }
         await InvokeAsync(StateHasChanged);
         await OnUpdate.InvokeAsync();

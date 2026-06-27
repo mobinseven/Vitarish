@@ -2,10 +2,7 @@ namespace Vitarish.Sea.Interface.Components.Attachments;
 
 public partial class AttachmentDetailsDialog : SeaCommonBase
 {
-    [Inject] private IAccessControlledEventsService EventsService { get; set; } = default!;
-    [Inject] private IAttachmentsService AttachmentsService { get; set; } = default!;
-    [Inject] private IReceiptsService ReceiptsService { get; set; } = default!;
-
+            
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter, EditorRequired] public EventReadDto Event { get; set; } = default!;
@@ -25,12 +22,12 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
     {
         await base.OnInitializedAsync();
         await LoadReadersAsync();
-        CanEdit = await EventsService.CanWriteEvent(Event.Id) && Event.CommittedBy.ToString() == RequestContext.UserId;
-        CanDelete = await EventsService.CanWriteEvent(Event.Id);
+        CanEdit = (await ValueOrNotifyAsync(SeaClient.CanWriteEventAsync(Event.Id, CancellationToken.None))) && Event.CommittedBy.ToString() == RequestContext.UserId;
+        CanDelete = (await ValueOrNotifyAsync(SeaClient.CanWriteEventAsync(Event.Id, CancellationToken.None)));
         StateHasChanged();
     }
 
-    private async Task LoadReadersAsync() => readers = [.. (await ReceiptsService.GetReadersAsync(Attachment.Id, CancellationToken.None) ?? Array.Empty<Guid>()).Except([Guid.Parse(Attachment.CreatedBy ?? Guid.Empty.ToString())])];
+    private async Task LoadReadersAsync() => readers = [.. (await ValueOrNotifyAsync(SeaClient.ListReadersAsync(Attachment.Id, CancellationToken.None)) ?? []).Select(r => r.ObjectId).Except([Guid.Parse(Attachment.CreatedBy ?? Guid.Empty.ToString())])];
 
     private void Close() => MudDialog.Close();
 
@@ -44,11 +41,8 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
 
     private async Task SaveAsync()
     {
-        AttachmentReadDto? updated = await AttachmentsService.UpdateAsync(
-            Event.Id,
-            Attachment.Id,
-            editContent,
-            CancellationToken.None);
+        bool saved = await CommandOrNotifyAsync(SeaClient.UpdateTextAttachmentAsync(new AttachmentWriteDto(Event.Id, editContent, Attachment.ContentType, Attachment.ContentThumbnail, Attachment.Size) { Id = Attachment.Id }, CancellationToken.None));
+        AttachmentReadDto? updated = saved ? Attachment with { Content = editContent } : null;
 
         if (updated is not null)
         {
@@ -93,7 +87,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
         {
             return;
         }
-        await AttachmentsService.RemoveAsync(Event.Id, Attachment.Id, CancellationToken.None);
+        await CommandOrNotifyAsync(SeaClient.RemoveAttachmentAsync(Attachment.Id, CancellationToken.None));
         MudDialog.Close();
     }
 }

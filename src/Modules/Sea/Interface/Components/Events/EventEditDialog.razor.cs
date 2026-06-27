@@ -28,7 +28,7 @@ public partial class EventEditDialog : EventsBase
         }
         else
         {
-            EventReadDto? updated = await EventsService.UpdateAsync(EventWrite, CancellationToken.None).EnsureValueAsync();
+            bool updated = await CommandOrNotifyAsync(SeaClient.UpdateEventAsync(EventWrite, CancellationToken.None));
             MudDialog.Close(DialogResult.Ok(updated));
         }
     }

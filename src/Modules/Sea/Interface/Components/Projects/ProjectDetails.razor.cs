@@ -33,7 +33,7 @@ public partial class ProjectDetails : ProjectsBase
         }
         else
         {
-            _ = await ProjectsService.RemoveAsync(Project.Id, CancellationToken.None);
+            _ = await CommandOrNotifyAsync(SeaClient.DeleteProjectAsync(Project.Id, CancellationToken.None));
             await OnDeleted.InvokeAsync();
         }
     }

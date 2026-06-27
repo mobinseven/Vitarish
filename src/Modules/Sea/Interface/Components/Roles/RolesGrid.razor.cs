@@ -7,7 +7,7 @@ public partial class RolesGrid : RolesBase
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        roles = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? []];
+        roles = [.. await ValueOrNotifyAsync(SeaClient.ListRolesAsync(CancellationToken.None)) ?? []];
     }
 
     private async Task AddRole()
@@ -26,8 +26,7 @@ public partial class RolesGrid : RolesBase
         }
         else
         {
-            roles = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None)
-                .GetValueOrDefaultAsync() ?? []];
+            roles = [.. await ValueOrNotifyAsync(SeaClient.ListRolesAsync(CancellationToken.None)) ?? []];
             StateHasChanged();
         }
     }
@@ -52,7 +51,7 @@ public partial class RolesGrid : RolesBase
         }
         else
         {
-            roles = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? []];
+            roles = [.. await ValueOrNotifyAsync(SeaClient.ListRolesAsync(CancellationToken.None)) ?? []];
             StateHasChanged();
         }
     }
@@ -79,7 +78,7 @@ public partial class RolesGrid : RolesBase
         }
         else
         {
-            await RolesService.RemoveAsync(role.Id, CancellationToken.None).EnsureSuccessAsync("Remove role");
+            await CommandOrNotifyAsync(SeaClient.DeleteRoleAsync(role.Id, CancellationToken.None));
             _ = roles.Remove(role);
             StateHasChanged();
         }

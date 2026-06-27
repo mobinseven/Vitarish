@@ -17,3 +17,8 @@ global using Vitarish.Sea.Interface.Extensions;
 global using Vitarish.Sea.Interface.Mapping;
 global using Vitarish.Sea.Interface.Plugins;
 global using Vitarish.Sea.Interface.ViewState;
+
+global using Vitarish.Files.Contracts.Metadata;
+global using Vitarish.Communications.Client;
+global using Vitarish.Communications.Contracts.Reminders;
+global using Vitarish.Users.Contracts.Responses;

@@ -46,7 +46,7 @@
 
         ProjectId = id;
 
-        Project = await ProjectsService.GetAsync(ProjectId, CancellationToken.None).GetValueOrDefaultAsync();
+        Project = await ValueOrNotifyAsync(SeaClient.GetProjectAsync(ProjectId, CancellationToken.None));
 
         if(Project is null)
         {
@@ -67,7 +67,7 @@
 
         if(!markedAsRead)
         {
-            await ReceiptsService.MarkProjectReadAsync(UserId.Value, ProjectId, CancellationToken.None);
+            await CommandOrNotifyAsync(SeaClient.MarkProjectReadAsync(ProjectId, CancellationToken.None));
             markedAsRead = true;
         }
     }

@@ -10,7 +10,7 @@ public partial class EventsGrid : EventsBase
 
     protected override async Task ReloadRequired()
     {
-        events = [.. (await EventsService.GetByProcedureAsync(Procedure.Id, CancellationToken.None)).SortByChain()];
+        events = [.. (await ValueOrNotifyAsync(SeaClient.ListEventsByProcedureAsync(Procedure.Id, CancellationToken.None)) ?? []).SortByChain()];
 
         Guid[] eventIds = [.. events.Select(e => e.Id)];
 
@@ -36,10 +36,11 @@ public partial class EventsGrid : EventsBase
 
     private async Task AddEventAt(Guid? previousEventId)
     {
-        EventReadDto? created = await EventsService.AddAsync(Project.Id, Procedure.Id, previousEventId, CancellationToken.None);
+        SeaCommandResult? createResult = await ValueOrNotifyAsync(SeaClient.CreateEventAfterAsync(previousEventId, new EventWriteDto { ProjectId = Project.Id, ProcedureId = Procedure.Id, PreviousEventId = previousEventId }, CancellationToken.None));
+        EventReadDto? created = createResult?.EntityId is Guid createdId ? await ValueOrNotifyAsync(SeaClient.GetEventAsync(createdId, CancellationToken.None)) : null;
         if (created is not null)
         {
-            EventReadDto? updated = await EventsService.UpdateAsync(created.Id, $"{Localizer["Event"]} {events.Count}", string.Empty, CancellationToken.None);
+            EventReadDto? updated = await (await CommandOrNotifyAsync(SeaClient.UpdateEventAsync(new EventWriteDto { Id = created.Id, ProjectId = Project.Id, ProcedureId = Procedure.Id, Title = $"{Localizer["Event"]} {events.Count}", Description = string.Empty }, CancellationToken.None)) ? ValueOrNotifyAsync(SeaClient.GetEventAsync(created.Id, CancellationToken.None)) : Task.FromResult<EventReadDto?>(null));
             if (updated is not null)
             {
                 await EditEvent(updated);
@@ -67,7 +68,7 @@ public partial class EventsGrid : EventsBase
 
     private async Task MoveUp(EventReadDto item)
     {
-        if (await EventsService.MoveUpAsync(Procedure.Id, item.Id, CancellationToken.None))
+        if (await CommandOrNotifyAsync(SeaClient.MoveEventUpAsync(item.Id, CancellationToken.None)))
         {
             await ReloadRequired();
         }
@@ -75,7 +76,7 @@ public partial class EventsGrid : EventsBase
 
     private async Task MoveDown(EventReadDto item)
     {
-        if (await EventsService.MoveDownAsync(Procedure.Id, item.Id, CancellationToken.None))
+        if (await CommandOrNotifyAsync(SeaClient.MoveEventDownAsync(item.Id, CancellationToken.None)))
         {
             await ReloadRequired();
         }

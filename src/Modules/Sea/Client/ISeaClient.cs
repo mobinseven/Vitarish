@@ -25,6 +25,8 @@ public interface ISeaClient
     Task<SeaResult<SeaCommandResult>> MarkProcedureUnreadAsync(Guid procedureId, CancellationToken cancellationToken);
 
     Task<SeaResult<IReadOnlyList<EventReadDto>>> ListEventsByProcedureAsync(Guid procedureId, CancellationToken cancellationToken);
+    Task<SeaResult<EventReadDto>> GetEventAsync(Guid eventId, CancellationToken cancellationToken);
+    Task<SeaResult<bool>> CanWriteEventAsync(Guid eventId, CancellationToken cancellationToken);
     Task<SeaResult<SeaCommandResult>> CreateEventAfterAsync(Guid? previousEventId, EventWriteDto @event, CancellationToken cancellationToken);
     Task<SeaResult<SeaCommandResult>> UpdateEventAsync(EventWriteDto @event, CancellationToken cancellationToken);
     Task<SeaResult<SeaCommandResult>> MoveEventUpAsync(Guid eventId, CancellationToken cancellationToken);
@@ -53,6 +55,7 @@ public interface ISeaClient
     Task<SeaResult<IReadOnlyList<RoleReadDto>>> PageRolesAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<SeaResult<SeaCommandResult>> CreateRoleAsync(RoleWriteDto role, CancellationToken cancellationToken);
     Task<SeaResult<SeaCommandResult>> UpdateRoleAsync(RoleWriteDto role, CancellationToken cancellationToken);
+    Task<SeaResult<SeaCommandResult>> DeleteRoleAsync(Guid roleId, CancellationToken cancellationToken);
     Task<SeaResult<IReadOnlyList<UserRoleReadDto>>> ListUserRolesAsync(string userId, CancellationToken cancellationToken);
     Task<SeaResult<SeaCommandResult>> AssignUserRoleAsync(UserRoleWriteDto userRole, CancellationToken cancellationToken);
     Task<SeaResult<SeaCommandResult>> RemoveUserRoleAsync(Guid userRoleId, CancellationToken cancellationToken);

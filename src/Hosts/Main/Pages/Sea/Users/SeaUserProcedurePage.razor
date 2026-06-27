@@ -43,7 +43,7 @@
         ProjectId = parsedProjectId;
         ProcedureId = parsedProcedureId;
 
-        Project = await ProjectsService.GetAsync(ProjectId, CancellationToken.None).GetValueOrDefaultAsync();
+        Project = await ValueOrNotifyAsync(SeaClient.GetProjectAsync(ProjectId, CancellationToken.None));
 
         if(Project is null)
         {
@@ -51,7 +51,7 @@
             return;
         }
 
-        Procedure = await ProcedureService.GetAsync(ProcedureId, CancellationToken.None).GetValueOrDefaultAsync();
+        Procedure = await ValueOrNotifyAsync(SeaClient.GetProcedureAsync(ProcedureId, CancellationToken.None));
 
         if(Procedure is null)
         {
@@ -74,7 +74,7 @@
         }
         if(!markedAsRead)
         {
-            await ReceiptsService.MarkProcedureReadAsync(UserId.Value, Procedure.Id, CancellationToken.None);
+            await CommandOrNotifyAsync(SeaClient.MarkProcedureReadAsync(Procedure.Id, CancellationToken.None));
             markedAsRead = true;
         }
     }

@@ -2,7 +2,7 @@ namespace Vitarish.Sea.Interface.Components.Users;
 
 public partial class UserRolesSelect : UsersBase
 {
-    [Parameter, EditorRequired] public UserDto User { get; set; }
+    [Parameter, EditorRequired] public UserSummaryResponse User { get; set; }
 
     private List<RoleReadDto> roles = [];
     private HashSet<Guid> readRoles = [];
@@ -20,10 +20,8 @@ public partial class UserRolesSelect : UsersBase
             return;
         }
 
-        roles = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? []];
-        IReadOnlyList<UserRoleReadDto> userRoles = await UserRolesService.GetListAsync(
-                new UserRoleDescriptorDto { UserId = userId },
-                CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        roles = [.. await ValueOrNotifyAsync(SeaClient.ListRolesAsync(CancellationToken.None)) ?? []];
+        IReadOnlyList<UserRoleReadDto> userRoles = await ValueOrNotifyAsync(SeaClient.ListUserRolesAsync(User.Id, CancellationToken.None)) ?? [];
         readRoles = [.. userRoles.Where(r => r.Type == RoleType.Read).Select(r => r.RoleId)];
         writeRoles = [.. userRoles.Where(r => r.Type == RoleType.Write).Select(r => r.RoleId)];
         initialReadRoles = [.. readRoles];
@@ -46,16 +44,16 @@ public partial class UserRolesSelect : UsersBase
 
         IEnumerable<Task> updateTasks = allRoleIds.Select(async id =>
         {
-            await UserRolesService.RemoveAsync(userId, id, CancellationToken.None);
+            await CommandOrNotifyAsync(SeaClient.RemoveUserRoleAsync(id, CancellationToken.None));
 
             if (readRoles.Contains(id))
             {
-                await UserRolesService.AssignAsync(userId, id, RoleType.Read, CancellationToken.None);
+                await CommandOrNotifyAsync(SeaClient.AssignUserRoleAsync(new UserRoleWriteDto(id, RoleType.Read) { Id = userId }, CancellationToken.None));
             }
 
             if (writeRoles.Contains(id))
             {
-                await UserRolesService.AssignAsync(userId, id, RoleType.Write, CancellationToken.None);
+                await CommandOrNotifyAsync(SeaClient.AssignUserRoleAsync(new UserRoleWriteDto(id, RoleType.Write) { Id = userId }, CancellationToken.None));
             }
         });
 

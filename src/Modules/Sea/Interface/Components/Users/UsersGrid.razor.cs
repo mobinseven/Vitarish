@@ -2,7 +2,7 @@ namespace Vitarish.Sea.Interface.Components.Users;
 
 public partial class UsersGrid : UsersBase, IDisposable
 {
-    private UserDto[] users = [];
+    private UserSummaryResponse[] users = [];
     protected override Task ReloadRequired()
     {
         users = [.. GetUsers()];

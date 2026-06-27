@@ -23,9 +23,7 @@ public partial class ProcedureCreateDialog : ProceduresBase
         }
     }
 
-    [Inject] private IAttachmentsClient AttachmentsService { get; set; } = default!;
-    [Inject] private IEventRolesService EventRolesService { get; set; } = default!;
-
+    
     private async Task SaveAsync()
     {
         ProcedureDescriptorDto descriptor = new()
@@ -34,7 +32,7 @@ public partial class ProcedureCreateDialog : ProceduresBase
             Search = ProcedureWriteDto.Name
         };
 
-        IReadOnlyList<ProcedureReadDto> existing = await ProceduresService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        IReadOnlyList<ProcedureReadDto> existing = await ValueOrNotifyAsync(SeaClient.ListProceduresAsync(ProjectId, CancellationToken.None)) ?? [];
         if (existing.Any(p => string.Equals(p.Name, ProcedureWriteDto.Name, StringComparison.CurrentCultureIgnoreCase)))
         {
             _ = await DialogService.ShowMessageBoxAsync(
@@ -44,7 +42,10 @@ public partial class ProcedureCreateDialog : ProceduresBase
             return;
         }
 
-        ProcedureReadDto added = await ProceduresService.AddAsync(new ProcedureWriteDto { ProjectId = ProjectId, Name = ProcedureWriteDto.Name }, CancellationToken.None).EnsureValueAsync();
+        SeaCommandResult? createResult = await ValueOrNotifyAsync(SeaClient.CreateProcedureAsync(new ProcedureWriteDto { ProjectId = ProjectId, Name = ProcedureWriteDto.Name }, CancellationToken.None));
+        if (createResult?.EntityId is not Guid addedId) return;
+        ProcedureReadDto? added = await ValueOrNotifyAsync(SeaClient.GetProcedureAsync(addedId, CancellationToken.None));
+        if (added is null) return;
         if (templateProcedure is not null)
         {
             await CopyEventsAsync(templateProcedure.Id, added.Id);
@@ -55,33 +56,34 @@ public partial class ProcedureCreateDialog : ProceduresBase
 
     private async Task CopyEventsAsync(Guid fromProcedureId, Guid toProcedureId)
     {
-        IReadOnlyList<EventReadDto> events = (await EventsService.GetByProcedureAsync(fromProcedureId, CancellationToken.None)).SortByChain();
+        IReadOnlyList<EventReadDto> events = (await ValueOrNotifyAsync(SeaClient.ListEventsByProcedureAsync(fromProcedureId, CancellationToken.None)) ?? []).SortByChain();
         Guid? previous = null;
         foreach (EventReadDto e in events)
         {
-            EventReadDto? added = await EventsService.AddAsync(ProjectId, toProcedureId, previous, CancellationToken.None);
+            SeaCommandResult? createResult = await ValueOrNotifyAsync(SeaClient.CreateEventAfterAsync(previous, new EventWriteDto { ProjectId = ProjectId, ProcedureId = toProcedureId, PreviousEventId = previous }, CancellationToken.None));
+            EventReadDto? added = createResult?.EntityId is Guid addedId ? await ValueOrNotifyAsync(SeaClient.GetEventAsync(addedId, CancellationToken.None)) : null;
             if (added is null)
             {
                 continue;
             }
 
-            _ = await EventsService.UpdateAsync(added.Id, e.Title, e.Description, CancellationToken.None);
+            _ = await CommandOrNotifyAsync(SeaClient.UpdateEventAsync(new EventWriteDto { Id = added.Id, ProjectId = ProjectId, ProcedureId = toProcedureId, Title = e.Title, Description = e.Description }, CancellationToken.None));
 
-            (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds) = await EventRolesService.GetIdsAsync(e.Id, CancellationToken.None);
+            (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds) = (await ValueOrNotifyAsync(SeaClient.GetEventReadRoleIdsAsync(e.Id, CancellationToken.None)) ?? [], await ValueOrNotifyAsync(SeaClient.GetEventWriteRoleIdsAsync(e.Id, CancellationToken.None)) ?? []);
             foreach (Guid readRole in ReadRoleIds)
             {
-                await EventRolesService.AssignAsync(added.Id, readRole, false, CancellationToken.None);
+                await CommandOrNotifyAsync(SeaClient.AssignEventRoleAsync(new EventRoleWriteDto(added.Id, readRole, RoleType.Read), CancellationToken.None));
             }
 
             foreach (Guid writeRole in WriteRoleIds)
             {
-                await EventRolesService.AssignAsync(added.Id, writeRole, true, CancellationToken.None);
+                await CommandOrNotifyAsync(SeaClient.AssignEventRoleAsync(new EventRoleWriteDto(added.Id, writeRole, RoleType.Write), CancellationToken.None));
             }
 
-            IReadOnlyList<AttachmentReadDto> attachments = await AttachmentsService.GetByEventAsync(e.Id, CancellationToken.None);
+            IReadOnlyList<AttachmentReadDto> attachments = await ValueOrNotifyAsync(SeaClient.ListAttachmentsByEventAsync(e.Id, CancellationToken.None)) ?? [];
             if (attachments.Count > 0)
             {
-                await AttachmentsService.AddAsync(added.Id, attachments, CancellationToken.None);
+                await CommandOrNotifyAsync(SeaClient.AddAttachmentsAsync([.. attachments.Select(a => new AttachmentWriteDto(added.Id, a.Content, a.ContentType, a.ContentThumbnail, a.Size) { Id = a.Id })], CancellationToken.None));
             }
 
             previous = added.Id;

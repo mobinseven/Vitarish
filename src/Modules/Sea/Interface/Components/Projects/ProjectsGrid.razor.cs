@@ -25,7 +25,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
             Template = TemplateMode
         };
 
-        IReadOnlyList<ProjectReadDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        IReadOnlyList<ProjectReadDto> Items = await ValueOrNotifyAsync(SeaClient.ListProjectsAsync(CancellationToken.None)) ?? [];
 
         projects = [.. Items
             .OrderByDescending(e => (e.Stats?.NewItems ?? 0) > 0)

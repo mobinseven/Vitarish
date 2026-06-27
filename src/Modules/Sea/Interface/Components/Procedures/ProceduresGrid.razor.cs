@@ -23,7 +23,7 @@ public partial class ProceduresGrid : ProceduresBase
         {
             ProjectId = Project.Id
         };
-        IReadOnlyList<ProcedureReadDto> Items = await ProceduresService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        IReadOnlyList<ProcedureReadDto> Items = await ValueOrNotifyAsync(SeaClient.ListProceduresAsync(Project.Id, CancellationToken.None)) ?? [];
 
         procedures = [.. Items
             .OrderByDescending(e => (e.Stats?.Unread ?? false) || ((e.Stats?.NewItems ?? 0) > 0))
