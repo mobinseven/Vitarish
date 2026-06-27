@@ -51,7 +51,8 @@ internal static class PatientProjectMappings
         DeletedAt = source.DeletedAt,
         DeletedBy = source.DeletedBy,
         Stats = source.Stats,
-        Metadata = ToPatientMetadata(source)
+        Metadata = ToPatientMetadata(source),
+        MetadataValues = ToPatientMetadata(source)
     };
 
     private static Dictionary<string, object?> ToPatientMetadata(PatientViewDto source) => new()
