@@ -11,8 +11,8 @@
                             Placeholder="e.g., app.customer.com"
                             Required />
             <StackSelect @bind-Value="newVerificationMethod" Label="@Localizer["VerificationMethod"]" Required>
-                <StackSelectItem Value="@IndicatorVerificationMethod.Manual">Manual</StackSelectItem>
-                <StackSelectItem Value="@IndicatorVerificationMethod.DnsTxt">DNS TXT Record</StackSelectItem>
+                <StackSelectItem Value="@Vitarish.Parties.Domain.Enums.IndicatorVerificationMethod.Manual">Manual</StackSelectItem>
+                <StackSelectItem Value="@Vitarish.Parties.Domain.Enums.IndicatorVerificationMethod.DnsTxt">DNS TXT Record</StackSelectItem>
             </StackSelect>
             <StackSelect @bind-Value="newStatus" Label="@Localizer["Status"]" Required>
                 <StackSelectItem Value="@IndicatorStatus.Active">@Localizer["Active"]</StackSelectItem>
@@ -37,4 +37,3 @@
         </Stack>
     </DialogContent>
 </MudDialog>
-

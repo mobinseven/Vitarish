@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Apps.Base;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Apps.Base.Core;
 using Vitarish.Clinic.Api;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Clinic.Infrastructure.Extensions;
@@ -9,7 +11,7 @@ using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Clinic.App;
 
-public class ClinicApp : App, IClinicApp
+public class ClinicApp : Vitarish.Apps.Base.Core.App, IClinicApp
 {
     public override string Name => "Clinic";
 
@@ -31,3 +33,5 @@ public class ClinicApp : App, IClinicApp
         return Task.CompletedTask;
     }
 }
+
+public interface IClinicApp : IApp;

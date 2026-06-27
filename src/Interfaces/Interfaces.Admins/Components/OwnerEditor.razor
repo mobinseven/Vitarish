@@ -1,4 +1,5 @@
-@using Vitarish.Parties.Contracts.Tenants
+@using Vitarish.Parties.Domain.Dtos
+@using Vitarish.Parties.Domain.Mappers
 
 <Stack>
 
@@ -13,9 +14,9 @@
 </Stack>
 
 @code {
-    OwnerWriteDto write = new();
-    [Parameter, EditorRequired] public OwnerReadDto Owner { get; set; }
-    [Parameter] public EventCallback<OwnerReadDto> OwnerChanged { get; set; }
+    Vitarish.Parties.Domain.Dtos.OwnerWriteDto write = new();
+    [Parameter, EditorRequired] public Vitarish.Parties.Domain.Dtos.OwnerReadDto Owner { get; set; }
+    [Parameter] public EventCallback<Vitarish.Parties.Domain.Dtos.OwnerReadDto> OwnerChanged { get; set; }
     [Parameter] public EventCallback OnSaved { get; set; }
     [Parameter] public EventCallback OnCancelled { get; set; }
 
@@ -26,7 +27,7 @@
 
     private async Task Save()
     {
-        OwnerReadDto? updated = await PartiesService.UpdateOwnerAsync(write);
+        Vitarish.Parties.Domain.Dtos.OwnerReadDto? updated = await PartiesService.UpdateOwnerAsync(write);
         if(updated is null)
         {
             Snackbar.Add(Localizer["Error"], Severity.Error);

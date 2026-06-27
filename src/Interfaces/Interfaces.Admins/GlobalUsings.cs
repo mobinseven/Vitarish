@@ -11,6 +11,10 @@ global using Microsoft.JSInterop;
 // Third‑party UI libraries
 global using MudBlazor;
 global using System.Net.Http;
+global using Vitarish.Parties.Application.Abstractions;
 global using Vitarish.Requests.Client;
+global using Vitarish.Requests.Application.Abstractions;
+global using Vitarish.Users.Application.Abstractions;
 global using Vitarish.Users.Client;
 global using Vitarish.Users.Contracts;
+global using Vitarish.Users.Domain.Entities;

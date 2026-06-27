@@ -18,12 +18,17 @@ global using System.Net.Http;
 global using System.Security.Claims;
 global using System.Text.RegularExpressions;
 global using Vitarish.Communications.Client;
+global using Vitarish.Communications.Application.Abstractions;
 global using Vitarish.Interfaces.Accounts.Abstractions;
 global using Vitarish.Interfaces.Accounts.Attributes;
 global using Vitarish.Interfaces.Accounts.Models;
 global using Vitarish.Interfaces.Accounts.Services;
 global using Vitarish.Modules.Base.Interface.Localization;
+global using Vitarish.Parties.Application.Abstractions;
 // Project‑specific namespaces
+global using Vitarish.Users.Application.Abstractions;
+global using Vitarish.Users.Application.Commands;
 global using Vitarish.Users.Client;
 global using Vitarish.Users.Contracts;
+global using Vitarish.Users.Domain.Entities;
 global using static Microsoft.AspNetCore.Components.Web.RenderMode;

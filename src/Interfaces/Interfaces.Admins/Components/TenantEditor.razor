@@ -1,4 +1,5 @@
-@using Vitarish.Parties.Contracts.Tenants
+@using Vitarish.Parties.Domain.Dtos
+@using Vitarish.Parties.Domain.Mappers
 <Stack>
 
     <StackTextField @bind-Value=write.Name Label="@Localizer["Name"]" Required />
@@ -18,9 +19,9 @@
 </Stack>
 
     @code {
-    TenantWriteDto write = new();
-    [Parameter, EditorRequired] public TenantReadDto Tenant { get; set; }
-    [Parameter] public EventCallback<TenantReadDto> TenantChanged { get; set; }
+    Vitarish.Parties.Domain.Dtos.TenantWriteDto write = new();
+    [Parameter, EditorRequired] public Vitarish.Parties.Domain.Dtos.TenantReadDto Tenant { get; set; }
+    [Parameter] public EventCallback<Vitarish.Parties.Domain.Dtos.TenantReadDto> TenantChanged { get; set; }
     [Parameter] public EventCallback OnSaved { get; set; }
     [Parameter] public EventCallback OnCancelled { get; set; }
     [Parameter] public EventCallback OnUpdateRoles { get; set; }
@@ -39,7 +40,7 @@
             _ = Snackbar.Add(Localizer["App"], Severity.Error);
             return;
         }
-        TenantReadDto? updated = await PartiesService.UpdateTenantAsync(write);
+        Vitarish.Parties.Domain.Dtos.TenantReadDto? updated = await PartiesService.UpdateTenantAsync(write);
         if(updated is null)
         {
             Snackbar.Add(Localizer["Error"], Severity.Error);

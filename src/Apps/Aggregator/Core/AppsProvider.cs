@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Localization;
-using Vitarish.Apps.Base;
+using Vitarish.Apps.Base.Core;
 
 namespace Vitarish.Apps.Aggregator.Core;
 
