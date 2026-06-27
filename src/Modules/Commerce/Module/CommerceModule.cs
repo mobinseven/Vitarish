@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
+using Vitarish.Commerce.Api;
 using Vitarish.Commerce.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Commerce.Infrastructure.Data;
@@ -29,6 +30,7 @@ public class CommerceModule : Vitarish.Modules.Base.Module, ICommerceModule
 
     public override async Task Initialize(WebApplication app)
     {
+        _ = app.MapCommerceApi();
         _ = await app.MigrateDatabaseAsync<CommerceDbContext>();
         await app.InitializeViews();
     }

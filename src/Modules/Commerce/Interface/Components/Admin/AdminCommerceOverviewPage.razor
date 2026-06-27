@@ -28,9 +28,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _totalOrders = await OrderService.CountAsync(new OrderDescriptorDto(), CancellationToken.None)
+        _totalOrders = await CommerceClient.CountAsync(new OrderDescriptorDto(), ComponentCancellationToken)
             .GetValueOrDefaultAsync();
-        _totalProducts = await ProductService.CountAsync(new ProductDescriptorDto(), CancellationToken.None)
+        _totalProducts = await CommerceClient.CountAsync(new ProductDescriptorDto(), ComponentCancellationToken)
             .GetValueOrDefaultAsync();
     }
 }

@@ -1,4 +1,4 @@
-@inject IStoreService StoreService
+@inherits CommerceComponentBase
 
 <MudText Typo="Typo.h4">Provision Store</MudText>
 
@@ -22,6 +22,6 @@
     {
         await _form.Validate();
         if (!_isValid) return;
-        await StoreService.AddAsync(_model, CancellationToken.None);
+        await CommerceClient.AddAsync(_model, ComponentCancellationToken);
     }
 }

@@ -50,7 +50,7 @@ else
 
     private async Task ReloadAsync()
     {
-        _items = await CartService.GetRecoveryQueueAsync(CancellationToken.None);
+        _items = await CommerceClient.GetRecoveryQueueAsync(ComponentCancellationToken);
         _notes.Clear();
         foreach (MerchantRecoveryCartReadDto item in _items)
         {
@@ -68,14 +68,14 @@ else
 
     private async Task UpdateRecoveryAsync(Guid cartId, CartRecoveryStatus status)
     {
-        _ = await CartService.UpdateRecoveryAsync(cartId, status, GetNote(cartId), CancellationToken.None);
+        _ = await CommerceClient.UpdateRecoveryAsync(cartId, status, GetNote(cartId), ComponentCancellationToken);
         await ReloadAsync();
     }
 
     private async Task SaveNoteAsync(Guid cartId)
     {
         CartRecoveryStatus status = _items?.FirstOrDefault(item => item.CartId == cartId)?.RecoveryStatus ?? CartRecoveryStatus.ContactPending;
-        _ = await CartService.UpdateRecoveryAsync(cartId, status, GetNote(cartId), CancellationToken.None);
+        _ = await CommerceClient.UpdateRecoveryAsync(cartId, status, GetNote(cartId), ComponentCancellationToken);
         await ReloadAsync();
     }
 }

@@ -8,6 +8,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Interface\Commerce.Interface.csproj" />
+    <ProjectReference Include="..\Api\Commerce.Api.csproj" />
     <ProjectReference Include="..\Infrastructure\Commerce.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Commerce.Application.csproj" />
     <ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
