@@ -24,7 +24,7 @@ public class TenantService : ITenantService, ITenantPresentationContext
 {
     private Dictionary<string, object?> metadata = [];
 
-    public TenantPresentationState State => new(TenantId, IsTenantOwner, Users.ToArray(), metadata);
+    public TenantPresentationState State => new(TenantId, IsTenantOwner, Users as IReadOnlyList<TenantUserSummary> ?? Users.ToArray(), metadata);
     public string? TenantId { get; set; }
     public bool IsTenantOwner { get; set; }
     public IEnumerable<TenantUserSummary> Users { get; set; } = [];
