@@ -9,7 +9,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+		<ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
 		<ProjectReference Include="..\Client\Sea.Client.csproj" />
 		<ProjectReference Include="..\Contracts\Sea.Contracts.csproj" />
@@ -18,4 +18,6 @@
 		<ProjectReference Include="..\..\Communications\Interface\Communications.Interface.csproj" />
 	</ItemGroup>
 
+  <ItemGroup>
+  </ItemGroup>
 </Project>

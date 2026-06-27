@@ -1,5 +1,5 @@
 using Duende.IdentityServer.Extensions;
-using Vitarish.Interfaces.Base.Common;
+using Vitarish.Modules.Base.Interface.Common;
 
 namespace Vitarish.Interfaces.Accounts.Components
 {

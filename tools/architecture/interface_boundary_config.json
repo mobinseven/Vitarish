@@ -3,16 +3,12 @@
     "defaultMode": "FailFast",
     "frontendSafeDependencyAllowlist": [
         {
-            "project": "src/Interfaces/Interfaces.Base/Interfaces.Base.csproj",
+            "project": "src/Modules/Base/Interface/Modules.Base.Interface.csproj",
             "reason": "Shared UI primitives and presentation services only."
         },
         {
-            "project": "src/Libraries/Entities/Entities.Contracts/Entities.Contracts.csproj",
-            "reason": "Shared serialization DTO base types for contracts."
-        },
-        {
-            "project": "src/Modules/Base/Modules.Base.csproj",
-            "reason": "Shared frontend-safe HTTP client and endpoint base abstractions."
+            "project": "src/Modules/Base/Client/Modules.Base.Client.csproj",
+            "reason": "Shared frontend-safe HTTP client registration and transport base."
         }
     ],
     "crossModuleFrontendSafeAllowlist": [
@@ -42,10 +38,6 @@
         }
     ],
     "globalInterfaces": {
-        "Interfaces.Base": {
-            "mode": "FailFast",
-            "temporaryExceptions": []
-        },
         "Interfaces.Accounts": {
             "mode": "FailFast",
             "temporaryExceptions": []
@@ -129,6 +121,10 @@
             "temporaryExceptions": []
         },
         "Users": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
+        "Base": {
             "mode": "FailFast",
             "temporaryExceptions": []
         }

@@ -11,10 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
     <ProjectReference Include="..\Contracts\Search.Contracts.csproj" />
     <ProjectReference Include="..\Client\Search.Client.csproj" />
-    <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+  </ItemGroup>
 </Project>

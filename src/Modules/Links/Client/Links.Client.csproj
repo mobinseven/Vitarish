@@ -2,6 +2,6 @@
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Contracts\Links.Contracts.csproj" />
-    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Client\Modules.Base.Client.csproj" />
   </ItemGroup>
 </Project>

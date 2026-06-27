@@ -1,6 +1,7 @@
 using MediatR;
 using Vitarish.Entities.Server.Infrastructure;
-using Vitarish.Interfaces.Base.Abstractions;
+using Vitarish.Modules.Base.Interface.Abstractions;
+using Vitarish.Modules.Base.Interface.Models;
 
 namespace Vitarish.Main.Infrastructure.Handlers;
 
@@ -8,7 +9,12 @@ internal sealed class EntityNotificationHandler(IGlobalRenderNotifier renderNoti
 {
     public Task Handle(EntityNotification notification, CancellationToken cancellationToken)
     {
-        _ = renderNotifier.Notify(notification.Args);
+        UiReloadNotification reloadNotification = new(
+            notification.Args.EntityName,
+            notification.Args.Id,
+            notification.Args.CorrelationId);
+
+        _ = renderNotifier.Notify(reloadNotification);
         return Task.CompletedTask;
     }
 }

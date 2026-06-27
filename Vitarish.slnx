@@ -20,7 +20,6 @@
     <Project Path="src/Interfaces/Interfaces.Accounts/Interfaces.Accounts.csproj" />
     <Project Path="src/Interfaces/Interfaces.Admins/Interfaces.Admins.csproj" />
     <Project Path="src/Interfaces/Interfaces.Aggregator/Interfaces.Aggregator.csproj" Id="58fae1cd-da6c-49d4-a500-516c6c509359" />
-    <Project Path="src/Interfaces/Interfaces.Base/Interfaces.Base.csproj" />
   </Folder>
   <Folder Name="/src/Libraries/" />
   <Folder Name="/src/Libraries/Audit/">
@@ -46,6 +45,9 @@
     <Project Path="src/Modules/Appointments/Module/Appointments.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Base/" />
+  <Folder Name="/src/Modules/Base/Interface/">
+    <Project Path="src/Modules/Base/Interface/Modules.Base.Interface.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Commerce/">
     <Project Path="src/Modules/Commerce/Api/Commerce.Api.csproj">
       <Build Solution="Debug|*" Project="false" />
@@ -298,5 +300,8 @@
   <Folder Name="/src/Modules/Common/">
     <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
     <Project Path="src/Modules/Base/Modules.Base.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Base/">
+    <Project Path="tests/Modules/Base.Interface.Tests/Modules.Base.Interface.Tests.csproj" />
   </Folder>
 </Solution>

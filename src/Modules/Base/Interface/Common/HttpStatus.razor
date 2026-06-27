@@ -1,0 +1,10 @@
+@if (!string.IsNullOrEmpty(Status))
+{
+    <Stack>
+        <StackField Label="@Status" Color="Color.Warning" />
+    </Stack>
+}
+
+@code {
+    [Parameter] public string? Status { get; set; }
+}

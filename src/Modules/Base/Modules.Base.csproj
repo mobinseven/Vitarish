@@ -3,19 +3,20 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 		<PackageReference Include="Hangfire.Core" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="MediatR" />
 	</ItemGroup>
-
 	<ItemGroup>
-		<!-- TODO: Reduce Modules.Base coupling by moving tenant/user/request contracts behind narrower module-owned abstractions.
-		     These references are preserved for this migration because TenantCommonBase and TenantService currently expose Party/User/Request contracts. -->
-		<ProjectReference Include="..\..\Modules\Parties\Application\Parties.Application.csproj" />
-		<ProjectReference Include="..\..\Modules\Parties\Domain\Parties.Domain.csproj" />
-		<ProjectReference Include="..\..\Modules\Requests\Application\Requests.Application.csproj" />
-		<ProjectReference Include="..\..\Modules\Users\Domain\Users.Domain.csproj" />
-		<ProjectReference Include="..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+		<ProjectReference Include="..\Parties\Application\Parties.Application.csproj" />
+		<ProjectReference Include="..\Requests\Application\Requests.Application.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<Compile Remove="Client\**" />
+		<Compile Remove="Interface\**" />
+		<EmbeddedResource Remove="Interface\**" />
+		<Content Remove="Interface\**" />
+		<None Remove="Interface\**" />
+		<Compile Remove="DependencyInjection\InternalModuleClientRegistrationExtensions.cs" />
+		<Compile Remove="TenantCommonBase.cs" />
+		<Compile Remove="TenantService.cs" />
 	</ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
-using Vitarish.Interfaces.Base.Abstractions;
-using Vitarish.Interfaces.Base.Models;
+using Vitarish.Modules.Base.Interface.Abstractions;
+using Vitarish.Modules.Base.Interface.Models;
 using Vitarish.Platform.Application.Abstractions;
 using Vitarish.Platform.Application.Contracts;
 using Vitarish.Platform.Domain.Models;

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Components;
-using Vitarish.Interfaces.Base.Common;
+using Vitarish.Modules.Base.Interface.Common;
 using Vitarish.Parties.Client;
 using Vitarish.Parties.Contracts.Tenants;
 

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Vitarish.Interfaces.Base.Abstractions;
+using Vitarish.Modules.Base.Interface.Abstractions;
 using Vitarish.Modules.Base;
 using Vitarish.Platform.Domain.Entities;
 using Vitarish.Platform.Infrastructure.Data;

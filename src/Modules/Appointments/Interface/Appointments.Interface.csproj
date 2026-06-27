@@ -12,8 +12,10 @@
 		<ProjectReference Include="..\..\..\Modules\Users\Interface\Users.Interface.csproj" ReferenceOutputAssembly="true" BuildReference="true" />
 		<ProjectReference Include="..\Contracts\Appointments.Contracts.csproj" />
 		<ProjectReference Include="..\Client\Appointments.Client.csproj" />
-		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+		<ProjectReference Include="..\..\Base\Interface\Modules.Base.Interface.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
 	</ItemGroup>
 
+  <ItemGroup>
+  </ItemGroup>
 </Project>
