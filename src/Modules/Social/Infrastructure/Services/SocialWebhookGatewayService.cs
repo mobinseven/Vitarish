@@ -99,12 +99,17 @@ internal sealed class SocialWebhookGatewayService(
         return rawEvent.Id;
     }
 
-    public async Task ReplayAsync(Guid rawEventId, CancellationToken cancellationToken)
+    public async Task<SocialWebhookReplayResult> ReplayAsync(Guid rawEventId, CancellationToken cancellationToken)
     {
         RawWebhookEvent? rawEvent = await rawWebhookRepository.GetAsync(rawEventId, cancellationToken);
         if (rawEvent is null)
         {
-            return;
+            return SocialWebhookReplayResult.NotFound();
+        }
+
+        if (rawEvent.ProcessingStatus != WebhookProcessingStatus.DeadLetter && rawEvent.ProcessingStatus != WebhookProcessingStatus.Failed)
+        {
+            return SocialWebhookReplayResult.InvalidState();
         }
 
         rawEvent.ProcessingStatus = WebhookProcessingStatus.Pending;
@@ -112,6 +117,7 @@ internal sealed class SocialWebhookGatewayService(
         _ = await rawWebhookRepository.UpdateAsync(rawEvent, cancellationToken);
 
         _ = backgroundJobClient.Enqueue<WebhookProcessingJob>(job => job.ProcessRawEventAsync(rawEvent.Id, CancellationToken.None));
+        return SocialWebhookReplayResult.Queued();
     }
 
     private async Task<SocialConnection?> ResolveConnectionAsync(SocialProvider provider, Guid? connectionId, CancellationToken cancellationToken)

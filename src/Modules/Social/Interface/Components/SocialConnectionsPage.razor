@@ -1,4 +1,5 @@
 @page "/social/connections"
+@implements IAsyncDisposable
 
 @if (!featureEnabled)
 {
@@ -9,6 +10,21 @@ else
     <MudStack Spacing="2">
         <MudText Typo="Typo.h5">Social Connections</MudText>
         <MudText Typo="Typo.body2">Connected accounts, latest webhook status, and dead-letter replay.</MudText>
+
+        @if (!string.IsNullOrWhiteSpace(queryError))
+        {
+            <MudAlert Severity="Severity.Error">@queryError</MudAlert>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(replayError))
+        {
+            <MudAlert Severity="Severity.Error">@replayError</MudAlert>
+        }
+
+        @if (!loading && connections.Count == 0 && string.IsNullOrWhiteSpace(queryError))
+        {
+            <MudAlert Severity="Severity.Info">No social connections are available.</MudAlert>
+        }
 
         <MudTable Items="connections" Dense="true" Hover="true" Loading="loading">
             <HeaderContent>
@@ -22,17 +38,13 @@ else
             <RowTemplate>
                 <MudTd>@context.Provider</MudTd>
                 <MudTd>@context.ExternalAccountId</MudTd>
-                <MudTd>
-                    <MudChip T="string" Color="@GetStatusColor(context.Status)">@context.Status</MudChip>
-                </MudTd>
+                <MudTd><MudChip T="string" Color="@GetStatusColor(context.Status)">@context.Status</MudChip></MudTd>
                 <MudTd>@GetLastWebhookText(context.Id)</MudTd>
                 <MudTd>@GetLastError(context.Id)</MudTd>
                 <MudTd>
                     @if (CanReplay(context.Id))
                     {
-                        <MudButton Variant="Variant.Text" Color="Color.Warning" OnClick="@(async () => await ReplayAsync(context.Id))">
-                            Replay Dead-Letter
-                        </MudButton>
+                        <MudButton Variant="Variant.Text" Color="Color.Warning" Disabled="replaying" OnClick="@(async () => await ReplayAsync(context.Id))">Replay Dead-Letter</MudButton>
                     }
                 </MudTd>
             </RowTemplate>
@@ -41,34 +53,48 @@ else
 }
 
 @code {
-    [Inject] private ISocialConnectionsService SocialConnectionsService { get; set; } = default!;
-    [Inject] private ISocialWebhookGatewayService SocialWebhookGatewayService { get; set; } = default!;
+    [Inject] private ISocialConnectionsClient SocialConnectionsClient { get; set; } = default!;
+    [Inject] private ISocialWebhooksClient SocialWebhooksClient { get; set; } = default!;
     [Inject] private IConfiguration Configuration { get; set; } = default!;
 
+    private readonly CancellationTokenSource componentCancellation = new();
     private bool loading;
+    private bool replaying;
     private bool featureEnabled;
-    private IReadOnlyList<SocialConnection> connections = [];
-    private readonly Dictionary<Guid, RawWebhookEvent?> latestWebhooks = [];
+    private string? queryError;
+    private string? replayError;
+    private IReadOnlyList<SocialConnectionResponse> connections = [];
+    private readonly Dictionary<Guid, SocialWebhookEventResponse?> latestWebhooks = [];
 
     protected override async Task OnInitializedAsync()
     {
         featureEnabled = Configuration.GetValue<bool>("Vitarish:Features:SocialIntegrations");
-        if (!featureEnabled)
-        {
-            return;
-        }
+        if (!featureEnabled) return;
+        await LoadAsync(componentCancellation.Token);
+    }
 
+    private async Task LoadAsync(CancellationToken cancellationToken)
+    {
         loading = true;
+        queryError = null;
         try
         {
-            connections = await SocialConnectionsService.GetConnectionsAsync(CancellationToken.None);
+            SocialQueryResult<IReadOnlyList<SocialConnectionResponse>> result = await SocialConnectionsClient.GetConnectionsAsync(cancellationToken);
+            if (!result.IsSuccess || result.Value is null)
+            {
+                queryError = result.Error?.Message ?? "Social connections could not be loaded.";
+                connections = [];
+                return;
+            }
+
+            connections = result.Value;
             var webhookTasks = connections.Select(async connection =>
             {
-                RawWebhookEvent? lastWebhook = await SocialConnectionsService.GetLastWebhookAsync(connection.Id, CancellationToken.None);
-                return (connection.Id, LastWebhook: lastWebhook);
+                SocialQueryResult<SocialWebhookEventResponse?> lastWebhook = await SocialConnectionsClient.GetLastWebhookAsync(connection.Id, cancellationToken);
+                return (connection.Id, LastWebhook: lastWebhook.IsSuccess ? lastWebhook.Value : null);
             });
 
-            foreach ((Guid id, RawWebhookEvent? lastWebhook) in await Task.WhenAll(webhookTasks))
+            foreach ((Guid id, SocialWebhookEventResponse? lastWebhook) in await Task.WhenAll(webhookTasks))
             {
                 latestWebhooks[id] = lastWebhook;
             }
@@ -79,37 +105,54 @@ else
         }
     }
 
-    private static Color GetStatusColor(SocialConnectionStatus status) => status switch
+    private static Color GetStatusColor(SocialConnectionStatusResponse status) => status switch
     {
-        SocialConnectionStatus.Active => Color.Success,
-        SocialConnectionStatus.TokenExpired => Color.Warning,
-        SocialConnectionStatus.ReconnectRequired => Color.Warning,
+        SocialConnectionStatusResponse.Active => Color.Success,
+        SocialConnectionStatusResponse.TokenExpired => Color.Warning,
+        SocialConnectionStatusResponse.ReconnectRequired => Color.Warning,
         _ => Color.Default,
     };
 
-    private string GetLastWebhookText(Guid connectionId)
-        => latestWebhooks.TryGetValue(connectionId, out RawWebhookEvent? raw) && raw is not null
-            ? raw.ReceivedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
-            : "-";
-
-    private string GetLastError(Guid connectionId)
-        => latestWebhooks.TryGetValue(connectionId, out RawWebhookEvent? raw) && raw is not null
-            ? raw.ProcessingError ?? "-"
-            : "-";
-
-    private bool CanReplay(Guid connectionId)
-        => latestWebhooks.TryGetValue(connectionId, out RawWebhookEvent? raw)
-            && raw is not null
-            && raw.ProcessingStatus == WebhookProcessingStatus.DeadLetter;
+    private string GetLastWebhookText(Guid connectionId) => latestWebhooks.TryGetValue(connectionId, out SocialWebhookEventResponse? raw) && raw is not null ? raw.ReceivedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") : "-";
+    private string GetLastError(Guid connectionId) => latestWebhooks.TryGetValue(connectionId, out SocialWebhookEventResponse? raw) && raw is not null ? raw.ProcessingError ?? "-" : "-";
+    private bool CanReplay(Guid connectionId) => latestWebhooks.TryGetValue(connectionId, out SocialWebhookEventResponse? raw) && raw is not null && raw.ProcessingStatus == SocialWebhookProcessingStatusResponse.DeadLetter;
 
     private async Task ReplayAsync(Guid connectionId)
     {
-        if (!latestWebhooks.TryGetValue(connectionId, out RawWebhookEvent? rawEvent) || rawEvent is null)
-        {
-            return;
-        }
+        replayError = null;
+        if (!latestWebhooks.TryGetValue(connectionId, out SocialWebhookEventResponse? rawEvent) || rawEvent is null) return;
 
-        await SocialWebhookGatewayService.ReplayAsync(rawEvent.Id, CancellationToken.None);
-        latestWebhooks[connectionId] = await SocialConnectionsService.GetLastWebhookAsync(connectionId, CancellationToken.None);
+        replaying = true;
+        try
+        {
+            SocialReplayWebhookResponse result = await SocialWebhooksClient.ReplayAsync(rawEvent.Id, componentCancellation.Token);
+            if (!result.IsSuccess)
+            {
+                replayError = result.Error?.Message ?? "Webhook replay could not be queued.";
+                return;
+            }
+
+            SocialQueryResult<SocialWebhookEventResponse?> latest = await SocialConnectionsClient.GetLastWebhookAsync(connectionId, componentCancellation.Token);
+            latestWebhooks[connectionId] = latest.IsSuccess ? latest.Value : null;
+        }
+        catch (OperationCanceledException) when (componentCancellation.IsCancellationRequested)
+        {
+            // Component disposal requested cancellation; no user-facing error is needed.
+        }
+        catch (Exception)
+        {
+            replayError = "An unexpected error occurred while replaying the webhook.";
+        }
+        finally
+        {
+            replaying = false;
+        }
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        componentCancellation.Cancel();
+        componentCancellation.Dispose();
+        return ValueTask.CompletedTask;
     }
 }
