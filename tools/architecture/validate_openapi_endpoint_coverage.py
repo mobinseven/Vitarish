@@ -19,6 +19,24 @@ ALLOW_RAW_FILES = {'src/Modules/Base/Endpoints/ModuleEndpointMappingExtensions.c
 class V:
     path: Path; line: int; kind: str; expr: str; fix: str
 def line(text,o): return text.count('\n',0,o)+1
+def statement_end(text,start):
+    depth=0; quote=None; escape=False
+    for i in range(start,len(text)):
+        c=text[i]
+        if quote:
+            if escape: escape=False
+            elif c=='\\': escape=True
+            elif c==quote: quote=None
+            continue
+        if c in ('"',"'"):
+            quote=c
+        elif c in '({[':
+            depth+=1
+        elif c in ')}]' and depth>0:
+            depth-=1
+        elif c==';' and depth==0:
+            return i
+    return -1
 def files():
     found=[]
     for pat in SCAN_PATTERNS:
@@ -31,9 +49,22 @@ def scan(p:Path):
     for m in re.finditer(r'\.\s*(MapGet|MapPost|MapPut|MapDelete|MapPatch|MapMethods|MapGroup)\s*\(', text):
         method=m.group(1)
         if method in RAW:
-            window = text[m.start():m.start()+2000]
+            stmt_end = statement_end(text, m.start())
+            window = text[m.start():stmt_end] if stmt_end != -1 else text[m.start():m.start()+2000]
             if ('ExcludeFromOpenApiWithJustification' in window or 'OpenApiExclusionJustification:' in window):
                 continue
+            if method == 'MapGroup' and stmt_end != -1:
+                statement_start = text.rfind('\n', 0, m.start()) + 1
+                statement = text[statement_start:stmt_end]
+                assigned = re.search(r'\b(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*.*\.\s*MapGroup\s*\(', statement, re.S)
+                next_raw = re.search(r'\.\s*(MapGet|MapPost|MapPut|MapDelete|MapPatch|MapMethods|MapGroup)\s*\(', text[stmt_end + 1:])
+                group_window_end = stmt_end + 1 + next_raw.start() if next_raw else len(text)
+                group_window = text[stmt_end + 1:group_window_end]
+                if assigned and assigned.group('name') in group_window and (
+                    'ExcludeFromOpenApiWithJustification' in group_window
+                    or 'OpenApiExclusionJustification:' in group_window
+                ):
+                    continue
             out.append(V(p,line(text,m.start()),'RawEndpointMapping',method,'Use MapProtectedModuleGroup/MapAnonymousModuleGroup and MapModule* helpers, or ExcludeFromOpenApiWithJustification for non-module endpoints.'))
     for m in re.finditer(r'MapAnonymousModuleGroup\((?P<args>[^)]*)\)', text):
         strings=re.findall(r'"([^"]*)"', m.group('args'))

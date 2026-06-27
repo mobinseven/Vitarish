@@ -36,7 +36,9 @@ public static class ProtectedModuleEndpointRouteBuilderExtensions
     private static string NormalizeTag(string prefix)
     {
         string[] parts = prefix.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        string candidate = parts.FirstOrDefault(part => !part.Equals("api", StringComparison.OrdinalIgnoreCase)) ?? "Platform";
+        string candidate = parts.FirstOrDefault(part =>
+            !part.Equals("api", StringComparison.OrdinalIgnoreCase)
+            && !part.Equals("webhooks", StringComparison.OrdinalIgnoreCase)) ?? "Platform";
         return string.Concat(candidate.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(part => char.ToUpperInvariant(part[0]) + part[1..]));
     }

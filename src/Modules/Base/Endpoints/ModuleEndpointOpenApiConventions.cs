@@ -69,7 +69,6 @@ public static class ModuleEndpointOpenApiConventions
             case ModuleEndpointProfile.AnonymousWebhook:
                 ArgumentException.ThrowIfNullOrWhiteSpace(convention.AnonymousJustification);
                 builder.WithMetadata(new AnonymousModuleEndpointMetadata(convention.AnonymousJustification));
-                builder.WithMetadata(new WebhookEndpointMetadata("social", "application gateway signature verification"));
                 break;
             case ModuleEndpointProfile.MultipartUpload:
                 builder.Accepts<IFormFile>(MultipartFormData);

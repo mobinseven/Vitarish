@@ -20,10 +20,12 @@ public static class SocialWebhookEndpointRouteBuilderExtensions
         RouteGroupBuilder webhooks = endpoints.MapAnonymousModuleGroup("/webhooks/social", "External social providers cannot send internal module API access tokens; webhook authenticity is handled by the Social application gateway.");
 
         _ = webhooks.MapModulePost("/{provider}", HandleWebhookAsync, "SocialIngestWebhook", profile: ModuleEndpointProfile.AnonymousWebhook, anonymousJustification: "External social providers cannot send internal module API access tokens; webhook authenticity is handled by the Social application gateway.")
-            .WithName("social-webhook-ingest");
+            .WithName("social-webhook-ingest")
+            .WithMetadata(new WebhookEndpointMetadata("social", "application gateway signature verification"));
 
         _ = webhooks.MapModuleGet("/{provider}", HandleWebhookChallengeAsync, "SocialVerifyWebhook", profile: ModuleEndpointProfile.AnonymousWebhook, anonymousJustification: "External social providers cannot send internal module API access tokens; webhook authenticity is handled by the Social application gateway.")
-            .WithName("social-webhook-challenge");
+            .WithName("social-webhook-challenge")
+            .WithMetadata(new WebhookEndpointMetadata("social", "application gateway signature verification"));
 
         return endpoints;
     }
