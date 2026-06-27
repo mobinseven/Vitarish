@@ -13,9 +13,32 @@ public sealed class OpenApiHostSmokeTests
     {
         string program = File.ReadAllText(Path.Combine(RepositoryRoot, "src/Hosts/Main/Program.cs"));
 
-        program.Should().Contain("builder.Services.AddOpenApi()", "the host composition root owns OpenAPI document registration");
+        program.Should().Contain("builder.Services.AddOpenApi()", "the host composition root owns the aggregate OpenAPI document registration");
+        program.Should().Contain("RegisterModuleOpenApiDocument(\"files\", \"Files\")", "the host composition root owns Files module OpenAPI document registration");
+        program.Should().Contain("RegisterModuleOpenApiDocument(\"users\", \"Users\")", "the host composition root owns Users module OpenAPI document registration");
+        program.Should().Contain("RegisterModuleOpenApiDocument(\"medical\", \"Medical\")", "the host composition root owns Medical module OpenAPI document registration");
+        program.Should().Contain("options.ShouldInclude = description => IsModuleOpenApiDescription(description, moduleGroupName)", "named module OpenAPI documents must use framework-supported ApiDescription filtering");
         program.Should().Contain("app.Environment.IsDevelopment()", "ADR-0005 limits document exposure to the configured development condition");
         program.Should().Contain("app.MapOpenApi(\"/openapi/{documentName}.json\")", "the configured OpenAPI document route must remain stable for smoke checks");
+    }
+
+    [Fact]
+    public void NamedModuleOpenApiDocuments_RemainHostOwnedAndRoutable()
+    {
+        string program = File.ReadAllText(Path.Combine(RepositoryRoot, "src/Hosts/Main/Program.cs"));
+        string moduleSources = string.Join(Environment.NewLine, Directory.EnumerateFiles(Path.Combine(RepositoryRoot, "src/Modules"), "*.cs", SearchOption.AllDirectories)
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                && !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            .Select(File.ReadAllText));
+
+        program.Should().Contain("AddOpenApi(documentName", "per-module OpenAPI documents must be registered by the host composition root");
+        program.Should().Contain("app.MapOpenApi(\"/openapi/{documentName}.json\")", "named documents must remain reachable through the stable host route");
+        program.Should().Contain("description.GroupName", "document filtering should honor endpoint group names from module route groups");
+        program.Should().Contain("ITagsMetadata", "document filtering should also honor tags from module route groups");
+
+        moduleSources.Should().NotContain("AddOpenApi(", "module projects must not own OpenAPI document registration");
+        moduleSources.Should().NotContain("MapOpenApi(", "module projects must not expose independent OpenAPI documents");
+        moduleSources.Should().NotContain("Swagger", "module projects must not add independent Swagger setup");
     }
 
     [Fact]

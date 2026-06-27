@@ -1,5 +1,8 @@
+using System.Linq;
 using Finbuckle.MultiTenant;
 using MediatR;
+using Microsoft.AspNetCore.Http.Metadata;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Apps.Aggregator;
 using Vitarish.Audit.Server;
@@ -90,6 +93,30 @@ _ = builder.Services.AddControllers();
 _ = builder.Services.AddEndpointsApiExplorer();
 // OpenAPI document generation is host-owned and exposed only in Development.
 _ = builder.Services.AddOpenApi();
+RegisterModuleOpenApiDocument("files", "Files");
+RegisterModuleOpenApiDocument("users", "Users");
+RegisterModuleOpenApiDocument("medical", "Medical");
+
+void RegisterModuleOpenApiDocument(string documentName, string moduleGroupName)
+{
+    _ = builder.Services.AddOpenApi(documentName, options =>
+    {
+        options.ShouldInclude = description => IsModuleOpenApiDescription(description, moduleGroupName);
+    });
+}
+
+static bool IsModuleOpenApiDescription(ApiDescription description, string moduleGroupName)
+{
+    if (string.Equals(description.GroupName, moduleGroupName, StringComparison.OrdinalIgnoreCase))
+    {
+        return true;
+    }
+
+    return description.ActionDescriptor.EndpointMetadata
+        .OfType<ITagsMetadata>()
+        .SelectMany(metadata => metadata.Tags)
+        .Any(tag => string.Equals(tag, moduleGroupName, StringComparison.OrdinalIgnoreCase));
+}
 _ = builder.Services.AddLocalization();
 Func<object, Task<string?>> tenantResolver = async context =>
 {
