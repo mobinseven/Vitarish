@@ -43,7 +43,7 @@ public static class ApplicationOptionsExtensions
         _ = services.AddOptions<FeaturesOptions>()
             .BindConfiguration($"{ApplicationOptions.Section}:Features");
 
-        _ = services.AddScoped<ITenantOnboardingAccess, OptionsTenantOnboardingAccess>();
+        _ = services.AddSingleton<ITenantOnboardingAccess, OptionsTenantOnboardingAccess>();
 
         _ = services.AddOptions<VerificationSmsShieldOptions>()
             .BindConfiguration(VerificationSmsShieldOptions.SectionName)
