@@ -76,6 +76,28 @@ def classify_ref(root:Path,scope:ProjectScope,target:Path,cfg:dict)->tuple[str,s
     # Server-only library is never frontend safe.
     if 'Libraries/Entities/Entities.Server' in r and scope.layer in {'Interface','Client','Contracts','GlobalInterface'}:
         return 'Entities.Server','This layer must not reference server-only Entities.Server.'
+    
+    # Validate against frontend-safe allowlist
+    if scope.layer in {'Interface','Client','Contracts','GlobalInterface'}:
+        if not any(r.endswith(a['project']) for a in cfg.get('frontendSafeDependencyAllowlist', [])):
+            m=re.match(r'src/Modules/([^/]+)/([^/]+)/[^/]+\.csproj$',r)
+            if m:
+                tm,tl=m.groups()
+                if scope.layer in {'Interface','GlobalInterface'}:
+                    if tl in BACKEND or tl=='Infrastructure': return f'{tm}.{tl}','Frontend Interface projects must not reference backend projects.'
+                    if tl=='Client' and scope.module and tm!=scope.module:
+                        if not any(a['sourceModule']==scope.module and a['targetProject']==r for a in cfg.get('crossModuleFrontendSafeAllowlist', [])):
+                            return f'{tm}.Client','Interface projects may only reference same-module Client projects or explicitly allowed cross-module projects.'
+                if scope.layer=='Client' and tl!='Contracts': return f'{tm}.{tl}','Client projects may reference only Contracts plus approved frontend-safe base libraries.'
+                if scope.layer=='Contracts' and tl!='Contracts': return f'{tm}.{tl}','Contracts projects may not reference module implementation layers.'
+    
+    if scope.layer=='Api' and (tl in {'Interface','Client','Infrastructure'} or tl=='Domain'):
+        return f'{tm}.{tl}','Api projects must adapt Contracts to Application without Interface, Client, Infrastructure, or direct Domain dependencies.'
+    return None
+    r=rel(root,target)
+    # Server-only library is never frontend safe.
+    if 'Libraries/Entities/Entities.Server' in r and scope.layer in {'Interface','Client','Contracts','GlobalInterface'}:
+        return 'Entities.Server','This layer must not reference server-only Entities.Server.'
     m=re.match(r'src/Modules/([^/]+)/([^/]+)/[^/]+\.csproj$',r)
     if m:
         tm,tl=m.groups()
