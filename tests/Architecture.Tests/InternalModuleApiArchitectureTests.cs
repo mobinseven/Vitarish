@@ -42,6 +42,30 @@ public sealed class InternalModuleApiArchitectureTests
         failures.Should().BeEmpty("internal module API endpoints must use MapProtectedModuleGroup, and anonymous routes must use MapAnonymousModuleGroup with a justification");
     }
 
+
+    [Fact]
+    public void EndpointMappingsUseOpenApiAwareHelpersOrJustifiedExclusions()
+    {
+        string script = Path.Combine(RepositoryRoot, "tools", "architecture", "validate_openapi_endpoint_coverage.py");
+        string output = RunPython(script);
+        output.Should().Contain("Violations found: 0", "endpoint mappings must carry OpenAPI metadata or justified exclusions");
+    }
+
+    private static string RunPython(string script)
+    {
+        using System.Diagnostics.Process process = new();
+        process.StartInfo.FileName = "python3";
+        process.StartInfo.ArgumentList.Add(script);
+        process.StartInfo.WorkingDirectory = RepositoryRoot;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
+        process.Start();
+        string output = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
+        process.WaitForExit();
+        process.ExitCode.Should().Be(0, output);
+        return output;
+    }
+
     [Fact]
     public void InternalModuleClientsUseAuthenticatedTransportAndSharedRegistration()
     {

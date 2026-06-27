@@ -16,12 +16,12 @@ public static class IntelligenceApiEndpointMapping
     public static IEndpointRouteBuilder MapIntelligenceApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(IntelligenceApiRoutes.Base);
-        _ = group.MapPost(IntelligenceApiRoutes.Responder, RespondAsync);
-        _ = group.MapPost(IntelligenceApiRoutes.ResponderStream, StreamRespondAsync);
-        _ = group.MapPost(IntelligenceApiRoutes.Transcription, TranscribeAsync);
-        _ = group.MapPost(IntelligenceApiRoutes.TranscriptionStream, StreamTranscribeAsync);
-        _ = group.MapPost(IntelligenceApiRoutes.Rewrite, RewriteAsync);
-        _ = group.MapPost(IntelligenceApiRoutes.RewriteStream, StreamRewriteAsync);
+        _ = group.MapModulePost(IntelligenceApiRoutes.Responder, RespondAsync, "IntelligenceRespond");
+        _ = group.MapModulePost(IntelligenceApiRoutes.ResponderStream, StreamRespondAsync, "IntelligenceStreamRespond", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
+        _ = group.MapModulePost(IntelligenceApiRoutes.Transcription, TranscribeAsync, "IntelligenceTranscribe");
+        _ = group.MapModulePost(IntelligenceApiRoutes.TranscriptionStream, StreamTranscribeAsync, "IntelligenceStreamTranscribe", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
+        _ = group.MapModulePost(IntelligenceApiRoutes.Rewrite, RewriteAsync, "IntelligenceRewrite");
+        _ = group.MapModulePost(IntelligenceApiRoutes.RewriteStream, StreamRewriteAsync, "IntelligenceStreamRewrite", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
         return endpoints;
     }
 

@@ -19,12 +19,12 @@ public static class FilesApiEndpointMapping
     public static IEndpointRouteBuilder MapFilesApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(FilesApiRoutes.Base);
-        _ = group.MapGet(FilesApiRoutes.ById, GetFileInformationAsync);
-        _ = group.MapPost("/search", FindFilesAsync);
-        _ = group.MapPost(string.Empty, CreateFileRecordAsync);
-        _ = group.MapPost(FilesApiRoutes.Upload, UploadFileAsync).DisableAntiforgery();
-        _ = group.MapGet(FilesApiRoutes.ContentById, DownloadFileAsync);
-        _ = group.MapMethods(FilesApiRoutes.ContentById, ["HEAD"], DownloadFileAsync);
+        _ = group.MapModuleGet(FilesApiRoutes.ById, GetFileInformationAsync, "FilesGetFileInformation");
+        _ = group.MapModulePost("/search", FindFilesAsync, "FilesFindFiles");
+        _ = group.MapModulePost(string.Empty, CreateFileRecordAsync, "FilesCreateFileRecord");
+        _ = group.MapModulePost(FilesApiRoutes.Upload, UploadFileAsync, "FilesUploadFile", profile: ModuleEndpointProfile.MultipartUpload).DisableAntiforgery();
+        _ = group.MapModuleGet(FilesApiRoutes.ContentById, DownloadFileAsync, "FilesDownloadFile", profile: ModuleEndpointProfile.BinaryDownload, contentType: ModuleEndpointOpenApiConventions.BinaryStream);
+        _ = group.MapModuleHead(FilesApiRoutes.ContentById, DownloadFileAsync, "FilesDownloadFileHead", contentType: ModuleEndpointOpenApiConventions.BinaryStream);
         return endpoints;
     }
 
