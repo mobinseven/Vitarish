@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Modules.Base;
+using Vitarish.Social.Api;
 using Vitarish.Social.Application.Abstractions;
 using Vitarish.Social.Module.Endpoints;
 using Vitarish.Social.Infrastructure.Data;
@@ -35,6 +36,7 @@ public sealed class SocialModule : Vitarish.Modules.Base.Module, ISocialModule
             return;
         }
 
+        _ = app.MapSocialApi();
         _ = app.MapSocialWebhookEndpoints();
     }
 }

@@ -11,5 +11,5 @@ public interface ISocialWebhookGatewayService
         string body,
         CancellationToken cancellationToken);
 
-    Task ReplayAsync(Guid rawEventId, CancellationToken cancellationToken);
+    Task<SocialWebhookReplayResult> ReplayAsync(Guid rawEventId, CancellationToken cancellationToken);
 }
