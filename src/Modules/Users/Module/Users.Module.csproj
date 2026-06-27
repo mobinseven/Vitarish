@@ -19,7 +19,7 @@
     <ProjectReference Include="..\Api\Users.Api.csproj" />
     <ProjectReference Include="..\Infrastructure\Users.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Users.Application.csproj" />
-    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
 </Project>

@@ -6,7 +6,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-BASE_ENDPOINT_FILE = Path('src/Modules/Base/Endpoints/ProtectedModuleEndpointRouteBuilderExtensions.cs')
+BASE_ENDPOINT_FILE = Path('src/Modules/Base/Core/Endpoints/ProtectedModuleEndpointRouteBuilderExtensions.cs')
+APPROVED_BASE_CLIENT_ABSTRACTIONS = {
+ 'src/Modules/Base/Client/AuthenticatedModuleApiClient.cs',
+ 'src/Modules/Base/Client/DependencyInjection/InternalModuleClientRegistrationExtensions.cs',
+}
 EXTERNAL_CLIENT_EXCLUSIONS = {
  'src/Modules/Commerce/Infrastructure/Clients/MedusaAdminClient.cs',
  'src/Modules/Commerce/Infrastructure/Clients/MedusaStorefrontClient.cs',
@@ -62,7 +66,7 @@ def scan_endpoint(p:Path):
     return vs
 
 def scan_client(p:Path):
-    if p.as_posix() in EXTERNAL_CLIENT_EXCLUSIONS: return []
+    if p.as_posix() in EXTERNAL_CLIENT_EXCLUSIONS or p.as_posix() in APPROVED_BASE_CLIENT_ABSTRACTIONS: return []
     text=(ROOT/p).read_text(errors='ignore')
     if 'HttpClient' in text and 'AuthenticatedModuleApiClient' not in text:
         i=text.find('HttpClient')

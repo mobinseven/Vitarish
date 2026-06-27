@@ -13,7 +13,7 @@ public sealed class InternalModuleApiArchitectureTests
     {
         string[] allowedFiles =
         [
-            Normalize("src/Modules/Base/Endpoints/ProtectedModuleEndpointRouteBuilderExtensions.cs"),
+            Normalize("src/Modules/Base/Core/Endpoints/ProtectedModuleEndpointRouteBuilderExtensions.cs"),
             Normalize("src/Modules/Social/Module/Endpoints/SocialWebhookEndpointRouteBuilderExtensions.cs")
         ];
 

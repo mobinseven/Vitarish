@@ -5,6 +5,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="../Application/Feed.Application.csproj" />
-		<ProjectReference Include="../../Base/Modules.Base.csproj" />
+		<ProjectReference Include="../../Base/Core/Modules.Base.csproj" />
 	</ItemGroup>
 </Project>
