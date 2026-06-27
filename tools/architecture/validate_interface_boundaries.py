@@ -25,6 +25,7 @@ SERVER_ONLY_NAMESPACE_FRAGMENTS = ("Vitarish.Entities.Server", "Entities.Server"
 SOURCE_EXTENSIONS = {".cs", ".razor"}
 
 MODULE_PROJECT_RE = re.compile(r"^src/Modules/([^/]+)/([^/]+)/[^/]+\.csproj$")
+APP_PROJECT_RE = re.compile(r"^src/Apps/([^/]+)/([^/]+)(?:/[^/]+)?/[^/]+\.csproj$")
 
 
 @dataclass(frozen=True)
@@ -115,6 +116,16 @@ def discover_projects(root: Path) -> list[ProjectScope]:
             )
         )
 
+    for project in sorted(root.glob("src/Apps/*/*/*.csproj")) + sorted(root.glob("src/Apps/*/*/*/*.csproj")):
+        parts = project.relative_to(root).parts
+        if len(parts) < 5:
+            continue
+        app = parts[2]
+        layer = parts[3]
+        if layer not in LAYERS:
+            continue
+        scopes.append(ProjectScope(name=f"{app}.{layer}", layer=layer, project=project, root=project.parent, module=app))
+
     for project in sorted(root.glob("src/Interfaces/*/*.csproj")):
         name = project.parent.name
         scopes.append(
@@ -137,7 +148,7 @@ def ensure_coverage(root: Path, config: dict, scopes: list[ProjectScope]) -> lis
     discovered_modules = sorted(
         {scope.module for scope in scopes if scope.module and scope.layer == "Interface"}
     )
-    configured_modules = sorted(config.get("modules", {}))
+    configured_modules = sorted({**config.get("modules", {}), **config.get("apps", {})})
 
     for module in sorted(set(discovered_modules) - set(configured_modules)):
         violations.append(
@@ -224,10 +235,12 @@ def is_cross_module_frontend_safe_allowed(
 
 def module_project_parts(relative_project_path: str) -> tuple[str, str] | None:
     match = MODULE_PROJECT_RE.match(relative_project_path)
-    if not match:
-        return None
-
-    return match.group(1), match.group(2)
+    if match:
+        return match.group(1), match.group(2)
+    match = APP_PROJECT_RE.match(relative_project_path)
+    if match:
+        return match.group(1), match.group(2)
+    return None
 
 
 def classify_project_reference(

@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="..\Api\Clinic.Api.csproj" /><ProjectReference Include="..\Infrastructure\Clinic.Infrastructure.csproj" /><ProjectReference Include="..\Interface\Clinic.Interface.csproj" /><ProjectReference Include="..\..\Base\Apps.Base.csproj" /><ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" /></ItemGroup>
+</Project>

@@ -1,3 +1,6 @@
+using Vitarish.Clinic.Client;
+using Vitarish.Modules.Base.DependencyInjection;
+
 namespace Vitarish.Clinic.Interface.DependencyInjection;
 
 public static class InterfaceConfigurationExtensions
@@ -7,6 +10,7 @@ public static class InterfaceConfigurationExtensions
         public IServiceCollection ConfigureMedicalInterface()
         {
             _ = services.ConfigureMedicalPlugins();
+            _ = services.AddInternalModuleApiClient<IClinicClient, ClinicClient>();
             return services;
         }
     }

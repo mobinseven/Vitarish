@@ -35,6 +35,54 @@
             "targetProject": "src/Modules/Communications/Interface/Communications.Interface.csproj",
             "owningUiCompositionUseCase": "Sea workflows compose communications UI widgets.",
             "reason": "Approved frontend-safe UI composition dependency."
+        },
+        {
+            "sourceModule": "Clinic",
+            "targetProject": "src/Modules/Sea/Client/Sea.Client.csproj",
+            "owningUiCompositionUseCase": "Clinic patient editing uses Sea frontend API while migration completes.",
+            "reason": "Approved frontend-safe Client dependency."
+        },
+        {
+            "sourceModule": "Clinic",
+            "targetProject": "src/Modules/Appointments/Client/Appointments.Client.csproj",
+            "owningUiCompositionUseCase": "Clinic appointment UI uses Appointments frontend API.",
+            "reason": "Approved frontend-safe Client dependency."
+        },
+        {
+            "sourceModule": "Clinic",
+            "targetProject": "src/Modules/Communications/Client/Communications.Client.csproj",
+            "owningUiCompositionUseCase": "Clinic reminder UI uses Communications frontend API.",
+            "reason": "Approved frontend-safe Client dependency."
+        },
+        {
+            "sourceModule": "Clinic",
+            "targetProject": "src/Modules/Sea/Interface/Sea.Interface.csproj",
+            "owningUiCompositionUseCase": "Clinic composes existing Sea patient/project components.",
+            "reason": "Approved frontend-safe UI composition dependency."
+        },
+        {
+            "sourceModule": "Clinic",
+            "targetProject": "src/Modules/Appointments/Interface/Appointments.Interface.csproj",
+            "owningUiCompositionUseCase": "Clinic composes existing appointment status components.",
+            "reason": "Approved frontend-safe UI composition dependency."
+        },
+        {
+            "sourceModule": "Clinic",
+            "targetProject": "src/Modules/Communications/Interface/Communications.Interface.csproj",
+            "owningUiCompositionUseCase": "Clinic composes existing reminder components.",
+            "reason": "Approved frontend-safe UI composition dependency."
+        },
+        {
+            "sourceModule": "Clinic",
+            "targetProject": "src/Modules/Users/Interface/Users.Interface.csproj",
+            "owningUiCompositionUseCase": "Clinic composes existing user components.",
+            "reason": "Approved frontend-safe UI composition dependency."
+        },
+        {
+            "sourceModule": "Clinic",
+            "targetProject": "src/Modules/Files/Interface/Files.Interface.csproj",
+            "owningUiCompositionUseCase": "Clinic composes existing file components.",
+            "reason": "Approved frontend-safe UI composition dependency."
         }
     ],
     "globalInterfaces": {
@@ -129,5 +177,11 @@
             "temporaryExceptions": []
         }
     },
-    "temporaryExceptions": []
+    "temporaryExceptions": [],
+    "apps": {
+        "Clinic": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        }
+    }
 }

@@ -6,11 +6,17 @@
 
 	<ItemGroup>
 		<PackageReference Include="Injectio" />
-		<PackageReference Include="Riok.Mapperly" />
-	</ItemGroup>
+			</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Infrastructure\Clinic.Infrastructure.csproj" />
+	  <ProjectReference Include="..\Client\Clinic.Client.csproj" />
+	  <ProjectReference Include="..\Contracts\Clinic.Contracts.csproj" />
+	  <ProjectReference Include="..\..\..\Modules\Sea\Client\Sea.Client.csproj" />
+	  <ProjectReference Include="..\..\..\Modules\Sea\Contracts\Sea.Contracts.csproj" />
+	  <ProjectReference Include="..\..\..\Modules\Appointments\Client\Appointments.Client.csproj" />
+	  <ProjectReference Include="..\..\..\Modules\Appointments\Contracts\Appointments.Contracts.csproj" />
+	  <ProjectReference Include="..\..\..\Modules\Communications\Client\Communications.Client.csproj" />
+	  <ProjectReference Include="..\..\..\Modules\Communications\Contracts\Communications.Contracts.csproj" />
 	</ItemGroup>
 
 

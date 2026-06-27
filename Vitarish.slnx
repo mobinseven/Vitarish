@@ -9,6 +9,16 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Apps/" />
+  <Folder Name="/src/Apps/Clinic/">
+    <Project Path="src/Apps/Clinic/Api/Clinic.Api.csproj" />
+    <Project Path="src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj" />
+    <Project Path="src/Apps/Clinic/Client/Clinic.Client.csproj" />
+    <Project Path="src/Apps/Clinic/Contracts/Clinic.Contracts.csproj" />
+    <Project Path="src/Apps/Clinic/Domain/Clinic.Domain/Clinic.Domain.csproj" />
+    <Project Path="src/Apps/Clinic/Infrastructure/Clinic.Infrastructure.csproj" />
+    <Project Path="src/Apps/Clinic/Interface/Clinic.Interface.csproj" />
+    <Project Path="src/Apps/Clinic/Module/Clinic.Module.csproj" />
+  </Folder>
   <Folder Name="/src/Apps/Common/">
     <Project Path="src/Apps/Aggregator/Apps.Aggregator.csproj" />
     <Project Path="src/Apps/Base/Apps.Base.csproj" />

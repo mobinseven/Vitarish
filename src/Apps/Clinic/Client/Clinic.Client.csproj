@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup><ProjectReference Include="..\Contracts\Clinic.Contracts.csproj" /><ProjectReference Include="..\..\..\Modules\Base\Client\Modules.Base.Client.csproj" /></ItemGroup>
+</Project>

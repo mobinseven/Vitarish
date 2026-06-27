@@ -1,13 +1,11 @@
-using MediatR;
-using Vitarish.Clinic.Application.Queries.Patients;
 using Vitarish.Modules.Base.Interface.Models;
-using Vitarish.Sea.Domain.Enums;
+using SeaProjectSortBy = Vitarish.Sea.Contracts.Enums.ProjectSortBy;
 
 namespace Vitarish.Clinic.Interface.Components.Patients;
 
 public partial class PatientsGrid
 {
-    [Inject] private ISender Sender { get; set; } = default!;
+    [Inject] private IClinicClient ClinicClient { get; set; } = default!;
 
     private readonly bool MassEditMode;
     private int patientsQueryVersion;
@@ -32,7 +30,7 @@ public partial class PatientsGrid
         Descending = patientsSortDescending
     };
 
-    private GetPatientsQuery CreatePatientsQuery(int skip, int take) => new(
+    private PatientListRequest CreatePatientsQuery(int skip, int take) => new(
         Search: string.IsNullOrWhiteSpace(SearchString) ? null : SearchString,
         Skip: skip,
         Take: take,
@@ -40,12 +38,15 @@ public partial class PatientsGrid
         SortBy: patientsSortBy,
         Descending: patientsSortDescending);
 
-    private CountPatientsQuery CreatePatientsCountQuery() => new(
+    private PatientCountRequest CreatePatientsCountQuery() => new(
         Search: string.IsNullOrWhiteSpace(SearchString) ? null : SearchString,
         Template: TemplateMode);
 
-    private Task<IReadOnlyList<PatientView>> QueryPatientsAsync(int skip, int take, CancellationToken cancellationToken)
-        => Sender.Send(CreatePatientsQuery(skip, take), cancellationToken);
+    private async Task<IReadOnlyList<PatientViewDto>> QueryPatientsAsync(int skip, int take, CancellationToken cancellationToken)
+    {
+        var result = await ClinicClient.ListPatientsAsync(CreatePatientsQuery(skip, take), cancellationToken);
+        return result.Succeeded ? result.Value ?? [] : [];
+    }
 
     private async Task<IReadOnlyList<ProjectReadDto>> QueryEditablePatientsAsync(int skip, int take, CancellationToken cancellationToken)
     {
@@ -53,13 +54,16 @@ public partial class PatientsGrid
         return await ProjectsService.GetListAsync(descriptor, cancellationToken).GetValueOrDefaultAsync() ?? [];
     }
 
-    private Task<int> CountPatientsAsync(CancellationToken cancellationToken)
-        => Sender.Send(CreatePatientsCountQuery(), cancellationToken);
-
-    private static ProjectSortBy? ToProjectSortBy(PatientSortBy? sortBy) => sortBy switch
+    private async Task<int> CountPatientsAsync(CancellationToken cancellationToken)
     {
-        PatientSortBy.Name => ProjectSortBy.Name,
-        PatientSortBy.Template => ProjectSortBy.Template,
+        var result = await ClinicClient.CountPatientsAsync(CreatePatientsCountQuery(), cancellationToken);
+        return result.Succeeded ? result.Value : 0;
+    }
+
+    private static SeaProjectSortBy? ToProjectSortBy(PatientSortBy? sortBy) => sortBy switch
+    {
+        PatientSortBy.Name => SeaProjectSortBy.Name,
+        PatientSortBy.Template => SeaProjectSortBy.Template,
         _ => null
     };
 

@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Base\Apps.Base.csproj" />
-  </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Modules\Sea\Domain\Sea.Domain.csproj" />
+  </ItemGroup>
 </Project>
