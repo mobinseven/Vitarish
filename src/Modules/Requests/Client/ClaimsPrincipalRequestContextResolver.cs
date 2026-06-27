@@ -36,7 +36,10 @@ public sealed class ClaimsPrincipalRequestContextResolver : IRequestContextResol
             return Failed(RequestContextFailureKind.MissingRequiredClaim, "Either client or user claim is required.");
         }
 
-        if (!IsGuidLike(ownerId) || !IsGuidLike(tenantId) || !IsGuidLike(userId))
+        if (!IsGuidLike(ownerId) || !IsGuidLike(tenantId))
+        {
+            return Failed(RequestContextFailureKind.InvalidClaimValue, "Owner or tenant identifier claims are not valid GUID values.");
+        }
         {
             return Failed(RequestContextFailureKind.InvalidClaimValue, "One or more identifier claims are not valid GUID values.");
         }
