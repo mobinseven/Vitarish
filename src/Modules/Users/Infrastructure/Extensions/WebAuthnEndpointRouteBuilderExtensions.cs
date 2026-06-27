@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Data;
+using Vitarish.Modules.Base.Endpoints;
 
 namespace Vitarish.Users.Infrastructure.Extensions;
 
@@ -24,7 +25,7 @@ public static class WebAuthnEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         RouteGroupBuilder webauthnGroup = endpoints.MapGroup("/api/webauthn");
-        webauthnGroup.WithMetadata("OpenApiExclusionJustification:Infrastructure-owned WebAuthn credential management is bound to authenticated account UI behavior and is not part of module contract OpenAPI.").ExcludeFromDescription();
+        webauthnGroup.ExcludeFromOpenApiWithJustification("Infrastructure-owned WebAuthn credential management is bound to authenticated account UI behavior and is not part of module contract OpenAPI.");
 
         // PATCH: Update WebAuthn credential friendly name
         _ = webauthnGroup.MapPatch("/credentials/{id:guid}", async (
@@ -64,7 +65,7 @@ public static class WebAuthnEndpointRouteBuilderExtensions
             return Results.Ok();
         })
         .RequireAuthorization()
-        .WithMetadata("OpenApiExclusionJustification:Infrastructure-owned WebAuthn credential management is bound to authenticated account UI behavior and is not part of module contract OpenAPI.").ExcludeFromDescription();
+        .ExcludeFromOpenApiWithJustification("Infrastructure-owned WebAuthn credential management is bound to authenticated account UI behavior and is not part of module contract OpenAPI.");
 
         return webauthnGroup;
     }

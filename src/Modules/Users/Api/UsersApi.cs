@@ -17,15 +17,15 @@ public static class UsersApi
     public static IEndpointRouteBuilder MapUsersApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder users = endpoints.MapProtectedModuleGroup(UsersApiRoutes.Base);
-        _ = users.MapModuleGet(UsersApiRoutes.Search, SearchUsersAsync, "UsersSearchUsers");
-        _ = users.MapModuleGet(UsersApiRoutes.ById, GetUserAsync, "UsersGetUser");
-        _ = users.MapModuleGet(UsersApiRoutes.CheckEmail, CheckEmailAsync, "UsersCheckEmail");
-        _ = users.MapModuleGet(UsersApiRoutes.CheckPhone, CheckPhoneAsync, "UsersCheckPhone");
-        _ = users.MapModuleGet(UsersApiRoutes.CheckRole, CheckRoleAsync, "UsersCheckRole");
-        _ = users.MapModulePost(UsersApiRoutes.CreateWithPhone, CreateWithPhoneAsync, "UsersCreateWithPhone");
-        _ = users.MapModulePost(UsersApiRoutes.CreateWithEmail, CreateWithEmailAsync, "UsersCreateWithEmail");
-        _ = users.MapModulePut(UsersApiRoutes.SetEmail, SetEmailAsync, "UsersSetEmail");
-        _ = users.MapModulePost(UsersApiRoutes.AddRole, AddRoleAsync, "UsersAddRole");
+        _ = users.MapModuleGet(UsersApiRoutes.Search, SearchUsersAsync, "UsersSearchUsers", typeof(UserSummaryResponse[]));
+        _ = users.MapModuleGet(UsersApiRoutes.ById, GetUserAsync, "UsersGetUser", typeof(UserSummaryResponse));
+        _ = users.MapModuleGet(UsersApiRoutes.CheckEmail, CheckEmailAsync, "UsersCheckEmail", typeof(UserExistenceResponse));
+        _ = users.MapModuleGet(UsersApiRoutes.CheckPhone, CheckPhoneAsync, "UsersCheckPhone", typeof(UserExistenceResponse));
+        _ = users.MapModuleGet(UsersApiRoutes.CheckRole, CheckRoleAsync, "UsersCheckRole", typeof(UserRoleCheckResponse));
+        _ = users.MapModulePost(UsersApiRoutes.CreateWithPhone, CreateWithPhoneAsync, "UsersCreateWithPhone", typeof(UserSummaryResponse));
+        _ = users.MapModulePost(UsersApiRoutes.CreateWithEmail, CreateWithEmailAsync, "UsersCreateWithEmail", typeof(UserSummaryResponse));
+        _ = users.MapModulePut(UsersApiRoutes.SetEmail, SetEmailAsync, "UsersSetEmail", typeof(UsersCommandResponse));
+        _ = users.MapModulePost(UsersApiRoutes.AddRole, AddRoleAsync, "UsersAddRole", typeof(UsersCommandResponse));
         return endpoints;
     }
     private static async Task<IResult> SearchUsersAsync([AsParameters] SearchUsersQueryParameters p, IUsersService service, CancellationToken ct){ if(string.IsNullOrWhiteSpace(p.Query)) return Results.Ok(Array.Empty<UserSummaryResponse>()); IEnumerable<User> users=await service.SearchUsersAsync(p.Query.Trim(),p.MaxResults??50,ct); return Results.Ok(users.Select(ToSummary).ToArray()); }
