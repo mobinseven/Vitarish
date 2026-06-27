@@ -18,24 +18,24 @@ public static class PartiesApiEndpointMapping
     public static IEndpointRouteBuilder MapPartiesApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(PartiesApiRoutes.Base);
-        _ = group.MapGet(PartiesApiRoutes.UserTenants, GetUserTenantsAsync);
-        _ = group.MapGet(PartiesApiRoutes.Owners, GetOwnersAsync);
-        _ = group.MapGet(PartiesApiRoutes.OwnerById, GetOwnerAsync);
-        _ = group.MapPost(PartiesApiRoutes.Owners, CreateOwnerAsync);
-        _ = group.MapPut(PartiesApiRoutes.OwnerById, UpdateOwnerAsync);
-        _ = group.MapDelete(PartiesApiRoutes.OwnerById, DeleteOwnerAsync);
-        _ = group.MapGet(PartiesApiRoutes.Tenants, GetTenantsAsync);
-        _ = group.MapGet(PartiesApiRoutes.TenantById, GetTenantAsync);
-        _ = group.MapGet(PartiesApiRoutes.TenantsByOwner, GetTenantsByOwnerAsync);
-        _ = group.MapPost(PartiesApiRoutes.Tenants, CreateTenantAsync);
-        _ = group.MapPut(PartiesApiRoutes.TenantById, UpdateTenantAsync);
-        _ = group.MapDelete(PartiesApiRoutes.TenantById, DeleteTenantAsync);
-        _ = group.MapGet(PartiesApiRoutes.TenantIndicatorById, GetTenantIndicatorAsync);
-        _ = group.MapGet(PartiesApiRoutes.TenantIndicatorsByTenant, GetTenantIndicatorsByTenantAsync);
-        _ = group.MapPost(PartiesApiRoutes.TenantIndicators, CreateTenantIndicatorAsync);
-        _ = group.MapPut(PartiesApiRoutes.TenantIndicatorById, UpdateTenantIndicatorAsync);
-        _ = group.MapDelete(PartiesApiRoutes.TenantIndicatorById, DeleteTenantIndicatorAsync);
-        _ = group.MapPost(PartiesApiRoutes.SetupTenant, SetupTenantAsync);
+        _ = group.MapModuleGet(PartiesApiRoutes.UserTenants, GetUserTenantsAsync, "PartiesGetUserTenants");
+        _ = group.MapModuleGet(PartiesApiRoutes.Owners, GetOwnersAsync, "PartiesGetOwners");
+        _ = group.MapModuleGet(PartiesApiRoutes.OwnerById, GetOwnerAsync, "PartiesGetOwner");
+        _ = group.MapModulePost(PartiesApiRoutes.Owners, CreateOwnerAsync, "PartiesCreateOwner");
+        _ = group.MapModulePut(PartiesApiRoutes.OwnerById, UpdateOwnerAsync, "PartiesUpdateOwner");
+        _ = group.MapModuleDelete(PartiesApiRoutes.OwnerById, DeleteOwnerAsync, "PartiesDeleteOwner");
+        _ = group.MapModuleGet(PartiesApiRoutes.Tenants, GetTenantsAsync, "PartiesGetTenants");
+        _ = group.MapModuleGet(PartiesApiRoutes.TenantById, GetTenantAsync, "PartiesGetTenant");
+        _ = group.MapModuleGet(PartiesApiRoutes.TenantsByOwner, GetTenantsByOwnerAsync, "PartiesGetTenantsByOwner");
+        _ = group.MapModulePost(PartiesApiRoutes.Tenants, CreateTenantAsync, "PartiesCreateTenant");
+        _ = group.MapModulePut(PartiesApiRoutes.TenantById, UpdateTenantAsync, "PartiesUpdateTenant");
+        _ = group.MapModuleDelete(PartiesApiRoutes.TenantById, DeleteTenantAsync, "PartiesDeleteTenant");
+        _ = group.MapModuleGet(PartiesApiRoutes.TenantIndicatorById, GetTenantIndicatorAsync, "PartiesGetTenantIndicator");
+        _ = group.MapModuleGet(PartiesApiRoutes.TenantIndicatorsByTenant, GetTenantIndicatorsByTenantAsync, "PartiesGetTenantIndicatorsByTenant");
+        _ = group.MapModulePost(PartiesApiRoutes.TenantIndicators, CreateTenantIndicatorAsync, "PartiesCreateTenantIndicator");
+        _ = group.MapModulePut(PartiesApiRoutes.TenantIndicatorById, UpdateTenantIndicatorAsync, "PartiesUpdateTenantIndicator");
+        _ = group.MapModuleDelete(PartiesApiRoutes.TenantIndicatorById, DeleteTenantIndicatorAsync, "PartiesDeleteTenantIndicator");
+        _ = group.MapModulePost(PartiesApiRoutes.SetupTenant, SetupTenantAsync, "PartiesSetupTenant");
         return endpoints;
     }
 

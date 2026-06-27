@@ -15,7 +15,7 @@ public static class RequestsApi
     {
         RouteGroupBuilder requests = endpoints.MapProtectedModuleGroup(RequestsRoutes.Base);
 
-        _ = requests.MapGet(RequestsRoutes.Identities, QueryRequestIdentitiesAsync);
+        _ = requests.MapModuleGet(RequestsRoutes.Identities, QueryRequestIdentitiesAsync, "RequestsQueryRequestIdentities");
 
         return endpoints;
     }

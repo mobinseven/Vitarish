@@ -12,8 +12,8 @@ public static class FilesApi
     {
         RouteGroupBuilder filesGroup = endpoints.MapProtectedModuleGroup("/files");
 
-        _ = filesGroup.MapGet("/{id:guid}", GetFileByIdAsync);
-        _ = filesGroup.MapMethods("/{id:guid}", ["HEAD"], GetFileByIdAsync);
+        _ = filesGroup.MapModuleGet("/{id:guid}", GetFileByIdAsync, "FilesGetFileById", profile: ModuleEndpointProfile.BinaryDownload, contentType: ModuleEndpointOpenApiConventions.BinaryStream);
+        _ = filesGroup.MapModuleHead("/{id:guid}", GetFileByIdAsync, "FilesGetFileByIdHead", contentType: ModuleEndpointOpenApiConventions.BinaryStream);
 
         return endpoints;
     }

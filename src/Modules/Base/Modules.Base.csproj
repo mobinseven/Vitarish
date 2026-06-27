@@ -4,6 +4,7 @@
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 		<PackageReference Include="Hangfire.Core" />
 		<PackageReference Include="MediatR" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Parties\Application\Parties.Application.csproj" />

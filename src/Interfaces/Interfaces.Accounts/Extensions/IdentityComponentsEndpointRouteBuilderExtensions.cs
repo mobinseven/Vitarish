@@ -19,7 +19,8 @@ public static class IdentityComponentsEndpointRouteBuilderExtensions
         {
             await signInManager.SignOutAsync();
             return TypedResults.LocalRedirect($"~/{returnUrl}");
-        });
+        })
+        .WithMetadata("OpenApiExclusionJustification:Razor account form endpoint uses antiforgery and cookie authentication rather than module contract OpenAPI semantics.").ExcludeFromDescription();
 
         return accountGroup;
     }

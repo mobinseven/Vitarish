@@ -22,21 +22,21 @@ public static class KnowledgeApi
     public static IEndpointRouteBuilder MapKnowledgeApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(KnowledgeApiRoutes.Base);
-        _ = group.MapPost(KnowledgeApiRoutes.OwnerWorkspace, OwnerWorkspaceAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.Corpora, CreateCorpusAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.Sources, ImportSourceAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.SourceFiles, ImportFileAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.ReplaceSource, ReplaceSourceAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.ReplaceSourceFile, ReplaceFileAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.DeleteSource, DeleteSourceAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.Indexing, IndexAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.Ask, AskAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.Evaluation, EvaluateAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.DiagnosticsSources, SourcesDiagnosticsAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.DiagnosticsChunks, ChunksDiagnosticsAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.DiagnosticsAskTraces, AskTracesDiagnosticsAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.DiagnosticsInspect, InspectDiagnosticsAsync);
-        _ = group.MapPost(KnowledgeApiRoutes.DiagnosticsDebugAsk, DebugAskAsync);
+        _ = group.MapModulePost(KnowledgeApiRoutes.OwnerWorkspace, OwnerWorkspaceAsync, "KnowledgeOwnerWorkspace");
+        _ = group.MapModulePost(KnowledgeApiRoutes.Corpora, CreateCorpusAsync, "KnowledgeCreateCorpus");
+        _ = group.MapModulePost(KnowledgeApiRoutes.Sources, ImportSourceAsync, "KnowledgeImportSource");
+        _ = group.MapModulePost(KnowledgeApiRoutes.SourceFiles, ImportFileAsync, "KnowledgeImportFile");
+        _ = group.MapModulePost(KnowledgeApiRoutes.ReplaceSource, ReplaceSourceAsync, "KnowledgeReplaceSource");
+        _ = group.MapModulePost(KnowledgeApiRoutes.ReplaceSourceFile, ReplaceFileAsync, "KnowledgeReplaceFile");
+        _ = group.MapModulePost(KnowledgeApiRoutes.DeleteSource, DeleteSourceAsync, "KnowledgeDeleteSource");
+        _ = group.MapModulePost(KnowledgeApiRoutes.Indexing, IndexAsync, "KnowledgeIndex");
+        _ = group.MapModulePost(KnowledgeApiRoutes.Ask, AskAsync, "KnowledgeAsk");
+        _ = group.MapModulePost(KnowledgeApiRoutes.Evaluation, EvaluateAsync, "KnowledgeEvaluate");
+        _ = group.MapModulePost(KnowledgeApiRoutes.DiagnosticsSources, SourcesDiagnosticsAsync, "KnowledgeSourcesDiagnostics");
+        _ = group.MapModulePost(KnowledgeApiRoutes.DiagnosticsChunks, ChunksDiagnosticsAsync, "KnowledgeChunksDiagnostics");
+        _ = group.MapModulePost(KnowledgeApiRoutes.DiagnosticsAskTraces, AskTracesDiagnosticsAsync, "KnowledgeAskTracesDiagnostics");
+        _ = group.MapModulePost(KnowledgeApiRoutes.DiagnosticsInspect, InspectDiagnosticsAsync, "KnowledgeInspectDiagnostics");
+        _ = group.MapModulePost(KnowledgeApiRoutes.DiagnosticsDebugAsk, DebugAskAsync, "KnowledgeDebugAsk");
         return endpoints;
     }
     private static string Tenant(IRequestContext c)=>c.TenantId ?? string.Empty;
