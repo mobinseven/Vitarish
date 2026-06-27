@@ -16,9 +16,9 @@ public static class FeedApi
     {
         RouteGroupBuilder feed = endpoints.MapProtectedModuleGroup(FeedRoutes.Base);
 
-        _ = feed.MapGet(FeedRoutes.Items, QueryFeedItemsAsync);
-        _ = feed.MapGet(FeedRoutes.Sources, QueryFeedSourcesAsync);
-        _ = feed.MapGet(FeedRoutes.Configuration, QueryFeedConfigurationAsync);
+        _ = feed.MapModuleGet(FeedRoutes.Items, QueryFeedItemsAsync, "FeedQueryFeedItems");
+        _ = feed.MapModuleGet(FeedRoutes.Sources, QueryFeedSourcesAsync, "FeedQueryFeedSources");
+        _ = feed.MapModuleGet(FeedRoutes.Configuration, QueryFeedConfigurationAsync, "FeedQueryFeedConfiguration");
 
         return endpoints;
     }

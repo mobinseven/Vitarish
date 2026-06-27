@@ -88,6 +88,8 @@ _ = builder.Services.AddSession(options =>
 });
 _ = builder.Services.AddControllers();
 _ = builder.Services.AddEndpointsApiExplorer();
+// OpenAPI document generation is host-owned and exposed only in Development.
+_ = builder.Services.AddOpenApi();
 _ = builder.Services.AddLocalization();
 Func<object, Task<string?>> tenantResolver = async context =>
 {
@@ -165,6 +167,11 @@ _ = app.UseAuthentication();
 _ = app.UseAuthorization();
 
 _ = app.UseAntiforgery();
+
+if (app.Environment.IsDevelopment())
+{
+    _ = app.MapOpenApi("/openapi/{documentName}.json");
+}
 
 _ = app.UseMultiTenant();
 

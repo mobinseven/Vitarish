@@ -17,15 +17,15 @@ public static class UsersApi
     public static IEndpointRouteBuilder MapUsersApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder users = endpoints.MapProtectedModuleGroup(UsersApiRoutes.Base);
-        _ = users.MapGet(UsersApiRoutes.Search, SearchUsersAsync);
-        _ = users.MapGet(UsersApiRoutes.ById, GetUserAsync);
-        _ = users.MapGet(UsersApiRoutes.CheckEmail, CheckEmailAsync);
-        _ = users.MapGet(UsersApiRoutes.CheckPhone, CheckPhoneAsync);
-        _ = users.MapGet(UsersApiRoutes.CheckRole, CheckRoleAsync);
-        _ = users.MapPost(UsersApiRoutes.CreateWithPhone, CreateWithPhoneAsync);
-        _ = users.MapPost(UsersApiRoutes.CreateWithEmail, CreateWithEmailAsync);
-        _ = users.MapPut(UsersApiRoutes.SetEmail, SetEmailAsync);
-        _ = users.MapPost(UsersApiRoutes.AddRole, AddRoleAsync);
+        _ = users.MapModuleGet(UsersApiRoutes.Search, SearchUsersAsync, "UsersSearchUsers");
+        _ = users.MapModuleGet(UsersApiRoutes.ById, GetUserAsync, "UsersGetUser");
+        _ = users.MapModuleGet(UsersApiRoutes.CheckEmail, CheckEmailAsync, "UsersCheckEmail");
+        _ = users.MapModuleGet(UsersApiRoutes.CheckPhone, CheckPhoneAsync, "UsersCheckPhone");
+        _ = users.MapModuleGet(UsersApiRoutes.CheckRole, CheckRoleAsync, "UsersCheckRole");
+        _ = users.MapModulePost(UsersApiRoutes.CreateWithPhone, CreateWithPhoneAsync, "UsersCreateWithPhone");
+        _ = users.MapModulePost(UsersApiRoutes.CreateWithEmail, CreateWithEmailAsync, "UsersCreateWithEmail");
+        _ = users.MapModulePut(UsersApiRoutes.SetEmail, SetEmailAsync, "UsersSetEmail");
+        _ = users.MapModulePost(UsersApiRoutes.AddRole, AddRoleAsync, "UsersAddRole");
         return endpoints;
     }
     private static async Task<IResult> SearchUsersAsync([AsParameters] SearchUsersQueryParameters p, IUsersService service, CancellationToken ct){ if(string.IsNullOrWhiteSpace(p.Query)) return Results.Ok(Array.Empty<UserSummaryResponse>()); IEnumerable<User> users=await service.SearchUsersAsync(p.Query.Trim(),p.MaxResults??50,ct); return Results.Ok(users.Select(ToSummary).ToArray()); }

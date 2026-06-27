@@ -24,6 +24,7 @@ public static class WebAuthnEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         RouteGroupBuilder webauthnGroup = endpoints.MapGroup("/api/webauthn");
+        webauthnGroup.WithMetadata("OpenApiExclusionJustification:Infrastructure-owned WebAuthn credential management is bound to authenticated account UI behavior and is not part of module contract OpenAPI.").ExcludeFromDescription();
 
         // PATCH: Update WebAuthn credential friendly name
         _ = webauthnGroup.MapPatch("/credentials/{id:guid}", async (
@@ -62,7 +63,8 @@ public static class WebAuthnEndpointRouteBuilderExtensions
 
             return Results.Ok();
         })
-        .RequireAuthorization();
+        .RequireAuthorization()
+        .WithMetadata("OpenApiExclusionJustification:Infrastructure-owned WebAuthn credential management is bound to authenticated account UI behavior and is not part of module contract OpenAPI.").ExcludeFromDescription();
 
         return webauthnGroup;
     }
