@@ -126,11 +126,6 @@
     <Project Path="src/Modules/Feed/Interface/Feed.Interface.csproj" />
     <Project Path="src/Modules/Feed/Module/Feed.Module.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
-  <Folder Name="/tests/Modules/" />
-  <Folder Name="/tests/Modules/Feed/">
-    <Project Path="tests/Modules/Feed.Tests/Feed.Tests.csproj" />
-  </Folder>
   <Folder Name="/src/Modules/Files/">
     <Project Path="src/Modules/Files/Api/Files.Api.csproj">
       <Build Solution="Debug|*" Project="false" />
@@ -304,8 +299,5 @@
   </Folder>
   <Folder Name="/src/Modules/Common/">
     <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
-  </Folder>
-  <Folder Name="/tests/Modules/Base/">
-    <Project Path="tests/Modules/Base.Interface.Tests/Modules.Base.Interface.Tests.csproj" />
   </Folder>
 </Solution>

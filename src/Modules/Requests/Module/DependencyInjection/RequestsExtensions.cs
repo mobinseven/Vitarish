@@ -15,7 +15,7 @@ using Vitarish.Requests.Module.BackgroundJobs;
 
 namespace Vitarish.Requests.Module.DependencyInjection;
 
-public static class IdentityRequestsExtensions
+public static class RequestsExtensions
 {
     /// <summary>
     /// Adds request identities services including the server-side <see cref="IRequestContext"/>.
