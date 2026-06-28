@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Moq" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Modules\Authentication\Domain\Authentication.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Authentication\Application\Authentication.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Authentication\Contracts\Authentication.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Authentication\Api\Authentication.Api.csproj" />
+  </ItemGroup>
+
+</Project>

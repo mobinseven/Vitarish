@@ -1,14 +1,8 @@
-# Knowledge Module Tests
+# Knowledge Test Plans
 
-This directory contains test specifications and scenarios for the Knowledge module.
-
-## Test Plans
-
-| Test Plan | Purpose |
-|---|---|
-| delete-source-tests.md | Test scenarios for delete source functionality |
-| knowledge-owner-management-collection-tests.md | Test scenarios for owner management and collection operations |
-| techqa-row-local-evaluation-tests.md | Test scenarios for technical QA and row-local evaluation |
+| Plan | Title | Status | App | Module | Capability | Date |
+|---|---|---|---|---|---|---|
+| 0001-knowledge-content-management-test-plan.md | Knowledge Content Management Test Plan | Draft | Main | Knowledge | Source deletion, owner collection queries, TechQA import/eval | 2026-06-28 |
 
 ## Navigation
 

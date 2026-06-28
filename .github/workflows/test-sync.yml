@@ -1,0 +1,53 @@
+name: Test Sync Validation
+
+on:
+  pull_request:
+    paths:
+      - 'src/Modules/**/Contracts/**'
+      - 'src/Modules/**/Client/**'
+      - 'src/Modules/**/Api/**'
+      - 'docs/platform/modules/**/tests/**'
+      - 'tests/Modules/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/Modules/**/Contracts/**'
+      - 'src/Modules/**/Client/**'
+      - 'src/Modules/**/Api/**'
+      - 'docs/platform/modules/**/tests/**'
+      - 'tests/Modules/**'
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-sync:
+    name: Validate test plan and code sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate test plan completeness
+        run: python3 .agents/skills/platform-test-curator/scripts/validate_test_plans.py docs/platform/modules/
+
+      - name: Validate test sync
+        if: ${{ always() }}
+        run: python3 tools/testing/validate_test_sync.py . --checks doc-completeness doc-index-sync doc-to-test-mapping boundary-regression unused-test-projects
+
+      - name: Run unit tests
+        if: ${{ always() }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build and test
+        if: ${{ always() }}
+        run: |
+          for proj in tests/Modules/*.Tests/*.Tests.csproj; do
+            dotnet test "$proj" --no-restore
+          done
