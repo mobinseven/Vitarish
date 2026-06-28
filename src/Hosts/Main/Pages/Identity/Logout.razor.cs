@@ -1,5 +1,3 @@
-using Vitarish.Interfaces.Accounts.Components;
-
 namespace Vitarish.Main.Pages.Identity;
 
 public partial class Logout : IdentityBase

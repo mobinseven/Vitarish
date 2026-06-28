@@ -15,4 +15,9 @@ public static class AuthenticationRoutes
     public const string LogoutContext = BasePath + "/logout/context";
     public const string Logout = BasePath + "/logout";
     public const string Me = BasePath + "/me";
+    public const string BeginChangePhone = BasePath + "/account/phone/begin";
+    public const string CompleteChangePhone = BasePath + "/account/phone/complete";
+    public const string BeginChangeEmail = BasePath + "/account/email/begin";
+    public const string CompleteChangeEmail = BasePath + "/account/email/complete";
+    public const string ChangePassword = BasePath + "/account/password";
 }

@@ -141,31 +141,9 @@
             ],
             "owningUseCase": "Aggregator Interface uses Users domain entities for user management UI.",
             "reason": "Approved Interface-to-Backend dependency for domain entity access."
-        },
-        {
-            "sourceModule": "Interfaces.Accounts",
-            "targetProjects": [
-                "src/Modules/Users/Domain/Users.Domain.csproj",
-                "src/Modules/Users/Application/Users.Application.csproj",
-                "src/Modules/Users/Infrastructure/Users.Infrastructure.csproj",
-                "src/Modules/Parties/Application/Parties.Application.csproj",
-                "src/Modules/Parties/Domain/Parties.Domain.csproj",
-                "src/Modules/Communications/Application/Communications.Application.csproj"
-            ],
-            "owningUseCase": "Accounts Interface manages authentication and user account operations requiring backend access.",
-            "reason": "Approved Interface-to-Backend dependency for authentication flows."
         }
     ],
-    "globalInterfaces": {
-        "Interfaces.Accounts": {
-            "mode": "FailFast",
-            "temporaryExceptions": []
-        },
-        "Interfaces.Aggregator": {
-            "mode": "FailFast",
-            "temporaryExceptions": []
-        }
-    },
+    "globalInterfaces": {},
     "modules": {
         "Aggregator": {
             "mode": "FailFast",

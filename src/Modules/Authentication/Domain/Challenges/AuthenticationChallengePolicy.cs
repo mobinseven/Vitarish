@@ -7,6 +7,8 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
     private static readonly string PhoneLoginTokenPurpose = "Authentication:PhoneLogin";
     private static readonly string EmailLoginTokenPurpose = "Authentication:EmailLogin";
     private static readonly string PasskeyTokenPurpose = "Authentication:PasskeyLogin";
+    private static readonly string PhoneChangeTokenPurpose = "Authentication:PhoneChange";
+    private static readonly string EmailChangeTokenPurpose = "Authentication:EmailChange";
 
     public bool IsExpired(DateTimeOffset createdAt, DateTimeOffset now) => now >= createdAt.Add(Lifetime);
     public bool HasAttemptsRemaining(int failedAttempts) => failedAttempts < MaximumAttempts;
@@ -16,6 +18,8 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
         AuthenticationChallengePurpose.PhoneLogin => PhoneLoginTokenPurpose,
         AuthenticationChallengePurpose.EmailLogin => EmailLoginTokenPurpose,
         AuthenticationChallengePurpose.PasskeyLogin => PasskeyTokenPurpose,
+        AuthenticationChallengePurpose.PhoneChange => PhoneChangeTokenPurpose,
+        AuthenticationChallengePurpose.EmailChange => EmailChangeTokenPurpose,
         _ => throw new ArgumentOutOfRangeException(nameof(purpose))
     };
 
@@ -24,6 +28,12 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
 
     public AuthenticationChallenge CreateEmailLoginChallenge(string userId, string email, string tokenPurpose, DateTimeOffset now) =>
         CreateChallenge(AuthenticationChallengePurpose.EmailLogin, userId, email, tokenPurpose, now);
+
+    public AuthenticationChallenge CreatePhoneChangeChallenge(string userId, string phoneNumber, string tokenPurpose, DateTimeOffset now) =>
+        CreateChallenge(AuthenticationChallengePurpose.PhoneChange, userId, phoneNumber, tokenPurpose, now);
+
+    public AuthenticationChallenge CreateEmailChangeChallenge(string userId, string email, string tokenPurpose, DateTimeOffset now) =>
+        CreateChallenge(AuthenticationChallengePurpose.EmailChange, userId, email, tokenPurpose, now);
 
     public AuthenticationChallenge CreatePasskeyLoginChallenge(string userIdOrLoginHint, string challengeReference, DateTimeOffset now) =>
         CreateChallenge(AuthenticationChallengePurpose.PasskeyLogin, userIdOrLoginHint, challengeReference, PasskeyTokenPurpose, now);

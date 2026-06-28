@@ -14,8 +14,6 @@ global using Microsoft.Extensions.Localization;
 global using MudBlazor;
 global using MudBlazor.Services;
 global using System.Security.Claims;
-global using Vitarish.Interfaces.Accounts.Models;
-global using Vitarish.Interfaces.Accounts.Services;
 // Project‑specific namespaces
 global using Vitarish.Main.Components;
 global using static Microsoft.AspNetCore.Components.Web.RenderMode;

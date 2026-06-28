@@ -7,6 +7,7 @@ using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Contracts.Requests;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Contracts.Routes;
+using Vitarish.Users.Api.Endpoints;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Users.Api;
@@ -25,6 +26,9 @@ public static class UsersApi
         _ = users.MapModulePost(UsersApiRoutes.CreateWithEmail, CreateWithEmailAsync, "UsersCreateWithEmail", typeof(UserSummaryResponse));
         _ = users.MapModulePut(UsersApiRoutes.SetEmail, SetEmailAsync, "UsersSetEmail", typeof(UsersCommandResponse));
         _ = users.MapModulePost(UsersApiRoutes.AddRole, AddRoleAsync, "UsersAddRole", typeof(UsersCommandResponse));
+        users.MapProfileEndpoints();
+        users.MapWebAuthnEndpoints();
+        users.MapPatEndpoints();
         return endpoints;
     }
     private static async Task<IResult> SearchUsersAsync([AsParameters] SearchUsersQueryParameters p, IUsersService service, CancellationToken ct) { if (string.IsNullOrWhiteSpace(p.Query)) { return Results.Ok(Array.Empty<UserSummaryResponse>()); } IEnumerable<User> users = await service.SearchUsersAsync(p.Query.Trim(), p.MaxResults ?? 50, ct); return Results.Ok(users.Select(ToSummary).ToArray()); }

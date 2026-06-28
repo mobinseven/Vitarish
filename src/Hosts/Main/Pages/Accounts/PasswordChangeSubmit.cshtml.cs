@@ -1,24 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Vitarish.Interfaces.Accounts.Components;
 
 namespace Vitarish.Main.Pages.Accounts;
 
 [ValidateAntiForgeryToken]
 public sealed class PasswordChangeSubmitModel(
     SignInManager<User> signInManager,
-    ReturnUrlManager returnUrlManager,
     IStringLocalizer localizer,
     ILogger<PasswordChangeSubmitModel> logger) : PageModel
 {
     private readonly SignInManager<User> _signInManager = signInManager;
     private readonly UserManager<User> _userManager = signInManager.UserManager;
-    private readonly ReturnUrlManager _returnUrlManager = returnUrlManager;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly ILogger<PasswordChangeSubmitModel> _logger = logger;
 
     [BindProperty]
-    public PasswordChangeModel Input { get; set; } = new();
+    public PasswordChangeInput Input { get; set; } = new();
 
     public async Task<IActionResult> OnPostAsync()
     {
@@ -52,10 +49,7 @@ public sealed class PasswordChangeSubmitModel(
                 return RedirectWithStatus(failureDestination, BuildFailureMessage());
             }
 
-            result = await _userManager.ChangePasswordAsync(
-                user,
-                Input.CurrentPassword,
-                Input.NewPassword);
+            result = await _userManager.ChangePasswordAsync(user, Input.CurrentPassword, Input.NewPassword);
         }
         else
         {
@@ -69,37 +63,33 @@ public sealed class PasswordChangeSubmitModel(
         }
 
         await _signInManager.RefreshSignInAsync(user);
-
-        string destination = _returnUrlManager.ConsumeReturnUrl() ?? "/Account/Manage/Password";
-        return RedirectWithStatus(destination, BuildSuccessMessage());
+        return RedirectWithStatus("/Account/Manage/Password", BuildSuccessMessage());
     }
 
     private string BuildFailureMessage() => $"{_localizer["Error"]}: {_localizer["PasswordSetUnsuccessful"]}";
-
     private string BuildSuccessMessage() => _localizer["PasswordSetSuccessful"];
 
     private IActionResult RedirectWithStatus(string destination, string message)
     {
-        Response.Cookies.Append(
-            IdentityCookieNames.StatusCookieName,
-            message,
-            CreateStatusCookieOptions());
+        Response.Cookies.Append("Identity.Status", message, new CookieOptions
+        {
+            SameSite = SameSiteMode.Strict,
+            HttpOnly = true,
+            IsEssential = true,
+            MaxAge = TimeSpan.FromSeconds(5),
+        });
         return Redirect(destination);
     }
 
-    private static CookieOptions CreateStatusCookieOptions() => new()
-    {
-        SameSite = SameSiteMode.Strict,
-        HttpOnly = true,
-        IsEssential = true,
-        MaxAge = TimeSpan.FromSeconds(5),
-    };
-
     private void LogWarning(User? user, string reason) =>
-        _logger.LogWarning(
-            "Password change failed for {Username} ({UserId}) from {ClientIp}. Reason: {Reason}.",
-            user?.UserName ?? "unknown",
-            user?.Id ?? "unknown",
-            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            reason);
+        _logger.LogWarning("Password change failed for {Username} ({UserId}) from {ClientIp}. Reason: {Reason}.",
+            user?.UserName ?? "unknown", user?.Id ?? "unknown",
+            HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", reason);
+}
+
+public sealed record PasswordChangeInput
+{
+    public string? CurrentPassword { get; init; }
+    public string NewPassword { get; init; } = string.Empty;
+    public string ConfirmPassword { get; init; } = string.Empty;
 }

@@ -23,6 +23,7 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
         services.AddScoped<IWebAuthnAuthenticationService, WebAuthnAuthenticationService>();
         services.AddScoped<ILogoutContextService, DuendeLogoutContextService>();
         services.AddSingleton<VerificationSmsRequestShield, InMemoryVerificationSmsRequestShield>();
+        services.AddScoped<IUserAccountUpdater, UserAccountUpdater>();
         return services;
     }
 }
