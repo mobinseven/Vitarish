@@ -9,6 +9,6 @@ public sealed class BeginPasskeyLoginHandler(IWebAuthnAuthenticationService webA
     public async Task<AuthenticationResult<ChallengeResult>> Handle(BeginPasskeyLoginCommand command, CancellationToken cancellationToken)
     {
         WebAuthnBeginResult result = await webAuthn.BeginAsync(command.UserNameOrEmail, cancellationToken);
-        return new AuthenticationResult<ChallengeResult>.Success(new(result.ChallengeId, Domain.Challenges.AuthenticationChallengePurpose.PasskeyLogin, result.ExpiresAt, result.RemainingAttempts));
+        return new AuthenticationResult<ChallengeResult>.Success(new(result.ChallengeId, Domain.Challenges.AuthenticationChallengePurpose.PasskeyLogin, result.ExpiresAt, result.RemainingAttempts, result.OptionsJson));
     }
 }

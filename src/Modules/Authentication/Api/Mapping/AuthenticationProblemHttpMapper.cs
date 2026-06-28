@@ -15,7 +15,7 @@ public static class AuthenticationProblemHttpMapper
             AuthenticationFailureReason.InvalidInput => (StatusCodes.Status400BadRequest, AuthenticationErrorCode.invalid_input),
             AuthenticationFailureReason.InvalidCredentials => (StatusCodes.Status401Unauthorized, AuthenticationErrorCode.invalid_credentials),
             AuthenticationFailureReason.ChallengeNotFound => (StatusCodes.Status400BadRequest, AuthenticationErrorCode.challenge_not_found),
-            AuthenticationFailureReason.ChallengeExpired => (StatusCodes.Status400BadRequest, AuthenticationErrorCode.challenge_expired),
+            AuthenticationFailureReason.ChallengeExpired => (StatusCodes.Status410Gone, AuthenticationErrorCode.challenge_expired),
             AuthenticationFailureReason.ChallengeAlreadyUsed => (StatusCodes.Status400BadRequest, AuthenticationErrorCode.challenge_already_used),
             AuthenticationFailureReason.ChallengeAttemptsExhausted => (StatusCodes.Status429TooManyRequests, AuthenticationErrorCode.challenge_attempts_exhausted),
             AuthenticationFailureReason.InvalidVerificationCode => (StatusCodes.Status400BadRequest, AuthenticationErrorCode.invalid_verification_code),

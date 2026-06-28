@@ -20,9 +20,7 @@ public sealed class BeginEmailLoginHandler(
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, "Email is required."));
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        AuthenticationUserDescriptor? user = await userDirectory.FindByEmailAsync(command.Email, cancellationToken);
-        if (user is null)
-            return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidCredentials, "No account found for this email."));
+        AuthenticationUserDescriptor user = await userDirectory.FindOrCreateByEmailAsync(command.Email, cancellationToken);
 
         string code = await codeGenerator.GenerateAsync(user.UserId, policy.TokenPurpose(AuthenticationChallengePurpose.EmailLogin), cancellationToken);
         AuthenticationChallenge challenge = policy.CreateEmailLoginChallenge(user.UserId, command.Email, policy.TokenPurpose(AuthenticationChallengePurpose.EmailLogin), now);

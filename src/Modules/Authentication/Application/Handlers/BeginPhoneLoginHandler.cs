@@ -20,9 +20,7 @@ public sealed class BeginPhoneLoginHandler(
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, "Phone number is required."));
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        AuthenticationUserDescriptor? user = await userDirectory.FindByPhoneNumberAsync(command.PhoneNumber, cancellationToken);
-        if (user is null)
-            return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidCredentials, "No account found for this phone number."));
+        AuthenticationUserDescriptor user = await userDirectory.FindOrCreateByPhoneNumberAsync(command.PhoneNumber, cancellationToken);
 
         string code = await codeGenerator.GenerateAsync(user.UserId, policy.TokenPurpose(AuthenticationChallengePurpose.PhoneLogin), cancellationToken);
         AuthenticationChallenge challenge = policy.CreatePhoneLoginChallenge(user.UserId, command.PhoneNumber, policy.TokenPurpose(AuthenticationChallengePurpose.PhoneLogin), now);

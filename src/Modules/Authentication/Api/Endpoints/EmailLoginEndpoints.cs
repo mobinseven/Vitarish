@@ -25,6 +25,7 @@ public static class EmailLoginEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
+        .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
         .WithOpenApi(o =>
         {
             o.OperationId = "beginEmailLogin";

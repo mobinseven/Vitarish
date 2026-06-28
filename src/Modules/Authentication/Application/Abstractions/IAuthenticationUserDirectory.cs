@@ -4,7 +4,9 @@ public interface IAuthenticationUserDirectory
 {
     Task<AuthenticationUserDescriptor?> FindByLoginAsync(string login, CancellationToken cancellationToken);
     Task<AuthenticationUserDescriptor?> FindByEmailAsync(string email, CancellationToken cancellationToken);
+    Task<AuthenticationUserDescriptor> FindOrCreateByEmailAsync(string email, CancellationToken cancellationToken);
     Task<AuthenticationUserDescriptor?> FindByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken);
+    Task<AuthenticationUserDescriptor> FindOrCreateByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken);
     Task<AuthenticationUserDescriptor?> GetCurrentAsync(CancellationToken cancellationToken);
 }
 
