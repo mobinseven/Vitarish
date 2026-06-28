@@ -83,14 +83,81 @@
             "targetProject": "src/Modules/Files/Interface/Files.Interface.csproj",
             "owningUiCompositionUseCase": "Clinic composes existing file components.",
             "reason": "Approved frontend-safe UI composition dependency."
+        },
+        {
+            "sourceModule": "Base",
+            "targetProject": "src/Modules/Requests/Client/Requests.Client.csproj",
+            "owningUiCompositionUseCase": "Base Interface composes Requests client for request-related features.",
+            "reason": "Approved frontend-safe Client dependency."
+        }
+    ],
+    "crossModuleClientAllowlist": [
+        {
+            "sourceModule": "Aggregator",
+            "targetProjects": [
+                "src/Modules/Requests/Client/Requests.Client.csproj",
+                "src/Modules/Users/Client/Users.Client.csproj",
+                "src/Modules/Parties/Client/Parties.Client.csproj",
+                "src/Modules/Medical/Client/Medical.Client.csproj",
+                "src/Modules/Appointments/Client/Appointments.Client.csproj",
+                "src/Modules/Commerce/Client/Commerce.Client.csproj",
+                "src/Modules/Sea/Client/Sea.Client.csproj",
+                "src/Modules/Communications/Client/Communications.Client.csproj",
+                "src/Modules/Feed/Client/Feed.Client.csproj",
+                "src/Modules/Files/Client/Files.Client.csproj",
+                "src/Modules/Financial/Client/Financial.Client.csproj",
+                "src/Modules/Intelligence/Client/Intelligence.Client.csproj",
+                "src/Modules/Knowledge/Client/Knowledge.Client.csproj",
+                "src/Modules/Search/Client/Search.Client.csproj",
+                "src/Modules/Contents/Client/Contents.Client.csproj",
+                "src/Modules/Social/Client/Social.Client.csproj",
+                "src/Modules/Links/Client/Links.Client.csproj"
+            ],
+            "owningUseCase": "Aggregator module orchestrates cross-module API calls for aggregation features.",
+            "reason": "Approved Client-to-Client dependency for module orchestration."
+        },
+        {
+            "sourceModule": "Base",
+            "targetProjects": [
+                "src/Modules/Aggregator/Client/Modules.Aggregator.Client.csproj"
+            ],
+            "owningUseCase": "Base app composes Aggregator client for shared aggregation features.",
+            "reason": "Approved App Client dependency."
+        },
+        {
+            "sourceModule": "Aggregator",
+            "targetProjects": [
+                "src/Apps/Clinic/Client/Clinic.Client.csproj"
+            ],
+            "owningUseCase": "Aggregator app composes Clinic client for clinic-specific aggregation.",
+            "reason": "Approved App Client dependency."
+        }
+    ],
+    "interfaceBackendAllowlist": [
+        {
+            "sourceModule": "Aggregator",
+            "targetProjects": [
+                "src/Modules/Users/Domain/Users.Domain.csproj"
+            ],
+            "owningUseCase": "Aggregator Interface uses Users domain entities for user management UI.",
+            "reason": "Approved Interface-to-Backend dependency for domain entity access."
+        },
+        {
+            "sourceModule": "Interfaces.Accounts",
+            "targetProjects": [
+                "src/Modules/Users/Domain/Users.Domain.csproj",
+                "src/Modules/Users/Application/Users.Application.csproj",
+                "src/Modules/Users/Infrastructure/Users.Infrastructure.csproj",
+                "src/Modules/Parties/Application/Parties.Application.csproj",
+                "src/Modules/Parties/Domain/Parties.Domain.csproj",
+                "src/Modules/Communications/Application/Communications.Application.csproj"
+            ],
+            "owningUseCase": "Accounts Interface manages authentication and user account operations requiring backend access.",
+            "reason": "Approved Interface-to-Backend dependency for authentication flows."
         }
     ],
     "globalInterfaces": {
         "Interfaces.Accounts": {
-            "mode": "FailFast",
-            "temporaryExceptions": []
-        },
-        "Interfaces.Admins": {
             "mode": "FailFast",
             "temporaryExceptions": []
         },
@@ -100,6 +167,10 @@
         }
     },
     "modules": {
+        "Aggregator": {
+            "mode": "FailFast",
+            "temporaryExceptions": []
+        },
         "Appointments": {
             "mode": "FailFast",
             "temporaryExceptions": []
