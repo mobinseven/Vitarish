@@ -3,11 +3,34 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using Vitarish.Authentication.Api.Endpoints;
+using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Pipeline;
 using Vitarish.Users.Infrastructure.Service;
 
 public static class HostPipelineExtensions
 {
+    public static void AddHostCors(this WebApplicationBuilder builder)
+    {
+        builder.Services.Configure<CorsOptions>(
+            builder.Configuration.GetSection(CorsOptions.SectionName));
+
+        string[] origins = builder.Configuration
+            .GetSection($"{CorsOptions.SectionName}:AllowedOrigins")
+            .Get<string[]>() ?? [];
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("WebHostCors", policy =>
+            {
+                policy
+                    .WithOrigins(origins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
+    }
+
     public static void AddHostPipeline(this WebApplicationBuilder builder)
     {
         _ = builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
