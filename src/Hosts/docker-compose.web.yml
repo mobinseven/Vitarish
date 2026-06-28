@@ -1,10 +1,10 @@
 # Runs the Next.js Web UI alongside the .NET Main host.
-# Usage: docker compose -f docker-compose.web.yml up --build
+# Usage: docker compose -f src/Hosts/docker-compose.web.yml up --build
 
 services:
   web:
     build:
-      context: ./src/Hosts/Web
+      context: ./Web
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
@@ -15,7 +15,7 @@ services:
 
   main:
     build:
-      context: .
+      context: ../..
       dockerfile: src/Hosts/Main/Dockerfile
     ports:
       - "5000:8080"

@@ -58,7 +58,7 @@ docker run -p 3000:3000 vitarish-web
 From the repo root:
 
 ```bash
-docker compose -f docker-compose.web.yml up --build
+docker compose -f src/Hosts/docker-compose.web.yml up --build
 ```
 
 This starts:
