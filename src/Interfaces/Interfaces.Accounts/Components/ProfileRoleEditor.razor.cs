@@ -1,5 +1,4 @@
 using Vitarish.Parties.Client;
-using Vitarish.Parties.Contracts.Tenants;
 
 namespace Vitarish.Interfaces.Accounts.Components;
 

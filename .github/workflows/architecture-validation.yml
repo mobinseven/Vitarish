@@ -22,4 +22,5 @@ jobs:
         run: python3 tools/architecture/validate_interface_boundaries.py
 
       - name: Validate ADR-004 protected module APIs
+        if: ${{ always() }}
         run: python3 tools/architecture/validate_module_api_boundaries.py
