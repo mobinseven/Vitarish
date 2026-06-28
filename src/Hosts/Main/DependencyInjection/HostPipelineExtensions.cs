@@ -11,12 +11,17 @@ public static class HostPipelineExtensions
 {
     public static void AddHostCors(this WebApplicationBuilder builder)
     {
-        builder.Services.Configure<CorsOptions>(
-            builder.Configuration.GetSection(CorsOptions.SectionName));
+        CorsOptions corsOptions = builder.Configuration
+            .GetSection(CorsOptions.SectionName)
+            .Get<CorsOptions>() ?? new();
 
-        string[] origins = builder.Configuration
-            .GetSection($"{CorsOptions.SectionName}:AllowedOrigins")
-            .Get<string[]>() ?? [];
+        string[] origins = corsOptions.AllowedOrigins.ToArray();
+
+        if (Array.Exists(origins, x => x == "*"))
+        {
+            throw new InvalidOperationException(
+                "CORS policy 'WebHostCors' cannot allow the wildcard '*' origin when AllowCredentials() is enabled.");
+        }
 
         builder.Services.AddCors(options =>
         {
