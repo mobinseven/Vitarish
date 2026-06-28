@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Vitarish.Authentication.Api.Mapping;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Domain.Security;
@@ -32,5 +33,7 @@ public class AuthenticationProblemHttpMapperTests
         var result = AuthenticationProblemHttpMapper.ToProblem(failure);
 
         result.Should().NotBeNull();
+        result.Should().BeOfType<ProblemHttpResult>();
+        ((ProblemHttpResult)result).ProblemDetails.Status.Should().Be(expectedStatus);
     }
 }

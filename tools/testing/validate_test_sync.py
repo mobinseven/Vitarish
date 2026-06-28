@@ -104,12 +104,6 @@ def check_doc_index_sync(root: Path) -> list[str]:
 def check_code_to_doc_coverage(root: Path) -> list[str]:
     """Scan public types in module Contracts/Client/Api; warn if not in test plans."""
     warnings: list[str] = []
-    all_plan_text = ""
-    modules_dir = root / "docs" / "platform" / "modules"
-    if modules_dir.exists():
-        for plan in modules_dir.rglob("*-test-plan.md"):
-            all_plan_text += plan.read_text(encoding="utf-8").lower()
-
     src_modules = root / "src" / "Modules"
     if not src_modules.exists():
         return warnings
@@ -117,6 +111,13 @@ def check_code_to_doc_coverage(root: Path) -> list[str]:
     for module_dir in sorted(src_modules.iterdir()):
         if not module_dir.is_dir():
             continue
+
+        module_plan_text = ""
+        module_docs_dir = root / "docs" / "platform" / "modules" / module_dir.name.lower()
+        if module_docs_dir.exists():
+            for plan in module_docs_dir.rglob("*-test-plan.md"):
+                module_plan_text += plan.read_text(encoding="utf-8").lower()
+
         for layer in ["Contracts", "Client", "Api"]:
             layer_dir = module_dir / layer
             if not layer_dir.exists():
@@ -129,7 +130,7 @@ def check_code_to_doc_coverage(root: Path) -> list[str]:
                         continue
                     if len(type_name) < 3:
                         continue
-                    if type_name.lower() not in all_plan_text:
+                    if module_plan_text and type_name.lower() not in module_plan_text:
                         rel = cs_file.relative_to(root)
                         warnings.append(
                             f"[warning] {rel}: public type "
