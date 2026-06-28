@@ -12,4 +12,13 @@ public static class UsersApiRoutes
     public const string CreateWithEmail = "/create/email";
     public const string SetEmail = "/{userId}/email";
     public const string AddRole = "/{userId}/roles";
+    public const string Profile = "/{userId}/profile";
+    public const string Culture = "/{userId}/culture";
+    public const string Theme = "/{userId}/theme";
+    public const string WebAuthnCredentials = "/{userId}/webauthn";
+    public const string WebAuthnBeginRegister = "/{userId}/webauthn/begin-register";
+    public const string WebAuthnCompleteRegister = "/{userId}/webauthn/complete-register";
+    public const string WebAuthnDelete = "/{userId}/webauthn/{credentialId}";
+    public const string PatBase = "/{userId}/tokens";
+    public const string PatRevoke = "/{userId}/tokens/{token}";
 }

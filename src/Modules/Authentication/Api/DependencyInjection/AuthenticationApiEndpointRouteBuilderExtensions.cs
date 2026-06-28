@@ -13,6 +13,9 @@ public static class AuthenticationApiEndpointRouteBuilderExtensions
         RouteGroupBuilder protectedGroup = endpoints.MapProtectedModuleGroup(AuthenticationRoutes.BasePath).WithTags(AuthenticationEndpointTags.Authentication);
         anonymous.MapAntiforgeryEndpoints(); anonymous.MapPasswordLoginEndpoints(); anonymous.MapPhoneLoginEndpoints(); anonymous.MapEmailLoginEndpoints(); anonymous.MapPasskeyLoginEndpoints();
         protectedGroup.MapCurrentSessionEndpoints(); protectedGroup.MapLogoutEndpoints();
+        protectedGroup.MapAccountPhoneChangeEndpoints();
+        protectedGroup.MapAccountEmailChangeEndpoints();
+        protectedGroup.MapAccountPasswordChangeEndpoints();
         return endpoints;
     }
 }

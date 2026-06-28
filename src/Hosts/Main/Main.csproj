@@ -28,8 +28,6 @@
 		<ProjectReference Include="..\..\Apps\Aggregator\Client\Apps.Aggregator.Client.csproj" />
 		<ProjectReference Include="..\..\Apps\Aggregator\Core\Apps.Aggregator.Core.csproj" />
 		<ProjectReference Include="..\..\Apps\Aggregator\Interface\Apps.Aggregator.Interface.csproj" />
-		<ProjectReference Include="..\..\Interfaces\Interfaces.Accounts\Interfaces.Accounts.csproj" />
-		<ProjectReference Include="..\..\Interfaces\Interfaces.Aggregator\Interfaces.Aggregator.csproj" />
 		<ProjectReference Include="..\..\Modules\Aggregator\Interface\Modules.Aggregator.Interface.csproj" />
 		<ProjectReference Include="..\..\Modules\Parties\Interface\Parties.Interface.csproj" />
 		<ProjectReference Include="..\..\Modules\Requests\Client\Requests.Client.csproj" />

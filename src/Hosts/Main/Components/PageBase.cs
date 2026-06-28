@@ -1,13 +1,12 @@
 using System.Globalization;
-using Vitarish.Interfaces.Accounts.Abstractions;
 using Vitarish.Modules.Base.Interface.Common;
 
 namespace Vitarish.Main.Components;
 
 public class PageBase : CommonBase
 {
-    [Inject] protected UserProfileCultureInfoProvider CultureProvider { get; set; } = default!;
-    [Inject] protected IUserService UserService { get; set; } = default!;
+    [Inject] protected IHttpClientFactory HttpClientFactory { get; set; } = default!;
+    [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -17,24 +16,20 @@ public class PageBase : CommonBase
             return;
         }
 
-        CultureInfo? cookieCulture = await CultureProvider.GetCultureFromCookieAsync();
-        if (cookieCulture is not null)
+        try
         {
-            if (await CultureProvider.TryApplyCultureAsync(cookieCulture.Name))
+            HttpClient client = HttpClientFactory.CreateClient();
+            string? culture = await client.GetStringAsync($"/api/modules/users/{RequestContext.UserId}/culture");
+            if (!string.IsNullOrWhiteSpace(culture))
             {
-                return;
+                CultureInfo cultureInfo = new(culture);
+                CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+                CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
             }
         }
-
-        string? existingCulture = await UserService.GetCultureAsync(RequestContext.UserId);
-        if (!string.IsNullOrWhiteSpace(existingCulture))
+        catch
         {
-            if (await CultureProvider.TryApplyCultureAsync(existingCulture))
-            {
-                NavigationManager.Refresh(forceReload: true);
-                return;
-            }
+            // Culture resolution is best-effort
         }
-
     }
 }

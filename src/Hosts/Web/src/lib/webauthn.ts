@@ -10,6 +10,52 @@ export interface PublicKeyCredentialRequestOptionsJSON {
   userVerification?: UserVerificationRequirement;
 }
 
+export async function startRegistration(
+  options: PublicKeyCredentialCreationOptionsJSON
+): Promise<PublicKeyCredentialCreationOptionsJSON> {
+  const challenge = base64UrlToBuffer(options.challenge);
+
+  const credentialOptions = {
+    ...options,
+    challenge,
+    user: {
+      ...options.user,
+      id: base64UrlToBuffer(options.user.id as string),
+    },
+    excludeCredentials: options.excludeCredentials?.map((cred) => ({
+      id: base64UrlToBuffer(cred.id as string),
+      type: "public-key" as PublicKeyCredentialType,
+      transports: cred.transports as AuthenticatorTransport[] | undefined,
+    })),
+  } as PublicKeyCredentialCreationOptions;
+
+  if (!navigator.credentials) {
+    throw new Error(
+      "Passkey registration is not supported in this browser or context (requires HTTPS)"
+    );
+  }
+
+  const credential = (await navigator.credentials.create({
+    publicKey: credentialOptions,
+  })) as PublicKeyCredential | null;
+
+  if (!credential) {
+    throw new Error("Passkey registration was cancelled");
+  }
+
+  const response = credential.response as AuthenticatorAttestationResponse;
+
+  return {
+    id: credential.id,
+    rawId: bufferToBase64Url(credential.rawId),
+    type: credential.type,
+    response: {
+      attestationObject: bufferToBase64Url(response.attestationObject),
+      clientDataJSON: bufferToBase64Url(response.clientDataJSON),
+    },
+  } as unknown as PublicKeyCredentialCreationOptionsJSON;
+}
+
 export async function startPasskeyAuthentication(
   optionsJson: string
 ): Promise<string> {
