@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 
@@ -12,6 +13,20 @@ public sealed class AspNetIdentityAuthenticationUserDirectory(UserManager<User> 
     {
         if (string.IsNullOrWhiteSpace(login)) return null;
         User? user = await userManager.FindByNameAsync(login) ?? await userManager.FindByEmailAsync(login);
+        return user is null ? null : ToDescriptor(user);
+    }
+
+    public async Task<AuthenticationUserDescriptor?> FindByEmailAsync(string email, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return null;
+        User? user = await userManager.FindByEmailAsync(email);
+        return user is null ? null : ToDescriptor(user);
+    }
+
+    public async Task<AuthenticationUserDescriptor?> FindByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber)) return null;
+        User? user = await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber, cancellationToken);
         return user is null ? null : ToDescriptor(user);
     }
 
@@ -27,6 +42,6 @@ public sealed class AspNetIdentityAuthenticationUserDirectory(UserManager<User> 
     {
         string? displayName = string.IsNullOrWhiteSpace(user.FullName) ? user.UserName : user.FullName;
         bool requiresProfileCompletion = string.IsNullOrWhiteSpace(user.FirstName) || string.IsNullOrWhiteSpace(user.LastName);
-        return new AuthenticationUserDescriptor(user.Id, displayName, user.Email, user.PhoneNumber, requiresProfileCompletion);
+        return new AuthenticationUserDescriptor(user.Id, user.UserName, displayName, user.Email, user.PhoneNumber, requiresProfileCompletion);
     }
 }

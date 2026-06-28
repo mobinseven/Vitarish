@@ -6,13 +6,30 @@ namespace Vitarish.Authentication.Infrastructure;
 
 public sealed class AspNetIdentitySignInService(UserManager<User> userManager, SignInManager<User> signInManager) : IAuthenticationSignInService
 {
-    public async Task<bool> PasswordSignInAsync(string login, string password, bool rememberMe, CancellationToken cancellationToken)
+    public async Task<PasswordSignInResult> PasswordSignInAsync(string login, string password, bool rememberMe, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password)) return false;
+        if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
+            return new PasswordSignInResult(PasswordSignInStatus.InvalidCredentials, null, false);
+
         User? user = await userManager.FindByNameAsync(login) ?? await userManager.FindByEmailAsync(login);
-        if (user is null) return false;
+        if (user is null)
+            return new PasswordSignInResult(PasswordSignInStatus.UserNotFound, null, false);
+
         SignInResult result = await signInManager.PasswordSignInAsync(user, password, rememberMe, lockoutOnFailure: true);
-        return result.Succeeded;
+
+        PasswordSignInStatus status = result.Succeeded
+            ? PasswordSignInStatus.Succeeded
+            : result.IsLockedOut
+                ? PasswordSignInStatus.LockedOut
+                : result.IsNotAllowed
+                    ? PasswordSignInStatus.NotAllowed
+                    : result.RequiresTwoFactor
+                        ? PasswordSignInStatus.RequiresTwoFactor
+                        : PasswordSignInStatus.InvalidCredentials;
+
+        bool requiresProfileCompletion = string.IsNullOrWhiteSpace(user.FirstName) || string.IsNullOrWhiteSpace(user.LastName);
+
+        return new PasswordSignInResult(status, user.Id, requiresProfileCompletion);
     }
 
     public async Task SignInAsync(string userId, bool rememberMe, CancellationToken cancellationToken)

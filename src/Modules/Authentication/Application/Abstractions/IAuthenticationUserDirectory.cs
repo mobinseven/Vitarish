@@ -1,4 +1,11 @@
 namespace Vitarish.Authentication.Application.Abstractions;
 
-public interface IAuthenticationUserDirectory { Task<AuthenticationUserDescriptor?> FindByLoginAsync(string login, CancellationToken cancellationToken); Task<AuthenticationUserDescriptor?> GetCurrentAsync(CancellationToken cancellationToken); }
-public sealed record AuthenticationUserDescriptor(string UserId, string? DisplayName, string? Email, string? PhoneNumber, bool RequiresProfileCompletion);
+public interface IAuthenticationUserDirectory
+{
+    Task<AuthenticationUserDescriptor?> FindByLoginAsync(string login, CancellationToken cancellationToken);
+    Task<AuthenticationUserDescriptor?> FindByEmailAsync(string email, CancellationToken cancellationToken);
+    Task<AuthenticationUserDescriptor?> FindByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken);
+    Task<AuthenticationUserDescriptor?> GetCurrentAsync(CancellationToken cancellationToken);
+}
+
+public sealed record AuthenticationUserDescriptor(string UserId, string? UserName, string? DisplayName, string? Email, string? PhoneNumber, bool RequiresProfileCompletion);

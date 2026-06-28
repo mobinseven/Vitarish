@@ -12,6 +12,8 @@ using Vitarish.Users.Infrastructure.Abstractions;
 using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Service;
+using Vitarish.Users.Infrastructure.Authentication;
+using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Users.Module.DependencyInjection;
@@ -46,6 +48,7 @@ public static class IdentityUsersExtensions
         _ = builder.Services.AddTransient<ITemporaryAutoAuthLinkCleanup, TemporaryAutoAuthLinkCleanup>();
         _ = builder.Services.AddTransient<IUsersService, UsersService>();
         _ = builder.Services.AddTransient<IWebAuthnService, WebAuthnService>();
+        _ = builder.Services.AddScoped<IWebAuthnCredentialLookup, WebAuthnCredentialLookup>();
     }
 
     /// <summary>
