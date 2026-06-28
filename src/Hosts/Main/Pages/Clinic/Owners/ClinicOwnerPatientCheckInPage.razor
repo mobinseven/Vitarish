@@ -8,8 +8,8 @@
     case CheckInStep.Identify:
         <PatientFindOrCreate SearchContext="patientSearchContext"
                              CreateContext="patientCreateContext"
-                             OnPatientSelected="OnPatientSelected"
-                             OnPatientCreated="OnPatientCreated" />
+                             OnPatientSelected="@((ProjectReadDto p) => OnPatientSelected(p))"
+                             OnPatientCreated="@((ProjectReadDto p) => OnPatientCreated(p))" />
         break;
 
     case CheckInStep.Book:

@@ -8,6 +8,8 @@ public class SeaCommonBase : TenantCommonBase, IDisposable
 
     protected SeaError? LastSeaError { get; private set; }
 
+    protected Guid? UserId => Guid.TryParse(RequestContext.UserId, out Guid id) ? id : null;
+
     protected static T? ValueOrDefault<T>(SeaResult<T> result) => result.Succeeded ? result.Value : default;
 
     protected async Task<T?> ValueOrNotifyAsync<T>(Task<SeaResult<T>> resultTask)

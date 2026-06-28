@@ -6,6 +6,7 @@ public partial class Passkeys
 {
     [Inject] private IWebAuthnService WebAuthnService { get; set; } = default!;
     [Inject] private ILogger<Passkeys> Logger { get; set; } = default!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
     private List<WebAuthnCredentialDto> Credentials { get; set; } = [];
     private bool IsLoading { get; set; } = true;
@@ -70,6 +71,28 @@ public partial class Passkeys
             {
                 _ = Snackbar.Add(Localizer["Error"], Severity.Error);
             }
+        }
+        catch (Exception)
+        {
+            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
+        }
+    }
+
+    private async Task RegisterPasskeyAsync()
+    {
+        try
+        {
+            if (User?.Id == null)
+            {
+                _ = Snackbar.Add(Localizer["Error"], Severity.Error);
+                return;
+            }
+
+            string optionsJson = await WebAuthnService.BeginRegistrationAsync(User.Id);
+            string attestationJson = await JSRuntime.InvokeAsync<string>("webauthn.register", optionsJson);
+            await WebAuthnService.CompleteRegistrationAsync(User.Id, attestationJson);
+            _ = Snackbar.Add(Localizer["PasskeyRegistered"], Severity.Success);
+            await LoadCredentialsAsync();
         }
         catch (Exception)
         {

@@ -1,5 +1,5 @@
 using Vitarish.Appointments.Application.Abstractions;
-using Vitarish.Appointments.Domain.Dto;
+using Vitarish.Appointments.Contracts.Dto;
 
 namespace Vitarish.Main.Pages.Clinic;
 

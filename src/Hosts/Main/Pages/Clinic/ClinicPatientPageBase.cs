@@ -1,5 +1,5 @@
 using Vitarish.Sea.Application.Abstractions;
-using Vitarish.Sea.Domain.Dto;
+using Vitarish.Sea.Contracts.Responses;
 
 namespace Vitarish.Main.Pages.Clinic;
 

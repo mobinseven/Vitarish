@@ -19,6 +19,8 @@ public class TenantPageBase : PageBase, IDisposable
 
     protected Guid? UserId => Guid.Parse(RequestContext.UserId ?? Guid.Empty.ToString());
 
+    private Metadata? _metadata;
+
     protected sealed override async Task OnInitializedAsync()
     {
 
@@ -37,7 +39,7 @@ public class TenantPageBase : PageBase, IDisposable
             return;
         }
 
-        IsUser = RequestContext.IsTenantUser();
+        IsUser = RequestContext.User?.IsInRole($"{RequestContext.TenantId}:{IdentityDefinitions.TenantUser}") ?? false;
 
         if (!IsUser)
         {
@@ -45,13 +47,14 @@ public class TenantPageBase : PageBase, IDisposable
             return;
         }
 
-        TenantService.Metadata = new Metadata(Tenant.Metadata);
-        TenantService.Metadata.OnUpdate += OnUpdatedMetadata;
-        TenantService.Users = [.. (await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None)).Select(u => new UserDto(u))];
+        _metadata = new Metadata(Tenant.Metadata);
+        _metadata.OnUpdate += OnUpdatedMetadata;
+        TenantService.Metadata = _metadata;
+        TenantService.Users = [.. (await UsersService.GetUsersInRoleAsync($"{RequestContext.TenantId}:{IdentityDefinitions.TenantUser}", CancellationToken.None)).Select(u => new UserDto(u))];
 
         NavService.OverridePageTitle(Tenant.AppId, Tenant.Name);
 
-        IsOwner = RequestContext.IsTenantOwner();
+        IsOwner = RequestContext.User?.IsInRole($"{RequestContext.TenantId}:{IdentityDefinitions.TenantOwner}") ?? false;
 
         await base.OnInitializedAsync();
 
@@ -61,7 +64,7 @@ public class TenantPageBase : PageBase, IDisposable
 
     private async void OnUpdatedMetadata(string key, object? value)
     {
-        Dictionary<string, object?> metadata = TenantService.Metadata?.ToDictionary() ?? [];
+        Dictionary<string, object?> metadata = _metadata?.ToDictionary() ?? [];
         TenantWriteDto dto = new()
         {
             Id = Tenant!.Id,
@@ -81,7 +84,7 @@ public class TenantPageBase : PageBase, IDisposable
 
     public void Dispose()
     {
-        TenantService.Metadata?.OnUpdate -= OnUpdatedMetadata;
+        _metadata?.OnUpdate -= OnUpdatedMetadata;
         GC.SuppressFinalize(this);
     }
 }

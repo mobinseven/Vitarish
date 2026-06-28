@@ -11,7 +11,7 @@
     <StackButton Href="@AppRoutes.Appointments.UserReservations" Label="@Localizer["MyAppointments"]" EndIcon="fa-solid fa-calendar-days" Color="Color.Info" />
 </Stack>
 
-@if(IsOwner)
+@if(TenantService.IsTenantOwner)
 {
     <Stack>
         <StackField Label="@Localizer["Administration"]" />

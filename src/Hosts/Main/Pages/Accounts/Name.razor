@@ -15,5 +15,5 @@
                   Label="@Localizer["LastName"]"
                   Immediate="true"
                   Required="true" />
-    <StackButton Label="@Localizer["Save"]" OnClick="@(() => UserService.UpdateUserAsync(User.Id, User))" Color="Color.Primary" EndIcon="fa-solid fa-save" />
+    <StackButton Label="@Localizer["Save"]" OnClick="@SaveNameAsync" Color="Color.Primary" EndIcon="fa-solid fa-save" />
 </Stack>
