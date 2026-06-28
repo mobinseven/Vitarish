@@ -4,6 +4,7 @@ using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Contracts.Requests;
+using Vitarish.Authentication.Contracts.Responses;
 
 namespace Vitarish.Authentication.Api.Endpoints;
 
@@ -19,6 +20,11 @@ public static class PasskeyLoginEndpoints
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<ChallengeResult>.Failure)r).Error);
         })
         .WithName("Authentication_Login_Passkey_Begin")
+        .RequireRateLimiting(AuthenticationRateLimitPolicies.Passkey)
+        .Produces<AuthenticationChallengeDto>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .WithOpenApi(o =>
         {
             o.OperationId = "beginPasskeyLogin";
@@ -34,6 +40,12 @@ public static class PasskeyLoginEndpoints
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<LoginResult>.Failure)r).Error);
         })
         .WithName("Authentication_Login_Passkey_Complete")
+        .RequireRateLimiting(AuthenticationRateLimitPolicies.Passkey)
+        .Produces<AuthenticationRedirectResultDto>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status410Gone)
+        .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .WithOpenApi(o =>
         {
             o.OperationId = "completePasskeyLogin";
