@@ -1,9 +1,0 @@
-@attribute [Route(AppRoutes.Account.SettingsEmail)]
-@inherits IdentityCommonBase
-
-@if(User is null)
-{
-    return;
-}
-
-<EmailChangeForm />
