@@ -10,6 +10,7 @@ public static class ModulesExtensions
 {
     private static readonly string[] ModuleAssemblyNames =
     [
+        "Vitarish.Authentication.Module",
         "Vitarish.Requests.Module",
         "Vitarish.Users.Module",
         "Vitarish.Parties.Module",

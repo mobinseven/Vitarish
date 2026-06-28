@@ -63,7 +63,6 @@ _ = builder.Services.AddRazorPages(options =>
     options.RootDirectory = "/Pages";
 });
 
-builder.AddAccountsInterface();
 builder.AddApplicationOptions();
 
 
@@ -90,6 +89,7 @@ _ = builder.Services.AddControllers();
 _ = builder.Services.AddEndpointsApiExplorer();
 // OpenAPI document generation is host-owned and exposed only in Development.
 _ = builder.Services.AddOpenApi();
+_ = builder.Services.AddModuleOpenApiDocument("authentication", "Authentication");
 _ = builder.Services.AddModuleOpenApiDocument("files", "Files");
 _ = builder.Services.AddModuleOpenApiDocument("users", "Users");
 _ = builder.Services.AddModuleOpenApiDocument("medical", "Medical");
@@ -184,7 +184,6 @@ await app.InitializeApps();
 _ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 _ = app.MapRazorPages();
 
-app.MapAccountsInterface();
 
 app.MapHangfireDashboard();
 

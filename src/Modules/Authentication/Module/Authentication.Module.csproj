@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Api\Authentication.Api.csproj" />
+    <ProjectReference Include="..\Application\Authentication.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\Authentication.Infrastructure.csproj" />
+    <ProjectReference Include="..\Domain\Authentication.Domain.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+  </ItemGroup>
+</Project>

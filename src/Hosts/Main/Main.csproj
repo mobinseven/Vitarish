@@ -21,6 +21,7 @@
 		<ProjectReference Include="..\..\Apps\Base\Core\Apps.Base.Core.csproj" />
 		<ProjectReference Include="..\..\Apps\Base\Interface\Apps.Base.Interface.csproj" />
 		<ProjectReference Include="..\..\Libraries\Audit\Audit.Server\Audit.Server.csproj" />
+		<ProjectReference Include="..\..\Modules\Authentication\Module\Authentication.Module.csproj" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(EnableAppointmentsModule)' != 'true'">
