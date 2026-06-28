@@ -174,6 +174,10 @@ skills/
   platform-generated-react-client-steward/
   platform-feature-ui-integration-steward/
   platform-pr-delivery-loop/
+  platform-auto-plan-generator/
+  platform-auto-plan-executor/
+  platform-auto-loop-reviewer/
+  platform-loop-state-manager/
 ```
 
 If the runtime expects native Codex skill discovery, mirror or symlink these folders under:
@@ -197,6 +201,10 @@ If the runtime expects native Codex skill discovery, mirror or symlink these fol
 | OpenAPI module/app contract, operation IDs, schemas, auth, ProblemDetails, linting      | Platform OpenAPI Contract Steward | `skills/platform-openapi-contract-steward/SKILL.md` |
 | Orval generation, generated DTOs/hooks/query keys, custom apiFetch, MSW mocks           | Platform Generated React Client Steward | `skills/platform-generated-react-client-steward/SKILL.md` |
 | HeroUI/React feature hooks, forms, tables, dialogs, mutation invalidation, UI adapters  | Platform Feature UI Integration Steward | `skills/platform-feature-ui-integration-steward/SKILL.md` |
+| Generate plan from GitHub issue | Platform Auto Plan Generator | `skills/platform-auto-plan-generator/SKILL.md` |
+| Execute implementation plan | Platform Auto Plan Executor | `skills/platform-auto-plan-executor/SKILL.md` |
+| Review implementation against rules | Platform Auto Loop Reviewer | `skills/platform-auto-loop-reviewer/SKILL.md` |
+| Manage implementation loop state | Platform Loop State Manager | `skills/platform-loop-state-manager/SKILL.md` |
 
 ### OpenAPI → React Client Contract
 
@@ -282,6 +290,27 @@ For a test review task:
 ```txt
 Test Curator → Artifact Placement if new test files are needed
 ```
+
+### Automated Implementation Loop
+
+Use when: GitHub issue labeled "auto-implementation"
+
+| Situation | Use this skill | Read |
+|-----------|----------------|------|
+| Generate plan from issue | Platform Auto Plan Generator | `skills/platform-auto-plan-generator/SKILL.md` |
+| Execute plan file | Platform Auto Plan Executor | `skills/platform-auto-plan-executor/SKILL.md` |
+| Review implementation | Platform Auto Loop Reviewer | `skills/platform-auto-loop-reviewer/SKILL.md` |
+| Manage loop state | Platform Loop State Manager | `skills/platform-loop-state-manager/SKILL.md` |
+
+### Loop Control
+
+```txt
+Issue → Plan → Implement → Review → (Re-plan if needed) → Complete
+```
+
+- Max iterations: 5 (configurable)
+- Termination: plan file deleted or status = completed
+- Failure: escalate to human after max retries
 
 ### Mandatory Checks Before Implementation
 

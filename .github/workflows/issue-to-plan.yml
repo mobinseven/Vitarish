@@ -1,0 +1,152 @@
+name: Convert Issue to Plan
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  generate-plan:
+    name: Generate implementation plan
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'auto-implementation'
+
+    env:
+      MIMO_MODEL: mimo-auto
+      MAX_PLAN_CHARS: 50000
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate issue template
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+            const body = issue.body || '';
+
+            // Check required sections
+            const required = ['## Objective', '## Scope', '## Constraints'];
+            const missing = required.filter(s => !body.includes(s));
+
+            if (missing.length > 0) {
+              core.setFailed(`Missing required sections: ${missing.join(', ')}`);
+              return;
+            }
+
+            // Check labels
+            const labels = issue.labels.map(l => l.name);
+            if (!labels.includes('auto-implementation')) {
+              core.setFailed('Missing required label: auto-implementation');
+              return;
+            }
+
+      - name: Initialize loop state
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const issue = context.payload.issue;
+
+            const loopState = {
+              issue_number: issue.number,
+              issue_url: issue.html_url,
+              iteration: 0,
+              max_iterations: 5,
+              status: 'planning',
+              history: [],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+
+            fs.mkdirSync('.mimocode/plans', { recursive: true });
+            fs.writeFileSync('.mimocode/loop-state.json', JSON.stringify(loopState, null, 2));
+
+      - name: Generate plan file
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const issue = context.payload.issue;
+            const body = issue.body || '';
+
+            // Parse issue sections
+            const objective = extractSection(body, '## Objective');
+            const scope = extractSection(body, '## Scope');
+            const constraints = extractSection(body, '## Constraints');
+            const skills = extractSection(body, '## Required Skills') || 'auto-detect';
+
+            // Generate plan filename
+            const timestamp = Date.now();
+            const adjectives = ['swift', 'bright', 'clear', 'deep', 'eager'];
+            const nouns = ['river', 'stone', 'wind', 'flame', 'wave'];
+            const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const noun = nouns[Math.floor(Math.random() * nouns.length)];
+            const filename = `${timestamp}-${adj}-${noun}.md`;
+
+            // Generate plan content
+            const plan = generatePlanContent({
+              issue_number: issue.number,
+              issue_url: issue.html_url,
+              objective,
+              scope,
+              constraints,
+              skills
+            });
+
+            fs.writeFileSync(`.mimocode/plans/${filename}`, plan);
+
+            // Update loop state
+            const loopState = JSON.parse(fs.readFileSync('.mimocode/loop-state.json'));
+            loopState.status = 'plan_generated';
+            loopState.plan_file = filename;
+            loopState.iteration = 1;
+            loopState.updated_at = new Date().toISOString();
+            fs.writeFileSync('.mimocode/loop-state.json', JSON.stringify(loopState, null, 2));
+
+            // Return for next step
+            core.setOutput('plan_file', filename);
+            core.setOutput('issue_number', issue.number);
+
+      - name: Commit plan file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .mimocode/
+          git commit -m "chore: generate plan from issue #${{ github.event.issue.number }}"
+          git push
+
+      - name: Update issue status
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: `## Plan Generated
+
+Plan file: \`.mimocode/plans/${{ steps.generate-plan.outputs.plan_file }}\`
+Iteration: 1/${{ env.MAX_ITERATIONS }}
+
+The plan has been committed. Implementation will start automatically.
+
+@github-actions[bot] will create a PR with the implementation.`
+            });
+
+            // Add status label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              labels: ['status: plan-generated']
+            });

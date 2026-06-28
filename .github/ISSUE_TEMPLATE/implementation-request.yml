@@ -1,0 +1,45 @@
+name: Implementation Request
+description: Request automated implementation of a feature
+labels: ["auto-implementation"]
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What should be implemented?
+      placeholder: Describe the feature or change to implement
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What is in scope and out of scope?
+      placeholder: |
+        ## In Scope
+        - Item 1
+        
+        ## Out of Scope
+        - Item 1
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: Any constraints or requirements?
+      placeholder: |
+        - Must follow AGENTS.md rules
+        - Must integrate with existing module
+    validations:
+      required: true
+  - type: textarea
+    id: skills
+    attributes:
+      label: Required Skills
+      description: Which skills should be used?
+      placeholder: |
+        - platform-adr-steward
+        - platform-artifact-placement-steward
+    validations:
+      required: false
