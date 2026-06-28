@@ -219,6 +219,37 @@ def is_project_allowlisted(config: dict, relative_project_path: str) -> bool:
     )
 
 
+def is_cross_module_client_allowed(
+    config: dict,
+    source_module: str | None,
+    target_project: str,
+) -> bool:
+    if not source_module:
+        return False
+
+    for entry in config.get("crossModuleClientAllowlist", []):
+        if entry.get("sourceModule") == source_module:
+            target_projects = entry.get("targetProjects", [])
+            if any(target_project.endswith(tp) for tp in target_projects):
+                return True
+    return False
+
+
+def is_interface_backend_allowed(
+    config: dict,
+    source_module: str | None,
+    target_project: str,
+    scope_name: str | None = None,
+) -> bool:
+    for entry in config.get("interfaceBackendAllowlist", []):
+        entry_source = entry.get("sourceModule")
+        if entry_source == source_module or entry_source == scope_name:
+            target_projects = entry.get("targetProjects", [])
+            if any(target_project.endswith(tp) for tp in target_projects):
+                return True
+    return False
+
+
 def is_cross_module_frontend_safe_allowed(
     config: dict,
     source_module: str | None,
@@ -269,6 +300,8 @@ def classify_project_reference(
 
         if scope.layer in {"Interface", "GlobalInterface"}:
             if target_layer in BACKEND_LAYERS:
+                if is_interface_backend_allowed(config, scope.module, relative_target, scope.name):
+                    return None
                 return (
                     f"{target_module}.{target_layer}",
                     "Frontend Interface projects must not reference backend projects.",
@@ -290,6 +323,8 @@ def classify_project_reference(
                     )
 
         if scope.layer == "Client" and target_layer != "Contracts":
+            if is_cross_module_client_allowed(config, scope.module, relative_target):
+                return None
             return (
                 f"{target_module}.{target_layer}",
                 "Client projects may reference only Contracts plus approved frontend-safe base libraries.",
@@ -412,6 +447,7 @@ def scan_source_namespaces(
     root: Path,
     scope: ProjectScope,
     patterns: list[tuple[re.Pattern[str], str, str]],
+    config: dict,
 ) -> list[Violation]:
     if scope.layer not in FRONTEND_SCOPES:
         return []
@@ -428,6 +464,12 @@ def scan_source_namespaces(
                 key = (line, forbidden)
                 if key in seen:
                     continue
+
+                if scope.layer in {"Interface", "GlobalInterface"} and forbidden.endswith((".Domain", ".Application", ".Infrastructure", ".Api")):
+                    module_name = forbidden.rsplit(".", 1)[0]
+                    layer_name = forbidden.split(".")[-1]
+                    if is_interface_backend_allowed(config, scope.module, f"src/Modules/{module_name}/{layer_name}/{module_name}.{layer_name}.csproj", scope.name):
+                        continue
 
                 seen.add(key)
                 violations.append(
@@ -452,7 +494,7 @@ def collect_violations(root: Path, config: dict) -> tuple[list[ProjectScope], li
     violations = ensure_coverage(root, config, scopes)
     for scope in scopes:
         violations.extend(scan_project_references(root, scope, config))
-        violations.extend(scan_source_namespaces(root, scope, patterns))
+        violations.extend(scan_source_namespaces(root, scope, patterns, config))
 
     return scopes, violations
 
