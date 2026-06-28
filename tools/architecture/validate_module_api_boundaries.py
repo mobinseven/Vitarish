@@ -59,7 +59,7 @@ def scan_endpoint(p:Path):
         vs.append(V(p,line(text,m.start()),module_for(p),'DirectMapGroup','MapGroup','Internal module endpoints must use MapProtectedModuleGroup or justified MapAnonymousModuleGroup.'))
     for m in re.finditer(r'\b(\w+)\.(MapGet|MapPost|MapPut|MapDelete|MapPatch)\s*\(', text):
         recv,method=m.group(1),m.group(2)
-        endpoint_fragment = '/Api/Endpoints/' in p.as_posix() and recv == 'endpoints'
+        endpoint_fragment = '/api/endpoints/' in p.as_posix().lower() and recv == 'endpoints'
         if recv not in protected and recv not in anonymous and not endpoint_fragment:
             vs.append(V(p,line(text,m.start()),module_for(p),'DirectEndpointMapping',method,'Endpoint mappings must be on an approved protected or justified anonymous route group.'))
     for m in re.finditer(r'\.AllowAnonymous\s*\(', text):
