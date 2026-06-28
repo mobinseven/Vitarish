@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Card, CardBody, CardHeader, Link } from "@heroui/react";
 import { LoginForm } from "@/components/auth/LoginForm";
 
@@ -12,7 +13,9 @@ export default function PasswordLoginPage() {
           </p>
         </CardHeader>
         <CardBody className="flex flex-col gap-4">
-          <LoginForm />
+          <Suspense fallback={<div className="h-[128px] w-full animate-pulse rounded-xl bg-default-100" />}>
+            <LoginForm />
+          </Suspense>
           <div className="flex flex-col items-center gap-2 text-sm">
             <Link href="/login" className="text-sm">
               Other sign-in methods
