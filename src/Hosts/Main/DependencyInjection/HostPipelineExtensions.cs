@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using Vitarish.Authentication.Api.Endpoints;
 using Vitarish.Main.Infrastructure.Pipeline;
 using Vitarish.Users.Infrastructure.Service;
 
@@ -24,6 +25,43 @@ public static class HostPipelineExtensions
         // Rate limiting for endpoints
         _ = builder.Services.AddRateLimiter(options =>
         {
+
+            _ = options.AddSlidingWindowLimiter(AuthenticationRateLimitPolicies.PasswordLogin, opt =>
+            {
+                opt.Window = TimeSpan.FromMinutes(1);
+                opt.PermitLimit = 10;
+                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                opt.QueueLimit = 0;
+                opt.SegmentsPerWindow = 6;
+            });
+
+            _ = options.AddSlidingWindowLimiter(AuthenticationRateLimitPolicies.OtpBegin, opt =>
+            {
+                opt.Window = TimeSpan.FromMinutes(1);
+                opt.PermitLimit = 5;
+                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                opt.QueueLimit = 0;
+                opt.SegmentsPerWindow = 6;
+            });
+
+            _ = options.AddSlidingWindowLimiter(AuthenticationRateLimitPolicies.OtpComplete, opt =>
+            {
+                opt.Window = TimeSpan.FromMinutes(1);
+                opt.PermitLimit = 10;
+                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                opt.QueueLimit = 0;
+                opt.SegmentsPerWindow = 6;
+            });
+
+            _ = options.AddSlidingWindowLimiter(AuthenticationRateLimitPolicies.Passkey, opt =>
+            {
+                opt.Window = TimeSpan.FromMinutes(1);
+                opt.PermitLimit = 10;
+                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                opt.QueueLimit = 0;
+                opt.SegmentsPerWindow = 6;
+            });
+
             // On-demand TLS /allow endpoint
             _ = options.AddSlidingWindowLimiter("allow-endpoint", opt =>
             {

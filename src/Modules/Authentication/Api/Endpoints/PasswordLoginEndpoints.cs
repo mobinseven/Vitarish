@@ -4,6 +4,7 @@ using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Contracts.Requests;
+using Vitarish.Authentication.Contracts.Responses;
 
 namespace Vitarish.Authentication.Api.Endpoints;
 
@@ -19,6 +20,13 @@ public static class PasswordLoginEndpoints
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<LoginResult>.Failure)r).Error);
         })
         .WithName("Authentication_Login_Password")
+        .RequireRateLimiting(AuthenticationRateLimitPolicies.PasswordLogin)
+        .Produces<AuthenticationRedirectResultDto>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status423Locked)
+        .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .WithOpenApi(o =>
         {
             o.OperationId = "loginWithPassword";

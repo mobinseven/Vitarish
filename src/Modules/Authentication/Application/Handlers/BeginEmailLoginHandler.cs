@@ -34,6 +34,8 @@ public sealed class BeginEmailLoginHandler(
         }
         catch
         {
+            challenge.Cancel();
+            await store.ReplaceAsync(challenge, cancellationToken);
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, "Failed to send verification code."));
         }
 

@@ -81,7 +81,7 @@ public sealed class AuthenticationChallenge
         if (Purpose != expectedPurpose) return AuthenticationFailureReason.InvalidInput;
         if (Status == AuthenticationChallengeStatus.Completed) return AuthenticationFailureReason.ChallengeAlreadyUsed;
         if (Status == AuthenticationChallengeStatus.Expired || now >= ExpiresAt) return AuthenticationFailureReason.ChallengeExpired;
-        if (Status == AuthenticationChallengeStatus.Exhausted) return AuthenticationFailureReason.TooManyAttempts;
+        if (Status == AuthenticationChallengeStatus.Exhausted) return AuthenticationFailureReason.ChallengeAttemptsExhausted;
         if (Status != AuthenticationChallengeStatus.Pending) return AuthenticationFailureReason.InvalidInput;
         return null;
     }
@@ -108,6 +108,14 @@ public sealed class AuthenticationChallenge
         if (RemainingAttempts == 0)
         {
             Status = AuthenticationChallengeStatus.Exhausted;
+        }
+    }
+
+    public void Cancel()
+    {
+        if (Status == AuthenticationChallengeStatus.Pending)
+        {
+            Status = AuthenticationChallengeStatus.Cancelled;
         }
     }
 

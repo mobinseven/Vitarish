@@ -20,6 +20,8 @@ public static class CurrentSessionEndpoints
         })
         .RequireAuthorization()
         .WithName("Authentication_Session_Get")
+        .Produces<AuthenticationSessionDto>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
         .WithOpenApi(o =>
         {
             o.OperationId = "getAuthenticationSession";
@@ -36,6 +38,9 @@ public static class CurrentSessionEndpoints
         })
         .RequireAuthorization()
         .WithName("Authentication_Me_Get")
+        .Produces<CurrentAuthenticationUserDto>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status404NotFound)
         .WithOpenApi(o =>
         {
             o.OperationId = "getCurrentAuthenticationUser";

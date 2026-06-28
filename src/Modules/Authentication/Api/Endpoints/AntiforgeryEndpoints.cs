@@ -14,6 +14,7 @@ public static class AntiforgeryEndpoints
             return Results.Ok(new AntiforgeryTokenDto(tokens.RequestToken, "X-XSRF-TOKEN"));
         })
         .WithName("Authentication_Antiforgery_Get")
+        .Produces<AntiforgeryTokenDto>(StatusCodes.Status200OK)
         .WithOpenApi(o =>
         {
             o.OperationId = "getAuthenticationAntiforgery";

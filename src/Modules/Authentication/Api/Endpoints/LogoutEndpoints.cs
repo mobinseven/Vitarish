@@ -23,6 +23,9 @@ public static class LogoutEndpoints
         })
         .RequireAuthorization()
         .WithName("Authentication_Logout_Context")
+        .Produces<LogoutContextDto>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
         .WithOpenApi(o =>
         {
             o.OperationId = "getAuthenticationLogoutContext";
@@ -39,6 +42,9 @@ public static class LogoutEndpoints
         })
         .RequireAuthorization()
         .WithName("Authentication_Logout_Post")
+        .Produces<LogoutResultDto>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
         .WithOpenApi(o =>
         {
             o.OperationId = "logoutAuthenticationSession";

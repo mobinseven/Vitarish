@@ -33,7 +33,8 @@ internal static class ChallengeCompletionHelper
         if (validationError is not null)
             return new AuthenticationResult<LoginResult>.Failure(new(validationError.Value, GetErrorMessage(validationError.Value)));
 
-        bool verified = await verifier.VerifyAsync(challenge.UserId, challenge.TokenPurpose, code, cancellationToken);
+        string normalizedCode = NormalizeVerificationCode(code);
+        bool verified = await verifier.VerifyAsync(challenge.UserId, challenge.TokenPurpose, normalizedCode, cancellationToken);
 
         if (!verified)
         {
@@ -52,6 +53,22 @@ internal static class ChallengeCompletionHelper
         await signInService.SignInAsync(challenge.UserId, false, cancellationToken);
 
         return new AuthenticationResult<LoginResult>.Success(new(challenge.UserId, redirects.Resolve(returnUrl, false), false));
+    }
+
+    private static string NormalizeVerificationCode(string code)
+    {
+        Span<char> normalized = stackalloc char[code.Length];
+        for (int index = 0; index < code.Length; index++)
+        {
+            normalized[index] = code[index] switch
+            {
+                >= '۰' and <= '۹' => (char)('0' + code[index] - '۰'),
+                >= '٠' and <= '٩' => (char)('0' + code[index] - '٠'),
+                _ => code[index]
+            };
+        }
+
+        return new string(normalized);
     }
 
     private static string GetErrorMessage(AuthenticationFailureReason reason) => reason switch
