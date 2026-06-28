@@ -72,6 +72,7 @@ builder.AddHostAuthentication();
 builder.AddHostAuthorization();
 builder.AddHostHangfire(builder.Configuration.GetConnectionString("Db")!);
 builder.AddHostPipeline();
+builder.AddHostCors();
 
 await builder.AddHostDataProtection();
 
@@ -157,6 +158,8 @@ _ = app.UseHttpsRedirection();
 _ = app.MapStaticAssets();
 
 _ = app.UseRouting();
+
+_ = app.UseCors("WebHostCors");
 
 _ = app.UseRateLimiter();
 

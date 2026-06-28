@@ -35,6 +35,11 @@ public static class ApplicationOptionsExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        _ = services.AddOptions<CorsOptions>()
+            .BindConfiguration(CorsOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         return services;
     }
 }
