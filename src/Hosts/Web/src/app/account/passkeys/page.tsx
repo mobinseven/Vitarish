@@ -42,7 +42,7 @@ export default function PasskeysPage() {
       await completeRegister.mutateAsync(JSON.stringify(credential));
       setSuccess("Passkey registered successfully");
     } catch (err: unknown) {
-      if (err instanceof DOMException && err.name === "NotAllowedError") {
+      if (err instanceof Error && err.name === "NotAllowedError") {
         setError("Registration cancelled");
       } else {
         setError(err instanceof Error ? err.message : "Failed to register passkey");
