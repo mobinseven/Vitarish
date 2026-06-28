@@ -17,6 +17,7 @@ public sealed class AspNetIdentitySignInService(UserManager<User> userManager, S
 
     public async Task SignInAsync(string userId, bool rememberMe, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("User ID cannot be null or empty.", nameof(userId));
         User? user = await userManager.FindByIdAsync(userId);
         if (user is null) throw new InvalidOperationException("Cannot sign in an unknown user.");
         await signInManager.SignInAsync(user, rememberMe);
