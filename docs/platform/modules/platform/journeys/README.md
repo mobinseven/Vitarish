@@ -1,12 +1,12 @@
-# Platform Module — Owner Journey Maps
+# Platform Module — Journey Maps
 
 Date migrated: 2026-06-22
 
 ## Overview
 
-This folder contains owner-focused journey maps for the Platform module, covering tenant management, user administration, billing, audit operations, and admin dashboard workflows.
+This folder contains journey maps for the Platform module, covering tenant management, user administration, billing, audit operations, admin dashboard workflows, and platform administration.
 
-## Journey Map Files
+## Owner Journey Map Files
 
 - [Action Inbox](./owner-action-inbox-journey.md)
 - [Audit Log](./owner-audit-log-journey.md)
@@ -21,6 +21,11 @@ This folder contains owner-focused journey maps for the Platform module, coverin
 - [Tenant Overview](./owner-tenant-overview-journey.md)
 - [Tenant Settings](./owner-tenant-settings-journey.md)
 - [Tenant Switcher](./owner-tenant-switcher-journey.md)
+
+## Platform Admin Journey Map Files
+
+- [Platform Admin — Users & Owners](./platform-admin-users-journey.md)
+- [Tenant Indicator Management](./tenant-indicator-management-journey.md)
 
 ## Scope
 
