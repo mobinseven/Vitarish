@@ -1,11 +1,12 @@
-using Vitarish.Appointments.Application.Abstractions;
-using Vitarish.Appointments.Domain.Dto;
+using Vitarish.Appointments.Client;
+using Vitarish.Appointments.Contracts.Dto;
+using Vitarish.Entities.Contracts.Models;
 
 namespace Vitarish.Main.Pages.Clinic;
 
 public class ClinicOwnerServiceProviderPageBase : TenantPageBase
 {
-    [Inject] protected IServiceProviderManager ServiceProviderManager { get; set; } = default!;
+    [Inject] protected IAppointmentsClient AppointmentsClient { get; set; } = default!;
 
     [Parameter] public Guid? serviceProviderId { get; set; }
 
@@ -23,7 +24,8 @@ public class ClinicOwnerServiceProviderPageBase : TenantPageBase
         }
 
         ServiceProviderId = serviceProviderId.Value;
-        Provider = await ServiceProviderManager.GetAsync(ServiceProviderId, CancellationToken.None).GetValueOrDefaultAsync();
+        EntityResult<ServiceProviderReadDto> result = await ((IServiceProviderManager)AppointmentsClient).GetAsync(ServiceProviderId, CancellationToken.None);
+        Provider = result.IsSuccess ? result.Value : null;
 
         if (Provider is null)
         {

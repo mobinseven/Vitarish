@@ -1,7 +1,6 @@
 @attribute [Route(AppRoutes.Clinic.PatientEventTemplate)]
 @inherits ClinicPatientProcedurePageBase
 @attribute [PageColor(Vitarish.Modules.Base.Interface.Enums.Palettes.Pink)]
-@inject IAccessControlledEventsService EventService
 
 @if(Patient is null || Procedure is null || evt is null)
 {
@@ -35,7 +34,8 @@
             return;
         }
 
-        evt = await EventService.GetAsync(eventId.Value, CancellationToken.None).GetValueOrDefaultAsync();
+        var result = await SeaClient.GetEventAsync(eventId.Value, CancellationToken.None);
+        evt = result.Succeeded ? result.Value : null;
 
         if(evt is null)
         {

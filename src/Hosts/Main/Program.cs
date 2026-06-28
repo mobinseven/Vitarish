@@ -2,6 +2,7 @@ using Finbuckle.MultiTenant;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Apps.Aggregator;
+using Vitarish.Apps.Aggregator.Core;
 using Vitarish.Audit.Server;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
@@ -182,7 +183,7 @@ _ = app.UseMultiTenant();
 await app.InitializeModules();
 await app.InitializeApps();
 
-_ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+_ = app.MapRazorComponents<Vitarish.Apps.Base.Core.App>().AddInteractiveServerRenderMode();
 _ = app.MapRazorPages();
 
 

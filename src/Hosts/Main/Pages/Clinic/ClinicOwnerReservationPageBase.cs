@@ -1,15 +1,12 @@
-using Vitarish.Appointments.Application.Abstractions;
-using Vitarish.Appointments.Domain.Dto;
+using Vitarish.Appointments.Client;
+using Vitarish.Appointments.Contracts.Dto;
+using Vitarish.Entities.Contracts.Models;
 
 namespace Vitarish.Main.Pages.Clinic;
 
-/// <summary>
-/// Base class for Clinic owner pages that load a single reservation by route parameter.
-/// Handles null-guard, fetch, redirect-on-missing, and page title.
-/// </summary>
 public class ClinicOwnerReservationPageBase : TenantPageBase
 {
-    [Inject] protected IAccessControlledReservationManager ReservationManager { get; set; } = default!;
+    [Inject] protected IAppointmentsClient AppointmentsClient { get; set; } = default!;
 
     [Parameter] public Guid? reservationId { get; set; }
 
@@ -26,7 +23,8 @@ public class ClinicOwnerReservationPageBase : TenantPageBase
         }
 
         Guid id = reservationId.Value;
-        Reservation = await ReservationManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+        EntityResult<ReservationReadDto> result = await ((IReservationManager)AppointmentsClient).GetAsync(id, CancellationToken.None);
+        Reservation = result.IsSuccess ? result.Value : null;
 
         if (Reservation is null)
         {

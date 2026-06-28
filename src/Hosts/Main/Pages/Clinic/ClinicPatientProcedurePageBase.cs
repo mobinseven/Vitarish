@@ -1,11 +1,11 @@
-using Vitarish.Sea.Application.Abstractions;
-using Vitarish.Sea.Domain.Dto;
+using Vitarish.Sea.Client;
+using Vitarish.Sea.Contracts.Responses;
 
 namespace Vitarish.Main.Pages.Clinic;
 
 public class ClinicPatientProcedurePageBase : ClinicPatientPageBase
 {
-    [Inject] protected IAccessControlledProceduresService ProcedureService { get; set; } = default!;
+    [Inject] protected ISeaClient SeaClient { get; set; } = default!;
 
     [Parameter] public Guid? procedureId { get; set; }
 
@@ -28,7 +28,8 @@ public class ClinicPatientProcedurePageBase : ClinicPatientPageBase
         }
 
         ProcedureId = procedureId.Value;
-        Procedure = await ProcedureService.GetAsync(ProcedureId, CancellationToken.None).GetValueOrDefaultAsync();
+        var result = await SeaClient.GetProcedureAsync(ProcedureId, CancellationToken.None);
+        Procedure = result.Succeeded ? result.Value : null;
 
         if (Procedure is null)
         {

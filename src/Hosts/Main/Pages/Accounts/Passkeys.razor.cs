@@ -1,3 +1,4 @@
+using Microsoft.JSInterop;
 using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.Main.Pages.Accounts;

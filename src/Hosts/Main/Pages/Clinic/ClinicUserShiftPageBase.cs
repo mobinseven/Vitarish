@@ -1,11 +1,12 @@
-using Vitarish.Appointments.Application.Abstractions;
-using Vitarish.Appointments.Domain.Dto;
+using Vitarish.Appointments.Client;
+using Vitarish.Appointments.Contracts.Dto;
+using Vitarish.Entities.Contracts.Models;
 
 namespace Vitarish.Main.Pages.Clinic;
 
 public class ClinicUserShiftPageBase : TenantPageBase
 {
-    [Inject] protected IAccessControlledShiftManager ShiftManager { get; set; } = default!;
+    [Inject] protected IAppointmentsClient AppointmentsClient { get; set; } = default!;
 
     [Parameter] public Guid? shiftId { get; set; }
 
@@ -22,7 +23,8 @@ public class ClinicUserShiftPageBase : TenantPageBase
         }
 
         Guid id = shiftId.Value;
-        Shift = await ShiftManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+        EntityResult<ShiftReadDto> result = await ((IShiftManager)AppointmentsClient).GetAsync(id, CancellationToken.None);
+        Shift = result.IsSuccess ? result.Value : null;
 
         if (Shift is null)
         {

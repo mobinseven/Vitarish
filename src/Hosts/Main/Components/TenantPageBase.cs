@@ -2,7 +2,7 @@ using Vitarish.Modules.Base.Core;
 using Vitarish.Parties.Client;
 using Vitarish.Parties.Contracts.Results;
 using Vitarish.Parties.Contracts.Tenants;
-using Vitarish.Users.Domain.Models;
+using Vitarish.Users.Contracts.Responses;
 using Metadata = Vitarish.Entities.Contracts.Models.Metadata;
 
 namespace Vitarish.Main.Components;
@@ -17,13 +17,12 @@ public class TenantPageBase : PageBase, IDisposable
     protected bool IsUser;
     protected bool IsOwner;
 
-    protected Guid? UserId => Guid.Parse(RequestContext.UserId ?? Guid.Empty.ToString());
+    protected Guid? UserId => Guid.TryParse(RequestContext.UserId, out Guid id) ? id : null;
 
     private Metadata? _metadata;
 
     protected sealed override async Task OnInitializedAsync()
     {
-
         if (RequestContext.TenantId is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Home);
@@ -50,7 +49,7 @@ public class TenantPageBase : PageBase, IDisposable
         _metadata = new Metadata(Tenant.Metadata);
         _metadata.OnUpdate += OnUpdatedMetadata;
         TenantService.Metadata = _metadata;
-        TenantService.Users = [.. (await UsersService.GetUsersInRoleAsync($"{RequestContext.TenantId}:{IdentityDefinitions.TenantUser}", CancellationToken.None)).Select(u => new UserDto(u))];
+        TenantService.Users = [.. (await UsersService.GetUsersInRoleAsync($"{RequestContext.TenantId}:{IdentityDefinitions.TenantUser}", CancellationToken.None)).Select(u => new UserSummaryResponse(u.Id, u.UserName, u.FirstName, u.LastName, u.Email, u.PhoneNumber, u.IdentificationCode, u.DateOfBirth, u.BirthCountryCode, u.BirthCity, $"{u.FirstName} {u.LastName}"))];
 
         NavService.OverridePageTitle(Tenant.AppId, Tenant.Name);
 
@@ -60,7 +59,6 @@ public class TenantPageBase : PageBase, IDisposable
 
         StateHasChanged();
     }
-
 
     private async void OnUpdatedMetadata(string key, object? value)
     {

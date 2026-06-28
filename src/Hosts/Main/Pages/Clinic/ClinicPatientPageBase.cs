@@ -1,11 +1,11 @@
-using Vitarish.Sea.Application.Abstractions;
+using Vitarish.Sea.Client;
 using Vitarish.Sea.Contracts.Responses;
 
 namespace Vitarish.Main.Pages.Clinic;
 
 public class ClinicPatientPageBase : TenantPageBase
 {
-    [Inject] protected IAccessControlledProjectsService ProjectsService { get; set; } = default!;
+    [Inject] protected ISeaClient SeaClient { get; set; } = default!;
 
     [Parameter] public Guid? patientId { get; set; }
 
@@ -21,7 +21,8 @@ public class ClinicPatientPageBase : TenantPageBase
         }
 
         PatientId = patientId.Value;
-        Patient = await ProjectsService.GetAsync(PatientId, CancellationToken.None).GetValueOrDefaultAsync();
+        var result = await SeaClient.GetProjectAsync(PatientId, CancellationToken.None);
+        Patient = result.Succeeded ? result.Value : null;
 
         if (Patient is null)
         {
