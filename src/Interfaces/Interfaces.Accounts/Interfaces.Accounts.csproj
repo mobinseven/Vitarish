@@ -15,6 +15,13 @@
     <ProjectReference Include="..\..\Modules\Users\Contracts\Users.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Parties\Contracts\Parties.Contracts.csproj" />
     <ProjectReference Include="..\..\Modules\Requests\Contracts\Requests.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Users\Domain\Users.Domain.csproj" />
+    <ProjectReference Include="..\..\Modules\Users\Application\Users.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Users\Infrastructure\Users.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Users\Client\Users.Client.csproj" />
+    <ProjectReference Include="..\..\Modules\Parties\Application\Parties.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Parties\Client\Parties.Client.csproj" />
+    <ProjectReference Include="..\..\Modules\Communications\Application\Communications.Application.csproj" />
 </ItemGroup>
 
 </Project>

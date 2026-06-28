@@ -1,5 +1,6 @@
+using Vitarish.Clinic.App;
+using Vitarish.Apps.Base.Core;
 using Microsoft.Extensions.Localization;
-using Vitarish.Apps.Base;
 
 namespace Vitarish.Apps.Aggregator.Core;
 

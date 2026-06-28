@@ -19,3 +19,10 @@ global using Vitarish.Interfaces.Accounts.Services;
 // Project‑specific namespaces
 global using Vitarish.Main.Components;
 global using static Microsoft.AspNetCore.Components.Web.RenderMode;
+global using Microsoft.Extensions.Options;
+global using Vitarish.Users.Domain.Entities;
+global using Vitarish.Users.Application.Abstractions;
+global using Vitarish.Requests.Application.Abstractions;
+global using Vitarish.Parties.Application.Abstractions;
+global using Vitarish.Apps.Base.Core;
+global using Vitarish.Modules.Base.Core;
