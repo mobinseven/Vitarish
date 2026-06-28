@@ -26,7 +26,7 @@ describe("OtpCodeInput", () => {
     await userEvent.type(input, "abc123");
 
     const numericCalls = onChange.mock.calls.filter(
-      ([val]: [string]) => val.length > 0
+      (call: unknown[]) => (call[0] as string).length > 0
     );
     expect(numericCalls).toHaveLength(3);
   });

@@ -1,10 +1,11 @@
 import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { usePasswordLoginMutation } from "@/api/generated/authentication/authentication";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
 
 export function usePasswordLogin() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const mutation = usePasswordLoginMutation();
   const [error, setError] = useState<AuthError | null>(null);
 
@@ -16,10 +17,11 @@ export function usePasswordLogin() {
     ) => {
       setError(null);
       try {
+        const finalReturnUrl = returnUrl ?? searchParams.get("returnUrl") ?? "/";
         const result = await mutation.mutateAsync({
           userNameOrEmail,
           password,
-          returnUrl: returnUrl ?? "/",
+          returnUrl: finalReturnUrl,
           rememberMe: false,
         });
         router.push(result.returnUrl);
@@ -28,7 +30,7 @@ export function usePasswordLogin() {
         setError(authError);
       }
     },
-    [mutation, router]
+    [mutation, router, searchParams]
   );
 
   return {

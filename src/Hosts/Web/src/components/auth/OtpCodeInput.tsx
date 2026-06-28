@@ -24,9 +24,7 @@ export function OtpCodeInput({
       const normalized = raw
         .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
         .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
-      if (normalized.length <= 6) {
-        onChange(normalized);
-      }
+      onChange(normalized.slice(0, 6));
     },
     [onChange]
   );

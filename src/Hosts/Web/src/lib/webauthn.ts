@@ -29,6 +29,12 @@ export async function startPasskeyAuthentication(
     userVerification: options.userVerification,
   };
 
+  if (!navigator.credentials) {
+    throw new Error(
+      "Passkey authentication is not supported in this browser or context (requires HTTPS)"
+    );
+  }
+
   const credential = (await navigator.credentials.get({
     publicKey: credentialOptions,
   })) as PublicKeyCredential | null;

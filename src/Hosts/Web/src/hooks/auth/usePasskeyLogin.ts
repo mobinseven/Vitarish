@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   useBeginPasskeyLoginMutation,
   useCompletePasskeyLoginMutation,
@@ -9,6 +9,7 @@ import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
 
 export function usePasskeyLogin() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const beginMutation = useBeginPasskeyLoginMutation();
   const completeMutation = useCompletePasskeyLoginMutation();
   const [error, setError] = useState<AuthError | null>(null);
@@ -17,9 +18,10 @@ export function usePasskeyLogin() {
     async (userNameOrEmail?: string, returnUrl?: string) => {
       setError(null);
       try {
+        const finalReturnUrl = returnUrl ?? searchParams.get("returnUrl") ?? "/";
         const challenge = await beginMutation.mutateAsync({
           userNameOrEmail: userNameOrEmail || null,
-          returnUrl: returnUrl ?? "/",
+          returnUrl: finalReturnUrl,
         });
 
         if (!challenge.optionsJson) {
@@ -33,7 +35,7 @@ export function usePasskeyLogin() {
         const result = await completeMutation.mutateAsync({
           challengeId: challenge.challengeId,
           credentialJson,
-          returnUrl: "/",
+          returnUrl: finalReturnUrl,
         });
 
         router.push(result.returnUrl);
@@ -42,7 +44,7 @@ export function usePasskeyLogin() {
         setError(authError);
       }
     },
-    [beginMutation, completeMutation, router]
+    [beginMutation, completeMutation, router, searchParams]
   );
 
   return {

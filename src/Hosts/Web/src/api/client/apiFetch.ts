@@ -26,6 +26,7 @@ export class ApiError extends Error {
 
 let antiforgeryToken: string | null = null;
 let antiforgeryHeaderName = "X-XSRF-TOKEN";
+let antiforgeryPromise: Promise<void> | null = null;
 
 async function ensureAntiforgeryToken(headers: Headers): Promise<void> {
   if (antiforgeryToken) {
@@ -33,17 +34,29 @@ async function ensureAntiforgeryToken(headers: Headers): Promise<void> {
     return;
   }
 
-  const res = await fetch(`${BASE_URL}/api/modules/authentication/antiforgery`, {
-    credentials: "include",
-  });
+  if (!antiforgeryPromise) {
+    antiforgeryPromise = (async () => {
+      try {
+        const res = await fetch(
+          `${BASE_URL}/api/modules/authentication/antiforgery`,
+          { credentials: "include" }
+        );
 
-  if (res.ok) {
-    const data = await res.json();
-    antiforgeryToken = data.requestToken;
-    antiforgeryHeaderName = data.headerName ?? "X-XSRF-TOKEN";
-    if (antiforgeryToken) {
-      headers.set(antiforgeryHeaderName, antiforgeryToken);
-    }
+        if (res.ok) {
+          const data = await res.json();
+          antiforgeryToken = data.requestToken;
+          antiforgeryHeaderName = data.headerName ?? "X-XSRF-TOKEN";
+        }
+      } finally {
+        antiforgeryPromise = null;
+      }
+    })();
+  }
+
+  await antiforgeryPromise;
+
+  if (antiforgeryToken) {
+    headers.set(antiforgeryHeaderName, antiforgeryToken);
   }
 }
 

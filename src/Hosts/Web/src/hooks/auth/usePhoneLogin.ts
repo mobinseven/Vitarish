@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   useBeginPhoneLoginMutation,
   useCompletePhoneLoginMutation,
@@ -11,6 +11,7 @@ export type PhoneLoginStep = "phone" | "code";
 
 export function usePhoneLogin() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const beginMutation = useBeginPhoneLoginMutation();
   const completeMutation = useCompletePhoneLoginMutation();
   const [step, setStep] = useState<PhoneLoginStep>("phone");
@@ -24,9 +25,10 @@ export function usePhoneLogin() {
     async (phone: string, returnUrl?: string) => {
       setError(null);
       try {
+        const finalReturnUrl = returnUrl ?? searchParams.get("returnUrl") ?? "/";
         const result = await beginMutation.mutateAsync({
           phoneNumber: phone,
-          returnUrl: returnUrl ?? "/",
+          returnUrl: finalReturnUrl,
         });
         setChallenge(result);
         setPhoneNumber(phone);
@@ -35,7 +37,7 @@ export function usePhoneLogin() {
         setError(parseAuthError(err));
       }
     },
-    [beginMutation]
+    [beginMutation, searchParams]
   );
 
   const complete = useCallback(
@@ -43,10 +45,11 @@ export function usePhoneLogin() {
       if (!challenge) return;
       setError(null);
       try {
+        const returnUrl = searchParams.get("returnUrl") ?? "/";
         const result = await completeMutation.mutateAsync({
           challengeId: challenge.challengeId,
           code,
-          returnUrl: "/",
+          returnUrl,
         });
         router.push(result.returnUrl);
       } catch (err) {
@@ -58,7 +61,7 @@ export function usePhoneLogin() {
         }
       }
     },
-    [challenge, completeMutation, router]
+    [challenge, completeMutation, router, searchParams]
   );
 
   const reset = useCallback(() => {
