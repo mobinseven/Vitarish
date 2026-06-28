@@ -41,11 +41,11 @@ export default function PasskeysPage() {
       const credential = await startRegistration(options);
       await completeRegister.mutateAsync(JSON.stringify(credential));
       setSuccess("Passkey registered successfully");
-    } catch (err: any) {
-      if (err.name === "NotAllowedError") {
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === "NotAllowedError") {
         setError("Registration cancelled");
       } else {
-        setError(err.message ?? "Failed to register passkey");
+        setError(err instanceof Error ? err.message : "Failed to register passkey");
       }
     }
   }, [beginRegister, completeRegister]);
@@ -57,8 +57,8 @@ export default function PasskeysPage() {
       try {
         await deleteCredential.mutateAsync(credentialId);
         setSuccess("Passkey deleted");
-      } catch (err: any) {
-        setError(err.message ?? "Failed to delete passkey");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to delete passkey");
       }
     },
     [deleteCredential]

@@ -7,7 +7,7 @@ import { apiFetch } from "@/api/client/apiFetch";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 
 export default function PasswordChangePage() {
-  const { user } = useAuthSession();
+  useAuthSession();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -44,8 +44,8 @@ export default function PasswordChangePage() {
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
-      } catch (err: any) {
-        setError(err.message ?? "Failed to change password");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to change password");
       } finally {
         setIsLoading(false);
       }

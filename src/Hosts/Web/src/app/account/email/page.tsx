@@ -35,8 +35,8 @@ export default function EmailChangePage() {
         );
         setChallengeId(result.challengeId);
         setStep("code");
-      } catch (err: any) {
-        setError(err.message ?? "Failed to send code");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to send code");
       } finally {
         setIsLoading(false);
       }
@@ -61,8 +61,8 @@ export default function EmailChangePage() {
         setStep("email");
         setEmail("");
         setCode("");
-      } catch (err: any) {
-        setError(err.message ?? "Failed to verify code");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to verify code");
       } finally {
         setIsLoading(false);
       }
