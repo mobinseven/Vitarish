@@ -35,7 +35,7 @@ public sealed class BeginPhoneLoginHandler(
         catch
         {
             challenge.Cancel();
-            await store.ReplaceAsync(challenge, cancellationToken);
+            await store.ReplaceAsync(challenge, CancellationToken.None);
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, "Failed to send verification code."));
         }
 

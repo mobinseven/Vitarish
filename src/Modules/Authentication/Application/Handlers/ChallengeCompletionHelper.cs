@@ -57,6 +57,9 @@ internal static class ChallengeCompletionHelper
 
     private static string NormalizeVerificationCode(string code)
     {
+        if (code.Length > 128)
+            return code;
+
         Span<char> normalized = stackalloc char[code.Length];
         for (int index = 0; index < code.Length; index++)
         {

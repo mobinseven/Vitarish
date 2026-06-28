@@ -26,61 +26,77 @@ public static class HostPipelineExtensions
         _ = builder.Services.AddRateLimiter(options =>
         {
 
-            _ = options.AddSlidingWindowLimiter(AuthenticationRateLimitPolicies.PasswordLogin, opt =>
-            {
-                opt.Window = TimeSpan.FromMinutes(1);
-                opt.PermitLimit = 10;
-                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                opt.QueueLimit = 0;
-                opt.SegmentsPerWindow = 6;
-            });
+            _ = options.AddPolicy(AuthenticationRateLimitPolicies.PasswordLogin, context =>
+                RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+                    factory: _ => new SlidingWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1),
+                        PermitLimit = 10,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0,
+                        SegmentsPerWindow = 6
+                    }));
 
-            _ = options.AddSlidingWindowLimiter(AuthenticationRateLimitPolicies.OtpBegin, opt =>
-            {
-                opt.Window = TimeSpan.FromMinutes(1);
-                opt.PermitLimit = 5;
-                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                opt.QueueLimit = 0;
-                opt.SegmentsPerWindow = 6;
-            });
+            _ = options.AddPolicy(AuthenticationRateLimitPolicies.OtpBegin, context =>
+                RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+                    factory: _ => new SlidingWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1),
+                        PermitLimit = 5,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0,
+                        SegmentsPerWindow = 6
+                    }));
 
-            _ = options.AddSlidingWindowLimiter(AuthenticationRateLimitPolicies.OtpComplete, opt =>
-            {
-                opt.Window = TimeSpan.FromMinutes(1);
-                opt.PermitLimit = 10;
-                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                opt.QueueLimit = 0;
-                opt.SegmentsPerWindow = 6;
-            });
+            _ = options.AddPolicy(AuthenticationRateLimitPolicies.OtpComplete, context =>
+                RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+                    factory: _ => new SlidingWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1),
+                        PermitLimit = 10,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0,
+                        SegmentsPerWindow = 6
+                    }));
 
-            _ = options.AddSlidingWindowLimiter(AuthenticationRateLimitPolicies.Passkey, opt =>
-            {
-                opt.Window = TimeSpan.FromMinutes(1);
-                opt.PermitLimit = 10;
-                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                opt.QueueLimit = 0;
-                opt.SegmentsPerWindow = 6;
-            });
+            _ = options.AddPolicy(AuthenticationRateLimitPolicies.Passkey, context =>
+                RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+                    factory: _ => new SlidingWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1),
+                        PermitLimit = 10,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0,
+                        SegmentsPerWindow = 6
+                    }));
 
-            // On-demand TLS /allow endpoint
-            _ = options.AddSlidingWindowLimiter("allow-endpoint", opt =>
-            {
-                opt.Window = TimeSpan.FromMinutes(1);
-                opt.PermitLimit = 50;
-                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                opt.QueueLimit = 0;
-                opt.SegmentsPerWindow = 6;
-            });
+            _ = options.AddPolicy("allow-endpoint", context =>
+                RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+                    factory: _ => new SlidingWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1),
+                        PermitLimit = 50,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0,
+                        SegmentsPerWindow = 6
+                    }));
 
-            // Tenant resolve endpoint - higher limit for authenticated clients
-            _ = options.AddSlidingWindowLimiter("tenant-resolve", opt =>
-            {
-                opt.Window = TimeSpan.FromMinutes(1);
-                opt.PermitLimit = 100;
-                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                opt.QueueLimit = 0;
-                opt.SegmentsPerWindow = 6;
-            });
+            _ = options.AddPolicy("tenant-resolve", context =>
+                RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+                    factory: _ => new SlidingWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(1),
+                        PermitLimit = 100,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0,
+                        SegmentsPerWindow = 6
+                    }));
         });
     }
 }
