@@ -13,7 +13,7 @@ export default function PasskeyLoginPage() {
           </p>
         </CardHeader>
         <CardBody className="flex flex-col gap-4">
-          <Suspense fallback={null}>
+          <Suspense fallback={<div className="h-[128px] w-full animate-pulse rounded-xl bg-default-100" />}>
             <PasskeyButton />
           </Suspense>
           <div className="flex flex-col items-center gap-2 text-sm">
