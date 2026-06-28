@@ -1,8 +1,9 @@
+using Vitarish.Clinic.App;
+using Vitarish.Apps.Base.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Vitarish.Apps.Base;
 using Vitarish.Clinic.Interface;
 
 public static class AppsExtensions

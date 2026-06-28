@@ -72,6 +72,14 @@
     <Project Path="src/Modules/Appointments/Interface/Appointments.Interface.csproj" />
     <Project Path="src/Modules/Appointments/Module/Appointments.Module.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Authentication/">
+    <Project Path="src/Modules/Authentication/Api/Authentication.Api.csproj" />
+    <Project Path="src/Modules/Authentication/Application/Authentication.Application.csproj" />
+    <Project Path="src/Modules/Authentication/Contracts/Authentication.Contracts.csproj" />
+    <Project Path="src/Modules/Authentication/Domain/Authentication.Domain.csproj" />
+    <Project Path="src/Modules/Authentication/Infrastructure/Authentication.Infrastructure.csproj" />
+    <Project Path="src/Modules/Authentication/Module/Authentication.Module.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Base/">
     <Project Path="src/Modules/Base/Client/Modules.Base.Client.csproj" />
     <Project Path="src/Modules/Base/Core/Modules.Base.Core.csproj" />

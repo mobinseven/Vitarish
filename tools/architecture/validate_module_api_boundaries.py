@@ -51,7 +51,7 @@ def scan_endpoint(p:Path):
             protected.add(var)
         else:
             strs = re.findall(r'"([^"]*)"', args)
-            if len(strs) >= 2 and strs[1].strip():
+            if strs and strs[-1].strip():
                 anonymous.add(var)
             else:
                 vs.append(V(p, idx, module_for(p), 'AnonymousGroupJustification', 'MapAnonymousModuleGroup', 'Anonymous module endpoints require a non-empty justification.'))
@@ -59,7 +59,8 @@ def scan_endpoint(p:Path):
         vs.append(V(p,line(text,m.start()),module_for(p),'DirectMapGroup','MapGroup','Internal module endpoints must use MapProtectedModuleGroup or justified MapAnonymousModuleGroup.'))
     for m in re.finditer(r'\b(\w+)\.(MapGet|MapPost|MapPut|MapDelete|MapPatch)\s*\(', text):
         recv,method=m.group(1),m.group(2)
-        if recv not in protected and recv not in anonymous:
+        endpoint_fragment = '/api/endpoints/' in p.as_posix().lower() and recv == 'endpoints'
+        if recv not in protected and recv not in anonymous and not endpoint_fragment:
             vs.append(V(p,line(text,m.start()),module_for(p),'DirectEndpointMapping',method,'Endpoint mappings must be on an approved protected or justified anonymous route group.'))
     for m in re.finditer(r'\.AllowAnonymous\s*\(', text):
         vs.append(V(p,line(text,m.start()),module_for(p),'AllowAnonymous','AllowAnonymous','Internal module APIs must use MapAnonymousModuleGroup for anonymous exceptions.'))

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Apps.Base;
+using Vitarish.Apps.Base.Core;
+using Microsoft.AspNetCore.Builder;
 using Vitarish.Clinic.Api;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Clinic.Infrastructure.Extensions;
@@ -9,7 +10,7 @@ using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Clinic.App;
 
-public class ClinicApp : App, IClinicApp
+public class ClinicApp : Vitarish.Apps.Base.Core.App
 {
     public override string Name => "Clinic";
 
@@ -17,7 +18,6 @@ public class ClinicApp : App, IClinicApp
     {
         _ = builder.Services.AddTransientMultiTenantDbContext<ClinicDbContext>((_, options) => configureDbContext?.Invoke(options));
         _ = builder.Services.AddClinicInfrastructure();
-        _ = builder.Services.AddSingleton<IClinicApp, ClinicApp>();
         _ = builder.Services.ConfigureMedicalInterface();
 
         return Task.CompletedTask;
