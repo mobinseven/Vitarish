@@ -47,7 +47,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "objective", "artifacts", "steps", "validation"],
+        "required": ["name", "objective", "artifacts", "steps", "validation", "acceptance_criteria"],
         "properties": {
           "name": { "type": "string" },
           "objective": { "type": "string" },

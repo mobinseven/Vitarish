@@ -19,16 +19,17 @@ def validate_plan(plan_path: str) -> bool:
         print(f"Schema file not found: {schema_file}")
         return False
     
-    with open(plan_file) as f:
-        plan = json.load(f)
-    
-    with open(schema_file) as f:
-        schema = json.load(f)
-    
     try:
+        with open(plan_file) as f:
+            plan = json.load(f)
+        with open(schema_file) as f:
+            schema = json.load(f)
         jsonschema.validate(plan, schema)
         print(f"Plan file valid: {plan_path}")
         return True
+    except json.JSONDecodeError as e:
+        print(f"Plan file is not valid JSON: {e}")
+        return False
     except jsonschema.ValidationError as e:
         print(f"Plan file invalid: {e.message}")
         return False

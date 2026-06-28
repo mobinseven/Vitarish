@@ -2,23 +2,26 @@
 """Manage loop-state.json lifecycle."""
 
 import json
+import os
 import sys
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
-STATE_FILE = Path('.mimocode/loop-state.json')
+ISSUE_NUMBER = os.getenv('ISSUE_NUMBER')
+STATE_FILE = Path(f'.mimocode/loop-state-{ISSUE_NUMBER}.json') if ISSUE_NUMBER else Path('.mimocode/loop-state.json')
 
 def init_state(issue_number: int, max_iterations: int = 5):
     """Initialize loop state."""
+    now_iso = datetime.now(timezone.utc).isoformat()
     state = {
         "issue_number": issue_number,
         "iteration": 0,
         "max_iterations": max_iterations,
         "status": "planning",
         "history": [],
-        "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat()
+        "created_at": now_iso,
+        "updated_at": now_iso
     }
     
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -28,7 +31,7 @@ def init_state(issue_number: int, max_iterations: int = 5):
     print(f"Initialized loop state for issue #{issue_number}")
     return state
 
-def update_state(status: Optional[str] = None, error: Optional[str] = None):
+def update_state(status: Optional[str] = None, error: Optional[str] = None, iteration: Optional[int] = None):
     """Update loop state."""
     if not STATE_FILE.exists():
         print("State file not found")
@@ -40,14 +43,18 @@ def update_state(status: Optional[str] = None, error: Optional[str] = None):
     if status:
         state['status'] = status
     
-    if error:
-        state['error'] = error
+    if error is not None:
+        state['error'] = error if error != "" else None
     
-    state['updated_at'] = datetime.now().isoformat()
+    if iteration is not None:
+        state['iteration'] = iteration
+    
+    now_iso = datetime.now(timezone.utc).isoformat()
+    state['updated_at'] = now_iso
     state['history'].append({
         "iteration": state['iteration'],
         "status": state['status'],
-        "timestamp": datetime.now().isoformat()
+        "timestamp": now_iso
     })
     
     with open(STATE_FILE, 'w') as f:
@@ -95,12 +102,15 @@ def main():
     elif command == 'update':
         status = None
         error = None
+        iteration = None
         for arg in sys.argv[2:]:
             if arg.startswith('--status='):
                 status = arg.split('=', 1)[1]
             elif arg.startswith('--error='):
                 error = arg.split('=', 1)[1]
-        update_state(status, error)
+            elif arg.startswith('--iteration='):
+                iteration = int(arg.split('=', 1)[1])
+        update_state(status, error, iteration)
     
     elif command == 'get':
         state = get_state()
@@ -111,12 +121,16 @@ def main():
     
     elif command == 'check':
         should_stop, reason = check_termination()
+        if 'GITHUB_OUTPUT' in os.environ:
+            with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                print(f"should_stop={str(should_stop).lower()}", file=fh)
+                print(f"reason={reason or ''}", file=fh)
         if should_stop:
             print(f"TERMINATE: {reason}")
             sys.exit(0)
         else:
             print(f"CONTINUE: {reason}")
-            sys.exit(1)
+            sys.exit(0)
     
     else:
         print(f"Unknown command: {command}")

@@ -2,10 +2,12 @@
 """Clean up completed plan files."""
 
 import json
+import os
 import sys
 from pathlib import Path
 
-STATE_FILE = Path('.mimocode/loop-state.json')
+ISSUE_NUMBER = os.getenv('ISSUE_NUMBER')
+STATE_FILE = Path(f'.mimocode/loop-state-{ISSUE_NUMBER}.json') if ISSUE_NUMBER else Path('.mimocode/loop-state.json')
 PLANS_DIR = Path('.mimocode/plans')
 
 def cleanup():
