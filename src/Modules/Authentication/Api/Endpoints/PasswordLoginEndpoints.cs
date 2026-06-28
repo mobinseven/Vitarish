@@ -27,12 +27,7 @@ public static class PasswordLoginEndpoints
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status423Locked)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
-        .WithOpenApi(o =>
-        {
-            o.OperationId = "loginWithPassword";
-            o.Summary = "Signs in with a password.";
-            return o;
-        });
+        .WithSummary("Signs in with a password.");
 
         return endpoints;
     }

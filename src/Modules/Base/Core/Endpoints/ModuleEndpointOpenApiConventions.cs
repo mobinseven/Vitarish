@@ -33,11 +33,7 @@ public static class ModuleEndpointOpenApiConventions
         ArgumentException.ThrowIfNullOrWhiteSpace(convention.OperationId);
 
         _ = builder.WithName(convention.OperationId);
-        _ = builder.WithOpenApi(operation =>
-        {
-            operation.OperationId = convention.OperationId;
-            return operation;
-        });
+
         _ = builder.WithMetadata(convention);
 
         if (convention.SuccessType is null)

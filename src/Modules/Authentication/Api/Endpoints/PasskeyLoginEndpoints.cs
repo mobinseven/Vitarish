@@ -25,12 +25,7 @@ public static class PasskeyLoginEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
-        .WithOpenApi(o =>
-        {
-            o.OperationId = "beginPasskeyLogin";
-            o.Summary = "Begins passkey login.";
-            return o;
-        });
+        .WithSummary("Begins passkey login.");
 
         endpoints.MapPost("/login/passkey/complete", async (CompletePasskeyAuthenticationRequest request, CompletePasskeyLoginHandler handler, CancellationToken ct) =>
         {
@@ -46,12 +41,7 @@ public static class PasskeyLoginEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status410Gone)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
-        .WithOpenApi(o =>
-        {
-            o.OperationId = "completePasskeyLogin";
-            o.Summary = "Completes passkey login.";
-            return o;
-        });
+        .WithSummary("Completes passkey login.");
 
         return endpoints;
     }

@@ -26,12 +26,7 @@ public static class EmailLoginEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
-        .WithOpenApi(o =>
-        {
-            o.OperationId = "beginEmailLogin";
-            o.Summary = "Begins email login.";
-            return o;
-        });
+        .WithSummary("Begins email login.");
 
         endpoints.MapPost("/login/email/complete", async (CompleteEmailLoginRequest request, CompleteEmailLoginHandler handler, CancellationToken ct) =>
         {
@@ -47,12 +42,7 @@ public static class EmailLoginEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status410Gone)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
-        .WithOpenApi(o =>
-        {
-            o.OperationId = "completeEmailLogin";
-            o.Summary = "Completes email login.";
-            return o;
-        });
+        .WithSummary("Completes email login.");
 
         return endpoints;
     }

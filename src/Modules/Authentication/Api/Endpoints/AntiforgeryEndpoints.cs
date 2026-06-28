@@ -15,12 +15,7 @@ public static class AntiforgeryEndpoints
         })
         .WithName("Authentication_Antiforgery_Get")
         .Produces<AntiforgeryTokenDto>(StatusCodes.Status200OK)
-        .WithOpenApi(o =>
-        {
-            o.OperationId = "getAuthenticationAntiforgery";
-            o.Summary = "Gets an antiforgery request token.";
-            return o;
-        });
+        .WithSummary("Gets an antiforgery request token.");
 
         return endpoints;
     }

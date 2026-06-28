@@ -26,12 +26,7 @@ public static class LogoutEndpoints
         .Produces<LogoutContextDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status400BadRequest)
-        .WithOpenApi(o =>
-        {
-            o.OperationId = "getAuthenticationLogoutContext";
-            o.Summary = "Gets logout context.";
-            return o;
-        });
+        .WithSummary("Gets logout context.");
 
         endpoints.MapPost("/logout", async (LogoutRequest request, LogoutHandler handler, CancellationToken ct) =>
         {
@@ -45,12 +40,7 @@ public static class LogoutEndpoints
         .Produces<LogoutResultDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
-        .WithOpenApi(o =>
-        {
-            o.OperationId = "logoutAuthenticationSession";
-            o.Summary = "Signs out the current authentication session.";
-            return o;
-        });
+        .WithSummary("Signs out the current authentication session.");
 
         return endpoints;
     }

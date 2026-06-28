@@ -22,12 +22,7 @@ public static class CurrentSessionEndpoints
         .WithName("Authentication_Session_Get")
         .Produces<AuthenticationSessionDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
-        .WithOpenApi(o =>
-        {
-            o.OperationId = "getAuthenticationSession";
-            o.Summary = "Gets the current authentication session.";
-            return o;
-        });
+        .WithSummary("Gets the current authentication session.");
 
         endpoints.MapGet("/me", async (GetCurrentAuthenticationSessionHandler handler, CancellationToken ct) =>
         {
@@ -41,12 +36,7 @@ public static class CurrentSessionEndpoints
         .Produces<CurrentAuthenticationUserDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status404NotFound)
-        .WithOpenApi(o =>
-        {
-            o.OperationId = "getCurrentAuthenticationUser";
-            o.Summary = "Gets the current authentication user.";
-            return o;
-        });
+        .WithSummary("Gets the current authentication user.");
 
         return endpoints;
     }

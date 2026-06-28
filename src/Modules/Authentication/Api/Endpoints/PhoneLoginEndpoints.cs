@@ -26,12 +26,7 @@ public static class PhoneLoginEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
-        .WithOpenApi(o =>
-        {
-            o.OperationId = "beginPhoneLogin";
-            o.Summary = "Begins phone login.";
-            return o;
-        });
+        .WithSummary("Begins phone login.");
 
         endpoints.MapPost("/login/phone/complete", async (CompletePhoneLoginRequest request, CompletePhoneLoginHandler handler, CancellationToken ct) =>
         {
@@ -47,12 +42,7 @@ public static class PhoneLoginEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status410Gone)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
-        .WithOpenApi(o =>
-        {
-            o.OperationId = "completePhoneLogin";
-            o.Summary = "Completes phone login.";
-            return o;
-        });
+        .WithSummary("Completes phone login.");
 
         return endpoints;
     }
