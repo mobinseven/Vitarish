@@ -12,9 +12,9 @@ public static class AccountEmailChangeEndpoints
 {
     public static IEndpointRouteBuilder MapAccountEmailChangeEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/account/email/begin", async (BeginChangeEmailRequest request, BeginChangeEmailHandler handler, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, CancellationToken ct) =>
+        endpoints.MapPost("/account/email/begin", async (BeginChangeEmailRequest request, BeginChangeEmailHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
-            string? userId = httpContextAccessor.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
 
             var r = await handler.Handle(new BeginChangeEmailCommand(userId, request.Email), ct);
@@ -31,9 +31,9 @@ public static class AccountEmailChangeEndpoints
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .WithSummary("Begins email change.");
 
-        endpoints.MapPost("/account/email/complete", async (CompleteChangeEmailRequest request, CompleteChangeEmailHandler handler, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, CancellationToken ct) =>
+        endpoints.MapPost("/account/email/complete", async (CompleteChangeEmailRequest request, CompleteChangeEmailHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
-            string? userId = httpContextAccessor.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
 
             var r = await handler.Handle(new CompleteChangeEmailCommand(userId, request.ChallengeId, request.Code), ct);

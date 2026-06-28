@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Card, CardBody, CardHeader, Button, Link } from "@heroui/react";
+import { Button, Link } from "@heroui/react";
 import { useTheme } from "next-themes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import {
@@ -9,6 +9,7 @@ import {
   useSetUserThemeMutation,
 } from "@/api/generated/users/users";
 import { StatusMessage } from "@/components/auth/StatusMessage";
+import { OptionSelector } from "@/components/account/OptionSelector";
 
 const themes = [
   { value: "light", label: "Light" },
@@ -34,47 +35,30 @@ export default function ThemePage() {
   }, [selected, setTheme, setNextTheme]);
 
   return (
-    <div className="max-w-md mx-auto">
-      <Card>
-        <CardHeader>
-          <h1 className="text-2xl font-bold">Theme</h1>
-        </CardHeader>
-        <CardBody className="flex flex-col gap-4">
-          {setTheme.isError && (
-            <StatusMessage message="Failed to update theme" />
-          )}
-          {success && (
-            <StatusMessage message="Theme updated successfully" />
-          )}
-
-          <div className="flex flex-col gap-2">
-            {themes.map((theme) => (
-              <Button
-                key={theme.value}
-                variant={selected === theme.value ? "solid" : "flat"}
-                color={selected === theme.value ? "primary" : "default"}
-                onPress={() => setSelected(theme.value)}
-                className="w-full justify-start"
-              >
-                {theme.label}
-              </Button>
-            ))}
-          </div>
-
-          <Button
-            color="primary"
-            onPress={handleSave}
-            isLoading={setTheme.isPending}
-            className="w-full"
-          >
-            Save
-          </Button>
-
-          <Link href="/account" className="text-sm">
-            Back to settings
-          </Link>
-        </CardBody>
-      </Card>
+    <div className="max-w-md mx-auto flex flex-col gap-4">
+      <OptionSelector
+        title="Theme"
+        options={themes}
+        selected={selected}
+        onSelect={setSelected}
+      />
+      {setTheme.isError && (
+        <StatusMessage message="Failed to update theme" />
+      )}
+      {success && (
+        <StatusMessage message="Theme updated successfully" type="success" />
+      )}
+      <Button
+        color="primary"
+        onPress={handleSave}
+        isLoading={setTheme.isPending}
+        className="w-full"
+      >
+        Save
+      </Button>
+      <Link href="/account" className="text-sm">
+        Back to settings
+      </Link>
     </div>
   );
 }

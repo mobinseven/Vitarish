@@ -35,8 +35,7 @@ public sealed class UserAccountUpdater(
         IdentityResult result;
         if (string.IsNullOrEmpty(currentPassword))
         {
-            string token = await userManager.GeneratePasswordResetTokenAsync(user);
-            result = await userManager.ResetPasswordAsync(user, token, newPassword);
+            result = await userManager.AddPasswordAsync(user, newPassword);
         }
         else
         {

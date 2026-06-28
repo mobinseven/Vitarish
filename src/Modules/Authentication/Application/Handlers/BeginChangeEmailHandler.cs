@@ -23,13 +23,13 @@ public sealed class BeginChangeEmailHandler(
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, "Email is required."));
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        string code = await codeGenerator.GenerateAsync(command.UserId, policy.TokenPurpose(AuthenticationChallengePurpose.EmailLogin), cancellationToken);
-        AuthenticationChallenge challenge = policy.CreateEmailLoginChallenge(command.UserId, command.Email, policy.TokenPurpose(AuthenticationChallengePurpose.EmailLogin), now);
+        string code = await codeGenerator.GenerateAsync(command.UserId, policy.TokenPurpose(AuthenticationChallengePurpose.EmailChange), cancellationToken);
+        AuthenticationChallenge challenge = policy.CreateEmailChangeChallenge(command.UserId, command.Email, policy.TokenPurpose(AuthenticationChallengePurpose.EmailChange), now);
         await store.SaveAsync(challenge, cancellationToken);
 
         try
         {
-            await emailSender.SendAsync(command.Email, code, AuthenticationChallengePurpose.EmailLogin, cancellationToken);
+            await emailSender.SendAsync(command.Email, code, AuthenticationChallengePurpose.EmailChange, cancellationToken);
         }
         catch
         {

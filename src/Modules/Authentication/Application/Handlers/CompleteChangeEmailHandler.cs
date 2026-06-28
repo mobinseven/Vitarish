@@ -24,11 +24,11 @@ public sealed class CompleteChangeEmailHandler(
             return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.InvalidCredentials, "Invalid verification code."));
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        AuthenticationFailureReason? validationError = challenge.ValidateAttempt(now, AuthenticationChallengePurpose.EmailLogin);
+        AuthenticationFailureReason? validationError = challenge.ValidateAttempt(now, AuthenticationChallengePurpose.EmailChange);
         if (validationError is not null)
             return new AuthenticationResult<bool>.Failure(new(validationError.Value, GetErrorMessage(validationError.Value)));
 
-        string normalizedCode = NormalizeVerificationCode(command.Code);
+        string normalizedCode = AuthenticationInputValidator.NormalizeVerificationCode(command.Code);
         bool verified = await verifier.VerifyAsync(challenge.UserId, challenge.TokenPurpose, normalizedCode, cancellationToken);
 
         if (!verified)
@@ -49,22 +49,6 @@ public sealed class CompleteChangeEmailHandler(
         return updated
             ? new AuthenticationResult<bool>.Success(true)
             : new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.ProviderFailure, "Failed to update email."));
-    }
-
-    private static string NormalizeVerificationCode(string code)
-    {
-        if (code.Length > 128) return code;
-        Span<char> normalized = stackalloc char[code.Length];
-        for (int i = 0; i < code.Length; i++)
-        {
-            normalized[i] = code[i] switch
-            {
-                >= '۰' and <= '۹' => (char)('0' + code[i] - '۰'),
-                >= '٠' and <= '٩' => (char)('0' + code[i] - '٠'),
-                _ => code[i]
-            };
-        }
-        return new string(normalized);
     }
 
     private static string GetErrorMessage(AuthenticationFailureReason reason) => reason switch

@@ -11,9 +11,9 @@ public static class AccountPasswordChangeEndpoints
 {
     public static IEndpointRouteBuilder MapAccountPasswordChangeEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/account/password", async (ChangePasswordRequest request, ChangePasswordHandler handler, IHttpContextAccessor httpContextAccessor, CancellationToken ct) =>
+        endpoints.MapPost("/account/password", async (ChangePasswordRequest request, ChangePasswordHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
-            string? userId = httpContextAccessor.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
 
             var r = await handler.Handle(new ChangePasswordCommand(userId, request.CurrentPassword, request.NewPassword), ct);

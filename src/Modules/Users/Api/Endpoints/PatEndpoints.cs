@@ -27,20 +27,18 @@ public static class PatEndpoints
         return Results.Ok(new PatCreateResponse(token));
     }
 
-    private static Task<IResult> ListPatsAsync(string userId, CancellationToken ct)
+    private static IResult ListPatsAsync(string userId)
     {
-        ct.ThrowIfCancellationRequested();
         if (!tokenStore.TryGetValue(userId, out System.Collections.Concurrent.ConcurrentDictionary<string, byte>? tokens))
-            return Task.FromResult<IResult>(Results.Ok(new PatListResponse(Array.Empty<string>())));
-        return Task.FromResult<IResult>(Results.Ok(new PatListResponse([.. tokens.Keys])));
+            return Results.Ok(new PatListResponse(Array.Empty<string>()));
+        return Results.Ok(new PatListResponse([.. tokens.Keys]));
     }
 
-    private static Task<IResult> RevokePatAsync(string userId, string token, CancellationToken ct)
+    private static IResult RevokePatAsync(string userId, string token)
     {
-        ct.ThrowIfCancellationRequested();
         if (tokenStore.TryGetValue(userId, out System.Collections.Concurrent.ConcurrentDictionary<string, byte>? tokens))
             tokens.TryRemove(token, out _);
-        return Task.FromResult<IResult>(Results.Ok(true));
+        return Results.Ok(true);
     }
 }
 

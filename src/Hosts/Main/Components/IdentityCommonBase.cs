@@ -18,8 +18,16 @@ public class IdentityCommonBase : CommonBase
         if (HttpContextAccessor.HttpContext?.User.IsAuthenticated() ?? false)
         {
             string userId = HttpContextAccessor.HttpContext.User.GetSubjectId();
-            HttpClient client = HttpClientFactory.CreateClient();
-            User = await client.GetFromJsonAsync<User>($"/api/modules/users/{userId}");
+            try
+            {
+                HttpClient client = HttpClientFactory.CreateClient();
+                User = await client.GetFromJsonAsync<User>($"/api/modules/users/{userId}");
+            }
+            catch (Exception ex)
+            {
+                LoggerFactory.CreateLogger<IdentityCommonBase>().LogError(ex, "Failed to load user profile for {UserId}", userId);
+                User = null;
+            }
         }
         await ReloadRequired();
         StateHasChanged();

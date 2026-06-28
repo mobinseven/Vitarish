@@ -29,7 +29,7 @@ public static class ProfileEndpoints
         User? user = await usersService.GetUserAsync(userId, ct);
         if (user is null) return Results.NotFound();
 
-        Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct);
+        Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct) ?? new Dictionary<string, string>();
         string? culture = profile.TryGetValue("Culture", out string? c) ? c : null;
         string? theme = profile.TryGetValue("Theme", out string? t) ? t : null;
 
@@ -54,14 +54,14 @@ public static class ProfileEndpoints
 
     private static async Task<IResult> GetCultureAsync(string userId, IUserProfileService profileService, CancellationToken ct)
     {
-        Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct);
+        Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct) ?? new Dictionary<string, string>();
         string? culture = profile.TryGetValue("Culture", out string? c) ? c : null;
         return Results.Ok(culture);
     }
 
     private static async Task<IResult> SetCultureAsync(string userId, SetUserCultureRequest request, IUserProfileService profileService, CancellationToken ct)
     {
-        Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct);
+        Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct) ?? new Dictionary<string, string>();
         profile["Culture"] = request.Culture;
         await profileService.UpdateProfileAsync(userId, profile, ct);
         return Results.Ok(UsersCommandResponse.Success());
@@ -69,14 +69,14 @@ public static class ProfileEndpoints
 
     private static async Task<IResult> GetThemeAsync(string userId, IUserProfileService profileService, CancellationToken ct)
     {
-        Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct);
+        Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct) ?? new Dictionary<string, string>();
         string? theme = profile.TryGetValue("Theme", out string? t) ? t : null;
         return Results.Ok(theme);
     }
 
     private static async Task<IResult> SetThemeAsync(string userId, SetUserThemeRequest request, IUserProfileService profileService, CancellationToken ct)
     {
-        Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct);
+        Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct) ?? new Dictionary<string, string>();
         profile["Theme"] = request.Theme;
         await profileService.UpdateProfileAsync(userId, profile, ct);
         return Results.Ok(UsersCommandResponse.Success());

@@ -12,9 +12,9 @@ public static class AccountPhoneChangeEndpoints
 {
     public static IEndpointRouteBuilder MapAccountPhoneChangeEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/account/phone/begin", async (BeginChangePhoneRequest request, BeginChangePhoneHandler handler, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, CancellationToken ct) =>
+        endpoints.MapPost("/account/phone/begin", async (BeginChangePhoneRequest request, BeginChangePhoneHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
-            string? userId = httpContextAccessor.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
 
             var r = await handler.Handle(new BeginChangePhoneCommand(userId, request.PhoneNumber), ct);
@@ -31,9 +31,9 @@ public static class AccountPhoneChangeEndpoints
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .WithSummary("Begins phone number change.");
 
-        endpoints.MapPost("/account/phone/complete", async (CompleteChangePhoneRequest request, CompleteChangePhoneHandler handler, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor, CancellationToken ct) =>
+        endpoints.MapPost("/account/phone/complete", async (CompleteChangePhoneRequest request, CompleteChangePhoneHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
-            string? userId = httpContextAccessor.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
 
             var r = await handler.Handle(new CompleteChangePhoneCommand(userId, request.ChallengeId, request.Code), ct);
