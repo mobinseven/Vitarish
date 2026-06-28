@@ -49,8 +49,8 @@ Copy `.env.example` to `.env.local` and adjust as needed.
 
 ```bash
 cd src/Hosts/Web
-docker build -t vitarish-web .
-docker run -p 3000:3000 -e NEXT_PUBLIC_API_BASE_URL=http://host.docker.internal:5000 vitarish-web
+docker build -t vitarish-web --build-arg NEXT_PUBLIC_API_BASE_URL=http://localhost:5000 .
+docker run -p 3000:3000 vitarish-web
 ```
 
 ### Run both services together
