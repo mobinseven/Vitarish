@@ -8,7 +8,8 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
 {
     public static IServiceCollection AddAuthenticationInfrastructure(this IServiceCollection services)
     {
-        services.AddSingleton<IAuthenticationChallengeStore, InMemoryAuthenticationChallengeStore>();
+        services.AddHttpContextAccessor();
+        services.AddSingleton<IAuthenticationChallengeStore, DistributedAuthenticationChallengeStore>();
         services.AddScoped<IAuthenticationUserDirectory, AspNetIdentityAuthenticationUserDirectory>();
         services.AddScoped<IAuthenticationSignInService, AspNetIdentitySignInService>();
         services.AddScoped<IAuthenticationCodeVerifier, AspNetIdentityCodeVerifier>();
