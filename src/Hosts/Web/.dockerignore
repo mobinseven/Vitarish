@@ -1,0 +1,8 @@
+node_modules
+.next
+.git
+.mimocode
+*.md
+.env.local
+.env*.local
+out
