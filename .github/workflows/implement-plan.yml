@@ -1,0 +1,250 @@
+name: Implement Plan
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.mimocode/plans/*.md'
+      - '.mimocode/loop-state.json'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  implement:
+    name: Execute implementation plan
+    runs-on: ubuntu-latest
+
+    env:
+      MIMO_MODEL: mimo-auto
+      MAX_RETRIES: 3
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate loop state
+        id: validate
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            // Check if plan file exists
+            const planFiles = fs.readdirSync('.mimocode/plans')
+              .filter(f => f.endsWith('.md'));
+
+            if (planFiles.length === 0) {
+              core.setOutput('has_plan', 'false');
+              return;
+            }
+
+            core.setOutput('has_plan', 'true');
+            core.setOutput('plan_file', planFiles[0]);
+
+            // Read loop state
+            if (fs.existsSync('.mimocode/loop-state.json')) {
+              const state = JSON.parse(fs.readFileSync('.mimocode/loop-state.json'));
+
+              if (state.status === 'completed' || state.status === 'failed') {
+                core.setOutput('has_plan', 'false');
+                return;
+              }
+
+              if (state.iteration >= state.max_iterations) {
+                core.setOutput('has_plan', 'false');
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: state.issue_number,
+                  body: `## Max Iterations Reached
+
+The implementation has reached the maximum iteration limit (${state.max_iterations}).
+
+Please review the implementation manually and provide guidance.`
+                });
+                return;
+              }
+            }
+
+      - name: Create implementation branch
+        if: steps.validate.outputs.has_plan == 'true'
+        run: |
+          PLAN_FILE="${{ steps.validate.outputs.plan_file }}"
+          BRANCH_NAME="auto-implement/${PLAN_FILE%.md}"
+          git checkout -b "$BRANCH_NAME"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Execute plan with MiMoCode
+        if: steps.validate.outputs.has_plan == 'true'
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const { execSync } = require('child_process');
+
+            const planFile = '${{ steps.validate.outputs.plan_file }}';
+            const planPath = `.mimocode/plans/${planFile}`;
+            const planContent = fs.readFileSync(planPath, 'utf8');
+
+            // Parse plan
+            const objective = planContent.match(/## Objective\n([\s\S]*?)(?=\n## )/)?.[1]?.trim();
+            const phases = planContent.match(/## Phase \d+:.*?\n([\s\S]*?)(?=\n## Phase |\n## Verification|$)/g) || [];
+
+            // Load relevant skills
+            const skillsToLoad = detectRequiredSkills(planContent);
+            console.log(`Loading skills: ${skillsToLoad.join(', ')}`);
+
+            // Execute plan phases
+            const results = [];
+            for (let i = 0; i < phases.length; i++) {
+              const phase = phases[i];
+              const phaseName = phase.match(/## Phase \d+: (.+)/)?.[1] || `Phase ${i + 1}`;
+
+              console.log(`Executing: ${phaseName}`);
+
+              // This would be replaced with actual MiMoCode execution
+              // For now, we log what would be executed
+              results.push({
+                phase: phaseName,
+                status: 'completed',
+                timestamp: new Date().toISOString()
+              });
+            }
+
+            // Update loop state
+            const state = JSON.parse(fs.readFileSync('.mimocode/loop-state.json'));
+            state.status = 'implementation_complete';
+            state.results = results;
+            state.updated_at = new Date().toISOString();
+            fs.writeFileSync('.mimocode/loop-state.json', JSON.stringify(state, null, 2));
+
+      - name: Build and test
+        if: steps.validate.outputs.has_plan == 'true'
+        run: |
+          # .NET build
+          dotnet restore Vitarish.slnx
+          dotnet build Vitarish.slnx --no-restore
+
+          # Run tests
+          dotnet test Vitarish.slnx --no-build --verbosity normal
+
+      - name: Create Pull Request
+        if: steps.validate.outputs.has_plan == 'true'
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.PR_BOT_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const state = JSON.parse(fs.readFileSync('.mimocode/loop-state.json'));
+
+            const planFile = '${{ steps.validate.outputs.plan_file }}';
+            const planContent = fs.readFileSync(`.mimocode/plans/${planFile}`, 'utf8');
+
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[Auto] Implement plan: ${planFile.replace('.md', '')}`,
+              body: `## Summary
+
+This PR implements the plan from issue #${state.issue_number}.
+
+**Plan file**: \`.mimocode/plans/${planFile}\`
+**Iteration**: ${state.iteration}/${state.max_iterations}
+**Status**: Implementation complete, pending review
+
+## Plan Objective
+
+${planContent.match(/## Objective\n([\s\S]*?)(?=\n## )/)?.[1]?.trim() || 'See plan file'}
+
+## Changes
+
+See file diff for implementation details.
+
+## Testing
+
+- [ ] Build passes
+- [ ] Unit tests pass
+- [ ] Architecture validation passes
+- [ ] Test sync validation passes
+
+## Next Steps
+
+This PR will be reviewed by the auto-review workflow. If changes are needed, a new plan will be generated automatically.
+
+---
+*This PR was automatically created by the implementation loop.*`,
+              head: process.env.BRANCH_NAME,
+              base: 'main'
+            });
+
+            // Add labels
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: ['auto-generated', 'needs-review']
+            });
+
+            // Update loop state
+            state.pr_number = pr.number;
+            state.pr_url = pr.html_url;
+            state.status = 'awaiting_review';
+            state.updated_at = new Date().toISOString();
+            fs.writeFileSync('.mimocode/loop-state.json', JSON.stringify(state, null, 2));
+
+            // Comment on issue
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: state.issue_number,
+              body: `## Implementation PR Created
+
+PR: #${pr.number}
+URL: ${pr.html_url}
+Iteration: ${state.iteration}/${state.max_iterations}
+
+The implementation is ready for review. The auto-review workflow will check it against architecture rules.`
+            });
+
+      - name: Update loop state on failure
+        if: failure()
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            if (fs.existsSync('.mimocode/loop-state.json')) {
+              const state = JSON.parse(fs.readFileSync('.mimocode/loop-state.json'));
+              state.status = 'implementation_failed';
+              state.error = 'Build or test failed';
+              state.updated_at = new Date().toISOString();
+              fs.writeFileSync('.mimocode/loop-state.json', JSON.stringify(state, null, 2));
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: state.issue_number,
+                body: `## Implementation Failed
+
+The implementation failed during build or test phase.
+
+Please check the workflow logs and fix the issues manually.`
+              });
+            }
+
+      - name: Commit loop state
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .mimocode/loop-state.json
+          git commit -m "chore: update loop state" || true
+          git push || true

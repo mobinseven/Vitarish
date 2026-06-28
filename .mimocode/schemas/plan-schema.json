@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Implementation Plan",
+  "type": "object",
+  "required": ["metadata", "objective", "scope", "phases", "verification"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["issue_number", "generated_at", "iteration", "max_iterations", "skills_required"],
+      "properties": {
+        "issue_number": { "type": "integer" },
+        "issue_url": { "type": "string", "format": "uri" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "iteration": { "type": "integer", "minimum": 1 },
+        "max_iterations": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "skills_required": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500
+    },
+    "scope": {
+      "type": "object",
+      "required": ["in_scope", "out_of_scope"],
+      "properties": {
+        "in_scope": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "out_of_scope": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "phases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "objective", "artifacts", "steps", "validation"],
+        "properties": {
+          "name": { "type": "string" },
+          "objective": { "type": "string" },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type", "responsibility", "location"],
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string" },
+                "responsibility": { "type": "string" },
+                "location": { "type": "string" }
+              }
+            }
+          },
+          "steps": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "validation": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "acceptance_criteria": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "verification": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
