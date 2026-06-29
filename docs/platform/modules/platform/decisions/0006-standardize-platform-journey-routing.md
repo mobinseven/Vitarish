@@ -1,7 +1,7 @@
 # ADR-0006: Standardize Platform Journey Routing
 
 Date: 2026-06-29  
-Status: Proposed  
+Status: Accepted  
 App: Platform  
 Module: Journey  
 Capability: Post-authentication routing and onboarding flow  
