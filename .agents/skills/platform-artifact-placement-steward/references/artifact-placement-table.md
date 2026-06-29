@@ -40,13 +40,14 @@ Use existing conventions inside the owning scope before inventing a new folder.
 | Routable Razor host page | `src/Hosts/<Host>/Pages/...` | Compose route-level Razor UI and route-specific state |
 | React Web app shell/router/provider | `src/Hosts/<Host>/src/app`, `src/Hosts/<Host>/src/router`, or the host’s established equivalent | Compose host-level providers, layouts, and route registration without business rules |
 | Routable React Web page | `src/Hosts/<Host>/src/pages/...` or the host’s established route/page convention | Compose route-level React UI, route params, and route-specific state |
-| React Web feature component/hook | `src/Hosts/<Host>/src/features/<Feature>/components`, `hooks`, or `api` by existing convention | Orchestrate host-owned feature UI and use-case hooks without becoming a module source of truth |
+| React Web module feature component/hook | `src/Hosts/<Host>/src/features/<module>/components`, `hooks`, or `api` by existing convention | Orchestrate host-owned React UI for one module only, such as Medical or Knowledge |
+| React Web submodule/capability component/hook | `src/Hosts/<Host>/src/features/<module>/<capability>/components`, `hooks`, or `api` by existing convention | Keep nested capability UI, state, and generated-client wrappers separate, such as Medical/Prescription |
 | React Web host-only component | `src/Hosts/<Host>/src/components` or `src/Hosts/<Host>/src/ui` by existing convention | Provide host-specific reusable UI that is not module-owned and not a shared interface package |
 | React Web generated API/client/hooks | `src/Hosts/<Host>/src/api/generated` | Hold generated OpenAPI/Orval DTOs, clients, query hooks, query keys, and MSW mocks; never edit manually |
 | React Web API fetcher/mutator | `src/Hosts/<Host>/src/api` or established API infrastructure convention | Centralize base URL, auth, cookies/tokens, headers, cancellation, and ProblemDetails mapping |
-| React Web feature API wrapper | `src/Hosts/<Host>/src/features/<Feature>/api` or `hooks` by existing convention | Wrap generated hooks with use-case names and feature-owned invalidation/update behavior |
+| React Web feature API wrapper | `src/Hosts/<Host>/src/features/<module>/<optional-capability>/api` or `hooks` by existing convention | Wrap generated hooks with use-case names and feature-owned invalidation/update behavior inside the owning module/capability |
 | React Web asset/style | `src/Hosts/<Host>/src/assets`, `styles`, or the host’s established equivalent | Own host-specific frontend assets, theme hooks, and style entry points |
-| React Web test/mock fixture | Existing host test convention, `src/Hosts/<Host>/src/**/__tests__`, `*.test.ts(x)`, or generated MSW location if already established | Verify React host behavior near the feature/page/component it exercises |
+| React Web test/mock fixture | Existing host test convention, `src/Hosts/<Host>/src/**/__tests__`, `*.test.ts(x)`, or generated MSW location if already established | Verify React host behavior near the owning module, submodule, page, or component |
 | Host route constants/builders | `src/Hosts/<Host>/Common/Routes`, `src/Hosts/<Host>/src/routes`, or existing host route convention | Centralize host-owned UI navigation paths |
 | Host authorization/pipeline/platform integration | Existing `src/Hosts/<Host>/Authorization`, `Infrastructure/Pipeline`, or `Infrastructure/Platform` convention | Compose host-specific runtime behavior |
 | App-specific artifact | `src/Apps/<App>/...` | Own behavior specific to that app boundary |
