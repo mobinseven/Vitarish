@@ -91,6 +91,17 @@ jobs:
             const fs = require('fs');
             const { execSync } = require('child_process');
 
+            function detectRequiredSkills(planContent) {
+              const skills = [];
+              if (planContent.includes('HeroUI') || planContent.includes('React')) skills.push('heroui-react');
+              if (planContent.includes('OpenAPI') || planContent.includes('API contract')) skills.push('platform-openapi-contract-steward');
+              if (planContent.includes('journey') || planContent.includes('user flow')) skills.push('platform-user-journey-curator');
+              if (planContent.includes('test') || planContent.includes('coverage')) skills.push('platform-test-curator');
+              if (planContent.includes('ADR') || planContent.includes('architecture decision')) skills.push('platform-adr-steward');
+              if (skills.length === 0) skills.push('platform-pr-delivery-loop');
+              return skills;
+            }
+
             const planFile = '${{ steps.validate.outputs.plan_file }}';
             const planPath = `.mimocode/plans/${planFile}`;
             const planContent = fs.readFileSync(planPath, 'utf8');

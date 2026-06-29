@@ -78,6 +78,52 @@ jobs:
             const issue = context.payload.issue;
             const body = issue.body || '';
 
+            function extractSection(text, heading) {
+              const regex = new RegExp(`${heading}\\n([\\s\\S]*?)(?=\\n## |$)`);
+              return text.match(regex)?.[1]?.trim() || '';
+            }
+
+            function generatePlanContent(data) {
+              return [
+                `# Implementation Plan`,
+                '',
+                `**Issue**: #${data.issue_number}`,
+                `**URL**: ${data.issue_url}`,
+                '',
+                '## Objective',
+                '',
+                data.objective || 'Not specified',
+                '',
+                '## Scope',
+                '',
+                data.scope || 'Not specified',
+                '',
+                '## Constraints',
+                '',
+                data.constraints || 'Not specified',
+                '',
+                '## Required Skills',
+                '',
+                data.skills,
+                '',
+                '## Phases',
+                '',
+                '### Phase 1: Implementation',
+                '',
+                'Implement the changes described in the objective.',
+                '',
+                '### Phase 2: Verification',
+                '',
+                'Verify the implementation against architecture rules.',
+                '',
+                '## Verification',
+                '',
+                '- [ ] All tests pass',
+                '- [ ] Architecture rules satisfied',
+                '- [ ] Code review approved'
+              ].join('\n');
+            }
+
             // Parse issue sections
             const objective = extractSection(body, '## Objective');
             const scope = extractSection(body, '## Scope');

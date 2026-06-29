@@ -48,135 +48,36 @@ jobs:
           github-token: ${{ secrets.PR_BOT_TOKEN }}
           script: |
             const fs = require('fs');
-            const prNumber = parseInt('${{ steps.pr.outputs.pr_number }}');
-
-            // Get PR details
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber
-            });
-
-            // Get PR diff
-            const { data: diffData } = await github.request(
-              'GET /repos/{owner}/{repo}/pulls/{pull_number}',
-              {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: prNumber,
-                headers: {
-                  accept: 'application/vnd.github.v3.diff'
-                }
-              }
-            );
-
-            // Get changed files
-            const files = await github.paginate(github.rest.pulls.listFiles, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-              per_page: 100
-            });
-
-            const changedFiles = files.map(f => f.filename);
-
-            // Load AGENTS.md rules
-            const agentsMd = await readBaseFile('AGENTS.md', pr.base.sha);
-
-            // Load relevant skills
-            const skillsContent = await loadRelevantSkills(changedFiles);
-
-            // Generate review
-            const review = generateReview({
-              pr,
-              diff: String(diffData).slice(0, 100000),
-              changedFiles,
-              agentsMd,
-              skillsContent
-            });
-
-            // Determine verdict
-            const verdict = determineVerdict(review);
-
-            // Post review comment
-            const marker = '<!-- auto-implementation-review -->';
-            const body = [
-              `${marker}`,
-              '## Auto Implementation Review',
-              '',
-              `**Verdict**: ${verdict.status}`,
-              `**Confidence**: ${verdict.confidence}`,
-              '',
-              '### Findings',
-              '',
-              ...review.findings.map(f => [
-                `#### ${f.severity}: ${f.title}`,
-                f.description,
-                '',
-                `**Rule**: ${f.rule}`,
-                `**Location**: ${f.location}`,
-                `**Fix**: ${f.suggestion}`,
-                ''
-              ].join('\n')),
-              '',
-              '### Architecture Compliance',
-              '',
-              ...review.architecture.map(a => `- ${a.check}: ${a.status}`),
-              '',
-              '### Recommended Actions',
-              '',
-              ...review.actions.map(a => `- ${a}`),
-              '',
-              '---',
-              `**Model**: \`${process.env.MIMO_MODEL}\``,
-              `**Files reviewed**: ${changedFiles.length}`,
-              `**PR**: #${prNumber}`
-            ].join('\n');
-
-            // Upsert comment
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              per_page: 100
-            });
-
-            const { data: bot } = await github.rest.users.getAuthenticated();
-            const existing = comments.find(c =>
-              c.user?.login === bot.login && c.body?.includes(marker)
-            );
-
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-                body
-              });
-            }
-
-            // Handle verdict
-            if (verdict.status === 'changes_needed') {
-              await handleChangesNeeded(pr, verdict, review);
-            } else if (verdict.status === 'approved') {
-              await handleApproved(pr);
-            }
-
-      - name: Handle changes needed
-        if: steps.review.outputs.verdict == 'changes_needed'
-        uses: actions/github-script@v9
-        with:
-          github-token: ${{ secrets.PR_BOT_TOKEN }}
-          script: |
-            const fs = require('fs');
+            const { execSync } = require('child_process');
             const state = JSON.parse(fs.readFileSync('.mimocode/loop-state.json'));
+
+            function generateReplanPlan(state, feedback) {
+              return [
+                `# Replan Plan`,
+                '',
+                `**Issue**: #${state.issue_number}`,
+                `**Iteration**: ${state.iteration + 1}`,
+                `**Previous feedback**:`,
+                '',
+                feedback || 'No feedback provided',
+                '',
+                '## Objective',
+                '',
+                'Address review feedback and re-implement.',
+                '',
+                '## Phases',
+                '',
+                '### Phase 1: Address Feedback',
+                '',
+                'Fix all issues identified in the review.',
+                '',
+                '### Phase 2: Verification',
+                '',
+                'Re-verify against architecture rules.'
+              ].join('\n');
+            }
+
+            const reviewFeedback = state.review_feedback || 'Address all review findings';
 
             // Generate new plan based on review feedback
             const newPlan = generateReplanPlan(state, reviewFeedback);
