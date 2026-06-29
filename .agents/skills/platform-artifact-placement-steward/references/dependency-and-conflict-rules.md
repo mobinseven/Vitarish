@@ -13,8 +13,10 @@ Prefer inward, stable dependencies:
 - Module Interface artifacts may depend on Contracts, Client, UI-facing models/services, and approved frontend-safe libraries according to ADR-0003 and module convention.
 - `src/Interfaces/Interfaces.*` packages must remain UI-facing and must not depend on backend implementation details, persistence, host pages, Web host pages, or infrastructure adapters.
 - Host pages compose route-level UI and should not own reusable module or interface package behavior.
-- React Web host pages compose route-level UI and route-specific state; reusable React behavior belongs in feature, host component, module Interface, or interface package scope according to ownership.
+- React Web host pages compose route-level UI and route-specific state; reusable React behavior belongs in module feature, submodule/capability feature, host component, module Interface, or interface package scope according to ownership.
 - React Web host feature hooks/components may depend on generated API clients, feature-local UI/state, route-safe primitives, and frontend-safe libraries, but not backend implementation projects.
+- React Web host module features must not import sibling module internals; extract a shared host component/interface package when reuse is real.
+- React Web host submodule/capability features must not leak their internal state, API wrappers, or components into the parent module’s generic feature folder unless promoted to a named shared owner.
 - React Web host generated API/client/hook code must remain generated output and should be wrapped by feature hooks before page consumption.
 - Apps own app-specific behavior and should not become a dumping ground for reusable module logic.
 - Identity artifacts stay under Identity bounded contexts.
@@ -40,6 +42,9 @@ Report a possible placement conflict when:
 - React Web host pages contain reusable module/interface UI logic, business rules, generated code, raw HTTP endpoint details, or manual query-cache ownership that belongs in feature hooks
 - React Web host components or hooks depend on backend Application, Domain, Infrastructure, Api, server projects, persistence libraries, or server-only modules
 - React Web host feature code bypasses generated clients/hooks without a narrow, explicit reason
+- React Web host feature folders mix unrelated module ownership, such as Medical and Knowledge components in the same feature folder
+- React Web host submodule/capability artifacts are placed in a parent module’s generic feature folder despite owning distinct workflow, state, route group, API wrapper, query keys, or independent evolution
+- React Web host feature internals are imported by sibling modules or sibling capabilities instead of extracting a named shared owner
 - generated Web host API/client/hook/MSW code is edited manually or placed outside the generated API folder
 - `src/Interfaces/Interfaces.*` packages depend on backend implementation, persistence, host pages, Web host pages, or infrastructure adapters
 - shared libraries or `src/Modules/Base` contain module-specific business behavior
