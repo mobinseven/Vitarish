@@ -201,7 +201,7 @@ Legacy instructions may refer to `skills/`; use `.agents/skills/` as the canonic
 | HeroUI v3 React components, compound APIs, Tailwind v4, `@heroui/styles`, theming, docs, or agent UI guidance | HeroUI React | `.agents/skills/heroui-react/SKILL.md` |
 | Generate plan from GitHub issue | Platform Auto Plan Generator | `.agents/skills/platform-auto-plan-generator/SKILL.md` |
 | Execute implementation plan | Platform Auto Plan Executor | `.agents/skills/platform-auto-plan-executor/SKILL.md` |
-| Review implementation against rules | Platform Auto Loop Reviewer | `.agents/skills/platform-auto-loop-reviewer/SKILL.md` |
+| Review implementation | Platform Auto Loop Reviewer | `.agents/skills/platform-auto-loop-reviewer/SKILL.md` |
 | Manage implementation loop state | Platform Loop State Manager | `.agents/skills/platform-loop-state-manager/SKILL.md` |
 
 ### HeroUI React Contract
