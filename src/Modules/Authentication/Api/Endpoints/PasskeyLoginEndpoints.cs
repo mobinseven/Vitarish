@@ -12,7 +12,7 @@ public static class PasskeyLoginEndpoints
 {
     public static IEndpointRouteBuilder MapPasskeyLoginEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/login/passkey/begin", async (BeginPasskeyAuthenticationRequest request, BeginPasskeyLoginHandler handler, CancellationToken ct) =>
+        endpoints.MapPost("/login/passkey/begin", async (BeginPasskeyAuthenticationRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginPasskeyLoginHandler handler, CancellationToken ct) =>
         {
             var r = await handler.Handle(new BeginPasskeyLoginCommand(request.UserNameOrEmail, request.ReturnUrl), ct);
             return r is AuthenticationResult<ChallengeResult>.Success s
@@ -27,7 +27,7 @@ public static class PasskeyLoginEndpoints
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .WithSummary("Begins passkey login.");
 
-        endpoints.MapPost("/login/passkey/complete", async (CompletePasskeyAuthenticationRequest request, CompletePasskeyLoginHandler handler, CancellationToken ct) =>
+        endpoints.MapPost("/login/passkey/complete", async (CompletePasskeyAuthenticationRequest request, [Microsoft.AspNetCore.Mvc.FromServices] CompletePasskeyLoginHandler handler, CancellationToken ct) =>
         {
             var r = await handler.Handle(new CompletePasskeyLoginCommand(request.ChallengeId, request.CredentialJson, request.ReturnUrl), ct);
             return r is AuthenticationResult<LoginResult>.Success s

@@ -12,7 +12,7 @@ public static class AccountEmailChangeEndpoints
 {
     public static IEndpointRouteBuilder MapAccountEmailChangeEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/account/email/begin", async (BeginChangeEmailRequest request, BeginChangeEmailHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
+        endpoints.MapPost("/account/email/begin", async (BeginChangeEmailRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginChangeEmailHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
             string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
@@ -31,7 +31,7 @@ public static class AccountEmailChangeEndpoints
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .WithSummary("Begins email change.");
 
-        endpoints.MapPost("/account/email/complete", async (CompleteChangeEmailRequest request, CompleteChangeEmailHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
+        endpoints.MapPost("/account/email/complete", async (CompleteChangeEmailRequest request, [Microsoft.AspNetCore.Mvc.FromServices] CompleteChangeEmailHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
             string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();

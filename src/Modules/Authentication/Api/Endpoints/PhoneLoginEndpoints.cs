@@ -12,7 +12,7 @@ public static class PhoneLoginEndpoints
 {
     public static IEndpointRouteBuilder MapPhoneLoginEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/login/phone/begin", async (BeginPhoneLoginRequest request, BeginPhoneLoginHandler handler, CancellationToken ct) =>
+        endpoints.MapPost("/login/phone/begin", async (BeginPhoneLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginPhoneLoginHandler handler, CancellationToken ct) =>
         {
             var r = await handler.Handle(new BeginPhoneLoginCommand(request.PhoneNumber, request.ReturnUrl), ct);
             return r is AuthenticationResult<ChallengeResult>.Success s
@@ -28,7 +28,7 @@ public static class PhoneLoginEndpoints
         .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
         .WithSummary("Begins phone login.");
 
-        endpoints.MapPost("/login/phone/complete", async (CompletePhoneLoginRequest request, CompletePhoneLoginHandler handler, CancellationToken ct) =>
+        endpoints.MapPost("/login/phone/complete", async (CompletePhoneLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] CompletePhoneLoginHandler handler, CancellationToken ct) =>
         {
             var r = await handler.Handle(new CompletePhoneLoginCommand(request.ChallengeId, request.Code, request.ReturnUrl), ct);
             return r is AuthenticationResult<LoginResult>.Success s
