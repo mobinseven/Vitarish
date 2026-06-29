@@ -59,10 +59,10 @@ public static class FeedApi
         Before = parameters.Before
     };
 
-    private static IReadOnlyList<string> ParseQueryStringList(IReadOnlyList<string> values)
-        => values
+    private static IReadOnlyList<string> ParseQueryStringList(IReadOnlyList<string>? values)
+        => values?
             .Where(value => !string.IsNullOrWhiteSpace(value))
-            .ToArray();
+            .ToArray() ?? Array.Empty<string>();
 
     private static FeedItemResponse ToResponse(FeedItem item) => new(
         item.Id,
