@@ -16,7 +16,16 @@ using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Platform.Module.DependencyInjection;
+using Vitarish.Main.Infrastructure;
 using Vitarish.Modules.Base.Core;
+
+if (args.Length >= 2 && args[0] == "--export-openapi")
+{
+    string outputDir = args[1];
+    Directory.CreateDirectory(outputDir);
+    await OpenApiExporter.ExportAsync(outputDir);
+    return;
+}
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -91,22 +100,16 @@ _ = builder.Services.AddControllers();
 _ = builder.Services.AddEndpointsApiExplorer();
 // OpenAPI document generation is host-owned and exposed only in Development.
 _ = builder.Services.AddOpenApi();
-_ = builder.Services.AddModuleOpenApiDocument("authentication", "Authentication");
-_ = builder.Services.AddModuleOpenApiDocument("files", "Files");
-_ = builder.Services.AddModuleOpenApiDocument("users", "Users");
-_ = builder.Services.AddModuleOpenApiDocument("medical", "Medical");
-_ = builder.Services.AddModuleOpenApiDocument("sea", "Sea");
-_ = builder.Services.AddModuleOpenApiDocument("parties", "Parties");
-_ = builder.Services.AddModuleOpenApiDocument("communications", "Communications");
-_ = builder.Services.AddModuleOpenApiDocument("appointments", "Appointments");
-_ = builder.Services.AddModuleOpenApiDocument("search", "Search");
-_ = builder.Services.AddModuleOpenApiDocument("intelligence", "Intelligence");
-_ = builder.Services.AddModuleOpenApiDocument("social", "Social");
-_ = builder.Services.AddModuleOpenApiDocument("feed", "Feed");
-_ = builder.Services.AddModuleOpenApiDocument("knowledge", "Knowledge");
-_ = builder.Services.AddModuleOpenApiDocument("requests", "Requests");
-_ = builder.Services.AddModuleOpenApiDocument("commerce", "Commerce");
-_ = builder.Services.AddModuleOpenApiDocument("clinic", "Clinic");
+string[] moduleNames =
+[
+    "authentication", "files", "users", "medical", "sea", "parties",
+    "communications", "appointments", "search", "intelligence",
+    "social", "feed", "knowledge", "requests", "commerce", "clinic"
+];
+foreach (string module in moduleNames)
+{
+    _ = builder.Services.AddModuleOpenApiDocument(module, module);
+}
 _ = builder.Services.AddLocalization();
 Func<object, Task<string?>> tenantResolver = async context =>
 {

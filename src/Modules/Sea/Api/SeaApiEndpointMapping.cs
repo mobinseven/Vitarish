@@ -19,7 +19,7 @@ public static class SeaApiEndpointMapping
 {
     public static IEndpointRouteBuilder MapSeaApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(SeaApiRoutes.Base).WithTags("Sea");
+        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(SeaApiRoutes.Base);
         _ = group.MapModuleGet(SeaApiRoutes.Health, (CancellationToken cancellationToken) => Results.Ok(new SeaCommandResult(true)), "SeaGetHealth", typeof(SeaCommandResult));
 
         _ = group.MapGet(SeaApiRoutes.Projects, async (IProjectsService s, CancellationToken ct) => OkList<C.ProjectReadDto>((await s.GetListAsync(new D.ProjectDescriptorDto(), ct)).Value ?? []));

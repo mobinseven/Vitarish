@@ -21,7 +21,7 @@ public static class KnowledgeApi
 {
     public static IEndpointRouteBuilder MapKnowledgeApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(KnowledgeApiRoutes.Base).WithTags("Knowledge");
+        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(KnowledgeApiRoutes.Base);
         _ = group.MapModulePost(KnowledgeApiRoutes.OwnerWorkspace, OwnerWorkspaceAsync, "KnowledgeOwnerWorkspace");
         _ = group.MapModulePost(KnowledgeApiRoutes.Corpora, CreateCorpusAsync, "KnowledgeCreateCorpus");
         _ = group.MapModulePost(KnowledgeApiRoutes.Sources, ImportSourceAsync, "KnowledgeImportSource");
