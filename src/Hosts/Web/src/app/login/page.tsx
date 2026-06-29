@@ -1,3 +1,5 @@
+"use client";
+
 import { Card } from "@heroui/react";
 import { AuthMethodSelector } from "@/components/auth/AuthMethodSelector";
 
