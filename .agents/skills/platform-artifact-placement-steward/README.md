@@ -5,7 +5,7 @@ This skill classifies source, test, and documentation artifacts before they are 
 It protects the repository structure by answering:
 
 - what kind of artifact is this?
-- which app/module/host/context owns it?
+- which app/module/host/Web host/context owns it?
 - where should it live?
 - what dependencies are allowed?
 - where should related tests and docs go?
@@ -33,6 +33,10 @@ Use the Platform Artifact Placement Steward. Review this PR diff and identify mi
 Use the Platform Artifact Placement Steward. Classify the artifacts needed by this roadmap task before implementation.
 ```
 
+```txt
+Use the Platform Artifact Placement Steward. I need to add a React page and feature components to the Web host. Where should they live?
+```
+
 ## Core rule
 
 Classify first. Place second. Implement third.
@@ -43,8 +47,9 @@ Generated or reviewed artifacts should be scoped to one of:
 
 - `src/Apps/<App>`
 - `src/Modules/<Module>`
-- `src/Hosts/<Host>`
+- `src/Hosts/<Host>` including React Web host `src`, pages, features, components, generated API clients, and assets
 - `src/Identity/<BoundedContext>`
+- `src/Interfaces/Interfaces.<Name>`
 - `src/Libraries` or `src/Modules/Base`
 - `tests/...`
 - `docs/...`
