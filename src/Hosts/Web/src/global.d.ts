@@ -14,7 +14,3 @@ declare module "@tanstack/react-query" {
   export function useQuery(opts: any): any;
   export function useQueryClient(): QueryClient;
 }
-
-declare module "@heroui/theme" {
-  export function heroui(): any;
-}

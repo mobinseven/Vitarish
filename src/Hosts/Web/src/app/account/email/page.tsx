@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Card, CardBody, CardHeader, Input, Button, Link } from "@heroui/react";
+import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { useUserProfileQuery } from "@/api/generated/users/users";
 import { apiFetch } from "@/api/client/apiFetch";
@@ -72,35 +72,34 @@ export default function EmailChangePage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <Card>
-        <CardHeader>
+      <Card className="glass-card">
+        <Card.Header>
           <h1 className="text-2xl font-bold">Change Email</h1>
-        </CardHeader>
-        <CardBody className="flex flex-col gap-4">
+        </Card.Header>
+        <Card.Content className="flex flex-col gap-4">
           {profile?.email && (
-            <p className="text-sm text-default-500">
+            <p className="text-sm text-muted">
               Current: {profile.email}
             </p>
           )}
           {error && <StatusMessage message={error} />}
           {success && (
-            <StatusMessage message="Email updated successfully" />
+            <StatusMessage message="Email updated successfully" type="success" />
           )}
 
           {step === "email" ? (
             <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
-              <Input
-                label="New Email"
-                type="email"
-                value={email}
-                onValueChange={setEmail}
-                isRequired
-                autoComplete="email"
-              />
+              <TextField name="email" type="email" isRequired>
+                <Label>New Email</Label>
+                <Input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                />
+              </TextField>
               <Button
                 type="submit"
-                color="primary"
-                isLoading={isLoading}
+                isPending={isLoading}
                 className="w-full"
               >
                 Send Code
@@ -108,7 +107,7 @@ export default function EmailChangePage() {
             </form>
           ) : (
             <form onSubmit={handleCodeSubmit} className="flex flex-col gap-4">
-              <p className="text-sm text-default-500">
+              <p className="text-sm text-muted">
                 Code sent to {email}
               </p>
               <OtpCodeInput
@@ -118,15 +117,14 @@ export default function EmailChangePage() {
               />
               <Button
                 type="submit"
-                color="primary"
-                isLoading={isLoading}
+                isPending={isLoading}
                 isDisabled={code.length !== 6}
                 className="w-full"
               >
                 Verify Code
               </Button>
               <Button
-                variant="flat"
+                variant="tertiary"
                 onPress={() => {
                   setStep("email");
                   setCode("");
@@ -142,7 +140,7 @@ export default function EmailChangePage() {
           <Link href="/account" className="text-sm">
             Back to settings
           </Link>
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );

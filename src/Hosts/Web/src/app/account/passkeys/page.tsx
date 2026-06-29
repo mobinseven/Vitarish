@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Card, CardBody, CardHeader, Button, Link } from "@heroui/react";
+import { Card, Button, Link } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import {
   useWebAuthnCredentialsQuery,
@@ -66,36 +66,35 @@ export default function PasskeysPage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <Card>
-        <CardHeader>
+      <Card className="glass-card">
+        <Card.Header>
           <h1 className="text-2xl font-bold">Passkeys</h1>
-        </CardHeader>
-        <CardBody className="flex flex-col gap-4">
+        </Card.Header>
+        <Card.Content className="flex flex-col gap-4">
           {error && <StatusMessage message={error} />}
-          {success && <StatusMessage message={success} />}
+          {success && <StatusMessage message={success} type="success" />}
 
           {isSupported === false && (
             <StatusMessage message="Passkeys are not supported in this browser" />
           )}
 
           {isLoadingCredentials ? (
-            <p className="text-sm text-default-500">Loading passkeys...</p>
+            <p className="text-sm text-muted">Loading passkeys...</p>
           ) : credentials && credentials.length > 0 ? (
             <div className="flex flex-col gap-2">
               {credentials.map((cred: { id: string; friendlyName: string | null }) => (
                 <div
                   key={cred.id}
-                  className="flex items-center justify-between p-3 border border-divider rounded-lg"
+                  className="flex items-center justify-between p-3 border border-border rounded-lg"
                 >
                   <span className="text-sm">
                     {cred.friendlyName ?? "Unnamed passkey"}
                   </span>
                   <Button
-                    color="danger"
+                    variant="danger-soft"
                     size="sm"
-                    variant="flat"
                     onPress={() => handleDelete(cred.id)}
-                    isLoading={deleteCredential.isPending}
+                    isPending={deleteCredential.isPending}
                   >
                     Delete
                   </Button>
@@ -103,17 +102,16 @@ export default function PasskeysPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-default-500">No passkeys registered</p>
+            <p className="text-sm text-muted">No passkeys registered</p>
           )}
 
           {isSupported && (
             <Button
-              color="primary"
               onPress={handleRegister}
-              isLoading={beginRegister.isPending || completeRegister.isPending}
-              startContent={<i className="fa-solid fa-plus" />}
+              isPending={beginRegister.isPending || completeRegister.isPending}
               className="w-full"
             >
+              <i className="fa-solid fa-plus" />
               Register New Passkey
             </Button>
           )}
@@ -121,7 +119,7 @@ export default function PasskeysPage() {
           <Link href="/account" className="text-sm">
             Back to settings
           </Link>
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );

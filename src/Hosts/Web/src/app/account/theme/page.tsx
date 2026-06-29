@@ -49,9 +49,8 @@ export default function ThemePage() {
         <StatusMessage message="Theme updated successfully" type="success" />
       )}
       <Button
-        color="primary"
         onPress={handleSave}
-        isLoading={setTheme.isPending}
+        isPending={setTheme.isPending}
         className="w-full"
       >
         Save

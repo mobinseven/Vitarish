@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Input, Button, Form } from "@heroui/react";
+import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { usePhoneLogin } from "@/hooks/auth/usePhoneLogin";
 import { StatusMessage } from "./StatusMessage";
 import { OtpCodeInput } from "./OtpCodeInput";
@@ -45,7 +45,7 @@ export function PhoneOtpForm({ returnUrl }: PhoneOtpFormProps) {
     return (
       <Form onSubmit={handleCodeSubmit} className="flex flex-col gap-4">
         {errorMessage && <StatusMessage message={errorMessage} />}
-        <p className="text-sm text-default-500">
+        <p className="text-sm text-muted">
           Code sent to {phoneNumber}
           {remainingAttempts !== undefined && (
             <span className="block text-xs">
@@ -65,15 +65,14 @@ export function PhoneOtpForm({ returnUrl }: PhoneOtpFormProps) {
         />
         <Button
           type="submit"
-          color="primary"
-          isLoading={isLoading}
+          isPending={isLoading}
           isDisabled={code.length !== 6}
           className="w-full"
         >
           Verify Code
         </Button>
         <Button
-          variant="flat"
+          variant="tertiary"
           onPress={reset}
           isDisabled={isLoading}
           className="w-full"
@@ -87,20 +86,19 @@ export function PhoneOtpForm({ returnUrl }: PhoneOtpFormProps) {
   return (
     <Form onSubmit={handlePhoneSubmit} className="flex flex-col gap-4">
       {errorMessage && <StatusMessage message={errorMessage} />}
-      <Input
-        label="Phone Number"
-        placeholder="Enter your phone number"
-        value={phoneInput}
-        onValueChange={setPhoneInput}
-        isRequired
-        autoComplete="tel"
-        inputMode="tel"
-        isDisabled={isLoading}
-      />
+      <TextField name="phone" isRequired isDisabled={isLoading}>
+        <Label>Phone Number</Label>
+        <Input
+          placeholder="Enter your phone number"
+          value={phoneInput}
+          onChange={(e) => setPhoneInput(e.target.value)}
+          autoComplete="tel"
+          inputMode="tel"
+        />
+      </TextField>
       <Button
         type="submit"
-        color="primary"
-        isLoading={isLoading}
+        isPending={isLoading}
         className="w-full"
       >
         Send Code

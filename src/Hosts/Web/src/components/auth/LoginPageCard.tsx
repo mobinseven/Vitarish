@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Card, CardBody, CardHeader, Link } from "@heroui/react";
+import { Card, Link } from "@heroui/react";
 
 interface LoginPageCardProps {
   title: string;
@@ -19,17 +19,17 @@ export function LoginPageCard({
   children,
 }: LoginPageCardProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="flex flex-col items-center gap-2 pb-2">
+    <div className="auth-bg flex min-h-screen items-center justify-center p-4">
+      <Card className="glass-card w-full max-w-md">
+        <Card.Header className="flex flex-col items-center gap-2 pb-2">
           <h1 className="text-2xl font-bold">{title}</h1>
-          <p className="text-sm text-default-500">{subtitle}</p>
-        </CardHeader>
-        <CardBody className="flex flex-col gap-4">
+          <p className="text-sm text-muted">{subtitle}</p>
+        </Card.Header>
+        <Card.Content className="flex flex-col gap-4">
           <Suspense
             fallback={
               <div
-                className="w-full animate-pulse rounded-xl bg-default-100"
+                className="w-full animate-pulse rounded-xl bg-default"
                 style={{ height: skeletonHeight }}
               />
             }
@@ -41,7 +41,7 @@ export function LoginPageCard({
               {backLabel}
             </Link>
           </div>
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );

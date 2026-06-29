@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Card, CardBody, CardHeader, Input, Button, Link } from "@heroui/react";
+import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { useUserProfileQuery } from "@/api/generated/users/users";
 import { apiFetch } from "@/api/client/apiFetch";
@@ -72,35 +72,35 @@ export default function PhoneChangePage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <Card>
-        <CardHeader>
+      <Card className="glass-card">
+        <Card.Header>
           <h1 className="text-2xl font-bold">Change Phone Number</h1>
-        </CardHeader>
-        <CardBody className="flex flex-col gap-4">
+        </Card.Header>
+        <Card.Content className="flex flex-col gap-4">
           {profile?.phoneNumber && (
-            <p className="text-sm text-default-500">
+            <p className="text-sm text-muted">
               Current: {profile.phoneNumber}
             </p>
           )}
           {error && <StatusMessage message={error} />}
           {success && (
-            <StatusMessage message="Phone number updated successfully" />
+            <StatusMessage message="Phone number updated successfully" type="success" />
           )}
 
           {step === "phone" ? (
             <form onSubmit={handlePhoneSubmit} className="flex flex-col gap-4">
-              <Input
-                label="New Phone Number"
-                value={phoneNumber}
-                onValueChange={setPhoneNumber}
-                isRequired
-                autoComplete="tel"
-                inputMode="tel"
-              />
+              <TextField name="phone" isRequired>
+                <Label>New Phone Number</Label>
+                <Input
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  autoComplete="tel"
+                  inputMode="tel"
+                />
+              </TextField>
               <Button
                 type="submit"
-                color="primary"
-                isLoading={isLoading}
+                isPending={isLoading}
                 className="w-full"
               >
                 Send Code
@@ -108,7 +108,7 @@ export default function PhoneChangePage() {
             </form>
           ) : (
             <form onSubmit={handleCodeSubmit} className="flex flex-col gap-4">
-              <p className="text-sm text-default-500">
+              <p className="text-sm text-muted">
                 Code sent to {phoneNumber}
               </p>
               <OtpCodeInput
@@ -118,15 +118,14 @@ export default function PhoneChangePage() {
               />
               <Button
                 type="submit"
-                color="primary"
-                isLoading={isLoading}
+                isPending={isLoading}
                 isDisabled={code.length !== 6}
                 className="w-full"
               >
                 Verify Code
               </Button>
               <Button
-                variant="flat"
+                variant="tertiary"
                 onPress={() => {
                   setStep("phone");
                   setCode("");
@@ -142,7 +141,7 @@ export default function PhoneChangePage() {
           <Link href="/account" className="text-sm">
             Back to settings
           </Link>
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );

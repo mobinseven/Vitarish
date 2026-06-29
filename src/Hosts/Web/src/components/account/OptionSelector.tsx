@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardBody, CardHeader, Button } from "@heroui/react";
+import { Card, Button } from "@heroui/react";
 
 interface Option<T extends string> {
   value: T;
@@ -21,17 +21,16 @@ export function OptionSelector<T extends string>({
   onSelect,
 }: OptionSelectorProps<T>) {
   return (
-    <Card>
-      <CardHeader>
+    <Card className="glass-card">
+      <Card.Header>
         <h1 className="text-2xl font-bold">{title}</h1>
-      </CardHeader>
-      <CardBody>
+      </Card.Header>
+      <Card.Content>
         <div className="flex flex-col gap-2">
           {options.map((option) => (
             <Button
               key={option.value}
-              variant={selected === option.value ? "solid" : "flat"}
-              color={selected === option.value ? "primary" : "default"}
+              variant={selected === option.value ? "primary" : "tertiary"}
               onPress={() => onSelect(option.value)}
               className="w-full justify-start"
             >
@@ -39,7 +38,7 @@ export function OptionSelector<T extends string>({
             </Button>
           ))}
         </div>
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 }
