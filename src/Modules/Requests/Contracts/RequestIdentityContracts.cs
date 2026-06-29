@@ -14,7 +14,6 @@ public sealed record RequestIdentityQueryParameters
     public string? ResourceId { get; init; }
     public string? TraceId { get; init; }
     public string? AdditionalInfo { get; init; }
-    public IReadOnlyList<RequestIdentitySortParameter>? Sorts { get; init; }
 }
 
 public sealed record RequestIdentitySortParameter(string Field, bool Descending);

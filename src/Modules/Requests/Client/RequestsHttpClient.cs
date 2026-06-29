@@ -9,13 +9,14 @@ public sealed class RequestsHttpClient(HttpClient httpClient) : AuthenticatedMod
 {
     public Task<RequestsClientResult<RequestIdentityPageResponse>> QueryRequestIdentitiesAsync(
         RequestIdentityQueryParameters parameters,
+        IReadOnlyList<RequestIdentitySortParameter>? sorts,
         CancellationToken cancellationToken) =>
-        SendQueryAsync<RequestIdentityPageResponse>(BuildIdentitiesUri(parameters), cancellationToken);
+        SendQueryAsync<RequestIdentityPageResponse>(BuildIdentitiesUri(parameters, sorts), cancellationToken);
 
     private async Task<RequestsClientResult<T>> SendQueryAsync<T>(string requestUri, CancellationToken cancellationToken) =>
         MapResult(await GetJsonAsync<T>(requestUri, cancellationToken).ConfigureAwait(false));
 
-    private static string BuildIdentitiesUri(RequestIdentityQueryParameters parameters)
+    private static string BuildIdentitiesUri(RequestIdentityQueryParameters parameters, IReadOnlyList<RequestIdentitySortParameter>? sorts)
     {
         List<string> query = [];
         Add(query, "page", parameters.Page?.ToString(CultureInfo.InvariantCulture));
@@ -30,7 +31,7 @@ public sealed class RequestsHttpClient(HttpClient httpClient) : AuthenticatedMod
         Add(query, "resourceId", parameters.ResourceId);
         Add(query, "traceId", parameters.TraceId);
         Add(query, "additionalInfo", parameters.AdditionalInfo);
-        AddSorts(query, parameters.Sorts);
+        AddSorts(query, sorts);
 
         return query.Count == 0
             ? RequestsRoutes.Base + RequestsRoutes.Identities

@@ -25,10 +25,11 @@ public static class FeedApi
 
     private static async Task<IResult> QueryFeedItemsAsync(
         [AsParameters] FeedQueryParameters parameters,
+        HttpRequest httpRequest,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        IReadOnlyList<FeedItem> items = await mediator.Send(new GetFeedQuery(ToOptions(parameters)), cancellationToken);
+        IReadOnlyList<FeedItem> items = await mediator.Send(new GetFeedQuery(ToOptions(parameters, httpRequest)), cancellationToken);
         return Results.Ok(items.Select(ToResponse).ToArray());
     }
 
@@ -48,15 +49,20 @@ public static class FeedApi
         return Results.Ok(ToResponse(configuration));
     }
 
-    private static FeedQueryOptions ToOptions(FeedQueryParameters parameters) => new()
+    private static FeedQueryOptions ToOptions(FeedQueryParameters parameters, HttpRequest httpRequest) => new()
     {
         Limit = parameters.Limit ?? 50,
         Skip = parameters.Skip ?? 0,
-        SourceIds = parameters.SourceIds,
-        ItemTypes = parameters.ItemTypes,
+        SourceIds = ParseQueryStringList(httpRequest.Query["sourceIds"]),
+        ItemTypes = ParseQueryStringList(httpRequest.Query["itemTypes"]),
         After = parameters.After,
         Before = parameters.Before
     };
+
+    private static IReadOnlyList<string> ParseQueryStringList(IReadOnlyList<string>? values)
+        => values?
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .ToArray() ?? Array.Empty<string>();
 
     private static FeedItemResponse ToResponse(FeedItem item) => new(
         item.Id,

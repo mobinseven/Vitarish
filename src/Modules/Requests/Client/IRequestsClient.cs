@@ -4,5 +4,5 @@ namespace Vitarish.Requests.Client;
 
 public interface IRequestsClient
 {
-    Task<RequestsClientResult<RequestIdentityPageResponse>> QueryRequestIdentitiesAsync(RequestIdentityQueryParameters parameters, CancellationToken cancellationToken);
+    Task<RequestsClientResult<RequestIdentityPageResponse>> QueryRequestIdentitiesAsync(RequestIdentityQueryParameters parameters, IReadOnlyList<RequestIdentitySortParameter>? sorts, CancellationToken cancellationToken);
 }
