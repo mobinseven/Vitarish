@@ -135,6 +135,8 @@ builder.Services.AddScoped<IEntityTimeService>(sp => sp.GetRequiredService<Entit
 
 builder.Services.AddSingleton<INotificationHandler<EntityNotification>, EntityNotificationHandler>();
 
+builder.Services.AddVitarishModulesBaseInterface();
+
 WebApplication app = builder.Build();
 
 _ = await app.MigrateDatabaseAsync<AuditDbContext>();
