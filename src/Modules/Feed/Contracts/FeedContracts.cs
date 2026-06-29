@@ -4,8 +4,6 @@ public sealed record FeedQueryParameters
 {
     public int? Limit { get; init; }
     public int? Skip { get; init; }
-    public IReadOnlyList<string>? SourceIds { get; init; }
-    public IReadOnlyList<string>? ItemTypes { get; init; }
     public DateTime? After { get; init; }
     public DateTime? Before { get; init; }
 }

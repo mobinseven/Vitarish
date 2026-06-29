@@ -9,8 +9,10 @@ public sealed class FeedHttpClient(HttpClient httpClient) : AuthenticatedModuleA
 {
     public Task<FeedClientResult<IReadOnlyList<FeedItemResponse>>> QueryFeedItemsAsync(
         FeedQueryParameters parameters,
+        IReadOnlyList<string>? sourceIds,
+        IReadOnlyList<string>? itemTypes,
         CancellationToken cancellationToken) =>
-        SendQueryAsync<IReadOnlyList<FeedItemResponse>>(BuildItemsUri(parameters), cancellationToken);
+        SendQueryAsync<IReadOnlyList<FeedItemResponse>>(BuildItemsUri(parameters, sourceIds, itemTypes), cancellationToken);
 
     public Task<FeedClientResult<IReadOnlyList<FeedSourceResponse>>> QueryFeedSourcesAsync(
         CancellationToken cancellationToken) =>
@@ -23,15 +25,15 @@ public sealed class FeedHttpClient(HttpClient httpClient) : AuthenticatedModuleA
     private async Task<FeedClientResult<T>> SendQueryAsync<T>(string requestUri, CancellationToken cancellationToken) =>
         MapResult(await GetJsonAsync<T>(requestUri, cancellationToken).ConfigureAwait(false));
 
-    private static string BuildItemsUri(FeedQueryParameters parameters)
+    private static string BuildItemsUri(FeedQueryParameters parameters, IReadOnlyList<string>? sourceIds, IReadOnlyList<string>? itemTypes)
     {
         List<string> query = [];
         Add(query, "limit", parameters.Limit?.ToString(CultureInfo.InvariantCulture));
         Add(query, "skip", parameters.Skip?.ToString(CultureInfo.InvariantCulture));
         Add(query, "after", parameters.After?.ToString("O", CultureInfo.InvariantCulture));
         Add(query, "before", parameters.Before?.ToString("O", CultureInfo.InvariantCulture));
-        AddMany(query, "sourceIds", parameters.SourceIds);
-        AddMany(query, "itemTypes", parameters.ItemTypes);
+        AddMany(query, "sourceIds", sourceIds);
+        AddMany(query, "itemTypes", itemTypes);
 
         return query.Count == 0
             ? FeedRoutes.Base + FeedRoutes.Items
