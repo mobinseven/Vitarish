@@ -11,7 +11,7 @@ public static class CurrentSessionEndpoints
 {
     public static IEndpointRouteBuilder MapCurrentSessionEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/session", async (GetCurrentAuthenticationSessionHandler handler, CancellationToken ct) =>
+        endpoints.MapGet("/session", async ([Microsoft.AspNetCore.Mvc.FromServices] GetCurrentAuthenticationSessionHandler handler, CancellationToken ct) =>
         {
             var result = await handler.Handle(new GetCurrentAuthenticationSessionQuery(), ct);
             return result is AuthenticationResult<Vitarish.Authentication.Application.Abstractions.AuthenticationUserDescriptor?>.Success s
@@ -24,7 +24,7 @@ public static class CurrentSessionEndpoints
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .WithSummary("Gets the current authentication session.");
 
-        endpoints.MapGet("/me", async (GetCurrentAuthenticationSessionHandler handler, CancellationToken ct) =>
+        endpoints.MapGet("/me", async ([Microsoft.AspNetCore.Mvc.FromServices] GetCurrentAuthenticationSessionHandler handler, CancellationToken ct) =>
         {
             var result = await handler.Handle(new GetCurrentAuthenticationSessionQuery(), ct);
             return result is AuthenticationResult<Vitarish.Authentication.Application.Abstractions.AuthenticationUserDescriptor?>.Success s && s.Value is not null

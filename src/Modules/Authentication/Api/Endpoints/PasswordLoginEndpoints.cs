@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Vitarish.Authentication.Api.Mapping;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
@@ -12,7 +13,7 @@ public static class PasswordLoginEndpoints
 {
     public static IEndpointRouteBuilder MapPasswordLoginEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/login/password", async (PasswordLoginRequest request, LoginWithPasswordHandler handler, CancellationToken ct) =>
+        endpoints.MapPost("/login/password", async (PasswordLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] LoginWithPasswordHandler handler, CancellationToken ct) =>
         {
             var r = await handler.Handle(new LoginWithPasswordCommand(request.UserNameOrEmail, request.Password, request.ReturnUrl, request.RememberMe), ct);
             return r is AuthenticationResult<LoginResult>.Success s

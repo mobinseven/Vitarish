@@ -12,7 +12,7 @@ public static class EmailLoginEndpoints
 {
     public static IEndpointRouteBuilder MapEmailLoginEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/login/email/begin", async (BeginEmailLoginRequest request, BeginEmailLoginHandler handler, CancellationToken ct) =>
+        endpoints.MapPost("/login/email/begin", async (BeginEmailLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginEmailLoginHandler handler, CancellationToken ct) =>
         {
             var r = await handler.Handle(new BeginEmailLoginCommand(request.Email, request.ReturnUrl), ct);
             return r is AuthenticationResult<ChallengeResult>.Success s
@@ -28,7 +28,7 @@ public static class EmailLoginEndpoints
         .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
         .WithSummary("Begins email login.");
 
-        endpoints.MapPost("/login/email/complete", async (CompleteEmailLoginRequest request, CompleteEmailLoginHandler handler, CancellationToken ct) =>
+        endpoints.MapPost("/login/email/complete", async (CompleteEmailLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] CompleteEmailLoginHandler handler, CancellationToken ct) =>
         {
             var r = await handler.Handle(new CompleteEmailLoginCommand(request.ChallengeId, request.Code, request.ReturnUrl), ct);
             return r is AuthenticationResult<LoginResult>.Success s
