@@ -1,6 +1,6 @@
 ---
 name: platform-artifact-placement-steward
-description: Use before creating, moving, or reviewing repository artifacts to classify ownership, location, dependencies, tests, documentation, ADR impact, and ADR-0003 frontend/backend isolation impact.
+description: Use before creating, moving, or reviewing repository artifacts to classify ownership, location, dependencies, tests, documentation, ADR impact, ADR-0003 frontend/backend isolation impact, and React Web host page/component placement.
 ---
 
 # Platform Artifact Placement Steward
@@ -13,9 +13,9 @@ This skill is a placement, ownership, and architecture-conformance steward. It i
 
 ## Use When
 
-Use this skill before creating, moving, or reviewing any source file, test, document, route, module, app artifact, identity artifact, interface package, contract, client, API, infrastructure adapter, UI component, command, query, DTO, repository, DbContext, migration, DI registration, or background job.
+Use this skill before creating, moving, or reviewing any source file, test, document, route, module, app artifact, host artifact, identity artifact, interface package, contract, client, API, infrastructure adapter, UI component, React component, React page, route module, feature hook, generated web client, command, query, DTO, repository, DbContext, migration, DI registration, or background job.
 
-Use it especially when the task mentions artifact placement, module boundaries, frontend/backend isolation, ADR-0003, `Contracts`, `Client`, `Api`, `Interface`, dependency direction, test placement, or docs/ADR impact.
+Use it especially when the task mentions artifact placement, module boundaries, frontend/backend isolation, ADR-0003, `Contracts`, `Client`, `Api`, `Interface`, Web host, React, page placement, component placement, dependency direction, test placement, or docs/ADR impact.
 
 ## Relationship to Other Skills
 
@@ -24,7 +24,7 @@ Use this skill before implementation artifacts are created.
 - Journey Curator identifies user workflows and design objectives.
 - Roadmap Curator derives features and implementation tasks.
 - ADR Steward records new or changed architecture decisions.
-- Frontend/Backend Isolation checks Interface, Contracts, Api, Application, and backend dependency boundaries.
+- Frontend/Backend Isolation checks Interface, Contracts, Api, Application, Web host, and backend dependency boundaries.
 - Localization Maintenance checks UI text, localization resource ownership, and localizer usage.
 - Test Curator derives required unit and hot-test scenarios.
 
@@ -40,7 +40,7 @@ Primary sources:
 - `docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md`
 - `docs/platform/modules/platform/conventions/adr-0003-implementation-conventions.md`
 - `docs/platform/modules/platform/validation/adr-0003-interface-boundary-validation.md`
-- Existing conventions in the owning module, app, host, identity context, interface package, library, test project, or docs tree
+- Existing conventions in the owning module, app, host, React Web host, identity context, interface package, library, test project, or docs tree
 
 ## Core Rule
 
@@ -49,7 +49,7 @@ Classify first. Place second. Implement third.
 Every recommendation must answer:
 
 1. What artifact type is this?
-2. Which app, module, host, identity context, interface package, library, or platform scope owns it?
+2. Which app, module, host, Web host, identity context, interface package, library, or platform scope owns it?
 3. What is the preferred location?
 4. Why does it belong there?
 5. What dependencies are allowed?
@@ -58,19 +58,21 @@ Every recommendation must answer:
 8. Is documentation required?
 9. Is an ADR required or recommended?
 10. Does ADR-0003 apply?
-11. Which validation command should be run?
+11. Does React Web host placement apply?
+12. Which validation command should be run?
 
 ## Operating Procedure
 
-1. Read the artifact name, purpose, behavior, and intended consumers.
-2. Classify whether it owns business state, changes state, reads data, adapts technology, transports data, calls HTTP, registers endpoints, renders UI, composes routes, registers services, localizes UI, documents behavior, or verifies behavior.
+1. Read the artifact name, purpose, behavior, intended consumers, and runtime host.
+2. Classify whether it owns business state, changes state, reads data, adapts technology, transports data, calls HTTP, registers endpoints, renders Razor UI, renders React UI, composes a route/page, owns feature/client state, wraps generated clients/hooks, registers services, localizes UI, documents behavior, or verifies behavior.
 3. Identify the owning scope.
 4. Determine whether ADR-0003 applies.
-5. Prefer the existing convention inside that scope before inventing folders.
-6. Apply the placement table and dependency rules.
-7. Check for ownership, CQRS, frontend/backend isolation, and source-of-truth conflicts.
-8. Identify related tests, docs, ADR impact, localization impact, and validation impact.
-9. Return the smallest correct placement recommendation.
+5. Determine whether React Web host placement applies.
+6. Prefer the existing convention inside that scope before inventing folders.
+7. Apply the placement table, Web host rules, and dependency rules.
+8. Check for ownership, CQRS, frontend/backend isolation, React host/module boundary, and source-of-truth conflicts.
+9. Identify related tests, docs, ADR impact, localization impact, and validation impact.
+10. Return the smallest correct placement recommendation.
 
 ## Required References
 
@@ -78,11 +80,12 @@ Read only the reference files needed for the task:
 
 - `references/scope-classification.md` for ownership scope decisions.
 - `references/artifact-placement-table.md` for artifact-to-location mapping.
+- `references/web-host-react-placement.md` for React Web host page, component, hook, generated client, asset, and route placement.
 - `references/adr-0003-boundary-rules.md` for Contracts, Client, Api, Interface, Application, Domain, Infrastructure, and Module boundaries.
 - `references/dependency-and-conflict-rules.md` for dependency direction and conflict detection.
 - `references/route-endpoint-rules.md` for route, endpoint, command, and query placement.
 - `references/test-doc-adr-routing.md` for test placement, documentation placement, and ADR impact.
-- `references/validation.md` for ADR-0003 static validation commands.
+- `references/validation.md` for ADR-0003 and Web host validation commands.
 - `references/output-formats.md` for exact response formats.
 
 ## Guardrails
@@ -93,12 +96,15 @@ Read only the reference files needed for the task:
 - Do not move artifacts only for symmetry.
 - Do not create shared abstractions before there are at least two real consumers or a clear platform requirement.
 - Do not create ADR-0003 `Contracts`, `Client`, or `Api` projects only for symmetry.
-- Do not place reusable module behavior in a host page.
+- Do not place reusable module behavior in a host page or React page.
 - Do not place app-specific behavior in shared modules.
-- Do not place backend implementation details in `src/Interfaces/Interfaces.*` or `src/Modules/<Module>/Interface`.
+- Do not place backend implementation details in `src/Interfaces/Interfaces.*`, `src/Modules/<Module>/Interface`, or a React Web host.
 - Do not place technology adapters in Domain or Application.
 - Do not place public API contract DTOs in Domain for ADR-0003 migrated module boundaries.
-- Do not place business rules in controllers, repositories, DTOs, migrations, adapters, UI components, clients, contracts, or localization resources.
+- Do not place business rules in controllers, repositories, DTOs, migrations, adapters, UI components, React components, pages, clients, contracts, or localization resources.
+- Do not place reusable React UI in a routable page when a feature, host component, module Interface, or interface package scope owns it.
+- Do not edit generated Web host API/client/hook code manually.
+- Do not let a React Web host import backend Application, Domain, Infrastructure, Api, server projects, persistence libraries, or server-only modules.
 - If placement is ambiguous and ownership affects architecture, ask for clarification unless a safe narrow assumption is obvious.
 
 ## Evidence of Use
@@ -113,4 +119,4 @@ Also include any validation command that should be run.
 
 ## Style
 
-Be direct and practical. Prefer tables for multiple artifacts. Explain reasons using ownership, dependency direction, state change, reuse, host composition, persistence, interface boundary, transport contract, source of truth, or platform convention.
+Be direct and practical. Prefer tables for multiple artifacts. Explain reasons using ownership, dependency direction, state change, reuse, host composition, route composition, persistence, interface boundary, transport contract, React/Web host boundary, source of truth, or platform convention.
