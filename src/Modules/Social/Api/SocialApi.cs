@@ -20,7 +20,7 @@ public static class SocialApi
 {
     public static IEndpointRouteBuilder MapSocialApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(SocialApiRoutes.Base);
+        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(SocialApiRoutes.Base).WithTags("Social");
         _ = group.MapModuleGet(SocialApiRoutes.Connections, ListConnectionsAsync, "SocialListConnections", typeof(SocialConnectionResponse[]));
         _ = group.MapModuleGet(SocialApiRoutes.LatestWebhookForConnection, GetLatestWebhookAsync, "SocialGetLatestWebhook", typeof(SocialWebhookEventResponse));
         _ = group.MapModulePost(SocialApiRoutes.ReplayWebhook, ReplayWebhookAsync, "SocialReplayWebhook", typeof(SocialReplayWebhookResponse));

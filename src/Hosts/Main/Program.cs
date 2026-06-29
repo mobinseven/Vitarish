@@ -95,6 +95,18 @@ _ = builder.Services.AddModuleOpenApiDocument("authentication", "Authentication"
 _ = builder.Services.AddModuleOpenApiDocument("files", "Files");
 _ = builder.Services.AddModuleOpenApiDocument("users", "Users");
 _ = builder.Services.AddModuleOpenApiDocument("medical", "Medical");
+_ = builder.Services.AddModuleOpenApiDocument("sea", "Sea");
+_ = builder.Services.AddModuleOpenApiDocument("parties", "Parties");
+_ = builder.Services.AddModuleOpenApiDocument("communications", "Communications");
+_ = builder.Services.AddModuleOpenApiDocument("appointments", "Appointments");
+_ = builder.Services.AddModuleOpenApiDocument("search", "Search");
+_ = builder.Services.AddModuleOpenApiDocument("intelligence", "Intelligence");
+_ = builder.Services.AddModuleOpenApiDocument("social", "Social");
+_ = builder.Services.AddModuleOpenApiDocument("feed", "Feed");
+_ = builder.Services.AddModuleOpenApiDocument("knowledge", "Knowledge");
+_ = builder.Services.AddModuleOpenApiDocument("requests", "Requests");
+_ = builder.Services.AddModuleOpenApiDocument("commerce", "Commerce");
+_ = builder.Services.AddModuleOpenApiDocument("clinic", "Clinic");
 _ = builder.Services.AddLocalization();
 Func<object, Task<string?>> tenantResolver = async context =>
 {

@@ -15,7 +15,7 @@ public static class IntelligenceApiEndpointMapping
 
     public static IEndpointRouteBuilder MapIntelligenceApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(IntelligenceApiRoutes.Base);
+        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(IntelligenceApiRoutes.Base).WithTags("Intelligence");
         _ = group.MapModulePost(IntelligenceApiRoutes.Responder, RespondAsync, "IntelligenceRespond");
         _ = group.MapModulePost(IntelligenceApiRoutes.ResponderStream, StreamRespondAsync, "IntelligenceStreamRespond", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
         _ = group.MapModulePost(IntelligenceApiRoutes.Transcription, TranscribeAsync, "IntelligenceTranscribe");

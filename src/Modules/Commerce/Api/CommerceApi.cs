@@ -12,7 +12,7 @@ public static class CommerceApi
 {
     public static IEndpointRouteBuilder MapCommerceApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(CommerceApiRoutes.Base);
+        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(CommerceApiRoutes.Base).WithTags("Commerce");
         _ = group.MapModulePost(CommerceApiRoutes.Products, SearchProductsAsync, "CommerceSearchProducts", typeof(ProductReadDto[]));
         _ = group.MapModulePost(CommerceApiRoutes.ProductCount, CountProductsAsync, "CommerceCountProducts", typeof(int));
         _ = group.MapModulePost(CommerceApiRoutes.Orders, SearchOrdersAsync, "CommerceSearchOrders", typeof(OrderReadDto[]));

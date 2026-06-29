@@ -18,7 +18,7 @@ public static class FilesApiEndpointMapping
 {
     public static IEndpointRouteBuilder MapFilesApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(FilesApiRoutes.Base);
+        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(FilesApiRoutes.Base).WithTags("Files");
         _ = group.MapModuleGet(FilesApiRoutes.ById, GetFileInformationAsync, "FilesGetFileInformation", typeof(C.FileInformationDto));
         _ = group.MapModulePost("/search", FindFilesAsync, "FilesFindFiles", typeof(C.FileInformationDto[]));
         _ = group.MapModulePost(string.Empty, CreateFileRecordAsync, "FilesCreateFileRecord", typeof(C.FileInformationDto));

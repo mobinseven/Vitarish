@@ -16,7 +16,7 @@ public static class UsersApi
 {
     public static IEndpointRouteBuilder MapUsersApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder users = endpoints.MapProtectedModuleGroup(UsersApiRoutes.Base);
+        RouteGroupBuilder users = endpoints.MapProtectedModuleGroup(UsersApiRoutes.Base).WithTags("Users");
         _ = users.MapModuleGet(UsersApiRoutes.Search, SearchUsersAsync, "UsersSearchUsers", typeof(UserSummaryResponse[]));
         _ = users.MapModuleGet(UsersApiRoutes.ById, GetUserAsync, "UsersGetUser", typeof(UserSummaryResponse));
         _ = users.MapModuleGet(UsersApiRoutes.CheckEmail, CheckEmailAsync, "UsersCheckEmail", typeof(UserExistenceResponse));

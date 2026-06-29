@@ -17,7 +17,7 @@ public static class PartiesApiEndpointMapping
 {
     public static IEndpointRouteBuilder MapPartiesApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(PartiesApiRoutes.Base);
+        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(PartiesApiRoutes.Base).WithTags("Parties");
         _ = group.MapModuleGet(PartiesApiRoutes.UserTenants, GetUserTenantsAsync, "PartiesGetUserTenants");
         _ = group.MapModuleGet(PartiesApiRoutes.Owners, GetOwnersAsync, "PartiesGetOwners");
         _ = group.MapModuleGet(PartiesApiRoutes.OwnerById, GetOwnerAsync, "PartiesGetOwner");

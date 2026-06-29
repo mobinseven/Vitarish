@@ -26,7 +26,7 @@ public static class ClinicApiEndpointMapping
 
     public static IEndpointRouteBuilder MapClinicApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(ClinicApiRoutes.Base);
+        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(ClinicApiRoutes.Base).WithTags("Clinic");
 
         _ = group.MapModuleGet(ClinicApiRoutes.Health, () => Results.Ok(), "ClinicGetHealth");
         _ = group.MapModulePost(ClinicApiRoutes.Patients, ListPatientsAsync, "ClinicListPatients", typeof(PatientViewDto[]));

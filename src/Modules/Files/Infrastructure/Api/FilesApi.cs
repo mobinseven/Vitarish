@@ -10,7 +10,7 @@ public static class FilesApi
 {
     public static IEndpointRouteBuilder MapFilesApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder filesGroup = endpoints.MapProtectedModuleGroup("/files");
+        RouteGroupBuilder filesGroup = endpoints.MapProtectedModuleGroup("/files").WithTags("Files");
 
         _ = filesGroup.MapModuleGet("/{id:guid}", GetFileByIdAsync, "FilesGetFileById", profile: ModuleEndpointProfile.BinaryDownload, contentType: ModuleEndpointOpenApiConventions.BinaryStream);
         _ = filesGroup.MapModuleHead("/{id:guid}", GetFileByIdAsync, "FilesGetFileByIdHead", contentType: ModuleEndpointOpenApiConventions.BinaryStream);

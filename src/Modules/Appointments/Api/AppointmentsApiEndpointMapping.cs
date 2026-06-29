@@ -13,7 +13,7 @@ public static class AppointmentsApiEndpointMapping
 {
     public static IEndpointRouteBuilder MapAppointmentsApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(AppointmentsApiRoutes.Base);
+        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(AppointmentsApiRoutes.Base).WithTags("Appointments");
         _ = group.MapModuleGet("/health", (CancellationToken cancellationToken) => Results.Ok(new AppointmentsCommandResult(true)), "AppointmentsGetHealth", typeof(AppointmentsCommandResult));
         _ = group.MapModulePost(AppointmentsApiRoutes.BookableDates, (BookableDateQueryRequest request, CancellationToken cancellationToken) => Results.Ok(Array.Empty<ShiftReservationReadDto>()), "AppointmentsListBookableDates", typeof(ShiftReservationReadDto[]));
         _ = group.MapModulePost(AppointmentsApiRoutes.BookableSlots, (BookableSlotQueryRequest request, CancellationToken cancellationToken) => Results.Ok(Array.Empty<BookableShiftSlot>()), "AppointmentsListBookableSlots", typeof(BookableShiftSlot[]));

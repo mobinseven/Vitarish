@@ -24,7 +24,7 @@ public static class MedicalApiEndpointMapping
 {
     public static IEndpointRouteBuilder MapMedicalApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(MedicalApiRoutes.Base);
+        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(MedicalApiRoutes.Base).WithTags("Medical");
         _ = group.MapModulePost(MedicalApiRoutes.CodeSystems + "/list", ListCodeSystemsAsync, "MedicalListCodeSystems");
         _ = group.MapModulePost(MedicalApiRoutes.CodeSystemById, GetCodeSystemAsync, "MedicalGetCodeSystem");
         _ = group.MapModulePost(MedicalApiRoutes.CodeSystemByKey, GetCodeSystemByKeyAsync, "MedicalGetCodeSystemByKey");
