@@ -23,6 +23,66 @@ Authentication will authenticate the user and delegate post-authentication routi
 
 Frontend clients will follow the destination returned by Journey and must not duplicate journey priority rules.
 
+## Journey Graph
+
+```mermaid
+flowchart TD
+    A[Visitor opens platform] --> B{Has valid session?}
+
+    B -- No --> C[Auth entry]
+    C --> D{Known intent?}
+    D -- Protected returnUrl --> E[Store safe returnUrl]
+    D -- No intent --> F[Use default public landing]
+
+    E --> G[Choose auth method]
+    F --> G
+
+    G --> H{Method}
+    H -- Password --> I[Password login]
+    H -- Email OTP --> J[Begin email challenge]
+    H -- Phone OTP --> K[Begin phone challenge]
+    H -- Passkey --> L[Begin passkey challenge]
+    H -- External IdP later --> M[OIDC/OAuth callback]
+
+    I --> N{Auth result}
+    J --> O[Complete challenge]
+    K --> O
+    L --> O
+    M --> N
+    O --> N
+
+    N -- Failed --> P[Safe error + retry / recovery]
+    N -- Locked / risk --> Q[Recovery or support path]
+    N -- Needs additional factor --> R[MFA challenge]
+    R --> N
+
+    N -- Success --> S[Create/renew session]
+    S --> T[Resolve journey]
+
+    B -- Yes --> T
+
+    T --> U{Mandatory gates}
+
+    U -- Email/phone not confirmed --> V[Confirm contact]
+    U -- Profile incomplete --> W[Complete profile]
+    U -- Legal consent missing --> X[Accept terms/privacy]
+    U -- Tenant/app context missing --> Y[Choose workspace/app]
+    U -- Security setup recommended --> Z[Suggest passkey/MFA]
+    U -- No blocking gates --> AA[Resolve final destination]
+
+    V --> T
+    W --> T
+    X --> T
+    Y --> T
+    Z --> AA
+
+    AA --> AB{Destination}
+    AB -- Safe returnUrl allowed --> AC[Original requested page]
+    AB -- App context exists --> AD[App dashboard]
+    AB -- Personal account --> AE[Profile/Home]
+    AB -- Fallback --> AF[Global dashboard]
+```
+
 ## Journey Priority
 
 Journey resolves destinations in this order:
