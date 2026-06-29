@@ -16,7 +16,16 @@ using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Platform.Module.DependencyInjection;
+using Vitarish.Main.Infrastructure;
 using Vitarish.Modules.Base.Core;
+
+if (args.Length >= 2 && args[0] == "--export-openapi")
+{
+    string outputDir = args[1];
+    Directory.CreateDirectory(outputDir);
+    await OpenApiExporter.ExportAsync(outputDir);
+    return;
+}
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -91,10 +100,6 @@ _ = builder.Services.AddControllers();
 _ = builder.Services.AddEndpointsApiExplorer();
 // OpenAPI document generation is host-owned and exposed only in Development.
 _ = builder.Services.AddOpenApi();
-_ = builder.Services.AddModuleOpenApiDocument("authentication", "Authentication");
-_ = builder.Services.AddModuleOpenApiDocument("files", "Files");
-_ = builder.Services.AddModuleOpenApiDocument("users", "Users");
-_ = builder.Services.AddModuleOpenApiDocument("medical", "Medical");
 _ = builder.Services.AddLocalization();
 Func<object, Task<string?>> tenantResolver = async context =>
 {
