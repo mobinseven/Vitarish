@@ -1,9 +1,20 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
+
+const navLinks = [
+  { href: "/account", label: "Settings", icon: "fa-solid fa-gear" },
+  { href: "/account/name", label: "Name", icon: "fa-solid fa-person" },
+  { href: "/account/email", label: "Email", icon: "fa-solid fa-envelope" },
+  { href: "/account/phone", label: "Phone", icon: "fa-solid fa-mobile" },
+  { href: "/account/password", label: "Password", icon: "fa-solid fa-lock" },
+  { href: "/account/passkeys", label: "Passkeys", icon: "fa-solid fa-key" },
+  { href: "/account/theme", label: "Theme", icon: "fa-solid fa-palette" },
+  { href: "/account/culture", label: "Language", icon: "fa-solid fa-globe" },
+];
 
 export default function AccountLayout({
   children,
@@ -12,6 +23,7 @@ export default function AccountLayout({
 }) {
   const { isAuthenticated, isLoading } = useAuthSession();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -33,17 +45,25 @@ export default function AccountLayout({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-64 border-r border-divider p-4">
-        <h2 className="text-lg font-bold mb-4">Account</h2>
-        <nav className="flex flex-col gap-2">
-          <Link href="/account" className="text-sm hover:text-primary">Settings</Link>
-          <Link href="/account/name" className="text-sm hover:text-primary">Name</Link>
-          <Link href="/account/email" className="text-sm hover:text-primary">Email</Link>
-          <Link href="/account/phone" className="text-sm hover:text-primary">Phone</Link>
-          <Link href="/account/password" className="text-sm hover:text-primary">Password</Link>
-          <Link href="/account/passkeys" className="text-sm hover:text-primary">Passkeys</Link>
-          <Link href="/account/theme" className="text-sm hover:text-primary">Theme</Link>
-          <Link href="/account/culture" className="text-sm hover:text-primary">Language</Link>
+      <aside className="sidebar">
+        <h2 className="text-lg font-bold mb-4 px-3">Account</h2>
+        <nav className="flex flex-col gap-1">
+          {navLinks.map((link) => {
+            const isActive =
+              link.href === "/account"
+                ? pathname === "/account"
+                : pathname.startsWith(link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`sidebar-nav-item ${isActive ? "sidebar-nav-item-active" : ""}`}
+              >
+                <i className={`${link.icon} w-4 text-center text-xs`} />
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
       </aside>
       <main className="flex-1 p-8">{children}</main>

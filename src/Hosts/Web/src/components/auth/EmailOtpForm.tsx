@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Input, Button, Form } from "@heroui/react";
+import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { useEmailLogin } from "@/hooks/auth/useEmailLogin";
 import { StatusMessage } from "./StatusMessage";
 import { OtpCodeInput } from "./OtpCodeInput";
@@ -45,7 +45,7 @@ export function EmailOtpForm({ returnUrl }: EmailOtpFormProps) {
     return (
       <Form onSubmit={handleCodeSubmit} className="flex flex-col gap-4">
         {errorMessage && <StatusMessage message={errorMessage} />}
-        <p className="text-sm text-default-500">
+        <p className="text-sm text-muted">
           Code sent to {email}
           {remainingAttempts !== undefined && (
             <span className="block text-xs">
@@ -65,15 +65,14 @@ export function EmailOtpForm({ returnUrl }: EmailOtpFormProps) {
         />
         <Button
           type="submit"
-          color="primary"
-          isLoading={isLoading}
+          isPending={isLoading}
           isDisabled={code.length !== 6}
           className="w-full"
         >
           Verify Code
         </Button>
         <Button
-          variant="flat"
+          variant="tertiary"
           onPress={reset}
           isDisabled={isLoading}
           className="w-full"
@@ -87,20 +86,18 @@ export function EmailOtpForm({ returnUrl }: EmailOtpFormProps) {
   return (
     <Form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
       {errorMessage && <StatusMessage message={errorMessage} />}
-      <Input
-        label="Email"
-        placeholder="Enter your email address"
-        type="email"
-        value={emailInput}
-        onValueChange={setEmailInput}
-        isRequired
-        autoComplete="email"
-        isDisabled={isLoading}
-      />
+      <TextField name="email" type="email" isRequired isDisabled={isLoading}>
+        <Label>Email</Label>
+        <Input
+          placeholder="Enter your email address"
+          value={emailInput}
+          onChange={(e) => setEmailInput(e.target.value)}
+          autoComplete="email"
+        />
+      </TextField>
       <Button
         type="submit"
-        color="primary"
-        isLoading={isLoading}
+        isPending={isLoading}
         className="w-full"
       >
         Send Code

@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@heroui/react";
+import { TextField, Label, Input, FieldError } from "@heroui/react";
 import { useCallback } from "react";
 
 interface OtpCodeInputProps {
@@ -30,21 +30,23 @@ export function OtpCodeInput({
   );
 
   return (
-    <Input
-      label="Verification Code"
-      placeholder="Enter 6-digit code"
-      value={value}
-      onChange={handleChange}
+    <TextField
+      name="otp"
       isInvalid={isInvalid}
-      errorMessage={errorMessage}
       isDisabled={isDisabled}
-      maxLength={6}
-      pattern="[0-9]{6}"
-      inputMode="numeric"
-      autoComplete="one-time-code"
-      classNames={{
-        input: "text-center text-lg tracking-[0.5em]",
-      }}
-    />
+    >
+      <Label>Verification Code</Label>
+      <Input
+        placeholder="Enter 6-digit code"
+        value={value}
+        onChange={handleChange}
+        maxLength={6}
+        pattern="[0-9]{6}"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        className="text-center text-lg tracking-[0.5em]"
+      />
+      {isInvalid && errorMessage && <FieldError>{errorMessage}</FieldError>}
+    </TextField>
   );
 }

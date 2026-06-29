@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Card, CardBody, CardHeader, Input, Button, Link } from "@heroui/react";
+import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { apiFetch } from "@/api/client/apiFetch";
 import { StatusMessage } from "@/components/auth/StatusMessage";
@@ -55,41 +55,41 @@ export default function PasswordChangePage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <Card>
-        <CardHeader>
+      <Card className="glass-card">
+        <Card.Header>
           <h1 className="text-2xl font-bold">Change Password</h1>
-        </CardHeader>
-        <CardBody className="flex flex-col gap-4">
+        </Card.Header>
+        <Card.Content className="flex flex-col gap-4">
           {error && <StatusMessage message={error} />}
-          {success && <StatusMessage message="Password changed successfully" />}
+          {success && <StatusMessage message="Password changed successfully" type="success" />}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Input
-              label="Current Password"
-              type="password"
-              value={currentPassword}
-              onValueChange={setCurrentPassword}
-              autoComplete="current-password"
-            />
-            <Input
-              label="New Password"
-              type="password"
-              value={newPassword}
-              onValueChange={setNewPassword}
-              isRequired
-              autoComplete="new-password"
-            />
-            <Input
-              label="Confirm New Password"
-              type="password"
-              value={confirmPassword}
-              onValueChange={setConfirmPassword}
-              isRequired
-              autoComplete="new-password"
-            />
+            <TextField name="currentPassword" type="password">
+              <Label>Current Password</Label>
+              <Input
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </TextField>
+            <TextField name="newPassword" type="password" isRequired>
+              <Label>New Password</Label>
+              <Input
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+            </TextField>
+            <TextField name="confirmPassword" type="password" isRequired>
+              <Label>Confirm New Password</Label>
+              <Input
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+            </TextField>
             <Button
               type="submit"
-              color="primary"
-              isLoading={isLoading}
+              isPending={isLoading}
               className="w-full"
             >
               Change Password
@@ -98,7 +98,7 @@ export default function PasswordChangePage() {
           <Link href="/account" className="text-sm">
             Back to settings
           </Link>
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );

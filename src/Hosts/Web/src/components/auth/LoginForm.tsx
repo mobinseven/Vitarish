@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Input, Button, Form } from "@heroui/react";
+import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { usePasswordLogin } from "@/hooks/auth/usePasswordLogin";
 import { StatusMessage } from "./StatusMessage";
 
@@ -25,29 +25,27 @@ export function LoginForm({ returnUrl }: LoginFormProps) {
   return (
     <Form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {errorMessage && <StatusMessage message={errorMessage} />}
-      <Input
-        label="Username or Email"
-        placeholder="Enter your username or email"
-        value={userNameOrEmail}
-        onValueChange={setUserNameOrEmail}
-        isRequired
-        autoComplete="username"
-        isDisabled={isLoading}
-      />
-      <Input
-        label="Password"
-        placeholder="Enter your password"
-        type="password"
-        value={password}
-        onValueChange={setPassword}
-        isRequired
-        autoComplete="current-password"
-        isDisabled={isLoading}
-      />
+      <TextField name="username" isRequired isDisabled={isLoading}>
+        <Label>Username or Email</Label>
+        <Input
+          placeholder="Enter your username or email"
+          value={userNameOrEmail}
+          onChange={(e) => setUserNameOrEmail(e.target.value)}
+          autoComplete="username"
+        />
+      </TextField>
+      <TextField name="password" type="password" isRequired isDisabled={isLoading}>
+        <Label>Password</Label>
+        <Input
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
+        />
+      </TextField>
       <Button
         type="submit"
-        color="primary"
-        isLoading={isLoading}
+        isPending={isLoading}
         className="w-full"
       >
         Sign In

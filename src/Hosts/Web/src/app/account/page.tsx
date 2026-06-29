@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardBody, CardHeader, Link } from "@heroui/react";
+import { Card, Link } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 
 const settingsLinks = [
@@ -18,19 +18,19 @@ export default function AccountSettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Card>
-        <CardHeader>
+      <Card className="glass-card">
+        <Card.Header>
           <h1 className="text-2xl font-bold">Account Settings</h1>
-        </CardHeader>
-        <CardBody className="flex flex-col gap-4">
+        </Card.Header>
+        <Card.Content className="flex flex-col gap-4">
           {user && (
-            <div className="text-sm text-default-500 mb-4">
+            <div className="text-sm text-muted mb-4">
               Signed in as {user.displayName ?? user.email ?? user.phoneNumber}
             </div>
           )}
           {settingsLinks.map((link) => (
             <Link key={link.href} href={link.href} className="block">
-              <Card className="p-4 hover:bg-default-100 cursor-pointer">
+              <Card variant="transparent" className="p-4 hover:bg-default cursor-pointer transition-colors">
                 <div className="flex items-center gap-3">
                   <i className={link.icon} />
                   <span>{link.label}</span>
@@ -38,7 +38,7 @@ export default function AccountSettingsPage() {
               </Card>
             </Link>
           ))}
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Card, CardBody, CardHeader, Input, Button, Link } from "@heroui/react";
+import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { useUserProfileQuery, useUpdateUserProfileMutation } from "@/api/generated/users/users";
 import { StatusMessage } from "@/components/auth/StatusMessage";
@@ -35,34 +35,29 @@ export default function NamePage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <Card>
-        <CardHeader>
+      <Card className="glass-card">
+        <Card.Header>
           <h1 className="text-2xl font-bold">Edit Name</h1>
-        </CardHeader>
-        <CardBody className="flex flex-col gap-4">
+        </Card.Header>
+        <Card.Content className="flex flex-col gap-4">
           {updateProfile.isError && (
             <StatusMessage message="Failed to update name" />
           )}
           {success && (
-            <StatusMessage message="Name updated successfully" />
+            <StatusMessage message="Name updated successfully" type="success" />
           )}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Input
-              label="First Name"
-              value={firstName}
-              onValueChange={setFirstName}
-              isRequired
-            />
-            <Input
-              label="Last Name"
-              value={lastName}
-              onValueChange={setLastName}
-              isRequired
-            />
+            <TextField name="firstName" isRequired>
+              <Label>First Name</Label>
+              <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            </TextField>
+            <TextField name="lastName" isRequired>
+              <Label>Last Name</Label>
+              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+            </TextField>
             <Button
               type="submit"
-              color="primary"
-              isLoading={updateProfile.isPending}
+              isPending={updateProfile.isPending}
               className="w-full"
             >
               Save
@@ -71,7 +66,7 @@ export default function NamePage() {
           <Link href="/account" className="text-sm">
             Back to settings
           </Link>
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );

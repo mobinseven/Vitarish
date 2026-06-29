@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Button } from "@heroui/react";
+import { Card } from "@heroui/react";
 import Link from "next/link";
 
 const methods = [
@@ -50,16 +50,14 @@ export function AuthMethodSelector() {
   return (
     <div className="flex flex-col gap-3">
       {methods.map((method) => (
-        <Card key={method.id} className="p-0">
-          <Button
-            as={Link}
+        <Card key={method.id} variant="transparent" className="p-0">
+          <Link
             href={method.href}
-            variant="light"
-            className="w-full justify-start gap-3 h-14 px-4"
-            startContent={method.icon}
+            className="flex items-center gap-3 w-full h-14 px-4 rounded-lg text-foreground hover:bg-default transition-colors"
           >
+            {method.icon}
             {method.label}
-          </Button>
+          </Link>
         </Card>
       ))}
     </div>

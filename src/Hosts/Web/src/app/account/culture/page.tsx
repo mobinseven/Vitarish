@@ -48,9 +48,8 @@ export default function CulturePage() {
         <StatusMessage message="Language updated successfully" type="success" />
       )}
       <Button
-        color="primary"
         onPress={handleSave}
-        isLoading={setCulture.isPending}
+        isPending={setCulture.isPending}
         className="w-full"
       >
         Save
