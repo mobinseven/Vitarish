@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --accent: oklch(0.45 0.15 270);
   --accent-foreground: oklch(1.0 0 0);
