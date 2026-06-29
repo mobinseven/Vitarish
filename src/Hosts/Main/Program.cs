@@ -16,16 +16,7 @@ using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Platform.Module.DependencyInjection;
-using Vitarish.Main.Infrastructure;
 using Vitarish.Modules.Base.Core;
-
-if (args.Length >= 2 && args[0] == "--export-openapi")
-{
-    string outputDir = args[1];
-    Directory.CreateDirectory(outputDir);
-    await OpenApiExporter.ExportAsync(outputDir);
-    return;
-}
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
