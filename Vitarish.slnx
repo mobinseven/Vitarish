@@ -83,48 +83,30 @@
     <Project Path="src/Modules/Base/Interface/Modules.Base.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Commerce/">
-    <Project Path="src/Modules/Commerce/Api/Commerce.Api.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Commerce/Api/Commerce.Api.csproj" />
     <Project Path="src/Modules/Commerce/Application/Commerce.Application.csproj" />
-    <Project Path="src/Modules/Commerce/Client/Commerce.Client.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
-    <Project Path="src/Modules/Commerce/Contracts/Commerce.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Commerce/Client/Commerce.Client.csproj" />
+    <Project Path="src/Modules/Commerce/Contracts/Commerce.Contracts.csproj" />
     <Project Path="src/Modules/Commerce/Domain/Commerce.Domain.csproj" />
     <Project Path="src/Modules/Commerce/Infrastructure/Commerce.Infrastructure.csproj" />
     <Project Path="src/Modules/Commerce/Interface/Commerce.Interface.csproj" />
     <Project Path="src/Modules/Commerce/Module/Commerce.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Communications/">
-    <Project Path="src/Modules/Communications/Api/Communications.Api.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Communications/Api/Communications.Api.csproj" />
     <Project Path="src/Modules/Communications/Application/Communications.Application.csproj" />
-    <Project Path="src/Modules/Communications/Client/Communications.Client.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
-    <Project Path="src/Modules/Communications/Contracts/Communications.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Communications/Client/Communications.Client.csproj" />
+    <Project Path="src/Modules/Communications/Contracts/Communications.Contracts.csproj" />
     <Project Path="src/Modules/Communications/Domain/Communications.Domain.csproj" />
     <Project Path="src/Modules/Communications/Infrastructure/Communications.Infrastructure.csproj" />
     <Project Path="src/Modules/Communications/Interface/Communications.Interface.csproj" />
     <Project Path="src/Modules/Communications/Module/Communications.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Contents/">
-    <Project Path="src/Modules/Contents/Api/Contents.Api.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Contents/Api/Contents.Api.csproj" />
     <Project Path="src/Modules/Contents/Application/Contents.Application.csproj" />
-    <Project Path="src/Modules/Contents/Client/Contents.Client.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
-    <Project Path="src/Modules/Contents/Contracts/Contents.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Contents/Client/Contents.Client.csproj" />
+    <Project Path="src/Modules/Contents/Contracts/Contents.Contracts.csproj" />
     <Project Path="src/Modules/Contents/Domain/Contents.Domain.csproj" />
     <Project Path="src/Modules/Contents/Infrastructure/Contents.Infrastructure.csproj" />
     <Project Path="src/Modules/Contents/Interface/Contents.Interface.csproj" />
@@ -141,48 +123,30 @@
     <Project Path="src/Modules/Feed/Module/Feed.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Files/">
-    <Project Path="src/Modules/Files/Api/Files.Api.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Files/Api/Files.Api.csproj" />
     <Project Path="src/Modules/Files/Application/Files.Application.csproj" />
-    <Project Path="src/Modules/Files/Client/Files.Client.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
-    <Project Path="src/Modules/Files/Contracts/Files.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Files/Client/Files.Client.csproj" />
+    <Project Path="src/Modules/Files/Contracts/Files.Contracts.csproj" />
     <Project Path="src/Modules/Files/Domain/Files.Domain.csproj" />
     <Project Path="src/Modules/Files/Infrastructure/Files.Infrastructure.csproj" />
     <Project Path="src/Modules/Files/Interface/Files.Interface.csproj" />
     <Project Path="src/Modules/Files/Module/Files.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Financial/">
-    <Project Path="src/Modules/Financial/Api/Financial.Api.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Financial/Api/Financial.Api.csproj" />
     <Project Path="src/Modules/Financial/Application/Financial.Application.csproj" />
-    <Project Path="src/Modules/Financial/Client/Financial.Client.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
-    <Project Path="src/Modules/Financial/Contracts/Financial.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Financial/Client/Financial.Client.csproj" />
+    <Project Path="src/Modules/Financial/Contracts/Financial.Contracts.csproj" />
     <Project Path="src/Modules/Financial/Domain/Financial.Domain.csproj" />
     <Project Path="src/Modules/Financial/Infrastructure/Financial.Infrastructure.csproj" />
     <Project Path="src/Modules/Financial/Interface/Financial.Interface.csproj" />
     <Project Path="src/Modules/Financial/Module/Financial.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Intelligence/">
-    <Project Path="src/Modules/Intelligence/Api/Intelligence.Api.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Intelligence/Api/Intelligence.Api.csproj" />
     <Project Path="src/Modules/Intelligence/Application/Intelligence.Application.csproj" />
-    <Project Path="src/Modules/Intelligence/Client/Intelligence.Client.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
-    <Project Path="src/Modules/Intelligence/Contracts/Intelligence.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Intelligence/Client/Intelligence.Client.csproj" />
+    <Project Path="src/Modules/Intelligence/Contracts/Intelligence.Contracts.csproj" />
     <Project Path="src/Modules/Intelligence/Domain/Intelligence.Domain.csproj" />
     <Project Path="src/Modules/Intelligence/Infrastructure/Intelligence.Infrastructure.csproj" />
     <Project Path="src/Modules/Intelligence/Interface/Intelligence.Interface.csproj" />
@@ -199,32 +163,20 @@
     <Project Path="src/Modules/Knowledge/Module/Knowledge.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Links/">
-    <Project Path="src/Modules/Links/Api/Links.Api.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Links/Api/Links.Api.csproj" />
     <Project Path="src/Modules/Links/Application/Links.Application.csproj" />
-    <Project Path="src/Modules/Links/Client/Links.Client.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
-    <Project Path="src/Modules/Links/Contracts/Links.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Links/Client/Links.Client.csproj" />
+    <Project Path="src/Modules/Links/Contracts/Links.Contracts.csproj" />
     <Project Path="src/Modules/Links/Domain/Links.Domain.csproj" />
     <Project Path="src/Modules/Links/Infrastructure/Links.Infrastructure.csproj" />
     <Project Path="src/Modules/Links/Interface/Links.Interface.csproj" />
     <Project Path="src/Modules/Links/Module/Links.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Medical/">
-    <Project Path="src/Modules/Medical/Api/Medical.Api.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Medical/Api/Medical.Api.csproj" />
     <Project Path="src/Modules/Medical/Application/Medical.Application.csproj" />
-    <Project Path="src/Modules/Medical/Client/Medical.Client.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
-    <Project Path="src/Modules/Medical/Contracts/Medical.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Medical/Client/Medical.Client.csproj" />
+    <Project Path="src/Modules/Medical/Contracts/Medical.Contracts.csproj" />
     <Project Path="src/Modules/Medical/Domain/Medical.Domain.csproj" />
     <Project Path="src/Modules/Medical/Infrastructure/Medical.Infrastructure.csproj" />
     <Project Path="src/Modules/Medical/Interface/Medical.Interface.csproj" />
@@ -234,9 +186,7 @@
     <Project Path="src/Modules/Parties/Api/Parties.Api.csproj" />
     <Project Path="src/Modules/Parties/Application/Parties.Application.csproj" />
     <Project Path="src/Modules/Parties/Client/Parties.Client.csproj" />
-    <Project Path="src/Modules/Parties/Contracts/Parties.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Parties/Contracts/Parties.Contracts.csproj" />
     <Project Path="src/Modules/Parties/Domain/Parties.Domain.csproj" />
     <Project Path="src/Modules/Parties/Infrastructure/Parties.Infrastructure.csproj" />
     <Project Path="src/Modules/Parties/Interface/Parties.Interface.csproj" />
@@ -244,9 +194,7 @@
   </Folder>
   <Folder Name="/src/Modules/Platform/">
     <Project Path="src/Modules/Platform/Application/Platform.Application.csproj" />
-    <Project Path="src/Modules/Platform/Contracts/Platform.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Platform/Contracts/Platform.Contracts.csproj" />
     <Project Path="src/Modules/Platform/Domain/Platform.Domain.csproj" />
     <Project Path="src/Modules/Platform/Infrastructure/Platform.Infrastructure.csproj" />
     <Project Path="src/Modules/Platform/Interface/Platform.Interface.csproj" />
@@ -273,32 +221,20 @@
     <Project Path="src/Modules/Sea/Module/Sea.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Search/">
-    <Project Path="src/Modules/Search/Api/Search.Api.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Search/Api/Search.Api.csproj" />
     <Project Path="src/Modules/Search/Application/Search.Application.csproj" />
-    <Project Path="src/Modules/Search/Client/Search.Client.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
-    <Project Path="src/Modules/Search/Contracts/Search.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Search/Client/Search.Client.csproj" />
+    <Project Path="src/Modules/Search/Contracts/Search.Contracts.csproj" />
     <Project Path="src/Modules/Search/Domain/Search.Domain.csproj" />
     <Project Path="src/Modules/Search/Infrastructure/Search.Infrastructure.csproj" />
     <Project Path="src/Modules/Search/Interface/Search.Interface.csproj" />
     <Project Path="src/Modules/Search/Module/Search.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Social/">
-    <Project Path="src/Modules/Social/Api/Social.Api.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Social/Api/Social.Api.csproj" />
     <Project Path="src/Modules/Social/Application/Social.Application.csproj" />
-    <Project Path="src/Modules/Social/Client/Social.Client.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
-    <Project Path="src/Modules/Social/Contracts/Social.Contracts.csproj">
-      <Build Solution="Debug|*" Project="false" />
-    </Project>
+    <Project Path="src/Modules/Social/Client/Social.Client.csproj" />
+    <Project Path="src/Modules/Social/Contracts/Social.Contracts.csproj" />
     <Project Path="src/Modules/Social/Domain/Social.Domain.csproj" />
     <Project Path="src/Modules/Social/Infrastructure/Social.Infrastructure.csproj" />
     <Project Path="src/Modules/Social/Interface/Social.Interface.csproj" />
