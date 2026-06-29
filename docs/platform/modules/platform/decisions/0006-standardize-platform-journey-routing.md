@@ -87,8 +87,8 @@ flowchart TD
 
 Journey resolves destinations in this order:
 
-1. Account recovery or disabled account
-2. Suspicious login or required reauthentication
+1. Account recovery or disabled account (delegated to Authentication flow)
+2. Suspicious login or required reauthentication (delegated to Authentication flow)
 3. Required contact confirmation
 4. Required profile completion
 5. Required legal consent
