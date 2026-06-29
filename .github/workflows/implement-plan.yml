@@ -62,11 +62,13 @@ jobs:
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: state.issue_number,
-                  body: `## Max Iterations Reached
-
-The implementation has reached the maximum iteration limit (${state.max_iterations}).
-
-Please review the implementation manually and provide guidance.`
+                  body: [
+                    '## Max Iterations Reached',
+                    '',
+                    `The implementation has reached the maximum iteration limit (${state.max_iterations}).`,
+                    '',
+                    'Please review the implementation manually and provide guidance.'
+                  ].join('\n')
                 });
                 return;
               }
@@ -151,35 +153,37 @@ Please review the implementation manually and provide guidance.`
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `[Auto] Implement plan: ${planFile.replace('.md', '')}`,
-              body: `## Summary
-
-This PR implements the plan from issue #${state.issue_number}.
-
-**Plan file**: \`.mimocode/plans/${planFile}\`
-**Iteration**: ${state.iteration}/${state.max_iterations}
-**Status**: Implementation complete, pending review
-
-## Plan Objective
-
-${planContent.match(/## Objective\n([\s\S]*?)(?=\n## )/)?.[1]?.trim() || 'See plan file'}
-
-## Changes
-
-See file diff for implementation details.
-
-## Testing
-
-- [ ] Build passes
-- [ ] Unit tests pass
-- [ ] Architecture validation passes
-- [ ] Test sync validation passes
-
-## Next Steps
-
-This PR will be reviewed by the auto-review workflow. If changes are needed, a new plan will be generated automatically.
-
----
-*This PR was automatically created by the implementation loop.*`,
+              body: [
+                '## Summary',
+                '',
+                `This PR implements the plan from issue #${state.issue_number}.`,
+                '',
+                `**Plan file**: \`.mimocode/plans/${planFile}\``,
+                `**Iteration**: ${state.iteration}/${state.max_iterations}`,
+                '**Status**: Implementation complete, pending review',
+                '',
+                '## Plan Objective',
+                '',
+                planContent.match(/## Objective\n([\s\S]*?)(?=\n## )/)?.[1]?.trim() || 'See plan file',
+                '',
+                '## Changes',
+                '',
+                'See file diff for implementation details.',
+                '',
+                '## Testing',
+                '',
+                '- [ ] Build passes',
+                '- [ ] Unit tests pass',
+                '- [ ] Architecture validation passes',
+                '- [ ] Test sync validation passes',
+                '',
+                '## Next Steps',
+                '',
+                'This PR will be reviewed by the auto-review workflow. If changes are needed, a new plan will be generated automatically.',
+                '',
+                '---',
+                '*This PR was automatically created by the implementation loop.*'
+              ].join('\n'),
               head: process.env.BRANCH_NAME,
               base: 'main'
             });
@@ -204,13 +208,15 @@ This PR will be reviewed by the auto-review workflow. If changes are needed, a n
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: state.issue_number,
-              body: `## Implementation PR Created
-
-PR: #${pr.number}
-URL: ${pr.html_url}
-Iteration: ${state.iteration}/${state.max_iterations}
-
-The implementation is ready for review. The auto-review workflow will check it against architecture rules.`
+              body: [
+                '## Implementation PR Created',
+                '',
+                `PR: #${pr.number}`,
+                `URL: ${pr.html_url}`,
+                `Iteration: ${state.iteration}/${state.max_iterations}`,
+                '',
+                'The implementation is ready for review. The auto-review workflow will check it against architecture rules.'
+              ].join('\n')
             });
 
       - name: Update loop state on failure
@@ -232,11 +238,13 @@ The implementation is ready for review. The auto-review workflow will check it a
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: state.issue_number,
-                body: `## Implementation Failed
-
-The implementation failed during build or test phase.
-
-Please check the workflow logs and fix the issues manually.`
+                body: [
+                '## Implementation Failed',
+                '',
+                'The implementation failed during build or test phase.',
+                '',
+                'Please check the workflow logs and fix the issues manually.'
+              ].join('\n')
               });
             }
 

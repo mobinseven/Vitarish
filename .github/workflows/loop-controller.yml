@@ -42,11 +42,13 @@ jobs:
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: state.issue_number,
-                  body: `## Implementation Stuck
-
-The implementation has been in status \`${state.status}\` for over 24 hours.
-
-Please review and provide guidance.`
+                  body: [
+                    '## Implementation Stuck',
+                    '',
+                    `The implementation has been in status \`${state.status}\` for over 24 hours.`,
+                    '',
+                    'Please review and provide guidance.'
+                  ].join('\n')
                 });
 
                 // Add stuck label
@@ -64,14 +66,16 @@ Please review and provide guidance.`
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: state.issue_number,
-                  body: `## Max Iterations Reached
-
-The implementation has reached the maximum iteration limit (${state.max_iterations}).
-
-Status: ${state.status}
-Iterations: ${state.iteration}
-
-Please review the implementation manually.`
+                  body: [
+                    '## Max Iterations Reached',
+                    '',
+                    `The implementation has reached the maximum iteration limit (${state.max_iterations}).`,
+                    '',
+                    `Status: ${state.status}`,
+                    `Iterations: ${state.iteration}`,
+                    '',
+                    'Please review the implementation manually.'
+                  ].join('\n')
                 });
 
                 state.status = 'escalated';

@@ -100,36 +100,38 @@ jobs:
 
             // Post review comment
             const marker = '<!-- auto-implementation-review -->';
-            const body = `${marker}
-## Auto Implementation Review
-
-**Verdict**: ${verdict.status}
-**Confidence**: ${verdict.confidence}
-
-### Findings
-
-${review.findings.map(f => `
-#### ${f.severity}: ${f.title}
-${f.description}
-
-**Rule**: ${f.rule}
-**Location**: ${f.location}
-**Fix**: ${f.suggestion}
-`).join('\n')}
-
-### Architecture Compliance
-
-${review.architecture.map(a => `- ${a.check}: ${a.status}`).join('\n')}
-
-### Recommended Actions
-
-${review.actions.map(a => `- ${a}`).join('\n')}
-
----
-**Model**: \`${process.env.MIMO_MODEL}\`
-**Files reviewed**: ${changedFiles.length}
-**PR**: #${prNumber}
-`;
+            const body = [
+              `${marker}`,
+              '## Auto Implementation Review',
+              '',
+              `**Verdict**: ${verdict.status}`,
+              `**Confidence**: ${verdict.confidence}`,
+              '',
+              '### Findings',
+              '',
+              ...review.findings.map(f => [
+                `#### ${f.severity}: ${f.title}`,
+                f.description,
+                '',
+                `**Rule**: ${f.rule}`,
+                `**Location**: ${f.location}`,
+                `**Fix**: ${f.suggestion}`,
+                ''
+              ].join('\n')),
+              '',
+              '### Architecture Compliance',
+              '',
+              ...review.architecture.map(a => `- ${a.check}: ${a.status}`),
+              '',
+              '### Recommended Actions',
+              '',
+              ...review.actions.map(a => `- ${a}`),
+              '',
+              '---',
+              `**Model**: \`${process.env.MIMO_MODEL}\``,
+              `**Files reviewed**: ${changedFiles.length}`,
+              `**PR**: #${prNumber}`
+            ].join('\n');
 
             // Upsert comment
             const comments = await github.paginate(github.rest.issues.listComments, {
@@ -229,14 +231,16 @@ ${review.actions.map(a => `- ${a}`).join('\n')}
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: state.issue_number,
-              body: `## Implementation Complete
-
-The implementation has been approved after ${state.iteration} iteration(s).
-
-PR: #${state.pr_number}
-Status: Approved
-
-The plan file has been cleaned up. The implementation is complete.`
+              body: [
+                '## Implementation Complete',
+                '',
+                `The implementation has been approved after ${state.iteration} iteration(s).`,
+                '',
+                `PR: #${state.pr_number}`,
+                'Status: Approved',
+                '',
+                'The plan file has been cleaned up. The implementation is complete.'
+              ].join('\n')
             });
 
             // Add completion label

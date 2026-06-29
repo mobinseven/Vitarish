@@ -133,14 +133,16 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.issue.number,
-              body: `## Plan Generated
-
-Plan file: \`.mimocode/plans/${{ steps.generate-plan.outputs.plan_file }}\`
-Iteration: 1/${{ env.MAX_ITERATIONS }}
-
-The plan has been committed. Implementation will start automatically.
-
-@github-actions[bot] will create a PR with the implementation.`
+              body: [
+                '## Plan Generated',
+                '',
+                'Plan file: `.mimocode/plans/${{ steps.generate-plan.outputs.plan_file }}`',
+                'Iteration: 1/${{ env.MAX_ITERATIONS }}',
+                '',
+                'The plan has been committed. Implementation will start automatically.',
+                '',
+                '@github-actions[bot] will create a PR with the implementation.'
+              ].join('\n')
             });
 
             // Add status label
