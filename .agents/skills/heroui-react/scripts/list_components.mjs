@@ -78,7 +78,7 @@ async function fetchFallback() {
       // Skip "All Components" which links to /components without a specific component
       if (inComponentsSection) {
         const match = line.match(
-          /^\s*-\s*\[([^\]]+)\]\(https:\/\/www\.heroui\.com\/docs\/react\/components\/[a-z]/,
+          /^\s*-\s*\[([^\]]+)\]\(https:\/\/(?:www\.)?heroui\.com\/docs\/react\/components\/[a-z]/
         );
 
         if (match) {
