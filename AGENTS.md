@@ -162,7 +162,7 @@ When a task matches a skill, open and follow that skill’s `SKILL.md`.
 Project skills live under:
 
 ```txt
-skills/
+.agents/skills/
   platform-user-journey-curator/
   platform-feature-roadmap-curator/
   platform-adr-steward/
@@ -173,6 +173,7 @@ skills/
   platform-openapi-contract-steward/
   platform-generated-react-client-steward/
   platform-feature-ui-integration-steward/
+  heroui-react/
   platform-pr-delivery-loop/
   platform-auto-plan-generator/
   platform-auto-plan-executor/
@@ -180,38 +181,55 @@ skills/
   platform-loop-state-manager/
 ```
 
-If the runtime expects native Codex skill discovery, mirror or symlink these folders under:
-
-```txt
-.agents/skills/
-```
+Legacy instructions may refer to `skills/`; use `.agents/skills/` as the canonical skill root in this repository.
 
 ### Skill Routing
 
 | Situation                                                                 | Use this skill                      | Read                                                  |
 | ------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------- |
-| Single-PR delivery loop, objective → plan → implement → review → feedback → handoff | Platform PR Delivery Loop | `skills/platform-pr-delivery-loop/SKILL.md` |
-| User workflow, persona, design objective, pain points, journey stages     | Platform User Journey Curator       | `skills/platform-user-journey-curator/SKILL.md`       |
-| Roadmap, phases, MVP/short-term/long-term scope, implementation tickets   | Platform Feature Roadmap Curator    | `skills/platform-feature-roadmap-curator/SKILL.md`    |
-| Architecture decision, ADR need, supersession, architecture conflict      | Platform ADR Steward                | `skills/platform-adr-steward/SKILL.md`                |
-| Unit tests, required tests, hot test scenarios, risk-based test planning  | Platform Test Curator               | `skills/platform-test-curator/SKILL.md`               |
-| File placement, layer ownership, module boundary, artifact classification | Platform Artifact Placement Steward | `skills/platform-artifact-placement-steward/SKILL.md` |
-| Localization review, hard-coded UI text, `IStringLocalizer` usage                    | Platform Localization Maintenance  | `skills/platform-localization-maintenance/SKILL.md`  |
-| Frontend/backend isolation, Interface/backend dependency, HTTP/API boundaries          | Platform Frontend/Backend Isolation | `skills/platform-frontend-backend-isolation/SKILL.md` |
-| OpenAPI module/app contract, operation IDs, schemas, auth, ProblemDetails, linting      | Platform OpenAPI Contract Steward | `skills/platform-openapi-contract-steward/SKILL.md` |
-| Orval generation, generated DTOs/hooks/query keys, custom apiFetch, MSW mocks           | Platform Generated React Client Steward | `skills/platform-generated-react-client-steward/SKILL.md` |
-| HeroUI/React feature hooks, forms, tables, dialogs, mutation invalidation, UI adapters  | Platform Feature UI Integration Steward | `skills/platform-feature-ui-integration-steward/SKILL.md` |
-| Generate plan from GitHub issue | Platform Auto Plan Generator | `skills/platform-auto-plan-generator/SKILL.md` |
-| Execute implementation plan | Platform Auto Plan Executor | `skills/platform-auto-plan-executor/SKILL.md` |
-| Review implementation against rules | Platform Auto Loop Reviewer | `skills/platform-auto-loop-reviewer/SKILL.md` |
-| Manage implementation loop state | Platform Loop State Manager | `skills/platform-loop-state-manager/SKILL.md` |
+| Single-PR delivery loop, objective → plan → implement → review → feedback → handoff | Platform PR Delivery Loop | `.agents/skills/platform-pr-delivery-loop/SKILL.md` |
+| User workflow, persona, design objective, pain points, journey stages     | Platform User Journey Curator       | `.agents/skills/platform-user-journey-curator/SKILL.md`       |
+| Roadmap, phases, MVP/short-term/long-term scope, implementation tickets   | Platform Feature Roadmap Curator    | `.agents/skills/platform-feature-roadmap-curator/SKILL.md`    |
+| Architecture decision, ADR need, supersession, architecture conflict      | Platform ADR Steward                | `.agents/skills/platform-adr-steward/SKILL.md`                |
+| Unit tests, required tests, hot test scenarios, risk-based test planning  | Platform Test Curator               | `.agents/skills/platform-test-curator/SKILL.md`               |
+| File placement, layer ownership, module boundary, artifact classification | Platform Artifact Placement Steward | `.agents/skills/platform-artifact-placement-steward/SKILL.md` |
+| Localization review, hard-coded UI text, `IStringLocalizer` usage                    | Platform Localization Maintenance  | `.agents/skills/platform-localization-maintenance/SKILL.md`  |
+| Frontend/backend isolation, Interface/backend dependency, HTTP/API boundaries          | Platform Frontend/Backend Isolation | `.agents/skills/platform-frontend-backend-isolation/SKILL.md` |
+| OpenAPI module/app contract, operation IDs, schemas, auth, ProblemDetails, linting      | Platform OpenAPI Contract Steward | `.agents/skills/platform-openapi-contract-steward/SKILL.md` |
+| Orval generation, generated DTOs/hooks/query keys, custom apiFetch, MSW mocks           | Platform Generated React Client Steward | `.agents/skills/platform-generated-react-client-steward/SKILL.md` |
+| HeroUI/React feature hooks, forms, tables, dialogs, mutation invalidation, UI adapters  | Platform Feature UI Integration Steward | `.agents/skills/platform-feature-ui-integration-steward/SKILL.md` |
+| HeroUI v3 React components, compound APIs, Tailwind v4, `@heroui/styles`, theming, docs, or agent UI guidance | HeroUI React | `.agents/skills/heroui-react/SKILL.md` |
+| Generate plan from GitHub issue | Platform Auto Plan Generator | `.agents/skills/platform-auto-plan-generator/SKILL.md` |
+| Execute implementation plan | Platform Auto Plan Executor | `.agents/skills/platform-auto-plan-executor/SKILL.md` |
+| Review implementation against rules | Platform Auto Loop Reviewer | `.agents/skills/platform-auto-loop-reviewer/SKILL.md` |
+| Manage implementation loop state | Platform Loop State Manager | `.agents/skills/platform-loop-state-manager/SKILL.md` |
+
+### HeroUI React Contract
+
+Use `HeroUI React` for any task that touches HeroUI v3 React components, composition patterns, Tailwind CSS v4 setup, `@heroui/react`, `@heroui/styles`, semantic variants, light/dark theming, component docs, or HeroUI-driven UI implementation.
+
+Before implementation:
+
+1. Read `.agents/skills/heroui-react/SKILL.md`.
+2. Use the helper scripts under `.agents/skills/heroui-react/scripts/` to fetch current component docs, source, styles, theme variables, or non-component docs before changing HeroUI code.
+3. Treat HeroUI v3 guidance as authoritative for HeroUI work; do not apply HeroUI v2 patterns to v3 code.
+4. Keep platform UI rules in force: generated clients stay generated, feature hooks expose use-case contracts, and UI components consume feature hooks.
+5. Do not edit generated API output or backend contracts just to satisfy a visual component shape.
+
+Optional full-docs mode:
+
+```bash
+npx heroui-cli@latest agents-md --react
+```
+
+Use this only when the task explicitly needs local `.heroui-docs/react/` documentation or an updated AGENTS/CLAUDE documentation index. Otherwise, prefer the installed `.agents/skills/heroui-react` skill and its scripts.
 
 ### OpenAPI → React Client Contract
 
 Use this chain when a backend OpenAPI contract drives a HeroUI/React client:
 
 ```txt
-OpenAPI Contract Steward → Generated React Client Steward → Feature UI Integration Steward
+OpenAPI Contract Steward → Generated React Client Steward → Feature UI Integration Steward → HeroUI React when component/API details are needed
 ```
 
 Load only the step required by the current task:
@@ -219,6 +237,7 @@ Load only the step required by the current task:
 1. Contract/spec work uses `platform-openapi-contract-steward`.
 2. Orval/generated-client/MSW/runtime-fetch work uses `platform-generated-react-client-steward`.
 3. HeroUI/page/form/table/dialog integration uses `platform-feature-ui-integration-steward`.
+4. HeroUI v3 component API, styling, and theme work uses `heroui-react`.
 
 Hard boundary: OpenAPI defines the transport contract, generated clients are infrastructure, feature hooks expose use-case contracts, and UI components consume feature hooks only.
 
@@ -228,7 +247,7 @@ Use `Platform Feature Roadmap Curator` whenever the task involves roadmap creati
 
 Before producing roadmap or task output:
 
-1. Read `skills/platform-feature-roadmap-curator/SKILL.md`.
+1. Read `.agents/skills/platform-feature-roadmap-curator/SKILL.md`.
 2. Classify the owning scope: `App`, `Module`, `Capability`, `Related apps`, and `Related modules`.
 3. Start with intent: why, who benefits, first useful version, deferred scope, long-term direction, dependencies, and risks.
 4. Do not create execution-ready tickets unless the roadmap is explicitly approved, already has `Status: Approved`, or the user requests provisional tickets.
@@ -241,7 +260,7 @@ Use `Platform PR Delivery Loop` when a task should be delivered as one focused p
 
 Before implementation:
 
-1. Read `skills/platform-pr-delivery-loop/SKILL.md`.
+1. Read `.agents/skills/platform-pr-delivery-loop/SKILL.md`.
 2. State the PR outcome, non-goals, constraints, and one-sentence scope.
 3. Load only the task-specific skills required by the slice.
 4. Define artifacts, responsibilities, dependency direction, state source of truth, command/query split, tests, and out-of-scope items.
@@ -253,7 +272,6 @@ Stop for a human decision when scope no longer fits one PR, a required architect
 ### Default Skill Order
 
 Use only the skills needed for the task.
-
 
 For one focused pull-request delivery:
 
@@ -276,7 +294,13 @@ ADR → Artifact Placement → Test Plan → Implementation
 For an OpenAPI-driven React client change:
 
 ```txt
-OpenAPI Contract → Generated React Client → Feature UI Integration → Test Plan → Implementation
+OpenAPI Contract → Generated React Client → Feature UI Integration → HeroUI React if component details are needed → Test Plan → Implementation
+```
+
+For a HeroUI v3 UI change:
+
+```txt
+HeroUI React → Feature UI Integration if feature hooks/data flow are affected → Test Plan → Implementation
 ```
 
 For a code placement or refactor task:
@@ -297,10 +321,10 @@ Use when: GitHub issue labeled "auto-implementation"
 
 | Situation | Use this skill | Read |
 |-----------|----------------|------|
-| Generate plan from issue | Platform Auto Plan Generator | `skills/platform-auto-plan-generator/SKILL.md` |
-| Execute plan file | Platform Auto Plan Executor | `skills/platform-auto-plan-executor/SKILL.md` |
-| Review implementation | Platform Auto Loop Reviewer | `skills/platform-auto-loop-reviewer/SKILL.md` |
-| Manage loop state | Platform Loop State Manager | `skills/platform-loop-state-manager/SKILL.md` |
+| Generate plan from issue | Platform Auto Plan Generator | `.agents/skills/platform-auto-plan-generator/SKILL.md` |
+| Execute plan file | Platform Auto Plan Executor | `.agents/skills/platform-auto-plan-executor/SKILL.md` |
+| Review implementation | Platform Auto Loop Reviewer | `.agents/skills/platform-auto-loop-reviewer/SKILL.md` |
+| Manage loop state | Platform Loop State Manager | `.agents/skills/platform-loop-state-manager/SKILL.md` |
 
 ### Loop Control
 
@@ -320,7 +344,7 @@ Before creating or moving production code, answer:
 1. Is a journey needed?
 2. Is a roadmap or task derivation needed? If yes, use `Platform Feature Roadmap Curator`.
 3. Is an ADR needed?
-4. Does the change affect an OpenAPI contract, generated React client, or HeroUI feature integration?
+4. Does the change affect an OpenAPI contract, generated React client, HeroUI feature integration, or HeroUI v3 component/theming behavior?
 5. Where should each artifact live?
 6. What unit tests are required?
 7. What hot test scenarios are required?
@@ -363,4 +387,3 @@ Do not invent product goals, architectural decisions, or testing requirements.
 Do not proceed from roadmap directly to implementation when artifact placement or test risk is unresolved.
 
 Preserve the platform architecture principles: single responsibility, simple design, protected core logic, clear boundaries, CQRS separation, and one source of truth.
-
