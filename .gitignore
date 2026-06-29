@@ -404,5 +404,3 @@ FodyWeavers.xsd
 
 **/packages.lock.json
 
-# Generated OpenAPI specs
-src/Hosts/Web/src/api/specs/
