@@ -7,7 +7,7 @@ internal class DatabaseStatisticsService(IMediator mediator) : IDatabaseStatisti
 {
     public async Task<DatabaseStatisticsReadDto> GetAsync(CancellationToken cancellationToken)
     {
-        Domain.Models.DatabaseStatistics statistics = await mediator.Send(new GetDatabaseStatisticsQuery(), cancellationToken);
+        DatabaseStatistics statistics = await mediator.Send(new GetDatabaseStatisticsQuery(), cancellationToken);
         return new DatabaseStatisticsReadDto
         {
             Projects = statistics.Projects,
