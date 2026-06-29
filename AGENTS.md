@@ -229,7 +229,7 @@ Use this only when the task explicitly needs local `.heroui-docs/react/` documen
 Use this chain when a backend OpenAPI contract drives a HeroUI/React client:
 
 ```txt
-OpenAPI Contract Steward → Generated React Client Steward → Feature UI Integration Steward → HeroUI React when component/API details are needed
+OpenAPI Contract Steward → Generated React Client Steward → Feature UI Integration Steward
 ```
 
 Load only the step required by the current task:
@@ -294,7 +294,7 @@ ADR → Artifact Placement → Test Plan → Implementation
 For an OpenAPI-driven React client change:
 
 ```txt
-OpenAPI Contract → Generated React Client → Feature UI Integration → HeroUI React if component details are needed → Test Plan → Implementation
+OpenAPI Contract → Generated React Client → Feature UI Integration → Test Plan → Implementation
 ```
 
 For a HeroUI v3 UI change:
@@ -322,9 +322,9 @@ Use when: GitHub issue labeled "auto-implementation"
 | Situation | Use this skill | Read |
 |-----------|----------------|------|
 | Generate plan from issue | Platform Auto Plan Generator | `.agents/skills/platform-auto-plan-generator/SKILL.md` |
-| Execute plan file | Platform Auto Plan Executor | `.agents/skills/platform-auto-plan-executor/SKILL.md` |
+| Execute implementation plan | Platform Auto Plan Executor | `.agents/skills/platform-auto-plan-executor/SKILL.md` |
 | Review implementation | Platform Auto Loop Reviewer | `.agents/skills/platform-auto-loop-reviewer/SKILL.md` |
-| Manage loop state | Platform Loop State Manager | `.agents/skills/platform-loop-state-manager/SKILL.md` |
+| Manage implementation loop state | Platform Loop State Manager | `.agents/skills/platform-loop-state-manager/SKILL.md` |
 
 ### Loop Control
 
