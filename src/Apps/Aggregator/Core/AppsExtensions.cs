@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Clinic.Interface;
+using Vitarish.Modules.Base.Core.Endpoints;
 
 public static class AppsExtensions
 {
@@ -24,6 +25,8 @@ public static class AppsExtensions
         {
             await app.Register(builder, configureDbContext);
         }
+
+        builder.Services.AddModuleOpenApiDocuments(apps.Select(a => a.Name));
 
         return builder;
     }
