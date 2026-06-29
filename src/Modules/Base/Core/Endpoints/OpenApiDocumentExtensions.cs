@@ -1,10 +1,11 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Vitarish.Main.DependencyInjection;
+namespace Vitarish.Modules.Base.Core.Endpoints;
 
-public static class HostOpenApiDocumentExtensions
+public static class OpenApiDocumentExtensions
 {
     public static IServiceCollection AddModuleOpenApiDocument(this IServiceCollection services, string documentName, string moduleGroupName)
     {
@@ -15,6 +16,15 @@ public static class HostOpenApiDocumentExtensions
         {
             options.ShouldInclude = description => IsModuleOpenApiDescription(description, moduleGroupName);
         });
+    }
+
+    public static IServiceCollection AddModuleOpenApiDocuments(this IServiceCollection services, IEnumerable<string> moduleNames)
+    {
+        foreach (string name in moduleNames)
+        {
+            _ = services.AddModuleOpenApiDocument(name, name);
+        }
+        return services;
     }
 
     private static bool IsModuleOpenApiDescription(ApiDescription description, string moduleGroupName)

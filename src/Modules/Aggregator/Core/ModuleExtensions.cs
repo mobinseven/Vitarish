@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyModel;
 using Vitarish.Modules.Base.Core;
+using Vitarish.Modules.Base.Core.Endpoints;
 
 public static class ModulesExtensions
 {
@@ -76,6 +77,8 @@ public static class ModulesExtensions
             {
                 await Module.Register(builder, configureDbContext);
             }
+
+            builder.Services.AddModuleOpenApiDocuments(Modules.Select(m => m.Name));
 
             return builder;
         }
