@@ -25,8 +25,7 @@ const demoModules: DemoModuleCard[] = [
 ];
 
 export function HomeDashboard() {
-  const { user, isLoading } = useAuthSession();
-  const userName = resolveUserName(user?.displayName, user?.email, user?.phoneNumber);
+  const { displayProfile, isLoading } = useAuthSession();
 
   return (
     <main className="auth-bg min-h-screen overflow-hidden px-4 py-8 md:px-8 lg:px-12">
@@ -47,7 +46,7 @@ export function HomeDashboard() {
                   Vitarish Home
                 </p>
                 <h1 className="max-w-4xl text-4xl font-black tracking-tight text-foreground md:text-6xl">
-                  {isLoading ? "Welcome back" : `Welcome back, ${userName}`}
+                  {isLoading ? "Welcome back" : `Welcome back, ${displayProfile.displayLabel}`}
                 </h1>
                 <p className="max-w-2xl text-lg leading-8 text-muted md:text-xl">
                   Pick a module demo below to keep moving. Each card opens a focused experience so you can explore what is available now without leaving your workflow.
@@ -119,27 +118,4 @@ export function HomeDashboard() {
       </div>
     </main>
   );
-}
-
-function resolveUserName(
-  displayName?: string | null,
-  email?: string | null,
-  phoneNumber?: string | null
-): string {
-  const normalizedDisplayName = displayName?.trim();
-  if (normalizedDisplayName) {
-    return normalizedDisplayName;
-  }
-
-  const emailName = email?.split("@")?.[0]?.trim();
-  if (emailName) {
-    return emailName;
-  }
-
-  const normalizedPhoneNumber = phoneNumber?.trim();
-  if (normalizedPhoneNumber) {
-    return normalizedPhoneNumber;
-  }
-
-  return "friend";
 }

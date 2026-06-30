@@ -27,5 +27,20 @@ describe("useAuthSession", () => {
 
     expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.user).toBeNull();
+    expect(result.current.displayProfile.displayLabel).toBe("friend");
+  });
+
+  it("memoizes the fallback display profile while the user reference is unchanged", async () => {
+    const { result, rerender } = renderHook(() => useAuthSession(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    const displayProfile = result.current.displayProfile;
+
+    rerender();
+
+    expect(result.current.displayProfile).toBe(displayProfile);
   });
 });
