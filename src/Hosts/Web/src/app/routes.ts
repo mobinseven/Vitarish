@@ -2,13 +2,13 @@
  *  Equivalent to Blazor's AppRoutes class.
  *  Single source of truth for all navigation paths. */
 export const Routes = {
-  /** Root path — redirects to /login */
+  /** Root path — session-aware redirect to /home or /login */
   Root: "/",
 
   /** Authenticated home dashboard */
   Home: "/home",
 
-  /** Public routes */
+  /** Public authentication routes */
   Login: {
     Index: "/login",
     Password: "/login/password",
