@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError, apiFetch, resetAntiforgeryToken } from "@/api/client/apiFetch";
 
+const tenantHostHeader = "X-Vitarish-Tenant-Host";
+
 function jsonResponse(body: unknown, init: ResponseInit = {}) {
   return new Response(JSON.stringify(body), {
     status: init.status ?? 200,
@@ -15,6 +17,15 @@ describe("apiFetch antiforgery", () => {
     vi.restoreAllMocks();
   });
 
+  it("forwards the current web host as tenant context on safe requests", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(jsonResponse({ ok: true }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await apiFetch("/api/modules/example");
+
+    expect(fetchMock.mock.calls[0][1].headers.get(tenantHostHeader)).toBe("tenant-a.example.test");
+  });
+
   it("fetches an antiforgery token before unsafe requests", async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(jsonResponse({ requestToken: "token" }))
@@ -25,6 +36,8 @@ describe("apiFetch antiforgery", () => {
 
     expect(fetchMock.mock.calls[0][0]).toBe("https://localhost:7272/api/modules/authentication/antiforgery");
     expect(fetchMock.mock.calls[1][0]).toBe("https://localhost:7272/api/modules/example");
+    expect(fetchMock.mock.calls[0][1].headers.get(tenantHostHeader)).toBe("tenant-a.example.test");
+    expect(fetchMock.mock.calls[1][1].headers.get(tenantHostHeader)).toBe("tenant-a.example.test");
   });
 
   it("rejects the original unsafe request when bootstrap fails", async () => {
@@ -50,6 +63,7 @@ describe("apiFetch antiforgery", () => {
     await apiFetch("/api/modules/example", { method: "PUT", body: "{}" });
 
     expect(fetchMock.mock.calls[1][1].headers.get("X-XSRF-TOKEN")).toBe("abc");
+    expect(fetchMock.mock.calls[1][1].headers.get(tenantHostHeader)).toBe("tenant-a.example.test");
   });
 
   it("shares one bootstrap call across concurrent unsafe requests", async () => {
