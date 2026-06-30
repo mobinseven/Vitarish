@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
+import { Routes } from "./routes";
 
 export default function Home() {
-  redirect("/login");
+  redirect(Routes.Login.Index);
 }

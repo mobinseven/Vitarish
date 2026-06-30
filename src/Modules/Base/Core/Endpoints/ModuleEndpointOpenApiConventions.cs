@@ -51,7 +51,7 @@ public static class ModuleEndpointOpenApiConventions
             {
                 _ = builder.Produces(StatusCodes.Status401Unauthorized);
                 _ = builder.Produces(StatusCodes.Status403Forbidden);
-                _ = builder.WithMetadata(new ProtectedModuleEndpointMetadata(DefaultBearerScheme));
+                _ = builder.WithMetadata(new ProtectedModuleEndpointMetadata(ModuleEndpointAuthenticationSchemes.BrowserOrBearer));
             }
 
             _ = builder.ProducesProblem(StatusCodes.Status400BadRequest);
