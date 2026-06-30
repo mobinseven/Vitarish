@@ -131,7 +131,7 @@ function resolveUserName(
     return normalizedDisplayName;
   }
 
-  const emailName = email?.split("@")[0]?.trim();
+  const emailName = email?.split("@")?.[0]?.trim();
   if (emailName) {
     return emailName;
   }
