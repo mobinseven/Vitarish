@@ -49,7 +49,7 @@ Prefer the existing React host convention if it exists. Otherwise use these defa
 | Artifact | Default placement | Rule |
 | --- | --- | --- |
 | App shell/provider/router | `src/Hosts/<Host>/src/app` or `src/Hosts/<Host>/src/router` | Host composition only; no business rules |
-| Routable page | `src/Hosts/<Host>/src/pages/<module>/<capability>` or route-group equivalent | Compose feature UI and route state; do not own reusable logic |
+| Routable React Web page | `src/Hosts/<Host>/src/pages/<module>/<capability>` or route-group equivalent | Compose feature UI and route state; do not own reusable logic |
 | Module feature component | `src/Hosts/<Host>/src/features/<module>/components` | Own React UI for one module only |
 | Module feature hook | `src/Hosts/<Host>/src/features/<module>/hooks` | Expose use-case-oriented behavior for one module only |
 | Module feature API wrapper | `src/Hosts/<Host>/src/features/<module>/api` | Wrap generated hooks/clients for one module only |
