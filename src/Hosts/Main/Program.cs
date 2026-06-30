@@ -17,6 +17,7 @@ using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Platform.Module.DependencyInjection;
 using Vitarish.Modules.Base.Core;
+using Vitarish.Modules.Base.Core.Endpoints;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -174,7 +175,7 @@ _ = app.UseIdentityServer();
 _ = app.UseAuthentication();
 _ = app.UseAuthorization();
 
-_ = app.UseAntiforgery();
+_ = app.UseModuleEndpointAntiforgery();
 
 if (app.Environment.IsDevelopment())
 {
