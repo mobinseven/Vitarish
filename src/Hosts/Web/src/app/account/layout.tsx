@@ -54,7 +54,7 @@ export default function AccountLayout({
             const isActive =
               link.href === Routes.Account.Index
                 ? pathname === Routes.Account.Index
-                : pathname.startsWith(link.href);
+                : pathname === link.href || pathname.startsWith(`${link.href}/`);
             return (
               <Link
                 key={link.href}
