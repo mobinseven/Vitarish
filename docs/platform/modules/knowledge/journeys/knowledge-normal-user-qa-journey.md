@@ -49,18 +49,19 @@ flowchart TD
     H --> I[Grouped answer cards by corpus]
     I --> J[Open corpus answer]
     I --> K[New question]
-    I --> L[Ask again]
+    I --> L1[Ask again]
 
     G --> M[Ask from selected corpus]
     M --> N[Single corpus answer]
     N --> O[Follow-up in same corpus]
     N --> K
-    N --> L
+    N --> L2[Ask again]
 
     J --> G
     O --> M
     K --> B
-    L --> H
+    L1 --> H
+    L2 --> M
 ```
 
 ## 5. State Model
