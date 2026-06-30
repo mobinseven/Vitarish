@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
-import { Routes } from "./routes";
+import { SessionRedirect } from "@/components/auth/SessionRedirect";
 
-export default function Home() {
-  redirect(Routes.Login.Index);
+export default function RootPage() {
+  return <SessionRedirect />;
 }
