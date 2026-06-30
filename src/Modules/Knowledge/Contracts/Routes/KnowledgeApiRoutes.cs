@@ -4,6 +4,7 @@ public static class KnowledgeApiRoutes
 {
     public const string Base = "/api/modules/knowledge";
     public const string OwnerWorkspace = "/owner/workspace";
+    public const string UserWorkspace = "/workspace";
     public const string Corpora = "/corpora";
     public const string Sources = "/sources";
     public const string SourceFiles = "/sources/files";

@@ -175,14 +175,15 @@ _ = app.UseIdentityServer();
 _ = app.UseAuthentication();
 _ = app.UseAuthorization();
 
+// Resolve tenant context before centralized module antiforgery so expected security-validation logs and ProblemDetails can include tenant-aware request services when needed.
+_ = app.UseMultiTenant();
+
 _ = app.UseModuleEndpointAntiforgery();
 
 if (app.Environment.IsDevelopment())
 {
     _ = app.MapOpenApi("/openapi/{documentName}.json");
 }
-
-_ = app.UseMultiTenant();
 
 await app.InitializeModules();
 await app.InitializeApps();
