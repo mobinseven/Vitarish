@@ -151,7 +151,12 @@ _ = app.UseRequestLocalization(localizationOptions);
 _ = app.UseCookiePolicy(cookiePolicyOptions);
 
 _ = app.UseExceptionHandler("/Error");
-app.UseStatusCodePagesWithReExecute("/Error");
+_ = app.UseWhen(
+    context => !context.Request.Path.StartsWithSegments("/api"),
+    branch =>
+    {
+        _ = branch.UseStatusCodePagesWithReExecute("/Error");
+    });
 _ = app.UseHsts();
 _ = app.UseHttpsRedirection();
 _ = app.MapStaticAssets();

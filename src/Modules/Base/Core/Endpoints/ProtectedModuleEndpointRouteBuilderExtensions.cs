@@ -7,9 +7,7 @@ namespace Vitarish.Modules.Base.Core.Endpoints;
 
 public static class ProtectedModuleEndpointRouteBuilderExtensions
 {
-    private const string DefaultScheme = ModuleEndpointOpenApiConventions.DefaultBearerScheme;
-
-    public static RouteGroupBuilder MapProtectedModuleGroup(this IEndpointRouteBuilder endpoints, string prefix, string scheme = DefaultScheme)
+    public static RouteGroupBuilder MapProtectedModuleGroup(this IEndpointRouteBuilder endpoints, string prefix, string scheme = ModuleEndpointAuthenticationSchemes.BrowserOrBearer)
     {
         RouteGroupBuilder group = endpoints.MapGroup(prefix);
         group.RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = scheme });
