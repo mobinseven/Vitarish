@@ -46,6 +46,14 @@ public class ReturnUrlPolicyTests
     }
 
     [Fact]
+    public void NormalizeOrDefault_decodes_safe_url_once()
+    {
+        var result = ReturnUrlPolicy.NormalizeOrDefault("/%252fevil.com");
+
+        result.Value.Should().Be("/%2fevil.com");
+    }
+
+    [Fact]
     public void NormalizeOrDefault_returns_fallback_for_null()
     {
         var result = ReturnUrlPolicy.NormalizeOrDefault(null);

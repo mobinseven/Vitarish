@@ -31,7 +31,7 @@ public sealed class JourneyResolver(
             gates.Add(JourneyGate.Blocking(JourneyGateKind.ProfileCompletion, JourneyPolicy.ProfileCompletionPath));
         }
 
-        if (consent.HasRequiredConsent)
+        if (!consent.HasRequiredConsent)
         {
             gates.Add(JourneyGate.Blocking(JourneyGateKind.RequiredConsent, JourneyPolicy.RequiredConsentPath));
         }

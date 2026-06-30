@@ -19,7 +19,6 @@ public static class ReturnUrlPolicy
     {
         if (string.IsNullOrWhiteSpace(returnUrl)) return new(fallback);
 
-        string decoded = WebUtility.UrlDecode(returnUrl);
-        return new(IsSafeLocal(decoded) ? decoded : fallback);
+        return new(IsSafeLocal(returnUrl) ? WebUtility.UrlDecode(returnUrl) : fallback);
     }
 }

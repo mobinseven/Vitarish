@@ -20,7 +20,7 @@ public class JourneyResolverTests
     [Fact]
     public async Task ResolveAsync_profile_completion_beats_consent()
     {
-        JourneyDecision decision = await CreateResolver(profile: new(true, false), consent: new(true)).ResolveAsync(Request(), CancellationToken.None);
+        JourneyDecision decision = await CreateResolver(profile: new(true, false), consent: new(false)).ResolveAsync(Request(), CancellationToken.None);
 
         decision.DestinationUrl.Should().Be(JourneyPolicy.ProfileCompletionPath);
         decision.BlockingGate!.Kind.Should().Be(JourneyGateKind.ProfileCompletion);
@@ -29,7 +29,7 @@ public class JourneyResolverTests
     [Fact]
     public async Task ResolveAsync_consent_beats_workspace_selection()
     {
-        JourneyDecision decision = await CreateResolver(consent: new(true), workspace: new(true, null)).ResolveAsync(Request(), CancellationToken.None);
+        JourneyDecision decision = await CreateResolver(consent: new(false), workspace: new(true, null)).ResolveAsync(Request(), CancellationToken.None);
 
         decision.DestinationUrl.Should().Be(JourneyPolicy.RequiredConsentPath);
         decision.BlockingGate!.Kind.Should().Be(JourneyGateKind.RequiredConsent);
@@ -76,7 +76,7 @@ public class JourneyResolverTests
         JourneyConsentSnapshot? consent = null,
         JourneyWorkspaceSnapshot? workspace = null) => new(
             new StubProfileReader(profile ?? new(true, true)),
-            new StubConsentReader(consent ?? new(false)),
+            new StubConsentReader(consent ?? new(true)),
             new StubWorkspaceReader(workspace ?? new(false, null)),
             new JourneyReturnUrlPolicy(),
             new DefaultJourneyDestinationResolver());
