@@ -30,6 +30,7 @@ public static class ModulesExtensions
         "Vitarish.Social.Module",
         "Vitarish.Medical.Module",
         "Vitarish.Feed.Module",
+        "Vitarish.Journey.Module",
     ];
 
     public static List<IModule> GetModules() =>

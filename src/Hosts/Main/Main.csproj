@@ -32,6 +32,7 @@
 		<ProjectReference Include="..\..\Apps\Base\Interface\Apps.Base.Interface.csproj" />
 		<ProjectReference Include="..\..\Libraries\Audit\Audit.Server\Audit.Server.csproj" />
 		<ProjectReference Include="..\..\Modules\Authentication\Module\Authentication.Module.csproj" />
+		<ProjectReference Include="..\..\Modules\Journey\Module\Journey.Module.csproj" />
 		<ProjectReference Include="..\..\Apps\Aggregator\Client\Apps.Aggregator.Client.csproj" />
 		<ProjectReference Include="..\..\Apps\Aggregator\Core\Apps.Aggregator.Core.csproj" />
 		<ProjectReference Include="..\..\Apps\Aggregator\Interface\Apps.Aggregator.Interface.csproj" />

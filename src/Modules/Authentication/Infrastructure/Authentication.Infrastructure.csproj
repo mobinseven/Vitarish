@@ -14,5 +14,6 @@
     <ProjectReference Include="..\..\Users\Application\Users.Application.csproj" />
     <ProjectReference Include="..\..\Communications\Application\Communications.Application.csproj" />
     <ProjectReference Include="..\..\Communications\Domain\Communications.Domain.csproj" />
+    <ProjectReference Include="..\..\Journey\Application\Journey.Application.csproj" />
   </ItemGroup>
 </Project>

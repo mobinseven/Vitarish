@@ -14,6 +14,7 @@ public sealed class CompletePasskeyLoginHandler(IWebAuthnAuthenticationService w
             return new AuthenticationResult<LoginResult>.Failure(result.Failure ?? new AuthenticationFailure(AuthenticationFailureReason.InvalidCredentials, "Passkey authentication failed."));
 
         await signInService.SignInAsync(result.UserId!, false, cancellationToken);
-        return new AuthenticationResult<LoginResult>.Success(new(result.UserId!, redirects.Resolve(command.ReturnUrl, false), false));
+        string resolvedReturnUrl = await redirects.ResolveAsync(command.ReturnUrl, false, result.UserId, cancellationToken);
+        return new AuthenticationResult<LoginResult>.Success(new(result.UserId!, resolvedReturnUrl, false));
     }
 }

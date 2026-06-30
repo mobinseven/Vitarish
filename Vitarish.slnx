@@ -152,6 +152,14 @@
     <Project Path="src/Modules/Intelligence/Interface/Intelligence.Interface.csproj" />
     <Project Path="src/Modules/Intelligence/Module/Intelligence.Module.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Journey/">
+    <Project Path="src/Modules/Journey/Api/Journey.Api.csproj" />
+    <Project Path="src/Modules/Journey/Application/Journey.Application.csproj" />
+    <Project Path="src/Modules/Journey/Contracts/Journey.Contracts.csproj" />
+    <Project Path="src/Modules/Journey/Domain/Journey.Domain.csproj" />
+    <Project Path="src/Modules/Journey/Infrastructure/Journey.Infrastructure.csproj" />
+    <Project Path="src/Modules/Journey/Module/Journey.Module.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Knowledge/">
     <Project Path="src/Modules/Knowledge/Api/Knowledge.Api.csproj" />
     <Project Path="src/Modules/Knowledge/Application/Knowledge.Application.csproj" />

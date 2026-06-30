@@ -52,7 +52,8 @@ internal static class ChallengeCompletionHelper
 
         await signInService.SignInAsync(challenge.UserId, false, cancellationToken);
 
-        return new AuthenticationResult<LoginResult>.Success(new(challenge.UserId, redirects.Resolve(returnUrl, false), false));
+        string resolvedReturnUrl = await redirects.ResolveAsync(returnUrl, false, challenge.UserId, cancellationToken);
+        return new AuthenticationResult<LoginResult>.Success(new(challenge.UserId, resolvedReturnUrl, false));
     }
 
     private static string NormalizeVerificationCode(string code)

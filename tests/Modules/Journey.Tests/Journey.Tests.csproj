@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Moq" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Modules\Journey\Domain\Journey.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Journey\Application\Journey.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Journey\Contracts\Journey.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Journey\Infrastructure\Journey.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Users\Application\Users.Application.csproj" />
+  </ItemGroup>
+
+</Project>

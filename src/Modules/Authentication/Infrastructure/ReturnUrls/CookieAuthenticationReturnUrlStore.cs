@@ -34,5 +34,15 @@ public sealed class CookieAuthenticationReturnUrlStore(IHttpContextAccessor http
         return Task.FromResult(value);
     }
 
-    public string Resolve(string? requestedReturnUrl, bool requiresProfileCompletion) => requiresProfileCompletion ? "/Account/Settings" : ReturnUrlPolicy.NormalizeOrDefault(requestedReturnUrl).Value;
+    public string Resolve(string? requestedReturnUrl, bool requiresProfileCompletion) => requiresProfileCompletion ? "/account/profile/complete" : ReturnUrlPolicy.NormalizeOrDefault(requestedReturnUrl).Value;
+
+    public Task<string> ResolveAsync(string? requestedReturnUrl, bool requiresProfileCompletion, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(Resolve(requestedReturnUrl, requiresProfileCompletion));
+    }
+
+    public Task<string> ResolveAsync(string? requestedReturnUrl, bool requiresProfileCompletion, string? userId, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(Resolve(requestedReturnUrl, requiresProfileCompletion));
+    }
 }

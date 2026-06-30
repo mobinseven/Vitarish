@@ -24,6 +24,9 @@ export function usePasswordLogin() {
           returnUrl: finalReturnUrl,
           rememberMe: false,
         });
+
+        // Use legacy returnUrl from auth result as fallback
+        // Journey destination will be resolved by the gate boundary
         router.push(result.returnUrl);
       } catch (err) {
         const authError = parseAuthError(err);
