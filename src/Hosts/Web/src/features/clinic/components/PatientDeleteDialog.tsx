@@ -22,8 +22,7 @@ export function PatientDeleteDialog({
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           <p className="text-default-500">
-            Patient deletion is not yet available. This feature requires a
-            backend endpoint that has not been implemented yet.
+            Patient deletion is currently unavailable. Please contact support if you need assistance.
           </p>
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onPress={onClose}>

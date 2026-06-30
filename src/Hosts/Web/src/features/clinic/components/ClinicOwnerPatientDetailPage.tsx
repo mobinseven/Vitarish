@@ -59,7 +59,9 @@ export function ClinicOwnerPatientDetailPage({
             ← Back to Patients
           </Button>
           <h1 className="text-2xl font-bold">
-            {patient.firstName} {patient.lastName}
+            {patient.firstName || patient.lastName
+              ? ((patient.firstName ?? "") + " " + (patient.lastName ?? "")).trim()
+              : patient.name || "Unnamed Patient"}
           </h1>
         </div>
         <PatientQuickActions patientId={patientId} />

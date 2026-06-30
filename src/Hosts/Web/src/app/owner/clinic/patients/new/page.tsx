@@ -26,8 +26,7 @@ export default function NewPatientRoute() {
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           <p className="text-default-500">
-            Patient creation is not yet available. This feature requires a
-            backend endpoint that has not been implemented yet.
+            Patient creation is currently unavailable. Please contact support if you need assistance.
           </p>
         </Card.Content>
       </Card>

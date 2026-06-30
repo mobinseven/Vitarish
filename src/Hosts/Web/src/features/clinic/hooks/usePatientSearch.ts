@@ -6,7 +6,7 @@ export function usePatientSearch() {
   return useMutation({
     mutationFn: (criteria: AdvancedSearchCriteria) =>
       searchPatients({
-        search: [criteria.name, criteria.identificationCode, criteria.phone, criteria.email]
+        search: [criteria.name, criteria.identificationCode, criteria.dateOfBirth, criteria.phone, criteria.email]
           .filter(Boolean)
           .join(" ") || null,
       }),

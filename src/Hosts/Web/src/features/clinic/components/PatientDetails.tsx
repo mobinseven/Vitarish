@@ -8,8 +8,9 @@ interface PatientDetailsProps {
 }
 
 function formatDate(dateString: string | null | undefined): string {
-  if (!dateString) return "—";
-  return new Date(dateString).toLocaleDateString();
+  if (!dateString || dateString.startsWith("0001-01-01")) return "—";
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
 }
 
 function formatEnum(value: string | null | undefined): string {

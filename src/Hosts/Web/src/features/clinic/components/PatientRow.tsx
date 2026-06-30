@@ -20,7 +20,9 @@ export function PatientRow({ patient, onSelect }: PatientRowProps) {
       >
         <div className="flex flex-col gap-1">
           <span className="font-medium">
-            {patient.firstName} {patient.lastName}
+            {patient.firstName || patient.lastName
+              ? ((patient.firstName ?? "") + " " + (patient.lastName ?? "")).trim()
+              : patient.name || "Unnamed Patient"}
           </span>
           <span className="text-sm text-default-500">
             {patient.identificationCode && `ID: ${patient.identificationCode}`}
