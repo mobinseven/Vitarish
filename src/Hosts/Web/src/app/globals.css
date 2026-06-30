@@ -4,62 +4,126 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --accent: oklch(0.45 0.15 270);
-  --accent-foreground: oklch(1.0 0 0);
+  color-scheme: light;
+  --background: oklch(0.985 0.015 255);
+  --foreground: oklch(0.18 0.025 265);
+  --surface: oklch(1 0 0);
+  --surface-muted: oklch(0.965 0.018 255);
+  --surface-glass: color-mix(in oklch, var(--surface) 82%, transparent);
+  --border: oklch(0.86 0.03 265);
+  --muted: oklch(0.48 0.035 265);
+  --accent: oklch(0.48 0.18 270);
+  --accent-foreground: oklch(1 0 0);
+  --accent-soft: oklch(from var(--accent) l c h / 12%);
+  --success: oklch(0.61 0.16 158);
+  --success-soft: oklch(from var(--success) l c h / 14%);
+  --warning: oklch(0.72 0.16 78);
+  --danger: oklch(0.58 0.2 25);
+  --focus-ring: oklch(0.62 0.19 270);
+  --shadow-soft: 0 1rem 3rem oklch(0.18 0.025 265 / 10%);
+  --shadow-lifted: 0 1.5rem 4rem oklch(0.18 0.025 265 / 16%);
+  --radius-surface: 1.5rem;
+  --radius-hero: 2rem;
+  --space-page-x: clamp(1rem, 3vw, 3rem);
+  --space-page-y: clamp(2rem, 5vw, 4rem);
+  --motion-fast: 150ms ease;
+  --motion-standard: 260ms ease;
 }
 
 .dark {
-  --accent: oklch(0.7 0.12 270);
-  --accent-foreground: oklch(0.15 0.01 270);
+  color-scheme: dark;
+  --background: oklch(0.16 0.025 265);
+  --foreground: oklch(0.96 0.01 255);
+  --surface: oklch(0.22 0.03 265);
+  --surface-muted: oklch(0.27 0.035 265);
+  --surface-glass: color-mix(in oklch, var(--surface) 54%, transparent);
+  --border: oklch(0.44 0.045 265 / 70%);
+  --muted: oklch(0.76 0.035 265);
+  --accent: oklch(0.72 0.14 270);
+  --accent-foreground: oklch(0.16 0.025 265);
+  --accent-soft: oklch(from var(--accent) l c h / 16%);
+  --success: oklch(0.76 0.16 158);
+  --success-soft: oklch(from var(--success) l c h / 16%);
+  --warning: oklch(0.82 0.15 78);
+  --danger: oklch(0.72 0.18 25);
+  --focus-ring: oklch(0.76 0.16 270);
+  --shadow-soft: 0 1rem 3rem oklch(0 0 0 / 28%);
+  --shadow-lifted: 0 1.5rem 4rem oklch(0 0 0 / 36%);
 }
 
+html { background: var(--background); color: var(--foreground); }
+body { margin: 0; background: var(--background); color: var(--foreground); }
+
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.ds-app-shell,
 .auth-bg {
   min-height: 100vh;
+  overflow: hidden;
+  padding: var(--space-page-y) var(--space-page-x);
   background:
-    radial-gradient(ellipse at 20% 50%, oklch(0.45 0.15 270 / 15%) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, oklch(0.65 0.2 350 / 10%) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, oklch(0.7 0.15 160 / 8%) 0%, transparent 50%);
-  background-color: var(--background);
+    radial-gradient(ellipse at 20% 50%, oklch(from var(--accent) l c h / 15%) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, oklch(from var(--warning) l c h / 10%) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, oklch(from var(--success) l c h / 8%) 0%, transparent 50%),
+    var(--background);
 }
 
+.ds-page-container { margin-inline: auto; display: flex; max-width: 80rem; flex-direction: column; gap: 2rem; }
+.ds-page-container-content { max-width: 56rem; }
+
+.ds-surface-card,
 .glass-card {
-  backdrop-filter: blur(12px) saturate(150%);
-  background-color: color-mix(in oklch, var(--surface) 80%, transparent);
   border: 1px solid var(--border);
-  box-shadow: 0 8px 32px oklch(0 0 0 / 8%);
+  background-color: var(--surface-glass);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(12px) saturate(150%);
 }
 
-.dark .glass-card {
-  background-color: color-mix(in oklch, var(--surface) 30%, transparent);
+.ds-surface-card-elevated { box-shadow: var(--shadow-lifted); }
+.ds-surface-card-interactive { transition: transform var(--motion-standard), box-shadow var(--motion-standard), border-color var(--motion-fast); }
+.ds-surface-card-interactive:hover { transform: translateY(-0.25rem); box-shadow: var(--shadow-lifted); border-color: color-mix(in oklch, var(--accent) 42%, var(--border)); }
+
+.ds-hero-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-hero);
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, color-mix(in oklch, var(--surface) 88%, transparent), color-mix(in oklch, var(--surface-muted) 62%, transparent), var(--accent-soft));
+  box-shadow: var(--shadow-lifted);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  backdrop-filter: blur(18px) saturate(150%);
 }
 
-.sidebar {
-  width: 16rem;
-  border-right: 1px solid var(--border);
-  background-color: color-mix(in oklch, var(--surface) 50%, transparent);
-  padding: 1rem;
-}
+.ds-hero-content { position: relative; }
+.ds-hero-orb { position: absolute; block-size: 18rem; inline-size: 18rem; border-radius: 9999px; filter: blur(4rem); opacity: 0.72; }
+.ds-hero-orb-primary { inset-block-start: -6rem; inset-inline-end: -5rem; background: var(--accent-soft); }
+.ds-hero-orb-secondary { inset-block-end: -7rem; inset-inline-start: 33%; background: var(--success-soft); }
 
-.sidebar-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  border-left: 2px solid transparent;
-  border-radius: 0.5rem;
-  transition: color 150ms ease, background-color 150ms ease;
-  color: var(--muted);
-}
+.ds-section-header { display: flex; flex-direction: column; justify-content: space-between; gap: 0.5rem; }
+@media (min-width: 768px) { .ds-section-header { flex-direction: row; align-items: end; } }
+.ds-eyebrow { margin: 0; color: var(--muted); font-size: 0.875rem; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; }
+.ds-section-title { margin: 0; color: var(--foreground); font-size: clamp(1.875rem, 4vw, 2.5rem); font-weight: 800; letter-spacing: -0.03em; }
+.ds-section-description { margin: 0; max-width: 36rem; color: var(--muted); font-size: 0.875rem; line-height: 1.6; }
+.ds-action-group { display: flex; flex-direction: column; gap: 0.75rem; }
+@media (min-width: 640px) { .ds-action-group { flex-direction: row; } }
+.ds-status-badge { display: inline-flex; width: fit-content; align-items: center; gap: 0.5rem; border-radius: 9999px; border: 1px solid var(--border); background: var(--surface-glass); padding: 0.5rem 1rem; color: var(--accent); font-size: 0.875rem; font-weight: 700; box-shadow: 0 0.25rem 1rem oklch(0 0 0 / 6%); }
+.ds-status-badge-success { color: var(--success); }
+.ds-status-badge-muted { color: var(--muted); }
+.ds-status-dot { block-size: 0.5rem; inline-size: 0.5rem; border-radius: 9999px; background: currentColor; box-shadow: 0 0 1rem currentColor; }
 
-.sidebar-nav-item:hover {
-  color: var(--foreground);
-  background-color: oklch(0 0 0 / 5%);
-}
-
-.sidebar-nav-item-active {
-  color: var(--accent);
-  background-color: oklch(from var(--accent) l c h / 10%);
-  border-left-color: var(--accent);
-  font-weight: 500;
-}
+.sidebar { width: 16rem; border-right: 1px solid var(--border); background-color: color-mix(in oklch, var(--surface) 50%, transparent); padding: 1rem; }
+.sidebar-nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; border-left: 2px solid transparent; border-radius: 0.5rem; transition: color var(--motion-fast), background-color var(--motion-fast); color: var(--muted); }
+.sidebar-nav-item:hover { color: var(--foreground); background-color: color-mix(in oklch, var(--foreground) 5%, transparent); }
+.sidebar-nav-item-active { color: var(--accent); background-color: var(--accent-soft); border-left-color: var(--accent); font-weight: 500; }
