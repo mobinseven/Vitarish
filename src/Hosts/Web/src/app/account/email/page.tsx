@@ -5,7 +5,7 @@ import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
 import { SurfaceCard } from "@/design-system";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
-import { useUserProfileQuery } from "@/api/generated/users/users";
+import { useUsersGetProfile } from "@/api/generated/users/users";
 import { apiFetch } from "@/api/client/apiFetch";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
@@ -13,7 +13,7 @@ import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
 export default function EmailChangePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
-  const { data: profile } = useUserProfileQuery(userId);
+  const { data: profile } = useUsersGetProfile(userId);
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");

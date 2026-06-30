@@ -1,4 +1,4 @@
 import { setupServer } from "msw/node";
-import { handlers } from "@/api/generated/authentication/authentication.msw";
+import { handlers } from "./handlers/authentication.msw";
 
 export const server = setupServer(...handlers);

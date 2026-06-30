@@ -120,7 +120,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "codeSystemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/code-systems/by-key": {
@@ -238,7 +249,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "codeSystemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/code-system-releases/active": {
@@ -651,7 +673,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "drugId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/reference/drugs/resolve-identifier": {
@@ -769,7 +802,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "drugProductId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/reference/packaged-drugs/{packagedDrugId}": {
@@ -828,7 +872,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "packagedDrugId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/reference/medical-services/search": {
@@ -946,7 +1001,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/reference/service-codes/resolve": {
@@ -1182,7 +1248,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "importBatchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/code-systems/register": {
@@ -1890,7 +1967,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/prescriptions/history": {
@@ -2126,7 +2214,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/prescriptions/{prescriptionId}/items/{itemId}": {
@@ -2185,7 +2284,27 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/prescriptions/{prescriptionId}/items/{itemId}/remove": {
@@ -2244,7 +2363,27 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/prescriptions/{prescriptionId}/provider": {
@@ -2303,7 +2442,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/prescriptions/eligibility": {
@@ -2421,7 +2571,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/prescriptions/{prescriptionId}/submission": {
@@ -2480,7 +2641,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/prescriptions/{prescriptionId}/edit": {
@@ -2539,7 +2711,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/prescriptions/{prescriptionId}/cancellation": {
@@ -2598,7 +2781,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/prescriptions/{prescriptionId}/paper-fallback": {
@@ -2657,7 +2851,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/prescription-templates/list": {
@@ -2775,7 +2980,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/prescription-templates": {
@@ -2893,7 +3109,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/api/modules/medical/prescription-templates/archive": {

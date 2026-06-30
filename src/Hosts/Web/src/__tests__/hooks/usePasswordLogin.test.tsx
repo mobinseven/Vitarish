@@ -3,9 +3,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode } from "react";
 import { http, HttpResponse } from "msw";
 import { server } from "../server";
-import { handlers } from "@/api/generated/authentication/authentication.msw";
+import { handlers } from "../handlers/authentication.msw";
 import { usePasswordLogin } from "@/hooks/auth/usePasswordLogin";
-import { authenticationKeys } from "@/api/generated/authentication/authentication";
+import { getAuthenticationSessionGetQueryKey } from "@/api/generated/authentication/authentication";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 
 const queryClient = new QueryClient({
@@ -98,7 +98,7 @@ describe("usePasswordLogin", () => {
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: authenticationKeys.session(),
+      queryKey: getAuthenticationSessionGetQueryKey(),
     });
   });
 

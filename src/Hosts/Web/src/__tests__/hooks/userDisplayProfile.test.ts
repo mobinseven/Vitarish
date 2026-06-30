@@ -5,6 +5,8 @@ describe("resolveUserDisplayProfile", () => {
     const profile = resolveUserDisplayProfile({
       userId: "user-1",
       displayName: " Avery Stone ",
+      givenName: null,
+      familyName: null,
       email: "avery@example.com",
       phoneNumber: "+15550100",
     });
@@ -37,6 +39,8 @@ describe("resolveUserDisplayProfile", () => {
     const profile = resolveUserDisplayProfile({
       userId: "user-2",
       displayName: " ",
+      givenName: null,
+      familyName: null,
       email: " email-only@example.com ",
       phoneNumber: "+15550101",
     });
@@ -50,6 +54,8 @@ describe("resolveUserDisplayProfile", () => {
     const profile = resolveUserDisplayProfile({
       userId: "user-3",
       displayName: null,
+      givenName: null,
+      familyName: null,
       email: null,
       phoneNumber: " +15550102 ",
     });
@@ -71,6 +77,8 @@ describe("resolveUserDisplayProfile", () => {
     const profile = resolveUserDisplayProfile({
       userId: "user-4",
       displayName: null,
+      givenName: null,
+      familyName: null,
       email: "john.doe@example.com",
       phoneNumber: null,
     });
