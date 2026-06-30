@@ -17,7 +17,7 @@ export async function getKnowledgeUserWorkspace(): Promise<KnowledgeUserWorkspac
   );
 
   return {
-    corpora: mapUserCorpora(ownerWorkspace.corpora ?? []),
+    corpora: mapUserCorpora(ownerWorkspace?.corpora ?? []),
   };
 }
 
