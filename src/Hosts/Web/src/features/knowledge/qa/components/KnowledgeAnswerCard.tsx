@@ -1,6 +1,13 @@
 "use client";
 
-import { Button, Card } from "@heroui/react";
+import { Button } from "@heroui/react";
+import {
+  KnowledgeChatBody,
+  KnowledgeChatCallout,
+  KnowledgeChatMessage,
+  KnowledgeChatSource,
+  KnowledgeChatSourceList,
+} from "./chat";
 import type { KnowledgeCorpusAnswerResult } from "../types";
 
 interface KnowledgeAnswerCardProps {
@@ -21,85 +28,14 @@ export function KnowledgeAnswerCard({
   const retrievedContext = answer?.retrievedContext ?? [];
 
   return (
-    <Card className="glass-card">
-      <Card.Header>
-        <div className="flex w-full flex-col gap-2 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-muted">Corpus</p>
-            <h2 className="text-xl font-semibold">{corpus.name}</h2>
-            {corpus.description && (
-              <p className="mt-1 text-sm text-muted">{corpus.description}</p>
-            )}
-          </div>
-          <AnswerStatus isAnswered={answer?.isAnswered} hasError={!!errorMessage} />
-        </div>
-      </Card.Header>
-
-      <Card.Content className="flex flex-col gap-5">
-        {errorMessage && (
-          <div className="rounded-2xl border border-danger-200 bg-danger-50 p-4 text-sm text-danger-700">
-            {errorMessage}
-          </div>
-        )}
-
-        {!errorMessage && answer && (
-          <>
-            <section className="rounded-2xl bg-default-50 p-4">
-              <p className="text-sm leading-7 whitespace-pre-wrap">
-                {answer.isAnswered ? answer.answer : answer.missingInformation ?? answer.answer}
-              </p>
-            </section>
-
-            {answer.missingInformation && answer.isAnswered && (
-              <section className="rounded-2xl border border-warning-200 bg-warning-50 p-4 text-sm text-warning-700">
-                <span className="font-medium">Missing information: </span>
-                {answer.missingInformation}
-              </section>
-            )}
-
-            {citations.length > 0 && (
-              <section className="flex flex-col gap-2">
-                <h3 className="text-sm font-semibold">Citations</h3>
-                <div className="grid gap-2">
-                  {citations.map((citation) => (
-                    <div
-                      key={`${citation.chunkId}-${citation.sourceId}`}
-                      className="rounded-xl border border-default-200 p-3 text-sm"
-                    >
-                      <div className="font-medium">
-                        {citation.title ?? "Referenced chunk"}
-                      </div>
-                      {citation.quote && (
-                        <p className="mt-1 text-muted">“{citation.quote}”</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {retrievedContext.length > 0 && (
-              <details className="rounded-2xl border border-default-200 p-4">
-                <summary className="cursor-pointer text-sm font-semibold">
-                  Retrieved context ({retrievedContext.length})
-                </summary>
-                <div className="mt-3 grid gap-3">
-                  {retrievedContext.map((hit) => (
-                    <article key={hit.chunkId} className="rounded-xl bg-default-50 p-3">
-                      <div className="flex items-center justify-between gap-3 text-xs text-muted">
-                        <span>{hit.title ?? "Context section"}</span>
-                        <span>Score {hit.score.toFixed(2)}</span>
-                      </div>
-                      <p className="mt-2 line-clamp-4 text-sm">{hit.text}</p>
-                    </article>
-                  ))}
-                </div>
-              </details>
-            )}
-          </>
-        )}
-
-        <div className="flex flex-wrap gap-2">
+    <KnowledgeChatMessage
+      kind="answer"
+      title={corpus.name}
+      subtitle={corpus.description ?? undefined}
+      status={answerStatusLabel(answer?.isAnswered, !!errorMessage)}
+      tone={answerStatusTone(answer?.isAnswered, !!errorMessage)}
+      actions={
+        <>
           <Button type="button" onPress={onAskAgain}>
             Ask again
           </Button>
@@ -112,29 +48,76 @@ export function KnowledgeAnswerCard({
               Ask from this corpus
             </Button>
           )}
-        </div>
-      </Card.Content>
-    </Card>
+        </>
+      }
+    >
+      {errorMessage && <KnowledgeChatCallout tone="danger">{errorMessage}</KnowledgeChatCallout>}
+
+      {!errorMessage && answer && (
+        <>
+          <KnowledgeChatBody>
+            <p className="whitespace-pre-wrap">
+              {answer.isAnswered ? answer.answer : answer.missingInformation ?? answer.answer}
+            </p>
+          </KnowledgeChatBody>
+
+          {answer.missingInformation && answer.isAnswered && (
+            <KnowledgeChatCallout tone="warning">
+              <span className="font-medium">Missing information: </span>
+              {answer.missingInformation}
+            </KnowledgeChatCallout>
+          )}
+
+          {citations.length > 0 && (
+            <KnowledgeChatSourceList title="Citations">
+              {citations.map((citation) => (
+                <KnowledgeChatSource
+                  key={`${citation.chunkId}-${citation.sourceId}`}
+                  title={citation.title ?? "Referenced chunk"}
+                  body={citation.quote ? `“${citation.quote}”` : null}
+                />
+              ))}
+            </KnowledgeChatSourceList>
+          )}
+
+          {retrievedContext.length > 0 && (
+            <details className="rounded-2xl border border-default-200 p-4">
+              <summary className="cursor-pointer text-sm font-semibold">
+                Retrieved context ({retrievedContext.length})
+              </summary>
+              <div className="mt-3 grid gap-3">
+                {retrievedContext.map((hit) => (
+                  <KnowledgeChatSource
+                    key={hit.chunkId}
+                    title={hit.title ?? "Context section"}
+                    meta={`Score ${hit.score.toFixed(2)}`}
+                    body={hit.text}
+                  />
+                ))}
+              </div>
+            </details>
+          )}
+        </>
+      )}
+    </KnowledgeChatMessage>
   );
 }
 
-function AnswerStatus({
-  isAnswered,
-  hasError,
-}: {
-  isAnswered?: boolean;
-  hasError: boolean;
-}) {
-  const label = hasError ? "Unavailable" : isAnswered ? "Answered" : "Needs more context";
-  const tone = hasError
-    ? "bg-danger-100 text-danger-700"
-    : isAnswered
-      ? "bg-success-100 text-success-700"
-      : "bg-warning-100 text-warning-700";
+function answerStatusLabel(isAnswered: boolean | undefined, hasError: boolean): string {
+  if (hasError) {
+    return "Unavailable";
+  }
 
-  return (
-    <span className={`rounded-full px-3 py-1 text-xs font-medium ${tone}`}>
-      {label}
-    </span>
-  );
+  return isAnswered ? "Answered" : "Needs more context";
+}
+
+function answerStatusTone(
+  isAnswered: boolean | undefined,
+  hasError: boolean
+): "success" | "warning" | "danger" {
+  if (hasError) {
+    return "danger";
+  }
+
+  return isAnswered ? "success" : "warning";
 }
