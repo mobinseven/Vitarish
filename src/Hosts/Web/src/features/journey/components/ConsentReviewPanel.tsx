@@ -19,7 +19,12 @@ export function ConsentReviewPanel() {
             isSelected={acceptedRequiredConsents}
             onChange={setAcceptedRequiredConsents}
           >
-            I have reviewed the required terms and privacy notices.
+            <Checkbox.Content>
+              <Checkbox.Control>
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+              I have reviewed the required terms and privacy notices.
+            </Checkbox.Content>
           </Checkbox>
         </Card.Content>
       </Card>
