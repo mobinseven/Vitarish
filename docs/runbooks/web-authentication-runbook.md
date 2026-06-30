@@ -43,6 +43,12 @@ Open http://localhost:3000. You should see the auth method selector.
 
 Copy `.env.example` to `.env.local` and adjust as needed.
 
+## Tenant Host Forwarding
+
+The React web host and the .NET Main host are different HTTP origins in the split-host architecture. Browser requests sent to the Main host therefore arrive with `HttpContext.Request.Host` set to the Main host, not the tenant web host.
+
+The shared `apiFetch` boundary forwards the current web origin host through `X-Vitarish-Tenant-Host`. The Main host tenant resolver prefers that header when it matches the browser request source, then falls back to `Origin`, `Referer`, and finally `Request.Host`. This preserves tenant resolution for requests opened from tenant domains such as `tenantA.mydomain.com` while retaining the old mono-host behavior as a fallback.
+
 ## Docker
 
 ### Build and run the Next.js UI only
@@ -93,6 +99,7 @@ The Next.js UI (port 3000) and Blazor UI (port 5000) run independently. Sessions
 | Issue | Solution |
 |---|---|
 | `fetch failed` in hooks | Ensure the .NET host is running on `NEXT_PUBLIC_API_BASE_URL` |
+| Tenant is not resolved from the Web UI | Ensure requests go through the shared `apiFetch` boundary so `X-Vitarish-Tenant-Host` is forwarded |
 | `navigator.credentials` error | Passkey auth requires HTTPS (except localhost) |
 | CSRF errors on mutations | The `apiFetch` boundary auto-fetches antiforgery tokens; ensure the backend antiforgery endpoint is reachable |
 | Tests fail with "React is not defined" | Run `npm install` to ensure dependencies are installed |

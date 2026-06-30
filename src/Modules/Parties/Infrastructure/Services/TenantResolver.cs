@@ -14,6 +14,10 @@ namespace Vitarish.Parties.Infrastructure.Services;
 /// </summary>
 public class TenantResolver(PartiesDbContext dbContext, IMemoryCache cache) : ITenantResolver
 {
+    public const string TenantHostHeaderName = "X-Vitarish-Tenant-Host";
+
+    private const string OriginHeaderName = "Origin";
+    private const string RefererHeaderName = "Referer";
     private static readonly MemoryCacheEntryOptions CacheOptions = new() { SlidingExpiration = TimeSpan.FromMinutes(10) };
 
     /// <summary>
@@ -24,7 +28,7 @@ public class TenantResolver(PartiesDbContext dbContext, IMemoryCache cache) : IT
     /// <returns>The matched tenant, or null when no active indicator exists.</returns>
     public async Task<Tenant?> ResolveAsync(HttpContext context, CancellationToken cancellationToken = default)
     {
-        string host = context.Request.Host.Host;
+        string? host = ResolveTenantHost(context);
         if (string.IsNullOrWhiteSpace(host))
         {
             return null;
@@ -54,8 +58,91 @@ public class TenantResolver(PartiesDbContext dbContext, IMemoryCache cache) : IT
                 .Select(indicator => indicator.Tenant)
                 .FirstOrDefaultAsync(cancellationToken);
 
-        _ = cache.Set(cacheKey, tenant);
+        _ = cache.Set(cacheKey, tenant, CacheOptions);
 
         return tenant;
+    }
+
+    private static string? ResolveTenantHost(HttpContext context)
+    {
+        string? tenantHost = ReadHostHeader(context, TenantHostHeaderName);
+        string? originHost = ReadUriHostHeader(context, OriginHeaderName);
+        string? refererHost = ReadUriHostHeader(context, RefererHeaderName);
+
+        if (!string.IsNullOrWhiteSpace(tenantHost))
+        {
+            if (originHost is null && refererHost is null)
+            {
+                return tenantHost;
+            }
+
+            if (HostsMatch(tenantHost, originHost) || HostsMatch(tenantHost, refererHost))
+            {
+                return tenantHost;
+            }
+        }
+
+        return originHost ?? refererHost ?? context.Request.Host.Host;
+    }
+
+    private static string? ReadHostHeader(HttpContext context, string headerName)
+    {
+        string? value = ReadFirstHeaderValue(context, headerName);
+        if (value is null)
+        {
+            return null;
+        }
+
+        if (Uri.TryCreate(value, UriKind.Absolute, out Uri? uri) && !string.IsNullOrWhiteSpace(uri.Host))
+        {
+            return uri.Host;
+        }
+
+        return value;
+    }
+
+    private static string? ReadUriHostHeader(HttpContext context, string headerName)
+    {
+        string? value = ReadFirstHeaderValue(context, headerName);
+        if (value is null || string.Equals(value, "null", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return Uri.TryCreate(value, UriKind.Absolute, out Uri? uri) && !string.IsNullOrWhiteSpace(uri.Host)
+            ? uri.Host
+            : null;
+    }
+
+    private static string? ReadFirstHeaderValue(HttpContext context, string headerName)
+    {
+        string value = context.Request.Headers[headerName].ToString().Trim();
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        string firstValue = value.Split(',', 2, StringSplitOptions.TrimEntries)[0];
+        return string.IsNullOrWhiteSpace(firstValue) ? null : firstValue;
+    }
+
+    private static bool HostsMatch(string? left, string? right)
+    {
+        if (string.IsNullOrWhiteSpace(left) || string.IsNullOrWhiteSpace(right))
+        {
+            return false;
+        }
+
+        try
+        {
+            return string.Equals(
+                HostnameNormalizer.Canonical(left),
+                HostnameNormalizer.Canonical(right),
+                StringComparison.OrdinalIgnoreCase);
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
     }
 }

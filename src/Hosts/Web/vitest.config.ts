@@ -7,6 +7,11 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    environmentOptions: {
+      jsdom: {
+        url: "https://tenant-a.example.test/",
+      },
+    },
     globals: true,
     setupFiles: ["./src/__tests__/setup.ts"],
     css: false,
