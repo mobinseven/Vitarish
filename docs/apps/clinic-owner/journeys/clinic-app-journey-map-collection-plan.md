@@ -269,6 +269,7 @@ Every route below must appear in `implementation-coverage-matrix.md` and be trac
 - [ ] `/owner/clinic/patients/{patientId}/edit`
 - [ ] `/owner/clinic/patients/{patientId}/procedures/{procedureId}`
 - [ ] `/owner/clinic/patients/{patientId}/procedures/{procedureId}/events/{eventId}`
+- [ ] `/owner/clinic/settings`
 - [ ] `/owner/clinic/settings/users`
 - [ ] `/owner/clinic/settings/statistics`
 - [ ] `/owner/clinic/reminders`
@@ -310,6 +311,7 @@ Every component below must be represented in at least one journey or marked as r
 - [ ] `PatientAdvancedSearchResults`
 - [ ] `PatientEditForm`
 - [ ] `PatientsGrid`
+- [ ] `ProceduresGrid`
 - [ ] `PatientDetails`
 - [ ] `PatientOverviewPanel`
 - [ ] `PatientAppointmentsPanel`
@@ -317,6 +319,7 @@ Every component below must be represented in at least one journey or marked as r
 - [ ] `PatientCheckInShiftStep`
 - [ ] `PatientCheckInConfirmStep`
 - [ ] `PatientRemindersPanel`
+- [ ] `RemindersGrid`
 - [ ] `ReservationsList`
 - [ ] `ReservationDetail`
 - [ ] `ReservationDetailDialog`
