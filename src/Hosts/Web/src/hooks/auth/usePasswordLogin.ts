@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { usePasswordLoginMutation } from "@/api/generated/authentication/authentication";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
+import { getRequestedReturnUrl } from "./requestedReturnUrl";
 
 export function usePasswordLogin() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export function usePasswordLogin() {
     ) => {
       setError(null);
       try {
-        const finalReturnUrl = returnUrl ?? searchParams.get("returnUrl") ?? "/";
+        const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
         const result = await mutation.mutateAsync({
           userNameOrEmail,
           password,

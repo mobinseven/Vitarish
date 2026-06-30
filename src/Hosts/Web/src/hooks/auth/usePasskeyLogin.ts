@@ -6,6 +6,7 @@ import {
 } from "@/api/generated/authentication/authentication";
 import { startPasskeyAuthentication } from "@/lib/webauthn";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
+import { getRequestedReturnUrl } from "./requestedReturnUrl";
 
 export function usePasskeyLogin() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export function usePasskeyLogin() {
     async (userNameOrEmail?: string, returnUrl?: string) => {
       setError(null);
       try {
-        const finalReturnUrl = returnUrl ?? searchParams.get("returnUrl") ?? "/";
+        const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
         const challenge = await beginMutation.mutateAsync({
           userNameOrEmail: userNameOrEmail || null,
           returnUrl: finalReturnUrl,

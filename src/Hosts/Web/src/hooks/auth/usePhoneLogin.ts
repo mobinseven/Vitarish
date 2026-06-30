@@ -6,6 +6,7 @@ import {
 } from "@/api/generated/authentication/authentication";
 import type { AuthenticationChallengeDto } from "@/api/generated/authentication/model";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
+import { getRequestedReturnUrl } from "./requestedReturnUrl";
 
 export type PhoneLoginStep = "phone" | "code";
 
@@ -20,12 +21,16 @@ export function usePhoneLogin() {
   );
   const [error, setError] = useState<AuthError | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [pendingReturnUrl, setPendingReturnUrl] = useState<string | undefined>(
+    undefined
+  );
 
   const begin = useCallback(
     async (phone: string, returnUrl?: string) => {
       setError(null);
       try {
-        const finalReturnUrl = returnUrl ?? searchParams.get("returnUrl") ?? "/";
+        const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
+        setPendingReturnUrl(finalReturnUrl);
         const result = await beginMutation.mutateAsync({
           phoneNumber: phone,
           returnUrl: finalReturnUrl,
@@ -45,7 +50,8 @@ export function usePhoneLogin() {
       if (!challenge) return;
       setError(null);
       try {
-        const returnUrl = searchParams.get("returnUrl") ?? "/";
+        const returnUrl =
+          pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
         const result = await completeMutation.mutateAsync({
           challengeId: challenge.challengeId,
           code,
@@ -58,10 +64,11 @@ export function usePhoneLogin() {
         if (authError.code === "challenge_expired" || authError.code === "challenge_attempts_exhausted") {
           setStep("phone");
           setChallenge(null);
+          setPendingReturnUrl(undefined);
         }
       }
     },
-    [challenge, completeMutation, router, searchParams]
+    [challenge, completeMutation, router, searchParams, pendingReturnUrl]
   );
 
   const reset = useCallback(() => {
@@ -69,6 +76,7 @@ export function usePhoneLogin() {
     setChallenge(null);
     setError(null);
     setPhoneNumber("");
+    setPendingReturnUrl(undefined);
   }, []);
 
   return {

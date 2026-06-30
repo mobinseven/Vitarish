@@ -27,6 +27,30 @@ public class JourneyReturnUrlPolicyTests
     }
 
     [Theory]
+    [InlineData("/")]
+    [InlineData("/login")]
+    [InlineData("/login/password")]
+    [InlineData("/logout")]
+    [InlineData("/logout/callback")]
+    [InlineData("/api/modules/authentication/login/password")]
+    public void IsSafe_AuthenticationOnlyRoute_ReturnsFalse(string returnUrl)
+    {
+        _sut.IsSafe(returnUrl).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("/")]
+    [InlineData("/login")]
+    [InlineData("/login/password")]
+    [InlineData("/logout")]
+    [InlineData("/logout/callback")]
+    [InlineData("/api/modules/authentication/login/password")]
+    public void Normalize_AuthenticationOnlyRoute_ReturnsNull(string returnUrl)
+    {
+        _sut.Normalize(returnUrl).Should().BeNull();
+    }
+
+    [Theory]
     [InlineData("https://external.example")]
     [InlineData("http://external.example")]
     public void IsSafe_ExternalAbsoluteUrl_ReturnsFalse(string returnUrl)

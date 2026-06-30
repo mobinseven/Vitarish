@@ -35,19 +35,74 @@ describe("usePasswordLogin", () => {
     expect(result.current.error).toBeNull();
   });
 
+  it("does not send a fabricated root return URL when none is requested", async () => {
+    let requestBody: Record<string, unknown> | undefined;
+    server.use(
+      http.post(
+        "http://localhost:5000/api/modules/authentication/login/password",
+        async ({ request }) => {
+          requestBody = (await request.json()) as Record<string, unknown>;
+          return HttpResponse.json({
+            returnUrl: "/dashboard",
+            requiresProfileCompletion: false,
+          });
+        }
+      )
+    );
+
+    const { result } = renderHook(() => usePasswordLogin(), { wrapper });
+
+    await act(async () => {
+      await result.current.login("user@test.com", "password123");
+    });
+
+    expect(requestBody).not.toHaveProperty("returnUrl");
+  });
+
+  it("ignores login pages as explicit post-login return URLs", async () => {
+    let requestBody: Record<string, unknown> | undefined;
+    server.use(
+      http.post(
+        "http://localhost:5000/api/modules/authentication/login/password",
+        async ({ request }) => {
+          requestBody = (await request.json()) as Record<string, unknown>;
+          return HttpResponse.json({
+            returnUrl: "/dashboard",
+            requiresProfileCompletion: false,
+          });
+        }
+      )
+    );
+
+    const { result } = renderHook(() => usePasswordLogin(), { wrapper });
+
+    await act(async () => {
+      await result.current.login(
+        "user@test.com",
+        "password123",
+        "/login/password"
+      );
+    });
+
+    expect(requestBody).not.toHaveProperty("returnUrl");
+  });
+
   it("should handle invalid credentials error", async () => {
     server.use(
-      http.post("http://localhost:5000/api/modules/authentication/login/password", () => {
-        return HttpResponse.json(
+      http.post(
+        "http://localhost:5000/api/modules/authentication/login/password",
+        () => {
+          return HttpResponse.json(
           {
             status: 401,
             title: "InvalidCredentials",
             detail: "Invalid username or password",
             code: "invalid_credentials",
           },
-          { status: 401 }
-        );
-      })
+            { status: 401 }
+          );
+        }
+      )
     );
 
     const { result } = renderHook(() => usePasswordLogin(), { wrapper });

@@ -12,6 +12,7 @@ namespace Vitarish.Journey.Infrastructure.ReturnUrl;
 /// - Backslash-relative URLs are invalid.
 /// - Encoded bypass attempts are decoded then checked.
 /// - Invalid return URLs are ignored, not repaired.
+/// - Authentication-only routes are not valid post-authentication destinations.
 /// </summary>
 public sealed class JourneyReturnUrlPolicy : IJourneyReturnUrlPolicy
 {
@@ -37,6 +38,12 @@ public sealed class JourneyReturnUrlPolicy : IJourneyReturnUrlPolicy
         value.StartsWith("/", StringComparison.Ordinal)
         && !value.StartsWith("//", StringComparison.Ordinal)
         && !value.StartsWith("/\\", StringComparison.Ordinal)
+        && !value.StartsWith("/api/modules/authentication/", StringComparison.Ordinal)
+        && value is not "/"
+        && value is not "/login"
+        && value is not "/logout"
+        && !value.StartsWith("/login/", StringComparison.Ordinal)
+        && !value.StartsWith("/logout/", StringComparison.Ordinal)
         && !value.Contains('\\')
         && !value.Contains('?')
         && !value.Contains('#');
