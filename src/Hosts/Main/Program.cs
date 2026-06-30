@@ -89,6 +89,14 @@ _ = builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 _ = builder.Services.AddControllers();
+_ = builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-XSRF-TOKEN";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
 _ = builder.Services.AddEndpointsApiExplorer();
 // OpenAPI document generation is host-owned and exposed only in Development.
 _ = builder.Services.AddOpenApi();
