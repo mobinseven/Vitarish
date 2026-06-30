@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  useLogoutMutation,
-  useGetLogoutContextQuery,
+  useAuthenticationLogoutPost,
+  useAuthenticationLogoutContext,
 } from "@/api/generated/authentication/authentication";
 import { ApiError } from "@/api/client/apiFetch";
 import { Routes } from "@/app/routes";
@@ -12,8 +12,8 @@ export type LogoutContextStatus = "loading" | "ready" | "already-signed-out" | "
 
 export function useLogout(logoutId?: string) {
   const router = useRouter();
-  const mutation = useLogoutMutation();
-  const contextQuery = useGetLogoutContextQuery(logoutId ?? null);
+  const mutation = useAuthenticationLogoutPost();
+  const contextQuery = useAuthenticationLogoutContext(logoutId ? { logoutId } : undefined);
   const [error, setError] = useState<AuthError | null>(null);
 
   const contextStatus = useMemo<LogoutContextStatus>(() => {
@@ -37,8 +37,7 @@ export function useLogout(logoutId?: string) {
       setError(null);
       try {
         const result = await mutation.mutateAsync({
-          logoutId: logoutId ?? null,
-          returnUrl: returnUrl ?? Routes.Login.Index,
+          data: { logoutId: logoutId ?? null, returnUrl: returnUrl ?? Routes.Login.Index },
         });
         if (result.redirectUrl) {
           router.push(result.redirectUrl);

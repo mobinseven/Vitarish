@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
 import {
-  useUserCultureQuery,
-  useSetUserCultureMutation,
+  useUsersGetCulture,
+  useUsersSetCulture,
 } from "@/api/generated/users/users";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OptionSelector } from "@/components/account/OptionSelector";
@@ -21,18 +21,18 @@ export default function CulturePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
   const router = useRouter();
-  const { data: currentCulture } = useUserCultureQuery(userId);
-  const setCulture = useSetUserCultureMutation(userId);
+  const { data: currentCulture } = useUsersGetCulture(userId);
+  const setCulture = useUsersSetCulture();
 
   const [selected, setSelected] = useState(currentCulture ?? "en-US");
   const [success, setSuccess] = useState(false);
 
   const handleSave = useCallback(async () => {
     setSuccess(false);
-    await setCulture.mutateAsync({ culture: selected });
+    await setCulture.mutateAsync({ userId, data: { culture: selected } });
     setSuccess(true);
     router.refresh();
-  }, [selected, setCulture, router]);
+  }, [selected, setCulture, router, userId]);
 
   return (
     <div className="max-w-md mx-auto flex flex-col gap-4">

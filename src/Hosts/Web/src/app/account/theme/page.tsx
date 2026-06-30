@@ -6,8 +6,8 @@ import { useTheme } from "next-themes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
 import {
-  useUserThemeQuery,
-  useSetUserThemeMutation,
+  useUsersGetTheme,
+  useUsersSetTheme,
 } from "@/api/generated/users/users";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OptionSelector } from "@/components/account/OptionSelector";
@@ -22,18 +22,18 @@ export default function ThemePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
   const { setTheme: setNextTheme } = useTheme();
-  const { data: currentTheme } = useUserThemeQuery(userId);
-  const setTheme = useSetUserThemeMutation(userId);
+  const { data: currentTheme } = useUsersGetTheme(userId);
+  const setTheme = useUsersSetTheme();
 
   const [selected, setSelected] = useState(currentTheme ?? "system");
   const [success, setSuccess] = useState(false);
 
   const handleSave = useCallback(async () => {
     setSuccess(false);
-    await setTheme.mutateAsync({ theme: selected });
+    await setTheme.mutateAsync({ userId, data: { theme: selected } });
     setNextTheme(selected);
     setSuccess(true);
-  }, [selected, setTheme, setNextTheme]);
+  }, [selected, setTheme, setNextTheme, userId]);
 
   return (
     <div className="max-w-md mx-auto flex flex-col gap-4">

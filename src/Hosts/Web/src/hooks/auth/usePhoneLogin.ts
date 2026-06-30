@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  useBeginPhoneLoginMutation,
-  useCompletePhoneLoginMutation,
+  useAuthenticationLoginPhoneBegin,
+  useAuthenticationLoginPhoneComplete,
 } from "@/api/generated/authentication/authentication";
 import type { AuthenticationChallengeDto } from "@/api/generated/authentication/model";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
@@ -13,8 +13,8 @@ export type PhoneLoginStep = "phone" | "code";
 export function usePhoneLogin() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const beginMutation = useBeginPhoneLoginMutation();
-  const completeMutation = useCompletePhoneLoginMutation();
+  const beginMutation = useAuthenticationLoginPhoneBegin();
+  const completeMutation = useAuthenticationLoginPhoneComplete();
   const [step, setStep] = useState<PhoneLoginStep>("phone");
   const [challenge, setChallenge] = useState<AuthenticationChallengeDto | null>(
     null
@@ -30,10 +30,9 @@ export function usePhoneLogin() {
       setError(null);
       try {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
-        setPendingReturnUrl(finalReturnUrl);
+        setPendingReturnUrl(finalReturnUrl ?? undefined);
         const result = await beginMutation.mutateAsync({
-          phoneNumber: phone,
-          returnUrl: finalReturnUrl,
+          data: { phoneNumber: phone, returnUrl: finalReturnUrl },
         });
         setChallenge(result);
         setPhoneNumber(phone);
@@ -53,9 +52,7 @@ export function usePhoneLogin() {
         const returnUrl =
           pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
         const result = await completeMutation.mutateAsync({
-          challengeId: challenge.challengeId,
-          code,
-          returnUrl,
+          data: { challengeId: challenge.challengeId, code, returnUrl },
         });
         router.push(result.returnUrl);
       } catch (err) {

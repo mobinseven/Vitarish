@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  useBeginEmailLoginMutation,
-  useCompleteEmailLoginMutation,
+  useAuthenticationLoginEmailBegin,
+  useAuthenticationLoginEmailComplete,
 } from "@/api/generated/authentication/authentication";
 import type { AuthenticationChallengeDto } from "@/api/generated/authentication/model";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
@@ -13,8 +13,8 @@ export type EmailLoginStep = "email" | "code";
 export function useEmailLogin() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const beginMutation = useBeginEmailLoginMutation();
-  const completeMutation = useCompleteEmailLoginMutation();
+  const beginMutation = useAuthenticationLoginEmailBegin();
+  const completeMutation = useAuthenticationLoginEmailComplete();
   const [step, setStep] = useState<EmailLoginStep>("email");
   const [challenge, setChallenge] = useState<AuthenticationChallengeDto | null>(
     null
@@ -30,10 +30,9 @@ export function useEmailLogin() {
       setError(null);
       try {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
-        setPendingReturnUrl(finalReturnUrl);
+        setPendingReturnUrl(finalReturnUrl ?? undefined);
         const result = await beginMutation.mutateAsync({
-          email: emailAddr,
-          returnUrl: finalReturnUrl,
+          data: { email: emailAddr, returnUrl: finalReturnUrl },
         });
         setChallenge(result);
         setEmail(emailAddr);
@@ -53,9 +52,7 @@ export function useEmailLogin() {
         const returnUrl =
           pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
         const result = await completeMutation.mutateAsync({
-          challengeId: challenge.challengeId,
-          code,
-          returnUrl,
+          data: { challengeId: challenge.challengeId, code, returnUrl },
         });
         router.push(result.returnUrl);
       } catch (err) {

@@ -6,10 +6,10 @@ import { SurfaceCard } from "@/design-system";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
 import {
-  useWebAuthnCredentialsQuery,
-  useBeginWebAuthnRegisterMutation,
-  useCompleteWebAuthnRegisterMutation,
-  useDeleteWebAuthnCredentialMutation,
+  useUsersListWebAuthnCredentials,
+  useUsersBeginWebAuthnRegister,
+  useUsersCompleteWebAuthnRegister,
+  useUsersDeleteWebAuthnCredential,
 } from "@/api/generated/users/users";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { startRegistration } from "@/lib/webauthn";
@@ -18,10 +18,10 @@ export default function PasskeysPage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
   const { data: credentials, isLoading: isLoadingCredentials } =
-    useWebAuthnCredentialsQuery(userId);
-  const beginRegister = useBeginWebAuthnRegisterMutation(userId);
-  const completeRegister = useCompleteWebAuthnRegisterMutation(userId);
-  const deleteCredential = useDeleteWebAuthnCredentialMutation(userId);
+    useUsersListWebAuthnCredentials(userId);
+  const beginRegister = useUsersBeginWebAuthnRegister();
+  const completeRegister = useUsersCompleteWebAuthnRegister();
+  const deleteCredential = useUsersDeleteWebAuthnCredential();
 
   const [isSupported, setIsSupported] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,10 +38,10 @@ export default function PasskeysPage() {
     setError(null);
     setSuccess(null);
     try {
-      const optionsJson = await beginRegister.mutateAsync();
+      const optionsJson = await beginRegister.mutateAsync({ userId });
       const options = JSON.parse(optionsJson);
       const credential = await startRegistration(options);
-      await completeRegister.mutateAsync(JSON.stringify(credential));
+      await completeRegister.mutateAsync({ userId, data: { attestationResponseJson: JSON.stringify(credential) } });
       setSuccess("Passkey registered successfully");
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "NotAllowedError") {
@@ -50,20 +50,20 @@ export default function PasskeysPage() {
         setError(err instanceof Error ? err.message : "Failed to register passkey");
       }
     }
-  }, [beginRegister, completeRegister]);
+  }, [beginRegister, completeRegister, userId]);
 
   const handleDelete = useCallback(
     async (credentialId: string) => {
       setError(null);
       setSuccess(null);
       try {
-        await deleteCredential.mutateAsync(credentialId);
+        await deleteCredential.mutateAsync({ userId, credentialId });
         setSuccess("Passkey deleted");
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Failed to delete passkey");
       }
     },
-    [deleteCredential]
+    [deleteCredential, userId]
   );
 
   return (
@@ -84,9 +84,9 @@ export default function PasskeysPage() {
             <p className="text-sm text-muted">Loading passkeys...</p>
           ) : credentials && credentials.length > 0 ? (
             <div className="flex flex-col gap-2">
-              {credentials.map((cred: { id: string; friendlyName: string | null }) => (
+              {credentials.map((cred) => (
                 <div
-                  key={cred.id}
+                  key={cred.id ?? `cred-${cred.friendlyName ?? "unknown"}`}
                   className="flex items-center justify-between p-3 border border-border rounded-lg"
                 >
                   <span className="text-sm">
@@ -95,7 +95,7 @@ export default function PasskeysPage() {
                   <Button
                     variant="danger-soft"
                     size="sm"
-                    onPress={() => handleDelete(cred.id)}
+                    onPress={() => cred.id && handleDelete(cred.id)}
                     isPending={deleteCredential.isPending}
                   >
                     Delete

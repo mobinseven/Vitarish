@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, Button, Dropdown, Label } from "@heroui/react";
+import { Avatar, AvatarFallback, Button, Dropdown, Label } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
@@ -26,11 +26,9 @@ export function UserMenu() {
           variant="tertiary"
           className="min-w-0 gap-2 rounded-full px-2 py-1"
         >
-          <Avatar
-            name={displayProfile.initials ?? undefined}
-            size="sm"
-            className="h-7 w-7 text-xs"
-          />
+          <Avatar size="sm" className="h-7 w-7 text-xs">
+            <AvatarFallback>{displayProfile.initials ?? ""}</AvatarFallback>
+          </Avatar>
           <span className="hidden text-sm font-medium sm:inline">
             {displayProfile.displayLabel}
           </span>

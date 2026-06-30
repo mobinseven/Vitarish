@@ -5,14 +5,14 @@ import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
 import { SurfaceCard } from "@/design-system";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
-import { useUserProfileQuery, useUpdateUserProfileMutation } from "@/api/generated/users/users";
+import { useUsersGetProfile, useUsersUpdateProfile } from "@/api/generated/users/users";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 
 export default function NamePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
-  const { data: profile } = useUserProfileQuery(userId);
-  const updateProfile = useUpdateUserProfileMutation(userId);
+  const { data: profile } = useUsersGetProfile(userId);
+  const updateProfile = useUsersUpdateProfile();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -29,10 +29,10 @@ export default function NamePage() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setSuccess(false);
-      await updateProfile.mutateAsync({ firstName, lastName });
+      await updateProfile.mutateAsync({ userId, data: { firstName, lastName } });
       setSuccess(true);
     },
-    [firstName, lastName, updateProfile]
+    [firstName, lastName, updateProfile, userId]
   );
 
   return (

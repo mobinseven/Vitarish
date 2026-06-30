@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  useBeginPasskeyLoginMutation,
-  useCompletePasskeyLoginMutation,
+  useAuthenticationLoginPasskeyBegin,
+  useAuthenticationLoginPasskeyComplete,
 } from "@/api/generated/authentication/authentication";
 import { startPasskeyAuthentication } from "@/lib/webauthn";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
@@ -11,8 +11,8 @@ import { getRequestedReturnUrl } from "./requestedReturnUrl";
 export function usePasskeyLogin() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const beginMutation = useBeginPasskeyLoginMutation();
-  const completeMutation = useCompletePasskeyLoginMutation();
+  const beginMutation = useAuthenticationLoginPasskeyBegin();
+  const completeMutation = useAuthenticationLoginPasskeyComplete();
   const [error, setError] = useState<AuthError | null>(null);
 
   const login = useCallback(
@@ -21,8 +21,7 @@ export function usePasskeyLogin() {
       try {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
         const challenge = await beginMutation.mutateAsync({
-          userNameOrEmail: userNameOrEmail || null,
-          returnUrl: finalReturnUrl,
+          data: { userNameOrEmail: userNameOrEmail || null, returnUrl: finalReturnUrl },
         });
 
         if (!challenge.optionsJson) {
@@ -34,9 +33,7 @@ export function usePasskeyLogin() {
         );
 
         const result = await completeMutation.mutateAsync({
-          challengeId: challenge.challengeId,
-          credentialJson,
-          returnUrl: finalReturnUrl,
+          data: { challengeId: challenge.challengeId, credentialJson, returnUrl: finalReturnUrl },
         });
 
         router.push(result.returnUrl);

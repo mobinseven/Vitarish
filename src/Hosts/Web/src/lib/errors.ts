@@ -1,5 +1,23 @@
 import { ApiError } from "@/api/client/apiFetch";
-import type { AuthenticationErrorCode } from "@/api/generated/authentication/model";
+
+export type AuthenticationErrorCode =
+  | "invalid_input"
+  | "invalid_credentials"
+  | "challenge_not_found"
+  | "challenge_expired"
+  | "challenge_already_used"
+  | "challenge_attempts_exhausted"
+  | "invalid_verification_code"
+  | "invalid_challenge_purpose"
+  | "locked_out"
+  | "not_allowed"
+  | "too_many_attempts"
+  | "additional_step_required"
+  | "unauthorized"
+  | "provider_failure"
+  | "unknown_credential"
+  | "invalid_credential"
+  | "logout_context_unavailable";
 
 export interface AuthError {
   code: AuthenticationErrorCode;

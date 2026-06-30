@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode } from "react";
 import { http, HttpResponse } from "msw";
 import { server } from "../server";
-import { authenticationKeys } from "@/api/generated/authentication/authentication";
+import { getAuthenticationSessionGetQueryKey } from "@/api/generated/authentication/authentication";
 import { useLogout } from "@/hooks/auth/useLogout";
 
 const queryClient = new QueryClient({
@@ -52,7 +52,7 @@ describe("useLogout", () => {
   });
 
   it("logs out, removes auth queries, and navigates to login", async () => {
-    queryClient.setQueryData(authenticationKeys.session(), {
+    queryClient.setQueryData(getAuthenticationSessionGetQueryKey(), {
       isAuthenticated: true,
       user: { userId: "user-1", displayName: "Avery Stone" },
     });
@@ -67,7 +67,7 @@ describe("useLogout", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(queryClient.getQueryData(authenticationKeys.session())).toBeUndefined();
+    expect(queryClient.getQueryData(getAuthenticationSessionGetQueryKey())).toBeUndefined();
     expect(result.current.error).toBeNull();
   });
 });
