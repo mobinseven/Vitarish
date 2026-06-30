@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Card } from "@heroui/react";
+import { SurfaceCard } from "@/design-system";
 import { KnowledgePromptInput } from "./chat";
 
 interface KnowledgeQuestionComposerProps {
@@ -23,7 +24,7 @@ export function KnowledgeQuestionComposer({
   onNewQuestion,
 }: KnowledgeQuestionComposerProps) {
   return (
-    <Card className="glass-card">
+    <SurfaceCard>
       <Card.Content>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
@@ -50,6 +51,6 @@ export function KnowledgeQuestionComposer({
           />
         </div>
       </Card.Content>
-    </Card>
+    </SurfaceCard>
   );
 }

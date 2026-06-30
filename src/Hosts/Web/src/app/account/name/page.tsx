@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
+import { SurfaceCard } from "@/design-system";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
 import { useUserProfileQuery, useUpdateUserProfileMutation } from "@/api/generated/users/users";
@@ -36,7 +37,7 @@ export default function NamePage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <Card className="glass-card">
+      <SurfaceCard>
         <Card.Header>
           <h1 className="text-2xl font-bold">Edit Name</h1>
         </Card.Header>
@@ -68,7 +69,7 @@ export default function NamePage() {
             Back to settings
           </Link>
         </Card.Content>
-      </Card>
+      </SurfaceCard>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { Alert, Card, Button } from "@heroui/react";
+import { SurfaceCard } from "@/design-system";
 import { journeyUiText } from "../types/journeyUiText";
 
 interface JourneyErrorStateProps {
@@ -13,8 +14,8 @@ export function JourneyErrorState({
   onRetry,
 }: JourneyErrorStateProps) {
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-10">
-      <Card className="glass-card w-full max-w-md">
+    <main className="ds-app-shell ds-centered-shell">
+      <SurfaceCard className="w-full max-w-md">
         <Card.Content className="flex flex-col gap-4 p-6">
           <Alert status="danger">
             <Alert.Indicator />
@@ -29,7 +30,7 @@ export function JourneyErrorState({
             </Button>
           ) : null}
         </Card.Content>
-      </Card>
+      </SurfaceCard>
     </main>
   );
 }

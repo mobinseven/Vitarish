@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Card } from "@heroui/react";
+import { SurfaceCard } from "@/design-system";
 import type { KnowledgeUserCorpus } from "../types";
 
 interface KnowledgeCorpusRailProps {
@@ -20,7 +21,7 @@ export function KnowledgeCorpusRail({
 }: KnowledgeCorpusRailProps) {
   return (
     <aside className="w-full lg:w-72 shrink-0">
-      <Card className="glass-card sticky top-6">
+      <SurfaceCard className="sticky top-6">
         <Card.Header>
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-muted">Corpora</p>
@@ -43,7 +44,7 @@ export function KnowledgeCorpusRail({
           {isLoading && <p className="text-sm text-muted">Loading corpora...</p>}
 
           {!isLoading && corpora.length === 0 && (
-            <p className="rounded-xl border border-dashed border-default-200 p-4 text-sm text-muted">
+            <p className="ds-muted-panel text-sm">
               No knowledge sources are available yet.
             </p>
           )}
@@ -70,7 +71,7 @@ export function KnowledgeCorpusRail({
             </Button>
           ))}
         </Card.Content>
-      </Card>
+      </SurfaceCard>
     </aside>
   );
 }
@@ -80,6 +81,6 @@ function railButtonClass(isSelected: boolean): string {
     "h-auto w-full justify-start rounded-2xl px-4 py-3 text-left transition-colors",
     isSelected
       ? "bg-[color-mix(in_oklch,var(--accent)_16%,transparent)] text-[var(--accent)]"
-      : "bg-transparent hover:bg-default-100",
+      : "bg-transparent hover:bg-[var(--accent-soft)]",
   ].join(" ");
 }

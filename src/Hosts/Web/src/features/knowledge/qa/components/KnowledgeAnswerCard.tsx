@@ -81,7 +81,7 @@ export function KnowledgeAnswerCard({
           )}
 
           {retrievedContext.length > 0 && (
-            <details className="rounded-2xl border border-default-200 p-4">
+            <details className="ds-inline-panel">
               <summary className="cursor-pointer text-sm font-semibold">
                 Retrieved context ({retrievedContext.length})
               </summary>

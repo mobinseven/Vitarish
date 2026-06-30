@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { AppShell } from "@/design-system";
 import { KnowledgeAnswerList } from "./KnowledgeAnswerList";
 import { KnowledgeCorpusRail } from "./KnowledgeCorpusRail";
 import { KnowledgeQuestionComposer } from "./KnowledgeQuestionComposer";
@@ -98,8 +99,8 @@ export function KnowledgeUserQaSurface() {
   }, []);
 
   return (
-    <div className="auth-bg min-h-screen px-4 py-6 md:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 lg:flex-row">
+    <AppShell>
+      <div className="flex flex-col gap-6 lg:flex-row">
         <KnowledgeCorpusRail
           corpora={corpora}
           selectedCorpusId={selectedCorpusId}
@@ -132,7 +133,7 @@ export function KnowledgeUserQaSurface() {
           />
         </main>
       </div>
-    </div>
+    </AppShell>
   );
 }
 
