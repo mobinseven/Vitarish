@@ -70,16 +70,17 @@
           "Medical"
         ],
         "operationId": "MedicalGetCodeSystem",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetCodeSystemRequest"
-              }
+        "parameters": [
+          {
+            "name": "codeSystemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
-          },
-          "required": true
-        },
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -120,18 +121,7 @@
               }
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "codeSystemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/modules/medical/code-systems/by-key": {
@@ -199,15 +189,32 @@
           "Medical"
         ],
         "operationId": "MedicalListCodeSystemReleases",
+        "parameters": [
+          {
+            "name": "codeSystemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ListCodeSystemReleasesRequest"
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListCodeSystemReleasesRequest"
+                  }
+                ]
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -249,18 +256,7 @@
               }
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "codeSystemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/modules/medical/code-system-releases/active": {
@@ -623,15 +619,32 @@
           "Medical"
         ],
         "operationId": "MedicalGetDrug",
+        "parameters": [
+          {
+            "name": "drugId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GetDrugRequest"
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GetDrugRequest"
+                  }
+                ]
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -673,18 +686,7 @@
               }
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "drugId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/modules/medical/reference/drugs/resolve-identifier": {
@@ -752,57 +754,6 @@
           "Medical"
         ],
         "operationId": "MedicalGetDrugProduct",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetDrugProductRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        },
         "parameters": [
           {
             "name": "drugProductId",
@@ -813,24 +764,22 @@
               "format": "uuid"
             }
           }
-        ]
-      }
-    },
-    "/api/modules/medical/reference/packaged-drugs/{packagedDrugId}": {
-      "post": {
-        "tags": [
-          "Medical"
         ],
-        "operationId": "MedicalGetPackagedDrug",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GetPackagedDrugRequest"
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GetDrugProductRequest"
+                  }
+                ]
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -872,7 +821,15 @@
               }
             }
           }
-        },
+        }
+      }
+    },
+    "/api/modules/medical/reference/packaged-drugs/{packagedDrugId}": {
+      "post": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalGetPackagedDrug",
         "parameters": [
           {
             "name": "packagedDrugId",
@@ -883,7 +840,48 @@
               "format": "uuid"
             }
           }
-        ]
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/modules/medical/reference/medical-services/search": {
@@ -951,15 +949,32 @@
           "Medical"
         ],
         "operationId": "MedicalGetMedicalService",
+        "parameters": [
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GetMedicalServiceRequest"
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GetMedicalServiceRequest"
+                  }
+                ]
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -1001,18 +1016,7 @@
               }
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "serviceId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/modules/medical/reference/service-codes/resolve": {
@@ -1198,16 +1202,17 @@
           "Medical"
         ],
         "operationId": "MedicalGetImportBatch",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetImportBatchRequest"
-              }
+        "parameters": [
+          {
+            "name": "importBatchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
-          },
-          "required": true
-        },
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1248,18 +1253,7 @@
               }
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "importBatchId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/modules/medical/code-systems/register": {
@@ -1917,16 +1911,17 @@
           "Medical"
         ],
         "operationId": "MedicalGetPrescription",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetPrescriptionRequest"
-              }
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
-          },
-          "required": true
-        },
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1967,18 +1962,7 @@
               }
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "prescriptionId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/modules/medical/prescriptions/history": {
@@ -2164,6 +2148,17 @@
           "Medical"
         ],
         "operationId": "MedicalAddPrescriptionItem",
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2214,7 +2209,15 @@
               }
             }
           }
-        },
+        }
+      }
+    },
+    "/api/modules/medical/prescriptions/{prescriptionId}/items/{itemId}": {
+      "post": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalUpdatePrescriptionItem",
         "parameters": [
           {
             "name": "prescriptionId",
@@ -2224,16 +2227,17 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
-        ]
-      }
-    },
-    "/api/modules/medical/prescriptions/{prescriptionId}/items/{itemId}": {
-      "post": {
-        "tags": [
-          "Medical"
         ],
-        "operationId": "MedicalUpdatePrescriptionItem",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2284,7 +2288,15 @@
               }
             }
           }
-        },
+        }
+      }
+    },
+    "/api/modules/medical/prescriptions/{prescriptionId}/items/{itemId}/remove": {
+      "post": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalRemovePrescriptionItem",
         "parameters": [
           {
             "name": "prescriptionId",
@@ -2304,25 +2316,7 @@
               "format": "uuid"
             }
           }
-        ]
-      }
-    },
-    "/api/modules/medical/prescriptions/{prescriptionId}/items/{itemId}/remove": {
-      "post": {
-        "tags": [
-          "Medical"
         ],
-        "operationId": "MedicalRemovePrescriptionItem",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RemovePrescriptionItemRequest"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "description": "OK"
@@ -2363,7 +2357,15 @@
               }
             }
           }
-        },
+        }
+      }
+    },
+    "/api/modules/medical/prescriptions/{prescriptionId}/provider": {
+      "post": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalSelectPrescriptionProvider",
         "parameters": [
           {
             "name": "prescriptionId",
@@ -2373,25 +2375,8 @@
               "type": "string",
               "format": "uuid"
             }
-          },
-          {
-            "name": "itemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
           }
-        ]
-      }
-    },
-    "/api/modules/medical/prescriptions/{prescriptionId}/provider": {
-      "post": {
-        "tags": [
-          "Medical"
         ],
-        "operationId": "MedicalSelectPrescriptionProvider",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2442,18 +2427,7 @@
               }
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "prescriptionId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/modules/medical/prescriptions/eligibility": {
@@ -2521,16 +2495,17 @@
           "Medical"
         ],
         "operationId": "MedicalValidatePrescriptionDraft",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ValidatePrescriptionDraftRequest"
-              }
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
-          },
-          "required": true
-        },
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -2571,18 +2546,7 @@
               }
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "prescriptionId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/modules/medical/prescriptions/{prescriptionId}/submission": {
@@ -2591,15 +2555,32 @@
           "Medical"
         ],
         "operationId": "MedicalSubmitPrescription",
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SubmitPrescriptionRequest"
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SubmitPrescriptionRequest"
+                  }
+                ]
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -2641,18 +2622,7 @@
               }
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "prescriptionId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/modules/medical/prescriptions/{prescriptionId}/edit": {
@@ -2661,15 +2631,32 @@
           "Medical"
         ],
         "operationId": "MedicalEditPrescription",
+        "parameters": [
+          {
+            "name": "prescriptionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EditPrescriptionRequest"
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EditPrescriptionRequest"
+                  }
+                ]
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -2711,7 +2698,15 @@
               }
             }
           }
-        },
+        }
+      }
+    },
+    "/api/modules/medical/prescriptions/{prescriptionId}/cancellation": {
+      "post": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalCancelPrescription",
         "parameters": [
           {
             "name": "prescriptionId",
@@ -2722,15 +2717,7 @@
               "format": "uuid"
             }
           }
-        ]
-      }
-    },
-    "/api/modules/medical/prescriptions/{prescriptionId}/cancellation": {
-      "post": {
-        "tags": [
-          "Medical"
         ],
-        "operationId": "MedicalCancelPrescription",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2781,7 +2768,15 @@
               }
             }
           }
-        },
+        }
+      }
+    },
+    "/api/modules/medical/prescriptions/{prescriptionId}/paper-fallback": {
+      "post": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalStartPaperFallback",
         "parameters": [
           {
             "name": "prescriptionId",
@@ -2792,15 +2787,7 @@
               "format": "uuid"
             }
           }
-        ]
-      }
-    },
-    "/api/modules/medical/prescriptions/{prescriptionId}/paper-fallback": {
-      "post": {
-        "tags": [
-          "Medical"
         ],
-        "operationId": "MedicalStartPaperFallback",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2851,18 +2838,7 @@
               }
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "prescriptionId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/modules/medical/prescription-templates/list": {
@@ -2930,15 +2906,32 @@
           "Medical"
         ],
         "operationId": "MedicalGetPrescriptionTemplate",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GetPrescriptionTemplateRequest"
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/GetPrescriptionTemplateRequest"
+                  }
+                ]
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -2980,18 +2973,7 @@
               }
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "templateId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/modules/medical/prescription-templates": {
@@ -3059,6 +3041,17 @@
           "Medical"
         ],
         "operationId": "MedicalApplyPrescriptionTemplate",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -3109,18 +3102,7 @@
               }
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "templateId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ]
+        }
       }
     },
     "/api/modules/medical/prescription-templates/archive": {
@@ -4976,18 +4958,6 @@
           }
         }
       },
-      "GetCodeSystemRequest": {
-        "required": [
-          "codeSystemId"
-        ],
-        "type": "object",
-        "properties": {
-          "codeSystemId": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
       "GetCredentialHealthRequest": {
         "type": "object",
         "properties": {
@@ -5117,18 +5087,6 @@
           }
         }
       },
-      "GetImportBatchRequest": {
-        "required": [
-          "importBatchId"
-        ],
-        "type": "object",
-        "properties": {
-          "importBatchId": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
       "GetMedicalServiceRequest": {
         "required": [
           "serviceId"
@@ -5145,30 +5103,6 @@
               "string"
             ],
             "format": "date"
-          }
-        }
-      },
-      "GetPackagedDrugRequest": {
-        "required": [
-          "packagedDrugId"
-        ],
-        "type": "object",
-        "properties": {
-          "packagedDrugId": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
-      "GetPrescriptionRequest": {
-        "required": [
-          "prescriptionId"
-        ],
-        "type": "object",
-        "properties": {
-          "prescriptionId": {
-            "type": "string",
-            "format": "uuid"
           }
         }
       },
@@ -5772,23 +5706,6 @@
               "null",
               "string"
             ]
-          }
-        }
-      },
-      "RemovePrescriptionItemRequest": {
-        "required": [
-          "prescriptionId",
-          "itemId"
-        ],
-        "type": "object",
-        "properties": {
-          "prescriptionId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "itemId": {
-            "type": "string",
-            "format": "uuid"
           }
         }
       },
@@ -6398,18 +6315,6 @@
               "string"
             ],
             "format": "int32"
-          }
-        }
-      },
-      "ValidatePrescriptionDraftRequest": {
-        "required": [
-          "prescriptionId"
-        ],
-        "type": "object",
-        "properties": {
-          "prescriptionId": {
-            "type": "string",
-            "format": "uuid"
           }
         }
       }
