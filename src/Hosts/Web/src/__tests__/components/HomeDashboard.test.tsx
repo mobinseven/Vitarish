@@ -1,0 +1,20 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { HomeDashboard } from "@/features/home/components/HomeDashboard";
+
+vi.mock("@/hooks/auth/useAuthSession", () => ({
+  useAuthSession: () => ({
+    user: { displayName: "Avery Stone", email: "avery@example.com", phoneNumber: null },
+    isLoading: false,
+  }),
+}));
+
+describe("HomeDashboard", () => {
+  it("greets the signed-in user and links to the Knowledge demo", () => {
+    render(<HomeDashboard />);
+
+    expect(screen.getByRole("heading", { name: /welcome back, avery stone/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /open knowledge/i })).toHaveAttribute("href", "/knowledge");
+    expect(screen.getByRole("link", { name: /start with knowledge/i })).toHaveAttribute("href", "/knowledge");
+  });
+});
