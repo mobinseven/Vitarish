@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 
@@ -75,11 +75,19 @@ export function AuthenticatedRedirectBoundary({
   loadingLabel = "Loading...",
 }: AuthenticatedRedirectBoundaryProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, isLoading } = useAuthSession();
+
+  const returnUrl = searchParams.get("returnUrl") || searchParams.get("redirectTo");
+  const safeReturnUrl =
+    returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")
+      ? returnUrl
+      : null;
+
   const redirectTarget = resolveSessionRedirectTarget({
     isLoading,
     isAuthenticated,
-    authenticatedHref,
+    authenticatedHref: safeReturnUrl || authenticatedHref,
     anonymousHref: null,
   });
 
