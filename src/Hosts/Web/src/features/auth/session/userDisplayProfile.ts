@@ -16,12 +16,13 @@ export function resolveUserDisplayProfile(
   const phoneNumber = normalizeText(user?.phoneNumber);
   const emailLocalPart = normalizeText(email?.split("@")[0]);
   const displayLabel = displayName ?? emailLocalPart ?? phoneNumber ?? "friend";
+  const isFallback = !user || displayLabel === "friend";
 
   return {
     displayLabel,
     givenName: resolveGivenName(displayName),
     familyName: resolveFamilyName(displayName),
-    initials: resolveInitials(displayLabel),
+    initials: resolveInitials(displayLabel, isFallback),
     contactLabel: email ?? phoneNumber,
   };
 }
@@ -40,12 +41,17 @@ function resolveFamilyName(displayName: string | null): string | null {
   return nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
 }
 
-function resolveInitials(displayLabel: string): string | null {
+function resolveInitials(displayLabel: string, isFallback: boolean): string | null {
+  if (isFallback) {
+    return null;
+  }
+
   const initials = displayLabel
-    .split(/\s+/)
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .map((part) => part.replace(/[^a-zA-Z]/g, "")[0]?.toUpperCase())
     .filter(Boolean)
     .slice(0, 2)
-    .map((part) => part[0]?.toLocaleUpperCase())
     .join("");
 
   return initials || null;
