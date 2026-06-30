@@ -8,7 +8,7 @@ interface SurfaceCardProps extends ComponentPropsWithoutRef<typeof Card> {
   tone?: SurfaceTone;
 }
 
-export function SurfaceCard({
+function SurfaceCardRoot({
   className,
   tone = "default",
   ...props
@@ -24,3 +24,9 @@ export function SurfaceCard({
     />
   );
 }
+
+export const SurfaceCard = Object.assign(SurfaceCardRoot, {
+  Header: Card.Header,
+  Content: Card.Content,
+  Footer: Card.Footer,
+});

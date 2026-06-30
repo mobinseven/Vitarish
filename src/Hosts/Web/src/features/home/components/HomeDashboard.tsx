@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Link } from "@heroui/react";
+import { Link } from "@heroui/react";
 import {
   ActionGroup,
   AppShell,
@@ -77,16 +77,16 @@ export function HomeDashboard() {
           </div>
 
           <SurfaceCard tone="elevated">
-            <Card.Header className="flex flex-col items-start gap-2">
+            <SurfaceCard.Header className="flex flex-col items-start gap-2">
               <p className="text-sm font-semibold uppercase tracking-[0.25em] text-muted">
                 Next move
               </p>
               <h2 className="text-2xl font-bold">Explore a module demo</h2>
-            </Card.Header>
-            <Card.Content className="text-sm leading-6 text-muted">
+            </SurfaceCard.Header>
+            <SurfaceCard.Content className="text-sm leading-6 text-muted">
               Knowledge is the first available demo module. More cards can be
               added here when additional module demo pages are introduced.
-            </Card.Content>
+            </SurfaceCard.Content>
           </SurfaceCard>
         </div>
       </HeroPanel>
@@ -111,21 +111,21 @@ export function HomeDashboard() {
                 className="h-full overflow-hidden"
               >
                 <div className="h-28 bg-[linear-gradient(135deg,var(--accent-soft),var(--success-soft),color-mix(in_oklch,var(--warning)_14%,transparent))]" />
-                <Card.Header className="flex flex-col items-start gap-3">
+                <SurfaceCard.Header className="flex flex-col items-start gap-3">
                   <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
                     {module.metric}
                   </span>
                   <h3 className="text-2xl font-bold text-foreground">
                     {module.title}
                   </h3>
-                </Card.Header>
-                <Card.Content className="flex flex-1 flex-col justify-between gap-6 text-sm leading-6 text-muted">
+                </SurfaceCard.Header>
+                <SurfaceCard.Content className="flex flex-1 flex-col justify-between gap-6 text-sm leading-6 text-muted">
                   <p>{module.description}</p>
                   <span className="inline-flex items-center gap-2 font-semibold text-[var(--accent)] transition group-hover:gap-3">
                     {module.callToAction}
                     <span aria-hidden="true">→</span>
                   </span>
-                </Card.Content>
+                </SurfaceCard.Content>
               </SurfaceCard>
             </Link>
           ))}

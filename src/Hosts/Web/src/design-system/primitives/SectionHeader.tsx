@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import { classNames } from "./classNames";
 
-interface SectionHeaderProps {
+interface SectionHeaderProps extends ComponentPropsWithoutRef<"div"> {
   eyebrow?: string;
   title: string;
   description?: ReactNode;
@@ -12,9 +13,11 @@ export function SectionHeader({
   title,
   description,
   id,
+  className,
+  ...props
 }: SectionHeaderProps) {
   return (
-    <div className="ds-section-header">
+    <div className={classNames("ds-section-header", className)} {...props}>
       <div>
         {eyebrow ? <p className="ds-eyebrow">{eyebrow}</p> : null}
         <h2 id={id} className="ds-section-title">
