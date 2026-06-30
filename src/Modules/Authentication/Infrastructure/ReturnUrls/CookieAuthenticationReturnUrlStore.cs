@@ -34,5 +34,5 @@ public sealed class CookieAuthenticationReturnUrlStore(IHttpContextAccessor http
         return Task.FromResult(value);
     }
 
-    public string Resolve(string? requestedReturnUrl, bool requiresProfileCompletion) => requiresProfileCompletion ? "/Account/Settings" : ReturnUrlPolicy.NormalizeOrDefault(requestedReturnUrl).Value;
+    public string Resolve(string? requestedReturnUrl, bool requiresProfileCompletion) => requiresProfileCompletion ? "/account/profile/complete" : ReturnUrlPolicy.NormalizeOrDefault(requestedReturnUrl).Value;
 }

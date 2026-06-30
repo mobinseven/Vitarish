@@ -21,6 +21,8 @@ public class ReturnUrlPolicyTests
     [InlineData("https://evil.com")]
     [InlineData("http://evil.com")]
     [InlineData("javascript:alert(1)")]
+    [InlineData("/%5cevil.com")]
+    [InlineData("%2f%2fevil.com")]
     public void IsSafeLocal_rejects_dangerous_urls(string url)
     {
         ReturnUrlPolicy.IsSafeLocal(url).Should().BeFalse();
