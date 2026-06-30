@@ -4,7 +4,14 @@ import { HomeDashboard } from "@/features/home/components/HomeDashboard";
 
 vi.mock("@/hooks/auth/useAuthSession", () => ({
   useAuthSession: () => ({
-    user: { displayName: "Avery Stone", email: "avery@example.com", phoneNumber: null },
+    user: { displayName: "Raw Name", email: "raw@example.com", phoneNumber: null },
+    displayProfile: {
+      displayLabel: "Avery Stone",
+      givenName: "Avery",
+      familyName: "Stone",
+      initials: "AS",
+      contactLabel: "avery@example.com",
+    },
     isLoading: false,
   }),
 }));

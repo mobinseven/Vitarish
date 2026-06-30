@@ -27,5 +27,6 @@ describe("useAuthSession", () => {
 
     expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.user).toBeNull();
+    expect(result.current.displayProfile.displayLabel).toBe("friend");
   });
 });

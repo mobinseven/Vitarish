@@ -14,7 +14,7 @@ const settingsLinks = [
 ];
 
 export default function AccountSettingsPage() {
-  const { user } = useAuthSession();
+  const { isAuthenticated, displayProfile } = useAuthSession();
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -23,9 +23,9 @@ export default function AccountSettingsPage() {
           <h1 className="text-2xl font-bold">Account Settings</h1>
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
-          {user && (
+          {isAuthenticated && (
             <div className="text-sm text-muted mb-4">
-              Signed in as {user.displayName ?? user.email ?? user.phoneNumber}
+              Signed in as {displayProfile.displayLabel}
             </div>
           )}
           {settingsLinks.map((link) => (
