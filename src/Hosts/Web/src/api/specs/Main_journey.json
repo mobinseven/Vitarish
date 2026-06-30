@@ -10,18 +10,7 @@
         "tags": [
           "Journey"
         ],
-        "summary": "Resolves the current authenticated user's journey.",
         "operationId": "Journey_GetCurrent",
-        "parameters": [
-          {
-            "name": "returnUrl",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -34,7 +23,33 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -50,45 +65,43 @@
   "components": {
     "schemas": {
       "JourneyDecisionDto": {
+        "required": [
+          "step"
+        ],
         "type": "object",
         "properties": {
           "step": {
             "$ref": "#/components/schemas/JourneyStepDto"
           },
           "legacyReturnUrl": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "legacyRequiresProfileCompletion": {
-            "type": "boolean",
-            "nullable": true
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
-        },
-        "required": ["step"]
+        }
       },
-      "JourneyStepDto": {
-        "type": "object",
-        "properties": {
-          "destinationUrl": {
-            "type": "string"
-          },
-          "destinationKind": {
-            "$ref": "#/components/schemas/JourneyDestinationKindDto"
-          },
-          "blockingGate": {
-            "$ref": "#/components/schemas/JourneyGateDto"
-          },
-          "nonBlockingGates": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JourneyGateDto"
-            },
-            "nullable": true
-          }
-        },
-        "required": ["destinationUrl", "destinationKind"]
+      "JourneyDestinationKindDto": {
+        "enum": [
+          "Gate",
+          "ReturnUrl",
+          "AppDashboard",
+          "UserHome",
+          "GlobalDashboard"
+        ]
       },
       "JourneyGateDto": {
+        "required": [
+          "kind",
+          "isBlocking",
+          "destinationUrl"
+        ],
         "type": "object",
         "properties": {
           "kind": {
@@ -101,14 +114,14 @@
             "type": "string"
           },
           "message": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           }
-        },
-        "required": ["kind", "isBlocking", "destinationUrl"]
+        }
       },
       "JourneyGateKindDto": {
-        "type": "string",
         "enum": [
           "ContactConfirmation",
           "ProfileCompletion",
@@ -120,41 +133,83 @@
           "MfaEnrollmentPrompt"
         ]
       },
-      "JourneyDestinationKindDto": {
-        "type": "string",
-        "enum": [
-          "Gate",
-          "ReturnUrl",
-          "AppDashboard",
-          "UserHome",
-          "GlobalDashboard"
-        ]
+      "JourneyStepDto": {
+        "required": [
+          "destinationUrl",
+          "destinationKind"
+        ],
+        "type": "object",
+        "properties": {
+          "destinationUrl": {
+            "type": "string"
+          },
+          "destinationKind": {
+            "$ref": "#/components/schemas/JourneyDestinationKindDto"
+          },
+          "blockingGate": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JourneyGateDto"
+              }
+            ]
+          },
+          "nonBlockingGates": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/JourneyGateDto"
+            }
+          }
+        }
       },
       "ProblemDetails": {
         "type": "object",
         "properties": {
           "type": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "title": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "status": {
-            "type": "integer",
-            "nullable": true
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           },
           "detail": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "instance": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Journey"
+    }
+  ]
 }

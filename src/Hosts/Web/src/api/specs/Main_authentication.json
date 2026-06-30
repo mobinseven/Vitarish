@@ -1280,6 +1280,8 @@
         "required": [
           "userId",
           "displayName",
+          "givenName",
+          "familyName",
           "email",
           "phoneNumber"
         ],
@@ -1296,14 +1298,14 @@
           },
           "givenName": {
             "type": [
-              "string",
-              "null"
+              "null",
+              "string"
             ]
           },
           "familyName": {
             "type": [
-              "string",
-              "null"
+              "null",
+              "string"
             ]
           },
           "email": {
