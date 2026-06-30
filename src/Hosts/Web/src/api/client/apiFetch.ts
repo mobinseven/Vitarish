@@ -77,6 +77,18 @@ function isOrvalConfig(value: unknown): value is OrvalConfig {
   return typeof value === "object" && value !== null && "url" in value;
 }
 
+function appendParams(url: string, params: Record<string, unknown>): string {
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null) {
+      searchParams.set(key, String(value));
+    }
+  }
+  const qs = searchParams.toString();
+  if (!qs) return url;
+  return url.includes("?") ? `${url}&${qs}` : `${url}?${qs}`;
+}
+
 export async function apiFetch<T>(
   urlOrConfig: string | OrvalConfig,
   options: RequestInit = {}
@@ -95,16 +107,7 @@ export async function apiFetch<T>(
     signal = config.signal;
 
     if (config.params) {
-      const searchParams = new URLSearchParams();
-      for (const [key, value] of Object.entries(config.params)) {
-        if (value !== undefined && value !== null) {
-          searchParams.set(key, String(value));
-        }
-      }
-      const qs = searchParams.toString();
-      if (qs) {
-        url += `?${qs}`;
-      }
+      url = appendParams(url, config.params);
     }
 
     if (config.data !== undefined) {

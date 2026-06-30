@@ -16,7 +16,8 @@ namespace Vitarish.Journey.Application;
 /// 6. Required workspace or app selection
 /// 7. Safe requested return URL
 /// 8. Last used app or workspace dashboard
-/// 9. User home (fallback)
+/// 9. User home
+/// 10. Global dashboard (final fallback)
 /// </summary>
 public sealed class JourneyResolver(
     IJourneyProfileReader profileReader,
@@ -86,6 +87,11 @@ public sealed class JourneyResolver(
 
         // Priority 9: User home
         var userHomeUrl = destinationResolver.GetUserHomeUrl(request.UserId);
-        return new JourneyStep(JourneyDestinationKind.UserHome, userHomeUrl);
+        if (!string.IsNullOrWhiteSpace(userHomeUrl))
+            return new JourneyStep(JourneyDestinationKind.UserHome, userHomeUrl);
+
+        // Priority 10: Global dashboard (final fallback)
+        var globalDashboardUrl = destinationResolver.GetGlobalDashboardUrl();
+        return new JourneyStep(JourneyDestinationKind.GlobalDashboard, globalDashboardUrl);
     }
 }
