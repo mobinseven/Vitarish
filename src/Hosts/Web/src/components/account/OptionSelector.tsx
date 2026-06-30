@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, Button } from "@heroui/react";
+import { SurfaceCard } from "@/design-system";
 
 interface Option<T extends string> {
   value: T;
@@ -21,7 +22,7 @@ export function OptionSelector<T extends string>({
   onSelect,
 }: OptionSelectorProps<T>) {
   return (
-    <Card className="glass-card">
+    <SurfaceCard>
       <Card.Header>
         <h1 className="text-2xl font-bold">{title}</h1>
       </Card.Header>
@@ -39,6 +40,6 @@ export function OptionSelector<T extends string>({
           ))}
         </div>
       </Card.Content>
-    </Card>
+    </SurfaceCard>
   );
 }

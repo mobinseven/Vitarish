@@ -25,7 +25,7 @@ export function WorkspaceSelector() {
     <div className="flex flex-col gap-4">
       <div className="grid gap-3">
         {options.map((option) => (
-          <Card key={option.id} variant="transparent" className="border border-default p-0">
+          <Card key={option.id} variant="transparent" className="border border-[var(--border)] p-0">
             <Card.Content className="p-4">
               <Button
                 variant={selectedWorkspaceId === option.id ? "primary" : "secondary"}

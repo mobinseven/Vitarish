@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, Link } from "@heroui/react";
+import { SurfaceCard } from "@/design-system";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 
 const settingsLinks = [
@@ -18,7 +19,7 @@ export default function AccountSettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Card className="glass-card">
+      <SurfaceCard>
         <Card.Header>
           <h1 className="text-2xl font-bold">Account Settings</h1>
         </Card.Header>
@@ -30,7 +31,7 @@ export default function AccountSettingsPage() {
           )}
           {settingsLinks.map((link) => (
             <Link key={link.href} href={link.href} className="block">
-              <Card variant="transparent" className="p-4 hover:bg-default cursor-pointer transition-colors">
+              <Card variant="transparent" className="ds-card-list-item">
                 <div className="flex items-center gap-3">
                   <i className={link.icon} />
                   <span>{link.label}</span>
@@ -39,7 +40,7 @@ export default function AccountSettingsPage() {
             </Link>
           ))}
         </Card.Content>
-      </Card>
+      </SurfaceCard>
     </div>
   );
 }

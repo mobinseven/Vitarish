@@ -1,4 +1,5 @@
 import { Card, Spinner } from "@heroui/react";
+import { SurfaceCard } from "@/design-system";
 import { journeyUiText } from "../types/journeyUiText";
 
 interface JourneyLoadingStateProps {
@@ -11,8 +12,8 @@ export function JourneyLoadingState({
   description = journeyUiText.loadingDescription,
 }: JourneyLoadingStateProps) {
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-10">
-      <Card className="glass-card w-full max-w-md">
+    <main className="ds-app-shell ds-centered-shell">
+      <SurfaceCard className="w-full max-w-md">
         <Card.Content className="flex flex-col items-center gap-4 p-8 text-center">
           <Spinner aria-label={title} />
           <div className="flex flex-col gap-2">
@@ -20,7 +21,7 @@ export function JourneyLoadingState({
             <p className="text-sm leading-6 text-foreground/70">{description}</p>
           </div>
         </Card.Content>
-      </Card>
+      </SurfaceCard>
     </main>
   );
 }

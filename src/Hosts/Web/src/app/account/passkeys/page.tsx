@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { Card, Button, Link } from "@heroui/react";
+import { SurfaceCard } from "@/design-system";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
 import {
@@ -67,7 +68,7 @@ export default function PasskeysPage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <Card className="glass-card">
+      <SurfaceCard>
         <Card.Header>
           <h1 className="text-2xl font-bold">Passkeys</h1>
         </Card.Header>
@@ -121,7 +122,7 @@ export default function PasskeysPage() {
             Back to settings
           </Link>
         </Card.Content>
-      </Card>
+      </SurfaceCard>
     </div>
   );
 }

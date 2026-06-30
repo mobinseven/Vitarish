@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Card } from "@heroui/react";
+import { SurfaceCard } from "@/design-system";
 import { KnowledgeAnswerCard } from "./KnowledgeAnswerCard";
 import {
   KnowledgeChatCallout,
@@ -55,7 +56,7 @@ export function KnowledgeAnswerList({
 
   return (
     <KnowledgeChatConversation>
-      <Card className="glass-card">
+      <SurfaceCard>
         <Card.Content className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-muted">
@@ -73,7 +74,7 @@ export function KnowledgeAnswerList({
             </Button>
           </div>
         </Card.Content>
-      </Card>
+      </SurfaceCard>
 
       {results.map((result) => (
         <KnowledgeAnswerCard

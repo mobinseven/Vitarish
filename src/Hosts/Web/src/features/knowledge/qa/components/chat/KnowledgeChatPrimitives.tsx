@@ -2,6 +2,7 @@
 
 import type { FormEvent, ReactNode } from "react";
 import { Button, Card, Input, Label, TextField } from "@heroui/react";
+import { SurfaceCard } from "@/design-system";
 
 export type KnowledgeChatItemKind = "question" | "answer" | "notice";
 export type KnowledgeChatTone = "default" | "success" | "warning" | "danger";
@@ -34,7 +35,7 @@ export function KnowledgeChatMessage({
   children: ReactNode;
 }) {
   return (
-    <Card className={joinClasses("glass-card", kind === "question" ? "ml-auto max-w-3xl" : "")}> 
+    <SurfaceCard className={joinClasses(kind === "question" ? "ml-auto max-w-3xl" : "")}>
       <Card.Header>
         <div className="flex w-full flex-col gap-2 md:flex-row md:items-start md:justify-between">
           <div>
@@ -49,7 +50,7 @@ export function KnowledgeChatMessage({
         {children}
         {actions && <KnowledgeChatMessageActions>{actions}</KnowledgeChatMessageActions>}
       </Card.Content>
-    </Card>
+    </SurfaceCard>
   );
 }
 
@@ -131,7 +132,7 @@ export function KnowledgeChatSource({
   meta?: string;
 }) {
   return (
-    <article className="rounded-xl border border-default-200 p-3 text-sm">
+    <article className="ds-inline-panel text-sm">
       <div className="flex items-center justify-between gap-3">
         <div className="font-medium">{title}</div>
         {meta && <div className="shrink-0 text-xs text-muted">{meta}</div>}
@@ -143,13 +144,13 @@ export function KnowledgeChatSource({
 
 export function KnowledgeChatLoader({ message }: { message: string }) {
   return (
-    <Card className="glass-card">
+    <SurfaceCard>
       <Card.Content className="flex flex-col gap-3 p-6">
         <p className="text-xs uppercase tracking-[0.25em] text-muted">Thinking</p>
         <h2 className="text-xl font-semibold">Searching grounded context...</h2>
         <p className="text-sm text-muted">{message}</p>
       </Card.Content>
-    </Card>
+    </SurfaceCard>
   );
 }
 
@@ -161,13 +162,13 @@ export function KnowledgeChatEmptyState({
   description: string;
 }) {
   return (
-    <Card className="glass-card">
+    <SurfaceCard>
       <Card.Content className="flex flex-col gap-3 p-6">
         <p className="text-xs uppercase tracking-[0.25em] text-muted">Start</p>
         <h2 className="text-xl font-semibold">{title}</h2>
         <p className="text-sm text-muted">{description}</p>
       </Card.Content>
-    </Card>
+    </SurfaceCard>
   );
 }
 
@@ -176,7 +177,7 @@ export function KnowledgeChatMessageActions({ children }: { children: ReactNode 
 }
 
 export function KnowledgeChatBody({ children }: { children: ReactNode }) {
-  return <section className="rounded-2xl bg-default-50 p-4 text-sm leading-7">{children}</section>;
+  return <section className="ds-chat-body">{children}</section>;
 }
 
 export function KnowledgeChatCallout({
@@ -187,21 +188,21 @@ export function KnowledgeChatCallout({
   children: ReactNode;
 }) {
   const toneClass = {
-    default: "border-default-200 bg-default-50 text-foreground",
-    success: "border-success-200 bg-success-50 text-success-700",
-    warning: "border-warning-200 bg-warning-50 text-warning-700",
-    danger: "border-danger-200 bg-danger-50 text-danger-700",
+    default: "ds-callout",
+    success: "ds-callout ds-callout-success",
+    warning: "ds-callout ds-callout-warning",
+    danger: "ds-callout ds-callout-danger",
   }[tone];
 
-  return <section className={`rounded-2xl border p-4 text-sm ${toneClass}`}>{children}</section>;
+  return <section className={`text-sm ${toneClass}`}>{children}</section>;
 }
 
 function KnowledgeChatStatus({ label, tone }: { label: string; tone: KnowledgeChatTone }) {
   const toneClass = {
-    default: "bg-default-100 text-default-700",
-    success: "bg-success-100 text-success-700",
-    warning: "bg-warning-100 text-warning-700",
-    danger: "bg-danger-100 text-danger-700",
+    default: "bg-[var(--surface-muted)] text-foreground",
+    success: "bg-[var(--success-soft)] text-[var(--success)]",
+    warning: "bg-[color-mix(in_oklch,var(--warning)_18%,transparent)] text-[var(--warning)]",
+    danger: "bg-[color-mix(in_oklch,var(--danger)_16%,transparent)] text-[var(--danger)]",
   }[tone];
 
   return <span className={`rounded-full px-3 py-1 text-xs font-medium ${toneClass}`}>{label}</span>;

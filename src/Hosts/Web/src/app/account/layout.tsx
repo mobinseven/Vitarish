@@ -35,9 +35,9 @@ export default function AccountLayout({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-default-500">Loading...</p>
-      </div>
+      <main className="ds-app-shell ds-centered-shell">
+        <p className="text-muted">Loading...</p>
+      </main>
     );
   }
 
@@ -46,7 +46,7 @@ export default function AccountLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="ds-account-layout">
       <aside className="sidebar">
         <h2 className="text-lg font-bold mb-4 px-3">Account</h2>
         <nav className="flex flex-col gap-1">
@@ -68,7 +68,7 @@ export default function AccountLayout({
           })}
         </nav>
       </aside>
-      <main className="flex-1 p-8">
+      <main className="ds-account-content">
         <JourneyGateBoundary>{children}</JourneyGateBoundary>
       </main>
     </div>
