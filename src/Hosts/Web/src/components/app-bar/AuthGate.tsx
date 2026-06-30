@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Link } from "@heroui/react";
+import { Link } from "@heroui/react";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { UserMenu } from "./UserMenu";
@@ -14,14 +14,12 @@ export function AuthGate() {
 
   if (!isAuthenticated) {
     return (
-      <Button
-        as={Link}
+      <Link
         href={Routes.Login.Index}
-        variant="tertiary"
-        className="rounded-full px-4 text-sm font-medium"
+        className="inline-flex min-h-8 items-center rounded-full bg-accent px-4 text-sm font-medium text-accent-foreground transition hover:opacity-90"
       >
         Log In
-      </Button>
+      </Link>
     );
   }
 
