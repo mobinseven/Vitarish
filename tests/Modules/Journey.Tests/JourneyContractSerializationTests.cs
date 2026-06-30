@@ -78,17 +78,17 @@ public class JourneyContractSerializationTests
     }
 
     [Fact]
-    public void JourneyGateKindDto_serializes_as_integer()
+    public void JourneyGateKindDto_serializes_as_string()
     {
         var json = JsonSerializer.Serialize(JourneyGateKindDto.ProfileCompletion, JsonOptions);
-        json.Should().Be("2");
+        json.Should().Be("\"ProfileCompletion\"");
     }
 
     [Fact]
-    public void JourneyDestinationKindDto_serializes_as_integer()
+    public void JourneyDestinationKindDto_serializes_as_string()
     {
         var json = JsonSerializer.Serialize(JourneyDestinationKindDto.AppDashboard, JsonOptions);
-        json.Should().Be("3");
+        json.Should().Be("\"AppDashboard\"");
     }
 
     [Fact]

@@ -2,7 +2,6 @@ import { useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { usePasswordLoginMutation } from "@/api/generated/authentication/authentication";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
-import { useCurrentJourney, resolvePostLoginNavigation } from "@/hooks/journey";
 
 export function usePasswordLogin() {
   const router = useRouter();

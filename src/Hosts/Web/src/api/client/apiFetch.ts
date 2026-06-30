@@ -129,6 +129,7 @@ export async function apiFetch<T>(
   }
 
   const res = await fetch(`${BASE_URL}${url}`, {
+    ...options,
     method,
     headers,
     body,

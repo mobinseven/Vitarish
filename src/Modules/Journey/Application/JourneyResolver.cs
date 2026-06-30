@@ -16,8 +16,7 @@ namespace Vitarish.Journey.Application;
 /// 6. Required workspace or app selection
 /// 7. Safe requested return URL
 /// 8. Last used app or workspace dashboard
-/// 9. User home
-/// 10. Global dashboard
+/// 9. User home (fallback)
 /// </summary>
 public sealed class JourneyResolver(
     IJourneyProfileReader profileReader,
@@ -30,8 +29,6 @@ public sealed class JourneyResolver(
 {
     public async Task<JourneyStep> ResolveAsync(JourneyRequest request, CancellationToken cancellationToken = default)
     {
-        var nonBlockingGates = new List<JourneyGate>();
-
         // Read snapshots
         var profile = await profileReader.GetSnapshotAsync(request.UserId, cancellationToken);
         var consent = await consentReader.GetSnapshotAsync(request.UserId, cancellationToken);

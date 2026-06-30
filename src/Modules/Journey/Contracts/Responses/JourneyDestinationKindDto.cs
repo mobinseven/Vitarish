@@ -3,6 +3,7 @@ namespace Vitarish.Journey.Contracts.Responses;
 /// <summary>
 /// DTO for journey destination kind.
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<JourneyDestinationKindDto>))]
 public enum JourneyDestinationKindDto
 {
     Gate = 1,

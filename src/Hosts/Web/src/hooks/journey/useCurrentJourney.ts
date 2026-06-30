@@ -44,11 +44,7 @@ async function fetchCurrentJourney(
   const queryString = params.toString();
   const url = `/api/modules/journey/current${queryString ? `?${queryString}` : ""}`;
 
-  const response = await apiFetch(url);
-  if (!response.ok) {
-    throw new Error("Failed to fetch journey");
-  }
-  return response.json();
+  return apiFetch<JourneyDecision>(url);
 }
 
 export function useCurrentJourney(returnUrl?: string) {

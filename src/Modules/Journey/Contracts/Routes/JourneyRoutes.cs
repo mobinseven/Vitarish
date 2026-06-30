@@ -6,5 +6,5 @@ namespace Vitarish.Journey.Contracts.Routes;
 public static class JourneyRoutes
 {
     public const string BasePath = "/api/modules/journey";
-    public const string Current = BasePath + "/current";
+    public const string Current = "/current";
 }

@@ -30,7 +30,9 @@ public sealed class JourneyAwareRedirectResolver(
         if (string.IsNullOrWhiteSpace(userId))
         {
             // Fallback to legacy behavior when user is not authenticated
-            return ReturnUrlPolicy.NormalizeOrDefault(requestedReturnUrl).Value;
+            return requiresProfileCompletion
+                ? "/account/profile/complete"
+                : ReturnUrlPolicy.NormalizeOrDefault(requestedReturnUrl).Value;
         }
 
         try
@@ -50,7 +52,9 @@ public sealed class JourneyAwareRedirectResolver(
         catch
         {
             // Fallback to legacy behavior if Journey resolution fails
-            return ReturnUrlPolicy.NormalizeOrDefault(requestedReturnUrl).Value;
+            return requiresProfileCompletion
+                ? "/account/profile/complete"
+                : ReturnUrlPolicy.NormalizeOrDefault(requestedReturnUrl).Value;
         }
     }
 }
