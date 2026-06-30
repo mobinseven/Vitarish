@@ -29,6 +29,8 @@ ADR impact:
 
 ADR-0003 impact:
 
+Modular UI impact:
+
 React/Web host impact:
 
 Validation impact:
@@ -43,8 +45,8 @@ Use this format for multiple artifacts:
 ```md
 ## Artifact Placement Plan
 
-| Artifact | Classification | Owning scope | Preferred location | Related tests | ADR impact | ADR-0003 impact | React/Web host impact |
-|---|---|---|---|---|---|---|---|
+| Artifact | Classification | Owning scope | Preferred location | Related tests | ADR impact | ADR-0003 impact | Modular UI impact | React/Web host impact |
+|---|---|---|---|---|---|---|---|---|
 
 ## Placement Notes
 
@@ -71,6 +73,8 @@ Ownership conflicts:
 Dependency risks:
 
 ADR-0003 boundary risks:
+
+Modular UI risks:
 
 React/Web host risks:
 
