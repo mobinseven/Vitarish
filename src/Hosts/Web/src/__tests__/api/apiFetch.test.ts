@@ -23,8 +23,8 @@ describe("apiFetch antiforgery", () => {
 
     await apiFetch("/api/modules/example", { method: "POST", body: JSON.stringify({}) });
 
-    expect(fetchMock.mock.calls[0][0]).toBe("/api/modules/authentication/antiforgery");
-    expect(fetchMock.mock.calls[1][0]).toBe("/api/modules/example");
+    expect(fetchMock.mock.calls[0][0]).toBe("https://localhost:7272/api/modules/authentication/antiforgery");
+    expect(fetchMock.mock.calls[1][0]).toBe("https://localhost:7272/api/modules/example");
   });
 
   it("rejects the original unsafe request when bootstrap fails", async () => {

@@ -21,7 +21,7 @@ function walk(dir, prefix = "") {
     }
 
     const text = readFileSync(fullPath, "utf8");
-    if (/fetch\s*\([^)]*['\"`][^'\"`]*\/api\/modules\//s.test(text)) {
+    if (/\bfetch\s*\([^)]*['"`][^'"`]*\/api\/modules\//s.test(text)) {
       console.error(`Direct /api/modules fetch is forbidden in src/${relativePath}; use src/api/client/apiFetch.ts.`);
       failed = true;
     }

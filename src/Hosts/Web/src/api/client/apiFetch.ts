@@ -29,7 +29,7 @@ let antiforgeryHeaderName = "X-XSRF-TOKEN";
 let antiforgeryPromise: Promise<void> | null = null;
 
 function isUnsafeMethod(method: string): boolean {
-  return method !== "GET" && method !== "HEAD";
+  return method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE";
 }
 
 function antiforgeryBootstrapError(problem: ProblemDetails): ApiError {
@@ -81,7 +81,13 @@ async function ensureAntiforgeryToken(headers: Headers): Promise<void> {
         throw antiforgeryBootstrapError(problem);
       }
 
-      const token = readAntiforgeryToken(await res.json());
+      let data: unknown;
+      try {
+        data = await res.json();
+      } catch {
+        throw antiforgeryBootstrapError({ status: 500, detail: "The antiforgery response body could not be parsed as JSON." });
+      }
+      const token = readAntiforgeryToken(data);
       antiforgeryToken = token.requestToken;
       antiforgeryHeaderName = token.headerName;
     })().finally(() => {

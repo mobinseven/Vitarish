@@ -47,19 +47,20 @@ public static class ModuleEndpointAntiforgeryExtensions
                 {
                     ILoggerFactory loggerFactory = context.RequestServices.GetRequiredService<ILoggerFactory>();
                     ILogger logger = loggerFactory.CreateLogger("Vitarish.Modules.Base.Core.Endpoints.ModuleEndpointAntiforgery");
-                    logger.LogInformation(exception, "Module endpoint antiforgery validation failed for {Method} {Path}.", context.Request.Method, context.Request.Path);
+                    logger.LogWarning(exception, "Module endpoint antiforgery validation failed for {Method} {Path}.", context.Request.Method, context.Request.Path);
 
                     ProblemDetails problem = new()
                     {
                         Status = StatusCodes.Status400BadRequest,
                         Title = "Antiforgery validation failed.",
                         Detail = "The request could not be validated. Refresh the page and try again.",
-                        Type = "https://vitarish.local/problems/antiforgery-validation-failed",
+                        Type = "urn:vitarish:problems:antiforgery-validation-failed",
                         Instance = context.Request.Path
                     };
                     problem.Extensions["code"] = "AntiforgeryValidationFailed";
 
                     context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    context.Response.ContentType = "application/problem+json";
                     await context.Response.WriteAsJsonAsync(problem);
                     return;
                 }
