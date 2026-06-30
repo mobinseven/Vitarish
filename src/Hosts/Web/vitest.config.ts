@@ -19,7 +19,7 @@ export default defineConfig({
   },
   define: {
     "process.env.NEXT_PUBLIC_API_BASE_URL": JSON.stringify(
-      "http://localhost:5000"
+      "https://localhost:7272"
     ),
   },
 });

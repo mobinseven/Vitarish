@@ -15,10 +15,9 @@ public static class CurrentSessionEndpoints
         {
             var result = await handler.Handle(new GetCurrentAuthenticationSessionQuery(), ct);
             return result is AuthenticationResult<Vitarish.Authentication.Application.Abstractions.AuthenticationUserDescriptor?>.Success s
-                ? Results.Ok(new AuthenticationSessionDto(s.Value is not null, s.Value is null ? null : new CurrentAuthenticationUserDto(s.Value.UserId, s.Value.DisplayName, s.Value.Email, s.Value.PhoneNumber)))
+                ? Results.Ok(new AuthenticationSessionDto(s.Value is not null, s.Value is null ? null : new CurrentAuthenticationUserDto(s.Value.UserId, s.Value.DisplayName, s.Value.GivenName, s.Value.FamilyName, s.Value.Email, s.Value.PhoneNumber)))
                 : Results.Unauthorized();
         })
-        .RequireAuthorization()
         .WithName("Authentication_Session_Get")
         .Produces<AuthenticationSessionDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -28,10 +27,9 @@ public static class CurrentSessionEndpoints
         {
             var result = await handler.Handle(new GetCurrentAuthenticationSessionQuery(), ct);
             return result is AuthenticationResult<Vitarish.Authentication.Application.Abstractions.AuthenticationUserDescriptor?>.Success s && s.Value is not null
-                ? Results.Ok(new CurrentAuthenticationUserDto(s.Value.UserId, s.Value.DisplayName, s.Value.Email, s.Value.PhoneNumber))
+                ? Results.Ok(new CurrentAuthenticationUserDto(s.Value.UserId, s.Value.DisplayName, s.Value.GivenName, s.Value.FamilyName, s.Value.Email, s.Value.PhoneNumber))
                 : Results.NotFound();
         })
-        .RequireAuthorization()
         .WithName("Authentication_Me_Get")
         .Produces<CurrentAuthenticationUserDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

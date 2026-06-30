@@ -1,3 +1,4 @@
+import { Routes } from "@/app/routes";
 import type { JourneyDecision } from "./useCurrentJourney";
 
 /**
@@ -20,5 +21,5 @@ export function resolvePostLoginNavigation(
     return legacyReturnUrl;
   }
 
-  return "/dashboard";
+  return Routes.Home;
 }

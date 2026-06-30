@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Vitarish.Users.Domain.Options;
 
 public static class HostAuthenticationExtensions
@@ -7,7 +8,12 @@ public static class HostAuthenticationExtensions
     {
 
         AuthenticationBuilder authen = builder.Services
-            .AddAuthentication();
+            .AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+                options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+                options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
+            });
         _ = authen.AddLocalApi(options =>
         {
             options.ExpectedScope = IdentityDefinitions.AccessScope;
@@ -35,7 +41,7 @@ public static class HostAuthenticationExtensions
             options.Cookie = new()
             {
                 HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.None,
                 SecurePolicy = CookieSecurePolicy.Always,
                 MaxAge = TimeSpan.FromDays(14)
             };

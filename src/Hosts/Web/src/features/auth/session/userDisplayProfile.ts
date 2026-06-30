@@ -12,6 +12,8 @@ export function resolveUserDisplayProfile(
   user: CurrentAuthenticationUserDto | null | undefined
 ): UserDisplayProfile {
   const displayName = normalizeText(user?.displayName);
+  const givenName = normalizeText(user?.givenName) ?? resolveGivenName(displayName);
+  const familyName = normalizeText(user?.familyName) ?? resolveFamilyName(displayName);
   const email = normalizeText(user?.email);
   const phoneNumber = normalizeText(user?.phoneNumber);
   const emailLocalPart = normalizeText(email?.split("@")[0]);
@@ -20,9 +22,10 @@ export function resolveUserDisplayProfile(
 
   return {
     displayLabel,
-    givenName: resolveGivenName(displayName),
-    familyName: resolveFamilyName(displayName),
-    initials: resolveInitials(displayLabel, isFallback),
+    givenName,
+    familyName,
+    initials:
+      resolveNameInitials(givenName, familyName) ?? resolveInitials(displayLabel, isFallback),
     contactLabel: email ?? phoneNumber,
   };
 }
@@ -39,6 +42,18 @@ function resolveGivenName(displayName: string | null): string | null {
 function resolveFamilyName(displayName: string | null): string | null {
   const nameParts = displayName?.split(/\s+/) ?? [];
   return nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
+}
+
+function resolveNameInitials(
+  givenName: string | null,
+  familyName: string | null
+): string | null {
+  const initials = [givenName, familyName]
+    .map((part) => part?.replace(/[^a-zA-Z]/g, "")[0]?.toUpperCase())
+    .filter(Boolean)
+    .join("");
+
+  return initials || null;
 }
 
 function resolveInitials(displayLabel: string, isFallback: boolean): string | null {

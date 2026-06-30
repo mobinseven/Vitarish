@@ -1294,6 +1294,18 @@
               "string"
             ]
           },
+          "givenName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "familyName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "email": {
             "type": [
               "null",

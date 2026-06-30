@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { usePasswordLoginMutation } from "@/api/generated/authentication/authentication";
+import { useQueryClient } from "@tanstack/react-query";
+import { authenticationKeys, usePasswordLoginMutation } from "@/api/generated/authentication/authentication";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
 import { getRequestedReturnUrl } from "./requestedReturnUrl";
 
@@ -8,6 +9,7 @@ export function usePasswordLogin() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mutation = usePasswordLoginMutation();
+  const queryClient = useQueryClient();
   const [error, setError] = useState<AuthError | null>(null);
 
   const login = useCallback(
@@ -26,6 +28,10 @@ export function usePasswordLogin() {
           rememberMe: false,
         });
 
+        await queryClient.invalidateQueries({
+          queryKey: authenticationKeys.session(),
+        });
+
         // Use legacy returnUrl from auth result as fallback
         // Journey destination will be resolved by the gate boundary
         router.push(result.returnUrl);
@@ -34,7 +40,7 @@ export function usePasswordLogin() {
         setError(authError);
       }
     },
-    [mutation, router, searchParams]
+    [mutation, queryClient, router, searchParams]
   );
 
   return {

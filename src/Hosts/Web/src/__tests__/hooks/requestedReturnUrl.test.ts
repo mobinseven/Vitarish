@@ -40,8 +40,8 @@ describe("getRequestedReturnUrl", () => {
     expect(
       getRequestedReturnUrl(
         new URLSearchParams("returnUrl=/account"),
-        "/dashboard"
+        "/home"
       )
-    ).toBe("/dashboard");
+    ).toBe("/home");
   });
 });

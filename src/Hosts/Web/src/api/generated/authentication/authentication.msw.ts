@@ -7,12 +7,12 @@ import type {
   LogoutContextDto,
 } from "./model";
 
-const BASE = "http://localhost:5000";
+const BASE = "https://localhost:7272";
 
 export const handlers = [
   http.post(`${BASE}/api/modules/authentication/login/password`, () => {
     const body: AuthenticationRedirectResultDto = {
-      returnUrl: "/",
+      returnUrl: "/home",
       requiresProfileCompletion: false,
     };
     return HttpResponse.json(body);
@@ -30,7 +30,7 @@ export const handlers = [
 
   http.post(`${BASE}/api/modules/authentication/login/phone/complete`, () => {
     const body: AuthenticationRedirectResultDto = {
-      returnUrl: "/",
+      returnUrl: "/home",
       requiresProfileCompletion: false,
     };
     return HttpResponse.json(body);
@@ -48,7 +48,7 @@ export const handlers = [
 
   http.post(`${BASE}/api/modules/authentication/login/email/complete`, () => {
     const body: AuthenticationRedirectResultDto = {
-      returnUrl: "/",
+      returnUrl: "/home",
       requiresProfileCompletion: false,
     };
     return HttpResponse.json(body);
@@ -73,7 +73,7 @@ export const handlers = [
 
   http.post(`${BASE}/api/modules/authentication/login/passkey/complete`, () => {
     const body: AuthenticationRedirectResultDto = {
-      returnUrl: "/",
+      returnUrl: "/home",
       requiresProfileCompletion: false,
     };
     return HttpResponse.json(body);

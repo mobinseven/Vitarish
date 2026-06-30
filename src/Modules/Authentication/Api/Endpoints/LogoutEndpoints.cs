@@ -22,7 +22,6 @@ public static class LogoutEndpoints
                 ? Results.Ok(new LogoutContextDto(s.Value.LogoutId, s.Value.ClientName, s.Value.PostLogoutRedirectUri, s.Value.ShowLogoutPrompt))
                 : Results.NotFound();
         })
-        .RequireAuthorization()
         .WithName("Authentication_Logout_Context")
         .Produces<LogoutContextDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -36,7 +35,6 @@ public static class LogoutEndpoints
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(s.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<LogoutResult>.Failure)r).Error);
         })
-        .RequireAuthorization()
         .WithName("Authentication_Logout_Post")
         .Produces<LogoutResultDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
