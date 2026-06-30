@@ -1,4 +1,5 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+const TENANT_HOST_HEADER = "X-Vitarish-Tenant-Host";
 
 export interface ProblemDetails {
   type?: string;
@@ -27,6 +28,20 @@ export class ApiError extends Error {
 let antiforgeryToken: string | null = null;
 let antiforgeryHeaderName = "X-XSRF-TOKEN";
 let antiforgeryPromise: Promise<void> | null = null;
+
+function getCurrentTenantHost(): string | null {
+  if (typeof window === "undefined") return null;
+
+  const host = window.location.host.trim();
+  return host.length > 0 ? host : null;
+}
+
+function applyTenantHostHeader(headers: Headers): void {
+  if (headers.has(TENANT_HOST_HEADER)) return;
+
+  const host = getCurrentTenantHost();
+  if (host) headers.set(TENANT_HOST_HEADER, host);
+}
 
 function isUnsafeMethod(method: string): boolean {
   return method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE";
@@ -67,8 +82,12 @@ async function ensureAntiforgeryToken(headers: Headers): Promise<void> {
 
   if (!antiforgeryPromise) {
     antiforgeryPromise = (async () => {
+      const bootstrapHeaders = new Headers();
+      applyTenantHostHeader(bootstrapHeaders);
+
       const res = await fetch(`${BASE_URL}/api/modules/authentication/antiforgery`, {
         credentials: "include",
+        headers: bootstrapHeaders,
       });
 
       if (!res.ok) {
@@ -175,6 +194,7 @@ export async function apiFetch<T>(urlOrConfig: string | OrvalConfig, options: Re
 
   baseHeaders.set("Accept", "application/json");
   if (!baseHeaders.has("Content-Type") && body) baseHeaders.set("Content-Type", "application/json");
+  applyTenantHostHeader(baseHeaders);
 
   const buildHeaders = async () => {
     const headers = new Headers(baseHeaders);
