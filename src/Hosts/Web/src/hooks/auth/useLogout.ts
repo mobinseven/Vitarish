@@ -8,7 +8,7 @@ import { ApiError } from "@/api/client/apiFetch";
 import { Routes } from "@/app/routes";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
 
-export type LogoutContextStatus = "ready" | "already-signed-out" | "unavailable";
+export type LogoutContextStatus = "loading" | "ready" | "already-signed-out" | "unavailable";
 
 export function useLogout(logoutId?: string) {
   const router = useRouter();
@@ -17,6 +17,10 @@ export function useLogout(logoutId?: string) {
   const [error, setError] = useState<AuthError | null>(null);
 
   const contextStatus = useMemo<LogoutContextStatus>(() => {
+    if (contextQuery.isLoading) {
+      return "loading";
+    }
+
     if (contextQuery.error instanceof ApiError && contextQuery.error.status === 401) {
       return "already-signed-out";
     }
@@ -26,7 +30,7 @@ export function useLogout(logoutId?: string) {
     }
 
     return "ready";
-  }, [contextQuery.error, contextQuery.isError]);
+  }, [contextQuery.isLoading, contextQuery.error, contextQuery.isError]);
 
   const logout = useCallback(
     async (returnUrl?: string) => {

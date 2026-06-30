@@ -30,6 +30,7 @@ describe("resolveUserDisplayProfile", () => {
 
     expect(profile.givenName).toBe("Ave");
     expect(profile.familyName).toBe("S");
+    expect(profile.initials).toBe("AS");
   });
 
   it("uses the email local part when no display name exists", () => {

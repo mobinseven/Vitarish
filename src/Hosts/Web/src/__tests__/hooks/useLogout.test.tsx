@@ -21,8 +21,10 @@ describe("useLogout", () => {
     queryClient.clear();
   });
 
-  it("loads logout context successfully", async () => {
+  it("reports loading until logout context is available", async () => {
     const { result } = renderHook(() => useLogout("logout-1"), { wrapper });
+
+    expect(result.current.contextStatus).toBe("loading");
 
     await waitFor(() => {
       expect(result.current.isContextLoading).toBe(false);

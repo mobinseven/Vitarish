@@ -24,7 +24,8 @@ export function resolveUserDisplayProfile(
     displayLabel,
     givenName,
     familyName,
-    initials: resolveInitials(displayLabel, isFallback),
+    initials:
+      resolveNameInitials(givenName, familyName) ?? resolveInitials(displayLabel, isFallback),
     contactLabel: email ?? phoneNumber,
   };
 }
@@ -41,6 +42,18 @@ function resolveGivenName(displayName: string | null): string | null {
 function resolveFamilyName(displayName: string | null): string | null {
   const nameParts = displayName?.split(/\s+/) ?? [];
   return nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
+}
+
+function resolveNameInitials(
+  givenName: string | null,
+  familyName: string | null
+): string | null {
+  const initials = [givenName, familyName]
+    .map((part) => part?.replace(/[^a-zA-Z]/g, "")[0]?.toUpperCase())
+    .filter(Boolean)
+    .join("");
+
+  return initials || null;
 }
 
 function resolveInitials(displayLabel: string, isFallback: boolean): string | null {
