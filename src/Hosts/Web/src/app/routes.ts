@@ -40,4 +40,15 @@ export const Routes = {
   Workspaces: {
     Select: "/workspaces/select",
   },
+
+  /** Clinic Owner routes */
+  Clinic: {
+    Index: "/owner/clinic",
+    Patients: {
+      Index: "/owner/clinic/patients",
+      New: "/owner/clinic/patients/new",
+      Detail: (patientId: string) => `/owner/clinic/patients/${patientId}` as const,
+      Edit: (patientId: string) => `/owner/clinic/patients/${patientId}/edit` as const,
+    },
+  },
 } as const;
