@@ -3,7 +3,10 @@
  *  Single source of truth for all navigation paths. */
 export const Routes = {
   /** Root path — redirects to /login */
-  Home: "/",
+  Root: "/",
+
+  /** Authenticated home dashboard */
+  Home: "/home",
 
   /** Public routes */
   Login: {
