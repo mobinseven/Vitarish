@@ -43,6 +43,7 @@ public sealed class JourneyReturnUrlPolicy : IJourneyReturnUrlPolicy
         && value is not "/login"
         && value is not "/logout"
         && !value.StartsWith("/login/", StringComparison.Ordinal)
+        && !value.StartsWith("/logout/", StringComparison.Ordinal)
         && !value.Contains('\\')
         && !value.Contains('?')
         && !value.Contains('#');

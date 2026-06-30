@@ -9,13 +9,19 @@ public static class ReturnUrlPolicy
         if (string.IsNullOrWhiteSpace(returnUrl)) return true;
 
         string decoded = WebUtility.UrlDecode(returnUrl);
-        return decoded.StartsWith("/", StringComparison.Ordinal)
-            && !decoded.StartsWith("//", StringComparison.Ordinal)
-            && !decoded.StartsWith("/\\", StringComparison.Ordinal)
-            && !decoded.StartsWith("/api/modules/authentication/", StringComparison.Ordinal)
-            && decoded is not "/login"
-            && decoded is not "/logout"
-            && !decoded.StartsWith("/login/", StringComparison.Ordinal)
+
+        int queryOrFragmentIndex = decoded.IndexOfAny(new[] { '?', '#' });
+        string path = queryOrFragmentIndex >= 0 ? decoded[..queryOrFragmentIndex] : decoded;
+
+        return path.StartsWith("/", StringComparison.Ordinal)
+            && !path.StartsWith("//", StringComparison.Ordinal)
+            && !path.StartsWith("/\\", StringComparison.Ordinal)
+            && !path.StartsWith("/api/modules/authentication/", StringComparison.Ordinal)
+            && path is not "/"
+            && path is not "/login"
+            && path is not "/logout"
+            && !path.StartsWith("/login/", StringComparison.Ordinal)
+            && !path.StartsWith("/logout/", StringComparison.Ordinal)
             && !decoded.Contains('\\');
     }
 

@@ -9,16 +9,20 @@ public class ReturnUrlPolicyTests
     [InlineData("/dashboard")]
     [InlineData("/settings")]
     [InlineData("/a")]
-    [InlineData("/")]
     public void IsSafeLocal_accepts_safe_local_paths(string url)
     {
         ReturnUrlPolicy.IsSafeLocal(url).Should().BeTrue();
     }
 
     [Theory]
+    [InlineData("/")]
     [InlineData("/login")]
     [InlineData("/login/password")]
+    [InlineData("/login?foo=bar")]
+    [InlineData("/login#hash")]
     [InlineData("/logout")]
+    [InlineData("/logout/callback")]
+    [InlineData("/logout?foo=bar")]
     [InlineData("/api/modules/authentication/login/password")]
     public void IsSafeLocal_AuthenticationOnlyRoute_ReturnsFalse(string returnUrl)
     {
@@ -26,9 +30,14 @@ public class ReturnUrlPolicyTests
     }
 
     [Theory]
+    [InlineData("/")]
     [InlineData("/login")]
     [InlineData("/login/password")]
+    [InlineData("/login?foo=bar")]
+    [InlineData("/login#hash")]
     [InlineData("/logout")]
+    [InlineData("/logout/callback")]
+    [InlineData("/logout?foo=bar")]
     [InlineData("/api/modules/authentication/login/password")]
     public void NormalizeOrDefault_AuthenticationOnlyRoute_ReturnsFallback(string returnUrl)
     {
@@ -68,6 +77,14 @@ public class ReturnUrlPolicyTests
     public void NormalizeOrDefault_returns_fallback_for_null()
     {
         var result = ReturnUrlPolicy.NormalizeOrDefault(null);
+
+        result.Value.Should().Be("/");
+    }
+
+    [Fact]
+    public void NormalizeOrDefault_returns_fallback_for_root()
+    {
+        var result = ReturnUrlPolicy.NormalizeOrDefault("/");
 
         result.Value.Should().Be("/");
     }

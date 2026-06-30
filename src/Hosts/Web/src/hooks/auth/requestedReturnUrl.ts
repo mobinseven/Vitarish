@@ -2,16 +2,24 @@ export function getRequestedReturnUrl(
   searchParams: URLSearchParams,
   explicitReturnUrl?: string
 ): string | undefined {
-  const requestedReturnUrl =
+  const raw =
     explicitReturnUrl ?? searchParams.get("returnUrl") ?? undefined;
+
+  if (!raw) return undefined;
+
+  const requestedReturnUrl = raw.trim();
 
   if (!requestedReturnUrl || requestedReturnUrl === "/") {
     return undefined;
   }
 
+  const path = requestedReturnUrl.split(/[?#]/)[0];
+
   if (
-    requestedReturnUrl === "/login" ||
-    requestedReturnUrl.startsWith("/login/")
+    path === "/login" ||
+    path.startsWith("/login/") ||
+    path === "/logout" ||
+    path.startsWith("/logout/")
   ) {
     return undefined;
   }

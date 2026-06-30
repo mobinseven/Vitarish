@@ -1,8 +1,28 @@
 import { getRequestedReturnUrl } from "@/hooks/auth/requestedReturnUrl";
 
 describe("getRequestedReturnUrl", () => {
-  it.each([undefined, "", "/", "/login", "/login/password"])(
+  it.each([
+    undefined,
+    "",
+    "/",
+    "/login",
+    "/login/password",
+    "/login?foo=bar",
+    "/login#hash",
+    "/logout",
+    "/logout/callback",
+    "/logout?foo=bar",
+  ])(
     "ignores auth-only or empty return URL %s",
+    (explicitReturnUrl) => {
+      expect(
+        getRequestedReturnUrl(new URLSearchParams(), explicitReturnUrl)
+      ).toBeUndefined();
+    }
+  );
+
+  it.each(["  /login  ", " /logout "])(
+    "trims whitespace before evaluating %s",
     (explicitReturnUrl) => {
       expect(
         getRequestedReturnUrl(new URLSearchParams(), explicitReturnUrl)

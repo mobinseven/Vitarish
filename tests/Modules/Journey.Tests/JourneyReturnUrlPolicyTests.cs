@@ -31,6 +31,7 @@ public class JourneyReturnUrlPolicyTests
     [InlineData("/login")]
     [InlineData("/login/password")]
     [InlineData("/logout")]
+    [InlineData("/logout/callback")]
     [InlineData("/api/modules/authentication/login/password")]
     public void IsSafe_AuthenticationOnlyRoute_ReturnsFalse(string returnUrl)
     {
@@ -42,6 +43,7 @@ public class JourneyReturnUrlPolicyTests
     [InlineData("/login")]
     [InlineData("/login/password")]
     [InlineData("/logout")]
+    [InlineData("/logout/callback")]
     [InlineData("/api/modules/authentication/login/password")]
     public void Normalize_AuthenticationOnlyRoute_ReturnsNull(string returnUrl)
     {

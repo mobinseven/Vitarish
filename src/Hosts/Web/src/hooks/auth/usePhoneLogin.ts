@@ -21,12 +21,16 @@ export function usePhoneLogin() {
   );
   const [error, setError] = useState<AuthError | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [pendingReturnUrl, setPendingReturnUrl] = useState<string | undefined>(
+    undefined
+  );
 
   const begin = useCallback(
     async (phone: string, returnUrl?: string) => {
       setError(null);
       try {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
+        setPendingReturnUrl(finalReturnUrl);
         const result = await beginMutation.mutateAsync({
           phoneNumber: phone,
           returnUrl: finalReturnUrl,
@@ -46,7 +50,8 @@ export function usePhoneLogin() {
       if (!challenge) return;
       setError(null);
       try {
-        const returnUrl = getRequestedReturnUrl(searchParams);
+        const returnUrl =
+          pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
         const result = await completeMutation.mutateAsync({
           challengeId: challenge.challengeId,
           code,
@@ -59,10 +64,11 @@ export function usePhoneLogin() {
         if (authError.code === "challenge_expired" || authError.code === "challenge_attempts_exhausted") {
           setStep("phone");
           setChallenge(null);
+          setPendingReturnUrl(undefined);
         }
       }
     },
-    [challenge, completeMutation, router, searchParams]
+    [challenge, completeMutation, router, searchParams, pendingReturnUrl]
   );
 
   const reset = useCallback(() => {
@@ -70,6 +76,7 @@ export function usePhoneLogin() {
     setChallenge(null);
     setError(null);
     setPhoneNumber("");
+    setPendingReturnUrl(undefined);
   }, []);
 
   return {
