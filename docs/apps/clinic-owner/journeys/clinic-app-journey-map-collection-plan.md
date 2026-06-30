@@ -686,7 +686,7 @@ Run these after creating the collection:
 
 ```bash
 git diff --check
-rg -n "TODO|TBD|FIXME" docs/apps/clinic-owner/journeys
+rg -n "TO[D]O|TB[D]|FIX[M]E" docs/apps/clinic-owner/journeys
 rg -n "AppRoutes\.Clinic|public const string" src/Hosts/Main/Common/Routes/ClinicRoutes.cs
 find docs/apps/clinic-owner/journeys -maxdepth 1 -type f | sort
 ```
