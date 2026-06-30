@@ -70,6 +70,6 @@ public sealed class AspNetIdentityAuthenticationUserDirectory(UserManager<User> 
     {
         string? displayName = string.IsNullOrWhiteSpace(user.FullName) ? user.UserName : user.FullName;
         bool requiresProfileCompletion = string.IsNullOrWhiteSpace(user.FirstName) || string.IsNullOrWhiteSpace(user.LastName);
-        return new AuthenticationUserDescriptor(user.Id, user.UserName, displayName, user.Email, user.PhoneNumber, requiresProfileCompletion);
+        return new AuthenticationUserDescriptor(user.Id, user.UserName, displayName, user.FirstName, user.LastName, user.Email, user.PhoneNumber, requiresProfileCompletion);
     }
 }

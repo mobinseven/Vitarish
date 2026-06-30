@@ -10,4 +10,12 @@ public interface IAuthenticationUserDirectory
     Task<AuthenticationUserDescriptor?> GetCurrentAsync(CancellationToken cancellationToken);
 }
 
-public sealed record AuthenticationUserDescriptor(string UserId, string? UserName, string? DisplayName, string? Email, string? PhoneNumber, bool RequiresProfileCompletion);
+public sealed record AuthenticationUserDescriptor(
+    string UserId,
+    string? UserName,
+    string? DisplayName,
+    string? GivenName,
+    string? FamilyName,
+    string? Email,
+    string? PhoneNumber,
+    bool RequiresProfileCompletion);

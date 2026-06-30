@@ -46,7 +46,7 @@ export function HomeDashboard() {
                   Vitarish Home
                 </p>
                 <h1 className="max-w-4xl text-4xl font-black tracking-tight text-foreground md:text-6xl">
-                  {isLoading ? "Welcome back" : `Welcome back, ${displayProfile.displayLabel}`}
+                  {isLoading ? "Welcome back" : `Welcome back, ${displayProfile.givenName ?? displayProfile.displayLabel}`}
                 </h1>
                 <p className="max-w-2xl text-lg leading-8 text-muted md:text-xl">
                   Pick a module demo below to keep moving. Each card opens a focused experience so you can explore what is available now without leaving your workflow.

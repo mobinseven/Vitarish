@@ -12,6 +12,8 @@ export function resolveUserDisplayProfile(
   user: CurrentAuthenticationUserDto | null | undefined
 ): UserDisplayProfile {
   const displayName = normalizeText(user?.displayName);
+  const givenName = normalizeText(user?.givenName) ?? resolveGivenName(displayName);
+  const familyName = normalizeText(user?.familyName) ?? resolveFamilyName(displayName);
   const email = normalizeText(user?.email);
   const phoneNumber = normalizeText(user?.phoneNumber);
   const emailLocalPart = normalizeText(email?.split("@")[0]);
@@ -20,8 +22,8 @@ export function resolveUserDisplayProfile(
 
   return {
     displayLabel,
-    givenName: resolveGivenName(displayName),
-    familyName: resolveFamilyName(displayName),
+    givenName,
+    familyName,
     initials: resolveInitials(displayLabel, isFallback),
     contactLabel: email ?? phoneNumber,
   };

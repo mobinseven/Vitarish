@@ -18,6 +18,20 @@ describe("resolveUserDisplayProfile", () => {
     });
   });
 
+  it("uses explicit given and family names before parsing the display name", () => {
+    const profile = resolveUserDisplayProfile({
+      userId: "user-explicit",
+      displayName: "Avery Stone",
+      givenName: "Ave",
+      familyName: "S",
+      email: "avery@example.com",
+      phoneNumber: null,
+    });
+
+    expect(profile.givenName).toBe("Ave");
+    expect(profile.familyName).toBe("S");
+  });
+
   it("uses the email local part when no display name exists", () => {
     const profile = resolveUserDisplayProfile({
       userId: "user-2",

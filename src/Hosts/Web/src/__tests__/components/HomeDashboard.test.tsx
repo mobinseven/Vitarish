@@ -20,7 +20,7 @@ describe("HomeDashboard", () => {
   it("greets the signed-in user and links to the Knowledge demo", () => {
     render(<HomeDashboard />);
 
-    expect(screen.getByRole("heading", { name: /welcome back, avery stone/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /welcome back, avery/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /open knowledge/i })).toHaveAttribute("href", "/knowledge");
     expect(screen.getByRole("link", { name: /start with knowledge/i })).toHaveAttribute("href", "/knowledge");
   });

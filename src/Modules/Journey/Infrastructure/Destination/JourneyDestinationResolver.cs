@@ -13,5 +13,5 @@ public sealed class JourneyDestinationResolver : IJourneyDestinationResolver
 
     public string GetWorkspaceDashboardUrl(string workspaceId) => $"/workspaces/{workspaceId}/dashboard";
 
-    public string GetGlobalDashboardUrl() => "/dashboard";
+    public string GetGlobalDashboardUrl() => "/home";
 }
