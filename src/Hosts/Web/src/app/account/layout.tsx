@@ -5,16 +5,17 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
+import { Routes } from "@/app/routes";
 
 const navLinks = [
-  { href: "/account", label: "Settings", icon: "fa-solid fa-gear" },
-  { href: "/account/name", label: "Name", icon: "fa-solid fa-person" },
-  { href: "/account/email", label: "Email", icon: "fa-solid fa-envelope" },
-  { href: "/account/phone", label: "Phone", icon: "fa-solid fa-mobile" },
-  { href: "/account/password", label: "Password", icon: "fa-solid fa-lock" },
-  { href: "/account/passkeys", label: "Passkeys", icon: "fa-solid fa-key" },
-  { href: "/account/theme", label: "Theme", icon: "fa-solid fa-palette" },
-  { href: "/account/culture", label: "Language", icon: "fa-solid fa-globe" },
+  { href: Routes.Account.Index, label: "Settings", icon: "fa-solid fa-gear" },
+  { href: Routes.Account.Name, label: "Name", icon: "fa-solid fa-person" },
+  { href: Routes.Account.Email, label: "Email", icon: "fa-solid fa-envelope" },
+  { href: Routes.Account.Phone, label: "Phone", icon: "fa-solid fa-mobile" },
+  { href: Routes.Account.Password, label: "Password", icon: "fa-solid fa-lock" },
+  { href: Routes.Account.Passkeys, label: "Passkeys", icon: "fa-solid fa-key" },
+  { href: Routes.Account.Theme, label: "Theme", icon: "fa-solid fa-palette" },
+  { href: Routes.Account.Culture, label: "Language", icon: "fa-solid fa-globe" },
 ];
 
 export default function AccountLayout({
@@ -28,7 +29,7 @@ export default function AccountLayout({
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+      router.push(Routes.Login.Index);
     }
   }, [isLoading, isAuthenticated, router]);
 
@@ -51,8 +52,8 @@ export default function AccountLayout({
         <nav className="flex flex-col gap-1">
           {navLinks.map((link) => {
             const isActive =
-              link.href === "/account"
-                ? pathname === "/account"
+              link.href === Routes.Account.Index
+                ? pathname === Routes.Account.Index
                 : pathname.startsWith(link.href);
             return (
               <Link
