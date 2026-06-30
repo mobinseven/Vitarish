@@ -2,22 +2,19 @@ import { apiFetch } from "@/api/client/apiFetch";
 import type {
   KnowledgeAskRequest,
   KnowledgeAnswerModel,
-  KnowledgeOwnerCollectionModel,
-  KnowledgeOwnerCorpusCollectionItem,
-  KnowledgeUserCorpus,
+  KnowledgeUserWorkspaceModel,
   KnowledgeUserWorkspace,
 } from "../types";
 
 const knowledgeBase = "/api/modules/knowledge";
 
 export async function getKnowledgeUserWorkspace(): Promise<KnowledgeUserWorkspace> {
-  const ownerWorkspace = await apiFetch<KnowledgeOwnerCollectionModel>(
-    `${knowledgeBase}/owner/workspace`,
-    { method: "POST", body: JSON.stringify({}) }
-  );
+  const workspace = await apiFetch<KnowledgeUserWorkspaceModel>(`${knowledgeBase}/workspace`);
 
   return {
-    corpora: mapUserCorpora(ownerWorkspace?.corpora ?? []),
+    corpora: [...(workspace?.corpora ?? [])].sort((left, right) =>
+      left.name.localeCompare(right.name)
+    ),
   };
 }
 
@@ -34,31 +31,4 @@ export async function askKnowledgeCorpus(
       traceKind: request.traceKind ?? "normal-user-ui",
     }),
   });
-}
-
-function mapUserCorpora(
-  corpora: KnowledgeOwnerCorpusCollectionItem[]
-): KnowledgeUserCorpus[] {
-  return corpora
-    .filter((corpus) => corpus.isActive !== false)
-    .map((corpus) => {
-      const sources = corpus.sources ?? [];
-      return {
-        corpusId: corpus.corpusId,
-        name: corpus.corpusName,
-        description: corpus.corpusDescription,
-        isActive: corpus.isActive !== false,
-        sourceCount: sources.length,
-        chunkCount: sources.reduce(
-          (total, source) =>
-            total +
-            (source.files ?? []).reduce(
-              (fileTotal, file) => fileTotal + (file.chunkCount ?? 0),
-              0
-            ),
-          0
-        ),
-      };
-    })
-    .sort((left, right) => left.name.localeCompare(right.name));
 }

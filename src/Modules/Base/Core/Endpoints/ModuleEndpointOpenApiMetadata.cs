@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,7 +39,30 @@ public static class ModuleEndpointAntiforgeryExtensions
                 HttpMethods.IsDelete(context.Request.Method))
             {
                 IAntiforgery antiforgery = context.RequestServices.GetRequiredService<IAntiforgery>();
-                await antiforgery.ValidateRequestAsync(context);
+                try
+                {
+                    await antiforgery.ValidateRequestAsync(context);
+                }
+                catch (AntiforgeryValidationException exception)
+                {
+                    ILoggerFactory loggerFactory = context.RequestServices.GetRequiredService<ILoggerFactory>();
+                    ILogger logger = loggerFactory.CreateLogger("Vitarish.Modules.Base.Core.Endpoints.ModuleEndpointAntiforgery");
+                    logger.LogInformation(exception, "Module endpoint antiforgery validation failed for {Method} {Path}.", context.Request.Method, context.Request.Path);
+
+                    ProblemDetails problem = new()
+                    {
+                        Status = StatusCodes.Status400BadRequest,
+                        Title = "Antiforgery validation failed.",
+                        Detail = "The request could not be validated. Refresh the page and try again.",
+                        Type = "https://vitarish.local/problems/antiforgery-validation-failed",
+                        Instance = context.Request.Path
+                    };
+                    problem.Extensions["code"] = "AntiforgeryValidationFailed";
+
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    await context.Response.WriteAsJsonAsync(problem);
+                    return;
+                }
             }
 
             await next(context);
