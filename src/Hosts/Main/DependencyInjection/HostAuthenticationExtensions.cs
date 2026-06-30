@@ -35,7 +35,7 @@ public static class HostAuthenticationExtensions
             options.Cookie = new()
             {
                 HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.None,
                 SecurePolicy = CookieSecurePolicy.Always,
                 MaxAge = TimeSpan.FromDays(14)
             };
