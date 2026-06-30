@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { Routes } from "@/app/routes";
 import { useUserProfileQuery } from "@/api/generated/users/users";
 import { apiFetch } from "@/api/client/apiFetch";
 import { StatusMessage } from "@/components/auth/StatusMessage";
@@ -137,7 +138,7 @@ export default function EmailChangePage() {
             </form>
           )}
 
-          <Link href="/account" className="text-sm">
+          <Link href={Routes.Account.Index} className="text-sm">
             Back to settings
           </Link>
         </Card.Content>

@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import { Card, Link } from "@heroui/react";
+import { Routes } from "@/app/routes";
 
 interface LoginPageCardProps {
   title: string;
@@ -16,7 +17,7 @@ export function LoginPageCard({
   title,
   subtitle,
   skeletonHeight = "128px",
-  backHref = "/login",
+  backHref = Routes.Login.Index,
   backLabel = "Other sign-in methods",
   children,
 }: LoginPageCardProps) {

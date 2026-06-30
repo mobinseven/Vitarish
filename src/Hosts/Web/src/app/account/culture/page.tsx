@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { Button, Link } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { Routes } from "@/app/routes";
 import {
   useUserCultureQuery,
   useSetUserCultureMutation,
@@ -54,7 +55,7 @@ export default function CulturePage() {
       >
         Save
       </Button>
-      <Link href="/account" className="text-sm">
+      <Link href={Routes.Account.Index} className="text-sm">
         Back to settings
       </Link>
     </div>

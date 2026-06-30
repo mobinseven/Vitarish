@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Card, Button, Link } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { Routes } from "@/app/routes";
 import {
   useWebAuthnCredentialsQuery,
   useBeginWebAuthnRegisterMutation,
@@ -116,7 +117,7 @@ export default function PasskeysPage() {
             </Button>
           )}
 
-          <Link href="/account" className="text-sm">
+          <Link href={Routes.Account.Index} className="text-sm">
             Back to settings
           </Link>
         </Card.Content>

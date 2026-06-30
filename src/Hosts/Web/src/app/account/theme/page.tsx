@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { Button, Link } from "@heroui/react";
 import { useTheme } from "next-themes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { Routes } from "@/app/routes";
 import {
   useUserThemeQuery,
   useSetUserThemeMutation,
@@ -55,7 +56,7 @@ export default function ThemePage() {
       >
         Save
       </Button>
-      <Link href="/account" className="text-sm">
+      <Link href={Routes.Account.Index} className="text-sm">
         Back to settings
       </Link>
     </div>
