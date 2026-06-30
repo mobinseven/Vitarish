@@ -52,7 +52,7 @@ internal static class ChallengeCompletionHelper
 
         await signInService.SignInAsync(challenge.UserId, false, cancellationToken);
 
-        string resolvedReturnUrl = await redirects.ResolveAsync(returnUrl, false, cancellationToken);
+        string resolvedReturnUrl = await redirects.ResolveAsync(returnUrl, false, challenge.UserId, cancellationToken);
         return new AuthenticationResult<LoginResult>.Success(new(challenge.UserId, resolvedReturnUrl, false));
     }
 

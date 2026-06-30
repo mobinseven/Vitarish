@@ -26,10 +26,14 @@ public sealed class JourneyAwareRedirectResolver(
     {
         var httpContext = httpContextAccessor.HttpContext;
         string? userId = httpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return await ResolveAsync(requestedReturnUrl, requiresProfileCompletion, userId, cancellationToken);
+    }
 
+    public async Task<string> ResolveAsync(string? requestedReturnUrl, bool requiresProfileCompletion, string? userId, CancellationToken cancellationToken = default)
+    {
         if (string.IsNullOrWhiteSpace(userId))
         {
-            // Fallback to legacy behavior when user is not authenticated
+            // Fallback to legacy behavior when user id is not available
             return requiresProfileCompletion
                 ? "/account/profile/complete"
                 : ReturnUrlPolicy.NormalizeOrDefault(requestedReturnUrl).Value;
@@ -37,6 +41,7 @@ public sealed class JourneyAwareRedirectResolver(
 
         try
         {
+            var httpContext = httpContextAccessor.HttpContext;
             var request = new JourneyRequest(
                 UserId: userId,
                 RequestedReturnUrl: requestedReturnUrl,

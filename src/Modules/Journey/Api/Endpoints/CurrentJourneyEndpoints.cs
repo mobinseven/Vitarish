@@ -6,6 +6,7 @@ using Vitarish.Journey.Application.Abstractions;
 using Vitarish.Journey.Contracts.Responses;
 using Vitarish.Journey.Contracts.Routes;
 using Vitarish.Journey.Domain;
+using Vitarish.Modules.Base.Core.Endpoints;
 
 namespace Vitarish.Journey.Api.Endpoints;
 
@@ -13,9 +14,7 @@ public static class CurrentJourneyEndpoints
 {
     public static RouteGroupBuilder MapCurrentJourneyEndpoints(this RouteGroupBuilder group)
     {
-        group.MapGet(JourneyRoutes.Current, GetCurrentJourneyAsync)
-            .WithName("Journey_GetCurrent")
-            .WithSummary("Resolves the current authenticated user's journey.");
+        group.MapModuleGet(JourneyRoutes.Current, GetCurrentJourneyAsync, "Journey_GetCurrent", typeof(JourneyDecisionDto));
 
         return group;
     }

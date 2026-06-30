@@ -40,4 +40,9 @@ public sealed class CookieAuthenticationReturnUrlStore(IHttpContextAccessor http
     {
         return Task.FromResult(Resolve(requestedReturnUrl, requiresProfileCompletion));
     }
+
+    public Task<string> ResolveAsync(string? requestedReturnUrl, bool requiresProfileCompletion, string? userId, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(Resolve(requestedReturnUrl, requiresProfileCompletion));
+    }
 }
