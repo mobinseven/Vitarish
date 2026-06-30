@@ -28,18 +28,23 @@ Use existing conventions inside the owning scope before inventing a new folder.
 | Infrastructure validator | Existing `Infrastructure/Validators` convention when validation depends on infrastructure or external state | Validate infrastructure-backed constraints outside pure domain rules |
 | Background job | `Infrastructure/BackgroundJobs`, `src/Modules/Base/BackgroundJobs`, or host infrastructure when host-owned | Run asynchronous work with explicit ownership and dependency boundaries |
 | Module interface component | `src/Modules/<Module>/Interface/Components` | Render reusable frontend-safe UI owned by that module |
+| Submodule/capability interface component | `src/Modules/<Module>/Interface/Components/<Capability>` | Keep reusable UI for nested module workflows, such as Medical/Prescription, separate from generic module UI |
+| Module interface page/composition entry | Existing `src/Modules/<Module>/Interface/Pages`, `Interface/Plugins`, or module UI composition convention | Expose module-owned UI entry points only when the module owns the UI composition contract |
+| Submodule/capability interface page/composition entry | Existing `src/Modules/<Module>/Interface/Pages/<Capability>`, `Interface/Plugins/<Capability>`, or capability UI convention | Keep nested workflow entry points grouped by capability when the module exposes UI composition |
 | Module interface plugin | Existing `src/Modules/<Module>/Interface/Plugins` convention | Expose module-owned UI integration points |
 | Module interface model/service | `src/Modules/<Module>/Interface/Models` or `Interface/Services` | Support reusable module UI without backend implementation coupling |
+| Submodule/capability interface model/service | `src/Modules/<Module>/Interface/Models/<Capability>` or `Interface/Services/<Capability>` | Support nested capability UI without polluting the parent module Interface root |
 | Interface package component | `src/Interfaces/Interfaces.<Name>/Components` | Provide reusable cross-app UI in an interface package |
+| Interface package page/composition entry | Existing `src/Interfaces/Interfaces.<Name>/Pages`, `Components`, or composition convention | Provide shared route/page composition only when the interface package explicitly owns it |
 | Interface package abstraction | `src/Interfaces/Interfaces.<Name>/Abstractions` | Define UI-facing abstractions for the interface package |
 | Interface package model | `src/Interfaces/Interfaces.<Name>/Models` | Carry UI-facing state for the interface package |
 | Interface package service | `src/Interfaces/Interfaces.<Name>/Services` | Support interface package behavior without backend implementation coupling |
 | Interface localization resource | Existing `src/Interfaces/Interfaces.<Name>/Resources` or `Localization` convention | Own UI text/resources for the interface package |
 | Module DI | Existing `Interface/DependencyInjection`, `Infrastructure/DependencyInjection`, or module composition convention | Register the owning layer’s services |
 | Module composition | `src/Modules/<Module>/Module` or existing aggregate project convention | Package module API, Application, Domain, and Infrastructure registrations for host startup |
-| Routable Razor host page | `src/Hosts/<Host>/Pages/...` | Compose route-level Razor UI and route-specific state |
+| Routable Razor host page | `src/Hosts/<Host>/Pages/<Module>/<Capability>` or existing host page convention | Compose route-level Razor UI, route state, authorization, layout, and module Interface components |
 | React Web app shell/router/provider | `src/Hosts/<Host>/src/app`, `src/Hosts/<Host>/src/router`, or the host’s established equivalent | Compose host-level providers, layouts, and route registration without business rules |
-| Routable React Web page | `src/Hosts/<Host>/src/pages/...` or the host’s established route/page convention | Compose route-level React UI, route params, and route-specific state |
+| Routable React Web page | `src/Hosts/<Host>/src/pages/<module>/<capability>` or the host’s established route/page convention | Compose route-level React UI, route params, and route-specific state |
 | React Web module feature component/hook | `src/Hosts/<Host>/src/features/<module>/components`, `hooks`, or `api` by existing convention | Orchestrate host-owned React UI for one module only, such as Medical or Knowledge |
 | React Web submodule/capability component/hook | `src/Hosts/<Host>/src/features/<module>/<capability>/components`, `hooks`, or `api` by existing convention | Keep nested capability UI, state, and generated-client wrappers separate, such as Medical/Prescription |
 | React Web host-only component | `src/Hosts/<Host>/src/components` or `src/Hosts/<Host>/src/ui` by existing convention | Provide host-specific reusable UI that is not module-owned and not a shared interface package |
