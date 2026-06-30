@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useCurrentJourney } from "@/hooks/journey/useCurrentJourney";
+import { JourneyErrorState, JourneyLoadingState } from "@/features/journey/components";
 
 interface JourneyGateBoundaryProps {
   children: React.ReactNode;
@@ -11,7 +12,7 @@ interface JourneyGateBoundaryProps {
 export function JourneyGateBoundary({ children }: JourneyGateBoundaryProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: decision, isLoading, error } = useCurrentJourney();
+  const { data: decision, isLoading, error, refetch } = useCurrentJourney();
 
   useEffect(() => {
     if (isLoading || error || !decision) return;
@@ -31,15 +32,11 @@ export function JourneyGateBoundary({ children }: JourneyGateBoundaryProps) {
   }, [decision, isLoading, error, router, pathname]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-      </div>
-    );
+    return <JourneyLoadingState />;
   }
 
   if (error) {
-    return <>{children}</>;
+    return <JourneyErrorState onRetry={() => void refetch()} />;
   }
 
   if (decision?.step?.blockingGate) {
