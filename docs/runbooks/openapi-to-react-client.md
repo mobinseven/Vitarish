@@ -211,3 +211,16 @@ The generated hook name follows the pattern: `use{OperationId}Mutation` or `use{
 | `src/Hosts/Web/src/api/client/apiFetch.ts` | Custom fetch boundary |
 | `src/Hosts/Web/src/api/generated/` | Generated hooks, types, mocks |
 | `src/Hosts/Web/.env.example` | `NEXT_PUBLIC_API_BASE_URL` |
+
+## Web host API boundary and antiforgery troubleshooting
+
+The React Web host must call module APIs through the central `apiFetch` mutator. Generated Orval clients are configured to use `src/api/client/apiFetch.ts`, and feature/page code must not call `/api/modules/**` with direct `fetch`. Run `npm run validate:api-boundary` from `src/Hosts/Web` before changing module API adapters.
+
+For unsafe browser-cookie requests, `apiFetch` first bootstraps an antiforgery token from the same API origin used for the module request. Troubleshoot failures in this order:
+
+1. Verify `GET /api/modules/authentication/antiforgery` returns `200` from the browser.
+2. Verify the response sets the antiforgery cookie and returns a non-empty `requestToken`.
+3. Verify the following unsafe request sends both the antiforgery cookie and the `X-XSRF-TOKEN` header unless the endpoint response specifies a different `headerName`.
+4. Verify `NEXT_PUBLIC_API_BASE_URL` matches the intended API origin. Same-origin deployments may leave it empty; cross-origin development must point at the HTTPS API origin that issues the cookie.
+5. Verify the API `WebHostCors` allowed origins match the Web host origin exactly and credentials are enabled. Wildcard origins are intentionally rejected when credentials are enabled.
+6. For local HTTPS and Docker, verify the browser accepts the antiforgery cookie settings: secure cookies require HTTPS, `SameSite` must allow the selected same-origin or cross-origin development topology, and cookie domain/path must scope the cookie to the API requests.

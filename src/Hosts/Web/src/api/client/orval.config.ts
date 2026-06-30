@@ -67,17 +67,22 @@ export default defineConfig({
       },
     },
   },
-  // medical: disabled — Main_medical.json has a broken path param (codeSystemId)
-  // in MedicalGetCodeSystem. Re-enable once the backend spec is fixed.
-  // medical: {
-  //   input: { target: `${specsDir}/Main_medical.json` },
-  //   output: {
-  //     target: "../generated/medical/medical.ts",
-  //     schemas: "../generated/medical/model",
-  //     client: "react-query",
-  //     override: { mutator: { path: "./apiFetch.ts", name: "apiFetch" } },
-  //   },
-  // },
+  medical: {
+    input: {
+      target: `${specsDir}/Main_medical.json`,
+    },
+    output: {
+      target: "../generated/medical/medical.ts",
+      schemas: "../generated/medical/model",
+      client: "react-query",
+      override: {
+        mutator: {
+          path: "./apiFetch.ts",
+          name: "apiFetch",
+        },
+      },
+    },
+  },
   parties: {
     input: {
       target: `${specsDir}/Main_parties.json`,

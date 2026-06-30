@@ -64,6 +64,10 @@ export interface KnowledgeQuestionScope {
   corpusId?: string;
 }
 
+export interface KnowledgeUserWorkspaceModel {
+  corpora?: KnowledgeUserCorpus[] | null;
+}
+
 export interface KnowledgeOwnerCollectionModel {
   corpora?: KnowledgeOwnerCorpusCollectionItem[] | null;
   selectedCorpusId?: string | null;

@@ -11,6 +11,8 @@ public sealed record KnowledgeOwnerSourceCollectionItem(Guid SourceId, string So
 public sealed record KnowledgeOwnerSourceFileCollectionItem(Guid FileId, string FileName, string? ContentType, long? Size, int ChunkCount, DateTimeOffset? IndexedAt);
 public sealed record KnowledgeCitation(Guid ChunkId, Guid SourceId, Guid DocumentId, string? Title, string? Quote);
 public sealed record KnowledgeRetrievalHit(Guid ChunkId, Guid SourceId, Guid DocumentId, string Text, string? Title, double Score);
+public sealed record KnowledgeUserWorkspaceModel(IReadOnlyList<KnowledgeUserCorpusModel> Corpora);
+public sealed record KnowledgeUserCorpusModel(Guid CorpusId, string Name, string? Description, bool IsActive, int SourceCount, int ChunkCount);
 public sealed record KnowledgeAnswerModel(string Answer, bool IsAnswered, IReadOnlyList<KnowledgeCitation> Citations, string? MissingInformation, IReadOnlyList<KnowledgeRetrievalHit> RetrievedContext);
 public sealed record KnowledgeCheckModel(bool Passed, string Message, IReadOnlyDictionary<string, object?> Data);
 public sealed record KnowledgeCorpusDiagnosticsModel(Guid CorpusId, string TenantId, string Name, bool IsActive, int SourceCount, int DocumentCount, int ChunkCount, int QuestionCount, int AskTraceCount, DateTimeOffset? LastImportedAt, DateTimeOffset? LastAskedAt);
