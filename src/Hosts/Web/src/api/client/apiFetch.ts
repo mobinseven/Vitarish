@@ -64,16 +64,63 @@ export function resetAntiforgeryToken(): void {
   antiforgeryToken = null;
 }
 
+interface OrvalConfig {
+  url: string;
+  method?: string;
+  params?: Record<string, unknown>;
+  data?: unknown;
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
+}
+
+function isOrvalConfig(value: unknown): value is OrvalConfig {
+  return typeof value === "object" && value !== null && "url" in value;
+}
+
 export async function apiFetch<T>(
-  url: string,
+  urlOrConfig: string | OrvalConfig,
   options: RequestInit = {}
 ): Promise<T> {
-  const method = options.method?.toUpperCase() ?? "GET";
-  const headers = new Headers(options.headers);
+  let url: string;
+  let method: string;
+  let headers: Headers;
+  let body: BodyInit | undefined;
+  let signal: AbortSignal | undefined;
+
+  if (isOrvalConfig(urlOrConfig)) {
+    const config = urlOrConfig;
+    url = config.url;
+    method = config.method?.toUpperCase() ?? "GET";
+    headers = new Headers(config.headers);
+    signal = config.signal;
+
+    if (config.params) {
+      const searchParams = new URLSearchParams();
+      for (const [key, value] of Object.entries(config.params)) {
+        if (value !== undefined && value !== null) {
+          searchParams.set(key, String(value));
+        }
+      }
+      const qs = searchParams.toString();
+      if (qs) {
+        url += `?${qs}`;
+      }
+    }
+
+    if (config.data !== undefined) {
+      body = JSON.stringify(config.data);
+    }
+  } else {
+    url = urlOrConfig;
+    method = options.method?.toUpperCase() ?? "GET";
+    headers = new Headers(options.headers);
+    body = options.body as BodyInit | undefined;
+    signal = options.signal as AbortSignal | undefined;
+  }
 
   headers.set("Accept", "application/json");
 
-  if (!headers.has("Content-Type") && options.body) {
+  if (!headers.has("Content-Type") && body) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -82,8 +129,10 @@ export async function apiFetch<T>(
   }
 
   const res = await fetch(`${BASE_URL}${url}`, {
-    ...options,
+    method,
     headers,
+    body,
+    signal,
     credentials: "include",
   });
 

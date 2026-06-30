@@ -22,7 +22,7 @@ public sealed class LoginWithPasswordHandler(
             PasswordSignInStatus.Succeeded =>
                 new AuthenticationResult<LoginResult>.Success(new(
                     signInResult.UserId!,
-                    redirects.Resolve(command.ReturnUrl, signInResult.RequiresProfileCompletion),
+                    await redirects.ResolveAsync(command.ReturnUrl, signInResult.RequiresProfileCompletion, cancellationToken),
                     signInResult.RequiresProfileCompletion)),
             PasswordSignInStatus.InvalidCredentials or PasswordSignInStatus.UserNotFound =>
                 new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidCredentials, "Invalid credentials.")),

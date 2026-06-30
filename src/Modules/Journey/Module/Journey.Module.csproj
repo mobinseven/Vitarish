@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Infrastructure\Journey.Infrastructure.csproj" />
+    <ProjectReference Include="..\Api\Journey.Api.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+  </ItemGroup>
+</Project>

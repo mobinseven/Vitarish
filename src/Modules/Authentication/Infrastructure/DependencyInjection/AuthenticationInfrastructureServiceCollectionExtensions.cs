@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Infrastructure;
+using Vitarish.Authentication.Infrastructure.ReturnUrls;
 
 namespace Vitarish.Authentication.Infrastructure.DependencyInjection;
 
@@ -17,7 +18,7 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
         services.AddScoped<IAuthenticationCodeVerifier, AspNetIdentityCodeVerifier>();
         services.AddScoped<IAuthenticationCodeGenerator, AspNetIdentityCodeGenerator>();
         services.AddScoped<IAuthenticationReturnUrlStore, CookieAuthenticationReturnUrlStore>();
-        services.AddScoped<IAuthenticationRedirectResolver, CookieAuthenticationReturnUrlStore>();
+        services.AddScoped<IAuthenticationRedirectResolver, JourneyAwareRedirectResolver>();
         services.AddScoped<IPhoneAuthenticationCodeSender, SmsAuthenticationCodeSender>();
         services.AddScoped<IEmailAuthenticationCodeSender, EmailAuthenticationCodeSender>();
         services.AddScoped<IWebAuthnAuthenticationService, WebAuthnAuthenticationService>();

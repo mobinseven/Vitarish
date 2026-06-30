@@ -5,15 +5,31 @@ const specsDir = "../specs";
 export default defineConfig({
   authentication: {
     input: {
-      target: `${specsDir}/authentication.json`,
+      target: `${specsDir}/Main_authentication.json`,
     },
     output: {
-      target: "./src/api/generated/authentication/authentication.ts",
-      schemas: "./src/api/generated/authentication/model",
+      target: "../generated/authentication/authentication.ts",
+      schemas: "../generated/authentication/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
+          name: "apiFetch",
+        },
+      },
+    },
+  },
+  journey: {
+    input: {
+      target: `${specsDir}/Main_journey.json`,
+    },
+    output: {
+      target: "../generated/journey/journey.ts",
+      schemas: "../generated/journey/model",
+      client: "react-query",
+      override: {
+        mutator: {
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -21,15 +37,15 @@ export default defineConfig({
   },
   users: {
     input: {
-      target: `${specsDir}/users.json`,
+      target: `${specsDir}/Main_users.json`,
     },
     output: {
-      target: "./src/api/generated/users/users.ts",
-      schemas: "./src/api/generated/users/model",
+      target: "../generated/users/users.ts",
+      schemas: "../generated/users/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -37,15 +53,15 @@ export default defineConfig({
   },
   sea: {
     input: {
-      target: `${specsDir}/sea.json`,
+      target: `${specsDir}/Main_sea.json`,
     },
     output: {
-      target: "./src/api/generated/sea/sea.ts",
-      schemas: "./src/api/generated/sea/model",
+      target: "../generated/sea/sea.ts",
+      schemas: "../generated/sea/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -53,15 +69,15 @@ export default defineConfig({
   },
   medical: {
     input: {
-      target: `${specsDir}/medical.json`,
+      target: `${specsDir}/Main_medical.json`,
     },
     output: {
-      target: "./src/api/generated/medical/medical.ts",
-      schemas: "./src/api/generated/medical/model",
+      target: "../generated/medical/medical.ts",
+      schemas: "../generated/medical/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -69,15 +85,15 @@ export default defineConfig({
   },
   parties: {
     input: {
-      target: `${specsDir}/parties.json`,
+      target: `${specsDir}/Main_parties.json`,
     },
     output: {
-      target: "./src/api/generated/parties/parties.ts",
-      schemas: "./src/api/generated/parties/model",
+      target: "../generated/parties/parties.ts",
+      schemas: "../generated/parties/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -85,15 +101,15 @@ export default defineConfig({
   },
   files: {
     input: {
-      target: `${specsDir}/files.json`,
+      target: `${specsDir}/Main_files.json`,
     },
     output: {
-      target: "./src/api/generated/files/files.ts",
-      schemas: "./src/api/generated/files/model",
+      target: "../generated/files/files.ts",
+      schemas: "../generated/files/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -101,15 +117,15 @@ export default defineConfig({
   },
   communications: {
     input: {
-      target: `${specsDir}/communications.json`,
+      target: `${specsDir}/Main_communications.json`,
     },
     output: {
-      target: "./src/api/generated/communications/communications.ts",
-      schemas: "./src/api/generated/communications/model",
+      target: "../generated/communications/communications.ts",
+      schemas: "../generated/communications/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -117,15 +133,15 @@ export default defineConfig({
   },
   appointments: {
     input: {
-      target: `${specsDir}/appointments.json`,
+      target: `${specsDir}/Main_appointments.json`,
     },
     output: {
-      target: "./src/api/generated/appointments/appointments.ts",
-      schemas: "./src/api/generated/appointments/model",
+      target: "../generated/appointments/appointments.ts",
+      schemas: "../generated/appointments/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -133,15 +149,15 @@ export default defineConfig({
   },
   search: {
     input: {
-      target: `${specsDir}/search.json`,
+      target: `${specsDir}/Main_search.json`,
     },
     output: {
-      target: "./src/api/generated/search/search.ts",
-      schemas: "./src/api/generated/search/model",
+      target: "../generated/search/search.ts",
+      schemas: "../generated/search/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -149,15 +165,15 @@ export default defineConfig({
   },
   intelligence: {
     input: {
-      target: `${specsDir}/intelligence.json`,
+      target: `${specsDir}/Main_intelligence.json`,
     },
     output: {
-      target: "./src/api/generated/intelligence/intelligence.ts",
-      schemas: "./src/api/generated/intelligence/model",
+      target: "../generated/intelligence/intelligence.ts",
+      schemas: "../generated/intelligence/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -165,15 +181,15 @@ export default defineConfig({
   },
   social: {
     input: {
-      target: `${specsDir}/social.json`,
+      target: `${specsDir}/Main_social.json`,
     },
     output: {
-      target: "./src/api/generated/social/social.ts",
-      schemas: "./src/api/generated/social/model",
+      target: "../generated/social/social.ts",
+      schemas: "../generated/social/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -181,15 +197,15 @@ export default defineConfig({
   },
   feed: {
     input: {
-      target: `${specsDir}/feed.json`,
+      target: `${specsDir}/Main_feed.json`,
     },
     output: {
-      target: "./src/api/generated/feed/feed.ts",
-      schemas: "./src/api/generated/feed/model",
+      target: "../generated/feed/feed.ts",
+      schemas: "../generated/feed/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -197,15 +213,15 @@ export default defineConfig({
   },
   knowledge: {
     input: {
-      target: `${specsDir}/knowledge.json`,
+      target: `${specsDir}/Main_knowledge.json`,
     },
     output: {
-      target: "./src/api/generated/knowledge/knowledge.ts",
-      schemas: "./src/api/generated/knowledge/model",
+      target: "../generated/knowledge/knowledge.ts",
+      schemas: "../generated/knowledge/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -213,15 +229,15 @@ export default defineConfig({
   },
   requests: {
     input: {
-      target: `${specsDir}/requests.json`,
+      target: `${specsDir}/Main_requests.json`,
     },
     output: {
-      target: "./src/api/generated/requests/requests.ts",
-      schemas: "./src/api/generated/requests/model",
+      target: "../generated/requests/requests.ts",
+      schemas: "../generated/requests/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -229,15 +245,15 @@ export default defineConfig({
   },
   commerce: {
     input: {
-      target: `${specsDir}/commerce.json`,
+      target: `${specsDir}/Main_commerce.json`,
     },
     output: {
-      target: "./src/api/generated/commerce/commerce.ts",
-      schemas: "./src/api/generated/commerce/model",
+      target: "../generated/commerce/commerce.ts",
+      schemas: "../generated/commerce/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },
@@ -245,15 +261,15 @@ export default defineConfig({
   },
   clinic: {
     input: {
-      target: `${specsDir}/clinic.json`,
+      target: `${specsDir}/Main_clinic.json`,
     },
     output: {
-      target: "./src/api/generated/clinic/clinic.ts",
-      schemas: "./src/api/generated/clinic/model",
+      target: "../generated/clinic/clinic.ts",
+      schemas: "../generated/clinic/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          path: "./apiFetch.ts",
           name: "apiFetch",
         },
       },

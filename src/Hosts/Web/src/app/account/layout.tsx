@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 
 const navLinks = [
   { href: "/account", label: "Settings", icon: "fa-solid fa-gear" },
@@ -66,7 +67,9 @@ export default function AccountLayout({
           })}
         </nav>
       </aside>
-      <main className="flex-1 p-8">{children}</main>
+      <main className="flex-1 p-8">
+        <JourneyGateBoundary>{children}</JourneyGateBoundary>
+      </main>
     </div>
   );
 }

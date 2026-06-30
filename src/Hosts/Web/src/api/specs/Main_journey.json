@@ -1,0 +1,160 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Vitarish.Main | journey",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/modules/journey/current": {
+      "get": {
+        "tags": [
+          "Journey"
+        ],
+        "summary": "Resolves the current authenticated user's journey.",
+        "operationId": "Journey_GetCurrent",
+        "parameters": [
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JourneyDecisionDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "JourneyDecisionDto": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "$ref": "#/components/schemas/JourneyStepDto"
+          },
+          "legacyReturnUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "legacyRequiresProfileCompletion": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "required": ["step"]
+      },
+      "JourneyStepDto": {
+        "type": "object",
+        "properties": {
+          "destinationUrl": {
+            "type": "string"
+          },
+          "destinationKind": {
+            "$ref": "#/components/schemas/JourneyDestinationKindDto"
+          },
+          "blockingGate": {
+            "$ref": "#/components/schemas/JourneyGateDto"
+          },
+          "nonBlockingGates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JourneyGateDto"
+            },
+            "nullable": true
+          }
+        },
+        "required": ["destinationUrl", "destinationKind"]
+      },
+      "JourneyGateDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/JourneyGateKindDto"
+          },
+          "isBlocking": {
+            "type": "boolean"
+          },
+          "destinationUrl": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["kind", "isBlocking", "destinationUrl"]
+      },
+      "JourneyGateKindDto": {
+        "type": "string",
+        "enum": [
+          "ContactConfirmation",
+          "ProfileCompletion",
+          "RequiredConsent",
+          "WorkspaceSelection",
+          "AccountRecovery",
+          "SuspiciousLogin",
+          "PasskeyEnrollmentPrompt",
+          "MfaEnrollmentPrompt"
+        ]
+      },
+      "JourneyDestinationKindDto": {
+        "type": "string",
+        "enum": [
+          "Gate",
+          "ReturnUrl",
+          "AppDashboard",
+          "UserHome",
+          "GlobalDashboard"
+        ]
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      }
+    }
+  }
+}
