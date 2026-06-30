@@ -187,12 +187,13 @@
 
     @if(AdminMode)
     {
-        <StackButton OnClick="@(() => OnDeleted.InvokeAsync())"
+        <StackButton OnClick="@(() => OnEdit.InvokeAsync(Patient.Id))"
                      EndIcon="fa-solid fa-pencil"
                      Label="@Localizer["EditItem", Localizer["Patient"]]"
                      Color="Color.Secondary" />
 
-        <StackButton OnClick="@(() => OnEdit.InvokeAsync(Patient.Id))"
+        <StackButton 
+                     OnClick="@(() => OnDeleted.InvokeAsync())"
                      Color="Color.Error"
                      EndIcon="fa-solid fa-folder-xmark"
                      Label="@Localizer["DeleteItem", Localizer["Patient"]]" />
