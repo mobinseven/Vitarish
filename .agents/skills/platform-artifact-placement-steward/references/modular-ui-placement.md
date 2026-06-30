@@ -43,17 +43,17 @@ src/Hosts/Web/src/features/medical/prescription/hooks/usePrescriptionWorkflow.ts
 
 | Artifact | Default placement | Rule |
 | --- | --- | --- |
-| Reusable module Razor component | `src/Modules/<Module>/Interface/Components` | Use when the component is module-owned and safe for frontend/interface consumers. |
-| Reusable submodule Razor component | `src/Modules/<Module>/Interface/Components/<Capability>` | Use when the component belongs to one nested workflow, such as Medical/Prescription. |
-| Module UI model | `src/Modules/<Module>/Interface/Models` | Keep UI state and display models frontend-safe and module-owned. |
-| Submodule UI model | `src/Modules/<Module>/Interface/Models/<Capability>` | Keep capability display state near the capability UI. |
-| Module UI service | `src/Modules/<Module>/Interface/Services` | Support module UI without backend implementation coupling. |
-| Submodule UI service | `src/Modules/<Module>/Interface/Services/<Capability>` | Support one capability UI workflow without polluting the parent module. |
-| Razor host page | `src/Hosts/<Host>/Pages/<Module>/<Capability>` or existing host page convention | Pages compose route state, authorization, layout, and module Interface components. |
-| React host page | `src/Hosts/<Host>/src/pages/<module>/<capability>` or existing route convention | Pages compose route state and feature components; no reusable logic. |
-| React feature component/hook/API wrapper | `src/Hosts/<Host>/src/features/<module>/<capability>` | Keep host-owned React workflow code inside the owning module/capability. |
-| Shared cross-module UI | `src/Interfaces/Interfaces.<Name>/Components` or existing shared UI package | Use only with a named shared owner and at least two real consumers or a clear platform requirement. |
-| UI test | Nearest existing test convention for the host, module Interface, page, or feature | Test the narrowest owning UI scope. |
+| Module interface component | `src/Modules/<Module>/Interface/Components` | Use when the component is module-owned and safe for frontend/interface consumers. |
+| Submodule/capability interface component | `src/Modules/<Module>/Interface/Components/<Capability>` | Use when the component belongs to one nested workflow, such as Medical/Prescription. |
+| Module interface model | `src/Modules/<Module>/Interface/Models` | Keep UI state and display models frontend-safe and module-owned. |
+| Submodule/capability interface model | `src/Modules/<Module>/Interface/Models/<Capability>` | Keep capability display state near the capability UI. |
+| Module interface service | `src/Modules/<Module>/Interface/Services` | Support module UI without backend implementation coupling. |
+| Submodule/capability interface service | `src/Modules/<Module>/Interface/Services/<Capability>` | Support one capability UI workflow without polluting the parent module. |
+| Routable Razor host page | `src/Hosts/<Host>/Pages/<Module>/<Capability>` or existing host page convention | Pages compose route state, authorization, layout, and module Interface components. |
+| Routable React Web page | `src/Hosts/<Host>/src/pages/<module>/<capability>` or existing route convention | Pages compose route state and feature components; no reusable logic. |
+| React Web submodule/capability component/hook | `src/Hosts/<Host>/src/features/<module>/<capability>` | Keep host-owned React workflow code inside the owning module/capability. |
+| Interface package component | `src/Interfaces/Interfaces.<Name>/Components` or existing shared UI package | Use only with a named shared owner and at least two real consumers or a clear platform requirement. |
+| Test | Nearest existing test convention for the host, module Interface, page, or feature | Test the narrowest owning UI scope. |
 
 ## Page Rules
 
