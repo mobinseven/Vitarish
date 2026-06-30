@@ -137,6 +137,25 @@ body { margin: 0; background: var(--background); color: var(--foreground); }
 .ds-status-badge-muted { color: var(--muted); }
 .ds-status-dot { block-size: 0.5rem; inline-size: 0.5rem; border-radius: 9999px; background: currentColor; box-shadow: 0 0 1rem currentColor; }
 
+.ds-app-bar {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.5rem 1.5rem;
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--surface) 72%, transparent);
+  backdrop-filter: blur(16px) saturate(180%);
+  box-shadow: 0 0.5rem 2rem oklch(0 0 0 / 8%);
+  max-width: calc(100vw - 2rem);
+  overflow: hidden;
+}
+
 .sidebar { width: 16rem; border-right: 1px solid var(--border); background-color: color-mix(in oklch, var(--surface) 50%, transparent); padding: 1rem; }
 .sidebar-nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; border-left: 2px solid transparent; border-radius: 0.5rem; transition: color var(--motion-fast), background-color var(--motion-fast); color: var(--muted); }
 .sidebar-nav-item:hover { color: var(--foreground); background-color: color-mix(in oklch, var(--foreground) 5%, transparent); }
