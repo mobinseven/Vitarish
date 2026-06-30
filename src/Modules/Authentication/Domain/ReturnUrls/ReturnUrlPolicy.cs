@@ -12,6 +12,10 @@ public static class ReturnUrlPolicy
         return decoded.StartsWith("/", StringComparison.Ordinal)
             && !decoded.StartsWith("//", StringComparison.Ordinal)
             && !decoded.StartsWith("/\\", StringComparison.Ordinal)
+            && !decoded.StartsWith("/api/modules/authentication/", StringComparison.Ordinal)
+            && decoded is not "/login"
+            && decoded is not "/logout"
+            && !decoded.StartsWith("/login/", StringComparison.Ordinal)
             && !decoded.Contains('\\');
     }
 

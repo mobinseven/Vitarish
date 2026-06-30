@@ -16,6 +16,27 @@ public class ReturnUrlPolicyTests
     }
 
     [Theory]
+    [InlineData("/login")]
+    [InlineData("/login/password")]
+    [InlineData("/logout")]
+    [InlineData("/api/modules/authentication/login/password")]
+    public void IsSafeLocal_AuthenticationOnlyRoute_ReturnsFalse(string returnUrl)
+    {
+        ReturnUrlPolicy.IsSafeLocal(returnUrl).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("/login")]
+    [InlineData("/login/password")]
+    [InlineData("/logout")]
+    [InlineData("/api/modules/authentication/login/password")]
+    public void NormalizeOrDefault_AuthenticationOnlyRoute_ReturnsFallback(string returnUrl)
+    {
+        ReturnUrlPolicy.NormalizeOrDefault(returnUrl, "/dashboard")
+            .Value.Should().Be("/dashboard");
+    }
+
+    [Theory]
     [InlineData("//evil.com")]
     [InlineData("/\\evil.com")]
     [InlineData("https://evil.com")]

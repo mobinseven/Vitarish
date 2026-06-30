@@ -6,6 +6,7 @@ import {
 } from "@/api/generated/authentication/authentication";
 import type { AuthenticationChallengeDto } from "@/api/generated/authentication/model";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
+import { getRequestedReturnUrl } from "./requestedReturnUrl";
 
 export type PhoneLoginStep = "phone" | "code";
 
@@ -25,7 +26,7 @@ export function usePhoneLogin() {
     async (phone: string, returnUrl?: string) => {
       setError(null);
       try {
-        const finalReturnUrl = returnUrl ?? searchParams.get("returnUrl") ?? "/";
+        const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
         const result = await beginMutation.mutateAsync({
           phoneNumber: phone,
           returnUrl: finalReturnUrl,
@@ -45,7 +46,7 @@ export function usePhoneLogin() {
       if (!challenge) return;
       setError(null);
       try {
-        const returnUrl = searchParams.get("returnUrl") ?? "/";
+        const returnUrl = getRequestedReturnUrl(searchParams);
         const result = await completeMutation.mutateAsync({
           challengeId: challenge.challengeId,
           code,
