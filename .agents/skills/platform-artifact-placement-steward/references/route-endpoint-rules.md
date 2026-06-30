@@ -25,8 +25,8 @@ Example:
 ## Route Artifact Placement
 
 - Host UI navigation routes: `src/Hosts/<Host>/Common/Routes`, `src/Hosts/<Host>/src/routes`, or the host’s established route convention.
-- Razor routable host pages: `src/Hosts/<Host>/Pages/<Module>/<Capability>` or the host’s established page convention.
-- React routable host pages: `src/Hosts/<Host>/src/pages/<module>/<capability>` or the host’s established route/page convention.
+- Routable Razor host page: `src/Hosts/<Host>/Pages/<Module>/<Capability>` or the host’s established page convention.
+- Routable React Web page: `src/Hosts/<Host>/src/pages/<module>/<capability>` or the host’s established route/page convention.
 - React route registration/router modules: `src/Hosts/<Host>/src/router` or `src/Hosts/<Host>/src/app` by existing convention.
 - React feature-local route helpers: `src/Hosts/<Host>/src/features/<module>/<capability>` only when the route helper is feature-owned and not global navigation.
 - Module Interface page/composition entries: existing `src/Modules/<Module>/Interface/Pages`, `Interface/Plugins`, or capability equivalent only when the module owns the UI composition contract.
