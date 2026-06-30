@@ -1,6 +1,7 @@
 "use client";
 
-import { Avatar, Button, Dropdown, Link } from "@heroui/react";
+import { Avatar, Button, Dropdown, Label } from "@heroui/react";
+import { useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { useLogout } from "@/hooks/auth/useLogout";
@@ -8,6 +9,15 @@ import { useLogout } from "@/hooks/auth/useLogout";
 export function UserMenu() {
   const { displayProfile } = useAuthSession();
   const { logout, isLoading } = useLogout();
+  const router = useRouter();
+
+  function handleAction(key: React.Key) {
+    if (key === "account") {
+      router.push(Routes.Account.Index);
+    } else if (key === "logout") {
+      logout();
+    }
+  }
 
   return (
     <Dropdown>
@@ -26,23 +36,21 @@ export function UserMenu() {
           </span>
         </Button>
       </Dropdown.Trigger>
-      <Dropdown.Content>
-        <Dropdown.Item id="account">
-          <Link href={Routes.Account.Index} className="block w-full">
-            Account
-          </Link>
-        </Dropdown.Item>
-        <Dropdown.Item id="logout">
-          <Button
-            variant="tertiary"
-            onPress={() => logout()}
+      <Dropdown.Popover>
+        <Dropdown.Menu onAction={handleAction}>
+          <Dropdown.Item id="account" textValue="Account">
+            <Label>Account</Label>
+          </Dropdown.Item>
+          <Dropdown.Item
+            id="logout"
+            textValue="Log Out"
+            variant="danger"
             isDisabled={isLoading}
-            className="min-w-0 justify-start px-2 py-1 text-sm"
           >
-            Log Out
-          </Button>
-        </Dropdown.Item>
-      </Dropdown.Content>
+            <Label>Log Out</Label>
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown.Popover>
     </Dropdown>
   );
 }
