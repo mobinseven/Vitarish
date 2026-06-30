@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.ReturnUrls;
 using Vitarish.Journey.Application.Abstractions;
@@ -13,7 +14,8 @@ namespace Vitarish.Authentication.Infrastructure.ReturnUrls;
 /// </summary>
 public sealed class JourneyAwareRedirectResolver(
     IJourneyResolver journeyResolver,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    ILogger<JourneyAwareRedirectResolver> logger
 ) : IAuthenticationRedirectResolver
 {
     public string Resolve(string? requestedReturnUrl, bool requiresProfileCompletion)
@@ -54,9 +56,9 @@ public sealed class JourneyAwareRedirectResolver(
             JourneyStep step = await journeyResolver.ResolveAsync(request, cancellationToken);
             return step.DestinationUrl;
         }
-        catch
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // Fallback to legacy behavior if Journey resolution fails
+            logger.LogWarning(ex, "Journey resolution failed for user {UserId}, falling back to legacy redirect", userId);
             return requiresProfileCompletion
                 ? "/account/profile/complete"
                 : ReturnUrlPolicy.NormalizeOrDefault(requestedReturnUrl).Value;

@@ -103,8 +103,11 @@ export async function apiFetch<T>(
     const config = urlOrConfig;
     url = config.url;
     method = config.method?.toUpperCase() ?? "GET";
-    headers = new Headers(config.headers);
-    signal = config.signal;
+    headers = new Headers(options.headers);
+    for (const [key, value] of Object.entries(config.headers ?? {})) {
+      headers.set(key, value);
+    }
+    signal = config.signal ?? (options.signal as AbortSignal | undefined);
 
     if (config.params) {
       url = appendParams(url, config.params);

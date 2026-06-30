@@ -5,6 +5,7 @@ using Vitarish.Authentication.Infrastructure.ReturnUrls;
 using Vitarish.Journey.Application.Abstractions;
 using Vitarish.Journey.Domain;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using Xunit;
 
@@ -14,6 +15,7 @@ public class JourneyRedirectResolverTests
 {
     private readonly Mock<IJourneyResolver> _journeyResolverMock = new();
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new();
+    private readonly Mock<ILogger<JourneyAwareRedirectResolver>> _loggerMock = new();
 
     [Fact]
     public async Task ResolveAsync_AuthenticatedUser_DelegatesToJourney()
@@ -41,7 +43,8 @@ public class JourneyRedirectResolverTests
 
         var resolver = new JourneyAwareRedirectResolver(
             _journeyResolverMock.Object,
-            _httpContextAccessorMock.Object);
+            _httpContextAccessorMock.Object,
+            _loggerMock.Object);
 
         // Act
         var result = await resolver.ResolveAsync(returnUrl, false);
@@ -65,7 +68,8 @@ public class JourneyRedirectResolverTests
 
         var resolver = new JourneyAwareRedirectResolver(
             _journeyResolverMock.Object,
-            _httpContextAccessorMock.Object);
+            _httpContextAccessorMock.Object,
+            _loggerMock.Object);
 
         // Act
         var result = await resolver.ResolveAsync("/settings", false);
@@ -85,7 +89,8 @@ public class JourneyRedirectResolverTests
 
         var resolver = new JourneyAwareRedirectResolver(
             _journeyResolverMock.Object,
-            _httpContextAccessorMock.Object);
+            _httpContextAccessorMock.Object,
+            _loggerMock.Object);
 
         // Act
         var result = await resolver.ResolveAsync("/home", false);
@@ -114,7 +119,8 @@ public class JourneyRedirectResolverTests
 
         var resolver = new JourneyAwareRedirectResolver(
             _journeyResolverMock.Object,
-            _httpContextAccessorMock.Object);
+            _httpContextAccessorMock.Object,
+            _loggerMock.Object);
 
         // Act
         var result = await resolver.ResolveAsync("/dashboard", false);
