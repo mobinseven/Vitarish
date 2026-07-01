@@ -14,7 +14,7 @@ export function PatientProceduresPanel({ patientId }: PatientProceduresPanelProp
       </Card.Header>
       <Card.Content>
         <p className="text-sm text-muted">
-          Procedures management coming soon. Patient ID: {patientId}
+          Procedures management for this patient will be available here soon.
         </p>
       </Card.Content>
     </Card>

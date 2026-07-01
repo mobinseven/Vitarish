@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, Link } from "@heroui/react";
+import { Card } from "@heroui/react";
+import Link from "next/link";
 import { Routes } from "@/app/routes";
 
 interface DashboardSection {

@@ -13,7 +13,7 @@ export function ClinicStatisticsDashboard() {
       <Card className="glass-card">
         <Card.Content className="flex flex-col items-center justify-center py-12">
           <p className="text-sm text-muted">
-            Statistics require a dedicated read model. Coming soon.
+            Clinic performance metrics and analytics will be available here soon.
           </p>
         </Card.Content>
       </Card>

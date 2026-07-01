@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Button } from "@heroui/react";
+import { Card } from "@heroui/react";
 import { IdentificationLookup } from "@/features/clinic/components/IdentificationLookup";
 
 type CheckInStep = "find-patient" | "select-shift" | "confirm";
@@ -49,7 +49,7 @@ export function PatientCheckInWizard({
           </Card.Header>
           <Card.Content>
             <p className="text-sm text-muted">
-              Shift selection coming soon. Patient ID: {selectedPatientId}
+              Shift selection for the selected patient will be available here soon.
             </p>
           </Card.Content>
         </Card>
