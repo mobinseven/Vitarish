@@ -25,7 +25,13 @@ internal static class TaminPrescriptionItemMetadataReader
             {
                 if (document.RootElement.TryGetProperty(propertyName, out JsonElement value))
                 {
-                    string? text = value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString();
+                    string? text = value.ValueKind switch
+                    {
+                        JsonValueKind.String => value.GetString(),
+                        JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False => value.ToString(),
+                        _ => null
+                    };
+
                     if (!string.IsNullOrWhiteSpace(text))
                     {
                         return text;

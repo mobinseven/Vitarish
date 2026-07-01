@@ -34,12 +34,13 @@ internal sealed class TaminMedicalInfrastructureGateway(
         int page = 1;
         int retrieved = 0;
         int maxPages = request.MaxPages ?? _optionsMonitor.CurrentValue.MaxReferencePages;
+        int pageSize = NormalizePageSize(request.PageSize);
         while (page <= maxPages)
         {
-            TaminReferencePageResult result = await SearchDrugsAsync(new TaminDrugSearchOperationRequest(request.SearchText, request.DrugCode, page, request.PageSize, request.ActiveOnly), cancellationToken);
+            TaminReferencePageResult result = await SearchDrugsAsync(new TaminDrugSearchOperationRequest(request.SearchText, request.DrugCode, page, pageSize, request.ActiveOnly), cancellationToken);
             yield return result;
             retrieved += result.Items.Count;
-            if (ShouldStop(result, retrieved, request.PageSize)) yield break;
+            if (ShouldStop(result, retrieved, pageSize)) yield break;
             page++;
         }
 
@@ -66,12 +67,13 @@ internal sealed class TaminMedicalInfrastructureGateway(
         int page = 1;
         int retrieved = 0;
         int maxPages = request.MaxPages ?? _optionsMonitor.CurrentValue.MaxReferencePages;
+        int pageSize = NormalizePageSize(request.PageSize);
         while (page <= maxPages)
         {
-            TaminReferencePageResult result = await SearchServicesAsync(new TaminServiceSearchOperationRequest(request.ServiceType, request.ServiceGroup, request.SearchText, page, request.PageSize, request.ActiveOnly), cancellationToken);
+            TaminReferencePageResult result = await SearchServicesAsync(new TaminServiceSearchOperationRequest(request.ServiceType, request.ServiceGroup, request.SearchText, page, pageSize, request.ActiveOnly), cancellationToken);
             yield return result;
             retrieved += result.Items.Count;
-            if (ShouldStop(result, retrieved, request.PageSize)) yield break;
+            if (ShouldStop(result, retrieved, pageSize)) yield break;
             page++;
         }
 

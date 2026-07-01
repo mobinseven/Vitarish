@@ -17,6 +17,28 @@ public sealed class TaminPrescriptionItemMetadataReaderTests
         result.Should().Be("cardiology");
     }
 
+    [Fact]
+    public void ReadString_ignores_json_null_and_uses_later_fallback_property()
+    {
+        PrescriptionItem item = CreateItem("""{ "effectiveDate": null, "effective_date": "14030601" }""");
+
+        string? result = TaminPrescriptionItemMetadataReader.ReadString(item, "effectiveDate", "effective_date");
+
+        result.Should().Be("14030601");
+    }
+
+    [Theory]
+    [InlineData("{ \"metadataValue\": true }", "True")]
+    [InlineData("{ \"metadataValue\": 42 }", "42")]
+    public void ReadString_returns_supported_primitive_metadata_values(string metadataJson, string expected)
+    {
+        PrescriptionItem item = CreateItem(metadataJson);
+
+        string? result = TaminPrescriptionItemMetadataReader.ReadString(item, "metadataValue");
+
+        result.Should().Be(expected);
+    }
+
     [Theory]
     [InlineData("{ \"sessionCount\": 12 }", 12)]
     [InlineData("{ \"session_count\": \"8\" }", 8)]

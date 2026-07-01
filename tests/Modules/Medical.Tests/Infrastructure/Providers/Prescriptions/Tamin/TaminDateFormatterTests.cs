@@ -18,6 +18,26 @@ public sealed class TaminDateFormatterTests
         result.Should().Be(expected);
     }
 
+    [Fact]
+    public void FormatDate_rejects_default_date_with_clear_argument_error()
+    {
+        Action act = () => _formatter.FormatDate(default(DateOnly));
+
+        act.Should().Throw<ArgumentException>()
+            .WithParameterName("date")
+            .WithMessage("Date cannot be the default value.*");
+    }
+
+    [Fact]
+    public void FormatDate_rejects_dates_outside_persian_calendar_range()
+    {
+        Action act = () => _formatter.FormatDate(new DateOnly(622, 3, 20));
+
+        act.Should().Throw<ArgumentOutOfRangeException>()
+            .WithParameterName("date")
+            .WithMessage("Date must be between * for Persian calendar conversion.*");
+    }
+
     [Theory]
     [InlineData(null, false)]
     [InlineData("", false)]
