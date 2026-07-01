@@ -1,133 +1,128 @@
 # Design Rules
 
-These rules define how the Vitarish product should feel and look. They are ideas, not implementation details. Update this file to change platform-wide design policy.
+These rules define the current Web host visual policy. They are product-level ideas, not implementation details.
 
-The skill reads these rules and finds the most compatible options provided by the UI framework to fulfill them. Do not put framework-specific code, class names, token values, or numbers here.
+The current policy is **HeroUI v3.2.1 off-the-shelf appearance**. The product must look like standard HeroUI components as shipped by the framework, not like a separate Vitarish design system.
 
----
-
-## Surface Philosophy
-
-Surfaces should feel like frosted glass — translucent, catching ambient light, creating gentle depth without heaviness. Content should float above the background, never sitting flat on it. Each layer of depth should feel intentional, as if the interface is a stack of thin, luminous panes.
-
-The background itself should feel alive but calm — subtle color gradients that breathe, not static flat fills. When a surface overlaps another, the relationship should be visible through translucency, not through hard edges or thick borders.
-
-Surfaces should never feel heavy, opaque, or industrial. They should feel weightless, like morning mist over water.
+Implementation details, class names, package names, CSS imports, and code-level rules belong in `component-patterns.md` and `heroui-v3.2.1-off-the-shelf-reset.md`.
 
 ---
 
-## Color Philosophy
+## Off-the-Shelf Framework Fidelity
 
-Color should feel organic, pulled from nature, not synthetic or digital. The palette should be muted and restrained — color as punctuation, not decoration. A single accent should draw the eye with purpose, never competing with other colors for attention.
+The UI should feel like the framework's own documented examples. A developer who knows HeroUI should immediately recognize the page as normal HeroUI, without needing to learn a Vitarish-specific visual language.
 
-Semantic meaning should drive color choice. Success, danger, warning, and information each have a distinct emotional tone. These tones should be felt instantly, without reading a label.
+The product must not invent a separate surface system, theme system, card system, badge system, app shell, navigation treatment, or layout aesthetic when HeroUI already provides a standard visual result.
 
-Color should adapt to its environment. The same concept — success, danger, primary action — should feel equally natural in bright daylight and deep night. Dark mode is not inverted light mode; it is a different lighting condition with its own character.
-
-Raw, unpolluted color should be rare. Most surfaces and text should live in desaturated, neutral territory. When color appears, it should feel like a deliberate brushstroke on a calm canvas.
+The best visual decision is usually the one that deletes custom appearance code and lets the component library speak for itself.
 
 ---
 
-## Typography Philosophy
+## Default Is a Feature
 
-Text should breathe. Generous line height and letter spacing create calm, readable passages that invite the eye rather than demand it. Dense, compressed text blocks feel hostile.
+Default styling is intentional. The built-in HeroUI look is not a placeholder to be replaced; it is the required visual baseline.
 
-Hierarchy should be felt through weight and size contrast, not through color or decoration. A heading announces itself through presence, not through bright colors or underlines.
+A component that looks plain, generic, and framework-native is correct under this policy. A component that looks branded, glassy, atmospheric, highly decorated, or custom-designed is suspect.
 
-Typography should feel like a quiet, confident voice — never shouting, never whispering. The largest text should feel monumental but not aggressive. The smallest text should feel delicate but never illegible.
-
-A component should use at most two typographic voices: one for emphasis, one for body. More than that creates visual noise.
+The interface should not try to impress through visual invention. It should remain predictable, familiar, and maintainable.
 
 ---
 
-## Space Philosophy
+## No Product-Specific Visual Identity
 
-Whitespace is not emptiness — it is a design element. Space should feel generous, intentional, and restful. It separates concerns, creates hierarchy, and gives content room to exist without crowding.
+The React Web host must not carry a custom Vitarish visual identity unless a future accepted decision explicitly changes this policy.
 
-Spacing should feel proportional and consistent. When one section uses generous padding, adjacent sections should match that generosity. Inconsistent spacing feels like a disorganized room.
+That means no bespoke glassmorphism, no custom ambient backgrounds, no custom card depth language, no custom accent system, no decorative orbs, no brand-specific gradients, no custom shadows, no custom radii, no invented status badges, and no product-owned theme tokens.
 
-The page should feel like it has natural margins — content should never touch the edges of the viewport. There should always be a sense of boundary between the interface and the world outside it.
-
-Elements within a group should feel related through proximity. Elements that are unrelated should feel separated through space, not through lines or borders.
+Product identity may exist in words, navigation labels, page titles, domain concepts, and feature behavior. It must not be encoded as a separate visual styling system.
 
 ---
 
-## Depth Philosophy
+## Theme Humility
 
-Depth creates hierarchy. The most important content should feel closest to the user, while supporting content recedes gently into the background. This feeling of depth comes from translucency, blur, shadow, and layering — not from z-index tricks or hard edges.
+Light, dark, and system themes should follow the component library's built-in theme behavior.
 
-Shadows should feel soft, ambient, and natural — like light diffused through frosted glass, not like harsh spotlights. A shadow should suggest that an element is gently elevated, not that it is hovering aggressively.
+Dark mode should not be treated as an opportunity to create a second custom aesthetic. It should simply use the framework's own dark appearance.
 
-When elements lift on interaction — a card rising on hover, a button pressing down — the motion should feel physical but delicate, like touching a soap bubble that yields but does not pop.
-
----
-
-## Motion Philosophy
-
-Motion should feel fluid, natural, and subtle. Transitions should be barely perceptible — the eye should register that something changed without consciously watching it happen.
-
-Fast interactions (hover, focus, press) should feel instant and responsive. Slower transitions (elevation changes, page transitions) should feel smooth and unhurried. Neither should ever feel sluggish or jarring.
-
-Motion should never be decorative. Every animation must serve a purpose: guiding attention, confirming an action, or maintaining spatial context. Animated elements that do not serve a purpose are visual noise.
-
-The interface should respect the user's motion preferences. When a user has requested reduced motion, the interface should comply gracefully — functioning perfectly without any animation.
+Theme selection may persist user preference, but it must not override the visual identity of the component library.
 
 ---
 
-## Interaction Philosophy
+## Layout Without Decoration
 
-Feedback should feel alive. When a user hovers, clicks, or focuses, the interface should respond immediately — not with dramatic effects, but with subtle acknowledgment that the input was received.
+Pages may use structural layout to make content usable: grouping, stacking, grids, responsive flow, and readable boundaries.
 
-Interactive elements should feel tappable and responsive, like physical buttons with just enough give to feel real. They should never feel like static images that happen to respond to clicks.
+Layout must not become visual branding. Spacing and grouping exist to make screens understandable, not to create a signature look.
 
-Disabled states should feel genuinely inactive — visually quieter, perceptibly unreachable, but not invisible. A disabled element should communicate that it exists but cannot be used right now.
-
-Focus should be visible and obvious. Every interactive element should have a clear focus indicator that makes keyboard navigation feel safe and predictable, never guessing where focus currently lives.
+A page shell should be boring. It should give HeroUI components room to render in their own style.
 
 ---
 
-## Dark Mode Philosophy
+## Components Over Decorations
 
-Dark mode is not light mode with inverted colors. It is a different lighting condition — like moving from a sunlit room to a candlelit one. The mood changes, the relationships between elements shift, and the character of the interface transforms.
+Prefer real framework components over hand-built visual elements.
 
-In dark mode, surfaces should become more transparent, allowing the deep background to show through. This creates depth without heaviness. Light mode feels solid and bright; dark mode feels deep and luminous.
+A button should be a framework button. A card should be a framework card. An alert should be a framework alert. A table should be a framework table. A form field should be a framework form field.
 
-Borders should soften and recede in dark mode. Shadows should become subtler. The interface should feel like it emerges from darkness rather than sitting on top of it.
-
-Text should remain perfectly readable but should feel warmer and softer than its light mode counterpart. Harsh white-on-black feels clinical; the goal is comfortable, ambient readability.
+Do not replace framework affordances with custom visual approximations.
 
 ---
 
-## Clean Minimal Philosophy
+## Accessibility Must Survive the Reset
 
-Every element on the screen should earn its place. If an element does not serve a clear purpose — guiding the user, providing information, enabling action — it should be removed.
+Removing custom visuals must not remove accessibility.
 
-Minimalism is not emptiness. It is the removal of everything that is not essential, so that what remains can breathe and be understood immediately. The interface should feel uncluttered without feeling sparse.
+Focus visibility, labels, descriptions, error messages, disabled states, loading states, keyboard behavior, and semantic structure remain mandatory.
 
-Decorative elements — gradients, shadows, borders, ornaments — should be used with extreme restraint. When they appear, they should feel inevitable, not added. If removing a decorative element does not change the user's understanding, the element should not exist.
-
-The product should feel calm, focused, and purposeful. It should never feel busy, noisy, or overwhelming.
+When a custom visual layer was hiding accessibility mistakes, fix the accessibility directly through framework-supported component APIs rather than reintroducing custom styling.
 
 ---
 
-## Prohibited Aesthetics
+## Minimalism Means Less Code
 
-The product must never feel:
+The cleanest UI is the one with the least visual code.
 
-- **Industrial or utilitarian.** No harsh borders, no dense data tables without breathing room, no cramped layouts.
-- **Playful or whimsical.** No rounded-everything, no bright multi-color palettes, no bouncy animations.
-- **Flat or two-dimensional.** No surfaces without depth, no elements without hierarchy, no uniform visual weight.
-- **Heavy or oppressive.** No dark backgrounds without translucency, no thick borders, no solid opaque panels.
-- **Digital or synthetic.** No neon colors, no hard gradients, no pixel-perfect grid rigidity.
-- **Cluttered or busy.** No crowded layouts, no competing visual elements, no information overload on a single screen.
-- **Generic or template-like.** No stock UI patterns without adaptation, no default-styled components shipped to production.
+Remove visual wrappers, custom classes, global token overrides, and one-off styling before adding anything new.
+
+A page that needs many visual classes to look acceptable is not aligned with this policy. The correct response is usually to use a more appropriate HeroUI component or simplify the layout.
+
+---
+
+## Prohibited Visual Outcomes
+
+The product must not feel:
+
+- **Custom branded** — no separate Vitarish look on top of HeroUI.
+- **Glassy** — no frosted glass surfaces, translucent panes, blur layers, or luminous cards.
+- **Atmospheric** — no decorative gradient backgrounds, glow fields, or ambient orbs.
+- **Over-designed** — no custom shadows, radii, borders, or motion systems for ordinary components.
+- **Theme-invented** — no custom light/dark color system replacing HeroUI's built-in themes.
+- **Wrapper-driven** — no local design-system primitive whose main purpose is to restyle HeroUI.
+- **Patchworked** — no mixture of old custom design classes and default HeroUI components.
+- **One-off styled** — no component-specific visual improvisation that makes one screen look different from another.
+
+---
+
+## Required Visual Outcome
+
+The product should feel:
+
+- **Framework-native** — visibly standard HeroUI.
+- **Predictable** — controls behave and appear as documented.
+- **Plain in a good way** — no unnecessary visual drama.
+- **Maintainable** — easy to upgrade with HeroUI because local visual overrides are absent.
+- **Consistent** — consistency comes from the framework, not from a custom CSS layer.
+- **Accessible** — standard component accessibility is preserved and completed through proper props and semantics.
+- **Quiet** — the UI gets out of the user's way.
 
 ---
 
 ## Opt-Out Principles
 
-These rules are the default. A component may deviate when there is a specific, articulable reason that overrides the rule for that particular case.
+These rules are the default.
 
-A valid reason names the rule being overridden and explains why the component genuinely cannot follow it. "It looks better this way" is not a valid reason.
+A component may deviate only when there is a specific functional requirement that cannot be satisfied through standard HeroUI components, standard HeroUI props, or non-visual structural layout.
 
-The rules remain the source of truth. Deviations are exceptions, not new defaults.
+A valid reason names the rule being overridden and explains why the component genuinely cannot follow it. "Looks better", "matches old Vitarish", "adds identity", "feels premium", or "the screen is too empty" are not valid reasons.
+
+Deviations are exceptions, not new defaults. They must not introduce a reusable custom visual language.
