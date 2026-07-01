@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, Spinner } from "@heroui/react";
-import { SurfaceCard } from "@/design-system";
 import { useLocalizedText } from "@/localization";
 
 interface JourneyLoadingStateProps {
@@ -18,8 +17,8 @@ export function JourneyLoadingState({
   const resolvedDescription = description ?? t("journey.loading.description");
 
   return (
-    <main className="ds-app-shell ds-centered-shell">
-      <SurfaceCard className="w-full max-w-md">
+    <main className="grid min-h-screen place-items-center px-4">
+      <Card className="w-full max-w-md">
         <Card.Content className="flex flex-col items-center gap-4 p-8 text-center">
           <Spinner aria-label={resolvedTitle} />
           <div className="flex flex-col gap-2">
@@ -27,7 +26,7 @@ export function JourneyLoadingState({
             <p className="text-sm leading-6 text-foreground/70">{resolvedDescription}</p>
           </div>
         </Card.Content>
-      </SurfaceCard>
+      </Card>
     </main>
   );
 }

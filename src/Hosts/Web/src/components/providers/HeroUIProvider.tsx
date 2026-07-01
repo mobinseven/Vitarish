@@ -17,7 +17,7 @@ export function Providers({ children, locale }: { children: ReactNode; locale: S
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
         <LocalizationProvider locale={locale}>{children}</LocalizationProvider>
       </ThemeProvider>
     </QueryClientProvider>

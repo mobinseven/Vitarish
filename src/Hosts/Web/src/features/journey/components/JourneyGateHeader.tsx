@@ -15,7 +15,7 @@ export function JourneyGateHeader({
     <div className="flex flex-col gap-3 text-start">
       {visual ? <div aria-hidden="true">{visual}</div> : null}
       {eyebrow ? (
-        <p className="text-sm font-medium uppercase tracking-wide text-primary">
+        <p className="text-sm font-medium uppercase tracking-wide text-accent">
           {eyebrow}
         </p>
       ) : null}

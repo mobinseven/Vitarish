@@ -83,7 +83,7 @@ export function KnowledgeAnswerCard({
           )}
 
           {retrievedContext.length > 0 && (
-            <details className="ds-inline-panel">
+            <details className="border border-default-200 rounded-lg p-3">
               <summary className="cursor-pointer text-sm font-semibold">
                 {t("knowledge.qa.retrievedContext", { count: retrievedContext.length })}
               </summary>

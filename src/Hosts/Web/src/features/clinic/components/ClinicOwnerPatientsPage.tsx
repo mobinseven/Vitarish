@@ -8,7 +8,7 @@ import { usePatientList } from "../hooks/usePatientList";
 import { usePatientCount } from "../hooks/usePatientCount";
 import { PatientSearchBar } from "./PatientSearchBar";
 import { PatientsGrid } from "./PatientsGrid";
-import { SectionHeader } from "@/design-system";
+
 import type { PatientSearchCriteria, PatientSortBy } from "../types";
 import { useLocalizedText } from "@/localization";
 
@@ -73,7 +73,7 @@ export function ClinicOwnerPatientsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <SectionHeader title={t("clinic.patients.title")} />
+        <h1 className="text-2xl font-bold">{t("clinic.patients.title")}</h1>
         <Button
           variant="primary"
           onPress={() => router.push(Routes.Clinic.Patients.New)}
@@ -85,7 +85,7 @@ export function ClinicOwnerPatientsPage() {
       <PatientSearchBar onSearch={handleSearch} />
 
       {isLoading ? (
-        <Card className="glass-card p-8">
+        <Card className="p-8">
           <div className="flex items-center justify-center gap-2">
             <Spinner size="sm" />
             <span className="text-default-500">{t("clinic.patients.loading")}</span>

@@ -1,7 +1,6 @@
 "use client";
 
 import { Button, Card } from "@heroui/react";
-import { SurfaceCard } from "@/design-system";
 import { useLocalizedText } from "@/localization";
 import type { KnowledgeUserCorpus } from "../types";
 
@@ -24,10 +23,10 @@ export function KnowledgeCorpusRail({
 
   return (
     <aside className="w-full lg:w-72 shrink-0">
-      <SurfaceCard className="sticky top-6">
+      <Card className="sticky top-6">
         <Card.Header>
           <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-muted">{t("knowledge.qa.railEyebrow")}</p>
+            <p className="text-xs uppercase tracking-[0.25em] text-default-500">{t("knowledge.qa.railEyebrow")}</p>
             <h2 className="text-lg font-semibold">{t("knowledge.qa.railTitle")}</h2>
           </div>
         </Card.Header>
@@ -40,14 +39,14 @@ export function KnowledgeCorpusRail({
           >
             <span className="flex w-full flex-col items-start gap-1 text-start">
               <span className="font-medium">{t("knowledge.qa.allCorpora")}</span>
-              <span className="text-xs text-muted">{t("knowledge.qa.allCorporaDescription")}</span>
+              <span className="text-xs text-default-500">{t("knowledge.qa.allCorporaDescription")}</span>
             </span>
           </Button>
 
-          {isLoading && <p className="text-sm text-muted">{t("knowledge.qa.loadingCorpora")}</p>}
+          {isLoading && <p className="text-sm text-default-500">{t("knowledge.qa.loadingCorpora")}</p>}
 
           {!isLoading && corpora.length === 0 && (
-            <p className="ds-muted-panel text-sm">
+            <p className="text-sm text-default-500">
               {t("knowledge.qa.noCorpora")}
             </p>
           )}
@@ -62,18 +61,18 @@ export function KnowledgeCorpusRail({
               <span className="flex w-full flex-col items-start gap-1 text-start">
                 <span className="font-medium">{corpus.name}</span>
                 {corpus.description && (
-                  <span className="line-clamp-2 text-xs text-muted">
+                  <span className="line-clamp-2 text-xs text-default-500">
                     {corpus.description}
                   </span>
                 )}
-                <span className="text-xs text-muted">
+                <span className="text-xs text-default-500">
                   {formatCorpusCounts(corpus.sourceCount, corpus.chunkCount, t)}
                 </span>
               </span>
             </Button>
           ))}
         </Card.Content>
-      </SurfaceCard>
+      </Card>
     </aside>
   );
 }
@@ -82,8 +81,8 @@ function railButtonClass(isSelected: boolean): string {
   return [
     "h-auto w-full justify-start rounded-2xl px-4 py-3 text-start transition-colors",
     isSelected
-      ? "bg-[color-mix(in_oklch,var(--accent)_16%,transparent)] text-[var(--accent)]"
-      : "bg-transparent hover:bg-[var(--accent-soft)]",
+      ? "bg-accent-soft text-accent"
+      : "bg-transparent hover:bg-default-200",
   ].join(" ");
 }
 

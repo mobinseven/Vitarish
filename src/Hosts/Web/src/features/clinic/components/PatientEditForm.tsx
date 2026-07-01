@@ -11,7 +11,7 @@ interface PatientEditFormProps {
 export function PatientEditForm({ onCancel }: PatientEditFormProps) {
   const { t } = useLocalizedText();
   return (
-    <Card className="glass-card">
+    <Card>
       <Card.Header>
         <h2 className="text-lg font-semibold">{t("clinic.patient.edit.title")}</h2>
       </Card.Header>

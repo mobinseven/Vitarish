@@ -21,14 +21,11 @@ export function AppBar() {
   }
 
   return (
-    <header className="ds-app-bar">
-      <Link
-        href={Routes.Home}
-        className="text-base font-bold tracking-tight text-foreground"
-      >
+    <nav aria-label="Main navigation" className="flex items-center justify-between px-4 py-3">
+      <Link href={Routes.Home} className="text-base font-bold tracking-tight text-foreground">
         {t("appShell.brand")}
       </Link>
       <AuthGate />
-    </header>
+    </nav>
   );
 }

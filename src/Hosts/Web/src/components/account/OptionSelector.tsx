@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, Button } from "@heroui/react";
-import { SurfaceCard } from "@/design-system";
 
 interface Option<T extends string> {
   value: T;
@@ -22,7 +21,7 @@ export function OptionSelector<T extends string>({
   onSelect,
 }: OptionSelectorProps<T>) {
   return (
-    <SurfaceCard>
+    <Card>
       <Card.Header>
         <h1 className="text-2xl font-bold">{title}</h1>
       </Card.Header>
@@ -31,7 +30,7 @@ export function OptionSelector<T extends string>({
           {options.map((option) => (
             <Button
               key={option.value}
-              variant={selected === option.value ? "primary" : "tertiary"}
+              variant={selected === option.value ? "primary" : "secondary"}
               onPress={() => onSelect(option.value)}
               className="w-full justify-start"
             >
@@ -40,6 +39,6 @@ export function OptionSelector<T extends string>({
           ))}
         </div>
       </Card.Content>
-    </SurfaceCard>
+    </Card>
   );
 }

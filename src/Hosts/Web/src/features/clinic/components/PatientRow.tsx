@@ -13,11 +13,19 @@ export function PatientRow({ patient, onSelect }: PatientRowProps) {
   const { t, locale } = useLocalizedText();
   return (
     <Card
-      className="ds-surface-card ds-surface-card-default p-3 hover:bg-default cursor-pointer transition-colors"
+      className="p-3 hover:bg-default cursor-pointer transition-colors"
+      role="button"
+      tabIndex={0}
+      onClick={() => patient.id && onSelect(patient.id)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          patient.id && onSelect(patient.id);
+        }
+      }}
     >
       <div
         className="flex items-center justify-between"
-        onClick={() => patient.id && onSelect(patient.id)}
       >
         <div className="flex flex-col gap-1">
           <span className="font-medium">

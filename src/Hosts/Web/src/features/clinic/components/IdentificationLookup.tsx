@@ -41,6 +41,7 @@ export function IdentificationLookup({
       <TextField>
         <Label>{t("clinic.patient.identification.label")}</Label>
         <Input
+          aria-label={t("clinic.patient.identification.label")}
           placeholder={t("clinic.patient.identification.placeholder")}
           value={code}
           onChange={(e) => setCode(e.target.value)}

@@ -36,7 +36,7 @@ export function AdvancedSearchForm({
   const hasValues = name || identificationCode || dateOfBirth || phone || email;
 
   return (
-    <Card className="glass-card p-4">
+    <Card className="p-4">
       <Card.Header>
         <h3 className="text-lg font-semibold">{t("clinic.patient.advancedSearch.title")}</h3>
       </Card.Header>

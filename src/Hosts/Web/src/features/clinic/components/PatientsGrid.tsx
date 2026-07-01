@@ -31,7 +31,7 @@ export function PatientsGrid({
 
   if (patients.length === 0) {
     return (
-      <Card className="glass-card p-8">
+      <Card className="p-8">
         <p className="text-center text-default-500">
           {t("clinic.patients.searchEmpty")}
         </p>
@@ -40,7 +40,7 @@ export function PatientsGrid({
   }
 
   return (
-    <Card className="glass-card">
+    <Card>
       <Card.Header className="border-b border-default-200">
         <div className="grid grid-cols-4 gap-4 px-3 py-2 text-sm font-medium text-default-500">
           {sortHeaders.map((header) => (

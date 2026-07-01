@@ -10,12 +10,12 @@ interface PatientProceduresPanelProps {
 export function PatientProceduresPanel({ patientId: _patientId }: PatientProceduresPanelProps) {
   const { t } = useLocalizedText();
   return (
-    <Card className="glass-card">
+    <Card>
       <Card.Header>
         <h2 className="text-lg font-semibold">{t("clinic.procedures.title")}</h2>
       </Card.Header>
       <Card.Content>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-default-500">
           {t("clinic.procedures.comingSoon")}
         </p>
       </Card.Content>

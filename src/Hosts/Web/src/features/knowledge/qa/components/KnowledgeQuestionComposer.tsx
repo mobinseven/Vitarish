@@ -1,7 +1,6 @@
 "use client";
 
 import { Button, Card } from "@heroui/react";
-import { SurfaceCard } from "@/design-system";
 import { useLocalizedText } from "@/localization";
 import { KnowledgePromptInput } from "./chat";
 
@@ -27,11 +26,11 @@ export function KnowledgeQuestionComposer({
   const { t } = useLocalizedText();
 
   return (
-    <SurfaceCard>
+    <Card>
       <Card.Content>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <p className="text-xs uppercase tracking-[0.25em] text-muted">{t("knowledge.qa.composerEyebrow")}</p>
+            <p className="text-xs uppercase tracking-[0.25em] text-default-500">{t("knowledge.qa.composerEyebrow")}</p>
             <h1 className="text-3xl font-semibold">{t("knowledge.qa.composerTitle")}</h1>
           </div>
 
@@ -54,6 +53,6 @@ export function KnowledgeQuestionComposer({
           />
         </div>
       </Card.Content>
-    </SurfaceCard>
+    </Card>
   );
 }

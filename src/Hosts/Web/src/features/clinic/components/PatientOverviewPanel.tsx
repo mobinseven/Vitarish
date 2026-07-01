@@ -18,7 +18,7 @@ export function PatientOverviewPanel({ patient }: PatientOverviewPanelProps) {
   const stats = patient.stats;
 
   return (
-    <Card className="glass-card">
+    <Card>
       <Card.Header>
         <h2 className="text-lg font-semibold">{t("clinic.patient.overview.title")}</h2>
       </Card.Header>

@@ -23,7 +23,7 @@ export function IdentificationLookupResult({
 
   if (status === "found" && patient) {
     return (
-      <Card className="glass-card p-4">
+      <Card className="p-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="font-medium">
@@ -44,7 +44,7 @@ export function IdentificationLookupResult({
 
   if (status === "not-found") {
     return (
-      <Card className="glass-card p-4">
+      <Card className="p-4">
         <div className="flex items-center justify-between">
           <p className="text-default-500">{t("clinic.patient.identification.notFound")}</p>
           <Button variant="ghost" onPress={onRetry}>
@@ -57,7 +57,7 @@ export function IdentificationLookupResult({
 
   if (status === "error") {
     return (
-      <Card className="glass-card p-4">
+      <Card className="p-4">
         <div className="flex items-center justify-between">
           <p className="text-danger">{error ?? t("clinic.patient.identification.lookupFailed")}</p>
           <Button variant="ghost" onPress={onRetry}>

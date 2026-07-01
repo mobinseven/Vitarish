@@ -22,7 +22,7 @@ export default function NewPatientRoute() {
         <h1 className="text-2xl font-bold">{t("clinic.patients.newPatient")}</h1>
       </div>
 
-      <Card className="glass-card">
+      <Card>
         <Card.Header>
           <h2 className="text-lg font-semibold">{t("clinic.patients.createPatient")}</h2>
         </Card.Header>
