@@ -21,7 +21,7 @@ export function ThemeSwitch({ className }: ThemeSwitchProps) {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return <div aria-hidden className="w-6 h-6" />;
+  if (!isMounted) return <div aria-hidden="true" className="w-6 h-6" />;
 
   return (
     <button

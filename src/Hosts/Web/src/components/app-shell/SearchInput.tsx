@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Kbd, TextField, Input, InputGroup } from "@heroui/react";
+import { useState, useEffect, useRef } from "react";
+import { Kbd, TextField, InputGroup } from "@heroui/react";
+import { useLocalizedText } from "@/localization";
 
 export interface SearchInputProps {
   onSearch?: (query: string) => void;
@@ -9,17 +10,28 @@ export interface SearchInputProps {
 
 export function SearchInput({ onSearch }: SearchInputProps) {
   const [query, setQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { t } = useLocalizedText();
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (query.trim()) {
-      onSearch?.(query.trim());
-    }
+    onSearch?.(query.trim());
   }
 
   return (
     <form onSubmit={handleSubmit} className="hidden lg:flex">
-      <TextField aria-label="Search" type="search">
+      <TextField aria-label={t("appShell.search.label")} type="search">
         <InputGroup>
           <InputGroup.Prefix>
             <svg className="text-base text-muted pointer-events-none flex-shrink-0" aria-hidden="true" fill="none" focusable="false" height="1em" role="presentation" viewBox="0 0 24 24" width="1em">
@@ -28,8 +40,9 @@ export function SearchInput({ onSearch }: SearchInputProps) {
             </svg>
           </InputGroup.Prefix>
           <InputGroup.Input
+            ref={inputRef}
             className="text-sm"
-            placeholder="Search..."
+            placeholder={t("appShell.search.placeholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />

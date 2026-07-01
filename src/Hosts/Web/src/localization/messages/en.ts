@@ -481,6 +481,17 @@ export const enMessages = {
       logIn: "Log In",
       signOut: "Log Out",
     },
+    menu: {
+      open: "Open menu",
+      close: "Close menu",
+    },
+    search: {
+      label: "Search",
+      placeholder: "Search...",
+    },
+    footer: {
+      poweredBy: "Powered by",
+    },
   },
   metadata: {
     root: {

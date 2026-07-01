@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Link } from "@heroui/react";
+import { Button } from "@heroui/react";
+import Link from "next/link";
+import { useLocalizedText } from "@/localization";
 import type { NavItem } from "./types";
 
 export interface TopNavbarMenuButtonProps {
@@ -10,13 +12,14 @@ export interface TopNavbarMenuButtonProps {
 
 export function TopNavbarMenuButton({ navItems = [] }: TopNavbarMenuButtonProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t } = useLocalizedText();
 
   return (
     <div className="flex sm:hidden items-center gap-2">
       <Button
         isIconOnly
         variant="tertiary"
-        aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+        aria-label={isMenuOpen ? t("appShell.menu.close") : t("appShell.menu.open")}
         onPress={() => setIsMenuOpen(!isMenuOpen)}
       >
         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

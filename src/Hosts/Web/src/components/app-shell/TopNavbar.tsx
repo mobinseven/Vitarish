@@ -33,7 +33,7 @@ export function TopNavbar({ navItems = [], onSearch }: TopNavbarProps) {
         </div>
 
         <div className="hidden sm:flex items-center gap-2">
-          <SearchInput onSearch={onSearch} />
+          {onSearch && <SearchInput onSearch={onSearch} />}
           <ThemeSwitch />
           <UserMenu />
         </div>

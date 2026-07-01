@@ -481,6 +481,17 @@ export const faMessages = {
       logIn: "ورود",
       signOut: "خروج",
     },
+    menu: {
+      open: "باز کردن منو",
+      close: "بستن منو",
+    },
+    search: {
+      label: "جستجو",
+      placeholder: "جستجو...",
+    },
+    footer: {
+      poweredBy: "قدرت گرفته از",
+    },
   },
   metadata: {
     root: {

@@ -1,7 +1,8 @@
 "use client";
 
-import { Avatar, AvatarFallback, Button, Dropdown, Label, Link } from "@heroui/react";
+import { Avatar, AvatarFallback, Button, Dropdown, Label } from "@heroui/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { useLogout } from "@/hooks/auth/useLogout";
