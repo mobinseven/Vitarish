@@ -11,7 +11,7 @@ public static class AppointmentsContractDomainMapper
     public static DomainDto.ReservationDescriptorDto ToDomain(this ReservationDescriptorDto dto) => new()
     {
         Id = dto.Id,
-        Status = dto.Status.HasValue ? (DomainEnum.ReservationStatus)(int)dto.Status.Value : null,
+        Status = dto.Status.HasValue ? Enum.Parse<DomainEnum.ReservationStatus>(dto.Status.Value.ToString()) : null,
         ShiftId = dto.ShiftId,
         DateFrom = dto.DateFrom,
         DateTo = dto.DateTo,
@@ -24,7 +24,7 @@ public static class AppointmentsContractDomainMapper
     public static DomainDto.ReservationWriteDto ToDomain(this ReservationWriteDto dto) => new()
     {
         Id = dto.Id,
-        Status = (DomainEnum.ReservationStatus)(int)dto.Status,
+        Status = Enum.Parse<DomainEnum.ReservationStatus>(dto.Status.ToString()),
         ShiftId = dto.ShiftId,
         Date = dto.Date,
         ReservingPartyId = dto.ReservingPartyId,
@@ -34,7 +34,7 @@ public static class AppointmentsContractDomainMapper
     public static ReservationReadDto ToContract(this DomainDto.ReservationReadDto dto) => new()
     {
         Id = dto.Id,
-        Status = (ReservationStatus)(int)dto.Status,
+        Status = Enum.Parse<ReservationStatus>(dto.Status.ToString()),
         ShiftId = dto.ShiftId,
         Date = dto.Date,
         ReservingPartyId = dto.ReservingPartyId,
@@ -55,12 +55,12 @@ public static class AppointmentsContractDomainMapper
     public static DomainDto.ShiftDescriptorDto ToDomain(this ShiftDescriptorDto dto) => new()
     {
         Id = dto.Id,
-        Status = dto.Status.HasValue ? (DomainEnum.ShiftStatus)(int)dto.Status.Value : null,
-        Visibility = dto.Visibility.HasValue ? (DomainEnum.ShiftVisibility)(int)dto.Visibility.Value : null,
+        Status = dto.Status.HasValue ? Enum.Parse<DomainEnum.ShiftStatus>(dto.Status.Value.ToString()) : null,
+        Visibility = dto.Visibility.HasValue ? Enum.Parse<DomainEnum.ShiftVisibility>(dto.Visibility.Value.ToString()) : null,
         DayOfWeek = dto.DayOfWeek,
         StartTime = dto.StartTime,
         EndTime = dto.EndTime,
-        SortBy = dto.SortBy.HasValue ? (DomainEnum.ShiftSortBy)(int)dto.SortBy.Value : null,
+        SortBy = dto.SortBy.HasValue ? Enum.Parse<DomainEnum.ShiftSortBy>(dto.SortBy.Value.ToString()) : null,
         Descending = dto.Descending,
         ServiceProviderId = dto.ServiceProviderId,
         ServiceId = dto.ServiceId,
@@ -71,8 +71,8 @@ public static class AppointmentsContractDomainMapper
     public static DomainDto.ShiftWriteDto ToDomain(this ShiftWriteDto dto) => new()
     {
         Id = dto.Id,
-        Status = (DomainEnum.ShiftStatus)(int)dto.Status,
-        Visibility = (DomainEnum.ShiftVisibility)(int)dto.Visibility,
+        Status = Enum.Parse<DomainEnum.ShiftStatus>(dto.Status.ToString()),
+        Visibility = Enum.Parse<DomainEnum.ShiftVisibility>(dto.Visibility.ToString()),
         DayOfWeek = dto.DayOfWeek,
         StartTime = dto.StartTime,
         EndTime = dto.EndTime,
@@ -87,8 +87,8 @@ public static class AppointmentsContractDomainMapper
     public static ShiftReadDto ToContract(this DomainDto.ShiftReadDto dto) => new()
     {
         Id = dto.Id,
-        Status = (ShiftStatus)(int)dto.Status,
-        Visibility = (ShiftVisibility)(int)dto.Visibility,
+        Status = Enum.Parse<ShiftStatus>(dto.Status.ToString()),
+        Visibility = Enum.Parse<ShiftVisibility>(dto.Visibility.ToString()),
         DayOfWeek = dto.DayOfWeek,
         StartTime = dto.StartTime,
         EndTime = dto.EndTime,
@@ -213,9 +213,9 @@ public static class AppointmentsContractDomainMapper
         Id = dto.Id,
         ShiftId = dto.ShiftId,
         IsEnabled = dto.IsEnabled,
-        Channel = (DomainEnum.ShiftReminderChannel)(int)dto.Channel,
+        Channel = Enum.Parse<DomainEnum.ShiftReminderChannel>(dto.Channel.ToString()),
         OffsetBefore = dto.OffsetBefore,
-        QualifyingStatuses = dto.QualifyingStatuses.Select(s => (DomainEnum.ReservationStatus)(int)s).ToList(),
+        QualifyingStatuses = dto.QualifyingStatuses?.Select(s => Enum.Parse<DomainEnum.ReservationStatus>(s.ToString())).ToList() ?? [],
         SubjectTemplate = dto.SubjectTemplate,
         BodyTemplate = dto.BodyTemplate
     };
@@ -225,9 +225,9 @@ public static class AppointmentsContractDomainMapper
         Id = dto.Id,
         ShiftId = dto.ShiftId,
         IsEnabled = dto.IsEnabled,
-        Channel = (ShiftReminderChannel)(int)dto.Channel,
+        Channel = Enum.Parse<ShiftReminderChannel>(dto.Channel.ToString()),
         OffsetBefore = dto.OffsetBefore,
-        QualifyingStatuses = dto.QualifyingStatuses.Select(s => (ReservationStatus)(int)s).ToList(),
+        QualifyingStatuses = dto.QualifyingStatuses?.Select(s => Enum.Parse<ReservationStatus>(s.ToString())).ToList() ?? [],
         SubjectTemplate = dto.SubjectTemplate,
         BodyTemplate = dto.BodyTemplate,
         CreatedAt = dto.CreatedAt,
