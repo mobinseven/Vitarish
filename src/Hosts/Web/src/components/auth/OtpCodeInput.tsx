@@ -2,6 +2,7 @@
 
 import { TextField, Label, Input, FieldError } from "@heroui/react";
 import { useCallback } from "react";
+import { normalizeOtpCode } from "@/lib/auth/otpCode";
 
 interface OtpCodeInputProps {
   value: string;
@@ -9,6 +10,7 @@ interface OtpCodeInputProps {
   isInvalid?: boolean;
   errorMessage?: string;
   isDisabled?: boolean;
+  expectedLength?: number;
 }
 
 export function OtpCodeInput({
@@ -17,16 +19,13 @@ export function OtpCodeInput({
   isInvalid,
   errorMessage,
   isDisabled,
+  expectedLength = 6,
 }: OtpCodeInputProps) {
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const raw = e.target.value.replace(/[^\d۰-۹٠-٩]/g, "");
-      const normalized = raw
-        .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
-        .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
-      onChange(normalized.slice(0, 6));
+      onChange(normalizeOtpCode(e.target.value, expectedLength));
     },
-    [onChange]
+    [expectedLength, onChange]
   );
 
   return (
@@ -37,11 +36,11 @@ export function OtpCodeInput({
     >
       <Label>Verification Code</Label>
       <Input
-        placeholder="Enter 6-digit code"
+        placeholder={`Enter ${expectedLength}-digit code`}
         value={value}
         onChange={handleChange}
-        maxLength={6}
-        pattern="[0-9]{6}"
+        maxLength={expectedLength}
+        pattern={`[0-9]{${expectedLength}}`}
         inputMode="numeric"
         autoComplete="one-time-code"
         className="text-center text-lg tracking-[0.5em]"
