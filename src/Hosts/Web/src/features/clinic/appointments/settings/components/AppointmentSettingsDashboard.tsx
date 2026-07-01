@@ -33,7 +33,7 @@ export function AppointmentSettingsDashboard() {
           <Link key={link.href} href={link.href} className="block">
             <Card className="h-full">
               <Card.Header className="flex flex-row items-center gap-3">
-                <i className={`${link.icon} text-lg text-primary`} />
+                <i className={`${link.icon} text-lg text-accent`} />
                 <h2 className="text-lg font-semibold">{link.title}</h2>
               </Card.Header>
               <Card.Content>

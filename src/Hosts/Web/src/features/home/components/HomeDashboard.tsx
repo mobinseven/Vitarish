@@ -1,7 +1,6 @@
 "use client";
 
-import { Card, Button } from "@heroui/react";
-import { Link } from "@heroui/react";
+import { Card, Link } from "@heroui/react";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { useLocalizedText } from "@/localization";
@@ -47,15 +46,11 @@ export function HomeDashboard() {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Link href={Routes.Knowledge.Index}>
-                  <Button className="min-h-12">
-                    {t("home.startKnowledge")}
-                  </Button>
+                <Link href={Routes.Knowledge.Index} className="inline-flex min-h-12 items-center justify-center rounded-md bg-accent px-6 font-semibold text-accent-foreground transition hover:opacity-90">
+                  {t("home.startKnowledge")}
                 </Link>
-                <Link href={Routes.Account.Index}>
-                  <Button variant="secondary" className="min-h-12">
-                    {t("home.reviewAccount")}
-                  </Button>
+                <Link href={Routes.Account.Index} className="inline-flex min-h-12 items-center justify-center rounded-md border border-default-300 px-6 font-semibold text-foreground transition hover:bg-default-100">
+                  {t("home.reviewAccount")}
                 </Link>
               </div>
             </div>

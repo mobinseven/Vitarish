@@ -81,7 +81,7 @@ function railButtonClass(isSelected: boolean): string {
   return [
     "h-auto w-full justify-start rounded-2xl px-4 py-3 text-start transition-colors",
     isSelected
-      ? "bg-primary-100 text-primary-600"
+      ? "bg-accent-soft text-accent"
       : "bg-transparent hover:bg-default-200",
   ].join(" ");
 }

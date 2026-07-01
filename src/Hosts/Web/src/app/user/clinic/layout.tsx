@@ -35,7 +35,7 @@ export default function ClinicUserLayout({
                   href={link.href}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                     isActive
-                      ? "bg-primary-100 text-primary font-medium"
+                      ? "bg-accent-soft text-accent font-medium"
                       : "text-default-500 hover:text-foreground hover:bg-default-100"
                   }`}
                 >

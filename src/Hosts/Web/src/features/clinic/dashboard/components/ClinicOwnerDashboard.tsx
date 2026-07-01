@@ -36,7 +36,7 @@ export function ClinicOwnerDashboard() {
           <Link key={section.href} href={section.href} className="block">
             <Card className="h-full">
               <Card.Header className="flex flex-row items-center gap-3">
-                <i className={`${section.icon} text-lg text-primary`} />
+                <i className={`${section.icon} text-lg text-accent`} />
                 <h2 className="text-lg font-semibold">{section.title}</h2>
               </Card.Header>
               <Card.Content>
