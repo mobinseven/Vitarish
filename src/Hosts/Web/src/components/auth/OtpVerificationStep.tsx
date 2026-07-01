@@ -91,7 +91,7 @@ export function OtpVerificationStep({
       {statusMessage && !errorMessage && <StatusMessage message={statusMessage} />}
       <p className="text-sm text-muted">
         Code sent to {destinationLabel}
-        {remainingAttempts !== undefined && (
+        {remainingAttempts !== undefined && remainingAttempts !== null && (
           <span className="block text-xs">
             {remainingAttempts} attempts remaining
           </span>
