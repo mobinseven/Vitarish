@@ -1,133 +1,196 @@
 # Design Rules
 
-These rules define how the Vitarish product should feel and look. They are ideas, not implementation details. Update this file to change platform-wide design policy.
+These rules define how the React Web host should feel and behave visually. They are design principles, not implementation details.
 
-The skill reads these rules and finds the most compatible options provided by the UI framework to fulfill them. Do not put framework-specific code, class names, token values, or numbers here.
+This file intentionally contains no component APIs, class names, package names, CSS snippets, token values, or file paths. Concrete implementation belongs in `component-patterns.md` and reset/removal details belong in `heroui-v3.2.1-off-the-shelf-reset.md`.
+
+The current platform visual policy is: **use the UI framework's off-the-shelf visual language by default.** Custom styling is allowed only when it is explicitly requested, documented, and justified.
+
+---
+
+## Journey Feeling First
+
+UI work starts from the user's journey state.
+
+A journey state describes what the user is trying to do and how the user is likely to feel at that moment: uncertain, safe, blocked, confident, warned, focused, comparing, recovering, waiting, exploring, or finished.
+
+The design system's job is to translate that feeling into the right interface affordance. A feeling does not automatically imply a custom visual treatment. A feeling should first influence:
+
+- which component is chosen,
+- which state the component communicates,
+- which action is primary,
+- which message is shown,
+- which semantic structure is used,
+- which accessibility behavior is required,
+- how much information is shown,
+- and how layout supports the user's next step.
+
+The mapping is:
+
+```txt
+journey state -> user feeling -> design principle -> framework component -> off-the-shelf styling
+```
+
+The feeling is preserved; the visual implementation remains framework-native.
+
+---
+
+## Framework-Native Fidelity
+
+The UI should feel like it belongs to the framework being used. A developer familiar with the framework should recognize the interface as standard, predictable, and easy to maintain.
+
+A framework-native component is not unfinished. Default styling is a valid design outcome when the policy says the framework's visual language is the product's visual language.
+
+The product should avoid a second local visual identity unless that identity is explicitly approved. The interface may express product meaning through copy, information architecture, domain concepts, and workflow quality, not through an invented visual skin.
 
 ---
 
 ## Surface Philosophy
 
-Surfaces should feel like frosted glass — translucent, catching ambient light, creating gentle depth without heaviness. Content should float above the background, never sitting flat on it. Each layer of depth should feel intentional, as if the interface is a stack of thin, luminous panes.
+Surfaces should make information feel organized, calm, and trustworthy. A surface creates containment and hierarchy: it tells the user which content belongs together and which content requires attention.
 
-The background itself should feel alive but calm — subtle color gradients that breathe, not static flat fills. When a surface overlaps another, the relationship should be visible through translucency, not through hard edges or thick borders.
+Surfaces should not compete with content. They should feel stable and familiar, not theatrical. Their role is to support comprehension, not to create atmosphere.
 
-Surfaces should never feel heavy, opaque, or industrial. They should feel weightless, like morning mist over water.
+Depth should be understandable through the framework's own surface model. Do not invent a separate depth language just to make a surface feel special. When a journey state needs more importance, choose the right component, placement, copy, and state before considering visual customization.
+
+A surface should answer: "What is this group of information, and what can I do with it?"
 
 ---
 
 ## Color Philosophy
 
-Color should feel organic, pulled from nature, not synthetic or digital. The palette should be muted and restrained — color as punctuation, not decoration. A single accent should draw the eye with purpose, never competing with other colors for attention.
+Color should communicate semantic meaning. Success, danger, warning, information, selection, disabled state, and primary action should be immediately understandable.
 
-Semantic meaning should drive color choice. Success, danger, warning, and information each have a distinct emotional tone. These tones should be felt instantly, without reading a label.
+Color should be restrained. Most screens should be readable and calm, with color reserved for status, action, and navigation cues.
 
-Color should adapt to its environment. The same concept — success, danger, primary action — should feel equally natural in bright daylight and deep night. Dark mode is not inverted light mode; it is a different lighting condition with its own character.
+Color should not become decoration. When color appears, it should help the user understand state, priority, or action. If removing a color does not reduce understanding, the color probably should not be there.
 
-Raw, unpolluted color should be rare. Most surfaces and text should live in desaturated, neutral territory. When color appears, it should feel like a deliberate brushstroke on a calm canvas.
+Theme behavior should follow the framework's built-in semantics. Light mode and dark mode should feel like normal framework themes, not like two locally invented skins.
 
 ---
 
 ## Typography Philosophy
 
-Text should breathe. Generous line height and letter spacing create calm, readable passages that invite the eye rather than demand it. Dense, compressed text blocks feel hostile.
+Text should feel clear, calm, and readable. Typography creates hierarchy through semantic structure, concise wording, and consistent emphasis.
 
-Hierarchy should be felt through weight and size contrast, not through color or decoration. A heading announces itself through presence, not through bright colors or underlines.
+Headings should orient the user. Body text should explain what matters. Labels should reduce uncertainty. Error text should help the user recover.
 
-Typography should feel like a quiet, confident voice — never shouting, never whispering. The largest text should feel monumental but not aggressive. The smallest text should feel delicate but never illegible.
+Typography should not become branding by itself. Avoid creating a local typography voice through excessive casing, tracking, custom weights, or decorative heading treatments.
 
-A component should use at most two typographic voices: one for emphasis, one for body. More than that creates visual noise.
+A component should use as few typographic voices as possible. More voices create noise and make the user's next step harder to identify.
 
 ---
 
 ## Space Philosophy
 
-Whitespace is not emptiness — it is a design element. Space should feel generous, intentional, and restful. It separates concerns, creates hierarchy, and gives content room to exist without crowding.
+Whitespace is how the UI explains relationships. Related items should sit together. Separate tasks should be visibly separated. A page should give the user enough room to understand what is happening without feeling sparse.
 
-Spacing should feel proportional and consistent. When one section uses generous padding, adjacent sections should match that generosity. Inconsistent spacing feels like a disorganized room.
+Space should support the journey state:
 
-The page should feel like it has natural margins — content should never touch the edges of the viewport. There should always be a sense of boundary between the interface and the world outside it.
+- focused tasks need a narrow, direct path,
+- comparison tasks need clear alignment,
+- review tasks need scannable grouping,
+- recovery tasks need proximity between the problem and the fix,
+- exploration tasks need clear navigation and progressive disclosure.
 
-Elements within a group should feel related through proximity. Elements that are unrelated should feel separated through space, not through lines or borders.
+Spacing is structural, not decorative. Do not use spacing to create a branded look.
 
 ---
 
-## Depth Philosophy
+## Hierarchy and Depth Philosophy
 
-Depth creates hierarchy. The most important content should feel closest to the user, while supporting content recedes gently into the background. This feeling of depth comes from translucency, blur, shadow, and layering — not from z-index tricks or hard edges.
+Hierarchy should tell the user what matters first, what is supporting information, and what action is available next.
 
-Shadows should feel soft, ambient, and natural — like light diffused through frosted glass, not like harsh spotlights. A shadow should suggest that an element is gently elevated, not that it is hovering aggressively.
+Depth is a hierarchy tool, not an ornament. The most important content should feel easier to find, not louder or more decorated.
 
-When elements lift on interaction — a card rising on hover, a button pressing down — the motion should feel physical but delicate, like touching a soap bubble that yields but does not pop.
+Prefer hierarchy through component choice, ordering, headings, grouping, disabled/pending states, and clear actions. Avoid inventing local shadows, layers, effects, or elevation systems.
 
 ---
 
 ## Motion Philosophy
 
-Motion should feel fluid, natural, and subtle. Transitions should be barely perceptible — the eye should register that something changed without consciously watching it happen.
+Motion should confirm change, preserve context, or show progress. It should not exist to decorate the interface.
 
-Fast interactions (hover, focus, press) should feel instant and responsive. Slower transitions (elevation changes, page transitions) should feel smooth and unhurried. Neither should ever feel sluggish or jarring.
+Fast interactions should feel responsive. Waiting states should feel honest and calm. Reduced-motion preferences must be respected through framework and browser behavior.
 
-Motion should never be decorative. Every animation must serve a purpose: guiding attention, confirming an action, or maintaining spatial context. Animated elements that do not serve a purpose are visual noise.
-
-The interface should respect the user's motion preferences. When a user has requested reduced motion, the interface should comply gracefully — functioning perfectly without any animation.
+Do not create a local animation language for ordinary UI components. The framework's built-in motion is the default.
 
 ---
 
 ## Interaction Philosophy
 
-Feedback should feel alive. When a user hovers, clicks, or focuses, the interface should respond immediately — not with dramatic effects, but with subtle acknowledgment that the input was received.
+Interactive elements should feel predictable. The user should know what can be clicked, what is disabled, what is pending, what failed, and what succeeded.
 
-Interactive elements should feel tappable and responsive, like physical buttons with just enough give to feel real. They should never feel like static images that happen to respond to clicks.
+Interaction feedback should come from the framework's built-in states first. Hover, focus, press, disabled, pending, invalid, and selected states should remain accessible and consistent.
 
-Disabled states should feel genuinely inactive — visually quieter, perceptibly unreachable, but not invisible. A disabled element should communicate that it exists but cannot be used right now.
+A journey feeling such as confidence, caution, or recovery should change the component state, copy, and action structure before it changes the visual style.
 
-Focus should be visible and obvious. Every interactive element should have a clear focus indicator that makes keyboard navigation feel safe and predictable, never guessing where focus currently lives.
+---
+
+## State Feedback Philosophy
+
+Every meaningful state should be expressed clearly:
+
+- loading,
+- empty,
+- invalid,
+- disabled,
+- selected,
+- pending,
+- warning,
+- success,
+- danger,
+- not found,
+- unauthenticated,
+- unauthorized,
+- unavailable.
+
+State feedback should be close to the thing it explains. It should help the user decide what to do next.
+
+Do not invent custom status visuals when the framework already provides status components or state props.
 
 ---
 
 ## Dark Mode Philosophy
 
-Dark mode is not light mode with inverted colors. It is a different lighting condition — like moving from a sunlit room to a candlelit one. The mood changes, the relationships between elements shift, and the character of the interface transforms.
+Dark mode should be the framework's dark mode. It should preserve readability, hierarchy, and state semantics without becoming a separate local theme.
 
-In dark mode, surfaces should become more transparent, allowing the deep background to show through. This creates depth without heaviness. Light mode feels solid and bright; dark mode feels deep and luminous.
+Dark mode is not a place to add extra atmosphere. It should feel standard, accessible, and consistent with the rest of the framework.
 
-Borders should soften and recede in dark mode. Shadows should become subtler. The interface should feel like it emerges from darkness rather than sitting on top of it.
-
-Text should remain perfectly readable but should feel warmer and softer than its light mode counterpart. Harsh white-on-black feels clinical; the goal is comfortable, ambient readability.
+Theme choice may express a user's preference, but it must not create a custom product visual identity unless explicitly approved.
 
 ---
 
 ## Clean Minimal Philosophy
 
-Every element on the screen should earn its place. If an element does not serve a clear purpose — guiding the user, providing information, enabling action — it should be removed.
+Every element should earn its place. Minimalism is not emptiness; it is the removal of unnecessary visual and structural noise so the user's next step is easier to see.
 
-Minimalism is not emptiness. It is the removal of everything that is not essential, so that what remains can breathe and be understood immediately. The interface should feel uncluttered without feeling sparse.
+If a screen feels weak, first improve the journey mapping, copy, component choice, grouping, and accessibility. Do not immediately add decoration.
 
-Decorative elements — gradients, shadows, borders, ornaments — should be used with extreme restraint. When they appear, they should feel inevitable, not added. If removing a decorative element does not change the user's understanding, the element should not exist.
-
-The product should feel calm, focused, and purposeful. It should never feel busy, noisy, or overwhelming.
+The best visual change is often deleting custom styling and letting the framework component communicate the state.
 
 ---
 
 ## Prohibited Aesthetics
 
-The product must never feel:
+The product must not feel:
 
-- **Industrial or utilitarian.** No harsh borders, no dense data tables without breathing room, no cramped layouts.
-- **Playful or whimsical.** No rounded-everything, no bright multi-color palettes, no bouncy animations.
-- **Flat or two-dimensional.** No surfaces without depth, no elements without hierarchy, no uniform visual weight.
-- **Heavy or oppressive.** No dark backgrounds without translucency, no thick borders, no solid opaque panels.
-- **Digital or synthetic.** No neon colors, no hard gradients, no pixel-perfect grid rigidity.
-- **Cluttered or busy.** No crowded layouts, no competing visual elements, no information overload on a single screen.
-- **Generic or template-like.** No stock UI patterns without adaptation, no default-styled components shipped to production.
+- **Custom-skinned by accident.** No local visual language unless explicitly approved.
+- **Decorated to compensate for weak structure.** Fix the journey mapping instead.
+- **Atmospheric without purpose.** No mood effects that do not help task completion.
+- **Patchworked.** Do not mix old custom visual classes with framework defaults.
+- **Over-designed.** Do not add custom visual systems for ordinary components.
+- **Inconsistent.** Do not let one feature invent a style that other features must learn.
+- **Accessibility-hostile.** No visual cleanup may remove labels, focus, error handling, or semantics.
 
 ---
 
 ## Opt-Out Principles
 
-These rules are the default. A component may deviate when there is a specific, articulable reason that overrides the rule for that particular case.
+These rules are the default.
 
-A valid reason names the rule being overridden and explains why the component genuinely cannot follow it. "It looks better this way" is not a valid reason.
+A component may deviate only when there is a specific, articulable requirement that cannot be satisfied through framework components, framework props, semantic HTML, or structural layout.
 
-The rules remain the source of truth. Deviations are exceptions, not new defaults.
+A valid reason names the rule being overridden and explains why the component genuinely cannot follow it. "Looks better", "more premium", "matches the old design", or "the page feels empty" are not valid reasons.
+
+Deviations are exceptions, not new defaults. They must not introduce a reusable custom visual language unless a future accepted decision explicitly changes the platform policy.
