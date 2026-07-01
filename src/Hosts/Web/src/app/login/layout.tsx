@@ -2,6 +2,7 @@
 
 import { Suspense, type ReactNode } from "react";
 import { AuthenticatedRedirectBoundary } from "@/components/auth/SessionRedirect";
+import { AppShellWrapper } from "@/components/app-shell";
 import { useLocalizedText } from "@/localization";
 
 function LoginRouteFallback() {
@@ -16,8 +17,10 @@ function LoginRouteFallback() {
 
 export default function LoginLayout({ children }: { children: ReactNode }) {
   return (
-    <Suspense fallback={<LoginRouteFallback />}>
-      <AuthenticatedRedirectBoundary>{children}</AuthenticatedRedirectBoundary>
-    </Suspense>
+    <AppShellWrapper hideNavbar hideFooter>
+      <Suspense fallback={<LoginRouteFallback />}>
+        <AuthenticatedRedirectBoundary>{children}</AuthenticatedRedirectBoundary>
+      </Suspense>
+    </AppShellWrapper>
   );
 }

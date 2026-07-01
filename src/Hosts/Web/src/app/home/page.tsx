@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HomeDashboard } from "@/features/home/components/HomeDashboard";
+import { HomePageWrapper } from "./HomePageWrapper";
 
 export const metadata: Metadata = {
   title: "Home | Vitarish",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <HomeDashboard />;
+  return (
+    <HomePageWrapper>
+      <HomeDashboard />
+    </HomePageWrapper>
+  );
 }
