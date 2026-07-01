@@ -41,7 +41,8 @@ internal sealed class SyncProviderCodesHandler(MedicalDbContext dbContext)
             ImportBatch? existingBatch = await dbContext.ImportBatches
                 .FirstOrDefaultAsync(
                     b => b.SourceType == ImportSourceType.InsuranceProvider
-                        && b.SourceVersion == request.DataVersion,
+                        && b.SourceVersion == request.DataVersion
+                        && b.SourceLocator == systemKey,
                     cancellationToken);
 
             if (existingBatch is not null)

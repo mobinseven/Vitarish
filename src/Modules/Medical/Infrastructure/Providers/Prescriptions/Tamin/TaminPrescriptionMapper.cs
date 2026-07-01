@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Entities;
+using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vorn.Tamin;
 using DomainPrescriptionStatus = Vitarish.Medical.Domain.Enums.Prescriptions.PrescriptionStatus;
 using EligibilityStatus = Vitarish.Medical.Domain.Enums.Prescriptions.EligibilityStatus;
@@ -14,10 +15,11 @@ internal static class TaminPrescriptionMapper
         TaminSession session,
         PrescriptionRecord prescription,
         string doctorTaminId,
+        ITaminDateFormatter dateFormatter,
         CancellationToken cancellationToken)
     {
         string patientNationalId = prescription.PatientNationalId ?? prescription.PatientId.ToString();
-        string visitDate = (prescription.SubmittedAt ?? prescription.CreatedAt).ToString("yyyy-MM-dd");
+        string visitDate = dateFormatter.FormatDate(prescription.SubmittedAt ?? prescription.CreatedAt);
 
         PrescriptionItemCategory dominantCategory = prescription.Items
             .GroupBy(i => i.Category)
@@ -45,20 +47,21 @@ internal static class TaminPrescriptionMapper
                         .ToList()
                 }, cancellationToken),
 
-            PrescriptionItemCategory.Physiotherapy => session.Prescription.RegisterPhysiotherapyPrescriptionAsync(
-                new RegisterPhysiotherapyPrescriptionRequest
-                {
-                    DoctorId = doctorTaminId,
-                    PatientNationalId = patientNationalId,
-                    PhysiotherapyItems = prescription.Items
-                        .Where(i => i.Category == PrescriptionItemCategory.Physiotherapy)
-                        .Select(i => new PhysiotherapyItem
-                        {
-                            ServiceCode = i.ReferenceCode ?? string.Empty,
-                            Description = i.DisplayName
-                        })
-                        .ToList()
-                }, cancellationToken),
+            PrescriptionItemCategory.Physiotherapy => RegisterPhysiotherapyAsync(
+                session,
+                prescription,
+                doctorTaminId,
+                patientNationalId,
+                visitDate,
+                cancellationToken),
+
+            PrescriptionItemCategory.Referral => RegisterReferralAsync(
+                session,
+                prescription,
+                doctorTaminId,
+                patientNationalId,
+                visitDate,
+                cancellationToken),
 
             PrescriptionItemCategory.Visit => session.Prescription.RegisterVisitPrescriptionAsync(
                 new RegisterVisitPrescriptionRequest
@@ -101,6 +104,64 @@ internal static class TaminPrescriptionMapper
                         .ToList()
                 }, cancellationToken)
         };
+    }
+
+    private static Task<JsonElement> RegisterPhysiotherapyAsync(
+        TaminSession session,
+        PrescriptionRecord prescription,
+        string doctorTaminId,
+        string patientNationalId,
+        string visitDate,
+        CancellationToken cancellationToken)
+    {
+        List<PrescriptionItem> items = prescription.Items
+            .Where(i => i.Category == PrescriptionItemCategory.Physiotherapy)
+            .OrderBy(i => i.SortOrder)
+            .ToList();
+        PrescriptionItem? first = items.FirstOrDefault();
+
+        return session.Prescription.RegisterPhysiotherapyPrescriptionAsync(
+            new RegisterPhysiotherapyPrescriptionRequest
+            {
+                DoctorId = doctorTaminId,
+                PatientNationalId = patientNationalId,
+                EffectiveDate = TaminPrescriptionItemMetadataReader.ReadString(first, "effectiveDate", "effective_date") ?? visitDate,
+                SessionCount = first is null ? items.Sum(i => Math.Max(1, i.Quantity)) : TaminPrescriptionItemMetadataReader.ReadPositiveInt(first, "sessionCount", "session_count") ?? items.Sum(i => Math.Max(1, i.Quantity)),
+                Description = first?.DisplayName,
+                PhysiotherapyItems = items
+                    .Select(i => new PhysiotherapyItem
+                    {
+                        ServiceCode = i.ReferenceCode ?? string.Empty,
+                        Description = i.DisplayName
+                    })
+                    .ToList()
+            }, cancellationToken);
+    }
+
+    private static Task<JsonElement> RegisterReferralAsync(
+        TaminSession session,
+        PrescriptionRecord prescription,
+        string doctorTaminId,
+        string patientNationalId,
+        string visitDate,
+        CancellationToken cancellationToken)
+    {
+        PrescriptionItem? item = prescription.Items
+            .Where(i => i.Category == PrescriptionItemCategory.Referral)
+            .OrderBy(i => i.SortOrder)
+            .FirstOrDefault();
+
+        return session.Prescription.RegisterReferralPrescriptionAsync(
+            new RegisterReferralPrescriptionRequest
+            {
+                DoctorId = doctorTaminId,
+                PatientNationalId = patientNationalId,
+                VisitDate = visitDate,
+                TargetSpecialty = item?.ReferenceCode ?? TaminPrescriptionItemMetadataReader.ReadString(item, "targetSpecialty", "target_specialty") ?? string.Empty,
+                TargetProviderType = TaminPrescriptionItemMetadataReader.ReadString(item, "targetProviderType", "target_provider_type") ?? string.Empty,
+                Reason = TaminPrescriptionItemMetadataReader.ReadString(item, "reason", "referralReason", "referral_reason") ?? item?.DisplayName ?? string.Empty,
+                Description = TaminPrescriptionItemMetadataReader.ReadString(item, "description") ?? item?.DisplayName ?? string.Empty
+            }, cancellationToken);
     }
 
     public static EntitlementResponse ToEntitlementResponse(JsonElement result) => new()

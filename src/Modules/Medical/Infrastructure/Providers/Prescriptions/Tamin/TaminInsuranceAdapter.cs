@@ -15,9 +15,10 @@ namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 /// Tamin module adapter. Translates canonical Prescription requests to provider-client requests
 /// and coordinates Prescription-owned persistence/session services.
 /// </summary>
-public sealed class TaminInsuranceAdapter(
+internal sealed class TaminInsuranceAdapter(
     ITaminCredentialSessionStore sessionStore,
-    IHttpClientFactory httpClientFactory,
+    ITaminMedicalInfrastructureGateway gateway,
+    ITaminDateFormatter dateFormatter,
     IOptionsMonitor<TaminOptions> taminOptions,
     PrescriptionDbContext dbContext,
     TaminErrorMapper errorMapper,
@@ -26,7 +27,8 @@ public sealed class TaminInsuranceAdapter(
     public const string ProviderKeyConst = "TAMIN";
 
     private readonly ITaminCredentialSessionStore _sessionStore = sessionStore;
-    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+    private readonly ITaminMedicalInfrastructureGateway _gateway = gateway;
+    private readonly ITaminDateFormatter _dateFormatter = dateFormatter;
     private readonly IOptionsMonitor<TaminOptions> _taminOptions = taminOptions;
     private readonly PrescriptionDbContext _dbContext = dbContext;
     private readonly TaminErrorMapper _errorMapper = errorMapper;
@@ -39,11 +41,15 @@ public sealed class TaminInsuranceAdapter(
         InsuranceProviderCapabilityType.SupportsDrugPrescription,
         InsuranceProviderCapabilityType.SupportsParaclinicPrescription,
         InsuranceProviderCapabilityType.SupportsMedicalServicePrescription,
+        InsuranceProviderCapabilityType.SupportsReferralPrescription,
+        InsuranceProviderCapabilityType.SupportsPhysiotherapyPrescription,
+        InsuranceProviderCapabilityType.SupportsDentalPrescription,
         InsuranceProviderCapabilityType.SupportsFetchPrescription,
         InsuranceProviderCapabilityType.SupportsEditPrescription,
         InsuranceProviderCapabilityType.SupportsCancelPrescription,
         InsuranceProviderCapabilityType.SupportsReferenceDrugSync,
         InsuranceProviderCapabilityType.SupportsReferenceServiceSync,
+        InsuranceProviderCapabilityType.SupportsWarningInquiry,
         InsuranceProviderCapabilityType.SupportsProviderSession,
     ];
 
@@ -147,6 +153,7 @@ public sealed class TaminInsuranceAdapter(
                 sessionResult.Session!,
                 prescription,
                 sessionResult.DoctorTaminId ?? string.Empty,
+                _dateFormatter,
                 cancellationToken);
 
             return AdapterResult<SubmissionResponse>.Success(TaminPrescriptionMapper.ToSubmissionResponse(result));
@@ -195,11 +202,10 @@ public sealed class TaminInsuranceAdapter(
                 return AdapterResult<FetchResponse>.Failure(InvalidHeaderIdError(request.RemotePrescriptionId));
             }
 
-            string patientNationalId = prescription.PatientNationalId ?? prescription.PatientId.ToString();
             JsonElement result = await sessionResult.Session!.Prescription.GetRegisteredPrescriptionAsync(
                 headerId,
-                submission.RemoteTrackingCode,
-                patientNationalId,
+                sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
+                sessionResult.DoctorTaminId ?? string.Empty,
                 cancellationToken);
 
             return AdapterResult<FetchResponse>.Success(TaminPrescriptionMapper.ToFetchResponse(result));
@@ -350,17 +356,10 @@ public sealed class TaminInsuranceAdapter(
             return AdapterResult<ReferenceDataResponse>.Failure(ValidationError("سامانه کد داده مرجع مشخص نشده است.", "CodeSystem is required."));
         }
 
-        TaminOptions options = _taminOptions.CurrentValue;
-        HttpClient httpClient = _httpClientFactory.CreateClient("TaminClient");
-        TaminSession session = new(httpClient, baseUri: new Uri(options.EffectiveBaseUrl), needToken: false, clientId: options.ApiKey);
-
         try
         {
-            JsonElement result = request.CodeSystem.Equals("drug", StringComparison.OrdinalIgnoreCase)
-                ? await session.Service.GetDrugListAsync(cancellationToken: cancellationToken)
-                : await session.Service.GetServiceListAsync(cancellationToken: cancellationToken);
-
-            return AdapterResult<ReferenceDataResponse>.Success(TaminPrescriptionMapper.ToReferenceDataResponse(request, result));
+            TaminReferencePageResult result = await FetchReferencePageAsync(request.CodeSystem, cancellationToken);
+            return AdapterResult<ReferenceDataResponse>.Success(ToReferenceDataResponse(request.CodeSystem, result));
         }
         catch (Exception ex) when (IsProviderException(ex))
         {
@@ -368,6 +367,82 @@ public sealed class TaminInsuranceAdapter(
             return AdapterResult<ReferenceDataResponse>.Failure(MapProviderException(ex));
         }
     }
+
+    private async Task<TaminReferencePageResult> FetchReferencePageAsync(string codeSystem, CancellationToken cancellationToken)
+    {
+        string normalized = NormalizeCodeSystem(codeSystem);
+        TaminOptions options = _taminOptions.CurrentValue;
+        int pageSize = Math.Clamp(options.DefaultPageSize, 1, Math.Max(1, options.MaxPageSize));
+
+        return normalized switch
+        {
+            TaminProviderOperationNames.Drug => await CombinePagesAsync(
+                TaminProviderOperationNames.Drug,
+                _gateway.ListAllDrugPagesAsync(new TaminDrugListAllOperationRequest(null, null, pageSize, true), cancellationToken),
+                cancellationToken),
+            TaminProviderOperationNames.Service => await CombinePagesAsync(
+                TaminProviderOperationNames.Service,
+                _gateway.ListAllServicePagesAsync(new TaminServiceListAllOperationRequest(null, null, null, pageSize, true), cancellationToken),
+                cancellationToken),
+            TaminProviderOperationNames.AllServices => await _gateway.GetAllServicesAsync(new TaminRawReferenceQueryOperationRequest(normalized, EmptyQuery), cancellationToken),
+            TaminProviderOperationNames.PrescriptionType => await _gateway.GetPrescriptionTypesAsync(new TaminRawReferenceQueryOperationRequest(normalized, EmptyQuery), cancellationToken),
+            TaminProviderOperationNames.ParaclinicTariff => await _gateway.GetParaclinicTariffsAsync(new TaminRawReferenceQueryOperationRequest(normalized, EmptyQuery), cancellationToken),
+            TaminProviderOperationNames.DrugAmount => await _gateway.GetDrugAmountsAsync(new TaminRawReferenceQueryOperationRequest(normalized, EmptyQuery), cancellationToken),
+            TaminProviderOperationNames.DrugInstruction => await _gateway.GetDrugInstructionsAsync(new TaminRawReferenceQueryOperationRequest(normalized, EmptyQuery), cancellationToken),
+            _ => throw new NotSupportedException($"Tamin reference code system '{codeSystem}' is not supported.")
+        };
+    }
+
+    private static async Task<TaminReferencePageResult> CombinePagesAsync(
+        string codeSystem,
+        IAsyncEnumerable<TaminReferencePageResult> pages,
+        CancellationToken cancellationToken)
+    {
+        List<TaminReferenceItem> items = [];
+        string version = "unknown";
+        await foreach (TaminReferencePageResult page in pages.WithCancellation(cancellationToken))
+        {
+            if (!string.Equals(page.DataVersion, "unknown", StringComparison.OrdinalIgnoreCase))
+            {
+                version = page.DataVersion;
+            }
+
+            items.AddRange(page.Items);
+        }
+
+        return new TaminReferencePageResult(codeSystem, null, null, items.Count, false, version, items, string.Empty);
+    }
+
+    private static ReferenceDataResponse ToReferenceDataResponse(string requestedCodeSystem, TaminReferencePageResult result) => new()
+    {
+        CodeSystem = requestedCodeSystem,
+        Version = result.DataVersion,
+        Items = result.Items.Select(item => new ReferenceDataItem
+        {
+            Code = item.Code,
+            DisplayName = item.DisplayName,
+            Category = item.Category,
+            IsActive = item.IsActive
+        }).ToList()
+    };
+
+    private static string NormalizeCodeSystem(string codeSystem)
+    {
+        string normalized = codeSystem.Trim().ToLowerInvariant();
+        return normalized switch
+        {
+            "drugs" => TaminProviderOperationNames.Drug,
+            "services" => TaminProviderOperationNames.Service,
+            "prescription-types" => TaminProviderOperationNames.PrescriptionType,
+            "paraclinic-taref" => TaminProviderOperationNames.ParaclinicTariff,
+            "paraclinic-tariffs" => TaminProviderOperationNames.ParaclinicTariff,
+            "drug-amounts" => TaminProviderOperationNames.DrugAmount,
+            "drug-instructions" => TaminProviderOperationNames.DrugInstruction,
+            _ => normalized
+        };
+    }
+
+    private static readonly IReadOnlyDictionary<string, string?> EmptyQuery = new Dictionary<string, string?>();
 
     private static bool TryParseHeaderId(string? remotePrescriptionId, out int headerId) =>
         int.TryParse(remotePrescriptionId, out headerId) && headerId > 0;
