@@ -1,6 +1,6 @@
 # Clinic Web Host Journey Implementation Plan
 
-Status: Draft plan  
+Status: Accepted  
 Owner scope: Clinic owner app / web host  
 Source journeys:
 
@@ -111,7 +111,7 @@ Every feature hook must expose explicit failure state:
 If a React web host already exists, use its established root. If not, use the platform convention below when the host is introduced:
 
 ```txt
-src/Hosts/<ReactWebHost>/src/
+src/Hosts/Web/src/
   routes/
     clinicRoutes.ts
   pages/
