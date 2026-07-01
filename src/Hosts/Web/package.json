@@ -13,7 +13,9 @@
     "generate:api": "orval --config src/api/client/orval.config.ts",
     "test": "vitest run",
     "test:watch": "vitest --watch",
-    "validate:api-boundary": "node scripts/validate-api-boundary.mjs"
+    "validate:api-boundary": "node scripts/validate-api-boundary.mjs",
+    "validate:localization": "node scripts/validate-localization.mjs --report",
+    "validate:localization:strict": "node scripts/validate-localization.mjs --strict"
   },
   "dependencies": {
     "@heroui/react": "^3.2.1",
