@@ -1,119 +1,187 @@
 # Design Rules
 
-These rules define the current Web host visual policy. They are product-level ideas, not implementation details.
+These rules define how the React Web host should feel and behave visually. They are design principles, not implementation details.
 
-The current policy is **HeroUI v3.2.1 off-the-shelf appearance**. The product must look like standard HeroUI components as shipped by the framework, not like a separate Vitarish design system.
+This file intentionally contains no component APIs, class names, package names, CSS snippets, token values, or file paths. Concrete implementation belongs in `component-patterns.md` and reset/removal details belong in `heroui-v3.2.1-off-the-shelf-reset.md`.
 
-Implementation details, class names, package names, CSS imports, and code-level rules belong in `component-patterns.md` and `heroui-v3.2.1-off-the-shelf-reset.md`.
-
----
-
-## Off-the-Shelf Framework Fidelity
-
-The UI should feel like the framework's own documented examples. A developer who knows HeroUI should immediately recognize the page as normal HeroUI, without needing to learn a Vitarish-specific visual language.
-
-The product must not invent a separate surface system, theme system, card system, badge system, app shell, navigation treatment, or layout aesthetic when HeroUI already provides a standard visual result.
-
-The best visual decision is usually the one that deletes custom appearance code and lets the component library speak for itself.
+The current platform visual policy is: **use the UI framework's off-the-shelf visual language by default.** Custom styling is allowed only when it is explicitly requested, documented, and justified.
 
 ---
 
-## Default Is a Feature
+## Journey Feeling First
 
-Default styling is intentional. The built-in HeroUI look is not a placeholder to be replaced; it is the required visual baseline.
+UI work starts from the user's journey state.
 
-A component that looks plain, generic, and framework-native is correct under this policy. A component that looks branded, glassy, atmospheric, highly decorated, or custom-designed is suspect.
+A journey state describes what the user is trying to do and how the user is likely to feel at that moment: uncertain, safe, blocked, confident, warned, focused, comparing, recovering, waiting, exploring, or finished.
 
-The interface should not try to impress through visual invention. It should remain predictable, familiar, and maintainable.
+The design system's job is to translate that feeling into the right interface affordance. A feeling does not automatically imply a custom visual treatment. A feeling should first influence:
 
----
+- which component is chosen,
+- which state the component communicates,
+- which action is primary,
+- which message is shown,
+- which semantic structure is used,
+- which accessibility behavior is required,
+- how much information is shown,
+- and how layout supports the user's next step.
 
-## No Product-Specific Visual Identity
+The mapping is:
 
-The React Web host must not carry a custom Vitarish visual identity unless a future accepted decision explicitly changes this policy.
+```txt
+journey state -> user feeling -> design principle -> framework component -> off-the-shelf styling
+```
 
-That means no bespoke glassmorphism, no custom ambient backgrounds, no custom card depth language, no custom accent system, no decorative orbs, no brand-specific gradients, no custom shadows, no custom radii, no invented status badges, and no product-owned theme tokens.
-
-Product identity may exist in words, navigation labels, page titles, domain concepts, and feature behavior. It must not be encoded as a separate visual styling system.
-
----
-
-## Theme Humility
-
-Light, dark, and system themes should follow the component library's built-in theme behavior.
-
-Dark mode should not be treated as an opportunity to create a second custom aesthetic. It should simply use the framework's own dark appearance.
-
-Theme selection may persist user preference, but it must not override the visual identity of the component library.
+The feeling is preserved; the visual implementation remains framework-native.
 
 ---
 
-## Layout Without Decoration
+## Framework-Native Fidelity
 
-Pages may use structural layout to make content usable: grouping, stacking, grids, responsive flow, and readable boundaries.
+The UI should feel like it belongs to the framework being used. A developer familiar with the framework should recognize the interface as standard, predictable, and easy to maintain.
 
-Layout must not become visual branding. Spacing and grouping exist to make screens understandable, not to create a signature look.
+A framework-native component is not unfinished. Default styling is a valid design outcome when the policy says the framework's visual language is the product's visual language.
 
-A page shell should be boring. It should give HeroUI components room to render in their own style.
-
----
-
-## Components Over Decorations
-
-Prefer real framework components over hand-built visual elements.
-
-A button should be a framework button. A card should be a framework card. An alert should be a framework alert. A table should be a framework table. A form field should be a framework form field.
-
-Do not replace framework affordances with custom visual approximations.
+The product should avoid a second local visual identity unless that identity is explicitly approved. The interface may express product meaning through copy, information architecture, domain concepts, and workflow quality, not through an invented visual skin.
 
 ---
 
-## Accessibility Must Survive the Reset
+## Surface Philosophy
 
-Removing custom visuals must not remove accessibility.
+Surfaces should make information feel organized, calm, and trustworthy. A surface creates containment and hierarchy: it tells the user which content belongs together and which content requires attention.
 
-Focus visibility, labels, descriptions, error messages, disabled states, loading states, keyboard behavior, and semantic structure remain mandatory.
+Surfaces should not compete with content. They should feel stable and familiar, not theatrical. Their role is to support comprehension, not to create atmosphere.
 
-When a custom visual layer was hiding accessibility mistakes, fix the accessibility directly through framework-supported component APIs rather than reintroducing custom styling.
+Depth should be understandable through the framework's own surface model. Do not invent a separate depth language just to make a surface feel special. When a journey state needs more importance, choose the right component, placement, copy, and state before considering visual customization.
 
----
-
-## Minimalism Means Less Code
-
-The cleanest UI is the one with the least visual code.
-
-Remove visual wrappers, custom classes, global token overrides, and one-off styling before adding anything new.
-
-A page that needs many visual classes to look acceptable is not aligned with this policy. The correct response is usually to use a more appropriate HeroUI component or simplify the layout.
+A surface should answer: "What is this group of information, and what can I do with it?"
 
 ---
 
-## Prohibited Visual Outcomes
+## Color Philosophy
+
+Color should communicate semantic meaning. Success, danger, warning, information, selection, disabled state, and primary action should be immediately understandable.
+
+Color should be restrained. Most screens should be readable and calm, with color reserved for status, action, and navigation cues.
+
+Color should not become decoration. When color appears, it should help the user understand state, priority, or action. If removing a color does not reduce understanding, the color probably should not be there.
+
+Theme behavior should follow the framework's built-in semantics. Light mode and dark mode should feel like normal framework themes, not like two locally invented skins.
+
+---
+
+## Typography Philosophy
+
+Text should feel clear, calm, and readable. Typography creates hierarchy through semantic structure, concise wording, and consistent emphasis.
+
+Headings should orient the user. Body text should explain what matters. Labels should reduce uncertainty. Error text should help the user recover.
+
+Typography should not become branding by itself. Avoid creating a local typography voice through excessive casing, tracking, custom weights, or decorative heading treatments.
+
+A component should use as few typographic voices as possible. More voices create noise and make the user's next step harder to identify.
+
+---
+
+## Space Philosophy
+
+Whitespace is how the UI explains relationships. Related items should sit together. Separate tasks should be visibly separated. A page should give the user enough room to understand what is happening without feeling sparse.
+
+Space should support the journey state:
+
+- focused tasks need a narrow, direct path,
+- comparison tasks need clear alignment,
+- review tasks need scannable grouping,
+- recovery tasks need proximity between the problem and the fix,
+- exploration tasks need clear navigation and progressive disclosure.
+
+Spacing is structural, not decorative. Do not use spacing to create a branded look.
+
+---
+
+## Hierarchy and Depth Philosophy
+
+Hierarchy should tell the user what matters first, what is supporting information, and what action is available next.
+
+Depth is a hierarchy tool, not an ornament. The most important content should feel easier to find, not louder or more decorated.
+
+Prefer hierarchy through component choice, ordering, headings, grouping, disabled/pending states, and clear actions. Avoid inventing local shadows, layers, effects, or elevation systems.
+
+---
+
+## Motion Philosophy
+
+Motion should confirm change, preserve context, or show progress. It should not exist to decorate the interface.
+
+Fast interactions should feel responsive. Waiting states should feel honest and calm. Reduced-motion preferences must be respected through framework and browser behavior.
+
+Do not create a local animation language for ordinary UI components. The framework's built-in motion is the default.
+
+---
+
+## Interaction Philosophy
+
+Interactive elements should feel predictable. The user should know what can be clicked, what is disabled, what is pending, what failed, and what succeeded.
+
+Interaction feedback should come from the framework's built-in states first. Hover, focus, press, disabled, pending, invalid, and selected states should remain accessible and consistent.
+
+A journey feeling such as confidence, caution, or recovery should change the component state, copy, and action structure before it changes the visual style.
+
+---
+
+## State Feedback Philosophy
+
+Every meaningful state should be expressed clearly:
+
+- loading,
+- empty,
+- invalid,
+- disabled,
+- selected,
+- pending,
+- warning,
+- success,
+- danger,
+- not found,
+- unauthenticated,
+- unauthorized,
+- unavailable.
+
+State feedback should be close to the thing it explains. It should help the user decide what to do next.
+
+Do not invent custom status visuals when the framework already provides status components or state props.
+
+---
+
+## Dark Mode Philosophy
+
+Dark mode should be the framework's dark mode. It should preserve readability, hierarchy, and state semantics without becoming a separate local theme.
+
+Dark mode is not a place to add extra atmosphere. It should feel standard, accessible, and consistent with the rest of the framework.
+
+Theme choice may express a user's preference, but it must not create a custom product visual identity unless explicitly approved.
+
+---
+
+## Clean Minimal Philosophy
+
+Every element should earn its place. Minimalism is not emptiness; it is the removal of unnecessary visual and structural noise so the user's next step is easier to see.
+
+If a screen feels weak, first improve the journey mapping, copy, component choice, grouping, and accessibility. Do not immediately add decoration.
+
+The best visual change is often deleting custom styling and letting the framework component communicate the state.
+
+---
+
+## Prohibited Aesthetics
 
 The product must not feel:
 
-- **Custom branded** — no separate Vitarish look on top of HeroUI.
-- **Glassy** — no frosted glass surfaces, translucent panes, blur layers, or luminous cards.
-- **Atmospheric** — no decorative gradient backgrounds, glow fields, or ambient orbs.
-- **Over-designed** — no custom shadows, radii, borders, or motion systems for ordinary components.
-- **Theme-invented** — no custom light/dark color system replacing HeroUI's built-in themes.
-- **Wrapper-driven** — no local design-system primitive whose main purpose is to restyle HeroUI.
-- **Patchworked** — no mixture of old custom design classes and default HeroUI components.
-- **One-off styled** — no component-specific visual improvisation that makes one screen look different from another.
-
----
-
-## Required Visual Outcome
-
-The product should feel:
-
-- **Framework-native** — visibly standard HeroUI.
-- **Predictable** — controls behave and appear as documented.
-- **Plain in a good way** — no unnecessary visual drama.
-- **Maintainable** — easy to upgrade with HeroUI because local visual overrides are absent.
-- **Consistent** — consistency comes from the framework, not from a custom CSS layer.
-- **Accessible** — standard component accessibility is preserved and completed through proper props and semantics.
-- **Quiet** — the UI gets out of the user's way.
+- **Custom-skinned by accident.** No local visual language unless explicitly approved.
+- **Decorated to compensate for weak structure.** Fix the journey mapping instead.
+- **Atmospheric without purpose.** No mood effects that do not help task completion.
+- **Patchworked.** Do not mix old custom visual classes with framework defaults.
+- **Over-designed.** Do not add custom visual systems for ordinary components.
+- **Inconsistent.** Do not let one feature invent a style that other features must learn.
+- **Accessibility-hostile.** No visual cleanup may remove labels, focus, error handling, or semantics.
 
 ---
 
@@ -121,8 +189,8 @@ The product should feel:
 
 These rules are the default.
 
-A component may deviate only when there is a specific functional requirement that cannot be satisfied through standard HeroUI components, standard HeroUI props, or non-visual structural layout.
+A component may deviate only when there is a specific, articulable requirement that cannot be satisfied through framework components, framework props, semantic HTML, or structural layout.
 
-A valid reason names the rule being overridden and explains why the component genuinely cannot follow it. "Looks better", "matches old Vitarish", "adds identity", "feels premium", or "the screen is too empty" are not valid reasons.
+A valid reason names the rule being overridden and explains why the component genuinely cannot follow it. "Looks better", "more premium", "matches the old design", or "the page feels empty" are not valid reasons.
 
-Deviations are exceptions, not new defaults. They must not introduce a reusable custom visual language.
+Deviations are exceptions, not new defaults. They must not introduce a reusable custom visual language unless a future accepted decision explicitly changes the platform policy.
