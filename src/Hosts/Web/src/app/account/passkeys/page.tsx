@@ -13,6 +13,7 @@ import {
 } from "@/api/generated/users/users";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { startRegistration } from "@/lib/webauthn";
+import { localizeApiError, useLocalizedText } from "@/localization";
 
 export default function PasskeysPage() {
   const { user } = useAuthSession();
@@ -22,6 +23,7 @@ export default function PasskeysPage() {
   const beginRegister = useUsersBeginWebAuthnRegister();
   const completeRegister = useUsersCompleteWebAuthnRegister();
   const deleteCredential = useUsersDeleteWebAuthnCredential();
+  const { t } = useLocalizedText();
 
   const [isSupported, setIsSupported] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,15 +44,15 @@ export default function PasskeysPage() {
       const options = JSON.parse(optionsJson);
       const credential = await startRegistration(options);
       await completeRegister.mutateAsync({ userId, data: { attestationResponseJson: JSON.stringify(credential) } });
-      setSuccess("Passkey registered successfully");
+      setSuccess(t("account.passkeys.registered"));
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "NotAllowedError") {
-        setError("Registration cancelled");
+        setError(t("account.passkeys.registrationCancelled"));
       } else {
-        setError(err instanceof Error ? err.message : "Failed to register passkey");
+        setError(localizeApiError(err, t));
       }
     }
-  }, [beginRegister, completeRegister, userId]);
+  }, [beginRegister, completeRegister, userId, t]);
 
   const handleDelete = useCallback(
     async (credentialId: string) => {
@@ -58,30 +60,30 @@ export default function PasskeysPage() {
       setSuccess(null);
       try {
         await deleteCredential.mutateAsync({ userId, credentialId });
-        setSuccess("Passkey deleted");
+        setSuccess(t("account.passkeys.deleted"));
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to delete passkey");
+        setError(localizeApiError(err, t));
       }
     },
-    [deleteCredential, userId]
+    [deleteCredential, userId, t]
   );
 
   return (
     <div className="max-w-md mx-auto">
       <SurfaceCard>
         <Card.Header>
-          <h1 className="text-2xl font-bold">Passkeys</h1>
+          <h1 className="text-2xl font-bold">{t("account.passkeys.title")}</h1>
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {error && <StatusMessage message={error} />}
           {success && <StatusMessage message={success} type="success" />}
 
           {isSupported === false && (
-            <StatusMessage message="Passkeys are not supported in this browser" />
+            <StatusMessage message={t("account.passkeys.unsupported")} />
           )}
 
           {isLoadingCredentials ? (
-            <p className="text-sm text-muted">Loading passkeys...</p>
+            <p className="text-sm text-muted">{t("account.passkeys.loading")}</p>
           ) : credentials && credentials.length > 0 ? (
             <div className="flex flex-col gap-2">
               {credentials.map((cred) => (
@@ -90,7 +92,7 @@ export default function PasskeysPage() {
                   className="flex items-center justify-between p-3 border border-border rounded-lg"
                 >
                   <span className="text-sm">
-                    {cred.friendlyName ?? "Unnamed passkey"}
+                    {cred.friendlyName ?? t("account.passkeys.unnamed")}
                   </span>
                   <Button
                     variant="danger-soft"
@@ -98,13 +100,13 @@ export default function PasskeysPage() {
                     onPress={() => cred.id && handleDelete(cred.id)}
                     isPending={deleteCredential.isPending}
                   >
-                    Delete
+                    {t("common.actions.delete")}
                   </Button>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted">No passkeys registered</p>
+            <p className="text-sm text-muted">{t("account.passkeys.empty")}</p>
           )}
 
           {isSupported && (
@@ -114,12 +116,12 @@ export default function PasskeysPage() {
               className="w-full"
             >
               <i className="fa-solid fa-plus" />
-              Register New Passkey
+              {t("account.passkeys.registerAction")}
             </Button>
           )}
 
           <Link href={Routes.Account.Index} className="text-sm">
-            Back to settings
+            {t("common.actions.backToSettings")}
           </Link>
         </Card.Content>
       </SurfaceCard>

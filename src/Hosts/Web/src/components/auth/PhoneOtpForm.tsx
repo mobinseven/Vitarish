@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { usePhoneLogin } from "@/hooks/auth/usePhoneLogin";
+import { useLocalizedText } from "@/localization";
 import { StatusMessage } from "./StatusMessage";
 import { OtpVerificationStep } from "./OtpVerificationStep";
 
@@ -24,6 +25,7 @@ export function PhoneOtpForm({ returnUrl }: PhoneOtpFormProps) {
     remainingAttempts,
     expiresAt,
   } = usePhoneLogin();
+  const { t } = useLocalizedText();
   const [phoneInput, setPhoneInput] = useState("");
   const [code, setCode] = useState("");
 
@@ -50,7 +52,7 @@ export function PhoneOtpForm({ returnUrl }: PhoneOtpFormProps) {
         remainingAttempts={remainingAttempts}
         expiresAt={expiresAt}
         autoSubmitOnCapturedCode
-        changeDestinationLabel="Use a different number"
+        changeDestinationLabel={t("auth.otp.differentPhoneAction")}
       />
     );
   }
@@ -59,9 +61,9 @@ export function PhoneOtpForm({ returnUrl }: PhoneOtpFormProps) {
     <Form onSubmit={handlePhoneSubmit} className="flex flex-col gap-4">
       {errorMessage && <StatusMessage message={errorMessage} />}
       <TextField name="phone" isRequired isDisabled={isLoading}>
-        <Label>Phone Number</Label>
+        <Label>{t("auth.otp.phoneLabel")}</Label>
         <Input
-          placeholder="Enter your phone number"
+          placeholder={t("auth.otp.phonePlaceholder")}
           value={phoneInput}
           onChange={(e) => setPhoneInput(e.target.value)}
           autoComplete="tel"
@@ -73,7 +75,7 @@ export function PhoneOtpForm({ returnUrl }: PhoneOtpFormProps) {
         isPending={isLoading}
         className="w-full"
       >
-        Send Code
+        {t("auth.otp.sendAction")}
       </Button>
     </Form>
   );

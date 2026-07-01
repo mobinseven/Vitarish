@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { useLogout } from "@/hooks/auth/useLogout";
+import { useLocalizedText } from "@/localization";
 
 export function UserMenu() {
   const { displayProfile } = useAuthSession();
   const { logout, isLoading } = useLogout();
   const router = useRouter();
+  const { t } = useLocalizedText();
 
   function handleAction(key: React.Key) {
     if (key === "account") {
@@ -36,16 +38,16 @@ export function UserMenu() {
       </Dropdown.Trigger>
       <Dropdown.Popover>
         <Dropdown.Menu onAction={handleAction}>
-          <Dropdown.Item id="account" textValue="Account">
-            <Label>Account</Label>
+          <Dropdown.Item id="account" textValue={t("appShell.userMenu.account")}>
+            <Label>{t("appShell.userMenu.account")}</Label>
           </Dropdown.Item>
           <Dropdown.Item
             id="logout"
-            textValue="Log Out"
+            textValue={t("appShell.userMenu.signOut")}
             variant="danger"
             isDisabled={isLoading}
           >
-            <Label>Log Out</Label>
+            <Label>{t("appShell.userMenu.signOut")}</Label>
           </Dropdown.Item>
         </Dropdown.Menu>
       </Dropdown.Popover>

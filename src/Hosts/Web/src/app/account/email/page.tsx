@@ -9,11 +9,13 @@ import { useUsersGetProfile } from "@/api/generated/users/users";
 import { apiFetch } from "@/api/client/apiFetch";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
+import { localizeApiError, useLocalizedText } from "@/localization";
 
 export default function EmailChangePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
   const { data: profile } = useUsersGetProfile(userId);
+  const { t } = useLocalizedText();
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -38,12 +40,12 @@ export default function EmailChangePage() {
         setChallengeId(result.challengeId);
         setStep("code");
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to send code");
+        setError(localizeApiError(err, t));
       } finally {
         setIsLoading(false);
       }
     },
-    [email]
+    [email, t]
   );
 
   const handleCodeSubmit = useCallback(
@@ -64,35 +66,35 @@ export default function EmailChangePage() {
         setEmail("");
         setCode("");
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to verify code");
+        setError(localizeApiError(err, t));
       } finally {
         setIsLoading(false);
       }
     },
-    [challengeId, code]
+    [challengeId, code, t]
   );
 
   return (
     <div className="max-w-md mx-auto">
       <SurfaceCard>
         <Card.Header>
-          <h1 className="text-2xl font-bold">Change Email</h1>
+          <h1 className="text-2xl font-bold">{t("account.email.title")}</h1>
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {profile?.email && (
             <p className="text-sm text-muted">
-              Current: {profile.email}
+              {t("account.email.currentValue", { value: profile.email })}
             </p>
           )}
           {error && <StatusMessage message={error} />}
           {success && (
-            <StatusMessage message="Email updated successfully" type="success" />
+            <StatusMessage message={t("account.email.updateSucceeded")} type="success" />
           )}
 
           {step === "email" ? (
             <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
               <TextField name="email" type="email" isRequired>
-                <Label>New Email</Label>
+                <Label>{t("account.email.newEmail")}</Label>
                 <Input
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -104,13 +106,13 @@ export default function EmailChangePage() {
                 isPending={isLoading}
                 className="w-full"
               >
-                Send Code
+                {t("auth.otp.sendAction")}
               </Button>
             </form>
           ) : (
             <form onSubmit={handleCodeSubmit} className="flex flex-col gap-4">
               <p className="text-sm text-muted">
-                Code sent to {email}
+                {t("auth.otp.codeSentTo", { destination: email })}
               </p>
               <OtpCodeInput
                 value={code}
@@ -123,7 +125,7 @@ export default function EmailChangePage() {
                 isDisabled={code.length !== 6}
                 className="w-full"
               >
-                Verify Code
+                {t("auth.otp.verifyAction")}
               </Button>
               <Button
                 variant="tertiary"
@@ -134,13 +136,13 @@ export default function EmailChangePage() {
                 isDisabled={isLoading}
                 className="w-full"
               >
-                Use a different email
+                {t("auth.otp.differentEmailAction")}
               </Button>
             </form>
           )}
 
           <Link href={Routes.Account.Index} className="text-sm">
-            Back to settings
+            {t("common.actions.backToSettings")}
           </Link>
         </Card.Content>
       </SurfaceCard>

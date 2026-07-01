@@ -11,18 +11,14 @@ import {
 } from "@/api/generated/users/users";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OptionSelector } from "@/components/account/OptionSelector";
-
-const themes = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-  { value: "system", label: "System" },
-];
+import { useLocalizedText } from "@/localization";
 
 export default function ThemePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
   const { setTheme: setNextTheme } = useTheme();
   const { data: currentTheme } = useUsersGetTheme(userId);
+  const { t } = useLocalizedText();
   const setTheme = useUsersSetTheme();
 
   const [selected, setSelected] = useState(currentTheme ?? "system");
@@ -35,29 +31,35 @@ export default function ThemePage() {
     setSuccess(true);
   }, [selected, setTheme, setNextTheme, userId]);
 
+  const themes = [
+    { value: "light", label: t("account.theme.light") },
+    { value: "dark", label: t("account.theme.dark") },
+    { value: "system", label: t("account.theme.system") },
+  ];
+
   return (
     <div className="max-w-md mx-auto flex flex-col gap-4">
       <OptionSelector
-        title="Theme"
+        title={t("account.theme.title")}
         options={themes}
         selected={selected}
         onSelect={setSelected}
       />
       {setTheme.isError && (
-        <StatusMessage message="Failed to update theme" />
+        <StatusMessage message={t("account.theme.updateFailed")} />
       )}
       {success && (
-        <StatusMessage message="Theme updated successfully" type="success" />
+        <StatusMessage message={t("account.theme.updateSucceeded")} type="success" />
       )}
       <Button
         onPress={handleSave}
         isPending={setTheme.isPending}
         className="w-full"
       >
-        Save
+        {t("common.actions.save")}
       </Button>
       <Link href={Routes.Account.Index} className="text-sm">
-        Back to settings
+        {t("common.actions.backToSettings")}
       </Link>
     </div>
   );

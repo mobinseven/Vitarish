@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { useOtpCodeCapture } from "@/hooks/auth/useOtpCodeCapture";
 import { useOtpExpiry } from "@/hooks/auth/useOtpExpiry";
 import { normalizeOtpCode } from "@/lib/auth/otpCode";
+import { useLocalizedText } from "@/localization";
 import { OtpCodeInput } from "./OtpCodeInput";
 import { StatusMessage } from "./StatusMessage";
 
@@ -39,8 +40,10 @@ export function OtpVerificationStep({
   expiresAt,
   expectedLength = 6,
   autoSubmitOnCapturedCode = true,
-  changeDestinationLabel = "Use a different destination",
+  changeDestinationLabel,
 }: OtpVerificationStepProps) {
+  const { t } = useLocalizedText();
+  const resetLabel = changeDestinationLabel ?? t("auth.otp.differentDestinationAction");
   const expiry = useOtpExpiry(expiresAt);
   const lastSubmittedCapturedCodeRef = useRef<string | null>(null);
   const normalizedCode = normalizeOtpCode(code, expectedLength);
@@ -90,10 +93,10 @@ export function OtpVerificationStep({
       {errorMessage && <StatusMessage message={errorMessage} />}
       {statusMessage && !errorMessage && <StatusMessage message={statusMessage} />}
       <p className="text-sm text-muted">
-        Code sent to {destinationLabel}
+        {t("auth.otp.codeSentTo", { destination: destinationLabel })}
         {remainingAttempts !== undefined && remainingAttempts !== null && (
           <span className="block text-xs">
-            {remainingAttempts} attempts remaining
+            {t("auth.otp.attemptsRemaining", { count: remainingAttempts })}
           </span>
         )}
         {expiry.label && (
@@ -105,7 +108,7 @@ export function OtpVerificationStep({
         onChange={onCodeChange}
         isDisabled={isLoading || expiry.isExpired}
         isInvalid={Boolean(errorMessage) || expiry.isExpired}
-        errorMessage={expiry.isExpired ? "Code expired; request a new code" : errorMessage ?? undefined}
+        errorMessage={expiry.isExpired ? t("auth.otp.codeExpired") : errorMessage ?? undefined}
         expectedLength={expectedLength}
       />
       <Button
@@ -114,7 +117,7 @@ export function OtpVerificationStep({
         isDisabled={!canVerify}
         className="w-full"
       >
-        Verify Code
+        {t("auth.otp.verifyAction")}
       </Button>
       <Button
         type="button"
@@ -123,7 +126,7 @@ export function OtpVerificationStep({
         isDisabled={isLoading}
         className="w-full"
       >
-        Resend Code
+        {t("auth.otp.resendAction")}
       </Button>
       <Button
         type="button"
@@ -132,7 +135,7 @@ export function OtpVerificationStep({
         isDisabled={isLoading}
         className="w-full"
       >
-        {changeDestinationLabel}
+        {resetLabel}
       </Button>
     </Form>
   );

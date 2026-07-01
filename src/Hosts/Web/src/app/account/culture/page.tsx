@@ -11,17 +11,14 @@ import {
 } from "@/api/generated/users/users";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OptionSelector } from "@/components/account/OptionSelector";
-
-const cultures = [
-  { value: "en-US", label: "English" },
-  { value: "fa-IR", label: "فارسی" },
-];
+import { useLocalizedText } from "@/localization";
 
 export default function CulturePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
   const router = useRouter();
   const { data: currentCulture } = useUsersGetCulture(userId);
+  const { t } = useLocalizedText();
   const setCulture = useUsersSetCulture();
 
   const [selected, setSelected] = useState(currentCulture ?? "en-US");
@@ -34,29 +31,34 @@ export default function CulturePage() {
     router.refresh();
   }, [selected, setCulture, router, userId]);
 
+  const cultures = [
+    { value: "en-US", label: t("account.culture.english") },
+    { value: "fa-IR", label: t("account.culture.persian") },
+  ];
+
   return (
     <div className="max-w-md mx-auto flex flex-col gap-4">
       <OptionSelector
-        title="Language"
+        title={t("account.culture.title")}
         options={cultures}
         selected={selected}
         onSelect={setSelected}
       />
       {setCulture.isError && (
-        <StatusMessage message="Failed to update language" />
+        <StatusMessage message={t("account.culture.updateFailed")} />
       )}
       {success && (
-        <StatusMessage message="Language updated successfully" type="success" />
+        <StatusMessage message={t("account.culture.updateSucceeded")} type="success" />
       )}
       <Button
         onPress={handleSave}
         isPending={setCulture.isPending}
         className="w-full"
       >
-        Save
+        {t("common.actions.save")}
       </Button>
       <Link href={Routes.Account.Index} className="text-sm">
-        Back to settings
+        {t("common.actions.backToSettings")}
       </Link>
     </div>
   );

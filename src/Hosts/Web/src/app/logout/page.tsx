@@ -4,18 +4,20 @@ import { Button } from "@heroui/react";
 import { CenteredSurface } from "@/design-system";
 import { useLogout } from "@/hooks/auth/useLogout";
 import { StatusMessage } from "@/components/auth/StatusMessage";
+import { useLocalizedText } from "@/localization";
 
 export default function LogoutPage() {
   const { logout, isLoading, isContextLoading, contextStatus, errorMessage } = useLogout();
+  const { t } = useLocalizedText();
 
   return (
-    <CenteredSurface title="Sign Out" description="Are you sure you want to sign out?">
+    <CenteredSurface title={t("auth.logout.title")} description={t("auth.logout.description")}>
       <div className="flex flex-col gap-4">
         {contextStatus === "already-signed-out" && (
-          <StatusMessage message="Your session has already ended. You can return to sign in." />
+          <StatusMessage message={t("auth.logout.alreadyEnded")} />
         )}
         {contextStatus === "unavailable" && (
-          <StatusMessage message="We could not load logout details, but you can still try signing out." />
+          <StatusMessage message={t("auth.logout.unavailable")} />
         )}
         {errorMessage && <StatusMessage message={errorMessage} />}
         <Button
@@ -24,7 +26,7 @@ export default function LogoutPage() {
           onPress={() => logout()}
           className="w-full"
         >
-          Sign Out
+          {t("auth.logout.title")}
         </Button>
         <Button
           variant="tertiary"
@@ -32,7 +34,7 @@ export default function LogoutPage() {
           isDisabled={isLoading || isContextLoading}
           className="w-full"
         >
-          Cancel
+          {t("common.actions.cancel")}
         </Button>
       </div>
     </CenteredSurface>

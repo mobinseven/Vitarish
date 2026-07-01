@@ -9,11 +9,13 @@ import { useUsersGetProfile } from "@/api/generated/users/users";
 import { apiFetch } from "@/api/client/apiFetch";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
+import { localizeApiError, useLocalizedText } from "@/localization";
 
 export default function PhoneChangePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
   const { data: profile } = useUsersGetProfile(userId);
+  const { t } = useLocalizedText();
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [code, setCode] = useState("");
@@ -38,12 +40,12 @@ export default function PhoneChangePage() {
         setChallengeId(result.challengeId);
         setStep("code");
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to send code");
+        setError(localizeApiError(err, t));
       } finally {
         setIsLoading(false);
       }
     },
-    [phoneNumber]
+    [phoneNumber, t]
   );
 
   const handleCodeSubmit = useCallback(
@@ -64,35 +66,35 @@ export default function PhoneChangePage() {
         setPhoneNumber("");
         setCode("");
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to verify code");
+        setError(localizeApiError(err, t));
       } finally {
         setIsLoading(false);
       }
     },
-    [challengeId, code]
+    [challengeId, code, t]
   );
 
   return (
     <div className="max-w-md mx-auto">
       <SurfaceCard>
         <Card.Header>
-          <h1 className="text-2xl font-bold">Change Phone Number</h1>
+          <h1 className="text-2xl font-bold">{t("account.phone.title")}</h1>
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {profile?.phoneNumber && (
             <p className="text-sm text-muted">
-              Current: {profile.phoneNumber}
+              {t("account.phone.currentValue", { value: profile.phoneNumber })}
             </p>
           )}
           {error && <StatusMessage message={error} />}
           {success && (
-            <StatusMessage message="Phone number updated successfully" type="success" />
+            <StatusMessage message={t("account.phone.updateSucceeded")} type="success" />
           )}
 
           {step === "phone" ? (
             <form onSubmit={handlePhoneSubmit} className="flex flex-col gap-4">
               <TextField name="phone" isRequired>
-                <Label>New Phone Number</Label>
+                <Label>{t("account.phone.newPhone")}</Label>
                 <Input
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
@@ -105,13 +107,13 @@ export default function PhoneChangePage() {
                 isPending={isLoading}
                 className="w-full"
               >
-                Send Code
+                {t("auth.otp.sendAction")}
               </Button>
             </form>
           ) : (
             <form onSubmit={handleCodeSubmit} className="flex flex-col gap-4">
               <p className="text-sm text-muted">
-                Code sent to {phoneNumber}
+                {t("auth.otp.codeSentTo", { destination: phoneNumber })}
               </p>
               <OtpCodeInput
                 value={code}
@@ -124,7 +126,7 @@ export default function PhoneChangePage() {
                 isDisabled={code.length !== 6}
                 className="w-full"
               >
-                Verify Code
+                {t("auth.otp.verifyAction")}
               </Button>
               <Button
                 variant="tertiary"
@@ -135,13 +137,13 @@ export default function PhoneChangePage() {
                 isDisabled={isLoading}
                 className="w-full"
               >
-                Use a different number
+                {t("auth.otp.differentPhoneAction")}
               </Button>
             </form>
           )}
 
           <Link href={Routes.Account.Index} className="text-sm">
-            Back to settings
+            {t("common.actions.backToSettings")}
           </Link>
         </Card.Content>
       </SurfaceCard>

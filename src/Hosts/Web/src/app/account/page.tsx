@@ -3,30 +3,32 @@
 import { Card, Link } from "@heroui/react";
 import { SurfaceCard } from "@/design-system";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useLocalizedText, type MessageKey } from "@/localization";
 
 const settingsLinks = [
-  { label: "Name", href: "/account/name", icon: "fa-solid fa-person" },
-  { label: "Email", href: "/account/email", icon: "fa-solid fa-envelope" },
-  { label: "Phone", href: "/account/phone", icon: "fa-solid fa-mobile" },
-  { label: "Password", href: "/account/password", icon: "fa-solid fa-lock" },
-  { label: "Passkeys", href: "/account/passkeys", icon: "fa-solid fa-key" },
-  { label: "Theme", href: "/account/theme", icon: "fa-solid fa-paint-brush" },
-  { label: "Language", href: "/account/culture", icon: "fa-solid fa-globe" },
+  { labelKey: "account.navigation.name" as MessageKey, href: "/account/name", icon: "fa-solid fa-person" },
+  { labelKey: "account.navigation.email" as MessageKey, href: "/account/email", icon: "fa-solid fa-envelope" },
+  { labelKey: "account.navigation.phone" as MessageKey, href: "/account/phone", icon: "fa-solid fa-mobile" },
+  { labelKey: "account.navigation.password" as MessageKey, href: "/account/password", icon: "fa-solid fa-lock" },
+  { labelKey: "account.navigation.passkeys" as MessageKey, href: "/account/passkeys", icon: "fa-solid fa-key" },
+  { labelKey: "account.navigation.theme" as MessageKey, href: "/account/theme", icon: "fa-solid fa-paint-brush" },
+  { labelKey: "account.navigation.language" as MessageKey, href: "/account/culture", icon: "fa-solid fa-globe" },
 ];
 
 export default function AccountSettingsPage() {
   const { isAuthenticated, displayProfile } = useAuthSession();
+  const { t } = useLocalizedText();
 
   return (
     <div className="max-w-2xl mx-auto">
       <SurfaceCard>
         <Card.Header>
-          <h1 className="text-2xl font-bold">Account Settings</h1>
+          <h1 className="text-2xl font-bold">{t("account.settings")}</h1>
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {isAuthenticated && (
             <div className="text-sm text-muted mb-4">
-              Signed in as {displayProfile.displayLabel}
+              {t("account.signedInAs", { name: displayProfile.displayLabel })}
             </div>
           )}
           {settingsLinks.map((link) => (
@@ -34,7 +36,7 @@ export default function AccountSettingsPage() {
               <Card className="ds-surface-card ds-surface-card-default ds-card-list-item">
                 <div className="flex items-center gap-4">
                   <i className={link.icon} />
-                  <span>{link.label}</span>
+                  <span>{t(link.labelKey)}</span>
                 </div>
               </Card>
             </Link>
