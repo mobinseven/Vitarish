@@ -1,6 +1,11 @@
-import { redirect } from "next/navigation";
-import { Routes } from "@/app/routes";
+import type { Metadata } from "next";
+import { ClinicOwnerDashboard } from "@/features/clinic/dashboard/components/ClinicOwnerDashboard";
 
-export default function ClinicIndexRoute() {
-  redirect(Routes.Clinic.Patients.Index);
+export const metadata: Metadata = {
+  title: "Clinic Dashboard | Vitarish",
+  description: "Manage your clinic operations",
+};
+
+export default function ClinicOwnerDashboardPage() {
+  return <ClinicOwnerDashboard />;
 }

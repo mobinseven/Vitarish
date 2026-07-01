@@ -1,0 +1,22 @@
+"use client";
+
+import { Card } from "@heroui/react";
+
+interface PatientProceduresPanelProps {
+  patientId: string;
+}
+
+export function PatientProceduresPanel({ patientId }: PatientProceduresPanelProps) {
+  return (
+    <Card className="glass-card">
+      <Card.Header>
+        <h2 className="text-lg font-semibold">Procedures</h2>
+      </Card.Header>
+      <Card.Content>
+        <p className="text-sm text-muted">
+          Procedures management coming soon. Patient ID: {patientId}
+        </p>
+      </Card.Content>
+    </Card>
+  );
+}
