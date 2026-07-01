@@ -10,13 +10,13 @@ namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 
 internal sealed class TaminCredentialSessionStore(
     PrescriptionDbContext dbContext,
-    IHttpClientFactory httpClientFactory,
+    ITaminSessionFactory sessionFactory,
     IOptionsMonitor<TaminOptions> taminOptions,
     TaminErrorMapper errorMapper,
     ILogger<TaminCredentialSessionStore> logger) : ITaminCredentialSessionStore
 {
     private readonly PrescriptionDbContext _dbContext = dbContext;
-    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+    private readonly ITaminSessionFactory _sessionFactory = sessionFactory;
     private readonly IOptionsMonitor<TaminOptions> _taminOptions = taminOptions;
     private readonly TaminErrorMapper _errorMapper = errorMapper;
     private readonly ILogger<TaminCredentialSessionStore> _logger = logger;
@@ -38,12 +38,9 @@ internal sealed class TaminCredentialSessionStore(
         }
 
         if (!string.IsNullOrWhiteSpace(credential.TokenSecretRef) &&
-            credential.TokenExpiresAt > DateTime.UtcNow.AddMinutes(2))
+            credential.TokenExpiresAt > DateTime.UtcNow.Add(_taminOptions.CurrentValue.TokenSkew))
         {
-            TaminOptions options = _taminOptions.CurrentValue;
-            HttpClient httpClient = _httpClientFactory.CreateClient("TaminClient");
-            TaminSession session = new(httpClient, credential.TokenSecretRef,
-                new Uri(options.EffectiveBaseUrl), needToken: true, clientId: options.ApiKey);
+            TaminSession session = _sessionFactory.CreateTokenSession(credential.TokenSecretRef);
             return TaminSessionResult.Success(session, ResolveDoctorTaminId(credential), credential.ProviderUsername, credential.ProviderClinicIdentifier);
         }
 
@@ -57,19 +54,12 @@ internal sealed class TaminCredentialSessionStore(
             return TaminSessionResult.Failure(MissingCredentialError(doctorId));
         }
 
-        TaminOptions options = _taminOptions.CurrentValue;
-        HttpClient httpClient = _httpClientFactory.CreateClient("TaminClient");
-        Uri baseUri = new(options.EffectiveBaseUrl);
-
         try
         {
-            TaminSession session = await TaminSession.CreateAsync(
-                httpClient,
-                username: credential.ProviderUsername,
-                password: credential.CredentialSecretRef,
-                clientId: options.ApiKey,
-                baseUri: baseUri,
-                cancellationToken: cancellationToken);
+            TaminSession session = await _sessionFactory.CreatePasswordSessionAsync(
+                credential.ProviderUsername,
+                credential.CredentialSecretRef,
+                cancellationToken);
 
             string? token = session.HttpClient.DefaultRequestHeaders.Authorization?.Parameter;
             if (string.IsNullOrWhiteSpace(token))

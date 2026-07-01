@@ -48,6 +48,9 @@ public static class DependencyInjectionExtensions
     {
         _ = services.Configure<TaminOptions>(configuration.GetSection(TaminOptions.SectionName));
         _ = services.AddHttpClient("TaminClient");
+        _ = services.AddSingleton<ITaminDateFormatter, TaminDateFormatter>();
+        _ = services.AddScoped<ITaminSessionFactory, TaminSessionFactory>();
+        _ = services.AddScoped<ITaminMedicalInfrastructureGateway, TaminMedicalInfrastructureGateway>();
         _ = services.AddScoped<ITaminCredentialSessionStore, TaminCredentialSessionStore>();
         _ = services.AddScoped<TaminInsuranceAdapter>();
         _ = services.AddSingleton<TaminErrorMapper>();
