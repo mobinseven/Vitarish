@@ -194,7 +194,7 @@ Legacy instructions may refer to `skills/`; use `.agents/skills/` as the canonic
 | Architecture decision, ADR need, supersession, architecture conflict      | Platform ADR Steward                | `.agents/skills/platform-adr-steward/SKILL.md`                |
 | Unit tests, required tests, hot test scenarios, risk-based test planning  | Platform Test Curator               | `.agents/skills/platform-test-curator/SKILL.md`               |
 | File placement, layer ownership, module boundary, artifact classification | Platform Artifact Placement Steward | `.agents/skills/platform-artifact-placement-steward/SKILL.md` |
-| Localization review, hard-coded UI text, `IStringLocalizer` usage                    | Platform Localization Maintenance  | `.agents/skills/platform-localization-maintenance/SKILL.md`  |
+| Localization review, hard-coded UI text, React localizer, `IStringLocalizer` usage | Platform Localization Maintenance  | `.agents/skills/platform-localization-maintenance/SKILL.md`  |
 | Frontend/backend isolation, Interface/backend dependency, HTTP/API boundaries          | Platform Frontend/Backend Isolation | `.agents/skills/platform-frontend-backend-isolation/SKILL.md` |
 | OpenAPI module/app contract, operation IDs, schemas, auth, ProblemDetails, linting      | Platform OpenAPI Contract Steward | `.agents/skills/platform-openapi-contract-steward/SKILL.md` |
 | Orval generation, generated DTOs/hooks/query keys, custom apiFetch, MSW mocks           | Platform Generated React Client Steward | `.agents/skills/platform-generated-react-client-steward/SKILL.md` |
@@ -205,6 +205,27 @@ Legacy instructions may refer to `skills/`; use `.agents/skills/` as the canonic
 | Execute implementation plan | Platform Auto Plan Executor | `.agents/skills/platform-auto-plan-executor/SKILL.md` |
 | Review implementation | Platform Auto Loop Reviewer | `.agents/skills/platform-auto-loop-reviewer/SKILL.md` |
 | Manage implementation loop state | Platform Loop State Manager | `.agents/skills/platform-loop-state-manager/SKILL.md` |
+
+### React Localization Contract
+
+Use `Platform Localization Maintenance` for any task that adds or changes user-facing text in the React web host.
+
+Before React UI implementation:
+
+1. Read `.agents/skills/platform-localization-maintenance/SKILL.md`.
+2. Use `src/Hosts/Web/src/i18n/messages.ts` as the React message source of truth.
+3. Use `useLocalizer().t(...)` in client components.
+4. Keep supported cultures, direction, and the culture cookie in `src/Hosts/Web/src/i18n/cultures.ts`.
+5. Do not create page-local dictionaries or ad hoc `{ en, fa }` maps.
+6. Do not leak React localization into Domain, Application, OpenAPI, or generated clients.
+
+Validation from `src/Hosts/Web`:
+
+```bash
+npm run validate:localization
+npm run typecheck
+npm run test
+```
 
 ### HeroUI React Contract
 
@@ -306,6 +327,12 @@ For a HeroUI v3 UI change:
 HeroUI React → UI Design Steward (philosophy → framework match) → Feature UI Integration if feature hooks/data flow are affected → Test Plan → Implementation
 ```
 
+For React UI text or localization changes:
+
+```txt
+Localization Maintenance → Artifact Placement if new files are needed → Test Plan → Implementation
+```
+
 For a code placement or refactor task:
 
 ```txt
@@ -347,7 +374,7 @@ When encountering any code, answer:
 1. Is a journey needed?
 2. Is a roadmap or task derivation needed? If yes, use `Platform Feature Roadmap Curator`.
 3. Is an ADR needed?
-4. Does the change affect or gets affected by an OpenAPI contract, generated React client, HeroUI feature integration, HeroUI v3 component/theming behavior, or visual design rules?
+4. Does the change affect or get affected by localization, an OpenAPI contract, generated React client, HeroUI feature integration, HeroUI v3 component/theming behavior, or visual design rules?
 5. Where should each artifact live?
 6. What unit tests are required?
 7. What hot test scenarios are required?
