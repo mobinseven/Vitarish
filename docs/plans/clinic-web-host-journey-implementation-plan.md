@@ -183,13 +183,13 @@ src/Hosts/<ReactWebHost>/src/
 
 ### 6.1 Foundation Tasks
 
-#### Task: Create web clinic route constants
+#### Task: Extend centralized web clinic route constants
 
-1. Create `src/Hosts/<ReactWebHost>/src/routes/clinicRoutes.ts`.
-2. Mirror all paths from `src/Hosts/Main/Common/Routes/ClinicRoutes.cs`.
-3. Export builders for parameterized routes: patient, patient edit, procedure, event, reservation, shift, shift edit, shift occurrence, service type, service, service provider, user reservation, and user shift.
+1. Extend the existing centralized routes file at src/Hosts/Web/src/app/routes.ts.
+2. Mirror all paths from src/Hosts/Main/Common/Routes/ClinicRoutes.cs within the Clinic route object.
+3. Export builders/functions for parameterized routes: patient, patient edit, procedure, event, reservation, shift, shift edit, shift occurrence, service type, service, service provider, user reservation, and user shift.
 4. Keep route casing and kebab-case identical to server route constants.
-5. Make this the only route source used by web clinic pages/components.
+5. Ensure src/Hosts/Web/src/app/routes.ts remains the single route source of truth used by web clinic pages/components.
 
 #### Task: Add owner and user route guards
 
