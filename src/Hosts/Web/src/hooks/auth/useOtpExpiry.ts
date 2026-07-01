@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getOtpExpiryPresentation } from "@/lib/auth/otpExpiry";
 
 export function useOtpExpiry(expiresAt: string | null | undefined) {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
     setNow(new Date());
@@ -17,6 +17,10 @@ export function useOtpExpiry(expiresAt: string | null | undefined) {
 
     return () => window.clearInterval(interval);
   }, [expiresAt]);
+
+  if (!now) {
+    return { remainingSeconds: null, isExpired: false, label: null };
+  }
 
   return getOtpExpiryPresentation(expiresAt, now);
 }
