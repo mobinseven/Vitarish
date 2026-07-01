@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { ClinicOwnerPatientDetailPage } from "@/features/clinic/components";
+import { PatientOverviewPageSurface } from "@/features/clinic/patients/overview/components/PatientOverviewPageSurface";
 
 export default function PatientDetailRoute({
   params,
@@ -9,5 +9,5 @@ export default function PatientDetailRoute({
   params: Promise<{ patientId: string }>;
 }) {
   const { patientId } = use(params);
-  return <ClinicOwnerPatientDetailPage patientId={patientId} />;
+  return <PatientOverviewPageSurface patientId={patientId} />;
 }
