@@ -38,7 +38,7 @@ export function AuthorizationGuard({ requiredRole, children }: AuthorizationGuar
         <div className="text-center">
           <h1 className="text-2xl font-bold text-danger">Access Denied</h1>
           <p className="text-sm text-muted mt-2">
-            You don't have permission to access this area.
+            You do not have permission to access this area.
           </p>
         </div>
       </div>

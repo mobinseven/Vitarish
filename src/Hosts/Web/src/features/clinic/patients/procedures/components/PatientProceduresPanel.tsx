@@ -6,7 +6,7 @@ interface PatientProceduresPanelProps {
   patientId: string;
 }
 
-export function PatientProceduresPanel({ patientId }: PatientProceduresPanelProps) {
+export function PatientProceduresPanel({ patientId: _patientId }: PatientProceduresPanelProps) {
   return (
     <Card className="glass-card">
       <Card.Header>

@@ -24,7 +24,7 @@ interface TenantAuthorizationResult {
  * Policy: IdentityDefinitions.TenantUser for /user/clinic/**
  */
 export function useTenantAuthorization(
-  _requiredRole?: TenantRole
+  _requiredRole?: TenantRole // eslint-disable-line @typescript-eslint/no-unused-vars
 ): TenantAuthorizationResult {
   const { isAuthenticated, isLoading, user, displayProfile } = useAuthSession();
 
