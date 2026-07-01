@@ -20,6 +20,7 @@ Applied skills:
 
 - `platform-artifact-placement-steward`
 - `platform-feature-ui-integration-steward`
+- `platform-ui-design-steward`
 
 ## 1. Objective
 
