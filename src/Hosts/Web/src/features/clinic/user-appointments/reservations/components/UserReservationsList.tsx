@@ -33,7 +33,7 @@ export function UserReservationsList() {
         <Card className="p-8">
           <div className="flex items-center justify-center gap-2">
             <Spinner size="sm" />
-            <span className="text-default-500">{t("common.loading")}</span>
+            <span className="text-default-500">{t("common.states.loading")}</span>
           </div>
         </Card>
       )}

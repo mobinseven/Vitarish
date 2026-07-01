@@ -29,7 +29,10 @@ export function useUpdateService() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (dto: ServiceWriteDto) => updateService(dto),
-    onSuccess: () => qc.invalidateQueries({ queryKey: appointmentKeys.services }),
+    onSuccess: (_result, variables) => {
+      qc.invalidateQueries({ queryKey: appointmentKeys.services });
+      if (variables.id) qc.invalidateQueries({ queryKey: appointmentKeys.serviceDetail(variables.id) });
+    },
   });
 }
 

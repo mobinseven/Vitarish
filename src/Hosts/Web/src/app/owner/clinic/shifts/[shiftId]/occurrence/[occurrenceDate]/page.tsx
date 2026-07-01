@@ -21,10 +21,10 @@ export default function ClinicOwnerShiftOccurrencePage({
     <div className="flex flex-col gap-6">
       <div>
         <Button variant="ghost" className="mb-2" onPress={() => router.push(Routes.Clinic.Appointments.Shifts.Detail(shiftId))}>
-          ← {t("common.actions.back")}
+          ← {t("common.actions.previous")}
         </Button>
         <h1 className="text-2xl font-bold">
-          {shift ? `${shift.startTime} - ${shift.endTime}` : t("common.loading")}
+          {shift ? `${shift.startTime} - ${shift.endTime}` : t("common.states.loading")}
         </h1>
         <p className="text-sm text-default-500">{occurrenceDate}</p>
       </div>

@@ -50,7 +50,7 @@ export default function ClinicServiceTypeDetailPage({
       <Card className="p-8">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">{t("common.loading")}</span>
+          <span className="text-default-500">{t("common.states.loading")}</span>
         </div>
       </Card>
     );
@@ -69,7 +69,7 @@ export default function ClinicServiceTypeDetailPage({
       <div className="flex items-center justify-between">
         <div>
           <Button variant="ghost" className="mb-2" onPress={() => router.push(Routes.Clinic.Appointments.ServiceTypes.Index)}>
-            ← {t("common.actions.back")}
+            ← {t("common.actions.previous")}
           </Button>
           <h1 className="text-2xl font-bold">{editing ? "Edit Service Type" : serviceType.name}</h1>
         </div>

@@ -27,7 +27,7 @@ export default function ClinicOwnerReservationDetailPage({
       <Card className="p-8">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">{t("common.loading")}</span>
+          <span className="text-default-500">{t("common.states.loading")}</span>
         </div>
       </Card>
     );
@@ -45,7 +45,7 @@ export default function ClinicOwnerReservationDetailPage({
     <div className="flex flex-col gap-6">
       <div>
         <Button variant="ghost" className="mb-2" onPress={() => router.push(Routes.Clinic.Appointments.Reservations.Index)}>
-          ← {t("common.actions.back")}
+          ← {t("common.actions.previous")}
         </Button>
         <h1 className="text-2xl font-bold">{t("clinic.appointments.reservations.detailTitle")}</h1>
       </div>

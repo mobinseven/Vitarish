@@ -24,7 +24,7 @@ export default function ClinicUserShiftDetailPage({
       <Card className="p-8">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">{t("common.loading")}</span>
+          <span className="text-default-500">{t("common.states.loading")}</span>
         </div>
       </Card>
     );
@@ -42,7 +42,7 @@ export default function ClinicUserShiftDetailPage({
     <div className="flex flex-col gap-6">
       <div>
         <Button variant="ghost" className="mb-2" onPress={() => router.push(Routes.ClinicUser.Shifts.Index)}>
-          ← {t("common.actions.back")}
+          ← {t("common.actions.previous")}
         </Button>
         <h1 className="text-2xl font-bold">{DAY_NAMES[shift.dayOfWeek]} {shift.startTime} - {shift.endTime}</h1>
       </div>

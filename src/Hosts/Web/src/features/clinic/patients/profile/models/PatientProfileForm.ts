@@ -93,13 +93,3 @@ export interface PatientProfileFormErrors {
   phone?: string;
   email?: string;
 }
-
-export function validatePatientProfile(data: PatientProfileFormData): PatientProfileFormErrors {
-  const errors: PatientProfileFormErrors = {};
-  if (!data.firstName.trim()) errors.firstName = "First name is required";
-  if (!data.lastName.trim()) errors.lastName = "Last name is required";
-  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.email = "Invalid email format";
-  }
-  return errors;
-}

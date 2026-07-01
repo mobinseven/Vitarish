@@ -29,7 +29,10 @@ export function useUpdateServiceType() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (dto: ServiceTypeWriteDto) => updateServiceType(dto),
-    onSuccess: () => qc.invalidateQueries({ queryKey: appointmentKeys.serviceTypes }),
+    onSuccess: (_result, variables) => {
+      qc.invalidateQueries({ queryKey: appointmentKeys.serviceTypes });
+      if (variables.id) qc.invalidateQueries({ queryKey: appointmentKeys.serviceTypeDetail(variables.id) });
+    },
   });
 }
 

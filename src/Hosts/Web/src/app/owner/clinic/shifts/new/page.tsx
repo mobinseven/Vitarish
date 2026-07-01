@@ -42,7 +42,7 @@ export default function ClinicOwnerShiftCreatePage() {
     <div className="flex flex-col gap-6">
       <div>
         <Button variant="ghost" className="mb-2" onPress={() => router.push(Routes.Clinic.Appointments.Shifts.Index)}>
-          ← {t("common.actions.back")}
+          ← {t("common.actions.previous")}
         </Button>
         <h1 className="text-2xl font-bold">{t("clinic.appointments.shifts.createTitle")}</h1>
       </div>

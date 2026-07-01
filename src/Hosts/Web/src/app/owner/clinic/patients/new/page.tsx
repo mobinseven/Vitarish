@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Spinner } from "@heroui/react";
+import { Card } from "@heroui/react";
 import { Routes } from "@/app/routes";
 import { PatientProfileForm } from "@/features/clinic/patients/profile/components/PatientProfileForm";
 import { useCreatePatientProfile } from "@/features/clinic/patients/profile/hooks/useCreatePatientProfile";

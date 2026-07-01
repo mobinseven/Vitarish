@@ -1,14 +1,11 @@
 "use client";
 
 import { useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { Card, Button, Spinner } from "@heroui/react";
-import { Routes } from "@/app/routes";
 import { useServiceTypes, useDeleteServiceType } from "../hooks/useServiceTypes";
 import { useLocalizedText } from "@/localization";
 
-export function ServiceTypesPlaceholder() {
-  const router = useRouter();
+export function ServiceTypesList() {
   const { t } = useLocalizedText();
   const { data: types, isLoading, error } = useServiceTypes();
   const deleteType = useDeleteServiceType();

@@ -2,10 +2,9 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, Spinner } from "@heroui/react";
+import { Card, Spinner } from "@heroui/react";
 import { Routes } from "@/app/routes";
 import { useOwnerReservations } from "../hooks/useOwnerReservations";
-import type { ReservationReadDto } from "../../api/appointmentsApi";
 import { useLocalizedText } from "@/localization";
 
 const STATUS_LABELS: Record<number, string> = {
@@ -33,7 +32,7 @@ export function OwnerReservationsList() {
         <Card className="p-8">
           <div className="flex items-center justify-center gap-2">
             <Spinner size="sm" />
-            <span className="text-default-500">{t("common.loading")}</span>
+            <span className="text-default-500">{t("common.states.loading")}</span>
           </div>
         </Card>
       )}

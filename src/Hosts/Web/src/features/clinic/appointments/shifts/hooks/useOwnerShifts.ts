@@ -29,7 +29,10 @@ export function useUpdateShift() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (shift: ShiftWriteDto) => updateShift(shift),
-    onSuccess: () => qc.invalidateQueries({ queryKey: appointmentKeys.shifts }),
+    onSuccess: (_result, variables) => {
+      qc.invalidateQueries({ queryKey: appointmentKeys.shifts });
+      if (variables.id) qc.invalidateQueries({ queryKey: appointmentKeys.shiftDetail(variables.id) });
+    },
   });
 }
 

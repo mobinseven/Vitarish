@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Card, Button, Spinner } from "@heroui/react";
+import { Card, Button } from "@heroui/react";
 import { PatientFindOrCreate } from "@/features/clinic/patients/find-or-create/components/PatientFindOrCreate";
-import { useBookableDates } from "@/features/clinic/appointments/hooks/useBookableDates";
 import { useLocalizedText } from "@/localization";
 import type { ShiftReservationReadDto } from "@/api/generated/appointments/model";
 
@@ -23,8 +22,6 @@ export function PatientCheckInWizard({
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [selectedShift, setSelectedShift] = useState<ShiftReservationReadDto | null>(null);
 
-  const bookableDates = useBookableDates();
-
   const handlePatientSelect = useCallback(
     (patientId: string) => {
       setSelectedPatientId(patientId);
@@ -33,11 +30,6 @@ export function PatientCheckInWizard({
     },
     [onPatientSelected]
   );
-
-  const handleShiftSelect = useCallback((shift: ShiftReservationReadDto) => {
-    setSelectedShift(shift);
-    setStep("confirm");
-  }, []);
 
   const handleConfirm = useCallback(() => {
     if (selectedPatientId && selectedShift) {
@@ -85,9 +77,7 @@ export function PatientCheckInWizard({
             <p className="text-sm text-default-500 mb-4">
               {t("clinic.checkIn.selectShiftDescription")}
             </p>
-            <ShiftSelectionPanel
-              onSelectShift={handleShiftSelect}
-            />
+            <ShiftSelectionPanel />
           </Card.Content>
         </Card>
       )}
@@ -151,61 +141,12 @@ function StepIndicator({
   );
 }
 
-function ShiftSelectionPanel({
-  onSelectShift,
-}: {
-  onSelectShift: (shift: ShiftReservationReadDto) => void;
-}) {
+function ShiftSelectionPanel() {
   const { t } = useLocalizedText();
-  const bookableDates = useBookableDates();
-
-  const today = new Date().toISOString().split("T")[0];
-  const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-
-  // Auto-load bookable dates for the next week
-  const [loaded, setLoaded] = useState(false);
-  const [shifts, setShifts] = useState<ShiftReservationReadDto[]>([]);
-
-  const loadDates = useCallback(() => {
-    // This would need a shiftId from context. For now, show a placeholder.
-    setLoaded(true);
-  }, []);
-
-  if (!loaded) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-8">
-        <p className="text-sm text-default-500">{t("clinic.checkIn.shiftUnavailable")}</p>
-        <Button variant="ghost" onPress={loadDates}>
-          {t("clinic.checkIn.loadShifts")}
-        </Button>
-      </div>
-    );
-  }
-
-  if (shifts.length === 0) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-8">
-        <p className="text-sm text-default-500">{t("clinic.checkIn.noShiftsAvailable")}</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="flex flex-col gap-2">
-      {shifts.map((shift, index) => (
-        <Button
-          key={`${shift.shiftId}-${index}`}
-          variant="ghost"
-          className="justify-start"
-          onPress={() => onSelectShift(shift)}
-        >
-          <div className="flex items-center gap-4">
-            <span className="text-sm">{shift.date}</span>
-            <span className="text-sm text-default-500">{shift.startTime} - {shift.endTime}</span>
-            <span className="text-sm text-default-500">{shift.availableSeats} seats</span>
-          </div>
-        </Button>
-      ))}
+    <div className="flex flex-col items-center gap-4 py-8">
+      <p className="text-sm text-default-500">{t("clinic.checkIn.shiftUnavailable")}</p>
     </div>
   );
 }

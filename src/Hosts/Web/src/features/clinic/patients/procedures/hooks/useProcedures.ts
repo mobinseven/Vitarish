@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listProcedures, getProcedure, listProcedureEvents, getEvent, deleteEvent, type ProcedureReadDto, type EventReadDto } from "../api/proceduresApi";
+import { listProcedures, getProcedure, listProcedureEvents, getEvent, deleteEvent } from "../api/proceduresApi";
 
 const SEA_KEYS = ["clinic", "procedures"] as const;
 

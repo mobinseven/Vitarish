@@ -1,80 +1,73 @@
 import { useCallback, useState } from "react";
-import { usePatientIdentificationLookup } from "@/features/clinic/hooks/usePatientIdentificationLookup";
 import { usePatientSearch } from "@/features/clinic/hooks/usePatientSearch";
 import { useCreatePatientProfile } from "@/features/clinic/patients/profile/hooks/useCreatePatientProfile";
+import { lookupPatientByIdentificationCode } from "@/features/clinic/api/patientApi";
 import type { AdvancedSearchCriteria } from "@/features/clinic/types";
+import type { PatientViewDto } from "@/api/generated/clinic/model";
 
 export type FindOrCreateStep = "lookup" | "search" | "create" | "selected";
 
-interface FindOrCreateState {
-  step: FindOrCreateStep;
-  lookupResult: ReturnType<typeof usePatientIdentificationLookup>["state"];
-  searchResults: unknown[] | null;
-  createdPatient: { id: string } | null;
-}
-
 export function usePatientFindOrCreate() {
-  const [state, setState] = useState<FindOrCreateState>({
-    step: "lookup",
-    lookupResult: { status: "idle", patient: null, error: null },
-    searchResults: null,
-    createdPatient: null,
-  });
+  const [step, setStep] = useState<FindOrCreateStep>("lookup");
+  const [foundPatient, setFoundPatient] = useState<PatientViewDto | null>(null);
+  const [searchResults, setSearchResults] = useState<PatientViewDto[] | null>(null);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [isLooking, setIsLooking] = useState(false);
 
-  const identificationLookup = usePatientIdentificationLookup();
   const advancedSearch = usePatientSearch();
   const createPatient = useCreatePatientProfile();
 
-  const handleLookup = useCallback(
-    async (identificationCode: string) => {
-      await identificationLookup.lookup(identificationCode);
-      if (identificationLookup.state.status === "found") {
-        setState((prev) => ({
-          ...prev,
-          step: "selected",
-          lookupResult: identificationLookup.state,
-        }));
+  const handleLookup = useCallback(async (identificationCode: string) => {
+    if (!identificationCode.trim()) return;
+    setIsLooking(true);
+    setLookupError(null);
+    try {
+      const patient = await lookupPatientByIdentificationCode({
+        identificationCode: identificationCode.trim(),
+      });
+      setFoundPatient(patient);
+      setStep("selected");
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "";
+      if (msg.includes("404") || msg.includes("Not Found")) {
+        setLookupError("not-found");
+      } else {
+        setLookupError("error");
       }
-    },
-    [identificationLookup]
-  );
+    } finally {
+      setIsLooking(false);
+    }
+  }, []);
 
   const handleAdvancedSearch = useCallback(
     async (criteria: AdvancedSearchCriteria) => {
       const result = await advancedSearch.mutateAsync(criteria);
-      setState((prev) => ({
-        ...prev,
-        step: "search",
-        searchResults: result as unknown[],
-      }));
+      setSearchResults(result as PatientViewDto[]);
+      setStep("search");
     },
     [advancedSearch]
   );
 
-  const handleSelectPatient = useCallback((patientId: string) => {
-    setState((prev) => ({ ...prev, step: "selected" }));
-  }, []);
-
-  const handleCreatePatient = useCallback(async () => {
-    setState((prev) => ({ ...prev, step: "create" }));
+  const handleSelectPatient = useCallback((_patientId: string) => {
+    setStep("selected");
   }, []);
 
   const handleGoToLookup = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      step: "lookup",
-      lookupResult: { status: "idle", patient: null, error: null },
-      searchResults: null,
-    }));
+    setStep("lookup");
+    setFoundPatient(null);
+    setSearchResults(null);
+    setLookupError(null);
   }, []);
 
   return {
-    state,
-    identificationLookup: identificationLookup.state,
+    step,
+    foundPatient,
+    searchResults,
+    lookupError,
+    isLooking,
     handleLookup,
     handleAdvancedSearch,
     handleSelectPatient,
-    handleCreatePatient,
     handleGoToLookup,
     createPatient,
     isPending: advancedSearch.isPending || createPatient.isPending,

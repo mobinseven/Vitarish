@@ -22,7 +22,7 @@ export default function ClinicPatientProcedureEventPage({
       <Card className="p-8">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">{t("common.loading")}</span>
+          <span className="text-default-500">{t("common.states.loading")}</span>
         </div>
       </Card>
     );
@@ -40,7 +40,7 @@ export default function ClinicPatientProcedureEventPage({
     <div className="flex flex-col gap-6">
       <div>
         <Button variant="ghost" className="mb-2" onPress={() => router.push(Routes.Clinic.Patients.Procedure(patientId, procedureId))}>
-          ← {t("common.actions.back")}
+          ← {t("common.actions.previous")}
         </Button>
         <h1 className="text-2xl font-bold">{event.title}</h1>
         <span className={`text-xs ${event.isCommitted ? "text-success" : "text-default-500"}`}>

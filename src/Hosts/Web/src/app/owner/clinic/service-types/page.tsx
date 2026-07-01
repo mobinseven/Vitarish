@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ServiceTypesPlaceholder } from "@/features/clinic/service-types/components/ServiceTypesPlaceholder";
+import { ServiceTypesList } from "@/features/clinic/service-types/components/ServiceTypesPlaceholder";
 
 export const metadata: Metadata = {
   title: "Service Types | Vitarish",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function ClinicServiceTypesPage() {
-  return <ServiceTypesPlaceholder />;
+  return <ServiceTypesList />;
 }
