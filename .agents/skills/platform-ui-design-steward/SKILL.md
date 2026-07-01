@@ -22,7 +22,8 @@ Read these references before implementing or reviewing Web UI:
 1. `references/design-rules.md` — product-level visual policy and abstract design principles.
 2. `references/component-patterns.md` — concrete HeroUI v3.2.1 implementation patterns, reset rules, and code-level checks.
 3. `references/journey-feeling-component-mapping.md` — journey feeling to HeroUI component mapping.
-4. `references/heroui-v3.2.1-off-the-shelf-reset.md` — detailed inventory for removing the previous custom visual layer.
+4. `references/preserved-pattern-rules.md` — non-conflicting legacy pattern rules that must survive the off-the-shelf reset.
+5. `references/heroui-v3.2.1-off-the-shelf-reset.md` — detailed inventory for removing the previous custom visual layer.
 
 ## Use When
 
@@ -66,7 +67,7 @@ When a user journey map provides a feeling for a state, treat that feeling as in
 
 ### Step 2: Find the Framework Match
 
-For each design principle or journey-state feeling, find the most compatible option provided by HeroUI v3.2.1 or the current UI framework. Use `references/journey-feeling-component-mapping.md`, `references/component-patterns.md`, and the `heroui-react` skill's scripts/docs to discover available components, variants, props, and accessibility capabilities.
+For each design principle or journey-state feeling, find the most compatible option provided by HeroUI v3.2.1 or the current UI framework. Use `references/journey-feeling-component-mapping.md`, `references/component-patterns.md`, `references/preserved-pattern-rules.md`, and the `heroui-react` skill's scripts/docs to discover available components, variants, props, and accessibility capabilities.
 
 The mapping is:
 
@@ -88,7 +89,7 @@ When existing custom styling appears, remove it unless an explicit exemption or 
 2. **Do not create custom styling/design unless explicitly stated.** A vague desire for polish, brand, or better look is not enough.
 3. **Remove existing custom styling/design unless explicitly preserved.** Preservation requires an in-code exemption, ADR, or task requirement.
 4. **Feelings map to framework choices, not custom styling.** Journey feelings select the right off-the-shelf component, state, prop, variant, copy, layout, or accessibility behavior.
-5. **Keep implementation detail in references.** The skill routes decisions; `component-patterns.md`, the journey-feeling mapping, and reset references hold the exhaustive rules.
+5. **Keep implementation detail in references.** The skill routes decisions; `component-patterns.md`, the journey-feeling mapping, preserved pattern rules, and reset references hold the exhaustive rules.
 6. **Prefer framework props over styling.** Use HeroUI components, props, variants, and accessibility APIs before adding wrappers or classes.
 7. **Wrappers must not restyle HeroUI.** Wrapper components may compose behavior, data, or accessibility, but not impose a visual language.
 8. **Accessibility is not optional.** Removing visual customization must not remove labels, focus behavior, pending states, invalid states, or semantics.
@@ -109,7 +110,7 @@ When reviewing UI artifacts, verify:
 
 1. **Policy alignment:** Does it follow HeroUI off-the-shelf appearance by default?
 2. **Journey alignment:** Does the selected UI match the journey-state user feeling?
-3. **Reference alignment:** Does it follow the journey-feeling mapping, `component-patterns.md`, and the reset reference?
+3. **Reference alignment:** Does it follow the journey-feeling mapping, `component-patterns.md`, preserved pattern rules, and the reset reference?
 4. **Custom styling:** Is every custom visual style either removed or explicitly exempted?
 5. **Framework use:** Are HeroUI components and props used before local styling?
 6. **Accessibility:** Are labels, semantics, focus, errors, disabled states, and pending states preserved?
