@@ -1,9 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  getAuthenticationSessionGetQueryKey,
   useAuthenticationLogoutPost,
   useAuthenticationLogoutContext,
 } from "@/api/generated/authentication/authentication";
+import { useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/api/client/apiFetch";
 import { Routes } from "@/app/routes";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
@@ -14,6 +16,7 @@ export function useLogout(logoutId?: string) {
   const router = useRouter();
   const mutation = useAuthenticationLogoutPost();
   const contextQuery = useAuthenticationLogoutContext(logoutId ? { logoutId } : undefined);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<AuthError | null>(null);
 
   const contextStatus = useMemo<LogoutContextStatus>(() => {
@@ -39,6 +42,7 @@ export function useLogout(logoutId?: string) {
         const result = await mutation.mutateAsync({
           data: { logoutId: logoutId ?? null, returnUrl: returnUrl ?? Routes.Login.Index },
         });
+        queryClient.removeQueries({ queryKey: getAuthenticationSessionGetQueryKey() });
         if (result.redirectUrl) {
           router.push(result.redirectUrl);
         } else {
@@ -48,7 +52,7 @@ export function useLogout(logoutId?: string) {
         setError(parseAuthError(err));
       }
     },
-    [mutation, logoutId, router]
+    [mutation, logoutId, queryClient, router]
   );
 
   return {

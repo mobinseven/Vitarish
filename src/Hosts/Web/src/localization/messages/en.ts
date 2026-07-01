@@ -181,6 +181,10 @@ export const enMessages = {
       },
     },
     patient: {
+      delete: {
+        title: "Delete Patient",
+        unavailable: "Patient deletion is currently unavailable. Please contact support if you need assistance.",
+      },
       gender: {
         male: "Male",
         female: "Female",

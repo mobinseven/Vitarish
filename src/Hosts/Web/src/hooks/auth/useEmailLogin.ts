@@ -4,7 +4,7 @@ import {
   useAuthenticationLoginEmailBegin,
   useAuthenticationLoginEmailComplete,
 } from "@/api/generated/authentication/authentication";
-import type { AuthenticationChallengeDto } from "@/api/generated/authentication/model";
+import type { AuthenticationChallengeDto, BeginEmailLoginRequest, CompleteEmailLoginRequest } from "@/api/generated/authentication/model";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
 import { getRequestedReturnUrl } from "./requestedReturnUrl";
 
@@ -34,7 +34,7 @@ export function useEmailLogin() {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
         setPendingReturnUrl(finalReturnUrl ?? undefined);
         const result = await beginMutation.mutateAsync({
-          data: { email: emailAddr, returnUrl: finalReturnUrl },
+          data: { email: emailAddr, ...(finalReturnUrl ? { returnUrl: finalReturnUrl } : {}) } as unknown as BeginEmailLoginRequest,
         });
         setChallenge(result);
         setEmail(emailAddr);
@@ -56,7 +56,7 @@ export function useEmailLogin() {
         const returnUrl =
           pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
         const result = await completeMutation.mutateAsync({
-          data: { challengeId: challenge.challengeId, code, returnUrl },
+          data: { challengeId: challenge.challengeId, code, ...(returnUrl ? { returnUrl } : {}) } as unknown as CompleteEmailLoginRequest,
         });
         router.push(result.returnUrl);
       } catch (err) {
@@ -82,7 +82,7 @@ export function useEmailLogin() {
       const finalReturnUrl =
         pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
       const result = await beginMutation.mutateAsync({
-        data: { email, returnUrl: finalReturnUrl },
+        data: { email, ...(finalReturnUrl ? { returnUrl: finalReturnUrl } : {}) } as unknown as BeginEmailLoginRequest,
       });
       setChallenge(result);
       setStatusMessage("A new code was sent to your email address.");
