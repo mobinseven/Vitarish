@@ -1,116 +1,78 @@
 # Component Visual Patterns — Framework Implementation
 
-This file translates the abstract design principles in `design-rules.md` into concrete framework choices.
+This file translates `design-rules.md` into concrete HeroUI v3.2.1 component choices.
 
-The current implementation rule is:
+Current mapping:
 
 ```txt
 journey state -> user feeling -> design principle -> HeroUI component/prop -> off-the-shelf styling
 ```
 
-The goal is not to create a custom design system. The goal is to choose the right HeroUI v3.2.1 component, state, prop, variant, accessibility behavior, layout structure, and copy while preserving HeroUI's default visual appearance.
-
-Detailed removal rules for the previous custom visual layer live in `heroui-v3.2.1-off-the-shelf-reset.md`.
-
----
+The goal is to choose the correct HeroUI component, state, prop, variant, accessibility behavior, layout structure, and copy while preserving HeroUI's default visual appearance. Detailed old-style removal rules live in `heroui-v3.2.1-off-the-shelf-reset.md`. Non-conflicting legacy accessibility, interaction, RTL/LTR, copy, and layout rules live in `preserved-pattern-rules.md`.
 
 ## Official Framework Baseline
 
-HeroUI v3.2.1 documentation checked on 2026-07-01 establishes the baseline used by this reference:
+HeroUI v3.2.1 documentation checked on 2026-07-01 establishes this baseline:
 
 - React 19+.
 - Tailwind CSS v4.
-- `@heroui/styles`.
-- `@heroui/react`.
+- `@heroui/styles` and `@heroui/react`.
 - Main CSS imports Tailwind first, then HeroUI styles.
 - HeroUI v3 styling is CSS-driven.
 - No HeroUI provider is required for styling.
 - Built-in light/dark themes are controlled from the root element.
 - Next.js App Router uses `next-themes` for persisted/system theme selection.
 - The page canvas uses HeroUI's built-in background and foreground semantics.
-- `className`, inline style, BEM/global overrides, custom variables, wrapper components, and CSS-in-JS are customization mechanisms. Under the current platform policy, visual use of these mechanisms is not allowed unless explicitly exempted.
-
-Official references:
-
-- https://heroui.com/en/docs/react/getting-started/quick-start
-- https://heroui.com/en/docs/react/getting-started/dark-mode
-- https://heroui.com/en/docs/react/getting-started/styling
-- https://heroui.com/en/docs/react/getting-started/theming
-
----
+- `className`, inline style, BEM/global overrides, custom variables, wrapper components, and CSS-in-JS are customization mechanisms. Visual use is not allowed unless explicitly exempted.
 
 ## Feeling-to-Pattern Reference
 
 | Journey feeling | Design principle | Framework response | Off-the-shelf styling rule |
 | --- | --- | --- | --- |
-| Safe | Surface Philosophy / Interaction Philosophy | Card, Alert, clear labels, disabled states | Use default component appearance |
-| Oriented | Typography / Space Philosophy | Heading, Breadcrumbs when available, Link, simple navigation | No custom app shell or visual chrome |
-| In control | Interaction Philosophy | Button, Menu, Tabs, Select, explicit pending/disabled states | Use built-in states and variants |
-| Confident | Interaction / Clean Minimal Philosophy | One primary action, concise copy, validation feedback | No custom CTA gradients or shadows |
-| Warned | State Feedback Philosophy | Alert with warning/danger status, confirmation Modal | No custom callout classes |
-| Recovered | State Feedback / Interaction Philosophy | Alert, retry Button, field invalid state | No raw custom error panels |
-| Patient | Motion / State Feedback Philosophy | Spinner, Button pending state, loading copy | No custom loading decoration |
-| Empty but not blocked | Clean Minimal Philosophy | Plain empty text or simple Card if needed | No decorative empty-state panel |
-| Focused | Space / Clean Minimal Philosophy | Narrow flow, one primary action, simple form | No competing visual panels |
-| Comparing | Space / Hierarchy Philosophy | Table, Tabs, Select, list pattern | No card-as-table visual styling |
-| Exploring | Interaction / Space Philosophy | Tabs, Accordion, Menu, Link, Card | No decorative discovery surfaces |
-| Confirming | Interaction / State Feedback Philosophy | Modal, Alert, primary/secondary Button pair | No custom backdrop or modal style |
-| Correcting | State Feedback Philosophy | Form invalid state, error message, description | No placeholder-only guidance |
-| Successful | State Feedback Philosophy | Alert success or concise success text | No custom status pill/dot system |
-| Blocked | Interaction / State Feedback Philosophy | Disabled controls, Alert, explanation, next step | No hidden or unexplained blocked state |
-| Detail-seeking | Interaction Philosophy | Tooltip, Accordion, Modal, inline description | No custom tooltip implementation |
-
----
+| Safe | Surface / Interaction | Card, Alert, clear labels, disabled states | Use default component appearance |
+| Oriented | Typography / Space | Heading, Breadcrumbs when available, Link, simple navigation | No custom app shell or visual chrome |
+| In control | Interaction | Button, Menu, Tabs, Select, pending/disabled states | Use built-in states and variants |
+| Confident | Interaction / Clean Minimal | One primary action, concise copy, validation feedback | No custom CTA gradients or shadows |
+| Warned | State Feedback | Alert with warning/danger status, confirmation Modal | No custom callout classes |
+| Recovered | State Feedback / Interaction | Alert, retry Button, field invalid state | No raw custom error panels |
+| Patient | Motion / State Feedback | Spinner, Button pending state, loading copy | No custom loading decoration |
+| Empty but not blocked | Clean Minimal | Plain empty text or simple Card if needed | No decorative empty-state panel |
+| Focused | Space / Clean Minimal | Narrow flow, one primary action, simple form | No competing visual panels |
+| Comparing | Space / Hierarchy | Table, Tabs, Select, list pattern | No card-as-table visual styling |
+| Exploring | Interaction / Space | Tabs, Accordion, Menu, Link, Card | No decorative discovery surfaces |
+| Confirming | Interaction / State Feedback | Modal, Alert, primary/secondary Button pair | No custom backdrop or modal style |
+| Correcting | State Feedback | Form invalid state, error message, description | No placeholder-only guidance |
+| Successful | State Feedback | Alert success or concise success text | No custom status pill/dot system |
+| Blocked | Interaction / State Feedback | Disabled controls, Alert, explanation, next step | No hidden or unexplained blocked state |
+| Detail-seeking | Interaction | Tooltip, Accordion, Modal, inline description | No custom tooltip implementation |
 
 ## General Pattern Rules
 
-1. **Start from feeling.** Name the journey feeling before selecting a component.
-2. **Select a framework component.** Use HeroUI components before local wrappers.
-3. **Use component state.** Use built-in pending, disabled, invalid, selected, danger, warning, and success states before styling.
-4. **Use copy and structure.** Clarity often comes from wording, grouping, and action order rather than visual treatment.
-5. **Keep default appearance.** Do not add a custom visual class to make the feeling stronger.
-6. **Use structural layout only.** Layout wrappers may arrange components; they must not restyle components.
-7. **Preserve accessibility.** Labels, focus behavior, keyboard behavior, errors, descriptions, and semantics are part of the pattern.
-
----
+1. Start from the journey feeling.
+2. Select a HeroUI component before local wrappers.
+3. Use built-in pending, disabled, invalid, selected, warning, danger, and success states before styling.
+4. Use copy and structure before visual treatment.
+5. Keep HeroUI default appearance.
+6. Use structural layout only.
+7. Preserve accessibility.
+8. Apply the preserved rules in `preserved-pattern-rules.md`.
 
 ## Global App Baseline
 
-**Feeling:** Stable, predictable, framework-native.
-
-**Design principle:** Framework-Native Fidelity.
-
-### Required Pattern
-
 Use the official HeroUI CSS baseline, root theme behavior, and page canvas described in the framework docs. Keep the app-level visual baseline minimal.
 
-### Rules
+Rules:
 
 1. Main CSS imports Tailwind first and HeroUI styles second.
 2. Do not define a parallel app-owned visual theme.
 3. Do not override HeroUI visual variables for brand appearance.
 4. The root page canvas uses HeroUI background/foreground semantics.
 5. Next.js theme control uses a single root controller for light/dark/system.
-6. App-level providers may provide data, theme selection, and framework context. They must not create custom visuals.
-
-### Anti-Pattern
-
-- Custom light/dark CSS variable blocks.
-- Product-owned surface, accent, shadow, radius, motion, or focus tokens.
-- Global custom classes for cards, app bars, sidebars, callouts, badges, or panels.
-- Local CSS that makes the app look unlike standard HeroUI.
-
----
+6. Providers may provide data, theme selection, and framework context. They must not create custom visuals.
 
 ## Page Layout
 
-**Feeling:** Oriented, focused, calm.
-
-**Design principle:** Space Philosophy / Clean Minimal Philosophy.
-
-### Required Pattern
-
-Use semantic page structure and structural layout wrappers. Keep layout wrappers visually neutral.
+Use semantic page structure and structural layout wrappers. Keep wrappers visually neutral.
 
 ```tsx
 <main>
@@ -121,32 +83,7 @@ Use semantic page structure and structural layout wrappers. Keep layout wrappers
 </main>
 ```
 
-### Rules
-
-1. Use headings to orient the user.
-2. Use structural wrappers for width, flow, grouping, and responsive layout.
-3. Use one primary task path per focused page section.
-4. Do not use local page-shell primitives that restyle the page.
-5. Do not add decorative backgrounds to make a page feel designed.
-6. If a page feels sparse, improve grouping, copy, and component selection first.
-
-### Anti-Pattern
-
-```tsx
-<AppShell>
-<CenteredSurface>
-<section className="custom-hero custom-gradient custom-shadow">
-```
-
----
-
 ## Navigation
-
-**Feeling:** Oriented, returning, in control.
-
-**Design principle:** Interaction Philosophy / Space Philosophy.
-
-### Required Pattern
 
 Use framework links/navigation components or semantic navigation with neutral layout.
 
@@ -156,38 +93,18 @@ Use framework links/navigation components or semantic navigation with neutral la
 </nav>
 ```
 
-### Rules
-
-1. Navigation should tell the user where they can go and where they are.
-2. Use framework link/navigation behavior before local styling.
-3. Active/current state should be accessible.
-4. Do not create custom fixed pill app bars or glass navigation.
-5. Do not create custom sidebar visual systems.
-
-### Anti-Pattern
-
-```tsx
-<header className="ds-app-bar">
-<nav className="sidebar">
-<a className="sidebar-nav-item sidebar-nav-item-active">
-```
-
----
+Navigation must expose available routes and current location accessibly. Do not create custom fixed pill app bars, glass navigation, or custom sidebar visual systems.
 
 ## Card
 
-**Feeling:** Safe, grouped, reviewable.
-
-**Design principle:** Surface Philosophy.
-
-### Required Pattern
+Use Card when content needs containment, grouping, or review.
 
 ```tsx
 import { Card } from "@heroui/react";
 
 <Card>
   <Card.Header>
-    <h2>Title</h2>
+    <Card.Title>Title</Card.Title>
   </Card.Header>
   <Card.Content>
     Content
@@ -195,31 +112,16 @@ import { Card } from "@heroui/react";
 </Card>
 ```
 
-### Rules
+Rules:
 
-1. Use a Card when content needs containment, grouping, or review.
-2. Use plain HeroUI Card appearance.
-3. Do not add custom surface classes.
-4. Do not add custom glass, blur, gradient, shadow, border, radius, or hover-lift styling.
-5. If content does not need a surface, use semantic HTML instead of a Card.
-
-### Anti-Pattern
-
-```tsx
-<Card className="glass-card">
-<Card className="ds-surface-card ds-surface-card-elevated">
-<Card className="custom-background custom-shadow custom-radius">
-```
-
----
+1. Use plain HeroUI Card appearance.
+2. Use HeroUI Card compound anatomy, including `Card.Title` for titles inside `Card.Header`.
+3. Do not add custom surface classes, glass, blur, gradient, shadow, border, radius, or hover-lift styling.
+4. If content does not need a surface, use semantic HTML instead.
 
 ## Button
 
-**Feeling:** In control, confident, recovering, confirming.
-
-**Design principle:** Interaction Philosophy.
-
-### Required Pattern
+Use Button for actions.
 
 ```tsx
 import { Button } from "@heroui/react";
@@ -230,33 +132,18 @@ import { Button } from "@heroui/react";
 <Button isPending={isSaving} onPress={save}>Save</Button>
 ```
 
-### Rules
+Rules:
 
-1. Use HeroUI Button for actions.
-2. Use `onPress` for HeroUI button interaction.
-3. Use built-in action semantics and state props.
-4. Use one primary action per decision context.
-5. Use `isPending` for waiting action state.
-6. Use `isDisabled` for unavailable action state.
-7. Do not make a button feel stronger with custom color, gradient, radius, shadow, hover, or transition classes.
-8. Icon-only actions require accessible names and may need Tooltip.
-
-### Anti-Pattern
-
-```tsx
-<Button className="custom-primary custom-hover custom-shadow">Save</Button>
-<Button onClick={save}>Save</Button>
-```
-
----
+1. Use `onPress`, not `onClick`.
+2. Use built-in action semantics and state props.
+3. Keep one primary action per decision context.
+4. Use `isPending` and `isDisabled` for action state.
+5. Icon-only actions require accessible names and may need Tooltip.
+6. Do not make buttons stronger with custom color, gradient, radius, shadow, hover, or transition classes.
 
 ## Form Fields
 
-**Feeling:** Focused, correcting, confident.
-
-**Design principle:** Typography Philosophy / State Feedback Philosophy.
-
-### Required Pattern
+Use framework form components and their accessibility model.
 
 ```tsx
 import { Input, Label, TextField } from "@heroui/react";
@@ -267,67 +154,41 @@ import { Input, Label, TextField } from "@heroui/react";
 </TextField>
 ```
 
-### Rules
+Rules:
 
-1. Use framework form components and accessibility model.
-2. Always provide a visible label or accessible label.
-3. Do not use placeholder as the only label.
-4. Use built-in invalid/error APIs.
-5. Use descriptions/help text through framework-supported patterns.
-6. Place error feedback close to the field it explains.
-7. Do not add custom backgrounds, borders, focus rings, shadows, or glass wrappers.
-
-### Anti-Pattern
-
-```tsx
-<Input className="custom-input custom-focus-ring">
-<p className="custom-error-text">Error</p>
-```
-
----
+1. Always provide a visible label or accessible label.
+2. Never use placeholder as the only label.
+3. Use built-in invalid/error APIs.
+4. Use descriptions/help text through framework-supported patterns.
+5. Place error feedback close to the field it explains.
+6. Do not add custom backgrounds, borders, focus rings, shadows, or glass wrappers.
 
 ## Alert / Status Feedback
 
-**Feeling:** Warned, recovered, successful, blocked.
-
-**Design principle:** State Feedback Philosophy.
-
-### Required Pattern
+Use Alert for success, danger, warning, information, recovery, and blocked states that require user attention.
 
 ```tsx
 import { Alert } from "@heroui/react";
 
 <Alert status="danger">
   <Alert.Indicator />
-  <Alert.Content>Something went wrong.</Alert.Content>
+  <Alert.Content>
+    <Alert.Title>Something went wrong.</Alert.Title>
+  </Alert.Content>
 </Alert>
 ```
 
-### Rules
+Rules:
 
-1. Use framework status components for success, danger, warning, and information states.
-2. Status feedback must tell the user what happened and what to do next.
+1. Status feedback must tell the user what happened and what to do next.
+2. Use HeroUI Alert compound anatomy, including `Alert.Title` and `Alert.Description` inside `Alert.Content` when the alert has title/description text.
 3. Use status close to the relevant action or content.
 4. Do not invent custom callout classes, status badges, pills, dots, or color tokens.
 5. Plain semantic text is acceptable when the state is minor and does not need a full status component.
 
-### Anti-Pattern
-
-```tsx
-<section className="ds-callout ds-callout-danger">
-<StatusBadge tone="success">Ready</StatusBadge>
-<span className="custom-status-dot" />
-```
-
----
-
 ## Table / Data Grid
 
-**Feeling:** Comparing, reviewing, scanning.
-
-**Design principle:** Space Philosophy / Hierarchy and Depth Philosophy.
-
-### Required Pattern
+Use Table for tabular data.
 
 ```tsx
 import { Table } from "@heroui/react";
@@ -344,30 +205,16 @@ import { Table } from "@heroui/react";
 </Table>
 ```
 
-### Rules
+Rules:
 
-1. Use Table for tabular data.
-2. Always include an accessible label.
-3. Use framework sorting/selection/pagination patterns when available.
-4. Do not build table-like card grids when the content is tabular.
-5. Do not add custom row borders, hover colors, muted text systems, or glass wrappers.
-
-### Anti-Pattern
-
-```tsx
-<Card className="glass-card">
-  <div className="custom-grid-table custom-row-hover">
-```
-
----
+1. Always include an accessible label.
+2. Use framework sorting/selection/pagination patterns when available.
+3. Do not build table-like card grids when the content is tabular.
+4. Do not add custom row borders, hover colors, muted text systems, or glass wrappers.
 
 ## Modal / Dialog
 
-**Feeling:** Confirming, warned, detail-seeking.
-
-**Design principle:** Interaction Philosophy / State Feedback Philosophy.
-
-### Required Pattern
+Use Modal for interruptions, confirmation, and focused details.
 
 ```tsx
 import { Modal } from "@heroui/react";
@@ -384,30 +231,16 @@ import { Modal } from "@heroui/react";
 </Modal>
 ```
 
-### Rules
+Rules:
 
-1. Use Modal for interruptions, confirmation, and focused details.
-2. Use the framework's focus and dismissal behavior.
-3. Do not create custom modal overlays, backdrops, blur, glass, or slot visuals.
-4. Confirmation dialogs must state the consequence and provide clear actions.
-5. Avoid stacked modals.
-
-### Anti-Pattern
-
-```tsx
-<div className="custom-backdrop custom-blur">
-<div className="custom-modal custom-glass">
-```
-
----
+1. Use the framework's focus and dismissal behavior.
+2. Do not create custom modal overlays, backdrops, blur, glass, or slot visuals.
+3. Confirmation dialogs must state the consequence and provide clear actions.
+4. Avoid stacked modals.
 
 ## Tooltips
 
-**Feeling:** Detail-seeking, uncertain, exploring.
-
-**Design principle:** Interaction Philosophy.
-
-### Required Pattern
+Use Tooltip for concise contextual explanation.
 
 ```tsx
 import { Tooltip } from "@heroui/react";
@@ -417,7 +250,7 @@ import { Tooltip } from "@heroui/react";
 </Tooltip>
 ```
 
-### Rules
+Rules:
 
 1. **All components that convey meaning must include a tooltip** to ensure accessibility and clarity when their meaning is not already explicit from visible text.
 2. Use HeroUI's `Tooltip` component to wrap elements that need explanation.
@@ -427,23 +260,9 @@ import { Tooltip } from "@heroui/react";
 6. Tooltip must not hide required information.
 7. Do not create a custom tooltip implementation.
 
-### Anti-Pattern
-
-```tsx
-<span className="custom-tooltip">...</span>
-<button><IconOnly /></button>
-<abbr>API</abbr>
-```
-
----
-
 ## Loading State
 
-**Feeling:** Patient, waiting, still in control.
-
-**Design principle:** Motion Philosophy / State Feedback Philosophy.
-
-### Required Pattern
+Use Spinner for general waiting states and Button pending state for action-owned waiting.
 
 ```tsx
 import { Spinner } from "@heroui/react";
@@ -452,22 +271,11 @@ import { Spinner } from "@heroui/react";
 <Button isPending={isSaving} onPress={save}>Save</Button>
 ```
 
-### Rules
-
-1. Use Spinner for general waiting states.
-2. Use Button pending state for action-owned waiting.
-3. Loading copy should explain what is happening when the wait is meaningful.
-4. Do not add custom loading cards, glow, animated decoration, or custom spinners.
-
----
+Loading copy should explain what is happening when the wait is meaningful. Do not add custom loading cards, glow, animated decoration, or custom spinners.
 
 ## Empty State
 
-**Feeling:** Empty but not blocked, recovering, oriented.
-
-**Design principle:** Clean Minimal Philosophy.
-
-### Required Pattern
+Keep empty states plain and helpful.
 
 ```tsx
 <p>No items found.</p>
@@ -481,87 +289,35 @@ or, if containment is useful:
 </Card>
 ```
 
-### Rules
+Rules:
 
-1. Keep empty states plain and helpful.
-2. Explain what happened.
-3. Offer one next action when there is a natural next action.
+1. Explain what happened.
+2. Offer one next action when there is a natural next action.
+3. Do not show a blank table/grid.
 4. Do not use decorative illustrations, custom glass panels, gradients, or dramatic empty-state visuals.
-
----
 
 ## Badge / Small Status
 
-**Feeling:** Successful, blocked, warned, oriented.
-
-**Design principle:** State Feedback Philosophy / Color Philosophy.
-
-### Required Pattern
-
 Use a framework-provided status/badge/chip component when available for the exact use case. If a framework component is not available, prefer concise text or Alert depending on severity.
 
-### Rules
+Rules:
 
-1. Do not keep a local `StatusBadge` primitive just to preserve custom visual status treatment.
-2. Status labels must be concise.
-3. Important status must be understandable without relying only on color.
-4. Do not add custom status dots, custom pill backgrounds, or custom color tokens.
-5. Status badges or badge-like status indicators must include a tooltip when their meaning is not fully obvious from visible text.
-
----
+1. Status labels must be concise.
+2. Important status must be understandable without relying only on color.
+3. Status badges or badge-like status indicators must include a tooltip when their meaning is not fully obvious from visible text.
+4. Do not keep local custom status visuals just to preserve old styling.
 
 ## Structural Layout Classes
 
-Structural classes are allowed when they do not restyle HeroUI components.
+Structural classes are allowed for flow, grouping, responsive layout, width constraints, alignment, overflow, and page structure.
 
-Allowed purposes:
-
-- flow,
-- grouping,
-- responsive layout,
-- width constraints,
-- alignment,
-- overflow behavior,
-- page structure.
-
-Forbidden purposes:
-
-- custom color,
-- custom shadow,
-- custom radius,
-- custom blur,
-- custom gradient,
-- custom border,
-- custom typography voice,
-- custom hover/focus/active visual state,
-- custom dark-mode appearance,
-- custom component anatomy spacing.
-
----
+They are not allowed for custom color, shadow, radius, blur, gradient, border, typography voice, hover/focus/active visual state, dark-mode appearance, or component anatomy spacing.
 
 ## Wrapper Components
 
-Wrapper components are allowed only when they do not change framework visual appearance.
+Wrapper components are allowed for data mapping, feature composition, accessibility wiring, form integration, routing, error normalization, and conditional rendering.
 
-Allowed wrapper responsibilities:
-
-- data mapping,
-- feature composition,
-- accessibility wiring,
-- form integration,
-- routing,
-- error normalization,
-- conditional rendering.
-
-Forbidden wrapper responsibilities:
-
-- adding default visual classes,
-- adding custom visual variants,
-- applying custom theme tokens,
-- rebranding framework components,
-- recreating a local design system over HeroUI.
-
----
+They must not add default visual classes, custom visual variants, theme tokens, rebranding, or a local design system over HeroUI.
 
 ## Required Review Checks
 
