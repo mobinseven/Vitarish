@@ -249,10 +249,10 @@ src/Hosts/<ReactWebHost>/src/
 
 #### Task: Implement patient list and selection surface
 
-1. Create `pages/clinic/owners/patients/ClinicPatientsPage.tsx`.
-2. Create `features/clinic/patients/components/PatientListSurface.tsx`.
-3. Create `features/clinic/patients/components/PatientList.tsx`.
-4. Create `features/clinic/patients/hooks/useClinicPatients.ts`.
+1. Create pages/clinic/owners/patients/ClinicPatientsPage.tsx.
+2. Create features/clinic/patients/components/PatientListSurface.tsx.
+3. Create features/clinic/patients/components/PatientList.tsx.
+4. Migrate and refactor the existing src/Hosts/Web/src/features/clinic/hooks/usePatientList.ts and src/Hosts/Web/src/features/clinic/api/patientApi.ts into the new capability folder structure under features/clinic/patients/.
 5. Support list, search text, add patient, and click patient parity first.
 6. Expose UI-ready patient summaries from the hook.
 7. Keep generated DTO details out of components.
