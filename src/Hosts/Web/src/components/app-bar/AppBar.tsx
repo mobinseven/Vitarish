@@ -3,12 +3,14 @@
 import { Link } from "@heroui/react";
 import { usePathname } from "next/navigation";
 import { Routes } from "@/app/routes";
+import { useLocalizedText } from "@/localization";
 import { AuthGate } from "./AuthGate";
 
 const EXCLUDED_PATHS = [Routes.Login.Index, Routes.Logout];
 
 export function AppBar() {
   const pathname = usePathname();
+  const { t } = useLocalizedText();
 
   const isExcluded = EXCLUDED_PATHS.some(
     (path) => pathname === path || pathname.startsWith(path + "/"),
@@ -24,7 +26,7 @@ export function AppBar() {
         href={Routes.Home}
         className="text-base font-bold tracking-tight text-foreground"
       >
-        Vitarish
+        {t("appShell.brand")}
       </Link>
       <AuthGate />
     </header>

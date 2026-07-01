@@ -288,3 +288,61 @@ Prefer:
 ```csharp
 var message = Localizer["KnowledgeSource.ImportedCount", importedCount];
 ```
+
+## React / Next.js Localization
+
+Apply this section to React Web host UI under:
+
+* `src/Hosts/Web/src/app/**`
+* `src/Hosts/Web/src/components/**`
+* `src/Hosts/Web/src/features/**`
+* `src/Hosts/Web/src/design-system/**`
+
+Required React boundary:
+
+* Use `src/Hosts/Web/src/localization/**` as the single Web-host-owned localization boundary.
+* Use the central `LocalizationProvider`, translation hook, metadata helper, error mapper, and `Intl` formatting helpers.
+* Do not create feature-local English constants such as `text.ts`, `copy.ts`, `labels.ts`, or local UI dictionaries.
+* Keep generated clients, `apiFetch`, Domain, Application, Contracts, and backend Infrastructure free of Web localization imports.
+
+Catalog key conventions:
+
+* `common.actions.save`
+* `auth.login.signInAction`
+* `clinic.patients.emptyState`
+* `knowledge.qa.askAction`
+
+Pluralization and formatting:
+
+* Use full-message keys for grammar-sensitive text.
+* Do not assemble plurals with manual suffix logic such as `"s"`.
+* Use central `Intl` helpers for dates, times, numbers, currency, percentages, and lists.
+
+API error rules:
+
+* Backend/API layers expose stable codes/statuses.
+* React presentation maps stable codes to localized copy with the central error mapper.
+* Do not display backend `ProblemDetails.title` or `ProblemDetails.detail` as default user-facing copy.
+* Do not translate inside `apiFetch`.
+
+React do-not-flag examples:
+
+* route constants
+* CSS classes
+* query keys
+* generated API names
+* OpenAPI schema names
+* icon IDs
+* test selectors
+* environment variable names
+* non-rendered telemetry/internal event names
+
+React finding output format:
+
+```md
+## React Localization Findings
+
+| File | Line/Search | Current text | Suggested key | Replacement | Fix location |
+| --- | --- | --- | --- | --- | --- |
+| `src/Hosts/Web/src/components/auth/LoginForm.tsx` | `Search: Sign In` | `Sign In` | `auth.login.signInAction` | `t("auth.login.signInAction")` | Central catalog and component |
+```

@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { usePasswordLogin } from "@/hooks/auth/usePasswordLogin";
+import { useLocalizedText } from "@/localization";
 import { StatusMessage } from "./StatusMessage";
 
 interface LoginFormProps {
@@ -11,6 +12,7 @@ interface LoginFormProps {
 
 export function LoginForm({ returnUrl }: LoginFormProps) {
   const { login, isLoading, errorMessage } = usePasswordLogin();
+  const { t } = useLocalizedText();
   const [userNameOrEmail, setUserNameOrEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -26,18 +28,18 @@ export function LoginForm({ returnUrl }: LoginFormProps) {
     <Form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {errorMessage && <StatusMessage message={errorMessage} />}
       <TextField name="username" isRequired isDisabled={isLoading}>
-        <Label>Username or Email</Label>
+        <Label>{t("auth.login.usernameOrEmailLabel")}</Label>
         <Input
-          placeholder="Enter your username or email"
+          placeholder={t("auth.login.usernameOrEmailPlaceholder")}
           value={userNameOrEmail}
           onChange={(e) => setUserNameOrEmail(e.target.value)}
           autoComplete="username"
         />
       </TextField>
       <TextField name="password" type="password" isRequired isDisabled={isLoading}>
-        <Label>Password</Label>
+        <Label>{t("auth.login.passwordLabel")}</Label>
         <Input
-          placeholder="Enter your password"
+          placeholder={t("auth.login.passwordPlaceholder")}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
@@ -48,7 +50,7 @@ export function LoginForm({ returnUrl }: LoginFormProps) {
         isPending={isLoading}
         className="w-full"
       >
-        Sign In
+        {t("auth.login.signInAction")}
       </Button>
     </Form>
   );

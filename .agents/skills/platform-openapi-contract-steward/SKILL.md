@@ -82,3 +82,7 @@ Stop and correct before generation if:
 ## Handoff
 
 After the contract is valid, hand off to `platform-generated-react-client-steward` for Orval/client generation work.
+
+## Localization Boundary Addendum
+
+OpenAPI schemas should expose stable codes, statuses, and structured fields for user-facing errors or states. They must not require translated display text from backend/application layers. React UI maps stable contract codes to localized presentation strings. Do not change a contract solely to match a visual component's copy shape.

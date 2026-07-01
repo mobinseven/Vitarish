@@ -79,3 +79,7 @@ Stop and correct if:
 ## Handoff
 
 Use `platform-feature-ui-integration-steward` when generated clients are ready to be wrapped into feature-level hooks and UI-ready contracts.
+
+## Localization Boundary Addendum
+
+Generated DTOs, request functions, hooks, query keys, and MSW output must not contain localized display text. Stable error/status codes may flow through generated transport shapes, but React UI maps those codes to localized messages at `src/Hosts/Web/src/localization/**`. Do not manually edit generated output and do not change backend contracts solely to fit a visual component string shape.
