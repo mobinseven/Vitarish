@@ -173,6 +173,7 @@ Project skills live under:
   platform-openapi-contract-steward/
   platform-generated-react-client-steward/
   platform-feature-ui-integration-steward/
+  platform-ui-design-steward/
   heroui-react/
   platform-pr-delivery-loop/
   platform-auto-plan-generator/
@@ -199,6 +200,7 @@ Legacy instructions may refer to `skills/`; use `.agents/skills/` as the canonic
 | Orval generation, generated DTOs/hooks/query keys, custom apiFetch, MSW mocks           | Platform Generated React Client Steward | `.agents/skills/platform-generated-react-client-steward/SKILL.md` |
 | HeroUI/React feature hooks, forms, tables, dialogs, mutation invalidation, UI adapters  | Platform Feature UI Integration Steward | `.agents/skills/platform-feature-ui-integration-steward/SKILL.md` |
 | HeroUI v3 React components, compound APIs, Tailwind v4, `@heroui/styles`, theming, docs, or agent UI guidance | HeroUI React | `.agents/skills/heroui-react/SKILL.md` |
+| Design philosophy, visual feel, product aesthetics, framework UI matching | Platform UI Design Steward | `.agents/skills/platform-ui-design-steward/SKILL.md` |
 | Generate plan from GitHub issue | Platform Auto Plan Generator | `.agents/skills/platform-auto-plan-generator/SKILL.md` |
 | Execute implementation plan | Platform Auto Plan Executor | `.agents/skills/platform-auto-plan-executor/SKILL.md` |
 | Review implementation | Platform Auto Loop Reviewer | `.agents/skills/platform-auto-loop-reviewer/SKILL.md` |
@@ -237,7 +239,8 @@ Load only the step required by the current task:
 1. Contract/spec work uses `platform-openapi-contract-steward`.
 2. Orval/generated-client/MSW/runtime-fetch work uses `platform-generated-react-client-steward`.
 3. HeroUI/page/form/table/dialog integration uses `platform-feature-ui-integration-steward`.
-4. HeroUI v3 component API, styling, and theme work uses `heroui-react`.
+4. Design philosophy and visual feel mapping to HeroUI components use `platform-ui-design-steward`.
+5. HeroUI v3 component API, styling, and theme work uses `heroui-react`.
 
 Hard boundary: OpenAPI defines the transport contract, generated clients are infrastructure, feature hooks expose use-case contracts, and UI components consume feature hooks only.
 
@@ -300,7 +303,7 @@ OpenAPI Contract → Generated React Client → Feature UI Integration → Test 
 For a HeroUI v3 UI change:
 
 ```txt
-HeroUI React → Feature UI Integration if feature hooks/data flow are affected → Test Plan → Implementation
+HeroUI React → UI Design Steward (philosophy → framework match) → Feature UI Integration if feature hooks/data flow are affected → Test Plan → Implementation
 ```
 
 For a code placement or refactor task:
@@ -338,13 +341,13 @@ Issue → Plan → Implement → Review → (Re-plan if needed) → Complete
 
 ### Mandatory Checks Before Implementation
 
-Before creating or moving production code, answer:
+When encountering any code, answer:
 
 ```txt
 1. Is a journey needed?
 2. Is a roadmap or task derivation needed? If yes, use `Platform Feature Roadmap Curator`.
 3. Is an ADR needed?
-4. Does the change affect an OpenAPI contract, generated React client, HeroUI feature integration, or HeroUI v3 component/theming behavior?
+4. Does the change affect or gets affected by an OpenAPI contract, generated React client, HeroUI feature integration, HeroUI v3 component/theming behavior, or visual design rules?
 5. Where should each artifact live?
 6. What unit tests are required?
 7. What hot test scenarios are required?
