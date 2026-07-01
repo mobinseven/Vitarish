@@ -2,9 +2,13 @@ name: Architecture Validation
 
 on:
   pull_request:
+    paths:
+      - "**/Modules/**/*.csproj"
   push:
     branches:
       - main
+    paths:
+      - "**/Modules/**/*.csproj"
   workflow_dispatch:
 
 permissions:
