@@ -22,7 +22,7 @@ Use this skill when creating, modifying, or reviewing:
 
 - React UI components (cards, buttons, forms, dialogs, tables, badges)
 - Page layouts and navigation
-- Design-system primitives (`SurfaceCard`, `AppShell`, `HeroPanel`, etc.)
+- Design-system primitives (`AppShell`, `HeroPanel`, etc.)
 - Global CSS tokens and styles in `src/Hosts/Web/src/app/globals.css`
 - Any user-facing visual artifact in `src/Hosts/Web/`
 

@@ -10,7 +10,7 @@ This file translates the abstract design philosophy in `design-rules.md` into co
 |---------|------------------|------------------------|
 | Responsive feedback | Interaction Philosophy | Button `isPressed`, `isHovered`, `isFocusVisible` render props |
 | Loading awareness | Interaction Philosophy | Button `isPending` state with `Spinner` |
-| Prominence hierarchy | Clean Minimal Philosophy | Card `variant` (`transparent` → `tertiary`) for visual weight |
+| Prominence hierarchy | Clean Minimal Philosophy | Card with `ds-surface-card-elevated` class for visual weight |
 | Contextual clarity | Interaction Philosophy | Tooltip `placement` prop for positioned help |
 | Accessibility safety | Interaction Philosophy | Button `isFocusVisible` for keyboard navigation |
 | Active state | Interaction Philosophy | Button `:active` / `[data-pressed]` CSS states |
@@ -49,11 +49,11 @@ import { Card } from "@heroui/react";
 ### Rules
 
 1. **Always apply `glass-card` class** to HeroUI `Card` components.
-2. **Use `SurfaceCard` primitive** when the card needs tone variants (`default`, `elevated`, `interactive`).
+2. **Use raw HeroUI Card with `ds-surface-card` classes** when the card needs tone variants (`default`, `elevated`, `interactive`).
 3. **Never apply `backdrop-filter` directly** — the `glass-card` class handles it.
 4. **Card headers** use `text-lg font-semibold` for titles.
 5. **Card content** uses `text-sm` for body text with `text-muted` for secondary text.
-6. **Interactive cards** use `SurfaceCard` with `tone="interactive"` for hover lift effect.
+6. **Interactive cards** use raw HeroUI Card with `ds-surface-card-interactive` class for hover lift effect.
 7. **Cards conveying status or meaning** must include a tooltip describing the content or state.
 8. **Do not use directional margin/padding classes** (`ml-*`, `mr-*`, `pl-*`, `pr-*`) — use logical properties (`ms-*`, `me-*`, `ps-*`, `pe-*`) for RTL/LTR support.
 
@@ -148,7 +148,7 @@ import { TextField, Select } from "@heroui/react";
 1. **Always include `label`** — never use placeholder as the only label.
 2. **Use `w-full`** for form fields in form layouts.
 3. **Form spacing** uses `gap-4` between fields.
-4. **Form layouts** use `<form className="flex flex-col gap-4">` or `SurfaceCard` wrapper.
+4. **Form layouts** use `<form className="flex flex-col gap-4">` or Card wrapper with `ds-surface-card` class.
 5. **Helper text** uses `description` prop, not separate `<p>` elements.
 6. **Error state** uses HeroUI's built-in `isInvalid` + `errorMessage` props.
 7. **Form field labels** — HeroUI handles label positioning for RTL/LTR; do not hard-code left/right alignment.
@@ -402,7 +402,7 @@ For components that need a glass surface without using HeroUI `Card`:
 
 1. **Always use `glass-card` class** — never manually compose backdrop-filter + background + border.
 2. **Padding** is `p-6` minimum for standard cards, `p-8` for hero/featured cards.
-3. **For interactive glass cards**, add hover transition manually or use `SurfaceCard` with `tone="interactive"`.
+3. **For interactive glass cards**, add hover transition manually or use Card with `ds-surface-card-interactive` class.
 
 ---
 
