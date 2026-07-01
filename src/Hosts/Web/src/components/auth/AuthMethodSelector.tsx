@@ -2,11 +2,12 @@
 
 import { Card } from "@heroui/react";
 import Link from "next/link";
+import { useLocalizedText, type MessageKey } from "@/localization";
 
 const methods = [
   {
     id: "password",
-    label: "Sign in with Password",
+    labelKey: "auth.login.passwordMethod" as MessageKey,
     href: "/login/password",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -16,7 +17,7 @@ const methods = [
   },
   {
     id: "phone",
-    label: "Sign in with Phone",
+    labelKey: "auth.login.phoneMethod" as MessageKey,
     href: "/login/phone",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -26,7 +27,7 @@ const methods = [
   },
   {
     id: "email",
-    label: "Sign in with Email",
+    labelKey: "auth.login.emailMethod" as MessageKey,
     href: "/login/email",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -36,7 +37,7 @@ const methods = [
   },
   {
     id: "passkey",
-    label: "Sign in with Passkey",
+    labelKey: "auth.login.passkeyMethod" as MessageKey,
     href: "/login/passkey",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -47,6 +48,8 @@ const methods = [
 ];
 
 export function AuthMethodSelector() {
+  const { t } = useLocalizedText();
+
   return (
     <div className="flex flex-col gap-4">
       {methods.map((method) => (
@@ -56,7 +59,7 @@ export function AuthMethodSelector() {
             className="flex h-14 w-full items-center gap-3 rounded-lg px-4 text-foreground transition-colors hover:bg-[var(--accent-soft)]"
           >
             {method.icon}
-            {method.label}
+            {t(method.labelKey)}
           </Link>
         </Card>
       ))}

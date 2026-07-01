@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { TextField, Label, Input, Button } from "@heroui/react";
+import { useLocalizedText } from "@/localization";
 
 interface PatientSearchBarProps {
   onSearch: (search: string) => void;
@@ -9,6 +10,7 @@ interface PatientSearchBarProps {
 
 export function PatientSearchBar({ onSearch }: PatientSearchBarProps) {
   const [value, setValue] = useState("");
+  const { t } = useLocalizedText();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -26,16 +28,16 @@ export function PatientSearchBar({ onSearch }: PatientSearchBarProps) {
   return (
     <div className="flex items-end gap-2">
       <TextField className="flex-1">
-        <Label>Search patients</Label>
+        <Label>{t("clinic.patient.search.label")}</Label>
         <Input
-          placeholder="Name, ID code, phone, or email..."
+          placeholder={t("clinic.patient.search.placeholder")}
           value={value}
           onChange={(e) => setValue(e.target.value)}
         />
       </TextField>
       {value && (
         <Button variant="ghost" onPress={handleClear}>
-          Clear
+          {t("clinic.patient.search.clear")}
         </Button>
       )}
     </div>

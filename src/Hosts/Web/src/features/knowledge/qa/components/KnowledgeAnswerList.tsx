@@ -2,6 +2,7 @@
 
 import { Button, Card } from "@heroui/react";
 import { SurfaceCard } from "@/design-system";
+import { useLocalizedText } from "@/localization";
 import { KnowledgeAnswerCard } from "./KnowledgeAnswerCard";
 import {
   KnowledgeChatCallout,
@@ -37,8 +38,10 @@ export function KnowledgeAnswerList({
   onNewQuestion,
   onContinueInCorpus,
 }: KnowledgeAnswerListProps) {
+  const { t } = useLocalizedText();
+
   if (isPending) {
-    return <KnowledgeChatLoader message={`Checking ${scopeLabel} for the best answer and citations.`} />;
+    return <KnowledgeChatLoader message={t("knowledge.qa.checkingScope", { scope: scopeLabel })} />;
   }
 
   if (statusMessage) {
@@ -48,8 +51,8 @@ export function KnowledgeAnswerList({
   if (!question || results.length === 0) {
     return (
       <KnowledgeChatEmptyState
-        title="Choose a corpus or ask globally."
-        description="Ask without selecting a corpus to compare answers across every available corpus, or select one corpus for a focused answer."
+        title={t("knowledge.qa.emptyTitle")}
+        description={t("knowledge.qa.emptyDescription")}
       />
     );
   }
@@ -60,17 +63,17 @@ export function KnowledgeAnswerList({
         <Card.Content className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-muted">
-              {scopeKind === "all" ? "All-corpus answer" : "Selected-corpus answer"}
+              {scopeKind === "all" ? t("knowledge.qa.allCorpusAnswer") : t("knowledge.qa.selectedCorpusAnswer")}
             </p>
             <h2 className="text-lg font-semibold">{question}</h2>
-            <p className="text-sm text-muted">Scope: {scopeLabel}</p>
+            <p className="text-sm text-muted">{t("knowledge.qa.scopeLabel", { scope: scopeLabel })}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button type="button" onPress={onAskAgain}>
-              Ask again
+              {t("knowledge.qa.askAgainAction")}
             </Button>
             <Button type="button" variant="ghost" onPress={onNewQuestion}>
-              New question
+              {t("knowledge.qa.newQuestionAction")}
             </Button>
           </div>
         </Card.Content>

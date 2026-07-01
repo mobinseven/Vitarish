@@ -5,15 +5,7 @@ import { usePathname } from "next/navigation";
 import { AuthorizationGuard } from "@/components/auth/AuthorizationGuard";
 import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { Routes } from "@/app/routes";
-
-const navLinks = [
-  { href: Routes.Clinic.Index, label: "Dashboard", icon: "fa-solid fa-gauge" },
-  { href: Routes.Clinic.Patients.Index, label: "Patients", icon: "fa-solid fa-users" },
-  { href: Routes.Clinic.CheckIn, label: "Check-in", icon: "fa-solid fa-clipboard-check" },
-  { href: Routes.Clinic.Appointments.Reservations.Index, label: "Appointments", icon: "fa-solid fa-calendar" },
-  { href: Routes.Clinic.Reminders, label: "Reminders", icon: "fa-solid fa-bell" },
-  { href: Routes.Clinic.Settings.Index, label: "Settings", icon: "fa-solid fa-gear" },
-];
+import { useLocalizedText } from "@/localization";
 
 export default function ClinicLayout({
   children,
@@ -21,12 +13,22 @@ export default function ClinicLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { t } = useLocalizedText();
+
+  const navLinks = [
+    { href: Routes.Clinic.Index, label: t("clinic.dashboard.title"), icon: "fa-solid fa-gauge" },
+    { href: Routes.Clinic.Patients.Index, label: t("clinic.patients.title"), icon: "fa-solid fa-users" },
+    { href: Routes.Clinic.CheckIn, label: t("clinic.dashboard.sections.checkIn.title"), icon: "fa-solid fa-clipboard-check" },
+    { href: Routes.Clinic.Appointments.Reservations.Index, label: t("clinic.dashboard.sections.appointments.title"), icon: "fa-solid fa-calendar" },
+    { href: Routes.Clinic.Reminders, label: t("clinic.dashboard.sections.reminders.title"), icon: "fa-solid fa-bell" },
+    { href: Routes.Clinic.Settings.Index, label: t("clinic.dashboard.sections.settings.title"), icon: "fa-solid fa-gear" },
+  ];
 
   return (
     <AuthorizationGuard requiredRole="owner">
       <div className="flex min-h-screen">
         <aside className="sidebar">
-          <h2 className="text-lg font-bold mb-4 px-3">Clinic</h2>
+          <h2 className="text-lg font-bold mb-4 px-3">{t("appShell.navigation.clinic")}</h2>
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => {
               const isActive =

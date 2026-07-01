@@ -3,8 +3,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
+import { LocalizationProvider, type SupportedLocale } from "@/localization";
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children, locale }: { children: ReactNode; locale: SupportedLocale }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -17,7 +18,7 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-        {children}
+        <LocalizationProvider locale={locale}>{children}</LocalizationProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

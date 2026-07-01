@@ -5,11 +5,7 @@ import { usePathname } from "next/navigation";
 import { AuthorizationGuard } from "@/components/auth/AuthorizationGuard";
 import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { Routes } from "@/app/routes";
-
-const navLinks = [
-  { href: Routes.ClinicUser.Shifts.Index, label: "Shifts", icon: "fa-solid fa-clock" },
-  { href: Routes.ClinicUser.Reservations.Index, label: "My Reservations", icon: "fa-solid fa-calendar-check" },
-];
+import { useLocalizedText } from "@/localization";
 
 export default function ClinicUserLayout({
   children,
@@ -17,12 +13,18 @@ export default function ClinicUserLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { t } = useLocalizedText();
+
+  const navLinks = [
+    { href: Routes.ClinicUser.Shifts.Index, label: t("clinic.userAppointments.shifts.title"), icon: "fa-solid fa-clock" },
+    { href: Routes.ClinicUser.Reservations.Index, label: t("clinic.userAppointments.reservations.title"), icon: "fa-solid fa-calendar-check" },
+  ];
 
   return (
     <AuthorizationGuard requiredRole="user">
       <div className="flex min-h-screen">
         <aside className="sidebar">
-          <h2 className="text-lg font-bold mb-4 px-3">Clinic</h2>
+          <h2 className="text-lg font-bold mb-4 px-3">{t("appShell.navigation.clinic")}</h2>
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => {
               const isActive =

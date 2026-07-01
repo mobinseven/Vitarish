@@ -6,16 +6,17 @@ import Link from "next/link";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { Routes } from "@/app/routes";
+import { useLocalizedText, type MessageKey } from "@/localization";
 
 const navLinks = [
-  { href: Routes.Account.Index, label: "Settings", icon: "fa-solid fa-gear" },
-  { href: Routes.Account.Name, label: "Name", icon: "fa-solid fa-person" },
-  { href: Routes.Account.Email, label: "Email", icon: "fa-solid fa-envelope" },
-  { href: Routes.Account.Phone, label: "Phone", icon: "fa-solid fa-mobile" },
-  { href: Routes.Account.Password, label: "Password", icon: "fa-solid fa-lock" },
-  { href: Routes.Account.Passkeys, label: "Passkeys", icon: "fa-solid fa-key" },
-  { href: Routes.Account.Theme, label: "Theme", icon: "fa-solid fa-palette" },
-  { href: Routes.Account.Culture, label: "Language", icon: "fa-solid fa-globe" },
+  { href: Routes.Account.Index, labelKey: "account.navigation.settings" as MessageKey, icon: "fa-solid fa-gear" },
+  { href: Routes.Account.Name, labelKey: "account.navigation.name" as MessageKey, icon: "fa-solid fa-person" },
+  { href: Routes.Account.Email, labelKey: "account.navigation.email" as MessageKey, icon: "fa-solid fa-envelope" },
+  { href: Routes.Account.Phone, labelKey: "account.navigation.phone" as MessageKey, icon: "fa-solid fa-mobile" },
+  { href: Routes.Account.Password, labelKey: "account.navigation.password" as MessageKey, icon: "fa-solid fa-lock" },
+  { href: Routes.Account.Passkeys, labelKey: "account.navigation.passkeys" as MessageKey, icon: "fa-solid fa-key" },
+  { href: Routes.Account.Theme, labelKey: "account.navigation.theme" as MessageKey, icon: "fa-solid fa-palette" },
+  { href: Routes.Account.Culture, labelKey: "account.navigation.language" as MessageKey, icon: "fa-solid fa-globe" },
 ];
 
 export default function AccountLayout({
@@ -26,6 +27,7 @@ export default function AccountLayout({
   const { isAuthenticated, isLoading } = useAuthSession();
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useLocalizedText();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -36,7 +38,7 @@ export default function AccountLayout({
   if (isLoading) {
     return (
       <main className="ds-app-shell ds-centered-shell">
-        <p className="text-muted">Loading...</p>
+        <p className="text-muted">{t("common.states.loading")}</p>
       </main>
     );
   }
@@ -48,7 +50,7 @@ export default function AccountLayout({
   return (
     <div className="ds-account-layout">
       <aside className="sidebar">
-        <h2 className="text-lg font-bold mb-4 px-3">Account</h2>
+        <h2 className="text-lg font-bold mb-4 px-3">{t("account.title")}</h2>
         <nav className="flex flex-col gap-1">
           {navLinks.map((link) => {
             const isActive =
@@ -62,7 +64,7 @@ export default function AccountLayout({
                 className={`sidebar-nav-item ${isActive ? "sidebar-nav-item-active" : ""}`}
               >
                 <i className={`${link.icon} w-4 text-center text-xs`} />
-                {link.label}
+                {t(link.labelKey)}
               </Link>
             );
           })}

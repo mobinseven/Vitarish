@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { TextField, Label, Input, Spinner } from "@heroui/react";
 import { usePatientIdentificationLookup } from "../hooks/usePatientIdentificationLookup";
 import { IdentificationLookupResult } from "./IdentificationLookupResult";
+import { useLocalizedText } from "@/localization";
 
 interface IdentificationLookupProps {
   onSelectPatient: (patientId: string) => void;
@@ -13,6 +14,7 @@ export function IdentificationLookup({
   onSelectPatient,
 }: IdentificationLookupProps) {
   const { state, lookup, reset } = usePatientIdentificationLookup();
+  const { t } = useLocalizedText();
   const [code, setCode] = useState("");
 
   useEffect(() => {
@@ -37,9 +39,9 @@ export function IdentificationLookup({
   return (
     <div className="flex flex-col gap-4">
       <TextField>
-        <Label>Identification Code</Label>
+        <Label>{t("clinic.patient.identification.label")}</Label>
         <Input
-          placeholder="Enter identification code..."
+          placeholder={t("clinic.patient.identification.placeholder")}
           value={code}
           onChange={(e) => setCode(e.target.value)}
         />
@@ -48,7 +50,7 @@ export function IdentificationLookup({
       {state.status === "searching" && (
         <div className="flex items-center gap-2 text-default-500">
           <Spinner size="sm" />
-          <span>Looking up patient...</span>
+          <span>{t("clinic.patient.identification.lookingUp")}</span>
         </div>
       )}
 

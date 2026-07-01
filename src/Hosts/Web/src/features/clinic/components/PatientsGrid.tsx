@@ -3,18 +3,7 @@
 import { Card } from "@heroui/react";
 import { PatientRow } from "./PatientRow";
 import type { PatientViewDto, PatientSortBy } from "../types";
-
-interface SortHeader {
-  field: PatientSortBy;
-  label: string;
-}
-
-const sortHeaders: SortHeader[] = [
-  { field: "Name", label: "Name" },
-  { field: "IdentificationCode", label: "ID Code" },
-  { field: "DateOfBirth", label: "DOB" },
-  { field: "CreatedAt", label: "Created" },
-];
+import { useLocalizedText } from "@/localization";
 
 interface PatientsGridProps {
   patients: PatientViewDto[];
@@ -31,11 +20,20 @@ export function PatientsGrid({
   onSort,
   onSelectPatient,
 }: PatientsGridProps) {
+  const { t } = useLocalizedText();
+
+  const sortHeaders: { field: PatientSortBy; label: string }[] = [
+    { field: "Name", label: t("clinic.patient.fields.firstName") },
+    { field: "IdentificationCode", label: t("clinic.patient.fields.identificationCode") },
+    { field: "DateOfBirth", label: t("clinic.patient.fields.dateOfBirth") },
+    { field: "CreatedAt", label: t("clinic.patient.fields.created") },
+  ];
+
   if (patients.length === 0) {
     return (
       <Card className="glass-card p-8">
         <p className="text-center text-default-500">
-          No patients found. Try adjusting your search.
+          {t("clinic.patients.searchEmpty")}
         </p>
       </Card>
     );

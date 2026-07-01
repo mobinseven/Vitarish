@@ -21,9 +21,14 @@ export function usePasswordLogin() {
       setError(null);
       try {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
-        const result = await mutation.mutateAsync({
-          data: { userNameOrEmail, password, returnUrl: finalReturnUrl, rememberMe: false },
-        });
+        const data = {
+          userNameOrEmail,
+          password,
+          rememberMe: false,
+          returnUrl: finalReturnUrl ?? null,
+        };
+
+        const result = await mutation.mutateAsync({ data });
 
         await queryClient.invalidateQueries({
           queryKey: getAuthenticationSessionGetQueryKey(),

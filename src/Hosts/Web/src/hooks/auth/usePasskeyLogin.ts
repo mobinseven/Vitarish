@@ -21,7 +21,7 @@ export function usePasskeyLogin() {
       try {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
         const challenge = await beginMutation.mutateAsync({
-          data: { userNameOrEmail: userNameOrEmail || null, returnUrl: finalReturnUrl },
+          data: { userNameOrEmail: userNameOrEmail || null, returnUrl: finalReturnUrl ?? null },
         });
 
         if (!challenge.optionsJson) {
@@ -33,7 +33,7 @@ export function usePasskeyLogin() {
         );
 
         const result = await completeMutation.mutateAsync({
-          data: { challengeId: challenge.challengeId, credentialJson, returnUrl: finalReturnUrl },
+          data: { challengeId: challenge.challengeId, credentialJson, returnUrl: finalReturnUrl ?? null },
         });
 
         router.push(result.returnUrl);

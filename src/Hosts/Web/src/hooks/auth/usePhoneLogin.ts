@@ -34,7 +34,7 @@ export function usePhoneLogin() {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
         setPendingReturnUrl(finalReturnUrl ?? undefined);
         const result = await beginMutation.mutateAsync({
-          data: { phoneNumber: phone, returnUrl: finalReturnUrl },
+          data: { phoneNumber: phone, returnUrl: finalReturnUrl ?? null },
         });
         setChallenge(result);
         setPhoneNumber(phone);
@@ -56,7 +56,7 @@ export function usePhoneLogin() {
         const returnUrl =
           pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
         const result = await completeMutation.mutateAsync({
-          data: { challengeId: challenge.challengeId, code, returnUrl },
+          data: { challengeId: challenge.challengeId, code, returnUrl: returnUrl ?? null },
         });
         router.push(result.returnUrl);
       } catch (err) {
@@ -82,7 +82,7 @@ export function usePhoneLogin() {
       const finalReturnUrl =
         pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
       const result = await beginMutation.mutateAsync({
-        data: { phoneNumber, returnUrl: finalReturnUrl },
+        data: { phoneNumber, returnUrl: finalReturnUrl ?? null },
       });
       setChallenge(result);
       setStatusMessage("A new code was sent to your phone number.");

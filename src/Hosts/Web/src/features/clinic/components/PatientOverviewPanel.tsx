@@ -2,6 +2,7 @@
 
 import { Card } from "@heroui/react";
 import type { PatientViewDto } from "../types";
+import { useLocalizedText, formatDateTime } from "@/localization";
 
 interface PatientOverviewPanelProps {
   patient: PatientViewDto;
@@ -13,55 +14,56 @@ function formatProgressState(state: string | null | undefined): string {
 }
 
 export function PatientOverviewPanel({ patient }: PatientOverviewPanelProps) {
+  const { t, locale } = useLocalizedText();
   const stats = patient.stats;
 
   return (
     <Card className="glass-card">
       <Card.Header>
-        <h2 className="text-lg font-semibold">Overview</h2>
+        <h2 className="text-lg font-semibold">{t("clinic.patient.overview.title")}</h2>
       </Card.Header>
       <Card.Content className="flex flex-col gap-4">
         {stats ? (
           <>
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-default-500">Progress</span>
+              <span className="text-sm text-default-500">{t("clinic.patient.overview.progress")}</span>
               <span className="text-sm font-medium">
                 {formatProgressState(stats.state)}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <StatItem label="Procedures" value={Number(stats.procedures) || 0} />
-              <StatItem label="Events" value={Number(stats.events) || 0} />
+              <StatItem label={t("clinic.patient.overview.procedures")} value={Number(stats.procedures) || 0} />
+              <StatItem label={t("clinic.patient.overview.events")} value={Number(stats.events) || 0} />
               <StatItem
-                label="Committed Events"
+                label={t("clinic.patient.overview.committedEvents")}
                 value={Number(stats.committedEvents) || 0}
               />
-              <StatItem label="Event Items" value={Number(stats.eventItems) || 0} />
-              <StatItem label="New Items" value={Number(stats.newItems) || 0} />
+              <StatItem label={t("clinic.patient.overview.eventItems")} value={Number(stats.eventItems) || 0} />
+              <StatItem label={t("clinic.patient.overview.newItems")} value={Number(stats.newItems) || 0} />
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-default-500">Unread:</span>
+              <span className="text-sm text-default-500">{t("clinic.patient.overview.unread")}:</span>
               <span
                 className={`text-sm font-medium ${stats.unread ? "text-warning" : "text-default-500"}`}
               >
-                {stats.unread ? "Yes" : "No"}
+                {stats.unread ? t("clinic.patient.overview.yes") : t("clinic.patient.overview.no")}
               </span>
             </div>
 
             {stats.lastUpdate && (
               <div className="flex flex-col gap-1">
-                <span className="text-sm text-default-500">Last Update</span>
+                <span className="text-sm text-default-500">{t("clinic.patient.overview.lastUpdate")}</span>
                 <span className="text-sm">
-                  {new Date(stats.lastUpdate).toLocaleString()}
+                  {formatDateTime(stats.lastUpdate, locale)}
                 </span>
               </div>
             )}
           </>
         ) : (
           <p className="text-sm text-default-500">
-            No statistics available for this patient.
+            {t("clinic.patient.overview.noStats")}
           </p>
         )}
       </Card.Content>

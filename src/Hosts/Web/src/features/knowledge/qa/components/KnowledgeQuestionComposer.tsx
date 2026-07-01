@@ -2,6 +2,7 @@
 
 import { Button, Card } from "@heroui/react";
 import { SurfaceCard } from "@/design-system";
+import { useLocalizedText } from "@/localization";
 import { KnowledgePromptInput } from "./chat";
 
 interface KnowledgeQuestionComposerProps {
@@ -23,28 +24,30 @@ export function KnowledgeQuestionComposer({
   onSubmit,
   onNewQuestion,
 }: KnowledgeQuestionComposerProps) {
+  const { t } = useLocalizedText();
+
   return (
     <SurfaceCard>
       <Card.Content>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <p className="text-xs uppercase tracking-[0.25em] text-muted">Ask</p>
-            <h1 className="text-3xl font-semibold">Ask anything</h1>
+            <p className="text-xs uppercase tracking-[0.25em] text-muted">{t("knowledge.qa.composerEyebrow")}</p>
+            <h1 className="text-3xl font-semibold">{t("knowledge.qa.composerTitle")}</h1>
           </div>
 
           <KnowledgePromptInput
             value={value}
-            label="Question"
-            placeholder="Ask from your selected corpus or all corpora"
+            label={t("knowledge.qa.questionLabel")}
+            placeholder={t("knowledge.qa.questionPlaceholder")}
             isPending={isPending}
-            submitLabel="Ask"
-            helperText={`Scope: ${scopeLabel}`}
+            submitLabel={t("knowledge.qa.askAction")}
+            helperText={t("knowledge.qa.scopeLabel", { scope: scopeLabel })}
             onChange={onChange}
             onSubmit={onSubmit}
             actions={
               hasAnswer ? (
                 <Button type="button" variant="ghost" onPress={onNewQuestion}>
-                  New question
+                  {t("knowledge.qa.newQuestionAction")}
                 </Button>
               ) : null
             }

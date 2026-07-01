@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { useEmailLogin } from "@/hooks/auth/useEmailLogin";
+import { useLocalizedText } from "@/localization";
 import { StatusMessage } from "./StatusMessage";
 import { OtpVerificationStep } from "./OtpVerificationStep";
 
@@ -24,6 +25,7 @@ export function EmailOtpForm({ returnUrl }: EmailOtpFormProps) {
     remainingAttempts,
     expiresAt,
   } = useEmailLogin();
+  const { t } = useLocalizedText();
   const [emailInput, setEmailInput] = useState("");
   const [code, setCode] = useState("");
 
@@ -50,7 +52,7 @@ export function EmailOtpForm({ returnUrl }: EmailOtpFormProps) {
         remainingAttempts={remainingAttempts}
         expiresAt={expiresAt}
         autoSubmitOnCapturedCode
-        changeDestinationLabel="Use a different email"
+        changeDestinationLabel={t("auth.otp.differentEmailAction")}
       />
     );
   }
@@ -59,9 +61,9 @@ export function EmailOtpForm({ returnUrl }: EmailOtpFormProps) {
     <Form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
       {errorMessage && <StatusMessage message={errorMessage} />}
       <TextField name="email" type="email" isRequired isDisabled={isLoading}>
-        <Label>Email</Label>
+        <Label>{t("auth.otp.emailLabel")}</Label>
         <Input
-          placeholder="Enter your email address"
+          placeholder={t("auth.otp.emailPlaceholder")}
           value={emailInput}
           onChange={(e) => setEmailInput(e.target.value)}
           autoComplete="email"
@@ -72,7 +74,7 @@ export function EmailOtpForm({ returnUrl }: EmailOtpFormProps) {
         isPending={isLoading}
         className="w-full"
       >
-        Send Code
+        {t("auth.otp.sendAction")}
       </Button>
     </Form>
   );

@@ -3,10 +3,12 @@
 import { Link } from "@heroui/react";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useLocalizedText } from "@/localization";
 import { UserMenu } from "./UserMenu";
 
 export function AuthGate() {
   const { isAuthenticated, isLoading } = useAuthSession();
+  const { t } = useLocalizedText();
 
   if (isLoading) {
     return <div className="h-8 w-8 animate-pulse rounded-full bg-current/10" />;
@@ -18,7 +20,7 @@ export function AuthGate() {
         href={Routes.Login.Index}
         className="inline-flex min-h-8 items-center rounded-full bg-accent px-4 text-sm font-medium text-accent-foreground transition hover:opacity-90"
       >
-        Log In
+        {t("appShell.userMenu.logIn")}
       </Link>
     );
   }

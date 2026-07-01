@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { Link } from "@heroui/react";
 import { CenteredSurface } from "@/design-system";
 import { Routes } from "@/app/routes";
+import { useLocalizedText } from "@/localization";
 
 interface LoginPageCardProps {
   title: string;
@@ -19,9 +20,11 @@ export function LoginPageCard({
   subtitle,
   skeletonHeight = "128px",
   backHref = Routes.Login.Index,
-  backLabel = "Other sign-in methods",
+  backLabel,
   children,
 }: LoginPageCardProps) {
+  const { t } = useLocalizedText();
+  const resolvedBackLabel = backLabel ?? t("auth.login.otherMethods");
   return (
     <CenteredSurface title={title} description={subtitle}>
       <div className="flex flex-col gap-4">
@@ -37,7 +40,7 @@ export function LoginPageCard({
         </Suspense>
         <div className="flex flex-col items-center gap-2 text-sm">
           <Link href={backHref} className="text-sm">
-            {backLabel}
+            {resolvedBackLabel}
           </Link>
         </div>
       </div>

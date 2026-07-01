@@ -7,6 +7,7 @@ import { usePatientDetail } from "../hooks/usePatientDetail";
 import { PatientDetails } from "./PatientDetails";
 import { PatientOverviewPanel } from "./PatientOverviewPanel";
 import { PatientQuickActions } from "./PatientQuickActions";
+import { useLocalizedText } from "@/localization";
 
 interface ClinicOwnerPatientDetailPageProps {
   patientId: string;
@@ -16,6 +17,7 @@ export function ClinicOwnerPatientDetailPage({
   patientId,
 }: ClinicOwnerPatientDetailPageProps) {
   const router = useRouter();
+  const { t } = useLocalizedText();
   const { data: patient, isLoading, error } = usePatientDetail(patientId);
 
   if (isLoading) {
@@ -23,7 +25,7 @@ export function ClinicOwnerPatientDetailPage({
       <Card className="glass-card p-8">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">Loading patient details...</span>
+          <span className="text-default-500">{t("clinic.patient.detail.loading")}</span>
         </div>
       </Card>
     );
@@ -34,13 +36,13 @@ export function ClinicOwnerPatientDetailPage({
       <Card className="glass-card p-8">
         <div className="flex flex-col items-center gap-4">
           <p className="text-danger">
-            {error instanceof Error ? error.message : "Patient not found"}
+            {error instanceof Error ? error.message : t("clinic.patient.detail.notFound")}
           </p>
           <Button
             variant="ghost"
             onPress={() => router.push(Routes.Clinic.Patients.Index)}
           >
-            Back to Patients
+            {t("clinic.patients.backToPatients")}
           </Button>
         </div>
       </Card>
@@ -56,12 +58,12 @@ export function ClinicOwnerPatientDetailPage({
             className="mb-2"
             onPress={() => router.push(Routes.Clinic.Patients.Index)}
           >
-            ← Back to Patients
+            ← {t("clinic.patients.backToPatients")}
           </Button>
           <h1 className="text-2xl font-bold">
             {patient.firstName || patient.lastName
               ? ((patient.firstName ?? "") + " " + (patient.lastName ?? "")).trim()
-              : patient.name || "Unnamed Patient"}
+              : patient.name || t("clinic.patients.unnamedPatient")}
           </h1>
         </div>
         <PatientQuickActions patientId={patientId} />

@@ -377,6 +377,11 @@ docs/platform/modules/<Module>/
 
 Global indexes are navigation only. The scoped artifact is the source of truth.
 
+
+### React Localization Routing
+
+Any task touching React user-facing UI under `src/Hosts/Web/src/**` must use `platform-localization-maintenance`. React UI strings must come from `src/Hosts/Web/src/localization/**`; do not introduce feature-local English copy constants. Do not localize in generated clients, API fetch infrastructure, Domain, Application, Contracts, or backend Infrastructure. API/user-visible errors must map stable codes to localized copy in the React presentation boundary. Dates, times, numbers, currency, percentages, lists, and pluralized strings must use central localization/formatting helpers. Run static localization validation for React UI changes once available.
+
 ### Core Rules
 
 Do not duplicate full skill instructions in `AGENTS.md`.

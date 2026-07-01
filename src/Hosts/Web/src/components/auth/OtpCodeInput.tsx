@@ -3,6 +3,7 @@
 import { TextField, Label, Input, FieldError } from "@heroui/react";
 import { useCallback } from "react";
 import { normalizeOtpCode } from "@/lib/auth/otpCode";
+import { useLocalizedText } from "@/localization";
 
 interface OtpCodeInputProps {
   value: string;
@@ -21,6 +22,7 @@ export function OtpCodeInput({
   isDisabled,
   expectedLength = 6,
 }: OtpCodeInputProps) {
+  const { t } = useLocalizedText();
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange(normalizeOtpCode(e.target.value, expectedLength));
@@ -34,9 +36,9 @@ export function OtpCodeInput({
       isInvalid={isInvalid}
       isDisabled={isDisabled}
     >
-      <Label>Verification Code</Label>
+      <Label>{t("auth.otp.codeLabel")}</Label>
       <Input
-        placeholder={`Enter ${expectedLength}-digit code`}
+        placeholder={t("auth.otp.codePlaceholder", { length: expectedLength })}
         value={value}
         onChange={handleChange}
         maxLength={expectedLength}

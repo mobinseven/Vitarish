@@ -1,6 +1,8 @@
+"use client";
+
 import { Alert, Card, Button } from "@heroui/react";
 import { SurfaceCard } from "@/design-system";
-import { journeyUiText } from "../types/journeyUiText";
+import { useLocalizedText } from "@/localization";
 
 interface JourneyErrorStateProps {
   title?: string;
@@ -9,10 +11,14 @@ interface JourneyErrorStateProps {
 }
 
 export function JourneyErrorState({
-  title = journeyUiText.genericErrorTitle,
-  description = journeyUiText.genericErrorDescription,
+  title,
+  description,
   onRetry,
 }: JourneyErrorStateProps) {
+  const { t } = useLocalizedText();
+  const resolvedTitle = title ?? t("journey.error.title");
+  const resolvedDescription = description ?? t("journey.error.description");
+
   return (
     <main className="ds-app-shell ds-centered-shell">
       <SurfaceCard className="w-full max-w-md">
@@ -20,13 +26,13 @@ export function JourneyErrorState({
           <Alert status="danger">
             <Alert.Indicator />
             <Alert.Content>
-              <strong>{title}</strong>
-              <span className="block text-sm">{description}</span>
+              <strong>{resolvedTitle}</strong>
+              <span className="block text-sm">{resolvedDescription}</span>
             </Alert.Content>
           </Alert>
           {onRetry ? (
             <Button variant="primary" onPress={onRetry}>
-              Try again
+              {t("journey.error.retryAction")}
             </Button>
           ) : null}
         </Card.Content>

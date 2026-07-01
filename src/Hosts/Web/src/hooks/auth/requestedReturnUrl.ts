@@ -1,16 +1,16 @@
 export function getRequestedReturnUrl(
   searchParams: URLSearchParams,
   explicitReturnUrl?: string
-): string | null {
+): string | undefined {
   const raw =
     explicitReturnUrl ?? searchParams.get("returnUrl") ?? undefined;
 
-  if (!raw) return null;
+  if (!raw) return undefined;
 
   const requestedReturnUrl = raw.trim();
 
   if (!requestedReturnUrl || requestedReturnUrl === "/") {
-    return null;
+    return undefined;
   }
 
   const path = requestedReturnUrl.split(/[?#]/)[0];
@@ -21,7 +21,7 @@ export function getRequestedReturnUrl(
     path === "/logout" ||
     path.startsWith("/logout/")
   ) {
-    return null;
+    return undefined;
   }
 
   return requestedReturnUrl;

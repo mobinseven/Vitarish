@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card } from "@heroui/react";
 import { IdentificationLookup } from "@/features/clinic/components/IdentificationLookup";
+import { useLocalizedText } from "@/localization";
 
 type CheckInStep = "find-patient" | "select-shift" | "confirm";
 
@@ -15,6 +16,7 @@ export function PatientCheckInWizard({
 }: PatientCheckInWizardProps) {
   const [step, setStep] = useState<CheckInStep>("find-patient");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const { t } = useLocalizedText();
 
   const handlePatientSelect = (patientId: string) => {
     setSelectedPatientId(patientId);
@@ -25,14 +27,14 @@ export function PatientCheckInWizard({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">Patient Check-in</h1>
-        <p className="text-sm text-muted">Register a patient for their appointment</p>
+        <h1 className="text-2xl font-bold">{t("clinic.checkIn.title")}</h1>
+        <p className="text-sm text-muted">{t("clinic.checkIn.description")}</p>
       </div>
 
       <Card className="glass-card">
         <Card.Header>
           <h2 className="text-lg font-semibold">
-            Step 1: Find Patient
+            {t("clinic.checkIn.step1")}
           </h2>
         </Card.Header>
         <Card.Content>
@@ -44,12 +46,12 @@ export function PatientCheckInWizard({
         <Card className="glass-card">
           <Card.Header>
             <h2 className="text-lg font-semibold">
-              Step 2: Select Shift
+              {t("clinic.checkIn.step2")}
             </h2>
           </Card.Header>
           <Card.Content>
             <p className="text-sm text-muted">
-              Shift selection for the selected patient will be available here soon.
+              {t("clinic.checkIn.shiftUnavailable")}
             </p>
           </Card.Content>
         </Card>
@@ -59,12 +61,12 @@ export function PatientCheckInWizard({
         <Card className="glass-card">
           <Card.Header>
             <h2 className="text-lg font-semibold">
-              Step 3: Confirm Check-in
+              {t("clinic.checkIn.step3")}
             </h2>
           </Card.Header>
           <Card.Content>
             <p className="text-sm text-muted">
-              Check-in confirmation coming soon.
+              {t("clinic.checkIn.confirmationComingSoon")}
             </p>
           </Card.Content>
         </Card>

@@ -2,15 +2,15 @@
 
 import { Card } from "@heroui/react";
 import type { PatientViewDto } from "../types";
+import { useLocalizedText, formatDate as fmtDate, type SupportedLocale } from "@/localization";
 
 interface PatientDetailsProps {
   patient: PatientViewDto;
 }
 
-function formatDate(dateString: string | null | undefined): string {
+function safeDate(dateString: string | null | undefined, locale: SupportedLocale): string {
   if (!dateString || dateString.startsWith("0001-01-01")) return "—";
-  const date = new Date(dateString);
-  return isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
+  return fmtDate(dateString, locale) || "—";
 }
 
 function formatEnum(value: string | null | undefined): string {
@@ -19,41 +19,42 @@ function formatEnum(value: string | null | undefined): string {
 }
 
 export function PatientDetails({ patient }: PatientDetailsProps) {
+  const { t, locale } = useLocalizedText();
   return (
     <div className="flex flex-col gap-4">
       <Card className="glass-card">
         <Card.Header>
-          <h2 className="text-lg font-semibold">Personal Information</h2>
+          <h2 className="text-lg font-semibold">{t("clinic.patient.sections.personal")}</h2>
         </Card.Header>
         <Card.Content className="grid gap-4 sm:grid-cols-2">
-          <DetailField label="First Name" value={patient.firstName} />
-          <DetailField label="Last Name" value={patient.lastName} />
+          <DetailField label={t("clinic.patient.fields.firstName")} value={patient.firstName} />
+          <DetailField label={t("clinic.patient.fields.lastName")} value={patient.lastName} />
           <DetailField
-            label="Date of Birth"
-            value={formatDate(patient.dateOfBirth)}
+            label={t("clinic.patient.fields.dateOfBirth")}
+            value={safeDate(patient.dateOfBirth, locale)}
           />
-          <DetailField label="Gender" value={formatEnum(patient.gender)} />
-          <DetailField label="Place of Birth" value={patient.placeOfBirth} />
-          <DetailField label="Father's Name" value={patient.fatherName} />
-          <DetailField label="Education" value={formatEnum(patient.education)} />
-          <DetailField label="Occupation" value={patient.occupation} />
+          <DetailField label={t("clinic.patient.fields.gender")} value={formatEnum(patient.gender)} />
+          <DetailField label={t("clinic.patient.fields.placeOfBirth")} value={patient.placeOfBirth} />
+          <DetailField label={t("clinic.patient.fields.fatherName")} value={patient.fatherName} />
+          <DetailField label={t("clinic.patient.fields.education")} value={formatEnum(patient.education)} />
+          <DetailField label={t("clinic.patient.fields.occupation")} value={patient.occupation} />
         </Card.Content>
       </Card>
 
       <Card className="glass-card">
         <Card.Header>
-          <h2 className="text-lg font-semibold">Contact Information</h2>
+          <h2 className="text-lg font-semibold">{t("clinic.patient.sections.contact")}</h2>
         </Card.Header>
         <Card.Content className="grid gap-4 sm:grid-cols-2">
-          <DetailField label="Phone" value={patient.phone} />
-          <DetailField label="Email" value={patient.email} />
-          <DetailField label="Address" value={patient.address} />
+          <DetailField label={t("clinic.patient.fields.phone")} value={patient.phone} />
+          <DetailField label={t("clinic.patient.fields.email")} value={patient.email} />
+          <DetailField label={t("clinic.patient.fields.address")} value={patient.address} />
           <DetailField
-            label="Emergency Contact"
+            label={t("clinic.patient.fields.emergencyContact")}
             value={patient.emergencyContactName}
           />
           <DetailField
-            label="Emergency Phone"
+            label={t("clinic.patient.fields.emergencyPhone")}
             value={patient.emergencyContactPhone}
           />
         </Card.Content>
@@ -61,37 +62,37 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
 
       <Card className="glass-card">
         <Card.Header>
-          <h2 className="text-lg font-semibold">Medical Information</h2>
+          <h2 className="text-lg font-semibold">{t("clinic.patient.sections.medical")}</h2>
         </Card.Header>
         <Card.Content className="grid gap-4 sm:grid-cols-2">
           <DetailField
-            label="Date of Surgery"
-            value={formatDate(patient.dateOfSurgery)}
+            label={t("clinic.patient.fields.dateOfSurgery")}
+            value={safeDate(patient.dateOfSurgery, locale)}
           />
-          <DetailField label="Height (cm)" value={patient.height} />
-          <DetailField label="Weight (kg)" value={patient.weight} />
-          <DetailField label="Allergies" value={patient.allergies} />
+          <DetailField label={t("clinic.patient.fields.heightCm")} value={patient.height} />
+          <DetailField label={t("clinic.patient.fields.weightKg")} value={patient.weight} />
+          <DetailField label={t("clinic.patient.fields.allergies")} value={patient.allergies} />
           <DetailField
-            label="Current Medications"
+            label={t("clinic.patient.fields.currentMedications")}
             value={patient.currentMedications}
           />
-          <DetailField label="Clinical Notes" value={patient.clinicalNotes} />
+          <DetailField label={t("clinic.patient.fields.clinicalNotes")} value={patient.clinicalNotes} />
         </Card.Content>
       </Card>
 
       <Card className="glass-card">
         <Card.Header>
-          <h2 className="text-lg font-semibold">Insurance & Other</h2>
+          <h2 className="text-lg font-semibold">{t("clinic.patient.sections.insurance")}</h2>
         </Card.Header>
         <Card.Content className="grid gap-4 sm:grid-cols-2">
           <DetailField
-            label="Insurance Provider"
+            label={t("clinic.patient.fields.insuranceProvider")}
             value={patient.insuranceProvider}
           />
-          <DetailField label="Referrer" value={patient.referrer} />
-          <DetailField label="Visit Reason" value={patient.visitReason} />
+          <DetailField label={t("clinic.patient.fields.referrer")} value={patient.referrer} />
+          <DetailField label={t("clinic.patient.fields.visitReason")} value={patient.visitReason} />
           <DetailField
-            label="Identification Code"
+            label={t("clinic.patient.fields.identificationCode")}
             value={patient.identificationCode}
           />
         </Card.Content>
@@ -99,13 +100,13 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
 
       <Card className="glass-card">
         <Card.Header>
-          <h2 className="text-lg font-semibold">System</h2>
+          <h2 className="text-lg font-semibold">{t("clinic.patient.sections.system")}</h2>
         </Card.Header>
         <Card.Content className="grid gap-4 sm:grid-cols-2">
-          <DetailField label="Patient ID" value={patient.id} />
-          <DetailField label="Template" value={patient.template ? "Yes" : "No"} />
-          <DetailField label="Created" value={formatDate(patient.createdAt)} />
-          <DetailField label="Updated" value={formatDate(patient.updatedAt)} />
+          <DetailField label={t("clinic.patient.fields.patientId")} value={patient.id} />
+          <DetailField label={t("clinic.patient.fields.template")} value={patient.template ? t("clinic.patient.overview.yes") : t("clinic.patient.overview.no")} />
+          <DetailField label={t("clinic.patient.fields.created")} value={safeDate(patient.createdAt, locale)} />
+          <DetailField label={t("clinic.patient.fields.updated")} value={safeDate(patient.updatedAt, locale)} />
         </Card.Content>
       </Card>
     </div>

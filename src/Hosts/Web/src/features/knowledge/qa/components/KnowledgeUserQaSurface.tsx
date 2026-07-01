@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { AppShell } from "@/design-system";
+import { useLocalizedText, type Translate } from "@/localization";
 import { KnowledgeAnswerList } from "./KnowledgeAnswerList";
 import { KnowledgeCorpusRail } from "./KnowledgeCorpusRail";
 import { KnowledgeQuestionComposer } from "./KnowledgeQuestionComposer";
@@ -16,6 +17,7 @@ import type {
 const defaultTopK = 8;
 
 export function KnowledgeUserQaSurface() {
+  const { t } = useLocalizedText();
   const workspace = useKnowledgeUserWorkspace();
   const ask = useKnowledgeUserAsk();
 
@@ -32,21 +34,21 @@ export function KnowledgeUserQaSurface() {
     [corpora, selectedCorpusId]
   );
 
-  const currentScopeLabel = selectedCorpus?.name ?? "All corpora";
-  const answerScopeLabel = getScopeLabel(lastScope, corpora);
+  const currentScopeLabel = selectedCorpus?.name ?? t("knowledge.qa.allCorpora");
+  const answerScopeLabel = getScopeLabel(lastScope, corpora, t);
 
   const submitQuestion = useCallback(
     async (nextQuestion: string, scopeOverride?: KnowledgeQuestionScope) => {
       const normalizedQuestion = nextQuestion.trim();
       if (!normalizedQuestion) {
-        setStatusMessage("Enter a question before asking Knowledge.");
+        setStatusMessage(t("knowledge.qa.questionRequired"));
         return;
       }
 
       const scope = scopeOverride ?? toScope(selectedCorpus);
       const scopeCorpora = resolveScopeCorpora(scope, corpora);
       if (scopeCorpora.length === 0) {
-        setStatusMessage("No knowledge sources are available for this question.");
+        setStatusMessage(t("knowledge.qa.noSourcesForQuestion"));
         return;
       }
 
@@ -64,7 +66,7 @@ export function KnowledgeUserQaSurface() {
 
       setAnswerResults(results);
     },
-    [ask, corpora, selectedCorpus]
+    [ask, corpora, selectedCorpus, t]
   );
 
   const askAgain = useCallback(async () => {
@@ -126,7 +128,7 @@ export function KnowledgeUserQaSurface() {
             scopeLabel={answerScopeLabel}
             results={answerResults}
             isPending={ask.isPending}
-            statusMessage={statusMessage ?? workspaceError(workspace.error) ?? ask.errorMessage}
+            statusMessage={statusMessage ?? workspaceError(workspace.error, t) ?? ask.errorMessage}
             onAskAgain={askAgain}
             onNewQuestion={startNewQuestion}
             onContinueInCorpus={continueInCorpus}
@@ -159,16 +161,17 @@ function resolveScopeCorpora(
 
 function getScopeLabel(
   scope: KnowledgeQuestionScope,
-  corpora: KnowledgeUserCorpus[]
+  corpora: KnowledgeUserCorpus[],
+  t: Translate
 ): string {
   if (scope.kind === "all") {
-    return "All corpora";
+    return t("knowledge.qa.allCorpora");
   }
 
-  return corpora.find((item) => item.corpusId === scope.corpusId)?.name ?? "Selected corpus";
+  return corpora.find((item) => item.corpusId === scope.corpusId)?.name ?? t("knowledge.qa.selectedCorpus");
 }
 
-function workspaceError(error: unknown): string | null {
+function workspaceError(error: unknown, t: Translate): string | null {
   if (!error) {
     return null;
   }
@@ -177,5 +180,5 @@ function workspaceError(error: unknown): string | null {
     return error.message;
   }
 
-  return "Failed to load Knowledge corpora.";
+  return t("knowledge.qa.loadCorporaFailed");
 }

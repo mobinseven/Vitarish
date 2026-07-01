@@ -3,6 +3,7 @@
 import { Card, Spinner } from "@heroui/react";
 import { PatientRow } from "./PatientRow";
 import type { PatientViewDto } from "../types";
+import { useLocalizedText } from "@/localization";
 
 interface AdvancedSearchResultsProps {
   results: PatientViewDto[];
@@ -15,12 +16,14 @@ export function AdvancedSearchResults({
   isLoading,
   onSelectPatient,
 }: AdvancedSearchResultsProps) {
+  const { t } = useLocalizedText();
+
   if (isLoading) {
     return (
       <Card className="glass-card p-4">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">Searching...</span>
+          <span className="text-default-500">{t("clinic.patient.advancedSearch.searching")}</span>
         </div>
       </Card>
     );
@@ -29,7 +32,7 @@ export function AdvancedSearchResults({
   if (results.length === 0) {
     return (
       <Card className="glass-card p-4">
-        <p className="text-center text-default-500">No patients found</p>
+        <p className="text-center text-default-500">{t("clinic.patient.advancedSearch.noResults")}</p>
       </Card>
     );
   }
@@ -38,7 +41,7 @@ export function AdvancedSearchResults({
     <Card className="glass-card">
       <Card.Header>
         <h3 className="text-lg font-semibold">
-          Results ({results.length})
+          {t("clinic.patient.advancedSearch.resultsCount", { count: String(results.length) })}
         </h3>
       </Card.Header>
       <Card.Content className="flex flex-col gap-1">

@@ -7,9 +7,11 @@ import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
 import { apiFetch } from "@/api/client/apiFetch";
 import { StatusMessage } from "@/components/auth/StatusMessage";
+import { localizeApiError, useLocalizedText } from "@/localization";
 
 export default function PasswordChangePage() {
   useAuthSession();
+  const { t } = useLocalizedText();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,12 +26,12 @@ export default function PasswordChangePage() {
       setSuccess(false);
 
       if (newPassword !== confirmPassword) {
-        setError("Passwords do not match");
+        setError(t("account.password.mismatch"));
         return;
       }
 
       if (newPassword.length < 6) {
-        setError("Password must be at least 6 characters");
+        setError(t("account.password.tooShort"));
         return;
       }
 
@@ -47,26 +49,26 @@ export default function PasswordChangePage() {
         setNewPassword("");
         setConfirmPassword("");
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to change password");
+        setError(localizeApiError(err, t));
       } finally {
         setIsLoading(false);
       }
     },
-    [currentPassword, newPassword, confirmPassword]
+    [currentPassword, newPassword, confirmPassword, t]
   );
 
   return (
     <div className="max-w-md mx-auto">
       <SurfaceCard>
         <Card.Header>
-          <h1 className="text-2xl font-bold">Change Password</h1>
+          <h1 className="text-2xl font-bold">{t("account.password.title")}</h1>
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {error && <StatusMessage message={error} />}
-          {success && <StatusMessage message="Password changed successfully" type="success" />}
+          {success && <StatusMessage message={t("account.password.changeSucceeded")} type="success" />}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <TextField name="currentPassword" type="password">
-              <Label>Current Password</Label>
+              <Label>{t("account.password.currentPassword")}</Label>
               <Input
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -74,7 +76,7 @@ export default function PasswordChangePage() {
               />
             </TextField>
             <TextField name="newPassword" type="password" isRequired>
-              <Label>New Password</Label>
+              <Label>{t("account.password.newPassword")}</Label>
               <Input
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -82,7 +84,7 @@ export default function PasswordChangePage() {
               />
             </TextField>
             <TextField name="confirmPassword" type="password" isRequired>
-              <Label>Confirm New Password</Label>
+              <Label>{t("account.password.confirmNewPassword")}</Label>
               <Input
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -94,11 +96,11 @@ export default function PasswordChangePage() {
               isPending={isLoading}
               className="w-full"
             >
-              Change Password
+              {t("account.password.changeAction")}
             </Button>
           </form>
           <Link href={Routes.Account.Index} className="text-sm">
-            Back to settings
+            {t("common.actions.backToSettings")}
           </Link>
         </Card.Content>
       </SurfaceCard>

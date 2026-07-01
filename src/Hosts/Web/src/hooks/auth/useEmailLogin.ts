@@ -34,7 +34,7 @@ export function useEmailLogin() {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
         setPendingReturnUrl(finalReturnUrl ?? undefined);
         const result = await beginMutation.mutateAsync({
-          data: { email: emailAddr, returnUrl: finalReturnUrl },
+          data: { email: emailAddr, returnUrl: finalReturnUrl ?? null },
         });
         setChallenge(result);
         setEmail(emailAddr);
@@ -56,7 +56,7 @@ export function useEmailLogin() {
         const returnUrl =
           pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
         const result = await completeMutation.mutateAsync({
-          data: { challengeId: challenge.challengeId, code, returnUrl },
+          data: { challengeId: challenge.challengeId, code, returnUrl: returnUrl ?? null },
         });
         router.push(result.returnUrl);
       } catch (err) {
@@ -82,7 +82,7 @@ export function useEmailLogin() {
       const finalReturnUrl =
         pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
       const result = await beginMutation.mutateAsync({
-        data: { email, returnUrl: finalReturnUrl },
+        data: { email, returnUrl: finalReturnUrl ?? null },
       });
       setChallenge(result);
       setStatusMessage("A new code was sent to your email address.");
