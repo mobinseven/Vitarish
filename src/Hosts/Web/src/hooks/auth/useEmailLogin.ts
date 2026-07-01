@@ -20,6 +20,7 @@ export function useEmailLogin() {
     null
   );
   const [error, setError] = useState<AuthError | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [pendingReturnUrl, setPendingReturnUrl] = useState<string | undefined>(
     undefined
@@ -28,6 +29,7 @@ export function useEmailLogin() {
   const begin = useCallback(
     async (emailAddr: string, returnUrl?: string) => {
       setError(null);
+      setStatusMessage(null);
       try {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
         setPendingReturnUrl(finalReturnUrl ?? undefined);
@@ -38,6 +40,7 @@ export function useEmailLogin() {
         setEmail(emailAddr);
         setStep("code");
       } catch (err) {
+        setStatusMessage(null);
         setError(parseAuthError(err));
       }
     },
@@ -48,6 +51,7 @@ export function useEmailLogin() {
     async (code: string) => {
       if (!challenge) return;
       setError(null);
+      setStatusMessage(null);
       try {
         const returnUrl =
           pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
@@ -57,6 +61,7 @@ export function useEmailLogin() {
         router.push(result.returnUrl);
       } catch (err) {
         const authError = parseAuthError(err);
+        setStatusMessage(null);
         setError(authError);
         if (authError.code === "challenge_expired" || authError.code === "challenge_attempts_exhausted") {
           setStep("email");
@@ -68,10 +73,31 @@ export function useEmailLogin() {
     [challenge, completeMutation, router, searchParams, pendingReturnUrl]
   );
 
+  const resend = useCallback(async () => {
+    if (!email) return;
+
+    setError(null);
+    setStatusMessage(null);
+    try {
+      const finalReturnUrl =
+        pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
+      const result = await beginMutation.mutateAsync({
+        data: { email, returnUrl: finalReturnUrl },
+      });
+      setChallenge(result);
+      setStatusMessage("A new code was sent to your email address.");
+      setStep("code");
+    } catch (err) {
+      setStatusMessage(null);
+      setError(parseAuthError(err));
+    }
+  }, [email, beginMutation, pendingReturnUrl, searchParams]);
+
   const reset = useCallback(() => {
     setStep("email");
     setChallenge(null);
     setError(null);
+    setStatusMessage(null);
     setEmail("");
     setPendingReturnUrl(undefined);
   }, []);
@@ -82,10 +108,12 @@ export function useEmailLogin() {
     email,
     begin,
     complete,
+    resend,
     reset,
     isLoading: beginMutation.isPending || completeMutation.isPending,
     error,
     errorMessage: error ? getErrorMessage(error) : null,
+    statusMessage,
     remainingAttempts: challenge?.remainingAttempts,
     expiresAt: challenge?.expiresAt,
   };

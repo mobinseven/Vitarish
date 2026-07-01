@@ -1,43 +1,37 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
 
 describe("OtpCodeInput", () => {
-  it("should render with label", () => {
+  it("keeps browser OTP autofill, numeric keyboard, and expected length attributes", () => {
     render(<OtpCodeInput value="" onChange={() => {}} />);
-    expect(screen.getByLabelText(/verification code/i)).toBeInTheDocument();
+
+    const input = screen.getByLabelText(/verification code/i);
+
+    expect(input).toHaveAttribute("autocomplete", "one-time-code");
+    expect(input).toHaveAttribute("inputmode", "numeric");
+    expect(input).toHaveAttribute("maxlength", "6");
+    expect(input).toHaveAttribute("pattern", "[0-9]{6}");
   });
 
-  it("should call onChange with numeric input", async () => {
+  it("delegates normalization for mixed pasted content", async () => {
     const onChange = vi.fn();
     render(<OtpCodeInput value="" onChange={onChange} />);
 
     const input = screen.getByLabelText(/verification code/i);
-    await userEvent.type(input, "123456");
+    fireEvent.change(input, { target: { value: "a1 ۲-٣b456789" } });
 
-    expect(onChange).toHaveBeenCalledTimes(6);
+    expect(onChange).toHaveBeenCalledWith("123456");
   });
 
-  it("should filter non-numeric input", async () => {
+  it("uses the provided expected length", async () => {
     const onChange = vi.fn();
-    render(<OtpCodeInput value="" onChange={onChange} />);
+    render(<OtpCodeInput value="" onChange={onChange} expectedLength={4} />);
 
     const input = screen.getByLabelText(/verification code/i);
-    await userEvent.type(input, "abc123");
+    fireEvent.change(input, { target: { value: "123456" } });
 
-    const numericCalls = onChange.mock.calls.filter(
-      (call: unknown[]) => (call[0] as string).length > 0
-    );
-    expect(numericCalls).toHaveLength(3);
-  });
-
-  it("should handle Persian numerals", async () => {
-    const onChange = vi.fn();
-    render(<OtpCodeInput value="" onChange={onChange} />);
-
-    const input = screen.getByLabelText(/verification code/i);
-    await userEvent.type(input, "۱۲۳");
-
-    expect(onChange).toHaveBeenCalledTimes(3);
+    expect(input).toHaveAttribute("maxlength", "4");
+    expect(input).toHaveAttribute("pattern", "[0-9]{4}");
+    expect(onChange).toHaveBeenCalledWith("1234");
   });
 });

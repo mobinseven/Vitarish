@@ -20,6 +20,7 @@ export function usePhoneLogin() {
     null
   );
   const [error, setError] = useState<AuthError | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [pendingReturnUrl, setPendingReturnUrl] = useState<string | undefined>(
     undefined
@@ -28,6 +29,7 @@ export function usePhoneLogin() {
   const begin = useCallback(
     async (phone: string, returnUrl?: string) => {
       setError(null);
+      setStatusMessage(null);
       try {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
         setPendingReturnUrl(finalReturnUrl ?? undefined);
@@ -38,6 +40,7 @@ export function usePhoneLogin() {
         setPhoneNumber(phone);
         setStep("code");
       } catch (err) {
+        setStatusMessage(null);
         setError(parseAuthError(err));
       }
     },
@@ -48,6 +51,7 @@ export function usePhoneLogin() {
     async (code: string) => {
       if (!challenge) return;
       setError(null);
+      setStatusMessage(null);
       try {
         const returnUrl =
           pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
@@ -57,6 +61,7 @@ export function usePhoneLogin() {
         router.push(result.returnUrl);
       } catch (err) {
         const authError = parseAuthError(err);
+        setStatusMessage(null);
         setError(authError);
         if (authError.code === "challenge_expired" || authError.code === "challenge_attempts_exhausted") {
           setStep("phone");
@@ -68,10 +73,31 @@ export function usePhoneLogin() {
     [challenge, completeMutation, router, searchParams, pendingReturnUrl]
   );
 
+  const resend = useCallback(async () => {
+    if (!phoneNumber) return;
+
+    setError(null);
+    setStatusMessage(null);
+    try {
+      const finalReturnUrl =
+        pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
+      const result = await beginMutation.mutateAsync({
+        data: { phoneNumber, returnUrl: finalReturnUrl },
+      });
+      setChallenge(result);
+      setStatusMessage("A new code was sent to your phone number.");
+      setStep("code");
+    } catch (err) {
+      setStatusMessage(null);
+      setError(parseAuthError(err));
+    }
+  }, [phoneNumber, beginMutation, pendingReturnUrl, searchParams]);
+
   const reset = useCallback(() => {
     setStep("phone");
     setChallenge(null);
     setError(null);
+    setStatusMessage(null);
     setPhoneNumber("");
     setPendingReturnUrl(undefined);
   }, []);
@@ -82,10 +108,12 @@ export function usePhoneLogin() {
     phoneNumber,
     begin,
     complete,
+    resend,
     reset,
     isLoading: beginMutation.isPending || completeMutation.isPending,
     error,
     errorMessage: error ? getErrorMessage(error) : null,
+    statusMessage,
     remainingAttempts: challenge?.remainingAttempts,
     expiresAt: challenge?.expiresAt,
   };

@@ -56,4 +56,19 @@ describe("usePhoneLogin", () => {
     expect(result.current.step).toBe("phone");
     expect(result.current.challenge).toBeNull();
   });
+
+  it("should resend the current phone challenge through begin", async () => {
+    const { result } = renderHook(() => usePhoneLogin(), { wrapper });
+
+    await act(async () => {
+      await result.current.begin("09121234567");
+    });
+
+    await act(async () => {
+      await result.current.resend();
+    });
+
+    expect(result.current.step).toBe("code");
+    expect(result.current.statusMessage).toBe("A new code was sent to your phone number.");
+  });
 });
