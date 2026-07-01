@@ -3,6 +3,7 @@
 import { Card, Link } from "@heroui/react";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useLocalizedText } from "@/localization";
 
 interface DemoModuleCard {
   title: string;
@@ -13,19 +14,20 @@ interface DemoModuleCard {
   callToAction: string;
 }
 
-const demoModules: DemoModuleCard[] = [
-  {
-    title: "Knowledge",
-    description: "Ask grounded questions across available corpora and continue exploring the sources behind every answer.",
-    href: Routes.Knowledge.Index,
-    accent: "from-violet-500/20 via-fuchsia-500/10 to-cyan-500/20",
-    metric: "Q&A demo",
-    callToAction: "Open Knowledge",
-  },
-];
-
 export function HomeDashboard() {
   const { displayProfile, isLoading } = useAuthSession();
+  const { t } = useLocalizedText();
+  const demoModules: DemoModuleCard[] = [
+    {
+      title: t("home.modules.knowledge.title"),
+      description: t("home.modules.knowledge.description"),
+      href: Routes.Knowledge.Index,
+      accent: "from-violet-500/20 via-fuchsia-500/10 to-cyan-500/20",
+      metric: t("home.modules.knowledge.metric"),
+      callToAction: t("home.modules.knowledge.callToAction"),
+    },
+  ];
+  const displayName = displayProfile.givenName ?? displayProfile.displayLabel;
 
   return (
     <main className="auth-bg min-h-screen overflow-hidden px-4 py-8 md:px-8 lg:px-12">
@@ -38,18 +40,18 @@ export function HomeDashboard() {
             <div className="flex flex-col gap-6">
               <div className="inline-flex w-fit items-center gap-2 rounded-full border border-violet-300/50 bg-white/60 px-4 py-2 text-sm font-medium text-violet-700 shadow-sm backdrop-blur dark:border-violet-300/20 dark:bg-white/10 dark:text-violet-200">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_18px] shadow-emerald-400" />
-                Your workspace is ready
+                {t("home.workspaceReady")}
               </div>
 
               <div className="flex flex-col gap-4">
                 <p className="text-sm font-semibold uppercase tracking-[0.35em] text-muted">
-                  Vitarish Home
+                  {t("home.eyebrow")}
                 </p>
                 <h1 className="max-w-4xl text-4xl font-black tracking-tight text-foreground md:text-6xl">
-                  {isLoading ? "Welcome back" : `Welcome back, ${displayProfile.givenName ?? displayProfile.displayLabel}`}
+                  {isLoading ? t("home.welcomeBack") : t("home.welcomeBackNamed", { name: displayName })}
                 </h1>
                 <p className="max-w-2xl text-lg leading-8 text-muted md:text-xl">
-                  Pick a module demo below to keep moving. Each card opens a focused experience so you can explore what is available now without leaving your workflow.
+                  {t("home.intro")}
                 </p>
               </div>
 
@@ -58,24 +60,24 @@ export function HomeDashboard() {
                   href={Routes.Knowledge.Index}
                   className="inline-flex min-h-12 items-center justify-center rounded-full bg-violet-600 px-6 font-semibold text-white shadow-lg shadow-violet-600/25 transition hover:bg-violet-700"
                 >
-                  Start with Knowledge
+                  {t("home.startKnowledge")}
                 </Link>
                 <Link
                   href={Routes.Account.Index}
                   className="inline-flex min-h-12 items-center justify-center rounded-full border border-violet-300/50 bg-white/70 px-6 font-semibold text-violet-700 shadow-sm transition hover:bg-white dark:border-white/10 dark:bg-white/10 dark:text-violet-100 dark:hover:bg-white/15"
                 >
-                  Review account
+                  {t("home.reviewAccount")}
                 </Link>
               </div>
             </div>
 
             <Card className="glass-card relative border-white/30 bg-white/70 dark:border-white/10 dark:bg-zinc-950/50">
               <Card.Header className="flex flex-col items-start gap-2">
-                <p className="text-sm font-semibold uppercase tracking-[0.25em] text-muted">Next move</p>
-                <h2 className="text-2xl font-bold">Explore a module demo</h2>
+                <p className="text-sm font-semibold uppercase tracking-[0.25em] text-muted">{t("home.nextMove")}</p>
+                <h2 className="text-2xl font-bold">{t("home.exploreModuleDemo")}</h2>
               </Card.Header>
               <Card.Content className="text-sm leading-6 text-muted">
-                Knowledge is the first available demo module. More cards can be added here when additional module demo pages are introduced.
+                {t("home.firstDemoDescription")}
               </Card.Content>
             </Card>
           </div>
@@ -84,11 +86,11 @@ export function HomeDashboard() {
         <section aria-labelledby="module-demos" className="flex flex-col gap-4">
           <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted">Available modules</p>
-              <h2 id="module-demos" className="text-3xl font-bold text-foreground">Choose where to go next</h2>
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted">{t("home.availableModules")}</p>
+              <h2 id="module-demos" className="text-3xl font-bold text-foreground">{t("home.chooseNext")}</h2>
             </div>
             <p className="max-w-xl text-sm leading-6 text-muted">
-              Cards are intentionally sourced from the React route definitions so navigation stays aligned with available pages.
+              {t("home.cardsSourceNote")}
             </p>
           </div>
 

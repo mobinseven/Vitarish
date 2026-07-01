@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { Alert, Button, Card, Spinner } from "@heroui/react";
+import { useLocalizedText } from "@/localization";
 import { useJourneyWorkspaceOptions } from "../hooks/useJourneyWorkspaceOptions";
 
 export function WorkspaceSelector() {
   const { options, isLoading, unavailableReason } = useJourneyWorkspaceOptions();
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>();
+  const { t } = useLocalizedText();
 
   if (isLoading) {
-    return <Spinner aria-label="Loading workspace options" />;
+    return <Spinner aria-label={t("journey.loading.workspaceOptions")} />;
   }
 
   if (options.length === 0) {
@@ -41,7 +43,7 @@ export function WorkspaceSelector() {
           </Card>
         ))}
       </div>
-      <Button isDisabled={!selectedWorkspaceId} className="w-full">Continue</Button>
+      <Button isDisabled={!selectedWorkspaceId} className="w-full">{t("journey.gates.workspace.continueAction")}</Button>
     </div>
   );
 }

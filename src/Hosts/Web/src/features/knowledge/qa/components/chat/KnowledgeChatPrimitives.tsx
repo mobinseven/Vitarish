@@ -3,6 +3,7 @@
 import type { FormEvent, ReactNode } from "react";
 import { Button, Card, Input, Label, TextField } from "@heroui/react";
 import { SurfaceCard } from "@/design-system";
+import { useLocalizedText } from "@/localization";
 
 export type KnowledgeChatItemKind = "question" | "answer" | "notice";
 export type KnowledgeChatTone = "default" | "success" | "warning" | "danger";
@@ -56,10 +57,10 @@ export function KnowledgeChatMessage({
 
 export function KnowledgePromptInput({
   value,
-  label = "Question",
-  placeholder = "Ask anything",
+  label,
+  placeholder,
   isPending = false,
-  submitLabel = "Ask",
+  submitLabel,
   helperText,
   actions,
   onChange,
@@ -75,6 +76,10 @@ export function KnowledgePromptInput({
   onChange: (value: string) => void;
   onSubmit: (value: string) => void;
 }) {
+  const { t } = useLocalizedText();
+  const resolvedLabel = label ?? t("knowledge.qa.questionLabel");
+  const resolvedPlaceholder = placeholder ?? t("knowledge.qa.composerTitle");
+  const resolvedSubmitLabel = submitLabel ?? t("knowledge.qa.askAction");
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onSubmit(value);
@@ -84,16 +89,16 @@ export function KnowledgePromptInput({
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-end">
         <TextField name="knowledgePrompt" isRequired isDisabled={isPending} className="flex-1">
-          <Label>{label}</Label>
+          <Label>{resolvedLabel}</Label>
           <Input
-            placeholder={placeholder}
+            placeholder={resolvedPlaceholder}
             value={value}
             onChange={(event) => onChange(event.target.value)}
             autoComplete="off"
           />
         </TextField>
         <Button type="submit" isPending={isPending} className="md:min-w-32">
-          {submitLabel}
+          {resolvedSubmitLabel}
         </Button>
       </div>
 
@@ -143,11 +148,13 @@ export function KnowledgeChatSource({
 }
 
 export function KnowledgeChatLoader({ message }: { message: string }) {
+  const { t } = useLocalizedText();
+
   return (
     <SurfaceCard>
       <Card.Content className="flex flex-col gap-4 p-6">
-        <p className="text-xs uppercase tracking-[0.25em] text-muted">Thinking</p>
-        <h2 className="text-xl font-semibold">Searching grounded context...</h2>
+        <p className="text-xs uppercase tracking-[0.25em] text-muted">{t("knowledge.qa.thinking")}</p>
+        <h2 className="text-xl font-semibold">{t("knowledge.qa.searchingContext")}</h2>
         <p className="text-sm text-muted">{message}</p>
       </Card.Content>
     </SurfaceCard>
@@ -161,10 +168,12 @@ export function KnowledgeChatEmptyState({
   title: string;
   description: string;
 }) {
+  const { t } = useLocalizedText();
+
   return (
     <SurfaceCard>
       <Card.Content className="flex flex-col gap-4 p-6">
-        <p className="text-xs uppercase tracking-[0.25em] text-muted">Start</p>
+        <p className="text-xs uppercase tracking-[0.25em] text-muted">{t("knowledge.qa.emptyStateStart")}</p>
         <h2 className="text-xl font-semibold">{title}</h2>
         <p className="text-sm text-muted">{description}</p>
       </Card.Content>
