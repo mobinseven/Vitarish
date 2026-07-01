@@ -36,7 +36,7 @@ export function AdvancedSearchForm({
   const hasValues = name || identificationCode || dateOfBirth || phone || email;
 
   return (
-    <Card className="glass-card p-4">
+    <Card className="p-4">
       <Card.Header>
         <h3 className="text-lg font-semibold">{t("clinic.patient.advancedSearch.title")}</h3>
       </Card.Header>
@@ -44,6 +44,7 @@ export function AdvancedSearchForm({
         <TextField>
           <Label>{t("clinic.patient.advancedSearch.nameLabel")}</Label>
           <Input
+            aria-label={t("clinic.patient.advancedSearch.nameLabel")}
             placeholder={t("clinic.patient.advancedSearch.namePlaceholder")}
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -53,6 +54,7 @@ export function AdvancedSearchForm({
         <TextField>
           <Label>{t("clinic.patient.advancedSearch.idCodeLabel")}</Label>
           <Input
+            aria-label={t("clinic.patient.advancedSearch.idCodeLabel")}
             placeholder={t("clinic.patient.advancedSearch.idCodePlaceholder")}
             value={identificationCode}
             onChange={(e) => setIdentificationCode(e.target.value)}
@@ -62,6 +64,7 @@ export function AdvancedSearchForm({
         <TextField>
           <Label>{t("clinic.patient.advancedSearch.dobLabel")}</Label>
           <Input
+            aria-label={t("clinic.patient.advancedSearch.dobLabel")}
             type="date"
             value={dateOfBirth}
             onChange={(e) => setDateOfBirth(e.target.value)}
@@ -71,6 +74,7 @@ export function AdvancedSearchForm({
         <TextField>
           <Label>{t("clinic.patient.advancedSearch.phoneLabel")}</Label>
           <Input
+            aria-label={t("clinic.patient.advancedSearch.phoneLabel")}
             placeholder={t("clinic.patient.advancedSearch.phonePlaceholder")}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -80,6 +84,7 @@ export function AdvancedSearchForm({
         <TextField>
           <Label>{t("clinic.patient.advancedSearch.emailLabel")}</Label>
           <Input
+            aria-label={t("clinic.patient.advancedSearch.emailLabel")}
             placeholder={t("clinic.patient.advancedSearch.emailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}

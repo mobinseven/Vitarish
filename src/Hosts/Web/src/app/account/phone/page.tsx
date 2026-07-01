@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
-import { SurfaceCard } from "@/design-system";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
 import { useUsersGetProfile } from "@/api/generated/users/users";
@@ -76,13 +75,13 @@ export default function PhoneChangePage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <SurfaceCard>
+      <Card>
         <Card.Header>
           <h1 className="text-2xl font-bold">{t("account.phone.title")}</h1>
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {profile?.phoneNumber && (
-            <p className="text-sm text-muted">
+            <p className="text-sm text-default-500">
               {t("account.phone.currentValue", { value: profile.phoneNumber })}
             </p>
           )}
@@ -112,7 +111,7 @@ export default function PhoneChangePage() {
             </form>
           ) : (
             <form onSubmit={handleCodeSubmit} className="flex flex-col gap-4">
-              <p className="text-sm text-muted">
+              <p className="text-sm text-default-500">
                 {t("auth.otp.codeSentTo", { destination: phoneNumber })}
               </p>
               <OtpCodeInput
@@ -146,7 +145,7 @@ export default function PhoneChangePage() {
             {t("common.actions.backToSettings")}
           </Link>
         </Card.Content>
-      </SurfaceCard>
+      </Card>
     </div>
   );
 }

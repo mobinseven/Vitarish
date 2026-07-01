@@ -37,8 +37,8 @@ export default function AccountLayout({
 
   if (isLoading) {
     return (
-      <main className="ds-app-shell ds-centered-shell">
-        <p className="text-muted">{t("common.states.loading")}</p>
+      <main className="grid min-h-screen place-items-center">
+        <p className="text-default-500">{t("common.states.loading")}</p>
       </main>
     );
   }
@@ -48,9 +48,9 @@ export default function AccountLayout({
   }
 
   return (
-    <div className="ds-account-layout">
-      <aside className="sidebar">
-        <h2 className="text-lg font-bold mb-4 px-3">{t("account.title")}</h2>
+    <div className="flex min-h-screen">
+      <aside className="w-64 border-e border-default-200 p-4">
+        <h2 className="text-lg font-bold mb-4">{t("account.title")}</h2>
         <nav className="flex flex-col gap-1">
           {navLinks.map((link) => {
             const isActive =
@@ -61,7 +61,11 @@ export default function AccountLayout({
               <Link
                 key={link.href}
                 href={link.href}
-                className={`sidebar-nav-item ${isActive ? "sidebar-nav-item-active" : ""}`}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                  isActive
+                    ? "bg-primary-100 text-primary font-medium"
+                    : "text-default-500 hover:text-foreground hover:bg-default-100"
+                }`}
               >
                 <i className={`${link.icon} w-4 text-center text-xs`} />
                 {t(link.labelKey)}
@@ -70,7 +74,7 @@ export default function AccountLayout({
           })}
         </nav>
       </aside>
-      <main className="ds-account-content">
+      <main className="flex-1 p-8">
         <JourneyGateBoundary>{children}</JourneyGateBoundary>
       </main>
     </div>

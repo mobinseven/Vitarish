@@ -1,6 +1,5 @@
 import { headers } from "next/headers";
 import { Providers } from "@/components/providers/HeroUIProvider";
-import { AppBar } from "@/components/app-bar/AppBar";
 import { getLocaleDirection, localizedMetadata, parseLocaleCookie, resolveLocale } from "@/localization";
 import "./globals.css";
 
@@ -30,9 +29,8 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={direction} suppressHydrationWarning>
-      <body>
+      <body className="bg-background text-foreground">
         <Providers locale={locale}>
-          <AppBar />
           {children}
         </Providers>
       </body>

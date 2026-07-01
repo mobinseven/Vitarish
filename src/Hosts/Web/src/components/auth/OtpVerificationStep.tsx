@@ -92,7 +92,7 @@ export function OtpVerificationStep({
     <Form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {errorMessage && <StatusMessage message={errorMessage} />}
       {statusMessage && !errorMessage && <StatusMessage message={statusMessage} />}
-      <p className="text-sm text-muted">
+      <p className="text-sm text-default-500">
         {t("auth.otp.codeSentTo", { destination: destinationLabel })}
         {remainingAttempts !== undefined && remainingAttempts !== null && (
           <span className="block text-xs">

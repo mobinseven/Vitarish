@@ -8,8 +8,8 @@ function LoginRouteFallback() {
   const { t } = useLocalizedText();
 
   return (
-    <main className="ds-app-shell ds-centered-shell">
-      <p className="text-muted">{t("common.states.loading")}</p>
+    <main className="grid min-h-screen place-items-center">
+      <p className="text-default-500">{t("common.states.loading")}</p>
     </main>
   );
 }

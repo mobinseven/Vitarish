@@ -16,10 +16,7 @@ export function AuthGate() {
 
   if (!isAuthenticated) {
     return (
-      <Link
-        href={Routes.Login.Index}
-        className="inline-flex min-h-8 items-center rounded-full bg-accent px-4 text-sm font-medium text-accent-foreground transition hover:opacity-90"
-      >
+      <Link href={Routes.Login.Index} className="text-sm font-medium text-foreground">
         {t("appShell.userMenu.logIn")}
       </Link>
     );

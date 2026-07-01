@@ -22,7 +22,7 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
   const { t, locale } = useLocalizedText();
   return (
     <div className="flex flex-col gap-4">
-      <Card className="glass-card">
+      <Card>
         <Card.Header>
           <h2 className="text-lg font-semibold">{t("clinic.patient.sections.personal")}</h2>
         </Card.Header>
@@ -41,7 +41,7 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
         </Card.Content>
       </Card>
 
-      <Card className="glass-card">
+      <Card>
         <Card.Header>
           <h2 className="text-lg font-semibold">{t("clinic.patient.sections.contact")}</h2>
         </Card.Header>
@@ -60,7 +60,7 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
         </Card.Content>
       </Card>
 
-      <Card className="glass-card">
+      <Card>
         <Card.Header>
           <h2 className="text-lg font-semibold">{t("clinic.patient.sections.medical")}</h2>
         </Card.Header>
@@ -80,7 +80,7 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
         </Card.Content>
       </Card>
 
-      <Card className="glass-card">
+      <Card>
         <Card.Header>
           <h2 className="text-lg font-semibold">{t("clinic.patient.sections.insurance")}</h2>
         </Card.Header>
@@ -98,7 +98,7 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
         </Card.Content>
       </Card>
 
-      <Card className="glass-card">
+      <Card>
         <Card.Header>
           <h2 className="text-lg font-semibold">{t("clinic.patient.sections.system")}</h2>
         </Card.Header>

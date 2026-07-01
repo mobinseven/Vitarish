@@ -28,19 +28,19 @@ export function ClinicOwnerDashboard() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">{t("clinic.dashboard.title")}</h1>
-        <p className="text-sm text-muted">{t("clinic.dashboard.description")}</p>
+        <p className="text-sm text-default-500">{t("clinic.dashboard.description")}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {sections.map((section) => (
           <Link key={section.href} href={section.href} className="block">
-            <Card className="glass-card h-full transition duration-300 hover:-translate-y-1 hover:shadow-lg">
+            <Card className="h-full">
               <Card.Header className="flex flex-row items-center gap-3">
-                <i className={`${section.icon} text-lg text-accent`} />
+                <i className={`${section.icon} text-lg text-primary`} />
                 <h2 className="text-lg font-semibold">{section.title}</h2>
               </Card.Header>
               <Card.Content>
-                <p className="text-sm text-muted">{section.description}</p>
+                <p className="text-sm text-default-500">{section.description}</p>
               </Card.Content>
             </Card>
           </Link>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { AppShell } from "@/design-system";
 import { useLocalizedText, type Translate } from "@/localization";
 import { KnowledgeAnswerList } from "./KnowledgeAnswerList";
 import { KnowledgeCorpusRail } from "./KnowledgeCorpusRail";
@@ -101,7 +100,7 @@ export function KnowledgeUserQaSurface() {
   }, []);
 
   return (
-    <AppShell>
+    <main className="p-6">
       <div className="flex flex-col gap-6 lg:flex-row">
         <KnowledgeCorpusRail
           corpora={corpora}
@@ -111,7 +110,7 @@ export function KnowledgeUserQaSurface() {
           onSelectCorpus={selectCorpus}
         />
 
-        <main className="flex min-w-0 flex-1 flex-col gap-5">
+        <section className="flex min-w-0 flex-1 flex-col gap-5">
           <KnowledgeQuestionComposer
             value={question}
             scopeLabel={currentScopeLabel}
@@ -133,9 +132,9 @@ export function KnowledgeUserQaSurface() {
             onNewQuestion={startNewQuestion}
             onContinueInCorpus={continueInCorpus}
           />
-        </main>
+        </section>
       </div>
-    </AppShell>
+    </main>
   );
 }
 

@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { Card, Button, Link } from "@heroui/react";
-import { SurfaceCard } from "@/design-system";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
 import {
@@ -70,7 +69,7 @@ export default function PasskeysPage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <SurfaceCard>
+      <Card>
         <Card.Header>
           <h1 className="text-2xl font-bold">{t("account.passkeys.title")}</h1>
         </Card.Header>
@@ -83,19 +82,19 @@ export default function PasskeysPage() {
           )}
 
           {isLoadingCredentials ? (
-            <p className="text-sm text-muted">{t("account.passkeys.loading")}</p>
+            <p className="text-sm text-default-500">{t("account.passkeys.loading")}</p>
           ) : credentials && credentials.length > 0 ? (
             <div className="flex flex-col gap-2">
               {credentials.map((cred) => (
                 <div
                   key={cred.id ?? `cred-${cred.friendlyName ?? "unknown"}`}
-                  className="flex items-center justify-between p-3 border border-border rounded-lg"
+                  className="flex items-center justify-between p-3 border border-default-200 rounded-lg"
                 >
                   <span className="text-sm">
                     {cred.friendlyName ?? t("account.passkeys.unnamed")}
                   </span>
                   <Button
-                    variant="danger-soft"
+                    variant="danger"
                     size="sm"
                     onPress={() => cred.id && handleDelete(cred.id)}
                     isPending={deleteCredential.isPending}
@@ -106,7 +105,7 @@ export default function PasskeysPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted">{t("account.passkeys.empty")}</p>
+            <p className="text-sm text-default-500">{t("account.passkeys.empty")}</p>
           )}
 
           {isSupported && (
@@ -115,7 +114,6 @@ export default function PasskeysPage() {
               isPending={beginRegister.isPending || completeRegister.isPending}
               className="w-full"
             >
-              <i className="fa-solid fa-plus" />
               {t("account.passkeys.registerAction")}
             </Button>
           )}
@@ -124,7 +122,7 @@ export default function PasskeysPage() {
             {t("common.actions.backToSettings")}
           </Link>
         </Card.Content>
-      </SurfaceCard>
+      </Card>
     </div>
   );
 }

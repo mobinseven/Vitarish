@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, Link } from "@heroui/react";
-import { SurfaceCard } from "@/design-system";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { useLocalizedText, type MessageKey } from "@/localization";
 
@@ -21,20 +20,20 @@ export default function AccountSettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <SurfaceCard>
+      <Card>
         <Card.Header>
           <h1 className="text-2xl font-bold">{t("account.settings")}</h1>
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {isAuthenticated && (
-            <div className="text-sm text-muted mb-4">
+            <div className="text-sm text-default-500 mb-4">
               {t("account.signedInAs", { name: displayProfile.displayLabel })}
             </div>
           )}
           {settingsLinks.map((link) => (
             <Link key={link.href} href={link.href} className="block">
-              <Card className="ds-surface-card ds-surface-card-default ds-card-list-item">
-                <div className="flex items-center gap-4">
+              <Card>
+                <div className="flex items-center gap-4 p-3">
                   <i className={link.icon} />
                   <span>{t(link.labelKey)}</span>
                 </div>
@@ -42,7 +41,7 @@ export default function AccountSettingsPage() {
             </Link>
           ))}
         </Card.Content>
-      </SurfaceCard>
+      </Card>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { Button, Card } from "@heroui/react";
-import { SurfaceCard } from "@/design-system";
 import { useLocalizedText } from "@/localization";
 import { KnowledgeAnswerCard } from "./KnowledgeAnswerCard";
 import {
@@ -59,14 +58,14 @@ export function KnowledgeAnswerList({
 
   return (
     <KnowledgeChatConversation>
-      <SurfaceCard>
+      <Card>
         <Card.Content className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-muted">
+            <p className="text-xs uppercase tracking-[0.25em] text-default-500">
               {scopeKind === "all" ? t("knowledge.qa.allCorpusAnswer") : t("knowledge.qa.selectedCorpusAnswer")}
             </p>
             <h2 className="text-lg font-semibold">{question}</h2>
-            <p className="text-sm text-muted">{t("knowledge.qa.scopeLabel", { scope: scopeLabel })}</p>
+            <p className="text-sm text-default-500">{t("knowledge.qa.scopeLabel", { scope: scopeLabel })}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button type="button" onPress={onAskAgain}>
@@ -77,7 +76,7 @@ export function KnowledgeAnswerList({
             </Button>
           </div>
         </Card.Content>
-      </SurfaceCard>
+      </Card>
 
       {results.map((result) => (
         <KnowledgeAnswerCard

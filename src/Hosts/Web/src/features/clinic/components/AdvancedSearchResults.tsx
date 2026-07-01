@@ -20,7 +20,7 @@ export function AdvancedSearchResults({
 
   if (isLoading) {
     return (
-      <Card className="glass-card p-4">
+      <Card className="p-4">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
           <span className="text-default-500">{t("clinic.patient.advancedSearch.searching")}</span>
@@ -31,14 +31,14 @@ export function AdvancedSearchResults({
 
   if (results.length === 0) {
     return (
-      <Card className="glass-card p-4">
-        <p className="text-center text-default-500">{t("clinic.patient.advancedSearch.noResults")}</p>
-      </Card>
+    <Card className="p-4">
+      <p className="text-center text-default-500">{t("clinic.patient.advancedSearch.noResults")}</p>
+    </Card>
     );
   }
 
   return (
-    <Card className="glass-card">
+    <Card>
       <Card.Header>
         <h3 className="text-lg font-semibold">
           {t("clinic.patient.advancedSearch.resultsCount", { count: String(results.length) })}

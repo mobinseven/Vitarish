@@ -22,7 +22,7 @@ export function ClinicOwnerPatientDetailPage({
 
   if (isLoading) {
     return (
-      <Card className="glass-card p-8">
+      <Card className="p-8">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
           <span className="text-default-500">{t("clinic.patient.detail.loading")}</span>
@@ -33,7 +33,7 @@ export function ClinicOwnerPatientDetailPage({
 
   if (error || !patient) {
     return (
-      <Card className="glass-card p-8">
+      <Card className="p-8">
         <div className="flex flex-col items-center gap-4">
           <p className="text-danger">
             {error instanceof Error ? error.message : t("clinic.patient.detail.notFound")}

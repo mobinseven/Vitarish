@@ -9,12 +9,12 @@ export function OwnerReservationsList() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">{t("clinic.appointments.reservations.title")}</h1>
-        <p className="text-sm text-muted">{t("clinic.appointments.reservations.description")}</p>
+        <p className="text-sm text-default-500">{t("clinic.appointments.reservations.description")}</p>
       </div>
 
-      <Card className="glass-card">
+      <Card>
         <Card.Content className="flex flex-col items-center justify-center py-12">
-          <p className="text-sm text-muted">
+          <p className="text-sm text-default-500">
             {t("clinic.appointments.reservations.comingSoon")}
           </p>
         </Card.Content>

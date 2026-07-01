@@ -30,6 +30,7 @@ export function PatientSearchBar({ onSearch }: PatientSearchBarProps) {
       <TextField className="flex-1">
         <Label>{t("clinic.patient.search.label")}</Label>
         <Input
+          aria-label={t("clinic.patient.search.label")}
           placeholder={t("clinic.patient.search.placeholder")}
           value={value}
           onChange={(e) => setValue(e.target.value)}

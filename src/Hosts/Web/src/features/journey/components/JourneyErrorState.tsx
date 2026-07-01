@@ -1,7 +1,6 @@
 "use client";
 
 import { Alert, Card, Button } from "@heroui/react";
-import { SurfaceCard } from "@/design-system";
 import { useLocalizedText } from "@/localization";
 
 interface JourneyErrorStateProps {
@@ -20,8 +19,8 @@ export function JourneyErrorState({
   const resolvedDescription = description ?? t("journey.error.description");
 
   return (
-    <main className="ds-app-shell ds-centered-shell">
-      <SurfaceCard className="w-full max-w-md">
+    <main className="grid min-h-screen place-items-center px-4">
+      <Card className="w-full max-w-md">
         <Card.Content className="flex flex-col gap-4 p-6">
           <Alert status="danger">
             <Alert.Indicator />
@@ -36,7 +35,7 @@ export function JourneyErrorState({
             </Button>
           ) : null}
         </Card.Content>
-      </SurfaceCard>
+      </Card>
     </main>
   );
 }
