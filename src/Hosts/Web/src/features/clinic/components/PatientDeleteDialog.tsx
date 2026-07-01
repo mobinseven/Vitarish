@@ -13,22 +13,27 @@ export function PatientDeleteDialog({
   onClose,
 }: PatientDeleteDialogProps) {
   return (
-    <Modal isOpen={isOpen} onOpenChange={onClose}>
-      <Modal.Content>
-        <Modal.Header>
-          <h2 className="text-lg font-semibold">Delete Patient</h2>
-        </Modal.Header>
-        <Modal.Body>
-          <p className="text-sm text-muted">
-            Patient deletion is currently unavailable. Please contact support if you need assistance.
-          </p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onPress={onClose}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal.Content>
+    <Modal>
+      <Modal.Backdrop isOpen={isOpen} onOpenChange={onClose}>
+        <Modal.Container>
+          <Modal.Dialog className="sm:max-w-md">
+            <Modal.CloseTrigger />
+            <Modal.Header>
+              <Modal.Heading>Delete Patient</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body>
+              <p className="text-sm text-muted">
+                Patient deletion is currently unavailable. Please contact support if you need assistance.
+              </p>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button slot="close" variant="secondary">
+                Close
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }
