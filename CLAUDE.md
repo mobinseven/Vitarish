@@ -7,11 +7,12 @@ Claude Code reads `CLAUDE.md` at session start. `AGENTS.md` remains the canonica
 ### Skill Discovery
 
 - Canonical project skills live in `.agents/skills/<skill-name>/SKILL.md`.
-- Claude-discoverable bridge skills live in `.claude/skills/<skill-name>/SKILL.md`.
-- Each bridge skill is only routing metadata. When a bridge skill is selected, read and follow the matching canonical `.agents/skills/<skill-name>/SKILL.md` before changing files.
+- Claude-discoverable bridge skills live in `.claude/skills/<bridge-name>/SKILL.md`.
+- Each bridge skill is only routing metadata. When a bridge skill is selected, read and follow the referenced canonical `.agents/skills/<skill-name>/SKILL.md` before changing files.
 - Do not treat `.claude/skills/` bridge files as replacements for canonical skill files.
 - Do not duplicate full skill bodies into `.claude/skills/`; keep `.agents/skills/` as the single source of truth.
 - When adding, renaming, or deleting a canonical skill, update the matching `.claude/skills/` bridge in the same change.
+- A bridge name may be shorter than the canonical skill name; the bridge body names the canonical file to read.
 
 ### Default Claude Workflow
 
