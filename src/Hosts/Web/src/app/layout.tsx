@@ -1,22 +1,32 @@
 import type { Metadata } from "next";
 import { Providers } from "@/components/providers/HeroUIProvider";
 import { AppBar } from "@/components/app-bar/AppBar";
+import { getCultureDirection } from "@/i18n/cultures";
+import { createLocalizer } from "@/i18n/localizer";
+import { resolveRequestCulture } from "@/i18n/server";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Vitarish",
-  description: "Vitarish platform authentication",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const culture = await resolveRequestCulture();
+  const { t } = createLocalizer(culture);
 
-export default function RootLayout({
+  return {
+    title: t("App.BrandName"),
+    description: t("App.Description"),
+  };
+}
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const culture = await resolveRequestCulture();
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={culture} dir={getCultureDirection(culture)} suppressHydrationWarning>
       <body>
-        <Providers>
+        <Providers culture={culture}>
           <AppBar />
           {children}
         </Providers>
