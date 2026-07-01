@@ -8,6 +8,7 @@ import { usePatientList } from "../hooks/usePatientList";
 import { usePatientCount } from "../hooks/usePatientCount";
 import { PatientSearchBar } from "./PatientSearchBar";
 import { PatientsGrid } from "./PatientsGrid";
+import { SectionHeader } from "@/design-system";
 import type { PatientSearchCriteria, PatientSortBy } from "../types";
 
 const defaultPageSize = 20;
@@ -70,7 +71,7 @@ export function ClinicOwnerPatientsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Patients</h1>
+        <SectionHeader title="Patients" />
         <Button
           variant="primary"
           onPress={() => router.push(Routes.Clinic.Patients.New)}

@@ -42,8 +42,8 @@ export function KnowledgeAnswerCard({
           {!isSingleCorpusMode && (
             <Button
               type="button"
+              variant="ghost"
               onPress={() => onContinueInCorpus(corpus.corpusId)}
-              className="bg-transparent"
             >
               Ask from this corpus
             </Button>

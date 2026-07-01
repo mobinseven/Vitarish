@@ -11,8 +11,7 @@ interface PatientRowProps {
 export function PatientRow({ patient, onSelect }: PatientRowProps) {
   return (
     <Card
-      variant="transparent"
-      className="p-3 hover:bg-default cursor-pointer transition-colors"
+      className="ds-surface-card ds-surface-card-default p-3 hover:bg-default cursor-pointer transition-colors"
     >
       <div
         className="flex items-center justify-between"

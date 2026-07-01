@@ -38,7 +38,7 @@ export function AdvancedSearchForm({
       <Card.Header>
         <h3 className="text-lg font-semibold">Advanced Search</h3>
       </Card.Header>
-      <Card.Content className="flex flex-col gap-3">
+      <Card.Content className="flex flex-col gap-4">
         <TextField>
           <Label>Name</Label>
           <Input

@@ -48,12 +48,12 @@ export function PatientsGrid({
           {sortHeaders.map((header) => (
             <button
               key={header.field}
-              className="text-left hover:text-default-700 transition-colors"
+              className="text-start hover:text-default-700 transition-colors"
               onClick={() => onSort(header.field)}
             >
               {header.label}
               {sortBy === header.field && (
-                <span className="ml-1">{descending ? " ↓" : " ↑"}</span>
+                <span className="ms-1">{descending ? " ↓" : " ↑"}</span>
               )}
             </button>
           ))}
