@@ -43,7 +43,7 @@ export function KnowledgeQuestionComposer({
             onSubmit={onSubmit}
             actions={
               hasAnswer ? (
-                <Button type="button" onPress={onNewQuestion} className="bg-transparent">
+                <Button type="button" variant="ghost" onPress={onNewQuestion}>
                   New question
                 </Button>
               ) : null

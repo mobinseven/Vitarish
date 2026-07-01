@@ -25,7 +25,7 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
         <Card.Header>
           <h2 className="text-lg font-semibold">Personal Information</h2>
         </Card.Header>
-        <Card.Content className="grid gap-3 sm:grid-cols-2">
+        <Card.Content className="grid gap-4 sm:grid-cols-2">
           <DetailField label="First Name" value={patient.firstName} />
           <DetailField label="Last Name" value={patient.lastName} />
           <DetailField
@@ -44,7 +44,7 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
         <Card.Header>
           <h2 className="text-lg font-semibold">Contact Information</h2>
         </Card.Header>
-        <Card.Content className="grid gap-3 sm:grid-cols-2">
+        <Card.Content className="grid gap-4 sm:grid-cols-2">
           <DetailField label="Phone" value={patient.phone} />
           <DetailField label="Email" value={patient.email} />
           <DetailField label="Address" value={patient.address} />
@@ -63,7 +63,7 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
         <Card.Header>
           <h2 className="text-lg font-semibold">Medical Information</h2>
         </Card.Header>
-        <Card.Content className="grid gap-3 sm:grid-cols-2">
+        <Card.Content className="grid gap-4 sm:grid-cols-2">
           <DetailField
             label="Date of Surgery"
             value={formatDate(patient.dateOfSurgery)}
@@ -83,7 +83,7 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
         <Card.Header>
           <h2 className="text-lg font-semibold">Insurance & Other</h2>
         </Card.Header>
-        <Card.Content className="grid gap-3 sm:grid-cols-2">
+        <Card.Content className="grid gap-4 sm:grid-cols-2">
           <DetailField
             label="Insurance Provider"
             value={patient.insuranceProvider}
@@ -101,7 +101,7 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
         <Card.Header>
           <h2 className="text-lg font-semibold">System</h2>
         </Card.Header>
-        <Card.Content className="grid gap-3 sm:grid-cols-2">
+        <Card.Content className="grid gap-4 sm:grid-cols-2">
           <DetailField label="Patient ID" value={patient.id} />
           <DetailField label="Template" value={patient.template ? "Yes" : "No"} />
           <DetailField label="Created" value={formatDate(patient.createdAt)} />

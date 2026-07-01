@@ -48,9 +48,9 @@ const methods = [
 
 export function AuthMethodSelector() {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       {methods.map((method) => (
-        <Card key={method.id} variant="transparent" className="p-0">
+        <Card key={method.id} className="ds-surface-card ds-surface-card-default p-0">
           <Link
             href={method.href}
             className="flex h-14 w-full items-center gap-3 rounded-lg px-4 text-foreground transition-colors hover:bg-[var(--accent-soft)]"

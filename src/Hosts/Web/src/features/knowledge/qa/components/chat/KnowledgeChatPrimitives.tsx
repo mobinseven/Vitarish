@@ -35,7 +35,7 @@ export function KnowledgeChatMessage({
   children: ReactNode;
 }) {
   return (
-    <SurfaceCard className={joinClasses(kind === "question" ? "ml-auto max-w-3xl" : "")}>
+    <SurfaceCard className={joinClasses(kind === "question" ? "ms-auto max-w-3xl" : "")}>
       <Card.Header>
         <div className="flex w-full flex-col gap-2 md:flex-row md:items-start md:justify-between">
           <div>
@@ -145,7 +145,7 @@ export function KnowledgeChatSource({
 export function KnowledgeChatLoader({ message }: { message: string }) {
   return (
     <SurfaceCard>
-      <Card.Content className="flex flex-col gap-3 p-6">
+      <Card.Content className="flex flex-col gap-4 p-6">
         <p className="text-xs uppercase tracking-[0.25em] text-muted">Thinking</p>
         <h2 className="text-xl font-semibold">Searching grounded context...</h2>
         <p className="text-sm text-muted">{message}</p>
@@ -163,7 +163,7 @@ export function KnowledgeChatEmptyState({
 }) {
   return (
     <SurfaceCard>
-      <Card.Content className="flex flex-col gap-3 p-6">
+      <Card.Content className="flex flex-col gap-4 p-6">
         <p className="text-xs uppercase tracking-[0.25em] text-muted">Start</p>
         <h2 className="text-xl font-semibold">{title}</h2>
         <p className="text-sm text-muted">{description}</p>

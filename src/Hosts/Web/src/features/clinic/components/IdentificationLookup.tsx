@@ -35,7 +35,7 @@ export function IdentificationLookup({
   }, [code, lookup]);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <TextField>
         <Label>Identification Code</Label>
         <Input

@@ -31,8 +31,8 @@ export default function AccountSettingsPage() {
           )}
           {settingsLinks.map((link) => (
             <Link key={link.href} href={link.href} className="block">
-              <Card variant="transparent" className="ds-card-list-item">
-                <div className="flex items-center gap-3">
+              <Card className="ds-surface-card ds-surface-card-default ds-card-list-item">
+                <div className="flex items-center gap-4">
                   <i className={link.icon} />
                   <span>{link.label}</span>
                 </div>

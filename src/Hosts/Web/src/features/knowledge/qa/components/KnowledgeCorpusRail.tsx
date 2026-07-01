@@ -28,14 +28,14 @@ export function KnowledgeCorpusRail({
             <h2 className="text-lg font-semibold">Knowledge sources</h2>
           </div>
         </Card.Header>
-        <Card.Content className="flex flex-col gap-3">
+        <Card.Content className="flex flex-col gap-4">
           <Button
             type="button"
             onPress={onSelectAll}
             isDisabled={isLoading}
             className={railButtonClass(selectedCorpusId === null)}
           >
-            <span className="flex w-full flex-col items-start gap-1 text-left">
+            <span className="flex w-full flex-col items-start gap-1 text-start">
               <span className="font-medium">All corpora</span>
               <span className="text-xs text-muted">Ask across every available corpus</span>
             </span>
@@ -56,7 +56,7 @@ export function KnowledgeCorpusRail({
               onPress={() => onSelectCorpus(corpus.corpusId)}
               className={railButtonClass(selectedCorpusId === corpus.corpusId)}
             >
-              <span className="flex w-full flex-col items-start gap-1 text-left">
+              <span className="flex w-full flex-col items-start gap-1 text-start">
                 <span className="font-medium">{corpus.name}</span>
                 {corpus.description && (
                   <span className="line-clamp-2 text-xs text-muted">
@@ -78,7 +78,7 @@ export function KnowledgeCorpusRail({
 
 function railButtonClass(isSelected: boolean): string {
   return [
-    "h-auto w-full justify-start rounded-2xl px-4 py-3 text-left transition-colors",
+    "h-auto w-full justify-start rounded-2xl px-4 py-3 text-start transition-colors",
     isSelected
       ? "bg-[color-mix(in_oklch,var(--accent)_16%,transparent)] text-[var(--accent)]"
       : "bg-transparent hover:bg-[var(--accent-soft)]",

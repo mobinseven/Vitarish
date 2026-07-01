@@ -57,7 +57,7 @@ export function KnowledgeAnswerList({
   return (
     <KnowledgeChatConversation>
       <SurfaceCard>
-        <Card.Content className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
+        <Card.Content className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-muted">
               {scopeKind === "all" ? "All-corpus answer" : "Selected-corpus answer"}
@@ -69,7 +69,7 @@ export function KnowledgeAnswerList({
             <Button type="button" onPress={onAskAgain}>
               Ask again
             </Button>
-            <Button type="button" onPress={onNewQuestion} className="bg-transparent">
+            <Button type="button" variant="ghost" onPress={onNewQuestion}>
               New question
             </Button>
           </div>

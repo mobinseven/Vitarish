@@ -8,7 +8,7 @@ export function ConsentReviewPanel() {
 
   return (
     <div className="flex flex-col gap-5">
-      <Card variant="transparent" className="border border-[var(--border)] p-0">
+      <Card className="ds-surface-card ds-surface-card-default border border-[var(--border)] p-0">
         <Card.Content className="flex flex-col gap-4 p-4">
           <h2 className="text-base font-semibold text-foreground">Required terms and privacy review</h2>
           <p className="text-sm leading-6 text-foreground/70">

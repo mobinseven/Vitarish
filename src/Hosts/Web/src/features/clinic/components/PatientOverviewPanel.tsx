@@ -30,7 +30,7 @@ export function PatientOverviewPanel({ patient }: PatientOverviewPanelProps) {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <StatItem label="Procedures" value={Number(stats.procedures) || 0} />
               <StatItem label="Events" value={Number(stats.events) || 0} />
               <StatItem
