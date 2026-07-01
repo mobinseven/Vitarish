@@ -401,7 +401,7 @@ import { Modal } from "@heroui/react";
 
 ---
 
-## Tooltip / Disclosure
+## Tooltips
 
 **Feeling:** Detail-seeking, uncertain, exploring.
 
@@ -419,11 +419,21 @@ import { Tooltip } from "@heroui/react";
 
 ### Rules
 
-1. Use Tooltip for short contextual explanation.
-2. Use Accordion or Modal for longer detail.
-3. Tooltip content should be concise.
-4. Tooltip must not hide required information.
-5. Do not create a custom tooltip implementation.
+1. **All components that convey meaning must include a tooltip** to ensure accessibility and clarity when their meaning is not already explicit from visible text.
+2. Use HeroUI's `Tooltip` component to wrap elements that need explanation.
+3. Apply tooltips to icons, status badges, abbreviations, buttons with icon-only content, and any component where the meaning may not be immediately clear.
+4. Tooltip text should be concise and describe the component's purpose or state.
+5. Use Accordion or Modal for longer detail.
+6. Tooltip must not hide required information.
+7. Do not create a custom tooltip implementation.
+
+### Anti-Pattern
+
+```tsx
+<span className="custom-tooltip">...</span>
+<button><IconOnly /></button>
+<abbr>API</abbr>
+```
 
 ---
 
@@ -496,6 +506,7 @@ Use a framework-provided status/badge/chip component when available for the exac
 2. Status labels must be concise.
 3. Important status must be understandable without relying only on color.
 4. Do not add custom status dots, custom pill backgrounds, or custom color tokens.
+5. Status badges or badge-like status indicators must include a tooltip when their meaning is not fully obvious from visible text.
 
 ---
 
@@ -563,3 +574,4 @@ A component pattern passes when:
 5. Any custom styling has an explicit exemption.
 6. Accessibility behavior is preserved.
 7. The implementation does not reintroduce the previous custom visual layer.
+8. Meaningful icons, badges, abbreviations, icon-only buttons, and unclear state indicators have concise HeroUI tooltips.
