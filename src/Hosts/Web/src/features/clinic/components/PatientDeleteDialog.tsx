@@ -35,7 +35,7 @@ export function PatientDeleteDialog({
   }
 
   return (
-    <Modal.Root state={modalState}>
+    <Modal state={modalState}>
       <Modal.Backdrop isDismissable>
         <Modal.Container placement="center" size="md">
           <Modal.Dialog>
@@ -57,6 +57,6 @@ export function PatientDeleteDialog({
           </Modal.Dialog>
         </Modal.Container>
       </Modal.Backdrop>
-    </Modal.Root>
+    </Modal>
   );
 }
