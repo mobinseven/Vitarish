@@ -3,8 +3,16 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
+import { LocaleProvider } from "@/i18n/client";
+import type { SupportedCulture } from "@/i18n/cultures";
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({
+  children,
+  culture,
+}: {
+  children: ReactNode;
+  culture: SupportedCulture;
+}) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -16,9 +24,11 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-        {children}
-      </ThemeProvider>
+      <LocaleProvider culture={culture}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          {children}
+        </ThemeProvider>
+      </LocaleProvider>
     </QueryClientProvider>
   );
 }
