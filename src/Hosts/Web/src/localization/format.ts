@@ -1,6 +1,10 @@
 import { defaultLocale, type SupportedLocale } from "./locales";
 
-export function formatDate(value: Date | string | number, locale: SupportedLocale = defaultLocale, options?: Intl.DateTimeFormatOptions): string { return new Intl.DateTimeFormat(locale, options).format(new Date(value)); }
+export function formatDate(value: Date | string | number, locale: SupportedLocale = defaultLocale, options?: Intl.DateTimeFormatOptions): string {
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(locale, options).format(date);
+}
 export function formatDateTime(value: Date | string | number, locale: SupportedLocale = defaultLocale, options?: Intl.DateTimeFormatOptions): string { return formatDate(value, locale, { dateStyle: "medium", timeStyle: "short", ...options }); }
 export function formatNumber(value: number, locale: SupportedLocale = defaultLocale, options?: Intl.NumberFormatOptions): string { return new Intl.NumberFormat(locale, options).format(value); }
 export function formatPercent(value: number, locale: SupportedLocale = defaultLocale, options?: Intl.NumberFormatOptions): string { return formatNumber(value, locale, { style: "percent", ...options }); }

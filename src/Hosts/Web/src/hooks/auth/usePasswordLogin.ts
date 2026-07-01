@@ -2,7 +2,6 @@ import { useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthenticationLoginPassword, getAuthenticationSessionGetQueryKey } from "@/api/generated/authentication/authentication";
-import type { PasswordLoginRequest } from "@/api/generated/authentication/model";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
 import { getRequestedReturnUrl } from "./requestedReturnUrl";
 
@@ -26,8 +25,8 @@ export function usePasswordLogin() {
           userNameOrEmail,
           password,
           rememberMe: false,
-          ...(finalReturnUrl ? { returnUrl: finalReturnUrl } : {}),
-        } as unknown as PasswordLoginRequest;
+          returnUrl: finalReturnUrl ?? null,
+        };
 
         const result = await mutation.mutateAsync({ data });
 

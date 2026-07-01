@@ -10,11 +10,13 @@ import { PatientSearchBar } from "./PatientSearchBar";
 import { PatientsGrid } from "./PatientsGrid";
 import { SectionHeader } from "@/design-system";
 import type { PatientSearchCriteria, PatientSortBy } from "../types";
+import { useLocalizedText } from "@/localization";
 
 const defaultPageSize = 20;
 
 export function ClinicOwnerPatientsPage() {
   const router = useRouter();
+  const { t } = useLocalizedText();
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<PatientSortBy | undefined>();
   const [descending, setDescending] = useState(false);
@@ -71,12 +73,12 @@ export function ClinicOwnerPatientsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <SectionHeader title="Patients" />
+        <SectionHeader title={t("clinic.patients.title")} />
         <Button
           variant="primary"
           onPress={() => router.push(Routes.Clinic.Patients.New)}
         >
-          New Patient
+          {t("clinic.patients.newPatient")}
         </Button>
       </div>
 
@@ -86,7 +88,7 @@ export function ClinicOwnerPatientsPage() {
         <Card className="glass-card p-8">
           <div className="flex items-center justify-center gap-2">
             <Spinner size="sm" />
-            <span className="text-default-500">Loading patients...</span>
+            <span className="text-default-500">{t("clinic.patients.loading")}</span>
           </div>
         </Card>
       ) : (
@@ -101,7 +103,9 @@ export function ClinicOwnerPatientsPage() {
 
       <div className="flex items-center justify-between text-sm text-default-500">
         <span>
-          {totalCount} patient{totalCount !== 1 ? "s" : ""} found
+          {totalCount === 1
+            ? t("clinic.patients.countFound.one", { count: String(totalCount) })
+            : t("clinic.patients.countFound.other", { count: String(totalCount) })}
         </span>
         <div className="flex gap-2">
           <Button
@@ -109,14 +113,14 @@ export function ClinicOwnerPatientsPage() {
             isDisabled={!canPrevious}
             onPress={handlePreviousPage}
           >
-            Previous
+            {t("common.actions.previous")}
           </Button>
           <Button
             variant="ghost"
             isDisabled={!canNext}
             onPress={handleNextPage}
           >
-            Next
+            {t("common.actions.next")}
           </Button>
         </div>
       </div>

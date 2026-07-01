@@ -3,6 +3,7 @@
 import { Card } from "@heroui/react";
 import Link from "next/link";
 import { Routes } from "@/app/routes";
+import { useLocalizedText } from "@/localization";
 
 interface DashboardSection {
   title: string;
@@ -11,51 +12,23 @@ interface DashboardSection {
   icon: string;
 }
 
-const sections: DashboardSection[] = [
-  {
-    title: "Patients",
-    description: "View and manage patient records, profiles, and medical information.",
-    href: Routes.Clinic.Patients.Index,
-    icon: "fa-solid fa-users",
-  },
-  {
-    title: "Check-in",
-    description: "Register patients for appointments and manage check-in workflows.",
-    href: Routes.Clinic.CheckIn,
-    icon: "fa-solid fa-clipboard-check",
-  },
-  {
-    title: "Appointments",
-    description: "Manage reservations, shifts, services, and appointment settings.",
-    href: Routes.Clinic.Appointments.Reservations.Index,
-    icon: "fa-solid fa-calendar",
-  },
-  {
-    title: "Reminders",
-    description: "View and manage patient reminders and notifications.",
-    href: Routes.Clinic.Reminders,
-    icon: "fa-solid fa-bell",
-  },
-  {
-    title: "Settings",
-    description: "Configure clinic settings, users, and appointment policies.",
-    href: Routes.Clinic.Settings.Index,
-    icon: "fa-solid fa-gear",
-  },
-  {
-    title: "Statistics",
-    description: "View clinic performance metrics and analytics.",
-    href: Routes.Clinic.Settings.Statistics,
-    icon: "fa-solid fa-chart-bar",
-  },
-];
-
 export function ClinicOwnerDashboard() {
+  const { t } = useLocalizedText();
+
+  const sections: DashboardSection[] = [
+    { title: t("clinic.dashboard.sections.patients.title"), description: t("clinic.dashboard.sections.patients.description"), href: Routes.Clinic.Patients.Index, icon: "fa-solid fa-users" },
+    { title: t("clinic.dashboard.sections.checkIn.title"), description: t("clinic.dashboard.sections.checkIn.description"), href: Routes.Clinic.CheckIn, icon: "fa-solid fa-clipboard-check" },
+    { title: t("clinic.dashboard.sections.appointments.title"), description: t("clinic.dashboard.sections.appointments.description"), href: Routes.Clinic.Appointments.Reservations.Index, icon: "fa-solid fa-calendar" },
+    { title: t("clinic.dashboard.sections.reminders.title"), description: t("clinic.dashboard.sections.reminders.description"), href: Routes.Clinic.Reminders, icon: "fa-solid fa-bell" },
+    { title: t("clinic.dashboard.sections.settings.title"), description: t("clinic.dashboard.sections.settings.description"), href: Routes.Clinic.Settings.Index, icon: "fa-solid fa-gear" },
+    { title: t("clinic.dashboard.sections.statistics.title"), description: t("clinic.dashboard.sections.statistics.description"), href: Routes.Clinic.Settings.Statistics, icon: "fa-solid fa-chart-bar" },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">Clinic Dashboard</h1>
-        <p className="text-sm text-muted">Manage your clinic operations</p>
+        <h1 className="text-2xl font-bold">{t("clinic.dashboard.title")}</h1>
+        <p className="text-sm text-muted">{t("clinic.dashboard.description")}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

@@ -6,7 +6,11 @@ export function parseLocaleCookie(cookieHeader: string | null | undefined): Supp
   if (!cookieHeader) return null;
   const pair = cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${localeCookieName}=`));
   if (!pair) return null;
-  return toSupportedLocale(decodeURIComponent(pair.slice(localeCookieName.length + 1)));
+  try {
+    return toSupportedLocale(decodeURIComponent(pair.slice(localeCookieName.length + 1)));
+  } catch {
+    return null;
+  }
 }
 
 export function serializeLocaleCookie(locale: SupportedLocale = defaultLocale): string {

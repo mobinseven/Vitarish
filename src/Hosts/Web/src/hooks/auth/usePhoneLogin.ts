@@ -4,7 +4,7 @@ import {
   useAuthenticationLoginPhoneBegin,
   useAuthenticationLoginPhoneComplete,
 } from "@/api/generated/authentication/authentication";
-import type { AuthenticationChallengeDto, BeginPhoneLoginRequest, CompletePhoneLoginRequest } from "@/api/generated/authentication/model";
+import type { AuthenticationChallengeDto } from "@/api/generated/authentication/model";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
 import { getRequestedReturnUrl } from "./requestedReturnUrl";
 
@@ -34,7 +34,7 @@ export function usePhoneLogin() {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
         setPendingReturnUrl(finalReturnUrl ?? undefined);
         const result = await beginMutation.mutateAsync({
-          data: { phoneNumber: phone, ...(finalReturnUrl ? { returnUrl: finalReturnUrl } : {}) } as unknown as BeginPhoneLoginRequest,
+          data: { phoneNumber: phone, returnUrl: finalReturnUrl ?? null },
         });
         setChallenge(result);
         setPhoneNumber(phone);
@@ -56,7 +56,7 @@ export function usePhoneLogin() {
         const returnUrl =
           pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
         const result = await completeMutation.mutateAsync({
-          data: { challengeId: challenge.challengeId, code, ...(returnUrl ? { returnUrl } : {}) } as unknown as CompletePhoneLoginRequest,
+          data: { challengeId: challenge.challengeId, code, returnUrl: returnUrl ?? null },
         });
         router.push(result.returnUrl);
       } catch (err) {
@@ -82,7 +82,7 @@ export function usePhoneLogin() {
       const finalReturnUrl =
         pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
       const result = await beginMutation.mutateAsync({
-        data: { phoneNumber, ...(finalReturnUrl ? { returnUrl: finalReturnUrl } : {}) } as unknown as BeginPhoneLoginRequest,
+        data: { phoneNumber, returnUrl: finalReturnUrl ?? null },
       });
       setChallenge(result);
       setStatusMessage("A new code was sent to your phone number.");

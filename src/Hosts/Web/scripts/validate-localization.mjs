@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { join, relative, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const webRoot = process.cwd();
+const webRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const root = join(webRoot, "../../..");
 const scopes = ["src/app", "src/components", "src/features", "src/design-system"];
 const literalPattern = />\s*([A-Z][A-Za-z0-9 ,.'!?&()/-]{2,})\s*</g;
@@ -22,6 +23,7 @@ function collect(dir) {
 
 for (const scope of scopes) {
   const dir = join(webRoot, scope);
+  if (!existsSync(dir)) continue;
   for (const file of collect(dir)) {
     if (file.includes("/api/generated/") || file.includes("/__tests__/")) continue;
     const source = readFileSync(file, "utf8");
@@ -35,7 +37,8 @@ if (findings.length === 0) {
   process.exit(0);
 }
 
-console.warn(`Localization validation report: ${findings.length} likely hard-coded React UI string(s) remain.`);
-for (const finding of findings.slice(0, 200)) console.warn(`- ${relative(root, finding.file)}: ${finding.text}`);
-if (findings.length > 200) console.warn(`...and ${findings.length - 200} more.`);
-console.warn("Report mode only: migrate findings to src/Hosts/Web/src/localization before enabling CI failure mode.");
+console.error(`Localization validation failed: ${findings.length} hard-coded React UI string(s) found.`);
+for (const finding of findings.slice(0, 200)) console.error(`- ${relative(root, finding.file)}: ${finding.text}`);
+if (findings.length > 200) console.error(`...and ${findings.length - 200} more.`);
+console.error("Migrate all hard-coded strings to src/Hosts/Web/src/localization.");
+process.exit(1);

@@ -3,9 +3,11 @@
 import { useRouter } from "next/navigation";
 import { Card, Button } from "@heroui/react";
 import { Routes } from "@/app/routes";
+import { useLocalizedText } from "@/localization";
 
 export default function NewPatientRoute() {
   const router = useRouter();
+  const { t } = useLocalizedText();
 
   return (
     <div className="flex flex-col gap-6">
@@ -15,18 +17,18 @@ export default function NewPatientRoute() {
           className="mb-2"
           onPress={() => router.push(Routes.Clinic.Patients.Index)}
         >
-          ← Back to Patients
+          ← {t("clinic.patients.backToPatients")}
         </Button>
-        <h1 className="text-2xl font-bold">New Patient</h1>
+        <h1 className="text-2xl font-bold">{t("clinic.patients.newPatient")}</h1>
       </div>
 
       <Card className="glass-card">
         <Card.Header>
-          <h2 className="text-lg font-semibold">Create Patient</h2>
+          <h2 className="text-lg font-semibold">{t("clinic.patients.createPatient")}</h2>
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           <p className="text-default-500">
-            Patient creation is currently unavailable. Please contact support if you need assistance.
+            {t("clinic.patients.createUnavailable")}
           </p>
         </Card.Content>
       </Card>

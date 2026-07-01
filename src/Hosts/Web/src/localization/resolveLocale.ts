@@ -1,6 +1,6 @@
 import { defaultLocale, type SupportedLocale, toSupportedLocale } from "./locales";
 
-export type LocaleResolutionSource = "account" | "cookie" | "accept-language" | "default";
+export type LocaleResolutionSource = "account" | "route" | "cookie" | "accept-language" | "default";
 
 export interface ResolveLocaleInput {
   routeLocale?: string | null;
@@ -16,8 +16,11 @@ export interface ResolvedLocale {
 }
 
 export function resolveLocale(input: ResolveLocaleInput = {}): ResolvedLocale {
-  const accountLocale = toSupportedLocale(input.accountLocale ?? input.routeLocale);
+  const accountLocale = toSupportedLocale(input.accountLocale);
   if (accountLocale) return { locale: accountLocale, source: "account", reason: "Supported authenticated account culture preference." };
+
+  const routeLocale = toSupportedLocale(input.routeLocale);
+  if (routeLocale) return { locale: routeLocale, source: "route", reason: "Supported route locale segment." };
 
   const cookieLocale = toSupportedLocale(input.cookieLocale);
   if (cookieLocale) return { locale: cookieLocale, source: "cookie", reason: "Supported persisted locale cookie." };

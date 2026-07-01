@@ -4,7 +4,6 @@ import {
   useAuthenticationLoginPasskeyBegin,
   useAuthenticationLoginPasskeyComplete,
 } from "@/api/generated/authentication/authentication";
-import type { BeginPasskeyAuthenticationRequest, CompletePasskeyAuthenticationRequest } from "@/api/generated/authentication/model";
 import { startPasskeyAuthentication } from "@/lib/webauthn";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
 import { getRequestedReturnUrl } from "./requestedReturnUrl";
@@ -22,7 +21,7 @@ export function usePasskeyLogin() {
       try {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
         const challenge = await beginMutation.mutateAsync({
-          data: { userNameOrEmail: userNameOrEmail || null, ...(finalReturnUrl ? { returnUrl: finalReturnUrl } : {}) } as unknown as BeginPasskeyAuthenticationRequest,
+          data: { userNameOrEmail: userNameOrEmail || null, returnUrl: finalReturnUrl ?? null },
         });
 
         if (!challenge.optionsJson) {
@@ -34,7 +33,7 @@ export function usePasskeyLogin() {
         );
 
         const result = await completeMutation.mutateAsync({
-          data: { challengeId: challenge.challengeId, credentialJson, ...(finalReturnUrl ? { returnUrl: finalReturnUrl } : {}) } as unknown as CompletePasskeyAuthenticationRequest,
+          data: { challengeId: challenge.challengeId, credentialJson, returnUrl: finalReturnUrl ?? null },
         });
 
         router.push(result.returnUrl);

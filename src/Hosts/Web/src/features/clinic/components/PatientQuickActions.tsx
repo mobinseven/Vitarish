@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
 import { Routes } from "@/app/routes";
 import { PatientDeleteDialog } from "./PatientDeleteDialog";
+import { useLocalizedText } from "@/localization";
 
 interface PatientQuickActionsProps {
   patientId: string;
@@ -12,6 +13,7 @@ interface PatientQuickActionsProps {
 
 export function PatientQuickActions({ patientId }: PatientQuickActionsProps) {
   const router = useRouter();
+  const { t } = useLocalizedText();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleEdit = useCallback(() => {
@@ -22,13 +24,13 @@ export function PatientQuickActions({ patientId }: PatientQuickActionsProps) {
     <>
       <div className="flex gap-2">
         <Button variant="primary" onPress={handleEdit}>
-          Edit
+          {t("clinic.patient.quickActions.edit")}
         </Button>
         <Button
           variant="danger"
           onPress={() => setShowDeleteDialog(true)}
         >
-          Delete
+          {t("clinic.patient.quickActions.delete")}
         </Button>
       </div>
 

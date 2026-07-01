@@ -23,7 +23,7 @@ export function useLocalizedText() {
   const messages = context?.messages ?? getMessages(defaultLocale);
 
   return useMemo(() => {
-    const t = (key: MessageKey, parameters?: MessageParameters) => interpolate(readMessage(messages, key) ?? readMessage(getMessages(defaultLocale), key) ?? "", parameters);
+    const t = (key: MessageKey, parameters?: MessageParameters) => interpolate(readMessage(messages, key) ?? readMessage(getMessages(defaultLocale), key) ?? key, parameters);
     return { t, locale, direction };
   }, [direction, locale, messages]);
 }

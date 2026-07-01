@@ -2,6 +2,7 @@
 
 import { Card, Button } from "@heroui/react";
 import type { PatientViewDto } from "../types";
+import { useLocalizedText } from "@/localization";
 
 interface IdentificationLookupResultProps {
   status: "found" | "not-found" | "error";
@@ -18,6 +19,8 @@ export function IdentificationLookupResult({
   onSelect,
   onRetry,
 }: IdentificationLookupResultProps) {
+  const { t } = useLocalizedText();
+
   if (status === "found" && patient) {
     return (
       <Card className="glass-card p-4">
@@ -32,7 +35,7 @@ export function IdentificationLookupResult({
             </p>
           </div>
           <Button variant="primary" onPress={() => patient.id && onSelect(patient.id)}>
-            Select
+            {t("clinic.patient.identification.select")}
           </Button>
         </div>
       </Card>
@@ -43,9 +46,9 @@ export function IdentificationLookupResult({
     return (
       <Card className="glass-card p-4">
         <div className="flex items-center justify-between">
-          <p className="text-default-500">Patient not found</p>
+          <p className="text-default-500">{t("clinic.patient.identification.notFound")}</p>
           <Button variant="ghost" onPress={onRetry}>
-            Retry
+            {t("clinic.patient.identification.retry")}
           </Button>
         </div>
       </Card>
@@ -56,9 +59,9 @@ export function IdentificationLookupResult({
     return (
       <Card className="glass-card p-4">
         <div className="flex items-center justify-between">
-          <p className="text-danger">{error ?? "Lookup failed"}</p>
+          <p className="text-danger">{error ?? t("clinic.patient.identification.lookupFailed")}</p>
           <Button variant="ghost" onPress={onRetry}>
-            Retry
+            {t("clinic.patient.identification.retry")}
           </Button>
         </div>
       </Card>

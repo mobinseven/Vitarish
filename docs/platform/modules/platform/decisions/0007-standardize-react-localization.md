@@ -28,6 +28,8 @@ Locale resolution is centralized in the Web localization module. UI formatting u
 
 Backend, application, API, and contract layers expose stable result, status, and error codes rather than translated display text. React maps those stable codes to localized UI messages at the presentation boundary.
 
+The initial approved locales are Persian (`fa`, default) and English (`en`). Persian is the default because the primary user base is Persian-speaking. English is the secondary locale for international accessibility. The `defaultLocale` is `fa`, and locale direction is `rtl` for Persian, `ltr` for English.
+
 ## Boundaries
 
 Allowed dependencies:
@@ -46,7 +48,7 @@ Forbidden dependencies:
 
 All React UI copy migrates to catalog keys. New React UI changes require static localization validation, and component tests should render through localization-aware helpers. Page metadata must resolve strings from the catalog. Dates, times, numbers, currencies, percentages, lists, and plural-sensitive messages must use central localization helpers.
 
-The initial approved locale is English (`en`). Additional locales are explicit future additions that require catalog coverage and validation.
+The initial approved locales are Persian (`fa`, default) and English (`en`). Additional locales are explicit future additions that require catalog coverage, validation, and direction configuration.
 
 ## Alternatives Considered
 
@@ -79,4 +81,4 @@ Rejected. `apiFetch` is transport infrastructure. It may normalize error shape, 
 
 ## Notes
 
-This ADR establishes the React localization boundary and migration direction. It does not approve additional locales beyond `en`.
+This ADR establishes the React localization boundary and migration direction. The initial scope includes Persian (`fa`, default) and English (`en`). Additional locales beyond these require catalog coverage, validation, and an explicit ADR update.

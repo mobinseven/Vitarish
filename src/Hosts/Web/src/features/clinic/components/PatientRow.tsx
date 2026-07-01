@@ -2,6 +2,7 @@
 
 import { Card } from "@heroui/react";
 import type { PatientViewDto } from "../types";
+import { useLocalizedText, formatDate } from "@/localization";
 
 interface PatientRowProps {
   patient: PatientViewDto;
@@ -9,6 +10,7 @@ interface PatientRowProps {
 }
 
 export function PatientRow({ patient, onSelect }: PatientRowProps) {
+  const { t, locale } = useLocalizedText();
   return (
     <Card
       className="ds-surface-card ds-surface-card-default p-3 hover:bg-default cursor-pointer transition-colors"
@@ -21,7 +23,7 @@ export function PatientRow({ patient, onSelect }: PatientRowProps) {
           <span className="font-medium">
             {patient.firstName || patient.lastName
               ? ((patient.firstName ?? "") + " " + (patient.lastName ?? "")).trim()
-              : patient.name || "Unnamed Patient"}
+              : patient.name || t("clinic.patients.unnamedPatient")}
           </span>
           <span className="text-sm text-default-500">
             {patient.identificationCode && `ID: ${patient.identificationCode}`}
@@ -29,8 +31,7 @@ export function PatientRow({ patient, onSelect }: PatientRowProps) {
           </span>
         </div>
         <div className="text-sm text-default-500">
-          {patient.dateOfBirth &&
-            new Date(patient.dateOfBirth).toLocaleDateString()}
+          {patient.dateOfBirth && formatDate(patient.dateOfBirth, locale)}
         </div>
       </div>
     </Card>

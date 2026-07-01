@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTenantAuthorization, type TenantRole } from "@/hooks/auth/useTenantAuthorization";
 import { Routes } from "@/app/routes";
+import { useLocalizedText } from "@/localization";
 
 interface AuthorizationGuardProps {
   requiredRole?: TenantRole;
@@ -12,6 +13,7 @@ interface AuthorizationGuardProps {
 
 export function AuthorizationGuard({ requiredRole, children }: AuthorizationGuardProps) {
   const { isAuthenticated, isLoading, hasAccess } = useTenantAuthorization(requiredRole);
+  const { t } = useLocalizedText();
   const router = useRouter();
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export function AuthorizationGuard({ requiredRole, children }: AuthorizationGuar
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-default-500">Loading...</p>
+        <p className="text-default-500">{t("auth.guard.loading")}</p>
       </div>
     );
   }
@@ -36,9 +38,9 @@ export function AuthorizationGuard({ requiredRole, children }: AuthorizationGuar
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-danger">Access Denied</h1>
+          <h1 className="text-2xl font-bold text-danger">{t("auth.guard.accessDenied")}</h1>
           <p className="text-sm text-muted mt-2">
-            You do not have permission to access this area.
+            {t("auth.guard.noPermission")}
           </p>
         </div>
       </div>

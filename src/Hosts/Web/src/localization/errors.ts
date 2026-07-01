@@ -9,9 +9,24 @@ const apiErrorCodeMessages: Record<string, MessageKey> = {
   ValidationFailed: "errors.validation",
 };
 
+const apiHttpStatusMessages: Record<number, MessageKey> = {
+  400: "errors.validation",
+  401: "errors.unauthorized",
+  403: "errors.forbidden",
+  404: "errors.notFound",
+};
+
 export function getApiErrorMessageKey(error: unknown): MessageKey {
-  const code = typeof error === "object" && error !== null && "code" in error ? String((error as CodeBearingError).code ?? "") : "";
-  return apiErrorCodeMessages[code] ?? "errors.generic";
+  if (typeof error === "object" && error !== null) {
+    const err = error as CodeBearingError;
+    if (err.code && err.code in apiErrorCodeMessages) {
+      return apiErrorCodeMessages[err.code];
+    }
+    if (err.status && err.status in apiHttpStatusMessages) {
+      return apiHttpStatusMessages[err.status];
+    }
+  }
+  return "errors.generic";
 }
 
 export function localizeApiError(error: unknown, t: Translate): string {

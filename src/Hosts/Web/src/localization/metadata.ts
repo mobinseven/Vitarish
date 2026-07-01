@@ -6,7 +6,11 @@ import type { MessageKey } from "./messageTypes";
 function read(key: MessageKey, locale: SupportedLocale): string {
   const messages = getMessages(locale);
   const value = key.split(".").reduce<unknown>((current, part) => current && typeof current === "object" ? (current as Record<string, unknown>)[part] : undefined, messages);
-  return typeof value === "string" ? value : "";
+  if (typeof value === "string") return value;
+  if (locale !== defaultLocale) {
+    return read(key, defaultLocale);
+  }
+  return key;
 }
 
 export function localizedMetadata(titleKey: MessageKey, descriptionKey: MessageKey, locale: SupportedLocale = defaultLocale): Metadata {

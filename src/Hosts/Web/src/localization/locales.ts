@@ -1,8 +1,8 @@
-export const supportedLocales = ["en"] as const;
+export const supportedLocales = ["fa", "en"] as const;
 
 export type SupportedLocale = (typeof supportedLocales)[number];
 
-export const defaultLocale: SupportedLocale = "en";
+export const defaultLocale: SupportedLocale = "fa";
 
 const supportedLocaleSet = new Set<string>(supportedLocales);
 
@@ -23,6 +23,6 @@ export function toSupportedLocale(locale: string | null | undefined): SupportedL
 }
 
 export function getLocaleDirection(locale: SupportedLocale): "ltr" | "rtl" {
-  void locale;
+  if (locale === "fa") return "rtl";
   return "ltr";
 }

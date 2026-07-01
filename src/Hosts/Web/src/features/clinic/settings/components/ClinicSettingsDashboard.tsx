@@ -3,6 +3,7 @@
 import { Card } from "@heroui/react";
 import Link from "next/link";
 import { Routes } from "@/app/routes";
+import { useLocalizedText } from "@/localization";
 
 interface SettingsLink {
   title: string;
@@ -11,33 +12,20 @@ interface SettingsLink {
   icon: string;
 }
 
-const settingsLinks: SettingsLink[] = [
-  {
-    title: "Users",
-    description: "Manage clinic staff accounts and permissions.",
-    href: Routes.Clinic.Settings.Users,
-    icon: "fa-solid fa-user-gear",
-  },
-  {
-    title: "Appointment Settings",
-    description: "Configure services, service types, and providers.",
-    href: Routes.Clinic.Appointments.Settings,
-    icon: "fa-solid fa-calendar-check",
-  },
-  {
-    title: "Statistics",
-    description: "View clinic performance metrics and analytics.",
-    href: Routes.Clinic.Settings.Statistics,
-    icon: "fa-solid fa-chart-line",
-  },
-];
-
 export function ClinicSettingsDashboard() {
+  const { t } = useLocalizedText();
+
+  const settingsLinks: SettingsLink[] = [
+    { title: t("clinic.settings.sections.users.title"), description: t("clinic.settings.sections.users.description"), href: Routes.Clinic.Settings.Users, icon: "fa-solid fa-user-gear" },
+    { title: t("clinic.settings.sections.appointmentSettings.title"), description: t("clinic.settings.sections.appointmentSettings.description"), href: Routes.Clinic.Appointments.Settings, icon: "fa-solid fa-calendar-check" },
+    { title: t("clinic.settings.sections.statistics.title"), description: t("clinic.settings.sections.statistics.description"), href: Routes.Clinic.Settings.Statistics, icon: "fa-solid fa-chart-line" },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">Clinic Settings</h1>
-        <p className="text-sm text-muted">Configure your clinic settings</p>
+        <h1 className="text-2xl font-bold">{t("clinic.settings.title")}</h1>
+        <p className="text-sm text-muted">{t("clinic.settings.description")}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
