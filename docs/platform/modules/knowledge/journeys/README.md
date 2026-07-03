@@ -15,7 +15,7 @@ This directory contains the canonical owner journey documentation for the curren
 
 ## Implementation Tracking
 
-See [implementation-matrix.md](./implementation-matrix.md) for current routes, UI identifiers, backend contracts, domain state, known gaps, and alignment notes.
+See the [React interface coverage audit](../../../../journeys/react-interface-coverage-audit.md) for current React route/component evidence and known gaps. Knowledge normal-user QA remains separate from Knowledge owner/admin journeys.
 
 ## Boundary Rules
 

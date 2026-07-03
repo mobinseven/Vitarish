@@ -3,25 +3,25 @@
 Date assessed: 2026-05-10
 
 ## Scope and method
-This folder documents Clinic Owner patient journeys and the current implementation evidence behind them. The implementation status source of truth now lives in the [implementation matrix](./implementation-matrix.md), while the detailed journey narratives stay in the focused journey files.
+This folder documents Clinic Owner patient journeys and the current implementation evidence behind them. The React interface coverage source of truth now lives in the [React interface coverage audit](../../../../../journeys/react-interface-coverage-audit.md), while the detailed journey narratives stay in the focused journey files.
 
-Implementation levels in the matrix:
+Coverage levels in the React interface coverage audit:
 
 - **implemented:** the user can complete the journey in the current UI and supporting services.
 - **partial:** enough UI/service support exists for part of the journey, but one or more requested objectives are missing, indirect, or not patient-specific.
 - **missing:** no clear user-facing journey exists for the requested objective.
 
 ## How to use this folder
-1. Start with the [implementation matrix](./implementation-matrix.md) for per-objective status, required routes, UI surfaces, service boundaries, and known gaps.
+1. Start with the [React interface coverage audit](../../../../../journeys/react-interface-coverage-audit.md) for journey-level React route/component evidence and known gaps.
 2. Use the focused journey files for operator flow, decision rules, and domain-specific implementation detail.
 3. Use the acceptance criteria section below to turn every partial or missing objective into scoped delivery work.
 
 ## Executive summary
-- Patients profile management is operational for create/view/edit/delete, but search/filtering, patient lifecycle status, and duplicate prevention remain incomplete. See the [matrix](./implementation-matrix.md#patients-profile-management-crud).
-- Patient procedures can be created and updated today, but provider assignment, explicit procedure status, procedure-level notes, and cancellation semantics remain incomplete. See the [matrix](./implementation-matrix.md#patients-procedures-management).
-- Patient appointments support booking and status transitions, but rescheduling, provider/room assignment, richer filtering/views, and follow-up creation remain incomplete. See the [matrix](./implementation-matrix.md#patients-appointments-management).
-- Patient check-in is an implemented guided flow with extension work around overflow, richer slot selection, and partial-success handling. See the [matrix](./implementation-matrix.md#patient-check-in).
-- Patient overview is still assembled from multiple panels instead of a single read model, leaving upcoming/history separation, timeline, and patient flags incomplete. See the [matrix](./implementation-matrix.md#patients-overview).
+- Patients profile management is operational for create/view/edit/delete, but search/filtering, patient lifecycle status, and duplicate prevention remain incomplete. See the [React interface coverage audit](../../../../../journeys/react-interface-coverage-audit.md).
+- Patient procedures can be created and updated today, but provider assignment, explicit procedure status, procedure-level notes, and cancellation semantics remain incomplete. See the [React interface coverage audit](../../../../../journeys/react-interface-coverage-audit.md).
+- Patient appointments support booking and status transitions, but rescheduling, provider/room assignment, richer filtering/views, and follow-up creation remain incomplete. See the [React interface coverage audit](../../../../../journeys/react-interface-coverage-audit.md).
+- Patient check-in is an implemented guided flow with extension work around overflow, richer slot selection, and partial-success handling. See the [React interface coverage audit](../../../../../journeys/react-interface-coverage-audit.md).
+- Patient overview is still assembled from multiple panels instead of a single read model, leaving upcoming/history separation, timeline, and patient flags incomplete. See the [React interface coverage audit](../../../../../journeys/react-interface-coverage-audit.md).
 
 ## Evidence highlights
 

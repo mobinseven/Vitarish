@@ -31,9 +31,9 @@ Evidence roots:
 
 ## Coverage Summary
 
-- Route coverage: every route constant in `AppRoutes.Clinic` is mapped in `implementation-coverage-matrix.md`.
-- Page coverage: every Clinic page under `src/Hosts/Main/Pages/Clinic` is mapped as a journey entry, supporting page base, or supporting evidence.
-- Component coverage: every required Clinic and Appointments component from the collection plan is represented in one or more journey files or the coverage matrix.
+- Route coverage: every current React Clinic route with journey evidence is mapped in `docs/journeys/react-interface-coverage-audit.md`.
+- Page coverage: every current React Clinic route page under `src/Hosts/Web/src/app/**` is mapped as a journey entry or supporting evidence when relevant.
+- Component coverage: required Clinic and Appointments React feature components are represented in one or more journey files or the React interface coverage audit.
 - Placeholder coverage: appointment settings and statistics are documented as current-state low-confidence/placeholder journeys where static evidence shows limited workflow.
 - State ownership: patient/procedure state stays with Clinic-over-Sea/Sea, appointment state stays with Appointments, reminders stay with Communications, and prescription journeys remain related module-level references unless intentionally promoted later.
 
@@ -93,7 +93,7 @@ Existing module-level journeys are related deep dives unless a future change exp
 
 ## Maintenance Rules
 
-- Every Clinic route and user-visible feature must be represented in `implementation-coverage-matrix.md`.
+- Every Clinic route and user-visible feature must be represented in `docs/journeys/react-interface-coverage-audit.md`.
 - New Clinic Owner routes must link to exactly one app-level journey or be marked as supporting evidence for an existing journey.
 - Do not duplicate state ownership in journey language: Appointments owns appointment state, Sea owns procedure/event state, Communications owns reminder state, and Clinic composes these workflows.
 - Placeholder routes must remain documented as current state until they are implemented.

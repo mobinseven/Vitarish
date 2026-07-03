@@ -35,11 +35,10 @@ Do not maintain duplicate authoritative journey files for the same workflow. If 
 
 ## 4. Required Collection Artifacts
 
-Create these files under `docs/apps/clinic-owner/journeys/`:
+Create these files under `docs/apps/clinic-owner/journeys/` and maintain the repository-wide React audit at `docs/journeys/react-interface-coverage-audit.md`:
 
 ```txt
 README.md
-implementation-coverage-matrix.md
 0001-owner-dashboard-navigation-journey.md
 0002-patient-list-search-and-selection-journey.md
 0003-patient-identification-lookup-journey.md
@@ -214,14 +213,14 @@ Recommended sections:
 ## Maintenance Rules
 ```
 
-## 7. Implementation Coverage Matrix Requirements
+## 7. React Interface Coverage Audit Requirements
 
-`implementation-coverage-matrix.md` should map every implemented feature to one journey file.
+`docs/journeys/react-interface-coverage-audit.md` should map every implemented feature to one journey file.
 
 Required columns:
 
 ```md
-| Feature | Persona | Route(s) | Page/component evidence | Supporting module | Journey file | Status | Confidence |
+| Journey file | Owner | Expected user workflow | Current React route(s) | Current React evidence | Status | Confidence | Known gap |
 ```
 
 Status values:
@@ -259,7 +258,7 @@ docs/platform/modules/medical/
 
 ## 9. Route Coverage Checklist
 
-Every route below must appear in `implementation-coverage-matrix.md` and be traceable to at least one journey file:
+Every route below must appear in `docs/journeys/react-interface-coverage-audit.md` and be traceable to at least one journey file:
 
 - [ ] `/owner/clinic`
 - [ ] `/owner/clinic/check-in`
@@ -650,12 +649,12 @@ Every component below must be represented in at least one journey or marked as r
 ## 13. Generation Sequence
 
 1. Create `docs/apps/clinic-owner/journeys/README.md` with scope, evidence roots, journey index, and source-of-truth rules.
-2. Create `implementation-coverage-matrix.md` and populate every Clinic route and implemented feature.
+2. Create `docs/journeys/react-interface-coverage-audit.md` and populate every Clinic route and implemented feature.
 3. Generate journeys `0001` through `0027` using the standard format.
 4. Link existing module-level patient, appointment, and prescription journey docs from README and relevant journey files.
-5. Re-check route coverage against `src/Hosts/Main/Common/Routes/ClinicRoutes.cs`.
-6. Re-check page coverage against every `.razor` file under `src/Hosts/Main/Pages/Clinic`.
-7. Re-check component coverage against Clinic interface components and Appointments components used by Clinic pages.
+5. Re-check route coverage against `src/Hosts/Web/src/app/routes.ts` and route files under `src/Hosts/Web/src/app/**`.
+6. Re-check page coverage against React route pages under `src/Hosts/Web/src/app/owner/clinic/**` and `src/Hosts/Web/src/app/user/clinic/**`.
+7. Re-check component coverage against React feature components under `src/Hosts/Web/src/features/**`.
 8. Mark every assumption explicitly.
 9. Ensure each journey has state source of truth and command/query split.
 10. Run documentation lint/search checks listed below.
@@ -664,8 +663,8 @@ Every component below must be represented in at least one journey or marked as r
 
 The work is complete when:
 
-1. Every route in `AppRoutes.Clinic` appears in `implementation-coverage-matrix.md`.
-2. Every page under `src/Hosts/Main/Pages/Clinic` appears in `implementation-coverage-matrix.md`.
+1. Every current React Clinic route appears in `docs/journeys/react-interface-coverage-audit.md` when it is journey evidence.
+2. Every current React Clinic route page under `src/Hosts/Web/src/app/**` appears in `docs/journeys/react-interface-coverage-audit.md` when it is journey evidence.
 3. Every major Clinic interface component is referenced by at least one journey.
 4. Every Appointments component used by Clinic pages is referenced by at least one journey.
 5. Every journey declares app, module/capability, persona, scope start/end, evidence sources, and confidence level.
