@@ -5,9 +5,8 @@ Owner scope: Clinic owner app / web host
 Source journeys:
 
 - `docs/apps/clinic-owner/journeys/`
-- `docs/apps/clinic-owner/journeys/implementation-coverage-matrix.md`
 - `docs/apps/clinic-owner/modules/patient/journeys/`
-- `docs/apps/clinic-owner/modules/patient/journeys/implementation-matrix.md`
+- `docs/journeys/react-interface-coverage-audit.md`
 
 Static implementation evidence:
 
@@ -564,7 +563,6 @@ Single source of truth: Pass / Fail — reason
 
 When implementation begins, keep these sources synchronized:
 
-- Update `docs/apps/clinic-owner/journeys/implementation-coverage-matrix.md` as journey status changes.
-- Update `docs/apps/clinic-owner/modules/patient/journeys/implementation-matrix.md` for patient-specific objectives.
+- Update `docs/journeys/react-interface-coverage-audit.md` as journey status changes, including patient-specific objectives.
 - Add ADRs only if introducing a new React host, new generated-client boundary, new route ownership convention, or a new cross-module data ownership rule.
 - Keep this plan as a planning artifact; do not treat it as the source of truth for implemented status after code ships unless it is deliberately refreshed.

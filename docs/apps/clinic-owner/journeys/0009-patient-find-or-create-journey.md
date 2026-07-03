@@ -137,4 +137,4 @@
 ## 8. Related Journeys
 
 - [Clinic Owner journey collection README](README.md)
-- [Implementation coverage matrix](implementation-coverage-matrix.md)
+- [React interface coverage audit](../../../journeys/react-interface-coverage-audit.md)
