@@ -2,6 +2,7 @@ using Vitarish.Modules.Base.Core.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
 using Vitarish.Main.Infrastructure.Utilities;
+using Duende.IdentityServer.Extensions;
 
 namespace Vitarish.Main.Authorization;
 
