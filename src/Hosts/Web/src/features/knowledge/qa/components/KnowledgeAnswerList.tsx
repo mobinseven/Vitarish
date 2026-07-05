@@ -39,7 +39,7 @@ export function KnowledgeAnswerList({
   onContinueInCorpus,
 }: KnowledgeAnswerListProps) {
   const { t } = useLocalizedText();
-  const hasQuestion = question.trim().length > 0;
+  const hasQuestion = !!question?.trim();
   const showAnswers = hasQuestion && !isPending && !statusMessage && results.length > 0;
 
   return (
