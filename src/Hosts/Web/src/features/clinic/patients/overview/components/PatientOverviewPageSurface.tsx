@@ -25,7 +25,7 @@ export function PatientOverviewPageSurface({ patientId }: PatientOverviewPageSur
       <Card className="p-8">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">{t("clinic.patient.detail.loading")}</span>
+          <span className="text-muted">{t("clinic.patient.detail.loading")}</span>
         </div>
       </Card>
     );

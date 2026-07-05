@@ -25,7 +25,7 @@ export function ClinicSettingsDashboard() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">{t("clinic.settings.title")}</h1>
-        <p className="text-sm text-default-500">{t("clinic.settings.description")}</p>
+        <p className="text-sm text-muted">{t("clinic.settings.description")}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -37,7 +37,7 @@ export function ClinicSettingsDashboard() {
                 <h2 className="text-lg font-semibold">{link.title}</h2>
               </Card.Header>
               <Card.Content>
-                <p className="text-sm text-default-500">{link.description}</p>
+                <p className="text-sm text-muted">{link.description}</p>
               </Card.Content>
             </Card>
           </Link>

@@ -22,7 +22,7 @@ export default function ClinicPatientProcedureEventPage({
       <Card className="p-8">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">{t("common.states.loading")}</span>
+          <span className="text-muted">{t("common.states.loading")}</span>
         </div>
       </Card>
     );
@@ -43,20 +43,20 @@ export default function ClinicPatientProcedureEventPage({
           ← {t("common.actions.previous")}
         </Button>
         <h1 className="text-2xl font-bold">{event.title}</h1>
-        <span className={`text-xs ${event.isCommitted ? "text-success" : "text-default-500"}`}>
-          {event.isCommitted ? "Committed" : "Draft"}
+        <span className={`text-xs ${event.isCommitted ? "text-success" : "text-muted"}`}>
+          {event.isCommitted ? t("clinic.procedures.committed") : t("clinic.procedures.draft")}
         </span>
       </div>
 
       <Card>
         <Card.Content className="grid gap-4 sm:grid-cols-2">
-          <DetailField label="Created" value={new Date(event.createdAt).toLocaleString()} />
+          <DetailField label={t("clinic.fields.created")} value={new Date(event.createdAt).toLocaleString()} />
           {event.committedAt && (
-            <DetailField label="Committed At" value={new Date(event.committedAt).toLocaleString()} />
+            <DetailField label={t("clinic.fields.committedAt")} value={new Date(event.committedAt).toLocaleString()} />
           )}
           {event.description && (
             <div className="sm:col-span-2">
-              <span className="text-xs text-default-500">Description</span>
+              <span className="text-xs text-muted">{t("clinic.fields.description")}</span>
               <p className="text-sm">{event.description}</p>
             </div>
           )}
@@ -69,7 +69,7 @@ export default function ClinicPatientProcedureEventPage({
 function DetailField({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-default-500">{label}</span>
+      <span className="text-xs text-muted">{label}</span>
       <span className="text-sm">{value}</span>
     </div>
   );

@@ -1,8 +1,7 @@
 ---
-
 name: platform-localization-maintenance
-description: Review and maintain UI localization coverage by detecting hard-coded user-facing text, verifying IStringLocalizer usage, and preserving presentation-layer localization boundaries.
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+description: Review and maintain UI localization coverage by detecting hard-coded user-facing text, verifying React Web localization catalog usage, verifying Razor IStringLocalizer usage, and preserving presentation-layer localization boundaries.
+---
 
 # Platform Localization Maintenance
 
@@ -15,15 +14,20 @@ This skill is a review and maintenance guide. It is not a product-copy owner, do
 Use it to:
 
 * Detect and prevent hard-coded user-visible text in newly created or modified UI artifacts.
-* Ensure UI components consistently inject and use `IStringLocalizer`.
+* Ensure React Web UI uses the central localization catalog/provider under `src/Hosts/Web/src/localization/**`.
+* Ensure Razor UI components consistently inject and use `IStringLocalizer`.
 * Keep localization concerns at the presentation/interface boundary.
-* Preserve resource files or the existing localization provider as the single source of truth for translated text.
+* Preserve the existing localization catalog, resource files, or provider as the single source of truth for translated text.
 * Prevent Domain and Application artifacts from depending on UI localization infrastructure.
 
 ## Use When
 
 Use this skill when creating, reviewing, or modifying user-facing UI artifacts, including:
 
+* React pages
+* React components
+* React feature UI
+* page metadata
 * Razor components
 * Razor code-behind files
 * host pages
@@ -45,27 +49,41 @@ Use this skill when creating, reviewing, or modifying user-facing UI artifacts, 
 
 Apply it especially under paths such as:
 
+* `src/Hosts/Web/src/app/**`
+* `src/Hosts/Web/src/components/**`
+* `src/Hosts/Web/src/features/**`
+* `src/Hosts/Web/src/design-system/**`
 * `src/Apps/**/Interface/**`
 * `src/Modules/**/Interface/**`
 * `src/Hosts/**`
 * `src/Interfaces/**`
 
+For React Web host work, follow ADR-0007:
+
+* Source of truth: `src/Hosts/Web/src/localization/**`.
+* Default locale: Persian (`fa`); secondary locale: English (`en`).
+* Direction: `rtl` for Persian, `ltr` for English.
+* No feature-local English copy constants or dictionaries.
+* No localization imports in generated clients, `apiFetch`, Domain, Application, Contracts, backend Infrastructure, or OpenAPI output.
+
 ## Review Checklist
 
 When reviewing UI localization, verify that:
 
-* User-visible labels, titles, helper text, button text, snackbar messages, dialog titles, empty states, status text, validation messages, fallback messages, and confirmation prompts use `Localizer[...]`.
-* Any component that renders localized text injects `IStringLocalizer`, either through `@inject IStringLocalizer Localizer`, `@inject IStringLocalizer<T> Localizer`, or an equivalent `[Inject]` property.
-* Dates, times, numbers, percentages, currency, and culture-sensitive values are formatted using the active culture.
+* User-visible labels, titles, helper text, button text, snackbar/toast messages, dialog titles, empty states, status text, validation messages, fallback messages, page metadata, and confirmation prompts are localized.
+* React Web UI consumes the central `LocalizationProvider`, translation hook, metadata helper, error mapper, and formatting helpers from `src/Hosts/Web/src/localization/**`.
+* Razor UI uses `Localizer[...]`.
+* Any Razor component that renders localized text injects `IStringLocalizer`, either through `@inject IStringLocalizer Localizer`, `@inject IStringLocalizer<T> Localizer`, or an equivalent `[Inject]` property.
+* Dates, times, numbers, percentages, currency, lists, and culture-sensitive values use the central React formatting helpers or the active .NET culture, depending on UI stack.
 * Pluralized text is handled intentionally and is not built through unsafe string concatenation.
 * Enum and status values are not rendered directly unless they are intentionally mapped to localized display text.
-* Resource keys follow the convention already used by nearby components or the owning module.
+* Resource/catalog keys follow the convention already used by nearby components or the owning module.
 * Repeated common labels reuse existing keys where appropriate, such as `Save`, `Cancel`, `Delete`, `Search`, `Back`, `Next`, and `Close`.
 * Grammar-sensitive sentences use full sentence keys instead of unsafe word-by-word composition.
 * Composite localization is used only when the resulting phrase remains grammatically safe in supported languages, for example `Localizer["AddItem", Localizer["Source"]]`.
 * Backend or application messages shown to users are represented as stable codes or identifiers where practical, then mapped to localized text in the presentation layer.
 * Localization concerns do not leak into Domain or Application artifacts.
-* Existing resource files or the existing localization provider remain the only source of translated user-facing text.
+* Existing resource files, catalogs, or localization providers remain the only source of translated user-facing text.
 * Verify localized text passed through `DialogParameters` uses `.Value` when the target dialog parameter expects a `string`, for example `Localizer["Delete"].Value` instead of `Localizer["Delete"]`.
 
 ## Do Not Flag
@@ -97,6 +115,7 @@ Examples that usually should not be localized:
 * SVG/path data
 * test selectors
 * localization resource keys themselves
+* localization catalog keys themselves
 
 When in doubt, determine whether the string can appear in the rendered UI or in a user-facing notification. If not, do not file it as a localization issue.
 
@@ -106,15 +125,16 @@ Localization is a presentation concern.
 
 Allowed:
 
-* UI components may request localized display text through `IStringLocalizer`.
+* Razor UI components may request localized display text through `IStringLocalizer`.
+* React Web UI may request localized display text through `src/Hosts/Web/src/localization/**`.
 * UI-facing adapters may map stable application result codes to localized text.
 * Shared UI components may own reusable display keys when the copy belongs to the shared UI component.
-* Resource files or the existing localization provider may contain translated text.
+* Resource files, central catalogs, or the existing localization provider may contain translated text.
 
 Not allowed:
 
-* Domain artifacts must not depend on `IStringLocalizer`, Razor, MudBlazor, resource files, host UI, or localization infrastructure.
-* Application artifacts must not depend on Razor, MudBlazor, host UI, or presentation localization infrastructure.
+* Domain artifacts must not depend on `IStringLocalizer`, React localization modules, Razor, MudBlazor, HeroUI, resource files, host UI, or localization infrastructure.
+* Application artifacts must not depend on React, Razor, MudBlazor, HeroUI, host UI, or presentation localization infrastructure.
 * Domain entities, value objects, commands, queries, handlers, and pure rules must not return translated UI text as business behavior.
 * Do not introduce a new localization source of truth unless the task explicitly changes localization architecture and is covered by an ADR.
 
@@ -122,7 +142,7 @@ Preferred boundary pattern:
 
 * Domain/Application returns stable result codes, validation codes, or structured result data.
 * Interface/Presentation maps those codes to localized user-facing text.
-* Resource files or the existing localization provider remain the single source of truth for translated copy.
+* Resource files, central catalogs, or the existing localization provider remain the single source of truth for translated copy.
 
 ## Key Selection Guidance
 
@@ -130,7 +150,7 @@ Prefer existing nearby conventions over inventing new naming styles.
 
 When no local convention exists, use stable and readable keys:
 
-* Common action labels may use simple reusable keys:
+* Razor common action labels may use simple reusable keys:
 
   * `Save`
   * `Cancel`
@@ -151,6 +171,12 @@ When no local convention exists, use stable and readable keys:
 
   * Prefer `DeleteConfirmation`
   * Avoid `AreYouSureYouWantToDeleteThisItem`
+* React catalog keys should follow the existing dot-scoped convention:
+
+  * `common.actions.save`
+  * `auth.login.signInAction`
+  * `clinic.patients.emptyState`
+  * `knowledge.qa.askAction`
 
 Use full-sentence keys for grammar-sensitive text. Avoid assembling user-facing sentences from many small localized words unless the supported languages make that safe.
 
@@ -174,8 +200,8 @@ For each finding, report:
 * File path.
 * Line number or search string.
 * Current hard-coded text.
-* Suggested resource key.
-* Suggested replacement expression, for example `Localizer["KeyName"]`.
+* Suggested resource or catalog key.
+* Suggested replacement expression, for example `Localizer["KeyName"]` or `t("key.name")`.
 * Fix location.
 
 Use this concise format:
@@ -186,6 +212,7 @@ Use this concise format:
 | File | Line/Search | Current text | Suggested key | Replacement | Fix location |
 | --- | --- | --- | --- | --- | --- |
 | `path/to/File.razor` | `Line 42` | `Save` | `Save` | `Localizer["Save"]` | Component and localization resource file |
+| `src/Hosts/Web/src/components/auth/LoginForm.tsx` | `Search: Sign In` | `Sign In` | `auth.login.signInAction` | `t("auth.login.signInAction")` | Central catalog and component |
 ```
 
 If a finding requires a boundary fix, state it clearly:
@@ -221,6 +248,18 @@ Do not add an ADR unless the task changes localization architecture, introduces 
 
 ## Validation
 
+Recommended static searches for likely hard-coded UI strings in React Web host files:
+
+```bash
+rg -n --glob '*.tsx' --glob '*.ts' '"[A-Z][A-Za-z0-9 ,.!?:;()/-]{2,}"' src/Hosts/Web/src/app src/Hosts/Web/src/components src/Hosts/Web/src/features src/Hosts/Web/src/design-system
+
+rg -n --glob '*.tsx' --glob '*.ts' "'[A-Z][A-Za-z0-9 ,.!?:;()/-]{2,}'" src/Hosts/Web/src/app src/Hosts/Web/src/components src/Hosts/Web/src/features src/Hosts/Web/src/design-system
+
+rg -n --glob '*.tsx' --glob '*.ts' '(title|description|label|placeholder|helperText|aria-label|toast|message|error|empty|loading|submit|cancel)' src/Hosts/Web/src/app src/Hosts/Web/src/components src/Hosts/Web/src/features src/Hosts/Web/src/design-system
+
+rg -n --glob '*.tsx' --glob '*.ts' '(useLocalizedText|LocalizationProvider|localization|format[A-Z]|map.*Error)' src/Hosts/Web/src/app src/Hosts/Web/src/components src/Hosts/Web/src/features src/Hosts/Web/src/design-system
+```
+
 Recommended static searches for likely hard-coded UI strings in `.razor` and `.razor.cs` files:
 
 ```bash
@@ -251,15 +290,15 @@ These searches intentionally over-match. Reviewers must distinguish user-facing 
 
 When fixing a localization finding:
 
-1. Add or reuse a resource key in the existing localization source.
-2. Inject `IStringLocalizer` in the component if it is not already available.
-3. Replace the hard-coded UI text with `Localizer["Key"]`.
-4. For formatted text, use localizer arguments rather than string concatenation.
+1. Add or reuse a resource/catalog key in the existing localization source.
+2. For React, consume the existing localization hook/helper/provider and replace hard-coded UI text with the approved translation expression, such as `t("key.name")`.
+3. For Razor, inject `IStringLocalizer` in the component if it is not already available and replace hard-coded UI text with `Localizer["Key"]`.
+4. For formatted text, use central React formatting helpers or localizer arguments rather than string concatenation.
 5. For error codes or status values, map the stable code to localized display text in the presentation layer.
 6. Keep Domain and Application artifacts free of localization infrastructure.
-7. Do not rename existing resource keys unless the task explicitly includes cleanup or migration.
+7. Do not rename existing resource/catalog keys unless the task explicitly includes cleanup or migration.
 
-Examples:
+Razor examples:
 
 ```razor
 <MudButton>@Localizer["Save"]</MudButton>
@@ -305,12 +344,19 @@ Required React boundary:
 * Do not create feature-local English constants such as `text.ts`, `copy.ts`, `labels.ts`, or local UI dictionaries.
 * Keep generated clients, `apiFetch`, Domain, Application, Contracts, and backend Infrastructure free of Web localization imports.
 
-Catalog key conventions:
+React examples:
 
-* `common.actions.save`
-* `auth.login.signInAction`
-* `clinic.patients.emptyState`
-* `knowledge.qa.askAction`
+```tsx
+const t = useLocalizedText();
+
+return <Button>{t("common.actions.save")}</Button>;
+```
+
+```tsx
+const t = useLocalizedText();
+
+return <Input label={t("auth.login.emailLabel")} />;
+```
 
 Pluralization and formatting:
 
@@ -337,7 +383,7 @@ React do-not-flag examples:
 * environment variable names
 * non-rendered telemetry/internal event names
 
-React finding output format:
+React finding output format, when reporting React-only review output:
 
 ```md
 ## React Localization Findings

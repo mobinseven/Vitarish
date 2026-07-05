@@ -14,6 +14,7 @@ This directory contains the platform-level architecture decision records (ADRs).
 | 0006 | Standardize Platform Journey Routing | Accepted | 2026-06-29 |
 | 0007 | Standardize React Localization | Accepted | 2026-07-01 |
 
+
 ## Superseded / Deprecated Decisions
 
 | ADR | Title | Status | Replaced By | Date |

@@ -12,18 +12,18 @@ export function ServiceProvidersPlaceholder() {
 
   const handleDelete = useCallback(
     (id: string) => {
-      if (confirm("Delete this service provider?")) {
+      if (confirm(t("clinic.serviceProviders.confirmDelete"))) {
         deleteProvider.mutate(id);
       }
     },
-    [deleteProvider]
+    [deleteProvider, t]
   );
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">{t("clinic.serviceProviders.title")}</h1>
-        <p className="text-sm text-default-500">{t("clinic.serviceProviders.description")}</p>
+        <p className="text-sm text-muted">{t("clinic.serviceProviders.description")}</p>
       </div>
 
       {isLoading && (
@@ -36,7 +36,7 @@ export function ServiceProvidersPlaceholder() {
 
       {error && (
         <Card className="p-8">
-          <p className="text-sm text-danger">Failed to load service providers.</p>
+          <p className="text-sm text-danger">{t("clinic.serviceProviders.failedToLoad")}</p>
         </Card>
       )}
 
@@ -44,13 +44,13 @@ export function ServiceProvidersPlaceholder() {
         <Card>
           <Card.Content className="flex flex-col gap-1">
             {(!providers || providers.length === 0) && (
-              <p className="py-8 text-center text-sm text-default-500">No service providers found.</p>
+              <p className="py-8 text-center text-sm text-muted">{t("clinic.serviceProviders.empty")}</p>
             )}
             {providers?.map((sp) => (
-              <div key={sp.id} className="flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-default-100">
+              <div key={sp.id} className="flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-surface-secondary">
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-medium">{sp.name}</span>
-                  <span className="text-xs text-default-500">{sp.linkedUserIds.length} linked users</span>
+                  <span className="text-xs text-muted">{t("clinic.serviceProviders.linkedUsers", { count: sp.linkedUserIds.length })}</span>
                 </div>
                 <Button variant="ghost" className="text-danger" onPress={() => handleDelete(sp.id)}>
                   {t("common.actions.delete")}

@@ -29,7 +29,7 @@ export function IdentificationLookupResult({
             <p className="font-medium">
               {patient.firstName} {patient.lastName}
             </p>
-            <p className="text-sm text-default-500">
+            <p className="text-sm text-muted">
               {patient.identificationCode && `ID: ${patient.identificationCode}`}
               {patient.phone && ` | ${patient.phone}`}
             </p>
@@ -46,7 +46,7 @@ export function IdentificationLookupResult({
     return (
       <Card className="p-4">
         <div className="flex items-center justify-between">
-          <p className="text-default-500">{t("clinic.patient.identification.notFound")}</p>
+          <p className="text-muted">{t("clinic.patient.identification.notFound")}</p>
           <Button variant="ghost" onPress={onRetry}>
             {t("clinic.patient.identification.retry")}
           </Button>

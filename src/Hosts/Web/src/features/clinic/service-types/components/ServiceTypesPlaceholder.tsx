@@ -12,18 +12,18 @@ export function ServiceTypesList() {
 
   const handleDelete = useCallback(
     (id: string) => {
-      if (confirm("Delete this service type?")) {
+      if (confirm(t("clinic.serviceTypes.confirmDelete"))) {
         deleteType.mutate(id);
       }
     },
-    [deleteType]
+    [deleteType, t]
   );
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">{t("clinic.serviceTypes.title")}</h1>
-        <p className="text-sm text-default-500">{t("clinic.serviceTypes.description")}</p>
+        <p className="text-sm text-muted">{t("clinic.serviceTypes.description")}</p>
       </div>
 
       {isLoading && (
@@ -36,7 +36,7 @@ export function ServiceTypesList() {
 
       {error && (
         <Card className="p-8">
-          <p className="text-sm text-danger">Failed to load service types.</p>
+          <p className="text-sm text-danger">{t("clinic.serviceTypes.failedToLoad")}</p>
         </Card>
       )}
 
@@ -44,13 +44,13 @@ export function ServiceTypesList() {
         <Card>
           <Card.Content className="flex flex-col gap-1">
             {(!types || types.length === 0) && (
-              <p className="py-8 text-center text-sm text-default-500">No service types found.</p>
+              <p className="py-8 text-center text-sm text-muted">{t("clinic.serviceTypes.empty")}</p>
             )}
             {types?.map((st) => (
-              <div key={st.id} className="flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-default-100">
+              <div key={st.id} className="flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-surface-secondary">
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-medium">{st.name}</span>
-                  {st.description && <span className="text-xs text-default-500">{st.description}</span>}
+                  {st.description && <span className="text-xs text-muted">{st.description}</span>}
                 </div>
                 <Button variant="ghost" className="text-danger" onPress={() => handleDelete(st.id)}>
                   {t("common.actions.delete")}

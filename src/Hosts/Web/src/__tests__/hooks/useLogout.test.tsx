@@ -37,7 +37,7 @@ describe("useLogout", () => {
   it("maps logout context 401 to an already-signed-out state", async () => {
     server.use(
       http.get(
-        "https://localhost:7272/api/modules/authentication/logout/context",
+        /\/api\/modules\/authentication\/logout\/context(?:\?|$)/,
         () => HttpResponse.json({ status: 401, title: "Unauthorized" }, { status: 401 })
       )
     );

@@ -49,7 +49,7 @@ export function IdentificationLookup({
       </TextField>
 
       {state.status === "searching" && (
-        <div className="flex items-center gap-2 text-default-500">
+        <div className="flex items-center gap-2 text-muted">
           <Spinner size="sm" />
           <span>{t("clinic.patient.identification.lookingUp")}</span>
         </div>

@@ -2,7 +2,8 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, Spinner } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
+import { ListView } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
 import { useOwnerShifts } from "../hooks/useOwnerShifts";
 import { useLocalizedText } from "@/localization";
@@ -29,43 +30,42 @@ export function OwnerShiftsList() {
       </div>
 
       {isLoading && (
-        <Card className="p-8">
-          <div className="flex items-center justify-center gap-2">
-            <Spinner size="sm" />
-            <span className="text-default-500">{t("common.states.loading")}</span>
-          </div>
-        </Card>
+        <div className="flex items-center justify-center gap-2 rounded-2xl bg-surface p-8 shadow-surface">
+          <Spinner size="sm" />
+          <span className="text-muted">{t("common.states.loading")}</span>
+        </div>
       )}
 
       {error && (
-        <Card className="p-8">
+        <div className="rounded-2xl bg-surface p-8 shadow-surface">
           <p className="text-sm text-danger">{t("clinic.appointments.shifts.loadError")}</p>
-        </Card>
+        </div>
       )}
 
       {!isLoading && !error && shifts && (
-        <Card>
-          <Card.Content className="flex flex-col gap-1">
-            {shifts.length === 0 && (
-              <p className="py-8 text-center text-sm text-default-500">
-                {t("clinic.appointments.shifts.empty")}
-              </p>
-            )}
-            {shifts.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => handleSelect(s.id)}
-                className="flex items-center justify-between rounded-lg px-4 py-3 text-start transition-colors hover:bg-default-100"
-              >
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium">{DAY_NAMES[s.dayOfWeek]} {s.startTime} - {s.endTime}</span>
-                  <span className="text-xs text-default-500">{s.totalSeats} seats</span>
+        <ListView
+          aria-label={t("clinic.appointments.shifts.title")}
+          onAction={(key) => handleSelect(String(key))}
+          renderEmptyState={() => (
+            <p className="py-8 text-center text-sm text-muted">
+              {t("clinic.appointments.shifts.empty")}
+            </p>
+          )}
+        >
+          {shifts.map((s) => (
+            <ListView.Item key={s.id} id={s.id}>
+              <ListView.ItemContent>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex flex-col gap-1">
+                    <ListView.Title>{DAY_NAMES[s.dayOfWeek]} {s.startTime} - {s.endTime}</ListView.Title>
+                    <ListView.Description>{s.totalSeats} seats</ListView.Description>
+                  </div>
+                  <span className="text-xs text-muted">{s.serviceId ? "Linked" : "General"}</span>
                 </div>
-                <span className="text-xs text-default-500">{s.serviceId ? "Linked" : "General"}</span>
-              </button>
-            ))}
-          </Card.Content>
-        </Card>
+              </ListView.ItemContent>
+            </ListView.Item>
+          ))}
+        </ListView>
       )}
     </div>
   );

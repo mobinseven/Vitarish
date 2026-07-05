@@ -1,14 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { Button, Link } from "@heroui/react";
 import { useTheme } from "next-themes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
-import {
-  useUsersGetTheme,
-  useUsersSetTheme,
-} from "@/api/generated/users/users";
+import { useAccountTheme } from "@/features/account/hooks/useAccountTheme";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OptionSelector } from "@/components/account/OptionSelector";
 import { useLocalizedText } from "@/localization";
@@ -17,19 +14,20 @@ export default function ThemePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
   const { setTheme: setNextTheme } = useTheme();
-  const { data: currentTheme } = useUsersGetTheme(userId);
   const { t } = useLocalizedText();
-  const setTheme = useUsersSetTheme();
-
-  const [selected, setSelected] = useState(currentTheme ?? "system");
-  const [success, setSuccess] = useState(false);
+  const {
+    selected,
+    setSelected,
+    success,
+    isError,
+    isPending,
+    save,
+  } = useAccountTheme(userId);
 
   const handleSave = useCallback(async () => {
-    setSuccess(false);
-    await setTheme.mutateAsync({ userId, data: { theme: selected } });
+    await save(selected);
     setNextTheme(selected);
-    setSuccess(true);
-  }, [selected, setTheme, setNextTheme, userId]);
+  }, [save, selected, setNextTheme]);
 
   const themes = [
     { value: "light", label: t("account.theme.light") },
@@ -45,7 +43,7 @@ export default function ThemePage() {
         selected={selected}
         onSelect={setSelected}
       />
-      {setTheme.isError && (
+      {isError && (
         <StatusMessage message={t("account.theme.updateFailed")} />
       )}
       {success && (
@@ -53,7 +51,7 @@ export default function ThemePage() {
       )}
       <Button
         onPress={handleSave}
-        isPending={setTheme.isPending}
+        isPending={isPending}
         className="w-full"
       >
         {t("common.actions.save")}

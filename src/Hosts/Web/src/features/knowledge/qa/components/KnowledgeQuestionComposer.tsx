@@ -30,7 +30,7 @@ export function KnowledgeQuestionComposer({
       <Card.Content>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <p className="text-xs uppercase tracking-[0.25em] text-default-500">{t("knowledge.qa.composerEyebrow")}</p>
+            <p className="text-xs uppercase tracking-[0.25em] text-muted">{t("knowledge.qa.composerEyebrow")}</p>
             <h1 className="text-3xl font-semibold">{t("knowledge.qa.composerTitle")}</h1>
           </div>
 

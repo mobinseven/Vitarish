@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthenticationLoginPassword, getAuthenticationSessionGetQueryKey } from "@/api/generated/authentication/authentication";
+import type { PasswordLoginRequest } from "@/api/generated/authentication/model";
 import { parseAuthError, getErrorMessage, type AuthError } from "@/lib/errors";
 import { getRequestedReturnUrl } from "./requestedReturnUrl";
 
@@ -21,14 +22,14 @@ export function usePasswordLogin() {
       setError(null);
       try {
         const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
-        const data = {
+        const data: Omit<PasswordLoginRequest, "returnUrl"> & Partial<Pick<PasswordLoginRequest, "returnUrl">> = {
           userNameOrEmail,
           password,
           rememberMe: false,
-          returnUrl: finalReturnUrl ?? null,
+          ...(finalReturnUrl ? { returnUrl: finalReturnUrl } : {}),
         };
 
-        const result = await mutation.mutateAsync({ data });
+        const result = await mutation.mutateAsync({ data: data as PasswordLoginRequest });
 
         await queryClient.invalidateQueries({
           queryKey: getAuthenticationSessionGetQueryKey(),

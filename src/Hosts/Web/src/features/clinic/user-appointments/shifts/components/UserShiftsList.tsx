@@ -2,12 +2,21 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Spinner } from "@heroui/react";
+import { Spinner } from "@heroui/react";
+import { ListView } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
 import { useOwnerShifts } from "@/features/clinic/appointments/shifts/hooks/useOwnerShifts";
-import { useLocalizedText } from "@/localization";
+import { useLocalizedText, type MessageKey } from "@/localization";
 
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dayNameKeys = [
+  "clinic.weekdays.sunday",
+  "clinic.weekdays.monday",
+  "clinic.weekdays.tuesday",
+  "clinic.weekdays.wednesday",
+  "clinic.weekdays.thursday",
+  "clinic.weekdays.friday",
+  "clinic.weekdays.saturday",
+] satisfies MessageKey[];
 
 export function UserShiftsList() {
   const router = useRouter();
@@ -23,45 +32,46 @@ export function UserShiftsList() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">{t("clinic.userAppointments.shifts.title")}</h1>
-        <p className="text-sm text-default-500">{t("clinic.userAppointments.shifts.description")}</p>
+        <p className="text-sm text-muted">{t("clinic.userAppointments.shifts.description")}</p>
       </div>
 
       {isLoading && (
-        <Card className="p-8">
-          <div className="flex items-center justify-center gap-2">
-            <Spinner size="sm" />
-            <span className="text-default-500">{t("common.states.loading")}</span>
-          </div>
-        </Card>
+        <div className="flex items-center justify-center gap-2 rounded-2xl bg-surface p-8 shadow-surface">
+          <Spinner size="sm" />
+          <span className="text-muted">{t("common.states.loading")}</span>
+        </div>
       )}
 
       {error && (
-        <Card className="p-8">
-          <p className="text-sm text-danger">Failed to load shifts.</p>
-        </Card>
+        <div className="rounded-2xl bg-surface p-8 shadow-surface">
+          <p className="text-sm text-danger">{t("clinic.appointments.shifts.failedToLoad")}</p>
+        </div>
       )}
 
       {!isLoading && !error && shifts && (
-        <Card>
-          <Card.Content className="flex flex-col gap-1">
-            {shifts.length === 0 && (
-              <p className="py-8 text-center text-sm text-default-500">No shifts available.</p>
-            )}
-            {shifts.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => handleSelect(s.id)}
-                className="flex items-center justify-between rounded-lg px-4 py-3 text-start transition-colors hover:bg-default-100"
-              >
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium">{DAY_NAMES[s.dayOfWeek]} {s.startTime} - {s.endTime}</span>
-                  <span className="text-xs text-default-500">{s.totalSeats} seats</span>
+        <ListView
+          aria-label={t("clinic.userAppointments.shifts.title")}
+          onAction={(key) => handleSelect(String(key))}
+          renderEmptyState={() => (
+            <p className="py-8 text-center text-sm text-muted">
+              {t("clinic.appointments.shifts.empty")}
+            </p>
+          )}
+        >
+          {shifts.map((s) => (
+            <ListView.Item key={s.id} id={s.id}>
+              <ListView.ItemContent>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex flex-col gap-1">
+                    <ListView.Title>{t(dayNameKeys[s.dayOfWeek])} {s.startTime} - {s.endTime}</ListView.Title>
+                    <ListView.Description>{t("clinic.fields.availableSeats")}: {s.totalSeats}</ListView.Description>
+                  </div>
+                  <span className="text-xs text-muted">{t("clinic.appointments.shifts.book")}</span>
                 </div>
-                <span className="text-xs text-default-500">Book</span>
-              </button>
-            ))}
-          </Card.Content>
-        </Card>
+              </ListView.ItemContent>
+            </ListView.Item>
+          ))}
+        </ListView>
       )}
     </div>
   );

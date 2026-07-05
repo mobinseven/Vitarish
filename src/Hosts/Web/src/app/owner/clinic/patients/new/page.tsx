@@ -37,7 +37,7 @@ export default function NewPatientRoute() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">{t("clinic.patients.newPatient")}</h1>
-        <p className="text-sm text-default-500">{t("clinic.patients.createPatient")}</p>
+        <p className="text-sm text-muted">{t("clinic.patients.createPatient")}</p>
       </div>
 
       {error && (

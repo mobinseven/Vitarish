@@ -1,6 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { OtpVerificationStep } from "@/components/auth/OtpVerificationStep";
+import { renderWithLocalization } from "../localization/renderWithLocalization";
 
 let capturedHandler: ((code: string) => void) | null = null;
 
@@ -16,7 +17,7 @@ describe("OtpVerificationStep", () => {
   });
 
   function renderStep(overrides: Partial<React.ComponentProps<typeof OtpVerificationStep>> = {}) {
-    return render(
+    return renderWithLocalization(
       <OtpVerificationStep
         destinationLabel="user@example.test"
         code=""
@@ -27,7 +28,8 @@ describe("OtpVerificationStep", () => {
         isLoading={false}
         expiresAt={new Date(Date.now() + 5 * 60 * 1000).toISOString()}
         {...overrides}
-      />
+      />,
+      { locale: "en" }
     );
   }
 

@@ -1,9 +1,10 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
+import { renderWithLocalization } from "../localization/renderWithLocalization";
 
 describe("OtpCodeInput", () => {
   it("keeps browser OTP autofill, numeric keyboard, and expected length attributes", () => {
-    render(<OtpCodeInput value="" onChange={() => {}} />);
+    renderWithLocalization(<OtpCodeInput value="" onChange={() => {}} />, { locale: "en" });
 
     const input = screen.getByLabelText(/verification code/i);
 
@@ -15,7 +16,7 @@ describe("OtpCodeInput", () => {
 
   it("delegates normalization for mixed pasted content", async () => {
     const onChange = vi.fn();
-    render(<OtpCodeInput value="" onChange={onChange} />);
+    renderWithLocalization(<OtpCodeInput value="" onChange={onChange} />, { locale: "en" });
 
     const input = screen.getByLabelText(/verification code/i);
     fireEvent.change(input, { target: { value: "a1 ۲-٣b456789" } });
@@ -25,7 +26,7 @@ describe("OtpCodeInput", () => {
 
   it("uses the provided expected length", async () => {
     const onChange = vi.fn();
-    render(<OtpCodeInput value="" onChange={onChange} expectedLength={4} />);
+    renderWithLocalization(<OtpCodeInput value="" onChange={onChange} expectedLength={4} />, { locale: "en" });
 
     const input = screen.getByLabelText(/verification code/i);
     fireEvent.change(input, { target: { value: "123456" } });

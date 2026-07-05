@@ -4,9 +4,12 @@ import { useCallback } from "react";
 import { Card, Button, Spinner } from "@heroui/react";
 import { useClinicOwnerReminders, useDeleteReminder, useMarkReminderSent } from "../hooks/useClinicOwnerReminders";
 import type { ReminderReadDto } from "../api/remindersApi";
-import { useLocalizedText } from "@/localization";
+import { useLocalizedText, type MessageKey } from "@/localization";
 
-const KIND_LABELS: Record<number, string> = { 0: "Email", 1: "SMS" };
+const reminderKindKeys: Record<number, MessageKey> = {
+  0: "clinic.reminders.kindEmail",
+  1: "clinic.reminders.kindSms",
+};
 
 export function ClinicOwnerRemindersGrid() {
   const { t } = useLocalizedText();
@@ -16,11 +19,11 @@ export function ClinicOwnerRemindersGrid() {
 
   const handleDelete = useCallback(
     (id: string) => {
-      if (confirm("Delete this reminder?")) {
+      if (confirm(t("clinic.reminders.confirmDelete"))) {
         deleteReminder.mutate(id);
       }
     },
-    [deleteReminder]
+    [deleteReminder, t]
   );
 
   const handleMarkSent = useCallback(
@@ -34,7 +37,7 @@ export function ClinicOwnerRemindersGrid() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">{t("clinic.reminders.title")}</h1>
-        <p className="text-sm text-default-500">{t("clinic.reminders.description")}</p>
+        <p className="text-sm text-muted">{t("clinic.reminders.description")}</p>
       </div>
 
       {isLoading && (
@@ -47,7 +50,7 @@ export function ClinicOwnerRemindersGrid() {
 
       {error && (
         <Card className="p-8">
-          <p className="text-sm text-danger">Failed to load reminders.</p>
+          <p className="text-sm text-danger">{t("clinic.reminders.failedToLoad")}</p>
         </Card>
       )}
 
@@ -55,7 +58,7 @@ export function ClinicOwnerRemindersGrid() {
         <Card>
           <Card.Content className="flex flex-col gap-1">
             {(!reminders || reminders.length === 0) && (
-              <p className="py-8 text-center text-sm text-default-500">
+              <p className="py-8 text-center text-sm text-muted">
                 {t("clinic.reminders.empty")}
               </p>
             )}
@@ -83,25 +86,27 @@ function ReminderRow({
   onDelete: (id: string) => void;
   onMarkSent: (id: string) => void;
 }) {
+  const { t } = useLocalizedText();
+
   return (
-    <div className="flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-default-100">
+    <div className="flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-surface-secondary">
       <div className="flex flex-col gap-1">
-        <span className="text-sm font-medium">{reminder.subject ?? "No subject"}</span>
-        <span className="text-xs text-default-500">
-          {KIND_LABELS[reminder.kind] ?? "Unknown"} · {reminder.recipient ?? reminder.recipientUserId ?? "No recipient"}
+        <span className="text-sm font-medium">{reminder.subject ?? t("clinic.reminders.noSubject")}</span>
+        <span className="text-xs text-muted">
+          {t(reminderKindKeys[reminder.kind] ?? "common.values.unknown")} · {reminder.recipient ?? reminder.recipientUserId ?? t("clinic.reminders.noRecipient")}
         </span>
-        <span className="text-xs text-default-500">
-          Remind at: {new Date(reminder.remindAt).toLocaleString()}
+        <span className="text-xs text-muted">
+          {t("clinic.reminders.remindAt", { value: new Date(reminder.remindAt).toLocaleString() })}
         </span>
       </div>
       <div className="flex gap-1">
         {!reminder.isSent && (
           <Button variant="ghost" size="sm" onPress={() => onMarkSent(reminder.id)}>
-            Mark Sent
+            {t("clinic.reminders.markSent")}
           </Button>
         )}
         <Button variant="ghost" className="text-danger" size="sm" onPress={() => onDelete(reminder.id)}>
-          Delete
+          {t("common.actions.delete")}
         </Button>
       </div>
     </div>

@@ -56,7 +56,7 @@ export function AuthMethodSelector() {
         <Card key={method.id}>
           <Link
             href={method.href}
-            className="flex h-14 w-full items-center gap-3 rounded-lg px-4 text-foreground transition-colors hover:bg-default-100"
+            className="flex h-14 w-full items-center gap-3 rounded-lg px-4 text-foreground transition-colors hover:bg-surface-secondary"
           >
             {method.icon}
             {t(method.labelKey)}

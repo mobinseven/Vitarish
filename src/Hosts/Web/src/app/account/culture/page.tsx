@@ -1,14 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { Button, Link } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
-import {
-  useUsersGetCulture,
-  useUsersSetCulture,
-} from "@/api/generated/users/users";
+import { useAccountCulture } from "@/features/account/hooks/useAccountCulture";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OptionSelector } from "@/components/account/OptionSelector";
 import { useLocalizedText } from "@/localization";
@@ -17,19 +14,20 @@ export default function CulturePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
   const router = useRouter();
-  const { data: currentCulture } = useUsersGetCulture(userId);
   const { t } = useLocalizedText();
-  const setCulture = useUsersSetCulture();
-
-  const [selected, setSelected] = useState(currentCulture ?? "en-US");
-  const [success, setSuccess] = useState(false);
+  const {
+    selected,
+    setSelected,
+    success,
+    isError,
+    isPending,
+    save,
+  } = useAccountCulture(userId);
 
   const handleSave = useCallback(async () => {
-    setSuccess(false);
-    await setCulture.mutateAsync({ userId, data: { culture: selected } });
-    setSuccess(true);
+    await save(selected);
     router.refresh();
-  }, [selected, setCulture, router, userId]);
+  }, [save, selected, router]);
 
   const cultures = [
     { value: "en-US", label: t("account.culture.english") },
@@ -44,7 +42,7 @@ export default function CulturePage() {
         selected={selected}
         onSelect={setSelected}
       />
-      {setCulture.isError && (
+      {isError && (
         <StatusMessage message={t("account.culture.updateFailed")} />
       )}
       {success && (
@@ -52,7 +50,7 @@ export default function CulturePage() {
       )}
       <Button
         onPress={handleSave}
-        isPending={setCulture.isPending}
+        isPending={isPending}
         className="w-full"
       >
         {t("common.actions.save")}

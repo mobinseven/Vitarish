@@ -1,9 +1,9 @@
 "use client";
 
-import { Card } from "@heroui/react";
-import { PatientRow } from "./PatientRow";
+import { useCallback, useMemo } from "react";
+import { DataGrid, type DataGridColumn, type DataGridSortDescriptor } from "@heroui-pro/react";
 import type { PatientViewDto, PatientSortBy } from "../types";
-import { useLocalizedText } from "@/localization";
+import { useLocalizedText, formatDate } from "@/localization";
 
 interface PatientsGridProps {
   patients: PatientViewDto[];
@@ -20,52 +20,89 @@ export function PatientsGrid({
   onSort,
   onSelectPatient,
 }: PatientsGridProps) {
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
 
-  const sortHeaders: { field: PatientSortBy; label: string }[] = [
-    { field: "Name", label: t("clinic.patient.fields.firstName") },
-    { field: "IdentificationCode", label: t("clinic.patient.fields.identificationCode") },
-    { field: "DateOfBirth", label: t("clinic.patient.fields.dateOfBirth") },
-    { field: "CreatedAt", label: t("clinic.patient.fields.created") },
-  ];
+  const sortDescriptor: DataGridSortDescriptor | undefined = useMemo(
+    () => (sortBy ? { column: sortBy, direction: descending ? "descending" : "ascending" } : undefined),
+    [sortBy, descending]
+  );
 
-  if (patients.length === 0) {
-    return (
-      <Card className="p-8">
-        <p className="text-center text-default-500">
-          {t("clinic.patients.searchEmpty")}
-        </p>
-      </Card>
-    );
-  }
+  const handleSortChange = useCallback(
+    (descriptor: DataGridSortDescriptor | undefined) => {
+      if (descriptor?.column) {
+        onSort(descriptor.column as PatientSortBy);
+      }
+    },
+    [onSort]
+  );
+
+  const handleRowAction = useCallback(
+    (key: string | number) => onSelectPatient(String(key)),
+    [onSelectPatient]
+  );
+
+  const formatPatientName = useCallback(
+    (patient: PatientViewDto) =>
+      patient.firstName || patient.lastName
+        ? ((patient.firstName ?? "") + " " + (patient.lastName ?? "")).trim()
+        : patient.name || t("clinic.patients.unnamedPatient"),
+    [t]
+  );
+
+  const columns: DataGridColumn<PatientViewDto>[] = useMemo(
+    () => [
+      {
+        id: "Name",
+        header: t("clinic.patient.fields.firstName"),
+        allowsSorting: true,
+        isRowHeader: true,
+        cell: (patient) => (
+          <div className="flex flex-col gap-1">
+            <span className="font-medium">{formatPatientName(patient)}</span>
+            <span className="text-sm text-muted">
+              {patient.identificationCode && `ID: ${patient.identificationCode}`}
+              {patient.phone && ` | ${patient.phone}`}
+            </span>
+          </div>
+        ),
+      },
+      {
+        id: "IdentificationCode",
+        header: t("clinic.patient.fields.identificationCode"),
+        accessorKey: "identificationCode",
+        allowsSorting: true,
+      },
+      {
+        id: "DateOfBirth",
+        header: t("clinic.patient.fields.dateOfBirth"),
+        allowsSorting: true,
+        cell: (patient) =>
+          patient.dateOfBirth ? formatDate(patient.dateOfBirth, locale) : "",
+      },
+      {
+        id: "CreatedAt",
+        header: t("clinic.patient.fields.created"),
+        accessorKey: "createdAt",
+        allowsSorting: true,
+      },
+    ],
+    [t, locale, formatPatientName]
+  );
 
   return (
-    <Card>
-      <Card.Header className="border-b border-default-200">
-        <div className="grid grid-cols-4 gap-4 px-3 py-2 text-sm font-medium text-default-500">
-          {sortHeaders.map((header) => (
-            <button
-              key={header.field}
-              className="text-start hover:text-default-700 transition-colors"
-              onClick={() => onSort(header.field)}
-            >
-              {header.label}
-              {sortBy === header.field && (
-                <span className="ms-1">{descending ? " ↓" : " ↑"}</span>
-              )}
-            </button>
-          ))}
-        </div>
-      </Card.Header>
-      <Card.Content className="divide-y divide-default-200">
-        {patients.map((patient) => (
-          <PatientRow
-            key={patient.id}
-            patient={patient}
-            onSelect={onSelectPatient}
-          />
-        ))}
-      </Card.Content>
-    </Card>
+    <DataGrid
+      data={patients}
+      columns={columns}
+      getRowId={(patient) => patient.id ?? ""}
+      aria-label={t("clinic.patients.title")}
+      sortDescriptor={sortDescriptor}
+      onSortChange={handleSortChange}
+      onRowAction={handleRowAction}
+      renderEmptyState={() => (
+        <p className="py-8 text-center text-muted">
+          {t("clinic.patients.searchEmpty")}
+        </p>
+      )}
+    />
   );
 }
