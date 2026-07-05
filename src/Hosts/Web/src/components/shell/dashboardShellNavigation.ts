@@ -13,6 +13,7 @@ export const dashboardFooterItems = [
 ] as const satisfies readonly DashboardShellItem[];
 
 export const clinicOwnerDashboardNavItems = [
+  { href: Routes.Home, iconClassName: "fa-solid fa-house", labelKey: "appShell.navigation.home", exactMatch: true },
   { href: Routes.Clinic.Index, iconClassName: "fa-solid fa-gauge", labelKey: "clinic.dashboard.title", exactMatch: true },
   { href: Routes.Clinic.Patients.Index, iconClassName: "fa-solid fa-users", labelKey: "clinic.patients.title" },
   { href: Routes.Clinic.CheckIn, iconClassName: "fa-solid fa-clipboard-check", labelKey: "clinic.dashboard.sections.checkIn.title" },
