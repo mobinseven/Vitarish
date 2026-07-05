@@ -10,11 +10,13 @@ export function KnowledgeChatEmptyState({
   description: string;
 }) {
   return (
-    <EmptyState.Root>
-      <EmptyState.Header>
-        <EmptyState.Title>{title}</EmptyState.Title>
-        <EmptyState.Description>{description}</EmptyState.Description>
-      </EmptyState.Header>
-    </EmptyState.Root>
+    <div className="flex min-h-[360px] items-center justify-center">
+      <EmptyState.Root className="max-w-md">
+        <EmptyState.Header>
+          <EmptyState.Title>{title}</EmptyState.Title>
+          <EmptyState.Description>{description}</EmptyState.Description>
+        </EmptyState.Header>
+      </EmptyState.Root>
+    </div>
   );
 }

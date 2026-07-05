@@ -11,8 +11,13 @@ export function KnowledgeChatConversation({
   className?: string;
 }) {
   return (
-    <ChatConversation.Root className={className}>
-      <ChatConversation.Content>{children}</ChatConversation.Content>
-    </ChatConversation.Root>
+    <ChatConversation className={className ?? "min-h-0 flex-1"}>
+      <ChatConversation.Content className="flex flex-col">
+        <div className="mx-auto flex w-full max-w-[714px] flex-col gap-8 px-4 pb-6 pt-10">
+          {children}
+        </div>
+        <ChatConversation.ScrollAnchor />
+      </ChatConversation.Content>
+    </ChatConversation>
   );
 }

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { DashboardShell, type DashboardShellItem } from "@/components/shell/DashboardShell";
 import { ThemeSwitch } from "@/components/shell/ThemeSwitch";
 import { UserMenu } from "@/components/shell/UserMenu";
 import { SearchInput } from "@/components/shell/SearchInput";
@@ -31,11 +32,15 @@ vi.mock("@/hooks/auth/useLogout", () => ({
 
 vi.mock("@/localization", () => ({
   useLocalizedText: () => ({
-    t: (key: string) => {
+    t: (key: string, parameters?: Record<string, string>) => {
       const translations: Record<string, string> = {
         "appShell.brand": "Vitarish",
         "appShell.navigation.home": "Home",
         "appShell.navigation.knowledge": "Knowledge",
+        "appShell.navigation.dashboardMenu": "Dashboard navigation",
+        "appShell.navigation.accountMenu": "Account",
+        "appShell.actions.notifications": "Notifications",
+        "appShell.actions.invite": "Invite",
         "appShell.theme.light": "Switch to light mode",
         "appShell.theme.dark": "Switch to dark mode",
         "appShell.userMenu.logIn": "Log In",
@@ -44,13 +49,45 @@ vi.mock("@/localization", () => ({
         "appShell.menu.open": "Open menu",
         "appShell.search.label": "Search",
         "appShell.search.placeholder": "Search...",
+        "home.welcomeBack": "Welcome back",
       };
+
+      if (key === "home.welcomeBackNamed") {
+        return `Welcome back, ${parameters?.name}`;
+      }
+
       return translations[key] ?? key;
     },
   }),
 }));
 
+const shellNavItems = [
+  { href: "/", iconClassName: "fa-solid fa-house", labelKey: "appShell.navigation.home", exactMatch: true },
+] as const satisfies readonly DashboardShellItem[];
+
+const shellFooterItems = [
+  { href: "/account", iconClassName: "fa-solid fa-circle-user", labelKey: "appShell.userMenu.account" },
+] as const satisfies readonly DashboardShellItem[];
+
 describe("Dashboard Shell Components", () => {
+  describe("DashboardShell", () => {
+    it("renders the template-style sidebar, navbar actions, and content", () => {
+      render(
+        <DashboardShell footerItems={shellFooterItems} homeHref="/" navItems={shellNavItems}>
+          <div>Dashboard content</div>
+        </DashboardShell>
+      );
+
+      expect(screen.getByRole("heading", { name: "Welcome back, Test User" })).toBeInTheDocument();
+      expect(screen.getAllByText("Home").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Account").length).toBeGreaterThan(0);
+      expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Notifications" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Invite" })).toBeInTheDocument();
+      expect(screen.getByText("Dashboard content")).toBeInTheDocument();
+    });
+  });
+
   describe("ThemeSwitch", () => {
     it("renders with accessible label", () => {
       render(<ThemeSwitch />);

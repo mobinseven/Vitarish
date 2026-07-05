@@ -1,6 +1,6 @@
 "use client";
 
-import type { FormEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { PromptInput } from "@heroui-pro/react";
 import { useLocalizedText } from "@/localization";
 
@@ -29,41 +29,47 @@ export function KnowledgePromptInput({
   const resolvedLabel = label ?? t("knowledge.qa.questionLabel");
   const resolvedPlaceholder = placeholder ?? t("knowledge.qa.composerTitle");
   const resolvedSubmitLabel = submitLabel ?? t("knowledge.qa.askAction");
+  const canSend = value.trim().length > 0;
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = () => {
     onSubmit(value);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <PromptInput
-        value={value}
-        onValueChange={onChange}
-        onSubmit={() => onSubmit(value)}
-        isDisabled={isPending}
-        status={isPending ? "streaming" : "ready"}
-      >
-        <PromptInput.Shell>
-          <PromptInput.Content>
-            <PromptInput.TextArea
-              placeholder={resolvedPlaceholder}
-              aria-label={resolvedLabel}
+    <PromptInput
+      status={isPending ? "streaming" : "ready"}
+      value={value}
+      variant="primary"
+      onSubmit={handleSubmit}
+      onValueChange={onChange}
+    >
+      <PromptInput.Shell>
+        <PromptInput.Content>
+          <PromptInput.TextArea
+            aria-label={resolvedLabel}
+            disabled={isPending}
+            placeholder={resolvedPlaceholder}
+          />
+        </PromptInput.Content>
+        <PromptInput.Toolbar>
+          <PromptInput.ToolbarStart>
+            {helperText && (
+              <span className="flex min-w-0 items-center gap-2 text-xs text-muted">
+                <i aria-hidden="true" className="fa-solid fa-book-open size-4 shrink-0" />
+                <span className="truncate">{helperText}</span>
+              </span>
+            )}
+          </PromptInput.ToolbarStart>
+          <PromptInput.ToolbarEnd>
+            {actions}
+            <PromptInput.Send
+              aria-label={resolvedSubmitLabel}
+              isDisabled={isPending || !canSend}
             />
-          </PromptInput.Content>
-          <PromptInput.Toolbar>
-            <PromptInput.ToolbarStart>
-              {helperText && (
-                <PromptInput.Footer>{helperText}</PromptInput.Footer>
-              )}
-            </PromptInput.ToolbarStart>
-            <PromptInput.ToolbarEnd>
-              {actions}
-              <PromptInput.Send>{resolvedSubmitLabel}</PromptInput.Send>
-            </PromptInput.ToolbarEnd>
-          </PromptInput.Toolbar>
-        </PromptInput.Shell>
-      </PromptInput>
-    </form>
+          </PromptInput.ToolbarEnd>
+        </PromptInput.Toolbar>
+      </PromptInput.Shell>
+      <PromptInput.Footer>{t("knowledge.qa.composerFooter")}</PromptInput.Footer>
+    </PromptInput>
   );
 }
