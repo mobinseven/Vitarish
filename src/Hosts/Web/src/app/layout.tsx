@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 import { Providers } from "@/components/providers/AppProviders";
 import { getLocaleDirection, localizedMetadata, parseLocaleCookie, resolveLocale } from "@/localization";
 import "./globals.css";
@@ -28,8 +29,8 @@ export default async function RootLayout({
   const direction = getLocaleDirection(locale);
 
   return (
-    <html lang={locale} dir={direction} suppressHydrationWarning>
-      <body className="bg-background text-foreground">
+    <html lang={locale} dir={direction} suppressHydrationWarning className="bg-background text-foreground">
+      <body className="bg-background text-foreground font-sans antialiased">
         <Providers locale={locale}>
           {children}
         </Providers>

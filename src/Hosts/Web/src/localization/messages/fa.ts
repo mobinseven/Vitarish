@@ -565,6 +565,9 @@ export const faMessages = {
       },
       composerEyebrow: "پرسش",
       composerTitle: "هر چیزی بپرسید",
+      composerFooter: "پاسخ‌ها بر اساس مجموعه‌های دانش انتخاب‌شده ارائه می‌شوند.",
+      assistantAvatarAlt: "دستیار دانش",
+      assistantAvatarFallback: "دد",
       thinking: "در حال پردازش",
       searchingContext: "در حال جستجوی زمینه مبتنی بر...",
       emptyStateStart: "شروع",
@@ -602,6 +605,8 @@ export const faMessages = {
       home: "خانه",
       knowledge: "دانش",
       clinic: "کلینیک",
+      dashboardMenu: "ناوبری داشبورد",
+      accountMenu: "حساب کاربری",
     },
     userMenu: {
       account: "حساب کاربری",
@@ -619,6 +624,10 @@ export const faMessages = {
     theme: {
       light: "تغییر به حالت روشن",
       dark: "تغییر به حالت تاریک",
+    },
+    actions: {
+      notifications: "اعلان‌ها",
+      invite: "دعوت",
     },
     footer: {
       poweredBy: "قدرت گرفته از",

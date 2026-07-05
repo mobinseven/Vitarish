@@ -28,10 +28,9 @@ export function HomeDashboard() {
   const displayName = displayProfile.givenName ?? displayProfile.displayLabel;
 
   return (
-    <main className="min-h-screen px-4 py-8 md:px-8 lg:px-12">
-      <div className="mx-auto flex max-w-7xl flex-col gap-8">
-        <section className="flex flex-col gap-6 p-6 md:p-10">
-          <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+    <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 pb-10 pt-4">
+      <section className="flex flex-col gap-6 p-6 md:p-10">
+        <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col gap-4">
                 <p className="text-sm font-semibold uppercase tracking-[0.35em] text-muted">
@@ -65,9 +64,9 @@ export function HomeDashboard() {
               </Card.Content>
             </Card>
           </div>
-        </section>
+      </section>
 
-        <section aria-labelledby="module-demos" className="flex flex-col gap-4">
+      <section aria-labelledby="module-demos" className="flex flex-col gap-4">
           <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted">{t("home.availableModules")}</p>
@@ -99,8 +98,7 @@ export function HomeDashboard() {
               </Link>
             ))}
           </div>
-        </section>
-      </div>
-    </main>
+      </section>
+    </div>
   );
 }

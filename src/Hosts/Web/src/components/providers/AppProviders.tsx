@@ -1,5 +1,6 @@
 "use client";
 
+import { Toast } from "@heroui/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
@@ -18,7 +19,10 @@ export function Providers({ children, locale }: { children: ReactNode; locale: S
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-        <LocalizationProvider locale={locale}>{children}</LocalizationProvider>
+        <LocalizationProvider locale={locale}>
+          {children}
+          <Toast.Provider placement="bottom" />
+        </LocalizationProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

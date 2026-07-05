@@ -11,11 +11,11 @@ export function KnowledgeChatSourceList({
   children: ReactNode;
 }) {
   return (
-    <ChatSources.Root>
+    <ChatSources defaultExpanded={false}>
       <ChatSources.Trigger>{title}</ChatSources.Trigger>
       <ChatSources.Content>
         <ChatSources.List>{children}</ChatSources.List>
       </ChatSources.Content>
-    </ChatSources.Root>
+    </ChatSources>
   );
 }

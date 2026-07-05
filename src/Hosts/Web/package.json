@@ -17,6 +17,7 @@
     "validate:localization": "node scripts/validate-localization.mjs"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.3.0",
     "@heroui-pro/react": "^1.0.0-beta.6",
     "@heroui/react": "^3.2.1",
     "@heroui/styles": "^3.2.1",

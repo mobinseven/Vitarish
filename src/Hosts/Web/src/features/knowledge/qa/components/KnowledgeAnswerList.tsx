@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useLocalizedText } from "@/localization";
 import { KnowledgeAnswerCard } from "./KnowledgeAnswerCard";
 import {
@@ -8,6 +8,7 @@ import {
   KnowledgeChatConversation,
   KnowledgeChatEmptyState,
   KnowledgeChatLoader,
+  KnowledgeChatMessage,
 } from "./chat";
 import type {
   KnowledgeCorpusAnswerResult,
@@ -38,47 +39,64 @@ export function KnowledgeAnswerList({
   onContinueInCorpus,
 }: KnowledgeAnswerListProps) {
   const { t } = useLocalizedText();
-
-  if (isPending) {
-    return <KnowledgeChatLoader message={t("knowledge.qa.checkingScope", { scope: scopeLabel })} />;
-  }
-
-  if (statusMessage) {
-    return <KnowledgeChatCallout tone="danger">{statusMessage}</KnowledgeChatCallout>;
-  }
-
-  if (!question || results.length === 0) {
-    return (
-      <KnowledgeChatEmptyState
-        title={t("knowledge.qa.emptyTitle")}
-        description={t("knowledge.qa.emptyDescription")}
-      />
-    );
-  }
+  const hasQuestion = question.trim().length > 0;
+  const showAnswers = hasQuestion && !isPending && !statusMessage && results.length > 0;
 
   return (
     <KnowledgeChatConversation>
-      <Card>
-        <Card.Content className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-muted">
-              {scopeKind === "all" ? t("knowledge.qa.allCorpusAnswer") : t("knowledge.qa.selectedCorpusAnswer")}
-            </p>
-            <h2 className="text-lg font-semibold">{question}</h2>
-            <p className="text-sm text-muted">{t("knowledge.qa.scopeLabel", { scope: scopeLabel })}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" onPress={onAskAgain}>
-              {t("knowledge.qa.askAgainAction")}
-            </Button>
-            <Button type="button" variant="ghost" onPress={onNewQuestion}>
-              {t("knowledge.qa.newQuestionAction")}
-            </Button>
-          </div>
-        </Card.Content>
-      </Card>
+      {hasQuestion && (
+        <KnowledgeChatMessage kind="question">
+          {question}
+        </KnowledgeChatMessage>
+      )}
 
-      {results.map((result) => (
+      {isPending && (
+        <KnowledgeChatLoader message={t("knowledge.qa.checkingScope", { scope: scopeLabel })} />
+      )}
+
+      {statusMessage && (
+        <KnowledgeChatMessage
+          kind="answer"
+          title={t("knowledge.qa.title")}
+          status={t("knowledge.qa.unavailableStatus")}
+          tone="danger"
+          actions={
+            <Button
+              isIconOnly
+              aria-label={t("knowledge.qa.newQuestionAction")}
+              type="button"
+              variant="ghost"
+              onPress={onNewQuestion}
+            >
+              <i aria-hidden="true" className="fa-solid fa-plus size-4" />
+            </Button>
+          }
+        >
+          <KnowledgeChatCallout tone="danger">{statusMessage}</KnowledgeChatCallout>
+        </KnowledgeChatMessage>
+      )}
+
+      {!hasQuestion && !isPending && !statusMessage && (
+        <KnowledgeChatEmptyState
+          title={t("knowledge.qa.emptyTitle")}
+          description={t("knowledge.qa.emptyDescription")}
+        />
+      )}
+
+      {hasQuestion && !isPending && !statusMessage && results.length === 0 && (
+        <KnowledgeChatMessage
+          kind="answer"
+          title={scopeKind === "all" ? t("knowledge.qa.allCorpusAnswer") : t("knowledge.qa.selectedCorpusAnswer")}
+          status={t("knowledge.qa.needsContextStatus")}
+          tone="warning"
+        >
+          <KnowledgeChatCallout tone="warning">
+            {t("knowledge.qa.noSourcesForQuestion")}
+          </KnowledgeChatCallout>
+        </KnowledgeChatMessage>
+      )}
+
+      {showAnswers && results.map((result) => (
         <KnowledgeAnswerCard
           key={result.corpus.corpusId}
           result={result}
