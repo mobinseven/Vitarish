@@ -48,7 +48,7 @@ export function usePatientFindOrCreate() {
     [advancedSearch]
   );
 
-  const handleSelectPatient = useCallback((_patientId: string) => {
+  const handleSelectPatient = useCallback(() => {
     setStep("selected");
   }, []);
 

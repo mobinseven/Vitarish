@@ -25,30 +25,30 @@ export function PatientProceduresPanel({ patientId }: PatientProceduresPanelProp
         )}
 
         {error && (
-          <p className="text-sm text-danger">Failed to load procedures.</p>
+          <p className="text-sm text-danger">{t("clinic.procedures.failedToLoad")}</p>
         )}
 
         {!isLoading && !error && procedures && (
           <div className="flex flex-col gap-1">
             {procedures.length === 0 && (
-              <p className="py-4 text-center text-sm text-default-500">
+              <p className="py-4 text-center text-sm text-muted">
                 {t("clinic.procedures.comingSoon")}
               </p>
             )}
             {procedures.map((p) => (
               <div
                 key={p.id}
-                className="flex items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-default-100"
+                className="flex items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-surface-secondary"
               >
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-medium">{p.name}</span>
                   {p.description && (
-                    <span className="text-xs text-default-500">{p.description}</span>
+                    <span className="text-xs text-muted">{p.description}</span>
                   )}
                 </div>
                 {p.stats && (
-                  <span className="text-xs text-default-500">
-                    {Number(p.stats.events) || 0} events
+                  <span className="text-xs text-muted">
+                    {t("clinic.patient.overview.events")}: {Number(p.stats.events) || 0}
                   </span>
                 )}
               </div>

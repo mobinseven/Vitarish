@@ -2,7 +2,8 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Spinner } from "@heroui/react";
+import { Spinner } from "@heroui/react";
+import { ListView } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
 import { useOwnerReservations } from "../hooks/useOwnerReservations";
 import { useLocalizedText } from "@/localization";
@@ -29,43 +30,42 @@ export function OwnerReservationsList() {
       </div>
 
       {isLoading && (
-        <Card className="p-8">
-          <div className="flex items-center justify-center gap-2">
-            <Spinner size="sm" />
-            <span className="text-default-500">{t("common.states.loading")}</span>
-          </div>
-        </Card>
+        <div className="flex items-center justify-center gap-2 rounded-2xl bg-surface p-8 shadow-surface">
+          <Spinner size="sm" />
+          <span className="text-muted">{t("common.states.loading")}</span>
+        </div>
       )}
 
       {error && (
-        <Card className="p-8">
+        <div className="rounded-2xl bg-surface p-8 shadow-surface">
           <p className="text-sm text-danger">{t("clinic.appointments.reservations.loadError")}</p>
-        </Card>
+        </div>
       )}
 
       {!isLoading && !error && reservations && (
-        <Card>
-          <Card.Content className="flex flex-col gap-1">
-            {reservations.length === 0 && (
-              <p className="py-8 text-center text-sm text-default-500">
-                {t("clinic.appointments.reservations.empty")}
-              </p>
-            )}
-            {reservations.map((r) => (
-              <button
-                key={r.id}
-                onClick={() => handleSelect(r.id)}
-                className="flex items-center justify-between rounded-lg px-4 py-3 text-start transition-colors hover:bg-default-100"
-              >
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium">{r.date}</span>
-                  <span className="text-xs text-default-500">Shift: {r.shiftId.slice(0, 8)}</span>
+        <ListView
+          aria-label={t("clinic.appointments.reservations.title")}
+          onAction={(key) => handleSelect(String(key))}
+          renderEmptyState={() => (
+            <p className="py-8 text-center text-sm text-muted">
+              {t("clinic.appointments.reservations.empty")}
+            </p>
+          )}
+        >
+          {reservations.map((r) => (
+            <ListView.Item key={r.id} id={r.id}>
+              <ListView.ItemContent>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex flex-col gap-1">
+                    <ListView.Title>{r.date}</ListView.Title>
+                    <ListView.Description>Shift: {r.shiftId.slice(0, 8)}</ListView.Description>
+                  </div>
+                  <span className="text-xs text-muted">{STATUS_LABELS[r.status] ?? "Unknown"}</span>
                 </div>
-                <span className="text-xs text-default-500">{STATUS_LABELS[r.status] ?? "Unknown"}</span>
-              </button>
-            ))}
-          </Card.Content>
-        </Card>
+              </ListView.ItemContent>
+            </ListView.Item>
+          ))}
+        </ListView>
       )}
     </div>
   );

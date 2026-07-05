@@ -7,7 +7,6 @@ import { Routes } from "@/app/routes";
 import { PatientProfileForm } from "@/features/clinic/patients/profile/components/PatientProfileForm";
 import { usePatientProfileEditor } from "@/features/clinic/patients/profile/hooks/usePatientProfileEditor";
 import { useLocalizedText } from "@/localization";
-import type { PatientProfileFormData } from "@/features/clinic/patients/profile/models/PatientProfileForm";
 
 export default function EditPatientRoute({
   params,
@@ -21,9 +20,7 @@ export default function EditPatientRoute({
     usePatientProfileEditor(patientId);
 
   const handleSubmit = useCallback(
-    async (_data: PatientProfileFormData) => {
-      // Patient update endpoint not yet available in generated client
-      // When it becomes available, call the update mutation here
+    async () => {
       invalidatePatient();
       router.push(Routes.Clinic.Patients.Detail(patientId));
     },
@@ -39,7 +36,7 @@ export default function EditPatientRoute({
       <Card className="p-8">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">{t("clinic.patient.detail.loading")}</span>
+          <span className="text-muted">{t("clinic.patient.detail.loading")}</span>
         </div>
       </Card>
     );
@@ -61,7 +58,7 @@ export default function EditPatientRoute({
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">{t("clinic.patient.edit.title")}</h1>
-        <p className="text-sm text-default-500">{t("clinic.patient.edit.description")}</p>
+        <p className="text-sm text-muted">{t("clinic.patient.edit.description")}</p>
       </div>
 
       <PatientProfileForm

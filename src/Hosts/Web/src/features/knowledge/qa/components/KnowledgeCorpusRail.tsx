@@ -1,8 +1,11 @@
 "use client";
 
-import { Button, Card, Description, Label, ListBox } from "@heroui/react";
+import { useCallback } from "react";
+import { ChatListView } from "@heroui-pro/react";
 import { useLocalizedText } from "@/localization";
 import type { KnowledgeUserCorpus } from "../types";
+
+const ALL_KEY = "__all__";
 
 interface KnowledgeCorpusRailProps {
   corpora: KnowledgeUserCorpus[];
@@ -10,6 +13,14 @@ interface KnowledgeCorpusRailProps {
   isLoading?: boolean;
   onSelectAll: () => void;
   onSelectCorpus: (corpusId: string) => void;
+}
+
+interface CorpusItem {
+  corpusId: string;
+  name: string;
+  description: string | null;
+  sourceCount: number;
+  chunkCount: number;
 }
 
 export function KnowledgeCorpusRail({
@@ -21,63 +32,84 @@ export function KnowledgeCorpusRail({
 }: KnowledgeCorpusRailProps) {
   const { t } = useLocalizedText();
 
+  const items: CorpusItem[] = corpora.map((c) => ({
+    corpusId: c.corpusId,
+    name: c.name,
+    description: c.description ?? null,
+    sourceCount: c.sourceCount,
+    chunkCount: c.chunkCount,
+  }));
+
+  const selectedKeys = selectedCorpusId === null
+    ? new Set([ALL_KEY])
+    : new Set([selectedCorpusId]);
+
+  const handleSelectionChange = useCallback(
+    (keys: string | Set<string | number>) => {
+      if (typeof keys === "string") {
+        if (keys === ALL_KEY) {
+          onSelectAll();
+        } else {
+          onSelectCorpus(keys);
+        }
+        return;
+      }
+      const key = Array.from(keys)[0];
+      if (key === ALL_KEY || key == null) {
+        onSelectAll();
+      } else {
+        onSelectCorpus(String(key));
+      }
+    },
+    [onSelectAll, onSelectCorpus]
+  );
+
   return (
     <aside className="w-full lg:w-72 shrink-0">
-      <Card className="sticky top-6">
-        <Card.Header>
-          <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-default-500">{t("knowledge.qa.railEyebrow")}</p>
-            <h2 className="text-lg font-semibold">{t("knowledge.qa.railTitle")}</h2>
-          </div>
-        </Card.Header>
-        <Card.Content>
-          <Button
-            type="button"
-            onPress={onSelectAll}
-            isDisabled={isLoading || selectedCorpusId === null}
-            className="w-full justify-start"
+      <div className="sticky top-6 flex flex-col gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.25em] text-muted">{t("knowledge.qa.railEyebrow")}</p>
+          <h2 className="text-lg font-semibold">{t("knowledge.qa.railTitle")}</h2>
+        </div>
+
+        {isLoading && <p className="text-sm text-muted">{t("knowledge.qa.loadingCorpora")}</p>}
+
+        {!isLoading && corpora.length === 0 && (
+          <p className="text-sm text-muted">{t("knowledge.qa.noCorpora")}</p>
+        )}
+
+        {!isLoading && corpora.length > 0 && (
+          <ChatListView.Root
+            aria-label={t("knowledge.qa.railTitle")}
+            selectionMode="single"
+            selectedKeys={selectedKeys}
+            onSelectionChange={handleSelectionChange}
           >
-            <span className="flex w-full flex-col items-start gap-1 text-start">
-              <Label>{t("knowledge.qa.allCorpora")}</Label>
-              <Description>{t("knowledge.qa.allCorporaDescription")}</Description>
-            </span>
-          </Button>
+            <ChatListView.Item id={ALL_KEY} textValue={t("knowledge.qa.allCorpora")}>
+              <ChatListView.ItemContent>
+                <ChatListView.Text>
+                  <ChatListView.Title>{t("knowledge.qa.allCorpora")}</ChatListView.Title>
+                  <ChatListView.Preview>{t("knowledge.qa.allCorporaDescription")}</ChatListView.Preview>
+                </ChatListView.Text>
+              </ChatListView.ItemContent>
+            </ChatListView.Item>
 
-          {isLoading && <p className="mt-4 text-sm text-default-500">{t("knowledge.qa.loadingCorpora")}</p>}
-
-          {!isLoading && corpora.length === 0 && (
-            <p className="mt-4 text-sm text-default-500">
-              {t("knowledge.qa.noCorpora")}
-            </p>
-          )}
-
-          {!isLoading && corpora.length > 0 && (
-            <ListBox
-              aria-label={t("knowledge.qa.railTitle")}
-              className="mt-4"
-              selectionMode="single"
-              selectedKeys={selectedCorpusId ? new Set([selectedCorpusId]) : new Set()}
-              onSelectionChange={(keys) => {
-                const key = Array.from(keys)[0];
-                if (key != null) onSelectCorpus(String(key));
-              }}
-              disabledKeys={selectedCorpusId ? [selectedCorpusId] : []}
-            >
-              {corpora.map((corpus) => (
-                <ListBox.Item key={corpus.corpusId} id={corpus.corpusId} textValue={corpus.name}>
-                  <div className="flex flex-col">
-                    <Label>{corpus.name}</Label>
+            {items.map((corpus) => (
+              <ChatListView.Item key={corpus.corpusId} id={corpus.corpusId} textValue={corpus.name}>
+                <ChatListView.ItemContent>
+                  <ChatListView.Text>
+                    <ChatListView.Title>{corpus.name}</ChatListView.Title>
                     {corpus.description && (
-                      <Description className="line-clamp-2">{corpus.description}</Description>
+                      <ChatListView.Preview className="line-clamp-2">{corpus.description}</ChatListView.Preview>
                     )}
-                    <Description>{formatCorpusCounts(corpus.sourceCount, corpus.chunkCount, t)}</Description>
-                  </div>
-                </ListBox.Item>
-              ))}
-            </ListBox>
-          )}
-        </Card.Content>
-      </Card>
+                    <ChatListView.Preview>{formatCorpusCounts(corpus.sourceCount, corpus.chunkCount, t)}</ChatListView.Preview>
+                  </ChatListView.Text>
+                </ChatListView.ItemContent>
+              </ChatListView.Item>
+            ))}
+          </ChatListView.Root>
+        )}
+      </div>
     </aside>
   );
 }

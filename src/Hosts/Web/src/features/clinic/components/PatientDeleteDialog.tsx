@@ -45,7 +45,7 @@ export function PatientDeleteDialog({
               </Modal.Heading>
             </Modal.Header>
             <Modal.Body>
-              <p className="text-sm text-default-500">
+              <p className="text-sm text-muted">
                 {t("clinic.patient.delete.unavailable")}
               </p>
             </Modal.Body>

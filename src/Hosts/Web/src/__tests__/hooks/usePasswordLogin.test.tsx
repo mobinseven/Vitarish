@@ -3,10 +3,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode } from "react";
 import { http, HttpResponse } from "msw";
 import { server } from "../server";
-import { handlers } from "../handlers/authentication.msw";
 import { usePasswordLogin } from "@/hooks/auth/usePasswordLogin";
-import { getAuthenticationSessionGetQueryKey } from "@/api/generated/authentication/authentication";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { getAuthenticationSessionGetQueryKey } from "@/api/generated/authentication/authentication";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -41,7 +40,7 @@ describe("usePasswordLogin", () => {
     let requestBody: Record<string, unknown> | undefined;
     server.use(
       http.post(
-        "https://localhost:7272/api/modules/authentication/login/password",
+        /\/api\/modules\/authentication\/login\/password(?:\?|$)/,
         async ({ request }) => {
           requestBody = (await request.json()) as Record<string, unknown>;
           return HttpResponse.json({
@@ -65,7 +64,7 @@ describe("usePasswordLogin", () => {
     let requestBody: Record<string, unknown> | undefined;
     server.use(
       http.post(
-        "https://localhost:7272/api/modules/authentication/login/password",
+        /\/api\/modules\/authentication\/login\/password(?:\?|$)/,
         async ({ request }) => {
           requestBody = (await request.json()) as Record<string, unknown>;
           return HttpResponse.json({
@@ -106,7 +105,7 @@ describe("usePasswordLogin", () => {
     let isAuthenticated = false;
     server.use(
       http.get(
-        "https://localhost:7272/api/modules/authentication/session",
+        /\/api\/modules\/authentication\/session(?:\?|$)/,
         () =>
           HttpResponse.json({
             isAuthenticated,
@@ -123,7 +122,7 @@ describe("usePasswordLogin", () => {
           })
       ),
       http.post(
-        "https://localhost:7272/api/modules/authentication/login/password",
+        /\/api\/modules\/authentication\/login\/password(?:\?|$)/,
         () => {
           isAuthenticated = true;
           return HttpResponse.json({
@@ -156,7 +155,7 @@ describe("usePasswordLogin", () => {
   it("should handle invalid credentials error", async () => {
     server.use(
       http.post(
-        "https://localhost:7272/api/modules/authentication/login/password",
+        /\/api\/modules\/authentication\/login\/password(?:\?|$)/,
         () => {
           return HttpResponse.json(
           {
@@ -184,7 +183,5 @@ describe("usePasswordLogin", () => {
     expect(result.current.error).not.toBeNull();
     expect(result.current.error?.code).toBe("invalid_credentials");
     expect(result.current.errorMessage).toBe("Invalid username or password");
-
-    server.use(...handlers);
   });
 });

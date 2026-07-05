@@ -23,7 +23,7 @@ export function AdvancedSearchResults({
       <Card className="p-4">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">{t("clinic.patient.advancedSearch.searching")}</span>
+          <span className="text-muted">{t("clinic.patient.advancedSearch.searching")}</span>
         </div>
       </Card>
     );
@@ -32,7 +32,7 @@ export function AdvancedSearchResults({
   if (results.length === 0) {
     return (
     <Card className="p-4">
-      <p className="text-center text-default-500">{t("clinic.patient.advancedSearch.noResults")}</p>
+      <p className="text-center text-muted">{t("clinic.patient.advancedSearch.noResults")}</p>
     </Card>
     );
   }

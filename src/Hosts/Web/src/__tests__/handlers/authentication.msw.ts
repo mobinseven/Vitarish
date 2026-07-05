@@ -7,10 +7,10 @@ import type {
   LogoutContextDto,
 } from "@/api/generated/authentication/model";
 
-const BASE = "https://localhost:7272";
+const apiPath = (path: string) => new RegExp(`/api/modules/authentication${path.replaceAll("/", "\\/")}(?:\\?|$)`);
 
 export const handlers = [
-  http.post(`${BASE}/api/modules/authentication/login/password`, () => {
+  http.post(apiPath("/login/password"), () => {
     const body: AuthenticationRedirectResultDto = {
       returnUrl: "/home",
       requiresProfileCompletion: false,
@@ -18,7 +18,7 @@ export const handlers = [
     return HttpResponse.json(body);
   }),
 
-  http.post(`${BASE}/api/modules/authentication/login/phone/begin`, () => {
+  http.post(apiPath("/login/phone/begin"), () => {
     const body: AuthenticationChallengeDto = {
       challengeId: "test-challenge-id",
       purpose: 1,
@@ -28,7 +28,7 @@ export const handlers = [
     return HttpResponse.json(body);
   }),
 
-  http.post(`${BASE}/api/modules/authentication/login/phone/complete`, () => {
+  http.post(apiPath("/login/phone/complete"), () => {
     const body: AuthenticationRedirectResultDto = {
       returnUrl: "/home",
       requiresProfileCompletion: false,
@@ -36,7 +36,7 @@ export const handlers = [
     return HttpResponse.json(body);
   }),
 
-  http.post(`${BASE}/api/modules/authentication/login/email/begin`, () => {
+  http.post(apiPath("/login/email/begin"), () => {
     const body: AuthenticationChallengeDto = {
       challengeId: "test-challenge-id",
       purpose: 2,
@@ -46,7 +46,7 @@ export const handlers = [
     return HttpResponse.json(body);
   }),
 
-  http.post(`${BASE}/api/modules/authentication/login/email/complete`, () => {
+  http.post(apiPath("/login/email/complete"), () => {
     const body: AuthenticationRedirectResultDto = {
       returnUrl: "/home",
       requiresProfileCompletion: false,
@@ -54,7 +54,7 @@ export const handlers = [
     return HttpResponse.json(body);
   }),
 
-  http.post(`${BASE}/api/modules/authentication/login/passkey/begin`, () => {
+  http.post(apiPath("/login/passkey/begin"), () => {
     const body: AuthenticationChallengeDto = {
       challengeId: "test-challenge-id",
       purpose: 3,
@@ -71,7 +71,7 @@ export const handlers = [
     return HttpResponse.json(body);
   }),
 
-  http.post(`${BASE}/api/modules/authentication/login/passkey/complete`, () => {
+  http.post(apiPath("/login/passkey/complete"), () => {
     const body: AuthenticationRedirectResultDto = {
       returnUrl: "/home",
       requiresProfileCompletion: false,
@@ -79,7 +79,7 @@ export const handlers = [
     return HttpResponse.json(body);
   }),
 
-  http.get(`${BASE}/api/modules/authentication/session`, () => {
+  http.get(apiPath("/session"), () => {
     const body: AuthenticationSessionDto = {
       isAuthenticated: false,
       user: null,
@@ -87,11 +87,11 @@ export const handlers = [
     return HttpResponse.json(body);
   }),
 
-  http.get(`${BASE}/api/modules/authentication/me`, () => {
+  http.get(apiPath("/me"), () => {
     return HttpResponse.json(null, { status: 404 });
   }),
 
-  http.get(`${BASE}/api/modules/authentication/logout/context`, () => {
+  http.get(apiPath("/logout/context"), () => {
     const body: LogoutContextDto = {
       logoutId: null,
       clientName: null,
@@ -101,7 +101,7 @@ export const handlers = [
     return HttpResponse.json(body);
   }),
 
-  http.post(`${BASE}/api/modules/authentication/logout`, () => {
+  http.post(apiPath("/logout"), () => {
     const body: LogoutResultDto = {
       signedOut: true,
       redirectUrl: "/login",
@@ -109,7 +109,7 @@ export const handlers = [
     return HttpResponse.json(body);
   }),
 
-  http.get(`${BASE}/api/modules/authentication/antiforgery`, () => {
+  http.get(apiPath("/antiforgery"), () => {
     return HttpResponse.json({
       requestToken: "test-antiforgery-token",
       headerName: "X-XSRF-TOKEN",

@@ -14,7 +14,7 @@ export default function LogoutPage() {
       <Card className="w-full max-w-md">
         <Card.Header className="flex flex-col items-start gap-1">
           <h1 className="text-2xl font-bold">{t("auth.logout.title")}</h1>
-          <p className="text-sm text-default-500">{t("auth.logout.description")}</p>
+          <p className="text-sm text-muted">{t("auth.logout.description")}</p>
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {contextStatus === "already-signed-out" && (

@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { Providers } from "@/components/providers/HeroUIProvider";
+import { Providers } from "@/components/providers/AppProviders";
 import { getLocaleDirection, localizedMetadata, parseLocaleCookie, resolveLocale } from "@/localization";
 import "./globals.css";
 

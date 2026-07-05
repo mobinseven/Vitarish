@@ -4,19 +4,25 @@ import { useState, useCallback } from "react";
 import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
-import { apiFetch } from "@/api/client/apiFetch";
+import { useAccountPasswordChange } from "@/features/account/hooks/useAccountPasswordChange";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { localizeApiError, useLocalizedText } from "@/localization";
 
 export default function PasswordChangePage() {
   useAuthSession();
   const { t } = useLocalizedText();
+  const {
+    isLoading,
+    error,
+    setError,
+    success,
+    setSuccess,
+    changePassword,
+  } = useAccountPasswordChange();
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -34,26 +40,16 @@ export default function PasswordChangePage() {
         return;
       }
 
-      setIsLoading(true);
       try {
-        await apiFetch<{ succeeded: boolean }>(
-          "/api/modules/authentication/account/password",
-          {
-            method: "POST",
-            body: JSON.stringify({ currentPassword, newPassword }),
-          }
-        );
-        setSuccess(true);
+        await changePassword(currentPassword, newPassword);
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
       } catch (err: unknown) {
         setError(localizeApiError(err, t));
-      } finally {
-        setIsLoading(false);
       }
     },
-    [currentPassword, newPassword, confirmPassword, t]
+    [currentPassword, newPassword, confirmPassword, changePassword, setError, setSuccess, t]
   );
 
   return (

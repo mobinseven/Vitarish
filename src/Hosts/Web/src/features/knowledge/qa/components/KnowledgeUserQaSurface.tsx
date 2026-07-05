@@ -20,7 +20,7 @@ export function KnowledgeUserQaSurface() {
   const workspace = useKnowledgeUserWorkspace();
   const ask = useKnowledgeUserAsk();
 
-  const corpora = workspace.data?.corpora ?? [];
+  const corpora = useMemo(() => workspace.data?.corpora ?? [], [workspace.data?.corpora]);
   const [selectedCorpusId, setSelectedCorpusId] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
   const [submittedQuestion, setSubmittedQuestion] = useState("");

@@ -16,12 +16,6 @@ Static implementation evidence:
 - `src/Apps/Clinic/Interface/Components/**`
 - `src/Apps/Clinic/Interface/Models/**`
 
-Applied skills:
-
-- `platform-artifact-placement-steward`
-- `platform-feature-ui-integration-steward`
-- `platform-ui-design-steward`
-
 ## 1. Objective
 
 Implement the documented clinic app journeys in the web host as components and pages while preserving platform architecture boundaries, module ownership, CQRS separation, frontend/backend isolation, and one source of truth per state model.

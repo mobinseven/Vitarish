@@ -38,19 +38,19 @@ export default function ClinicServiceProviderDetailPage({
   }, [serviceProviderId, name, description, updateProvider]);
 
   const handleDelete = useCallback(() => {
-    if (confirm("Delete this service provider?")) {
+    if (confirm(t("clinic.serviceProviders.confirmDelete"))) {
       deleteProvider.mutate(serviceProviderId, {
         onSuccess: () => router.push(Routes.Clinic.Appointments.ServiceProviders.Index),
       });
     }
-  }, [serviceProviderId, deleteProvider, router]);
+  }, [serviceProviderId, deleteProvider, router, t]);
 
   if (isLoading) {
     return (
       <Card className="p-8">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">{t("common.states.loading")}</span>
+          <span className="text-muted">{t("common.states.loading")}</span>
         </div>
       </Card>
     );
@@ -59,7 +59,7 @@ export default function ClinicServiceProviderDetailPage({
   if (error || !provider) {
     return (
       <Card className="p-8">
-        <p className="text-danger">{error?.message ?? "Service provider not found."}</p>
+        <p className="text-danger">{error?.message ?? t("clinic.serviceProviders.notFound")}</p>
       </Card>
     );
   }
@@ -71,7 +71,7 @@ export default function ClinicServiceProviderDetailPage({
           <Button variant="ghost" className="mb-2" onPress={() => router.push(Routes.Clinic.Appointments.ServiceProviders.Index)}>
             ← {t("common.actions.previous")}
           </Button>
-          <h1 className="text-2xl font-bold">{editing ? "Edit Provider" : provider.name}</h1>
+          <h1 className="text-2xl font-bold">{editing ? t("clinic.serviceProviders.editTitle") : provider.name}</h1>
         </div>
         <div className="flex gap-2">
           {!editing && (
@@ -89,15 +89,15 @@ export default function ClinicServiceProviderDetailPage({
         <Card>
           <Card.Content className="flex flex-col gap-4">
             <TextField>
-              <Label>Name</Label>
+              <Label>{t("clinic.fields.name")}</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
             </TextField>
             <TextField>
-              <Label>Description</Label>
+              <Label>{t("clinic.fields.description")}</Label>
               <Input value={description} onChange={(e) => setDescription(e.target.value)} />
             </TextField>
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" onPress={() => setEditing(false)}>Cancel</Button>
+              <Button variant="ghost" onPress={() => setEditing(false)}>{t("common.actions.cancel")}</Button>
               <Button variant="primary" isPending={updateProvider.isPending} onPress={handleSave}>
                 {t("common.actions.save")}
               </Button>
@@ -107,12 +107,12 @@ export default function ClinicServiceProviderDetailPage({
       ) : (
         <Card>
           <Card.Content className="grid gap-4 sm:grid-cols-2">
-            <DetailField label="Name" value={provider.name} />
-            <DetailField label="Description" value={provider.description ?? "—"} />
-            <DetailField label="Linked Users" value={String(provider.linkedUserIds.length)} />
-            <DetailField label="Created" value={new Date(provider.createdAt).toLocaleString()} />
+            <DetailField label={t("clinic.fields.name")} value={provider.name} />
+            <DetailField label={t("clinic.fields.description")} value={provider.description ?? "—"} />
+            <DetailField label={t("clinic.fields.linkedUsers")} value={String(provider.linkedUserIds.length)} />
+            <DetailField label={t("clinic.fields.created")} value={new Date(provider.createdAt).toLocaleString()} />
             {provider.updatedAt && (
-              <DetailField label="Updated" value={new Date(provider.updatedAt).toLocaleString()} />
+              <DetailField label={t("clinic.fields.updated")} value={new Date(provider.updatedAt).toLocaleString()} />
             )}
           </Card.Content>
         </Card>
@@ -124,7 +124,7 @@ export default function ClinicServiceProviderDetailPage({
 function DetailField({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-default-500">{label}</span>
+      <span className="text-xs text-muted">{label}</span>
       <span className="text-sm">{value}</span>
     </div>
   );

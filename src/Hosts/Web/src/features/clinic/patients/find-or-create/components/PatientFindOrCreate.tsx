@@ -41,7 +41,7 @@ export function PatientFindOrCreate({
 
   const handleSearchSelect = useCallback(
     (patientId: string) => {
-      handleSelectPatient(patientId);
+      handleSelectPatient();
       onPatientSelected(patientId);
     },
     [handleSelectPatient, onPatientSelected]
@@ -81,13 +81,13 @@ export function PatientFindOrCreate({
                 />
               </TextField>
               {isLooking && (
-                <div className="flex items-center gap-2 text-default-500">
+                <div className="flex items-center gap-2 text-muted">
                   <Spinner size="sm" />
                   <span>{t("clinic.patient.identification.lookingUp")}</span>
                 </div>
               )}
               {lookupError === "not-found" && (
-                <p className="text-sm text-default-500">{t("clinic.patient.identification.notFound")}</p>
+                <p className="text-sm text-muted">{t("clinic.patient.identification.notFound")}</p>
               )}
               {lookupError === "error" && (
                 <p className="text-sm text-danger">{t("clinic.patient.identification.error")}</p>
@@ -99,9 +99,9 @@ export function PatientFindOrCreate({
           </Card>
 
           <div className="flex items-center gap-4">
-            <div className="h-px flex-1 bg-default-200" />
-            <span className="text-sm text-default-500">{t("clinic.patient.findOrCreate.or")}</span>
-            <div className="h-px flex-1 bg-default-200" />
+            <div className="h-px flex-1 bg-surface-secondary" />
+            <span className="text-sm text-muted">{t("clinic.patient.findOrCreate.or")}</span>
+            <div className="h-px flex-1 bg-surface-secondary" />
           </div>
 
           <Card>
@@ -155,7 +155,7 @@ export function PatientFindOrCreate({
       {step === "selected" && (
         <Card>
           <Card.Content className="py-8 text-center">
-            <p className="text-sm text-default-500">{t("clinic.patient.findOrCreate.patientSelected")}</p>
+            <p className="text-sm text-muted">{t("clinic.patient.findOrCreate.patientSelected")}</p>
             <Button variant="ghost" className="mt-4" onPress={handleGoToLookup}>
               {t("clinic.patient.findOrCreate.findAnother")}
             </Button>

@@ -1,6 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { HomeDashboard } from "@/features/home/components/HomeDashboard";
+import { renderWithLocalization } from "../localization/renderWithLocalization";
 
 vi.mock("@/hooks/auth/useAuthSession", () => ({
   useAuthSession: () => ({
@@ -18,7 +19,7 @@ vi.mock("@/hooks/auth/useAuthSession", () => ({
 
 describe("HomeDashboard", () => {
   it("greets the signed-in user and links to the Knowledge demo", () => {
-    render(<HomeDashboard />);
+    renderWithLocalization(<HomeDashboard />, { locale: "en" });
 
     expect(screen.getByRole("heading", { name: /welcome back, avery/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /open knowledge/i })).toHaveAttribute("href", "/knowledge");

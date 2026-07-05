@@ -1,39 +1,34 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
-import { useUsersGetProfile, useUsersUpdateProfile } from "@/api/generated/users/users";
+import { useAccountNameUpdate } from "@/features/account/hooks/useAccountNameUpdate";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { useLocalizedText } from "@/localization";
 
 export default function NamePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
-  const { data: profile } = useUsersGetProfile(userId);
-  const updateProfile = useUsersUpdateProfile();
   const { t } = useLocalizedText();
-
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [initialized, setInitialized] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  if (profile && !initialized) {
-    setFirstName(profile.firstName ?? "");
-    setLastName(profile.lastName ?? "");
-    setInitialized(true);
-  }
+  const {
+    firstName,
+    setFirstName,
+    lastName,
+    setLastName,
+    success,
+    isError,
+    isPending,
+    save,
+  } = useAccountNameUpdate(userId);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      setSuccess(false);
-      await updateProfile.mutateAsync({ userId, data: { firstName, lastName } });
-      setSuccess(true);
+      await save(firstName, lastName);
     },
-    [firstName, lastName, updateProfile, userId]
+    [firstName, lastName, save]
   );
 
   return (
@@ -43,7 +38,7 @@ export default function NamePage() {
           <h1 className="text-2xl font-bold">{t("account.name.title")}</h1>
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
-          {updateProfile.isError && (
+          {isError && (
             <StatusMessage message={t("account.name.updateFailed")} />
           )}
           {success && (
@@ -60,7 +55,7 @@ export default function NamePage() {
             </TextField>
             <Button
               type="submit"
-              isPending={updateProfile.isPending}
+              isPending={isPending}
               className="w-full"
             >
               {t("common.actions.save")}

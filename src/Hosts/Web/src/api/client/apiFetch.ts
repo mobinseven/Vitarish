@@ -150,13 +150,12 @@ function isAntiforgeryValidationFailure(error: ApiError): boolean {
   return error.code === "AntiforgeryValidationFailed";
 }
 
-async function sendRequest<T>(url: string, method: string, headers: Headers, body: BodyInit | undefined, signal: AbortSignal | undefined, options: RequestInit): Promise<T> {
+async function sendRequest<T>(url: string, method: string, headers: Headers, body: BodyInit | undefined, _signal: AbortSignal | undefined, options: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${url}`, {
     ...options,
     method,
     headers,
     body,
-    signal,
     credentials: "include",
   });
 

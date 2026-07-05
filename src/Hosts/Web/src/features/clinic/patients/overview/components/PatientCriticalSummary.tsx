@@ -26,19 +26,19 @@ export function PatientCriticalSummary({ patient }: PatientCriticalSummaryProps)
       <Card.Content className="flex flex-col gap-3">
         {patient.allergies?.trim() && (
           <div>
-            <span className="text-xs text-default-500">{t("clinic.patient.fields.allergies")}</span>
+            <span className="text-xs text-muted">{t("clinic.patient.fields.allergies")}</span>
             <p className="text-sm">{patient.allergies}</p>
           </div>
         )}
         {patient.currentMedications?.trim() && (
           <div>
-            <span className="text-xs text-default-500">{t("clinic.patient.fields.currentMedications")}</span>
+            <span className="text-xs text-muted">{t("clinic.patient.fields.currentMedications")}</span>
             <p className="text-sm">{patient.currentMedications}</p>
           </div>
         )}
         {patient.clinicalNotes?.trim() && (
           <div>
-            <span className="text-xs text-default-500">{t("clinic.patient.fields.clinicalNotes")}</span>
+            <span className="text-xs text-muted">{t("clinic.patient.fields.clinicalNotes")}</span>
             <p className="text-sm">{patient.clinicalNotes}</p>
           </div>
         )}

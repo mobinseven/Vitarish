@@ -173,8 +173,6 @@ Project skills live under:
   platform-openapi-contract-steward/
   platform-generated-react-client-steward/
   platform-feature-ui-integration-steward/
-  platform-ui-design-steward/
-  heroui-react/
   platform-pr-delivery-loop/
   platform-auto-plan-generator/
   platform-auto-plan-executor/
@@ -199,32 +197,10 @@ Legacy instructions may refer to `skills/`; use `.agents/skills/` as the canonic
 | OpenAPI module/app contract, operation IDs, schemas, auth, ProblemDetails, linting      | Platform OpenAPI Contract Steward | `.agents/skills/platform-openapi-contract-steward/SKILL.md` |
 | Orval generation, generated DTOs/hooks/query keys, custom apiFetch, MSW mocks           | Platform Generated React Client Steward | `.agents/skills/platform-generated-react-client-steward/SKILL.md` |
 | HeroUI/React feature hooks, forms, tables, dialogs, mutation invalidation, UI adapters  | Platform Feature UI Integration Steward | `.agents/skills/platform-feature-ui-integration-steward/SKILL.md` |
-| HeroUI v3 React components, compound APIs, Tailwind v4, `@heroui/styles`, theming, docs, or agent UI guidance | HeroUI React | `.agents/skills/heroui-react/SKILL.md` |
-| Design philosophy, visual feel, product aesthetics, framework UI matching | Platform UI Design Steward | `.agents/skills/platform-ui-design-steward/SKILL.md` |
 | Generate plan from GitHub issue | Platform Auto Plan Generator | `.agents/skills/platform-auto-plan-generator/SKILL.md` |
 | Execute implementation plan | Platform Auto Plan Executor | `.agents/skills/platform-auto-plan-executor/SKILL.md` |
 | Review implementation | Platform Auto Loop Reviewer | `.agents/skills/platform-auto-loop-reviewer/SKILL.md` |
 | Manage implementation loop state | Platform Loop State Manager | `.agents/skills/platform-loop-state-manager/SKILL.md` |
-
-### HeroUI React Contract
-
-Use `HeroUI React` for any task that touches HeroUI v3 React components, composition patterns, Tailwind CSS v4 setup, `@heroui/react`, `@heroui/styles`, semantic variants, light/dark theming, component docs, or HeroUI-driven UI implementation.
-
-Before implementation:
-
-1. Read `.agents/skills/heroui-react/SKILL.md`.
-2. Use the helper scripts under `.agents/skills/heroui-react/scripts/` to fetch current component docs, source, styles, theme variables, or non-component docs before changing HeroUI code.
-3. Treat HeroUI v3 guidance as authoritative for HeroUI work; do not apply HeroUI v2 patterns to v3 code.
-4. Keep platform UI rules in force: generated clients stay generated, feature hooks expose use-case contracts, and UI components consume feature hooks.
-5. Do not edit generated API output or backend contracts just to satisfy a visual component shape.
-
-Optional full-docs mode:
-
-```bash
-npx heroui-cli@latest agents-md --react
-```
-
-Use this only when the task explicitly needs local `.heroui-docs/react/` documentation or an updated AGENTS/CLAUDE documentation index. Otherwise, prefer the installed `.agents/skills/heroui-react` skill and its scripts.
 
 ### OpenAPI → React Client Contract
 
@@ -239,8 +215,6 @@ Load only the step required by the current task:
 1. Contract/spec work uses `platform-openapi-contract-steward`.
 2. Orval/generated-client/MSW/runtime-fetch work uses `platform-generated-react-client-steward`.
 3. HeroUI/page/form/table/dialog integration uses `platform-feature-ui-integration-steward`.
-4. Design philosophy and visual feel mapping to HeroUI components use `platform-ui-design-steward`.
-5. HeroUI v3 component API, styling, and theme work uses `heroui-react`.
 
 Hard boundary: OpenAPI defines the transport contract, generated clients are infrastructure, feature hooks expose use-case contracts, and UI components consume feature hooks only.
 
@@ -300,10 +274,10 @@ For an OpenAPI-driven React client change:
 OpenAPI Contract → Generated React Client → Feature UI Integration → Test Plan → Implementation
 ```
 
-For a HeroUI v3 UI change:
+For a HeroUI or HeroUI Pro UI change:
 
 ```txt
-HeroUI React → UI Design Steward (philosophy → framework match) → Feature UI Integration if feature hooks/data flow are affected → Test Plan → Implementation
+Official HeroUI/HeroUI Pro guidance → Feature UI Integration if feature hooks/data flow are affected → Test Plan → Implementation
 ```
 
 For a code placement or refactor task:

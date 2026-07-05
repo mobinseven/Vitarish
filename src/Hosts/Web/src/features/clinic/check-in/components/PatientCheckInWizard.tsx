@@ -47,15 +47,15 @@ export function PatientCheckInWizard({
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold">{t("clinic.checkIn.title")}</h1>
-        <p className="text-sm text-default-500">{t("clinic.checkIn.description")}</p>
+        <p className="text-sm text-muted">{t("clinic.checkIn.description")}</p>
       </div>
 
       {/* Step indicators */}
       <div className="flex items-center gap-2 text-sm">
         <StepIndicator step={1} label={t("clinic.checkIn.step1")} isActive={step === "find-patient"} isComplete={step !== "find-patient"} />
-        <div className="h-px w-8 bg-default-200" />
+        <div className="h-px w-8 bg-surface-secondary" />
         <StepIndicator step={2} label={t("clinic.checkIn.step2")} isActive={step === "select-shift"} isComplete={step === "confirm"} />
-        <div className="h-px w-8 bg-default-200" />
+        <div className="h-px w-8 bg-surface-secondary" />
         <StepIndicator step={3} label={t("clinic.checkIn.step3")} isActive={step === "confirm"} isComplete={false} />
       </div>
 
@@ -74,7 +74,7 @@ export function PatientCheckInWizard({
             </div>
           </Card.Header>
           <Card.Content>
-            <p className="text-sm text-default-500 mb-4">
+            <p className="text-sm text-muted mb-4">
               {t("clinic.checkIn.selectShiftDescription")}
             </p>
             <ShiftSelectionPanel />
@@ -90,15 +90,15 @@ export function PatientCheckInWizard({
           <Card.Content className="flex flex-col gap-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <span className="text-xs text-default-500">{t("clinic.checkIn.shiftDate")}</span>
+                <span className="text-xs text-muted">{t("clinic.checkIn.shiftDate")}</span>
                 <p className="text-sm">{selectedShift.date}</p>
               </div>
               <div>
-                <span className="text-xs text-default-500">{t("clinic.checkIn.shiftTime")}</span>
+                <span className="text-xs text-muted">{t("clinic.checkIn.shiftTime")}</span>
                 <p className="text-sm">{selectedShift.startTime} - {selectedShift.endTime}</p>
               </div>
               <div>
-                <span className="text-xs text-default-500">{t("clinic.checkIn.availableSeats")}</span>
+                <span className="text-xs text-muted">{t("clinic.checkIn.availableSeats")}</span>
                 <p className="text-sm">{selectedShift.availableSeats}</p>
               </div>
             </div>
@@ -130,9 +130,9 @@ function StepIndicator({
   isComplete: boolean;
 }) {
   return (
-    <div className={`flex items-center gap-2 ${isActive ? "text-accent font-medium" : isComplete ? "text-success" : "text-default-500"}`}>
+    <div className={`flex items-center gap-2 ${isActive ? "text-accent font-medium" : isComplete ? "text-success" : "text-muted"}`}>
       <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${
-        isActive ? "bg-accent text-white" : isComplete ? "bg-success text-white" : "bg-default-200 text-default-600"
+        isActive ? "bg-accent text-white" : isComplete ? "bg-success text-white" : "bg-surface-secondary text-muted"
       }`}>
         {isComplete ? "✓" : step}
       </span>
@@ -146,7 +146,7 @@ function ShiftSelectionPanel() {
 
   return (
     <div className="flex flex-col items-center gap-4 py-8">
-      <p className="text-sm text-default-500">{t("clinic.checkIn.shiftUnavailable")}</p>
+      <p className="text-sm text-muted">{t("clinic.checkIn.shiftUnavailable")}</p>
     </div>
   );
 }

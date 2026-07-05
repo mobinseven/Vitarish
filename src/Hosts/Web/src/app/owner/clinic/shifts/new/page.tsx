@@ -5,9 +5,17 @@ import { useRouter } from "next/navigation";
 import { Card, Button, TextField, Label, Input, Select, ListBox } from "@heroui/react";
 import { Routes } from "@/app/routes";
 import { useCreateShift } from "@/features/clinic/appointments/shifts/hooks/useOwnerShifts";
-import { useLocalizedText } from "@/localization";
+import { useLocalizedText, type MessageKey } from "@/localization";
 
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dayNameKeys = [
+  "clinic.weekdays.sunday",
+  "clinic.weekdays.monday",
+  "clinic.weekdays.tuesday",
+  "clinic.weekdays.wednesday",
+  "clinic.weekdays.thursday",
+  "clinic.weekdays.friday",
+  "clinic.weekdays.saturday",
+] satisfies MessageKey[];
 
 export default function ClinicOwnerShiftCreatePage() {
   const router = useRouter();
@@ -50,7 +58,7 @@ export default function ClinicOwnerShiftCreatePage() {
       <Card>
         <Card.Content className="flex flex-col gap-4">
           <TextField>
-            <Label>Day of Week</Label>
+            <Label>{t("clinic.fields.dayOfWeek")}</Label>
             <Select selectedKey={dayOfWeek} onSelectionChange={(k) => setDayOfWeek(String(k))}>
               <Select.Trigger>
                 <Select.Value />
@@ -58,12 +66,15 @@ export default function ClinicOwnerShiftCreatePage() {
               </Select.Trigger>
               <Select.Popover>
                 <ListBox>
-                  {DAY_NAMES.map((name, i) => (
-                    <ListBox.Item key={String(i)} id={String(i)} textValue={name}>
-                      {name}
-                      <ListBox.ItemIndicator />
-                    </ListBox.Item>
-                  ))}
+                  {dayNameKeys.map((key, i) => {
+                    const name = t(key);
+                    return (
+                      <ListBox.Item key={String(i)} id={String(i)} textValue={name}>
+                        {name}
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                    );
+                  })}
                 </ListBox>
               </Select.Popover>
             </Select>
@@ -71,17 +82,17 @@ export default function ClinicOwnerShiftCreatePage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <TextField>
-              <Label>Start Time</Label>
+              <Label>{t("clinic.fields.startTime")}</Label>
               <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
             </TextField>
             <TextField>
-              <Label>End Time</Label>
+              <Label>{t("clinic.fields.endTime")}</Label>
               <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
             </TextField>
           </div>
 
           <TextField>
-            <Label>Total Seats</Label>
+            <Label>{t("clinic.fields.totalSeats")}</Label>
             <Input type="number" value={totalSeats} onChange={(e) => setTotalSeats(e.target.value)} />
           </TextField>
 

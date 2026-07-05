@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode } from "react";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { LocalizationProvider } from "@/localization";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -9,7 +10,9 @@ const queryClient = new QueryClient({
 
 function wrapper({ children }: { children: ReactNode }) {
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <LocalizationProvider locale="en">{children}</LocalizationProvider>
+    </QueryClientProvider>
   );
 }
 

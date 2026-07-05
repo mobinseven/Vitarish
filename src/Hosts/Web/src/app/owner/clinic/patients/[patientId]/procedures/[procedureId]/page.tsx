@@ -23,7 +23,7 @@ export default function ClinicPatientProcedurePage({
       <Card className="p-8">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">{t("common.states.loading")}</span>
+          <span className="text-muted">{t("common.states.loading")}</span>
         </div>
       </Card>
     );
@@ -45,7 +45,7 @@ export default function ClinicPatientProcedurePage({
         </Button>
         <h1 className="text-2xl font-bold">{procedure.name}</h1>
         {procedure.description && (
-          <p className="text-sm text-default-500">{procedure.description}</p>
+          <p className="text-sm text-muted">{procedure.description}</p>
         )}
       </div>
 
@@ -55,20 +55,20 @@ export default function ClinicPatientProcedurePage({
         </Card.Header>
         <Card.Content className="flex flex-col gap-1">
           {(!events || events.length === 0) && (
-            <p className="py-4 text-center text-sm text-default-500">No events yet.</p>
+            <p className="py-4 text-center text-sm text-muted">{t("clinic.procedures.eventsEmpty")}</p>
           )}
           {events?.map((ev) => (
             <button
               key={ev.id}
               onClick={() => router.push(Routes.Clinic.Patients.ProcedureEvent(patientId, procedureId, ev.id))}
-              className="flex items-center justify-between rounded-lg px-4 py-3 text-start transition-colors hover:bg-default-100"
+              className="flex items-center justify-between rounded-lg px-4 py-3 text-start transition-colors hover:bg-surface-secondary"
             >
               <div className="flex flex-col gap-1">
                 <span className="text-sm font-medium">{ev.title}</span>
-                <span className="text-xs text-default-500">{new Date(ev.createdAt).toLocaleDateString()}</span>
+                <span className="text-xs text-muted">{new Date(ev.createdAt).toLocaleDateString()}</span>
               </div>
-              <span className={`text-xs ${ev.isCommitted ? "text-success" : "text-default-500"}`}>
-                {ev.isCommitted ? "Committed" : "Draft"}
+              <span className={`text-xs ${ev.isCommitted ? "text-success" : "text-muted"}`}>
+                {ev.isCommitted ? t("clinic.procedures.committed") : t("clinic.procedures.draft")}
               </span>
             </button>
           ))}

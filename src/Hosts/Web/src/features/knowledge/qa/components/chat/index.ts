@@ -1,13 +1,10 @@
-export {
-  KnowledgeChatBody,
-  KnowledgeChatCallout,
-  KnowledgeChatConversation,
-  KnowledgeChatEmptyState,
-  KnowledgeChatLoader,
-  KnowledgeChatMessage,
-  KnowledgeChatMessageActions,
-  KnowledgeChatSource,
-  KnowledgeChatSourceList,
-  KnowledgePromptInput,
-} from "./KnowledgeChatPrimitives";
-export type { KnowledgeChatItemKind, KnowledgeChatTone } from "./KnowledgeChatPrimitives";
+export { KnowledgeChatBody } from "./KnowledgeChatBody";
+export { KnowledgeChatCallout } from "./KnowledgeChatCallout";
+export { KnowledgeChatConversation } from "./KnowledgeChatConversation";
+export { KnowledgeChatEmptyState } from "./KnowledgeChatEmptyState";
+export { KnowledgeChatLoader } from "./KnowledgeChatLoader";
+export { KnowledgeChatMessage } from "./KnowledgeChatMessage";
+export { KnowledgeChatSource } from "./KnowledgeChatSource";
+export { KnowledgeChatSourceList } from "./KnowledgeChatSourceList";
+export { KnowledgePromptInput } from "./KnowledgePromptInput";
+export type { KnowledgeChatItemKind, KnowledgeChatTone } from "./types";

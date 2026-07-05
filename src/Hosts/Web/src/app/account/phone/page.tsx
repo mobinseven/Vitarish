@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
-import { useUsersGetProfile } from "@/api/generated/users/users";
-import { apiFetch } from "@/api/client/apiFetch";
+import { useAccountPhoneChange } from "@/features/account/hooks/useAccountPhoneChange";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
 import { localizeApiError, useLocalizedText } from "@/localization";
@@ -13,64 +12,45 @@ import { localizeApiError, useLocalizedText } from "@/localization";
 export default function PhoneChangePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
-  const { data: profile } = useUsersGetProfile(userId);
   const { t } = useLocalizedText();
-  const [step, setStep] = useState<"phone" | "code">("phone");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [code, setCode] = useState("");
-  const [challengeId, setChallengeId] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const {
+    profile,
+    step,
+    phoneNumber,
+    code,
+    isLoading,
+    error,
+    success,
+    setPhoneNumber,
+    setCode,
+    setError,
+    reset,
+    beginPhoneChange,
+    verifyPhoneChange,
+  } = useAccountPhoneChange(userId);
 
   const handlePhoneSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      setError(null);
-      setIsLoading(true);
       try {
-        const result = await apiFetch<{ challengeId: string }>(
-          "/api/modules/authentication/account/phone/begin",
-          {
-            method: "POST",
-            body: JSON.stringify({ phoneNumber }),
-          }
-        );
-        setChallengeId(result.challengeId);
-        setStep("code");
+        await beginPhoneChange(phoneNumber);
       } catch (err: unknown) {
         setError(localizeApiError(err, t));
-      } finally {
-        setIsLoading(false);
       }
     },
-    [phoneNumber, t]
+    [phoneNumber, beginPhoneChange, setError, t]
   );
 
   const handleCodeSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      setError(null);
-      setIsLoading(true);
       try {
-        await apiFetch<{ succeeded: boolean }>(
-          "/api/modules/authentication/account/phone/complete",
-          {
-            method: "POST",
-            body: JSON.stringify({ challengeId, code }),
-          }
-        );
-        setSuccess(true);
-        setStep("phone");
-        setPhoneNumber("");
-        setCode("");
+        await verifyPhoneChange(code);
       } catch (err: unknown) {
         setError(localizeApiError(err, t));
-      } finally {
-        setIsLoading(false);
       }
     },
-    [challengeId, code, t]
+    [code, verifyPhoneChange, setError, t]
   );
 
   return (
@@ -81,7 +61,7 @@ export default function PhoneChangePage() {
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {profile?.phoneNumber && (
-            <p className="text-sm text-default-500">
+            <p className="text-sm text-muted">
               {t("account.phone.currentValue", { value: profile.phoneNumber })}
             </p>
           )}
@@ -111,7 +91,7 @@ export default function PhoneChangePage() {
             </form>
           ) : (
             <form onSubmit={handleCodeSubmit} className="flex flex-col gap-4">
-              <p className="text-sm text-default-500">
+              <p className="text-sm text-muted">
                 {t("auth.otp.codeSentTo", { destination: phoneNumber })}
               </p>
               <OtpCodeInput
@@ -130,8 +110,7 @@ export default function PhoneChangePage() {
               <Button
                 variant="tertiary"
                 onPress={() => {
-                  setStep("phone");
-                  setCode("");
+                  reset();
                 }}
                 isDisabled={isLoading}
                 className="w-full"

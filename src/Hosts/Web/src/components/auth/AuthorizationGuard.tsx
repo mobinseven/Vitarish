@@ -25,7 +25,7 @@ export function AuthorizationGuard({ requiredRole, children }: AuthorizationGuar
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-default-500">{t("auth.guard.loading")}</p>
+        <p className="text-muted">{t("auth.guard.loading")}</p>
       </div>
     );
   }
@@ -39,7 +39,7 @@ export function AuthorizationGuard({ requiredRole, children }: AuthorizationGuar
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-danger">{t("auth.guard.accessDenied")}</h1>
-          <p className="text-sm text-default-500 mt-2">
+          <p className="text-sm text-muted mt-2">
             {t("auth.guard.noPermission")}
           </p>
         </div>

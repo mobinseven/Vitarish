@@ -61,11 +61,11 @@ export function KnowledgeAnswerList({
       <Card>
         <Card.Content className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-default-500">
+            <p className="text-xs uppercase tracking-[0.25em] text-muted">
               {scopeKind === "all" ? t("knowledge.qa.allCorpusAnswer") : t("knowledge.qa.selectedCorpusAnswer")}
             </p>
             <h2 className="text-lg font-semibold">{question}</h2>
-            <p className="text-sm text-default-500">{t("knowledge.qa.scopeLabel", { scope: scopeLabel })}</p>
+            <p className="text-sm text-muted">{t("knowledge.qa.scopeLabel", { scope: scopeLabel })}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button type="button" onPress={onAskAgain}>

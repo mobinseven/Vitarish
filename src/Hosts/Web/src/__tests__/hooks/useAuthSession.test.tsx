@@ -34,7 +34,7 @@ describe("useAuthSession", () => {
 
   it("prefers authenticated user given name in the display profile", async () => {
     server.use(
-      http.get("https://localhost:7272/api/modules/authentication/session", () =>
+      http.get(/\/api\/modules\/authentication\/session(?:\?|$)/, () =>
         HttpResponse.json({
           isAuthenticated: true,
           user: {

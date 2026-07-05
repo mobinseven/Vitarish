@@ -5,9 +5,17 @@ import { useRouter } from "next/navigation";
 import { Card, Button, Spinner } from "@heroui/react";
 import { Routes } from "@/app/routes";
 import { useOwnerShiftDetail, useDeleteShift } from "@/features/clinic/appointments/shifts/hooks/useOwnerShifts";
-import { useLocalizedText } from "@/localization";
+import { useLocalizedText, type MessageKey } from "@/localization";
 
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dayNameKeys = [
+  "clinic.weekdays.sunday",
+  "clinic.weekdays.monday",
+  "clinic.weekdays.tuesday",
+  "clinic.weekdays.wednesday",
+  "clinic.weekdays.thursday",
+  "clinic.weekdays.friday",
+  "clinic.weekdays.saturday",
+] satisfies MessageKey[];
 
 export default function ClinicOwnerShiftDetailPage({
   params,
@@ -19,13 +27,14 @@ export default function ClinicOwnerShiftDetailPage({
   const { t } = useLocalizedText();
   const { data: shift, isLoading, error } = useOwnerShiftDetail(shiftId);
   const deleteShift = useDeleteShift();
+  const dayName = shift ? t(dayNameKeys[shift.dayOfWeek]) : "";
 
   if (isLoading) {
     return (
       <Card className="p-8">
         <div className="flex items-center justify-center gap-2">
           <Spinner size="sm" />
-          <span className="text-default-500">{t("common.states.loading")}</span>
+          <span className="text-muted">{t("common.states.loading")}</span>
         </div>
       </Card>
     );
@@ -46,7 +55,7 @@ export default function ClinicOwnerShiftDetailPage({
           <Button variant="ghost" className="mb-2" onPress={() => router.push(Routes.Clinic.Appointments.Shifts.Index)}>
             ← {t("common.actions.previous")}
           </Button>
-          <h1 className="text-2xl font-bold">{DAY_NAMES[shift.dayOfWeek]} {shift.startTime} - {shift.endTime}</h1>
+          <h1 className="text-2xl font-bold">{dayName} {shift.startTime} - {shift.endTime}</h1>
         </div>
         <div className="flex gap-2">
           <Button variant="ghost" onPress={() => router.push(Routes.Clinic.Appointments.Shifts.Edit(shiftId))}>
@@ -70,12 +79,12 @@ export default function ClinicOwnerShiftDetailPage({
 
       <Card>
         <Card.Content className="grid gap-4 sm:grid-cols-2">
-          <DetailField label="Day" value={DAY_NAMES[shift.dayOfWeek]} />
-          <DetailField label="Start" value={shift.startTime} />
-          <DetailField label="End" value={shift.endTime} />
-          <DetailField label="Total Seats" value={String(shift.totalSeats)} />
-          <DetailField label="Timezone" value={shift.timeZone} />
-          <DetailField label="Created" value={new Date(shift.createdAt).toLocaleString()} />
+          <DetailField label={t("clinic.fields.day")} value={dayName} />
+          <DetailField label={t("clinic.fields.start")} value={shift.startTime} />
+          <DetailField label={t("clinic.fields.end")} value={shift.endTime} />
+          <DetailField label={t("clinic.fields.totalSeats")} value={String(shift.totalSeats)} />
+          <DetailField label={t("clinic.fields.timezone")} value={shift.timeZone} />
+          <DetailField label={t("clinic.fields.created")} value={new Date(shift.createdAt).toLocaleString()} />
         </Card.Content>
       </Card>
     </div>
@@ -85,7 +94,7 @@ export default function ClinicOwnerShiftDetailPage({
 function DetailField({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-default-500">{label}</span>
+      <span className="text-xs text-muted">{label}</span>
       <span className="text-sm">{value}</span>
     </div>
   );

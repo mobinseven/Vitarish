@@ -125,7 +125,7 @@ function DetailField({
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-sm text-default-500">{label}</span>
+      <span className="text-sm text-muted">{label}</span>
       <span className="text-sm">{displayValue}</span>
     </div>
   );

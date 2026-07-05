@@ -16,7 +16,7 @@ export function ConsentReviewPanel() {
           <p className="text-sm leading-6 text-foreground/70">
             {t("journey.gates.consent.panelDescription")}
           </p>
-          <hr className="border-default-200" />
+          <div className="h-px bg-separator" />
           <Checkbox
             isSelected={acceptedRequiredConsents}
             onChange={setAcceptedRequiredConsents}

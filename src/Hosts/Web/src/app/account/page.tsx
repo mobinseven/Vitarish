@@ -26,7 +26,7 @@ export default function AccountSettingsPage() {
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {isAuthenticated && (
-            <div className="text-sm text-default-500 mb-4">
+            <div className="text-sm text-muted mb-4">
               {t("account.signedInAs", { name: displayProfile.displayLabel })}
             </div>
           )}

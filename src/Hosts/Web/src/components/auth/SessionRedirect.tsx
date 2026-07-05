@@ -41,7 +41,7 @@ export function resolveSessionRedirectTarget({
 function SessionRedirectMessage({ label }: { label: string }) {
   return (
     <main className="grid min-h-screen place-items-center">
-      <p className="text-default-500">{label}</p>
+      <p className="text-muted">{label}</p>
     </main>
   );
 }

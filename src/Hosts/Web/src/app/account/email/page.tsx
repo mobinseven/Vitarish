@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { Card, TextField, Label, Input, Button, Link } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
-import { useUsersGetProfile } from "@/api/generated/users/users";
-import { apiFetch } from "@/api/client/apiFetch";
+import { useAccountEmailChange } from "@/features/account/hooks/useAccountEmailChange";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
 import { localizeApiError, useLocalizedText } from "@/localization";
@@ -13,64 +12,45 @@ import { localizeApiError, useLocalizedText } from "@/localization";
 export default function EmailChangePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
-  const { data: profile } = useUsersGetProfile(userId);
   const { t } = useLocalizedText();
-  const [step, setStep] = useState<"email" | "code">("email");
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [challengeId, setChallengeId] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const {
+    profile,
+    step,
+    email,
+    code,
+    isLoading,
+    error,
+    success,
+    setEmail,
+    setCode,
+    setError,
+    reset,
+    beginEmailChange,
+    verifyEmailChange,
+  } = useAccountEmailChange(userId);
 
   const handleEmailSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      setError(null);
-      setIsLoading(true);
       try {
-        const result = await apiFetch<{ challengeId: string }>(
-          "/api/modules/authentication/account/email/begin",
-          {
-            method: "POST",
-            body: JSON.stringify({ email }),
-          }
-        );
-        setChallengeId(result.challengeId);
-        setStep("code");
+        await beginEmailChange(email);
       } catch (err: unknown) {
         setError(localizeApiError(err, t));
-      } finally {
-        setIsLoading(false);
       }
     },
-    [email, t]
+    [email, beginEmailChange, setError, t]
   );
 
   const handleCodeSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      setError(null);
-      setIsLoading(true);
       try {
-        await apiFetch<{ succeeded: boolean }>(
-          "/api/modules/authentication/account/email/complete",
-          {
-            method: "POST",
-            body: JSON.stringify({ challengeId, code }),
-          }
-        );
-        setSuccess(true);
-        setStep("email");
-        setEmail("");
-        setCode("");
+        await verifyEmailChange(code);
       } catch (err: unknown) {
         setError(localizeApiError(err, t));
-      } finally {
-        setIsLoading(false);
       }
     },
-    [challengeId, code, t]
+    [code, verifyEmailChange, setError, t]
   );
 
   return (
@@ -81,7 +61,7 @@ export default function EmailChangePage() {
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {profile?.email && (
-            <p className="text-sm text-default-500">
+            <p className="text-sm text-muted">
               {t("account.email.currentValue", { value: profile.email })}
             </p>
           )}
@@ -110,7 +90,7 @@ export default function EmailChangePage() {
             </form>
           ) : (
             <form onSubmit={handleCodeSubmit} className="flex flex-col gap-4">
-              <p className="text-sm text-default-500">
+              <p className="text-sm text-muted">
                 {t("auth.otp.codeSentTo", { destination: email })}
               </p>
               <OtpCodeInput
@@ -129,8 +109,7 @@ export default function EmailChangePage() {
               <Button
                 variant="tertiary"
                 onPress={() => {
-                  setStep("email");
-                  setCode("");
+                  reset();
                 }}
                 isDisabled={isLoading}
                 className="w-full"

@@ -88,7 +88,7 @@ export function ClinicOwnerPatientsPage() {
         <Card className="p-8">
           <div className="flex items-center justify-center gap-2">
             <Spinner size="sm" />
-            <span className="text-default-500">{t("clinic.patients.loading")}</span>
+            <span className="text-muted">{t("clinic.patients.loading")}</span>
           </div>
         </Card>
       ) : (
@@ -101,7 +101,7 @@ export function ClinicOwnerPatientsPage() {
         />
       )}
 
-      <div className="flex items-center justify-between text-sm text-default-500">
+      <div className="flex items-center justify-between text-sm text-muted">
         <span>
           {totalCount === 1
             ? t("clinic.patients.countFound.one", { count: String(totalCount) })

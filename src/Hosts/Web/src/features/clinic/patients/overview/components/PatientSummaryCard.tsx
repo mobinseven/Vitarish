@@ -41,7 +41,7 @@ function SummaryField({ label, value }: { label: string; value: string | null | 
   const display = value && value.trim() ? value : "—";
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-default-500">{label}</span>
+      <span className="text-xs text-muted">{label}</span>
       <span className="text-sm">{display}</span>
     </div>
   );

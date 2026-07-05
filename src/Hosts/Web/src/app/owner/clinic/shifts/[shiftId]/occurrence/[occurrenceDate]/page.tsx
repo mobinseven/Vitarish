@@ -26,7 +26,7 @@ export default function ClinicOwnerShiftOccurrencePage({
         <h1 className="text-2xl font-bold">
           {shift ? `${shift.startTime} - ${shift.endTime}` : t("common.states.loading")}
         </h1>
-        <p className="text-sm text-default-500">{occurrenceDate}</p>
+        <p className="text-sm text-muted">{occurrenceDate}</p>
       </div>
 
       {isLoading ? (
@@ -38,7 +38,7 @@ export default function ClinicOwnerShiftOccurrencePage({
       ) : (
         <Card>
           <Card.Content className="py-8 text-center">
-            <p className="text-sm text-default-500">{t("clinic.appointments.shifts.occurrenceComingSoon")}</p>
+            <p className="text-sm text-muted">{t("clinic.appointments.shifts.occurrenceComingSoon")}</p>
           </Card.Content>
         </Card>
       )}

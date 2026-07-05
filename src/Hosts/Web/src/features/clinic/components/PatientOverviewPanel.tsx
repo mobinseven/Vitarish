@@ -26,7 +26,7 @@ export function PatientOverviewPanel({ patient }: PatientOverviewPanelProps) {
         {stats ? (
           <>
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-default-500">{t("clinic.patient.overview.progress")}</span>
+              <span className="text-sm text-muted">{t("clinic.patient.overview.progress")}</span>
               <span className="text-sm font-medium">
                 {formatProgressState(stats.state)}
               </span>
@@ -44,9 +44,9 @@ export function PatientOverviewPanel({ patient }: PatientOverviewPanelProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-default-500">{t("clinic.patient.overview.unread")}:</span>
+              <span className="text-sm text-muted">{t("clinic.patient.overview.unread")}:</span>
               <span
-                className={`text-sm font-medium ${stats.unread ? "text-warning" : "text-default-500"}`}
+                className={`text-sm font-medium ${stats.unread ? "text-warning" : "text-muted"}`}
               >
                 {stats.unread ? t("clinic.patient.overview.yes") : t("clinic.patient.overview.no")}
               </span>
@@ -54,7 +54,7 @@ export function PatientOverviewPanel({ patient }: PatientOverviewPanelProps) {
 
             {stats.lastUpdate && (
               <div className="flex flex-col gap-1">
-                <span className="text-sm text-default-500">{t("clinic.patient.overview.lastUpdate")}</span>
+                <span className="text-sm text-muted">{t("clinic.patient.overview.lastUpdate")}</span>
                 <span className="text-sm">
                   {formatDateTime(stats.lastUpdate, locale)}
                 </span>
@@ -62,7 +62,7 @@ export function PatientOverviewPanel({ patient }: PatientOverviewPanelProps) {
             )}
           </>
         ) : (
-          <p className="text-sm text-default-500">
+          <p className="text-sm text-muted">
             {t("clinic.patient.overview.noStats")}
           </p>
         )}
@@ -80,7 +80,7 @@ function StatItem({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-sm text-default-500">{label}</span>
+      <span className="text-sm text-muted">{label}</span>
       <span className="text-lg font-semibold">{value}</span>
     </div>
   );
