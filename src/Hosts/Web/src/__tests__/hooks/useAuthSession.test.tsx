@@ -45,6 +45,7 @@ describe("useAuthSession", () => {
             email: "avery@example.com",
             phoneNumber: null,
           },
+          tenantAccess: { canAccessTenantOwner: true, canAccessTenantUser: true },
         })
       )
     );

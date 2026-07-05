@@ -1,5 +1,5 @@
 using Duende.IdentityModel;
-using Duende.IdentityServer.Extensions;
+using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Main.Authorization;
@@ -33,7 +33,13 @@ public class ClaimsTransformation(IHttpContextAccessor httpContextAccessor) : IC
             {
                 IUsersService usersService = http.RequestServices.GetRequiredService<IUsersService>();
 
-                string userId = principal.GetSubjectId();
+                AuthenticatedUserIdResolution userIdResolution = AuthenticatedUserIdResolver.Resolve(principal);
+                if (userIdResolution is not AuthenticatedUserIdResolution.Success resolvedUserId)
+                {
+                    return principal;
+                }
+
+                string userId = resolvedUserId.UserId.Value;
 
                 User? user = await usersService.GetUserAsync(userId);
 

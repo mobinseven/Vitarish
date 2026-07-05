@@ -1067,7 +1067,8 @@
       "AuthenticationSessionDto": {
         "required": [
           "isAuthenticated",
-          "user"
+          "user",
+          "tenantAccess"
         ],
         "type": "object",
         "properties": {
@@ -1083,6 +1084,9 @@
                 "$ref": "#/components/schemas/CurrentAuthenticationUserDto"
               }
             ]
+          },
+          "tenantAccess": {
+            "$ref": "#/components/schemas/TenantAccessDto"
           }
         }
       },
@@ -1454,6 +1458,21 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "TenantAccessDto": {
+        "required": [
+          "canAccessTenantOwner",
+          "canAccessTenantUser"
+        ],
+        "type": "object",
+        "properties": {
+          "canAccessTenantOwner": {
+            "type": "boolean"
+          },
+          "canAccessTenantUser": {
+            "type": "boolean"
           }
         }
       }

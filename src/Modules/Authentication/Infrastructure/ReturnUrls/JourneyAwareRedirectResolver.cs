@@ -1,10 +1,10 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.ReturnUrls;
 using Vitarish.Journey.Application.Abstractions;
 using Vitarish.Journey.Domain;
+using Vitarish.Modules.Base.Core.Identity;
 
 namespace Vitarish.Authentication.Infrastructure.ReturnUrls;
 
@@ -27,7 +27,9 @@ public sealed class JourneyAwareRedirectResolver(
     public async Task<string> ResolveAsync(string? requestedReturnUrl, bool requiresProfileCompletion, CancellationToken cancellationToken = default)
     {
         var httpContext = httpContextAccessor.HttpContext;
-        string? userId = httpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userId = httpContext is not null && AuthenticatedUserIdResolver.Resolve(httpContext.User) is AuthenticatedUserIdResolution.Success resolvedUserId
+            ? resolvedUserId.UserId.Value
+            : null;
         return await ResolveAsync(requestedReturnUrl, requiresProfileCompletion, userId, cancellationToken);
     }
 

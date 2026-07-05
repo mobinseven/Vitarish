@@ -1,4 +1,5 @@
 using Duende.IdentityServer.Extensions;
+using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Modules.Base.Interface.Common;
 
 namespace Vitarish.Main.Components;
@@ -15,9 +16,18 @@ public class IdentityCommonBase : CommonBase
 
     protected override async Task OnInitializedAsync()
     {
-        if (HttpContextAccessor.HttpContext?.User.IsAuthenticated() ?? false)
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext?.User.IsAuthenticated() ?? false)
         {
-            string userId = HttpContextAccessor.HttpContext.User.GetSubjectId();
+            AuthenticatedUserIdResolution userIdResolution = AuthenticatedUserIdResolver.Resolve(httpContext.User);
+            if (userIdResolution is not AuthenticatedUserIdResolution.Success resolvedUserId)
+            {
+                await ReloadRequired();
+                StateHasChanged();
+                return;
+            }
+
+            string userId = resolvedUserId.UserId.Value;
             try
             {
                 HttpClient client = HttpClientFactory.CreateClient();

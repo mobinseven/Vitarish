@@ -7,6 +7,7 @@ using Vitarish.Journey.Contracts.Responses;
 using Vitarish.Journey.Contracts.Routes;
 using Vitarish.Journey.Domain;
 using Vitarish.Modules.Base.Core.Endpoints;
+using Vitarish.Modules.Base.Core.Identity;
 
 namespace Vitarish.Journey.Api.Endpoints;
 
@@ -19,19 +20,21 @@ public static class CurrentJourneyEndpoints
         return group;
     }
 
-    private static async Task<IResult> GetCurrentJourneyAsync(
+    internal static async Task<IResult> GetCurrentJourneyAsync(
         IJourneyResolver resolver,
         ClaimsPrincipal user,
         HttpContext httpContext,
         CancellationToken ct)
     {
-        string? userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(userId))
+        AuthenticatedUserIdResolution userIdResolution = AuthenticatedUserIdResolver.Resolve(user);
+        if (userIdResolution is not AuthenticatedUserIdResolution.Success resolvedUserId)
         {
             return Results.Problem(
-                detail: "User is not authenticated.",
+                detail: "Authenticated user subject id is missing.",
                 statusCode: StatusCodes.Status401Unauthorized);
         }
+
+        string userId = resolvedUserId.UserId.Value;
 
         string? returnUrl = httpContext.Request.Query["returnUrl"].FirstOrDefault();
         string currentPath = httpContext.Request.Path.Value ?? "/";

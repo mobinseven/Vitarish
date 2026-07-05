@@ -83,6 +83,7 @@ export const handlers = [
     const body: AuthenticationSessionDto = {
       isAuthenticated: false,
       user: null,
+      tenantAccess: { canAccessTenantOwner: false, canAccessTenantUser: false },
     };
     return HttpResponse.json(body);
   }),

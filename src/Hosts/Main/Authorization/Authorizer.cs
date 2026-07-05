@@ -1,4 +1,4 @@
-using Duende.IdentityServer.Extensions;
+using Vitarish.Modules.Base.Core.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
 using Vitarish.Main.Infrastructure.Utilities;
@@ -21,13 +21,15 @@ public sealed class Authorizer(IUsersService usersService, IDistributedCache cac
             return;
         }
 
-        string? subjectId = context.User.GetSubjectId();
+        AuthenticatedUserIdResolution subjectIdResolution = AuthenticatedUserIdResolver.Resolve(context.User);
 
-        if (string.IsNullOrWhiteSpace(subjectId))
+        if (subjectIdResolution is not AuthenticatedUserIdResolution.Success resolvedSubjectId)
         {
             context.Fail();
             return;
         }
+
+        string subjectId = resolvedSubjectId.UserId.Value;
 
         string requiredRole;
         bool result;
