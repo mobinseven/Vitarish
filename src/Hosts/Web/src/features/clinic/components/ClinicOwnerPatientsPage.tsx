@@ -2,7 +2,8 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, Spinner } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { Routes } from "@/app/routes";
 import { usePatientList } from "../hooks/usePatientList";
 import { usePatientCount } from "../hooks/usePatientCount";
@@ -85,12 +86,7 @@ export function ClinicOwnerPatientsPage() {
       <PatientSearchBar onSearch={handleSearch} />
 
       {isLoading ? (
-        <Card className="p-8">
-          <div className="flex items-center justify-center gap-2">
-            <Spinner size="sm" />
-            <span className="text-muted">{t("clinic.patients.loading")}</span>
-          </div>
-        </Card>
+        <ClinicLoadingState label={t("clinic.patients.loading")} />
       ) : (
         <PatientsGrid
           patients={patients ?? []}

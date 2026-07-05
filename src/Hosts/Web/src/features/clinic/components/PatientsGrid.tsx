@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from "react";
 import { DataGrid, type DataGridColumn, type DataGridSortDescriptor } from "@heroui-pro/react";
+import { ClinicEmptyState } from "./ClinicStateSurface";
 import type { PatientViewDto, PatientSortBy } from "../types";
 import { useLocalizedText, formatDate } from "@/localization";
 
@@ -60,8 +61,12 @@ export function PatientsGrid({
           <div className="flex flex-col gap-1">
             <span className="font-medium">{formatPatientName(patient)}</span>
             <span className="text-sm text-muted">
-              {patient.identificationCode && `ID: ${patient.identificationCode}`}
-              {patient.phone && ` | ${patient.phone}`}
+              {[
+                patient.identificationCode
+                  ? `${t("clinic.patient.fields.identificationCode")}: ${patient.identificationCode}`
+                  : null,
+                patient.phone,
+              ].filter(Boolean).join(" / ")}
             </span>
           </div>
         ),
@@ -99,9 +104,7 @@ export function PatientsGrid({
       onSortChange={handleSortChange}
       onRowAction={handleRowAction}
       renderEmptyState={() => (
-        <p className="py-8 text-center text-muted">
-          {t("clinic.patients.searchEmpty")}
-        </p>
+        <ClinicEmptyState title={t("clinic.patients.searchEmpty")} />
       )}
     />
   );

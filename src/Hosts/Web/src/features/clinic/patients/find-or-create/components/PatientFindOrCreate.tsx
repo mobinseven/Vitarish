@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Card, Button, TextField, Label, Input, Spinner } from "@heroui/react";
+import { Button, Input, Label, TextField } from "@heroui/react";
+import { Widget } from "@heroui-pro/react";
 import { AdvancedSearchForm } from "@/features/clinic/components/AdvancedSearchForm";
 import { AdvancedSearchResults } from "@/features/clinic/components/AdvancedSearchResults";
+import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { PatientProfileForm } from "@/features/clinic/patients/profile/components/PatientProfileForm";
 import { emptyFormData } from "@/features/clinic/patients/profile/models/PatientProfileForm";
 import { usePatientFindOrCreate } from "../hooks/usePatientFindOrCreate";
@@ -34,6 +36,7 @@ export function PatientFindOrCreate({
   } = usePatientFindOrCreate();
 
   const [code, setCode] = useState("");
+  const [createError, setCreateError] = useState(false);
 
   const handleLookupSubmit = useCallback(() => {
     handleLookup(code);
@@ -49,6 +52,7 @@ export function PatientFindOrCreate({
 
   const handleCreateSubmit = useCallback(
     async (data: PatientProfileFormData) => {
+      setCreateError(false);
       try {
         const result = await createPatient.create(data);
         if (result?.id) {
@@ -56,7 +60,7 @@ export function PatientFindOrCreate({
           onPatientCreated?.(result.id);
         }
       } catch {
-        // Error surfaced through hook
+        setCreateError(true);
       }
     },
     [createPatient, onPatientSelected, onPatientCreated]
@@ -66,37 +70,36 @@ export function PatientFindOrCreate({
     <div className="flex flex-col gap-6">
       {step === "lookup" && (
         <>
-          <Card>
-            <Card.Header>
-              <h2 className="text-lg font-semibold">{t("clinic.checkIn.step1")}</h2>
-            </Card.Header>
-            <Card.Content className="flex flex-col gap-4">
+          <Widget>
+            <Widget.Header>
+              <Widget.Title>{t("clinic.checkIn.step1")}</Widget.Title>
+            </Widget.Header>
+            <Widget.Content className="flex flex-col gap-4">
               <TextField>
                 <Label>{t("clinic.patient.identification.label")}</Label>
                 <Input
                   placeholder={t("clinic.patient.identification.placeholder")}
                   value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleLookupSubmit(); }}
+                  onChange={(event) => setCode(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") handleLookupSubmit();
+                  }}
                 />
               </TextField>
               {isLooking && (
-                <div className="flex items-center gap-2 text-muted">
-                  <Spinner size="sm" />
-                  <span>{t("clinic.patient.identification.lookingUp")}</span>
-                </div>
+                <ClinicLoadingState label={t("clinic.patient.identification.lookingUp")} />
               )}
               {lookupError === "not-found" && (
-                <p className="text-sm text-muted">{t("clinic.patient.identification.notFound")}</p>
+                <ClinicEmptyState title={t("clinic.patient.identification.notFound")} />
               )}
               {lookupError === "error" && (
-                <p className="text-sm text-danger">{t("clinic.patient.identification.error")}</p>
+                <ClinicErrorState title={t("clinic.patient.identification.error")} />
               )}
               <Button variant="primary" isPending={isLooking} onPress={handleLookupSubmit}>
                 {t("clinic.patient.identification.lookupAction")}
               </Button>
-            </Card.Content>
-          </Card>
+            </Widget.Content>
+          </Widget>
 
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-surface-secondary" />
@@ -104,35 +107,25 @@ export function PatientFindOrCreate({
             <div className="h-px flex-1 bg-surface-secondary" />
           </div>
 
-          <Card>
-            <Card.Header>
-              <h2 className="text-lg font-semibold">{t("clinic.patient.advancedSearch.title")}</h2>
-            </Card.Header>
-            <Card.Content>
-              <AdvancedSearchForm onSearch={handleAdvancedSearch} isPending={isPending} />
-            </Card.Content>
-          </Card>
+          <AdvancedSearchForm onSearch={handleAdvancedSearch} isPending={isPending} />
         </>
       )}
 
       {step === "search" && (
-        <Card>
-          <Card.Header>
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">{t("clinic.patient.search.results")}</h2>
-              <Button variant="ghost" onPress={handleGoToLookup}>
-                ← {t("common.actions.previous")}
-              </Button>
-            </div>
-          </Card.Header>
-          <Card.Content>
-            <AdvancedSearchResults
-              results={searchResults ?? []}
-              isLoading={false}
-              onSelectPatient={handleSearchSelect}
-            />
-          </Card.Content>
-        </Card>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">{t("clinic.patient.search.results")}</h2>
+            <Button variant="ghost" onPress={handleGoToLookup}>
+              <i aria-hidden className="fa-solid fa-arrow-left" />
+              {t("common.actions.previous")}
+            </Button>
+          </div>
+          <AdvancedSearchResults
+            results={searchResults ?? []}
+            isLoading={false}
+            onSelectPatient={handleSearchSelect}
+          />
+        </div>
       )}
 
       {step === "create" && (
@@ -140,9 +133,13 @@ export function PatientFindOrCreate({
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">{t("clinic.patients.newPatient")}</h1>
             <Button variant="ghost" onPress={handleGoToLookup}>
-              ← {t("common.actions.previous")}
+              <i aria-hidden className="fa-solid fa-arrow-left" />
+              {t("common.actions.previous")}
             </Button>
           </div>
+          {(createError || createPatient.error) && (
+            <ClinicErrorState title={t("clinic.patients.createFailed")} />
+          )}
           <PatientProfileForm
             initialData={emptyFormData()}
             onSubmit={handleCreateSubmit}
@@ -153,14 +150,11 @@ export function PatientFindOrCreate({
       )}
 
       {step === "selected" && (
-        <Card>
-          <Card.Content className="py-8 text-center">
-            <p className="text-sm text-muted">{t("clinic.patient.findOrCreate.patientSelected")}</p>
-            <Button variant="ghost" className="mt-4" onPress={handleGoToLookup}>
-              {t("clinic.patient.findOrCreate.findAnother")}
-            </Button>
-          </Card.Content>
-        </Card>
+        <ClinicEmptyState title={t("clinic.patient.findOrCreate.patientSelected")}>
+          <Button variant="ghost" onPress={handleGoToLookup}>
+            {t("clinic.patient.findOrCreate.findAnother")}
+          </Button>
+        </ClinicEmptyState>
       )}
     </div>
   );

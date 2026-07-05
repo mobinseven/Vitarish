@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Card, Button, TextField, Label, Input, Select, ListBox, FieldError } from "@heroui/react";
+import { Button, FieldError, Input, Label, TextField } from "@heroui/react";
+import { NativeSelect, Widget } from "@heroui-pro/react";
 import type { PatientProfileFormData, PatientProfileFormErrors } from "../models/PatientProfileForm";
 import { useLocalizedText } from "@/localization";
 
@@ -48,11 +49,11 @@ export function PatientProfileForm({
 
   return (
     <div className="flex flex-col gap-6">
-      <Card>
-        <Card.Header>
-          <h2 className="text-lg font-semibold">{t("clinic.patient.sections.personal")}</h2>
-        </Card.Header>
-        <Card.Content className="grid gap-4 sm:grid-cols-2">
+      <Widget>
+        <Widget.Header>
+          <Widget.Title>{t("clinic.patient.sections.personal")}</Widget.Title>
+        </Widget.Header>
+        <Widget.Content className="grid gap-4 sm:grid-cols-2">
           <FormTextField
             label={t("clinic.patient.fields.firstName")}
             value={formData.firstName}
@@ -102,14 +103,14 @@ export function PatientProfileForm({
             value={formData.occupation}
             onChange={(v) => handleChange("occupation", v)}
           />
-        </Card.Content>
-      </Card>
+        </Widget.Content>
+      </Widget>
 
-      <Card>
-        <Card.Header>
-          <h2 className="text-lg font-semibold">{t("clinic.patient.sections.contact")}</h2>
-        </Card.Header>
-        <Card.Content className="grid gap-4 sm:grid-cols-2">
+      <Widget>
+        <Widget.Header>
+          <Widget.Title>{t("clinic.patient.sections.contact")}</Widget.Title>
+        </Widget.Header>
+        <Widget.Content className="grid gap-4 sm:grid-cols-2">
           <FormTextField
             label={t("clinic.patient.fields.phone")}
             value={formData.phone}
@@ -138,14 +139,14 @@ export function PatientProfileForm({
             value={formData.emergencyContactPhone}
             onChange={(v) => handleChange("emergencyContactPhone", v)}
           />
-        </Card.Content>
-      </Card>
+        </Widget.Content>
+      </Widget>
 
-      <Card>
-        <Card.Header>
-          <h2 className="text-lg font-semibold">{t("clinic.patient.sections.medical")}</h2>
-        </Card.Header>
-        <Card.Content className="grid gap-4 sm:grid-cols-2">
+      <Widget>
+        <Widget.Header>
+          <Widget.Title>{t("clinic.patient.sections.medical")}</Widget.Title>
+        </Widget.Header>
+        <Widget.Content className="grid gap-4 sm:grid-cols-2">
           <FormDateField
             label={t("clinic.patient.fields.dateOfSurgery")}
             value={formData.dateOfSurgery}
@@ -182,14 +183,14 @@ export function PatientProfileForm({
               onChange={(v) => handleChange("clinicalNotes", v)}
             />
           </div>
-        </Card.Content>
-      </Card>
+        </Widget.Content>
+      </Widget>
 
-      <Card>
-        <Card.Header>
-          <h2 className="text-lg font-semibold">{t("clinic.patient.sections.insurance")}</h2>
-        </Card.Header>
-        <Card.Content className="grid gap-4 sm:grid-cols-2">
+      <Widget>
+        <Widget.Header>
+          <Widget.Title>{t("clinic.patient.sections.insurance")}</Widget.Title>
+        </Widget.Header>
+        <Widget.Content className="grid gap-4 sm:grid-cols-2">
           <FormTextField
             label={t("clinic.patient.fields.insuranceProvider")}
             value={formData.insuranceProvider}
@@ -207,8 +208,8 @@ export function PatientProfileForm({
               onChange={(v) => handleChange("visitReason", v)}
             />
           </div>
-        </Card.Content>
-      </Card>
+        </Widget.Content>
+      </Widget>
 
       <div className="flex justify-end gap-2">
         <Button variant="ghost" onPress={onCancel}>
@@ -276,25 +277,19 @@ function FormSelectField({
   options: { value: string; label: string }[];
 }) {
   return (
-    <Select
-      selectedKey={value}
-      onSelectionChange={(key) => onChange(String(key))}
-    >
+    <NativeSelect fullWidth>
       <Label>{label}</Label>
-      <Select.Trigger>
-        <Select.Value />
-        <Select.Indicator />
-      </Select.Trigger>
-      <Select.Popover>
-        <ListBox>
-          {options.map((opt) => (
-            <ListBox.Item key={opt.value} id={opt.value} textValue={opt.label}>
-              {opt.label}
-              <ListBox.ItemIndicator />
-            </ListBox.Item>
-          ))}
-        </ListBox>
-      </Select.Popover>
-    </Select>
+      <NativeSelect.Trigger
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {options.map((option) => (
+          <NativeSelect.Option key={option.value} value={option.value}>
+            {option.label}
+          </NativeSelect.Option>
+        ))}
+        <NativeSelect.Indicator />
+      </NativeSelect.Trigger>
+    </NativeSelect>
   );
 }

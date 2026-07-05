@@ -1,6 +1,6 @@
 "use client";
 
-import { Card } from "@heroui/react";
+import { ItemCard, PressableFeedback } from "@heroui-pro/react";
 import type { PatientViewDto } from "../types";
 import { useLocalizedText, formatDate } from "@/localization";
 
@@ -11,37 +11,43 @@ interface PatientRowProps {
 
 export function PatientRow({ patient, onSelect }: PatientRowProps) {
   const { t, locale } = useLocalizedText();
+  const patientName = patient.firstName || patient.lastName
+    ? ((patient.firstName ?? "") + " " + (patient.lastName ?? "")).trim()
+    : patient.name || t("clinic.patients.unnamedPatient");
+  const description = [
+    patient.identificationCode
+      ? `${t("clinic.patient.fields.identificationCode")}: ${patient.identificationCode}`
+      : null,
+    patient.phone,
+  ].filter(Boolean).join(" / ");
+
   return (
-    <Card
-      className="p-3 hover:bg-surface-secondary cursor-pointer transition-colors"
-      role="button"
-      tabIndex={0}
-      onClick={() => { if (patient.id) onSelect(patient.id); }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          if (patient.id) onSelect(patient.id);
-        }
-      }}
+    <ItemCard<"button">
+      className="relative w-full cursor-pointer overflow-hidden text-start"
+      render={(props) => (
+        <button
+          type="button"
+          {...props}
+          onClick={(event) => {
+            props.onClick?.(event);
+            if (patient.id) {
+              onSelect(patient.id);
+            }
+          }}
+        />
+      )}
+      variant="outline"
     >
-      <div
-        className="flex items-center justify-between"
-      >
-        <div className="flex flex-col gap-1">
-          <span className="font-medium">
-            {patient.firstName || patient.lastName
-              ? ((patient.firstName ?? "") + " " + (patient.lastName ?? "")).trim()
-              : patient.name || t("clinic.patients.unnamedPatient")}
-          </span>
-          <span className="text-sm text-muted">
-            {patient.identificationCode && `ID: ${patient.identificationCode}`}
-            {patient.phone && ` | ${patient.phone}`}
-          </span>
-        </div>
-        <div className="text-sm text-muted">
+      <PressableFeedback.Highlight />
+      <ItemCard.Content>
+        <ItemCard.Title>{patientName}</ItemCard.Title>
+        {description && <ItemCard.Description>{description}</ItemCard.Description>}
+      </ItemCard.Content>
+      <ItemCard.Action>
+        <span className="text-sm text-muted">
           {patient.dateOfBirth && formatDate(patient.dateOfBirth, locale)}
-        </div>
-      </div>
-    </Card>
+        </span>
+      </ItemCard.Action>
+    </ItemCard>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Card } from "@heroui/react";
+import { ClinicEmptyState } from "@/features/clinic/components/ClinicStateSurface";
 import { useLocalizedText } from "@/localization";
 
 export function ClinicSettingsUsersSurface() {
@@ -12,11 +12,7 @@ export function ClinicSettingsUsersSurface() {
         <p className="text-sm text-muted">{t("clinic.settings.users.description")}</p>
       </div>
 
-      <Card>
-        <Card.Content className="flex flex-col items-center justify-center py-12">
-          <p className="text-sm text-muted">{t("clinic.settings.users.comingSoon")}</p>
-        </Card.Content>
-      </Card>
+      <ClinicEmptyState title={t("clinic.settings.users.comingSoon")} />
     </div>
   );
 }

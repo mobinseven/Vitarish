@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, Link } from "@heroui/react";
+import { Link } from "@heroui/react";
+import { ItemCard, Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { useLocalizedText } from "@/localization";
@@ -23,6 +24,13 @@ export function HomeDashboard() {
       href: Routes.Knowledge.Index,
       metric: t("home.modules.knowledge.metric"),
       callToAction: t("home.modules.knowledge.callToAction"),
+    },
+    {
+      title: t("home.modules.clinic.title"),
+      description: t("home.modules.clinic.description"),
+      href: Routes.Clinic.Index,
+      metric: t("home.modules.clinic.metric"),
+      callToAction: t("home.modules.clinic.callToAction"),
     },
   ];
   const displayName = displayProfile.givenName ?? displayProfile.displayLabel;
@@ -54,15 +62,15 @@ export function HomeDashboard() {
               </div>
             </div>
 
-            <Card>
-              <Card.Header className="flex flex-col items-start gap-2">
+            <Widget>
+              <Widget.Header className="flex flex-col items-start gap-2">
                 <p className="text-sm font-semibold uppercase tracking-[0.25em] text-muted">{t("home.nextMove")}</p>
-                <h2 className="text-2xl font-bold">{t("home.exploreModuleDemo")}</h2>
-              </Card.Header>
-              <Card.Content className="text-sm leading-6 text-muted">
+                <Widget.Title>{t("home.exploreModuleDemo")}</Widget.Title>
+              </Widget.Header>
+              <Widget.Content className="text-sm leading-6 text-muted">
                 {t("home.firstDemoDescription")}
-              </Card.Content>
-            </Card>
+              </Widget.Content>
+            </Widget>
           </div>
       </section>
 
@@ -79,22 +87,22 @@ export function HomeDashboard() {
 
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {demoModules.map((module) => (
-              <Link key={module.href} href={module.href} className="block">
-                <Card className="h-full">
-                  <Card.Header className="flex flex-col items-start gap-3">
-                    <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+              <Link key={module.href} href={module.href} className="block h-full">
+                <ItemCard className="h-full transition-colors hover:bg-surface-secondary" variant="outline">
+                  <ItemCard.Content>
+                    <ItemCard.Description className="text-xs font-semibold uppercase tracking-[0.2em]">
                       {module.metric}
-                    </span>
-                    <h3 className="text-2xl font-bold text-foreground">{module.title}</h3>
-                  </Card.Header>
-                  <Card.Content className="flex flex-1 flex-col justify-between gap-6 text-sm leading-6 text-muted">
-                    <p>{module.description}</p>
+                    </ItemCard.Description>
+                    <ItemCard.Title className="text-2xl font-bold">{module.title}</ItemCard.Title>
+                    <p className="text-sm leading-6 text-muted">{module.description}</p>
+                  </ItemCard.Content>
+                  <ItemCard.Action>
                     <span className="inline-flex items-center gap-2 font-semibold">
                       {module.callToAction}
                       <span aria-hidden="true">→</span>
                     </span>
-                  </Card.Content>
-                </Card>
+                  </ItemCard.Action>
+                </ItemCard>
               </Link>
             ))}
           </div>

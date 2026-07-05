@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback } from "react";
-import { Card, Button, Spinner } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { ListView } from "@heroui-pro/react";
+import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { useClinicOwnerReminders, useDeleteReminder, useMarkReminderSent } from "../hooks/useClinicOwnerReminders";
 import type { ReminderReadDto } from "../api/remindersApi";
 import { useLocalizedText, type MessageKey } from "@/localization";
@@ -41,37 +43,27 @@ export function ClinicOwnerRemindersGrid() {
       </div>
 
       {isLoading && (
-        <Card className="p-8">
-          <div className="flex items-center justify-center gap-2">
-            <Spinner size="sm" />
-          </div>
-        </Card>
+        <ClinicLoadingState label={t("common.states.loading")} />
       )}
 
       {error && (
-        <Card className="p-8">
-          <p className="text-sm text-danger">{t("clinic.reminders.failedToLoad")}</p>
-        </Card>
+        <ClinicErrorState title={t("clinic.reminders.failedToLoad")} />
       )}
 
       {!isLoading && !error && (
-        <Card>
-          <Card.Content className="flex flex-col gap-1">
-            {(!reminders || reminders.length === 0) && (
-              <p className="py-8 text-center text-sm text-muted">
-                {t("clinic.reminders.empty")}
-              </p>
-            )}
-            {reminders?.map((r) => (
-              <ReminderRow
-                key={r.id}
-                reminder={r}
-                onDelete={handleDelete}
-                onMarkSent={handleMarkSent}
-              />
-            ))}
-          </Card.Content>
-        </Card>
+        <ListView
+          aria-label={t("clinic.reminders.title")}
+          renderEmptyState={() => <ClinicEmptyState title={t("clinic.reminders.empty")} />}
+        >
+          {reminders?.map((reminder) => (
+            <ReminderRow
+              key={reminder.id}
+              reminder={reminder}
+              onDelete={handleDelete}
+              onMarkSent={handleMarkSent}
+            />
+          ))}
+        </ListView>
       )}
     </div>
   );
@@ -87,19 +79,22 @@ function ReminderRow({
   onMarkSent: (id: string) => void;
 }) {
   const { t } = useLocalizedText();
+  const subject = reminder.subject ?? t("clinic.reminders.noSubject");
 
   return (
-    <div className="flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-surface-secondary">
-      <div className="flex flex-col gap-1">
-        <span className="text-sm font-medium">{reminder.subject ?? t("clinic.reminders.noSubject")}</span>
-        <span className="text-xs text-muted">
-          {t(reminderKindKeys[reminder.kind] ?? "common.values.unknown")} · {reminder.recipient ?? reminder.recipientUserId ?? t("clinic.reminders.noRecipient")}
-        </span>
-        <span className="text-xs text-muted">
-          {t("clinic.reminders.remindAt", { value: new Date(reminder.remindAt).toLocaleString() })}
-        </span>
-      </div>
-      <div className="flex gap-1">
+    <ListView.Item id={reminder.id} textValue={subject}>
+      <ListView.ItemContent>
+        <div className="flex flex-col gap-1">
+          <ListView.Title>{subject}</ListView.Title>
+          <ListView.Description>
+            {t(reminderKindKeys[reminder.kind] ?? "common.values.unknown")} / {reminder.recipient ?? reminder.recipientUserId ?? t("clinic.reminders.noRecipient")}
+          </ListView.Description>
+          <ListView.Description>
+            {t("clinic.reminders.remindAt", { value: new Date(reminder.remindAt).toLocaleString() })}
+          </ListView.Description>
+        </div>
+      </ListView.ItemContent>
+      <ListView.ItemAction className="flex gap-1">
         {!reminder.isSent && (
           <Button variant="ghost" size="sm" onPress={() => onMarkSent(reminder.id)}>
             {t("clinic.reminders.markSent")}
@@ -108,7 +103,7 @@ function ReminderRow({
         <Button variant="ghost" className="text-danger" size="sm" onPress={() => onDelete(reminder.id)}>
           {t("common.actions.delete")}
         </Button>
-      </div>
-    </div>
+      </ListView.ItemAction>
+    </ListView.Item>
   );
 }

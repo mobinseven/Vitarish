@@ -1,6 +1,6 @@
 "use client";
 
-import { Card } from "@heroui/react";
+import { ClinicEmptyState } from "@/features/clinic/components/ClinicStateSurface";
 import { useLocalizedText } from "@/localization";
 
 export function ClinicStatisticsDashboard() {
@@ -12,13 +12,7 @@ export function ClinicStatisticsDashboard() {
         <p className="text-sm text-muted">{t("clinic.statistics.description")}</p>
       </div>
 
-      <Card>
-        <Card.Content className="flex flex-col items-center justify-center py-12">
-          <p className="text-sm text-muted">
-            {t("clinic.statistics.comingSoon")}
-          </p>
-        </Card.Content>
-      </Card>
+      <ClinicEmptyState title={t("clinic.statistics.comingSoon")} />
     </div>
   );
 }

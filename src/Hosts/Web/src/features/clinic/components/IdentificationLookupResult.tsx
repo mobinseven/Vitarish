@@ -1,6 +1,8 @@
 "use client";
 
-import { Card, Button } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { ItemCard } from "@heroui-pro/react";
+import { ClinicEmptyState, ClinicErrorState } from "./ClinicStateSurface";
 import type { PatientViewDto } from "../types";
 import { useLocalizedText } from "@/localization";
 
@@ -22,49 +24,49 @@ export function IdentificationLookupResult({
   const { t } = useLocalizedText();
 
   if (status === "found" && patient) {
+    const description = [
+      patient.identificationCode
+        ? `${t("clinic.patient.fields.identificationCode")}: ${patient.identificationCode}`
+        : null,
+      patient.phone,
+    ].filter(Boolean).join(" / ");
+
     return (
-      <Card className="p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium">
-              {patient.firstName} {patient.lastName}
-            </p>
-            <p className="text-sm text-muted">
-              {patient.identificationCode && `ID: ${patient.identificationCode}`}
-              {patient.phone && ` | ${patient.phone}`}
-            </p>
-          </div>
+      <ItemCard variant="outline">
+        <ItemCard.Content>
+          <ItemCard.Title>{patient.firstName} {patient.lastName}</ItemCard.Title>
+          {description && <ItemCard.Description>{description}</ItemCard.Description>}
+        </ItemCard.Content>
+        <ItemCard.Action>
           <Button variant="primary" onPress={() => patient.id && onSelect(patient.id)}>
             {t("clinic.patient.identification.select")}
           </Button>
-        </div>
-      </Card>
+        </ItemCard.Action>
+      </ItemCard>
     );
   }
 
   if (status === "not-found") {
     return (
-      <Card className="p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-muted">{t("clinic.patient.identification.notFound")}</p>
+      <ClinicEmptyState title={t("clinic.patient.identification.notFound")}>
+        <div className="flex justify-center">
           <Button variant="ghost" onPress={onRetry}>
             {t("clinic.patient.identification.retry")}
           </Button>
         </div>
-      </Card>
+      </ClinicEmptyState>
     );
   }
 
   if (status === "error") {
     return (
-      <Card className="p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-danger">{error ?? t("clinic.patient.identification.lookupFailed")}</p>
+      <ClinicErrorState title={error ?? t("clinic.patient.identification.lookupFailed")}>
+        <div className="flex justify-center">
           <Button variant="ghost" onPress={onRetry}>
             {t("clinic.patient.identification.retry")}
           </Button>
         </div>
-      </Card>
+      </ClinicErrorState>
     );
   }
 

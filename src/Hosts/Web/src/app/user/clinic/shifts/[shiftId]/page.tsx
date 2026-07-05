@@ -2,8 +2,11 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, Spinner } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
+import { ClinicDetailGrid } from "@/features/clinic/components/ClinicDetailGrid";
+import { ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { useOwnerShiftDetail } from "@/features/clinic/appointments/shifts/hooks/useOwnerShifts";
 import { useLocalizedText, type MessageKey } from "@/localization";
 
@@ -29,52 +32,37 @@ export default function ClinicUserShiftDetailPage({
   const dayName = shift ? t(dayNameKeys[shift.dayOfWeek]) : "";
 
   if (isLoading) {
-    return (
-      <Card className="p-8">
-        <div className="flex items-center justify-center gap-2">
-          <Spinner size="sm" />
-          <span className="text-muted">{t("common.states.loading")}</span>
-        </div>
-      </Card>
-    );
+    return <ClinicLoadingState label={t("common.states.loading")} />;
   }
 
   if (error || !shift) {
-    return (
-      <Card className="p-8">
-        <p className="text-danger">{error?.message ?? t("clinic.appointments.shifts.notFound")}</p>
-      </Card>
-    );
+    return <ClinicErrorState title={t("clinic.appointments.shifts.notFound")} />;
   }
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <Button variant="ghost" className="mb-2" onPress={() => router.push(Routes.ClinicUser.Shifts.Index)}>
-          ← {t("common.actions.previous")}
+          <i aria-hidden className="fa-solid fa-arrow-left" />
+          {t("common.actions.previous")}
         </Button>
         <h1 className="text-2xl font-bold">{dayName} {shift.startTime} - {shift.endTime}</h1>
       </div>
 
-      <Card>
-        <Card.Content className="grid gap-4 sm:grid-cols-2">
-          <DetailField label={t("clinic.fields.day")} value={dayName} />
-          <DetailField label={t("clinic.fields.start")} value={shift.startTime} />
-          <DetailField label={t("clinic.fields.end")} value={shift.endTime} />
-          <DetailField label={t("clinic.fields.availableSeats")} value={String(shift.totalSeats)} />
-          <DetailField label={t("clinic.fields.timezone")} value={shift.timeZone} />
-          <DetailField label={t("clinic.fields.created")} value={new Date(shift.createdAt).toLocaleString()} />
-        </Card.Content>
-      </Card>
-    </div>
-  );
-}
-
-function DetailField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs text-muted">{label}</span>
-      <span className="text-sm">{value}</span>
+      <Widget>
+        <Widget.Content>
+          <ClinicDetailGrid
+            items={[
+              { label: t("clinic.fields.day"), value: dayName },
+              { label: t("clinic.fields.start"), value: shift.startTime },
+              { label: t("clinic.fields.end"), value: shift.endTime },
+              { label: t("clinic.fields.availableSeats"), value: shift.totalSeats },
+              { label: t("clinic.fields.timezone"), value: shift.timeZone },
+              { label: t("clinic.fields.created"), value: new Date(shift.createdAt).toLocaleString() },
+            ]}
+          />
+        </Widget.Content>
+      </Widget>
     </div>
   );
 }

@@ -2,9 +2,9 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Spinner } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
+import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { useOwnerShifts } from "@/features/clinic/appointments/shifts/hooks/useOwnerShifts";
 import { useLocalizedText, type MessageKey } from "@/localization";
 
@@ -36,16 +36,11 @@ export function UserShiftsList() {
       </div>
 
       {isLoading && (
-        <div className="flex items-center justify-center gap-2 rounded-2xl bg-surface p-8 shadow-surface">
-          <Spinner size="sm" />
-          <span className="text-muted">{t("common.states.loading")}</span>
-        </div>
+        <ClinicLoadingState label={t("common.states.loading")} />
       )}
 
       {error && (
-        <div className="rounded-2xl bg-surface p-8 shadow-surface">
-          <p className="text-sm text-danger">{t("clinic.appointments.shifts.failedToLoad")}</p>
-        </div>
+        <ClinicErrorState title={t("clinic.appointments.shifts.failedToLoad")} />
       )}
 
       {!isLoading && !error && shifts && (
@@ -53,22 +48,20 @@ export function UserShiftsList() {
           aria-label={t("clinic.userAppointments.shifts.title")}
           onAction={(key) => handleSelect(String(key))}
           renderEmptyState={() => (
-            <p className="py-8 text-center text-sm text-muted">
-              {t("clinic.appointments.shifts.empty")}
-            </p>
+            <ClinicEmptyState title={t("clinic.appointments.shifts.empty")} />
           )}
         >
           {shifts.map((s) => (
-            <ListView.Item key={s.id} id={s.id}>
+            <ListView.Item key={s.id} id={s.id} textValue={`${t(dayNameKeys[s.dayOfWeek])} ${s.startTime}`}>
               <ListView.ItemContent>
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex flex-col gap-1">
-                    <ListView.Title>{t(dayNameKeys[s.dayOfWeek])} {s.startTime} - {s.endTime}</ListView.Title>
-                    <ListView.Description>{t("clinic.fields.availableSeats")}: {s.totalSeats}</ListView.Description>
-                  </div>
-                  <span className="text-xs text-muted">{t("clinic.appointments.shifts.book")}</span>
+                <div className="flex flex-col gap-1">
+                  <ListView.Title>{t(dayNameKeys[s.dayOfWeek])} {s.startTime} - {s.endTime}</ListView.Title>
+                  <ListView.Description>{t("clinic.fields.availableSeats")}: {s.totalSeats}</ListView.Description>
                 </div>
               </ListView.ItemContent>
+              <ListView.ItemAction>
+                <span className="text-xs text-muted">{t("clinic.appointments.shifts.book")}</span>
+              </ListView.ItemAction>
             </ListView.Item>
           ))}
         </ListView>

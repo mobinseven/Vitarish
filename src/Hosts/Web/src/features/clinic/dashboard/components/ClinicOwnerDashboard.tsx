@@ -1,21 +1,13 @@
 "use client";
 
-import { Card } from "@heroui/react";
-import Link from "next/link";
 import { Routes } from "@/app/routes";
+import { ClinicNavigationGrid, type ClinicNavigationItem } from "@/features/clinic/components/ClinicNavigationGrid";
 import { useLocalizedText } from "@/localization";
-
-interface DashboardSection {
-  title: string;
-  description: string;
-  href: string;
-  icon: string;
-}
 
 export function ClinicOwnerDashboard() {
   const { t } = useLocalizedText();
 
-  const sections: DashboardSection[] = [
+  const sections: ClinicNavigationItem[] = [
     { title: t("clinic.dashboard.sections.patients.title"), description: t("clinic.dashboard.sections.patients.description"), href: Routes.Clinic.Patients.Index, icon: "fa-solid fa-users" },
     { title: t("clinic.dashboard.sections.checkIn.title"), description: t("clinic.dashboard.sections.checkIn.description"), href: Routes.Clinic.CheckIn, icon: "fa-solid fa-clipboard-check" },
     { title: t("clinic.dashboard.sections.appointments.title"), description: t("clinic.dashboard.sections.appointments.description"), href: Routes.Clinic.Appointments.Reservations.Index, icon: "fa-solid fa-calendar" },
@@ -31,21 +23,7 @@ export function ClinicOwnerDashboard() {
         <p className="text-sm text-muted">{t("clinic.dashboard.description")}</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {sections.map((section) => (
-          <Link key={section.href} href={section.href} className="block">
-            <Card className="h-full">
-              <Card.Header className="flex flex-row items-center gap-3">
-                <i className={`${section.icon} text-lg text-accent`} />
-                <h2 className="text-lg font-semibold">{section.title}</h2>
-              </Card.Header>
-              <Card.Content>
-                <p className="text-sm text-muted">{section.description}</p>
-              </Card.Content>
-            </Card>
-          </Link>
-        ))}
-      </div>
+      <ClinicNavigationGrid items={sections} />
     </div>
   );
 }

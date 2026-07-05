@@ -2,13 +2,22 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Spinner } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
+import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { useOwnerShifts } from "../hooks/useOwnerShifts";
-import { useLocalizedText } from "@/localization";
+import { useLocalizedText, type MessageKey } from "@/localization";
 
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dayNameKeys = [
+  "clinic.weekdays.sunday",
+  "clinic.weekdays.monday",
+  "clinic.weekdays.tuesday",
+  "clinic.weekdays.wednesday",
+  "clinic.weekdays.thursday",
+  "clinic.weekdays.friday",
+  "clinic.weekdays.saturday",
+] satisfies MessageKey[];
 
 export function OwnerShiftsList() {
   const router = useRouter();
@@ -30,16 +39,11 @@ export function OwnerShiftsList() {
       </div>
 
       {isLoading && (
-        <div className="flex items-center justify-center gap-2 rounded-2xl bg-surface p-8 shadow-surface">
-          <Spinner size="sm" />
-          <span className="text-muted">{t("common.states.loading")}</span>
-        </div>
+        <ClinicLoadingState label={t("common.states.loading")} />
       )}
 
       {error && (
-        <div className="rounded-2xl bg-surface p-8 shadow-surface">
-          <p className="text-sm text-danger">{t("clinic.appointments.shifts.loadError")}</p>
-        </div>
+        <ClinicErrorState title={t("clinic.appointments.shifts.failedToLoad")} />
       )}
 
       {!isLoading && !error && shifts && (
@@ -47,22 +51,22 @@ export function OwnerShiftsList() {
           aria-label={t("clinic.appointments.shifts.title")}
           onAction={(key) => handleSelect(String(key))}
           renderEmptyState={() => (
-            <p className="py-8 text-center text-sm text-muted">
-              {t("clinic.appointments.shifts.empty")}
-            </p>
+            <ClinicEmptyState title={t("clinic.appointments.shifts.empty")} />
           )}
         >
           {shifts.map((s) => (
-            <ListView.Item key={s.id} id={s.id}>
+            <ListView.Item key={s.id} id={s.id} textValue={`${t(dayNameKeys[s.dayOfWeek])} ${s.startTime}`}>
               <ListView.ItemContent>
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex flex-col gap-1">
-                    <ListView.Title>{DAY_NAMES[s.dayOfWeek]} {s.startTime} - {s.endTime}</ListView.Title>
-                    <ListView.Description>{s.totalSeats} seats</ListView.Description>
-                  </div>
-                  <span className="text-xs text-muted">{s.serviceId ? "Linked" : "General"}</span>
+                <div className="flex flex-col gap-1">
+                  <ListView.Title>{t(dayNameKeys[s.dayOfWeek])} {s.startTime} - {s.endTime}</ListView.Title>
+                  <ListView.Description>{t("clinic.fields.totalSeats")}: {s.totalSeats}</ListView.Description>
                 </div>
               </ListView.ItemContent>
+              <ListView.ItemAction>
+                <span className="text-xs text-muted">
+                  {s.serviceId ? t("clinic.appointments.shifts.linked") : t("clinic.appointments.shifts.general")}
+                </span>
+              </ListView.ItemAction>
             </ListView.Item>
           ))}
         </ListView>
