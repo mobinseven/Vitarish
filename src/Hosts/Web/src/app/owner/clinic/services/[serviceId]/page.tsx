@@ -8,7 +8,7 @@ import { Routes } from "@/app/routes";
 import { ClinicDetailGrid, type ClinicDetailItem } from "@/features/clinic/components/ClinicDetailGrid";
 import { ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { useServiceDetail, useUpdateService, useDeleteService } from "@/features/clinic/services/hooks/useServices";
-import { useLocalizedText } from "@/localization";
+import { useLocalizedText, formatDateTime } from "@/localization";
 
 export default function ClinicServiceDetailPage({
   params,
@@ -17,7 +17,7 @@ export default function ClinicServiceDetailPage({
 }) {
   const { serviceId } = use(params);
   const router = useRouter();
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
   const { data: service, isLoading, error } = useServiceDetail(serviceId);
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
@@ -61,9 +61,9 @@ export default function ClinicServiceDetailPage({
     { label: t("clinic.fields.name"), value: service.name },
     { label: t("clinic.fields.description"), value: service.description ?? t("common.values.notAvailable") },
     { label: t("clinic.fields.serviceType"), value: service.serviceTypeName ?? t("common.values.notAvailable") },
-    { label: t("clinic.fields.created"), value: new Date(service.createdAt).toLocaleString() },
+    { label: t("clinic.fields.created"), value: formatDateTime(service.createdAt, locale) },
     ...(service.updatedAt
-      ? [{ label: t("clinic.fields.updated"), value: new Date(service.updatedAt).toLocaleString() }]
+      ? [{ label: t("clinic.fields.updated"), value: formatDateTime(service.updatedAt, locale) }]
       : []),
   ];
 

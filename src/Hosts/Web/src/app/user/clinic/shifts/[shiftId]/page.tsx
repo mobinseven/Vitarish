@@ -8,7 +8,7 @@ import { Routes } from "@/app/routes";
 import { ClinicDetailGrid } from "@/features/clinic/components/ClinicDetailGrid";
 import { ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { useOwnerShiftDetail } from "@/features/clinic/appointments/shifts/hooks/useOwnerShifts";
-import { useLocalizedText, type MessageKey } from "@/localization";
+import { useLocalizedText, formatDateTime, type MessageKey } from "@/localization";
 
 const dayNameKeys = [
   "clinic.weekdays.sunday",
@@ -27,7 +27,7 @@ export default function ClinicUserShiftDetailPage({
 }) {
   const { shiftId } = use(params);
   const router = useRouter();
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
   const { data: shift, isLoading, error } = useOwnerShiftDetail(shiftId);
   const dayName = shift ? t(dayNameKeys[shift.dayOfWeek]) : "";
 
@@ -58,7 +58,7 @@ export default function ClinicUserShiftDetailPage({
               { label: t("clinic.fields.end"), value: shift.endTime },
               { label: t("clinic.fields.availableSeats"), value: shift.totalSeats },
               { label: t("clinic.fields.timezone"), value: shift.timeZone },
-              { label: t("clinic.fields.created"), value: new Date(shift.createdAt).toLocaleString() },
+              { label: t("clinic.fields.created"), value: formatDateTime(shift.createdAt, locale) },
             ]}
           />
         </Widget.Content>

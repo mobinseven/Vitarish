@@ -6,7 +6,7 @@ import { ListView } from "@heroui-pro/react";
 import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { useClinicOwnerReminders, useDeleteReminder, useMarkReminderSent } from "../hooks/useClinicOwnerReminders";
 import type { ReminderReadDto } from "../api/remindersApi";
-import { useLocalizedText, type MessageKey } from "@/localization";
+import { useLocalizedText, formatDateTime, type MessageKey } from "@/localization";
 
 const reminderKindKeys: Record<number, MessageKey> = {
   0: "clinic.reminders.kindEmail",
@@ -78,7 +78,7 @@ function ReminderRow({
   onDelete: (id: string) => void;
   onMarkSent: (id: string) => void;
 }) {
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
   const subject = reminder.subject ?? t("clinic.reminders.noSubject");
 
   return (
@@ -90,7 +90,7 @@ function ReminderRow({
             {t(reminderKindKeys[reminder.kind] ?? "common.values.unknown")} / {reminder.recipient ?? reminder.recipientUserId ?? t("clinic.reminders.noRecipient")}
           </ListView.Description>
           <ListView.Description>
-            {t("clinic.reminders.remindAt", { value: new Date(reminder.remindAt).toLocaleString() })}
+            {t("clinic.reminders.remindAt", { value: formatDateTime(reminder.remindAt, locale) })}
           </ListView.Description>
         </div>
       </ListView.ItemContent>

@@ -8,7 +8,7 @@ import { Routes } from "@/app/routes";
 import { ClinicDetailGrid } from "@/features/clinic/components/ClinicDetailGrid";
 import { ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { useOwnerReservationDetail } from "@/features/clinic/appointments/reservations/hooks/useOwnerReservations";
-import { useLocalizedText, type MessageKey } from "@/localization";
+import { useLocalizedText, formatDateTime, type MessageKey } from "@/localization";
 
 const reservationStatusKeys: Record<number, MessageKey> = {
   0: "clinic.reservationStatus.pending",
@@ -28,7 +28,7 @@ export default function ClinicUserReservationDetailPage({
 }) {
   const { reservationId } = use(params);
   const router = useRouter();
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
   const { data: reservation, isLoading, error } = useOwnerReservationDetail(reservationId);
 
   if (isLoading) {
@@ -56,7 +56,7 @@ export default function ClinicUserReservationDetailPage({
               { label: t("clinic.fields.status"), value: t(reservationStatusKeys[reservation.status] ?? "common.values.unknown") },
               { label: t("clinic.fields.date"), value: reservation.date },
               { label: t("clinic.fields.shift"), value: reservation.shiftId.slice(0, 8) },
-              { label: t("clinic.fields.created"), value: new Date(reservation.createdAt).toLocaleString() },
+              { label: t("clinic.fields.created"), value: formatDateTime(reservation.createdAt, locale) },
             ]}
           />
         </Widget.Content>

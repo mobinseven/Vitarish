@@ -1,6 +1,6 @@
 "use client";
 
-import { Link } from "@heroui/react";
+import Link from "next/link";
 import { ItemCard, Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
