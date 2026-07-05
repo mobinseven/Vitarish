@@ -74,8 +74,8 @@ export function DashboardShell({
     }
 
     return {
-      initials: displayProfile.initials ?? getInitials(displayProfile.displayLabel),
-      label: displayProfile.displayLabel,
+      initials: displayProfile?.initials ?? getInitials(displayProfile?.displayLabel ?? ""),
+      label: displayProfile?.displayLabel ?? "",
       subtitle: t("appShell.userMenu.account"),
     };
   }, [displayProfile, isAuthenticated, isLoading, t]);
