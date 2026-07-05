@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Security.Claims;
+using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Requests.Application;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Domain.Entities;
@@ -190,7 +191,9 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
         string? resolvedOwnerId = http.GetOwnerId();
         string? resolvedTenantId = http.GetTenantId();
 
-        string? resolvedUserId = user.FindFirstValue("sub") ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? resolvedUserId = AuthenticatedUserIdResolver.Resolve(user) is AuthenticatedUserIdResolution.Success resolvedUserIdResult
+            ? resolvedUserIdResult.UserId.Value
+            : null;
         string? resolvedResourceId = (http.GetEndpoint() as RouteEndpoint)?.RoutePattern?.RawText
                                      ?? http.Request.Path.ToString();
         string? resolvedTraceId = Activity.Current?.TraceId.ToHexString();

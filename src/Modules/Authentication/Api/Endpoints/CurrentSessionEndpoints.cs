@@ -4,6 +4,7 @@ using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Queries;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Contracts.Responses;
+using Vitarish.Modules.Base.Core.Identity;
 
 namespace Vitarish.Authentication.Api.Endpoints;
 
@@ -11,11 +12,13 @@ public static class CurrentSessionEndpoints
 {
     public static IEndpointRouteBuilder MapCurrentSessionEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/session", async ([Microsoft.AspNetCore.Mvc.FromServices] GetCurrentAuthenticationSessionHandler handler, CancellationToken ct) =>
+        endpoints.MapGet("/session", async ([Microsoft.AspNetCore.Mvc.FromServices] GetCurrentAuthenticationSessionHandler handler, HttpContext httpContext, CancellationToken ct) =>
         {
             var result = await handler.Handle(new GetCurrentAuthenticationSessionQuery(), ct);
+            TenantAccess access = TenantAccessEvaluator.Evaluate(httpContext.User, httpContext.GetTenantId());
+            var accessDto = new TenantAccessDto(access.CanAccessTenantOwner, access.CanAccessTenantUser);
             return result is AuthenticationResult<Vitarish.Authentication.Application.Abstractions.AuthenticationUserDescriptor?>.Success s
-                ? Results.Ok(new AuthenticationSessionDto(s.Value is not null, s.Value is null ? null : new CurrentAuthenticationUserDto(s.Value.UserId, s.Value.DisplayName, s.Value.GivenName, s.Value.FamilyName, s.Value.Email, s.Value.PhoneNumber)))
+                ? Results.Ok(new AuthenticationSessionDto(s.Value is not null, s.Value is null ? null : new CurrentAuthenticationUserDto(s.Value.UserId, s.Value.DisplayName, s.Value.GivenName, s.Value.FamilyName, s.Value.Email, s.Value.PhoneNumber), accessDto))
                 : Results.Unauthorized();
         })
         .WithName("Authentication_Session_Get")

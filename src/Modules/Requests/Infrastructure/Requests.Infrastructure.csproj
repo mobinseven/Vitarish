@@ -5,6 +5,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Application\Requests.Application.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
     <ProjectReference Include="..\..\Parties\Application\Parties.Application.csproj" />
   </ItemGroup>
   <ItemGroup>

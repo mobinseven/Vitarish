@@ -13,6 +13,8 @@
     <ProjectReference Include="..\..\..\src\Modules\Journey\Application\Journey.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Journey\Contracts\Journey.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Journey\Infrastructure\Journey.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Journey\Api\Journey.Api.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Base\Core\Modules.Base.Core.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Users\Application\Users.Application.csproj" />
   </ItemGroup>
 
