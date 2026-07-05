@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 using Vitarish.Journey.Api.Endpoints;
 using Vitarish.Journey.Application.Abstractions;
+using Vitarish.Journey.Contracts.Responses;
 using Vitarish.Journey.Domain;
 using Vitarish.Modules.Base.Core.Identity;
 
@@ -19,7 +20,7 @@ public sealed class CurrentJourneyEndpointsTests
         resolver.Setup(r => r.ResolveAsync(
                 It.Is<JourneyRequest>(request => request.UserId == "subject-user"),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new JourneyStep("/home", JourneyDestinationKind.UserHome));
+            .ReturnsAsync(new JourneyStep(JourneyDestinationKind.UserHome, "/home"));
 
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Path = "/api/modules/journey/current";
@@ -29,6 +30,6 @@ public sealed class CurrentJourneyEndpointsTests
 
         IResult result = await CurrentJourneyEndpoints.GetCurrentJourneyAsync(resolver.Object, principal, httpContext, CancellationToken.None);
 
-        result.Should().BeAssignableTo<Ok>();
+        result.Should().BeAssignableTo<Ok<JourneyDecisionDto>>();
     }
 }

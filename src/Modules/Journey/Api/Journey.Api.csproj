@@ -7,4 +7,8 @@
     <ProjectReference Include="..\Application\Journey.Application.csproj" />
     <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Journey.Tests" />
+  </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 # Authenticated Identity and Tenant Authorization Rule
 
-All backend module endpoints must resolve the current authenticated user id through `AuthenticatedUserIdResolver` from `Vitarish.Modules.Base.Core.Identity`. Endpoints must not parse `HttpContext.User`, `ClaimTypes.NameIdentifier`, or `sub` directly for user identity.
+Backend module endpoints should resolve the current authenticated user id through `AuthenticatedUserIdResolver` from `Vitarish.Modules.Base.Core.Identity`. Endpoints should not parse `HttpContext.User`, `ClaimTypes.NameIdentifier`, or `sub` directly for user identity. Existing endpoints that parse claims locally (e.g. account password/email/phone change) should be migrated to the centralized resolver in follow-up work.
 
 The resolver is the backend source of truth for browser-cookie and bearer-authenticated principals. Missing subject ids must be handled as explicit authentication failures rather than masked by local fallbacks.
 

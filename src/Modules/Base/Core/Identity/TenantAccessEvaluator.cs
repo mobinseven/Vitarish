@@ -19,5 +19,5 @@ public static class TenantAccessEvaluator
 
     private static bool HasRoleOrAccess(ClaimsPrincipal principal, string requirement) =>
         principal.IsInRole(requirement) ||
-        principal.Claims.Any(c => c.Type == IdentityDefinitions.AccessClaim && c.Value == requirement);
+        principal.HasClaim(IdentityDefinitions.AccessClaim, requirement);
 }

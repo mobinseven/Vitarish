@@ -20,7 +20,7 @@ public static class CurrentJourneyEndpoints
         return group;
     }
 
-    public static async Task<IResult> GetCurrentJourneyAsync(
+    internal static async Task<IResult> GetCurrentJourneyAsync(
         IJourneyResolver resolver,
         ClaimsPrincipal user,
         HttpContext httpContext,

@@ -16,9 +16,10 @@ public class IdentityCommonBase : CommonBase
 
     protected override async Task OnInitializedAsync()
     {
-        if (HttpContextAccessor.HttpContext?.User.IsAuthenticated() ?? false)
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext?.User.IsAuthenticated() ?? false)
         {
-            AuthenticatedUserIdResolution userIdResolution = AuthenticatedUserIdResolver.Resolve(HttpContextAccessor.HttpContext.User);
+            AuthenticatedUserIdResolution userIdResolution = AuthenticatedUserIdResolver.Resolve(httpContext.User);
             if (userIdResolution is not AuthenticatedUserIdResolution.Success resolvedUserId)
             {
                 await ReloadRequired();
