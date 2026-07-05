@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useUsersGetTheme,
@@ -19,8 +19,16 @@ export function useAccountTheme(userId: string) {
     },
   });
 
-  const [selected, setSelected] = useState(currentTheme ?? "system");
+  const [selected, setSelected] = useState("system");
+  const [syncedTheme, setSyncedTheme] = useState<string | undefined>();
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (currentTheme && currentTheme !== syncedTheme) {
+      setSelected(currentTheme);
+      setSyncedTheme(currentTheme);
+    }
+  }, [currentTheme, syncedTheme]);
 
   const save = useCallback(
     async (theme: string) => {

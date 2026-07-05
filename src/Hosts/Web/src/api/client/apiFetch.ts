@@ -150,12 +150,38 @@ function isAntiforgeryValidationFailure(error: ApiError): boolean {
   return error.code === "AntiforgeryValidationFailed";
 }
 
-async function sendRequest<T>(url: string, method: string, headers: Headers, body: BodyInit | undefined, _signal: AbortSignal | undefined, options: RequestInit): Promise<T> {
+function canUseSignal(signal: AbortSignal): boolean {
+  try {
+    new Request("http://localhost", { signal });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function toFetchSignal(signal: AbortSignal | undefined): AbortSignal | undefined {
+  if (!signal) return undefined;
+  if (canUseSignal(signal)) return signal;
+
+  const controller = new AbortController();
+  const abortLike = signal as AbortSignal;
+  if (abortLike.aborted) {
+    controller.abort(abortLike.reason);
+  } else {
+    abortLike.addEventListener("abort", () => controller.abort(abortLike.reason), {
+      once: true,
+    });
+  }
+  return canUseSignal(controller.signal) ? controller.signal : undefined;
+}
+
+async function sendRequest<T>(url: string, method: string, headers: Headers, body: BodyInit | undefined, signal: AbortSignal | undefined, options: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${url}`, {
     ...options,
     method,
     headers,
     body,
+    signal: toFetchSignal(signal),
     credentials: "include",
   });
 

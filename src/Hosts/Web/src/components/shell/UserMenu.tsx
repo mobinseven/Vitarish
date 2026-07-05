@@ -36,8 +36,11 @@ export function UserMenu() {
 
   return (
     <Dropdown>
-      <Dropdown.Trigger>
-        <div className="flex items-center gap-2 cursor-pointer">
+      <Dropdown.Trigger aria-label={t("appShell.userMenu.account")}>
+        <div
+          aria-label={t("appShell.userMenu.account")}
+          className="flex min-w-0 items-center gap-2 px-2"
+        >
           <Avatar size="sm" className="h-7 w-7 text-xs">
             <AvatarFallback>{displayProfile.initials ?? ""}</AvatarFallback>
           </Avatar>

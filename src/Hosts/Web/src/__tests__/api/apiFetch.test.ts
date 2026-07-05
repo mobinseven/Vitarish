@@ -26,6 +26,26 @@ describe("apiFetch antiforgery", () => {
     expect(fetchMock.mock.calls[0][1].headers.get(tenantHostHeader)).toBe("tenant-a.example.test");
   });
 
+  it("forwards cancellation signals to fetch", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(jsonResponse({ ok: true }));
+    const controller = new AbortController();
+    const originalRequest = globalThis.Request;
+    vi.stubGlobal("fetch", fetchMock);
+
+    vi.stubGlobal(
+      "Request",
+      function AcceptingRequest() {} as unknown as typeof Request
+    );
+
+    try {
+      await apiFetch("/api/modules/example", { signal: controller.signal });
+
+      expect(fetchMock.mock.calls[0][1].signal).toBe(controller.signal);
+    } finally {
+      vi.stubGlobal("Request", originalRequest);
+    }
+  });
+
   it("fetches an antiforgery token before unsafe requests", async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(jsonResponse({ requestToken: "token" }))

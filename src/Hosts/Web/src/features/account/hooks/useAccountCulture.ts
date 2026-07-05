@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useUsersGetCulture,
@@ -19,8 +19,16 @@ export function useAccountCulture(userId: string) {
     },
   });
 
-  const [selected, setSelected] = useState(currentCulture ?? "en-US");
+  const [selected, setSelected] = useState("en-US");
+  const [syncedCulture, setSyncedCulture] = useState<string | undefined>();
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (currentCulture && currentCulture !== syncedCulture) {
+      setSelected(currentCulture);
+      setSyncedCulture(currentCulture);
+    }
+  }, [currentCulture, syncedCulture]);
 
   const save = useCallback(
     async (culture: string) => {
