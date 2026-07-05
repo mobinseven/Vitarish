@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useUsersGetProfile,
@@ -22,14 +22,16 @@ export function useAccountNameUpdate(userId: string) {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [initialized, setInitialized] = useState(false);
+  const [syncedProfile, setSyncedProfile] = useState<boolean>(false);
   const [success, setSuccess] = useState(false);
 
-  if (profile && !initialized) {
-    setFirstName(profile.firstName ?? "");
-    setLastName(profile.lastName ?? "");
-    setInitialized(true);
-  }
+  useEffect(() => {
+    if (profile && !syncedProfile) {
+      setFirstName(profile.firstName ?? "");
+      setLastName(profile.lastName ?? "");
+      setSyncedProfile(true);
+    }
+  }, [profile, syncedProfile]);
 
   const save = useCallback(
     async (first: string, last: string) => {

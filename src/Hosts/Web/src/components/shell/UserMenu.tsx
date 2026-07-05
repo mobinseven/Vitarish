@@ -37,8 +37,7 @@ export function UserMenu() {
   return (
     <Dropdown>
       <Dropdown.Trigger aria-label={t("appShell.userMenu.account")}>
-        <div
-          aria-label={t("appShell.userMenu.account")}
+        <span
           className="flex min-w-0 items-center gap-2 px-2"
         >
           <Avatar size="sm" className="h-7 w-7 text-xs">
@@ -47,7 +46,7 @@ export function UserMenu() {
           <span className="hidden text-sm font-medium sm:inline">
             {displayProfile.displayLabel}
           </span>
-        </div>
+        </span>
       </Dropdown.Trigger>
       <Dropdown.Popover>
         <Dropdown.Menu onAction={handleAction}>
