@@ -51,7 +51,7 @@ export function DashboardShell({
       return t("home.welcomeBack");
     }
 
-    const displayName = displayProfile.givenName ?? displayProfile.displayLabel;
+    const displayName = displayProfile?.givenName ?? displayProfile?.displayLabel ?? "";
 
     return t("home.welcomeBackNamed", { name: displayName });
   }, [displayProfile, footerItems, homeHref, isAuthenticated, isLoading, navItems, pathname, t]);
