@@ -16,7 +16,7 @@ export function KnowledgeChatCallout({
     success: "text-success-600",
     warning: "text-warning-600",
     danger: "text-danger-600",
-  }[tone];
+  }[tone ?? "default"];
 
   return (
     <ChatMessage.Content>
