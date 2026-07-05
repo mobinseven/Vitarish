@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import "@fortawesome/fontawesome-free/css/all.min.css";
+import "../lib/fa/v7/css/all.min.css";
 import { Providers } from "@/components/providers/AppProviders";
 import { getLocaleDirection, localizedMetadata, parseLocaleCookie, resolveLocale } from "@/localization";
 import "./globals.css";

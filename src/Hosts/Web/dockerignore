@@ -1,0 +1,44 @@
+# Git / editor
+.git
+.gitignore
+.vscode
+.idea
+
+# Dependencies
+node_modules
+.pnpm-store
+.yarn/cache
+
+# Next.js build output
+.next
+out
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Docker / compose files usually do not need to be copied into the image
+Dockerfile
+Dockerfile.*
+docker-compose*.yml
+
+# Tests / local tooling artifacts
+coverage
+.nyc_output
+playwright-report
+test-results
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation usually does not affect runtime image
+README.md
+docs
