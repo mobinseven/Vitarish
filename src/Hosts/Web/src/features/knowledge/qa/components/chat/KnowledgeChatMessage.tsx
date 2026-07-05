@@ -2,17 +2,18 @@
 
 import type { ReactNode } from "react";
 import { ChatMessage } from "@heroui-pro/react";
+import { useLocalizedText } from "@/localization";
 import type { KnowledgeChatItemKind, KnowledgeChatTone } from "./types";
 
 function KnowledgeChatStatus({ label, tone }: { label: string; tone: KnowledgeChatTone }) {
   const toneClass = {
-    default: "bg-surface-secondary text-muted",
-    success: "bg-success-100 text-success-600",
-    warning: "bg-warning-100 text-warning-600",
-    danger: "bg-danger-100 text-danger-600",
+    default: "text-muted",
+    success: "text-success-600",
+    warning: "text-warning-600",
+    danger: "text-danger-600",
   }[tone];
 
-  return <span className={`rounded-full px-3 py-1 text-xs font-medium ${toneClass}`}>{label}</span>;
+  return <span className={`text-xs font-medium ${toneClass}`}>{label}</span>;
 }
 
 export function KnowledgeChatMessage({
@@ -32,24 +33,41 @@ export function KnowledgeChatMessage({
   actions?: ReactNode;
   children: ReactNode;
 }) {
-  const Wrapper = kind === "question" ? ChatMessage.User : ChatMessage.Assistant;
+  const { t } = useLocalizedText();
+
+  if (kind === "question") {
+    return (
+      <ChatMessage.User>
+        <ChatMessage.Bubble>
+          <ChatMessage.Content>{children}</ChatMessage.Content>
+        </ChatMessage.Bubble>
+      </ChatMessage.User>
+    );
+  }
 
   return (
-    <Wrapper className={kind === "question" ? "ms-auto max-w-3xl" : ""}>
-      <ChatMessage.Bubble>
-        <div className="flex w-full flex-col gap-2 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-muted">{kind}</p>
-            {title && <h2 className="text-xl font-semibold">{title}</h2>}
-            {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
+    <ChatMessage.Assistant>
+      <ChatMessage.Avatar
+        alt={t("knowledge.qa.assistantAvatarAlt")}
+        fallback={t("knowledge.qa.assistantAvatarFallback")}
+        show
+      />
+
+      <ChatMessage.Body>
+        {title || subtitle || status ? (
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-wrap items-center gap-2">
+              {title && <span className="text-sm font-medium text-foreground">{title}</span>}
+              {status && <KnowledgeChatStatus label={status} tone={tone} />}
+            </div>
+            {subtitle && <p className="text-sm text-muted">{subtitle}</p>}
           </div>
-          {status && <KnowledgeChatStatus label={status} tone={tone} />}
-        </div>
-        <ChatMessage.Content className="flex flex-col gap-5">
-          {children}
-          {actions && <ChatMessage.Actions>{actions}</ChatMessage.Actions>}
-        </ChatMessage.Content>
-      </ChatMessage.Bubble>
-    </Wrapper>
+        ) : null}
+
+        {children}
+
+        {actions && <ChatMessage.Actions>{actions}</ChatMessage.Actions>}
+      </ChatMessage.Body>
+    </ChatMessage.Assistant>
   );
 }

@@ -8,7 +8,7 @@ import {
   KnowledgeChatSource,
   KnowledgeChatSourceList,
 } from "./chat";
-import { useLocalizedText, type Translate } from "@/localization";
+import { formatNumber, useLocalizedText, type Translate } from "@/localization";
 import type { KnowledgeCorpusAnswerResult } from "../types";
 
 interface KnowledgeAnswerCardProps {
@@ -24,10 +24,11 @@ export function KnowledgeAnswerCard({
   onAskAgain,
   onContinueInCorpus,
 }: KnowledgeAnswerCardProps) {
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
   const { corpus, answer, errorMessage } = result;
   const citations = answer?.citations ?? [];
   const retrievedContext = answer?.retrievedContext ?? [];
+  const answerText = answer?.isAnswered ? answer.answer : answer?.missingInformation ?? answer?.answer;
 
   return (
     <KnowledgeChatMessage
@@ -38,16 +39,24 @@ export function KnowledgeAnswerCard({
       tone={answerStatusTone(answer?.isAnswered, !!errorMessage)}
       actions={
         <>
-          <Button type="button" onPress={onAskAgain}>
-            {t("knowledge.qa.askAgainAction")}
+          <Button
+            isIconOnly
+            aria-label={t("knowledge.qa.askAgainAction")}
+            type="button"
+            variant="ghost"
+            onPress={onAskAgain}
+          >
+            <i aria-hidden="true" className="fa-solid fa-rotate-right size-4" />
           </Button>
           {!isSingleCorpusMode && (
             <Button
+              isIconOnly
+              aria-label={t("knowledge.qa.askFromCorpusAction")}
               type="button"
               variant="ghost"
               onPress={() => onContinueInCorpus(corpus.corpusId)}
             >
-              {t("knowledge.qa.askFromCorpusAction")}
+              <i aria-hidden="true" className="fa-solid fa-filter size-4" />
             </Button>
           )}
         </>
@@ -57,11 +66,7 @@ export function KnowledgeAnswerCard({
 
       {!errorMessage && answer && (
         <>
-          <KnowledgeChatBody>
-            <p className="whitespace-pre-wrap">
-              {answer.isAnswered ? answer.answer : answer.missingInformation ?? answer.answer}
-            </p>
-          </KnowledgeChatBody>
+          {answerText && <KnowledgeChatBody>{answerText}</KnowledgeChatBody>}
 
           {answer.missingInformation && answer.isAnswered && (
             <KnowledgeChatCallout tone="warning">
@@ -76,28 +81,28 @@ export function KnowledgeAnswerCard({
                 <KnowledgeChatSource
                   key={`${citation.chunkId}-${citation.sourceId}`}
                   title={citation.title ?? t("knowledge.qa.referencedChunk")}
-                  body={citation.quote ? `“${citation.quote}”` : null}
+                  body={citation.quote ? `"${citation.quote}"` : null}
                 />
               ))}
             </KnowledgeChatSourceList>
           )}
 
           {retrievedContext.length > 0 && (
-            <details className="border border-separator rounded-lg p-3">
-              <summary className="cursor-pointer text-sm font-semibold">
-                {t("knowledge.qa.retrievedContext", { count: retrievedContext.length })}
-              </summary>
-              <div className="mt-3 grid gap-3">
-                {retrievedContext.map((hit) => (
-                  <KnowledgeChatSource
-                    key={hit.chunkId}
-                    title={hit.title ?? t("knowledge.qa.contextSection")}
-                    meta={t("knowledge.qa.score", { score: hit.score.toFixed(2) })}
-                    body={hit.text}
-                  />
-                ))}
-              </div>
-            </details>
+            <KnowledgeChatSourceList title={t("knowledge.qa.retrievedContext", { count: retrievedContext.length })}>
+              {retrievedContext.map((hit) => (
+                <KnowledgeChatSource
+                  key={hit.chunkId}
+                  title={hit.title ?? t("knowledge.qa.contextSection")}
+                  meta={t("knowledge.qa.score", {
+                    score: formatNumber(hit.score, locale, {
+                      maximumFractionDigits: 2,
+                      minimumFractionDigits: 2,
+                    }),
+                  })}
+                  body={hit.text}
+                />
+              ))}
+            </KnowledgeChatSourceList>
           )}
         </>
       )}

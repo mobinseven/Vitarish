@@ -565,6 +565,9 @@ export const enMessages = {
       },
       composerEyebrow: "Ask",
       composerTitle: "Ask anything",
+      composerFooter: "Answers are grounded in selected Knowledge corpora.",
+      assistantAvatarAlt: "Knowledge assistant",
+      assistantAvatarFallback: "KA",
       thinking: "Thinking",
       searchingContext: "Searching grounded context...",
       emptyStateStart: "Start",
@@ -602,6 +605,8 @@ export const enMessages = {
       home: "Home",
       knowledge: "Knowledge",
       clinic: "Clinic",
+      dashboardMenu: "Dashboard navigation",
+      accountMenu: "Account",
     },
     userMenu: {
       account: "Account",
@@ -615,6 +620,10 @@ export const enMessages = {
     search: {
       label: "Search",
       placeholder: "Search...",
+    },
+    actions: {
+      notifications: "Notifications",
+      invite: "Invite",
     },
     theme: {
       light: "Switch to light mode",

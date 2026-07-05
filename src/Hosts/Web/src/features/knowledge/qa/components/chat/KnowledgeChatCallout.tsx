@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Alert } from "@heroui/react";
+import { ChatMessage } from "@heroui-pro/react";
 import type { KnowledgeChatTone } from "./types";
 
 export function KnowledgeChatCallout({
@@ -11,17 +11,16 @@ export function KnowledgeChatCallout({
   tone?: KnowledgeChatTone;
   children: ReactNode;
 }) {
-  const alertStatus = {
-    default: "default",
-    success: "success",
-    warning: "warning",
-    danger: "danger",
-  }[tone] as "default" | "success" | "warning" | "danger";
+  const toneClass = {
+    default: "text-muted",
+    success: "text-success-600",
+    warning: "text-warning-600",
+    danger: "text-danger-600",
+  }[tone ?? "default"];
 
   return (
-    <Alert status={alertStatus} className="text-sm">
-      <Alert.Indicator />
-      <Alert.Content>{children}</Alert.Content>
-    </Alert>
+    <ChatMessage.Content>
+      <p className={`text-sm ${toneClass}`}>{children}</p>
+    </ChatMessage.Content>
   );
 }

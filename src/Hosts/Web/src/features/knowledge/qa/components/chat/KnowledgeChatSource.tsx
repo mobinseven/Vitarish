@@ -11,13 +11,13 @@ export function KnowledgeChatSource({
   body?: string | null;
   meta?: string;
 }) {
+  const description = [meta, body].filter(Boolean).join("\n\n") || undefined;
+
   return (
-    <ChatSource.Root title={title}>
-      <ChatSource.Trigger>
-        <ChatSource.Title>{title}</ChatSource.Title>
-      </ChatSource.Trigger>
-      {meta && <span className="shrink-0 text-xs text-muted">{meta}</span>}
-      {body && <p className="mt-1 text-muted text-sm">{body}</p>}
-    </ChatSource.Root>
+    <ChatSource
+      description={description}
+      sourceType="document"
+      title={title}
+    />
   );
 }

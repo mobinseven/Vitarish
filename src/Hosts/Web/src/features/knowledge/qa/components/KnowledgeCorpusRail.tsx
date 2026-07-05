@@ -65,49 +65,51 @@ export function KnowledgeCorpusRail({
   );
 
   return (
-    <aside className="w-full lg:w-72 shrink-0">
-      <div className="sticky top-6 flex flex-col gap-3">
-        <div>
+    <aside className="flex max-h-56 w-full shrink-0 flex-col border-b border-separator bg-background px-3 py-3 lg:max-h-none lg:w-72 lg:border-b-0 lg:border-e">
+      <div className="flex min-h-0 flex-col gap-3">
+        <div className="px-2 py-1">
           <p className="text-xs uppercase tracking-[0.25em] text-muted">{t("knowledge.qa.railEyebrow")}</p>
-          <h2 className="text-lg font-semibold">{t("knowledge.qa.railTitle")}</h2>
+          <h2 className="text-sm font-medium text-foreground">{t("knowledge.qa.railTitle")}</h2>
         </div>
 
-        {isLoading && <p className="text-sm text-muted">{t("knowledge.qa.loadingCorpora")}</p>}
+        {isLoading && <p className="px-2 text-sm text-muted">{t("knowledge.qa.loadingCorpora")}</p>}
 
         {!isLoading && corpora.length === 0 && (
-          <p className="text-sm text-muted">{t("knowledge.qa.noCorpora")}</p>
+          <p className="px-2 text-sm text-muted">{t("knowledge.qa.noCorpora")}</p>
         )}
 
         {!isLoading && corpora.length > 0 && (
-          <ChatListView.Root
-            aria-label={t("knowledge.qa.railTitle")}
-            selectionMode="single"
-            selectedKeys={selectedKeys}
-            onSelectionChange={handleSelectionChange}
-          >
-            <ChatListView.Item id={ALL_KEY} textValue={t("knowledge.qa.allCorpora")}>
-              <ChatListView.ItemContent>
-                <ChatListView.Text>
-                  <ChatListView.Title>{t("knowledge.qa.allCorpora")}</ChatListView.Title>
-                  <ChatListView.Preview>{t("knowledge.qa.allCorporaDescription")}</ChatListView.Preview>
-                </ChatListView.Text>
-              </ChatListView.ItemContent>
-            </ChatListView.Item>
-
-            {items.map((corpus) => (
-              <ChatListView.Item key={corpus.corpusId} id={corpus.corpusId} textValue={corpus.name}>
+          <div className="min-h-0 overflow-y-auto">
+            <ChatListView.Root
+              aria-label={t("knowledge.qa.railTitle")}
+              selectionMode="single"
+              selectedKeys={selectedKeys}
+              onSelectionChange={handleSelectionChange}
+            >
+              <ChatListView.Item id={ALL_KEY} textValue={t("knowledge.qa.allCorpora")}>
                 <ChatListView.ItemContent>
                   <ChatListView.Text>
-                    <ChatListView.Title>{corpus.name}</ChatListView.Title>
-                    {corpus.description && (
-                      <ChatListView.Preview className="line-clamp-2">{corpus.description}</ChatListView.Preview>
-                    )}
-                    <ChatListView.Preview>{formatCorpusCounts(corpus.sourceCount, corpus.chunkCount, t)}</ChatListView.Preview>
+                    <ChatListView.Title>{t("knowledge.qa.allCorpora")}</ChatListView.Title>
+                    <ChatListView.Preview>{t("knowledge.qa.allCorporaDescription")}</ChatListView.Preview>
                   </ChatListView.Text>
                 </ChatListView.ItemContent>
               </ChatListView.Item>
-            ))}
-          </ChatListView.Root>
+
+              {items.map((corpus) => (
+                <ChatListView.Item key={corpus.corpusId} id={corpus.corpusId} textValue={corpus.name}>
+                  <ChatListView.ItemContent>
+                    <ChatListView.Text>
+                      <ChatListView.Title>{corpus.name}</ChatListView.Title>
+                      {corpus.description && (
+                        <ChatListView.Preview className="line-clamp-2">{corpus.description}</ChatListView.Preview>
+                      )}
+                      <ChatListView.Preview>{formatCorpusCounts(corpus.sourceCount, corpus.chunkCount, t)}</ChatListView.Preview>
+                    </ChatListView.Text>
+                  </ChatListView.ItemContent>
+                </ChatListView.Item>
+              ))}
+            </ChatListView.Root>
+          </div>
         )}
       </div>
     </aside>
@@ -123,5 +125,5 @@ function formatCorpusCounts(sourceCount: number, chunkCount: number, t: ReturnTy
   }
 
   const chunkKey = chunkCount === 1 ? "knowledge.qa.chunkCount.one" : "knowledge.qa.chunkCount.other";
-  return `${sourceLabel} · ${t(chunkKey, { count: chunkCount })}`;
+  return `${sourceLabel} / ${t(chunkKey, { count: chunkCount })}`;
 }

@@ -100,41 +100,43 @@ export function KnowledgeUserQaSurface() {
   }, []);
 
   return (
-    <main className="p-6">
-      <div className="flex flex-col gap-6 lg:flex-row">
-        <KnowledgeCorpusRail
-          corpora={corpora}
-          selectedCorpusId={selectedCorpusId}
-          isLoading={workspace.isLoading}
-          onSelectAll={selectAll}
-          onSelectCorpus={selectCorpus}
+    <div className="flex h-[calc(100svh-var(--navbar-height,64px))] min-h-[620px] flex-col overflow-hidden bg-background lg:flex-row">
+      <KnowledgeCorpusRail
+        corpora={corpora}
+        selectedCorpusId={selectedCorpusId}
+        isLoading={workspace.isLoading}
+        onSelectAll={selectAll}
+        onSelectCorpus={selectCorpus}
+      />
+
+      <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <KnowledgeAnswerList
+          question={submittedQuestion}
+          scopeKind={lastScope.kind}
+          scopeLabel={answerScopeLabel}
+          results={answerResults}
+          isPending={ask.isPending}
+          statusMessage={statusMessage ?? workspaceError(workspace.error, t) ?? ask.errorMessage}
+          onAskAgain={askAgain}
+          onNewQuestion={startNewQuestion}
+          onContinueInCorpus={continueInCorpus}
         />
 
-        <section className="flex min-w-0 flex-1 flex-col gap-5">
-          <KnowledgeQuestionComposer
-            value={question}
-            scopeLabel={currentScopeLabel}
-            isPending={ask.isPending}
-            hasAnswer={answerResults.length > 0}
-            onChange={setQuestion}
-            onSubmit={submitQuestion}
-            onNewQuestion={startNewQuestion}
-          />
-
-          <KnowledgeAnswerList
-            question={submittedQuestion}
-            scopeKind={lastScope.kind}
-            scopeLabel={answerScopeLabel}
-            results={answerResults}
-            isPending={ask.isPending}
-            statusMessage={statusMessage ?? workspaceError(workspace.error, t) ?? ask.errorMessage}
-            onAskAgain={askAgain}
-            onNewQuestion={startNewQuestion}
-            onContinueInCorpus={continueInCorpus}
-          />
-        </section>
-      </div>
-    </main>
+        <div className="shrink-0 bg-background px-4 pb-4 pt-3">
+          <div className="mx-auto w-full max-w-[714px]">
+            <KnowledgeQuestionComposer
+              value={question}
+              scopeLabel={currentScopeLabel}
+              isPending={ask.isPending}
+              hasAnswer={answerResults.length > 0}
+              onChange={setQuestion}
+              onSubmit={submitQuestion}
+              onNewQuestion={startNewQuestion}
+            />
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 
