@@ -1,6 +1,7 @@
 "use client";
 
-import { Card } from "@heroui/react";
+import { Widget } from "@heroui-pro/react";
+import { ClinicDetailGrid } from "@/features/clinic/components/ClinicDetailGrid";
 import type { PatientViewDto } from "@/api/generated/clinic/model";
 import { useLocalizedText } from "@/localization";
 
@@ -10,39 +11,28 @@ interface PatientCriticalSummaryProps {
 
 export function PatientCriticalSummary({ patient }: PatientCriticalSummaryProps) {
   const { t } = useLocalizedText();
+  const items = [
+    patient.allergies?.trim()
+      ? { label: t("clinic.patient.fields.allergies"), value: patient.allergies }
+      : null,
+    patient.currentMedications?.trim()
+      ? { label: t("clinic.patient.fields.currentMedications"), value: patient.currentMedications }
+      : null,
+    patient.clinicalNotes?.trim()
+      ? { label: t("clinic.patient.fields.clinicalNotes"), value: patient.clinicalNotes }
+      : null,
+  ].filter((item): item is { label: string; value: string } => item !== null);
 
-  const hasCriticalData =
-    patient.allergies?.trim() ||
-    patient.currentMedications?.trim() ||
-    patient.clinicalNotes?.trim();
-
-  if (!hasCriticalData) return null;
+  if (items.length === 0) return null;
 
   return (
-    <Card>
-      <Card.Header>
-        <h2 className="text-lg font-semibold text-warning">{t("clinic.patient.clinicalSummary.title")}</h2>
-      </Card.Header>
-      <Card.Content className="flex flex-col gap-3">
-        {patient.allergies?.trim() && (
-          <div>
-            <span className="text-xs text-muted">{t("clinic.patient.fields.allergies")}</span>
-            <p className="text-sm">{patient.allergies}</p>
-          </div>
-        )}
-        {patient.currentMedications?.trim() && (
-          <div>
-            <span className="text-xs text-muted">{t("clinic.patient.fields.currentMedications")}</span>
-            <p className="text-sm">{patient.currentMedications}</p>
-          </div>
-        )}
-        {patient.clinicalNotes?.trim() && (
-          <div>
-            <span className="text-xs text-muted">{t("clinic.patient.fields.clinicalNotes")}</span>
-            <p className="text-sm">{patient.clinicalNotes}</p>
-          </div>
-        )}
-      </Card.Content>
-    </Card>
+    <Widget>
+      <Widget.Header>
+        <Widget.Title className="text-warning">{t("clinic.patient.clinicalSummary.title")}</Widget.Title>
+      </Widget.Header>
+      <Widget.Content>
+        <ClinicDetailGrid items={items} className="flex flex-col gap-3" />
+      </Widget.Content>
+    </Widget>
   );
 }

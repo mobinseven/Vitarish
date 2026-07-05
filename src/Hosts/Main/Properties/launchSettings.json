@@ -2,7 +2,6 @@
   "profiles": {
     "Main": {
       "commandName": "Project",
-      "launchBrowser": false,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Card, TextField, Label, Input, Button } from "@heroui/react";
+import { Button, Input, Label, TextField } from "@heroui/react";
+import { Widget } from "@heroui-pro/react";
 import type { AdvancedSearchCriteria } from "../types";
 import { useLocalizedText } from "@/localization";
 
@@ -36,11 +37,11 @@ export function AdvancedSearchForm({
   const hasValues = name || identificationCode || dateOfBirth || phone || email;
 
   return (
-    <Card className="p-4">
-      <Card.Header>
-        <h3 className="text-lg font-semibold">{t("clinic.patient.advancedSearch.title")}</h3>
-      </Card.Header>
-      <Card.Content className="flex flex-col gap-4">
+    <Widget>
+      <Widget.Header>
+        <Widget.Title>{t("clinic.patient.advancedSearch.title")}</Widget.Title>
+      </Widget.Header>
+      <Widget.Content className="flex flex-col gap-4">
         <TextField>
           <Label>{t("clinic.patient.advancedSearch.nameLabel")}</Label>
           <Input
@@ -101,7 +102,7 @@ export function AdvancedSearchForm({
             </Button>
           )}
         </div>
-      </Card.Content>
-    </Card>
+      </Widget.Content>
+    </Widget>
   );
 }

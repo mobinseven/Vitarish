@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback } from "react";
-import { Card, Button, Spinner } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { ListView } from "@heroui-pro/react";
+import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { useServiceProviders, useDeleteServiceProvider } from "../hooks/useServiceProviders";
 import { useLocalizedText } from "@/localization";
 
@@ -27,38 +29,36 @@ export function ServiceProvidersPlaceholder() {
       </div>
 
       {isLoading && (
-        <Card className="p-8">
-          <div className="flex items-center justify-center gap-2">
-            <Spinner size="sm" />
-          </div>
-        </Card>
+        <ClinicLoadingState label={t("common.states.loading")} />
       )}
 
       {error && (
-        <Card className="p-8">
-          <p className="text-sm text-danger">{t("clinic.serviceProviders.failedToLoad")}</p>
-        </Card>
+        <ClinicErrorState title={t("clinic.serviceProviders.failedToLoad")} />
       )}
 
       {!isLoading && !error && (
-        <Card>
-          <Card.Content className="flex flex-col gap-1">
-            {(!providers || providers.length === 0) && (
-              <p className="py-8 text-center text-sm text-muted">{t("clinic.serviceProviders.empty")}</p>
-            )}
-            {providers?.map((sp) => (
-              <div key={sp.id} className="flex items-center justify-between rounded-lg px-4 py-3 transition-colors hover:bg-surface-secondary">
+        <ListView
+          aria-label={t("clinic.serviceProviders.title")}
+          renderEmptyState={() => <ClinicEmptyState title={t("clinic.serviceProviders.empty")} />}
+        >
+          {providers?.map((sp) => (
+            <ListView.Item key={sp.id} id={sp.id} textValue={sp.name}>
+              <ListView.ItemContent>
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium">{sp.name}</span>
-                  <span className="text-xs text-muted">{t("clinic.serviceProviders.linkedUsers", { count: sp.linkedUserIds.length })}</span>
+                  <ListView.Title>{sp.name}</ListView.Title>
+                  <ListView.Description>
+                    {t("clinic.serviceProviders.linkedUsers", { count: sp.linkedUserIds.length })}
+                  </ListView.Description>
                 </div>
+              </ListView.ItemContent>
+              <ListView.ItemAction>
                 <Button variant="ghost" className="text-danger" onPress={() => handleDelete(sp.id)}>
                   {t("common.actions.delete")}
                 </Button>
-              </div>
-            ))}
-          </Card.Content>
-        </Card>
+              </ListView.ItemAction>
+            </ListView.Item>
+          ))}
+        </ListView>
       )}
     </div>
   );

@@ -2,8 +2,10 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, Spinner } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { ListView, Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
+import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { usePatientProcedureDetail, usePatientProcedureEvents } from "@/features/clinic/patients/procedures/hooks/useProcedures";
 import { useLocalizedText } from "@/localization";
 
@@ -19,29 +21,19 @@ export default function ClinicPatientProcedurePage({
   const { data: events } = usePatientProcedureEvents(procedureId);
 
   if (isLoading) {
-    return (
-      <Card className="p-8">
-        <div className="flex items-center justify-center gap-2">
-          <Spinner size="sm" />
-          <span className="text-muted">{t("common.states.loading")}</span>
-        </div>
-      </Card>
-    );
+    return <ClinicLoadingState label={t("common.states.loading")} />;
   }
 
   if (error || !procedure) {
-    return (
-      <Card className="p-8">
-        <p className="text-danger">{error?.message ?? t("clinic.procedures.notFound")}</p>
-      </Card>
-    );
+    return <ClinicErrorState title={t("clinic.procedures.notFound")} />;
   }
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <Button variant="ghost" className="mb-2" onPress={() => router.push(Routes.Clinic.Patients.Detail(patientId))}>
-          ← {t("clinic.patients.backToPatients")}
+          <i aria-hidden className="fa-solid fa-arrow-left" />
+          {t("clinic.patients.backToPatients")}
         </Button>
         <h1 className="text-2xl font-bold">{procedure.name}</h1>
         {procedure.description && (
@@ -49,31 +41,35 @@ export default function ClinicPatientProcedurePage({
         )}
       </div>
 
-      <Card>
-        <Card.Header>
-          <h2 className="text-lg font-semibold">{t("clinic.procedures.events")}</h2>
-        </Card.Header>
-        <Card.Content className="flex flex-col gap-1">
-          {(!events || events.length === 0) && (
-            <p className="py-4 text-center text-sm text-muted">{t("clinic.procedures.eventsEmpty")}</p>
-          )}
-          {events?.map((ev) => (
-            <button
-              key={ev.id}
-              onClick={() => router.push(Routes.Clinic.Patients.ProcedureEvent(patientId, procedureId, ev.id))}
-              className="flex items-center justify-between rounded-lg px-4 py-3 text-start transition-colors hover:bg-surface-secondary"
-            >
-              <div className="flex flex-col gap-1">
-                <span className="text-sm font-medium">{ev.title}</span>
-                <span className="text-xs text-muted">{new Date(ev.createdAt).toLocaleDateString()}</span>
-              </div>
-              <span className={`text-xs ${ev.isCommitted ? "text-success" : "text-muted"}`}>
-                {ev.isCommitted ? t("clinic.procedures.committed") : t("clinic.procedures.draft")}
-              </span>
-            </button>
-          ))}
-        </Card.Content>
-      </Card>
+      <Widget>
+        <Widget.Header>
+          <Widget.Title>{t("clinic.procedures.events")}</Widget.Title>
+        </Widget.Header>
+        <Widget.Content>
+          <ListView
+            aria-label={t("clinic.procedures.events")}
+            onAction={(key) => router.push(Routes.Clinic.Patients.ProcedureEvent(patientId, procedureId, String(key)))}
+            renderEmptyState={() => <ClinicEmptyState title={t("clinic.procedures.eventsEmpty")} />}
+            variant="secondary"
+          >
+            {events?.map((event) => (
+              <ListView.Item key={event.id} id={event.id} textValue={event.title}>
+                <ListView.ItemContent>
+                  <div className="flex flex-col gap-1">
+                    <ListView.Title>{event.title}</ListView.Title>
+                    <ListView.Description>{new Date(event.createdAt).toLocaleDateString()}</ListView.Description>
+                  </div>
+                </ListView.ItemContent>
+                <ListView.ItemAction>
+                  <span className={`text-xs ${event.isCommitted ? "text-success" : "text-muted"}`}>
+                    {event.isCommitted ? t("clinic.procedures.committed") : t("clinic.procedures.draft")}
+                  </span>
+                </ListView.ItemAction>
+              </ListView.Item>
+            ))}
+          </ListView>
+        </Widget.Content>
+      </Widget>
     </div>
   );
 }

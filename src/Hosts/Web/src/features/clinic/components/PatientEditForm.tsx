@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, Button } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { Widget } from "@heroui-pro/react";
 import { useLocalizedText } from "@/localization";
 
 interface PatientEditFormProps {
@@ -11,11 +12,11 @@ interface PatientEditFormProps {
 export function PatientEditForm({ onCancel }: PatientEditFormProps) {
   const { t } = useLocalizedText();
   return (
-    <Card>
-      <Card.Header>
-        <h2 className="text-lg font-semibold">{t("clinic.patient.edit.title")}</h2>
-      </Card.Header>
-      <Card.Content className="flex flex-col gap-4">
+    <Widget>
+      <Widget.Header>
+        <Widget.Title>{t("clinic.patient.edit.title")}</Widget.Title>
+      </Widget.Header>
+      <Widget.Content className="flex flex-col gap-4">
         <p className="text-muted">
           {t("clinic.patient.edit.unavailable")}
         </p>
@@ -24,7 +25,7 @@ export function PatientEditForm({ onCancel }: PatientEditFormProps) {
             {t("clinic.patient.edit.cancel")}
           </Button>
         </div>
-      </Card.Content>
-    </Card>
+      </Widget.Content>
+    </Widget>
   );
 }

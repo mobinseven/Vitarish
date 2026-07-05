@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, Spinner } from "@heroui/react";
+import { Widget } from "@heroui-pro/react";
+import { ClinicEmptyState, ClinicLoadingState } from "./ClinicStateSurface";
 import { PatientRow } from "./PatientRow";
 import type { PatientViewDto } from "../types";
 import { useLocalizedText } from "@/localization";
@@ -19,32 +20,21 @@ export function AdvancedSearchResults({
   const { t } = useLocalizedText();
 
   if (isLoading) {
-    return (
-      <Card className="p-4">
-        <div className="flex items-center justify-center gap-2">
-          <Spinner size="sm" />
-          <span className="text-muted">{t("clinic.patient.advancedSearch.searching")}</span>
-        </div>
-      </Card>
-    );
+    return <ClinicLoadingState label={t("clinic.patient.advancedSearch.searching")} />;
   }
 
   if (results.length === 0) {
-    return (
-    <Card className="p-4">
-      <p className="text-center text-muted">{t("clinic.patient.advancedSearch.noResults")}</p>
-    </Card>
-    );
+    return <ClinicEmptyState title={t("clinic.patient.advancedSearch.noResults")} />;
   }
 
   return (
-    <Card>
-      <Card.Header>
-        <h3 className="text-lg font-semibold">
+    <Widget>
+      <Widget.Header>
+        <Widget.Title>
           {t("clinic.patient.advancedSearch.resultsCount", { count: String(results.length) })}
-        </h3>
-      </Card.Header>
-      <Card.Content className="flex flex-col gap-1">
+        </Widget.Title>
+      </Widget.Header>
+      <Widget.Content className="flex flex-col gap-1">
         {results.map((patient) => (
           <PatientRow
             key={patient.id}
@@ -52,7 +42,7 @@ export function AdvancedSearchResults({
             onSelect={onSelectPatient}
           />
         ))}
-      </Card.Content>
-    </Card>
+      </Widget.Content>
+    </Widget>
   );
 }

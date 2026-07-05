@@ -1,6 +1,7 @@
 "use client";
 
-import { Card, Spinner } from "@heroui/react";
+import { ListView, Widget } from "@heroui-pro/react";
+import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { usePatientProcedures } from "../hooks/useProcedures";
 import { useLocalizedText } from "@/localization";
 
@@ -13,49 +14,47 @@ export function PatientProceduresPanel({ patientId }: PatientProceduresPanelProp
   const { data: procedures, isLoading, error } = usePatientProcedures(patientId);
 
   return (
-    <Card>
-      <Card.Header>
-        <h2 className="text-lg font-semibold">{t("clinic.procedures.title")}</h2>
-      </Card.Header>
-      <Card.Content>
+    <Widget>
+      <Widget.Header>
+        <Widget.Title>{t("clinic.procedures.title")}</Widget.Title>
+      </Widget.Header>
+      <Widget.Content>
         {isLoading && (
-          <div className="flex items-center justify-center py-4">
-            <Spinner size="sm" />
-          </div>
+          <ClinicLoadingState label={t("common.states.loading")} />
         )}
 
         {error && (
-          <p className="text-sm text-danger">{t("clinic.procedures.failedToLoad")}</p>
+          <ClinicErrorState title={t("clinic.procedures.failedToLoad")} />
         )}
 
         {!isLoading && !error && procedures && (
-          <div className="flex flex-col gap-1">
-            {procedures.length === 0 && (
-              <p className="py-4 text-center text-sm text-muted">
-                {t("clinic.procedures.comingSoon")}
-              </p>
-            )}
-            {procedures.map((p) => (
-              <div
-                key={p.id}
-                className="flex items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-surface-secondary"
-              >
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-medium">{p.name}</span>
-                  {p.description && (
-                    <span className="text-xs text-muted">{p.description}</span>
-                  )}
-                </div>
-                {p.stats && (
-                  <span className="text-xs text-muted">
-                    {t("clinic.patient.overview.events")}: {Number(p.stats.events) || 0}
-                  </span>
+          <ListView
+            aria-label={t("clinic.procedures.title")}
+            renderEmptyState={() => <ClinicEmptyState title={t("clinic.procedures.comingSoon")} />}
+            variant="secondary"
+          >
+            {procedures.map((procedure) => (
+              <ListView.Item key={procedure.id} id={procedure.id} textValue={procedure.name}>
+                <ListView.ItemContent>
+                  <div className="flex flex-col gap-1">
+                    <ListView.Title>{procedure.name}</ListView.Title>
+                    {procedure.description && (
+                      <ListView.Description>{procedure.description}</ListView.Description>
+                    )}
+                  </div>
+                </ListView.ItemContent>
+                {procedure.stats && (
+                  <ListView.ItemAction>
+                    <span className="text-xs text-muted">
+                      {t("clinic.patient.overview.events")}: {Number(procedure.stats.events) || 0}
+                    </span>
+                  </ListView.ItemAction>
                 )}
-              </div>
+              </ListView.Item>
             ))}
-          </div>
+          </ListView>
         )}
-      </Card.Content>
-    </Card>
+      </Widget.Content>
+    </Widget>
   );
 }

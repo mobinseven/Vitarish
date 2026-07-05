@@ -1,9 +1,12 @@
 "use client";
 
-import { use, useCallback, useState, useEffect } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, TextField, Label, Input, Spinner } from "@heroui/react";
+import { Button, Input, Label, TextField } from "@heroui/react";
+import { Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
+import { ClinicDetailGrid, type ClinicDetailItem } from "@/features/clinic/components/ClinicDetailGrid";
+import { ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { useServiceProviderDetail, useUpdateServiceProvider, useDeleteServiceProvider } from "@/features/clinic/service-providers/hooks/useServiceProviders";
 import { useLocalizedText } from "@/localization";
 
@@ -46,30 +49,30 @@ export default function ClinicServiceProviderDetailPage({
   }, [serviceProviderId, deleteProvider, router, t]);
 
   if (isLoading) {
-    return (
-      <Card className="p-8">
-        <div className="flex items-center justify-center gap-2">
-          <Spinner size="sm" />
-          <span className="text-muted">{t("common.states.loading")}</span>
-        </div>
-      </Card>
-    );
+    return <ClinicLoadingState label={t("common.states.loading")} />;
   }
 
   if (error || !provider) {
-    return (
-      <Card className="p-8">
-        <p className="text-danger">{error?.message ?? t("clinic.serviceProviders.notFound")}</p>
-      </Card>
-    );
+    return <ClinicErrorState title={t("clinic.serviceProviders.notFound")} />;
   }
+
+  const details: ClinicDetailItem[] = [
+    { label: t("clinic.fields.name"), value: provider.name },
+    { label: t("clinic.fields.description"), value: provider.description ?? t("common.values.notAvailable") },
+    { label: t("clinic.fields.linkedUsers"), value: provider.linkedUserIds.length },
+    { label: t("clinic.fields.created"), value: new Date(provider.createdAt).toLocaleString() },
+    ...(provider.updatedAt
+      ? [{ label: t("clinic.fields.updated"), value: new Date(provider.updatedAt).toLocaleString() }]
+      : []),
+  ];
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
           <Button variant="ghost" className="mb-2" onPress={() => router.push(Routes.Clinic.Appointments.ServiceProviders.Index)}>
-            ← {t("common.actions.previous")}
+            <i aria-hidden className="fa-solid fa-arrow-left" />
+            {t("common.actions.previous")}
           </Button>
           <h1 className="text-2xl font-bold">{editing ? t("clinic.serviceProviders.editTitle") : provider.name}</h1>
         </div>
@@ -86,15 +89,15 @@ export default function ClinicServiceProviderDetailPage({
       </div>
 
       {editing ? (
-        <Card>
-          <Card.Content className="flex flex-col gap-4">
+        <Widget>
+          <Widget.Content className="flex flex-col gap-4">
             <TextField>
               <Label>{t("clinic.fields.name")}</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
+              <Input value={name} onChange={(event) => setName(event.target.value)} />
             </TextField>
             <TextField>
               <Label>{t("clinic.fields.description")}</Label>
-              <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+              <Input value={description} onChange={(event) => setDescription(event.target.value)} />
             </TextField>
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onPress={() => setEditing(false)}>{t("common.actions.cancel")}</Button>
@@ -102,30 +105,15 @@ export default function ClinicServiceProviderDetailPage({
                 {t("common.actions.save")}
               </Button>
             </div>
-          </Card.Content>
-        </Card>
+          </Widget.Content>
+        </Widget>
       ) : (
-        <Card>
-          <Card.Content className="grid gap-4 sm:grid-cols-2">
-            <DetailField label={t("clinic.fields.name")} value={provider.name} />
-            <DetailField label={t("clinic.fields.description")} value={provider.description ?? "—"} />
-            <DetailField label={t("clinic.fields.linkedUsers")} value={String(provider.linkedUserIds.length)} />
-            <DetailField label={t("clinic.fields.created")} value={new Date(provider.createdAt).toLocaleString()} />
-            {provider.updatedAt && (
-              <DetailField label={t("clinic.fields.updated")} value={new Date(provider.updatedAt).toLocaleString()} />
-            )}
-          </Card.Content>
-        </Card>
+        <Widget>
+          <Widget.Content>
+            <ClinicDetailGrid items={details} />
+          </Widget.Content>
+        </Widget>
       )}
-    </div>
-  );
-}
-
-function DetailField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs text-muted">{label}</span>
-      <span className="text-sm">{value}</span>
     </div>
   );
 }

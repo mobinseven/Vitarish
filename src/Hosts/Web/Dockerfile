@@ -22,7 +22,8 @@ ARG NEXT_PUBLIC_API_BASE_URL=https://localhost:7272
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN npm run build
+RUN --mount=type=cache,target=/app/.next/cache \
+    npm run build
 
 # --- Production ---
 FROM base AS runner

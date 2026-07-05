@@ -1,10 +1,13 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Card, Button } from "@heroui/react";
-import { PatientFindOrCreate } from "@/features/clinic/patients/find-or-create/components/PatientFindOrCreate";
-import { useLocalizedText } from "@/localization";
+import { Button } from "@heroui/react";
+import { Stepper, Widget } from "@heroui-pro/react";
 import type { ShiftReservationReadDto } from "@/api/generated/appointments/model";
+import { PatientFindOrCreate } from "@/features/clinic/patients/find-or-create/components/PatientFindOrCreate";
+import { ClinicDetailGrid } from "@/features/clinic/components/ClinicDetailGrid";
+import { ClinicEmptyState } from "@/features/clinic/components/ClinicStateSurface";
+import { useLocalizedText } from "@/localization";
 
 type CheckInStep = "find-patient" | "select-shift" | "confirm";
 
@@ -21,6 +24,12 @@ export function PatientCheckInWizard({
   const [step, setStep] = useState<CheckInStep>("find-patient");
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [selectedShift, setSelectedShift] = useState<ShiftReservationReadDto | null>(null);
+  const currentStep = step === "find-patient" ? 0 : step === "select-shift" ? 1 : 2;
+  const steps = [
+    t("clinic.checkIn.step1"),
+    t("clinic.checkIn.step2"),
+    t("clinic.checkIn.step3"),
+  ];
 
   const handlePatientSelect = useCallback(
     (patientId: string) => {
@@ -50,58 +59,53 @@ export function PatientCheckInWizard({
         <p className="text-sm text-muted">{t("clinic.checkIn.description")}</p>
       </div>
 
-      {/* Step indicators */}
-      <div className="flex items-center gap-2 text-sm">
-        <StepIndicator step={1} label={t("clinic.checkIn.step1")} isActive={step === "find-patient"} isComplete={step !== "find-patient"} />
-        <div className="h-px w-8 bg-surface-secondary" />
-        <StepIndicator step={2} label={t("clinic.checkIn.step2")} isActive={step === "select-shift"} isComplete={step === "confirm"} />
-        <div className="h-px w-8 bg-surface-secondary" />
-        <StepIndicator step={3} label={t("clinic.checkIn.step3")} isActive={step === "confirm"} isComplete={false} />
-      </div>
+      <Stepper currentStep={currentStep}>
+        {steps.map((stepLabel) => (
+          <Stepper.Step key={stepLabel}>
+            <Stepper.Indicator />
+            <Stepper.Content>
+              <Stepper.Title>{stepLabel}</Stepper.Title>
+            </Stepper.Content>
+            <Stepper.Separator />
+          </Stepper.Step>
+        ))}
+      </Stepper>
 
       {step === "find-patient" && (
         <PatientFindOrCreate onPatientSelected={handlePatientSelect} />
       )}
 
       {step === "select-shift" && selectedPatientId && (
-        <Card>
-          <Card.Header>
+        <Widget>
+          <Widget.Header>
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">{t("clinic.checkIn.step2")}</h2>
+              <Widget.Title>{t("clinic.checkIn.step2")}</Widget.Title>
               <Button variant="ghost" onPress={handleBackToFind}>
-                ← {t("clinic.checkIn.changePatient")}
+                <i aria-hidden className="fa-solid fa-arrow-left" />
+                {t("clinic.checkIn.changePatient")}
               </Button>
             </div>
-          </Card.Header>
-          <Card.Content>
-            <p className="text-sm text-muted mb-4">
-              {t("clinic.checkIn.selectShiftDescription")}
-            </p>
+            <Widget.Description>{t("clinic.checkIn.selectShiftDescription")}</Widget.Description>
+          </Widget.Header>
+          <Widget.Content>
             <ShiftSelectionPanel />
-          </Card.Content>
-        </Card>
+          </Widget.Content>
+        </Widget>
       )}
 
       {step === "confirm" && selectedPatientId && selectedShift && (
-        <Card>
-          <Card.Header>
-            <h2 className="text-lg font-semibold">{t("clinic.checkIn.step3")}</h2>
-          </Card.Header>
-          <Card.Content className="flex flex-col gap-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <span className="text-xs text-muted">{t("clinic.checkIn.shiftDate")}</span>
-                <p className="text-sm">{selectedShift.date}</p>
-              </div>
-              <div>
-                <span className="text-xs text-muted">{t("clinic.checkIn.shiftTime")}</span>
-                <p className="text-sm">{selectedShift.startTime} - {selectedShift.endTime}</p>
-              </div>
-              <div>
-                <span className="text-xs text-muted">{t("clinic.checkIn.availableSeats")}</span>
-                <p className="text-sm">{selectedShift.availableSeats}</p>
-              </div>
-            </div>
+        <Widget>
+          <Widget.Header>
+            <Widget.Title>{t("clinic.checkIn.step3")}</Widget.Title>
+          </Widget.Header>
+          <Widget.Content className="flex flex-col gap-4">
+            <ClinicDetailGrid
+              items={[
+                { label: t("clinic.checkIn.shiftDate"), value: selectedShift.date },
+                { label: t("clinic.checkIn.shiftTime"), value: `${selectedShift.startTime} - ${selectedShift.endTime}` },
+                { label: t("clinic.checkIn.availableSeats"), value: selectedShift.availableSeats },
+              ]}
+            />
 
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onPress={() => setStep("select-shift")}>
@@ -111,32 +115,9 @@ export function PatientCheckInWizard({
                 {t("clinic.checkIn.confirmCheckIn")}
               </Button>
             </div>
-          </Card.Content>
-        </Card>
+          </Widget.Content>
+        </Widget>
       )}
-    </div>
-  );
-}
-
-function StepIndicator({
-  step,
-  label,
-  isActive,
-  isComplete,
-}: {
-  step: number;
-  label: string;
-  isActive: boolean;
-  isComplete: boolean;
-}) {
-  return (
-    <div className={`flex items-center gap-2 ${isActive ? "text-accent font-medium" : isComplete ? "text-success" : "text-muted"}`}>
-      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${
-        isActive ? "bg-accent text-white" : isComplete ? "bg-success text-white" : "bg-surface-secondary text-muted"
-      }`}>
-        {isComplete ? "✓" : step}
-      </span>
-      <span className="text-sm">{label}</span>
     </div>
   );
 }
@@ -145,8 +126,6 @@ function ShiftSelectionPanel() {
   const { t } = useLocalizedText();
 
   return (
-    <div className="flex flex-col items-center gap-4 py-8">
-      <p className="text-sm text-muted">{t("clinic.checkIn.shiftUnavailable")}</p>
-    </div>
+    <ClinicEmptyState title={t("clinic.checkIn.shiftUnavailable")} />
   );
 }

@@ -2,8 +2,11 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, Spinner } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
+import { ClinicDetailGrid, type ClinicDetailItem } from "@/features/clinic/components/ClinicDetailGrid";
+import { ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { useProcedureEventDetail } from "@/features/clinic/patients/procedures/hooks/useProcedures";
 import { useLocalizedText } from "@/localization";
 
@@ -18,29 +21,29 @@ export default function ClinicPatientProcedureEventPage({
   const { data: event, isLoading, error } = useProcedureEventDetail(eventId);
 
   if (isLoading) {
-    return (
-      <Card className="p-8">
-        <div className="flex items-center justify-center gap-2">
-          <Spinner size="sm" />
-          <span className="text-muted">{t("common.states.loading")}</span>
-        </div>
-      </Card>
-    );
+    return <ClinicLoadingState label={t("common.states.loading")} />;
   }
 
   if (error || !event) {
-    return (
-      <Card className="p-8">
-        <p className="text-danger">{error?.message ?? t("clinic.procedures.eventNotFound")}</p>
-      </Card>
-    );
+    return <ClinicErrorState title={t("clinic.procedures.eventNotFound")} />;
   }
+
+  const details: ClinicDetailItem[] = [
+    { label: t("clinic.fields.created"), value: new Date(event.createdAt).toLocaleString() },
+    ...(event.committedAt
+      ? [{ label: t("clinic.fields.committedAt"), value: new Date(event.committedAt).toLocaleString() }]
+      : []),
+    ...(event.description
+      ? [{ label: t("clinic.fields.description"), value: event.description }]
+      : []),
+  ];
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <Button variant="ghost" className="mb-2" onPress={() => router.push(Routes.Clinic.Patients.Procedure(patientId, procedureId))}>
-          ← {t("common.actions.previous")}
+          <i aria-hidden className="fa-solid fa-arrow-left" />
+          {t("common.actions.previous")}
         </Button>
         <h1 className="text-2xl font-bold">{event.title}</h1>
         <span className={`text-xs ${event.isCommitted ? "text-success" : "text-muted"}`}>
@@ -48,29 +51,11 @@ export default function ClinicPatientProcedureEventPage({
         </span>
       </div>
 
-      <Card>
-        <Card.Content className="grid gap-4 sm:grid-cols-2">
-          <DetailField label={t("clinic.fields.created")} value={new Date(event.createdAt).toLocaleString()} />
-          {event.committedAt && (
-            <DetailField label={t("clinic.fields.committedAt")} value={new Date(event.committedAt).toLocaleString()} />
-          )}
-          {event.description && (
-            <div className="sm:col-span-2">
-              <span className="text-xs text-muted">{t("clinic.fields.description")}</span>
-              <p className="text-sm">{event.description}</p>
-            </div>
-          )}
-        </Card.Content>
-      </Card>
-    </div>
-  );
-}
-
-function DetailField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs text-muted">{label}</span>
-      <span className="text-sm">{value}</span>
+      <Widget>
+        <Widget.Content>
+          <ClinicDetailGrid items={details} />
+        </Widget.Content>
+      </Widget>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Card, Button, Spinner } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { ClinicLoadingState, ClinicErrorState } from "@/features/clinic/components/ClinicStateSurface";
 import { Routes } from "@/app/routes";
 import { usePatientDetail } from "../hooks/usePatientDetail";
 import { PatientDetails } from "./PatientDetails";
@@ -21,31 +22,16 @@ export function ClinicOwnerPatientDetailPage({
   const { data: patient, isLoading, error } = usePatientDetail(patientId);
 
   if (isLoading) {
-    return (
-      <Card className="p-8">
-        <div className="flex items-center justify-center gap-2">
-          <Spinner size="sm" />
-          <span className="text-muted">{t("clinic.patient.detail.loading")}</span>
-        </div>
-      </Card>
-    );
+    return <ClinicLoadingState label={t("clinic.patient.detail.loading")} />;
   }
 
   if (error || !patient) {
     return (
-      <Card className="p-8">
-        <div className="flex flex-col items-center gap-4">
-          <p className="text-danger">
-            {error instanceof Error ? error.message : t("clinic.patient.detail.notFound")}
-          </p>
-          <Button
-            variant="ghost"
-            onPress={() => router.push(Routes.Clinic.Patients.Index)}
-          >
-            {t("clinic.patients.backToPatients")}
-          </Button>
-        </div>
-      </Card>
+      <ClinicErrorState title={error instanceof Error ? error.message : t("clinic.patient.detail.notFound")}>
+        <Button variant="ghost" onPress={() => router.push(Routes.Clinic.Patients.Index)}>
+          {t("clinic.patients.backToPatients")}
+        </Button>
+      </ClinicErrorState>
     );
   }
 
