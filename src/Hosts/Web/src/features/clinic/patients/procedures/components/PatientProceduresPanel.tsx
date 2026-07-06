@@ -1,6 +1,9 @@
 "use client";
 
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { ListView, Widget } from "@heroui-pro/react";
+import { Routes } from "@/app/routes";
 import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { usePatientProcedures } from "../hooks/useProcedures";
 import { useLocalizedText } from "@/localization";
@@ -10,8 +13,13 @@ interface PatientProceduresPanelProps {
 }
 
 export function PatientProceduresPanel({ patientId }: PatientProceduresPanelProps) {
+  const router = useRouter();
   const { t } = useLocalizedText();
   const { data: procedures, isLoading, error } = usePatientProcedures(patientId);
+  const handleSelect = useCallback(
+    (procedureId: string) => router.push(Routes.Clinic.Patients.Procedure(patientId, procedureId)),
+    [patientId, router]
+  );
 
   return (
     <Widget>
@@ -30,6 +38,7 @@ export function PatientProceduresPanel({ patientId }: PatientProceduresPanelProp
         {!isLoading && !error && procedures && (
           <ListView
             aria-label={t("clinic.procedures.title")}
+            onAction={(key) => handleSelect(String(key))}
             renderEmptyState={() => <ClinicEmptyState title={t("clinic.procedures.comingSoon")} />}
             variant="secondary"
           >
