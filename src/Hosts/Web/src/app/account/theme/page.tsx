@@ -7,8 +7,12 @@ import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { Routes } from "@/app/routes";
 import { useAccountTheme } from "@/features/account/hooks/useAccountTheme";
 import { StatusMessage } from "@/components/auth/StatusMessage";
-import { OptionSelector } from "@/components/account/OptionSelector";
 import { useLocalizedText } from "@/localization";
+import { PaletteSwitch } from "@/features/account/theme/PaletteSwitch";
+import {
+  setVibrantPaletteAttribute,
+  vibrantPaletteStorageKey,
+} from "@/features/account/theme/themeOptions";
 
 export default function ThemePage() {
   const { user } = useAuthSession();
@@ -18,6 +22,8 @@ export default function ThemePage() {
   const {
     selected,
     setSelected,
+    isVibrant,
+    setIsVibrant,
     success,
     isError,
     isPending,
@@ -25,23 +31,19 @@ export default function ThemePage() {
   } = useAccountTheme(userId);
 
   const handleSave = useCallback(async () => {
-    await save(selected);
+    await save({ theme: selected, isVibrant });
     setNextTheme(selected);
-  }, [save, selected, setNextTheme]);
-
-  const themes = [
-    { value: "light", label: t("account.theme.light") },
-    { value: "dark", label: t("account.theme.dark") },
-    { value: "system", label: t("account.theme.system") },
-  ];
+    window.localStorage.setItem(vibrantPaletteStorageKey, String(isVibrant));
+    setVibrantPaletteAttribute(isVibrant, document.documentElement);
+  }, [isVibrant, save, selected, setNextTheme]);
 
   return (
-    <div className="max-w-md mx-auto flex flex-col gap-4">
-      <OptionSelector
-        title={t("account.theme.title")}
-        options={themes}
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+      <PaletteSwitch
         selected={selected}
+        isVibrant={isVibrant}
         onSelect={setSelected}
+        onVibrantChange={setIsVibrant}
       />
       {isError && (
         <StatusMessage message={t("account.theme.updateFailed")} />
