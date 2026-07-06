@@ -4,12 +4,11 @@ import { useEffect, useState, type JSX } from "react";
 import { Button } from "@heroui/react";
 import { useTheme } from "next-themes";
 import { useLocalizedText } from "@/localization";
+import { resolveThemeMode, type ThemeMode } from "@/features/account/theme/themeOptions";
 
-type Theme = "light" | "dark" | "system";
+const THEME_CYCLE: ThemeMode[] = ["light", "dark", "system"];
 
-const THEME_CYCLE: Theme[] = ["light", "dark", "system"];
-
-function nextTheme(current: Theme): Theme {
+function nextTheme(current: ThemeMode): ThemeMode {
   const idx = THEME_CYCLE.indexOf(current);
   return THEME_CYCLE[(idx + 1) % THEME_CYCLE.length];
 }
@@ -45,7 +44,7 @@ function MonitorIcon() {
   );
 }
 
-const THEME_ICONS: Record<Theme, () => JSX.Element> = {
+const THEME_ICONS: Record<ThemeMode, () => JSX.Element> = {
   light: SunIcon,
   dark: MoonIcon,
   system: MonitorIcon,
@@ -56,7 +55,7 @@ export function ThemeSwitch() {
   const { setTheme, theme } = useTheme();
   const { t } = useLocalizedText();
 
-  const currentTheme: Theme = (theme as Theme) ?? "system";
+  const currentTheme = resolveThemeMode(theme);
 
   const handleToggle = () => {
     setTheme(nextTheme(currentTheme));

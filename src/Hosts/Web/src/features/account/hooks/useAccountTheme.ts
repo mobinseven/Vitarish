@@ -5,6 +5,12 @@ import {
   useUsersSetTheme,
 } from "@/api/generated/users/users";
 import { accountKeys } from "./accountKeys";
+import {
+  decodeAccountThemePreference,
+  encodeAccountThemePreference,
+  type AccountThemePreference,
+  type AccountThemeValue,
+} from "../theme/themeOptions";
 
 export function useAccountTheme(userId: string) {
   const queryClient = useQueryClient();
@@ -19,23 +25,27 @@ export function useAccountTheme(userId: string) {
     },
   });
 
-  const [selected, setSelected] = useState("system");
+  const [selected, setSelected] = useState<AccountThemeValue>("system");
+  const [isVibrant, setIsVibrant] = useState(false);
   const [syncedTheme, setSyncedTheme] = useState<string | undefined>();
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (currentTheme && currentTheme !== syncedTheme) {
-      setSelected(currentTheme);
+      const preference = decodeAccountThemePreference(currentTheme);
+
+      setSelected(preference.theme);
+      setIsVibrant(preference.isVibrant);
       setSyncedTheme(currentTheme);
     }
   }, [currentTheme, syncedTheme]);
 
   const save = useCallback(
-    async (theme: string) => {
+    async (preference: AccountThemePreference) => {
       setSuccess(false);
       await setThemeMutation.mutateAsync({
         userId,
-        data: { theme },
+        data: { theme: encodeAccountThemePreference(preference) },
       });
       setSuccess(true);
     },
@@ -46,6 +56,8 @@ export function useAccountTheme(userId: string) {
     currentTheme,
     selected,
     setSelected,
+    isVibrant,
+    setIsVibrant,
     success,
     setSuccess,
     isLoading,
