@@ -10,37 +10,53 @@ export interface PublicKeyCredentialRequestOptionsJSON {
   userVerification?: UserVerificationRequirement;
 }
 
+export class WebAuthnUnsupportedError extends Error {
+  constructor(message = "WebAuthn is not supported in this browser or context.") {
+    super(message);
+    this.name = "WebAuthnUnsupportedError";
+  }
+}
+
+export class WebAuthnOptionConversionError extends Error {
+  constructor(message = "WebAuthn options could not be converted for the browser.") {
+    super(message);
+    this.name = "WebAuthnOptionConversionError";
+  }
+}
+
+export class WebAuthnRegistrationError extends Error {
+  constructor(message = "WebAuthn registration failed.") {
+    super(message);
+    this.name = "WebAuthnRegistrationError";
+  }
+}
+
 export async function startRegistration(
   options: PublicKeyCredentialCreationOptionsJSON
 ): Promise<PublicKeyCredentialCreationOptionsJSON> {
-  const challenge = base64UrlToBuffer(options.challenge);
+  assertWebAuthnSupported("Passkey registration");
 
-  const credentialOptions = {
-    ...options,
-    challenge,
-    user: {
-      ...options.user,
-      id: base64UrlToBuffer(options.user.id as string),
-    },
-    excludeCredentials: options.excludeCredentials?.map((cred) => ({
-      id: base64UrlToBuffer(cred.id as string),
-      type: "public-key" as PublicKeyCredentialType,
-      transports: cred.transports as AuthenticatorTransport[] | undefined,
-    })),
-  } as PublicKeyCredentialCreationOptions;
+  const credentialOptions = toBrowserRegistrationOptions(options);
 
-  if (!navigator.credentials) {
-    throw new Error(
-      "Passkey registration is not supported in this browser or context (requires HTTPS)"
+  let credential: PublicKeyCredential | null;
+  try {
+    credential = (await navigator.credentials.create({
+      publicKey: credentialOptions,
+    })) as PublicKeyCredential | null;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "NotAllowedError") {
+      throw error;
+    }
+
+    throw new WebAuthnRegistrationError(
+      error instanceof Error ? error.message : "Passkey registration failed."
     );
   }
 
-  const credential = (await navigator.credentials.create({
-    publicKey: credentialOptions,
-  })) as PublicKeyCredential | null;
-
   if (!credential) {
-    throw new Error("Passkey registration was cancelled");
+    throw new WebAuthnRegistrationError(
+      "Passkey registration did not return a credential."
+    );
   }
 
   const response = credential.response as AuthenticatorAttestationResponse;
@@ -75,11 +91,7 @@ export async function startPasskeyAuthentication(
     userVerification: options.userVerification,
   };
 
-  if (!navigator.credentials) {
-    throw new Error(
-      "Passkey authentication is not supported in this browser or context (requires HTTPS)"
-    );
-  }
+  assertWebAuthnSupported("Passkey authentication");
 
   const credential = (await navigator.credentials.get({
     publicKey: credentialOptions,
@@ -106,7 +118,51 @@ export async function startPasskeyAuthentication(
   });
 }
 
+function assertWebAuthnSupported(operation: string): void {
+  if (
+    typeof window === "undefined" ||
+    window.PublicKeyCredential === undefined ||
+    window.isSecureContext !== true ||
+    navigator.credentials === undefined
+  ) {
+    throw new WebAuthnUnsupportedError(
+      `${operation} is not supported in this browser or context (requires WebAuthn and HTTPS).`
+    );
+  }
+}
+
+function toBrowserRegistrationOptions(
+  options: PublicKeyCredentialCreationOptionsJSON
+): PublicKeyCredentialCreationOptions {
+  try {
+    return {
+      ...options,
+      challenge: base64UrlToBuffer(options.challenge),
+      user: {
+        ...options.user,
+        id: base64UrlToBuffer(options.user.id as string),
+      },
+      excludeCredentials: options.excludeCredentials?.map((cred) => ({
+        id: base64UrlToBuffer(cred.id as string),
+        type: "public-key" as PublicKeyCredentialType,
+        transports: cred.transports as AuthenticatorTransport[] | undefined,
+      })),
+    } as PublicKeyCredentialCreationOptions;
+  } catch (error) {
+    throw new WebAuthnOptionConversionError(
+      error instanceof Error
+        ? `Invalid WebAuthn registration options: ${error.message}`
+        : "Invalid WebAuthn registration options."
+    );
+  }
+}
+
 function base64UrlToBuffer(base64Url: string): ArrayBuffer {
+  const base64UrlPattern = /^[A-Za-z0-9_-]+$/;
+  if (!base64UrlPattern.test(base64Url)) {
+    throw new Error("Invalid base64url data.");
+  }
+
   const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
   const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
   const binary = atob(padded);

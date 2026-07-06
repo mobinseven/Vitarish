@@ -9,6 +9,8 @@ import {
 import { startRegistration } from "@/lib/webauthn";
 import { accountKeys } from "./accountKeys";
 
+import { parsePasskeyRegistrationOptions } from "./passkeyRegistrationOptions";
+
 export function useAccountPasskeys(userId: string) {
   const queryClient = useQueryClient();
   const { data: credentials, isLoading: isLoadingCredentials } =
@@ -38,13 +40,15 @@ export function useAccountPasskeys(userId: string) {
   useEffect(() => {
     setIsSupported(
       typeof window !== "undefined" &&
-        window.PublicKeyCredential !== undefined
+        window.PublicKeyCredential !== undefined &&
+        window.isSecureContext === true &&
+        navigator.credentials !== undefined
     );
   }, []);
 
   const register = useCallback(async () => {
     const optionsJson = await beginRegister.mutateAsync({ userId });
-    const options = JSON.parse(optionsJson);
+    const options = parsePasskeyRegistrationOptions(optionsJson);
     const credential = await startRegistration(options);
     await completeRegister.mutateAsync({
       userId,
