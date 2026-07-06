@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback } from "react";
-import { Button, Link } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
-import { Routes } from "@/app/routes";
+import { AccountBackLink, AccountSurface } from "@/components/account/AccountSurface";
 import { useAccountCulture } from "@/features/account/hooks/useAccountCulture";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OptionSelector } from "@/components/account/OptionSelector";
@@ -35,7 +35,7 @@ export default function CulturePage() {
   ];
 
   return (
-    <div className="max-w-md mx-auto flex flex-col gap-4">
+    <AccountSurface>
       <OptionSelector
         title={t("account.culture.title")}
         options={cultures}
@@ -55,9 +55,7 @@ export default function CulturePage() {
       >
         {t("common.actions.save")}
       </Button>
-      <Link href={Routes.Account.Index} className="text-sm">
-        {t("common.actions.backToSettings")}
-      </Link>
-    </div>
+      <AccountBackLink />
+    </AccountSurface>
   );
 }

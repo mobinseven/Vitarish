@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Button } from "@heroui/react";
+import { Radio, RadioGroup } from "@heroui/react";
 
 interface Option<T extends string> {
   value: T;
@@ -21,24 +21,24 @@ export function OptionSelector<T extends string>({
   onSelect,
 }: OptionSelectorProps<T>) {
   return (
-    <Card>
-      <Card.Header>
-        <h1 className="text-2xl font-bold">{title}</h1>
-      </Card.Header>
-      <Card.Content>
-        <div className="flex flex-col gap-2">
-          {options.map((option) => (
-            <Button
-              key={option.value}
-              variant={selected === option.value ? "primary" : "secondary"}
-              onPress={() => onSelect(option.value)}
-              className="w-full justify-start"
-            >
+    <section className="flex w-full min-w-0 flex-col gap-4">
+      <h1 className="whitespace-normal break-words text-2xl font-bold">{title}</h1>
+      <RadioGroup
+        value={selected}
+        onChange={(value) => onSelect(value as T)}
+        className="flex min-w-0 flex-col gap-2"
+      >
+        {options.map((option) => (
+          <Radio key={option.value} value={option.value}>
+            <Radio.Content className="whitespace-normal break-words">
+              <Radio.Control>
+                <Radio.Indicator />
+              </Radio.Control>
               {option.label}
-            </Button>
-          ))}
-        </div>
-      </Card.Content>
-    </Card>
+            </Radio.Content>
+          </Radio>
+        ))}
+      </RadioGroup>
+    </section>
   );
 }

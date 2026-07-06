@@ -1,17 +1,20 @@
 "use client";
 
-import { Card, Link } from "@heroui/react";
+import Link from "next/link";
+import { ItemCard, ItemCardGroup } from "@heroui-pro/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { Routes } from "@/app/routes";
+import { AccountSurface } from "@/components/account/AccountSurface";
 import { useLocalizedText, type MessageKey } from "@/localization";
 
 const settingsLinks = [
-  { labelKey: "account.navigation.name" as MessageKey, href: "/account/name", icon: "fa-solid fa-person" },
-  { labelKey: "account.navigation.email" as MessageKey, href: "/account/email", icon: "fa-solid fa-envelope" },
-  { labelKey: "account.navigation.phone" as MessageKey, href: "/account/phone", icon: "fa-solid fa-mobile" },
-  { labelKey: "account.navigation.password" as MessageKey, href: "/account/password", icon: "fa-solid fa-lock" },
-  { labelKey: "account.navigation.passkeys" as MessageKey, href: "/account/passkeys", icon: "fa-solid fa-key" },
-  { labelKey: "account.navigation.theme" as MessageKey, href: "/account/theme", icon: "fa-solid fa-paint-brush" },
-  { labelKey: "account.navigation.language" as MessageKey, href: "/account/culture", icon: "fa-solid fa-globe" },
+  { labelKey: "account.navigation.name" as MessageKey, href: Routes.Account.Name, icon: "fa-solid fa-person" },
+  { labelKey: "account.navigation.email" as MessageKey, href: Routes.Account.Email, icon: "fa-solid fa-envelope" },
+  { labelKey: "account.navigation.phone" as MessageKey, href: Routes.Account.Phone, icon: "fa-solid fa-mobile" },
+  { labelKey: "account.navigation.password" as MessageKey, href: Routes.Account.Password, icon: "fa-solid fa-lock" },
+  { labelKey: "account.navigation.passkeys" as MessageKey, href: Routes.Account.Passkeys, icon: "fa-solid fa-key" },
+  { labelKey: "account.navigation.theme" as MessageKey, href: Routes.Account.Theme, icon: "fa-solid fa-paint-brush" },
+  { labelKey: "account.navigation.language" as MessageKey, href: Routes.Account.Culture, icon: "fa-solid fa-globe" },
 ];
 
 export default function AccountSettingsPage() {
@@ -19,29 +22,31 @@ export default function AccountSettingsPage() {
   const { t } = useLocalizedText();
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Card>
-        <Card.Header>
-          <h1 className="text-2xl font-bold">{t("account.settings")}</h1>
-        </Card.Header>
-        <Card.Content className="flex flex-col gap-4">
+    <AccountSurface width="wide">
+      <ItemCardGroup layout="grid" columns={2}>
+        <ItemCardGroup.Header>
+          <ItemCardGroup.Title>{t("account.settings")}</ItemCardGroup.Title>
           {isAuthenticated && (
-            <div className="text-sm text-muted mb-4">
+            <ItemCardGroup.Description>
               {t("account.signedInAs", { name: displayProfile.displayLabel })}
-            </div>
+            </ItemCardGroup.Description>
           )}
-          {settingsLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="block">
-              <Card>
-                <div className="flex items-center gap-4 p-3">
-                  <i className={link.icon} />
-                  <span>{t(link.labelKey)}</span>
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </Card.Content>
-      </Card>
-    </div>
+        </ItemCardGroup.Header>
+        {settingsLinks.map((item) => (
+          <Link key={item.href} href={item.href} className="block h-full min-w-0">
+            <ItemCard className="h-full min-w-0 transition-colors hover:bg-surface-secondary" variant="outline">
+              <ItemCard.Icon>
+                <i aria-hidden className={`${item.icon} text-lg text-accent`} />
+              </ItemCard.Icon>
+              <ItemCard.Content>
+                <ItemCard.Title className="whitespace-normal break-words">
+                  {t(item.labelKey)}
+                </ItemCard.Title>
+              </ItemCard.Content>
+            </ItemCard>
+          </Link>
+        ))}
+      </ItemCardGroup>
+    </AccountSurface>
   );
 }

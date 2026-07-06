@@ -404,3 +404,5 @@ FodyWeavers.xsd
 
 **/packages.lock.json
 
+/src/Hosts/Web/tsconfig.tsbuildinfo
+/mimocode.jsonc
