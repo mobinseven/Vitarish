@@ -10,6 +10,10 @@ import { startRegistration } from "@/lib/webauthn";
 import { accountKeys } from "./accountKeys";
 
 import { parsePasskeyRegistrationOptions } from "./passkeyRegistrationOptions";
+import {
+  PasskeyRegistrationStageError,
+  type PasskeyRegistrationStage,
+} from "./passkeyRegistrationStageError";
 
 export function useAccountPasskeys(userId: string) {
   const queryClient = useQueryClient();
@@ -47,13 +51,21 @@ export function useAccountPasskeys(userId: string) {
   }, []);
 
   const register = useCallback(async () => {
-    const optionsJson = await beginRegister.mutateAsync({ userId });
-    const options = parsePasskeyRegistrationOptions(optionsJson);
-    const credential = await startRegistration(options);
-    await completeRegister.mutateAsync({
-      userId,
-      data: { attestationResponseJson: JSON.stringify(credential) },
-    });
+    const optionsJson = await runRegistrationStage("begin", () =>
+      beginRegister.mutateAsync({ userId })
+    );
+    const options = await runRegistrationStage("parseOptions", () =>
+      parsePasskeyRegistrationOptions(optionsJson)
+    );
+    const credential = await runRegistrationStage("browserCreate", () =>
+      startRegistration(options)
+    );
+    await runRegistrationStage("complete", () =>
+      completeRegister.mutateAsync({
+        userId,
+        data: { attestationResponseJson: JSON.stringify(credential) },
+      })
+    );
   }, [beginRegister, completeRegister, userId]);
 
   const remove = useCallback(
@@ -72,4 +84,15 @@ export function useAccountPasskeys(userId: string) {
     register,
     remove,
   };
+}
+
+async function runRegistrationStage<T>(
+  stage: PasskeyRegistrationStage,
+  action: () => T | Promise<T>
+): Promise<T> {
+  try {
+    return await action();
+  } catch (error) {
+    throw new PasskeyRegistrationStageError(stage, error);
+  }
 }

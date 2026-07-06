@@ -3,25 +3,45 @@ import { localizeApiError } from "@/localization";
 import type { Translate } from "@/localization/messageTypes";
 import { PasskeyRegistrationOptionsError } from "./hooks/passkeyRegistrationOptions";
 import {
+  PasskeyRegistrationStageError,
+  type PasskeyRegistrationStage,
+} from "./hooks/passkeyRegistrationStageError";
+import {
   WebAuthnOptionConversionError,
   WebAuthnRegistrationError,
   WebAuthnUnsupportedError,
 } from "@/lib/webauthn";
 
+const passkeyRegistrationStageKeys: Record<PasskeyRegistrationStage, string> = {
+  begin: "account.passkeys.registerBeginFailed",
+  parseOptions: "account.passkeys.registerOptionsFailed",
+  browserCreate: "account.passkeys.registerBrowserCreateFailed",
+  complete: "account.passkeys.registerCompleteFailed",
+};
+
 export function localizePasskeyRegistrationError(
   err: unknown,
   t: Translate
 ): string {
-  if (err instanceof ApiError) {
-    return localizeApiError(err, t);
-  }
+  const underlying =
+    err instanceof PasskeyRegistrationStageError && err.cause
+      ? err.cause
+      : err;
 
-  if (hasErrorName(err, "NotAllowedError")) {
+  if (hasErrorName(underlying, "NotAllowedError")) {
     return t("account.passkeys.registrationCancelled");
   }
 
-  if (err instanceof WebAuthnUnsupportedError) {
+  if (underlying instanceof ApiError) {
+    return localizeApiError(underlying, t);
+  }
+
+  if (underlying instanceof WebAuthnUnsupportedError) {
     return t("account.passkeys.unsupported");
+  }
+
+  if (err instanceof PasskeyRegistrationStageError) {
+    return t(passkeyRegistrationStageKeys[err.stage]);
   }
 
   if (
