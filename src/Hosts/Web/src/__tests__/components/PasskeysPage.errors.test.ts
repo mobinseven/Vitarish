@@ -52,6 +52,24 @@ describe("localizePasskeyRegistrationError", () => {
     ).toBe("account.passkeys.registrationCancelled");
   });
 
+  it("maps wrapped ApiError to localized API error", () => {
+    expect(
+      localizePasskeyRegistrationError(
+        new PasskeyRegistrationStageError("begin", new ApiError({ status: 401, code: "Unauthorized" })),
+        t
+      )
+    ).toBe("errors.unauthorized");
+  });
+
+  it("maps wrapped WebAuthnUnsupportedError to unsupported message", () => {
+    expect(
+      localizePasskeyRegistrationError(
+        new PasskeyRegistrationStageError("browserCreate", new WebAuthnUnsupportedError()),
+        t
+      )
+    ).toBe("account.passkeys.unsupported");
+  });
+
   it("maps unknown WebAuthn registration failures to passkey-specific failure", () => {
     expect(localizePasskeyRegistrationError(new WebAuthnRegistrationError("browser failed"), t)).toBe(
       "account.passkeys.registerFailed"
