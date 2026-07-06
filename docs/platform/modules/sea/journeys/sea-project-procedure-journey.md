@@ -1,5 +1,8 @@
 # Sea Projects & Procedures Journey
 
+> Maintenance note: This legacy combined journey is retained for continuity. Current exhaustive Sea interface journey coverage lives in `sea-module-interface-journey-coverage.md` and the dedicated project, procedure, event, event-item, access, template, observability, and plugin journey documents in this folder.
+
+
 ## 1. Context
 
 - App: Clinic (primary consumer), any app using Sea module
