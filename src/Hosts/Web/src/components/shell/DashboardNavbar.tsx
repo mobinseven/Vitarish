@@ -3,7 +3,9 @@
 import { Button } from "@heroui/react";
 import { AppLayout, Navbar, Sidebar } from "@heroui-pro/react";
 import { useLocalizedText } from "@/localization";
+import { CultureSwitcher } from "./CultureSwitcher";
 import { IconButton } from "./IconButton";
+import { ThemeSwitch } from "./ThemeSwitch";
 
 export interface DashboardNavbarProps {
   title: string;
@@ -13,7 +15,7 @@ export function DashboardNavbar({ title }: DashboardNavbarProps) {
   const { t } = useLocalizedText();
 
   return (
-    <Navbar maxWidth="full">
+    <Navbar maxWidth="full" hideOnScroll>
       <Navbar.Header>
         <AppLayout.MenuToggle />
         <Sidebar.Trigger />
@@ -26,6 +28,8 @@ export function DashboardNavbar({ title }: DashboardNavbarProps) {
           <IconButton label={t("appShell.actions.notifications")} size="sm" variant="tertiary">
             <i aria-hidden="true" className="fa-solid fa-bell size-4" />
           </IconButton>
+          <CultureSwitcher />
+          <ThemeSwitch />
           <Button size="sm">
             <i aria-hidden="true" className="fa-solid fa-user-plus size-4" />
             {t("appShell.actions.invite")}

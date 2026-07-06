@@ -623,6 +623,10 @@ export const faMessages = {
       clinic: "کلینیک",
       dashboardMenu: "ناوبری داشبورد",
       accountMenu: "حساب کاربری",
+      mainGroup: "عمومی",
+      clinicGroup: "کلینیک",
+      staffGroup: "کارکنان",
+      accountGroup: "حساب کاربری",
     },
     userMenu: {
       account: "حساب کاربری",
@@ -640,6 +644,7 @@ export const faMessages = {
     theme: {
       light: "تغییر به حالت روشن",
       dark: "تغییر به حالت تاریک",
+      system: "تغییر به حالت سیستم",
     },
     actions: {
       notifications: "اعلان‌ها",
@@ -647,6 +652,9 @@ export const faMessages = {
     },
     footer: {
       poweredBy: "قدرت گرفته از",
+    },
+    culture: {
+      label: "زبان",
     },
   },
   metadata: {

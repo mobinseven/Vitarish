@@ -16,3 +16,7 @@ export function parseLocaleCookie(cookieHeader: string | null | undefined): Supp
 export function serializeLocaleCookie(locale: SupportedLocale = defaultLocale): string {
   return `${localeCookieName}=${encodeURIComponent(locale)}; Path=/; SameSite=Lax; Max-Age=31536000`;
 }
+
+export function setLocaleCookie(locale: SupportedLocale): void {
+  document.cookie = serializeLocaleCookie(locale);
+}

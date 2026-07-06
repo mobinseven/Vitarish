@@ -2,9 +2,10 @@
 
 import { Avatar, Chip } from "@heroui/react";
 import { Sidebar } from "@heroui-pro/react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocalizedText } from "@/localization";
-import type { DashboardShellItem } from "./DashboardShell";
-import { isRouteCurrent } from "./dashboardRouteMatching";
+import type { DashboardShellItem, DashboardShellNavGroup } from "./DashboardShell";
+import { isRouteBranchCurrent, isRouteCurrent } from "./dashboardRouteMatching";
 
 export interface DashboardSidebarIdentity {
   initials: string;
@@ -15,18 +16,18 @@ export interface DashboardSidebarIdentity {
 export interface DashboardSidebarProps {
   footerItems: readonly DashboardShellItem[];
   identity: DashboardSidebarIdentity;
-  navItems: readonly DashboardShellItem[];
+  navGroups: readonly DashboardShellNavGroup[];
   pathname: string;
 }
 
-export function DashboardSidebar({ footerItems, identity, navItems, pathname }: DashboardSidebarProps) {
+export function DashboardSidebar({ footerItems, identity, navGroups, pathname }: DashboardSidebarProps) {
   return (
     <>
       <Sidebar>
         <DashboardSidebarContents
           footerItems={footerItems}
           identity={identity}
-          navItems={navItems}
+          navGroups={navGroups}
           pathname={pathname}
         />
       </Sidebar>
@@ -35,7 +36,7 @@ export function DashboardSidebar({ footerItems, identity, navItems, pathname }: 
           footerItems={footerItems}
           identity={identity}
           idPrefix="mobile-"
-          navItems={navItems}
+          navGroups={navGroups}
           pathname={pathname}
         />
       </Sidebar.Mobile>
@@ -51,10 +52,23 @@ function DashboardSidebarContents({
   footerItems,
   identity,
   idPrefix = "",
-  navItems,
+  navGroups,
   pathname,
 }: DashboardSidebarContentsProps) {
   const { t } = useLocalizedText();
+  const requiredExpandedKeys = useMemo(
+    () => getCurrentExpandedItemIds(navGroups, pathname, idPrefix),
+    [idPrefix, navGroups, pathname]
+  );
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set(requiredExpandedKeys));
+  const displayedExpandedKeys = useMemo(
+    () => mergeRequiredExpandedKeys(expandedKeys, requiredExpandedKeys),
+    [expandedKeys, requiredExpandedKeys]
+  );
+
+  useEffect(() => {
+    setExpandedKeys((current) => mergeRequiredExpandedKeys(current, requiredExpandedKeys));
+  }, [requiredExpandedKeys]);
 
   return (
     <>
@@ -75,14 +89,25 @@ function DashboardSidebarContents({
       </Sidebar.Header>
       <Sidebar.Content>
         <Sidebar.Group>
-          <Sidebar.Menu aria-label={t("appShell.navigation.dashboardMenu")}>
-            {navItems.map((item) => (
-              <DashboardSidebarNavItem
-                key={item.href}
-                idPrefix={idPrefix}
-                item={item}
-                pathname={pathname}
-              />
+          <Sidebar.Menu
+            aria-label={t("appShell.navigation.dashboardMenu")}
+            expandedKeys={displayedExpandedKeys}
+            onExpandedChange={(keys) => setExpandedKeys(new Set(Array.from(keys, String)))}
+          >
+            {navGroups.map((group) => (
+              <Sidebar.MenuSection key={group.labelKey}>
+                <Sidebar.MenuHeader>
+                  {t(group.labelKey)}
+                </Sidebar.MenuHeader>
+                {group.items.map((item) => (
+                  <DashboardSidebarNavItem
+                    key={item.href}
+                    idPrefix={idPrefix}
+                    item={item}
+                    pathname={pathname}
+                  />
+                ))}
+              </Sidebar.MenuSection>
             ))}
           </Sidebar.Menu>
         </Sidebar.Group>
@@ -112,21 +137,26 @@ interface DashboardSidebarNavItemProps {
 }
 
 function DashboardSidebarNavItem({ idPrefix, item, pathname }: DashboardSidebarNavItemProps) {
-  const { t } = useLocalizedText();
+  const { direction, t } = useLocalizedText();
   const label = t(item.labelKey);
   const badge = item.badgeKey ? t(item.badgeKey) : null;
 
   return (
     <Sidebar.MenuItem
       href={item.href}
-      id={`${idPrefix}${item.href}`}
-      isCurrent={isRouteCurrent(pathname, item)}
+      id={getSidebarItemId(idPrefix, item)}
+      isCurrent={isSidebarItemCurrent(pathname, item)}
       textValue={label}
     >
       <Sidebar.MenuIcon>
         <i aria-hidden="true" className={`${item.iconClassName} size-4`} />
       </Sidebar.MenuIcon>
       <Sidebar.MenuLabel>{label}</Sidebar.MenuLabel>
+      {item.children?.length ? (
+        <Sidebar.MenuTrigger>
+         <Sidebar.MenuIndicator aria-hidden="true" />
+        </Sidebar.MenuTrigger>
+      ) : null}
       {badge ? (
         <Sidebar.MenuChip>
           <Chip color="success" size="sm" variant="soft">
@@ -134,6 +164,74 @@ function DashboardSidebarNavItem({ idPrefix, item, pathname }: DashboardSidebarN
           </Chip>
         </Sidebar.MenuChip>
       ) : null}
+      {item.children?.length ? (
+        <Sidebar.Submenu>
+          {item.children.map((child) => (
+            <DashboardSidebarNavItem
+              key={child.href}
+              idPrefix={idPrefix}
+              item={child}
+              pathname={pathname}
+            />
+          ))}
+        </Sidebar.Submenu>
+      ) : null}
     </Sidebar.MenuItem>
   );
+}
+
+function isSidebarItemCurrent(pathname: string, item: DashboardShellItem) {
+  if (item.children?.some((child) => isRouteBranchCurrent(pathname, child))) {
+    return false;
+  }
+
+  return isRouteCurrent(pathname, item);
+}
+
+function getSidebarItemId(idPrefix: string, item: DashboardShellItem) {
+  return `${idPrefix}${item.href}`;
+}
+
+function getCurrentExpandedItemIds(
+  navGroups: readonly DashboardShellNavGroup[],
+  pathname: string,
+  idPrefix: string
+) {
+  return navGroups.flatMap((group) =>
+    group.items.flatMap((item) => getCurrentExpandedItemIdsForItem(item, pathname, idPrefix))
+  );
+}
+
+function getCurrentExpandedItemIdsForItem(
+  item: DashboardShellItem,
+  pathname: string,
+  idPrefix: string
+): string[] {
+  if (!item.children?.length) {
+    return [];
+  }
+
+  const childExpandedIds = item.children.flatMap((child) =>
+    getCurrentExpandedItemIdsForItem(child, pathname, idPrefix)
+  );
+
+  if (!isRouteBranchCurrent(pathname, item)) {
+    return childExpandedIds;
+  }
+
+  return [getSidebarItemId(idPrefix, item), ...childExpandedIds];
+}
+
+function mergeRequiredExpandedKeys(expandedKeys: Set<string>, requiredExpandedKeys: readonly string[]) {
+  let hasChanges = false;
+  const nextExpandedKeys = new Set(expandedKeys);
+
+  for (const key of requiredExpandedKeys) {
+    if (!nextExpandedKeys.has(key)) {
+      nextExpandedKeys.add(key);
+      hasChanges = true;
+    }
+  }
+
+  return hasChanges ? nextExpandedKeys : expandedKeys;
 }

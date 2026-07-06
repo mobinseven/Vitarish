@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { DashboardShell, type DashboardShellItem } from "@/components/shell/DashboardShell";
+import { DashboardShell, type DashboardShellNavGroup } from "@/components/shell/DashboardShell";
+import { DashboardSidebar } from "@/components/shell/DashboardSidebar";
 import { ThemeSwitch } from "@/components/shell/ThemeSwitch";
 import { UserMenu } from "@/components/shell/UserMenu";
 import { SearchInput } from "@/components/shell/SearchInput";
@@ -8,6 +9,7 @@ import { SearchInput } from "@/components/shell/SearchInput";
 vi.mock("next-themes", () => ({
   useTheme: () => ({
     setTheme: vi.fn(),
+    theme: "light",
     resolvedTheme: "light",
   }),
 }));
@@ -36,19 +38,28 @@ vi.mock("@/localization", () => ({
       const translations: Record<string, string> = {
         "appShell.brand": "Vitarish",
         "appShell.navigation.home": "Home",
+        "appShell.navigation.clinic": "Clinic",
         "appShell.navigation.knowledge": "Knowledge",
         "appShell.navigation.dashboardMenu": "Dashboard navigation",
         "appShell.navigation.accountMenu": "Account",
+        "appShell.navigation.mainGroup": "General",
+        "appShell.navigation.clinicGroup": "Clinic",
+        "appShell.navigation.staffGroup": "Staff",
+        "appShell.navigation.accountGroup": "Account",
         "appShell.actions.notifications": "Notifications",
         "appShell.actions.invite": "Invite",
         "appShell.theme.light": "Switch to light mode",
         "appShell.theme.dark": "Switch to dark mode",
+        "appShell.theme.system": "Switch to system mode",
+        "appShell.culture.label": "Language",
         "appShell.userMenu.logIn": "Log In",
         "appShell.userMenu.account": "Account",
         "appShell.userMenu.signOut": "Log Out",
         "appShell.menu.open": "Open menu",
         "appShell.search.label": "Search",
         "appShell.search.placeholder": "Search...",
+        "clinic.patients.title": "Patients",
+        "knowledge.qa.title": "Knowledge Q&A",
         "home.welcomeBack": "Welcome back",
       };
 
@@ -58,22 +69,57 @@ vi.mock("@/localization", () => ({
 
       return translations[key] ?? key;
     },
+    locale: "en",
   }),
+  setLocaleCookie: vi.fn(),
+  supportedLocales: ["en", "fa"],
 }));
 
-const shellNavItems = [
-  { href: "/", iconClassName: "fa-solid fa-house", labelKey: "appShell.navigation.home", exactMatch: true },
-] as const satisfies readonly DashboardShellItem[];
+const shellNavGroups = [
+  {
+    labelKey: "appShell.navigation.mainGroup",
+    items: [
+      { href: "/", iconClassName: "fa-solid fa-house", labelKey: "appShell.navigation.home", exactMatch: true },
+    ],
+  },
+] as const satisfies readonly DashboardShellNavGroup[];
 
 const shellFooterItems = [
   { href: "/account", iconClassName: "fa-solid fa-circle-user", labelKey: "appShell.userMenu.account" },
-] as const satisfies readonly DashboardShellItem[];
+] as const;
+
+const nestedShellNavGroups = [
+  {
+    labelKey: "appShell.navigation.mainGroup",
+    items: [
+      { href: "/home", iconClassName: "fa-solid fa-house", labelKey: "appShell.navigation.home", exactMatch: true },
+      {
+        href: "/clinic",
+        iconClassName: "fa-solid fa-house-medical",
+        labelKey: "appShell.navigation.clinic",
+        exactMatch: true,
+        children: [
+          { href: "/clinic/patients", iconClassName: "fa-solid fa-users", labelKey: "clinic.patients.title" },
+        ],
+      },
+      {
+        href: "/knowledge",
+        iconClassName: "fa-solid fa-book-open",
+        labelKey: "appShell.navigation.knowledge",
+        exactMatch: true,
+        children: [
+          { href: "/knowledge/qa", iconClassName: "fa-solid fa-comments", labelKey: "knowledge.qa.title" },
+        ],
+      },
+    ],
+  },
+] as const satisfies readonly DashboardShellNavGroup[];
 
 describe("Dashboard Shell Components", () => {
   describe("DashboardShell", () => {
     it("renders the template-style sidebar, navbar actions, and content", () => {
       render(
-        <DashboardShell footerItems={shellFooterItems} homeHref="/" navItems={shellNavItems}>
+        <DashboardShell footerItems={shellFooterItems} homeHref="/" navGroups={shellNavGroups}>
           <div>Dashboard content</div>
         </DashboardShell>
       );
@@ -85,6 +131,22 @@ describe("Dashboard Shell Components", () => {
       expect(screen.getByRole("button", { name: "Notifications" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Invite" })).toBeInTheDocument();
       expect(screen.getByText("Dashboard content")).toBeInTheDocument();
+    });
+  });
+
+  describe("DashboardSidebar", () => {
+    it("expands the current app group when the route is inside that app", () => {
+      render(
+        <DashboardSidebar
+          footerItems={[]}
+          identity={{ initials: "TU", label: "Test User", subtitle: "Account" }}
+          navGroups={nestedShellNavGroups}
+          pathname="/clinic/patients"
+        />
+      );
+
+      expect(screen.getByText("Clinic")).toBeInTheDocument();
+      expect(screen.getByText("Patients")).toBeInTheDocument();
     });
   });
 
