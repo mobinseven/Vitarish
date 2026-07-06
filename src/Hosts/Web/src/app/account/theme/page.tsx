@@ -10,6 +10,8 @@ import { StatusMessage } from "@/components/auth/StatusMessage";
 import { useLocalizedText } from "@/localization";
 import { PaletteSwitch } from "@/features/account/theme/PaletteSwitch";
 import {
+  paletteStorageKey,
+  setPaletteAttribute,
   setVibrantPaletteAttribute,
   vibrantPaletteStorageKey,
 } from "@/features/account/theme/themeOptions";
@@ -17,7 +19,7 @@ import {
 export default function ThemePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
-  const { setTheme: setNextTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const { t } = useLocalizedText();
   const {
     selected,
@@ -32,10 +34,15 @@ export default function ThemePage() {
 
   const handleSave = useCallback(async () => {
     await save({ theme: selected, isVibrant });
-    setNextTheme(selected);
+    window.localStorage.setItem(paletteStorageKey, selected);
+    setPaletteAttribute(
+      selected,
+      resolvedTheme === "dark" ? "dark" : "light",
+      document.documentElement
+    );
     window.localStorage.setItem(vibrantPaletteStorageKey, String(isVibrant));
     setVibrantPaletteAttribute(isVibrant, document.documentElement);
-  }, [isVibrant, save, selected, setNextTheme]);
+  }, [isVibrant, resolvedTheme, save, selected]);
 
   return (
     <AccountSurface>

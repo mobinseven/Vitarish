@@ -5,26 +5,23 @@ import {
   encodeAccountThemePreference,
   isAccountThemeValue,
   resolveThemeMode,
+  setPaletteAttribute,
   setVibrantPaletteAttribute,
 } from "@/features/account/theme/themeOptions";
 
 describe("account theme options", () => {
-  it("contains every supported HeroUI Pro palette mode", () => {
+  it("contains every supported HeroUI Pro palette without mode variants", () => {
     expect(accountThemeOptions.map((option) => option.value)).toEqual([
-      "system",
-      "light",
-      "dark",
-      "brutalism-light",
-      "brutalism-dark",
-      "glass-light",
-      "glass-dark",
-      "mouve-light",
-      "mouve-dark",
+      "default",
+      "brutalism",
+      "glass",
+      "mouve",
     ]);
   });
 
   it("validates persisted theme values", () => {
-    expect(isAccountThemeValue("glass-dark")).toBe(true);
+    expect(isAccountThemeValue("glass")).toBe(true);
+    expect(isAccountThemeValue("glass-dark")).toBe(false);
     expect(isAccountThemeValue("unknown")).toBe(false);
     expect(isAccountThemeValue(undefined)).toBe(false);
   });
@@ -38,21 +35,46 @@ describe("account theme options", () => {
   });
 
   it("encodes and decodes the vibrant palette modifier", () => {
-    expect(encodeAccountThemePreference({ theme: "glass-dark", isVibrant: true })).toBe(
-      "glass-dark:vibrant"
+    expect(encodeAccountThemePreference({ theme: "glass", isVibrant: true })).toBe(
+      "glass:vibrant"
     );
-    expect(decodeAccountThemePreference("glass-dark:vibrant")).toEqual({
-      theme: "glass-dark",
+    expect(decodeAccountThemePreference("glass:vibrant")).toEqual({
+      theme: "glass",
       isVibrant: true,
     });
-    expect(decodeAccountThemePreference("glass-dark")).toEqual({
-      theme: "glass-dark",
+    expect(decodeAccountThemePreference("glass")).toEqual({
+      theme: "glass",
       isVibrant: false,
     });
     expect(decodeAccountThemePreference("unknown:vibrant")).toEqual({
-      theme: "system",
+      theme: "default",
       isVibrant: true,
     });
+  });
+
+  it("decodes legacy mode-bearing palette values as palette-only preferences", () => {
+    expect(decodeAccountThemePreference("glass-dark:vibrant")).toEqual({
+      theme: "glass",
+      isVibrant: true,
+    });
+    expect(decodeAccountThemePreference("system")).toEqual({
+      theme: "default",
+      isVibrant: false,
+    });
+  });
+
+  it("applies the selected palette class using the resolved theme mode", () => {
+    const root = document.createElement("html");
+
+    setPaletteAttribute("glass", "dark", root);
+    expect(root.classList.contains("glass-dark")).toBe(true);
+
+    setPaletteAttribute("mouve", "light", root);
+    expect(root.classList.contains("glass-dark")).toBe(false);
+    expect(root.classList.contains("mouve-light")).toBe(true);
+
+    setPaletteAttribute("default", "light", root);
+    expect(root.className).toBe("");
   });
 
   it("applies and removes the vibrant palette document attribute", () => {

@@ -25,7 +25,7 @@ export function useAccountTheme(userId: string) {
     },
   });
 
-  const [selected, setSelected] = useState<AccountThemeValue>("system");
+  const [selected, setSelected] = useState<AccountThemeValue>("default");
   const [isVibrant, setIsVibrant] = useState(false);
   const [syncedTheme, setSyncedTheme] = useState<string | undefined>();
   const [success, setSuccess] = useState(false);

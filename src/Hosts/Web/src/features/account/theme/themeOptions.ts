@@ -1,15 +1,10 @@
 import type { MessageKey } from "@/localization/messageTypes";
 
 export type AccountThemeValue =
-  | "system"
-  | "light"
-  | "dark"
-  | "brutalism-light"
-  | "brutalism-dark"
-  | "glass-light"
-  | "glass-dark"
-  | "mouve-light"
-  | "mouve-dark";
+  | "default"
+  | "brutalism"
+  | "glass"
+  | "mouve";
 
 export type ThemeMode = "light" | "dark" | "system";
 
@@ -22,83 +17,63 @@ export interface AccountThemeOption {
   value: AccountThemeValue;
   labelKey: MessageKey;
   descriptionKey: MessageKey;
-  mode: ThemeMode;
   swatches: readonly string[];
 }
 
 export const accountThemeOptions: readonly AccountThemeOption[] = [
   {
-    value: "system",
-    labelKey: "account.theme.palettes.system",
-    descriptionKey: "account.theme.paletteDescriptions.system",
-    mode: "system",
-    swatches: ["#ffffff", "#111827", "#6d5dfc"],
-  },
-  {
-    value: "light",
-    labelKey: "account.theme.palettes.defaultLight",
-    descriptionKey: "account.theme.paletteDescriptions.defaultLight",
-    mode: "light",
+    value: "default",
+    labelKey: "account.theme.palettes.default",
+    descriptionKey: "account.theme.paletteDescriptions.default",
     swatches: ["#ffffff", "#f4f4f5", "#6d5dfc"],
   },
   {
-    value: "dark",
-    labelKey: "account.theme.palettes.defaultDark",
-    descriptionKey: "account.theme.paletteDescriptions.defaultDark",
-    mode: "dark",
-    swatches: ["#111827", "#27272a", "#a5b4fc"],
-  },
-  {
-    value: "brutalism-light",
-    labelKey: "account.theme.palettes.brutalismLight",
-    descriptionKey: "account.theme.paletteDescriptions.brutalismLight",
-    mode: "light",
+    value: "brutalism",
+    labelKey: "account.theme.palettes.brutalism",
+    descriptionKey: "account.theme.paletteDescriptions.brutalism",
     swatches: ["#ffffff", "#111111", "#facc15"],
   },
   {
-    value: "brutalism-dark",
-    labelKey: "account.theme.palettes.brutalismDark",
-    descriptionKey: "account.theme.paletteDescriptions.brutalismDark",
-    mode: "dark",
-    swatches: ["#0a0a0a", "#ffffff", "#f97316"],
-  },
-  {
-    value: "glass-light",
-    labelKey: "account.theme.palettes.glassLight",
-    descriptionKey: "account.theme.paletteDescriptions.glassLight",
-    mode: "light",
+    value: "glass",
+    labelKey: "account.theme.palettes.glass",
+    descriptionKey: "account.theme.paletteDescriptions.glass",
     swatches: ["#f8fafc", "#dbeafe", "#64748b"],
   },
   {
-    value: "glass-dark",
-    labelKey: "account.theme.palettes.glassDark",
-    descriptionKey: "account.theme.paletteDescriptions.glassDark",
-    mode: "dark",
-    swatches: ["#020617", "#1e293b", "#e2e8f0"],
-  },
-  {
-    value: "mouve-light",
-    labelKey: "account.theme.palettes.mouveLight",
-    descriptionKey: "account.theme.paletteDescriptions.mouveLight",
-    mode: "light",
+    value: "mouve",
+    labelKey: "account.theme.palettes.mouve",
+    descriptionKey: "account.theme.paletteDescriptions.mouve",
     swatches: ["#fff7ed", "#f5d0fe", "#7c3aed"],
-  },
-  {
-    value: "mouve-dark",
-    labelKey: "account.theme.palettes.mouveDark",
-    descriptionKey: "account.theme.paletteDescriptions.mouveDark",
-    mode: "dark",
-    swatches: ["#181014", "#3b2738", "#f0abfc"],
   },
 ] as const;
 
 const accountThemeValues = new Set<string>(accountThemeOptions.map((option) => option.value));
+const legacyPaletteValues: Record<string, AccountThemeValue> = {
+  system: "default",
+  light: "default",
+  dark: "default",
+  "brutalism-light": "brutalism",
+  "brutalism-dark": "brutalism",
+  "glass-light": "glass",
+  "glass-dark": "glass",
+  "mouve-light": "mouve",
+  "mouve-dark": "mouve",
+};
+const paletteClasses = accountThemeOptions
+  .filter((option) => option.value !== "default")
+  .flatMap((option) => [`${option.value}-light`, `${option.value}-dark`]);
 const vibrantPreferenceSuffix = ":vibrant";
 
 export const vibrantPaletteStorageKey = "vitarish:vibrant-palette";
+export const paletteStorageKey = "vitarish:theme-palette";
 
 export function isAccountThemeValue(value: string | null | undefined): value is AccountThemeValue {
   return !!value && accountThemeValues.has(value);
+}
+
+function resolvePersistedPalette(value: string | null | undefined): AccountThemeValue {
+  if (isAccountThemeValue(value)) return value;
+  return value ? legacyPaletteValues[value] ?? "default" : "default";
 }
 
 export function decodeAccountThemePreference(value: string | null | undefined): AccountThemePreference {
@@ -108,7 +83,7 @@ export function decodeAccountThemePreference(value: string | null | undefined): 
     : value;
 
   return {
-    theme: isAccountThemeValue(theme) ? theme : "system",
+    theme: resolvePersistedPalette(theme),
     isVibrant,
   };
 }
@@ -131,4 +106,16 @@ export function setVibrantPaletteAttribute(isVibrant: boolean, root: HTMLElement
 export function resolveThemeMode(value: string | undefined): ThemeMode {
   if (value === "system") return "system";
   return value?.endsWith("-dark") || value === "dark" ? "dark" : "light";
+}
+
+export function setPaletteAttribute(
+  palette: AccountThemeValue,
+  mode: Exclude<ThemeMode, "system">,
+  root: HTMLElement
+): void {
+  root.classList.remove(...paletteClasses);
+
+  if (palette === "default") return;
+
+  root.classList.add(`${palette}-${mode}`);
 }
