@@ -1,8 +1,7 @@
 "use client";
 
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithoutRef } from "react";
 import { Link } from "@heroui/react";
-import { Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
 import { useLocalizedText } from "@/localization";
 
@@ -12,7 +11,7 @@ interface AccountSurfaceProps extends ComponentPropsWithoutRef<"section"> {
   width?: AccountSurfaceWidth;
 }
 
-interface AccountWidgetProps extends ComponentPropsWithoutRef<typeof Widget> {
+interface AccountWidgetProps extends ComponentPropsWithoutRef<"section"> {
   title: string;
 }
 
@@ -38,12 +37,10 @@ export function AccountSurface({ children, width = "form", className = "", ...pr
 
 export function AccountWidget({ title, children, className = "", ...props }: AccountWidgetProps) {
   return (
-    <Widget className={`w-full min-w-0 ${className}`} {...props}>
-      <Widget.Header>
-        <Widget.Title className="whitespace-normal break-words">{title}</Widget.Title>
-      </Widget.Header>
-      <Widget.Content className="flex min-w-0 flex-col gap-4">{children}</Widget.Content>
-    </Widget>
+    <section className={`flex w-full min-w-0 flex-col gap-4 ${className}`} {...props}>
+      <h1 className="whitespace-normal break-words text-2xl font-bold">{title}</h1>
+      {children}
+    </section>
   );
 }
 
