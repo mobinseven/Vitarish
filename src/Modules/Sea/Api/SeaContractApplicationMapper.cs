@@ -4,20 +4,24 @@ namespace Vitarish.Sea.Api;
 
 public static class SeaContractApplicationMapper
 {
+    private static readonly JsonSerializerOptions MappingJsonOptions = new(JsonSerializerDefaults.Web);
+
     public static T Convert<T>(object value)
     {
+        ArgumentNullException.ThrowIfNull(value);
+
         if (value is T typedValue)
         {
             return typedValue;
         }
 
-        // Manual mapping implementation for high-performance scenarios
-        // This avoids reflection and serialization overhead
-        return value switch
-        {
-            Domain.Dto.ProjectWriteDto p => (T)(object)new Contracts.Responses.ProjectWriteDto { Id = p.Id, Name = p.Name, Description = p.Description },
-            Domain.Dto.ProcedureWriteDto p => (T)(object)new Contracts.Responses.ProcedureWriteDto { Id = p.Id, ProjectId = p.ProjectId, Name = p.Name },
-            _ => throw new NotSupportedException($"Manual mapping for {value.GetType().Name} to {typeof(T).Name} is not implemented.")
-        };
+        // Central DTO-to-DTO adapter for same-shaped Sea application and contract models.
+        object? mappedValue = JsonSerializer.Deserialize<T>(
+            JsonSerializer.Serialize(value, value.GetType(), MappingJsonOptions),
+            MappingJsonOptions);
+
+        return mappedValue is null
+            ? throw new NotSupportedException($"Mapping for {value.GetType().Name} to {typeof(T).Name} produced a null value.")
+            : (T)mappedValue;
     }
 }
