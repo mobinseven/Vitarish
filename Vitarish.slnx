@@ -42,8 +42,12 @@
     <Project Path="src/Hosts/Main/Main.csproj" />
     <Project Path="src/Hosts/Web/src/Web.esproj">
       <Platform Project="AnyCPU" />
-      <Build />
-      <Deploy />
+      <Build Solution="*|x64" />
+      <Build Solution="*|x86" />
+      <Build Solution="Release|Any CPU" />
+      <Deploy Solution="*|x64" />
+      <Deploy Solution="*|x86" />
+      <Deploy Solution="Release|Any CPU" />
     </Project>
   </Folder>
   <Folder Name="/src/Libraries/" />
