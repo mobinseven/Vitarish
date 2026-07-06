@@ -1,3 +1,4 @@
+export * from "./dateLocale";
 export * from "./errors";
 export * from "./format";
 export * from "./localeCookie";

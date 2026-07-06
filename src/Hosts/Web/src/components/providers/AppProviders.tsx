@@ -4,7 +4,8 @@ import { Toast } from "@heroui/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
-import { LocalizationProvider, type SupportedLocale } from "@/localization";
+import { I18nProvider } from "react-aria-components";
+import { LocalizationProvider, getReactAriaLocale, type SupportedLocale } from "@/localization";
 import { type ThemeMode } from "@/features/account/theme/themeOptions";
 import { PaletteProvider } from "./PaletteProvider";
 import { VibrantPaletteProvider } from "./VibrantPaletteProvider";
@@ -30,14 +31,16 @@ export function Providers({ children, locale }: { children: ReactNode; locale: S
         enableSystem
         disableTransitionOnChange
       >
-        <LocalizationProvider locale={locale}>
-          <PaletteProvider>
-            <VibrantPaletteProvider>
-              {children}
-              <Toast.Provider placement="bottom" />
-            </VibrantPaletteProvider>
-          </PaletteProvider>
-        </LocalizationProvider>
+        <I18nProvider locale={getReactAriaLocale(locale)}>
+          <LocalizationProvider locale={locale}>
+            <PaletteProvider>
+              <VibrantPaletteProvider>
+                {children}
+                <Toast.Provider placement="bottom" />
+              </VibrantPaletteProvider>
+            </PaletteProvider>
+          </LocalizationProvider>
+        </I18nProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

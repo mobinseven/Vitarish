@@ -5,6 +5,7 @@ import { Button, Input, Label, TextField } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
 import type { AdvancedSearchCriteria } from "../types";
 import { useLocalizedText } from "@/localization";
+import { LocalizedDateField } from "@/components/forms/LocalizedDateField";
 
 interface AdvancedSearchFormProps {
   onSearch: (criteria: AdvancedSearchCriteria) => void;
@@ -60,14 +61,11 @@ export function AdvancedSearchForm({
           />
         </TextField>
 
-        <TextField>
-          <Label>{t("clinic.patient.advancedSearch.dobLabel")}</Label>
-          <Input
-            type="date"
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
-          />
-        </TextField>
+        <LocalizedDateField
+          label={t("clinic.patient.advancedSearch.dobLabel")}
+          value={dateOfBirth}
+          onChange={setDateOfBirth}
+        />
 
         <TextField>
           <Label>{t("clinic.patient.advancedSearch.phoneLabel")}</Label>
