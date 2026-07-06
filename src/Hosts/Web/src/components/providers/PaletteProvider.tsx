@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, createContext, useContext, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import {
   decodeAccountThemePreference,
@@ -8,6 +8,13 @@ import {
   setPaletteAttribute,
   type AccountThemeValue,
 } from "@/features/account/theme/themeOptions";
+
+interface PaletteContextValue {
+  palette: AccountThemeValue;
+  setPalette: (palette: AccountThemeValue) => void;
+}
+
+const PaletteContext = createContext<PaletteContextValue | undefined>(undefined);
 
 export function PaletteProvider({ children }: { children: ReactNode }) {
   const { resolvedTheme } = useTheme();
@@ -28,6 +35,8 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!resolvedTheme) return;
+
     setPaletteAttribute(
       palette,
       resolvedTheme === "dark" ? "dark" : "light",
@@ -35,5 +44,19 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
     );
   }, [palette, resolvedTheme]);
 
-  return children;
+  return (
+    <PaletteContext.Provider value={{ palette, setPalette }}>
+      {children}
+    </PaletteContext.Provider>
+  );
+}
+
+export function usePalette() {
+  const context = useContext(PaletteContext);
+
+  if (!context) {
+    throw new Error("usePalette must be used within a PaletteProvider");
+  }
+
+  return context;
 }

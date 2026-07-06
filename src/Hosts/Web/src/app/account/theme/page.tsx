@@ -2,16 +2,15 @@
 
 import { useCallback } from "react";
 import { Button } from "@heroui/react";
-import { useTheme } from "next-themes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { AccountBackLink, AccountSurface } from "@/components/account/AccountSurface";
+import { usePalette } from "@/components/providers/PaletteProvider";
 import { useAccountTheme } from "@/features/account/hooks/useAccountTheme";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { useLocalizedText } from "@/localization";
 import { PaletteSwitch } from "@/features/account/theme/PaletteSwitch";
 import {
   paletteStorageKey,
-  setPaletteAttribute,
   setVibrantPaletteAttribute,
   vibrantPaletteStorageKey,
 } from "@/features/account/theme/themeOptions";
@@ -19,7 +18,7 @@ import {
 export default function ThemePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
-  const { resolvedTheme } = useTheme();
+  const { setPalette } = usePalette();
   const { t } = useLocalizedText();
   const {
     selected,
@@ -35,14 +34,10 @@ export default function ThemePage() {
   const handleSave = useCallback(async () => {
     await save({ theme: selected, isVibrant });
     window.localStorage.setItem(paletteStorageKey, selected);
-    setPaletteAttribute(
-      selected,
-      resolvedTheme === "dark" ? "dark" : "light",
-      document.documentElement
-    );
+    setPalette(selected);
     window.localStorage.setItem(vibrantPaletteStorageKey, String(isVibrant));
     setVibrantPaletteAttribute(isVibrant, document.documentElement);
-  }, [isVibrant, resolvedTheme, save, selected]);
+  }, [isVibrant, save, selected, setPalette]);
 
   return (
     <AccountSurface>
