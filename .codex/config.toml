@@ -1,5 +1,7 @@
-[mcp_servers.heroui-react]
-command = "npx"
-args = ["-y", "@heroui/react-mcp@latest"]
-startup_timeout_sec = 30
+# .codex/config.toml
+
+[mcp_servers.heroui-pro]
+url = "https://mcp.heroui.pro/mcp"
+env_http_headers = { "x-heroui-personal-token" = "HEROUI_PERSONAL_TOKEN" }
+required = false
 tool_timeout_sec = 60
