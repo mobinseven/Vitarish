@@ -5,6 +5,7 @@ import { Button, FieldError, Input, Label, TextField } from "@heroui/react";
 import { NativeSelect, Widget } from "@heroui-pro/react";
 import type { PatientProfileFormData, PatientProfileFormErrors } from "../models/PatientProfileForm";
 import { useLocalizedText } from "@/localization";
+import { LocalizedDateField } from "@/components/forms/LocalizedDateField";
 
 interface PatientProfileFormProps {
   initialData: PatientProfileFormData;
@@ -73,7 +74,7 @@ export function PatientProfileForm({
             value={formData.identificationCode}
             onChange={(v) => handleChange("identificationCode", v)}
           />
-          <FormDateField
+          <LocalizedDateField
             label={t("clinic.patient.fields.dateOfBirth")}
             value={formData.dateOfBirth}
             onChange={(v) => handleChange("dateOfBirth", v)}
@@ -147,7 +148,7 @@ export function PatientProfileForm({
           <Widget.Title>{t("clinic.patient.sections.medical")}</Widget.Title>
         </Widget.Header>
         <Widget.Content className="grid gap-4 sm:grid-cols-2">
-          <FormDateField
+          <LocalizedDateField
             label={t("clinic.patient.fields.dateOfSurgery")}
             value={formData.dateOfSurgery}
             onChange={(v) => handleChange("dateOfSurgery", v)}
@@ -244,23 +245,6 @@ function FormTextField({
       </Label>
       <Input value={value} onChange={(e) => onChange(e.target.value)} />
       {error && <FieldError>{error}</FieldError>}
-    </TextField>
-  );
-}
-
-function FormDateField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <TextField>
-      <Label>{label}</Label>
-      <Input type="date" value={value} onChange={(e) => onChange(e.target.value)} />
     </TextField>
   );
 }
