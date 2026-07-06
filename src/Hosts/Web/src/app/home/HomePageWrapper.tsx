@@ -1,11 +1,11 @@
 "use client";
 
 import { DashboardShell } from "@/components/shell";
-import { dashboardFooterItems, mainDashboardNavItems } from "@/components/shell/dashboardShellNavigation";
+import { dashboardFooterItems, homeDashboardNavGroups } from "@/components/shell/dashboardShellNavigation";
 
 export function HomePageWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <DashboardShell footerItems={dashboardFooterItems} navItems={mainDashboardNavItems}>
+    <DashboardShell footerItems={dashboardFooterItems} navGroups={homeDashboardNavGroups}>
       {children}
     </DashboardShell>
   );

@@ -3,7 +3,7 @@
 import { AuthorizationGuard } from "@/components/auth/AuthorizationGuard";
 import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { DashboardShell } from "@/components/shell";
-import { clinicUserDashboardNavItems, dashboardFooterItems } from "@/components/shell/dashboardShellNavigation";
+import { clinicUserDashboardNavGroups, dashboardFooterItems } from "@/components/shell/dashboardShellNavigation";
 
 export default function ClinicUserLayout({
   children,
@@ -12,7 +12,7 @@ export default function ClinicUserLayout({
 }) {
   return (
     <AuthorizationGuard requiredRole="user">
-      <DashboardShell footerItems={dashboardFooterItems} navItems={clinicUserDashboardNavItems}>
+      <DashboardShell footerItems={dashboardFooterItems} navGroups={clinicUserDashboardNavGroups}>
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 pb-10 pt-4">
           <JourneyGateBoundary>{children}</JourneyGateBoundary>
         </div>

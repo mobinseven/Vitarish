@@ -623,6 +623,10 @@ export const enMessages = {
       clinic: "Clinic",
       dashboardMenu: "Dashboard navigation",
       accountMenu: "Account",
+      mainGroup: "General",
+      clinicGroup: "Clinic",
+      staffGroup: "Staff",
+      accountGroup: "Account",
     },
     userMenu: {
       account: "Account",
@@ -644,9 +648,13 @@ export const enMessages = {
     theme: {
       light: "Switch to light mode",
       dark: "Switch to dark mode",
+      system: "Switch to system theme",
     },
     footer: {
       poweredBy: "Powered by",
+    },
+    culture: {
+      label: "Language",
     },
   },
   metadata: {

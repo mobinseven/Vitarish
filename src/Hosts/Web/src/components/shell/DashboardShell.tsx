@@ -9,19 +9,26 @@ import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { DashboardNavbar } from "./DashboardNavbar";
 import { DashboardSidebar } from "./DashboardSidebar";
-import { isRouteCurrent } from "./dashboardRouteMatching";
+import { findCurrentRouteItem } from "./dashboardRouteMatching";
 
 export interface DashboardShellItem {
   href: string;
   iconClassName: string;
   labelKey: MessageKey;
   badgeKey?: MessageKey;
+  children?: readonly DashboardShellItem[];
   exactMatch?: boolean;
+  titleLabelKey?: MessageKey;
+}
+
+export interface DashboardShellNavGroup {
+  labelKey: MessageKey;
+  items: readonly DashboardShellItem[];
 }
 
 export interface DashboardShellProps {
   children: ReactNode;
-  navItems: readonly DashboardShellItem[];
+  navGroups: readonly DashboardShellNavGroup[];
   footerItems?: readonly DashboardShellItem[];
   homeHref?: string;
 }
@@ -30,7 +37,7 @@ export function DashboardShell({
   children,
   footerItems = [],
   homeHref = Routes.Home,
-  navItems,
+  navGroups,
 }: DashboardShellProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -40,11 +47,11 @@ export function DashboardShell({
   const navigate = useCallback((href: string) => router.push(href), [router]);
 
   const title = useMemo(() => {
-    const items = [...navItems, ...footerItems];
-    const currentItem = items.find((item) => isRouteCurrent(pathname, item));
+    const allItems = [...navGroups.flatMap((g) => g.items), ...footerItems];
+    const currentItem = findCurrentRouteItem(pathname, allItems);
 
     if (currentItem && currentItem.href !== homeHref) {
-      return t(currentItem.labelKey);
+      return t(currentItem.titleLabelKey ?? currentItem.labelKey);
     }
 
     if (isLoading || !isAuthenticated) {
@@ -54,7 +61,7 @@ export function DashboardShell({
     const displayName = displayProfile?.givenName ?? displayProfile?.displayLabel ?? "";
 
     return t("home.welcomeBackNamed", { name: displayName });
-  }, [displayProfile, footerItems, homeHref, isAuthenticated, isLoading, navItems, pathname, t]);
+  }, [displayProfile, footerItems, homeHref, isAuthenticated, isLoading, navGroups, pathname, t]);
 
   const sidebarIdentity = useMemo(() => {
     if (isLoading) {
@@ -88,11 +95,11 @@ export function DashboardShell({
         <DashboardSidebar
           footerItems={footerItems}
           identity={sidebarIdentity}
-          navItems={navItems}
+          navGroups={navGroups}
           pathname={pathname}
         />
       }
-      sidebarCollapsible="offcanvas"
+      sidebarCollapsible="icon"
     >
       {children}
     </AppLayout>

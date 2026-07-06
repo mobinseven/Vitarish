@@ -25,7 +25,7 @@ export function KnowledgePromptInput({
   onChange: (value: string) => void;
   onSubmit: (value: string) => void;
 }) {
-  const { t } = useLocalizedText();
+  const { direction, t } = useLocalizedText();
   const resolvedLabel = label ?? t("knowledge.qa.questionLabel");
   const resolvedPlaceholder = placeholder ?? t("knowledge.qa.composerTitle");
   const resolvedSubmitLabel = submitLabel ?? t("knowledge.qa.askAction");
@@ -60,7 +60,9 @@ export function KnowledgePromptInput({
               </span>
             )}
           </PromptInput.ToolbarStart>
-          <PromptInput.ToolbarEnd>
+          <PromptInput.ToolbarEnd
+            style={direction === "rtl" ? { marginInlineStart: "auto", marginLeft: 0 } : undefined}
+          >
             {actions}
             <PromptInput.Send
               aria-label={resolvedSubmitLabel}

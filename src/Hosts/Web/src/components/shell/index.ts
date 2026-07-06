@@ -1,5 +1,5 @@
 export { DashboardShell } from "./DashboardShell";
-export type { DashboardShellItem } from "./DashboardShell";
+export type { DashboardShellItem, DashboardShellNavGroup } from "./DashboardShell";
 export { DashboardNavbar } from "./DashboardNavbar";
 export { DashboardSidebar } from "./DashboardSidebar";
 export { IconButton } from "./IconButton";
