@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback } from "react";
-import { Button, Link } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useTheme } from "next-themes";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
-import { Routes } from "@/app/routes";
+import { AccountBackLink, AccountSurface } from "@/components/account/AccountSurface";
 import { useAccountTheme } from "@/features/account/hooks/useAccountTheme";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OptionSelector } from "@/components/account/OptionSelector";
@@ -36,7 +36,7 @@ export default function ThemePage() {
   ];
 
   return (
-    <div className="max-w-md mx-auto flex flex-col gap-4">
+    <AccountSurface>
       <OptionSelector
         title={t("account.theme.title")}
         options={themes}
@@ -56,9 +56,7 @@ export default function ThemePage() {
       >
         {t("common.actions.save")}
       </Button>
-      <Link href={Routes.Account.Index} className="text-sm">
-        {t("common.actions.backToSettings")}
-      </Link>
-    </div>
+      <AccountBackLink />
+    </AccountSurface>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Card, Button, Link } from "@heroui/react";
+import { Button } from "@heroui/react";
+import { ListView } from "@heroui-pro/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
-import { Routes } from "@/app/routes";
+import { AccountBackLink, AccountSurface, AccountWidget } from "@/components/account/AccountSurface";
 import { useAccountPasskeys } from "@/features/account/hooks/useAccountPasskeys";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { localizeApiError, useLocalizedText } from "@/localization";
@@ -55,61 +56,60 @@ export default function PasskeysPage() {
   );
 
   return (
-    <div className="max-w-md mx-auto">
-      <Card>
-        <Card.Header>
-          <h1 className="text-2xl font-bold">{t("account.passkeys.title")}</h1>
-        </Card.Header>
-        <Card.Content className="flex flex-col gap-4">
-          {error && <StatusMessage message={error} />}
-          {success && <StatusMessage message={success} type="success" />}
+    <AccountSurface>
+      <AccountWidget title={t("account.passkeys.title")}>
+        {error && <StatusMessage message={error} />}
+        {success && <StatusMessage message={success} type="success" />}
 
-          {isSupported === false && (
-            <StatusMessage message={t("account.passkeys.unsupported")} />
-          )}
+        {isSupported === false && (
+          <StatusMessage message={t("account.passkeys.unsupported")} />
+        )}
 
-          {isLoadingCredentials ? (
-            <p className="text-sm text-muted">{t("account.passkeys.loading")}</p>
-          ) : credentials && credentials.length > 0 ? (
-            <div className="flex flex-col gap-2">
-              {credentials.map((cred) => (
-                <div
-                  key={cred.id ?? `cred-${cred.friendlyName ?? "unknown"}`}
-                  className="flex items-center justify-between p-3 border border-separator rounded-lg"
-                >
-                  <span className="text-sm">
+        {isLoadingCredentials ? (
+          <p className="text-sm text-muted">{t("account.passkeys.loading")}</p>
+        ) : credentials && credentials.length > 0 ? (
+          <ListView aria-label={t("account.passkeys.title")}>
+            {credentials.map((cred) => (
+              <ListView.Item
+                key={cred.id ?? `cred-${cred.friendlyName ?? "unknown"}`}
+                id={cred.id ?? `cred-${cred.friendlyName ?? "unknown"}`}
+                textValue={cred.friendlyName ?? t("account.passkeys.unnamed")}
+              >
+                <ListView.ItemContent>
+                  <ListView.Title className="whitespace-normal break-words">
                     {cred.friendlyName ?? t("account.passkeys.unnamed")}
-                  </span>
+                  </ListView.Title>
+                </ListView.ItemContent>
+                <ListView.ItemAction>
                   <Button
                     variant="danger"
                     size="sm"
                     onPress={() => cred.id && handleDelete(cred.id)}
                     isPending={isDeletePending}
+                    isDisabled={!cred.id}
                   >
                     {t("common.actions.delete")}
                   </Button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted">{t("account.passkeys.empty")}</p>
-          )}
+                </ListView.ItemAction>
+              </ListView.Item>
+            ))}
+          </ListView>
+        ) : (
+          <p className="text-sm text-muted">{t("account.passkeys.empty")}</p>
+        )}
 
-          {isSupported && (
-            <Button
-              onPress={handleRegister}
-              isPending={isRegisterPending}
-              className="w-full"
-            >
-              {t("account.passkeys.registerAction")}
-            </Button>
-          )}
+        {isSupported && (
+          <Button
+            onPress={handleRegister}
+            isPending={isRegisterPending}
+            className="w-full"
+          >
+            {t("account.passkeys.registerAction")}
+          </Button>
+        )}
 
-          <Link href={Routes.Account.Index} className="text-sm">
-            {t("common.actions.backToSettings")}
-          </Link>
-        </Card.Content>
-      </Card>
-    </div>
+        <AccountBackLink />
+      </AccountWidget>
+    </AccountSurface>
   );
 }
