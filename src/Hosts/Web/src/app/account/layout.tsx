@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { DashboardShell } from "@/components/shell";
-import { accountDashboardNavGroups, dashboardFooterItems } from "@/components/shell/dashboardShellNavigation";
+import { dashboardFooterItems, mainDashboardNavGroups } from "@/components/shell/dashboardShellNavigation";
 import { Routes } from "@/app/routes";
 import { useLocalizedText } from "@/localization";
 
@@ -37,7 +37,7 @@ export default function AccountLayout({
   }
 
   return (
-    <DashboardShell footerItems={dashboardFooterItems} navGroups={accountDashboardNavGroups}>
+    <DashboardShell footerItems={dashboardFooterItems} navGroups={mainDashboardNavGroups}>
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 pb-10 pt-4">
         <JourneyGateBoundary>{children}</JourneyGateBoundary>
       </div>

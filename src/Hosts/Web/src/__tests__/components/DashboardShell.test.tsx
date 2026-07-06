@@ -5,6 +5,7 @@ import { DashboardSidebar } from "@/components/shell/DashboardSidebar";
 import { ThemeSwitch } from "@/components/shell/ThemeSwitch";
 import { UserMenu } from "@/components/shell/UserMenu";
 import { SearchInput } from "@/components/shell/SearchInput";
+import { dashboardFooterItems, mainDashboardNavGroups } from "@/components/shell/dashboardShellNavigation";
 
 vi.mock("next-themes", () => ({
   useTheme: () => ({
@@ -41,11 +42,9 @@ vi.mock("@/localization", () => ({
         "appShell.navigation.clinic": "Clinic",
         "appShell.navigation.knowledge": "Knowledge",
         "appShell.navigation.dashboardMenu": "Dashboard navigation",
-        "appShell.navigation.accountMenu": "Account",
         "appShell.navigation.mainGroup": "General",
         "appShell.navigation.clinicGroup": "Clinic",
         "appShell.navigation.staffGroup": "Staff",
-        "appShell.navigation.accountGroup": "Account",
         "appShell.actions.notifications": "Notifications",
         "appShell.actions.invite": "Invite",
         "appShell.theme.light": "Switch to light mode",
@@ -58,6 +57,14 @@ vi.mock("@/localization", () => ({
         "appShell.menu.open": "Open menu",
         "appShell.search.label": "Search",
         "appShell.search.placeholder": "Search...",
+        "account.title": "Account",
+        "account.navigation.name": "Name",
+        "account.navigation.email": "Email",
+        "account.navigation.phone": "Phone",
+        "account.navigation.password": "Password",
+        "account.navigation.passkeys": "Passkeys",
+        "account.navigation.theme": "Theme",
+        "account.navigation.language": "Language",
         "clinic.patients.title": "Patients",
         "knowledge.qa.title": "Knowledge Q&A",
         "home.welcomeBack": "Welcome back",
@@ -147,6 +154,23 @@ describe("Dashboard Shell Components", () => {
 
       expect(screen.getByText("Clinic")).toBeInTheDocument();
       expect(screen.getByText("Patients")).toBeInTheDocument();
+    });
+
+    it("keeps account navigation as a main feature item instead of a footer item or standalone section", () => {
+      const [mainGroup] = mainDashboardNavGroups;
+      const accountItem = mainGroup.items.find((item) => item.href === "/account");
+
+      expect(dashboardFooterItems.map((item) => item.href)).not.toContain("/account");
+      expect(mainDashboardNavGroups.map((group) => group.labelKey)).not.toContain("appShell.navigation.accountGroup");
+      expect(accountItem?.children?.map((item) => item.href)).toEqual([
+        "/account/name",
+        "/account/email",
+        "/account/phone",
+        "/account/password",
+        "/account/passkeys",
+        "/account/theme",
+        "/account/culture",
+      ]);
     });
   });
 

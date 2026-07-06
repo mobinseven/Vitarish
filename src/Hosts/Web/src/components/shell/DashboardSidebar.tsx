@@ -114,7 +114,7 @@ function DashboardSidebarContents({
             </Sidebar.Content>
             {footerItems.length > 0 ? (
                 <Sidebar.Footer>
-                    <Sidebar.Menu aria-label={t("appShell.navigation.accountMenu")}>
+                    <Sidebar.Menu aria-label={t("appShell.userMenu.signOut")}>
                         {footerItems.map((item) => (
                             <DashboardSidebarNavItem
                                 key={item.href}
