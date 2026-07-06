@@ -8,6 +8,7 @@ import { AccountBackLink, AccountSurface, AccountWidget } from "@/components/acc
 import { useAccountPasskeys } from "@/features/account/hooks/useAccountPasskeys";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { localizeApiError, useLocalizedText } from "@/localization";
+import { localizePasskeyRegistrationError } from "@/features/account/passkeyRegistrationErrors";
 
 export default function PasskeysPage() {
   const { user } = useAuthSession();
@@ -33,11 +34,7 @@ export default function PasskeysPage() {
       await register();
       setSuccess(t("account.passkeys.registered"));
     } catch (err: unknown) {
-      if (err instanceof Error && err.name === "NotAllowedError") {
-        setError(t("account.passkeys.registrationCancelled"));
-      } else {
-        setError(localizeApiError(err, t));
-      }
+      setError(localizePasskeyRegistrationError(err, t));
     }
   }, [register, t]);
 
