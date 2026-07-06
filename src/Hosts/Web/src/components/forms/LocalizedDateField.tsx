@@ -8,7 +8,6 @@ import {
   Description,
   FieldError,
   Label,
-  TextField,
 } from "@heroui/react";
 import type { DateValue } from "@internationalized/date";
 import { parseIsoDateValue, dateValueToIsoDate } from "@/localization/dateValue";
@@ -50,54 +49,52 @@ export function LocalizedDateField({
   );
 
   return (
-    <TextField isInvalid={!!error} isRequired={isRequired}>
+    <DatePicker
+      value={parsedValue}
+      onChange={handleChange}
+      isInvalid={!!error}
+      isRequired={isRequired}
+      isDisabled={isDisabled}
+      minValue={parsedMinValue ?? undefined}
+      maxValue={parsedMaxValue ?? undefined}
+      name={name}
+    >
       <Label>{label}</Label>
-      <DatePicker
-        value={parsedValue}
-        onChange={handleChange}
-        isInvalid={!!error}
-        isRequired={isRequired}
-        isDisabled={isDisabled}
-        minValue={parsedMinValue ?? undefined}
-        maxValue={parsedMaxValue ?? undefined}
-        name={name}
-      >
-        <DateField.Group fullWidth>
-          <DateField.Input>
-            {(segment) => <DateField.Segment segment={segment} />}
-          </DateField.Input>
-          <DateField.Suffix>
-            <DatePicker.Trigger>
-              <DatePicker.TriggerIndicator />
-            </DatePicker.Trigger>
-          </DateField.Suffix>
-        </DateField.Group>
-        {description && !error && <Description>{description}</Description>}
-        {error && <FieldError>{error}</FieldError>}
-        <DatePicker.Popover>
-          <Calendar aria-label={label}>
-            <Calendar.Header>
-              <Calendar.YearPickerTrigger>
-                <Calendar.YearPickerTriggerHeading />
-                <Calendar.YearPickerTriggerIndicator />
-              </Calendar.YearPickerTrigger>
-              <Calendar.NavButton slot="previous" />
-              <Calendar.NavButton slot="next" />
-            </Calendar.Header>
-            <Calendar.Grid>
-              <Calendar.GridHeader>
-                {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
-              </Calendar.GridHeader>
-              <Calendar.GridBody>{(date) => <Calendar.Cell date={date} />}</Calendar.GridBody>
-            </Calendar.Grid>
-            <Calendar.YearPickerGrid>
-              <Calendar.YearPickerGridBody>
-                {({ year }) => <Calendar.YearPickerCell year={year} />}
-              </Calendar.YearPickerGridBody>
-            </Calendar.YearPickerGrid>
-          </Calendar>
-        </DatePicker.Popover>
-      </DatePicker>
-    </TextField>
+      <DateField.Group fullWidth>
+        <DateField.Input>
+          {(segment) => <DateField.Segment segment={segment} />}
+        </DateField.Input>
+        <DateField.Suffix>
+          <DatePicker.Trigger>
+            <DatePicker.TriggerIndicator />
+          </DatePicker.Trigger>
+        </DateField.Suffix>
+      </DateField.Group>
+      {description && !error && <Description>{description}</Description>}
+      {error && <FieldError>{error}</FieldError>}
+      <DatePicker.Popover>
+        <Calendar aria-label={label}>
+          <Calendar.Header>
+            <Calendar.YearPickerTrigger>
+              <Calendar.YearPickerTriggerHeading />
+              <Calendar.YearPickerTriggerIndicator />
+            </Calendar.YearPickerTrigger>
+            <Calendar.NavButton slot="previous" />
+            <Calendar.NavButton slot="next" />
+          </Calendar.Header>
+          <Calendar.Grid>
+            <Calendar.GridHeader>
+              {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+            </Calendar.GridHeader>
+            <Calendar.GridBody>{(date) => <Calendar.Cell date={date} />}</Calendar.GridBody>
+          </Calendar.Grid>
+          <Calendar.YearPickerGrid>
+            <Calendar.YearPickerGridBody>
+              {({ year }) => <Calendar.YearPickerCell year={year} />}
+            </Calendar.YearPickerGridBody>
+          </Calendar.YearPickerGrid>
+        </Calendar>
+      </DatePicker.Popover>
+    </DatePicker>
   );
 }
