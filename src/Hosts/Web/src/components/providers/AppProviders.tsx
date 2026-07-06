@@ -5,8 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
 import { LocalizationProvider, type SupportedLocale } from "@/localization";
-import { accountThemeOptions } from "@/features/account/theme/themeOptions";
+import { type ThemeMode } from "@/features/account/theme/themeOptions";
+import { PaletteProvider } from "./PaletteProvider";
 import { VibrantPaletteProvider } from "./VibrantPaletteProvider";
+
+const themeModeOptions: readonly Exclude<ThemeMode, "system">[] = ["light", "dark"];
 
 export function Providers({ children, locale }: { children: ReactNode; locale: SupportedLocale }) {
   const [queryClient] = useState(
@@ -23,15 +26,17 @@ export function Providers({ children, locale }: { children: ReactNode; locale: S
       <ThemeProvider
         attribute="data-theme"
         defaultTheme="system"
-        themes={accountThemeOptions.map((option) => option.value)}
+        themes={[...themeModeOptions]}
         enableSystem
         disableTransitionOnChange
       >
         <LocalizationProvider locale={locale}>
-          <VibrantPaletteProvider>
-            {children}
-            <Toast.Provider placement="bottom" />
-          </VibrantPaletteProvider>
+          <PaletteProvider>
+            <VibrantPaletteProvider>
+              {children}
+              <Toast.Provider placement="bottom" />
+            </VibrantPaletteProvider>
+          </PaletteProvider>
         </LocalizationProvider>
       </ThemeProvider>
     </QueryClientProvider>
