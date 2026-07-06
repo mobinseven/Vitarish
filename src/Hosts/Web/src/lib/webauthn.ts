@@ -44,7 +44,12 @@ export async function startRegistration(
       publicKey: credentialOptions,
     })) as PublicKeyCredential | null;
   } catch (error) {
-    if (error instanceof DOMException && error.name === "NotAllowedError") {
+    if (
+      error != null &&
+      typeof error === "object" &&
+      "name" in error &&
+      error.name === "NotAllowedError"
+    ) {
       throw error;
     }
 
@@ -158,12 +163,13 @@ function toBrowserRegistrationOptions(
 }
 
 function base64UrlToBuffer(base64Url: string): ArrayBuffer {
-  const base64UrlPattern = /^[A-Za-z0-9_-]+$/;
+  const base64UrlPattern = /^[A-Za-z0-9_-]+=*$/;
   if (!base64UrlPattern.test(base64Url)) {
     throw new Error("Invalid base64url data.");
   }
 
-  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  const unpadded = base64Url.replace(/=+$/, "");
+  const base64 = unpadded.replace(/-/g, "+").replace(/_/g, "/");
   const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
   const binary = atob(padded);
   const buffer = new ArrayBuffer(binary.length);

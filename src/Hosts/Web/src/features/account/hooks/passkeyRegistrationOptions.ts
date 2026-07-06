@@ -60,7 +60,10 @@ function assertUser(user: unknown): void {
     );
   }
 
-  assertNonEmptyString((user as Record<string, unknown>).id, "user.id");
+  const record = user as Record<string, unknown>;
+  assertNonEmptyString(record.id, "user.id");
+  assertNonEmptyString(record.name, "user.name");
+  assertNonEmptyString(record.displayName, "user.displayName");
 }
 
 function assertPubKeyCredParams(pubKeyCredParams: unknown): void {
