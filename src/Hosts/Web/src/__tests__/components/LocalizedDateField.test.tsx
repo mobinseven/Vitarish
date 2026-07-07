@@ -11,7 +11,7 @@ function ReactAriaLocaleProbe() {
 }
 
 function getCalendarText() {
-  const calendarGrid = screen.getByRole("grid");
+  const [calendarGrid] = screen.getAllByRole("grid");
   return calendarGrid.closest(".localized-date-field__popover")?.textContent ?? calendarGrid.textContent ?? "";
 }
 
