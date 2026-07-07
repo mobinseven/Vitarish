@@ -1,4 +1,5 @@
 import type {SVGProps} from "react";
+import Image from "next/image";
 
 import metadata from "./metadata.json";
 import guidelines from "./guidelines.json";
@@ -31,12 +32,13 @@ export function BrandLogotipo({className, height, width, ...props}: BrandIconPro
 
   if (asset?.src) {
     return (
-      <img
+      <Image
         alt={asset.alt ?? brand.name}
         className={className}
-        height={height ?? asset.height ?? 31}
+        height={Number(height ?? asset.height ?? 31)}
         src={asset.src}
-        width={width ?? asset.width}
+        width={Number(width ?? asset.width ?? 128)}
+        unoptimized
       />
     );
   }
@@ -110,12 +112,13 @@ export function BrandIsotipo({className, height, width, ...props}: BrandIconProp
 
   if (asset?.src) {
     return (
-      <img
+      <Image
         alt={asset.alt ?? brand.name}
         className={className}
-        height={height ?? asset.height ?? 44}
+        height={Number(height ?? asset.height ?? 44)}
         src={asset.src}
-        width={width ?? asset.width ?? 44}
+        width={Number(width ?? asset.width ?? 44)}
+        unoptimized
       />
     );
   }

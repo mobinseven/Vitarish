@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {Button} from "@heroui/react";
 
 import {Iconify} from "@/features/landing/icons/iconify";
@@ -77,10 +78,13 @@ export function Hero() {
               <div className="absolute left-3 top-3 z-10">
                 <Annotation className="bp-label-accent">FIG. 01 — CORE UNIT</Annotation>
               </div>
-              <img
+              <Image
                 alt={figures.hero.alt}
                 className="relative z-[1] w-full object-cover"
                 src={figures.hero.src}
+                width={800}
+                height={600}
+                unoptimized
               />
               <CornerMarks />
 

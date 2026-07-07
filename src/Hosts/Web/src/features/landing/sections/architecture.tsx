@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import {figures} from "@/features/landing/data/figures";
 import {Annotation, CornerMarks, DrawLineX, Reveal, SectionLabel} from "@/components/blueprint";
 import {useLocalizedText} from "@/localization";
@@ -40,10 +42,13 @@ export function Architecture() {
             <div className="absolute left-4 top-4 z-10">
               <Annotation className="bp-label-accent">FIG. 06 — TOPOLOGY</Annotation>
             </div>
-            <img
+            <Image
               alt={figures.architecture.alt}
               className="relative z-[1] mx-auto w-full max-w-5xl object-cover"
               src={figures.architecture.src}
+              width={1200}
+              height={600}
+              unoptimized
             />
             <CornerMarks />
           </div>

@@ -1,4 +1,5 @@
 import type {ReactNode} from "react";
+import Image from "next/image";
 import {motion, useReducedMotion} from "motion/react";
 import {Tooltip} from "@heroui/react";
 
@@ -128,11 +129,14 @@ export function Figure({
             </Tooltip.Content>
           </Tooltip>
         </div>
-        <img
+        <Image
           alt={figure.alt}
           className={`relative z-[1] w-full object-cover ${imgClassName ?? ""}`}
           loading="lazy"
           src={figure.src}
+          width={800}
+          height={600}
+          unoptimized
         />
         <CornerMarks />
       </div>
