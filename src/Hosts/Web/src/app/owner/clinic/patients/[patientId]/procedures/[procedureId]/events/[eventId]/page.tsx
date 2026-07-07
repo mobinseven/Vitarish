@@ -8,7 +8,7 @@ import { Routes } from "@/app/routes";
 import { ClinicDetailGrid, type ClinicDetailItem } from "@/features/clinic/components/ClinicDetailGrid";
 import { ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { useProcedureEventDetail } from "@/features/clinic/patients/procedures/hooks/useProcedures";
-import { useLocalizedText } from "@/localization";
+import { useLocalizedText, formatDateTime } from "@/localization";
 
 export default function ClinicPatientProcedureEventPage({
   params,
@@ -17,7 +17,7 @@ export default function ClinicPatientProcedureEventPage({
 }) {
   const { patientId, procedureId, eventId } = use(params);
   const router = useRouter();
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
   const { data: event, isLoading, error } = useProcedureEventDetail(eventId);
 
   if (isLoading) {
@@ -29,9 +29,9 @@ export default function ClinicPatientProcedureEventPage({
   }
 
   const details: ClinicDetailItem[] = [
-    { label: t("clinic.fields.created"), value: new Date(event.createdAt).toLocaleString() },
+    { label: t("clinic.fields.created"), value: formatDateTime(event.createdAt, locale) },
     ...(event.committedAt
-      ? [{ label: t("clinic.fields.committedAt"), value: new Date(event.committedAt).toLocaleString() }]
+      ? [{ label: t("clinic.fields.committedAt"), value: formatDateTime(event.committedAt, locale) }]
       : []),
     ...(event.description
       ? [{ label: t("clinic.fields.description"), value: event.description }]

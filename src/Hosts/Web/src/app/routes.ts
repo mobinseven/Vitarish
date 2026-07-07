@@ -105,4 +105,31 @@ export const Routes = {
       Detail: (shiftId: string) => `/user/clinic/shifts/${shiftId}` as const,
     },
   },
+
+  /** SEA Owner routes */
+  Sea: {
+    Index: "/owner/sea",
+    Projects: {
+      Index: "/owner/sea/projects",
+      New: "/owner/sea/projects/new",
+      Detail: (projectId: string) => `/owner/sea/projects/${projectId}` as const,
+      Edit: (projectId: string) => `/owner/sea/projects/${projectId}/edit` as const,
+    },
+    Procedures: {
+      Detail: (projectId: string, procedureId: string) =>
+        `/owner/sea/projects/${projectId}/procedures/${procedureId}` as const,
+    },
+    Events: {
+      Detail: (projectId: string, procedureId: string, eventId: string) =>
+        `/owner/sea/projects/${projectId}/procedures/${procedureId}/events/${eventId}` as const,
+    },
+    Templates: {
+      Index: "/owner/sea/templates",
+      Detail: (projectId: string) => `/owner/sea/templates/${projectId}` as const,
+    },
+    Settings: {
+      Users: "/owner/sea/settings/users",
+      Statistics: "/owner/sea/settings/statistics",
+    },
+  },
 } as const;
