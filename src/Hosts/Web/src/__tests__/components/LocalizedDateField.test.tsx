@@ -71,10 +71,9 @@ describe("LocalizedDateField", () => {
 
     await user.click(screen.getByRole("button"));
 
-    const popover = document.querySelector(".localized-date-field__popover");
-    expect(popover).not.toBeNull();
     const [calendarGrid] = screen.getAllByRole("grid");
     expect(calendarGrid).toBeDefined();
+    expect(calendarGrid).toHaveAttribute("aria-label", expect.stringContaining("Test date"));
     // Note: Persian month names (تیر, مرداد, …) are only rendered when the
     // runtime has full ICU data for ca-persian.  jsdom ships without it, so
     // we verify the locale bridge and popover open instead of asserting
@@ -101,6 +100,6 @@ describe("LocalizedDateField", () => {
     // and month names; jsdom lacks ca-persian ICU data so segments fall back
     // to the default format.  We verify the component renders without error
     // and the locale is correctly wired (covered by the bridge test).
-    expect(document.querySelector("[data-slot='date-picker']")).not.toBeNull();
+    expect(screen.getByRole("group")).toBeDefined();
   });
 });
