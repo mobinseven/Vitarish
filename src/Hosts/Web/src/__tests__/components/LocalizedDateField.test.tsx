@@ -10,6 +10,11 @@ function ReactAriaLocaleProbe() {
   return <output aria-label="React Aria locale" data-locale={locale} data-direction={direction} />;
 }
 
+function getCalendarText() {
+  const calendarGrid = screen.getByRole("grid");
+  return calendarGrid.closest(".localized-date-field__popover")?.textContent ?? calendarGrid.textContent ?? "";
+}
+
 describe("LocalizedDateField", () => {
   it("bridges Persian app locale to React Aria", () => {
     renderWithLocalization(<ReactAriaLocaleProbe />, { locale: "fa" });
@@ -52,20 +57,28 @@ describe("LocalizedDateField", () => {
     expect(screen.getByText("Required")).toBeDefined();
   });
 
+  it("forwards caller className while preserving the default field width", () => {
+    renderWithLocalization(<LocalizedDateField label="Test date" value="" onChange={vi.fn()} className="mt-2" />, { locale: "en" });
+    const datePicker = document.querySelector(".w-full.mt-2");
+    expect(datePicker).not.toBeNull();
+    expect(datePicker).toHaveClass("w-full", "mt-2");
+  });
+
   it("does not expose DateValue in public props", () => {
     const onChange = vi.fn();
     renderWithLocalization(<LocalizedDateField label="Test date" value="" onChange={onChange} />, { locale: "en" });
     expect(typeof onChange.mock.calls[0]?.[0]).not.toBe("object");
   });
 
-  it("does not render English Gregorian calendar labels for Persian locale", async () => {
+  it("renders Persian calendar labels instead of English Gregorian labels for Persian locale", async () => {
     const user = userEvent.setup();
     renderWithLocalization(<LocalizedDateField label="Test date" value="2026-07-06" onChange={vi.fn()} />, { locale: "fa" });
 
     await user.click(screen.getByRole("button"));
 
-    expect(screen.queryByText(/July 2026/i)).toBeNull();
-    expect(screen.queryByText(/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)$/i)).toBeNull();
+    const calendarText = getCalendarText();
+    expect(calendarText).toContain("تیر");
+    expect(calendarText).not.toMatch(/July|Sun|Mon|Tue|Wed|Thu|Fri|Sat|Su|Mo|Tu|We|Th|Fr|Sa/i);
   });
 
   it("keeps the popover width independent from the full-width field", async () => {
@@ -79,10 +92,10 @@ describe("LocalizedDateField", () => {
     expect(popover).toHaveClass("!min-w-0", "w-max", "max-w-[calc(100vw-2rem)]", "p-2");
   });
 
-  it("does not hard-code Gregorian placeholder text", () => {
+  it("does not hard-code Gregorian placeholder segments", () => {
     renderWithLocalization(<LocalizedDateField label="Test date" value="" onChange={vi.fn()} />, { locale: "fa" });
 
-    expect(screen.queryByText(/yyyy\s*\/\s*dd\s*\/\s*mm/i)).toBeNull();
-    expect(screen.queryByText(/mm\s*\/\s*dd\s*\/\s*yyyy/i)).toBeNull();
+    expect(document.body.textContent ?? "").not.toMatch(/\b(yyyy|mm|dd)\b/i);
+    expect(screen.queryByText(/^(yyyy|mm|dd)$/i)).toBeNull();
   });
 });
