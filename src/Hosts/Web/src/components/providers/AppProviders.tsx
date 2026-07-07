@@ -4,7 +4,7 @@ import { Toast } from "@heroui/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
-import { I18nProvider } from "react-aria-components";
+import { I18nProvider } from "@react-aria/i18n";
 import { LocalizationProvider, getReactAriaLocale, type SupportedLocale } from "@/localization";
 import { type ThemeMode } from "@/features/account/theme/themeOptions";
 import { PaletteProvider } from "./PaletteProvider";

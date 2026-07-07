@@ -1,6 +1,6 @@
 import { render, type RenderOptions } from "@testing-library/react";
 import type { ReactElement } from "react";
-import { I18nProvider } from "react-aria-components";
+import { I18nProvider } from "@react-aria/i18n";
 import { defaultLocale, getReactAriaLocale, LocalizationProvider, type SupportedLocale } from "@/localization";
 import { getMessages, type MessageCatalog } from "@/localization/messages";
 
