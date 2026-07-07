@@ -22,6 +22,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -31,12 +37,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -81,6 +81,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -90,12 +96,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -145,6 +145,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -154,12 +160,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -209,6 +209,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -218,12 +224,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -276,6 +276,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -285,12 +291,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -341,6 +341,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -350,12 +356,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -408,6 +408,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -417,12 +423,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -475,6 +475,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -484,12 +490,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -542,6 +542,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -551,12 +557,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -612,6 +612,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -621,12 +627,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -679,6 +679,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -688,12 +694,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -744,6 +744,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -753,12 +759,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -810,6 +810,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -819,12 +825,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -874,6 +874,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -883,12 +889,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -941,6 +941,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -950,12 +956,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1008,6 +1008,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1017,12 +1023,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1078,6 +1078,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1087,12 +1093,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1145,6 +1145,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1154,12 +1160,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1210,6 +1210,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1219,12 +1225,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1277,6 +1277,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1286,12 +1292,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1354,6 +1354,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1364,11 +1370,71 @@
               }
             }
           },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/sea/events/after": {
+      "post": {
+        "tags": [
+          "Sea"
+        ],
+        "operationId": "SeaCreateFirstEvent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventWriteDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeaCommandResult"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized"
           },
           "403": {
             "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           },
           "404": {
             "description": "Not Found",
@@ -1420,6 +1486,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1429,12 +1501,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1487,6 +1553,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1496,12 +1568,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1554,6 +1620,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1563,12 +1635,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1621,6 +1687,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1630,12 +1702,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1688,6 +1754,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1697,12 +1769,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1755,6 +1821,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1764,12 +1836,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1822,6 +1888,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1831,12 +1903,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1892,6 +1958,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -1901,12 +1973,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -1954,11 +2020,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "integer",
+                  "pattern": "^-?(?:0|[1-9]\\d*)$",
+                  "type": [
+                    "integer",
+                    "string"
+                  ],
                   "format": "int32"
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "400": {
             "description": "Bad Request",
@@ -1969,12 +2045,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2026,6 +2096,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2035,12 +2111,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2090,6 +2160,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2099,12 +2175,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2156,6 +2226,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2165,12 +2241,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2225,6 +2295,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2234,12 +2310,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2292,6 +2362,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2301,12 +2377,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2351,6 +2421,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2360,12 +2436,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2415,6 +2485,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2424,12 +2500,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2479,6 +2549,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2488,12 +2564,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2546,6 +2616,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2555,12 +2631,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2615,6 +2685,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2624,12 +2700,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2681,6 +2751,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2690,12 +2766,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2748,6 +2818,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2757,12 +2833,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2819,6 +2889,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2828,12 +2904,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2890,6 +2960,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2899,12 +2975,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -2961,6 +3031,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -2970,12 +3046,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -3027,6 +3097,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -3036,12 +3112,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -3094,6 +3164,12 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "400": {
             "description": "Bad Request",
             "content": {
@@ -3103,12 +3179,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -3150,71 +3220,11 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
           "401": {
             "description": "Unauthorized"
           },
           "403": {
             "description": "Forbidden"
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/modules/sea/events/after": {
-      "post": {
-        "tags": [
-          "Sea"
-        ],
-        "operationId": "SeaCreateFirstEvent",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EventWriteDto"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SeaCommandResult"
-                }
-              }
-            }
           },
           "400": {
             "description": "Bad Request",
@@ -3225,12 +3235,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           },
           "404": {
             "description": "Not Found",
@@ -3258,6 +3262,100 @@
   },
   "components": {
     "schemas": {
+      "AttachmentReadDto": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "contentThumbnail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "size": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deletedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "deletedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "metadataValues": {
+            "type": "object"
+          }
+        }
+      },
+      "AttachmentSnapshot": {
+        "required": [
+          "id",
+          "content"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          }
+        }
+      },
       "AttachmentWriteDto": {
         "required": [
           "eventId",
@@ -3304,6 +3402,158 @@
           }
         }
       },
+      "DatabaseStatisticsReadDto": {
+        "type": "object",
+        "properties": {
+          "projects": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "procedures": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "events": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "roles": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "attachments": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "reminders": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "EventReadDto": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "procedureId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "previousEventId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "committedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "committedBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isCommitted": {
+            "type": "boolean"
+          },
+          "stats": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatsReadDto"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deletedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "deletedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "metadataValues": {
+            "type": "object"
+          }
+        }
+      },
       "EventRoleWriteDto": {
         "required": [
           "eventId",
@@ -3332,6 +3582,33 @@
           },
           "metadataValues": {
             "type": "object"
+          }
+        }
+      },
+      "EventSnapshot": {
+        "required": [
+          "id",
+          "name",
+          "committed",
+          "attachments"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "committed": {
+            "type": "boolean"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentSnapshot"
+            }
           }
         }
       },
@@ -3426,6 +3703,153 @@
           }
         }
       },
+      "ProcedureReadDto": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "stats": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatsReadDto"
+              }
+            ]
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deletedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "deletedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "metadataValues": {
+            "type": "object"
+          }
+        }
+      },
+      "ProcedureSnapshot": {
+        "required": [
+          "id",
+          "projectId",
+          "projectName",
+          "projectDescription",
+          "projectMetadata",
+          "name",
+          "metadata",
+          "currentOverview",
+          "overviewUpdatedAt",
+          "stats",
+          "events"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "projectDescription": {
+            "type": "string"
+          },
+          "projectMetadata": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "currentOverview": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "overviewUpdatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "stats": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatsReadDto"
+              }
+            ]
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventSnapshot"
+            }
+          }
+        }
+      },
       "ProcedureWriteDto": {
         "type": "object",
         "properties": {
@@ -3454,6 +3878,170 @@
           },
           "metadataValues": {
             "type": "object"
+          }
+        }
+      },
+      "ProgressState": {
+        "enum": [
+          "NotStarted",
+          "Quarter",
+          "Half",
+          "ThreeQuarters",
+          "InProgress",
+          "Completed",
+          null
+        ]
+      },
+      "ProjectReadDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "avatarFileId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "identificationCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "template": {
+            "type": "boolean"
+          },
+          "stats": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatsReadDto"
+              }
+            ]
+          },
+          "userIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deletedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "deletedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "metadataValues": {
+            "type": "object"
+          }
+        }
+      },
+      "ProjectSnapshot": {
+        "required": [
+          "id",
+          "name",
+          "description",
+          "template",
+          "metadata",
+          "currentOverview",
+          "overviewUpdatedAt",
+          "stats",
+          "procedures"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "template": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "currentOverview": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "overviewUpdatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "stats": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatsReadDto"
+              }
+            ]
+          },
+          "procedures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProcedureSnapshot"
+            }
           }
         }
       },
@@ -3496,6 +4084,63 @@
               "string"
             ],
             "format": "uuid"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "metadataValues": {
+            "type": "object"
+          }
+        }
+      },
+      "RoleReadDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deletedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "deletedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDeleted": {
+            "type": "boolean"
           },
           "id": {
             "type": "string",
@@ -3594,6 +4239,132 @@
       "SeaErrorCode": {
         "type": "integer"
       },
+      "StatsReadDto": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ProgressState"
+              }
+            ]
+          },
+          "procedures": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "events": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "committedEvents": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "eventItems": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "newItems": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "unread": {
+            "type": "boolean"
+          },
+          "lastUpdate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "UserRoleReadDto": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/RoleType"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "updatedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deletedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "deletedBy": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "metadataValues": {
+            "type": "object"
+          }
+        }
+      },
       "UserRoleWriteDto": {
         "required": [
           "roleId",
@@ -3619,887 +4390,6 @@
             "type": "object"
           }
         }
-      },
-      "ProgressState": {
-        "enum": [
-          "NotStarted",
-          "Quarter",
-          "Half",
-          "ThreeQuarters",
-          "InProgress",
-          "Completed"
-        ],
-        "type": "string"
-      },
-      "StatsReadDto": {
-        "type": "object",
-        "properties": {
-          "state": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ProgressState"
-              }
-            ]
-          },
-          "procedures": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "events": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "committedEvents": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "eventItems": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "newItems": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "unread": {
-            "type": "boolean"
-          },
-          "lastUpdate": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "procedures",
-          "events",
-          "committedEvents",
-          "eventItems",
-          "newItems",
-          "unread"
-        ]
-      },
-      "ProjectReadDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "metadataValues": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "updatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "updatedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "deletedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "deletedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "isDeleted": {
-            "type": "boolean"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "avatarFileId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "identificationCode": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "template": {
-            "type": "boolean"
-          },
-          "stats": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/StatsReadDto"
-              }
-            ]
-          },
-          "userIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "createdAt",
-          "isDeleted",
-          "name",
-          "description",
-          "template",
-          "userIds"
-        ]
-      },
-      "ProcedureReadDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "metadataValues": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "updatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "updatedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "deletedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "deletedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "isDeleted": {
-            "type": "boolean"
-          },
-          "projectId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "stats": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/StatsReadDto"
-              }
-            ]
-          },
-          "description": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "createdAt",
-          "isDeleted",
-          "projectId",
-          "name"
-        ]
-      },
-      "EventReadDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "metadataValues": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "updatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "updatedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "deletedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "deletedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "isDeleted": {
-            "type": "boolean"
-          },
-          "projectId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "procedureId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "previousEventId": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "uuid"
-          },
-          "committedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "committedBy": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "isCommitted": {
-            "type": "boolean"
-          },
-          "stats": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/StatsReadDto"
-              }
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "createdAt",
-          "isDeleted",
-          "projectId",
-          "procedureId",
-          "committedBy",
-          "title",
-          "description",
-          "isCommitted"
-        ]
-      },
-      "AttachmentReadDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "metadataValues": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "updatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "updatedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "deletedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "deletedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "isDeleted": {
-            "type": "boolean"
-          },
-          "eventId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "content": {
-            "type": "string"
-          },
-          "contentType": {
-            "type": "string"
-          },
-          "contentThumbnail": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "size": {
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int64",
-            "pattern": "^-?(?:0|[1-9]\\d*)$"
-          }
-        },
-        "required": [
-          "id",
-          "createdAt",
-          "isDeleted",
-          "eventId",
-          "content",
-          "contentType",
-          "size"
-        ]
-      },
-      "RoleReadDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "metadataValues": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "updatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "updatedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "deletedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "deletedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "isDeleted": {
-            "type": "boolean"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "createdAt",
-          "isDeleted",
-          "name"
-        ]
-      },
-      "UserRoleReadDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "metadataValues": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "updatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "updatedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "deletedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "deletedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "isDeleted": {
-            "type": "boolean"
-          },
-          "roleId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "type": {
-            "$ref": "#/components/schemas/RoleType"
-          }
-        },
-        "required": [
-          "id",
-          "createdAt",
-          "isDeleted",
-          "roleId",
-          "type"
-        ]
-      },
-      "EventRoleReadDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "metadataValues": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "updatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "updatedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "deletedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "deletedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "isDeleted": {
-            "type": "boolean"
-          },
-          "eventId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "roleId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "type": {
-            "$ref": "#/components/schemas/RoleType"
-          }
-        },
-        "required": [
-          "id",
-          "createdAt",
-          "isDeleted",
-          "eventId",
-          "roleId",
-          "type"
-        ]
-      },
-      "DatabaseStatisticsReadDto": {
-        "type": "object",
-        "properties": {
-          "projects": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "procedures": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "events": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "roles": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "attachments": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "reminders": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "required": [
-          "projects",
-          "procedures",
-          "events",
-          "roles",
-          "attachments",
-          "reminders"
-        ]
-      },
-      "ProjectSnapshot": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "template": {
-            "type": "boolean"
-          },
-          "metadata": {
-            "type": "string"
-          },
-          "currentOverview": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "overviewUpdatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "stats": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/StatsReadDto"
-              }
-            ]
-          },
-          "procedures": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProcedureSnapshot"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "description",
-          "template",
-          "metadata",
-          "procedures"
-        ]
-      },
-      "ProcedureSnapshot": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "stats": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/StatsReadDto"
-              }
-            ]
-          },
-          "events": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EventSnapshot"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "events"
-        ]
-      },
-      "EventSnapshot": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "isCommitted": {
-            "type": "boolean"
-          },
-          "committedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "stats": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/StatsReadDto"
-              }
-            ]
-          },
-          "attachments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AttachmentSnapshot"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "title",
-          "description",
-          "isCommitted",
-          "attachments"
-        ]
-      },
-      "AttachmentSnapshot": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "content": {
-            "type": "string"
-          },
-          "contentType": {
-            "type": "string"
-          },
-          "contentThumbnail": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "size": {
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int64",
-            "pattern": "^-?(?:0|[1-9]\\d*)$"
-          }
-        },
-        "required": [
-          "id",
-          "content",
-          "contentType",
-          "size"
-        ]
       }
     }
   },

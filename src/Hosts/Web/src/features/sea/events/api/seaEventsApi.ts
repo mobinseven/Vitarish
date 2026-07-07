@@ -14,6 +14,7 @@ import {
   seaUpdateEvent,
 } from "@/api/generated/sea/sea";
 import type { SeaCommandResult } from "@/api/generated/sea/model";
+import { mapSeaEvent } from "../../shared/models/seaReadDtoMappers";
 import type { SeaEventReadDto } from "../../shared/models/seaStatModels";
 
 export interface SeaEventWriteDto {
@@ -28,11 +29,12 @@ export interface SeaEventWriteDto {
 }
 
 export async function listSeaEvents(procedureId: string): Promise<SeaEventReadDto[]> {
-  return seaListEvents(procedureId);
+  const events = await seaListEvents(procedureId);
+  return events.map(mapSeaEvent);
 }
 
 export async function getSeaEvent(id: string): Promise<SeaEventReadDto> {
-  return seaGetEvent(id);
+  return mapSeaEvent(await seaGetEvent(id));
 }
 
 export async function createSeaEventAfter(previousEventId: string | undefined, data: SeaEventWriteDto): Promise<SeaCommandResult> {

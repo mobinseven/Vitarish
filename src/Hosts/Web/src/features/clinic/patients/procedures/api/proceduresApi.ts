@@ -33,17 +33,32 @@ import {
 } from "@/api/generated/sea/sea";
 import { seaListProjects } from "@/api/generated/sea/sea";
 import type { SeaCommandResult } from "@/api/generated/sea/model";
+import {
+  mapSeaAttachment,
+  mapSeaEvent,
+  mapSeaProcedure,
+  mapSeaProject,
+  mapSeaRole,
+} from "@/features/sea/shared/models/seaReadDtoMappers";
+import type {
+  SeaAttachmentReadDto,
+  SeaEventReadDto,
+  SeaProcedureReadDto,
+  SeaProjectReadDto,
+  SeaRoleReadDto,
+} from "@/features/sea/shared/models/seaStatModels";
 
 export { type SeaCommandResult };
 
 // --- Procedure operations ---
 
-export async function listProcedures(projectId: string) {
-  return seaListProcedures(projectId);
+export async function listProcedures(projectId: string): Promise<SeaProcedureReadDto[]> {
+  const procedures = await seaListProcedures(projectId);
+  return procedures.map(mapSeaProcedure);
 }
 
-export async function getProcedure(id: string) {
-  return seaGetProcedure(id);
+export async function getProcedure(id: string): Promise<SeaProcedureReadDto> {
+  return mapSeaProcedure(await seaGetProcedure(id));
 }
 
 export async function createProcedure(data: { projectId?: string; name?: string; description?: string; id?: string }) {
@@ -60,12 +75,13 @@ export async function deleteProcedure(id: string): Promise<SeaCommandResult> {
 
 // --- Event operations ---
 
-export async function listProcedureEvents(procedureId: string) {
-  return seaListEvents(procedureId);
+export async function listProcedureEvents(procedureId: string): Promise<SeaEventReadDto[]> {
+  const events = await seaListEvents(procedureId);
+  return events.map(mapSeaEvent);
 }
 
-export async function getEvent(id: string) {
-  return seaGetEvent(id);
+export async function getEvent(id: string): Promise<SeaEventReadDto> {
+  return mapSeaEvent(await seaGetEvent(id));
 }
 
 export async function createEvent(data: { projectId?: string; procedureId?: string; title?: string; description?: string; previousEventId?: string }): Promise<SeaCommandResult> {
@@ -100,8 +116,9 @@ export async function uncommitEvent(id: string): Promise<SeaCommandResult> {
 
 // --- Event item (attachment) operations ---
 
-export async function listEventItems(eventId: string) {
-  return seaListAttachments(eventId);
+export async function listEventItems(eventId: string): Promise<SeaAttachmentReadDto[]> {
+  const attachments = await seaListAttachments(eventId);
+  return attachments.map(mapSeaAttachment);
 }
 
 export async function createEventItemText(data: { eventId: string; content: string; contentType: string; size: number }): Promise<SeaCommandResult> {
@@ -150,13 +167,14 @@ export async function removeEventRole(id: string): Promise<SeaCommandResult> {
   return seaRemoveEventRole(id);
 }
 
-export async function listAllRoles() {
-  return seaListRoles();
+export async function listAllRoles(): Promise<SeaRoleReadDto[]> {
+  const roles = await seaListRoles();
+  return roles.map(mapSeaRole);
 }
 
 // --- Template operations ---
 
-export async function listTemplateProcedures() {
+export async function listTemplateProcedures(): Promise<SeaProjectReadDto[]> {
   const projects = await seaListProjects();
-  return projects.filter((p) => p.template);
+  return projects.map(mapSeaProject).filter((p) => p.template);
 }

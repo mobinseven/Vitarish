@@ -14,10 +14,16 @@ import {
 } from "@/api/generated/sea/sea";
 import type {
   RoleType,
-  RoleReadDto as SeaRoleReadDto,
   SeaCommandResult,
-  UserRoleReadDto as SeaUserRoleReadDto,
 } from "@/api/generated/sea/model";
+import {
+  mapSeaRole,
+  mapSeaUserRole,
+} from "../../shared/models/seaReadDtoMappers";
+import type {
+  SeaRoleReadDto,
+  SeaUserRoleReadDto,
+} from "../../shared/models/seaStatModels";
 
 export type { SeaRoleReadDto, SeaUserRoleReadDto };
 
@@ -40,7 +46,8 @@ export interface SeaEventRoleWriteDto {
 }
 
 export async function listSeaRoles(): Promise<SeaRoleReadDto[]> {
-  return seaListRoles();
+  const roles = await seaListRoles();
+  return roles.map(mapSeaRole);
 }
 
 export async function createSeaRole(data: SeaRoleWriteDto): Promise<SeaCommandResult> {
@@ -56,7 +63,8 @@ export async function deleteSeaRole(id: string): Promise<SeaCommandResult> {
 }
 
 export async function listSeaUserRoles(userId: string): Promise<SeaUserRoleReadDto[]> {
-  return seaListUserRoles(userId);
+  const userRoles = await seaListUserRoles(userId);
+  return userRoles.map(mapSeaUserRole);
 }
 
 export async function assignSeaUserRole(data: SeaUserRoleWriteDto): Promise<SeaCommandResult> {

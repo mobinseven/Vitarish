@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { seaGetStatistics } from "@/api/generated/sea/sea";
-import type { DatabaseStatisticsReadDto as SeaStatisticsDto } from "@/api/generated/sea/model";
+import { mapSeaStatistics } from "../../shared/models/seaReadDtoMappers";
+import type { SeaStatisticsDto } from "../../shared/models/seaStatModels";
 
 async function getSeaStatistics(): Promise<SeaStatisticsDto> {
-  return seaGetStatistics();
+  return mapSeaStatistics(await seaGetStatistics());
 }
 
 const seaStatisticsKeys = {
