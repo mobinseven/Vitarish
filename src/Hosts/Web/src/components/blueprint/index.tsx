@@ -4,6 +4,7 @@ import {Tooltip} from "@heroui/react";
 
 import {Iconify} from "@/features/landing/icons/iconify";
 import type {Figure} from "@/features/landing/data/figures";
+import {useLocalizedText} from "@/localization";
 
 export function Reveal({
   children,
@@ -103,6 +104,8 @@ export function Figure({
   className?: string;
   imgClassName?: string;
 }) {
+  const {t} = useLocalizedText();
+
   return (
     <div className={`group relative ${className ?? ""}`}>
       <div className="border-border bg-surface relative overflow-hidden border">
@@ -113,14 +116,14 @@ export function Figure({
         <div className="absolute right-3 top-3 z-10">
           <Tooltip delay={150} closeDelay={100}>
             <button
-              aria-label="View generation prompt"
+              aria-label={t("blueprint.viewGenerationPrompt")}
               className="border-border bg-background/70 text-muted hover:text-accent hover:border-accent/50 flex size-6 items-center justify-center border backdrop-blur transition-colors"
               type="button"
             >
               <Iconify icon="circle-info" className="size-3.5" />
             </button>
             <Tooltip.Content className="max-w-xs">
-              <p className="bp-label mb-1 not-italic">Generation prompt</p>
+              <p className="bp-label mb-1 not-italic">{t("blueprint.generationPrompt")}</p>
               <p className="text-xs leading-relaxed">{figure.prompt}</p>
             </Tooltip.Content>
           </Tooltip>

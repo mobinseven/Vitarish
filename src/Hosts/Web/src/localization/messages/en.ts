@@ -15,6 +15,7 @@ export const enMessages = {
     },
     states: {
       loading: "Loading...",
+      redirecting: "Redirecting...",
       saving: "Saving",
       error: "Something went wrong",
       empty: "Nothing to show yet",
@@ -887,6 +888,10 @@ export const enMessages = {
     notFound: "The requested item was not found.",
     validation: "Please review the highlighted fields.",
   },
+  blueprint: {
+    generationPrompt: "Generation prompt",
+    viewGenerationPrompt: "View generation prompt",
+  },
   landing: {
     header: {
       navPlatform: "Platform",
@@ -896,6 +901,7 @@ export const enMessages = {
       ctaStartBuilding: "Start building",
       loginAction: "Log In",
       signupAction: "Sign Up",
+      primaryNav: "Primary",
     },
     hero: {
       sectionLabel: "Enterprise AI infrastructure",
@@ -956,6 +962,8 @@ export const enMessages = {
       heading: "From import to endpoint in nine lines",
       copy: "copy",
       copied: "copied",
+      copyCode: "Copy code",
+      language: "Language",
       revision: "rev. 08 / traces routed",
       dimensions: "x: 128 · y: 96",
     },

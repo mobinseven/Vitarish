@@ -18,7 +18,7 @@ export function Header() {
   const {t} = useLocalizedText();
 
   return (
-    <Navbar aria-label="Primary" height="4.5rem">
+    <Navbar aria-label={t("landing.header.primaryNav")} height="4.5rem">
       <Navbar.Header className="mx-auto w-full max-w-[1200px]">
         <Navbar.Brand className="flex items-center gap-2">
           <BrandLogotipo className="h-7 w-auto" />

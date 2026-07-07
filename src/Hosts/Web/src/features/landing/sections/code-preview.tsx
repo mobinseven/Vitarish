@@ -102,7 +102,7 @@ export function CodePreview() {
                   <Annotation className="ml-3">~/axon</Annotation>
                 </div>
                 <button
-                  aria-label="Copy code"
+                  aria-label={t("landing.codePreview.copyCode")}
                   className="text-muted hover:text-accent flex items-center gap-1.5 transition-colors"
                   onClick={copy}
                   type="button"
@@ -113,13 +113,13 @@ export function CodePreview() {
               </div>
 
               <Tabs
-                aria-label="Language"
+                aria-label={t("landing.codePreview.language")}
                 selectedKey={active}
                 variant="secondary"
                 onSelectionChange={(k) => setActive(String(k))}
               >
                 <Tabs.ListContainer className="border-border border-b px-2">
-                  <Tabs.List aria-label="Language">
+                  <Tabs.List aria-label={t("landing.codePreview.language")}>
                     {Object.keys(snippets).map((key) => (
                       <Tabs.Tab key={key} id={key} className="bp-label px-3 py-2.5">
                         {key}

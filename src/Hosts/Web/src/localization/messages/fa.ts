@@ -15,6 +15,7 @@ export const faMessages = {
     },
     states: {
       loading: "در حال بارگذاری...",
+      redirecting: "در حال انتقال...",
       saving: "در حال ذخیره",
       error: "مشکلی پیش آمد",
       empty: "هنوز چیزی برای نمایش وجود ندارد",
@@ -891,6 +892,10 @@ export const faMessages = {
     notFound: "مورد درخواستی یافت نشد.",
     validation: "لطفاً فیلدهای برجسته را بررسی کنید.",
   },
+  blueprint: {
+    generationPrompt: "پرامپت تولید",
+    viewGenerationPrompt: "مشاهده پرامپت تولید",
+  },
   landing: {
     header: {
       navPlatform: "پلتفرم",
@@ -900,6 +905,7 @@ export const faMessages = {
       ctaStartBuilding: "شروع ساخت",
       loginAction: "ورود",
       signupAction: "ثبت‌نام",
+      primaryNav: "اصلی",
     },
     hero: {
       sectionLabel: "زیرساخت هوش مصنوعی سازمانی",
@@ -960,6 +966,8 @@ export const faMessages = {
       heading: "از ایمپورت تا اندپوینت در نه خط",
       copy: "کپی",
       copied: "کپی شد",
+      copyCode: "کپی کد",
+      language: "زبان",
       revision: "rev. 08 / مسیریابی traces",
       dimensions: "x: 128 · y: 96",
     },
