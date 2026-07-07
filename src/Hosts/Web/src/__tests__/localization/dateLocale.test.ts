@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getReactAriaLocale, getDateCalendar, type SupportedDateCalendar } from "@/localization/dateLocale";
+import { getReactAriaLocale, getDateCalendar } from "@/localization/dateLocale";
 import { supportedLocales, type SupportedLocale } from "@/localization/locales";
 
 describe("dateLocale", () => {
