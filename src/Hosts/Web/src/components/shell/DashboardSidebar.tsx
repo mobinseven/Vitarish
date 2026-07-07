@@ -137,7 +137,7 @@ interface DashboardSidebarNavItemProps {
 }
 
 function DashboardSidebarNavItem({ idPrefix, item, pathname }: DashboardSidebarNavItemProps) {
-    const { direction, t } = useLocalizedText();
+    const { t } = useLocalizedText();
     const label = t(item.labelKey);
     const badge = item.badgeKey ? t(item.badgeKey) : null;
 
