@@ -4,9 +4,6 @@ on:
   push:
     paths:
       - "src/Hosts/Web/**"
-  pull_request:
-    paths:
-      - "src/Hosts/Web/**"
 
 permissions:
   contents: read
