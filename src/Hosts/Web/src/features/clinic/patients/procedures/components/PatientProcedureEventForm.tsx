@@ -90,9 +90,10 @@ export function PatientProcedureEventForm({
               <Button
                 variant="primary"
                 onPress={handleSubmit}
-                isDisabled={!title.trim() || isPending}
+                isDisabled={!title.trim()}
+                isPending={isPending}
               >
-                {isPending ? t("common.states.saving") : (isEditing ? t("clinic.procedures.form.edit") : t("clinic.procedures.events.addStep"))}
+                {isEditing ? t("clinic.procedures.form.edit") : t("clinic.procedures.events.addStep")}
               </Button>
             </Modal.Footer>
           </Modal.Dialog>

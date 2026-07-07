@@ -58,8 +58,8 @@ export function PatientProcedureEventDeleteDialog({
               <Button variant="secondary" onPress={onClose} isDisabled={deleteMutation.isPending}>
                 {t("common.actions.cancel")}
               </Button>
-              <Button variant="danger" onPress={handleConfirm} isDisabled={deleteMutation.isPending}>
-                {deleteMutation.isPending ? t("common.states.saving") : t("common.actions.delete")}
+              <Button variant="danger" onPress={handleConfirm} isPending={deleteMutation.isPending}>
+                {t("common.actions.delete")}
               </Button>
             </Modal.Footer>
           </Modal.Dialog>

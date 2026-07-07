@@ -23,7 +23,7 @@ export function PatientProcedureTemplateSelector({
 
   const modalState = useMemo(
     () => ({
-      isOpen: true,
+      isOpen: !selectedTemplate,
       setOpen: (open: boolean) => {
         if (!open) onClose();
       },
@@ -31,8 +31,19 @@ export function PatientProcedureTemplateSelector({
       close: onClose,
       toggle: () => onClose(),
     }),
-    [onClose]
+    [onClose, selectedTemplate]
   );
+
+  if (selectedTemplate) {
+    return (
+      <PatientProcedureForm
+        patientId={patientId}
+        initialName={selectedTemplate.name}
+        initialDescription={selectedTemplate.description}
+        onClose={onClose}
+      />
+    );
+  }
 
   return (
     <Modal state={modalState}>
@@ -51,7 +62,7 @@ export function PatientProcedureTemplateSelector({
                 <ClinicEmptyState title={t("clinic.procedures.empty")} />
               )}
 
-              {!isLoading && templates && templates.length > 0 && !selectedTemplate && (
+              {!isLoading && templates && templates.length > 0 && (
                 <ListView
                   aria-label={t("clinic.procedures.templates.title")}
                   onAction={(key) => {
@@ -75,15 +86,6 @@ export function PatientProcedureTemplateSelector({
                     </ListView.Item>
                   ))}
                 </ListView>
-              )}
-
-              {selectedTemplate && (
-                <PatientProcedureForm
-                  patientId={patientId}
-                  initialName={selectedTemplate.name}
-                  initialDescription={selectedTemplate.description}
-                  onClose={onClose}
-                />
               )}
             </Modal.Body>
             <Modal.Footer>

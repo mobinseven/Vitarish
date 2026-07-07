@@ -114,7 +114,7 @@ export function PatientProcedureEventTimeline({
       {showCreateForm && (
         <PatientProcedureEventForm
           procedureId={procedureId}
-          projectId={events[0]?.projectId ?? ""}
+          projectId={patientId}
           onClose={() => setShowCreateForm(false)}
         />
       )}

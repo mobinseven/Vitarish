@@ -22,7 +22,7 @@ export function PatientProcedureEventAccessPanel({ eventId }: PatientProcedureEv
       </Widget.Header>
       <Widget.Content>
         {!access || (access.readRoles.length === 0 && access.writeRoles.length === 0) ? (
-          <ClinicEmptyState title={t("clinic.procedures.events.empty")} />
+          <ClinicEmptyState title={t("common.states.empty")} />
         ) : (
           <div className="flex flex-col gap-3">
             {access.readRoles.length > 0 && (

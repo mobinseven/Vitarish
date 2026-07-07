@@ -75,7 +75,7 @@ export default function ClinicPatientProcedureEventPage({
             <Button
               size="sm"
               variant={event.isCommitted ? "secondary" : "primary"}
-              isDisabled={commitMutation.isPending || uncommitMutation.isPending}
+              isPending={commitMutation.isPending || uncommitMutation.isPending}
               onPress={() =>
                 event.isCommitted
                   ? uncommitMutation.mutate(event.id)

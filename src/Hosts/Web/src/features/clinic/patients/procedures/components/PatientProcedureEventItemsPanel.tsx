@@ -31,7 +31,7 @@ export function PatientProcedureEventItemsPanel({ eventId }: PatientProcedureEve
       </Widget.Header>
       <Widget.Content>
         {!items || items.length === 0 ? (
-          <ClinicEmptyState title={t("clinic.procedures.events.empty")} />
+          <ClinicEmptyState title={t("common.states.empty")} />
         ) : (
           <ListView
             aria-label={t("clinic.procedures.items.title")}
