@@ -8,6 +8,7 @@ import {
   seaUpdateProject,
 } from "@/api/generated/sea/sea";
 import type { SeaCommandResult } from "@/api/generated/sea/model";
+import { mapSeaProject } from "../../shared/models/seaReadDtoMappers";
 import type { SeaProjectReadDto } from "../../shared/models/seaStatModels";
 
 export interface SeaProjectWriteDto {
@@ -21,11 +22,12 @@ export interface SeaProjectWriteDto {
 }
 
 export async function listSeaProjects(): Promise<SeaProjectReadDto[]> {
-  return seaListProjects();
+  const projects = await seaListProjects();
+  return projects.map(mapSeaProject);
 }
 
 export async function getSeaProject(id: string): Promise<SeaProjectReadDto> {
-  return seaGetProject(id);
+  return mapSeaProject(await seaGetProject(id));
 }
 
 export async function createSeaProject(data: SeaProjectWriteDto): Promise<SeaCommandResult> {

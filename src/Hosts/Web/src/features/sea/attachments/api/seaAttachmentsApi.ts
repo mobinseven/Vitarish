@@ -9,9 +9,13 @@ import {
 } from "@/api/generated/sea/sea";
 import type {
   AttachmentWriteDto,
-  AttachmentReadDto as SeaAttachmentReadDto,
   SeaCommandResult,
 } from "@/api/generated/sea/model";
+import {
+  mapSeaAttachment,
+  mapSeaAttachmentCount,
+} from "../../shared/models/seaReadDtoMappers";
+import type { SeaAttachmentReadDto } from "../../shared/models/seaStatModels";
 
 export type { SeaAttachmentReadDto };
 
@@ -31,11 +35,12 @@ function toGeneratedAttachmentWrite(data: SeaAttachmentWriteDto): AttachmentWrit
 }
 
 export async function listSeaAttachments(eventId: string): Promise<SeaAttachmentReadDto[]> {
-  return seaListAttachments(eventId);
+  const attachments = await seaListAttachments(eventId);
+  return attachments.map(mapSeaAttachment);
 }
 
 export async function getSeaAttachmentCount(eventId: string): Promise<number> {
-  return seaGetAttachmentCount(eventId);
+  return mapSeaAttachmentCount(await seaGetAttachmentCount(eventId));
 }
 
 export async function createSeaTextAttachment(data: SeaAttachmentWriteDto): Promise<SeaCommandResult> {
