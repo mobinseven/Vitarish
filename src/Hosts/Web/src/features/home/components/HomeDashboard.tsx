@@ -110,7 +110,7 @@ export function HomeDashboard() {
           </div>
         </div>
 
-        <Widget className="overflow-hidden border border-separator bg-foreground text-background shadow-2xl shadow-foreground/10 dark:bg-surface dark:text-foreground">
+        <Widget className="relative overflow-hidden border border-separator bg-foreground text-background shadow-2xl shadow-foreground/10 dark:bg-surface dark:text-foreground">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_70%_0%,rgba(45,212,191,0.24),transparent_34%),radial-gradient(circle_at_0%_100%,rgba(124,58,237,0.22),transparent_34%)]" />
           <Widget.Header className="relative flex flex-col items-start gap-3">
             <div className="inline-flex rounded-full bg-background/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-background/70 dark:bg-foreground/10 dark:text-muted">
