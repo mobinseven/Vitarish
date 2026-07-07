@@ -19,6 +19,7 @@ export interface LocalizedDateFieldProps {
   error?: string;
   description?: string;
   name?: string;
+  className?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
   minValue?: string;
@@ -32,6 +33,7 @@ export function LocalizedDateField({
   error,
   description,
   name,
+  className,
   isRequired,
   isDisabled,
   minValue,
@@ -50,6 +52,7 @@ export function LocalizedDateField({
 
   return (
     <DatePicker
+      className={["w-full", className].filter(Boolean).join(" ")}
       value={parsedValue}
       onChange={handleChange}
       isInvalid={!!error}
@@ -72,8 +75,8 @@ export function LocalizedDateField({
       </DateField.Group>
       {description && !error && <Description>{description}</Description>}
       {error && <FieldError>{error}</FieldError>}
-      <DatePicker.Popover>
-        <Calendar aria-label={label}>
+      <DatePicker.Popover className="localized-date-field__popover !min-w-0 w-max max-w-[calc(100vw-2rem)] p-2">
+        <Calendar aria-label={label} className="w-max">
           <Calendar.Header>
             <Calendar.YearPickerTrigger>
               <Calendar.YearPickerTriggerHeading />
