@@ -1,4 +1,5 @@
 import {useState} from "react";
+import Image from "next/image";
 import {Tabs} from "@heroui/react";
 
 import {Iconify} from "@/features/landing/icons/iconify";
@@ -158,10 +159,13 @@ export function CodePreview() {
                 <div className="absolute left-3 top-3 z-10">
                   <Annotation className="bp-label-accent">FIG. 08 — COMPUTE BOARD</Annotation>
                 </div>
-                <img
+                <Image
                   alt={figures.codeBoard.alt}
                   className="relative z-[1] w-full object-cover"
                   src={figures.codeBoard.src}
+                  width={800}
+                  height={600}
+                  unoptimized
                 />
                 <CornerMarks />
               </div>

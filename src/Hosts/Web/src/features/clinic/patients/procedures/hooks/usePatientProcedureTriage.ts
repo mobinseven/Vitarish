@@ -11,13 +11,11 @@ export function usePatientProcedureTriage(patientId: string) {
       let incompleteProcedures = 0;
       let totalEvents = 0;
       let committedEvents = 0;
-      let eventItemCount = 0;
       let newItems = 0;
 
       for (const p of procedures) {
         totalEvents += p.stats?.events ?? 0;
         committedEvents += p.stats?.committedEvents ?? 0;
-        eventItemCount += p.stats?.eventItems ?? 0;
         newItems += p.stats?.newItems ?? 0;
         if ((p.stats?.events ?? 0) > (p.stats?.committedEvents ?? 0)) {
           incompleteProcedures++;

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
-import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
+import { ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { usePatientProcedureDetail } from "@/features/clinic/patients/procedures/hooks/usePatientProcedureDetail";
 import { usePatientProcedureEvents } from "@/features/clinic/patients/procedures/hooks/usePatientProcedureEvents";
 import { PatientProcedureHeader } from "@/features/clinic/patients/procedures/components/PatientProcedureHeader";
