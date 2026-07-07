@@ -19,6 +19,7 @@ export interface LocalizedDateFieldProps {
   error?: string;
   description?: string;
   name?: string;
+  className?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
   minValue?: string;
@@ -32,6 +33,7 @@ export function LocalizedDateField({
   error,
   description,
   name,
+  className,
   isRequired,
   isDisabled,
   minValue,
@@ -50,7 +52,7 @@ export function LocalizedDateField({
 
   return (
     <DatePicker
-      className="w-full"
+      className={["w-full", className].filter(Boolean).join(" ")}
       value={parsedValue}
       onChange={handleChange}
       isInvalid={!!error}
