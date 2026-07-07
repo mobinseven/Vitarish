@@ -35,9 +35,9 @@ export function BrandLogotipo({className, height, width, ...props}: BrandIconPro
       <Image
         alt={asset.alt ?? brand.name}
         className={className}
-        height={Number(height ?? asset.height ?? 31)}
+        height={isNaN(Number(height)) ? (asset.height ?? 31) : Number(height)}
         src={asset.src}
-        width={Number(width ?? asset.width ?? 128)}
+        width={isNaN(Number(width)) ? (asset.width ?? 128) : Number(width)}
         unoptimized
       />
     );
@@ -115,9 +115,9 @@ export function BrandIsotipo({className, height, width, ...props}: BrandIconProp
       <Image
         alt={asset.alt ?? brand.name}
         className={className}
-        height={Number(height ?? asset.height ?? 44)}
+        height={isNaN(Number(height)) ? (asset.height ?? 44) : Number(height)}
         src={asset.src}
-        width={Number(width ?? asset.width ?? 44)}
+        width={isNaN(Number(width)) ? (asset.width ?? 44) : Number(width)}
         unoptimized
       />
     );

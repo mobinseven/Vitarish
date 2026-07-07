@@ -131,11 +131,12 @@ export function Figure({
         </div>
         <Image
           alt={figure.alt}
-          className={`relative z-[1] w-full object-cover ${imgClassName ?? ""}`}
+          className={`relative z-[1] w-full h-auto object-cover ${imgClassName ?? ""}`}
           loading="lazy"
           src={figure.src}
-          width={800}
-          height={600}
+          width={0}
+          height={0}
+          sizes="100vw"
           unoptimized
         />
         <CornerMarks />
