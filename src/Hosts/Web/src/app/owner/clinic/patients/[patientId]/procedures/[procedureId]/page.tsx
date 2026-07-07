@@ -1,13 +1,16 @@
 "use client";
 
-import { use } from "react";
+import { use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
-import { ListView, Widget } from "@heroui-pro/react";
+import { Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
 import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
-import { usePatientProcedureDetail, usePatientProcedureEvents } from "@/features/clinic/patients/procedures/hooks/useProcedures";
-import { useLocalizedText, formatDate } from "@/localization";
+import { usePatientProcedureDetail } from "@/features/clinic/patients/procedures/hooks/usePatientProcedureDetail";
+import { usePatientProcedureEvents } from "@/features/clinic/patients/procedures/hooks/usePatientProcedureEvents";
+import { PatientProcedureHeader } from "@/features/clinic/patients/procedures/components/PatientProcedureHeader";
+import { PatientProcedureEventTimeline } from "@/features/clinic/patients/procedures/components/PatientProcedureEventTimeline";
+import { useLocalizedText } from "@/localization";
 
 export default function ClinicPatientProcedurePage({
   params,
@@ -16,9 +19,13 @@ export default function ClinicPatientProcedurePage({
 }) {
   const { patientId, procedureId } = use(params);
   const router = useRouter();
-  const { t, locale } = useLocalizedText();
+  const { t } = useLocalizedText();
   const { data: procedure, isLoading, error } = usePatientProcedureDetail(procedureId);
   const { data: events } = usePatientProcedureEvents(procedureId);
+
+  const handleDeleted = useCallback(() => {
+    router.push(Routes.Clinic.Patients.Detail(patientId));
+  }, [patientId, router]);
 
   if (isLoading) {
     return <ClinicLoadingState label={t("common.states.loading")} />;
@@ -35,39 +42,24 @@ export default function ClinicPatientProcedurePage({
           <i aria-hidden className="fa-solid fa-arrow-left" />
           {t("clinic.patients.backToPatients")}
         </Button>
-        <h1 className="text-2xl font-bold">{procedure.name}</h1>
-        {procedure.description && (
-          <p className="text-sm text-muted">{procedure.description}</p>
-        )}
       </div>
+
+      <PatientProcedureHeader
+        procedure={procedure}
+        patientId={patientId}
+        onDeleted={handleDeleted}
+      />
 
       <Widget>
         <Widget.Header>
-          <Widget.Title>{t("clinic.procedures.events")}</Widget.Title>
+          <Widget.Title>{t("clinic.procedures.events.title")}</Widget.Title>
         </Widget.Header>
         <Widget.Content>
-          <ListView
-            aria-label={t("clinic.procedures.events")}
-            onAction={(key) => router.push(Routes.Clinic.Patients.ProcedureEvent(patientId, procedureId, String(key)))}
-            renderEmptyState={() => <ClinicEmptyState title={t("clinic.procedures.eventsEmpty")} />}
-            variant="secondary"
-          >
-            {events?.map((event) => (
-              <ListView.Item key={event.id} id={event.id} textValue={event.title}>
-                <ListView.ItemContent>
-                  <div className="flex flex-col gap-1">
-                    <ListView.Title>{event.title}</ListView.Title>
-                    <ListView.Description>{formatDate(event.createdAt, locale)}</ListView.Description>
-                  </div>
-                </ListView.ItemContent>
-                <ListView.ItemAction>
-                  <span className={`text-xs ${event.isCommitted ? "text-success" : "text-muted"}`}>
-                    {event.isCommitted ? t("clinic.procedures.committed") : t("clinic.procedures.draft")}
-                  </span>
-                </ListView.ItemAction>
-              </ListView.Item>
-            ))}
-          </ListView>
+          <PatientProcedureEventTimeline
+            procedureId={procedureId}
+            patientId={patientId}
+            events={events ?? []}
+          />
         </Widget.Content>
       </Widget>
     </div>
