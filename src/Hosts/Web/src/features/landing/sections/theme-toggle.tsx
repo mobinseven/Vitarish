@@ -1,6 +1,6 @@
 import {Button, useTheme} from "@heroui/react";
 
-import {Iconify} from "@/features/landing/icons/iconify";
+import {FaIcon} from "@/features/landing/icons/fa-icon";
 
 export function ThemeToggle() {
   const {resolvedTheme, setTheme} = useTheme("system");
@@ -14,7 +14,7 @@ export function ThemeToggle() {
       variant="ghost"
       onPress={() => setTheme(isDark ? "light" : "dark")}
     >
-      <Iconify icon={isDark ? "sun" : "moon"} className="size-4" />
+      <FaIcon icon={isDark ? "sun" : "moon"} className="size-4" />
     </Button>
   );
 }

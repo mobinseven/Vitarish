@@ -1,6 +1,6 @@
 import {Button, Card} from "@heroui/react";
 
-import {Iconify} from "@/features/landing/icons/iconify";
+import {FaIcon} from "@/features/landing/icons/fa-icon";
 import {Annotation, Reveal, RulerLine, SectionLabel} from "@/components/blueprint";
 import {useLocalizedText} from "@/localization";
 
@@ -76,7 +76,7 @@ export function Pricing() {
                   <ul className="flex flex-col gap-3">
                     {plan.featureKeys.map((fk) => (
                       <li key={fk} className="flex items-center gap-2.5">
-                        <Iconify icon="circle-check" className="text-accent size-4 shrink-0" />
+                        <FaIcon icon="circle-check" className="text-accent size-4 shrink-0" />
                         <span className="text-foreground/90 text-sm">{t(fk)}</span>
                       </li>
                     ))}

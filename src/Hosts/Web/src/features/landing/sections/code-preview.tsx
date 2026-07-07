@@ -2,7 +2,7 @@ import {useState} from "react";
 import Image from "next/image";
 import {Tabs} from "@heroui/react";
 
-import {Iconify} from "@/features/landing/icons/iconify";
+import {FaIcon} from "@/features/landing/icons/fa-icon";
 import {figures} from "@/features/landing/data/figures";
 import {Annotation, CornerMarks, Reveal, SectionLabel} from "@/components/blueprint";
 import {useLocalizedText} from "@/localization";
@@ -108,7 +108,7 @@ export function CodePreview() {
                   onClick={copy}
                   type="button"
                 >
-                  <Iconify icon={copied ? "circle-check" : "copy"} className="size-3.5" />
+                  <FaIcon icon={copied ? "circle-check" : "copy"} className="size-3.5" />
                   <span className="bp-label">{copied ? t("landing.codePreview.copied") : t("landing.codePreview.copy")}</span>
                 </button>
               </div>

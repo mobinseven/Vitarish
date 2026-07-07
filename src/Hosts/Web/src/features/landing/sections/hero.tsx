@@ -1,7 +1,7 @@
 import Image from "next/image";
 import {Button} from "@heroui/react";
 
-import {Iconify} from "@/features/landing/icons/iconify";
+import {FaIcon} from "@/features/landing/icons/fa-icon";
 import {figures} from "@/features/landing/data/figures";
 import {Annotation, CornerMarks, Reveal, SectionLabel} from "@/components/blueprint";
 import {useLocalizedText} from "@/localization";
@@ -45,7 +45,7 @@ export function Hero() {
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               <Button render={(props: any) => <a href="#pricing" {...props} />} size="lg" variant="primary">
                 {t("landing.hero.ctaPrimary")}
-                <Iconify icon="arrow-right" className="size-4" />
+                <FaIcon icon="arrow-right" className="size-4" />
               </Button>
               <Button
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,7 +54,7 @@ export function Hero() {
                 variant="outline"
               >
                 {t("landing.hero.ctaSecondary")}
-                <Iconify icon="arrow-up-right" className="size-4" />
+                <FaIcon icon="arrow-up-right" className="size-4" />
               </Button>
             </div>
           </Reveal>

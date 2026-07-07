@@ -1,6 +1,6 @@
 import {Card} from "@heroui/react";
 
-import {Iconify} from "@/features/landing/icons/iconify";
+import {FaIcon} from "@/features/landing/icons/fa-icon";
 import {figures} from "@/features/landing/data/figures";
 import {Figure, Reveal, SectionLabel} from "@/components/blueprint";
 import {useLocalizedText} from "@/localization";
@@ -42,7 +42,7 @@ export function Pillars() {
                 <Card.Header className="mt-5">
                   <div className="flex items-center gap-2.5">
                     <span className="border-border text-accent flex size-8 items-center justify-center border">
-                      <Iconify icon={p.icon} className="size-4" />
+                      <FaIcon icon={p.icon} className="size-4" />
                     </span>
                     <Card.Title className="text-lg">{t(p.titleKey)}</Card.Title>
                   </div>

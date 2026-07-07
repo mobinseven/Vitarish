@@ -2,7 +2,7 @@ import {Button} from "@heroui/react";
 import {Navbar} from "@heroui-pro/react";
 
 import {BrandLogotipo} from "@/features/landing/brand";
-import {Iconify} from "@/features/landing/icons/iconify";
+import {FaIcon} from "@/features/landing/icons/fa-icon";
 import {useLocalizedText} from "@/localization";
 import {Routes} from "@/app/routes";
 import {ThemeToggle} from "./theme-toggle";
@@ -46,7 +46,7 @@ export function Header() {
             variant="primary"
           >
             {t("landing.header.ctaStartBuilding")}
-            <Iconify icon="arrow-right" className="size-4" />
+            <FaIcon icon="arrow-right" className="size-4" />
           </Button>
           <Button
             className="hidden md:inline-flex"

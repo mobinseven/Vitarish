@@ -3,7 +3,7 @@ import Image from "next/image";
 import {motion, useReducedMotion} from "motion/react";
 import {Tooltip} from "@heroui/react";
 
-import {Iconify} from "@/features/landing/icons/iconify";
+import {FaIcon} from "@/features/landing/icons/fa-icon";
 import type {Figure} from "@/features/landing/data/figures";
 import {useLocalizedText} from "@/localization";
 
@@ -121,7 +121,7 @@ export function Figure({
               className="border-border bg-background/70 text-muted hover:text-accent hover:border-accent/50 flex size-6 items-center justify-center border backdrop-blur transition-colors"
               type="button"
             >
-              <Iconify icon="circle-info" className="size-3.5" />
+              <FaIcon icon="circle-info" className="size-3.5" />
             </button>
             <Tooltip.Content className="max-w-xs">
               <p className="bp-label mb-1 not-italic">{t("blueprint.generationPrompt")}</p>

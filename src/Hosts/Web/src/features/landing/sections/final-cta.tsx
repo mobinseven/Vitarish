@@ -1,7 +1,7 @@
 import {Button} from "@heroui/react";
 
 import {BrandIsotipo} from "@/features/landing/brand";
-import {Iconify} from "@/features/landing/icons/iconify";
+import {FaIcon} from "@/features/landing/icons/fa-icon";
 import {CornerMarks, Reveal, SectionLabel} from "@/components/blueprint";
 import {useLocalizedText} from "@/localization";
 
@@ -33,7 +33,7 @@ export function FinalCta() {
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 <Button render={(props: any) => <a href="#top" {...props} />} size="lg" variant="primary">
                   {t("landing.finalCta.ctaPrimary")}
-                  <Iconify icon="arrow-right" className="size-4" />
+                  <FaIcon icon="arrow-right" className="size-4" />
                 </Button>
                 <Button
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any

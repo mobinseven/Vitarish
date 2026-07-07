@@ -1,6 +1,6 @@
 import {figures} from "@/features/landing/data/figures";
 import type {Figure as FigureType} from "@/features/landing/data/figures";
-import {Iconify} from "@/features/landing/icons/iconify";
+import {FaIcon} from "@/features/landing/icons/fa-icon";
 import {DrawLineX, Figure, Reveal, SectionLabel} from "@/components/blueprint";
 import {useLocalizedText} from "@/localization";
 
@@ -82,7 +82,7 @@ export function FeatureRows() {
                     <ul className="mt-6 flex flex-col gap-2.5">
                       {row.pointKeys.map((pointKey) => (
                         <li key={pointKey} className="flex items-center gap-2.5">
-                          <Iconify icon="circle-check" className="text-accent size-4 shrink-0" />
+                          <FaIcon icon="circle-check" className="text-accent size-4 shrink-0" />
                           <span className="text-foreground/90 text-sm">{t(pointKey)}</span>
                         </li>
                       ))}
