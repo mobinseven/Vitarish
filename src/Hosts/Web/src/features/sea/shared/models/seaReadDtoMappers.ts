@@ -54,6 +54,10 @@ export function mapSeaInteger(value: IntegerLike, field: string): number {
     throw new Error(`SEA contract violation: ${field} is required.`);
   }
 
+  if (typeof value === "string" && value.trim() === "") {
+    throw new Error(`SEA contract violation: ${field} must be a valid integer string.`);
+  }
+
   const parsed = typeof value === "number" ? value : Number(value);
   if (!Number.isSafeInteger(parsed)) {
     throw new Error(`SEA contract violation: ${field} must be an integer.`);
@@ -90,7 +94,11 @@ function mapTrackedFields(dto: {
   isDeleted?: boolean;
   metadata?: SeaMetadata | null;
   metadataValues?: SeaMetadata | null;
-}, field: string): SeaTrackedReadFields {
+} | null | undefined, field: string): SeaTrackedReadFields {
+  if (!dto) {
+    throw new Error(`SEA contract violation: ${field} DTO is required.`);
+  }
+
   return {
     id: requireString(dto.id, `${field}.id`),
     createdAt: requireString(dto.createdAt, `${field}.createdAt`),
@@ -162,6 +170,10 @@ export function mapSeaRole(dto: RoleReadDto): SeaRoleReadDto {
 }
 
 export function mapSeaUserRole(dto: UserRoleReadDto): SeaUserRoleReadDto {
+  if (!dto) {
+    throw new Error("SEA contract violation: userRole DTO is required.");
+  }
+
   if (dto.type == null) {
     throw new Error("SEA contract violation: userRole.type is required.");
   }
@@ -178,6 +190,10 @@ export function mapSeaAttachmentCount(count: SeaGetAttachmentCount200): number {
 }
 
 export function mapSeaStatistics(dto: DatabaseStatisticsReadDto): SeaStatisticsDto {
+  if (!dto) {
+    throw new Error("SEA contract violation: statistics DTO is required.");
+  }
+
   return {
     projects: mapSeaInteger(dto.projects, "statistics.projects"),
     procedures: mapSeaInteger(dto.procedures, "statistics.procedures"),
