@@ -648,6 +648,7 @@ export const faMessages = {
       title: "پیوست‌ها",
       addText: "افزودن پیوست متنی",
       addFile: "افزودن پیوست فایل",
+      openFile: "باز کردن فایل پیوست‌شده",
       emptyState: "هنوز پیوستی وجود ندارد",
       textPlaceholder: "متن پیوست را وارد کنید...",
       createFailed: "ایجاد پیوست انجام نشد",

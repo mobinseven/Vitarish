@@ -92,12 +92,18 @@ export function SeaUserRoleAssignmentsPanel({ roles }: SeaUserRoleAssignmentsPan
         <Widget.Title>{t("sea.roles.userAssignments")}</Widget.Title>
       </Widget.Header>
       <Widget.Content className="flex flex-col gap-4">
-        <TextField value={query} onChange={setQuery}>
+        <TextField
+          value={query}
+          onChange={(value) => {
+            setQuery(value);
+            setSelectedUser(null);
+          }}
+        >
           <Label>{t("sea.roles.userSearch")}</Label>
           <Input placeholder={t("sea.roles.userSearchPlaceholder")} />
         </TextField>
 
-        {query.trim().length >= 2 && (
+        {query.trim().length >= 2 && !selectedUser && (
           <div className="flex flex-col gap-2">
             {userSearch.isLoading ? (
               <SeaLoadingState label={t("sea.roles.searchingUsers")} />

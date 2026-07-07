@@ -10,14 +10,12 @@ import { useSeaProjects } from "../hooks/useSeaProjects";
 import { useLocalizedText, formatDateTime } from "@/localization";
 import type { SeaProjectReadDto } from "../../shared/models/seaStatModels";
 import { SeaProjectForm } from "./SeaProjectForm";
-import { SeaProjectDeleteDialog } from "./SeaProjectDeleteDialog";
 
 export function SeaProjectsPage() {
   const router = useRouter();
   const { t, locale } = useLocalizedText();
   const { data: projects, isLoading, error } = useSeaProjects();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<SeaProjectReadDto | null>(null);
 
   const handleSelectProject = useCallback(
     (projectId: string) => {
@@ -143,14 +141,6 @@ export function SeaProjectsPage() {
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
       />
-
-      {deleteTarget && (
-        <SeaProjectDeleteDialog
-          isOpen={!!deleteTarget}
-          onClose={() => setDeleteTarget(null)}
-          project={deleteTarget}
-        />
-      )}
     </div>
   );
 }

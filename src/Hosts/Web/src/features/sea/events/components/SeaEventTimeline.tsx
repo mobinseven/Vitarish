@@ -46,15 +46,17 @@ export function SeaEventTimeline({ procedureId, projectId }: SeaEventTimelinePro
 
   const handleConfirmUncommit = useCallback(() => {
     if (confirmUncommitId) {
-      uncommitMutation.mutate(confirmUncommitId);
-      setConfirmUncommitId(null);
+      uncommitMutation.mutate(confirmUncommitId, {
+        onSuccess: () => setConfirmUncommitId(null),
+      });
     }
   }, [confirmUncommitId, uncommitMutation]);
 
   const handleConfirmDelete = useCallback(() => {
     if (confirmDeleteId) {
-      deleteMutation.mutate(confirmDeleteId);
-      setConfirmDeleteId(null);
+      deleteMutation.mutate(confirmDeleteId, {
+        onSuccess: () => setConfirmDeleteId(null),
+      });
     }
   }, [confirmDeleteId, deleteMutation]);
 
@@ -99,11 +101,21 @@ export function SeaEventTimeline({ procedureId, projectId }: SeaEventTimelinePro
           <div className="mt-4 rounded-lg border border-warning/20 bg-warning/5 p-4">
             <p className="text-sm mb-2">{t("sea.events.confirmUncommit")}</p>
             <div className="flex gap-2">
-              <Button size="sm" variant="ghost" onPress={() => setConfirmUncommitId(null)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onPress={() => setConfirmUncommitId(null)}
+                isDisabled={uncommitMutation.isPending}
+              >
                 {t("common.actions.cancel")}
               </Button>
-              <Button size="sm" variant="danger" onPress={handleConfirmUncommit}>
-                {t("sea.events.uncommit")}
+              <Button
+                size="sm"
+                variant="danger"
+                onPress={handleConfirmUncommit}
+                isDisabled={uncommitMutation.isPending}
+              >
+                {uncommitMutation.isPending ? t("common.states.saving") : t("sea.events.uncommit")}
               </Button>
             </div>
           </div>
@@ -113,11 +125,21 @@ export function SeaEventTimeline({ procedureId, projectId }: SeaEventTimelinePro
           <div className="mt-4 rounded-lg border border-danger/20 bg-danger/5 p-4">
             <p className="text-sm mb-2">{t("sea.events.confirmDelete")}</p>
             <div className="flex gap-2">
-              <Button size="sm" variant="ghost" onPress={() => setConfirmDeleteId(null)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onPress={() => setConfirmDeleteId(null)}
+                isDisabled={deleteMutation.isPending}
+              >
                 {t("common.actions.cancel")}
               </Button>
-              <Button size="sm" variant="danger" onPress={handleConfirmDelete}>
-                {t("common.actions.delete")}
+              <Button
+                size="sm"
+                variant="danger"
+                onPress={handleConfirmDelete}
+                isDisabled={deleteMutation.isPending}
+              >
+                {deleteMutation.isPending ? t("common.states.saving") : t("common.actions.delete")}
               </Button>
             </div>
           </div>

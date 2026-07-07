@@ -11,6 +11,7 @@ import type { SeaCommandResult } from "@/api/generated/sea/model";
 import type { SeaProjectReadDto } from "../../shared/models/seaStatModels";
 
 export interface SeaProjectWriteDto {
+  id?: string;
   name?: string;
   description?: string;
   identificationCode?: string;

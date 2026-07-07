@@ -191,10 +191,24 @@ function AttachmentItem({
   isDeleting: boolean;
   t: (key: string) => string;
 }) {
+  const isTextAttachment = attachment.contentType?.startsWith("text/");
+  const fileHref = isTextAttachment ? null : attachment.content;
+
   return (
     <div className="flex items-start justify-between rounded-lg border border-border p-3">
       <div className="min-w-0 flex-1">
-        <p className="text-sm whitespace-pre-wrap">{attachment.content}</p>
+        {isTextAttachment ? (
+          <p className="text-sm whitespace-pre-wrap">{attachment.content}</p>
+        ) : (
+          <a
+            className="text-sm font-medium text-primary underline-offset-2 hover:underline"
+            href={fileHref ?? "#"}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t("sea.attachments.openFile")}
+          </a>
+        )}
         <p className="text-xs text-muted mt-1">
           {attachment.contentType} - {attachment.size} {t("sea.attachments.byteUnit")}
         </p>
