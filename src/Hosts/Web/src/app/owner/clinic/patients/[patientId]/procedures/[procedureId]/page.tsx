@@ -7,7 +7,7 @@ import { ListView, Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
 import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
 import { usePatientProcedureDetail, usePatientProcedureEvents } from "@/features/clinic/patients/procedures/hooks/useProcedures";
-import { useLocalizedText } from "@/localization";
+import { useLocalizedText, formatDate } from "@/localization";
 
 export default function ClinicPatientProcedurePage({
   params,
@@ -16,7 +16,7 @@ export default function ClinicPatientProcedurePage({
 }) {
   const { patientId, procedureId } = use(params);
   const router = useRouter();
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
   const { data: procedure, isLoading, error } = usePatientProcedureDetail(procedureId);
   const { data: events } = usePatientProcedureEvents(procedureId);
 
@@ -57,7 +57,7 @@ export default function ClinicPatientProcedurePage({
                 <ListView.ItemContent>
                   <div className="flex flex-col gap-1">
                     <ListView.Title>{event.title}</ListView.Title>
-                    <ListView.Description>{new Date(event.createdAt).toLocaleDateString()}</ListView.Description>
+                    <ListView.Description>{formatDate(event.createdAt, locale)}</ListView.Description>
                   </div>
                 </ListView.ItemContent>
                 <ListView.ItemAction>

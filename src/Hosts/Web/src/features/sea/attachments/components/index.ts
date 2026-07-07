@@ -1,0 +1,1 @@
+export { SeaEventAttachmentsPanel } from "./SeaEventAttachmentsPanel";
