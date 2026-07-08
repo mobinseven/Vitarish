@@ -28,6 +28,16 @@
 8. The saved corpus becomes selected for import, indexing, and evaluation controls.
 9. System shows `Corpus saved.`
 
+## Component Coverage Stages
+
+| Stage | Components | User-visible role |
+| --- | --- | --- |
+| Open owner workspace | `KnowledgeOwnerManagementSurface`, `KnowledgeOwnerCorpusCollection` | Present the owner management workspace and current corpus collection before a command is chosen. |
+| Create corpus | `KnowledgeCorpusCreator` | Open the create-corpus dialog, collect name, description, and active state, then raise the create command. |
+| Review corpus card | `KnowledgeOwnerCorpusCollectionItem` | Show one corpus identity, description, active status, and its source-management affordances without duplicating corpus state. |
+| Select corpus for downstream work | `KnowledgeCorpusSelector` | Support import, indexing, evaluation, and QA flows by carrying the selected corpus boundary forward. |
+| Report command status | `KnowledgeOwnerStatus` | Show command completion or failure messages without becoming a second source of corpus truth. |
+
 ## 4. Alternate and Failure Paths
 - Missing tenant id -> block save and show `TenantId is required.`
 - Invalid corpus id -> block save and show `CorpusId must be a GUID.`
