@@ -195,11 +195,11 @@ flowchart LR
 
 **Clinic Owner App (docs/apps/clinic-owner/modules/)**
 - [Patient Module](../apps/clinic-owner/modules/patient/journeys/patient-profile-crud-journey.md)
-- [Appointment Module](../apps/clinic-owner/modules/appointment/journeys/patient-appointment-journey.md)
+- [Appointment Module](../apps/clinic-owner/journeys/0012-patient-appointment-panel-booking-journey.md)
 - [Prescription Module](../apps/clinic-owner/modules/prescription/journeys/prescription-journey.md)
 
 **Platform Modules (docs/platform/modules/)**
 - [Knowledge Module](../platform/modules/knowledge/journeys/knowledge-corpus-management-journey.md)
 - [Medical Module](../platform/modules/medical/journeys/owner-medical-code-system-registry-journey.md)
 - [Platform Module](../platform/modules/platform/journeys/owner-dashboard-journey.md)
-- [Prescription Module](../platform/modules/prescription/journeys/eligible-patient-happy-path.md)
+- [Prescription Module](../platform/modules/medical/capabilities/prescription/journeys/eligible-patient-happy-path.md)

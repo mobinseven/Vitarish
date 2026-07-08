@@ -1,10 +1,10 @@
-# Platform Test Plans
+# Platform Module Tests
 
-| Plan | Title | Status | App | Module | Capability | Date |
-|---|---|---|---|---|---|---|
-| 0001-adr-003-platform-boundary-test-plan.md | Platform ADR-0003 Boundary Test Plan | Draft | Main | Platform | Interface/backend isolation for theme defaults | 2026-06-28 |
+Status: Active  
+Owner: Platform module  
+Scope: App-agnostic Platform module test navigation  
+Last reviewed: 2026-07-08
 
-## Navigation
+- [ADR-0003 Platform Boundary Test Plan](0001-adr-003-platform-boundary-test-plan.md)
 
-- Module: `docs/platform/modules/platform/`
-- Decisions: `docs/platform/modules/platform/decisions/`
+Global validation guidance lives under [`docs/architecture/validation/`](../../../../architecture/validation/adr-0003-interface-boundary-validation.md).

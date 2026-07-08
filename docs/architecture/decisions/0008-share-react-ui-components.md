@@ -9,10 +9,9 @@ Owner: Platform Architecture
 Related apps: Web, future React web apps  
 Related modules: Platform, Authentication, Account, Journey, Clinic, Knowledge  
 Supersedes: None  
-Superseded by: None  
 Related:
-- docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md
-- docs/platform/modules/platform/decisions/0007-standardize-react-localization.md
+- docs/architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md
+- docs/architecture/decisions/0007-standardize-react-localization.md
 - docs/platform/modules/platform/roadmaps/0001-shared-react-ui-roadmap.md
 
 ## Context

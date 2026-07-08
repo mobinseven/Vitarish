@@ -1,14 +1,10 @@
-# Platform Roadmaps
+# Platform Module Roadmaps
 
-This directory contains platform-level roadmaps, plans, and source-of-truth implementation direction documents.
+Status: Active  
+Owner: Platform module  
+Scope: App-agnostic Platform module roadmap navigation  
+Last reviewed: 2026-07-08
 
-## Roadmaps
+- [Shared React UI Roadmap](0001-shared-react-ui-roadmap.md)
 
-| Roadmap | Purpose | Status |
-|---|---|---|
-| 0001-shared-react-ui-roadmap.md | Shared React UI package roadmap for multiple web apps using one backend | Proposed |
-
-## Navigation
-
-- Platform decisions: `docs/platform/modules/platform/decisions/`
-- Parent platform modules: `docs/platform/modules/`
+Global architecture governance lives under [`docs/architecture/`](../../../../architecture/decisions/_index.md).

@@ -52,11 +52,11 @@ Documentation should follow scoped ownership and existing sources of truth:
 - App/module docs: `docs/apps/<app>/modules/<module>/...`
 - Host/Web host docs: `docs/hosts/<host>/...`, `docs/platform/hosts/<host>/...`, or the existing host documentation convention
 - Platform module docs: `docs/platform/modules/<module>/...`
-- Platform conventions: `docs/platform/modules/platform/conventions/...`
+- Platform conventions: `docs/architecture/conventions/...`
 - Architecture decisions: existing ADR convention, including `docs/architecture/decisions` or scoped `docs/platform/modules/<module>/decisions`
-- ADR-0003 decision: `docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md`
-- ADR-0003 implementation conventions: `docs/platform/modules/platform/conventions/adr-0003-implementation-conventions.md`
-- ADR-0003 validation guidance: `docs/platform/modules/platform/validation/adr-0003-interface-boundary-validation.md`
+- ADR-0003 decision: `docs/architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md`
+- ADR-0003 implementation conventions: `docs/architecture/conventions/adr-0003-implementation-conventions.md`
+- ADR-0003 validation guidance: `docs/architecture/validation/adr-0003-interface-boundary-validation.md`
 - Developer guidance: `docs/development/...` or existing `docs/platform/developer-guides/...` convention
 - Operations/runbooks: `docs/runbooks/...` or existing `docs/platform/operations/...` convention
 - Journey, roadmap, test, and decision docs: place under the owning scoped docs tree when one exists

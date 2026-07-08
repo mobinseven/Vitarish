@@ -11,11 +11,10 @@ Approver: Platform Architecture Steward
 Implementation owner: Intelligence module maintainer  
 
 Related ADRs:
-- `docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md`
-- `docs/platform/modules/platform/decisions/0004-protect-internal-module-api-endpoints-by-default.md`
+- `docs/architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md`
+- `docs/architecture/decisions/0004-protect-internal-module-api-endpoints-by-default.md`
 
 Supersedes: None  
-Superseded by: None  
 
 ---
 

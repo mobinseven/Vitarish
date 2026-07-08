@@ -45,9 +45,9 @@ Do not duplicate roadmap, journey, ADR, localization, frontend/backend isolation
 Use these repository sources when they apply:
 
 - `AGENTS.md` for global architecture rules.
-- `docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md` for ADR-0003 frontend/backend isolation rules.
-- `docs/platform/modules/platform/conventions/adr-0003-implementation-conventions.md` for ADR-0003 implementation conventions.
-- `docs/platform/modules/platform/validation/adr-0003-interface-boundary-validation.md` for ADR-0003 static boundary validation.
+- `docs/architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md` for ADR-0003 frontend/backend isolation rules.
+- `docs/architecture/conventions/adr-0003-implementation-conventions.md` for ADR-0003 implementation conventions.
+- `docs/architecture/validation/adr-0003-interface-boundary-validation.md` for ADR-0003 static boundary validation.
 - Existing folder/project conventions in the owning module, app, host, identity context, interface package, library, test project, or docs tree.
 
 When this skill conflicts with an accepted ADR, follow the ADR and report that the skill guidance must be updated.
@@ -638,11 +638,11 @@ Documentation should follow scoped ownership and existing sources of truth:
 
 - App/module docs: `docs/apps/<app>/modules/<module>/...`
 - Platform module docs: `docs/platform/modules/<module>/...`
-- Platform conventions: `docs/platform/modules/platform/conventions/...`
+- Platform conventions: `docs/architecture/conventions/...`
 - Architecture decisions: existing ADR convention, including `docs/architecture/decisions` or scoped `docs/platform/modules/<module>/decisions`
-- ADR-0003 decision: `docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md`
-- ADR-0003 implementation conventions: `docs/platform/modules/platform/conventions/adr-0003-implementation-conventions.md`
-- ADR-0003 validation guidance: `docs/platform/modules/platform/validation/adr-0003-interface-boundary-validation.md`
+- ADR-0003 decision: `docs/architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md`
+- ADR-0003 implementation conventions: `docs/architecture/conventions/adr-0003-implementation-conventions.md`
+- ADR-0003 validation guidance: `docs/architecture/validation/adr-0003-interface-boundary-validation.md`
 - Developer guidance: `docs/development/...` or existing `docs/platform/developer-guides/...` convention
 - Operations/runbooks: `docs/runbooks/...` or existing `docs/platform/operations/...` convention
 - Journey, roadmap, test, and decision docs: place under the owning scoped docs tree when one exists

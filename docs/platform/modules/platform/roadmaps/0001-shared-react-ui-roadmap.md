@@ -2,8 +2,8 @@
 
 Status: Proposed  
 Owner: Platform Architecture  
-Source of truth for: ADR-0008 shared React UI implementation  
-Last updated: 2026-07-08
+Scope: Platform module shared React UI roadmap  
+Last reviewed: 2026-07-08
 
 ## Purpose
 
