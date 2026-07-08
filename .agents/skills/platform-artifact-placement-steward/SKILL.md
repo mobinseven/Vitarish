@@ -37,9 +37,9 @@ Follow accepted ADRs and existing repository conventions first. When this skill 
 Primary sources:
 
 - `AGENTS.md`
-- `docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md`
-- `docs/platform/modules/platform/conventions/adr-0003-implementation-conventions.md`
-- `docs/platform/modules/platform/validation/adr-0003-interface-boundary-validation.md`
+- `docs/architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md`
+- `docs/architecture/conventions/adr-0003-implementation-conventions.md`
+- `docs/architecture/validation/adr-0003-interface-boundary-validation.md`
 - Existing conventions in the owning module, submodule/capability, app, host, React Web host, identity context, interface package, library, test project, or docs tree
 
 ## Core Rule

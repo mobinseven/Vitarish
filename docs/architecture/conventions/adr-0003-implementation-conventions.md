@@ -6,8 +6,8 @@ App: Platform
 Module: Platform
 Capability: Module frontend/backend isolation implementation conventions
 Owner: Architecture
-Related ADR: `docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md`
-Related validation: `docs/platform/modules/platform/validation/adr-0003-interface-boundary-validation.md`
+Related ADR: `docs/architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md`
+Related validation: `docs/architecture/validation/adr-0003-interface-boundary-validation.md`
 
 ## Scope and authority
 
@@ -315,7 +315,7 @@ The following are not part of stages 1-4 and must not be introduced during ordin
 
 ## Per-artifact rule audit
 
-Artifact: `docs/platform/modules/platform/conventions/adr-0003-implementation-conventions.md`
+Artifact: `docs/architecture/conventions/adr-0003-implementation-conventions.md`
 Type: Documentation
 Responsibility: Record pilot-proven ADR-0003 implementation conventions for future migrations.
 

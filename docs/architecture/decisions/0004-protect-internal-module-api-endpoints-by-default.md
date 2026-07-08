@@ -10,7 +10,7 @@ Related apps: All frontend hosts
 Related modules: All modules exposing internal module APIs
 Supersedes:
 Superseded by:
-Related: docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md
+Related: docs/architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md
 
 ## Context
 

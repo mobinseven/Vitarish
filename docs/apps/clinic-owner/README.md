@@ -1,46 +1,50 @@
-# Clinic Owner App — Journey Maps
+# Clinic Owner App Documentation
 
-This folder contains all journey maps for the Clinic Owner app.
+Status: Active  
+Owner: Clinic Owner app  
+Scope: Clinic Owner app UX and app-specific module usage  
+Last reviewed: 2026-07-08
 
-## Structure
+Clinic Owner app-level journeys are the canonical source of truth for Clinic Owner UX. Module folders under `modules/<module>/` are supporting app-scoped usage notes only; they must not compete with these app-level journeys.
 
-The clinic owner app's user journeys are organized by functional module:
+## Canonical app journeys
 
-### Patient Module
-Located in `modules/patient/journeys/`
+- [0001 Owner Dashboard Navigation Journey](journeys/0001-owner-dashboard-navigation-journey.md)
+- [0002 Patient List Search And Selection Journey](journeys/0002-patient-list-search-and-selection-journey.md)
+- [0003 Patient Identification Lookup Journey](journeys/0003-patient-identification-lookup-journey.md)
+- [0004 Patient Advanced Search Journey](journeys/0004-patient-advanced-search-journey.md)
+- [0005 Patient Create Journey](journeys/0005-patient-create-journey.md)
+- [0006 Patient Edit Journey](journeys/0006-patient-edit-journey.md)
+- [0007 Patient Detail Overview Journey](journeys/0007-patient-detail-overview-journey.md)
+- [0008 Patient Delete Journey](journeys/0008-patient-delete-journey.md)
+- [0009 Patient Find Or Create Journey](journeys/0009-patient-find-or-create-journey.md)
+- [0010 Patient Check In Journey](journeys/0010-patient-check-in-journey.md)
+- [0011 Patient Check In Sms Confirmation Journey](journeys/0011-patient-check-in-sms-confirmation-journey.md)
+- [0012 Patient Appointment Panel Booking Journey](journeys/0012-patient-appointment-panel-booking-journey.md)
+- [0013 Owner Reservation Management Journey](journeys/0013-owner-reservation-management-journey.md)
+- [0014 Owner Shift Management Journey](journeys/0014-owner-shift-management-journey.md)
+- [0015 Owner Shift Occurrence Journey](journeys/0015-owner-shift-occurrence-journey.md)
+- [0016 User Shift Browsing And Booking Journey](journeys/0016-user-shift-browsing-and-booking-journey.md)
+- [0017 User Reservation Management Journey](journeys/0017-user-reservation-management-journey.md)
+- [0018 Service Type Management Journey](journeys/0018-service-type-management-journey.md)
+- [0019 Service Management Journey](journeys/0019-service-management-journey.md)
+- [0020 Service Provider Management Journey](journeys/0020-service-provider-management-journey.md)
+- [0021 Appointment Settings Journey](journeys/0021-appointment-settings-journey.md)
+- [0022 Patient Procedure Management Journey](journeys/0022-patient-procedure-management-journey.md)
+- [0023 Patient Procedure Event Journey](journeys/0023-patient-procedure-event-journey.md)
+- [0024 Patient Reminders Journey](journeys/0024-patient-reminders-journey.md)
+- [0025 Owner Reminders Journey](journeys/0025-owner-reminders-journey.md)
+- [0026 Clinic Settings Users Journey](journeys/0026-clinic-settings-users-journey.md)
+- [0027 Clinic Statistics Journey](journeys/0027-clinic-statistics-journey.md)
 
-Covers patient profile management (CRUD), patient procedures, and patient overview workflows.
+## Supporting module usage docs
 
-- See [Patient Module Journeys](./modules/patient/journeys/README.md) for details
+- [Appointment module usage](modules/appointment/journeys/README.md)
+- [Patient module usage](modules/patient/journeys/README.md)
+- [Prescription module usage](modules/prescription/journeys/README.md)
+- [SEA module clinical usage](modules/sea/journeys/README.md)
 
-### Appointment Module
-Located in `modules/appointment/journeys/`
+## Boundary
 
-Covers appointment booking, management, check-in, and related scheduling workflows.
-
-- See [Appointment Module Journeys](./modules/appointment/journeys/README.md) for details
-
-### Prescription Module
-Located in `modules/prescription/journeys/`
-
-Covers e-prescription creation, submission, editing, cancellation, and support operations.
-
-- See [Prescription Module Journeys](./modules/prescription/journeys/README.md) for details
-
-### Sea Module Clinical Usage
-Located in `modules/sea/journeys/`
-
-Translates the platform Sea project/procedure/event journey maps into Clinic Owner patient-centered clinical usage, where patients are Sea projects and clinical procedures/events live under each patient profile.
-
-- See [Clinic Owner Sea Module Journeys](./modules/sea/journeys/README.md) for details
-
-## How to Use
-
-1. Start with the [Patient Module](./modules/patient/journeys/README.md) for implementation matrix and acceptance criteria
-2. Use the [Sea Module Clinical Usage](./modules/sea/journeys/README.md) when patient procedures, clinical events, notes, attachments, reminders, roles, or Sea-backed plugins are involved
-3. Reference specific journey files for detailed user flows and design decisions
-4. Use these journeys as the source of truth when planning implementation work
-
-## Related Documentation
-
-For shared platform module journeys (medical, knowledge, platform services), see [Platform Modules](../../platform/modules/).
+- App docs describe how Clinic Owner composes and presents module behavior.
+- Platform module docs describe app-agnostic module behavior and contracts.

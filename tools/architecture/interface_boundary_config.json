@@ -1,5 +1,5 @@
 {
-    "adr": "docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md",
+    "adr": "docs/architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md",
     "defaultMode": "FailFast",
     "frontendSafeDependencyAllowlist": [
         {

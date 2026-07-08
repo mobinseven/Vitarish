@@ -9,10 +9,9 @@ Owner: Platform Architecture
 Related apps: All frontend hosts
 Related modules: All HTTP module APIs
 Supersedes: None
-Superseded by: None
 Related:
-- docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md
-- docs/platform/modules/platform/decisions/0004-protect-internal-module-api-endpoints-by-default.md
+- docs/architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md
+- docs/architecture/decisions/0004-protect-internal-module-api-endpoints-by-default.md
 
 ## Context
 

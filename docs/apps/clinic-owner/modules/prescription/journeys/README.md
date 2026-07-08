@@ -21,9 +21,9 @@ This folder documents clinic owner e-prescription-related journeys within the cl
 
 ## Related Documentation
 
-For patient profile and appointment journeys, see the main patient module under [Clinic Owner Patient Journeys](../patient/journeys/).
+For patient profile and appointment journeys, see the main patient module under [Clinic Owner Patient Journeys](../../patient/journeys/).
 
-For shared platform prescription module journeys, see [Platform Prescription Module](../../platform/modules/prescription/journeys/).
+For shared platform prescription module journeys, see [Platform Prescription Module](../../../../../platform/modules/medical/capabilities/prescription/journeys/README.md).
 
 ## Scope
 
