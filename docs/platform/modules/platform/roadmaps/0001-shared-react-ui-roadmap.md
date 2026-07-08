@@ -17,7 +17,7 @@ This document is the durable roadmap for implementing ADR-0008. Implementation P
 |---|---|
 | Shared package name | `@vitarish/web-ui` |
 | Initial visibility | Private repository-local package |
-| Initial package location | `src/Hosts/Web/Packages/Ui` |
+| Initial package location | src/Hosts/Web/packages/web-ui |
 | Package manager | npm |
 | Workspace model | npm workspace rooted at `src/Hosts/Web` |
 | Lockfile source of truth | Web workspace `src/Hosts/Web/package-lock.json` |
