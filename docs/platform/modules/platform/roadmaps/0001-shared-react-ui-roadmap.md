@@ -25,6 +25,7 @@ This document is the durable roadmap for implementing ADR-0008. Implementation P
 | Backend rule | Backend remains the single data/workflow/API source of truth |
 | UI import direction | Apps import `@vitarish/ui`; `@vitarish/ui` does not import apps/features/backend clients |
 | Localization handoff | App/feature code passes localized display text into shared components |
+| HeroUI rule | Raw HeroUI/HeroUI Pro components remain the default; no custom design-system wrappers such as `SurfaceCard` |
 
 ## Target Workspace Shape
 
@@ -50,7 +51,8 @@ The current repository has the React Web package under `src/Hosts/Web`. The targ
 - One source of truth for major reusable React design artifacts.
 - One backend source of truth for application data, commands, validation, authorization, and business workflows.
 - Presentation-only shared UI package; no generated API clients, feature workflows, backend contracts, or route dependencies.
-- Product-owned contracts wrap third-party primitives where design consistency matters.
+- Use raw HeroUI/HeroUI Pro components directly instead of creating custom design-system wrappers where direct HeroUI composition is sufficient.
+- Centralize tokens, documented composition patterns, accessibility conventions, localization handoff rules, and small presentation-only helpers only when they do not hide HeroUI's component model.
 - Incremental migration over big-bang rewrite.
 - Reusable by at least two modules/apps or important enough to protect as a design artifact.
 - Keep feature-specific business UI close to the owning app/feature until it becomes generic.
@@ -61,13 +63,13 @@ The existing Web host already has a React/Next package with npm scripts, React 1
 
 Known reusable candidates from recent Web work include:
 
-- account layout surfaces and account widgets;
-- clinic state surfaces, detail grids, and navigation grids;
-- dashboard shell/navigation primitives;
+- account layout and widget composition rules;
+- clinic state, detail-grid, and navigation-grid usage patterns;
+- dashboard shell/navigation composition rules;
 - empty/loading/error state patterns;
-- icon wrapper conventions;
+- icon usage conventions;
 - form-field shells and date/input presentation conventions;
-- card/list/action patterns built on HeroUI Pro.
+- documented raw HeroUI Pro card/list/action patterns.
 
 The candidate list is not exhaustive. The first implementation step must inventory the current Web source tree before moving components.
 
@@ -122,21 +124,23 @@ Status: Not started
 Deliverables:
 
 - Add package-level typecheck for `@vitarish/ui`.
-- Add package-level component tests for exported primitives.
-- Add import-boundary validation that blocks `@vitarish/ui` from importing:
+- Add package-level component tests for exported presentation artifacts.
+- Add workspace-level import-boundary validation scripts, run from `src/Hosts`, that block `@vitarish/ui` from importing:
   - app route/page folders;
   - app feature folders;
   - generated OpenAPI clients and DTOs;
   - React Query hooks;
   - backend projects;
   - app localization catalogs/providers.
-- Add validation that blocks web apps from deep-importing `@vitarish/ui/src/**`.
-- Add validation that blocks one web app from importing another web app's private UI files.
+- Add workspace-level validation that blocks web apps from deep-importing `@vitarish/ui/src/**`.
+- Add workspace-level validation that blocks one web app from importing another web app's private UI files.
+- Add workspace-level validation that flags custom wrapper proposals where raw HeroUI/HeroUI Pro components should be used directly.
 
 Exit criteria:
 
 - CI can prove the UI package is presentation-only.
 - Public imports use `@vitarish/ui` package exports only.
+- Boundary validation runs from the frontend workspace root, not from an individual app directory.
 
 ## Phase 3 — First Shared Components
 
@@ -144,24 +148,26 @@ Status: Not started
 
 Recommended first increment:
 
-- primitive layout surface;
-- section/header/action area primitives;
-- empty/loading/error state primitives;
-- icon wrapper conventions;
-- generic card/list primitives that do not reference a business module.
+- theme tokens and theme bridge helpers;
+- empty/loading/error state contracts;
+- icon usage conventions and presentation-only icon helpers;
+- form-field composition helpers that do not replace raw HeroUI form components;
+- documented raw HeroUI/HeroUI Pro card, list, action, and navigation patterns.
 
 Migration rule:
 
-Move only components that satisfy ADR-0008 promotion rules. If a reusable component currently depends on feature data, split it into:
+Move only artifacts that satisfy ADR-0008 promotion rules. If a reusable component currently depends on feature data, split it into:
 
-- a generic `@vitarish/ui` component; and
+- a generic `@vitarish/ui` presentation artifact; and
 - an app/feature adapter that maps backend data, localization, permissions, and route actions into generic props.
+
+Do not migrate a component into `@vitarish/ui` when the result would be only a custom wrapper around a raw HeroUI/HeroUI Pro component that should be used directly.
 
 Exit criteria:
 
 - At least one existing Web feature consumes `@vitarish/ui` through public exports.
 - No backend/client imports exist in `@vitarish/ui`.
-- Components have tests or usage examples.
+- Components or presentation artifacts have tests or usage examples.
 
 ## Phase 4 — Multi-App Readiness
 
@@ -171,7 +177,7 @@ Deliverables:
 
 - Document the recipe for creating a new React web app in the frontend workspace.
 - Document how each app connects to the single backend through app-owned generated clients/adapters.
-- Move cross-app UI artifacts from the first Web app into `@vitarish/ui` as they become generic.
+- Move cross-app UI artifacts from the first Web app into `@vitarish/ui` as they become generic and do not duplicate raw HeroUI behavior.
 - Confirm `@vitarish/ui` has no dependency on the first Web app's routes, app providers, localization catalog, or generated clients.
 
 Exit criteria:
@@ -202,6 +208,7 @@ Exit criteria:
 - Do not move backend contracts into the UI package.
 - Do not put generated API clients inside `@vitarish/ui`.
 - Do not make `@vitarish/ui` resolve app routes or backend URLs.
+- Do not introduce custom design-system wrappers where raw HeroUI/HeroUI Pro components should be used directly.
 - Do not switch package managers in this roadmap.
 - Do not publish the package before a separate versioning/release decision.
 
@@ -210,7 +217,7 @@ Exit criteria:
 | Question | Default until decided |
 |---|---|
 | What is the second React web app name/path? | Keep placeholder `{future-web-app}` until an app-specific ADR or implementation task names it. |
-| Should icons become a separate package later? | Keep icon wrappers in `@vitarish/ui` until reuse pressure justifies `@vitarish/icons`. |
+| Should icons become a separate package later? | Keep icon helpers in `@vitarish/ui` until reuse pressure justifies `@vitarish/icons`. |
 | Should theme tokens become a separate package later? | Keep tokens in `@vitarish/ui` until non-React or non-web consumers need them. |
 | Should generated backend clients become shared packages? | Keep clients app-owned unless a separate API-client package ADR is accepted. |
 
@@ -219,3 +226,4 @@ Exit criteria:
 | Date | Change |
 |---|---|
 | 2026-07-08 | Created source-of-truth roadmap for ADR-0008 and multi-app shared UI target. |
+| 2026-07-08 | Aligned roadmap with raw HeroUI usage rule and workspace-level boundary validation feedback. |
