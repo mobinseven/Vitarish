@@ -1,13 +1,14 @@
 "use client";
 
-import { Avatar, Chip } from "@heroui/react";
+import { Avatar, Button, Chip } from "@heroui/react";
 import { Sidebar } from "@heroui-pro/react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocalizedText } from "@/localization";
 import type { DashboardShellItem, DashboardShellNavGroup } from "./DashboardShell";
 import { isRouteBranchCurrent, isRouteCurrent } from "./dashboardRouteMatching";
 
 export interface DashboardSidebarIdentity {
+    accountHref: string;
     initials: string;
     label: string;
     subtitle: string;
@@ -17,10 +18,11 @@ export interface DashboardSidebarProps {
     footerItems: readonly DashboardShellItem[];
     identity: DashboardSidebarIdentity;
     navGroups: readonly DashboardShellNavGroup[];
+    onNavigate?: (href: string) => void;
     pathname: string;
 }
 
-export function DashboardSidebar({ footerItems, identity, navGroups, pathname }: DashboardSidebarProps) {
+export function DashboardSidebar({ footerItems, identity, navGroups, onNavigate, pathname }: DashboardSidebarProps) {
     return (
         <>
             <Sidebar>
@@ -28,6 +30,7 @@ export function DashboardSidebar({ footerItems, identity, navGroups, pathname }:
                     footerItems={footerItems}
                     identity={identity}
                     navGroups={navGroups}
+                    onNavigate={onNavigate}
                     pathname={pathname}
                 />
             </Sidebar>
@@ -37,6 +40,7 @@ export function DashboardSidebar({ footerItems, identity, navGroups, pathname }:
                     identity={identity}
                     idPrefix="mobile-"
                     navGroups={navGroups}
+                    onNavigate={onNavigate}
                     pathname={pathname}
                 />
             </Sidebar.Mobile>
@@ -46,6 +50,7 @@ export function DashboardSidebar({ footerItems, identity, navGroups, pathname }:
 
 interface DashboardSidebarContentsProps extends DashboardSidebarProps {
     idPrefix?: string;
+    onNavigate?: (href: string) => void;
 }
 
 function DashboardSidebarContents({
@@ -53,6 +58,7 @@ function DashboardSidebarContents({
     identity,
     idPrefix = "",
     navGroups,
+    onNavigate,
     pathname,
 }: DashboardSidebarContentsProps) {
     const { t } = useLocalizedText();
@@ -70,10 +76,20 @@ function DashboardSidebarContents({
         setExpandedKeys((current) => mergeRequiredExpandedKeys(current, requiredExpandedKeys));
     }, [requiredExpandedKeys]);
 
+    const handleIdentityClick = useCallback(() => {
+        onNavigate?.(identity.accountHref);
+    }, [identity.accountHref, onNavigate]);
+
     return (
         <>
             <Sidebar.Header>
-                <div className="flex items-center gap-3 px-1 py-1">
+                <Button
+                    fullWidth
+                    variant="ghost"
+                    onPress={handleIdentityClick}
+                    aria-label={t("appShell.userMenu.account")}
+                    className="justify-start px-3 py-2 h-auto"
+                >
                     <Avatar className="size-9">
                         <Avatar.Fallback>{identity.initials}</Avatar.Fallback>
                     </Avatar>
@@ -85,7 +101,7 @@ function DashboardSidebarContents({
                             {identity.subtitle}
                         </span>
                     </div>
-                </div>
+                </Button>
             </Sidebar.Header>
             <Sidebar.Content>
                 <Sidebar.Group>
@@ -143,7 +159,7 @@ function DashboardSidebarNavItem({ idPrefix, item, pathname }: DashboardSidebarN
 
     return (
         <Sidebar.MenuItem
-            href={item.href}
+            href={item.children?.length ? undefined : item.href}
             id={getSidebarItemId(idPrefix, item)}
             isCurrent={isSidebarItemCurrent(pathname, item)}
             textValue={label}
@@ -153,9 +169,7 @@ function DashboardSidebarNavItem({ idPrefix, item, pathname }: DashboardSidebarN
             </Sidebar.MenuIcon>
             <Sidebar.MenuLabel>{label}</Sidebar.MenuLabel>
             {item.children?.length ? (
-                <Sidebar.MenuTrigger>
-                    <Sidebar.MenuIndicator aria-hidden="true" />
-                </Sidebar.MenuTrigger>
+                <Sidebar.MenuIndicator aria-hidden="true" />
             ) : null}
             {badge ? (
                 <Sidebar.MenuChip>

@@ -66,6 +66,7 @@ export function DashboardShell({
   const sidebarIdentity = useMemo(() => {
     if (isLoading) {
       return {
+        accountHref: Routes.Account.Index,
         initials: "",
         label: t("common.states.loading"),
         subtitle: t("appShell.brand"),
@@ -74,6 +75,7 @@ export function DashboardShell({
 
     if (!isAuthenticated) {
       return {
+        accountHref: Routes.Account.Index,
         initials: t("appShell.brand").slice(0, 2).toUpperCase(),
         label: t("appShell.brand"),
         subtitle: t("appShell.userMenu.logIn"),
@@ -81,6 +83,7 @@ export function DashboardShell({
     }
 
     return {
+      accountHref: Routes.Account.Index,
       initials: displayProfile?.initials ?? getInitials(displayProfile?.displayLabel ?? ""),
       label: displayProfile?.displayLabel ?? "",
       subtitle: t("appShell.userMenu.account"),
@@ -96,6 +99,7 @@ export function DashboardShell({
           footerItems={footerItems}
           identity={sidebarIdentity}
           navGroups={navGroups}
+          onNavigate={navigate}
           pathname={pathname}
         />
       }

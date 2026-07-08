@@ -133,10 +133,8 @@ describe("Dashboard Shell Components", () => {
 
       expect(screen.getByRole("heading", { name: "Welcome back, Test User" })).toBeInTheDocument();
       expect(screen.getAllByText("Home").length).toBeGreaterThan(0);
-      expect(screen.getAllByText("Account").length).toBeGreaterThan(0);
       expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Notifications" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Invite" })).toBeInTheDocument();
       expect(screen.getByText("Dashboard content")).toBeInTheDocument();
     });
   });
@@ -146,7 +144,7 @@ describe("Dashboard Shell Components", () => {
       render(
         <DashboardSidebar
           footerItems={[]}
-          identity={{ initials: "TU", label: "Test User", subtitle: "Account" }}
+          identity={{ accountHref: "/account", initials: "TU", label: "Test User", subtitle: "Account" }}
           navGroups={nestedShellNavGroups}
           pathname="/clinic/patients"
         />
@@ -156,21 +154,13 @@ describe("Dashboard Shell Components", () => {
       expect(screen.getByText("Patients")).toBeInTheDocument();
     });
 
-    it("keeps account navigation as a main feature item instead of a footer item or standalone section", () => {
+    it("provides account access via sidebar identity header instead of navigation menu", () => {
       const [mainGroup] = mainDashboardNavGroups;
       const accountItem = mainGroup.items.find((item) => item.href === "/account");
 
       expect(dashboardFooterItems.map((item) => item.href)).not.toContain("/account");
+      expect(accountItem).toBeUndefined();
       expect(mainDashboardNavGroups.map((group) => group.labelKey)).not.toContain("appShell.navigation.accountGroup");
-      expect(accountItem?.children?.map((item) => item.href)).toEqual([
-        "/account/name",
-        "/account/email",
-        "/account/phone",
-        "/account/password",
-        "/account/passkeys",
-        "/account/theme",
-        "/account/culture",
-      ]);
     });
   });
 
