@@ -13,7 +13,7 @@ This directory contains the platform-level architecture decision records (ADRs).
 | 0005 | Standardize OpenAPI Endpoint Conventions | Accepted | 2026-06-27 |
 | 0006 | Standardize Platform Journey Routing | Accepted | 2026-06-29 |
 | 0007 | Standardize React Localization | Accepted | 2026-07-01 |
-
+| 0008 | Share React UI Components Through a Dedicated UI Package | Proposed | 2026-07-08 |
 
 ## Superseded / Deprecated Decisions
 
@@ -24,3 +24,4 @@ This directory contains the platform-level architecture decision records (ADRs).
 
 - Parent index: `docs/architecture/decisions/_index.md`
 - Platform modules: `docs/platform/modules/`
+- Platform roadmaps: `docs/platform/modules/platform/roadmaps/`
