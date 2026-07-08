@@ -1,75 +1,129 @@
 ---
 name: platform-auto-plan-executor
-description: Execute implementation plans by routing to appropriate skills and generating code changes.
+description: Execute schema-valid implementation plans by applying only the planned slice, loading required skills, running validation, and preparing a reviewable PR.
 ---
 
 # Platform Auto Plan Executor
 
 ## Purpose
 
-Execute plan files by loading relevant skills, generating code changes, and creating PRs.
+Execute one generated implementation plan safely and reviewably.
+
+This skill owns plan execution. It does not generate plans, approve implementations, or own loop state transitions beyond reporting execution results.
 
 ## Use When
 
-- Plan file exists in `.mimocode/plans/`
-- Loop state indicates implementation needed
-- GitHub Actions triggers implementation workflow
+Use this skill when:
 
-## Execution Process
+- a plan file exists in `.mimocode/plans/`;
+- loop state indicates implementation is needed;
+- a GitHub Actions or agent workflow is executing an approved/generated plan;
+- a re-plan has been generated and must be applied.
 
-1. **Read Plan**: Parse plan file and extract phases
-2. **Load Skills**: Load skills specified in plan
-3. **Execute Phases**: Run each phase sequentially
-4. **Run Validation**: Execute validation commands
-5. **Create Branch**: Create implementation branch
-6. **Generate Changes**: Create/modify files as specified
-7. **Commit Changes**: Commit with descriptive messages
-8. **Create PR**: Create pull request with plan reference
-9. **Update State**: Update loop-state.json
+## Do Not Use For
 
-## Phase Execution
+Do not use this skill for:
 
-For each phase:
+- creating or rewriting the plan; use `platform-auto-plan-generator`;
+- reviewing the implementation; use `platform-auto-loop-reviewer`;
+- managing status, iteration, or termination; use `platform-loop-state-manager`;
+- normal human-directed one-PR work; use `platform-pr-delivery-loop`;
+- adding work that is not present in the plan.
 
-1. Read phase objective and artifacts
-2. For each artifact:
-   - Load artifact placement skill
-   - Determine correct location
-   - Generate artifact following skill rules
-   - Validate against architecture rules
-3. Run phase validation
-4. Update progress
+## Relationship to Other Skills
 
-## Code Generation Rules
+The plan declares required skills. Load only those skills and any directly implied guardrail skill.
 
-- Follow existing code conventions
-- Use existing libraries and patterns
-- Respect architecture boundaries
-- Include required tests
-- Add necessary documentation
-- Follow AGENTS.md rules
+Common execution handoffs:
 
-## PR Creation
+```txt
+plan -> executor -> reviewer -> state manager
+```
 
-PR must include:
-- Reference to issue number
-- Plan file reference
-- Iteration number
-- Summary of changes
-- Testing checklist
-- Next steps
+Use `.agents/skills/README.md` for shared routing and decision ownership.
 
-## Error Handling
+## Sources of Truth
 
-- If phase fails: log error, update state, continue or abort
-- If validation fails: fix issues, re-run validation
-- If build fails: fix build errors, re-run build
-- If tests fail: fix tests, re-run tests
+- The current plan file in `.mimocode/plans/`.
+- `AGENTS.md` architecture rules.
+- `.agents/skills/README.md` shared skill contract.
+- Skills listed in the plan.
+- Accepted ADRs and scoped docs referenced by the plan.
+- Existing repository conventions in the owning scope.
+
+## Operating Procedure
+
+1. Read the plan and validate that it has objective, scope, artifacts, phases, validation, and acceptance criteria.
+2. Confirm the plan is still executable against the current repository state.
+3. Load the skills listed for the current phase.
+4. Execute phases in order and only within declared scope.
+5. For each artifact, verify responsibility, location, dependency direction, and source of truth before editing.
+6. Preserve generated-code boundaries; do not manually edit generated files unless the plan explicitly owns generator input/config.
+7. Run the validation commands named by the plan.
+8. Record pass/fail/warning evidence for every validation step.
+9. Prepare a focused commit/PR with the plan reference.
+10. Report execution results for loop-state update.
+
+## Required Output
+
+Execution reports must include:
+
+```md
+## Auto Plan Execution Report
+
+Plan: <path>
+Issue: #<number>
+Iteration: <n>/<max>
+
+### Executed Scope
+- <summary>
+
+### Changed Artifacts
+| Artifact | Responsibility | Phase | Notes |
+| --- | --- | --- | --- |
+
+### Skills Applied
+- <skill>: <why>
+
+### Validation
+| Command / check | Status | Evidence |
+| --- | --- | --- |
+
+### Deviations
+- <none or explicit deviation with reason>
+
+### Handoff
+Next: `platform-auto-loop-reviewer` / `platform-loop-state-manager`
+```
+
+## Hard Stops
+
+Stop execution when:
+
+- the plan file is missing, malformed, or schema-invalid;
+- the plan objective conflicts with the issue or accepted decisions;
+- artifact ownership is unclear enough to risk wrong placement;
+- implementation requires unplanned architecture, migration, security, data-loss, or external-service decisions;
+- required validation cannot be run and no honest substitute exists;
+- the implementation would exceed the planned scope;
+- a generated file must be manually edited to make the plan work.
+
+Escalate instead of silently changing the plan.
 
 ## Guardrails
 
-- Never modify plan file during execution
-- Always run validation before committing
-- Always create new commits, never amend
-- Always reference issue in PR
-- Never skip required skills
+- Never modify the plan file during execution.
+- Do not add opportunistic cleanup or unrelated fixes.
+- Do not skip required skills.
+- Do not commit without validation evidence or an explicit warning.
+- Do not amend previous automation commits unless the workflow explicitly requires it.
+- Do not create parallel state outside `platform-loop-state-manager`.
+- Keep one implementation branch/PR focused on one plan.
+
+## Handoff
+
+After execution, hand off to `platform-auto-loop-reviewer` for review and to `platform-loop-state-manager` for status update.
+
+## Style
+
+Be mechanical, explicit, and evidence-driven. Prefer small diffs over clever broad rewrites.
