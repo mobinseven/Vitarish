@@ -114,7 +114,7 @@ Deliverables:
   - `private: true`;
   - explicit `exports` for public entry points;
   - React and design-library dependency strategy documented in the package.
-- Add `src/Hosts/Web/Packages/Ui/src/index.ts` as the public export boundary.
+- Add src/Hosts/Web/packages/web-ui/src/index.ts as the public export boundary.
 - Add TypeScript configuration for the package.
 
 Exit criteria:
