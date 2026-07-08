@@ -2,11 +2,11 @@
 
 Date: 2026-07-08  
 Status: Proposed  
-App: Web Host  
+App: Multiple React Web Apps  
 Module: Platform  
 Capability: Shared React UI  
 Owner: Platform Architecture  
-Related apps: Web  
+Related apps: Web, future React web apps  
 Related modules: Platform, Authentication, Account, Journey, Clinic, Knowledge  
 Supersedes: None  
 Superseded by: None  
@@ -17,17 +17,19 @@ Related:
 
 ## Context
 
-The React Web host is accumulating reusable UI decisions in feature folders and host-local component folders. Examples include layout surfaces, empty/error states, navigation cards, form controls, icon composition, theme bridge details, and reusable HeroUI/HeroUI Pro wrappers.
+Vitarish is moving toward multiple React web applications that rely on a single backend. Those apps should share major design artifacts without copying layout surfaces, empty/error states, navigation cards, form shells, icon composition, theme bridge details, and HeroUI/HeroUI Pro wrappers into each app.
 
-Keeping these artifacts distributed makes design drift likely. A feature can unknowingly create a second version of the same surface or state pattern, and later changes must be repeated in multiple places. It also makes it harder to reason about which components are safe to reuse across Authentication, Account, Journey, Clinic, Knowledge, and future modules.
+Keeping reusable UI artifacts inside one app or scattered across feature folders makes design drift likely. A new app can unknowingly create another version of the same surface or state pattern, and later changes must be repeated across apps and modules. It also makes it harder to reason about which components are safe to reuse across Authentication, Account, Journey, Clinic, Knowledge, and future modules.
 
-The Web host already uses React, Next.js, HeroUI, HeroUI Pro, React Aria, Tailwind utilities, and a central React localization boundary. Shared UI must respect those existing boundaries without coupling design primitives to generated API clients, feature workflows, backend contracts, or Web route implementation details.
+The existing React Web host already uses React, Next.js, HeroUI, HeroUI Pro, React Aria, Tailwind utilities, Font Awesome, Vitest, npm, and a central React localization boundary. Shared UI must respect those conventions while preparing for additional web apps that consume the same backend through app-owned API adapters.
+
+The single backend remains the source of truth for data, workflows, authorization, and API contracts. The shared UI package must not become a backend client, domain model package, or cross-app workflow layer.
 
 ## Decision
 
 Create a dedicated shared React UI package named `@vitarish/ui`.
 
-The package is the source of truth for major reusable React design artifacts:
+The package is the source of truth for major reusable React design artifacts across Vitarish React web apps:
 
 - design tokens and theme bridge utilities;
 - shared layout surfaces and page section primitives;
@@ -35,9 +37,9 @@ The package is the source of truth for major reusable React design artifacts:
 - icon wrappers and presentation-only composition helpers;
 - reusable component contracts and usage examples.
 
-The initial package is private and repository-local. It will live under the Web host workspace at `src/Hosts/Web/packages/ui` when implementation starts. The package can be published later only after a separate release/versioning decision.
+The initial package is private and repository-local. It will live in a frontend npm workspace beside the React web apps, not inside a single app. The package can be published later only after a separate release/versioning decision.
 
-The Web application imports shared presentation components from `@vitarish/ui`. Feature modules keep business-specific components in their own feature folders and compose them with `@vitarish/ui` primitives.
+Each React web app imports shared presentation components from `@vitarish/ui`. App and feature modules keep business-specific components, API adapters, route logic, localization resolution, and workflow composition inside the app that owns them.
 
 The roadmap source of truth for implementing this decision is `docs/platform/modules/platform/roadmaps/0001-shared-react-ui-roadmap.md`.
 
@@ -49,34 +51,49 @@ Rationale:
 
 - `@vitarish/ui` is short, product-scoped, and clear at import sites.
 - The package name describes presentation ownership without tying it to Next.js, a single app, or a specific third-party component library.
-- The name leaves room for future sibling packages such as `@vitarish/icons`, `@vitarish/theme`, or `@vitarish/testing` if those become necessary.
+- The name leaves room for future sibling packages such as `@vitarish/icons`, `@vitarish/theme`, `@vitarish/testing`, or generated backend client packages if those become necessary.
 
 Rejected names:
 
 - `@vitarish/react-ui`: too implementation-specific for imports and duplicates the React context already implied by the package contents.
 - `@vitarish/design-system`: too broad for the first increment because this ADR starts with a reusable React package, not a complete multi-platform design-system program.
-- `@vitarish/web-ui`: couples reusable artifacts to the Web host instead of making the package the host-consumed boundary.
+- `@vitarish/web-ui`: couples reusable artifacts to one web surface instead of making the package reusable across multiple web apps.
+- `@vitarish/web/components`: reads like an app-owned path rather than a package-level product boundary.
 
 ## Workspace and Package Manager Decision
 
-Keep `npm` as the package manager for the React Web host and continue using `package-lock.json` as the lockfile source of truth.
+Keep `npm` as the package manager for React frontend workspaces and continue using `package-lock.json` as the lockfile source of truth.
 
-When implementation starts, add npm workspaces to `src/Hosts/Web/package.json` and place the shared package at `src/Hosts/Web/packages/ui`.
+When implementation starts, create a frontend npm workspace root above individual React apps so `@vitarish/ui` is app-neutral. The existing Web app should be migrated into that workspace without changing the backend source-of-truth model.
 
-Approved workspace shape:
+Approved target workspace shape:
 
 ```text
-src/Hosts/Web/
-  package.json              # npm workspace root and @vitarish/web package
-  package-lock.json         # npm lockfile source of truth
+src/Hosts/
+  package.json              # private npm workspace root for React web apps and packages
+  package-lock.json         # npm lockfile source of truth for frontend workspace
+  Web/                      # existing @vitarish/web app
+    package.json
   packages/
     ui/
       package.json          # name: @vitarish/ui, private: true
       src/
         index.ts
+  {future-web-app}/
+    package.json
 ```
 
+The exact future app folder names can be decided when the second app is created. The important boundary is that shared packages live beside apps, not inside one app.
+
 Do not switch to `pnpm`, Yarn, Turborepo, Nx, or a separate repository as part of this ADR. Those may be revisited only if workspace scale, build performance, or publishing needs justify a separate decision.
+
+## Single Backend Rule
+
+All React web apps rely on the same backend as the source of truth for data, commands, authorization, validation, and business workflows.
+
+`@vitarish/ui` does not call the backend directly. It receives data, state, localized display text, handlers, and navigation intents through props, slots, or children. Each app owns its own route handlers, generated API clients, React Query hooks, and backend-facing adapters.
+
+Shared UI may expose generic state contracts such as `isPending`, `isDisabled`, `error`, `emptyState`, or `items`, but it must not expose or depend on backend DTOs, generated client types, domain entities, or feature workflow names.
 
 ## Import Boundary Rules
 
@@ -95,62 +112,69 @@ Do not switch to `pnpm`, Yarn, Turborepo, Nx, or a separate repository as part o
 
 `@vitarish/ui` must not import from:
 
-- `src/Hosts/Web/src/app/**` or route/page files;
-- Web feature folders such as `features/**`;
+- any app route/page folder such as `src/Hosts/*/src/app/**`;
+- app feature folders such as `src/Hosts/*/src/features/**`;
 - generated OpenAPI clients, generated DTOs, query keys, or `apiFetch`;
 - React Query hooks or feature data hooks;
 - backend Domain, Application, Contracts, Infrastructure, or API projects;
 - feature-specific business types such as patient, clinic workflow, account workflow, journey, or knowledge entities;
-- the Web localization catalog or provider directly.
+- app localization catalogs or providers directly.
 
-Shared UI components receive display labels, descriptions, actions, and localized text through props, slots, or children. They do not resolve app localization keys internally.
+Shared UI components receive display labels, descriptions, actions, direction, and localized text through props, slots, or children. They do not resolve app localization keys internally.
 
-### Allowed imports from Web application code
+### Allowed imports from React web app code
 
-Web host pages, route components, feature UI, and tests may import from the public `@vitarish/ui` exports.
+React web app pages, route components, feature UI, and tests may import from the public `@vitarish/ui` exports.
 
-Feature modules must not deep-import package internals such as `@vitarish/ui/src/**` or another feature's component files. If a shared component needs to be reused, it must be exported by `@vitarish/ui` or remain feature-local.
+Apps and features must not deep-import package internals such as `@vitarish/ui/src/**` or another app's component files. If a shared component needs to be reused across apps, it must be exported by `@vitarish/ui` or remain app/feature-local.
+
+### Cross-app import rule
+
+A React web app must not import UI implementation files from another React web app. Cross-app reuse flows through `@vitarish/ui`.
 
 ### Promotion rule
 
 A component may move into `@vitarish/ui` only when it satisfies all of these conditions:
 
 1. It is presentation-only.
-2. It has no generated API, React Query, route, or feature workflow dependency.
+2. It has no generated API, React Query, route, backend, or feature workflow dependency.
 3. Its public props use generic UI language instead of business nouns.
 4. It can be tested without feature data or backend contracts.
-5. It improves reuse across at least two modules or protects a major design artifact from duplication.
+5. It improves reuse across at least two modules/apps or protects a major design artifact from duplication.
 
 ## Boundaries
 
 Allowed dependencies:
 
-- Web-host React presentation code may consume `@vitarish/ui`.
-- Feature UI may compose `@vitarish/ui` with feature-specific adapters and localized strings.
+- React web app presentation code may consume `@vitarish/ui`.
+- Feature UI may compose `@vitarish/ui` with app-owned adapters, API data, and localized strings.
 - Tests may use package-level test helpers that do not depend on feature data.
 
 Forbidden dependencies:
 
-- `@vitarish/ui` must not depend on Web routes, feature modules, generated clients, backend contracts, or application state/query infrastructure.
+- `@vitarish/ui` must not depend on app routes, feature modules, generated clients, backend contracts, or application state/query infrastructure.
 - Backend projects must not depend on `@vitarish/ui`.
 - Generated API clients must not import `@vitarish/ui`.
+- One React web app must not import another React web app's private UI files.
 - `@vitarish/ui` must not become a dumping ground for feature-specific components.
 
 ## Consequences
 
-Reusable design artifacts gain one stable source of truth. The Web host can migrate duplicate surfaces and controls incrementally while keeping feature-specific workflows local.
+Reusable design artifacts gain one stable source of truth across multiple React web apps. New apps can start with the approved Vitarish UI surface instead of rebuilding shared design patterns.
 
-The implementation introduces a frontend package boundary that must be validated in CI. It also adds package export discipline: reusable components need documented props, stable names, and public exports. Some existing feature components will need small adapter layers so business-specific data stays outside the shared package.
+The implementation introduces a frontend workspace/package boundary that must be validated in CI. It also adds package export discipline: reusable components need documented props, stable names, and public exports. Some existing feature components will need adapter layers so business-specific data and backend-facing behavior stay outside the shared package.
+
+The backend remains a single source of truth. UI reuse does not change API ownership, command handling, authorization, validation, or domain boundaries.
 
 ## Alternatives Considered
 
 ### Keep shared components under `src/Hosts/Web/src/components`
 
-Rejected. A host-local folder is better than feature duplication, but it does not create a package boundary, public export contract, or dependency direction that tooling can validate.
+Rejected. A host-local folder is better than feature duplication, but it couples reusable UI to the first Web app and does not create an app-neutral package boundary for future React web apps.
 
-### Continue feature-local duplication
+### Continue app/feature-local duplication
 
-Rejected. It optimizes for short-term speed but increases visual drift and multiplies maintenance work for common surfaces, states, form shells, and icon patterns.
+Rejected. It optimizes for short-term speed but increases visual drift and multiplies maintenance work for common surfaces, states, form shells, and icon patterns across apps.
 
 ### Create a separate repository immediately
 
@@ -158,20 +182,25 @@ Rejected. A separate repository adds versioning, publishing, authentication, CI,
 
 ### Switch to pnpm or Yarn workspaces now
 
-Rejected. The current Web host already uses npm and a package-lock workflow. Changing package managers is unnecessary churn for this decision.
+Rejected. The current React Web host already uses npm and a package-lock workflow. Changing package managers is unnecessary churn for this decision.
 
 ### Use HeroUI/HeroUI Pro directly everywhere
 
 Rejected. Third-party primitives are implementation details. Vitarish still needs product-owned component contracts, theme decisions, accessibility conventions, localization handoff rules, and import boundaries.
+
+### Share backend-facing feature packages through the UI package
+
+Rejected. Shared UI must stay presentation-only. Backend-facing clients, commands, DTOs, and workflows remain app/platform integration concerns, not UI package concerns.
 
 ## Validation / Enforcement
 
 - Add package-level typecheck and tests for `@vitarish/ui` before migrating production components.
 - Add an import-boundary validation script that blocks forbidden imports into `@vitarish/ui`.
 - Add validation that blocks app/feature code from deep-importing `@vitarish/ui` internals.
-- Require new reusable design artifacts to be added to `@vitarish/ui` or documented as intentionally feature-local.
+- Add validation that blocks one React web app from importing another React web app's private UI files.
+- Require new reusable design artifacts to be added to `@vitarish/ui` or documented as intentionally app/feature-local.
 - Keep `docs/platform/modules/platform/roadmaps/0001-shared-react-ui-roadmap.md` updated as the implementation source of truth.
 
 ## Notes
 
-This ADR establishes the shared React UI direction, naming, workspace/package-manager choice, and import rules. It does not implement the package, migrate components, or publish a library.
+This ADR establishes the shared React UI direction, naming, workspace/package-manager choice, single-backend boundary, and import rules. It does not implement the package, migrate components, create a second web app, or publish a library.
