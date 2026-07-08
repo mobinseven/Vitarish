@@ -35,8 +35,8 @@ src/Hosts/
   Web/
     package.json              # private npm workspace root for Web apps and Web packages
     package-lock.json         # npm lockfile source of truth for the Web workspace
-    Packages/
-      Ui/
+    packages/
+      web-ui/
         package.json          # name: @vitarish/web-ui, private: true
         src/
           index.ts
