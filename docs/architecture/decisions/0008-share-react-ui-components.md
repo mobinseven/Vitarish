@@ -200,7 +200,7 @@ Rejected. A host-local folder is better than feature duplication, but it couples
 
 Rejected. The package is React/Web-specific. Putting it directly under the platform-wide host root makes it look cross-host and can force Web package-management assumptions onto future native or other hosts.
 
-### Use `src/Hosts/Web/Packages` beside Web apps
+### Use src/Hosts/Web/packages beside Web apps
 
 Accepted. This keeps shared Web packages close to Web apps while preserving `src/Hosts` for host-family separation.
 
