@@ -17,29 +17,31 @@ Related:
 
 ## Context
 
-Vitarish is moving toward multiple React web applications that rely on a single backend. Those apps should share major design artifacts without copying layout surfaces, empty/error states, navigation cards, form shells, icon composition, theme bridge details, and HeroUI/HeroUI Pro wrappers into each app.
+Vitarish is moving toward multiple React web applications that rely on a single backend. Those apps should share major design artifacts without copying empty/error states, navigation patterns, form composition rules, icon usage, theme bridge details, and HeroUI/HeroUI Pro usage conventions into each app.
 
-Keeping reusable UI artifacts inside one app or scattered across feature folders makes design drift likely. A new app can unknowingly create another version of the same surface or state pattern, and later changes must be repeated across apps and modules. It also makes it harder to reason about which components are safe to reuse across Authentication, Account, Journey, Clinic, Knowledge, and future modules.
+Keeping reusable UI artifacts inside one app or scattered across feature folders makes design drift likely. A new app can unknowingly create another version of the same state pattern or composition rule, and later changes must be repeated across apps and modules. It also makes it harder to reason about which UI artifacts are safe to reuse across Authentication, Account, Journey, Clinic, Knowledge, and future modules.
 
 The existing React Web host already uses React, Next.js, HeroUI, HeroUI Pro, React Aria, Tailwind utilities, Font Awesome, Vitest, npm, and a central React localization boundary. Shared UI must respect those conventions while preparing for additional web apps that consume the same backend through app-owned API adapters.
 
-The single backend remains the source of truth for data, workflows, authorization, and API contracts. The shared UI package must not become a backend client, domain model package, or cross-app workflow layer.
+The single backend remains the source of truth for data, workflows, authorization, and API contracts. The shared UI package must not become a backend client, domain model package, cross-app workflow layer, or custom design-system wrapper layer.
 
 ## Decision
 
 Create a dedicated shared React UI package named `@vitarish/ui`.
 
-The package is the source of truth for major reusable React design artifacts across Vitarish React web apps:
+The package is the source of truth for major reusable React presentation artifacts across Vitarish React web apps:
 
 - design tokens and theme bridge utilities;
-- shared layout surfaces and page section primitives;
-- shared buttons, states, cards, navigation primitives, and form-field shells;
-- icon wrappers and presentation-only composition helpers;
-- reusable component contracts and usage examples.
+- raw HeroUI/HeroUI Pro usage conventions and documented composition patterns;
+- shared empty, loading, error, navigation, and form composition contracts;
+- icon usage helpers and presentation-only composition helpers;
+- reusable component contracts and usage examples when direct HeroUI usage is not enough.
+
+Raw HeroUI and HeroUI Pro components remain the default building blocks. `@vitarish/ui` must not introduce custom design-system wrappers such as `SurfaceCard` that hide or replace HeroUI's component model. When a shared artifact is needed, it must stay presentation-only and should either document a raw HeroUI composition pattern or provide a small helper for behavior that raw HeroUI does not already provide directly.
 
 The initial package is private and repository-local. It will live in a frontend npm workspace beside the React web apps, not inside a single app. The package can be published later only after a separate release/versioning decision.
 
-Each React web app imports shared presentation components from `@vitarish/ui`. App and feature modules keep business-specific components, API adapters, route logic, localization resolution, and workflow composition inside the app that owns them.
+Each React web app imports shared presentation artifacts from `@vitarish/ui`. App and feature modules keep business-specific components, API adapters, route logic, localization resolution, and workflow composition inside the app that owns them.
 
 The roadmap source of truth for implementing this decision is `docs/platform/modules/platform/roadmaps/0001-shared-react-ui-roadmap.md`.
 
@@ -126,7 +128,7 @@ Shared UI components receive display labels, descriptions, actions, direction, a
 
 React web app pages, route components, feature UI, and tests may import from the public `@vitarish/ui` exports.
 
-Apps and features must not deep-import package internals such as `@vitarish/ui/src/**` or another app's component files. If a shared component needs to be reused across apps, it must be exported by `@vitarish/ui` or remain app/feature-local.
+Apps and features must not deep-import package internals such as `@vitarish/ui/src/**` or another app's component files. If a shared artifact needs to be reused across apps, it must be exported by `@vitarish/ui` or remain app/feature-local.
 
 ### Cross-app import rule
 
@@ -134,13 +136,14 @@ A React web app must not import UI implementation files from another React web a
 
 ### Promotion rule
 
-A component may move into `@vitarish/ui` only when it satisfies all of these conditions:
+A UI artifact may move into `@vitarish/ui` only when it satisfies all of these conditions:
 
 1. It is presentation-only.
 2. It has no generated API, React Query, route, backend, or feature workflow dependency.
 3. Its public props use generic UI language instead of business nouns.
 4. It can be tested without feature data or backend contracts.
 5. It improves reuse across at least two modules/apps or protects a major design artifact from duplication.
+6. It does not create a custom wrapper around a raw HeroUI/HeroUI Pro component that should be used directly.
 
 ## Boundaries
 
@@ -157,12 +160,13 @@ Forbidden dependencies:
 - Generated API clients must not import `@vitarish/ui`.
 - One React web app must not import another React web app's private UI files.
 - `@vitarish/ui` must not become a dumping ground for feature-specific components.
+- `@vitarish/ui` must not introduce custom design-system wrappers where raw HeroUI/HeroUI Pro components should be used directly.
 
 ## Consequences
 
-Reusable design artifacts gain one stable source of truth across multiple React web apps. New apps can start with the approved Vitarish UI surface instead of rebuilding shared design patterns.
+Reusable design artifacts gain one stable source of truth across multiple React web apps. New apps can start with the approved Vitarish UI conventions instead of rebuilding shared design patterns.
 
-The implementation introduces a frontend workspace/package boundary that must be validated in CI. It also adds package export discipline: reusable components need documented props, stable names, and public exports. Some existing feature components will need adapter layers so business-specific data and backend-facing behavior stay outside the shared package.
+The implementation introduces a frontend workspace/package boundary that must be validated in CI. It also adds package export discipline: reusable artifacts need documented props, stable names, and public exports. Some existing feature components will need adapter layers so business-specific data and backend-facing behavior stay outside the shared package.
 
 The backend remains a single source of truth. UI reuse does not change API ownership, command handling, authorization, validation, or domain boundaries.
 
@@ -174,7 +178,7 @@ Rejected. A host-local folder is better than feature duplication, but it couples
 
 ### Continue app/feature-local duplication
 
-Rejected. It optimizes for short-term speed but increases visual drift and multiplies maintenance work for common surfaces, states, form shells, and icon patterns across apps.
+Rejected. It optimizes for short-term speed but increases visual drift and multiplies maintenance work for common states, form composition rules, icon patterns, and documented raw HeroUI usage patterns across apps.
 
 ### Create a separate repository immediately
 
@@ -186,7 +190,7 @@ Rejected. The current React Web host already uses npm and a package-lock workflo
 
 ### Use HeroUI/HeroUI Pro directly everywhere
 
-Rejected. Third-party primitives are implementation details. Vitarish still needs product-owned component contracts, theme decisions, accessibility conventions, localization handoff rules, and import boundaries.
+Accepted as the default for raw UI primitives, but rejected as the only shared-UI governance model. Vitarish should use raw HeroUI/HeroUI Pro components directly instead of custom design-system wrappers such as `SurfaceCard`. `@vitarish/ui` still provides value by centralizing tokens, documented composition patterns, accessibility conventions, localization handoff rules, import boundaries, and small presentation-only helpers for behavior that raw HeroUI does not already provide directly.
 
 ### Share backend-facing feature packages through the UI package
 
@@ -194,10 +198,11 @@ Rejected. Shared UI must stay presentation-only. Backend-facing clients, command
 
 ## Validation / Enforcement
 
-- Add package-level typecheck and tests for `@vitarish/ui` before migrating production components.
-- Add an import-boundary validation script that blocks forbidden imports into `@vitarish/ui`.
-- Add validation that blocks app/feature code from deep-importing `@vitarish/ui` internals.
-- Add validation that blocks one React web app from importing another React web app's private UI files.
+- Add package-level typecheck and tests for `@vitarish/ui` before migrating production UI artifacts.
+- Add workspace-level import-boundary validation scripts, run from `src/Hosts`, that block forbidden imports into `@vitarish/ui`.
+- Add workspace-level validation that blocks app/feature code from deep-importing `@vitarish/ui` internals.
+- Add workspace-level validation that blocks one React web app from importing another React web app's private UI files.
+- Add workspace-level validation that flags custom wrapper proposals where raw HeroUI/HeroUI Pro components should be used directly.
 - Require new reusable design artifacts to be added to `@vitarish/ui` or documented as intentionally app/feature-local.
 - Keep `docs/platform/modules/platform/roadmaps/0001-shared-react-ui-roadmap.md` updated as the implementation source of truth.
 
