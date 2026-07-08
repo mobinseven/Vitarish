@@ -108,7 +108,7 @@ Deliverables:
 - Promote `src/Hosts/Web` to the private npm workspace root for the Web host family.
 - Move the current Web app into a child app folder under `src/Hosts/Web/{web-app}`.
 - Move Web lockfile ownership to `src/Hosts/Web/package-lock.json` through npm commands.
-- Create `src/Hosts/Web/Packages/Ui/package.json` with:
+- Create src/Hosts/Web/packages/web-ui/package.json with:
   - `name: "@vitarish/web-ui"`;
   - `version: "0.1.0"`;
   - `private: true`;
