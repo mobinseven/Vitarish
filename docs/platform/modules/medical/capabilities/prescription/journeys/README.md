@@ -38,8 +38,11 @@ The current module has a working prescription architecture and routed UI/service
 ## How to Use This Folder
 
 1. Start with the [implementation matrix](./implementation-matrix.md) for per-objective status, required routes, UI surfaces, service boundaries, and known gaps.
-2. Use the focused journey files for detailed operator flow, decision rules, and domain-specific implementation detail.
-3. Use the acceptance criteria in each journey to define delivery scope for implementation phases.
+2. Use the [component-to-journey coverage matrix](./component-journey-coverage.md)
+   to verify every standalone Prescription Interface component maps to a journey
+   stage, command/query split, failure handling, and expected outcome.
+3. Use the focused journey files for detailed operator flow, decision rules, and domain-specific implementation detail.
+4. Use the acceptance criteria in each journey to define delivery scope for implementation phases.
 
 ## Key Design Principles
 

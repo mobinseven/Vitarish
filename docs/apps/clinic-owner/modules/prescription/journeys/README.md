@@ -8,6 +8,8 @@ This folder documents clinic owner e-prescription-related journeys within the cl
 
 ## Journey Map Files
 
+- [Component-to-Journey Coverage Matrix](./component-journey-coverage.md) — Clinic Owner
+  traceability to the accepted prescription capability coverage source
 - [Prescription Journey](./prescription-journey.md) — Core prescription workflow overview
 - [Prescription Submit Journey](./prescription-submit-journey.md) — Submission workflow for prescriptions
 - [Prescription Edit Journey](./prescription-edit-journey.md) — Editing submitted prescriptions
