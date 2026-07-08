@@ -8,6 +8,7 @@ import { I18nProvider } from "@react-aria/i18n";
 import { LocalizationProvider, getReactAriaLocale, type SupportedLocale } from "@/localization";
 import { type ThemeMode } from "@/features/account/theme/themeOptions";
 import { PaletteProvider } from "./PaletteProvider";
+import { ThemeLoader } from "./ThemeLoader";
 import { VibrantPaletteProvider } from "./VibrantPaletteProvider";
 
 const themeModeOptions: readonly Exclude<ThemeMode, "system">[] = ["light", "dark"];
@@ -34,6 +35,7 @@ export function Providers({ children, locale }: { children: ReactNode; locale: S
         <I18nProvider locale={getReactAriaLocale(locale)}>
           <LocalizationProvider locale={locale}>
             <PaletteProvider>
+              <ThemeLoader />
               <VibrantPaletteProvider>
                 {children}
                 <Toast.Provider placement="bottom" />

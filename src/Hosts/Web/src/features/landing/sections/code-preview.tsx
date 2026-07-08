@@ -4,7 +4,6 @@ import {Tabs} from "@heroui/react";
 
 import {FaIcon} from "@/features/landing/icons/fa-icon";
 import {figures} from "@/features/landing/data/figures";
-import {Annotation, CornerMarks, Reveal, SectionLabel} from "@/components/blueprint";
 import {useLocalizedText} from "@/localization";
 
 const snippets: Record<string, {lang: string; lines: string[]; raw: string}> = {
@@ -82,25 +81,27 @@ export function CodePreview() {
     <section className="relative scroll-mt-24 py-20 lg:py-28" id="api">
       <div className="mx-auto max-w-[1200px] px-6">
         <div className="max-w-2xl">
-          <Reveal>
-            <SectionLabel index="FIG. 08">{t("landing.codePreview.sectionLabel")}</SectionLabel>
-          </Reveal>
-          <Reveal delay={0.05}>
-            <h2 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl">
-              {t("landing.codePreview.heading")}
-            </h2>
-          </Reveal>
+          <div className="flex items-center gap-3">
+            <span className="bg-accent inline-block size-1.5" />
+            <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
+              <span className="text-muted mr-2">FIG. 08</span>
+              {t("landing.codePreview.sectionLabel")}
+            </span>
+          </div>
+          <h2 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl">
+            {t("landing.codePreview.heading")}
+          </h2>
         </div>
 
         <div className="mt-12 grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-          <Reveal>
+          <div>
             <div className="border-border bg-surface relative overflow-hidden border">
               <div className="border-border flex items-center justify-between border-b px-4 py-3">
                 <div className="flex items-center gap-1.5">
                   <span className="border-border size-2.5 rounded-full border" />
                   <span className="border-border size-2.5 rounded-full border" />
                   <span className="border-border size-2.5 rounded-full border" />
-                  <Annotation className="ml-3">~/axon</Annotation>
+                  <span className="ml-3 font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">~/axon</span>
                 </div>
                 <button
                   aria-label={t("landing.codePreview.copyCode")}
@@ -109,7 +110,7 @@ export function CodePreview() {
                   type="button"
                 >
                   <FaIcon icon={copied ? "circle-check" : "copy"} className="size-3.5" />
-                  <span className="bp-label">{copied ? t("landing.codePreview.copied") : t("landing.codePreview.copy")}</span>
+                  <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{copied ? t("landing.codePreview.copied") : t("landing.codePreview.copy")}</span>
                 </button>
               </div>
 
@@ -122,7 +123,7 @@ export function CodePreview() {
                 <Tabs.ListContainer className="border-border border-b px-2">
                   <Tabs.List aria-label={t("landing.codePreview.language")}>
                     {Object.keys(snippets).map((key) => (
-                      <Tabs.Tab key={key} id={key} className="bp-label px-3 py-2.5">
+                      <Tabs.Tab key={key} id={key} className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88 px-3 py-2.5">
                         {key}
                         <Tabs.Indicator />
                       </Tabs.Tab>
@@ -150,31 +151,27 @@ export function CodePreview() {
                 ))}
               </Tabs>
             </div>
-          </Reveal>
+          </div>
 
-          <Reveal delay={0.1} y={24}>
-            <div className="relative">
-              <div className="border-border bg-surface relative overflow-hidden border">
-                <div className="bp-grid-fine absolute inset-0 opacity-60" aria-hidden="true" />
-                <div className="absolute left-3 top-3 z-10">
-                  <Annotation className="bp-label-accent">FIG. 08 — COMPUTE BOARD</Annotation>
-                </div>
-                <Image
-                  alt={figures.codeBoard.alt}
-                  className="relative z-[1] w-full object-cover"
-                  src={figures.codeBoard.src}
-                  width={800}
-                  height={600}
-                  unoptimized
-                />
-                <CornerMarks />
+          <div className="relative">
+            <div className="border-border bg-surface relative overflow-hidden border">
+              <div className="absolute left-3 top-3 z-10">
+                <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">FIG. 08 — COMPUTE BOARD</span>
               </div>
-              <div className="mt-3 flex items-center justify-between">
-                <Annotation>{t("landing.codePreview.revision")}</Annotation>
-                <Annotation>{t("landing.codePreview.dimensions")}</Annotation>
-              </div>
+              <Image
+                alt={figures.codeBoard.alt}
+                className="relative z-[1] w-full object-cover"
+                src={figures.codeBoard.src}
+                width={800}
+                height={600}
+                unoptimized
+              />
             </div>
-          </Reveal>
+            <div className="mt-3 flex items-center justify-between">
+              <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{t("landing.codePreview.revision")}</span>
+              <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{t("landing.codePreview.dimensions")}</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -28,7 +28,7 @@ export function Header() {
 
         <Navbar.Content className="hidden md:flex">
           {navItems.map((item) => (
-            <Navbar.Item key={item.href} href={item.href} className="bp-label text-[0.7rem]">
+            <Navbar.Item key={item.href} href={item.href} className="text-[0.7rem]">
               {t(item.key)}
             </Navbar.Item>
           ))}
@@ -63,7 +63,7 @@ export function Header() {
 
       <Navbar.Menu>
         {navItems.map((item) => (
-          <Navbar.MenuItem key={item.href} href={item.href} className="bp-label text-sm">
+          <Navbar.MenuItem key={item.href} href={item.href} className="text-sm">
             {t(item.key)}
           </Navbar.MenuItem>
         ))}

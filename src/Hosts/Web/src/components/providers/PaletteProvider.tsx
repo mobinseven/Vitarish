@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, createContext, useContext, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   decodeAccountThemePreference,
@@ -17,10 +18,17 @@ interface PaletteContextValue {
 const PaletteContext = createContext<PaletteContextValue | undefined>(undefined);
 
 export function PaletteProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const { resolvedTheme } = useTheme();
   const [palette, setPalette] = useState<AccountThemeValue>("default");
+  const isLandingPage = pathname === "/";
 
   useEffect(() => {
+    if (isLandingPage) {
+      setPalette("glass");
+      return;
+    }
+
     const storedPalette = window.localStorage.getItem(paletteStorageKey);
     setPalette(decodeAccountThemePreference(storedPalette).theme);
 
@@ -32,7 +40,7 @@ export function PaletteProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
-  }, []);
+  }, [isLandingPage]);
 
   useEffect(() => {
     if (!resolvedTheme) return;

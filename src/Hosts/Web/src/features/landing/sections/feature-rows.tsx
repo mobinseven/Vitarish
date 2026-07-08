@@ -1,7 +1,7 @@
+import Image from "next/image";
 import {figures} from "@/features/landing/data/figures";
 import type {Figure as FigureType} from "@/features/landing/data/figures";
 import {FaIcon} from "@/features/landing/icons/fa-icon";
-import {DrawLineX, Figure, Reveal, SectionLabel} from "@/components/blueprint";
 import {useLocalizedText} from "@/localization";
 
 type Row = {
@@ -47,14 +47,16 @@ export function FeatureRows() {
     <section className="bg-surface relative scroll-mt-24 border-y border-border py-20 lg:py-28" id="features">
       <div className="mx-auto max-w-[1200px] px-6">
         <div className="max-w-2xl">
-          <Reveal>
-            <SectionLabel index="FIG. 09—11">{t("landing.featureRows.sectionLabel")}</SectionLabel>
-          </Reveal>
-          <Reveal delay={0.05}>
-            <h2 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl">
-              {t("landing.featureRows.heading")}
-            </h2>
-          </Reveal>
+          <div className="flex items-center gap-3">
+            <span className="bg-accent inline-block size-1.5" />
+            <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
+              <span className="text-muted mr-2">FIG. 09—11</span>
+              {t("landing.featureRows.sectionLabel")}
+            </span>
+          </div>
+          <h2 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl">
+            {t("landing.featureRows.heading")}
+          </h2>
         </div>
 
         <div className="mt-16 flex flex-col gap-16 lg:gap-24">
@@ -66,15 +68,12 @@ export function FeatureRows() {
                 key={row.titleKey}
                 className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16"
               >
-                <Reveal className={reversed ? "lg:order-2" : ""}>
+                <div className={reversed ? "lg:order-2" : ""}>
                   <div>
-                    <div className="flex items-center gap-3">
-                      <span className="bp-label bp-label-accent">
-                        <span className="text-muted mr-2">{row.fig}</span>
-                        {t(row.eyebrowKey)}
-                      </span>
-                      <DrawLineX className="hidden flex-1 sm:block" />
-                    </div>
+                    <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
+                      <span className="text-muted mr-2">{row.fig}</span>
+                      {t(row.eyebrowKey)}
+                    </span>
                     <h3 className="mt-5 text-2xl font-semibold tracking-tight sm:text-3xl">
                       {t(row.titleKey)}
                     </h3>
@@ -88,11 +87,23 @@ export function FeatureRows() {
                       ))}
                     </ul>
                   </div>
-                </Reveal>
+                </div>
 
-                <Reveal delay={0.08} y={24} className={reversed ? "lg:order-1" : ""}>
-                  <Figure figure={row.figure} fig={row.fig} imgClassName="aspect-[4/3]" />
-                </Reveal>
+                <div className={reversed ? "lg:order-1" : ""}>
+                  <div className="relative overflow-hidden border border-border">
+                    <div className="absolute left-3 top-3 z-10">
+                      <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">{row.fig}</span>
+                    </div>
+                    <Image
+                      alt={row.figure.alt}
+                      className="relative z-[1] w-full aspect-[4/3] object-cover"
+                      src={row.figure.src}
+                      width={800}
+                      height={600}
+                      unoptimized
+                    />
+                  </div>
+                </div>
               </div>
             );
           })}

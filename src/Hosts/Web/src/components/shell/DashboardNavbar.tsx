@@ -30,10 +30,6 @@ export function DashboardNavbar({ title }: DashboardNavbarProps) {
           </IconButton>
           <CultureSwitcher />
           <ThemeSwitch />
-          <Button size="sm">
-            <i aria-hidden="true" className="fa-solid fa-user-plus size-4" />
-            {t("appShell.actions.invite")}
-          </Button>
         </div>
       </Navbar.Header>
     </Navbar>

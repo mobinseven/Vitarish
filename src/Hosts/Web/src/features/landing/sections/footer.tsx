@@ -1,7 +1,6 @@
 import {Link} from "@heroui/react";
 
 import {BrandLogotipo, brand} from "@/features/landing/brand";
-import {Annotation, CornerMarks} from "@/components/blueprint";
 import {useLocalizedText} from "@/localization";
 
 const columnKeys = [
@@ -40,7 +39,6 @@ export function Footer() {
   return (
     <footer className="relative border-t border-border">
       <div className="relative mx-auto max-w-[1200px] px-6 py-16">
-        <CornerMarks />
         <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <BrandLogotipo className="h-7 w-auto" />
@@ -49,13 +47,13 @@ export function Footer() {
             </p>
             <div className="mt-6 flex items-center gap-2">
               <span className="bg-accent/70 size-1 rounded-full" />
-              <Annotation>{t("landing.footer.statusLabel")}</Annotation>
+              <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{t("landing.footer.statusLabel")}</span>
             </div>
           </div>
 
           {columnKeys.map((col) => (
             <div key={col.titleKey}>
-              <p className="bp-label">{t(col.titleKey)}</p>
+              <p className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{t(col.titleKey)}</p>
               <ul className="mt-5 flex flex-col gap-3">
                 {col.links.map((link) => (
                   <li key={link.labelKey}>
@@ -73,12 +71,12 @@ export function Footer() {
         </div>
 
         <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-border pt-6 sm:flex-row sm:items-center">
-          <Annotation>
+          <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">
             © 2025 {brand.name} · all rights reserved
-          </Annotation>
+          </span>
           <div className="flex items-center gap-5">
-            <Annotation className="bp-label-accent">{brand.shortName?.toUpperCase()}{" // v2.4.0"}</Annotation>
-            <Annotation>region: us-east-1</Annotation>
+            <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">{brand.shortName?.toUpperCase()}{" // v2.4.0"}</span>
+            <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">region: us-east-1</span>
           </div>
         </div>
       </div>

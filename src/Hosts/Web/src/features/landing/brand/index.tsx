@@ -66,7 +66,7 @@ export function BrandLogotipo({className, height, width, ...props}: BrandIconPro
         />
         <text
           fill="currentColor"
-          fontFamily="var(--brand-font-heading, var(--font-sans, system-ui, sans-serif))"
+          fontFamily="var(--font-sans, system-ui, sans-serif)"
           fontSize="19"
           fontWeight="700"
           x="52"
@@ -95,7 +95,7 @@ export function BrandLogotipo({className, height, width, ...props}: BrandIconPro
       />
       <text
         fill="currentColor"
-        fontFamily="var(--brand-font-heading, var(--font-sans, system-ui, sans-serif))"
+        fontFamily="var(--font-sans, system-ui, sans-serif)"
         fontSize="19"
         fontWeight="700"
         x="52"
