@@ -1,0 +1,4 @@
+interface:
+  display_name: "Platform Test Strategy"
+  short_description: "Choose required tests and hot checks"
+  default_prompt: "Use $platform-test-strategy to choose the smallest required test set and runtime hot checks."
