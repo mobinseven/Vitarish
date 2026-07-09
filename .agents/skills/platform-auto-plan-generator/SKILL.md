@@ -108,6 +108,7 @@ Every plan must include:
 #### Artifacts
 | Artifact | Type | Responsibility | Location | Owning skill |
 | --- | --- | --- | --- | --- |
+| {name} | {type} | {one sentence} | {path} | {skill} |
 
 #### Implementation Steps
 1. {step}
