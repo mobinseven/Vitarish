@@ -1,19 +1,19 @@
-# AGENTS.md — Architecture Rules
+# AGENTS.md - Architecture Rules
 
-These rules are non-negotiable. Every artifact you produce must comply. No exceptions, no shortcuts, no "it's just a small thing."
+These rules are non-negotiable. Every artifact you produce must comply. No exceptions, no shortcuts, no "it is just a small thing."
 
 ---
 
-## What "Artifact" Means
+## What Artifact Means
 
-Every unit you touch: solution, project, namespace, class, struct, record, interface, enum, method, function, service, repository, controller, handler, command, query, DTO, entity, event, migration, config, test, adapter, port, or integration boundary.
+Every unit you touch: solution, project, namespace, class, struct, record, interface, enum, method, function, service, command, query, DTO, entity, event, migration, config, test, adapter, port, controller, handler, repository, document, skill, or integration boundary.
 
 ---
 
 ## The Ten Rules
 
 **1. One responsibility per artifact.**
-One reason to change. If it mixes business logic, persistence, validation, orchestration, transport, or UI — split it now.
+One reason to change. If it mixes business logic, persistence, validation, orchestration, transport, or UI, split it.
 
 **2. One active state model.**
 No duplicated domain concepts, no parallel truth sources. If two models exist, define their boundary and mapping explicitly.
@@ -28,30 +28,48 @@ Core logic depends on stable contracts only. Never on databases, HTTP clients, f
 A method that changes state must not return data as a query API. A method that returns data must not change observable state.
 
 **6. Validate all inputs. Handle all failures explicitly.**
-Invalid input, unavailable dependencies, partial failure, retries, idempotency, cancellation — handle them intentionally. Silent swallowing of exceptions is a defect.
+Invalid input, unavailable dependencies, partial failure, retries, idempotency, cancellation, and concurrency must be handled intentionally. Silent swallowing is a defect.
 
 **7. Extend through new code, not edits to stable code.**
-New behavior goes in new implementations, strategies, handlers, or adapters. Do not repeatedly modify stable core logic to add features.
+New behavior goes in new implementations, strategies, handlers, or adapters when an extension point already exists.
 
 **8. Protect core logic from infrastructure.**
-Domain and application logic must never import or reference UI, database, transport, framework, filesystem, network, clock, or third-party SDKs.
+Domain and Application logic must never import or reference UI, database, transport, framework, filesystem, network, clock, or third-party SDKs.
 
 **9. Do not add what is not needed now.**
-No speculative layers, no fashionable patterns, no generic frameworks built for imagined futures. If it doesn't solve a real present problem, remove it.
+No speculative layers, fashionable patterns, or generic frameworks for imagined futures. If it does not solve a present problem, remove it.
 
 **10. One source of truth for every rule and value.**
-Business rules, validation logic, state transitions, config values, and shared definitions exist in exactly one place. Duplication is a defect.
+Business rules, validation logic, state transitions, config values, shared definitions, user-facing copy, and generated artifacts exist in exactly one owner.
 
 ---
 
-## Before You Write Anything
+## Minimum Necessary Change
+
+After reading the task and the code it touches, stop at the first rung that holds:
+
+1. Does this need to exist? If not, skip it and say why.
+2. Does this already exist in this codebase? Reuse the local pattern, helper, contract, component, hook, or validator.
+3. Does the standard library/runtime already do it? Use it.
+4. Does the native platform already do it? Use it.
+5. Does an already-installed dependency solve it? Use it before adding a new dependency.
+6. Can one line or one existing pattern cover it? Use that.
+7. Only then write the minimum custom code that works.
+
+This ladder shortens solutions, not understanding. For bug fixes, trace callers and fix the root cause at the shared boundary when that is the smallest correct fix.
+
+Never simplify away trust-boundary validation, explicit failure handling, cancellation, idempotency, data-loss protection, security, accessibility, localization, architecture boundaries, or required tests.
+
+---
+
+## Before Writing Anything
 
 Classify each artifact:
 
 - Domain / core logic
 - Application / use-case orchestration
-- Command (write)
-- Query (read)
+- Command / write
+- Query / read
 - Port / contract
 - Adapter / infrastructure
 - Presentation / API / UI
@@ -59,8 +77,9 @@ Classify each artifact:
 - Persistence model
 - Test
 - Configuration / composition root
+- Documentation / skill
 
-If an artifact fits more than one category, split it. No exceptions.
+If an artifact fits more than one category, split it.
 
 ---
 
@@ -68,19 +87,21 @@ If an artifact fits more than one category, split it. No exceptions.
 
 1. Identify the smallest set of artifacts required.
 2. Assign exactly one responsibility to each.
-3. Define boundaries: core → application → infrastructure → presentation.
-4. Name the single source of truth for every piece of state.
+3. Define boundaries: core -> application -> infrastructure -> presentation.
+4. Name the single source of truth for every piece of state and rule.
 5. Separate commands from queries.
 6. Define abstractions before writing any infrastructure dependency.
-7. Ask whether extensibility is needed *now* — not speculatively.
+7. Ask whether extensibility is needed now, not speculatively.
 8. Remove every pattern, layer, and abstraction that serves no current requirement.
 9. Only then write code.
 
 ---
 
-## Hard Stops — Stop and Correct Immediately If:
+## Hard Stops
 
-- A class or method has more than one responsibility.
+Stop and correct immediately if:
+
+- A class, method, module, skill, or document has more than one responsibility.
 - A method both mutates state and serves as a query.
 - Core logic imports or references infrastructure, frameworks, vendors, or UI.
 - A business rule appears in more than one place.
@@ -95,59 +116,39 @@ Do not proceed past a hard stop. Identify the violation, explain it, fix it.
 
 ---
 
-## Required Audit for Every Artifact
+## Required Audit
 
-```
+For every changed artifact in a code submission, include or be able to produce this audit:
+
+```txt
 Artifact: <name>
-Type: <class / method / module / etc.>
+Type: <class / method / module / document / skill / etc.>
 Responsibility: <one sentence>
 
-SRP:                    Pass / Fail — reason
-Single state model:     Pass / Fail — reason
-Low coupling:           Pass / Fail — reason
-Abstraction:            Pass / Fail — reason
-Command-query:          Pass / Fail / N/A — reason
-Failure safety:         Pass / Fail — reason
-Open/Closed:            Pass / Fail — reason
-Core protection:        Pass / Fail / N/A — reason
-KISS/YAGNI:             Pass / Fail — reason
-Single source of truth: Pass / Fail — reason
+SRP:                    Pass / Fail - reason
+Single state model:     Pass / Fail - reason
+Low coupling:           Pass / Fail - reason
+Abstraction:            Pass / Fail - reason
+Command-query:          Pass / Fail / N/A - reason
+Failure safety:         Pass / Fail - reason
+Open/Closed:            Pass / Fail - reason
+Core protection:        Pass / Fail / N/A - reason
+KISS/YAGNI:             Pass / Fail - reason
+Single source of truth: Pass / Fail - reason
 ```
 
-Any Fail means the artifact is not done. Fix it before submitting.
+Any Fail means the artifact is not done.
 
 ---
 
 ## Standing Prohibitions
 
-- No `Manager`, `Helper`, `Util`, `Common`, or `Service` names unless the single responsibility is precise and explicit.
+- No `Manager`, `Helper`, `Util`, `Common`, or vague `Service` names unless the single responsibility is precise and explicit.
 - No extension methods that hide business rules, mutate state, or couple unrelated layers.
-- No business rules in controllers, repositories, DTOs, migrations, or adapters.
-- No CQRS, event sourcing, mediator frameworks, or generic repository abstractions unless they provably reduce complexity for the current problem.
+- No business rules in controllers, repositories, DTOs, migrations, adapters, UI components, generated clients, localization resources, or skill files.
+- No CQRS, event sourcing, mediator frameworks, generic repositories, custom design-system wrappers, or new package managers unless they provably reduce complexity for the current problem.
 - No inheritance unless it is clearly simpler and safer than composition.
-
----
-
-## Output Format
-
-**Architecture proposals must include:**
-1. Artifact list with one-sentence responsibilities
-2. Dependency direction
-3. State ownership and source of truth
-4. Command / query split
-5. Failure-handling strategy
-6. Extensibility points — only where justified now
-7. What was intentionally left out and why
-
-**Code submissions must include:**
-1. Code
-2. Per-artifact rule audit
-3. Trade-offs
-4. Rejected alternatives and why they were rejected
-
----
-
-The goal is simple, enforceable, correct software. Every rule above is a red line. Treat it accordingly.
+- No manual edits to generated clients, generated DTOs, generated hooks, generated query keys, or generated MSW mocks.
 
 ---
 
@@ -155,181 +156,90 @@ The goal is simple, enforceable, correct software. Every rule above is a red lin
 
 Use skills as task-specific operating manuals.
 
-This section is only a routing index. Do not treat it as a replacement for the skill files.
+Project skills live under `.agents/skills/`. Claude bridge skills live under `.claude/skills/` and only point back to the canonical skill files.
 
-When a task matches a skill, open and follow that skill’s `SKILL.md`.
+When a task matches a skill, open and follow that skill's `SKILL.md`. Do not load every skill by default.
 
-Project skills live under:
+### Current Skill Set
 
 ```txt
 .agents/skills/
-  platform-user-journey-curator/
-  platform-feature-roadmap-curator/
-  platform-adr-steward/
-  platform-test-curator/
-  platform-artifact-placement-steward/
-  platform-localization-maintenance/
-  platform-frontend-backend-isolation/
-  platform-openapi-contract-steward/
-  platform-generated-react-client-steward/
-  platform-feature-ui-integration-steward/
-  platform-pr-delivery-loop/
-  platform-auto-plan-generator/
-  platform-auto-plan-executor/
-  platform-auto-loop-reviewer/
-  platform-loop-state-manager/
+  platform-scope-planning/
+  platform-architecture-governance/
+  platform-api-client-boundary/
+  platform-react-ui-boundary/
+  platform-test-strategy/
+  platform-delivery-loop/
+  platform-simplification-audit/
+  platform-skill-governance/
 ```
-
-Legacy instructions may refer to `skills/`; use `.agents/skills/` as the canonical skill root in this repository.
 
 ### Skill Routing
 
-| Situation                                                                 | Use this skill                      | Read                                                  |
-| ------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------- |
-| Single-PR delivery loop, objective → plan → implement → review → feedback → handoff | Platform PR Delivery Loop | `.agents/skills/platform-pr-delivery-loop/SKILL.md` |
-| User workflow, persona, design objective, pain points, journey stages     | Platform User Journey Curator       | `.agents/skills/platform-user-journey-curator/SKILL.md`       |
-| Roadmap, phases, MVP/short-term/long-term scope, implementation tickets   | Platform Feature Roadmap Curator    | `.agents/skills/platform-feature-roadmap-curator/SKILL.md`    |
-| Architecture decision, ADR need, supersession, architecture conflict      | Platform ADR Steward                | `.agents/skills/platform-adr-steward/SKILL.md`                |
-| Unit tests, required tests, hot test scenarios, risk-based test planning  | Platform Test Curator               | `.agents/skills/platform-test-curator/SKILL.md`               |
-| File placement, layer ownership, module boundary, artifact classification | Platform Artifact Placement Steward | `.agents/skills/platform-artifact-placement-steward/SKILL.md` |
-| Localization review, hard-coded UI text, `IStringLocalizer` usage                    | Platform Localization Maintenance  | `.agents/skills/platform-localization-maintenance/SKILL.md`  |
-| Frontend/backend isolation, Interface/backend dependency, HTTP/API boundaries          | Platform Frontend/Backend Isolation | `.agents/skills/platform-frontend-backend-isolation/SKILL.md` |
-| OpenAPI module/app contract, operation IDs, schemas, auth, ProblemDetails, linting      | Platform OpenAPI Contract Steward | `.agents/skills/platform-openapi-contract-steward/SKILL.md` |
-| Orval generation, generated DTOs/hooks/query keys, custom apiFetch, MSW mocks           | Platform Generated React Client Steward | `.agents/skills/platform-generated-react-client-steward/SKILL.md` |
-| HeroUI/React feature hooks, forms, tables, dialogs, mutation invalidation, UI adapters  | Platform Feature UI Integration Steward | `.agents/skills/platform-feature-ui-integration-steward/SKILL.md` |
-| Generate plan from GitHub issue | Platform Auto Plan Generator | `.agents/skills/platform-auto-plan-generator/SKILL.md` |
-| Execute implementation plan | Platform Auto Plan Executor | `.agents/skills/platform-auto-plan-executor/SKILL.md` |
-| Review implementation | Platform Auto Loop Reviewer | `.agents/skills/platform-auto-loop-reviewer/SKILL.md` |
-| Manage implementation loop state | Platform Loop State Manager | `.agents/skills/platform-loop-state-manager/SKILL.md` |
-
-### OpenAPI → React Client Contract
-
-Use this chain when a backend OpenAPI contract drives a HeroUI/React client:
-
-```txt
-OpenAPI Contract Steward → Generated React Client Steward → Feature UI Integration Steward
-```
-
-Load only the step required by the current task:
-
-1. Contract/spec work uses `platform-openapi-contract-steward`.
-2. Orval/generated-client/MSW/runtime-fetch work uses `platform-generated-react-client-steward`.
-3. HeroUI/page/form/table/dialog integration uses `platform-feature-ui-integration-steward`.
-
-Hard boundary: OpenAPI defines the transport contract, generated clients are infrastructure, feature hooks expose use-case contracts, and UI components consume feature hooks only.
-
-### Platform Feature Roadmap Curator Contract
-
-Use `Platform Feature Roadmap Curator` whenever the task involves roadmap creation, roadmap review, MVP/phase sequencing, Now/Next/Later planning, release slicing, or deriving implementation tickets from a roadmap.
-
-Before producing roadmap or task output:
-
-1. Read `.agents/skills/platform-feature-roadmap-curator/SKILL.md`.
-2. Classify the owning scope: `App`, `Module`, `Capability`, `Related apps`, and `Related modules`.
-3. Start with intent: why, who benefits, first useful version, deferred scope, long-term direction, dependencies, and risks.
-4. Do not create execution-ready tickets unless the roadmap is explicitly approved, already has `Status: Approved`, or the user requests provisional tickets.
-5. Keep every roadmap/task set in exactly one scoped source-of-truth folder.
-6. Recommend an ADR when roadmap work changes architecture. Reference a journey map when roadmap work affects user workflow.
-
-### Platform PR Delivery Loop Contract
-
-Use `Platform PR Delivery Loop` when a task should be delivered as one focused pull request through objective clarification, planning, implementation, review, feedback triage, repeat decisions, and final handoff.
-
-Before implementation:
-
-1. Read `.agents/skills/platform-pr-delivery-loop/SKILL.md`.
-2. State the PR outcome, non-goals, constraints, and one-sentence scope.
-3. Load only the task-specific skills required by the slice.
-4. Define artifacts, responsibilities, dependency direction, state source of truth, command/query split, tests, and out-of-scope items.
-5. Run scope, architecture, CQRS, failure, test, regression, and delivery gates before handoff.
-6. Classify feedback as `Must-fix`, `Should-fix`, `Follow-up`, or `Reject/defer`; do not silently ignore feedback.
-
-Stop for a human decision when scope no longer fits one PR, a required architecture/product decision is missing, or material security, migration, data-loss, validation, or external-dependency risk appears.
-
-### Default Skill Order
-
-Use only the skills needed for the task.
-
-For one focused pull-request delivery:
-
-```txt
-PR Delivery Loop → load only the needed task-specific skills → Implementation → Review Gates → Handoff
-```
-
-For a new user-facing feature:
-
-```txt
-Journey → Roadmap → ADR if needed → Artifact Placement → Test Plan → Implementation
-```
-
-For an architecture-sensitive change:
-
-```txt
-ADR → Artifact Placement → Test Plan → Implementation
-```
-
-For an OpenAPI-driven React client change:
-
-```txt
-OpenAPI Contract → Generated React Client → Feature UI Integration → Test Plan → Implementation
-```
-
-For a HeroUI or HeroUI Pro UI change:
-
-```txt
-Official HeroUI/HeroUI Pro guidance → Feature UI Integration if feature hooks/data flow are affected → Test Plan → Implementation
-```
-
-For a code placement or refactor task:
-
-```txt
-Artifact Placement → Test Plan → Implementation
-```
-
-For a test review task:
-
-```txt
-Test Curator → Artifact Placement if new test files are needed
-```
-
-### Automated Implementation Loop
-
-Use when: GitHub issue labeled "auto-implementation"
-
 | Situation | Use this skill | Read |
-|-----------|----------------|------|
-| Generate plan from issue | Platform Auto Plan Generator | `.agents/skills/platform-auto-plan-generator/SKILL.md` |
-| Execute implementation plan | Platform Auto Plan Executor | `.agents/skills/platform-auto-plan-executor/SKILL.md` |
-| Review implementation | Platform Auto Loop Reviewer | `.agents/skills/platform-auto-loop-reviewer/SKILL.md` |
-| Manage implementation loop state | Platform Loop State Manager | `.agents/skills/platform-loop-state-manager/SKILL.md` |
+| --- | --- | --- |
+| Product intent, user workflow, journey/roadmap need, implementation task derivation, PR slicing, ambiguous feature scope | Platform Scope Planning | `.agents/skills/platform-scope-planning/SKILL.md` |
+| Artifact classification, file placement, dependency direction, ADR impact, frontend/backend isolation, architecture audit | Platform Architecture Governance | `.agents/skills/platform-architecture-governance/SKILL.md` |
+| OpenAPI endpoint metadata, operation IDs, contract DTOs, generated React clients, apiFetch, generated hooks, API-to-React handoff | Platform API Client Boundary | `.agents/skills/platform-api-client-boundary/SKILL.md` |
+| React Web pages/components/hooks, HeroUI, forms/tables/dialogs, localization, formatting, accessibility, shared Web UI | Platform React UI Boundary | `.agents/skills/platform-react-ui-boundary/SKILL.md` |
+| Required tests, regression coverage, test placement, validation commands, hot test scenarios | Platform Test Strategy | `.agents/skills/platform-test-strategy/SKILL.md` |
+| One focused delivery loop, approved plan execution, auto-implementation loop, review verdicts, feedback triage, handoff | Platform Delivery Loop | `.agents/skills/platform-delivery-loop/SKILL.md` |
+| Simplification review, over-engineering audit, deletion opportunities, standard-library/native replacement, bloat criticism | Platform Simplification Audit | `.agents/skills/platform-simplification-audit/SKILL.md` |
+| Skill creation, deletion, consolidation, metadata, bridges, `AGENTS.md` harmony, stale skill routing | Platform Skill Governance | `.agents/skills/platform-skill-governance/SKILL.md` |
 
-### Loop Control
+### Default Chains
+
+Use only the steps that apply:
 
 ```txt
-Issue → Plan → Implement → Review → (Re-plan if needed) → Complete
-```
+New feature:
+Scope Planning -> Architecture Governance -> Test Strategy -> Delivery Loop
 
-- Max iterations: 5 (configurable)
-- Termination: plan file deleted or status = completed
-- Failure: escalate to human after max retries
+OpenAPI to React:
+Architecture Governance -> API Client Boundary -> React UI Boundary -> Test Strategy -> Delivery Loop
+
+React UI:
+React UI Boundary -> Test Strategy -> Delivery Loop
+
+Architecture-sensitive change:
+Architecture Governance -> Test Strategy -> Delivery Loop
+
+Simplification:
+Simplification Audit -> Architecture Governance if boundaries are affected
+
+Skill maintenance:
+Skill Governance -> Architecture Governance if repository policy changes
+```
 
 ### Mandatory Checks Before Implementation
 
-When encountering any code, answer:
+For non-trivial changes, answer:
 
 ```txt
-1. Is a journey needed?
-2. Is a roadmap or task derivation needed? If yes, use `Platform Feature Roadmap Curator`.
-3. Is an ADR needed?
-4. Does the change affect or gets affected by an OpenAPI contract, generated React client, HeroUI feature integration, HeroUI v3 component/theming behavior, or visual design rules?
-5. Where should each artifact live?
-6. What unit tests are required?
-7. What hot test scenarios are required?
+1. Is a journey, roadmap, or task derivation needed?
+2. Is an ADR or architecture-governance decision needed?
+3. Does the change affect OpenAPI, generated clients, API/client boundaries, React UI, HeroUI, localization, or shared Web UI?
+4. Where should each artifact live?
+5. What deterministic tests or validators are required?
+6. What hot scenarios require runtime validation?
+7. Can the solution be smaller by reuse, deletion, stdlib/runtime, native platform behavior, or installed dependencies?
 ```
 
 Skip irrelevant checks for small local bug fixes, styling changes, simple refactors, and test-only corrections.
 
-### Scope and Placement
+---
+
+## OpenAPI, React, and Localization Boundaries
+
+OpenAPI defines transport contracts. Generated clients are infrastructure. Feature hooks expose UI use-case contracts. React UI consumes feature hooks and localization only at the presentation boundary.
+
+Any task touching React user-facing UI under `src/Hosts/Web/src/**` must use `platform-react-ui-boundary`. React UI strings must come from `src/Hosts/Web/src/localization/**`; do not introduce feature-local English copy constants. Do not localize in generated clients, API fetch infrastructure, Domain, Application, Contracts, or backend Infrastructure. API/user-visible errors must map stable codes to localized copy in the React presentation boundary.
+
+Dates, times, numbers, currency, percentages, lists, and pluralized strings must use central localization/formatting helpers.
+
+---
+
+## Scope and Placement
 
 Generated planning and documentation artifacts should be scoped by owner:
 
@@ -351,21 +261,29 @@ docs/platform/modules/<Module>/
 
 Global indexes are navigation only. The scoped artifact is the source of truth.
 
+---
 
-### React Localization Routing
+## Output Format
 
-Any task touching React user-facing UI under `src/Hosts/Web/src/**` must use `platform-localization-maintenance`. React UI strings must come from `src/Hosts/Web/src/localization/**`; do not introduce feature-local English copy constants. Do not localize in generated clients, API fetch infrastructure, Domain, Application, Contracts, or backend Infrastructure. API/user-visible errors must map stable codes to localized copy in the React presentation boundary. Dates, times, numbers, currency, percentages, lists, and pluralized strings must use central localization/formatting helpers. Run static localization validation for React UI changes once available.
+Architecture proposals must include:
 
-### Core Rules
+1. Artifact list with one-sentence responsibilities.
+2. Dependency direction.
+3. State ownership and source of truth.
+4. Command/query split.
+5. Failure-handling strategy.
+6. Extensibility points only where justified now.
+7. What was intentionally left out and why.
 
-Do not duplicate full skill instructions in `AGENTS.md`.
+Code submissions must include:
 
-Do not load every skill by default.
+1. Code.
+2. Per-artifact rule audit.
+3. Trade-offs.
+4. Rejected alternatives and why they were rejected.
 
-Do not create ceremony without value.
+---
 
-Do not invent product goals, architectural decisions, or testing requirements.
+## Core Rule
 
-Do not proceed from roadmap directly to implementation when artifact placement or test risk is unresolved.
-
-Preserve the platform architecture principles: single responsibility, simple design, protected core logic, clear boundaries, CQRS separation, and one source of truth.
+Simple, enforceable, correct software is the goal. `AGENTS.md` and accepted ADRs outrank skill text. Skills route work; they do not create competing sources of truth.

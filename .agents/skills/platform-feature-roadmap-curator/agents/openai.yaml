@@ -1,4 +1,0 @@
-name: platform-feature-roadmap-curator
-description: Curate roadmap documents and derive implementation tickets from approved roadmaps.
-entrypoint: SKILL.md
-version: 1.0.0
