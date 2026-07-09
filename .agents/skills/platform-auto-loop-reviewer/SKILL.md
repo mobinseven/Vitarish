@@ -37,7 +37,7 @@ Review against the skills named by the plan and any skills implied by changed fi
 Common review chain:
 
 ```txt
-executor output -> auto loop reviewer -> state manager -> generator only if re-plan is required
+executor output -> state manager -> auto loop reviewer -> state manager -> generator only if re-plan is required
 ```
 
 Use `.agents/skills/README.md` for shared routing and ownership.
