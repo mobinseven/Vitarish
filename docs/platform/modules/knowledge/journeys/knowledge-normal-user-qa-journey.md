@@ -145,6 +145,17 @@ flowchart LR
     B -. must not call .-> P[Evaluate corpus]
 ```
 
+## Component Coverage Stages
+
+| Stage | Components | User-visible role |
+| --- | --- | --- |
+| Open normal-user QA | `KnowledgeUserQaSurface`, `KnowledgeChatConversation`, `KnowledgeChatEmptyState` | Present a read-only Knowledge experience with no owner commands. |
+| Discover and select corpus scope | `KnowledgeCorpusRail` | Show active corpora and preserve all-corpus versus selected-corpus scope. |
+| Compose question | `KnowledgeQuestionComposer`, `KnowledgePromptInput` | Capture the question and submit it in the current read-only scope. |
+| Wait for answer | `KnowledgeChatLoader` | Communicate in-flight ask state without changing corpus, source, chunk, or index state. |
+| Review answers | `KnowledgeAnswerList`, `KnowledgeAnswerCard`, `KnowledgeChatMessage`, `KnowledgeChatBody` | Display grouped or scoped grounded answers with answer status and missing information. |
+| Review citations and context | `KnowledgeChatSourceList`, `KnowledgeChatSource`, `KnowledgeChatCallout` | Keep citations, retrieved context, errors, and missing information visible and corpus-labeled. |
+
 ## 8. Happy Path
 
 1. User opens the normal Knowledge page.

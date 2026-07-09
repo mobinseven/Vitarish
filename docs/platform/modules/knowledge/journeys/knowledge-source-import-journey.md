@@ -30,6 +30,17 @@
 9. Import infrastructure persists the canonical source, document, chunk, and optional evaluation-question state through the import command flow.
 10. System shows `Import complete.` and count feedback for created sources, documents, and chunks.
 
+## Component Coverage Stages
+
+| Stage | Components | User-visible role |
+| --- | --- | --- |
+| Choose source lifecycle action | `KnowledgeOwnerManagementSurface`, `KnowledgeOwnerCorpusCollection`, `KnowledgeOwnerCorpusCollectionItem` | Keep source import, replacement, and deletion scoped to one visible corpus card. |
+| Import file-backed source | `KnowledgeSourceImporter`, `KnowledgeSourcePayloadFileInput` | Capture source name, input format, and uploaded file payload before issuing an explicit import command. |
+| Review imported source | `KnowledgeOwnerSourceCollectionItem`, `KnowledgeOwnerSourceFileCollectionItem` | Display imported source and file metadata as collection items inherited from canonical source state. |
+| Replace existing source | `KnowledgeSourceReplacer`, `KnowledgeSourceSelector`, `KnowledgeSourcePayloadFileInput` | Select one existing source and submit a new payload as an explicit replacement command. |
+| Delete source | `KnowledgeSourceDeleter`, `KnowledgeOwnerSourceCollectionItem` | Confirm deletion of one imported source without hiding source ownership or deleting implicitly. |
+| Label source format and report status | `KnowledgeSourceInputFormatLabels`, `KnowledgeOwnerStatus` | Keep supported format labels centralized and show import/replacement/deletion outcomes. |
+
 ## 4. Alternate and Failure Paths
 - No selected corpus -> block import and show `CorpusId must be a GUID.`
 - Missing tenant id -> block import and show `TenantId is required.`

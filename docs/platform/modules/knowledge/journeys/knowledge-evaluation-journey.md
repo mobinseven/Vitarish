@@ -26,6 +26,14 @@
 6. Evaluation uses `IKnowledgeEvaluator` to compare retrieval results against expected chunk ids from `KnowledgeQuestion`.
 7. System shows `Evaluation complete.` and a summary with recall@5, recall@10, and average expected rank.
 
+## Component Coverage Stages
+
+| Stage | Components | User-visible role |
+| --- | --- | --- |
+| Select evaluation corpus | `KnowledgeCorpusSelector` | Carry the corpus boundary into the evaluation command. |
+| Run evaluation | `KnowledgeCorpusEvaluator` | Trigger retrieval evaluation for the selected corpus without asking ad-hoc QA questions. |
+| Review evaluation status | `KnowledgeOwnerStatus` | Show evaluation completion or failure and keep metrics tied to the evaluation output. |
+
 ## 4. Alternate and Failure Paths
 - No selected corpus -> block evaluation and show `CorpusId must be a GUID.`
 - Missing tenant id -> block evaluation and show `TenantId is required.`
