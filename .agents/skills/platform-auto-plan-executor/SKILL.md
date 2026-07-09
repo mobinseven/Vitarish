@@ -37,7 +37,7 @@ The plan declares required skills. Load only those skills and any directly impli
 Common execution handoffs:
 
 ```txt
-plan -> executor -> reviewer -> state manager
+plan -> executor -> state manager -> reviewer -> state manager
 ```
 
 Use `.agents/skills/README.md` for shared routing and decision ownership.
