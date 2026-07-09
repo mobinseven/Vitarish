@@ -84,26 +84,17 @@ Use `.agents/skills/README.md` for the shared skill operating model.
 ## Legal State Transitions
 
 ```txt
-planning
-  -> plan_generated
-  -> implementing
-  -> implementation_complete
-  -> awaiting_review
-  -> review_complete
-  -> completed
+planning -> plan_generated
+plan_generated -> implementing
+implementing -> implementation_complete
+implementation_complete -> awaiting_review
+awaiting_review -> review_complete
+review_complete -> completed | changes_needed
 
-awaiting_review
-  -> changes_needed
-  -> replan_generated
-  -> implementing
+changes_needed -> replan_generated
+replan_generated -> implementing
 
-implementing
-  -> failed
-  -> escalated
-
-any active state
-  -> failed
-  -> escalated
+any active state -> failed | escalated
 ```
 
 Do not invent new status values without updating the schema, workflows, and related skills.
