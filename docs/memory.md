@@ -1,7 +1,7 @@
-# Codex Memory
+# Memory
 
 Purpose:
-Durable repo-specific lessons previous Codex sessions learned the hard way.
+Durable repo-specific lessons previous sessions learned the hard way.
 Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
 
 ## Read first

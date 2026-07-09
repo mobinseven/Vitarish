@@ -135,7 +135,7 @@ Fragile or high-care areas:
 ## 9. Documentation map
 
 - **Architecture:** `docs/architecture/decisions/_index.md`, `docs/architecture/conventions`, and `docs/architecture/validation`.
-- **Agent/Codex rules:** `AGENTS.md` and `.agents/skills/*/SKILL.md`.
+- **Agent/rules:** `AGENTS.md` and `.agents/skills/*/SKILL.md`.
 - **Repository documentation index:** `docs/README.md`.
 - **Platform/module behavior:** `docs/platform/README.md` and `docs/platform/modules/<module>`.
 - **App-specific journeys:** `docs/apps/<app>`.
@@ -143,7 +143,7 @@ Fragile or high-care areas:
 - **Cross-cutting runbooks:** `docs/runbooks`.
 - **Journey/test indexes:** `docs/indexes`.
 - **Development workflow notes:** `docs/development`.
-- **Durable Codex lessons:** No dedicated `codex-memory.md` is present in this repo; use scoped durable docs or create one only through explicit documentation governance.
+- **Durable lessons:** No dedicated `memory.md` is present in this repo; use scoped durable docs or create one only through explicit documentation governance.
 
 ## 10. Maintenance rules
 

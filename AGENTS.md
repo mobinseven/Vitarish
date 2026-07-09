@@ -227,3 +227,10 @@ For non-trivial changes, answer:
 
 Skip irrelevant checks for small local bug fixes, styling changes, simple refactors, and test-only corrections.
 
+Before making code, test, documentation, or configuration changes, read the project context docs that apply to the task:
+
+* [Architecture](docs/architecture.md): rules, boundaries, allowed dependencies, forbidden patterns, and simplicity guidance.
+* [Codebase map](docs/codebase-map.md): repository navigation, module locations, generated-code areas, common change destinations, and build/test pointers.
+* [Memory](docs/memory.md): durable lessons from previous Codex sessions, recurring pitfalls, fragile files, known failure modes, and temporary workarounds.
+
+Use these documents as guidance, but do not duplicate them. If a change reveals durable new knowledge, update the narrowest owning document. Update `docs/memory.md` only for lessons future sessions would otherwise waste time rediscovering.
