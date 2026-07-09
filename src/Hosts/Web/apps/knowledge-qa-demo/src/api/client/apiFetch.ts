@@ -1,4 +1,7 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+if (!BASE_URL) {
+  throw new Error("NEXT_PUBLIC_API_BASE_URL environment variable is required");
+}
 const TENANT_HOST_HEADER = "X-Vitarish-Tenant-Host";
 
 export interface ProblemDetails {
@@ -94,7 +97,7 @@ async function ensureAntiforgeryToken(headers: Headers): Promise<void> {
       const bootstrapHeaders = new Headers();
       applyTenantHostHeader(bootstrapHeaders);
 
-      const res = await fetch(`${BASE_URL}/api/modules/authentication/antiforgery`, {
+      const res = await fetch(resolveUrl("/api/modules/authentication/antiforgery"), {
         credentials: "include",
         headers: bootstrapHeaders,
       });
@@ -143,15 +146,14 @@ function isOrvalConfig(value: unknown): value is OrvalConfig {
   return typeof value === "object" && value !== null && "url" in value;
 }
 
-function appendParams(url: string, params: Record<string, unknown>): string {
-  const searchParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== null) searchParams.set(key, String(value));
+function resolveUrl(path: string, params?: Record<string, unknown>): string {
+  const url = new URL(path, BASE_URL);
+  if (params) {
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
+    }
   }
-
-  const queryString = searchParams.toString();
-  if (!queryString) return url;
-  return url.includes("?") ? `${url}&${queryString}` : `${url}?${queryString}`;
+  return url.toString();
 }
 
 function isAntiforgeryValidationFailure(error: ApiError): boolean {
@@ -197,7 +199,7 @@ async function sendRequest<T>(
   signal: AbortSignal | undefined,
   options: RequestInit
 ): Promise<T> {
-  const res = await fetch(`${BASE_URL}${url}`, {
+  const res = await fetch(resolveUrl(url), {
     ...options,
     method,
     headers,
@@ -232,7 +234,7 @@ export async function apiFetch<T>(
       baseHeaders.set(key, value);
     }
     signal = config.signal ?? (options.signal as AbortSignal | undefined);
-    if (config.params) url = appendParams(url, config.params);
+    if (config.params) url = resolveUrl(url, config.params);
     if (config.data !== undefined) body = JSON.stringify(config.data);
   } else {
     url = urlOrConfig;
