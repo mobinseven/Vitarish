@@ -16,7 +16,7 @@ This directory contains the canonical owner journey documentation for the curren
 
 ## Implementation Tracking
 
-See the [React interface coverage audit](../../../../apps/clinic-owner/tests/react-interface-coverage-audit.md) for current React route/component evidence and known gaps. Knowledge normal-user QA remains separate from Knowledge owner/admin journeys. See the [Knowledge Interface Component Coverage Matrix](./knowledge-interface-component-coverage.md) for the canonical mapping from Blazor owner/admin components and React normal-user components to these journeys.
+See the [React interface coverage audit](../../../../apps/private-practice-general/tests/react-interface-coverage-audit.md) for current React route/component evidence and known gaps in the Private Practice General app. Knowledge normal-user QA evidence for the Knowledge QA Demo app is tracked separately at `docs/apps/knowledge-qa-demo/tests/`. See the [Knowledge Interface Component Coverage Matrix](./knowledge-interface-component-coverage.md) for the canonical mapping from Blazor owner/admin components and React normal-user components to these journeys.
 
 ## Boundary Rules
 

@@ -80,7 +80,7 @@ The candidate list is not exhaustive. The first implementation step must invento
 
 ## Phase 0 — Decision and Inventory
 
-Status: In progress
+Status: Complete
 
 Deliverables:
 
@@ -97,7 +97,7 @@ Exit criteria:
 
 - Candidate inventory exists in this roadmap or a linked task document.
 - First package increment is selected.
-- Current Web app target child folder name is selected.
+- Current Web app target child folder name is selected: `apps/private-practice-general`.
 
 ## Phase 1 — Web Workspace Foundation
 
@@ -221,12 +221,22 @@ Exit criteria:
 - Do not switch package managers in this roadmap.
 - Do not publish the package before a separate versioning/release decision.
 
+## Implementation Decisions (ADR-0008 Plan)
+
+| Decision | Value |
+|---|---|
+| Current Web app child folder | `src/Hosts/Web/apps/private-practice-general` |
+| Second app child folder | `src/Hosts/Web/apps/knowledge-qa-demo` |
+| Private-practice doc root | `docs/apps/private-practice-general` |
+| Knowledge QA demo doc root | `docs/apps/knowledge-qa-demo` |
+| Former app identity | `clinic-owner` — historical reference only |
+| Private-practice npm package | `@vitarish/private-practice-general` |
+| Knowledge QA demo npm package | `@vitarish/knowledge-qa-demo` |
+
 ## Open Questions
 
 | Question | Default until decided |
 |---|---|
-| What is the current Web app child folder name? | Choose during the Web workspace foundation implementation PR. |
-| What is the second React web app name/path? | Keep placeholder `{future-web-app}` until an app-specific ADR or implementation task names it. |
 | Should icons become a separate Web package later? | Keep icon helpers in `@vitarish/web-ui` until reuse pressure justifies `@vitarish/web-icons`. |
 | Should theme tokens become a separate Web package later? | Keep tokens in `@vitarish/web-ui` until non-React or non-Web consumers need them. |
 | Should generated backend clients become shared packages? | Keep clients app-owned unless a separate API-client package ADR is accepted. |
@@ -239,3 +249,5 @@ Exit criteria:
 | 2026-07-08 | Created source-of-truth roadmap for ADR-0008 and multi-app shared UI target. |
 | 2026-07-08 | Aligned roadmap with raw HeroUI usage rule and workspace-level boundary validation feedback. |
 | 2026-07-08 | Aligned roadmap with host-family-first structure under `src/Hosts/Web`. |
+| 2026-07-09 | Closed open questions: current app = `private-practice-general`, second app = `knowledge-qa-demo`. |
+| 2026-07-09 | Phase 0 marked complete. Implementation decisions recorded. |
