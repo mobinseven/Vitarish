@@ -47,6 +47,7 @@ export function KnowledgeUserQaSurface({
     saveTrace,
     traceKind,
   });
+  const { askAcrossCorpora } = ask;
 
   const corpora = useMemo(() => workspace.data?.corpora ?? [], [workspace.data?.corpora]);
   const [selectedCorpusId, setSelectedCorpusId] = useState<string | null>(null);
@@ -85,7 +86,7 @@ export function KnowledgeUserQaSurface({
       setQuestion(normalizedQuestion);
       setAnswerResults([]);
 
-      const results = await ask.askAcrossCorpora({
+      const results = await askAcrossCorpora({
         corpora: scopeCorpora,
         question: normalizedQuestion,
         topK,
@@ -93,7 +94,7 @@ export function KnowledgeUserQaSurface({
 
       setAnswerResults(results);
     },
-    [ask, corpora, labels.noSourcesForQuestion, labels.questionRequired, selectedCorpus, topK]
+    [askAcrossCorpora, corpora, labels.noSourcesForQuestion, labels.questionRequired, selectedCorpus, topK]
   );
 
   const askAgain = useCallback(async () => {
