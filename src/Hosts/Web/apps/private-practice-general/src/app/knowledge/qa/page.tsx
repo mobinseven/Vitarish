@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { KnowledgeUserQaSurface } from "@/features/knowledge/qa/components/KnowledgeUserQaSurface";
+import { KnowledgeQaPageSurface } from "../KnowledgeQaPageSurface";
 import { KnowledgePageWrapper } from "../KnowledgePageWrapper";
 
 export const metadata: Metadata = {
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function KnowledgeQaPage() {
   return (
     <KnowledgePageWrapper>
-      <KnowledgeUserQaSurface />
+      <KnowledgeQaPageSurface />
     </KnowledgePageWrapper>
   );
 }

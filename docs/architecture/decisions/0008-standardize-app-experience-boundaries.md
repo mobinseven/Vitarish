@@ -104,17 +104,25 @@ src/Hosts/
         package.json
         src/
           index.ts
+      knowledge-web/
+        package.json
+        src/
+          index.ts
     <web-app>/
       package.json
 ```
 
 The Web host family owns npm workspace conventions, package manager choice, lockfile, app folders, and Web-specific shared workspace packages. Do not place Web shared workspace packages directly under `src/Hosts/packages` or inside a single app's `src/components`.
 
+Feature-specific shared Web packages may live under `src/Hosts/Web/shared/<feature>-web` when the reusable artifact is not generic enough for `@vitarish/web-ui` and at least two Web apps consume it. Their npm package names use the form `@vitarish/<feature>-web`. The first approved feature package is `@vitarish/knowledge-web` for normal-user Knowledge QA UI and state orchestration.
+
+Feature-specific shared Web packages may define feature read models, React state orchestration, React Query hooks, and port interfaces for app-provided backend access. They must not import app route files, app feature folders, generated API clients, `apiFetch`, app localization providers/catalogs, backend code, or another app's private files.
+
 ## Single Backend Rule
 
 All apps rely on the backend as the source of truth for data, commands, authorization, validation, and business workflows.
 
-`@vitarish/web-ui` does not call the backend directly. It receives data, state, localized display text, handlers, and navigation intents through props, slots, or children. Each app owns its route handlers, generated API clients, React Query hooks, backend-facing adapters, localization mapping, and workflow composition.
+`@vitarish/web-ui` does not call the backend directly. It receives data, state, localized display text, handlers, and navigation intents through props, slots, or children. Shared feature packages also do not call backend transport directly; they receive backend access through explicit app-provided ports. Each app owns its route handlers, generated API clients, `apiFetch` adapters, localization mapping, and final workflow composition.
 
 Shared Web UI may expose generic state contracts such as `isPending`, `isDisabled`, `error`, `emptyState`, or `items`, but it must not expose or depend on backend DTOs, generated client types, domain entities, app decision trees, journey names, or feature workflow names.
 
@@ -140,7 +148,7 @@ Shared Web UI may expose generic state contracts such as `isPending`, `isDisable
 - app localization catalogs or providers directly;
 - other host families such as native, desktop, worker, or future non-Web hosts.
 
-React Web apps may import from public `@vitarish/web-ui` exports. They must not deep-import package internals or another app's private UI files. Cross-web-app reuse flows through `@vitarish/web-ui`.
+React Web apps may import from public `@vitarish/web-ui` exports and approved shared feature package exports. They must not deep-import package internals or another app's private UI files. Cross-web-app generic presentation reuse flows through `@vitarish/web-ui`; cross-web-app feature reuse flows through an approved shared feature package.
 
 ## Promotion Rule
 

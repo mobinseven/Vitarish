@@ -1,48 +1,50 @@
 "use client";
 
-import { PromptInput } from "@heroui-pro/react";
-import { ChatPromptInput } from "@vitarish/web-ui";
-import { useLocalizedText } from "@/localization";
+import { PromptInput } from "@heroui-pro/react/prompt-input";
+import { ChatPromptInput, type ChatTextDirection } from "@vitarish/web-ui";
+import type { KnowledgeQaLabels } from "../types";
 
 interface KnowledgeQuestionComposerProps {
-  value: string;
-  scopeLabel: string;
-  isPending: boolean;
+  direction?: ChatTextDirection;
   hasAnswer: boolean;
+  isPending: boolean;
+  labels: KnowledgeQaLabels;
   onChange: (value: string) => void;
-  onSubmit: (question: string) => void;
   onNewQuestion: () => void;
+  onSubmit: (question: string) => void;
+  scopeLabel: string;
+  value: string;
 }
 
 export function KnowledgeQuestionComposer({
-  value,
-  scopeLabel,
-  isPending,
+  direction,
   hasAnswer,
+  isPending,
+  labels,
   onChange,
-  onSubmit,
   onNewQuestion,
+  onSubmit,
+  scopeLabel,
+  value,
 }: KnowledgeQuestionComposerProps) {
-  const { direction, t } = useLocalizedText();
-
   return (
     <ChatPromptInput
       value={value}
-      label={t("knowledge.qa.questionLabel")}
-      placeholder={t("knowledge.qa.questionPlaceholder")}
+      label={labels.questionLabel}
+      placeholder={labels.questionPlaceholder}
       isPending={isPending}
-      submitLabel={t("knowledge.qa.askAction")}
+      submitLabel={labels.askAction}
       direction={direction}
-      footer={t("knowledge.qa.composerFooter")}
-      helperText={t("knowledge.qa.scopeLabel", { scope: scopeLabel })}
+      footer={labels.composerFooter}
+      helperText={labels.scopeLabel(scopeLabel)}
       helperIcon={<i aria-hidden="true" className="fa-solid fa-book-open size-4 shrink-0" />}
       onChange={onChange}
       onSubmit={onSubmit}
       actions={
         hasAnswer ? (
           <PromptInput.Action
-            aria-label={t("knowledge.qa.newQuestionAction")}
-            tooltip={t("knowledge.qa.newQuestionAction")}
+            aria-label={labels.newQuestionAction}
+            tooltip={labels.newQuestionAction}
             onPress={onNewQuestion}
           >
             <i aria-hidden="true" className="fa-solid fa-plus size-4" />

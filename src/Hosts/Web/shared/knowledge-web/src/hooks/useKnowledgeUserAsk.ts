@@ -1,14 +1,43 @@
 import { useCallback, useState } from "react";
-import { ApiError } from "@/api/client/apiFetch";
-import { askKnowledgeCorpus } from "../api/knowledgeUserApi";
 import type {
   KnowledgeAskAcrossCorporaRequest,
   KnowledgeCorpusAnswerResult,
+  KnowledgeQaClient,
+  KnowledgeQaErrorMessageResolver,
 } from "../types";
 
-export function useKnowledgeUserAsk() {
+interface UseKnowledgeUserAskOptions {
+  client: KnowledgeQaClient;
+  defaultErrorMessage: string;
+  resolveErrorMessage?: KnowledgeQaErrorMessageResolver;
+  saveTrace?: boolean;
+  traceKind?: string | null;
+}
+
+export function useKnowledgeUserAsk({
+  client,
+  defaultErrorMessage,
+  resolveErrorMessage,
+  saveTrace = false,
+  traceKind = "normal-user-ui",
+}: UseKnowledgeUserAskOptions) {
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const toErrorMessage = useCallback(
+    (error: unknown): string => {
+      if (resolveErrorMessage) {
+        return resolveErrorMessage(error);
+      }
+
+      if (error instanceof Error) {
+        return error.message;
+      }
+
+      return defaultErrorMessage;
+    },
+    [defaultErrorMessage, resolveErrorMessage]
+  );
 
   const askAcrossCorpora = useCallback(
     async ({
@@ -24,12 +53,12 @@ export function useKnowledgeUserAsk() {
         const results = await Promise.all(
           corpora.map(async (corpus) => {
             try {
-              const answer = await askKnowledgeCorpus({
+              const answer = await client.askCorpus({
                 corpusId: corpus.corpusId,
                 question: normalizedQuestion,
                 topK,
-                saveTrace: false,
-                traceKind: "normal-user-ui",
+                saveTrace,
+                traceKind,
               });
 
               return {
@@ -56,7 +85,7 @@ export function useKnowledgeUserAsk() {
         setIsPending(false);
       }
     },
-    []
+    [client, saveTrace, toErrorMessage, traceKind]
   );
 
   return {
@@ -90,16 +119,4 @@ function scoreResult(result: KnowledgeCorpusAnswerResult): number {
   }
 
   return 1;
-}
-
-function toErrorMessage(error: unknown): string {
-  if (error instanceof ApiError) {
-    return error.message;
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return "Knowledge answer is unavailable.";
 }
