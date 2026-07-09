@@ -3,9 +3,9 @@
 Status: Active  
 Owner: Platform Architecture  
 Scope: Global architecture governance  
-Last reviewed: 2026-07-08
+Last reviewed: 2026-07-09
 
-This index is the authoritative navigation point for global ADRs. Scoped module or app decisions remain in their owning `docs/platform/modules/<module>/decisions/` or `docs/apps/<app>/modules/<module>/decisions/` folders.
+This index is the authoritative navigation point for global ADRs. Scoped platform module decisions remain in their owning `docs/platform/modules/<module>/decisions/` folders. Scoped app decisions remain in flat app-owned `docs/apps/<app>/decisions/` folders.
 
 ## Current global decisions
 
@@ -18,7 +18,7 @@ This index is the authoritative navigation point for global ADRs. Scoped module 
 | [0005](0005-standardize-openapi-endpoint-conventions.md) | Standardize OpenAPI Endpoint Conventions | Accepted | 2026-06-27 |
 | [0006](0006-standardize-platform-journey-routing.md) | Standardize Platform Journey Routing | Accepted | 2026-06-29 |
 | [0007](0007-standardize-react-localization.md) | Standardize React Localization | Accepted | 2026-07-01 |
-| [0008](0008-share-react-ui-components.md) | Share React Web UI Components Through a Web Host Package | Proposed | 2026-07-08 |
+| [0008](0008-standardize-app-experience-boundaries.md) | Standardize App Experience Boundaries | Accepted | 2026-07-09 |
 
 ## Related global architecture documents
 
