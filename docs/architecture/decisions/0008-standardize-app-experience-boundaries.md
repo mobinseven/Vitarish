@@ -99,7 +99,7 @@ src/Hosts/
   Web/
     package.json
     package-lock.json
-    packages/
+    shared/
       web-ui/
         package.json
         src/
@@ -108,7 +108,7 @@ src/Hosts/
       package.json
 ```
 
-The Web host family owns npm workspace conventions, package manager choice, lockfile, app folders, and Web-specific shared packages. Do not place Web packages directly under `src/Hosts/packages` or inside a single app's `src/components`.
+The Web host family owns npm workspace conventions, package manager choice, lockfile, app folders, and Web-specific shared workspace packages. Do not place Web shared workspace packages directly under `src/Hosts/packages` or inside a single app's `src/components`.
 
 ## Single Backend Rule
 

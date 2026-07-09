@@ -40,7 +40,7 @@
   </Folder>
   <Folder Name="/src/Hosts/">
     <Project Path="src/Hosts/Main/Main.csproj" />
-    <Project Path="src/Hosts/Web/src/Web.esproj">
+    <Project Path="src/Hosts/Web/apps/private-practice-general/src/Web.esproj">
       <Platform Project="AnyCPU" />
       <Build Solution="*|x64" />
       <Build Solution="*|x86" />

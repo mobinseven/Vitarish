@@ -1,7 +1,9 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { resolve } from "node:path";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = resolve(process.cwd(), "src");
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const root = resolve(__dirname, "../apps/private-practice-general/src");
 const allowed = new Set(["api/client/apiFetch.ts"]);
 const extensions = new Set([".ts", ".tsx"]);
 let failed = false;

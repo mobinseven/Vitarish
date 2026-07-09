@@ -1,8 +1,8 @@
-# Journey Graph Visualizer
+﻿# Journey Graph Visualizer
 
 This page visualizes the complete journey map inventory from `docs/apps/` and `docs/platform/` as one Mermaid graph. It separates the implemented and current-state paths from planned future journeys, while showing how each journey hands off to the next focused flow.
 
-**Note:** Canonical app journeys belong in flat app collections such as `docs/apps/clinic-owner/journeys/`. Existing nested app module paths are legacy content until migrated. Platform shared journeys remain under `docs/platform/modules/`.
+**Note:** Canonical app journeys belong in flat app collections such as `docs/apps/private-practice-general/journeys/`. Existing nested app module paths are legacy content until migrated. Platform shared journeys remain under `docs/platform/modules/`.
 
 ## Legend
 
@@ -193,10 +193,10 @@ flowchart LR
 
 ## Source Journey Documents
 
-**Clinic Owner App**
-- [Patient Module](../apps/clinic-owner/modules/patient/journeys/patient-profile-crud-journey.md)
-- [Appointment Module](../apps/clinic-owner/journeys/0012-patient-appointment-panel-booking-journey.md)
-- [Prescription Module](../apps/clinic-owner/modules/prescription/journeys/prescription-journey.md)
+**Private Practice General App**
+- [Patient journey](../apps/private-practice-general/journeys/0005-patient-create-journey.md)
+- [Appointment Module](../apps/private-practice-general/journeys/0012-patient-appointment-panel-booking-journey.md)
+- [Prescription journey](../apps/private-practice-general/journeys/prescription-journey.md)
 
 **Platform Modules (docs/platform/modules/)**
 - [Knowledge Module](../platform/modules/knowledge/journeys/knowledge-corpus-management-journey.md)
