@@ -1,7 +1,7 @@
 # ADR-0008: Share React Web UI Components Through a Web Host Package
 
 Date: 2026-07-08  
-Status: Proposed  
+Status: Accepted  
 Scope: Web host family  
 Module: Platform  
 Capability: Shared React Web UI  
