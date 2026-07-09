@@ -8,37 +8,40 @@ import {
   ChatLoadingMessage,
   ChatMessage,
 } from "@vitarish/web-ui";
-import { useLocalizedText } from "@/localization";
 import { KnowledgeAnswerCard } from "./KnowledgeAnswerCard";
 import type {
   KnowledgeCorpusAnswerResult,
+  KnowledgeQaLabels,
   KnowledgeUserScopeKind,
 } from "../types";
 
 interface KnowledgeAnswerListProps {
+  formatScore: (score: number) => string;
+  isPending: boolean;
+  labels: KnowledgeQaLabels;
+  onAskAgain: () => void;
+  onContinueInCorpus: (corpusId: string) => void;
+  onNewQuestion: () => void;
   question: string;
+  results: KnowledgeCorpusAnswerResult[];
   scopeKind: KnowledgeUserScopeKind;
   scopeLabel: string;
-  results: KnowledgeCorpusAnswerResult[];
-  isPending: boolean;
   statusMessage?: string | null;
-  onAskAgain: () => void;
-  onNewQuestion: () => void;
-  onContinueInCorpus: (corpusId: string) => void;
 }
 
 export function KnowledgeAnswerList({
+  formatScore,
+  isPending,
+  labels,
+  onAskAgain,
+  onContinueInCorpus,
+  onNewQuestion,
   question,
+  results,
   scopeKind,
   scopeLabel,
-  results,
-  isPending,
   statusMessage,
-  onAskAgain,
-  onNewQuestion,
-  onContinueInCorpus,
 }: KnowledgeAnswerListProps) {
-  const { t } = useLocalizedText();
   const hasQuestion = !!question?.trim();
   const showAnswers = hasQuestion && !isPending && !statusMessage && results.length > 0;
 
@@ -52,26 +55,26 @@ export function KnowledgeAnswerList({
 
       {isPending && (
         <ChatLoadingMessage
-          avatarAlt={t("knowledge.qa.assistantAvatarAlt")}
-          avatarFallback={t("knowledge.qa.assistantAvatarFallback")}
-          loadingLabel={t("knowledge.qa.thinking")}
-          message={t("knowledge.qa.checkingScope", { scope: scopeLabel })}
-          title={t("knowledge.qa.searchingContext")}
+          avatarAlt={labels.assistantAvatarAlt}
+          avatarFallback={labels.assistantAvatarFallback}
+          loadingLabel={labels.thinking}
+          message={labels.checkingScope(scopeLabel)}
+          title={labels.searchingContext}
         />
       )}
 
       {statusMessage && (
         <ChatMessage
-          avatarAlt={t("knowledge.qa.assistantAvatarAlt")}
-          avatarFallback={t("knowledge.qa.assistantAvatarFallback")}
+          avatarAlt={labels.assistantAvatarAlt}
+          avatarFallback={labels.assistantAvatarFallback}
           kind="answer"
-          title={t("knowledge.qa.title")}
-          status={t("knowledge.qa.unavailableStatus")}
+          title={labels.title}
+          status={labels.unavailableStatus}
           tone="danger"
           actions={
             <Button
               isIconOnly
-              aria-label={t("knowledge.qa.newQuestionAction")}
+              aria-label={labels.newQuestionAction}
               type="button"
               variant="ghost"
               onPress={onNewQuestion}
@@ -86,22 +89,22 @@ export function KnowledgeAnswerList({
 
       {!hasQuestion && !isPending && !statusMessage && (
         <ChatEmptyState
-          title={t("knowledge.qa.emptyTitle")}
-          description={t("knowledge.qa.emptyDescription")}
+          title={labels.emptyTitle}
+          description={labels.emptyDescription}
         />
       )}
 
       {hasQuestion && !isPending && !statusMessage && results.length === 0 && (
         <ChatMessage
-          avatarAlt={t("knowledge.qa.assistantAvatarAlt")}
-          avatarFallback={t("knowledge.qa.assistantAvatarFallback")}
+          avatarAlt={labels.assistantAvatarAlt}
+          avatarFallback={labels.assistantAvatarFallback}
           kind="answer"
-          title={scopeKind === "all" ? t("knowledge.qa.allCorpusAnswer") : t("knowledge.qa.selectedCorpusAnswer")}
-          status={t("knowledge.qa.needsContextStatus")}
+          title={scopeKind === "all" ? labels.allCorpusAnswer : labels.selectedCorpusAnswer}
+          status={labels.needsContextStatus}
           tone="warning"
         >
           <ChatCallout tone="warning">
-            {t("knowledge.qa.noSourcesForQuestion")}
+            {labels.noSourcesForQuestion}
           </ChatCallout>
         </ChatMessage>
       )}
@@ -110,7 +113,9 @@ export function KnowledgeAnswerList({
         <KnowledgeAnswerCard
           key={result.corpus.corpusId}
           result={result}
+          formatScore={formatScore}
           isSingleCorpusMode={scopeKind === "corpus"}
+          labels={labels}
           onAskAgain={onAskAgain}
           onContinueInCorpus={onContinueInCorpus}
         />

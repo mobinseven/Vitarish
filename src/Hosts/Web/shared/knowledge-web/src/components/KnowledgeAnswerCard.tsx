@@ -8,23 +8,25 @@ import {
   ChatSource,
   ChatSourceList,
 } from "@vitarish/web-ui";
-import { formatNumber, useLocalizedText, type Translate } from "@/localization";
-import type { KnowledgeCorpusAnswerResult } from "../types";
+import type { KnowledgeCorpusAnswerResult, KnowledgeQaLabels } from "../types";
 
 interface KnowledgeAnswerCardProps {
-  result: KnowledgeCorpusAnswerResult;
+  formatScore: (score: number) => string;
   isSingleCorpusMode: boolean;
+  labels: KnowledgeQaLabels;
   onAskAgain: () => void;
   onContinueInCorpus: (corpusId: string) => void;
+  result: KnowledgeCorpusAnswerResult;
 }
 
 export function KnowledgeAnswerCard({
-  result,
+  formatScore,
   isSingleCorpusMode,
+  labels,
   onAskAgain,
   onContinueInCorpus,
+  result,
 }: KnowledgeAnswerCardProps) {
-  const { t, locale } = useLocalizedText();
   const { corpus, answer, errorMessage } = result;
   const citations = answer?.citations ?? [];
   const retrievedContext = answer?.retrievedContext ?? [];
@@ -32,18 +34,18 @@ export function KnowledgeAnswerCard({
 
   return (
     <ChatMessage
-      avatarAlt={t("knowledge.qa.assistantAvatarAlt")}
-      avatarFallback={t("knowledge.qa.assistantAvatarFallback")}
+      avatarAlt={labels.assistantAvatarAlt}
+      avatarFallback={labels.assistantAvatarFallback}
       kind="answer"
       title={corpus.name}
       subtitle={corpus.description ?? undefined}
-      status={answerStatusLabel(answer?.isAnswered, !!errorMessage, t)}
+      status={answerStatusLabel(answer?.isAnswered, !!errorMessage, labels)}
       tone={answerStatusTone(answer?.isAnswered, !!errorMessage)}
       actions={
         <>
           <Button
             isIconOnly
-            aria-label={t("knowledge.qa.askAgainAction")}
+            aria-label={labels.askAgainAction}
             type="button"
             variant="ghost"
             onPress={onAskAgain}
@@ -53,7 +55,7 @@ export function KnowledgeAnswerCard({
           {!isSingleCorpusMode && (
             <Button
               isIconOnly
-              aria-label={t("knowledge.qa.askFromCorpusAction")}
+              aria-label={labels.askFromCorpusAction}
               type="button"
               variant="ghost"
               onPress={() => onContinueInCorpus(corpus.corpusId)}
@@ -72,17 +74,17 @@ export function KnowledgeAnswerCard({
 
           {answer.missingInformation && answer.isAnswered && (
             <ChatCallout tone="warning">
-              <span className="font-medium">{t("knowledge.qa.missingInformationPrefix")} </span>
+              <span className="font-medium">{labels.missingInformationPrefix} </span>
               {answer.missingInformation}
             </ChatCallout>
           )}
 
           {citations.length > 0 && (
-            <ChatSourceList title={t("knowledge.qa.citations")}>
+            <ChatSourceList title={labels.citations}>
               {citations.map((citation) => (
                 <ChatSource
                   key={`${citation.chunkId}-${citation.sourceId}`}
-                  title={citation.title ?? t("knowledge.qa.referencedChunk")}
+                  title={citation.title ?? labels.referencedChunk}
                   body={citation.quote ? `"${citation.quote}"` : null}
                 />
               ))}
@@ -90,17 +92,12 @@ export function KnowledgeAnswerCard({
           )}
 
           {retrievedContext.length > 0 && (
-            <ChatSourceList title={t("knowledge.qa.retrievedContext", { count: retrievedContext.length })}>
+            <ChatSourceList title={labels.retrievedContext(retrievedContext.length)}>
               {retrievedContext.map((hit) => (
                 <ChatSource
                   key={hit.chunkId}
-                  title={hit.title ?? t("knowledge.qa.contextSection")}
-                  meta={t("knowledge.qa.score", {
-                    score: formatNumber(hit.score, locale, {
-                      maximumFractionDigits: 2,
-                      minimumFractionDigits: 2,
-                    }),
-                  })}
+                  title={hit.title ?? labels.contextSection}
+                  meta={labels.score(formatScore(hit.score))}
                   body={hit.text}
                 />
               ))}
@@ -112,12 +109,16 @@ export function KnowledgeAnswerCard({
   );
 }
 
-function answerStatusLabel(isAnswered: boolean | undefined, hasError: boolean, t: Translate): string {
+function answerStatusLabel(
+  isAnswered: boolean | undefined,
+  hasError: boolean,
+  labels: KnowledgeQaLabels
+): string {
   if (hasError) {
-    return t("knowledge.qa.unavailableStatus");
+    return labels.unavailableStatus;
   }
 
-  return isAnswered ? t("knowledge.qa.answeredStatus") : t("knowledge.qa.needsContextStatus");
+  return isAnswered ? labels.answeredStatus : labels.needsContextStatus;
 }
 
 function answerStatusTone(

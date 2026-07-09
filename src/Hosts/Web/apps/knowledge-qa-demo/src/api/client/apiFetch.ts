@@ -1,7 +1,3 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-if (!BASE_URL) {
-  throw new Error("NEXT_PUBLIC_API_BASE_URL environment variable is required");
-}
 const TENANT_HOST_HEADER = "X-Vitarish-Tenant-Host";
 
 export interface ProblemDetails {
@@ -147,13 +143,22 @@ function isOrvalConfig(value: unknown): value is OrvalConfig {
 }
 
 function resolveUrl(path: string, params?: Record<string, unknown>): string {
-  const url = new URL(path, BASE_URL);
+  const url = new URL(path, getBaseUrl());
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
     }
   }
   return url.toString();
+}
+
+function getBaseUrl(): string {
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (!baseUrl) {
+    throw new Error("NEXT_PUBLIC_API_BASE_URL environment variable is required");
+  }
+
+  return baseUrl;
 }
 
 function isAntiforgeryValidationFailure(error: ApiError): boolean {

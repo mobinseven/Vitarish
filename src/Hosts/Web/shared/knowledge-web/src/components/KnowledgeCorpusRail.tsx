@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback } from "react";
-import { ChatListView } from "@heroui-pro/react";
-import { useLocalizedText } from "@/localization";
-import type { KnowledgeUserCorpus } from "../types";
+import { ChatListView } from "@heroui-pro/react/chat-list-view";
+import type { KnowledgeQaLabels, KnowledgeUserCorpus } from "../types";
 
 const ALL_KEY = "__all__";
 
 interface KnowledgeCorpusRailProps {
   corpora: KnowledgeUserCorpus[];
+  labels: KnowledgeQaLabels;
   selectedCorpusId: string | null;
   isLoading?: boolean;
   onSelectAll: () => void;
@@ -25,19 +25,18 @@ interface CorpusItem {
 
 export function KnowledgeCorpusRail({
   corpora,
+  labels,
   selectedCorpusId,
   isLoading = false,
   onSelectAll,
   onSelectCorpus,
 }: KnowledgeCorpusRailProps) {
-  const { t } = useLocalizedText();
-
-  const items: CorpusItem[] = corpora.map((c) => ({
-    corpusId: c.corpusId,
-    name: c.name,
-    description: c.description ?? null,
-    sourceCount: c.sourceCount,
-    chunkCount: c.chunkCount,
+  const items: CorpusItem[] = corpora.map((corpus) => ({
+    corpusId: corpus.corpusId,
+    name: corpus.name,
+    description: corpus.description ?? null,
+    sourceCount: corpus.sourceCount,
+    chunkCount: corpus.chunkCount,
   }));
 
   const selectedKeys = selectedCorpusId === null
@@ -54,6 +53,7 @@ export function KnowledgeCorpusRail({
         }
         return;
       }
+
       const key = Array.from(keys)[0];
       if (key === ALL_KEY || key == null) {
         onSelectAll();
@@ -68,29 +68,29 @@ export function KnowledgeCorpusRail({
     <aside className="flex max-h-56 w-full shrink-0 flex-col border-b border-separator bg-background px-3 py-3 lg:max-h-none lg:w-72 lg:border-b-0 lg:border-e">
       <div className="flex min-h-0 flex-col gap-3">
         <div className="px-2 py-1">
-          <p className="text-xs uppercase tracking-[0.25em] text-muted">{t("knowledge.qa.railEyebrow")}</p>
-          <h2 className="text-sm font-medium text-foreground">{t("knowledge.qa.railTitle")}</h2>
+          <p className="text-xs uppercase tracking-[0.25em] text-muted">{labels.railEyebrow}</p>
+          <h2 className="text-sm font-medium text-foreground">{labels.railTitle}</h2>
         </div>
 
-        {isLoading && <p className="px-2 text-sm text-muted">{t("knowledge.qa.loadingCorpora")}</p>}
+        {isLoading && <p className="px-2 text-sm text-muted">{labels.loadingCorpora}</p>}
 
         {!isLoading && corpora.length === 0 && (
-          <p className="px-2 text-sm text-muted">{t("knowledge.qa.noCorpora")}</p>
+          <p className="px-2 text-sm text-muted">{labels.noCorpora}</p>
         )}
 
         {!isLoading && corpora.length > 0 && (
           <div className="min-h-0 overflow-y-auto">
             <ChatListView.Root
-              aria-label={t("knowledge.qa.railTitle")}
+              aria-label={labels.railTitle}
               selectionMode="single"
               selectedKeys={selectedKeys}
               onSelectionChange={handleSelectionChange}
             >
-              <ChatListView.Item id={ALL_KEY} textValue={t("knowledge.qa.allCorpora")}>
+              <ChatListView.Item id={ALL_KEY} textValue={labels.allCorpora}>
                 <ChatListView.ItemContent>
                   <ChatListView.Text>
-                    <ChatListView.Title>{t("knowledge.qa.allCorpora")}</ChatListView.Title>
-                    <ChatListView.Preview>{t("knowledge.qa.allCorporaDescription")}</ChatListView.Preview>
+                    <ChatListView.Title>{labels.allCorpora}</ChatListView.Title>
+                    <ChatListView.Preview>{labels.allCorporaDescription}</ChatListView.Preview>
                   </ChatListView.Text>
                 </ChatListView.ItemContent>
               </ChatListView.Item>
@@ -103,7 +103,9 @@ export function KnowledgeCorpusRail({
                       {corpus.description && (
                         <ChatListView.Preview className="line-clamp-2">{corpus.description}</ChatListView.Preview>
                       )}
-                      <ChatListView.Preview>{formatCorpusCounts(corpus.sourceCount, corpus.chunkCount, t)}</ChatListView.Preview>
+                      <ChatListView.Preview>
+                        {formatCorpusCounts(corpus.sourceCount, corpus.chunkCount, labels)}
+                      </ChatListView.Preview>
                     </ChatListView.Text>
                   </ChatListView.ItemContent>
                 </ChatListView.Item>
@@ -116,14 +118,12 @@ export function KnowledgeCorpusRail({
   );
 }
 
-function formatCorpusCounts(sourceCount: number, chunkCount: number, t: ReturnType<typeof useLocalizedText>["t"]): string {
-  const sourceKey = sourceCount === 1 ? "knowledge.qa.sourceCount.one" : "knowledge.qa.sourceCount.other";
-  const sourceLabel = t(sourceKey, { count: sourceCount });
+function formatCorpusCounts(sourceCount: number, chunkCount: number, labels: KnowledgeQaLabels): string {
+  const sourceLabel = labels.sourceCount(sourceCount);
 
   if (chunkCount <= 0) {
     return sourceLabel;
   }
 
-  const chunkKey = chunkCount === 1 ? "knowledge.qa.chunkCount.one" : "knowledge.qa.chunkCount.other";
-  return `${sourceLabel} / ${t(chunkKey, { count: chunkCount })}`;
+  return `${sourceLabel} / ${labels.chunkCount(chunkCount)}`;
 }

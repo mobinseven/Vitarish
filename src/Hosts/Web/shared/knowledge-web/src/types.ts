@@ -68,34 +68,51 @@ export interface KnowledgeUserWorkspaceModel {
   corpora?: KnowledgeUserCorpus[] | null;
 }
 
-export interface KnowledgeOwnerCollectionModel {
-  corpora?: KnowledgeOwnerCorpusCollectionItem[] | null;
-  selectedCorpusId?: string | null;
-  focusedSourceId?: string | null;
+export interface KnowledgeQaClient {
+  getWorkspace(): Promise<KnowledgeUserWorkspace>;
+  askCorpus(request: KnowledgeAskRequest): Promise<KnowledgeAnswerModel>;
 }
 
-export interface KnowledgeOwnerCorpusCollectionItem {
-  corpusId: string;
-  corpusName: string;
-  corpusDescription?: string | null;
-  isActive?: boolean | null;
-  sources?: KnowledgeOwnerSourceCollectionItem[] | null;
-}
+export type KnowledgeQaErrorMessageResolver = (error: unknown) => string;
 
-export interface KnowledgeOwnerSourceCollectionItem {
-  sourceId: string;
-  sourceName: string;
-  sourceType: string;
-  importedAt?: string | null;
-  originalLocation?: string | null;
-  files?: KnowledgeOwnerSourceFileCollectionItem[] | null;
-}
-
-export interface KnowledgeOwnerSourceFileCollectionItem {
-  fileId: string;
-  fileName: string;
-  contentType?: string | null;
-  size?: number | null;
-  chunkCount?: number | null;
-  indexedAt?: string | null;
+export interface KnowledgeQaLabels {
+  allCorpora: string;
+  allCorporaDescription: string;
+  allCorpusAnswer: string;
+  answeredStatus: string;
+  assistantAvatarAlt: string;
+  assistantAvatarFallback: string;
+  askAction: string;
+  askAgainAction: string;
+  askFromCorpusAction: string;
+  checkingScope: (scope: string) => string;
+  chunkCount: (count: number) => string;
+  citations: string;
+  composerFooter: string;
+  contextSection: string;
+  emptyDescription: string;
+  emptyTitle: string;
+  loadCorporaFailed: string;
+  loadingCorpora: string;
+  missingInformationPrefix: string;
+  needsContextStatus: string;
+  newQuestionAction: string;
+  noCorpora: string;
+  noSourcesForQuestion: string;
+  questionLabel: string;
+  questionPlaceholder: string;
+  questionRequired: string;
+  railEyebrow: string;
+  railTitle: string;
+  referencedChunk: string;
+  retrievedContext: (count: number) => string;
+  scopeLabel: (scope: string) => string;
+  score: (score: string) => string;
+  searchingContext: string;
+  selectedCorpus: string;
+  selectedCorpusAnswer: string;
+  sourceCount: (count: number) => string;
+  thinking: string;
+  title: string;
+  unavailableStatus: string;
 }

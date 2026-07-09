@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { useLocalizedText, type Translate } from "@/localization";
 import { KnowledgeAnswerList } from "./KnowledgeAnswerList";
 import { KnowledgeCorpusRail } from "./KnowledgeCorpusRail";
 import { KnowledgeQuestionComposer } from "./KnowledgeQuestionComposer";
@@ -9,16 +8,45 @@ import { useKnowledgeUserAsk } from "../hooks/useKnowledgeUserAsk";
 import { useKnowledgeUserWorkspace } from "../hooks/useKnowledgeUserWorkspace";
 import type {
   KnowledgeCorpusAnswerResult,
+  KnowledgeQaClient,
+  KnowledgeQaErrorMessageResolver,
+  KnowledgeQaLabels,
   KnowledgeQuestionScope,
   KnowledgeUserCorpus,
 } from "../types";
+import type { ChatTextDirection } from "@vitarish/web-ui";
 
 const defaultTopK = 8;
 
-export function KnowledgeUserQaSurface() {
-  const { t } = useLocalizedText();
-  const workspace = useKnowledgeUserWorkspace();
-  const ask = useKnowledgeUserAsk();
+export interface KnowledgeUserQaSurfaceProps {
+  client: KnowledgeQaClient;
+  defaultTopK?: number;
+  direction?: ChatTextDirection;
+  formatScore?: (score: number) => string;
+  labels: KnowledgeQaLabels;
+  resolveErrorMessage?: KnowledgeQaErrorMessageResolver;
+  saveTrace?: boolean;
+  traceKind?: string | null;
+}
+
+export function KnowledgeUserQaSurface({
+  client,
+  defaultTopK: topK = defaultTopK,
+  direction,
+  formatScore = defaultScoreFormatter,
+  labels,
+  resolveErrorMessage,
+  saveTrace = false,
+  traceKind = "normal-user-ui",
+}: KnowledgeUserQaSurfaceProps) {
+  const workspace = useKnowledgeUserWorkspace({ client });
+  const ask = useKnowledgeUserAsk({
+    client,
+    defaultErrorMessage: labels.unavailableStatus,
+    resolveErrorMessage,
+    saveTrace,
+    traceKind,
+  });
 
   const corpora = useMemo(() => workspace.data?.corpora ?? [], [workspace.data?.corpora]);
   const [selectedCorpusId, setSelectedCorpusId] = useState<string | null>(null);
@@ -33,21 +61,21 @@ export function KnowledgeUserQaSurface() {
     [corpora, selectedCorpusId]
   );
 
-  const currentScopeLabel = selectedCorpus?.name ?? t("knowledge.qa.allCorpora");
-  const answerScopeLabel = getScopeLabel(lastScope, corpora, t);
+  const currentScopeLabel = selectedCorpus?.name ?? labels.allCorpora;
+  const answerScopeLabel = getScopeLabel(lastScope, corpora, labels);
 
   const submitQuestion = useCallback(
     async (nextQuestion: string, scopeOverride?: KnowledgeQuestionScope) => {
       const normalizedQuestion = nextQuestion.trim();
       if (!normalizedQuestion) {
-        setStatusMessage(t("knowledge.qa.questionRequired"));
+        setStatusMessage(labels.questionRequired);
         return;
       }
 
       const scope = scopeOverride ?? toScope(selectedCorpus);
       const scopeCorpora = resolveScopeCorpora(scope, corpora);
       if (scopeCorpora.length === 0) {
-        setStatusMessage(t("knowledge.qa.noSourcesForQuestion"));
+        setStatusMessage(labels.noSourcesForQuestion);
         return;
       }
 
@@ -60,12 +88,12 @@ export function KnowledgeUserQaSurface() {
       const results = await ask.askAcrossCorpora({
         corpora: scopeCorpora,
         question: normalizedQuestion,
-        topK: defaultTopK,
+        topK,
       });
 
       setAnswerResults(results);
     },
-    [ask, corpora, selectedCorpus, t]
+    [ask, corpora, labels.noSourcesForQuestion, labels.questionRequired, selectedCorpus, topK]
   );
 
   const askAgain = useCallback(async () => {
@@ -105,6 +133,7 @@ export function KnowledgeUserQaSurface() {
         corpora={corpora}
         selectedCorpusId={selectedCorpusId}
         isLoading={workspace.isLoading}
+        labels={labels}
         onSelectAll={selectAll}
         onSelectCorpus={selectCorpus}
       />
@@ -116,7 +145,9 @@ export function KnowledgeUserQaSurface() {
           scopeLabel={answerScopeLabel}
           results={answerResults}
           isPending={ask.isPending}
-          statusMessage={statusMessage ?? workspaceError(workspace.error, t) ?? ask.errorMessage}
+          statusMessage={statusMessage ?? workspaceError(workspace.error, labels, resolveErrorMessage) ?? ask.errorMessage}
+          formatScore={formatScore}
+          labels={labels}
           onAskAgain={askAgain}
           onNewQuestion={startNewQuestion}
           onContinueInCorpus={continueInCorpus}
@@ -129,6 +160,8 @@ export function KnowledgeUserQaSurface() {
               scopeLabel={currentScopeLabel}
               isPending={ask.isPending}
               hasAnswer={answerResults.length > 0}
+              direction={direction}
+              labels={labels}
               onChange={setQuestion}
               onSubmit={submitQuestion}
               onNewQuestion={startNewQuestion}
@@ -163,23 +196,38 @@ function resolveScopeCorpora(
 function getScopeLabel(
   scope: KnowledgeQuestionScope,
   corpora: KnowledgeUserCorpus[],
-  t: Translate
+  labels: KnowledgeQaLabels
 ): string {
   if (scope.kind === "all") {
-    return t("knowledge.qa.allCorpora");
+    return labels.allCorpora;
   }
 
-  return corpora.find((item) => item.corpusId === scope.corpusId)?.name ?? t("knowledge.qa.selectedCorpus");
+  return corpora.find((item) => item.corpusId === scope.corpusId)?.name ?? labels.selectedCorpus;
 }
 
-function workspaceError(error: unknown, t: Translate): string | null {
+function workspaceError(
+  error: unknown,
+  labels: KnowledgeQaLabels,
+  resolveErrorMessage?: KnowledgeQaErrorMessageResolver
+): string | null {
   if (!error) {
     return null;
+  }
+
+  if (resolveErrorMessage) {
+    return resolveErrorMessage(error);
   }
 
   if (error instanceof Error) {
     return error.message;
   }
 
-  return t("knowledge.qa.loadCorporaFailed");
+  return labels.loadCorporaFailed;
+}
+
+function defaultScoreFormatter(score: number): string {
+  return score.toLocaleString(undefined, {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  });
 }
