@@ -7,7 +7,6 @@ using Vitarish.Audit.Server;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Feed.Infrastructure;
-using Vitarish.Modules.Base.Interface.Services;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
@@ -44,26 +43,8 @@ _ = builder.Services.AddAuditInfrastructure(configurePostgres);
 await builder.RegisterApps(configurePostgres);
 await builder.RegisterModules(configurePostgres);
 
-// Register Platform CircuitHandler for memory telemetry
-builder.AddPlatformCircuitMemoryObserver();
-
 // Register Feed infrastructure
 _ = builder.Services.AddFeedInfrastructure();
-
-builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents()
-                .AddHubOptions(options =>
-                {
-                    options.EnableDetailedErrors = true;
-                    options.ClientTimeoutInterval = TimeSpan.FromMinutes(10);
-                    options.MaximumParallelInvocationsPerClient = 1;
-                    options.MaximumReceiveMessageSize = 128 * 1024;
-                });
-
-_ = builder.Services.AddRazorPages(options =>
-{
-    options.RootDirectory = "/Pages";
-});
 
 builder.AddApplicationOptions();
 
@@ -130,17 +111,7 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
 
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
 
-builder.Services.AddSingleton(new NavServiceRoutes { ProfileRoute = AppRoutes.Account.Settings });
-
 builder.Services.AddSingleton<IAppsProvider, AppsProvider>();
-
-builder.Services.AddScoped<EntityDataProvider>();
-builder.Services.AddScoped<IEntityUserService>(sp => sp.GetRequiredService<EntityDataProvider>());
-builder.Services.AddScoped<IEntityTimeService>(sp => sp.GetRequiredService<EntityDataProvider>());
-
-builder.Services.AddSingleton<INotificationHandler<EntityNotification>, EntityNotificationHandler>();
-
-builder.Services.AddVitarishModulesBaseInterface();
 
 WebApplication app = builder.Build();
 
@@ -159,16 +130,8 @@ _ = app.UseForwardedHeaders();
 _ = app.UseRequestLocalization(localizationOptions);
 _ = app.UseCookiePolicy(cookiePolicyOptions);
 
-_ = app.UseExceptionHandler("/Error");
-_ = app.UseWhen(
-    context => !context.Request.Path.StartsWithSegments("/api"),
-    branch =>
-    {
-        _ = branch.UseStatusCodePagesWithReExecute("/Error");
-    });
 _ = app.UseHsts();
 _ = app.UseHttpsRedirection();
-_ = app.MapStaticAssets();
 
 _ = app.UseRouting();
 
@@ -195,10 +158,6 @@ if (app.Environment.IsDevelopment())
 
 await app.InitializeModules();
 await app.InitializeApps();
-
-_ = app.MapRazorComponents<Vitarish.Apps.Base.Core.App>().AddInteractiveServerRenderMode();
-_ = app.MapRazorPages();
-
 
 app.MapHangfireDashboard();
 

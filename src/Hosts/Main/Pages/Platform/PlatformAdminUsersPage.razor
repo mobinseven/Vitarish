@@ -1,9 +1,0 @@
-@attribute [Route(AppRoutes.PlatformAdmin.Users)]
-
-
-<Stack>
-    @foreach(var user in Users)
-    {
-        <StackButton Label="@user.FullName" OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.PlatformAdmin.User(user.Id)))" Color="Color.Info" />
-    }
-</Stack>

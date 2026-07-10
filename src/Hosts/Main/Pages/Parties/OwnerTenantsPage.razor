@@ -1,9 +1,0 @@
-@attribute [Route(AppRoutes.Owners.Tenants)]
-
-<OwnerTenantList Tenants="tenants" TenantHref="@(id => AppRoutes.Owners.Tenant(id))" />
-
-<Stack>
-    <StackButton Label="@Localizer["CreateWorkspace"]"
-                 Href="@AppRoutes.Owners.CreateTenant"
-                 EndIcon="fa-solid fa-plus" Color="Color.Primary" />
-</Stack>

@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\Domain\Feed.Domain.csproj" />
-    <ProjectReference Include="..\Interface\Feed.Interface.csproj" />
   </ItemGroup>
 </Project>

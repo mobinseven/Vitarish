@@ -7,7 +7,6 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Interface\Sea.Interface.csproj" />
     <ProjectReference Include="..\Infrastructure\Sea.Infrastructure.csproj" />
 		<ProjectReference Include="..\Api\Sea.Api.csproj" />
     <ProjectReference Include="..\Application\Sea.Application.csproj" />

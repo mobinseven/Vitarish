@@ -17,8 +17,10 @@ This directory serves as a central index. ADRs have been moved to scope-owned de
 | ADR-0006 | Standardize Platform Journey Routing | Accepted | Platform | `docs/platform/modules/platform/decisions/` | 2026-06-29 |
 | ADR-0007 | Standardize React Localization | Accepted | Platform | `docs/platform/modules/platform/decisions/` | 2026-07-01 |
 | ADR-0008 | Share React UI Components Through a Dedicated UI Package | Proposed | Platform | `docs/platform/modules/platform/decisions/` | 2026-07-08 |
+| ADR-0009 | Decommission Blazor/Razor Component UI and Interface Projects | Accepted | Platform | `docs/platform/modules/platform/decisions/` | 2026-07-10 |
 
 ## Superseded / Deprecated Decisions
 
 | ADR | Title | Status | Replaced By | Date |
 |---|---|---|---|---|
+| ADR-0003 | Isolate module Interface libraries with API, Client, and Contracts projects | Superseded (UI portion) | ADR-0009 | 2026-07-10 |

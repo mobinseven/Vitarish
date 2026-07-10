@@ -1,5 +1,7 @@
 # Clinic Owner Patient Journey Assessment
 
+**Note: Blazor/Razor component references in this document were retired per ADR-0009.**
+
 Date assessed: 2026-05-10
 
 ## Scope and method

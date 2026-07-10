@@ -1,9 +1,0 @@
-@inherits SeaUserProjectPage
-
-@attribute [Route(AppRoutes.Sea.OwnerTemplateProjectEditTemplate)]
-
-<ProjectEditForm Project="Project"
-                 OnUpdate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(projectId)))"
-                 OnCreate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(projectId)))"
-                 OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(ProjectId)))"
-                 TemplateMode="true" />

@@ -1,5 +1,7 @@
 # Clinic Owner Journey Map Collection Generation Plan
 
+**Note: Blazor/Razor component references in this document were retired per ADR-0009.**
+
 ## 1. Objective
 
 Create a complete current-state journey-map documentation collection for the Clinic Owner app. Complete means every implemented user-visible Clinic feature discovered through static code inspection is represented in journey-map documentation, including routes, host pages, shared Clinic interface components, reused Appointments module components, Sea-backed patient procedure flows, Communications-backed reminders, and settings/statistics placeholders when present.

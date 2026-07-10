@@ -1,9 +1,0 @@
-<MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="0" Class="@cssClass" Style="@Style" StretchItems="StretchItems.Middle">
-    @ChildContent
-</MudStack>
-@code {
-    private string cssClass => $"glass stack fade rounded-pill {(Class is null ? "my-6" : Class)}";
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string? Class { get; set; }
-    [Parameter] public string? Style { get; set; }
-}

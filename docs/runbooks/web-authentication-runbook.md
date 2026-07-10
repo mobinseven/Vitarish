@@ -90,10 +90,6 @@ npm run test
 
 Tests use MSW to mock the backend API. No running server needed.
 
-## Coexistence with Blazor
-
-The Next.js UI (port 3000) and Blazor UI (port 5000) run independently. Sessions are not shared — each has its own authentication cookie. To use the Next.js UI as the primary auth interface, point your reverse proxy or load balancer to port 3000 for `/login`, `/logout`, and related auth routes.
-
 ## Troubleshooting
 
 | Issue | Solution |

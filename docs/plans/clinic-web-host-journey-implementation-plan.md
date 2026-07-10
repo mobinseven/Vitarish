@@ -1,6 +1,8 @@
 # Clinic Web Host Journey Implementation Plan
 
-Status: Accepted  
+**Superseded: This plan was created for Blazor-to-React migration. All Blazor UI and Interface projects were decommissioned per ADR-0009 (2026-07-10). React Web is the sole UI surface.**
+
+Status: Accepted
 Owner scope: Clinic owner app / web host  
 Source journeys:
 

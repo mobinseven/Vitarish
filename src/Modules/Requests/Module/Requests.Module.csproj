@@ -11,7 +11,6 @@
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Interface\Requests.Interface.csproj" />
     <ProjectReference Include="..\Api\Requests.Api.csproj" />
     <ProjectReference Include="..\Infrastructure\Requests.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Requests.Application.csproj" />

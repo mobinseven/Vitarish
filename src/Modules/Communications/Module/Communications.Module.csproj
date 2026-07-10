@@ -13,7 +13,6 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Interface\Communications.Interface.csproj" />
     <ProjectReference Include="..\Contracts\Communications.Contracts.csproj" />
     <ProjectReference Include="..\Client\Communications.Client.csproj" />
     <ProjectReference Include="..\Api\Communications.Api.csproj" />

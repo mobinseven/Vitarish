@@ -1,6 +1,0 @@
-@attribute [Route(AppRoutes.Sea.Projects)]
-@attribute [EnableSearch]
-
-<ProjectsGrid OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Sea.Project(id)))"
-              OnAdd="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.ProjectNew))" />
-

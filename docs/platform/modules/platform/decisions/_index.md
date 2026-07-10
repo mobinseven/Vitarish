@@ -14,11 +14,13 @@ This directory contains the platform-level architecture decision records (ADRs).
 | 0006 | Standardize Platform Journey Routing | Accepted | 2026-06-29 |
 | 0007 | Standardize React Localization | Accepted | 2026-07-01 |
 | 0008 | Share React UI Components Through a Dedicated UI Package | Proposed | 2026-07-08 |
+| 0009 | Decommission Blazor/Razor Component UI and Interface Projects | Accepted | 2026-07-10 |
 
 ## Superseded / Deprecated Decisions
 
 | ADR | Title | Status | Replaced By | Date |
 |---|---|---|---|---|
+| 0003 | Isolate module Interface libraries with API, Client, and Contracts projects | Superseded (UI portion) | 0009 | 2026-07-10 |
 
 ## Navigation
 

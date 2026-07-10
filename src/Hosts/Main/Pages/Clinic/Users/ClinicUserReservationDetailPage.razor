@@ -1,9 +1,0 @@
-@attribute [Route(AppRoutes.Clinic.UserReservationTemplate)]
-@inherits ClinicUserReservationPageBase
-
-@if (Reservation is null)
-{
-    return;
-}
-
-<UserReservationDetail Reservation="@Reservation" OnCancelled="ReloadRequired" />

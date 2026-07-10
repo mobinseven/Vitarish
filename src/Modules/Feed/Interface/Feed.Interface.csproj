@@ -1,6 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="..\Client\Feed.Client.csproj" />
-    <ProjectReference Include="..\Contracts\Feed.Contracts.csproj" />
-  </ItemGroup>
-</Project>

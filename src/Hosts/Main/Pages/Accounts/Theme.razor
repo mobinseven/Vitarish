@@ -1,9 +1,0 @@
-@attribute [Route(AppRoutes.Account.SettingsAppearance)]
-@inherits IdentityCommonBase
-
-@if(User is null)
-{
-    return;
-}
-
-<ThemeSettingsForm SettingsSaved="@(async s => { await SetThemeAsync(s); NavigationManager.Refresh(); })" />

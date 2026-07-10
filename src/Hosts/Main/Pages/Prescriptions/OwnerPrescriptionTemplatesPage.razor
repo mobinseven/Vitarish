@@ -1,8 +1,0 @@
-@attribute [Route(AppRoutes.Prescriptions.OwnerPrescriptionTemplates)]
-@attribute [EnableSearch]
-@inherits TenantPageBase
-
-<PrescriptionTemplateList OnSelected="@(id => NavigationManager.NavigateTo(AppRoutes.Prescriptions.OwnerPrescriptionTemplateEdit(id)))"
-                          OnCreate="@(() => NavigationManager.NavigateTo(AppRoutes.Prescriptions.OwnerPrescriptionTemplateCreate))" />
-
-@code { protected override Task ReloadRequired() => Task.CompletedTask; }
