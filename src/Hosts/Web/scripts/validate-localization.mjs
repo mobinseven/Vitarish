@@ -4,6 +4,7 @@ import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+const appRoot = join(webRoot, "apps/private-practice-general");
 const root = join(webRoot, "../../..");
 const scopes = ["src/app", "src/components", "src/features", "src/design-system"];
 const literalPattern = />\s*([A-Z][A-Za-z0-9 ,.'!?&()/-]{2,})\s*</g;
@@ -22,10 +23,11 @@ function collect(dir) {
 }
 
 for (const scope of scopes) {
-  const dir = join(webRoot, scope);
+  const dir = join(appRoot, scope);
   if (!existsSync(dir)) continue;
   for (const file of collect(dir)) {
-    if (file.includes("/api/generated/") || file.includes("/__tests__/")) continue;
+    const normalizedFile = file.replaceAll("\\", "/");
+    if (normalizedFile.includes("/api/generated/") || normalizedFile.includes("/__tests__/")) continue;
     const source = readFileSync(file, "utf8");
     for (const match of source.matchAll(literalPattern)) findings.push({ file, text: match[1].trim() });
     for (const match of source.matchAll(attrPattern)) findings.push({ file, text: `${match[1]}=\"${match[2]}\"` });
@@ -40,5 +42,5 @@ if (findings.length === 0) {
 console.error(`Localization validation failed: ${findings.length} hard-coded React UI string(s) found.`);
 for (const finding of findings.slice(0, 200)) console.error(`- ${relative(root, finding.file)}: ${finding.text}`);
 if (findings.length > 200) console.error(`...and ${findings.length - 200} more.`);
-console.error("Migrate all hard-coded strings to src/Hosts/Web/src/localization.");
+console.error("Migrate all hard-coded strings to the owning app localization catalog.");
 process.exit(1);

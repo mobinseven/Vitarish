@@ -14,16 +14,16 @@
 ## 2. Journey Set Map
 
 ### Core doctor journeys
-1. [Eligible Patient — Successful Submission Journey](./social-security-eprescription-submit-journey.md)
-2. [Ineligible Patient — Blocked Submission Journey](./social-security-eprescription-ineligible-journey.md)
-3. [Edit Submitted Prescription Journey](./social-security-eprescription-edit-journey.md)
-4. [Cancel/Delete Submitted Prescription Journey](./social-security-eprescription-cancel-journey.md)
+1. [Eligible Patient — Successful Submission Journey](./prescription-submit-journey.md)
+2. [Ineligible Patient — Blocked Submission Journey](./prescription-ineligible-journey.md)
+3. [Edit Submitted Prescription Journey](./prescription-edit-journey.md)
+4. [Cancel/Delete Submitted Prescription Journey](./prescription-cancel-journey.md)
 
 ### Recovery and operations journeys
-5. [Submission Timeout and Duplicate-Safe Recovery Journey](./social-security-eprescription-timeout-recovery-journey.md)
-6. [Insurance Outage and Paper Fallback Journey](./social-security-eprescription-fallback-journey.md)
-7. [Reference Data Sync Journey (Admin)](./social-security-eprescription-reference-sync-journey.md)
-8. [Support Reconciliation Journey](./social-security-eprescription-support-reconciliation-journey.md)
+5. [Submission Timeout and Duplicate-Safe Recovery Journey](./prescription-timeout-recovery-journey.md)
+6. [Insurance Outage and Paper Fallback Journey](./prescription-fallback-journey.md)
+7. [Reference Data Sync Journey (Admin)](./prescription-reference-sync-journey.md)
+8. [Support Reconciliation Journey](./prescription-support-reconciliation-journey.md)
 
 ## 3. Shared State and Guardrails
 

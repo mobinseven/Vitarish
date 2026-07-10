@@ -139,4 +139,4 @@
 ## 8. Related Journeys
 
 - [Clinic Owner journey collection README](README.md)
-- [React interface coverage audit](../../../journeys/react-interface-coverage-audit.md)
+- [React interface coverage audit](../tests/react-interface-coverage-audit.md)

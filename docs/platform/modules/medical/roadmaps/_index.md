@@ -1,15 +1,8 @@
 # Medical Module Roadmaps
 
-This directory contains roadmaps, plans, and direction documents for the Medical module.
+Status: Active  
+Owner: Medical module  
+Scope: App-agnostic Medical module roadmap navigation  
+Last reviewed: 2026-07-08
 
-## Roadmaps
-
-| Roadmap | Purpose |
-|---|---|
-| 0001-medical-implementation-roadmap.md | Initial Medical module implementation roadmap, phases, scope, and design principles |
-
-## Navigation
-
-- Module: `docs/platform/modules/medical/`
-- Journeys: `docs/platform/modules/medical/journeys/`
-- Tasks: (create tasks directory as needed)
+The obsolete Medical implementation roadmap was removed. No active Medical roadmap is currently listed here.

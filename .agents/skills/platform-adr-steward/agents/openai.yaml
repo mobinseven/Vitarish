@@ -1,7 +1,0 @@
-interface:
-  display_name: "Platform ADR Steward"
-  short_description: "Maintain architecture decision records for the platform."
-  brand_color: "#2563EB"
-  default_prompt: "Use the platform-adr-steward skill to review architecture decision impact."
-policy:
-  allow_implicit_invocation: true

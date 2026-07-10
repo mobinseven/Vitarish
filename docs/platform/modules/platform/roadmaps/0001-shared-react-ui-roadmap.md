@@ -1,65 +1,70 @@
-# Shared React UI Roadmap
+# Shared React Web UI Roadmap
 
 Status: Proposed  
 Owner: Platform Architecture  
-Source of truth for: ADR-0008 shared React UI implementation  
-Last updated: 2026-07-08
+Scope: Web host family shared React UI roadmap  
+Last reviewed: 2026-07-08
 
 ## Purpose
 
-Centralize major reusable React design artifacts so multiple Vitarish React web apps can share one product-owned UI surface while relying on the same backend for data, commands, authorization, validation, and workflows.
+Centralize major reusable React Web design artifacts so multiple Vitarish React web apps can share one Web-owned UI surface while relying on the same backend for data, commands, authorization, validation, and workflows.
 
-This document is the durable roadmap for implementing ADR-0008. Implementation PRs should update this file when scope, sequencing, package shape, app structure, or enforcement rules change. GitHub issues, PR comments, and chat notes are not the source of truth for this roadmap.
+This document is the durable roadmap for implementing ADR-0008. Implementation PRs should update this file when scope, sequencing, package shape, app structure, host workspace shape, or enforcement rules change. GitHub issues, PR comments, and chat notes are not the source of truth for this roadmap.
 
 ## Decisions Already Made by ADR-0008
 
 | Topic | Decision |
 |---|---|
-| Shared package name | `@vitarish/ui` |
+| Shared package name | `@vitarish/web-ui` |
 | Initial visibility | Private repository-local package |
-| Initial package location | `src/Hosts/packages/ui` |
+| Initial package location | src/Hosts/Web/packages/web-ui |
 | Package manager | npm |
-| Workspace model | npm workspaces rooted above React web apps |
-| Lockfile source of truth | frontend workspace `package-lock.json` |
-| App model | Multiple React web apps consume the same backend |
+| Workspace model | npm workspace rooted at `src/Hosts/Web` |
+| Lockfile source of truth | Web workspace `src/Hosts/Web/package-lock.json` |
+| App model | Multiple React web apps under `src/Hosts/Web/{web-app}` consume the same backend |
 | Backend rule | Backend remains the single data/workflow/API source of truth |
-| UI import direction | Apps import `@vitarish/ui`; `@vitarish/ui` does not import apps/features/backend clients |
+| UI import direction | Web apps import `@vitarish/web-ui`; `@vitarish/web-ui` does not import apps/features/backend clients |
+| Host boundary | `src/Hosts` groups host families; Web-specific packages live under `src/Hosts/Web` |
 | Localization handoff | App/feature code passes localized display text into shared components |
 | HeroUI rule | Raw HeroUI/HeroUI Pro components remain the default; no custom design-system wrappers such as `SurfaceCard` |
 
-## Target Workspace Shape
+## Target Host Workspace Shape
 
 ```text
 src/Hosts/
-  package.json              # private npm workspace root for React web apps and packages
-  package-lock.json         # npm lockfile source of truth for frontend workspace
-  Web/                      # existing @vitarish/web app
-    package.json
-  packages/
-    ui/
-      package.json          # name: @vitarish/ui, private: true
-      src/
-        index.ts
-  {future-web-app}/
-    package.json
+  Web/
+    package.json              # private npm workspace root for Web apps and Web packages
+    package-lock.json         # npm lockfile source of truth for the Web workspace
+    packages/
+      web-ui/
+        package.json          # name: @vitarish/web-ui, private: true
+        src/
+          index.ts
+    {web-app}/
+      package.json
+    {future-web-app}/
+      package.json
+  {future-host-family}/
+    ...
 ```
 
-The current repository has the React Web package under `src/Hosts/Web`. The target shape moves frontend package management to the shared workspace root so future web apps do not depend on the first Web app as their package owner.
+The current repository has the React Web app at `src/Hosts/Web`. The target shape promotes `src/Hosts/Web` to the Web host family workspace root. Implementation must move the current Web app into a child folder under `src/Hosts/Web/{web-app}` before or during workspace creation.
 
 ## Guiding Principles
 
-- One source of truth for major reusable React design artifacts.
+- One source of truth for major reusable React Web design artifacts.
 - One backend source of truth for application data, commands, validation, authorization, and business workflows.
-- Presentation-only shared UI package; no generated API clients, feature workflows, backend contracts, or route dependencies.
+- Host-family separation: Web packages and Web apps live under `src/Hosts/Web`; future native or other hosts get separate host-family folders.
+- Presentation-only shared Web UI package; no generated API clients, feature workflows, backend contracts, host runtime dependencies, or route dependencies.
 - Use raw HeroUI/HeroUI Pro components directly instead of creating custom design-system wrappers where direct HeroUI composition is sufficient.
 - Centralize tokens, documented composition patterns, accessibility conventions, localization handoff rules, and small presentation-only helpers only when they do not hide HeroUI's component model.
 - Incremental migration over big-bang rewrite.
-- Reusable by at least two modules/apps or important enough to protect as a design artifact.
+- Reusable by at least two Web modules/apps or important enough to protect as a Web design artifact.
 - Keep feature-specific business UI close to the owning app/feature until it becomes generic.
 
 ## Current State
 
-The existing Web host already has a React/Next package with npm scripts, React 19, Next.js, HeroUI, HeroUI Pro, React Aria, Tailwind helpers, Font Awesome, Vitest, and validation scripts. Shared UI is not yet separated into an app-neutral package boundary.
+The existing Web app already has a React/Next package with npm scripts, React 19, Next.js, HeroUI, HeroUI Pro, React Aria, Tailwind helpers, Font Awesome, Vitest, and validation scripts. Shared Web UI is not yet separated into a Web host package boundary.
 
 Known reusable candidates from recent Web work include:
 
@@ -75,13 +80,13 @@ The candidate list is not exhaustive. The first implementation step must invento
 
 ## Phase 0 — Decision and Inventory
 
-Status: In progress
+Status: Complete
 
 Deliverables:
 
-- ADR-0008 added and linked from platform ADR indexes.
-- This roadmap added as the implementation source of truth.
-- Inventory duplicated or reusable UI artifacts under `src/Hosts/Web/src/**`.
+- ADR-0008 updated and linked from platform ADR indexes.
+- This roadmap updated as the implementation source of truth.
+- Inventory duplicated or reusable UI artifacts under the current Web app source tree.
 - Classify each candidate as one of:
   - `shared-now`: presentation-only and safe to move;
   - `feature-adapter-needed`: reusable shape exists but business/data coupling must be split first;
@@ -92,29 +97,30 @@ Exit criteria:
 
 - Candidate inventory exists in this roadmap or a linked task document.
 - First package increment is selected.
+- Current Web app target child folder name is selected: `apps/private-practice-general`.
 
-## Phase 1 — Frontend Workspace Foundation
+## Phase 1 — Web Workspace Foundation
 
 Status: Not started
 
 Deliverables:
 
-- Add `src/Hosts/package.json` as the private npm workspace root.
-- Move frontend lockfile ownership to `src/Hosts/package-lock.json` through npm commands.
-- Keep the existing Web app as a workspace package under `src/Hosts/Web`.
-- Create `src/Hosts/packages/ui/package.json` with:
-  - `name: "@vitarish/ui"`;
+- Promote `src/Hosts/Web` to the private npm workspace root for the Web host family.
+- Move the current Web app into a child app folder under `src/Hosts/Web/{web-app}`.
+- Move Web lockfile ownership to `src/Hosts/Web/package-lock.json` through npm commands.
+- Create src/Hosts/Web/packages/web-ui/package.json with:
+  - `name: "@vitarish/web-ui"`;
   - `version: "0.1.0"`;
   - `private: true`;
   - explicit `exports` for public entry points;
   - React and design-library dependency strategy documented in the package.
-- Add `src/Hosts/packages/ui/src/index.ts` as the public export boundary.
+- Add src/Hosts/Web/packages/web-ui/src/index.ts as the public export boundary.
 - Add TypeScript configuration for the package.
 
 Exit criteria:
 
-- `npm install` succeeds from `src/Hosts`.
-- The existing Web app can resolve `@vitarish/ui`.
+- `npm install` succeeds from `src/Hosts/Web`.
+- The existing Web app can resolve `@vitarish/web-ui`.
 - No production component migration is required yet.
 
 ## Phase 2 — Package Contract and Enforcement
@@ -123,32 +129,33 @@ Status: Not started
 
 Deliverables:
 
-- Add package-level typecheck for `@vitarish/ui`.
+- Add package-level typecheck for `@vitarish/web-ui`.
 - Add package-level component tests for exported presentation artifacts.
-- Add workspace-level import-boundary validation scripts, run from `src/Hosts`, that block `@vitarish/ui` from importing:
-  - app route/page folders;
-  - app feature folders;
+- Add workspace-level import-boundary validation scripts, run from `src/Hosts/Web`, that block `@vitarish/web-ui` from importing:
+  - Web app route/page folders;
+  - Web app feature folders;
   - generated OpenAPI clients and DTOs;
   - React Query hooks;
   - backend projects;
-  - app localization catalogs/providers.
-- Add workspace-level validation that blocks web apps from deep-importing `@vitarish/ui/src/**`.
+  - app localization catalogs/providers;
+  - non-Web host implementation files.
+- Add workspace-level validation that blocks web apps from deep-importing `@vitarish/web-ui/src/**`.
 - Add workspace-level validation that blocks one web app from importing another web app's private UI files.
 - Add workspace-level validation that flags custom wrapper proposals where raw HeroUI/HeroUI Pro components should be used directly.
 
 Exit criteria:
 
-- CI can prove the UI package is presentation-only.
-- Public imports use `@vitarish/ui` package exports only.
-- Boundary validation runs from the frontend workspace root, not from an individual app directory.
+- CI can prove the Web UI package is presentation-only.
+- Public imports use `@vitarish/web-ui` package exports only.
+- Boundary validation runs from the Web workspace root, not from an individual app directory or from the platform-wide `src/Hosts` root.
 
-## Phase 3 — First Shared Components
+## Phase 3 — First Shared Web UI Artifacts
 
 Status: Not started
 
 Recommended first increment:
 
-- theme tokens and theme bridge helpers;
+- theme tokens and Web theme bridge helpers;
 - empty/loading/error state contracts;
 - icon usage conventions and presentation-only icon helpers;
 - form-field composition helpers that do not replace raw HeroUI form components;
@@ -158,32 +165,32 @@ Migration rule:
 
 Move only artifacts that satisfy ADR-0008 promotion rules. If a reusable component currently depends on feature data, split it into:
 
-- a generic `@vitarish/ui` presentation artifact; and
+- a generic `@vitarish/web-ui` presentation artifact; and
 - an app/feature adapter that maps backend data, localization, permissions, and route actions into generic props.
 
-Do not migrate a component into `@vitarish/ui` when the result would be only a custom wrapper around a raw HeroUI/HeroUI Pro component that should be used directly.
+Do not migrate a component into `@vitarish/web-ui` when the result would be only a custom wrapper around a raw HeroUI/HeroUI Pro component that should be used directly.
 
 Exit criteria:
 
-- At least one existing Web feature consumes `@vitarish/ui` through public exports.
-- No backend/client imports exist in `@vitarish/ui`.
+- At least one existing Web feature consumes `@vitarish/web-ui` through public exports.
+- No backend/client imports exist in `@vitarish/web-ui`.
 - Components or presentation artifacts have tests or usage examples.
 
-## Phase 4 — Multi-App Readiness
+## Phase 4 — Multi-App Web Readiness
 
 Status: Not started
 
 Deliverables:
 
-- Document the recipe for creating a new React web app in the frontend workspace.
-- Document how each app connects to the single backend through app-owned generated clients/adapters.
-- Move cross-app UI artifacts from the first Web app into `@vitarish/ui` as they become generic and do not duplicate raw HeroUI behavior.
-- Confirm `@vitarish/ui` has no dependency on the first Web app's routes, app providers, localization catalog, or generated clients.
+- Document the recipe for creating a new React web app in the Web host workspace.
+- Document how each Web app connects to the single backend through app-owned generated clients/adapters.
+- Move cross-Web-app UI artifacts from the first Web app into `@vitarish/web-ui` as they become generic and do not duplicate raw HeroUI behavior.
+- Confirm `@vitarish/web-ui` has no dependency on the first Web app's routes, app providers, localization catalog, generated clients, or non-Web host code.
 
 Exit criteria:
 
-- A future React app can be created without copying UI implementation files from `src/Hosts/Web`.
-- Cross-app design reuse flows through `@vitarish/ui`.
+- A future React app can be created without copying UI implementation files from the first Web app.
+- Cross-Web-app design reuse flows through `@vitarish/web-ui`.
 - Backend access remains app-owned and points to the single backend contract.
 
 ## Phase 5 — Governance and Optional Publishing
@@ -194,32 +201,46 @@ Deliverables:
 
 - Add component ownership and review rules.
 - Add component naming and export rules.
-- Add a changelog strategy for shared UI changes.
+- Add a changelog strategy for shared Web UI changes.
 - Decide whether package publishing is needed.
 
 Exit criteria:
 
-- Shared UI changes are reviewable as product-level design decisions.
+- Shared Web UI changes are reviewable as product-level design decisions.
 - Publishing is either explicitly rejected or covered by a future ADR.
 
 ## Non-Goals
 
 - Do not create a second backend.
-- Do not move backend contracts into the UI package.
-- Do not put generated API clients inside `@vitarish/ui`.
-- Do not make `@vitarish/ui` resolve app routes or backend URLs.
+- Do not define native, desktop, worker, or other non-Web host UI package structures.
+- Do not create a cross-platform design system package.
+- Do not move backend contracts into the Web UI package.
+- Do not put generated API clients inside `@vitarish/web-ui`.
+- Do not make `@vitarish/web-ui` resolve app routes or backend URLs.
 - Do not introduce custom design-system wrappers where raw HeroUI/HeroUI Pro components should be used directly.
 - Do not switch package managers in this roadmap.
 - Do not publish the package before a separate versioning/release decision.
+
+## Implementation Decisions (ADR-0008 Plan)
+
+| Decision | Value |
+|---|---|
+| Current Web app child folder | `src/Hosts/Web/apps/private-practice-general` |
+| Second app child folder | `src/Hosts/Web/apps/knowledge-qa-demo` |
+| Private-practice doc root | `docs/apps/private-practice-general` |
+| Knowledge QA demo doc root | `docs/apps/knowledge-qa-demo` |
+| Former app identity | `clinic-owner` — historical reference only |
+| Private-practice npm package | `@vitarish/private-practice-general` |
+| Knowledge QA demo npm package | `@vitarish/knowledge-qa-demo` |
 
 ## Open Questions
 
 | Question | Default until decided |
 |---|---|
-| What is the second React web app name/path? | Keep placeholder `{future-web-app}` until an app-specific ADR or implementation task names it. |
-| Should icons become a separate package later? | Keep icon helpers in `@vitarish/ui` until reuse pressure justifies `@vitarish/icons`. |
-| Should theme tokens become a separate package later? | Keep tokens in `@vitarish/ui` until non-React or non-web consumers need them. |
+| Should icons become a separate Web package later? | Keep icon helpers in `@vitarish/web-ui` until reuse pressure justifies `@vitarish/web-icons`. |
+| Should theme tokens become a separate Web package later? | Keep tokens in `@vitarish/web-ui` until non-React or non-Web consumers need them. |
 | Should generated backend clients become shared packages? | Keep clients app-owned unless a separate API-client package ADR is accepted. |
+| Should future native hosts share UI artifacts with Web? | No by default; require a separate cross-host design-system ADR. |
 
 ## Progress Log
 
@@ -227,3 +248,6 @@ Exit criteria:
 |---|---|
 | 2026-07-08 | Created source-of-truth roadmap for ADR-0008 and multi-app shared UI target. |
 | 2026-07-08 | Aligned roadmap with raw HeroUI usage rule and workspace-level boundary validation feedback. |
+| 2026-07-08 | Aligned roadmap with host-family-first structure under `src/Hosts/Web`. |
+| 2026-07-09 | Closed open questions: current app = `private-practice-general`, second app = `knowledge-qa-demo`. |
+| 2026-07-09 | Phase 0 marked complete. Implementation decisions recorded. |

@@ -4,7 +4,7 @@ import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
-const srcDir = join(webRoot, "src");
+const srcDir = join(webRoot, "apps/private-practice-general/src");
 
 const nativeDateInputPattern = /<Input\s[^>]*type\s*=\s*["']date["']/i;
 const nativeInputDatePattern = /<input\s[^>]*type\s*=\s*["']date["']/i;
@@ -24,7 +24,8 @@ function collect(dir) {
 }
 
 for (const file of collect(srcDir)) {
-  if (file.includes("/__tests__/") || file.includes("/api/generated/")) continue;
+  const normalizedFile = file.replaceAll("\\", "/");
+  if (normalizedFile.includes("/__tests__/") || normalizedFile.includes("/api/generated/")) continue;
   const source = readFileSync(file, "utf8");
   const relPath = relative(webRoot, file);
 

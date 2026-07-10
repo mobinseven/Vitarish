@@ -32,13 +32,37 @@ jobs:
         run: npm ci
 
       - name: Generate API client
-        run: npm run generate:api
+        run: npm run generate:api --workspace @vitarish/private-practice-general
 
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Lint
-        run: npm run lint
+      - name: Test
+        run: npm run test
 
-      - name: Build
-        run: npm run build
+      - name: Lint
+        run: npm run lint --workspace @vitarish/private-practice-general
+
+      - name: Build private practice app
+        run: npm run build:private-practice-general
+
+      - name: Build Knowledge QA demo
+        run: npm run build:knowledge-qa-demo
+
+      - name: Validate Web UI boundary
+        run: npm run validate:web-ui-boundary
+
+      - name: Validate app boundaries
+        run: npm run validate:app-boundaries
+
+      - name: Validate app docs
+        run: npm run validate:docs:app-boundaries
+
+      - name: Validate API boundary
+        run: npm run validate:api-boundary
+
+      - name: Validate localization
+        run: npm run validate:localization
+
+      - name: Validate date inputs
+        run: npm run validate:date-inputs

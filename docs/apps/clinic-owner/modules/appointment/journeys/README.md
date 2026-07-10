@@ -1,25 +1,14 @@
-# Clinic Owner Appointment Journeys
+# Clinic Owner Appointment Module Usage Journeys
 
-Date migrated: 2026-06-22
+Status: Active  
+Owner: Clinic Owner app / Appointment module usage  
+Scope: App-specific appointment usage notes  
+Last reviewed: 2026-07-08
 
-## Overview
+This folder is non-canonical for Clinic Owner UX. Canonical app journeys live at:
 
-This folder documents clinic owner appointment-related journeys within the clinic owner app. These journeys drive interface design and workflow optimization.
+- [Patient Check-In](../../../journeys/0010-patient-check-in-journey.md)
+- [Patient Appointment Panel Booking](../../../journeys/0012-patient-appointment-panel-booking-journey.md)
+- [Appointment Settings](../../../journeys/0021-appointment-settings-journey.md)
 
-## Journey Map Files
-
-- [Patient Appointment Journey](./patient-appointment-journey.md) — Booking, managing, rescheduling, and viewing patient appointments
-- [Patient Check-In Journey](./patient-check-in-journey.md) — Guided check-in workflow for patients at clinic
-- [Clinic Appointment Settings](./clinic-appointment-settings.md) — Configuration and settings for appointment management
-
-## Related Documentation
-
-For patient profile and procedure journeys, see [Clinic Owner Patient Module](../patient/journeys/).
-
-For prescription journeys, see [Clinic Owner Prescription Module](../prescription/journeys/).
-
-## Scope
-
-- **App:** Clinic Owner
-- **Module:** Appointment
-- **Primary users:** Clinic schedulers, clinic admins
+Retained files in this folder must describe appointment-module usage in the Clinic Owner app and link back to canonical app journeys where applicable.

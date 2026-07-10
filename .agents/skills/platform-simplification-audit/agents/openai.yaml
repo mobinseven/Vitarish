@@ -1,0 +1,4 @@
+interface:
+  display_name: "Platform Simplification Audit"
+  short_description: "Find deletions and simpler designs"
+  default_prompt: "Use $platform-simplification-audit to review code or plans for over-engineering and deletion opportunities."

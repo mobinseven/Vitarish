@@ -1,99 +1,38 @@
-# Clinic Owner Journey Map Collection
+# Clinic Owner Canonical Journey Index
 
-## Scope
+Status: Active  
+Owner: Clinic Owner app  
+Scope: Canonical Clinic Owner app UX journeys  
+Last reviewed: 2026-07-08
 
-This collection is the app-level source of truth for current-state journey maps covering implemented user-visible Clinic Owner features. It covers Clinic routes, host pages, Clinic interface components, Appointments components hosted under Clinic, Sea-backed patient/procedure flows, Communications-backed reminders, and current settings/statistics placeholders.
+This folder is the canonical source of truth for Clinic Owner app UX journeys. Supporting module-in-app journey folders may link here, but they are non-canonical unless they document app-specific module usage details not covered by these journeys.
 
-## Static Evidence Sources
+## Journeys
 
-Assessment date: 2026-06-30.
-
-Assessment method: static code inspection of Clinic Owner routes, pages, Clinic interface components, and hosted Appointments/Sea/Communications components.
-
-Evidence roots:
-
-- `src/Hosts/Main/Common/Routes/ClinicRoutes.cs`
-- `src/Hosts/Main/Pages/Clinic/`
-- `src/Apps/Clinic/App/`
-- `src/Apps/Clinic/Api/`
-- `src/Apps/Clinic/Application/`
-- `src/Apps/Clinic/Contracts/`
-- `src/Apps/Clinic/Domain/`
-- `src/Apps/Clinic/Infrastructure/`
-- `src/Apps/Clinic/Interface/`
-- `src/Apps/Clinic/Client/`
-- `src/Modules/Appointments/Interface/Components/`
-- `src/Modules/Appointments/Application/Commands/`
-- `src/Modules/Appointments/Contracts/`
-- `src/Modules/Sea/`
-- `src/Modules/Communications/`
-- `src/Modules/Medical/`
-
-## Coverage Summary
-
-- Route coverage: every current React Clinic route with journey evidence is mapped in `docs/journeys/react-interface-coverage-audit.md`.
-- Page coverage: every current React Clinic route page under `src/Hosts/Web/src/app/**` is mapped as a journey entry or supporting evidence when relevant.
-- Component coverage: required Clinic and Appointments React feature components are represented in one or more journey files or the React interface coverage audit.
-- Placeholder coverage: appointment settings and statistics are documented as current-state low-confidence/placeholder journeys where static evidence shows limited workflow.
-- State ownership: patient/procedure state stays with Clinic-over-Sea/Sea, appointment state stays with Appointments, reminders stay with Communications, and prescription journeys remain related module-level references unless intentionally promoted later.
-
-## Journey Maps
-
-- [Owner Dashboard Navigation](0001-owner-dashboard-navigation-journey.md)
-- [Patient List, Search, and Selection](0002-patient-list-search-and-selection-journey.md)
-- [Patient Identification Lookup](0003-patient-identification-lookup-journey.md)
-- [Patient Advanced Search](0004-patient-advanced-search-journey.md)
-- [Patient Create](0005-patient-create-journey.md)
-- [Patient Edit](0006-patient-edit-journey.md)
-- [Patient Detail and Overview](0007-patient-detail-overview-journey.md)
-- [Patient Delete](0008-patient-delete-journey.md)
-- [Patient Find or Create](0009-patient-find-or-create-journey.md)
-- [Patient Check-In](0010-patient-check-in-journey.md)
-- [Patient Check-In SMS Confirmation](0011-patient-check-in-sms-confirmation-journey.md)
-- [Patient Appointment Panel Booking](0012-patient-appointment-panel-booking-journey.md)
-- [Owner Reservation Management](0013-owner-reservation-management-journey.md)
-- [Owner Shift Management](0014-owner-shift-management-journey.md)
-- [Owner Shift Occurrence](0015-owner-shift-occurrence-journey.md)
-- [User Shift Browsing and Booking](0016-user-shift-browsing-and-booking-journey.md)
-- [User Reservation Management](0017-user-reservation-management-journey.md)
-- [Service Type Management](0018-service-type-management-journey.md)
-- [Service Management](0019-service-management-journey.md)
-- [Service Provider Management](0020-service-provider-management-journey.md)
-- [Appointment Settings](0021-appointment-settings-journey.md)
-- [Patient Procedure Management](0022-patient-procedure-management-journey.md)
-- [Patient Procedure Event](0023-patient-procedure-event-journey.md)
-- [Patient Reminders](0024-patient-reminders-journey.md)
-- [Owner Reminders](0025-owner-reminders-journey.md)
-- [Clinic Settings Users](0026-clinic-settings-users-journey.md)
-- [Clinic Statistics](0027-clinic-statistics-journey.md)
-
-## Cross-module Dependencies
-
-- Clinic composes Sea-backed patient, procedure, and event workflows.
-- Clinic composes Appointments-backed reservations, shifts, service types, services, providers, booking policies, and reminder policies.
-- Clinic composes Communications-backed reminder grids and patient reminder panels.
-- Medical/Prescription remains a related operational area through existing module-level journeys; this collection does not duplicate prescription ownership.
-
-## Existing Module-level Journey References
-
-- `docs/apps/clinic-owner/modules/patient/journeys/`
-- `docs/apps/clinic-owner/modules/appointment/journeys/`
-- `docs/apps/clinic-owner/modules/prescription/journeys/`
-- `docs/platform/modules/appointments/`
-- `docs/platform/modules/medical/`
-
-Existing module-level journeys are related deep dives unless a future change explicitly marks them superseded by an app-level journey.
-
-## Assumptions and Confidence
-
-- High confidence means direct route/page/component evidence was found.
-- Medium confidence means the route is direct but important behavior is inherited from shared module components or plugin-composed behavior.
-- Low confidence means the route exists but static inspection shows placeholder or route-only behavior.
-- Runtime validation, permissions beyond route/page attributes, API error copy, and production usage were not verified.
-
-## Maintenance Rules
-
-- Every Clinic route and user-visible feature must be represented in `docs/journeys/react-interface-coverage-audit.md`.
-- New Clinic Owner routes must link to exactly one app-level journey or be marked as supporting evidence for an existing journey.
-- Do not duplicate state ownership in journey language: Appointments owns appointment state, Sea owns procedure/event state, Communications owns reminder state, and Clinic composes these workflows.
-- Placeholder routes must remain documented as current state until they are implemented.
+- [0001 Owner Dashboard Navigation Journey](0001-owner-dashboard-navigation-journey.md)
+- [0002 Patient List Search And Selection Journey](0002-patient-list-search-and-selection-journey.md)
+- [0003 Patient Identification Lookup Journey](0003-patient-identification-lookup-journey.md)
+- [0004 Patient Advanced Search Journey](0004-patient-advanced-search-journey.md)
+- [0005 Patient Create Journey](0005-patient-create-journey.md)
+- [0006 Patient Edit Journey](0006-patient-edit-journey.md)
+- [0007 Patient Detail Overview Journey](0007-patient-detail-overview-journey.md)
+- [0008 Patient Delete Journey](0008-patient-delete-journey.md)
+- [0009 Patient Find Or Create Journey](0009-patient-find-or-create-journey.md)
+- [0010 Patient Check In Journey](0010-patient-check-in-journey.md)
+- [0011 Patient Check In Sms Confirmation Journey](0011-patient-check-in-sms-confirmation-journey.md)
+- [0012 Patient Appointment Panel Booking Journey](0012-patient-appointment-panel-booking-journey.md)
+- [0013 Owner Reservation Management Journey](0013-owner-reservation-management-journey.md)
+- [0014 Owner Shift Management Journey](0014-owner-shift-management-journey.md)
+- [0015 Owner Shift Occurrence Journey](0015-owner-shift-occurrence-journey.md)
+- [0016 User Shift Browsing And Booking Journey](0016-user-shift-browsing-and-booking-journey.md)
+- [0017 User Reservation Management Journey](0017-user-reservation-management-journey.md)
+- [0018 Service Type Management Journey](0018-service-type-management-journey.md)
+- [0019 Service Management Journey](0019-service-management-journey.md)
+- [0020 Service Provider Management Journey](0020-service-provider-management-journey.md)
+- [0021 Appointment Settings Journey](0021-appointment-settings-journey.md)
+- [0022 Patient Procedure Management Journey](0022-patient-procedure-management-journey.md)
+- [0023 Patient Procedure Event Journey](0023-patient-procedure-event-journey.md)
+- [0024 Patient Reminders Journey](0024-patient-reminders-journey.md)
+- [0025 Owner Reminders Journey](0025-owner-reminders-journey.md)
+- [0026 Clinic Settings Users Journey](0026-clinic-settings-users-journey.md)
+- [0027 Clinic Statistics Journey](0027-clinic-statistics-journey.md)

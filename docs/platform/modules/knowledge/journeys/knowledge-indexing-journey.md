@@ -27,6 +27,14 @@
 7. Indexing records a `KnowledgeIndexRun` for observability.
 8. System shows `Index complete.` and the indexed chunk count.
 
+## Component Coverage Stages
+
+| Stage | Components | User-visible role |
+| --- | --- | --- |
+| Select index scope | `KnowledgeCorpusSelector`, `KnowledgeOwnerCorpusCollectionItem`, `KnowledgeOwnerSourceCollectionItem` | Let the owner choose corpus-level indexing or invoke a source-scoped index action from an imported source item. |
+| Run indexing | `KnowledgeCorpusIndexer`, `KnowledgeOwnerManagementSurface` | Submit the selected corpus or source-derived indexing command and keep indexing separate from import. |
+| Review index status | `KnowledgeOwnerStatus` | Display index completion or failure feedback, including indexed chunk count when available. |
+
 ## 4. Alternate and Failure Paths
 - No selected corpus -> block indexing and show `CorpusId must be a GUID.`
 - Missing tenant id -> block indexing and show `TenantId is required.`

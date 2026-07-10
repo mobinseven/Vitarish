@@ -70,6 +70,7 @@ _ = builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 _ = builder.Services.AddControllers();
+_ = builder.Services.AddProblemDetails();
 _ = builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "X-XSRF-TOKEN";
@@ -130,6 +131,7 @@ _ = app.UseForwardedHeaders();
 _ = app.UseRequestLocalization(localizationOptions);
 _ = app.UseCookiePolicy(cookiePolicyOptions);
 
+_ = app.UseExceptionHandler();
 _ = app.UseHsts();
 _ = app.UseHttpsRedirection();
 

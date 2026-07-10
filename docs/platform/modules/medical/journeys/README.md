@@ -8,9 +8,9 @@ This folder contains owner-focused journey maps for the Medical module, covering
 
 ## Journey Map Files
 
+- [Medical Interface Component-to-Journey Coverage Matrix](./component-journey-coverage.md)
 - [Code System Registry](./owner-medical-code-system-registry-journey.md)
 - [Import Operations](./owner-medical-import-operations-journey.md)
-- [Local Curation](./owner-medical-local-curation-journey.md)
 - [Reference Query](./owner-medical-reference-query-journey.md)
 - [Service Valuation](./owner-medical-service-valuation-journey.md)
 - [Tenant Preferences](./owner-medical-tenant-preferences-journey.md)

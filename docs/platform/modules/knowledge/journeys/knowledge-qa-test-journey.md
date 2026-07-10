@@ -27,6 +27,15 @@
 7. Answering returns `KnowledgeAnswer` with answer/refusal status, citations, and missing-information detail.
 8. System shows `Ask complete.` with retrieved context cards and citation cards.
 
+## Component Coverage Stages
+
+| Stage | Components | User-visible role |
+| --- | --- | --- |
+| Open QA test surface | `KnowledgeTestQaSurface` | Present owner/tester corpus selection, question entry, TopK control, and management navigation. |
+| Ask test question | `KnowledgeTestQaSurface` | Validate selected corpus, question, and TopK before issuing the read-only ask query. |
+| Review answer | `KnowledgeQuestionAnswer` | Display answer status, answer text, missing information, retrieved context, and citations. |
+| Report query status | `KnowledgeOwnerStatus` when reused by hosting surfaces | Show ask failures or completion without mutating Knowledge state. |
+
 ## 4. Alternate and Failure Paths
 - Missing tenant id -> block ask and show `TenantId is required.`
 - Invalid corpus id -> block ask and show `CorpusId must be a GUID.`

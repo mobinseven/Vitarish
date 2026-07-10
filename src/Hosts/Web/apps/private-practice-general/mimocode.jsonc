@@ -1,0 +1,22 @@
+// mimocode.jsonc
+{
+  "$schema": "https://mimo.xiaomi.com/mimocode/config.json",
+  "mcp": {
+    "heroui-pro": {
+      "type": "remote",
+      "url": "https://mcp.heroui.pro/mcp",
+      "enabled": true,
+      "oauth": false,
+      "headers": {
+        "x-heroui-personal-token": "{env:HEROUI_PERSONAL_TOKEN}"
+      }
+    },
+
+    "heroui-react": {
+      "type": "local",
+      "command": ["npx", "-y", "@heroui/react-mcp@latest"],
+      "enabled": true,
+      "timeout": 10000
+    }
+  }
+}
