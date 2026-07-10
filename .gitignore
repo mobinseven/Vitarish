@@ -407,3 +407,5 @@ FodyWeavers.xsd
 /src/Hosts/Web/tsconfig.tsbuildinfo
 /mimocode.jsonc
 /src/Hosts/Web/.mimocode/.cron-lock
+
+**/api/generated/**
