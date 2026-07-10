@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Platform.Domain.Entities;
 using Vitarish.Platform.Infrastructure.Data;
 using Vitarish.Platform.Infrastructure.DependencyInjection;
+using Vitarish.Platform.Infrastructure.Services;
 using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Platform.Module;

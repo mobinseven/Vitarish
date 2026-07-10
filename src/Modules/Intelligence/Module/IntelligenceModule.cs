@@ -7,7 +7,6 @@ using Vitarish.Intelligence.Domain.Options;
 using Vitarish.Intelligence.Api;
 using Vitarish.Intelligence.Infrastructure.DependencyInjection;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
-using Vitarish.Intelligence.Interface.DependencyInjection;
 
 namespace Vitarish.Intelligence.Module;
 
@@ -43,7 +42,6 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
         _ = builder.Services.AddTransient<IResponder, ProviderDispatchingResponder>();
         _ = builder.Services.AddSingleton<ITranscriber, ProviderDispatchingTranscriber>();
         _ = builder.Services.AddAntiforgery();
-        _ = builder.Services.ConfigureIntelligenceInterface();
         _ = builder.Services.AddIntelligenceBackgroundJobs();
     }
 

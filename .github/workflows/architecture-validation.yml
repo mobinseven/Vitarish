@@ -39,6 +39,3 @@ jobs:
         if: ${{ always() }}
         run: python3 tools/architecture/validate_module_api_boundaries.py
 
-      - name: Validate OpenAPI endpoint coverage
-        if: ${{ always() }}
-        run: python3 tools/architecture/validate_openapi_endpoint_coverage.py

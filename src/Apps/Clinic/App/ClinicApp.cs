@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Builder;
 using Vitarish.Clinic.Api;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Clinic.Infrastructure.Extensions;
-using Vitarish.Clinic.Interface;
-using Vitarish.Clinic.Interface.DependencyInjection;
 using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Clinic.App;
@@ -18,7 +16,6 @@ public class ClinicApp : Vitarish.Apps.Base.Core.App
     {
         _ = builder.Services.AddTransientMultiTenantDbContext<ClinicDbContext>((_, options) => configureDbContext?.Invoke(options));
         _ = builder.Services.AddClinicInfrastructure();
-        _ = builder.Services.ConfigureMedicalInterface();
 
         return Task.CompletedTask;
     }

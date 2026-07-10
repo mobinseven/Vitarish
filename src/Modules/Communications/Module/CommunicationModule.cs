@@ -10,7 +10,6 @@ using Vitarish.Communications.Infrastructure.DependencyInjection;
 using Vitarish.Communications.Infrastructure.Serializers;
 using Vitarish.Communications.Infrastructure.Services;
 using Vitarish.Communications.Infrastructure.Wrappers.SmsDotIr;
-using Vitarish.Communications.Interface.DependencyInjection;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Modules.Base.Core;
 
@@ -54,7 +53,6 @@ public class CommunicationModule : Modules.Base.Core.Module, ICommunicationsModu
         _ = builder.Services.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, CommunicationsJsonSerializerContext.Default));
 
-        _ = builder.Services.ConfigureCommunicationsInterface();
     }
 }
 

@@ -11,7 +11,6 @@ using Vitarish.Files.Api;
 using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Files.Infrastructure.DependencyInjection;
 using Vitarish.Files.Infrastructure.Services;
-using Vitarish.Files.Interface.DependencyInjection;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Modules.Base.Core;
 
@@ -69,7 +68,6 @@ public class FilesModule : Modules.Base.Core.Module, IFilesModule
         _ = services.AddVitarishFilesInfrastructure();
         _ = services.AddFilesBackgroundJobs();
 
-        _ = services.ConfigureFilesInterface();
     }
     public override async Task Initialize(WebApplication app)
     {

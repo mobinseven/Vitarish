@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Appointments.Infrastructure.DependencyInjection;
 using Vitarish.Appointments.Infrastructure.Serializers;
-using Vitarish.Appointments.Interface.DependencyInjection;
 using Vitarish.Appointments.Api;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Modules.Base.Core;
@@ -30,7 +29,6 @@ public class AppointmentsModule : Modules.Base.Core.Module, IAppointmentsModule
         _ = builder.Services.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppointmentsJsonSerializerContext.Default));
 
-        _ = builder.Services.ConfigureAppointmentsInterface();
 
         return Task.CompletedTask;
     }
