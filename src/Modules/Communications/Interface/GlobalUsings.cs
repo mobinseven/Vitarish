@@ -1,9 +1,0 @@
-global using Microsoft.AspNetCore.Components;
-global using Microsoft.Extensions.DependencyInjection;
-global using MudBlazor;
-global using Vitarish.Communications.Interface.Components.Base;
-global using Vitarish.Modules.Base.Interface.Common;
-global using Vitarish.Communications.Client;
-global using Vitarish.Communications.Contracts.Reminders;
-global using Vitarish.Communications.Contracts.Requests;
-global using Vitarish.Communications.Contracts.Results;

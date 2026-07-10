@@ -9,7 +9,7 @@ Owner: Architecture
 Related apps: All frontend hosts
 Related modules: All migrated modules; Entities
 Supersedes:
-Superseded by:
+Superseded by: ADR-0009 (Interface UI allowance superseded; Contracts/Client/API boundary rules preserved)
 Related: docs/architecture/decisions/0001-record-architecture-decisions.md; docs/architecture/decisions/0002-persist-instants-as-utc-datetime.md
 
 ## Context

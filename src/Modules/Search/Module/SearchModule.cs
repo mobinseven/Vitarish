@@ -6,7 +6,6 @@ using Vitarish.Search.Application.Abstractions;
 using Vitarish.Search.Domain.Options;
 using Vitarish.Search.Infrastructure;
 using Vitarish.Search.Api;
-using Vitarish.Search.Interface.DependencyInjection;
 
 namespace Vitarish.Search.Module;
 
@@ -33,7 +32,6 @@ public class SearchModule : Modules.Base.Core.Module, ISearchModule
         RegisterOptions(builder.Services, builder.Configuration, OptionsSectionPath);
         _ = builder.Services.AddSingleton<ISearchModule, SearchModule>();
         _ = builder.Services.AddSearchInfrastructure();
-        _ = builder.Services.ConfigureSearchInterface();
 
         return Task.CompletedTask;
     }

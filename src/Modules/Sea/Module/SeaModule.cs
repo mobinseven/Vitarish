@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.DependencyInjection;
 using Vitarish.Sea.Infrastructure.Services;
-using Vitarish.Sea.Interface.DependencyInjection;
 using Vitarish.Sea.Api;
 using Vitarish.Sea.Presentation.Serializers;
 using Vitarish.Entities.Server.Extensions;
@@ -33,7 +32,6 @@ public class SeaModule : Modules.Base.Core.Module, ISeaModule
         _ = builder.Services.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, SeaJsonSerializerContext.Default));
 
-        _ = builder.Services.ConfigureInterface();
     }
 
     public override async Task Initialize(WebApplication app)

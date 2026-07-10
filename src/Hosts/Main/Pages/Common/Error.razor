@@ -1,8 +1,0 @@
-@attribute [Route(AppRoutes.Common.Error)]
-
-@layout SimpleLayout
-@inject ILogger<Error> logger
-<Stack>
-    <StackField Label="@Localizer["Error"]" />
-    <StackButton Label="@Localizer["Home"]" Href="@AppRoutes.Home" Color="Color.Info" />
-</Stack>

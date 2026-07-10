@@ -186,7 +186,7 @@ No test code exists in the working tree. All tests are created fresh based on th
 | Contract serialization tests | Automated, every PR | `dotnet test tests/Modules/Authentication.Tests/ --filter "Category=Contract"` | None |
 | Full test suite | Automated, every PR | `dotnet test tests/Modules/Authentication.Tests/` | None |
 | Hot scenarios | Semi-automated, pre-release | Manual execution against running host with test config | Host with auth, mock providers |
-| Architecture boundary check | Automated, every PR | `python3 tools/architecture/validate_interface_boundaries.py` | None |
+| Architecture boundary check | Automated, every PR | `python3 tools/architecture/validate_no_blazor.py` | None |
 
 ## 12. Traceability
 

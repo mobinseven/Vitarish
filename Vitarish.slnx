@@ -12,12 +12,10 @@
   <Folder Name="/src/Apps/Aggregator/">
     <Project Path="src/Apps/Aggregator/Client/Apps.Aggregator.Client.csproj" Id="c7c8d7a9-5289-4fbc-a946-fb55c6f30634" />
     <Project Path="src/Apps/Aggregator/Core/Apps.Aggregator.Core.csproj" Id="a00dbc1a-55a8-41e7-b713-7c9a8c8897cc" />
-    <Project Path="src/Apps/Aggregator/Interface/Apps.Aggregator.Interface.csproj" Id="c60ce2a9-44fb-4487-ae47-cd468cca6f57" />
   </Folder>
   <Folder Name="/src/Apps/Base/">
     <Project Path="src/Apps/Base/Client/Apps.Base.Client.csproj" Id="56282896-c373-4bc3-aeed-596039fcea46" />
     <Project Path="src/Apps/Base/Core/Apps.Base.Core.csproj" Id="1136d23e-ae07-4608-a56c-ff10bd8d41f3" />
-    <Project Path="src/Apps/Base/Interface/Apps.Base.Interface.csproj" Id="f06f6940-5168-45ed-9f0f-6a18b68cad62" />
   </Folder>
   <Folder Name="/src/Apps/Clinic/">
     <Project Path="src/Apps/Clinic/Api/Clinic.Api.csproj" />
@@ -36,7 +34,6 @@
       <Build Solution="Debug|x64" Project="false" />
       <Build Solution="Debug|x86" Project="false" />
     </Project>
-    <Project Path="src/Apps/Clinic/Interface/Clinic.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Hosts/">
     <Project Path="src/Hosts/Main/Main.csproj" />
@@ -57,7 +54,6 @@
   <Folder Name="/src/Modules/Aggregator/">
     <Project Path="src/Modules/Aggregator/Client/Modules.Aggregator.Client.csproj" Id="54a953b6-11ba-4936-91c8-d78e7393e919" />
     <Project Path="src/Modules/Aggregator/Core/Modules.Aggregator.Core.csproj" Id="6b211ed9-b61e-42cd-a7fa-7a403746f3cf" />
-    <Project Path="src/Modules/Aggregator/Interface/Modules.Aggregator.Interface.csproj" Id="6dde1cc1-cfc6-4954-b2a2-2ed2f46a7f5b" />
   </Folder>
   <Folder Name="/src/Modules/Appointments/">
     <Project Path="src/Modules/Appointments/Api/Appointments.Api.csproj" />
@@ -66,7 +62,6 @@
     <Project Path="src/Modules/Appointments/Contracts/Appointments.Contracts.csproj" />
     <Project Path="src/Modules/Appointments/Domain/Appointments.Domain.csproj" />
     <Project Path="src/Modules/Appointments/Infrastructure/Appointments.Infrastructure.csproj" />
-    <Project Path="src/Modules/Appointments/Interface/Appointments.Interface.csproj" />
     <Project Path="src/Modules/Appointments/Module/Appointments.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Authentication/">
@@ -80,7 +75,6 @@
   <Folder Name="/src/Modules/Base/">
     <Project Path="src/Modules/Base/Client/Modules.Base.Client.csproj" />
     <Project Path="src/Modules/Base/Core/Modules.Base.Core.csproj" />
-    <Project Path="src/Modules/Base/Interface/Modules.Base.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Commerce/">
     <Project Path="src/Modules/Commerce/Api/Commerce.Api.csproj" />
@@ -89,7 +83,6 @@
     <Project Path="src/Modules/Commerce/Contracts/Commerce.Contracts.csproj" />
     <Project Path="src/Modules/Commerce/Domain/Commerce.Domain.csproj" />
     <Project Path="src/Modules/Commerce/Infrastructure/Commerce.Infrastructure.csproj" />
-    <Project Path="src/Modules/Commerce/Interface/Commerce.Interface.csproj" />
     <Project Path="src/Modules/Commerce/Module/Commerce.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Communications/">
@@ -99,7 +92,6 @@
     <Project Path="src/Modules/Communications/Contracts/Communications.Contracts.csproj" />
     <Project Path="src/Modules/Communications/Domain/Communications.Domain.csproj" />
     <Project Path="src/Modules/Communications/Infrastructure/Communications.Infrastructure.csproj" />
-    <Project Path="src/Modules/Communications/Interface/Communications.Interface.csproj" />
     <Project Path="src/Modules/Communications/Module/Communications.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Contents/">
@@ -109,7 +101,6 @@
     <Project Path="src/Modules/Contents/Contracts/Contents.Contracts.csproj" />
     <Project Path="src/Modules/Contents/Domain/Contents.Domain.csproj" />
     <Project Path="src/Modules/Contents/Infrastructure/Contents.Infrastructure.csproj" />
-    <Project Path="src/Modules/Contents/Interface/Contents.Interface.csproj" />
     <Project Path="src/Modules/Contents/Module/Contents.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Feed/">
@@ -119,7 +110,6 @@
     <Project Path="src/Modules/Feed/Contracts/Feed.Contracts.csproj" />
     <Project Path="src/Modules/Feed/Domain/Feed.Domain.csproj" />
     <Project Path="src/Modules/Feed/Infrastructure/Feed.Infrastructure.csproj" />
-    <Project Path="src/Modules/Feed/Interface/Feed.Interface.csproj" />
     <Project Path="src/Modules/Feed/Module/Feed.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Files/">
@@ -129,7 +119,6 @@
     <Project Path="src/Modules/Files/Contracts/Files.Contracts.csproj" />
     <Project Path="src/Modules/Files/Domain/Files.Domain.csproj" />
     <Project Path="src/Modules/Files/Infrastructure/Files.Infrastructure.csproj" />
-    <Project Path="src/Modules/Files/Interface/Files.Interface.csproj" />
     <Project Path="src/Modules/Files/Module/Files.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Financial/">
@@ -139,7 +128,6 @@
     <Project Path="src/Modules/Financial/Contracts/Financial.Contracts.csproj" />
     <Project Path="src/Modules/Financial/Domain/Financial.Domain.csproj" />
     <Project Path="src/Modules/Financial/Infrastructure/Financial.Infrastructure.csproj" />
-    <Project Path="src/Modules/Financial/Interface/Financial.Interface.csproj" />
     <Project Path="src/Modules/Financial/Module/Financial.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Intelligence/">
@@ -149,7 +137,6 @@
     <Project Path="src/Modules/Intelligence/Contracts/Intelligence.Contracts.csproj" />
     <Project Path="src/Modules/Intelligence/Domain/Intelligence.Domain.csproj" />
     <Project Path="src/Modules/Intelligence/Infrastructure/Intelligence.Infrastructure.csproj" />
-    <Project Path="src/Modules/Intelligence/Interface/Intelligence.Interface.csproj" />
     <Project Path="src/Modules/Intelligence/Module/Intelligence.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Journey/">
@@ -167,7 +154,6 @@
     <Project Path="src/Modules/Knowledge/Contracts/Knowledge.Contracts.csproj" />
     <Project Path="src/Modules/Knowledge/Domain/Knowledge.Domain.csproj" />
     <Project Path="src/Modules/Knowledge/Infrastructure/Knowledge.Infrastructure.csproj" />
-    <Project Path="src/Modules/Knowledge/Interface/Knowledge.Interface.csproj" />
     <Project Path="src/Modules/Knowledge/Module/Knowledge.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Links/">
@@ -177,7 +163,6 @@
     <Project Path="src/Modules/Links/Contracts/Links.Contracts.csproj" />
     <Project Path="src/Modules/Links/Domain/Links.Domain.csproj" />
     <Project Path="src/Modules/Links/Infrastructure/Links.Infrastructure.csproj" />
-    <Project Path="src/Modules/Links/Interface/Links.Interface.csproj" />
     <Project Path="src/Modules/Links/Module/Links.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Medical/">
@@ -187,7 +172,6 @@
     <Project Path="src/Modules/Medical/Contracts/Medical.Contracts.csproj" />
     <Project Path="src/Modules/Medical/Domain/Medical.Domain.csproj" />
     <Project Path="src/Modules/Medical/Infrastructure/Medical.Infrastructure.csproj" />
-    <Project Path="src/Modules/Medical/Interface/Medical.Interface.csproj" />
     <Project Path="src/Modules/Medical/Module/Medical.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Parties/">
@@ -197,7 +181,6 @@
     <Project Path="src/Modules/Parties/Contracts/Parties.Contracts.csproj" />
     <Project Path="src/Modules/Parties/Domain/Parties.Domain.csproj" />
     <Project Path="src/Modules/Parties/Infrastructure/Parties.Infrastructure.csproj" />
-    <Project Path="src/Modules/Parties/Interface/Parties.Interface.csproj" />
     <Project Path="src/Modules/Parties/Module/Parties.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Platform/">
@@ -205,7 +188,6 @@
     <Project Path="src/Modules/Platform/Contracts/Platform.Contracts.csproj" />
     <Project Path="src/Modules/Platform/Domain/Platform.Domain.csproj" />
     <Project Path="src/Modules/Platform/Infrastructure/Platform.Infrastructure.csproj" />
-    <Project Path="src/Modules/Platform/Interface/Platform.Interface.csproj" />
     <Project Path="src/Modules/Platform/Module/Platform.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Requests/">
@@ -215,7 +197,6 @@
     <Project Path="src/Modules/Requests/Contracts/Requests.Contracts.csproj" />
     <Project Path="src/Modules/Requests/Domain/Requests.Domain.csproj" />
     <Project Path="src/Modules/Requests/Infrastructure/Requests.Infrastructure.csproj" />
-    <Project Path="src/Modules/Requests/Interface/Requests.Interface.csproj" />
     <Project Path="src/Modules/Requests/Module/Requests.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Sea/">
@@ -225,7 +206,6 @@
     <Project Path="src/Modules/Sea/Contracts/Sea.Contracts.csproj" />
     <Project Path="src/Modules/Sea/Domain/Sea.Domain.csproj" />
     <Project Path="src/Modules/Sea/Infrastructure/Sea.Infrastructure.csproj" />
-    <Project Path="src/Modules/Sea/Interface/Sea.Interface.csproj" />
     <Project Path="src/Modules/Sea/Module/Sea.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Search/">
@@ -235,7 +215,6 @@
     <Project Path="src/Modules/Search/Contracts/Search.Contracts.csproj" />
     <Project Path="src/Modules/Search/Domain/Search.Domain.csproj" />
     <Project Path="src/Modules/Search/Infrastructure/Search.Infrastructure.csproj" />
-    <Project Path="src/Modules/Search/Interface/Search.Interface.csproj" />
     <Project Path="src/Modules/Search/Module/Search.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Social/">
@@ -245,7 +224,6 @@
     <Project Path="src/Modules/Social/Contracts/Social.Contracts.csproj" />
     <Project Path="src/Modules/Social/Domain/Social.Domain.csproj" />
     <Project Path="src/Modules/Social/Infrastructure/Social.Infrastructure.csproj" />
-    <Project Path="src/Modules/Social/Interface/Social.Interface.csproj" />
     <Project Path="src/Modules/Social/Module/Social.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Users/">
@@ -255,7 +233,6 @@
     <Project Path="src/Modules/Users/Contracts/Users.Contracts.csproj" />
     <Project Path="src/Modules/Users/Domain/Users.Domain.csproj" />
     <Project Path="src/Modules/Users/Infrastructure/Users.Infrastructure.csproj" />
-    <Project Path="src/Modules/Users/Interface/Users.Interface.csproj" />
     <Project Path="src/Modules/Users/Module/Users.Module.csproj" />
   </Folder>
 </Solution>

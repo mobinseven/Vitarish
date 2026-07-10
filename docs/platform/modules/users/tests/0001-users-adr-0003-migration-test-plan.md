@@ -134,7 +134,7 @@ No test code exists in the working tree. All tests are created fresh based on th
 | Contract serialization | Automated, every PR | `dotnet test tests/Modules/Users.Tests/ --filter "Category=Contract"` | None |
 | Client tests | Automated, every PR | `dotnet test tests/Modules/Users.Tests/ --filter "Category=Client"` | None |
 | API mapping | Automated, every PR | `dotnet test tests/Modules/Users.Tests/ --filter "Category=Api"` | None |
-| Static boundary | Automated, every PR | `python3 tools/architecture/validate_interface_boundaries.py` | None |
+| Static boundary | Automated, every PR | `python3 tools/architecture/validate_no_blazor.py` | None |
 | Full test suite | Automated, every PR | `dotnet test tests/Modules/Users.Tests/` | None |
 | Hot scenarios | Semi-automated, pre-release | Manual execution against host with auth | Host with Users API |
 

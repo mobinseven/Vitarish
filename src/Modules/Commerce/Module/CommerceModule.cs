@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Commerce.Infrastructure.Data;
 using Vitarish.Commerce.Infrastructure.DependencyInjection;
 using Vitarish.Commerce.Infrastructure.Services;
-using Vitarish.Commerce.Interface.DependencyInjection;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Modules.Base.Core;
 
@@ -23,7 +22,6 @@ public class CommerceModule : Modules.Base.Core.Module, ICommerceModule
         _ = builder.Services.AddTransientMultiTenantDbContext<CommerceDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddCommerceInfrastructure();
-        _ = builder.Services.ConfigureCommerceInterface();
 
         return Task.CompletedTask;
     }

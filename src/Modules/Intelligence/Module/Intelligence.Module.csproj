@@ -7,7 +7,6 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Interface\Intelligence.Interface.csproj" />
     <ProjectReference Include="..\Api\Intelligence.Api.csproj" />
     <ProjectReference Include="..\Client\Intelligence.Client.csproj" />
     <ProjectReference Include="..\Contracts\Intelligence.Contracts.csproj" />

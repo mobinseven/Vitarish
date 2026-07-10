@@ -218,15 +218,14 @@ What must not be in `<Module>.Contracts`:
 - Infrastructure options
 - Vendor SDK types unless explicitly approved as contract-safe
 
-## Client and UI boundary conventions
+## Client boundary conventions
 
-Client projects adapt frontend callers to HTTP. Interface projects render UI and call client use cases.
+Client projects adapt frontend callers to HTTP. Blazor/Razor Interface projects are retired by ADR-0009; React Web is the only supported production UI surface.
 
 The boundary is:
 
 ```txt
-Interface/Razor UI -> <Module>.Client -> HTTP -> <Module>.Api -> Application -> Domain
-Interface/Razor UI -> <Module>.Contracts
+React Web -> generated/OpenAPI-safe clients or approved feature hooks -> HTTP -> <Module>.Api -> Application -> Domain
 <Module>.Client -> <Module>.Contracts
 <Module>.Api -> <Module>.Contracts
 ```
@@ -235,55 +234,29 @@ Do not bypass the client with raw UI route construction for migrated workflows. 
 
 ## Static boundary enforcement conventions
 
-The ADR-0003 boundary validator is `tools/architecture/validate_interface_boundaries.py`. Its configuration is `tools/architecture/interface_boundary_config.json`.
+ADR-0009 retirement of Blazor/Razor Interface projects is enforced by `tools/architecture/validate_no_blazor.py`. Surviving protected module API boundary checks are enforced by `tools/architecture/validate_module_api_boundaries.py`.
 
 ### Files scanned
 
-The validator scans:
+The no-Blazor validator scans production source for:
 
-- `src/Modules/*/Interface/*.csproj`
-- `src/Modules/*/Interface/**/*.cs`
-- `src/Modules/*/Interface/**/*.razor`
+- `*.razor`, `*.razor.cs`, `*.razor.css`, and `*.razor.js`
+- `Microsoft.NET.Sdk.Razor`
+- `MudBlazor`
+- Blazor runtime registration patterns
+- `src/Modules/*/Interface`, `src/Apps/*/Interface`, and `src/Interfaces/*`
 
-### Forbidden dependencies and namespace patterns
+### Forbidden Interface artifacts
 
-The validator reports Interface references to:
-
-- Same-module `Application`, `Domain`, `Infrastructure`, or `Api` projects/namespaces.
-- Cross-module `Application`, `Domain`, `Infrastructure`, or `Api` projects/namespaces.
-- `src/Libraries/Entities/Entities.Server` project references.
-- `Entities.Server` namespace usage.
-
-Violations are categorized as project references, C# namespace imports, C# fully qualified usage, Razor namespace imports, or Razor fully qualified usage.
-
-### Report-only mode
-
-`ReportOnly` modules print violations but do not fail the process. This mode exists only so non-migrated modules can keep visible baselines until their migration stage.
-
-### Fail-fast mode
-
-`FailFast` modules cause the validator to exit non-zero on any unsuppressed violation. New modules should start in `FailFast`, and migrated modules must remain in `FailFast`.
-
-### Promoting a module to fail-fast
-
-To promote a migrated module:
-
-1. Remove forbidden Interface project references and source namespace usages.
-2. Run the validator locally until the module has no unsuppressed violations.
-3. Change the module entry in `tools/architecture/interface_boundary_config.json` from `ReportOnly` to `FailFast`.
-4. Keep `temporaryExceptions` empty unless architecture approval names the exception and its removal condition.
-5. Commit the code and configuration together.
-
-### Temporary baseline entries
-
-Temporary exception entries must include the exact JSON keys: path, forbidden, reason, and removalCondition. Remove a temporary exception in the same change that removes the underlying violation. Exceptions cannot become permanent policy.
+Interface project reintroduction is forbidden unless a future accepted ADR supersedes ADR-0009.
 
 ### Local command
 
 Run:
 
 ```bash
-python3 tools/architecture/validate_interface_boundaries.py
+python3 tools/architecture/validate_no_blazor.py
+python3 tools/architecture/validate_module_api_boundaries.py
 ```
 
 ### CI/build validation integration point

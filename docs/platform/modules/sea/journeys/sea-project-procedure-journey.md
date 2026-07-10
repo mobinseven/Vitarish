@@ -1,5 +1,7 @@
 # Sea Projects & Procedures Journey
 
+> **Note: Blazor/Razor component references in this document were retired per ADR-0009. The Sea module backend APIs remain active; React Web UI coverage for Sea is planned separately.**
+
 > Maintenance note: This legacy combined journey is retained for continuity. Current exhaustive Sea interface journey coverage lives in `sea-module-interface-journey-coverage.md` and the dedicated project, procedure, event, event-item, access, template, observability, and plugin journey documents in this folder.
 
 

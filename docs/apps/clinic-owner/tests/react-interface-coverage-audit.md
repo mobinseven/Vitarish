@@ -112,4 +112,4 @@ This audit supersedes older implementation matrices and records only evidence fo
 - `partial` means an embedded component or adjacent flow exists, but the journey is not fully represented.
 - `placeholder` means a React route exists but the current implementation is a placeholder or dashboard shell.
 - `missing` means no matching React route/page/component evidence was found in the audited React interface folders.
-- Medical/prescription, platform owner/admin, commerce, SEA, and Knowledge owner/admin journeys remain `missing` unless matching React evidence is added in a future audit.
+- Blazor-only workflows (Platform admin, owner tenant management, Commerce, Medical/prescriptions, Sea owner/user/admin, Knowledge owner/admin, Communications admin/reminders) are retired per ADR-0009 and do not require React parity. These `missing` entries reflect intentional product retirements, not unresolved implementation gaps.

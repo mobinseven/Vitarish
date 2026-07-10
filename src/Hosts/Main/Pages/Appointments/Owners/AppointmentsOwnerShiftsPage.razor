@@ -1,5 +1,0 @@
-@attribute [Route(AppRoutes.Appointments.OwnerShifts)]
-@attribute [EnableSearch]
-
-<ShiftsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
-            OnAdd="@(dayOfWeek => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftCreateForDay(dayOfWeek is null ? null : (int)dayOfWeek)))" />

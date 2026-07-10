@@ -1,5 +1,7 @@
 # Clinic Settings Users
 
+**Note: Blazor/Razor component references in this document were retired per ADR-0009.**
+
 ## 1. Context
 
 - App: clinic-owner

@@ -425,7 +425,7 @@ In `src/Hosts/Main/Main.csproj`:
 3. Delete `src/Interfaces/Interfaces.Accounts/` directory
 4. Update `Interfaces.Aggregator.csproj` to remove Interfaces.Accounts reference
 5. Run full solution build
-6. Run architecture validation (`validate_interface_boundaries.py`)
+6. Run architecture validation (`validate_no_blazor.py`)
 7. Update documentation
 
 ---

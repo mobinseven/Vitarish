@@ -124,7 +124,7 @@ Fragile or high-care areas:
 - **Backend run:** `dotnet run --project src/Hosts/Main/Main.csproj`.
 - **Backend build:** `dotnet build src/Hosts/Main/Main.csproj` or build the specific module/test project touched.
 - **Backend tests:** `dotnet test tests/Modules/<Module>.Tests/<Module>.Tests.csproj` for changed module tests.
-- **Architecture validation:** `python3 tools/architecture/validate_interface_boundaries.py` when ADR-0003/interface/client boundaries are touched; app experience validators live under `tools/architecture` and web scripts.
+- **Architecture validation:** `python3 tools/architecture/validate_no_blazor.py` for ADR-0009 Interface retirement and `python3 tools/architecture/validate_module_api_boundaries.py` for protected module API boundaries; app experience validators live under `tools/architecture` and web scripts.
 - **Web install:** from `src/Hosts/Web`, run `npm install` when dependencies are missing or package files changed.
 - **Web dev:** from `src/Hosts/Web`, `npm run dev:private-practice-general` or `npm run dev:knowledge-qa-demo`.
 - **Web build/typecheck/test:** from `src/Hosts/Web`, use `npm run build`, `npm run typecheck`, `npm run test`, and targeted workspace scripts.

@@ -1,5 +1,7 @@
 # Clinic Owner Patient Module Usage Journeys
 
+**Note: Blazor/Razor component references in this document were retired per ADR-0009.**
+
 Status: Active  
 Owner: Clinic Owner app / Patient module usage  
 Scope: App-specific patient usage notes  

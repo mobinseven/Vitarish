@@ -4,7 +4,6 @@ using Vitarish.Parties.Module.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Services;
 using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Parties.Api;
-using Vitarish.Parties.Interface.DependencyInjection;
 using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Parties.Module;
@@ -19,7 +18,6 @@ public sealed class PartiesModule : Modules.Base.Core.Module
     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         builder.AddParties(configureDbContext ?? (_ => { }));
-        _ = builder.Services.ConfigurePartiesInterface();
 
         return Task.CompletedTask;
     }

@@ -13,7 +13,6 @@
     <ProjectReference Include="..\Api\Files.Api.csproj" />
     <ProjectReference Include="..\Client\Files.Client.csproj" />
     <ProjectReference Include="..\Contracts\Files.Contracts.csproj" />
-    <ProjectReference Include="..\Interface\Files.Interface.csproj" />
     <ProjectReference Include="..\Infrastructure\Files.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Files.Application.csproj" />
     <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />

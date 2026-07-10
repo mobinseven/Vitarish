@@ -1,47 +1,35 @@
 # ADR-0003 Layer Boundary Validation
 
-ADR-003 validation is globally fail-fast. `tools/architecture/interface_boundary_config.json` uses `defaultMode: FailFast`, and no module or global frontend Interface group may remain configured as `ReportOnly`.
+ADR-0003 Contracts/Client/API boundary rules remain active. ADR-0009 retired Blazor/Razor Interface projects, so there is no longer an Interface boundary configuration file or report-only migration mode.
 
-Temporary exceptions are not permitted for the completed rollout. The validator treats any non-empty `temporaryExceptions` collection as a configuration error before scanning source code.
+Temporary exceptions for reintroducing Interface projects are not permitted unless a future accepted ADR supersedes ADR-0009.
 
 ## Local and CI command
 
 ```bash
-python3 tools/architecture/validate_interface_boundaries.py
+python3 tools/architecture/validate_no_blazor.py
+python3 tools/architecture/validate_module_api_boundaries.py
 ```
 
-The same command is executed by `.github/workflows/architecture-validation.yml` and should be run before focused or full repository builds.
+The same commands are executed by `.github/workflows/architecture-validation.yml` and should be run before focused or full repository builds.
 
 ## Final fail-fast policy
 
-The validator scans:
+The no-Blazor validator fails for:
 
-- `src/Modules/*/Interface`
-- `src/Modules/*/Client`
-- `src/Modules/*/Contracts`
-- `src/Modules/*/Api`
-- `src/Modules/*/Application`
-- `src/Modules/*/Domain`
-- global frontend UI projects under `src/Interfaces/*`
+- any production Razor component artifact;
+- `Microsoft.NET.Sdk.Razor` or MudBlazor references;
+- Blazor runtime registration patterns;
+- `src/Modules/*/Interface`, `src/Apps/*/Interface`, or `src/Interfaces/*`.
 
-Validation fails for:
-
-- any ADR-003 boundary violation in fail-fast scope;
-- any `ReportOnly` mode;
-- any temporary exception;
-- any migrated module Interface project omitted from configuration;
-- any global frontend Interface group omitted from configuration;
-- frontend-safe layers referencing backend Application, Domain, Infrastructure, Api, server-only libraries, or `Entities.Server`;
-- Client projects referencing non-Contract module layers;
-- Contracts projects referencing implementation, UI, HTTP client, or server-only layers;
-- Api projects referencing Interface, Client, Infrastructure, or direct Domain projects.
+The module API boundary validator fails protected internal module APIs and clients that bypass the approved endpoint/client boundary.
 
 ## Final done criteria
 
-- Every migrated `<Module>.Interface` references only `<Module>.Contracts`, `<Module>.Client`, approved frontend-safe UI/base libraries, and explicitly approved frontend-safe cross-module contracts/interfaces.
+- No production Interface project exists.
 - Every migrated `<Module>.Client` uses HTTP and contract DTOs.
 - Every migrated `<Module>.Api` maps HTTP contracts to Application commands/queries without business rules.
 - Contracts are the serialization source of truth for wire DTOs, routes, and public API enums.
 - Client and API failure handling is explicit.
 - Static checks validate the boundary.
-- No module Interface project references backend Application, Domain, Infrastructure, Api, or `Entities.Server`.
+- React Web remains the only supported production UI surface unless a future accepted ADR changes the UI strategy.

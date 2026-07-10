@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Vitarish.Clinic.Interface;
 using Vitarish.Modules.Base.Core.Endpoints;
 
 public static class AppsExtensions

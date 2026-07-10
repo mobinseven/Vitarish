@@ -1,5 +1,0 @@
-@attribute [Route(AppRoutes.Sea.OwnerTemplateProjectNew)]
-
-<ProjectEditForm OnCreate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(projectId)))"
-                 OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.OwnerTemplateProjects))"
-                 TemplateMode="true" />

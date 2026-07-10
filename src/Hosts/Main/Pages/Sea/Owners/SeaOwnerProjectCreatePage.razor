@@ -1,4 +1,0 @@
-@attribute [Route(AppRoutes.Sea.ProjectNew)]
-
-<ProjectEditForm OnCreate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId)))"
-                 OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Projects))" />

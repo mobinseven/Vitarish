@@ -19,6 +19,7 @@ This index is the authoritative navigation point for global ADRs. Scoped platfor
 | [0006](0006-standardize-platform-journey-routing.md) | Standardize Platform Journey Routing | Accepted | 2026-06-29 |
 | [0007](0007-standardize-react-localization.md) | Standardize React Localization | Accepted | 2026-07-01 |
 | [0008](0008-standardize-app-experience-boundaries.md) | Standardize App Experience Boundaries | Accepted | 2026-07-09 |
+| [0009](0009-decommission-blazor-interfaces.md) | Decommission Blazor/Razor Component UI and Interface Projects | Accepted | 2026-07-10 |
 
 ## Related global architecture documents
 
@@ -28,4 +29,6 @@ This index is the authoritative navigation point for global ADRs. Scoped platfor
 
 ## Superseded or deprecated decisions
 
-No global ADRs are currently listed as superseded or deprecated.
+| ADR | Title | Status | Replaced By | Date |
+|---|---|---|---|---|
+| [0003](0003-isolate-module-interface-libraries-with-api-client-contracts.md) | Isolate module Interface libraries with API, Client, and Contracts projects | Superseded (UI portion only) | [0009](0009-decommission-blazor-interfaces.md) | 2026-07-10 |

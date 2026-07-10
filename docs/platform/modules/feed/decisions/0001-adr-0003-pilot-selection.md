@@ -31,4 +31,4 @@ The Feed module owns new `Contracts`, `Client`, and `Api` projects. Feed Interfa
 
 ## Validation / Enforcement
 
-`tools/architecture/interface_boundary_config.json` marks `Feed` as `FailFast`, so forbidden backend references from Feed Interface fail the ADR-003 boundary validation.
+ADR-0009 removed the Feed Interface project with the rest of the Blazor/Razor Interface surface. Current enforcement is `tools/architecture/validate_no_blazor.py` for Interface retirement and `tools/architecture/validate_module_api_boundaries.py` for surviving protected module API boundaries.

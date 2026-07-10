@@ -1,5 +1,0 @@
-@attribute [Route(AppRoutes.Clinic.OwnerServiceProviders)]
-@attribute [EnableSearch]
-
-<ServiceProvidersList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerServiceProvider(id)))"
-                      OnAdd="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerServiceProvider(Guid.Empty)))" />
