@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@heroui/react";
 import { useTheme } from "next-themes";
 import { useLocalizedText } from "@/localization";
-import { resolveThemeMode, type ThemeMode } from "@/features/account/theme/themeOptions";
+import { resolveThemeMode, type ThemeMode } from "@vitarish/account-web";
 import { FaIcon } from "@/features/landing/icons/fa-icon";
 
 const THEME_CYCLE: ThemeMode[] = ["light", "dark", "system"];

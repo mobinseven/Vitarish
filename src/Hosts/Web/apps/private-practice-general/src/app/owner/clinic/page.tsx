@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ClinicOwnerDashboard } from "@/features/clinic/dashboard/components/ClinicOwnerDashboard";
+import { ClinicOwnerDashboard } from "@vitarish/clinic-web";
 
 export const metadata: Metadata = {
   title: "Clinic Dashboard | Vitarish",

@@ -4,11 +4,11 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@heroui/react";
 import { Routes } from "@/app/routes";
-import { PatientProfileForm } from "@/features/clinic/patients/profile/components/PatientProfileForm";
-import { useCreatePatientProfile } from "@/features/clinic/patients/profile/hooks/useCreatePatientProfile";
-import { emptyFormData } from "@/features/clinic/patients/profile/models/PatientProfileForm";
+import { PatientProfileForm } from "@vitarish/clinic-web";
+import { useCreatePatientProfile } from "@vitarish/clinic-web";
+import { emptyFormData } from "@vitarish/clinic-web";
 import { useLocalizedText } from "@/localization";
-import type { PatientProfileFormData } from "@/features/clinic/patients/profile/models/PatientProfileForm";
+import type { PatientProfileFormData } from "@vitarish/clinic-web";
 
 export default function NewPatientRoute() {
   const router = useRouter();

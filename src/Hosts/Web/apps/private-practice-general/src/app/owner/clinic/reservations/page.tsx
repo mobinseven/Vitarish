@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { OwnerReservationsList } from "@/features/clinic/appointments/reservations/components/OwnerReservationsList";
+import { OwnerReservationsAgenda } from "@vitarish/clinic-web";
 
 export const metadata: Metadata = {
   title: "Reservations | Vitarish",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function ClinicOwnerReservationsPage() {
-  return <OwnerReservationsList />;
+  return <OwnerReservationsAgenda />;
 }

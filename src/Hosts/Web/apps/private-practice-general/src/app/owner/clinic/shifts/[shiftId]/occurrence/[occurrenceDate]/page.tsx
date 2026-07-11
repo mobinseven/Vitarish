@@ -4,7 +4,7 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Button, Spinner } from "@heroui/react";
 import { Routes } from "@/app/routes";
-import { useOwnerShiftDetail } from "@/features/clinic/appointments/shifts/hooks/useOwnerShifts";
+import { useOwnerShiftDetail } from "@vitarish/clinic-web";
 import { useLocalizedText } from "@/localization";
 
 export default function ClinicOwnerShiftOccurrencePage({

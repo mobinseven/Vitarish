@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useAuthenticationSessionGet } from "@/api/generated/authentication/authentication";
-import { resolveUserDisplayProfile } from "@/features/auth/session/userDisplayProfile";
+import { resolveUserDisplayProfile } from "@vitarish/auth-web";
 
 export function useAuthSession() {
   const query = useAuthenticationSessionGet();

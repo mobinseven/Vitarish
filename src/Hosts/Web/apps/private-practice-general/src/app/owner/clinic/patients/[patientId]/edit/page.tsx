@@ -4,8 +4,8 @@ import { use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Spinner } from "@heroui/react";
 import { Routes } from "@/app/routes";
-import { PatientProfileForm } from "@/features/clinic/patients/profile/components/PatientProfileForm";
-import { usePatientProfileEditor } from "@/features/clinic/patients/profile/hooks/usePatientProfileEditor";
+import { PatientProfileForm } from "@vitarish/clinic-web";
+import { usePatientProfileEditor } from "@vitarish/clinic-web";
 import { useLocalizedText } from "@/localization";
 
 export default function EditPatientRoute({

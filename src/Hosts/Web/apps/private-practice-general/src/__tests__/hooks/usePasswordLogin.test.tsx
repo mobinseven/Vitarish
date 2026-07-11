@@ -5,7 +5,7 @@ import { http, HttpResponse } from "msw";
 import { server } from "../server";
 import { usePasswordLogin } from "@/hooks/auth/usePasswordLogin";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
-import { getAuthenticationSessionGetQueryKey } from "@/api/generated/authentication/authentication";
+import { getAuthenticationSessionGetQueryKey } from "@vitarish/auth-web";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },

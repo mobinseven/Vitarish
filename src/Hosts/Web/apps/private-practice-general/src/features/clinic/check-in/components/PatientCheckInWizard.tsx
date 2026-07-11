@@ -5,7 +5,7 @@ import { Button } from "@heroui/react";
 import { Stepper, Widget } from "@heroui-pro/react";
 import type { ShiftReservationReadDto } from "@/api/generated/appointments/model";
 import { PatientFindOrCreate } from "@/features/clinic/patients/find-or-create/components/PatientFindOrCreate";
-import { ClinicDetailGrid } from "@/features/clinic/components/ClinicDetailGrid";
+import { ClinicDetailGrid } from "@vitarish/clinic-web";
 import { ClinicEmptyState } from "@/features/clinic/components/ClinicStateSurface";
 import { useLocalizedText } from "@/localization";
 

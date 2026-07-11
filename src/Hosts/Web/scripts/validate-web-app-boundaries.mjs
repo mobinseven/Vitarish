@@ -3,11 +3,11 @@
  * Validates cross-app and public-import boundaries.
  *
  * Enforces:
- *   - apps may import @vitarish/web-ui
- *   - apps must not import @vitarish/web-ui/src/**
+ *   - apps may import @vitarish/web-ui, @vitarish/web-api-client, @vitarish/web-localization
+ *   - apps must not import package internals (src/**)
  *   - apps must not import other apps' private files
  *   - app-to-app relative imports are forbidden
- *   - shared UI must flow through shared/web-ui only when presentation-only
+ *   - generated code remains package-internal
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -43,9 +43,10 @@ for (const app of apps) {
 
       const text = readFileSync(fullPath, "utf8");
 
-      // Block deep imports into @vitarish/web-ui
-      if (/from\s+["']@vitarish\/web-ui\/src\//.test(text)) {
-        console.error(`Deep import into @vitarish/web-ui/src in ${app.name}/${relativePath}: use public exports only`);
+      // Block deep imports into any @vitarish package
+      const packageDeepImport = text.match(/from\s+["']@vitarish\/([^"'/]+)\/src\//);
+      if (packageDeepImport) {
+        console.error(`Deep import into @vitarish/${packageDeepImport[1]}/src in ${app.name}/${relativePath}: use public exports only`);
         failed = true;
       }
 

@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
-import { ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
-import { usePatientProcedureDetail } from "@/features/clinic/patients/procedures/hooks/usePatientProcedureDetail";
-import { usePatientProcedureEvents } from "@/features/clinic/patients/procedures/hooks/usePatientProcedureEvents";
-import { PatientProcedureHeader } from "@/features/clinic/patients/procedures/components/PatientProcedureHeader";
-import { PatientProcedureEventTimeline } from "@/features/clinic/patients/procedures/components/PatientProcedureEventTimeline";
+import { ClinicErrorState, ClinicLoadingState } from "@vitarish/clinic-web";
+import { usePatientProcedureDetail } from "@vitarish/clinic-web";
+import { usePatientProcedureEvents } from "@vitarish/clinic-web";
+import { PatientProcedureHeader } from "@vitarish/clinic-web";
+import { PatientProcedureEventTimeline } from "@vitarish/clinic-web";
 import { useLocalizedText } from "@/localization";
 
 export default function ClinicPatientProcedurePage({

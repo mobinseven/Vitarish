@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SeaTemplateProjectsPage } from "@/features/sea/templates/components";
+import { SeaTemplateProjectsPage } from "@vitarish/sea-web";
 
 export const metadata: Metadata = {
   title: "SEA Templates | Vitarish",

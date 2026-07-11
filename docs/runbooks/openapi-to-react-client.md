@@ -1,17 +1,18 @@
-# OpenAPI → React Client Generation Runbook
+# OpenAPI to React Client Generation Runbook
 
 ## Overview
 
-The Web host's API client is generated from the .NET backend's OpenAPI specifications using [Orval](https://orval.dev/). The flow:
+The Web host's React clients are generated from the .NET backend's OpenAPI specifications using [Orval](https://orval.dev/). ADR-0008 makes generated clients feature-package-owned by default. During the package migration, legacy app-bound output under `src/Hosts/Web/apps/*/src/api/generated` may still exist, but new feature ownership belongs under `src/Hosts/Web/shared/<feature>-web/src/api/generated`. The flow:
 
 ```
 .NET Module Endpoints (C#)
-  → AddModuleOpenApiDocument() (registers filtered OpenAPI spec)
-  → MapOpenApi() (serves spec as JSON in Development)
-  → Orval (consumes spec, generates TypeScript)
-  → Generated React Query hooks + DTO types + MSW mocks
-  → Feature hooks wrap generated hooks (optional)
-  → UI components consume feature hooks
+  -> AddModuleOpenApiDocument() (registers filtered OpenAPI spec)
+  -> MapOpenApi() (serves spec as JSON in Development)
+  -> Orval in the owning feature package
+  -> Package-internal generated React Query hooks + DTO types + MSW mocks
+  -> Feature API wrappers/hooks map generated output into feature read models and states
+  -> Feature package UI/page surfaces consume feature hooks
+  -> App route files import and compose feature package surfaces
 ```
 
 ## Architecture
@@ -39,9 +40,15 @@ Specs are served at `/openapi/{documentName}.json` (Development only):
 app.MapOpenApi("/openapi/{documentName}.json");
 ```
 
-### Frontend: Orval Configuration
+### Frontend: Feature Package Orval Configuration
 
-Orval config at `src/Hosts/Web/src/api/client/orval.config.ts`:
+Target Orval config lives in the owning feature package:
+
+```text
+src/Hosts/Web/shared/<feature>-web/src/api/client/orval.config.ts
+```
+
+The legacy private-practice app still has app-bound generation under `src/Hosts/Web/apps/private-practice-general/src/api/**` until each feature package is extracted.
 
 ```typescript
 const specsDir = "../specs";
@@ -49,15 +56,16 @@ const specsDir = "../specs";
 export default defineConfig({
   authentication: {
     input: {
-      target: `${specsDir}/authentication.json`,
+      target: `${specsDir}/Main_authentication.json`,
     },
     output: {
-      target: "./src/api/generated/authentication/authentication.ts",
-      schemas: "./src/api/generated/authentication/model",
+      target: "../generated/authentication/authentication.ts",
+      schemas: "../generated/authentication/model",
       client: "react-query",
       override: {
         mutator: {
-          path: "./src/api/client/apiFetch.ts",
+          // If Orval requires a file path, use a package-local file that re-exports this symbol.
+          path: "@vitarish/web-api-client",
           name: "apiFetch",
         },
       },
@@ -71,18 +79,34 @@ export default defineConfig({
 - **output.target**: Generated hooks file
 - **output.schemas**: Generated TypeScript types directory
 - **client**: `react-query` generates React Query hooks
-- **override.mutator**: Custom fetch function (`apiFetch`) instead of default `fetch`
+- **override.mutator**: Shared Web transport function (`apiFetch`) instead of default `fetch`
 
 ### Generated Output
 
+Target package-owned output:
+
 ```
-src/Hosts/Web/src/api/generated/
+src/Hosts/Web/shared/<feature>-web/src/api/generated/
   authentication/
-    authentication.ts          ← React Query hooks (useMutation, useQuery)
-    authentication.msw.ts      ← MSW mock handlers for testing
+    authentication.ts          # React Query hooks (useMutation, useQuery)
+    authentication.msw.ts      # MSW mock handlers for testing
     model/
-      index.ts                 ← Re-exports all DTO types
-      passwordLoginRequest.ts  ← Request/response types
+      index.ts                 # Re-exports generated DTO types
+      passwordLoginRequest.ts  # Request/response types
+      authenticationChallengeDto.ts
+      ...
+```
+
+Legacy app-bound output remains only until the owning feature package is extracted:
+
+```
+src/Hosts/Web/apps/private-practice-general/src/api/generated/
+  authentication/
+    authentication.ts          # React Query hooks (useMutation, useQuery)
+    authentication.msw.ts      # MSW mock handlers for testing
+    model/
+      index.ts                 # Re-exports all DTO types
+      passwordLoginRequest.ts  # Request/response types
       authenticationChallengeDto.ts
       ...
   users/
@@ -93,28 +117,37 @@ src/Hosts/Web/src/api/generated/
 
 ### The apiFetch Boundary
 
-All generated hooks use `apiFetch` instead of raw `fetch`:
+All generated hooks use the shared Web `apiFetch` from `@vitarish/web-api-client` instead of raw `fetch` or package-local fetch copies:
 
 - **Antiforgery**: Auto-fetches and attaches CSRF tokens for non-GET requests
 - **Error handling**: Throws `ApiError` with `ProblemDetails` on non-OK responses
 - **Base URL**: Uses `NEXT_PUBLIC_API_BASE_URL` env var
 - **Credentials**: Includes cookies (`credentials: "include"`)
+- **Tenant context**: Applies the Web tenant host header consistently
+- **Localization**: Does not translate messages; presentation maps stable error codes to localized copy
 
 ## Regenerating the Client
 
 ### Prerequisites
 
-- OpenAPI spec JSON files in `src/Hosts/Web/src/api/specs/`
+- OpenAPI spec JSON files in the owning feature package under `src/Hosts/Web/shared/<feature>-web/src/api/specs/`
 - Node.js 22+, npm 10+
 
 ### Steps
 
 ```bash
 cd src/Hosts/Web
-npm run generate:api
+npm run generate:api --workspace @vitarish/<feature>-web
 ```
 
-Orval reads spec files from `src/api/specs/` and overwrites generated output in `src/api/generated/`.
+For legacy app-bound clients that have not moved into a feature package yet:
+
+```bash
+cd src/Hosts/Web
+npm run generate:api --workspace @vitarish/private-practice-general
+```
+
+Orval reads spec files from the package-local `src/api/specs/` folder and overwrites generated output in the package-local `src/api/generated/` folder.
 
 ### Verifying the Generation
 
@@ -126,7 +159,7 @@ npm run typecheck
 npm run test
 ```
 
-## Adding a New Module
+## Adding a Module API to a Feature Package
 
 ### 1. Register the OpenAPI Document
 
@@ -140,20 +173,20 @@ The second argument must match the `GroupName` or tag on your module's endpoints
 
 ### 2. Add Orval Config Entry
 
-In `src/Hosts/Web/src/api/client/orval.config.ts`:
+In the owning feature package, for example `src/Hosts/Web/shared/<feature>-web/src/api/client/orval.config.ts`:
 
 ```typescript
 modulename: {
   input: {
-    target: `${specsDir}/modulename.json`,
+    target: `${specsDir}/Main_modulename.json`,
   },
   output: {
-    target: "./src/api/generated/modulename/modulename.ts",
-    schemas: "./src/api/generated/modulename/model",
+    target: "../generated/modulename/modulename.ts",
+    schemas: "../generated/modulename/model",
     client: "react-query",
     override: {
       mutator: {
-        path: "./src/api/client/apiFetch.ts",
+        path: "@vitarish/web-api-client",
         name: "apiFetch",
       },
     },
@@ -164,20 +197,21 @@ modulename: {
 ### 3. Regenerate
 
 ```bash
-npm run generate:api
+npm run generate:api --workspace @vitarish/<feature>-web
 ```
 
 ### 4. Create MSW Mocks
 
-Orval generates `modulename.msw.ts`. Add handlers to `src/__tests__/server.ts` if tests need the new module.
+Orval generates `modulename.msw.ts`. Add handlers to the owning package or app test server if tests need the new module. Keep generated MSW output package-internal and do not edit it manually.
 
 ## Adding an Endpoint to an Existing Module
 
 1. Add the endpoint in the .NET module (ensure it has the correct `GroupName`/tag)
-2. Update the spec file in `src/Hosts/Web/src/api/specs/`
-3. Run `npm run generate:api`
-4. New hook and types appear in the generated output
-5. Use the new hook in your component
+2. Update the spec file in the owning feature package's `src/api/specs/` folder
+3. Run `npm run generate:api --workspace @vitarish/<feature>-web`
+4. New hooks and types appear in the package-internal generated output
+5. Wrap generated hooks in feature-owned API wrappers/hooks before page or component consumption
+6. Export only the feature hooks, read models, page/surface components, and localization namespace needed by app routes
 
 ## Endpoint Naming Convention
 
@@ -199,7 +233,7 @@ The generated hook name follows the pattern: `use{OperationId}Mutation` or `use{
 | `ApiError: 401` on mutations | Antiforgery token expired or missing | `apiFetch` auto-fetches tokens; ensure `/api/modules/authentication/antiforgery` is reachable |
 | `ApiError: 403` on mutations | CSRF validation failed | Check cookie is sent (`credentials: "include"`) and antiforgery header matches |
 | Generated hooks don't match expected API | Orval config path is wrong | Verify `input.target` in `orval.config.ts` matches spec file location |
-| MSW mocks return wrong shapes | Generated DTO types changed | Regenerate mocks: `npm run generate:api` |
+| MSW mocks return wrong shapes | Generated DTO types changed | Regenerate mocks in the owning workspace: `npm run generate:api --workspace @vitarish/<feature>-web` |
 
 ## File Reference
 
@@ -207,14 +241,15 @@ The generated hook name follows the pattern: `use{OperationId}Mutation` or `use{
 |---|---|
 | `src/Hosts/Main/Program.cs:93-109` | OpenAPI document registration |
 | `src/Hosts/Main/DependencyInjection/HostOpenApiDocumentExtensions.cs` | Module document filter |
-| `src/Hosts/Web/src/api/client/orval.config.ts` | Orval generation config |
-| `src/Hosts/Web/src/api/client/apiFetch.ts` | Custom fetch boundary |
-| `src/Hosts/Web/src/api/generated/` | Generated hooks, types, mocks |
+| `src/Hosts/Web/shared/<feature>-web/src/api/client/orval.config.ts` | Target feature package Orval generation config |
+| `src/Hosts/Web/shared/web-api-client/src/index.ts` | Shared `apiFetch` and Web transport boundary |
+| `src/Hosts/Web/shared/<feature>-web/src/api/generated/` | Target package-internal generated hooks, types, mocks |
+| `src/Hosts/Web/apps/private-practice-general/src/api/**` | Legacy app-bound generation source until migrated into feature packages |
 | `src/Hosts/Web/.env.example` | `NEXT_PUBLIC_API_BASE_URL` |
 
 ## Web host API boundary and antiforgery troubleshooting
 
-The React Web host must call module APIs through the central `apiFetch` mutator. Generated Orval clients are configured to use `src/api/client/apiFetch.ts`, and feature/page code must not call `/api/modules/**` with direct `fetch`. Run `npm run validate:api-boundary` from `src/Hosts/Web` before changing module API adapters.
+The React Web host must call module APIs through the central `apiFetch` mutator from `@vitarish/web-api-client`. Generated Orval clients are configured to use the shared mutator, and feature/page code must not call `/api/modules/**` with direct `fetch`. Run `npm run validate:api-boundary` from `src/Hosts/Web` before changing module API adapters.
 
 For unsafe browser-cookie requests, `apiFetch` first bootstraps an antiforgery token from the same API origin used for the module request. Troubleshoot failures in this order:
 

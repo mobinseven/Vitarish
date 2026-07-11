@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { SeaProcedureDetailPage } from "@/features/sea/procedures/components/SeaProcedureDetailPage";
+import { SeaProcedureDetailPage } from "@vitarish/sea-web";
 
 export default function SeaProcedureDetailRoute({
   params,

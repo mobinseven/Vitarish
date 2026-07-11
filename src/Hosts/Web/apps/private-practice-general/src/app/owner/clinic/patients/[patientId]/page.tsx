@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { PatientOverviewPageSurface } from "@/features/clinic/patients/overview/components/PatientOverviewPageSurface";
+import { PatientOverviewPageSurface } from "@vitarish/clinic-web";
 
 export default function PatientDetailRoute({
   params,

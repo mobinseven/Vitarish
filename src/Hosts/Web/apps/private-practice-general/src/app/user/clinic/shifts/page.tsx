@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { UserShiftsList } from "@/features/clinic/user-appointments/shifts/components/UserShiftsList";
+import { UserShiftsList } from "@vitarish/clinic-web";
 
 export const metadata: Metadata = {
   title: "Available Shifts | Vitarish",

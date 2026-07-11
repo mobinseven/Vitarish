@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
-import { ClinicDetailGrid } from "@/features/clinic/components/ClinicDetailGrid";
-import { ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
-import { useOwnerShiftDetail, useDeleteShift } from "@/features/clinic/appointments/shifts/hooks/useOwnerShifts";
+import { ClinicDetailGrid } from "@vitarish/clinic-web";
+import { ClinicErrorState, ClinicLoadingState } from "@vitarish/clinic-web";
+import { useOwnerShiftDetail, useDeleteShift } from "@vitarish/clinic-web";
 import { useLocalizedText, formatDateTime, type MessageKey } from "@/localization";
 
 const dayNameKeys = [

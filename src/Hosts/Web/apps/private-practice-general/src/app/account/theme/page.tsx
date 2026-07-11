@@ -5,15 +5,15 @@ import { Button } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { AccountBackLink, AccountSurface } from "@/components/account/AccountSurface";
 import { usePalette } from "@/components/providers/PaletteProvider";
-import { useAccountTheme } from "@/features/account/hooks/useAccountTheme";
+import { useAccountTheme } from "@vitarish/account-web";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { useLocalizedText } from "@/localization";
-import { PaletteSwitch } from "@/features/account/theme/PaletteSwitch";
+import { PaletteSwitch } from "@vitarish/account-web";
 import {
   paletteStorageKey,
   setVibrantPaletteAttribute,
   vibrantPaletteStorageKey,
-} from "@/features/account/theme/themeOptions";
+} from "@vitarish/account-web";
 
 export default function ThemePage() {
   const { user } = useAuthSession();

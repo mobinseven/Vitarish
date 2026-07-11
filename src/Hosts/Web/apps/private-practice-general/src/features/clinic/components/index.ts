@@ -1,5 +1,4 @@
 export { ClinicOwnerPatientsPage } from "./ClinicOwnerPatientsPage";
-export { ClinicDetailGrid, type ClinicDetailItem } from "./ClinicDetailGrid";
 export { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "./ClinicStateSurface";
 export { ClinicNavigationGrid, type ClinicNavigationItem } from "./ClinicNavigationGrid";
 export { PatientsGrid } from "./PatientsGrid";

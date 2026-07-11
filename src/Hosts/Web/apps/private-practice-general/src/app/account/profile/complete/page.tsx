@@ -1,4 +1,4 @@
-import { ProfileCompletionPage } from "@/features/journey/pages/ProfileCompletionPage";
+import { ProfileCompletionPage } from "@vitarish/journey-web";
 
 export default function ProfileCompleteRoute() {
   return <ProfileCompletionPage />;

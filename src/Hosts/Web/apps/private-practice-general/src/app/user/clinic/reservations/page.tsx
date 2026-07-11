@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { UserReservationsList } from "@/features/clinic/user-appointments/reservations/components/UserReservationsList";
+import { UserReservationsList } from "@vitarish/clinic-web";
 
 export const metadata: Metadata = {
   title: "My Reservations | Vitarish",

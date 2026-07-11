@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { TextField, Label, Input, Button } from "@heroui/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { AccountBackLink, AccountSurface, AccountWidget } from "@/components/account/AccountSurface";
-import { useAccountPasswordChange } from "@/features/account/hooks/useAccountPasswordChange";
+import { useAccountPasswordChange } from "@vitarish/account-web";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { localizeApiError, useLocalizedText } from "@/localization";
 

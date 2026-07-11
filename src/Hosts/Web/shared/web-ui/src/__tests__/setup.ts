@@ -16,6 +16,20 @@ if (!window.matchMedia) {
   });
 }
 
+if (!window.URL.createObjectURL) {
+  Object.defineProperty(window.URL, "createObjectURL", {
+    writable: true,
+    value: () => "blob:vitest",
+  });
+}
+
+if (!window.URL.revokeObjectURL) {
+  Object.defineProperty(window.URL, "revokeObjectURL", {
+    writable: true,
+    value: () => undefined,
+  });
+}
+
 if (!window.ResizeObserver) {
   window.ResizeObserver = class ResizeObserver {
     observe() {

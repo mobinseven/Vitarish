@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { SeaTemplateProjectDetailPage } from "@/features/sea/templates/components";
+import { SeaTemplateProjectDetailPage } from "@vitarish/sea-web";
 
 export default function SeaTemplateDetailRoute({
   params,

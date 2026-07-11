@@ -6,7 +6,7 @@ import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
 import { I18nProvider } from "@react-aria/i18n";
 import { LocalizationProvider, getReactAriaLocale, type SupportedLocale } from "@/localization";
-import { type ThemeMode } from "@/features/account/theme/themeOptions";
+import { type ThemeMode } from "@vitarish/account-web";
 import { PaletteProvider } from "./PaletteProvider";
 import { VibrantPaletteProvider } from "./VibrantPaletteProvider";
 

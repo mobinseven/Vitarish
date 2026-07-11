@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ClinicOwnerRemindersGrid } from "@/features/clinic/reminders/components/ClinicOwnerRemindersGrid";
+import { ClinicOwnerRemindersGrid } from "@vitarish/clinic-web";
 
 export const metadata: Metadata = {
   title: "Clinic Reminders | Vitarish",

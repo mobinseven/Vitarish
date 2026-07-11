@@ -6,6 +6,7 @@ export { KnowledgeCorpusRail } from "./components/KnowledgeCorpusRail";
 export { KnowledgeQuestionComposer } from "./components/KnowledgeQuestionComposer";
 export { knowledgeUserQaKeys, useKnowledgeUserWorkspace } from "./hooks/useKnowledgeUserWorkspace";
 export { useKnowledgeUserAsk } from "./hooks/useKnowledgeUserAsk";
+export { createKnowledgeQaClient, getKnowledgeQaErrorMessage } from "./client/createKnowledgeQaClient";
 export type {
   KnowledgeAnswerModel,
   KnowledgeAskAcrossCorporaRequest,

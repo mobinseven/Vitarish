@@ -5,10 +5,10 @@ import { Button } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { AccountBackLink, AccountSurface, AccountWidget } from "@/components/account/AccountSurface";
-import { useAccountPasskeys } from "@/features/account/hooks/useAccountPasskeys";
+import { useAccountPasskeys } from "@vitarish/account-web";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { localizeApiError, useLocalizedText } from "@/localization";
-import { localizePasskeyRegistrationError } from "@/features/account/passkeyRegistrationErrors";
+import { localizePasskeyRegistrationError } from "@vitarish/account-web";
 
 export default function PasskeysPage() {
   const { user } = useAuthSession();

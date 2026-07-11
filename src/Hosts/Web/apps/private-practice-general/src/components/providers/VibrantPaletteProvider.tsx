@@ -4,7 +4,7 @@ import { type ReactNode, useEffect } from "react";
 import {
   setVibrantPaletteAttribute,
   vibrantPaletteStorageKey,
-} from "@/features/account/theme/themeOptions";
+} from "@vitarish/account-web";
 
 export function VibrantPaletteProvider({ children }: { children: ReactNode }) {
   useEffect(() => {

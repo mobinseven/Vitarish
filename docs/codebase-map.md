@@ -3,7 +3,7 @@
 Status: Active  
 Owner: Platform Architecture  
 Scope: Repository navigation  
-Last reviewed: 2026-07-09
+Last reviewed: 2026-07-10
 
 ## 1. Purpose and scope
 
@@ -16,7 +16,7 @@ Update this file only when repository navigation changes. Keep it folder-level a
 ## 2. Repository overview
 
 - **Purpose:** Vitarish is a modular healthcare/business platform with tenant-aware web applications, module APIs, shared contracts, infrastructure adapters, and documentation for journeys, architecture decisions, tests, and runbooks.
-- **System type:** A .NET modular backend/Blazor host plus a Next.js React web workspace. The backend owns module composition, identity, persistence, OpenAPI generation, Hangfire jobs, and server-rendered Razor pages. The web workspace owns modern React applications and shared UI packages.
+- **System type:** A .NET modular backend/Blazor host plus a Next.js React web workspace. The backend owns module composition, identity, persistence, OpenAPI generation, Hangfire jobs, and server-rendered Razor pages. The web workspace owns modern React applications, feature packages, generic UI packages, API transport, and localization composition.
 - **Main technologies:** .NET/ASP.NET Core, Razor Components/Blazor Server, EF Core, PostgreSQL/Npgsql, Duende IdentityServer, Hangfire, Finbuckle.MultiTenant, Redis integration, MediatR, FluentValidation, Next.js, React, TypeScript, HeroUI, TanStack Query, Orval, Vitest, Docker Compose, and GitHub Actions.
 - **Inside this repo:** Backend modules under `src/Modules`, app aggregators under `src/Apps`, runnable hosts under `src/Hosts`, identity/libraries under `src/Identity` and `src/Libraries`, React web apps/packages under `src/Hosts/Web`, tests under `tests`, architecture/development/product docs under `docs`, validation scripts under `tools` and `src/Hosts/Web/scripts`, and agent operating rules under `AGENTS.md` plus `.agents/skills`.
 - **External systems:** Production databases, Redis, object/file storage providers, mail/SMS/communication gateways, FIDO/passkey authenticators, Tamin/prescription providers, OpenAI/Ollama/AI providers, Elasticsearch/search infrastructure, Google Speech, deployment infrastructure, secrets stores, and live tenant/user data are external.
@@ -34,7 +34,7 @@ Update this file only when repository navigation changes. Keep it folder-level a
 | `src/Apps` | App composition/aggregator projects and app-level contracts/clients/core/interface packages. | Add app-specific composition here when a module is exposed through an app. |
 | `src/Build` | Build-related source. | High-care; affects multiple projects. |
 | `src/Hosts/Main` | ASP.NET Core host, Blazor/Razor pages, auth, OpenAPI generation, Dockerfile, host settings. | High-risk runtime/composition root; avoid business rules in pages/host. |
-| `src/Hosts/Web` | npm workspace for Next.js apps and shared React packages. | UI-safe when following web boundary rules; generated API output is not manual. |
+| `src/Hosts/Web` | npm workspace for Next.js apps and shared React packages, including generic UI, feature packages, Web API transport, and localization composition. | UI-safe when following web boundary rules; generated API output is not manual. |
 | `src/Identity` | Identity client/application/domain/infrastructure/hosting code. | Security-sensitive; requires careful review. |
 | `src/Libraries` | Shared server/client/contracts/generators such as Audit and Entities. | High reuse; avoid app-specific behavior. |
 | `src/Modules` | Business modules with Domain/Application/Infrastructure/Api/Contracts/Client/Interface/Module slices. | Normal location for module behavior; preserve boundaries. |
@@ -58,7 +58,7 @@ Most business modules follow this slice layout:
 
 Ownership and dependency rules:
 
-- UI code lives in `src/Hosts/Main/Pages`, `src/Apps/*/Core`, `src/Hosts/Web/apps/*/src/app`, app `components`/`features`, and shared React packages under `src/Hosts/Web/shared/*`.
+- UI code lives in `src/Hosts/Main/Pages`, `src/Apps/*/Core`, `src/Hosts/Web/apps/*/src/app`, and shared React packages under `src/Hosts/Web/shared/*`. React Web app route files compose package surfaces; workflow feature implementation belongs in `src/Hosts/Web/shared/<feature>-web` under ADR-0008. Existing workflow folders under `src/Hosts/Web/apps/private-practice-general/src/features/*` are migration sources until package extraction is complete; `home` and `landing` are app-owned route/shell composition unless reusable workflow behavior is extracted.
 - Business logic lives in `src/Modules/<Module>/Domain`; orchestration lives in `Application`.
 - Database and external infrastructure live in `src/Modules/<Module>/Infrastructure`, `src/Libraries/*/*.Server`, identity infrastructure, or truly host-owned infrastructure.
 - Shared contracts/DTOs live in `src/Modules/<Module>/Contracts`, `src/Apps/*/Interface`, and generated TypeScript clients derived from OpenAPI.
@@ -71,13 +71,13 @@ Use module names as the feature map. For each module, the conventional locations
 
 | Feature/module | UI | Commands/writes | Queries/reads | Domain | Persistence | Tests | Docs |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Authentication | `src/Hosts/Main/Pages/Accounts`, `src/Hosts/Web/apps/*/src/components/auth`, `features/auth` | `src/Modules/Authentication/Application` | same | `src/Modules/Authentication/Domain` | `Infrastructure` and `src/Identity` | `tests/Modules/Authentication.Tests` | `docs/platform/modules/authentication` |
-| Journey/onboarding | React `features/journey`, host common/setup pages | `src/Modules/Journey/Application` | same | `src/Modules/Journey/Domain` | `Infrastructure` | `tests/Modules/Journey.Tests` | `docs/platform/modules/base/journeys` and app journeys |
+| Authentication | `src/Hosts/Main/Pages/Accounts`, React routes, legacy `features/auth`, target `src/Hosts/Web/shared/auth-web` | `src/Modules/Authentication/Application` | same | `src/Modules/Authentication/Domain` | `Infrastructure` and `src/Identity` | `tests/Modules/Authentication.Tests` | `docs/platform/modules/authentication` |
+| Journey/onboarding | React routes, legacy `features/journey`, target `src/Hosts/Web/shared/journey-web`, host common/setup pages | `src/Modules/Journey/Application` | same | `src/Modules/Journey/Domain` | `Infrastructure` | `tests/Modules/Journey.Tests` | `docs/platform/modules/base/journeys` and app journeys |
 | Platform/admin/tenants | `src/Hosts/Main/Pages/Platform`, React owner/admin areas | `src/Modules/Platform/Application` | same | `src/Modules/Platform/Domain` | `Infrastructure` | `tests/Modules/Platform.Tests` | `docs/platform/modules/platform` |
 | Parties/tenants/owners | `src/Hosts/Main/Pages/Parties` | `src/Modules/Parties/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Parties.Tests` | `docs/platform/modules/parties` |
-| Users | Account/profile UI and user features | `src/Modules/Users/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Users.Tests` | `docs/platform/modules/users` |
+| Users | Account/profile UI, legacy `features/account`, target `src/Hosts/Web/shared/account-web` | `src/Modules/Users/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Users.Tests` | `docs/platform/modules/users` |
 | Appointments | `src/Hosts/Main/Pages/Appointments`, clinic appointment pages | `src/Modules/Appointments/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Appointments.Tests` | `docs/platform/modules/appointments`, `docs/apps/clinic-owner/journeys` |
-| Sea/clinic workflows | `src/Hosts/Main/Pages/Sea`, clinic Sea pages, React `features/sea` | `src/Modules/Sea/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Sea.Tests` | `docs/platform/modules/sea` |
+| Sea/clinic workflows | `src/Hosts/Main/Pages/Sea`, clinic Sea pages, legacy `features/sea`, target `src/Hosts/Web/shared/sea-web` | `src/Modules/Sea/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Sea.Tests` | `docs/platform/modules/sea` |
 | Medical/prescriptions | `src/Hosts/Main/Pages/Prescriptions`, `Pages/Support/Prescriptions` | `src/Modules/Medical/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Medical.Tests` | `docs/platform/modules/medical` |
 | Knowledge/QA | `src/Hosts/Main/Pages/Knowledge`, `src/Hosts/Web/shared/knowledge-web`, app knowledge routes | `src/Modules/Knowledge/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Knowledge.Tests`, package tests | `docs/platform/modules/knowledge` |
 | Search | platform search UI | `src/Modules/Search/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Search.Tests` | `docs/platform/modules/search` |
@@ -93,14 +93,14 @@ Use module names as the feature map. For each module, the conventional locations
 
 ## 6. Common change guide
 
-- **New page:** Blazor: `src/Hosts/Main/Pages/<Area>` plus route constants in `src/Hosts/Main/Common/Routes` if needed. Next: `src/Hosts/Web/apps/<app>/src/app/<route>/page.tsx` and app navigation/shell files.
-- **New component:** App-specific React component in app `components` or `features`; reusable primitives in `src/Hosts/Web/shared/web-ui`; Blazor component near the owning page/app core. Do not create design-system wrappers unless needed now.
+- **New page:** Blazor: `src/Hosts/Main/Pages/<Area>` plus route constants in `src/Hosts/Main/Common/Routes` if needed. Next: `src/Hosts/Web/apps/<app>/src/app/<route>/page.tsx` imports page/surface components from the owning feature package and wires app navigation/shell files.
+- **New component:** Workflow feature-specific React components live in `src/Hosts/Web/shared/<feature>-web`; app route/shell components stay in the owning app; generic presentation primitives live in `src/Hosts/Web/shared/web-ui`; Blazor components live near the owning page/app core. Existing app-local workflow feature components are legacy migration sources. Do not create design-system wrappers unless needed now.
 - **New domain entity:** `src/Modules/<Module>/Domain`; add persistence mapping in Infrastructure only if it must be stored.
 - **New command:** `src/Modules/<Module>/Application` under existing command/write convention; expose through Api only when needed.
 - **New query:** `src/Modules/<Module>/Application` under existing query/read convention; keep it side-effect free.
 - **Validation:** Domain invariants in Domain; use-case/input validation in Application; transport shape validation in Api; UI form validation in owning UI feature. Do not duplicate rules.
 - **Database migration:** Generate EF Core migrations in `src/Modules/<Module>/Infrastructure/Migrations/<DbName>` or the owning server library/host migration assembly.
-- **Translations/localization:** React app messages under `src/Hosts/Web/apps/<app>/src/localization`; Blazor/.NET localization under the owning host/module resources if present. Follow ADR-0007.
+- **Translations/localization:** React locale/provider/formatting belongs in the core Web localization package; workflow feature messages belong to the owning `src/Hosts/Web/shared/<feature>-web` namespace; app-owned route/shell copy such as `home` and `landing` stays with the app route composition. Blazor/.NET localization lives under the owning host/module resources if present. Follow ADR-0007.
 - **Tests:** .NET tests in `tests/Modules/<Module>.Tests`; React tests under app/shared package `src/__tests__`; architecture checks under `tools/architecture` or existing npm validators.
 - **Pattern to copy:** Copy the nearest same-module/same-layer artifact first. For API-to-React work, follow `docs/runbooks/openapi-to-react-client.md` and ADR-0003/0005 conventions.
 
@@ -108,15 +108,15 @@ Use module names as the feature map. For each module, the conventional locations
 
 Generated or derived artifacts:
 
-- `src/Hosts/Web/apps/*/src/api/generated` for generated TypeScript clients.
-- OpenAPI specs under `src/Hosts/Web/apps/*/src/api/specs` and `src/Hosts/Web/src/api/specs`.
+- `src/Hosts/Web/shared/*/src/api/generated` for package-owned generated TypeScript clients after ADR-0008 migration. Existing `src/Hosts/Web/apps/*/src/api/generated` output is legacy app-bound generated code until its owning feature package is extracted.
+- OpenAPI specs under `src/Hosts/Web/shared/*/src/api/specs` after ADR-0008 migration. Existing `src/Hosts/Web/apps/*/src/api/specs` specs are legacy app-bound sources until migrated.
 - EF migration designer files and model snapshots under `src/**/Migrations`.
 - `tsconfig.tsbuildinfo`, build output (`bin`, `obj`, `.next`, `node_modules`) when present.
 
 Fragile or high-care areas:
 
 - `AGENTS.md`, architecture ADRs/conventions/validators, identity/auth/security, host startup and middleware, module registration/composition, database migrations/snapshots, generated API boundaries, CI, package lock/version files, Docker/deployment config, and secrets/templates.
-- API boundary drift between OpenAPI, generated clients, and React wrappers; ADR-0003 interface violations; module feature flags in `Main.csproj`; auth/cookie/session/antiforgery ordering; tenant resolution; EF migrations/snapshots; date/time UTC persistence; localization/date input rules; Docker port/base URL mismatches; npm workspace dependency/lockfile drift.
+- API boundary drift between OpenAPI, generated clients, feature wrappers, and React routes; duplicated `apiFetch` behavior outside the Web transport package; ADR-0003 interface violations; module feature flags in `Main.csproj`; auth/cookie/session/antiforgery ordering; tenant resolution; EF migrations/snapshots; date/time UTC persistence; localization/date input rules; Docker port/base URL mismatches; npm workspace dependency/lockfile drift.
 - Do not edit generated clients by hand; regenerate from OpenAPI. Do not put business rules in endpoints, UI, migrations, DTOs, localization resources, or SQL. Keep command/write operations separate from query/read operations.
 
 ## 8. Build/test/run pointers
@@ -128,7 +128,7 @@ Fragile or high-care areas:
 - **Web install:** from `src/Hosts/Web`, run `npm install` when dependencies are missing or package files changed.
 - **Web dev:** from `src/Hosts/Web`, `npm run dev:private-practice-general` or `npm run dev:knowledge-qa-demo`.
 - **Web build/typecheck/test:** from `src/Hosts/Web`, use `npm run build`, `npm run typecheck`, `npm run test`, and targeted workspace scripts.
-- **Web API generation:** app scripts run `generate:api` before dev/build; run it manually in the app workspace after OpenAPI changes.
+- **Web API generation:** package or app scripts run `generate:api` before dev/build; after OpenAPI changes, regenerate in the owning feature package when migrated, or in the legacy app workspace until migration is complete.
 - **Docker/dev containers:** `docker compose -f src/Hosts/docker-compose.web.yml up --build` runs web plus main.
 - **Before committing:** Run the narrowest deterministic checks for changed files, plus required architecture/API/UI validators. For documentation-only changes, at minimum inspect the Markdown and verify git diff.
 
@@ -143,7 +143,7 @@ Fragile or high-care areas:
 - **Cross-cutting runbooks:** `docs/runbooks`.
 - **Journey/test indexes:** `docs/indexes`.
 - **Development workflow notes:** `docs/development`.
-- **Durable lessons:** No dedicated `memory.md` is present in this repo; use scoped durable docs or create one only through explicit documentation governance.
+- **Durable lessons:** [`docs/memory.md`](memory.md) records practical repo-specific lessons that do not belong in ADRs, runbooks, or module docs.
 
 ## 10. Maintenance rules
 

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button, Input, Label, TextField } from "@heroui/react";
 import { NativeSelect, NumberStepper, Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
-import { useCreateShift } from "@/features/clinic/appointments/shifts/hooks/useOwnerShifts";
+import { useCreateShift } from "@vitarish/clinic-web";
 import { useLocalizedText, type MessageKey } from "@/localization";
 
 const dayNameKeys = [
