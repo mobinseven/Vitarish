@@ -4,7 +4,7 @@ import {
   seaGetProcedure,
   seaListProcedures,
   seaUpdateProcedure,
-} from "@vitarish/sea-web/api/generated/sea/sea";
+} from "../../../../api/generated/sea/sea";
 import {
   seaCommitEvent,
   seaCreateEventAfter,
@@ -16,13 +16,13 @@ import {
   seaMoveEventUp,
   seaUncommitEvent,
   seaUpdateEvent,
-} from "@vitarish/sea-web/api/generated/sea/sea";
+} from "../../../../api/generated/sea/sea";
 import {
   seaDeleteAttachment,
   seaListAttachments,
   seaCreateTextAttachment,
   seaCreateFileAttachment,
-} from "@vitarish/sea-web/api/generated/sea/sea";
+} from "../../../../api/generated/sea/sea";
 import {
   seaListEventRoles,
   seaListEventReadRoles,
@@ -30,23 +30,23 @@ import {
   seaAssignEventRole,
   seaRemoveEventRole,
   seaListRoles,
-} from "@vitarish/sea-web/api/generated/sea/sea";
-import { seaListProjects } from "@vitarish/sea-web/api/generated/sea/sea";
-import type { SeaCommandResult } from "@vitarish/sea-web/api/generated/sea/model";
+} from "../../../../api/generated/sea/sea";
+import { seaListProjects } from "../../../../api/generated/sea/sea";
+import type { SeaCommandResult } from "../../../../api/generated/sea/model";
 import {
   mapSeaAttachment,
   mapSeaEvent,
   mapSeaProcedure,
   mapSeaProject,
   mapSeaRole,
-} from "../../../../../features/sea/shared/models/seaReadDtoMappers";
+} from "../../shared/models/seaReadDtoMappers";
 import type {
   SeaAttachmentReadDto,
   SeaEventReadDto,
   SeaProcedureReadDto,
   SeaProjectReadDto,
   SeaRoleReadDto,
-} from "../../../../../features/sea/shared/models/seaStatModels";
+} from "../../shared/models/seaStatModels";
 
 export { type SeaCommandResult };
 

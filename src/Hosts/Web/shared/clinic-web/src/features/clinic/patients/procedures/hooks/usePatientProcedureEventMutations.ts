@@ -8,7 +8,7 @@ import {
   moveEventDown,
   commitEvent,
   uncommitEvent,
-} from "../api/proceduresApi";
+} from "@vitarish/sea-web";
 
 export function useCreatePatientProcedureEvent() {
   const qc = useQueryClient();

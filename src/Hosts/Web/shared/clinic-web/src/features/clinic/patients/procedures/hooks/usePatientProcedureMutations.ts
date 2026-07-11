@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { patientProcedureKeys } from "./patientProcedureKeys";
-import { createProcedure, updateProcedure, deleteProcedure } from "../api/proceduresApi";
+import { createProcedure, updateProcedure, deleteProcedure } from "@vitarish/sea-web";
 
 export function useCreatePatientProcedure() {
   const qc = useQueryClient();

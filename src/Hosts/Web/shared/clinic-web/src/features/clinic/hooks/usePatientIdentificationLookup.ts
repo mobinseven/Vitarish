@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useState } from "react";
 import { lookupPatientByIdentificationCode } from "../api/patientApi";
 import type { IdentificationLookupState } from "../types";

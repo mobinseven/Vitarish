@@ -4,13 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3000",
-    "predev": "npm run generate:api",
     "build": "next build",
-    "prebuild": "npm run generate:api",
     "start": "next start --port 3000",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "generate:api": "orval --config src/api/client/orval.config.ts",
     "test": "vitest run",
     "test:watch": "vitest --watch",
     "validate:api-boundary": "node ../../scripts/validate-api-boundary.mjs",

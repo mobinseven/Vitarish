@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { patientProcedureKeys } from "./patientProcedureKeys";
-import { listEventItems } from "../api/proceduresApi";
+import { listEventItems } from "@vitarish/sea-web";
 import { mapToEventItemSummary } from "../mappers/mapSeaEventItemToClinicalTimelineItem";
 
 export function usePatientProcedureEventItems(eventId: string) {

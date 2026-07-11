@@ -1,12 +1,10 @@
 import { useMemo } from "react";
-import { CalendarDate, CalendarDateTime, parseDateTime, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDayOfWeek, parseDate, isSameDay, isSameMonth, isSameYear } from "@internationalized/date";
+import { CalendarDate, CalendarDateTime, parseDateTime, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDayOfWeek, parseDate } from "@internationalized/date";
 import type { AgendaEventType, AgendaView } from "@heroui-pro/react";
 import type { ShiftReadDto, ReservationReadDto } from "../../api/appointmentsApi";
 
-const ISO_DAY_OFFSET = 1;
-
-function isoDayOfWeek(dayOfWeek: number): number {
-  return ((dayOfWeek % 7) + ISO_DAY_OFFSET) % 7;
+function calendarDayOfWeek(dayOfWeek: number): number {
+  return ((dayOfWeek % 7) + 7) % 7;
 }
 
 function parseShiftDateTime(date: CalendarDate, time: string): CalendarDateTime {
@@ -30,9 +28,7 @@ function getVisibleRange(date: CalendarDate, view: AgendaView): { start: Calenda
 }
 
 function dateLTE(a: CalendarDate, b: CalendarDate): boolean {
-  if (!isSameYear(a, b)) return a.year < b.year;
-  if (!isSameMonth(a, b)) return a.month < b.month;
-  return a.day <= b.day;
+  return a.compare(b) <= 0;
 }
 
 function nextDay(date: CalendarDate): CalendarDate {
@@ -46,10 +42,10 @@ function expandShiftsToEvents(
   const events: AgendaEventType[] = [];
   for (const shift of shifts) {
     if (shift.status !== 0) continue;
-    const targetIsoDay = isoDayOfWeek(shift.dayOfWeek);
+    const targetDay = calendarDayOfWeek(shift.dayOfWeek);
     let cursor = range.start;
     while (dateLTE(cursor, range.end)) {
-      if (getDayOfWeek(cursor, "en-US") === targetIsoDay) {
+      if (getDayOfWeek(cursor, "en-US") === targetDay) {
         events.push({
           id: `shift-${shift.id}-${cursor.toString()}`,
           title: shift.serviceId ?? shift.serviceProviderId ?? "Shift",

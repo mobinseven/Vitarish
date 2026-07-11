@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { patientProcedureKeys } from "./patientProcedureKeys";
-import { createEventItemText, createEventItemFile, deleteEventItem } from "../api/proceduresApi";
+import { createEventItemText, createEventItemFile, deleteEventItem } from "@vitarish/sea-web";
 
 export function useCreatePatientProcedureEventItemText() {
   const qc = useQueryClient();

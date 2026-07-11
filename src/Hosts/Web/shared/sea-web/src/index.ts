@@ -17,6 +17,33 @@ export { useCreateSeaProcedure } from "./features/sea/procedures/hooks/useCreate
 export { useUpdateSeaProcedure } from "./features/sea/procedures/hooks/useUpdateSeaProcedure";
 export { useDeleteSeaProcedure } from "./features/sea/procedures/hooks/useDeleteSeaProcedure";
 export { seaProcedureKeys } from "./features/sea/procedures/hooks/seaProcedureKeys";
+export {
+  listProcedures,
+  getProcedure,
+  createProcedure,
+  updateProcedure,
+  deleteProcedure,
+  listProcedureEvents,
+  getEvent,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  moveEventUp,
+  moveEventDown,
+  commitEvent,
+  uncommitEvent,
+  listEventItems,
+  createEventItemText,
+  createEventItemFile,
+  deleteEventItem,
+  listEventRoles,
+  listEventReadRoles,
+  listEventWriteRoles,
+  assignEventRole,
+  removeEventRole,
+  listAllRoles,
+  listTemplateProcedures,
+} from "./features/sea/procedures/api/proceduresApi";
 
 // Event hooks
 export { useSeaEvents } from "./features/sea/events/hooks/useSeaEvents";

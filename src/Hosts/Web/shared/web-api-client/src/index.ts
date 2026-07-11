@@ -1,2 +1,2 @@
 export { apiFetch, ApiError, resetAntiforgeryToken } from "./apiFetch";
-export type { ProblemDetails } from "./apiFetch";
+export type { OrvalConfig, ProblemDetails } from "./apiFetch";

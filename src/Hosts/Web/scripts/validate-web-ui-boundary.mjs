@@ -49,16 +49,15 @@ const noNextNavigationPatterns = [
   { pattern: /from\s+["']next\/router["']/, reason: "must not import next/router directly" },
 ];
 
-// Clinic and sea feature packages must not cross-import each other's feature code
-// (but clinic-web's sea features may import sea-web's generated API)
+// Sea must not depend on clinic. Clinic may consume SEA's public package API,
+// but neither package may deep-import the other's source tree.
 const clinicSeaBoundaryPatterns = [
   { pattern: /from\s+["']@vitarish\/clinic-web(?!\/api\/generated)/, reason: "sea-web must not import from clinic-web" },
   { pattern: /from\s+["'].*clinic-web\/src\/(?!api\/generated)/, reason: "must not deep-import from clinic-web (except generated API)" },
 ];
 
 const seaClinicBoundaryPatterns = [
-  { pattern: /from\s+["']@vitarish\/sea-web(?!\/api\/generated)/, reason: "clinic-web must not import from sea-web" },
-  { pattern: /from\s+["'].*sea-web\/src\/(?!api\/generated)/, reason: "must not deep-import from sea-web (except generated API)" },
+  { pattern: /from\s+["'].*sea-web\/src\//, reason: "must not deep-import from sea-web" },
 ];
 
 const packageBoundaries = [

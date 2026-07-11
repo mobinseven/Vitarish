@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { patientProcedureKeys } from "./patientProcedureKeys";
-import { listProcedures } from "../api/proceduresApi";
+import { listProcedures } from "@vitarish/sea-web";
 import type { TriageSummary } from "../models/PatientProcedureTriageModels";
 
 export function usePatientProcedureTriage(patientId: string) {

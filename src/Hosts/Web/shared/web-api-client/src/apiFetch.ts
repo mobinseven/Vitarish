@@ -123,7 +123,7 @@ export function resetAntiforgeryToken(): void {
   antiforgeryHeaderName = "X-XSRF-TOKEN";
 }
 
-interface OrvalConfig {
+export interface OrvalConfig {
   url: string;
   method?: string;
   params?: Record<string, unknown>;

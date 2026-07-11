@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { patientProcedureKeys } from "./patientProcedureKeys";
-import { listEventReadRoles, listEventWriteRoles, assignEventRole, removeEventRole, listAllRoles } from "../api/proceduresApi";
+import { listEventReadRoles, listEventWriteRoles, assignEventRole, removeEventRole, listAllRoles } from "@vitarish/sea-web";
 import type { AccessSummary } from "../models/PatientProcedureAccessModels";
 
 export function usePatientProcedureEventAccess(eventId: string) {

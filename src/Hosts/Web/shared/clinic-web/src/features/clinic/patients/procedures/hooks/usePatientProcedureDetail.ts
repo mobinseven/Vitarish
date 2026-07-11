@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { patientProcedureKeys } from "./patientProcedureKeys";
-import { getProcedure } from "../api/proceduresApi";
+import { getProcedure } from "@vitarish/sea-web";
 import { mapToPatientProcedureDetail } from "../mappers/mapSeaProcedureToPatientProcedure";
 
 export function usePatientProcedureDetail(procedureId: string) {

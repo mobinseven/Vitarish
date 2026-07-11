@@ -49,6 +49,10 @@ if (statSync(sharedDir).isDirectory()) {
     if (!statSync(srcDir).isDirectory()) continue;
     walk(srcDir, entry, (fullPath, relativePath) => {
       const text = readFileSync(fullPath, "utf8");
+      const isOrvalMutatorAdapter = relativePath.endsWith("/api/client/apiFetch.ts")
+        && text.includes('from "@vitarish/web-api-client"')
+        && text.includes("return sharedApiFetch<T>(urlOrConfig, options)");
+      if (isOrvalMutatorAdapter) return;
       if (/export\s+(async\s+)?function\s+apiFetch/.test(text)) {
         console.error(`Duplicate apiFetch implementation in shared/${relativePath}; use @vitarish/web-api-client.`);
         failed = true;
