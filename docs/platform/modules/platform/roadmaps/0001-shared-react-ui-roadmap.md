@@ -3,11 +3,11 @@
 Status: Proposed  
 Owner: Platform Architecture  
 Scope: Web host family shared React UI roadmap  
-Last reviewed: 2026-07-08
+Last reviewed: 2026-07-10
 
 ## Purpose
 
-Centralize major reusable React Web design artifacts so multiple Vitarish React web apps can share one Web-owned UI surface while relying on the same backend for data, commands, authorization, validation, and workflows.
+Centralize major reusable React Web design artifacts and align React Web feature packaging so multiple Vitarish React web apps can share Web-owned UI, feature, transport, and localization surfaces while relying on the same backend for data, commands, authorization, validation, and workflows.
 
 This document is the durable roadmap for implementing ADR-0008. Implementation PRs should update this file when scope, sequencing, package shape, app structure, host workspace shape, or enforcement rules change. GitHub issues, PR comments, and chat notes are not the source of truth for this roadmap.
 
@@ -17,15 +17,17 @@ This document is the durable roadmap for implementing ADR-0008. Implementation P
 |---|---|
 | Shared package name | `@vitarish/web-ui` |
 | Initial visibility | Private repository-local package |
-| Initial package location | src/Hosts/Web/packages/web-ui |
+| Initial package location | `src/Hosts/Web/shared/web-ui` |
 | Package manager | npm |
 | Workspace model | npm workspace rooted at `src/Hosts/Web` |
 | Lockfile source of truth | Web workspace `src/Hosts/Web/package-lock.json` |
-| App model | Multiple React web apps under `src/Hosts/Web/{web-app}` consume the same backend |
+| App model | Multiple React web apps under `src/Hosts/Web/apps/{web-app}` consume the same backend |
 | Backend rule | Backend remains the single data/workflow/API source of truth |
 | UI import direction | Web apps import `@vitarish/web-ui`; `@vitarish/web-ui` does not import apps/features/backend clients |
-| Host boundary | `src/Hosts` groups host families; Web-specific packages live under `src/Hosts/Web` |
-| Localization handoff | App/feature code passes localized display text into shared components |
+| Feature package rule | Current `private-practice-general` workflow feature folders become `src/Hosts/Web/shared/<feature>-web` packages; `home` and `landing` stay app-owned route/shell surfaces |
+| Transport rule | One Web transport package owns `apiFetch`, CSRF, tenant header, credentials, base URL, cancellation, and transport error normalization |
+| Host boundary | `src/Hosts` groups host families; Web-specific packages live under `src/Hosts/Web/shared` |
+| Localization handoff | Core Web localization owns locale/provider/formatting; feature packages own message namespaces; shared components receive localized display text |
 | HeroUI rule | Raw HeroUI/HeroUI Pro components remain the default; no custom design-system wrappers such as `SurfaceCard` |
 
 ## Target Host Workspace Shape
@@ -35,20 +37,49 @@ src/Hosts/
   Web/
     package.json              # private npm workspace root for Web apps and Web packages
     package-lock.json         # npm lockfile source of truth for the Web workspace
-    packages/
+    shared/
+      web-api-client/
+        package.json          # name: @vitarish/web-api-client, private: true
+        src/
+          index.ts
+      web-localization/
+        package.json          # name: @vitarish/web-localization, private: true
+        src/
+          index.ts
       web-ui/
         package.json          # name: @vitarish/web-ui, private: true
         src/
           index.ts
-    {web-app}/
-      package.json
-    {future-web-app}/
-      package.json
+      account-web/
+        package.json          # name: @vitarish/account-web, private: true
+        src/
+          index.ts
+      auth-web/
+        package.json          # name: @vitarish/auth-web, private: true
+        src/
+          index.ts
+      clinic-web/
+        package.json          # name: @vitarish/clinic-web, private: true
+        src/
+          index.ts
+      journey-web/
+        package.json          # name: @vitarish/journey-web, private: true
+        src/
+          index.ts
+      sea-web/
+        package.json          # name: @vitarish/sea-web, private: true
+        src/
+          index.ts
+    apps/
+      {web-app}/
+        package.json
+      {future-web-app}/
+        package.json
   {future-host-family}/
     ...
 ```
 
-The current repository has the React Web app at `src/Hosts/Web`. The target shape promotes `src/Hosts/Web` to the Web host family workspace root. Implementation must move the current Web app into a child folder under `src/Hosts/Web/{web-app}` before or during workspace creation.
+The current repository uses `src/Hosts/Web` as the Web host family workspace root with apps under `src/Hosts/Web/apps/*` and shared packages under `src/Hosts/Web/shared/*`. Existing workflow feature folders under `src/Hosts/Web/apps/private-practice-general/src/features/*` are migration sources for the mandatory feature packages. The current `home` and `landing` folders are app-owned route/shell composition and are not package targets unless reusable workflow behavior is later extracted from them.
 
 ## Guiding Principles
 
@@ -56,20 +87,22 @@ The current repository has the React Web app at `src/Hosts/Web`. The target shap
 - One backend source of truth for application data, commands, validation, authorization, and business workflows.
 - Host-family separation: Web packages and Web apps live under `src/Hosts/Web`; future native or other hosts get separate host-family folders.
 - Presentation-only shared Web UI package; no generated API clients, feature workflows, backend contracts, host runtime dependencies, or route dependencies.
+- Feature-specific React Web implementation lives in feature packages, not app route trees.
+- Generated clients are package-internal to the owning feature package by default.
+- One Web transport package owns `apiFetch`; feature packages consume it instead of duplicating fetch infrastructure.
 - Use raw HeroUI/HeroUI Pro components directly instead of creating custom design-system wrappers where direct HeroUI composition is sufficient.
 - Centralize tokens, documented composition patterns, accessibility conventions, localization handoff rules, and small presentation-only helpers only when they do not hide HeroUI's component model.
 - Incremental migration over big-bang rewrite.
-- Reusable by at least two Web modules/apps or important enough to protect as a Web design artifact.
-- Keep feature-specific business UI close to the owning app/feature until it becomes generic.
+- Keep generic Web presentation in `@vitarish/web-ui`; keep feature UI, hooks, generated clients, wrappers, read models, and localization namespaces in the owning feature package.
 
 ## Current State
 
-The existing Web app already has a React/Next package with npm scripts, React 19, Next.js, HeroUI, HeroUI Pro, React Aria, Tailwind helpers, Font Awesome, Vitest, and validation scripts. Shared Web UI is not yet separated into a Web host package boundary.
+The existing Web workspace already has React/Next apps, npm workspace scripts, React 19, Next.js, HeroUI, HeroUI Pro, React Aria, Tailwind helpers, Font Awesome, Vitest, validation scripts, `src/Hosts/Web/shared/web-ui`, and `src/Hosts/Web/shared/knowledge-web`. Workflow feature implementation for `private-practice-general` still exists under app feature folders and must migrate into feature packages.
 
-Known reusable candidates from recent Web work include:
+Known package candidates from recent Web work include:
 
-- account layout and widget composition rules;
-- clinic state, detail-grid, and navigation-grid usage patterns;
+- account layout, generated-client wrappers, hooks, localization, and widget composition rules;
+- clinic generated-client wrappers, state, detail-grid, and navigation-grid usage patterns;
 - dashboard shell/navigation composition rules;
 - empty/loading/error state patterns;
 - icon usage conventions;
@@ -106,15 +139,15 @@ Status: Not started
 Deliverables:
 
 - Promote `src/Hosts/Web` to the private npm workspace root for the Web host family.
-- Move the current Web app into a child app folder under `src/Hosts/Web/{web-app}`.
+- Move the current Web app into a child app folder under `src/Hosts/Web/apps/{web-app}`.
 - Move Web lockfile ownership to `src/Hosts/Web/package-lock.json` through npm commands.
-- Create src/Hosts/Web/packages/web-ui/package.json with:
+- Create `src/Hosts/Web/shared/web-ui/package.json` with:
   - `name: "@vitarish/web-ui"`;
   - `version: "0.1.0"`;
   - `private: true`;
   - explicit `exports` for public entry points;
   - React and design-library dependency strategy documented in the package.
-- Add src/Hosts/Web/packages/web-ui/src/index.ts as the public export boundary.
+- Add `src/Hosts/Web/shared/web-ui/src/index.ts` as the public export boundary.
 - Add TypeScript configuration for the package.
 
 Exit criteria:
@@ -139,8 +172,13 @@ Deliverables:
   - backend projects;
   - app localization catalogs/providers;
   - non-Web host implementation files.
+- Add workspace-level import-boundary validation that blocks `@vitarish/web-api-client` from importing React UI, localization catalogs, generated clients, apps, feature packages, or backend projects.
+- Add workspace-level import-boundary validation that blocks feature packages from importing app route/page folders, app-private feature folders, another feature package's internals, backend projects, duplicate fetchers, or app-local localization catalogs.
 - Add workspace-level validation that blocks web apps from deep-importing `@vitarish/web-ui/src/**`.
+- Add workspace-level validation that blocks web apps from deep-importing feature package internals.
 - Add workspace-level validation that blocks one web app from importing another web app's private UI files.
+- Add workspace-level validation that keeps generated clients package-internal and generated-only by default.
+- Add workspace-level validation that flags duplicate `apiFetch` implementations outside `@vitarish/web-api-client`.
 - Add workspace-level validation that flags custom wrapper proposals where raw HeroUI/HeroUI Pro components should be used directly.
 
 Exit criteria:
@@ -166,7 +204,7 @@ Migration rule:
 Move only artifacts that satisfy ADR-0008 promotion rules. If a reusable component currently depends on feature data, split it into:
 
 - a generic `@vitarish/web-ui` presentation artifact; and
-- an app/feature adapter that maps backend data, localization, permissions, and route actions into generic props.
+- a feature package adapter that maps generated-client data, localization, permissions, and route actions into generic props.
 
 Do not migrate a component into `@vitarish/web-ui` when the result would be only a custom wrapper around a raw HeroUI/HeroUI Pro component that should be used directly.
 
@@ -183,15 +221,15 @@ Status: Not started
 Deliverables:
 
 - Document the recipe for creating a new React web app in the Web host workspace.
-- Document how each Web app connects to the single backend through app-owned generated clients/adapters.
+- Document how each Web app connects to the single backend through feature-owned generated clients/adapters and the shared Web transport package.
 - Move cross-Web-app UI artifacts from the first Web app into `@vitarish/web-ui` as they become generic and do not duplicate raw HeroUI behavior.
-- Confirm `@vitarish/web-ui` has no dependency on the first Web app's routes, app providers, localization catalog, generated clients, or non-Web host code.
+- Confirm `@vitarish/web-ui` has no dependency on the first Web app's routes, app providers, feature package internals, generated clients, localization catalogs, or non-Web host code.
 
 Exit criteria:
 
 - A future React app can be created without copying UI implementation files from the first Web app.
 - Cross-Web-app design reuse flows through `@vitarish/web-ui`.
-- Backend access remains app-owned and points to the single backend contract.
+- Backend access remains package-owned for each feature and points to the single backend contract through the shared Web transport package.
 
 ## Phase 5 — Governance and Optional Publishing
 
@@ -239,7 +277,7 @@ Exit criteria:
 |---|---|
 | Should icons become a separate Web package later? | Keep icon helpers in `@vitarish/web-ui` until reuse pressure justifies `@vitarish/web-icons`. |
 | Should theme tokens become a separate Web package later? | Keep tokens in `@vitarish/web-ui` until non-React or non-Web consumers need them. |
-| Should generated backend clients become shared packages? | Keep clients app-owned unless a separate API-client package ADR is accepted. |
+| Should generated backend clients become shared packages? | Closed by ADR-0008: generated clients are owned by feature packages by default, with `apiFetch` owned by the shared Web transport package. |
 | Should future native hosts share UI artifacts with Web? | No by default; require a separate cross-host design-system ADR. |
 
 ## Progress Log
@@ -251,3 +289,4 @@ Exit criteria:
 | 2026-07-08 | Aligned roadmap with host-family-first structure under `src/Hosts/Web`. |
 | 2026-07-09 | Closed open questions: current app = `private-practice-general`, second app = `knowledge-qa-demo`. |
 | 2026-07-09 | Phase 0 marked complete. Implementation decisions recorded. |
+| 2026-07-10 | Aligned roadmap with ADR-0008 package-per-feature rule, shared Web transport ownership, and ADR-0007 localization composition. |

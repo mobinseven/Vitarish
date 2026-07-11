@@ -34,6 +34,8 @@ export { IconButton } from "./shell/IconButton";
 export type { IconButtonProps } from "./shell/IconButton";
 export { EmptyStateSurface, ErrorStateSurface, LoadingStateSurface } from "./state/StateSurface";
 export type { LoadingStateSurfaceProps, MessageStateSurfaceProps } from "./state/StateSurface";
+export { DetailGrid } from "./state/DetailGrid";
+export type { DetailGridItem } from "./state/DetailGrid";
 export { OptionSelector } from "./settings/OptionSelector";
 export type { OptionSelectorOption, OptionSelectorProps } from "./settings/OptionSelector";
 export { SettingsBackLink, SettingsSection, SettingsSurface } from "./settings/SettingsSurface";

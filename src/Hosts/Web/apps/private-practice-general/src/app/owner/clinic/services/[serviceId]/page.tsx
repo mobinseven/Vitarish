@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { Button, Input, Label, TextField } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
-import { ClinicDetailGrid, type ClinicDetailItem } from "@/features/clinic/components/ClinicDetailGrid";
-import { ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
-import { useServiceDetail, useUpdateService, useDeleteService } from "@/features/clinic/services/hooks/useServices";
+import { ClinicDetailGrid, type ClinicDetailItem } from "@vitarish/clinic-web";
+import { ClinicErrorState, ClinicLoadingState } from "@vitarish/clinic-web";
+import { useServiceDetail, useUpdateService, useDeleteService } from "@vitarish/clinic-web";
 import { useLocalizedText, formatDateTime } from "@/localization";
 
 export default function ClinicServiceDetailPage({

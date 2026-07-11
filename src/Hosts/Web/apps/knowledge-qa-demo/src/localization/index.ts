@@ -1,13 +1,48 @@
-export * from "./dateLocale";
-export * from "./dateValue";
-export * from "./errors";
-export * from "./format";
-export * from "./localeCookie";
-export * from "./locales";
-export * from "./LocalizationProvider";
-export * from "./messageTypes";
-export * from "./metadata";
-export * from "./resolveLocale";
-export * from "./useLocalizedText";
+// Re-export infrastructure from @vitarish/web-localization
+export {
+  LocalizationContext,
+  useLocalizedText,
+  defaultLocale,
+  supportedLocales,
+  getLocaleDirection,
+  isSupportedLocale,
+  normalizeLocale,
+  toSupportedLocale,
+  resolveLocale,
+  parseLocaleCookie,
+  serializeLocaleCookie,
+  setLocaleCookie,
+  localeCookieName,
+  formatDate,
+  formatDateTime,
+  formatNumber,
+  formatPercent,
+  formatCurrency,
+  formatList,
+  formatRelativeTime,
+  getReactAriaLocale,
+  getDateCalendar,
+  parseIsoDateValue,
+  dateValueToIsoDate,
+  getApiErrorMessageKey,
+  localizeApiError,
+} from "@vitarish/web-localization";
+export type {
+  LocalizationContextValue,
+  SupportedLocale,
+  ResolveLocaleInput,
+  ResolvedLocale,
+  LocaleResolutionSource,
+  SupportedDateCalendar,
+  CodeBearingError,
+  MessageCatalog,
+  MessageKey,
+  MessageParameters,
+  Translate,
+} from "@vitarish/web-localization";
+
+// App-specific: LocalizationProvider (auto-loads app message catalogs), message catalogs, and metadata
+export { LocalizationProvider } from "./LocalizationProvider";
 export { getMessages } from "./messages";
-export type { MessageCatalog } from "./messages";
+export type { MessageCatalog as AppMessageCatalog } from "./messages";
+export { localizedMetadata } from "./metadata";

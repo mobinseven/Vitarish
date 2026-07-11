@@ -2,28 +2,16 @@
 /**
  * Validates shared Web packages do not import forbidden dependencies.
  *
- * From shared/web-ui/src, block imports matching:
- *   - ../../apps/
- *   - app route/page folders
- *   - app feature folders
- *   - generated OpenAPI clients/DTOs
- *   - React Query hooks
- *   - backend src/Modules/**, src/Apps/**, src/Identity/**, src/Libraries/**
- *   - app localization catalogs/providers
- *   - non-Web host implementation files
- *   - feature-specific business modules/types
- *
- * From shared/knowledge-web/src, block imports matching:
- *   - ../../apps/
- *   - app aliases
- *   - generated OpenAPI clients/DTOs
- *   - app apiFetch/client code
- *   - backend src/Modules/**, src/Apps/**, src/Identity/**, src/Libraries/**
- *   - app localization catalogs/providers
+ * Enforced boundaries:
+ *   - @vitarish/web-ui: no React Query, no apps, no generated clients, no backend, no feature packages
+ *   - @vitarish/web-api-client: no React/UI, no localization, no generated clients, no apps, no backend
+ *   - @vitarish/web-localization: no apps, no generated clients, no feature packages, no backend
+ *   - @vitarish/knowledge-web: no apps, no generated clients, no backend, no app localization
+ *   - Feature packages: no apps, no backend, no deep-importing other feature packages
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { resolve, relative, dirname } from "node:path";
+import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -32,14 +20,45 @@ const appAndBackendForbiddenPatterns = [
   { pattern: /\.\.\/\.\.\/apps\//, reason: "must not import from app directories" },
   { pattern: /\.\.\/\.\.\/\.\.\/apps\//, reason: "must not import from app directories" },
   { pattern: /from\s+["']@\//, reason: "must not import through app aliases" },
-  { pattern: /from\s+["'].*\/api\/generated\//, reason: "must not import generated API clients" },
-  { pattern: /from\s+["'].*\/api\/client\//, reason: "must not import API client code" },
   { pattern: /from\s+["'].*\/src\/Modules\//, reason: "must not import backend modules" },
   { pattern: /from\s+["'].*\/src\/Apps\//, reason: "must not import backend apps" },
   { pattern: /from\s+["'].*\/src\/Identity\//, reason: "must not import backend identity" },
   { pattern: /from\s+["'].*\/src\/Libraries\//, reason: "must not import backend libraries" },
-  { pattern: /from\s+["'].*\/localization\/(messages|index)/, reason: "must not import localization catalogs" },
-  { pattern: /from\s+["'].*\/LocalizationProvider/, reason: "must not import localization providers" },
+];
+
+// Packages that do NOT own generated clients must not import them
+const noGeneratedClientPatterns = [
+  { pattern: /from\s+["'].*\/api\/generated\//, reason: "must not import generated API clients" },
+  { pattern: /from\s+["'].*\/api\/client\//, reason: "must not import API client code" },
+];
+
+const crossPackageForbiddenPatterns = [
+  ...appAndBackendForbiddenPatterns,
+  { pattern: /from\s+["'].*\/localization\/(messages|index)/, reason: "must not import localization catalogs from other packages" },
+  { pattern: /from\s+["'].*\/LocalizationProvider/, reason: "must not import localization providers from other packages" },
+];
+
+// Packages that own generated clients can import their own, but not from other packages
+const featurePackageForbiddenPatterns = [
+  ...appAndBackendForbiddenPatterns,
+];
+
+// Shared packages must not import next/navigation (use onNavigate callbacks instead)
+const noNextNavigationPatterns = [
+  { pattern: /from\s+["']next\/navigation["']/, reason: "must not import next/navigation directly (use onNavigate callbacks)" },
+  { pattern: /from\s+["']next\/router["']/, reason: "must not import next/router directly" },
+];
+
+// Clinic and sea feature packages must not cross-import each other's feature code
+// (but clinic-web's sea features may import sea-web's generated API)
+const clinicSeaBoundaryPatterns = [
+  { pattern: /from\s+["']@vitarish\/clinic-web(?!\/api\/generated)/, reason: "sea-web must not import from clinic-web" },
+  { pattern: /from\s+["'].*clinic-web\/src\/(?!api\/generated)/, reason: "must not deep-import from clinic-web (except generated API)" },
+];
+
+const seaClinicBoundaryPatterns = [
+  { pattern: /from\s+["']@vitarish\/sea-web(?!\/api\/generated)/, reason: "clinic-web must not import from sea-web" },
+  { pattern: /from\s+["'].*sea-web\/src\/(?!api\/generated)/, reason: "must not deep-import from sea-web (except generated API)" },
 ];
 
 const packageBoundaries = [
@@ -47,14 +66,79 @@ const packageBoundaries = [
     name: "@vitarish/web-ui",
     src: resolve(__dirname, "../shared/web-ui/src"),
     forbiddenPatterns: [
-      ...appAndBackendForbiddenPatterns,
+      ...crossPackageForbiddenPatterns,
+      ...noGeneratedClientPatterns,
+      ...noNextNavigationPatterns,
       { pattern: /from\s+["']@tanstack\/react-query/, reason: "must not depend on React Query" },
+    ],
+  },
+  {
+    name: "@vitarish/web-api-client",
+    src: resolve(__dirname, "../shared/web-api-client/src"),
+    forbiddenPatterns: [
+      ...appAndBackendForbiddenPatterns,
+      ...noNextNavigationPatterns,
+      { pattern: /from\s+["']react/, reason: "must not import React" },
+      { pattern: /from\s+["']@tanstack\/react-query/, reason: "must not depend on React Query" },
+    ],
+  },
+  {
+    name: "@vitarish/web-localization",
+    src: resolve(__dirname, "../shared/web-localization/src"),
+    forbiddenPatterns: [
+      ...appAndBackendForbiddenPatterns,
     ],
   },
   {
     name: "@vitarish/knowledge-web",
     src: resolve(__dirname, "../shared/knowledge-web/src"),
-    forbiddenPatterns: appAndBackendForbiddenPatterns,
+    forbiddenPatterns: [
+      ...crossPackageForbiddenPatterns,
+      ...noGeneratedClientPatterns,
+      ...noNextNavigationPatterns,
+    ],
+  },
+  {
+    name: "@vitarish/auth-web",
+    src: resolve(__dirname, "../shared/auth-web/src"),
+    forbiddenPatterns: [
+      ...featurePackageForbiddenPatterns,
+      ...noNextNavigationPatterns,
+    ],
+  },
+  {
+    name: "@vitarish/account-web",
+    src: resolve(__dirname, "../shared/account-web/src"),
+    forbiddenPatterns: [
+      ...featurePackageForbiddenPatterns,
+      ...noNextNavigationPatterns,
+    ],
+  },
+  {
+    name: "@vitarish/journey-web",
+    src: resolve(__dirname, "../shared/journey-web/src"),
+    forbiddenPatterns: [
+      ...featurePackageForbiddenPatterns,
+      ...noNextNavigationPatterns,
+    ],
+  },
+  {
+    name: "@vitarish/clinic-web",
+    src: resolve(__dirname, "../shared/clinic-web/src"),
+    forbiddenPatterns: [
+      ...featurePackageForbiddenPatterns,
+      ...noNextNavigationPatterns,
+      ...seaClinicBoundaryPatterns,
+    ],
+  },
+  {
+    name: "@vitarish/sea-web",
+    src: resolve(__dirname, "../shared/sea-web/src"),
+    forbiddenPatterns: [
+      ...featurePackageForbiddenPatterns,
+      ...noNextNavigationPatterns,
+      ...clinicSeaBoundaryPatterns,
+    ],
   },
 ];
 

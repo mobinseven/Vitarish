@@ -2,7 +2,10 @@
 
 import { useCallback, useMemo } from "react";
 import { KnowledgeUserQaSurface, type KnowledgeQaLabels } from "@vitarish/knowledge-web";
-import { getKnowledgeQaErrorMessage, knowledgeQaClient } from "@/api/knowledgeQaClient";
+import { getKnowledgeQaErrorMessage, createKnowledgeQaClient } from "@vitarish/knowledge-web";
+import { apiFetch } from "@vitarish/web-api-client";
+
+const knowledgeQaClient = createKnowledgeQaClient(apiFetch as <T>(url: string, options?: RequestInit) => Promise<T>);
 import { formatNumber, useLocalizedText } from "@/localization";
 
 export function KnowledgeQaPageSurface() {

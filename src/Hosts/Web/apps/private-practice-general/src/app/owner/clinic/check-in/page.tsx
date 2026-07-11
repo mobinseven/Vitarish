@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { PatientCheckInWizard } from "@/features/clinic/check-in/components/PatientCheckInWizard";
+import { PatientCheckInWizard } from "@vitarish/clinic-web";
 
 export default function ClinicPatientCheckInPage() {
   const handlePatientSelected = useCallback(

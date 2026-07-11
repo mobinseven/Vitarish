@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ServicesPlaceholder } from "@/features/clinic/services/components/ServicesPlaceholder";
+import { ServicesPlaceholder } from "@vitarish/clinic-web";
 
 export const metadata: Metadata = {
   title: "Services | Vitarish",

@@ -5,7 +5,7 @@ import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useAuthSession } from "@/hooks/auth/useAuthSession";
 import { AccountBackLink, AccountSurface } from "@/components/account/AccountSurface";
-import { useAccountCulture } from "@/features/account/hooks/useAccountCulture";
+import { useAccountCulture } from "@vitarish/account-web";
 import { StatusMessage } from "@/components/auth/StatusMessage";
 import { OptionSelector } from "@/components/account/OptionSelector";
 import { useLocalizedText } from "@/localization";

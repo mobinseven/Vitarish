@@ -8,7 +8,7 @@ import {
   paletteStorageKey,
   setPaletteAttribute,
   type AccountThemeValue,
-} from "@/features/account/theme/themeOptions";
+} from "@vitarish/account-web";
 
 interface PaletteContextValue {
   palette: AccountThemeValue;

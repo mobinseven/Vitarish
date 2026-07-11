@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import { Button, Chip } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
-import { ClinicDetailGrid, type ClinicDetailItem } from "@/features/clinic/components/ClinicDetailGrid";
-import { ClinicErrorState, ClinicLoadingState } from "@/features/clinic/components/ClinicStateSurface";
-import { usePatientProcedureEventDetail } from "@/features/clinic/patients/procedures/hooks/usePatientProcedureEventDetail";
-import { useCommitPatientProcedureEvent, useUncommitPatientProcedureEvent } from "@/features/clinic/patients/procedures/hooks/usePatientProcedureEventMutations";
-import { PatientProcedureEventForm } from "@/features/clinic/patients/procedures/components/PatientProcedureEventForm";
-import { PatientProcedureEventDeleteDialog } from "@/features/clinic/patients/procedures/components/PatientProcedureEventDeleteDialog";
-import { PatientProcedureEventItemsPanel } from "@/features/clinic/patients/procedures/components/PatientProcedureEventItemsPanel";
-import { PatientProcedureEventAccessPanel } from "@/features/clinic/patients/procedures/components/PatientProcedureEventAccessPanel";
+import { ClinicDetailGrid, type ClinicDetailItem } from "@vitarish/clinic-web";
+import { ClinicErrorState, ClinicLoadingState } from "@vitarish/clinic-web";
+import { usePatientProcedureEventDetail } from "@vitarish/clinic-web";
+import { useCommitPatientProcedureEvent, useUncommitPatientProcedureEvent } from "@vitarish/clinic-web";
+import { PatientProcedureEventForm } from "@vitarish/clinic-web";
+import { PatientProcedureEventDeleteDialog } from "@vitarish/clinic-web";
+import { PatientProcedureEventItemsPanel } from "@vitarish/clinic-web";
+import { PatientProcedureEventAccessPanel } from "@vitarish/clinic-web";
 import { useLocalizedText, formatDateTime } from "@/localization";
 
 export default function ClinicPatientProcedureEventPage({

@@ -7,7 +7,7 @@ const webRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const appRoot = join(webRoot, "apps/private-practice-general");
 const root = join(webRoot, "../../..");
 const scopes = ["src/app", "src/components", "src/features", "src/design-system"];
-const literalPattern = />\s*([A-Z][A-Za-z0-9 ,.'!?&()/-]{2,})\s*</g;
+const literalPattern = />\s*([A-Z][A-Za-z0-9 ,.'!?&()/-]{2,})\s*<\//g;
 const attrPattern = /\b(placeholder|aria-label|title|label)="([A-Z][^"]{2,})"/g;
 const findings = [];
 

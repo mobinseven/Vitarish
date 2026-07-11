@@ -1,7 +1,7 @@
 "use client";
 
 import { Widget } from "@heroui-pro/react";
-import { ClinicDetailGrid, type ClinicDetailItem } from "./ClinicDetailGrid";
+import { ClinicDetailGrid, type ClinicDetailItem } from "@vitarish/clinic-web";
 import type { PatientViewDto } from "../types";
 import { useLocalizedText, formatDate as fmtDate, type SupportedLocale } from "@/localization";
 

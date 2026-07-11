@@ -4,9 +4,9 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
 import { Routes } from "@/app/routes";
-import { SeaProjectForm } from "@/features/sea/projects/components";
-import { useSeaProjectDetail } from "@/features/sea/projects/hooks/useSeaProjectDetail";
-import { SeaLoadingState, SeaErrorState } from "@/features/sea/shared/components/SeaStateSurface";
+import { SeaProjectForm } from "@vitarish/sea-web";
+import { useSeaProjectDetail } from "@vitarish/sea-web";
+import { SeaLoadingState, SeaErrorState } from "@vitarish/sea-web";
 import { useLocalizedText } from "@/localization";
 
 export default function SeaProjectEditRoute({

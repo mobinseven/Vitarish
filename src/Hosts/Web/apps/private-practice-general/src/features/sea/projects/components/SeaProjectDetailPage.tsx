@@ -8,7 +8,7 @@ import { Routes } from "@/app/routes";
 import { SeaLoadingState, SeaErrorState } from "../../shared/components/SeaStateSurface";
 import { useSeaProjectDetail } from "../hooks/useSeaProjectDetail";
 import { useLocalizedText, formatDateTime } from "@/localization";
-import { ClinicDetailGrid, type ClinicDetailItem } from "@/features/clinic/components/ClinicDetailGrid";
+import { ClinicDetailGrid, type ClinicDetailItem } from "@vitarish/clinic-web";
 import { SeaProjectDeleteDialog } from "./SeaProjectDeleteDialog";
 
 interface SeaProjectDetailPageProps {

@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode } from "react";
 import { http, HttpResponse } from "msw";
 import { server } from "../server";
-import { getAuthenticationSessionGetQueryKey } from "@/api/generated/authentication/authentication";
+import { getAuthenticationSessionGetQueryKey } from "@vitarish/auth-web";
 import { useLogout } from "@/hooks/auth/useLogout";
 
 const queryClient = new QueryClient({

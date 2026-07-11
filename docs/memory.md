@@ -39,7 +39,7 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
 ## Package/tool quirks
 
 - Orval output is generated.
-- `apiFetch` and generated clients are app-boundary concerns.
+- `apiFetch` is a shared Web transport package concern; generated React clients are feature package concerns after ADR-0008 migration. Legacy app-bound generated output can exist until its feature package is extracted.
 - Date input and localization validators enforce repo-specific React rules.
 - `docs/docs.csproj` is for Visual Studio browsing only.
 

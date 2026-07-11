@@ -1,0 +1,25 @@
+"use client";
+
+import { ClinicNavigationGrid, type ClinicNavigationItem } from "../../../../features/clinic/components/ClinicNavigationGrid";
+import { useLocalizedText } from "../../../../localization";
+
+export function ClinicSettingsDashboard() {
+  const { t } = useLocalizedText();
+
+  const settingsLinks: ClinicNavigationItem[] = [
+    { title: t("clinic.settings.sections.users.title"), description: t("clinic.settings.sections.users.description"), intent: { kind: "settingsUsers" }, icon: "fa-solid fa-user-gear" },
+    { title: t("clinic.settings.sections.appointmentSettings.title"), description: t("clinic.settings.sections.appointmentSettings.description"), intent: { kind: "settingsIndex" }, icon: "fa-solid fa-calendar-check" },
+    { title: t("clinic.settings.sections.statistics.title"), description: t("clinic.settings.sections.statistics.description"), intent: { kind: "settingsStatistics" }, icon: "fa-solid fa-chart-line" },
+  ];
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-bold">{t("clinic.settings.title")}</h1>
+        <p className="text-sm text-muted">{t("clinic.settings.description")}</p>
+      </div>
+
+      <ClinicNavigationGrid items={settingsLinks} />
+    </div>
+  );
+}

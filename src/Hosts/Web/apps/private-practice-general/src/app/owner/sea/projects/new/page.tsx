@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
 import { Routes } from "@/app/routes";
-import { SeaProjectForm } from "@/features/sea/projects/components";
+import { SeaProjectForm } from "@vitarish/sea-web";
 import { useLocalizedText } from "@/localization";
 
 export default function SeaProjectCreateRoute() {

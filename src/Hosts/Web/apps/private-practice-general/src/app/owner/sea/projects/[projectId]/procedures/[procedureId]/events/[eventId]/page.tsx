@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { Button } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
-import { useSeaEventDetail } from "@/features/sea/events/hooks/useSeaEventDetail";
-import { SeaLoadingState, SeaErrorState } from "@/features/sea/shared/components/SeaStateSurface";
-import { ClinicDetailGrid, type ClinicDetailItem } from "@/features/clinic/components/ClinicDetailGrid";
+import { useSeaEventDetail } from "@vitarish/sea-web";
+import { SeaLoadingState, SeaErrorState } from "@vitarish/sea-web";
+import { ClinicDetailGrid, type ClinicDetailItem } from "@vitarish/clinic-web";
 import { useLocalizedText, formatDateTime } from "@/localization";
 
 export default function SeaEventDetailRoute({

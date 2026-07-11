@@ -6,7 +6,7 @@ import { Routes } from "@/app/routes";
 import { SeaLoadingState, SeaErrorState } from "../../shared/components/SeaStateSurface";
 import { useSeaTemplateProjectDetail } from "../hooks/useSeaTemplates";
 import { useLocalizedText, formatDateTime } from "@/localization";
-import { ClinicDetailGrid, type ClinicDetailItem } from "@/features/clinic/components/ClinicDetailGrid";
+import { ClinicDetailGrid, type ClinicDetailItem } from "@vitarish/clinic-web";
 import { Widget } from "@heroui-pro/react";
 
 interface SeaTemplateProjectDetailPageProps {

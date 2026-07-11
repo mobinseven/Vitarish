@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ClinicSettingsUsersSurface } from "@/features/clinic/settings/users/components/ClinicSettingsUsersSurface";
+import { ClinicSettingsUsersSurface } from "@vitarish/clinic-web";
 
 export const metadata: Metadata = {
   title: "Clinic Users | Vitarish",
