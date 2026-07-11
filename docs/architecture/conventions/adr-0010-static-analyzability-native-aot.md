@@ -313,7 +313,7 @@ Convenience alone is insufficient justification for introducing a broad new bloc
 ```xml
 <PropertyGroup>
   <PublishTrimmed>true</PublishTrimmed>
-  <TrimMode>partial</TrimMode>
+  <TrimMode>full</TrimMode>
 </PropertyGroup>
 ```
 
