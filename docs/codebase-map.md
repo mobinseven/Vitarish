@@ -58,7 +58,7 @@ Most business modules follow this slice layout:
 
 Ownership and dependency rules:
 
-- UI code lives in `src/Hosts/Main/Pages`, `src/Apps/*/Core`, `src/Hosts/Web/apps/*/src/app`, and shared React packages under `src/Hosts/Web/shared/*`. React Web app route files compose package surfaces; workflow feature implementation belongs in `src/Hosts/Web/shared/<feature>-web` under ADR-0008. Existing workflow folders under `src/Hosts/Web/apps/private-practice-general/src/features/*` are migration sources until package extraction is complete; `home` and `landing` are app-owned route/shell composition unless reusable workflow behavior is extracted.
+- UI code lives in `src/Hosts/Web/apps/*/src/app` and shared React packages under `src/Hosts/Web/shared/*`. React Web app route files compose package surfaces; workflow feature implementation belongs in `src/Hosts/Web/shared/<feature>-web` under ADR-0008. App-local workflow folders are forbidden; `home` and `landing` remain app-owned route/shell composition unless reusable workflow behavior is extracted.
 - Business logic lives in `src/Modules/<Module>/Domain`; orchestration lives in `Application`.
 - Database and external infrastructure live in `src/Modules/<Module>/Infrastructure`, `src/Libraries/*/*.Server`, identity infrastructure, or truly host-owned infrastructure.
 - Shared contracts/DTOs live in `src/Modules/<Module>/Contracts`, `src/Apps/*/Interface`, and generated TypeScript clients derived from OpenAPI.
@@ -71,13 +71,13 @@ Use module names as the feature map. For each module, the conventional locations
 
 | Feature/module | UI | Commands/writes | Queries/reads | Domain | Persistence | Tests | Docs |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Authentication | `src/Hosts/Main/Pages/Accounts`, React routes, legacy `features/auth`, target `src/Hosts/Web/shared/auth-web` | `src/Modules/Authentication/Application` | same | `src/Modules/Authentication/Domain` | `Infrastructure` and `src/Identity` | `tests/Modules/Authentication.Tests` | `docs/platform/modules/authentication` |
-| Journey/onboarding | React routes, legacy `features/journey`, target `src/Hosts/Web/shared/journey-web`, host common/setup pages | `src/Modules/Journey/Application` | same | `src/Modules/Journey/Domain` | `Infrastructure` | `tests/Modules/Journey.Tests` | `docs/platform/modules/base/journeys` and app journeys |
+| Authentication | React routes and `src/Hosts/Web/shared/auth-web` | `src/Modules/Authentication/Application` | same | `src/Modules/Authentication/Domain` | `Infrastructure` and `src/Identity` | `tests/Modules/Authentication.Tests`, package tests | `docs/platform/modules/authentication` |
+| Journey/onboarding | React routes and `src/Hosts/Web/shared/journey-web` | `src/Modules/Journey/Application` | same | `src/Modules/Journey/Domain` | `Infrastructure` | `tests/Modules/Journey.Tests`, package tests | `docs/platform/modules/base/journeys` and app journeys |
 | Platform/admin/tenants | `src/Hosts/Main/Pages/Platform`, React owner/admin areas | `src/Modules/Platform/Application` | same | `src/Modules/Platform/Domain` | `Infrastructure` | `tests/Modules/Platform.Tests` | `docs/platform/modules/platform` |
 | Parties/tenants/owners | `src/Hosts/Main/Pages/Parties` | `src/Modules/Parties/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Parties.Tests` | `docs/platform/modules/parties` |
-| Users | Account/profile UI, legacy `features/account`, target `src/Hosts/Web/shared/account-web` | `src/Modules/Users/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Users.Tests` | `docs/platform/modules/users` |
+| Users | Account/profile routes and `src/Hosts/Web/shared/account-web` | `src/Modules/Users/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Users.Tests`, package tests | `docs/platform/modules/users` |
 | Appointments | `src/Hosts/Main/Pages/Appointments`, clinic appointment pages | `src/Modules/Appointments/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Appointments.Tests` | `docs/platform/modules/appointments`, `docs/apps/clinic-owner/journeys` |
-| Sea/clinic workflows | `src/Hosts/Main/Pages/Sea`, clinic Sea pages, legacy `features/sea`, target `src/Hosts/Web/shared/sea-web` | `src/Modules/Sea/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Sea.Tests` | `docs/platform/modules/sea` |
+| Sea/clinic workflows | React routes with `src/Hosts/Web/shared/sea-web` and `src/Hosts/Web/shared/clinic-web` | `src/Modules/Sea/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Sea.Tests`, package tests | `docs/platform/modules/sea` |
 | Medical/prescriptions | `src/Hosts/Main/Pages/Prescriptions`, `Pages/Support/Prescriptions` | `src/Modules/Medical/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Medical.Tests` | `docs/platform/modules/medical` |
 | Knowledge/QA | `src/Hosts/Main/Pages/Knowledge`, `src/Hosts/Web/shared/knowledge-web`, app knowledge routes | `src/Modules/Knowledge/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Knowledge.Tests`, package tests | `docs/platform/modules/knowledge` |
 | Search | platform search UI | `src/Modules/Search/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Search.Tests` | `docs/platform/modules/search` |
@@ -94,7 +94,7 @@ Use module names as the feature map. For each module, the conventional locations
 ## 6. Common change guide
 
 - **New page:** Blazor: `src/Hosts/Main/Pages/<Area>` plus route constants in `src/Hosts/Main/Common/Routes` if needed. Next: `src/Hosts/Web/apps/<app>/src/app/<route>/page.tsx` imports page/surface components from the owning feature package and wires app navigation/shell files.
-- **New component:** Workflow feature-specific React components live in `src/Hosts/Web/shared/<feature>-web`; app route/shell components stay in the owning app; generic presentation primitives live in `src/Hosts/Web/shared/web-ui`; Blazor components live near the owning page/app core. Existing app-local workflow feature components are legacy migration sources. Do not create design-system wrappers unless needed now.
+- **New component:** Workflow feature-specific React components live in `src/Hosts/Web/shared/<feature>-web`; app route/shell components stay in the owning app; generic presentation primitives live in `src/Hosts/Web/shared/web-ui`. App-local workflow feature folders are forbidden. Do not create design-system wrappers unless needed now.
 - **New domain entity:** `src/Modules/<Module>/Domain`; add persistence mapping in Infrastructure only if it must be stored.
 - **New command:** `src/Modules/<Module>/Application` under existing command/write convention; expose through Api only when needed.
 - **New query:** `src/Modules/<Module>/Application` under existing query/read convention; keep it side-effect free.
