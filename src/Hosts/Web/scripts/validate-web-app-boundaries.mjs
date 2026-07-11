@@ -33,10 +33,12 @@ for (const app of apps) {
   if (!existsSync(srcDir) || !statSync(srcDir).isDirectory()) continue;
 
   const featuresDir = resolve(srcDir, "features");
-  for (const feature of migratedWorkflowFolders) {
-    if (existsSync(resolve(featuresDir, feature))) {
-      console.error(`Migrated workflow folder in ${app.name}/src/features/${feature}: use @vitarish/${feature}-web`);
-      failed = true;
+  if (existsSync(featuresDir)) {
+    for (const feature of migratedWorkflowFolders) {
+      if (existsSync(resolve(featuresDir, feature))) {
+        console.error(`Migrated workflow folder in ${app.name}/src/features/${feature}: use @vitarish/${feature}-web`);
+        failed = true;
+      }
     }
   }
 
