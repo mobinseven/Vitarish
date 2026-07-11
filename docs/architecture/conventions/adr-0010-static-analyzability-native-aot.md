@@ -232,9 +232,9 @@ Endpoints should handle transport-level binding, authentication/authorization me
 ```csharp
 builder.Services
     .AddOptions<MessagingOptions>()
-    .BindConfiguration(MessagingOptions.SectionName)
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+    .BindConfiguration(MessagingOptions.SectionName);
+// Register the source-generated validator
+builder.Services.AddSingleton<IValidateOptions<MessagingOptions>, MessagingOptionsValidator>();
 ```
 
 - Configuration keys should be owned by their corresponding module and exposed through constants or typed registration methods.
