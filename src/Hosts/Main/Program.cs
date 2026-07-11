@@ -10,9 +10,8 @@ using Vitarish.Feed.Infrastructure;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
-using Vitarish.Main.Infrastructure.Handlers;
+using Vitarish.Main.Infrastructure.Entities;
 using Vitarish.Main.Infrastructure.Options;
-using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Platform.Module.DependencyInjection;
 using Vitarish.Modules.Base.Core;
@@ -113,6 +112,8 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
 
 builder.Services.AddSingleton<IAppsProvider, AppsProvider>();
+builder.Services.AddScoped<IEntityUserService, RequestEntityUserService>();
+builder.Services.AddScoped<IEntityTimeService, UtcEntityTimeService>();
 
 WebApplication app = builder.Build();
 
