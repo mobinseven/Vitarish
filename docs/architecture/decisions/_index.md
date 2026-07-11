@@ -3,7 +3,7 @@
 Status: Active  
 Owner: Platform Architecture  
 Scope: Global architecture governance  
-Last reviewed: 2026-07-09
+Last reviewed: 2026-07-11
 
 This index is the authoritative navigation point for global ADRs. Scoped platform module decisions remain in their owning `docs/platform/modules/<module>/decisions/` folders. Scoped app decisions remain in flat app-owned `docs/apps/<app>/decisions/` folders.
 
@@ -20,12 +20,14 @@ This index is the authoritative navigation point for global ADRs. Scoped platfor
 | [0007](0007-standardize-react-localization.md) | Standardize React Localization | Accepted | 2026-07-01 |
 | [0008](0008-standardize-app-experience-boundaries.md) | Standardize App Experience Boundaries | Accepted | 2026-07-09 |
 | [0009](0009-decommission-blazor-interfaces.md) | Decommission Blazor/Razor Component UI and Interface Projects | Accepted | 2026-07-10 |
+| [0010](0010-prefer-statically-analyzable-native-aot-compatible-design.md) | Prefer Statically Analyzable and Native AOT-Compatible Design for the .NET Backend | Accepted | 2026-07-11 |
 
 ## Related global architecture documents
 
 - [ADR-0003 implementation conventions](../conventions/adr-0003-implementation-conventions.md)
 - [OpenAPI endpoint conventions](../conventions/openapi-endpoint-conventions.md)
 - [ADR-0003 interface boundary validation](../validation/adr-0003-interface-boundary-validation.md)
+- [ADR-0010 static analyzability and Native AOT engineering standard](../conventions/adr-0010-static-analyzability-native-aot.md)
 
 ## Superseded or deprecated decisions
 
