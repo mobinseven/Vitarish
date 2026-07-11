@@ -1,7 +1,7 @@
 # Migration Matrix: ADR-0008 App Experience Boundaries
 
 Date: 2026-07-10
-Status: Active
+Status: Complete
 Owner: Platform Architecture
 Scope: private-practice-general feature-to-package migration
 

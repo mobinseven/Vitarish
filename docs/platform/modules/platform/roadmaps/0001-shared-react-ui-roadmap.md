@@ -79,7 +79,7 @@ src/Hosts/
     ...
 ```
 
-The current repository uses `src/Hosts/Web` as the Web host family workspace root with apps under `src/Hosts/Web/apps/*` and shared packages under `src/Hosts/Web/shared/*`. Existing workflow feature folders under `src/Hosts/Web/apps/private-practice-general/src/features/*` are migration sources for the mandatory feature packages. The current `home` and `landing` folders are app-owned route/shell composition and are not package targets unless reusable workflow behavior is later extracted from them.
+The current repository uses `src/Hosts/Web` as the Web host family workspace root with apps under `src/Hosts/Web/apps/*` and shared packages under `src/Hosts/Web/shared/*`. Workflow feature extraction is complete; app-local workflow folders are forbidden. The current `home` and `landing` folders are app-owned route/shell composition and are not package targets unless reusable workflow behavior is later extracted from them.
 
 ## Guiding Principles
 

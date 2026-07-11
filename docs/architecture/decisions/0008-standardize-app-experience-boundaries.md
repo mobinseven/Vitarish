@@ -83,7 +83,7 @@ Do not create app module mirrors under `docs/apps/<App>/modules/<Module>/...`. E
 
 The Web host family owns npm workspace conventions, package manager choice, lockfile, app folders, and Web-specific shared workspace packages. Web packages live under `src/Hosts/Web/shared/*`; Web app route trees live under `src/Hosts/Web/apps/<app>/src/app/**`. Do not place Web shared workspace packages directly under `src/Hosts/packages` or inside a single app's `src/components`.
 
-The private-practice React feature folders are migration sources, not the target ownership model. Workflow feature folders under `src/Hosts/Web/apps/private-practice-general/src/features` must become Web workspace packages under `src/Hosts/Web/shared/<feature>-web`. The current workflow feature set is:
+The private-practice React workflow features are owned by Web workspace packages under `src/Hosts/Web/shared/<feature>-web`. App-local workflow folders under `src/Hosts/Web/apps/private-practice-general/src/features` are forbidden; only app-owned route/shell composition such as `home` and `landing` remains there. The workflow package set is:
 
 | Current feature folder | Target package folder | Package name |
 | --- | --- | --- |

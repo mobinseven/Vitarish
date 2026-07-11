@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const appsDir = resolve(__dirname, "../apps");
+const migratedWorkflowFolders = ["account", "auth", "clinic", "journey", "sea"];
 
 const apps = [];
 for (const entry of readdirSync(appsDir)) {
@@ -30,6 +31,16 @@ let failed = false;
 for (const app of apps) {
   const srcDir = resolve(app.path, "src");
   if (!existsSync(srcDir) || !statSync(srcDir).isDirectory()) continue;
+
+  const featuresDir = resolve(srcDir, "features");
+  if (existsSync(featuresDir)) {
+    for (const feature of migratedWorkflowFolders) {
+      if (existsSync(resolve(featuresDir, feature))) {
+        console.error(`Migrated workflow folder in ${app.name}/src/features/${feature}: use @vitarish/${feature}-web`);
+        failed = true;
+      }
+    }
+  }
 
   function walk(dir, prefix = "") {
     for (const entry of readdirSync(dir)) {
