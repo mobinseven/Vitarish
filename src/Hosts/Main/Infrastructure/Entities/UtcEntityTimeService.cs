@@ -8,11 +8,11 @@ internal sealed class UtcEntityTimeService : IEntityTimeService
 
     public DateTime Now => now ?? DateTime.UtcNow;
 
-    public void Set(DateTime? now) => this.now = now?.Kind switch
+    public void Set(DateTime? now) => this.now = now switch
     {
         null => null,
-        DateTimeKind.Utc => now.Value,
-        DateTimeKind.Local => now.Value.ToUniversalTime(),
-        _ => DateTime.SpecifyKind(now.Value, DateTimeKind.Utc)
+        { Kind: DateTimeKind.Utc } value => value,
+        { Kind: DateTimeKind.Local } value => value.ToUniversalTime(),
+        { } value => DateTime.SpecifyKind(value, DateTimeKind.Utc)
     };
 }
