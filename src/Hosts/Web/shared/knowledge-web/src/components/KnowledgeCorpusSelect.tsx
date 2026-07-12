@@ -38,7 +38,7 @@ export function KnowledgeCorpusSelect({
       aria-label={labels.railTitle}
       className={className}
       isDisabled={isLoading}
-      placeholder={isLoading ? labels.loadingCorpora : labels.noCorpora}
+      placeholder={isLoading ? labels.loadingCorpora : corpora.length === 0 ? labels.noCorpora : undefined}
       value={selectedCorpusId ?? ALL_KEY}
       variant="secondary"
       onChange={handleSelectionChange}
