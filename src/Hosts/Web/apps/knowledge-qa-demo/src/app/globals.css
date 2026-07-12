@@ -2,4 +2,7 @@
 @import "@heroui/styles";
 @import "@heroui-pro/react/css";
 
+@source "../../../../shared/knowledge-web/src/**/*.{ts,tsx}";
+@source "../../../../shared/web-ui/src/**/*.{ts,tsx}";
+
 @custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));

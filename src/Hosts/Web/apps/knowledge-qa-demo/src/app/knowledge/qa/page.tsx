@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { KnowledgeQaPageSurface } from "../KnowledgeQaPageSurface";
-import { KnowledgePageWrapper } from "../KnowledgePageWrapper";
 
 export const metadata: Metadata = {
   title: "Knowledge QA | Vitarish",
@@ -8,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function KnowledgeQaPage() {
-  return (
-    <KnowledgePageWrapper>
-      <KnowledgeQaPageSurface />
-    </KnowledgePageWrapper>
-  );
+  return <KnowledgeQaPageSurface />;
 }

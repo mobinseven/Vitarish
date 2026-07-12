@@ -2,29 +2,38 @@
 
 import { PromptInput } from "@heroui-pro/react/prompt-input";
 import { ChatPromptInput, type ChatTextDirection } from "@vitarish/web-ui";
-import type { KnowledgeQaLabels } from "../types";
+import { KnowledgeCorpusSelect } from "./KnowledgeCorpusSelect";
+import type { KnowledgeQaLabels, KnowledgeUserCorpus } from "../types";
 
 interface KnowledgeQuestionComposerProps {
+  corpora: KnowledgeUserCorpus[];
   direction?: ChatTextDirection;
   hasAnswer: boolean;
   isPending: boolean;
+  isWorkspaceLoading: boolean;
   labels: KnowledgeQaLabels;
   onChange: (value: string) => void;
   onNewQuestion: () => void;
+  onSelectAll: () => void;
+  onSelectCorpus: (corpusId: string) => void;
   onSubmit: (question: string) => void;
-  scopeLabel: string;
+  selectedCorpusId: string | null;
   value: string;
 }
 
 export function KnowledgeQuestionComposer({
+  corpora,
   direction,
   hasAnswer,
   isPending,
+  isWorkspaceLoading,
   labels,
   onChange,
   onNewQuestion,
+  onSelectAll,
+  onSelectCorpus,
   onSubmit,
-  scopeLabel,
+  selectedCorpusId,
   value,
 }: KnowledgeQuestionComposerProps) {
   return (
@@ -36,8 +45,17 @@ export function KnowledgeQuestionComposer({
       submitLabel={labels.askAction}
       direction={direction}
       footer={labels.composerFooter}
-      helperText={labels.scopeLabel(scopeLabel)}
-      helperIcon={<i aria-hidden="true" className="fa-solid fa-book-open size-4 shrink-0" />}
+      helperText={
+        <KnowledgeCorpusSelect
+          className="w-44 sm:w-56"
+          corpora={corpora}
+          isLoading={isWorkspaceLoading}
+          labels={labels}
+          selectedCorpusId={selectedCorpusId}
+          onSelectAll={onSelectAll}
+          onSelectCorpus={onSelectCorpus}
+        />
+      }
       onChange={onChange}
       onSubmit={onSubmit}
       actions={
