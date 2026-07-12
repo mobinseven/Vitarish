@@ -71,37 +71,49 @@ internal class ShiftReminderPolicyTriggeredHandler(
                 continue;
             }
 
-            // Pre-render using Platform locale templates so reminders carry rendered content
-            // and the Sea ReminderProcessor sends them directly without looking up Sea entities.
-            ResolvedNotificationTemplate? template = await templateResolver.ResolveAsync(
-                recipientLocale,
-                NotificationPurpose.AppointmentReminder,
-                cancellationToken);
+            if (policy.Channel == ShiftReminderChannel.Email)
+            {
+                // Pre-render email so Sea ReminderProcessor sends directly without Sea entity lookups.
+                ResolvedNotificationTemplate? template = await templateResolver.ResolveAsync(
+                    recipientLocale,
+                    NotificationPurpose.AppointmentReminder,
+                    cancellationToken);
 
-            string subject = RenderTemplate(template?.EmailSubject ?? string.Empty, occurrenceStart);
-            string body = RenderTemplate(template?.EmailTextBody ?? string.Empty, occurrenceStart);
+                string subject = RenderTemplate(template?.EmailSubject ?? string.Empty, occurrenceStart);
+                string body = RenderTemplate(template?.EmailTextBody ?? string.Empty, occurrenceStart);
 
-            _ = await remindersService.AddRangeAsync(
-                notification.ShiftId,
-                [new ReminderRecipientReadDto
-                {
-                    Kind = ToCommunicationsReminderKind(policy.Channel),
-                    RecipientUserId = notification.ReservingPartyId,
-                    Recipient = recipient
-                }],
-                subject,
-                body,
-                remindAt,
-                cancellationToken);
+                _ = await remindersService.AddRangeAsync(
+                    notification.ShiftId,
+                    [new ReminderRecipientReadDto
+                    {
+                        Kind = Vitarish.Communications.Domain.Enums.ReminderKind.Email,
+                        RecipientUserId = notification.ReservingPartyId,
+                        Recipient = recipient
+                    }],
+                    subject,
+                    body,
+                    remindAt,
+                    cancellationToken);
+            }
+            else
+            {
+                // For SMS, store empty body so Sea ReminderProcessor resolves the SMS template
+                // from Platform locale records and sends via SendTemplatedSms.
+                _ = await remindersService.AddRangeAsync(
+                    notification.ShiftId,
+                    [new ReminderRecipientReadDto
+                    {
+                        Kind = Vitarish.Communications.Domain.Enums.ReminderKind.Sms,
+                        RecipientUserId = notification.ReservingPartyId,
+                        Recipient = recipient
+                    }],
+                    string.Empty,
+                    string.Empty,
+                    remindAt,
+                    cancellationToken);
+            }
         }
     }
-
-    private static Vitarish.Communications.Domain.Enums.ReminderKind ToCommunicationsReminderKind(ShiftReminderChannel channel) => channel switch
-    {
-        ShiftReminderChannel.Email => Vitarish.Communications.Domain.Enums.ReminderKind.Email,
-        ShiftReminderChannel.Sms => Vitarish.Communications.Domain.Enums.ReminderKind.Sms,
-        _ => throw new ArgumentOutOfRangeException(nameof(channel), channel, "Unsupported reminder channel.")
-    };
 
     private static DateTime GetOccurrenceStart(Shift shift, DateOnly date)
     {

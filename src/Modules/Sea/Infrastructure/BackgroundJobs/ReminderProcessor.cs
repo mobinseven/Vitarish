@@ -130,29 +130,33 @@ public class ReminderProcessor(
             return;
         }
 
+        string? recipientLocale = reminder.RecipientUserId is not null
+            ? await GetUserLocaleAsync(tenantContext, reminder.RecipientUserId, cancellationToken)
+            : null;
+
+        ResolvedNotificationTemplate? resolvedTemplate = await tenantContext.TemplateResolver.ResolveAsync(
+            recipientLocale,
+            NotificationPurpose.SeaReminder,
+            cancellationToken);
+
         switch (reminder.Kind)
         {
             case ReminderKind.Email:
-                ResolvedNotificationTemplate? emailTemplate = await tenantContext.TemplateResolver.ResolveAsync(
-                    reminder.RecipientUserId is not null ? await GetUserLocaleAsync(tenantContext, reminder.RecipientUserId, cancellationToken) : null,
-                    NotificationPurpose.SeaReminder,
-                    cancellationToken);
-
-                if (emailTemplate is null || emailTemplate.EmailSubject is null || emailTemplate.EmailTextBody is null)
+                if (resolvedTemplate is null || resolvedTemplate.EmailSubject is null || resolvedTemplate.EmailTextBody is null)
                 {
                     _logger.LogWarning("No email template resolved for Sea reminder {ReminderId}. Configuration failure — will retry.", reminder.Id);
                     return;
                 }
 
-                string subject = emailTemplate.EmailSubject
+                string subject = resolvedTemplate.EmailSubject
                     .Replace("{EventTitle}", evnt.Title, StringComparison.Ordinal)
                     .Replace("{ProcedureName}", proc.Name, StringComparison.Ordinal)
                     .Replace("{ProjectName}", proj.Name, StringComparison.Ordinal);
-                string body = emailTemplate.EmailTextBody
+                string body = resolvedTemplate.EmailTextBody
                     .Replace("{EventTitle}", evnt.Title, StringComparison.Ordinal)
                     .Replace("{ProcedureName}", proc.Name, StringComparison.Ordinal)
                     .Replace("{ProjectName}", proj.Name, StringComparison.Ordinal);
-                string htmlBody = emailTemplate.EmailHtmlBody?
+                string htmlBody = resolvedTemplate.EmailHtmlBody?
                     .Replace("{EventTitle}", System.Net.WebUtility.HtmlEncode(evnt.Title), StringComparison.Ordinal)
                     .Replace("{ProcedureName}", System.Net.WebUtility.HtmlEncode(proc.Name), StringComparison.Ordinal)
                     .Replace("{ProjectName}", System.Net.WebUtility.HtmlEncode(proj.Name), StringComparison.Ordinal)
@@ -169,12 +173,7 @@ public class ReminderProcessor(
                 break;
 
             case ReminderKind.Sms:
-                ResolvedNotificationTemplate? smsTemplate = await tenantContext.TemplateResolver.ResolveAsync(
-                    reminder.RecipientUserId is not null ? await GetUserLocaleAsync(tenantContext, reminder.RecipientUserId, cancellationToken) : null,
-                    NotificationPurpose.SeaReminder,
-                    cancellationToken);
-
-                if (smsTemplate is null || smsTemplate.SmsTemplateId is null)
+                if (resolvedTemplate is null || resolvedTemplate.SmsTemplateId is null)
                 {
                     _logger.LogWarning("No SMS template resolved for Sea reminder {ReminderId}. Configuration failure — will retry.", reminder.Id);
                     return;
@@ -190,7 +189,7 @@ public class ReminderProcessor(
 
                 await tenantContext.MessagesService.SendTemplatedSms(
                     reminder.Recipient,
-                    smsTemplate.SmsTemplateId,
+                    resolvedTemplate.SmsTemplateId,
                     smsParameters,
                     cancellationToken);
                 break;
