@@ -32,12 +32,14 @@ public class ShiftReminderPolicy : Entity
         set => SetField(ref field, value, nameof(QualifyingStatuses));
     } = [];
 
+    [Obsolete("Templates are now resolved from Platform locale notification records at send time. This property will be removed in a future migration.")]
     public string SubjectTemplate
     {
         get;
         set => SetField(ref field, value, nameof(SubjectTemplate));
     } = string.Empty;
 
+    [Obsolete("Templates are now resolved from Platform locale notification records at send time. This property will be removed in a future migration.")]
     public string BodyTemplate
     {
         get;

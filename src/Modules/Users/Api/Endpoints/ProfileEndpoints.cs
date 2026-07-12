@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
+using Vitarish.Modules.Base.Core.Abstractions;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Application.Commands;
@@ -35,7 +36,7 @@ public static class ProfileEndpoints
 
         return Results.Ok(new UserProfileResponse(
             user.Id, user.UserName, user.FirstName, user.LastName,
-            user.Email, user.PhoneNumber, culture, theme));
+            user.Email, user.PhoneNumber, culture, theme, culture));
     }
 
     private static async Task<IResult> UpdateProfileAsync(string userId, UpdateUserProfileRequest request, IUsersService usersService, CancellationToken ct)
@@ -59,8 +60,18 @@ public static class ProfileEndpoints
         return Results.Ok(culture);
     }
 
-    private static async Task<IResult> SetCultureAsync(string userId, SetUserCultureRequest request, IUserProfileService profileService, CancellationToken ct)
+    private static async Task<IResult> SetCultureAsync(string userId, SetUserCultureRequest request, IUserProfileService profileService, IValidLocaleProvider? validLocaleProvider, CancellationToken ct)
     {
+        if (validLocaleProvider is not null && !string.IsNullOrWhiteSpace(request.Culture))
+        {
+            bool isValid = await validLocaleProvider.IsValidLocaleAsync(request.Culture, ct);
+            if (!isValid)
+            {
+                return Results.BadRequest(UsersCommandResponse.Failed(
+                    [new UsersCommandError("InvalidLocale", $"Locale '{request.Culture}' is not supported.")]));
+            }
+        }
+
         Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct) ?? new Dictionary<string, string>();
         profile["Culture"] = request.Culture;
         await profileService.UpdateProfileAsync(userId, profile, ct);

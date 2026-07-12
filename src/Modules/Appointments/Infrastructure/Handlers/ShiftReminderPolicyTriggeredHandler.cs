@@ -1,6 +1,9 @@
 using Vitarish.Appointments.Application.Events;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Dto;
+using Vitarish.Platform.Application.Abstractions;
+using Vitarish.Platform.Application.Contracts;
+using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Application.Queries;
 
 namespace Vitarish.Appointments.Infrastructure.Handlers;
@@ -10,6 +13,8 @@ internal class ShiftReminderPolicyTriggeredHandler(
     IEntityRepository<ShiftReminderPolicy, ShiftReminderPolicyDescriptor> reminderPolicyRepository,
     IRemindersService remindersService,
     IMediator mediator,
+    INotificationTemplateResolver templateResolver,
+    IUsersService usersService,
     TimeProvider? timeProvider = null)
     : INotificationHandler<ShiftReminderPolicyTriggeredEvent>
 {
@@ -40,6 +45,9 @@ internal class ShiftReminderPolicyTriggeredHandler(
         DateTime occurrenceStart = GetOccurrenceStart(shift, notification.Date);
         DateTime now = _timeProvider.GetUtcNow().UtcDateTime;
 
+        // Resolve recipient locale once for all policies
+        string? recipientLocale = await GetUserLocaleAsync(notification.ReservingPartyId, cancellationToken);
+
         foreach (ShiftReminderPolicy policy in policies)
         {
             if (!policy.QualifyingStatuses.Contains(notification.NewStatus))
@@ -63,8 +71,15 @@ internal class ShiftReminderPolicyTriggeredHandler(
                 continue;
             }
 
-            string subject = RenderTemplate(policy.SubjectTemplate, occurrenceStart);
-            string body = RenderTemplate(policy.BodyTemplate, occurrenceStart);
+            // Pre-render using Platform locale templates so reminders carry rendered content
+            // and the Sea ReminderProcessor sends them directly without looking up Sea entities.
+            ResolvedNotificationTemplate? template = await templateResolver.ResolveAsync(
+                recipientLocale,
+                NotificationPurpose.AppointmentReminder,
+                cancellationToken);
+
+            string subject = RenderTemplate(template?.EmailSubject ?? string.Empty, occurrenceStart);
+            string body = RenderTemplate(template?.EmailTextBody ?? string.Empty, occurrenceStart);
 
             _ = await remindersService.AddRangeAsync(
                 notification.ShiftId,
@@ -124,7 +139,14 @@ internal class ShiftReminderPolicyTriggeredHandler(
             };
     }
 
+    private async Task<string?> GetUserLocaleAsync(string userId, CancellationToken cancellationToken)
+    {
+        Vitarish.Users.Domain.Entities.User? user = await usersService.GetUserAsync(userId, cancellationToken);
+        if (user?.ProfilePreferences is null) return null;
+        return user.ProfilePreferences.TryGetValue("Culture", out string? culture) ? culture : null;
+    }
+
     private static string RenderTemplate(string template, DateTime occurrenceStart)
-        => template.Replace("{{OccurrenceStart}}", occurrenceStart.ToString("f"), StringComparison.Ordinal);
+        => template.Replace("{OccurrenceStart}", occurrenceStart.ToString("f"), StringComparison.Ordinal);
 }
 

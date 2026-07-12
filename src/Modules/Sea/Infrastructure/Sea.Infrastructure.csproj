@@ -19,6 +19,7 @@
 <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
 <ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Users\Application\Users.Application.csproj" />
+		<ProjectReference Include="..\..\..\Modules\Platform\Application\Platform.Application.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 		<ProjectReference Include="..\..\Feed\Domain\Feed.Domain.csproj" />
 		<ProjectReference Include="..\..\Parties\Application\Parties.Application.csproj" />

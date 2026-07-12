@@ -139,6 +139,39 @@ public class SmsDotIrProvider : ISmsProvider
         }
     }
 
+    public async Task SendTemplatedSms(string recipient, string templateId, IReadOnlyDictionary<string, string> parameters, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(recipient))
+        {
+            throw new ArgumentException("Recipient is required", nameof(recipient));
+        }
+
+        if (string.IsNullOrWhiteSpace(templateId))
+        {
+            throw new ArgumentException("Template ID is required", nameof(templateId));
+        }
+
+        NameValue[] paramsArray = parameters
+            .Select(kv => new NameValue { Name = kv.Key, Value = kv.Value })
+            .ToArray();
+
+        SendVerifyRequest req = new()
+        {
+            Mobile = recipient,
+            TemplateId = templateId,
+            Parameters = paramsArray
+        };
+
+        using HttpResponseMessage response =
+            await apiClient.PostAsJsonAsync("v1/send/verify", req, cancellationToken).ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            throw new HttpRequestException($"SmsDotIr SendTemplatedSms failed: {response.StatusCode} - {content}");
+        }
+    }
+
     public async Task<SmsDeliveryState> GetSmsDeliveryStateAsync(long messageId, CancellationToken cancellationToken = default)
     {
         if (messageId <= 0)
