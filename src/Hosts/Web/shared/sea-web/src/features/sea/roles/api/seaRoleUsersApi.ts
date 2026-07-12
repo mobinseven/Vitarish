@@ -1,4 +1,4 @@
-import { usersSearchUsers, type UserSummaryResponse } from "@vitarish/auth-web";
+import { usersSearchUsers, type UserSummaryResponse } from "@vitarish/auth-web/users";
 
 export type SeaRoleUserSummary = UserSummaryResponse;
 

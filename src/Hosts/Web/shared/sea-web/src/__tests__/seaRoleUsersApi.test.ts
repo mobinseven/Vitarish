@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { usersSearchUsers } from "@vitarish/auth-web";
+import { usersSearchUsers } from "@vitarish/auth-web/users";
 import { searchSeaRoleUsers } from "../features/sea/roles/api/seaRoleUsersApi";
 
-vi.mock("@vitarish/auth-web", () => ({
+vi.mock("@vitarish/auth-web/users", () => ({
   usersSearchUsers: vi.fn(),
 }));
 

@@ -3,10 +3,10 @@
 import { useCallback } from "react";
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useAuthSession } from "@vitarish/auth-web";
 import { AccountBackLink, AccountSurface } from "@/components/account/AccountSurface";
 import { useAccountCulture } from "@vitarish/account-web";
-import { StatusMessage } from "@/components/auth/StatusMessage";
+import { StatusAlert } from "@vitarish/web-ui";
 import { OptionSelector } from "@/components/account/OptionSelector";
 import { useLocalizedText } from "@/localization";
 
@@ -43,10 +43,10 @@ export default function CulturePage() {
         onSelect={setSelected}
       />
       {isError && (
-        <StatusMessage message={t("account.culture.updateFailed")} />
+        <StatusAlert className="mb-4" message={t("account.culture.updateFailed")} />
       )}
       {success && (
-        <StatusMessage message={t("account.culture.updateSucceeded")} type="success" />
+        <StatusAlert className="mb-4" message={t("account.culture.updateSucceeded")} type="success" />
       )}
       <Button
         onPress={handleSave}

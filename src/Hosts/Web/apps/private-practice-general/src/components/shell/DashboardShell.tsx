@@ -11,7 +11,7 @@ import {
 } from "@vitarish/web-ui";
 import { usePathname, useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
-import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useAuthSession } from "@vitarish/auth-web";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { CultureSwitcher } from "./CultureSwitcher";
 import { ThemeSwitch } from "./ThemeSwitch";

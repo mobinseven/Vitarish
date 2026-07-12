@@ -3,10 +3,10 @@
 import { useCallback, useState } from "react";
 import { Button } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
-import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useAuthSession } from "@vitarish/auth-web";
 import { AccountBackLink, AccountSurface, AccountWidget } from "@/components/account/AccountSurface";
 import { useAccountPasskeys } from "@vitarish/account-web";
-import { StatusMessage } from "@/components/auth/StatusMessage";
+import { StatusAlert } from "@vitarish/web-ui";
 import { localizeApiError, useLocalizedText } from "@/localization";
 import { localizePasskeyRegistrationError } from "@vitarish/account-web";
 
@@ -55,11 +55,11 @@ export default function PasskeysPage() {
   return (
     <AccountSurface>
       <AccountWidget title={t("account.passkeys.title")}>
-        {error && <StatusMessage message={error} />}
-        {success && <StatusMessage message={success} type="success" />}
+        {error && <StatusAlert className="mb-4" message={error} />}
+        {success && <StatusAlert className="mb-4" message={success} type="success" />}
 
         {isSupported === false && (
-          <StatusMessage message={t("account.passkeys.unsupported")} />
+          <StatusAlert className="mb-4" message={t("account.passkeys.unsupported")} />
         )}
 
         {isLoadingCredentials ? (

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useAuthSession } from "@vitarish/auth-web";
 import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { DashboardShell } from "@/components/shell";
 import { dashboardFooterItems, mainDashboardNavGroups } from "@/components/shell/dashboardShellNavigation";

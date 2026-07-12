@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { HomeDashboard } from "@/features/home/components/HomeDashboard";
 import { renderWithLocalization } from "../localization/renderWithLocalization";
 
-vi.mock("@/hooks/auth/useAuthSession", () => ({
+vi.mock("@vitarish/auth-web", () => ({
   useAuthSession: () => ({
     user: { displayName: "Raw Name", email: "raw@example.com", phoneNumber: null },
     displayProfile: {

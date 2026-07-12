@@ -2,11 +2,11 @@
 
 import { useCallback } from "react";
 import { Button } from "@heroui/react";
-import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useAuthSession } from "@vitarish/auth-web";
 import { AccountBackLink, AccountSurface } from "@/components/account/AccountSurface";
 import { usePalette } from "@/components/providers/PaletteProvider";
 import { useAccountTheme } from "@vitarish/account-web";
-import { StatusMessage } from "@/components/auth/StatusMessage";
+import { StatusAlert } from "@vitarish/web-ui";
 import { useLocalizedText } from "@/localization";
 import { PaletteSwitch } from "@vitarish/account-web";
 import {
@@ -48,10 +48,10 @@ export default function ThemePage() {
         onVibrantChange={setIsVibrant}
       />
       {isError && (
-        <StatusMessage message={t("account.theme.updateFailed")} />
+        <StatusAlert className="mb-4" message={t("account.theme.updateFailed")} />
       )}
       {success && (
-        <StatusMessage message={t("account.theme.updateSucceeded")} type="success" />
+        <StatusAlert className="mb-4" message={t("account.theme.updateSucceeded")} type="success" />
       )}
       <Button
         onPress={handleSave}

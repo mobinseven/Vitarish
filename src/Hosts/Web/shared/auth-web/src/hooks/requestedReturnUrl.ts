@@ -1,9 +1,9 @@
 export function getRequestedReturnUrl(
-  searchParams: URLSearchParams,
+  searchParams: Pick<URLSearchParams, "get"> | undefined,
   explicitReturnUrl?: string
 ): string | undefined {
   const raw =
-    explicitReturnUrl ?? searchParams.get("returnUrl") ?? undefined;
+    explicitReturnUrl ?? searchParams?.get("returnUrl") ?? undefined;
 
   if (!raw) return undefined;
 

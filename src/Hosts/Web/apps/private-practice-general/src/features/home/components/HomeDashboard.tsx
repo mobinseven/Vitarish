@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ItemCard, Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
-import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useAuthSession } from "@vitarish/auth-web";
 import { useLocalizedText } from "@/localization";
 
 interface DemoModuleCard {

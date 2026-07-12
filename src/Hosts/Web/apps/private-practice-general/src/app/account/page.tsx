@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ItemCard, ItemCardGroup } from "@heroui-pro/react";
-import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useAuthSession } from "@vitarish/auth-web";
 import { Routes } from "@/app/routes";
 import { AccountSurface } from "@/components/account/AccountSurface";
 import { useLocalizedText, type MessageKey } from "@/localization";
