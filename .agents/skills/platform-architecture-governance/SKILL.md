@@ -25,7 +25,7 @@ Skip it only for tiny local edits whose artifact owner, layer, dependency direct
 ## Procedure
 
 1. Classify every artifact as exactly one of: Domain, Application, Command, Query, Port/contract, Adapter/infrastructure, Presentation/API/UI, Data transfer shape, Persistence model, Test, Configuration/composition, or Documentation.
-2. Check `.agents/skills/README.md` → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
+2. Check AGENTS.md → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
 3. Identify the narrowest owner: app, module, capability, host, React Web feature, interface package, platform module, library, identity context, docs scope, or test scope.
 4. Apply the layer boundary: Domain -> Application -> Infrastructure/Api/Client -> Presentation/Host, with Contracts as serialization-only boundary shapes.
 5. Name the single source of truth for business rules, state transitions, validation rules, routes, DTOs, generated clients, UI copy, and docs.
