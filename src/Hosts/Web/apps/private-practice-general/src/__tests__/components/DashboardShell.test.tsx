@@ -97,15 +97,7 @@ const nestedNavigationGroups = [
     label: "General",
     items: [
       { href: "/home", iconClassName: "fa-solid fa-house", label: "Home", exactMatch: true },
-      {
-        href: "/clinic",
-        iconClassName: "fa-solid fa-house-medical",
-        label: "Clinic",
-        exactMatch: true,
-        children: [
-          { href: "/clinic/patients", iconClassName: "fa-solid fa-users", label: "Patients" },
-        ],
-      },
+      { href: "/clinic/patients", iconClassName: "fa-solid fa-users", label: "Patients", exactMatch: true },
       {
         href: "/knowledge",
         iconClassName: "fa-solid fa-book-open",
@@ -158,7 +150,6 @@ describe("Dashboard Shell Components", () => {
         </DashboardFrame>
       );
 
-      expect(screen.getByText("Clinic")).toBeInTheDocument();
       expect(screen.getByText("Patients")).toBeInTheDocument();
     });
 

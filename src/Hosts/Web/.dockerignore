@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+.next
+**/.next
+out
+**/out
+coverage
+**/coverage
+*.tsbuildinfo
+.env*
+.git
+.mimocode
