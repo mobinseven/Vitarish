@@ -26,13 +26,14 @@ Skip it for backend-only, contract-only, or generated-client-only changes with n
 ## Procedure
 
 1. Classify the UI artifact as route/page, module feature, capability feature, host component, localization artifact, generated API artifact, or shared Web UI package artifact.
-2. Keep route files as composition surfaces. Reusable workflow UI belongs in feature/component/shared owners.
-3. Keep feature hooks authoritative for generated-client wrapping, React Query invalidation, loading/error mapping, and use-case names.
-4. Keep generated clients out of pages unless the existing feature convention explicitly permits a narrow direct read.
-5. Put user-facing text, metadata, validation copy, empty states, and API error display mapping in `src/Hosts/Web/src/localization/**`.
-6. Use central formatting helpers for dates, times, numbers, currencies, percentages, lists, direction, and plural-sensitive messages.
-7. Prefer raw HeroUI/HeroUI Pro components and documented composition before creating local wrappers.
-8. Promote to shared Web UI only when the artifact is presentation-only, generic, reusable across real Web consumers, and free of backend/generated-client/feature workflow dependencies.
+2. Check `.agents/skills/README.md` → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
+3. Keep route files as composition surfaces. Reusable workflow UI belongs in feature/component/shared owners.
+4. Keep feature hooks authoritative for generated-client wrapping, React Query invalidation, loading/error mapping, and use-case names.
+5. Keep generated clients out of pages unless the existing feature convention explicitly permits a narrow direct read.
+6. Put user-facing text, metadata, validation copy, empty states, and API error display mapping in `src/Hosts/Web/src/localization/**`.
+7. Use central formatting helpers for dates, times, numbers, currencies, percentages, lists, direction, and plural-sensitive messages.
+8. Prefer raw HeroUI/HeroUI Pro components and documented composition before creating local wrappers.
+9. Promote to shared Web UI only when the artifact is presentation-only, generic, reusable across real Web consumers, and free of backend/generated-client/feature workflow dependencies.
 
 ## Output
 
@@ -55,6 +56,7 @@ Handoff:
 - Generated clients, generated DTOs, `apiFetch`, or transport infrastructure localize display copy.
 - Shared Web UI receives backend DTOs, generated client types, feature workflow names, routes, or React Query hooks.
 - A custom UI wrapper hides HeroUI behavior without a current reuse or accessibility reason.
+- A doc, ADR, or validator script this skill names under Read or Validation cannot be found or read. Stop and report the gap. Do not proceed as if the rule does not apply.
 
 ## Validation
 
