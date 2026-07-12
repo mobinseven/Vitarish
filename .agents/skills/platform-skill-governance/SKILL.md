@@ -25,7 +25,7 @@ Skip it for ordinary code changes that only use existing skills.
 ## Procedure
 
 1. Start from decision ownership, not current folder names. Merge or delete skills when one responsibility covers the intended use.
-2. Check `.agents/skills/README.md` → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
+2. Check AGENTS.md → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
 3. Keep `AGENTS.md` as the architecture and routing source of truth. Skills may point to it; they must not duplicate its full rules.
 4. Keep every skill body concise, procedural, and under 500 lines.
 5. Use only `name` and `description` in `SKILL.md` frontmatter unless a host-specific validator explicitly allows more.
