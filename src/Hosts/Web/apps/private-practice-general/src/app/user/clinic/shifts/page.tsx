@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import { UserShiftsList } from "@vitarish/clinic-web";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Available Shifts | Vitarish",
-  description: "Browse and book available shifts",
-};
+import { UserShiftsList } from "@vitarish/clinic-web";
+import { useClinicNavigation } from "@/components/clinic-navigation";
 
 export default function ClinicUserShiftsPage() {
-  return <UserShiftsList />;
+  const navigate = useClinicNavigation();
+  return <UserShiftsList onNavigate={navigate} />;
 }

@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import { OwnerShiftsList } from "@vitarish/clinic-web";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Shifts | Vitarish",
-  description: "Manage clinic shifts and schedules",
-};
+import { OwnerShiftsList } from "@vitarish/clinic-web";
+import { useClinicNavigation } from "@/components/clinic-navigation";
 
 export default function ClinicOwnerShiftsPage() {
-  return <OwnerShiftsList />;
+  const navigate = useClinicNavigation();
+  return <OwnerShiftsList onNavigate={navigate} />;
 }

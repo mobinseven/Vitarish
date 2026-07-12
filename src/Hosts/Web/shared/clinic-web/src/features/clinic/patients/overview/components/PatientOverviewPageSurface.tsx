@@ -51,7 +51,7 @@ export function PatientOverviewPageSurface({ patientId, onNavigate }: PatientOve
           </Button>
           <h1 className="text-2xl font-bold">{displayName}</h1>
         </div>
-        <PatientQuickActions patientId={patientId} />
+        <PatientQuickActions patientId={patientId} onNavigate={onNavigate} />
       </div>
 
       <PatientCriticalSummary patient={patient} />
@@ -62,7 +62,7 @@ export function PatientOverviewPageSurface({ patientId, onNavigate }: PatientOve
         </div>
         <div className="flex flex-col gap-6">
           <PatientSummaryCard patient={patient} />
-          <PatientProceduresPanel patientId={patientId} />
+          <PatientProceduresPanel patientId={patientId} onNavigate={onNavigate} />
         </div>
       </div>
     </div>

@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import { ClinicOwnerDashboard } from "@vitarish/clinic-web";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Clinic Dashboard | Vitarish",
-  description: "Manage your clinic operations",
-};
+import { ClinicOwnerDashboard } from "@vitarish/clinic-web";
+import { useClinicNavigation } from "@/components/clinic-navigation";
 
 export default function ClinicOwnerDashboardPage() {
-  return <ClinicOwnerDashboard />;
+  const navigate = useClinicNavigation();
+  return <ClinicOwnerDashboard onNavigate={navigate} />;
 }

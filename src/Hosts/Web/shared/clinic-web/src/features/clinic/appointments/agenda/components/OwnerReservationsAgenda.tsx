@@ -3,10 +3,15 @@
 import { useOwnerReservations } from "../../reservations/hooks/useOwnerReservations";
 import { useOwnerShifts } from "../../shifts/hooks/useOwnerShifts";
 import { ClinicErrorState, ClinicLoadingState } from "../../../components/ClinicStateSurface";
+import type { ClinicNavigationIntent } from "../../../../../navigation";
 import { useLocalizedText } from "../../../../../localization";
 import { AppointmentsAgenda } from "./AppointmentsAgenda";
 
-export function OwnerReservationsAgenda() {
+interface OwnerReservationsAgendaProps {
+  onNavigate?: (intent: ClinicNavigationIntent) => void;
+}
+
+export function OwnerReservationsAgenda({ onNavigate }: OwnerReservationsAgendaProps) {
   const { t } = useLocalizedText();
   const { data: reservations, isLoading: reservationsLoading, error: reservationsError } = useOwnerReservations();
   const { data: shifts, isLoading: shiftsLoading, error: shiftsError } = useOwnerShifts();
@@ -19,7 +24,7 @@ export function OwnerReservationsAgenda() {
       {isLoading && <ClinicLoadingState label={t("common.states.loading")} />}
       {error && <ClinicErrorState title={t("clinic.appointments.reservations.failedToLoad")} />}
       {!isLoading && !error && shifts && reservations && (
-        <AppointmentsAgenda shifts={shifts} reservations={reservations} />
+        <AppointmentsAgenda shifts={shifts} reservations={reservations} onNavigate={onNavigate} />
       )}
     </div>
   );
