@@ -71,6 +71,7 @@ describe("@vitarish/knowledge-web", () => {
     );
 
     expect(screen.getByText("Choose a corpus")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Knowledge Q&A" })).toBeInTheDocument();
     expect(screen.getByLabelText("Question")).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByLabelText("Knowledge sources")).toHaveTextContent("All corpora");

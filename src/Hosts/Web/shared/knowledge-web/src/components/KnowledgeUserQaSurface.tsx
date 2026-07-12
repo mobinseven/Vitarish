@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { KnowledgeAnswerList } from "./KnowledgeAnswerList";
-import { KnowledgeCorpusRail } from "./KnowledgeCorpusRail";
 import { KnowledgeQuestionComposer } from "./KnowledgeQuestionComposer";
 import { useKnowledgeUserAsk } from "../hooks/useKnowledgeUserAsk";
 import { useKnowledgeUserWorkspace } from "../hooks/useKnowledgeUserWorkspace";
@@ -62,7 +61,6 @@ export function KnowledgeUserQaSurface({
     [corpora, selectedCorpusId]
   );
 
-  const currentScopeLabel = selectedCorpus?.name ?? labels.allCorpora;
   const answerScopeLabel = getScopeLabel(lastScope, corpora, labels);
 
   const submitQuestion = useCallback(
@@ -129,17 +127,17 @@ export function KnowledgeUserQaSurface({
   }, []);
 
   return (
-    <div className="flex h-[calc(100svh-var(--navbar-height,64px))] min-h-[620px] flex-col overflow-hidden bg-background lg:flex-row">
-      <KnowledgeCorpusRail
-        corpora={corpora}
-        selectedCorpusId={selectedCorpusId}
-        isLoading={workspace.isLoading}
-        labels={labels}
-        onSelectAll={selectAll}
-        onSelectCorpus={selectCorpus}
-      />
+    <div className="flex h-svh min-h-0 flex-col overflow-hidden bg-background">
+      <header className="flex h-16 shrink-0 items-center gap-3 border-b border-separator px-4 sm:px-6">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+          <i aria-hidden="true" className="fa-solid fa-book-open size-4" />
+        </div>
+        <div className="min-w-0">
+          <h1 className="truncate text-sm font-semibold text-foreground sm:text-base">{labels.title}</h1>
+        </div>
+      </header>
 
-      <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <KnowledgeAnswerList
           question={submittedQuestion}
           scopeKind={lastScope.kind}
@@ -154,22 +152,26 @@ export function KnowledgeUserQaSurface({
           onContinueInCorpus={continueInCorpus}
         />
 
-        <div className="shrink-0 bg-background px-4 pb-4 pt-3">
+        <div className="shrink-0 border-t border-separator/60 bg-background px-4 pb-4 pt-3">
           <div className="mx-auto w-full max-w-[714px]">
             <KnowledgeQuestionComposer
+              corpora={corpora}
               value={question}
-              scopeLabel={currentScopeLabel}
               isPending={ask.isPending}
+              isWorkspaceLoading={workspace.isLoading}
               hasAnswer={answerResults.length > 0}
               direction={direction}
               labels={labels}
               onChange={setQuestion}
+              onSelectAll={selectAll}
+              onSelectCorpus={selectCorpus}
               onSubmit={submitQuestion}
               onNewQuestion={startNewQuestion}
+              selectedCorpusId={selectedCorpusId}
             />
           </div>
         </div>
-      </section>
+      </main>
     </div>
   );
 }
