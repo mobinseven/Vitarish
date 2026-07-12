@@ -84,12 +84,6 @@ export function PatientsGrid({
         cell: (patient) =>
           patient.dateOfBirth ? formatDate(patient.dateOfBirth, locale) : "",
       },
-      {
-        id: "CreatedAt",
-        header: t("clinic.patient.fields.created"),
-        accessorKey: "createdAt",
-        allowsSorting: true,
-      },
     ],
     [t, locale, formatPatientName]
   );
