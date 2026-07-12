@@ -1,6 +1,6 @@
 ---
 name: platform-delivery-loop
-description: Coordinates one focused repository delivery loop from objective, scope, implementation, validation, review, feedback triage, automation state, and handoff. Use for one-PR work, auto-implementation issue loops, plan execution, review verdicts, and delivery status decisions.
+description: Coordinates one focused repository delivery loop from objective, scope, implementation, validation, review, feedback triage, and handoff. Use for one-PR work, plan execution, review verdicts, and delivery status decisions.
 ---
 
 # Platform Delivery Loop
@@ -11,7 +11,7 @@ Keep implementation work reviewable, scoped, validated, and finishable. This ski
 
 ## Use
 
-Use this skill when work should land as one focused change, when executing an approved plan, when reviewing completed changes before handoff, when triaging PR feedback, or when managing an automated issue-to-plan-to-implementation loop.
+Use this skill when work should land as one focused change, when executing an approved plan, when reviewing completed changes before handoff, or when triaging PR feedback.
 
 Skip it for pure analysis where the user explicitly does not want implementation or delivery.
 
@@ -44,8 +44,6 @@ Feedback status:
 Open risks:
 Handoff:
 ```
-
-For automated loops, also include iteration count, legal next state, termination condition, and escalation reason when applicable.
 
 ## Hard Stops
 

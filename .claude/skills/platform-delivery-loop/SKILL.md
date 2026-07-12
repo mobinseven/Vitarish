@@ -1,6 +1,6 @@
 ---
 name: platform-delivery-loop
-description: Routes to the canonical Vitarish delivery loop skill. Use for focused PR delivery, approved plan execution, automated implementation loops, validation evidence, review verdicts, feedback triage, or handoff.
+description: Routes to the canonical Vitarish delivery loop skill. Use for focused PR delivery, approved plan execution, validation evidence, review verdicts, feedback triage, or handoff.
 ---
 
 # Platform Delivery Loop Bridge
