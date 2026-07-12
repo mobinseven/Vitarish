@@ -26,7 +26,7 @@ Skip it for backend-only, contract-only, or generated-client-only changes with n
 ## Procedure
 
 1. Classify the UI artifact as route/page, module feature, capability feature, host component, localization artifact, generated API artifact, or shared Web UI package artifact.
-2. Check `.agents/skills/README.md` → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
+2. Check AGENTS.md → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
 3. Keep route files as composition surfaces. Reusable workflow UI belongs in feature/component/shared owners.
 4. Keep feature hooks authoritative for generated-client wrapping, React Query invalidation, loading/error mapping, and use-case names.
 5. Keep generated clients out of pages unless the existing feature convention explicitly permits a narrow direct read.
