@@ -53,7 +53,6 @@ RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
 
 COPY --from=builder --chown=nextjs:nodejs /app/apps/knowledge-qa-demo/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/knowledge-qa-demo/public ./apps/knowledge-qa-demo/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/knowledge-qa-demo/.next/static ./apps/knowledge-qa-demo/.next/static
 
 WORKDIR /app/apps/knowledge-qa-demo
