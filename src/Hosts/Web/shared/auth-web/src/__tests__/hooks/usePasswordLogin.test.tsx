@@ -5,8 +5,8 @@ import { type ReactNode } from "react";
 import { http, HttpResponse } from "msw";
 import { server } from "../server";
 import { usePasswordLogin } from "../../hooks/usePasswordLogin";
-import { useAuthSession } from "@vitarish/auth-web";
-import { getAuthenticationSessionGetQueryKey } from "@vitarish/auth-web";
+import { useAuthSession } from "../../hooks/useAuthSession";
+import { getAuthenticationSessionGetQueryKey } from "../../api/generated/authentication/authentication";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },

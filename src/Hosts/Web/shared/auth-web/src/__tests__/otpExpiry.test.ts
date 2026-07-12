@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getOtpExpiryPresentation } from "@vitarish/auth-web";
+import { getOtpExpiryPresentation } from "../auth/otpExpiry";
 
 describe("getOtpExpiryPresentation", () => {
   it("returns a short countdown label", () => {

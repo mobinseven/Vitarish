@@ -70,6 +70,6 @@ describe("usePhoneLogin", () => {
     });
 
     expect(result.current.step).toBe("code");
-    expect(result.current.statusMessage).toBe("A new code was sent to your phone number.");
+    expect(result.current.statusCode).toBe("auth.otp.phoneCodeResent");
   });
 });

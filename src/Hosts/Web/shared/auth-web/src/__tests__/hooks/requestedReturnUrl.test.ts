@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getRequestedReturnUrl } from "@vitarish/auth-web";
+import { getRequestedReturnUrl } from "../../hooks/requestedReturnUrl";
 
 describe("getRequestedReturnUrl", () => {
   it.each([

@@ -1,9 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
-import { fireEvent, screen } from "@testing-library/react";
-import { OtpCodeInput } from "@vitarish/auth-web";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, screen } from "@testing-library/react";
+import { OtpCodeInput } from "../../components/OtpCodeInput";
 import { renderWithLocalization } from "../localization/renderWithLocalization";
 
 describe("OtpCodeInput", () => {
+  afterEach(() => cleanup());
   it("keeps browser OTP autofill, numeric keyboard, and expected length attributes", () => {
     renderWithLocalization(<OtpCodeInput value="" onChange={() => {}} />);
 

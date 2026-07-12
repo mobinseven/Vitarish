@@ -4,8 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode } from "react";
 import { http, HttpResponse } from "msw";
 import { server } from "../server";
-import { getAuthenticationSessionGetQueryKey } from "@vitarish/auth-web";
-import { useLogout } from "@vitarish/auth-web";
+import { getAuthenticationSessionGetQueryKey } from "../../api/generated/authentication/authentication";
+import { useLogout } from "../../hooks/useLogout";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },

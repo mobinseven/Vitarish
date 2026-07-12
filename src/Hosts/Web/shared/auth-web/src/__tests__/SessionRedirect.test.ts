@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveSessionRedirectTarget } from "@vitarish/auth-web";
+import { resolveSessionRedirectTarget } from "../components/SessionRedirect";
 
 describe("resolveSessionRedirectTarget", () => {
   it("does not redirect while the session is still loading", () => {
@@ -16,6 +16,7 @@ describe("resolveSessionRedirectTarget", () => {
       resolveSessionRedirectTarget({
         isLoading: false,
         isAuthenticated: true,
+        authenticatedHref: "/home",
       })
     ).toBe("/home");
   });
@@ -25,6 +26,7 @@ describe("resolveSessionRedirectTarget", () => {
       resolveSessionRedirectTarget({
         isLoading: false,
         isAuthenticated: false,
+        anonymousHref: "/login",
       })
     ).toBe("/login");
   });
@@ -44,6 +46,7 @@ describe("resolveSessionRedirectTarget", () => {
       resolveSessionRedirectTarget({
         isLoading: false,
         isAuthenticated: true,
+        authenticatedHref: "/home",
         anonymousHref: null,
       })
     ).toBe("/home");

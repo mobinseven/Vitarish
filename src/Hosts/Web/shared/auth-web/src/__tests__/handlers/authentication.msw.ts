@@ -5,7 +5,7 @@ import type {
   AuthenticationSessionDto,
   LogoutResultDto,
   LogoutContextDto,
-} from "@vitarish/auth-web";
+} from "../../api/generated/authentication/model";
 
 const apiPath = (path: string) => new RegExp(`/api/modules/authentication${path.replaceAll("/", "\\/")}(?:\\?|$)`);
 

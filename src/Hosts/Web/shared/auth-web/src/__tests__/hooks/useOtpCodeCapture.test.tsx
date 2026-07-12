@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { useOtpCodeCapture } from "@vitarish/auth-web";
+import { useOtpCodeCapture } from "../../hooks/useOtpCodeCapture";
 
 describe("useOtpCodeCapture", () => {
   const originalCredentials = navigator.credentials;

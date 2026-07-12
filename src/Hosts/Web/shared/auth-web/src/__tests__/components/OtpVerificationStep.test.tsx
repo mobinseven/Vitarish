@@ -1,18 +1,26 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { OtpVerificationStep } from "@vitarish/auth-web";
+import { OtpVerificationStep } from "../../components/OtpVerificationStep";
 import { renderWithLocalization } from "../localization/renderWithLocalization";
+
+vi.mock("@vitarish/web-ui", () => ({
+  StatusAlert: ({ message, type, className }: { message: string; type?: string; className?: string }) => (
+    <div className={className} data-type={type}>{message}</div>
+  ),
+}));
 
 let capturedHandler: ((code: string) => void) | null = null;
 
-vi.mock("@vitarish/auth-web", () => ({
+vi.mock("../../hooks/useOtpCodeCapture", () => ({
   useOtpCodeCapture: vi.fn(({ onCode }) => {
     capturedHandler = onCode;
   }),
 }));
 
 describe("OtpVerificationStep", () => {
+  afterEach(() => cleanup());
+
   beforeEach(() => {
     capturedHandler = null;
   });
@@ -45,7 +53,7 @@ describe("OtpVerificationStep", () => {
 
   it("enables verify only for complete manual codes", async () => {
     const { rerender } = renderStep({ code: "12345" });
-    expect(screen.getByRole("button", { name: /verify code/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /verify/i })).toBeDisabled();
 
     rerender(
       <OtpVerificationStep
@@ -60,7 +68,7 @@ describe("OtpVerificationStep", () => {
       />
     );
 
-    expect(screen.getByRole("button", { name: /verify code/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /verify/i })).toBeEnabled();
   });
 
   it("auto-submits a captured code once", () => {
@@ -91,7 +99,7 @@ describe("OtpVerificationStep", () => {
     renderStep({ code: "123456", expiresAt: new Date(Date.now() - 1000).toISOString() });
 
     expect(screen.getAllByText(/code expired; request a new code/i).length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: /verify code/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /verify/i })).toBeDisabled();
   });
 
   it("calls resend and reset actions", async () => {

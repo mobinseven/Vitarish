@@ -1,7 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
-import { PhoneOtpForm } from "@vitarish/auth-web";
-import { EmailOtpForm } from "@vitarish/auth-web";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { PhoneOtpForm } from "../../components/PhoneOtpForm";
+import { EmailOtpForm } from "../../components/EmailOtpForm";
+
+vi.mock("@vitarish/web-ui", () => ({
+  StatusAlert: ({ message, type, className }: { message: string; type?: string; className?: string }) => (
+    <div className={className} data-type={type}>{message}</div>
+  ),
+}));
 
 const phoneLogin = vi.fn();
 const emailLogin = vi.fn();
@@ -20,11 +26,13 @@ vi.mock("../../hooks/useEmailLogin", () => ({
   useEmailLogin: () => emailLogin(),
 }));
 
-vi.mock("@vitarish/auth-web", () => ({
+vi.mock("../../components/OtpVerificationStep", () => ({
   OtpVerificationStep: (props: { destinationLabel: string; onResend: () => void }) => otpStep(props),
 }));
 
 describe("phone and email OTP forms", () => {
+  afterEach(() => cleanup());
+
   beforeEach(() => {
     otpStep.mockClear();
     phoneLogin.mockReturnValue({

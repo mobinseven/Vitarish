@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeOtpCode } from "@vitarish/auth-web";
+import { normalizeOtpCode } from "../auth/otpCode";
 
 describe("normalizeOtpCode", () => {
   it.each([

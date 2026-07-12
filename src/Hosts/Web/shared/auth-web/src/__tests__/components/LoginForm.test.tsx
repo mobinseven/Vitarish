@@ -1,9 +1,14 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode } from "react";
-import { LoginForm } from "@vitarish/auth-web";
+import { LoginForm } from "../../components/LoginForm";
 import { LocalizationProvider } from "@vitarish/web-localization";
+
+
+vi.mock("@vitarish/web-ui", () => ({
+  StatusAlert: ({ message }: { message: string }) => <div>{message}</div>,
+}));
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
@@ -18,7 +23,9 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 describe("LoginForm", () => {
+  afterEach(() => cleanup());
   beforeEach(() => {
+    cleanup();
     queryClient.clear();
   });
 
