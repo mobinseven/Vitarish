@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   useAuthenticationLoginEmailBegin,
   useAuthenticationLoginEmailComplete,
@@ -9,12 +8,11 @@ import {
 import type { AuthenticationChallengeDto } from "../api/generated/authentication/model";
 import { parseAuthError, getErrorMessage, type AuthError } from "../auth/errors";
 import { getRequestedReturnUrl } from "./requestedReturnUrl";
+import { ignoreAuthNavigation, type AuthNavigationOptions } from "./navigation";
 
 export type EmailLoginStep = "email" | "code";
 
-export function useEmailLogin() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export function useEmailLogin({ navigate = ignoreAuthNavigation, returnUrlSearchParams }: AuthNavigationOptions = {}) {
   const beginMutation = useAuthenticationLoginEmailBegin();
   const completeMutation = useAuthenticationLoginEmailComplete();
   const [step, setStep] = useState<EmailLoginStep>("email");
@@ -33,7 +31,7 @@ export function useEmailLogin() {
       setError(null);
       setStatusCode(null);
       try {
-        const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
+        const finalReturnUrl = getRequestedReturnUrl(returnUrlSearchParams, returnUrl);
         setPendingReturnUrl(finalReturnUrl ?? undefined);
         const result = await beginMutation.mutateAsync({
           data: { email: emailAddr, returnUrl: finalReturnUrl ?? null },
@@ -46,7 +44,7 @@ export function useEmailLogin() {
         setError(parseAuthError(err));
       }
     },
-    [beginMutation, searchParams]
+    [beginMutation, returnUrlSearchParams]
   );
 
   const complete = useCallback(
@@ -56,11 +54,11 @@ export function useEmailLogin() {
       setStatusCode(null);
       try {
         const returnUrl =
-          pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
+          pendingReturnUrl ?? getRequestedReturnUrl(returnUrlSearchParams);
         const result = await completeMutation.mutateAsync({
           data: { challengeId: challenge.challengeId, code, returnUrl: returnUrl ?? null },
         });
-        router.push(result.returnUrl);
+        navigate(result.returnUrl);
       } catch (err) {
         const authError = parseAuthError(err);
         setStatusCode(null);
@@ -72,7 +70,7 @@ export function useEmailLogin() {
         }
       }
     },
-    [challenge, completeMutation, router, searchParams, pendingReturnUrl]
+    [challenge, completeMutation, navigate, pendingReturnUrl, returnUrlSearchParams]
   );
 
   const resend = useCallback(async () => {
@@ -82,7 +80,7 @@ export function useEmailLogin() {
     setStatusCode(null);
     try {
       const finalReturnUrl =
-        pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
+        pendingReturnUrl ?? getRequestedReturnUrl(returnUrlSearchParams);
       const result = await beginMutation.mutateAsync({
         data: { email, returnUrl: finalReturnUrl ?? null },
       });
@@ -93,7 +91,7 @@ export function useEmailLogin() {
       setStatusCode(null);
       setError(parseAuthError(err));
     }
-  }, [email, beginMutation, pendingReturnUrl, searchParams]);
+  }, [email, beginMutation, pendingReturnUrl, returnUrlSearchParams]);
 
   const reset = useCallback(() => {
     setStep("email");

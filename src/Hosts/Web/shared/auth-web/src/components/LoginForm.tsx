@@ -5,13 +5,14 @@ import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { usePasswordLogin } from "../hooks/usePasswordLogin";
 import { useLocalizedText } from "@vitarish/web-localization";
 import { StatusAlert } from "@vitarish/web-ui";
+import type { AuthNavigationOptions } from "../hooks/navigation";
 
-interface LoginFormProps {
+interface LoginFormProps extends AuthNavigationOptions {
   returnUrl?: string;
 }
 
-export function LoginForm({ returnUrl }: LoginFormProps) {
-  const { login, isLoading, errorMessage } = usePasswordLogin();
+export function LoginForm({ returnUrl, navigate, returnUrlSearchParams }: LoginFormProps) {
+  const { login, isLoading, errorMessage } = usePasswordLogin({ navigate, returnUrlSearchParams });
   const { t } = useLocalizedText();
   const [userNameOrEmail, setUserNameOrEmail] = useState("");
   const [password, setPassword] = useState("");

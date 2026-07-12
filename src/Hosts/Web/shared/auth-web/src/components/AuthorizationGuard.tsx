@@ -1,26 +1,25 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useTenantAuthorization, type TenantRole } from "../hooks/useTenantAuthorization";
 import { useLocalizedText } from "@vitarish/web-localization";
+import { ignoreAuthNavigation, type AuthNavigate } from "../hooks/navigation";
 
 interface AuthorizationGuardProps {
   requiredRole?: TenantRole;
   loginHref: string;
+  onNavigate?: AuthNavigate;
   children: React.ReactNode;
 }
 
-export function AuthorizationGuard({ requiredRole, loginHref, children }: AuthorizationGuardProps) {
+export function AuthorizationGuard({ requiredRole, loginHref, onNavigate = ignoreAuthNavigation, children }: AuthorizationGuardProps) {
   const { isAuthenticated, isLoading, hasAccess } = useTenantAuthorization(requiredRole);
   const { t } = useLocalizedText();
-  const router = useRouter();
-
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push(loginHref);
+      onNavigate(loginHref);
     }
-  }, [isLoading, isAuthenticated, loginHref, router]);
+  }, [isLoading, isAuthenticated, loginHref, onNavigate]);
 
   if (isLoading) {
     return (

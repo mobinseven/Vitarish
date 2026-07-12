@@ -5,13 +5,14 @@ import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { useEmailLogin } from "../hooks/useEmailLogin";
 import { useLocalizedText } from "@vitarish/web-localization";
 import { StatusAlert } from "@vitarish/web-ui";
+import type { AuthNavigationOptions } from "../hooks/navigation";
 import { OtpVerificationStep } from "./OtpVerificationStep";
 
-interface EmailOtpFormProps {
+interface EmailOtpFormProps extends AuthNavigationOptions {
   returnUrl?: string;
 }
 
-export function EmailOtpForm({ returnUrl }: EmailOtpFormProps) {
+export function EmailOtpForm({ returnUrl, navigate, returnUrlSearchParams }: EmailOtpFormProps) {
   const {
     step,
     email,
@@ -24,7 +25,7 @@ export function EmailOtpForm({ returnUrl }: EmailOtpFormProps) {
     statusCode,
     remainingAttempts,
     expiresAt,
-  } = useEmailLogin();
+  } = useEmailLogin({ navigate, returnUrlSearchParams });
   const { t } = useLocalizedText();
   const [emailInput, setEmailInput] = useState("");
   const [code, setCode] = useState("");

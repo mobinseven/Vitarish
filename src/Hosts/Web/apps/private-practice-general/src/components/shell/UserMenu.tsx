@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { Avatar, AvatarFallback, Dropdown, Label } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,8 +11,9 @@ import { useLocalizedText } from "@/localization";
 
 export function UserMenu() {
   const router = useRouter();
+  const navigate = useCallback((href: string) => router.push(href), [router]);
   const { isAuthenticated, isLoading, displayProfile } = useAuthSession();
-  const { logout, isLoading: isLoggingOut } = useLogout(undefined, Routes.Login.Index);
+  const { logout, isLoading: isLoggingOut } = useLogout(undefined, Routes.Login.Index, navigate);
   const { t } = useLocalizedText();
 
   function handleAction(key: React.Key) {

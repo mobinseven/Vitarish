@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthSession } from "../hooks/useAuthSession";
+import { ignoreAuthNavigation, type AuthNavigate, type AuthReturnUrlSearchParams } from "../hooks/navigation";
 
 interface RedirectSessionState {
   isLoading: boolean;
@@ -16,12 +16,15 @@ interface SessionRedirectOptions {
 
 interface SessionRedirectProps extends SessionRedirectOptions {
   loadingLabel?: string;
+  onNavigate?: AuthNavigate;
 }
 
 interface AuthenticatedRedirectBoundaryProps {
   children: ReactNode;
   authenticatedHref?: string | null;
   loadingLabel?: string;
+  onNavigate?: AuthNavigate;
+  returnUrlSearchParams?: AuthReturnUrlSearchParams;
 }
 
 export function resolveSessionRedirectTarget({
@@ -49,8 +52,8 @@ export function SessionRedirect({
   authenticatedHref = null,
   anonymousHref = null,
   loadingLabel = "Loading...",
+  onNavigate = ignoreAuthNavigation,
 }: SessionRedirectProps) {
-  const router = useRouter();
   const { isAuthenticated, isLoading } = useAuthSession();
   const redirectTarget = resolveSessionRedirectTarget({
     isLoading,
@@ -61,9 +64,9 @@ export function SessionRedirect({
 
   useEffect(() => {
     if (redirectTarget) {
-      router.replace(redirectTarget);
+      onNavigate(redirectTarget);
     }
-  }, [redirectTarget, router]);
+  }, [redirectTarget, onNavigate]);
 
   return <SessionRedirectMessage label={loadingLabel} />;
 }
@@ -72,12 +75,12 @@ export function AuthenticatedRedirectBoundary({
   children,
   authenticatedHref,
   loadingLabel = "Loading...",
+  onNavigate = ignoreAuthNavigation,
+  returnUrlSearchParams,
 }: AuthenticatedRedirectBoundaryProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const { isAuthenticated, isLoading } = useAuthSession();
 
-  const returnUrl = searchParams.get("returnUrl") || searchParams.get("redirectTo");
+  const returnUrl = returnUrlSearchParams?.get("returnUrl") || returnUrlSearchParams?.get("redirectTo");
   const safeReturnUrl =
     returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")
       ? returnUrl
@@ -92,9 +95,9 @@ export function AuthenticatedRedirectBoundary({
 
   useEffect(() => {
     if (redirectTarget) {
-      router.replace(redirectTarget);
+      onNavigate(redirectTarget);
     }
-  }, [redirectTarget, router]);
+  }, [redirectTarget, onNavigate]);
 
   if (isLoading || redirectTarget) {
     return <SessionRedirectMessage label={loadingLabel} />;

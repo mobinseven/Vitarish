@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   useAuthenticationLoginPasskeyBegin,
   useAuthenticationLoginPasskeyComplete,
@@ -9,10 +8,9 @@ import {
 import { startPasskeyAuthentication } from "../webauthn";
 import { parseAuthError, getErrorMessage, type AuthError } from "../auth/errors";
 import { getRequestedReturnUrl } from "./requestedReturnUrl";
+import { ignoreAuthNavigation, type AuthNavigationOptions } from "./navigation";
 
-export function usePasskeyLogin() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export function usePasskeyLogin({ navigate = ignoreAuthNavigation, returnUrlSearchParams }: AuthNavigationOptions = {}) {
   const beginMutation = useAuthenticationLoginPasskeyBegin();
   const completeMutation = useAuthenticationLoginPasskeyComplete();
   const [error, setError] = useState<AuthError | null>(null);
@@ -21,7 +19,7 @@ export function usePasskeyLogin() {
     async (userNameOrEmail?: string, returnUrl?: string) => {
       setError(null);
       try {
-        const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
+        const finalReturnUrl = getRequestedReturnUrl(returnUrlSearchParams, returnUrl);
         const challenge = await beginMutation.mutateAsync({
           data: { userNameOrEmail: userNameOrEmail || null, returnUrl: finalReturnUrl ?? null },
         });
@@ -38,13 +36,13 @@ export function usePasskeyLogin() {
           data: { challengeId: challenge.challengeId, credentialJson, returnUrl: finalReturnUrl ?? null },
         });
 
-        router.push(result.returnUrl);
+        navigate(result.returnUrl);
       } catch (err) {
         const authError = parseAuthError(err);
         setError(authError);
       }
     },
-    [beginMutation, completeMutation, router, searchParams]
+    [beginMutation, completeMutation, navigate, returnUrlSearchParams]
   );
 
   return {

@@ -5,13 +5,14 @@ import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { usePasskeyLogin } from "../hooks/usePasskeyLogin";
 import { useLocalizedText } from "@vitarish/web-localization";
 import { StatusAlert } from "@vitarish/web-ui";
+import type { AuthNavigationOptions } from "../hooks/navigation";
 
-interface PasskeyButtonProps {
+interface PasskeyButtonProps extends AuthNavigationOptions {
   returnUrl?: string;
 }
 
-export function PasskeyButton({ returnUrl }: PasskeyButtonProps) {
-  const { login, isLoading, errorMessage } = usePasskeyLogin();
+export function PasskeyButton({ returnUrl, navigate, returnUrlSearchParams }: PasskeyButtonProps) {
+  const { login, isLoading, errorMessage } = usePasskeyLogin({ navigate, returnUrlSearchParams });
   const { t } = useLocalizedText();
   const [userNameOrEmail, setUserNameOrEmail] = useState("");
 

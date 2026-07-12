@@ -1,11 +1,16 @@
 "use client";
 
+import { useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LoginPageCard, PasskeyButton } from "@vitarish/auth-web";
 import { useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 
 export default function PasskeyLoginPage() {
   const { t } = useLocalizedText();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const navigate = useCallback((href: string) => router.push(href), [router]);
 
   return (
     <LoginPageCard
@@ -14,7 +19,7 @@ export default function PasskeyLoginPage() {
       skeletonHeight="128px"
       backHref={Routes.Login.Index}
     >
-      <PasskeyButton />
+      <PasskeyButton navigate={navigate} returnUrlSearchParams={searchParams} />
     </LoginPageCard>
   );
 }

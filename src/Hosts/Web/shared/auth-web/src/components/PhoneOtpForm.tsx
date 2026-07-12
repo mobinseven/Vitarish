@@ -5,13 +5,14 @@ import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { usePhoneLogin } from "../hooks/usePhoneLogin";
 import { useLocalizedText } from "@vitarish/web-localization";
 import { StatusAlert } from "@vitarish/web-ui";
+import type { AuthNavigationOptions } from "../hooks/navigation";
 import { OtpVerificationStep } from "./OtpVerificationStep";
 
-interface PhoneOtpFormProps {
+interface PhoneOtpFormProps extends AuthNavigationOptions {
   returnUrl?: string;
 }
 
-export function PhoneOtpForm({ returnUrl }: PhoneOtpFormProps) {
+export function PhoneOtpForm({ returnUrl, navigate, returnUrlSearchParams }: PhoneOtpFormProps) {
   const {
     step,
     phoneNumber,
@@ -24,7 +25,7 @@ export function PhoneOtpForm({ returnUrl }: PhoneOtpFormProps) {
     statusCode,
     remainingAttempts,
     expiresAt,
-  } = usePhoneLogin();
+  } = usePhoneLogin({ navigate, returnUrlSearchParams });
   const { t } = useLocalizedText();
   const [phoneInput, setPhoneInput] = useState("");
   const [code, setCode] = useState("");

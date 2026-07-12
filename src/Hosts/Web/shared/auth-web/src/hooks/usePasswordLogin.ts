@@ -1,16 +1,14 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthenticationLoginPassword, getAuthenticationSessionGetQueryKey } from "../api/generated/authentication/authentication";
 import type { PasswordLoginRequest } from "../api/generated/authentication/model";
 import { parseAuthError, getErrorMessage, type AuthError } from "../auth/errors";
 import { getRequestedReturnUrl } from "./requestedReturnUrl";
+import { ignoreAuthNavigation, type AuthNavigationOptions } from "./navigation";
 
-export function usePasswordLogin() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export function usePasswordLogin({ navigate = ignoreAuthNavigation, returnUrlSearchParams }: AuthNavigationOptions = {}) {
   const mutation = useAuthenticationLoginPassword();
   const queryClient = useQueryClient();
   const [error, setError] = useState<AuthError | null>(null);
@@ -23,7 +21,7 @@ export function usePasswordLogin() {
     ) => {
       setError(null);
       try {
-        const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
+        const finalReturnUrl = getRequestedReturnUrl(returnUrlSearchParams, returnUrl);
         const data: Omit<PasswordLoginRequest, "returnUrl"> & Partial<Pick<PasswordLoginRequest, "returnUrl">> = {
           userNameOrEmail,
           password,
@@ -39,13 +37,13 @@ export function usePasswordLogin() {
 
         // Use legacy returnUrl from auth result as fallback
         // Journey destination will be resolved by the gate boundary
-        router.push(result.returnUrl);
+        navigate(result.returnUrl);
       } catch (err) {
         const authError = parseAuthError(err);
         setError(authError);
       }
     },
-    [mutation, queryClient, router, searchParams]
+    [mutation, navigate, queryClient, returnUrlSearchParams]
   );
 
   return {

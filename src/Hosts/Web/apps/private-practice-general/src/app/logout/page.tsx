@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Card, Button } from "@heroui/react";
 import { useLogout } from "@vitarish/auth-web";
 import { StatusAlert } from "@vitarish/web-ui";
@@ -7,7 +9,9 @@ import { useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 
 export default function LogoutPage() {
-  const { logout, isLoading, isContextLoading, contextStatus, errorMessage } = useLogout(undefined, Routes.Login.Index);
+  const router = useRouter();
+  const navigate = useCallback((href: string) => router.push(href), [router]);
+  const { logout, isLoading, isContextLoading, contextStatus, errorMessage } = useLogout(undefined, Routes.Login.Index, navigate);
   const { t } = useLocalizedText();
 
   return (

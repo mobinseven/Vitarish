@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   getAuthenticationSessionGetQueryKey,
   useAuthenticationLogoutPost,
@@ -10,11 +9,11 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@vitarish/web-api-client";
 import { parseAuthError, getErrorMessage, type AuthError } from "../auth/errors";
+import { ignoreAuthNavigation, type AuthNavigate } from "./navigation";
 
 export type LogoutContextStatus = "loading" | "ready" | "already-signed-out" | "unavailable";
 
-export function useLogout(logoutId?: string, fallbackLoginHref = "/login") {
-  const router = useRouter();
+export function useLogout(logoutId?: string, fallbackLoginHref = "/login", navigate: AuthNavigate = ignoreAuthNavigation) {
   const mutation = useAuthenticationLogoutPost();
   const contextQuery = useAuthenticationLogoutContext(logoutId ? { logoutId } : undefined);
   const queryClient = useQueryClient();
@@ -45,15 +44,15 @@ export function useLogout(logoutId?: string, fallbackLoginHref = "/login") {
         });
         queryClient.removeQueries({ queryKey: getAuthenticationSessionGetQueryKey() });
         if (result.redirectUrl) {
-          router.push(result.redirectUrl);
+          navigate(result.redirectUrl);
         } else {
-          router.push(fallbackLoginHref);
+          navigate(fallbackLoginHref);
         }
       } catch (err) {
         setError(parseAuthError(err));
       }
     },
-    [mutation, logoutId, fallbackLoginHref, queryClient, router]
+    [mutation, logoutId, fallbackLoginHref, navigate, queryClient]
   );
 
   return {

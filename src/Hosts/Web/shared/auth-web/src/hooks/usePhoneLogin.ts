@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   useAuthenticationLoginPhoneBegin,
   useAuthenticationLoginPhoneComplete,
@@ -9,12 +8,11 @@ import {
 import type { AuthenticationChallengeDto } from "../api/generated/authentication/model";
 import { parseAuthError, getErrorMessage, type AuthError } from "../auth/errors";
 import { getRequestedReturnUrl } from "./requestedReturnUrl";
+import { ignoreAuthNavigation, type AuthNavigationOptions } from "./navigation";
 
 export type PhoneLoginStep = "phone" | "code";
 
-export function usePhoneLogin() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export function usePhoneLogin({ navigate = ignoreAuthNavigation, returnUrlSearchParams }: AuthNavigationOptions = {}) {
   const beginMutation = useAuthenticationLoginPhoneBegin();
   const completeMutation = useAuthenticationLoginPhoneComplete();
   const [step, setStep] = useState<PhoneLoginStep>("phone");
@@ -33,7 +31,7 @@ export function usePhoneLogin() {
       setError(null);
       setStatusCode(null);
       try {
-        const finalReturnUrl = getRequestedReturnUrl(searchParams, returnUrl);
+        const finalReturnUrl = getRequestedReturnUrl(returnUrlSearchParams, returnUrl);
         setPendingReturnUrl(finalReturnUrl ?? undefined);
         const result = await beginMutation.mutateAsync({
           data: { phoneNumber: phone, returnUrl: finalReturnUrl ?? null },
@@ -46,7 +44,7 @@ export function usePhoneLogin() {
         setError(parseAuthError(err));
       }
     },
-    [beginMutation, searchParams]
+    [beginMutation, returnUrlSearchParams]
   );
 
   const complete = useCallback(
@@ -56,11 +54,11 @@ export function usePhoneLogin() {
       setStatusCode(null);
       try {
         const returnUrl =
-          pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
+          pendingReturnUrl ?? getRequestedReturnUrl(returnUrlSearchParams);
         const result = await completeMutation.mutateAsync({
           data: { challengeId: challenge.challengeId, code, returnUrl: returnUrl ?? null },
         });
-        router.push(result.returnUrl);
+        navigate(result.returnUrl);
       } catch (err) {
         const authError = parseAuthError(err);
         setStatusCode(null);
@@ -72,7 +70,7 @@ export function usePhoneLogin() {
         }
       }
     },
-    [challenge, completeMutation, router, searchParams, pendingReturnUrl]
+    [challenge, completeMutation, navigate, pendingReturnUrl, returnUrlSearchParams]
   );
 
   const resend = useCallback(async () => {
@@ -82,7 +80,7 @@ export function usePhoneLogin() {
     setStatusCode(null);
     try {
       const finalReturnUrl =
-        pendingReturnUrl ?? getRequestedReturnUrl(searchParams);
+        pendingReturnUrl ?? getRequestedReturnUrl(returnUrlSearchParams);
       const result = await beginMutation.mutateAsync({
         data: { phoneNumber, returnUrl: finalReturnUrl ?? null },
       });
@@ -93,7 +91,7 @@ export function usePhoneLogin() {
       setStatusCode(null);
       setError(parseAuthError(err));
     }
-  }, [phoneNumber, beginMutation, pendingReturnUrl, searchParams]);
+  }, [phoneNumber, beginMutation, pendingReturnUrl, returnUrlSearchParams]);
 
   const reset = useCallback(() => {
     setStep("phone");
