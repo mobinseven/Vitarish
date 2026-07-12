@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\Platform.Application.csproj" />
     <ProjectReference Include="..\Domain\Platform.Domain.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
 </Project>

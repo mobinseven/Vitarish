@@ -8,6 +8,7 @@ public sealed class PlatformDbContext(DbContextOptions<PlatformDbContext> option
 {
     public DbSet<Theme> Themes => Set<Theme>();
     public DbSet<ThemeSelection> ThemeSelections => Set<ThemeSelection>();
+    public DbSet<LocaleNotificationRecord> LocaleNotificationRecords => Set<LocaleNotificationRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,6 +36,22 @@ public sealed class PlatformDbContext(DbContextOptions<PlatformDbContext> option
                 .WithMany()
                 .HasForeignKey(e => e.ActiveThemeId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        _ = modelBuilder.Entity<LocaleNotificationRecord>(entity =>
+        {
+            _ = entity.HasKey(e => e.NormalizedLocale);
+            _ = entity.Property(e => e.NormalizedLocale).IsRequired().HasMaxLength(10);
+            _ = entity.Property(e => e.Locale).IsRequired().HasMaxLength(10);
+            _ = entity.Property(e => e.VerificationSmsTemplateId).IsRequired().HasMaxLength(64);
+            _ = entity.Property(e => e.SeaReminderEmailSubject).IsRequired().HasMaxLength(256);
+            _ = entity.Property(e => e.SeaReminderEmailTextBody).IsRequired();
+            _ = entity.Property(e => e.SeaReminderEmailHtmlBody).IsRequired();
+            _ = entity.Property(e => e.SeaReminderSmsTemplateId).IsRequired().HasMaxLength(64);
+            _ = entity.Property(e => e.AppointmentReminderEmailSubject).IsRequired().HasMaxLength(256);
+            _ = entity.Property(e => e.AppointmentReminderEmailTextBody).IsRequired();
+            _ = entity.Property(e => e.AppointmentReminderEmailHtmlBody).IsRequired();
+            _ = entity.Property(e => e.AppointmentReminderSmsTemplateId).IsRequired().HasMaxLength(64);
         });
     }
 

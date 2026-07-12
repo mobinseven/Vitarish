@@ -19,63 +19,66 @@ namespace Vitarish.Platform.Infrastructure.Migrations.PlatformDb
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("Platform")
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Vitarish.Platform.Domain.Entities.ConnectionMemorySample", b =>
+            modelBuilder.Entity("Vitarish.Platform.Domain.Entities.LocaleNotificationRecord", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                    b.Property<string>("NormalizedLocale")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
-                    b.Property<string>("CircuitId")
+                    b.Property<string>("AppointmentReminderEmailHtmlBody")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                        .HasColumnType("text");
 
-                    b.Property<string>("ClientId")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                    b.Property<string>("AppointmentReminderEmailSubject")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
-                    b.Property<long?>("EstimatedCircuitDeltaBytes")
-                        .HasColumnType("bigint");
+                    b.Property<string>("AppointmentReminderEmailTextBody")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<string>("FailureReason")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                    b.Property<string>("AppointmentReminderSmsTemplateId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
-                    b.Property<int>("Kind")
-                        .HasColumnType("integer");
+                    b.Property<string>("Locale")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
-                    b.Property<long>("ManagedHeapBytes")
-                        .HasColumnType("bigint");
+                    b.Property<string>("SeaReminderEmailHtmlBody")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("ObservedAtUtc")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("SeaReminderEmailSubject")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
-                    b.Property<long>("ProcessPrivateMemoryBytes")
-                        .HasColumnType("bigint");
+                    b.Property<string>("SeaReminderEmailTextBody")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<long>("ProcessWorkingSetBytes")
-                        .HasColumnType("bigint");
+                    b.Property<string>("SeaReminderSmsTemplateId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
-                    b.Property<string>("TenantId")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                    b.Property<string>("VerificationSmsTemplateId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
-                    b.Property<string>("UserId")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                    b.HasKey("NormalizedLocale");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("CircuitId");
-
-                    b.HasIndex("ObservedAtUtc");
-
-                    b.ToTable("ConnectionMemorySamples", "Platform");
+                    b.ToTable("LocaleNotificationRecords", "Platform");
                 });
 
             modelBuilder.Entity("Vitarish.Platform.Domain.Entities.Theme", b =>
