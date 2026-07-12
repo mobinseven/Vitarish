@@ -2,6 +2,7 @@
 	<PropertyGroup>
 		<InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.OpenApi.Generated</InterceptorsNamespaces>
 		<OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
+		<OpenApiGenerateDocumentsOnBuild>false</OpenApiGenerateDocumentsOnBuild>
 		<OpenApiDocumentsDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '..', '..', '..', 'src', 'Hosts', 'Web', 'src', 'api', 'specs'))</OpenApiDocumentsDirectory>
 
 	</PropertyGroup>
@@ -32,8 +33,6 @@
 		<ProjectReference Include="..\..\Libraries\Audit\Audit.Server\Audit.Server.csproj" />
 		<ProjectReference Include="..\..\Modules\Authentication\Module\Authentication.Module.csproj" />
 		<ProjectReference Include="..\..\Modules\Journey\Module\Journey.Module.csproj" />
-		<ProjectReference Include="..\..\Apps\Aggregator\Client\Apps.Aggregator.Client.csproj" />
-		<ProjectReference Include="..\..\Apps\Aggregator\Core\Apps.Aggregator.Core.csproj" />
 		<ProjectReference Include="..\..\Modules\Requests\Client\Requests.Client.csproj" />
 		<ProjectReference Include="..\..\Modules\Sea\Application\Sea.Application.csproj" />
 		<ProjectReference Include="..\..\Modules\Users\Domain\Users.Domain.csproj" />
