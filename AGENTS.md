@@ -183,7 +183,7 @@ When a task matches a skill, open and follow that skill's `SKILL.md`. Do not loa
 | OpenAPI endpoint metadata, operation IDs, contract DTOs, generated React clients, apiFetch, generated hooks, API-to-React handoff | Platform API Client Boundary | `.agents/skills/platform-api-client-boundary/SKILL.md` |
 | React Web pages/components/hooks, HeroUI, forms/tables/dialogs, localization, formatting, accessibility, shared Web UI | Platform React UI Boundary | `.agents/skills/platform-react-ui-boundary/SKILL.md` |
 | Required tests, regression coverage, test placement, validation commands, hot test scenarios | Platform Test Strategy | `.agents/skills/platform-test-strategy/SKILL.md` |
-| One focused delivery loop, approved plan execution, auto-implementation loop, review verdicts, feedback triage, handoff | Platform Delivery Loop | `.agents/skills/platform-delivery-loop/SKILL.md` |
+| One focused delivery loop, approved plan execution, review verdicts, feedback triage, handoff | Platform Delivery Loop | `.agents/skills/platform-delivery-loop/SKILL.md` |
 | Simplification review, over-engineering audit, deletion opportunities, standard-library/native replacement, bloat criticism | Platform Simplification Audit | `.agents/skills/platform-simplification-audit/SKILL.md` |
 | Skill creation, deletion, consolidation, metadata, bridges, `AGENTS.md` harmony, stale skill routing | Platform Skill Governance | `.agents/skills/platform-skill-governance/SKILL.md` |
 
