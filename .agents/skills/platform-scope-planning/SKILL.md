@@ -24,7 +24,7 @@ Skip it for small local bug fixes, straightforward refactors, test-only correcti
 ## Procedure
 
 1. Identify the intended user, workflow, owner scope, and first useful outcome.
-2. Check `.agents/skills/README.md` → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
+2. Check AGENTS.md → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
 3. Apply the minimum-change ladder from `AGENTS.md`: reuse existing docs, flows, routes, components, contracts, and tests before creating new artifacts.
 4. Decide whether a journey map is needed. Require one only when user workflow, persona, pain point, or experience sequencing is unclear or changing.
 5. Decide whether a roadmap is needed. Require one only for multi-phase scope, sequencing trade-offs, or implementation-ticket derivation.
