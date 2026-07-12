@@ -65,7 +65,8 @@ For code submissions, include the per-artifact audit required by `AGENTS.md`.
 When ADR-0003 boundaries are touched, run:
 
 ```bash
-python3 tools/architecture/validate_interface_boundaries.py
+python3 tools/architecture/validate_no_blazor.py
+python3 tools/architecture/validate_module_api_boundaries.py
 ```
 
 Also run any narrower architecture validator named by the touched convention.
