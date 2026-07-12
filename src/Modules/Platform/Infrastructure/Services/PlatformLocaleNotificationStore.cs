@@ -96,6 +96,8 @@ public sealed class PlatformLocaleNotificationStore(PlatformDbContext dbContext)
             return PlatformCommandResult.Failure(validationError);
         }
 
+        LocaleNotificationRecordValidator.TryNormalizeLocale(model.Locale, out string? modelNormalizedLocale);
+
         LocaleNotificationRecord? existing = await dbContext.LocaleNotificationRecords
             .SingleOrDefaultAsync(e => e.NormalizedLocale == normalizedLocale, cancellationToken);
         if (existing is null)
@@ -105,6 +107,7 @@ public sealed class PlatformLocaleNotificationStore(PlatformDbContext dbContext)
 
         dbContext.LocaleNotificationRecords.Update(existing with
         {
+            NormalizedLocale = modelNormalizedLocale!,
             Locale = model.Locale,
             VerificationSmsTemplateId = model.VerificationSmsTemplateId,
             SeaReminderEmailSubject = model.SeaReminderEmailSubject,
