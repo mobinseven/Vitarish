@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ItemCard } from "@heroui-pro/react";
+import { ItemCard } from "@heroui-pro/react/item-card";
 
 export interface DetailGridItem {
   label: string;
