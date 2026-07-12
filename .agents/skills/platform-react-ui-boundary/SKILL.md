@@ -19,7 +19,7 @@ Skip it for backend-only, contract-only, or generated-client-only changes with n
 
 - `AGENTS.md`
 - `docs/architecture/decisions/0007-standardize-react-localization.md`
-- `docs/architecture/decisions/0008-share-react-ui-components.md` when shared Web UI is involved.
+- `docs/architecture/decisions/0008-standardize-app-experience-boundaries.md` when shared Web UI is involved.
 - Existing files in the owning `pages`, `features`, `components`, `localization`, or `packages/web-ui` scope.
 - Official HeroUI/HeroUI Pro guidance when component behavior or theming is uncertain.
 
