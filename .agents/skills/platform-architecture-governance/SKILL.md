@@ -25,12 +25,13 @@ Skip it only for tiny local edits whose artifact owner, layer, dependency direct
 ## Procedure
 
 1. Classify every artifact as exactly one of: Domain, Application, Command, Query, Port/contract, Adapter/infrastructure, Presentation/API/UI, Data transfer shape, Persistence model, Test, Configuration/composition, or Documentation.
-2. Identify the narrowest owner: app, module, capability, host, React Web feature, interface package, platform module, library, identity context, docs scope, or test scope.
-3. Apply the layer boundary: Domain -> Application -> Infrastructure/Api/Client -> Presentation/Host, with Contracts as serialization-only boundary shapes.
-4. Name the single source of truth for business rules, state transitions, validation rules, routes, DTOs, generated clients, UI copy, and docs.
-5. Separate commands from queries. Redesign any artifact that mutates and queries observable state in the same API.
-6. Check ADR impact. Recommend an ADR only for a new or changed stable architecture rule.
-7. Keep the design minimal. Reuse existing conventions and do not create folders, projects, or abstractions for symmetry.
+2. Check `.agents/skills/README.md` → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
+3. Identify the narrowest owner: app, module, capability, host, React Web feature, interface package, platform module, library, identity context, docs scope, or test scope.
+4. Apply the layer boundary: Domain -> Application -> Infrastructure/Api/Client -> Presentation/Host, with Contracts as serialization-only boundary shapes.
+5. Name the single source of truth for business rules, state transitions, validation rules, routes, DTOs, generated clients, UI copy, and docs.
+6. Separate commands from queries. Redesign any artifact that mutates and queries observable state in the same API.
+7. Check ADR impact. Recommend an ADR only for a new or changed stable architecture rule.
+8. Keep the design minimal. Reuse existing conventions and do not create folders, projects, or abstractions for symmetry.
 
 ## Output
 
@@ -57,6 +58,7 @@ For code submissions, include the per-artifact audit required by `AGENTS.md`.
 - Api endpoints contain business rules or return domain entities directly.
 - Client, Interface, or React Web artifacts import backend Application, Domain, Infrastructure, Api, server projects, persistence libraries, or server-only modules.
 - A business rule or state source appears in more than one place without an explicit boundary and mapping.
+- A doc, ADR, or validator script this skill names under Read or Validation cannot be found or read. Stop and report the gap. Do not proceed as if the rule does not apply.
 
 ## Validation
 
