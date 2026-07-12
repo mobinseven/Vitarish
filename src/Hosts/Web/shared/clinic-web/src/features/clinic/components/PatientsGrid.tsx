@@ -97,6 +97,7 @@ export function PatientsGrid({
       sortDescriptor={sortDescriptor}
       onSortChange={handleSortChange}
       onRowAction={handleRowAction}
+      className="[&_.table__row]:cursor-pointer"
       renderEmptyState={() => (
         <ClinicEmptyState title={t("clinic.patients.searchEmpty")} />
       )}

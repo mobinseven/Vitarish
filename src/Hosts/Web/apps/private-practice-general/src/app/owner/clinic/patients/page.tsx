@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import { ClinicOwnerPatientsPage } from "@vitarish/clinic-web";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Patients | Private Practice General | Vitarish",
-  description: "Manage clinic patients.",
-};
+import { ClinicOwnerPatientsPage } from "@vitarish/clinic-web";
+import { useClinicNavigation } from "@/components/clinic-navigation";
 
 export default function ClinicPatientsRoute() {
-  return <ClinicOwnerPatientsPage />;
+  const navigate = useClinicNavigation();
+  return <ClinicOwnerPatientsPage onNavigate={navigate} />;
 }

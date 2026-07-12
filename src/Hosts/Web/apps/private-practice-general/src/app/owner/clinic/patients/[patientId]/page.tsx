@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import { PatientOverviewPageSurface } from "@vitarish/clinic-web";
+import { useClinicNavigation } from "@/components/clinic-navigation";
 
 export default function PatientDetailRoute({
   params,
@@ -9,5 +10,6 @@ export default function PatientDetailRoute({
   params: Promise<{ patientId: string }>;
 }) {
   const { patientId } = use(params);
-  return <PatientOverviewPageSurface patientId={patientId} />;
+  const navigate = useClinicNavigation();
+  return <PatientOverviewPageSurface patientId={patientId} onNavigate={navigate} />;
 }

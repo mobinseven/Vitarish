@@ -79,6 +79,7 @@ export { usePatientOverview } from "./features/clinic/patients/overview/hooks/us
 
 // Patient list/detail pages
 export { ClinicOwnerPatientsPage } from "./features/clinic/components/ClinicOwnerPatientsPage";
+export type { ClinicNavigationIntent } from "./navigation";
 export { ClinicOwnerPatientDetailPage } from "./features/clinic/components/ClinicOwnerPatientDetailPage";
 
 // Patient procedure components

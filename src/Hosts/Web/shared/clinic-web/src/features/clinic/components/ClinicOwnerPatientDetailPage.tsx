@@ -48,7 +48,7 @@ export function ClinicOwnerPatientDetailPage({ patientId, onNavigate }: ClinicOw
               : patient.name || t("clinic.patients.unnamedPatient")}
           </h1>
         </div>
-        <PatientQuickActions patientId={patientId} />
+        <PatientQuickActions patientId={patientId} onNavigate={onNavigate} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

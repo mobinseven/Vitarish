@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import { UserReservationsList } from "@vitarish/clinic-web";
+"use client";
 
-export const metadata: Metadata = {
-  title: "My Reservations | Vitarish",
-  description: "View and manage your appointment reservations",
-};
+import { UserReservationsList } from "@vitarish/clinic-web";
+import { useClinicNavigation } from "@/components/clinic-navigation";
 
 export default function ClinicUserReservationsPage() {
-  return <UserReservationsList />;
+  const navigate = useClinicNavigation();
+  return <UserReservationsList onNavigate={navigate} />;
 }

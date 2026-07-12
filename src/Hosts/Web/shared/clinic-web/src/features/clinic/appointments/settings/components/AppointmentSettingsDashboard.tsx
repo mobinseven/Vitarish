@@ -1,9 +1,14 @@
 "use client";
 
 import { ClinicNavigationGrid, type ClinicNavigationItem } from "../../../../../features/clinic/components/ClinicNavigationGrid";
+import type { ClinicNavigationIntent } from "../../../../../navigation";
 import { useLocalizedText } from "../../../../../localization";
 
-export function AppointmentSettingsDashboard() {
+interface AppointmentSettingsDashboardProps {
+  onNavigate?: (intent: ClinicNavigationIntent) => void;
+}
+
+export function AppointmentSettingsDashboard({ onNavigate }: AppointmentSettingsDashboardProps) {
   const { t } = useLocalizedText();
 
   const settingsLinks: ClinicNavigationItem[] = [
@@ -19,7 +24,7 @@ export function AppointmentSettingsDashboard() {
         <p className="text-sm text-muted">{t("clinic.appointments.settings.description")}</p>
       </div>
 
-      <ClinicNavigationGrid items={settingsLinks} />
+      <ClinicNavigationGrid items={settingsLinks} onNavigate={onNavigate} />
     </div>
   );
 }
