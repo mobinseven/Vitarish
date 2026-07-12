@@ -72,7 +72,9 @@ describe("@vitarish/knowledge-web", () => {
 
     expect(screen.getByText("Choose a corpus")).toBeInTheDocument();
     expect(screen.getByLabelText("Question")).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByText("Clinical guide")).toBeInTheDocument());
-    expect(screen.getByText("2 sources / 12 chunks")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByLabelText("Knowledge sources")).toHaveTextContent("All corpora");
+      expect(screen.getByText("Clinical guide")).toBeInTheDocument();
+    });
   });
 });

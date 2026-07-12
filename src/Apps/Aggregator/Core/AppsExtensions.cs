@@ -6,12 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Modules.Base.Core.Endpoints;
 
+namespace Vitarish.Apps.Aggregator.Core;
+
 public static class AppsExtensions
 {
     public static List<IApp> GetApps() =>
             [
                 Activator.CreateInstance<ClinicApp>(),
-            ];
+        ];
     public static async Task<WebApplicationBuilder> RegisterApps(
         this WebApplicationBuilder builder,
         Action<DbContextOptionsBuilder>? configureDbContext = null)
