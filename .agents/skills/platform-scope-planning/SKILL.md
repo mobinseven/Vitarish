@@ -24,11 +24,12 @@ Skip it for small local bug fixes, straightforward refactors, test-only correcti
 ## Procedure
 
 1. Identify the intended user, workflow, owner scope, and first useful outcome.
-2. Apply the minimum-change ladder from `AGENTS.md`: reuse existing docs, flows, routes, components, contracts, and tests before creating new artifacts.
-3. Decide whether a journey map is needed. Require one only when user workflow, persona, pain point, or experience sequencing is unclear or changing.
-4. Decide whether a roadmap is needed. Require one only for multi-phase scope, sequencing trade-offs, or implementation-ticket derivation.
-5. Keep implementation tickets provisional unless the roadmap is approved or the user explicitly asks for provisional tickets.
-6. Name non-goals, deferred scope, and the handoff skill that owns the next decision.
+2. Check `.agents/skills/README.md` → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
+3. Apply the minimum-change ladder from `AGENTS.md`: reuse existing docs, flows, routes, components, contracts, and tests before creating new artifacts.
+4. Decide whether a journey map is needed. Require one only when user workflow, persona, pain point, or experience sequencing is unclear or changing.
+5. Decide whether a roadmap is needed. Require one only for multi-phase scope, sequencing trade-offs, or implementation-ticket derivation.
+6. Keep implementation tickets provisional unless the roadmap is approved or the user explicitly asks for provisional tickets.
+7. Name non-goals, deferred scope, and the handoff skill that owns the next decision.
 
 ## Output
 
@@ -52,6 +53,7 @@ Validation:
 - Stop for a human decision when the requested scope cannot fit one focused change.
 - Stop when a product decision, architecture decision, security choice, data-loss behavior, or external dependency choice is missing.
 - Do not invent product goals, acceptance criteria, personas, or phases as facts. Mark assumptions.
+- A doc, ADR, or validator script this skill names under Read or Validation cannot be found or read. Stop and report the gap. Do not proceed as if the rule does not apply.
 
 ## Handoff
 
