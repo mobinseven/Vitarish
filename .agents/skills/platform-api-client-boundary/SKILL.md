@@ -25,13 +25,14 @@ Skip it when a UI-only change consumes an already stable feature hook without ch
 ## Procedure
 
 1. Confirm the endpoint is a thin adapter from Contracts to Application command/query behavior.
-2. Use approved module route-group and OpenAPI-aware endpoint helpers.
-3. Keep operation IDs stable, PascalCase, and shaped as `<Module><Action><Resource>`.
-4. Expose Contract-owned serialization shapes only. Do not expose Domain, EF, Infrastructure, vendor SDK, or UI models.
-5. Document auth and error outcomes with standard response metadata.
-6. Treat generated clients, DTOs, hooks, query keys, and MSW mocks as generated infrastructure. Do not edit them manually.
-7. Wrap generated hooks in feature-owned API wrappers or hooks before page consumption when UI state, invalidation, or error mapping is needed.
-8. Keep stable error/status codes in transport; map display copy in React presentation.
+2. Check `.agents/skills/README.md` → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
+3. Use approved module route-group and OpenAPI-aware endpoint helpers.
+4. Keep operation IDs stable, PascalCase, and shaped as `<Module><Action><Resource>`.
+5. Expose Contract-owned serialization shapes only. Do not expose Domain, EF, Infrastructure, vendor SDK, or UI models.
+6. Document auth and error outcomes with standard response metadata.
+7. Treat generated clients, DTOs, hooks, query keys, and MSW mocks as generated infrastructure. Do not edit them manually.
+8. Wrap generated hooks in feature-owned API wrappers or hooks before page consumption when UI state, invalidation, or error mapping is needed.
+9. Keep stable error/status codes in transport; map display copy in React presentation.
 
 ## Output
 
@@ -54,6 +55,7 @@ Handoff:
 - Generated code is edited manually.
 - Feature UI bypasses generated clients/hooks without a narrow documented reason.
 - Transport or fetch infrastructure localizes user-facing copy.
+- A doc, ADR, or validator script this skill names under Read or Validation cannot be found or read. Stop and report the gap. Do not proceed as if the rule does not apply.
 
 ## Validation
 
@@ -62,7 +64,6 @@ For endpoint coverage and module API boundaries, run:
 ```bash
 python3 tools/architecture/validate_openapi_endpoint_coverage.py
 python3 tools/architecture/validate_module_api_boundaries.py
-dotnet test tests/Architecture.Tests/Architecture.Tests.csproj --filter InternalModuleApiArchitectureTests
 ```
 
 For generated-client changes, run the host's documented generation, typecheck, and test scripts.
