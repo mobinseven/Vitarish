@@ -1,8 +1,6 @@
 using Finbuckle.MultiTenant;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Apps.Aggregator;
-using Vitarish.Apps.Aggregator.Core;
 using Vitarish.Audit.Server;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
@@ -111,7 +109,6 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
 
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
 
-builder.Services.AddSingleton<IAppsProvider, AppsProvider>();
 builder.Services.AddScoped<IEntityUserService, RequestEntityUserService>();
 builder.Services.AddScoped<IEntityTimeService, UtcEntityTimeService>();
 
