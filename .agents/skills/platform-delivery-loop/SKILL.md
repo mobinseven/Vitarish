@@ -24,12 +24,13 @@ Skip it for pure analysis where the user explicitly does not want implementation
 ## Procedure
 
 1. State the objective, one-sentence scope, non-goals, constraints, and success evidence.
-2. Load only the task-specific skills required by the touched surface.
-3. Implement only the approved slice. Prefer deletion, reuse, native platform features, standard library behavior, and existing dependencies before new code.
-4. Run the smallest validation set that proves the change, plus required architecture/API/UI checks.
-5. Review the diff for scope creep, architecture violations, command/query mixing, failure handling, missing tests, and stale references.
-6. Classify feedback as `Must-fix`, `Should-fix`, `Follow-up`, or `Reject/defer`.
-7. Repeat only while the same focused scope remains valid.
+2. Check `.agents/skills/README.md` → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
+3. Load only the task-specific skills required by the touched surface.
+4. Implement only the approved slice. Prefer deletion, reuse, native platform features, standard library behavior, and existing dependencies before new code.
+5. Run the smallest validation set that proves the change, plus required architecture/API/UI checks.
+6. Review the diff for scope creep, architecture violations, command/query mixing, failure handling, missing tests, and stale references.
+7. Classify feedback as `Must-fix`, `Should-fix`, `Follow-up`, or `Reject/defer`.
+8. Repeat only while the same focused scope remains valid.
 
 ## Output
 
@@ -52,6 +53,7 @@ For automated loops, also include iteration count, legal next state, termination
 - Required product, architecture, security, migration, data-loss, validation, or external-dependency decision is missing.
 - The plan requires editing stable core logic when an extension point already exists.
 - Review feedback is silently ignored or reclassified without reason.
+- A doc, ADR, or validator script this skill names under Read or Validation cannot be found or read. Stop and report the gap. Do not proceed as if the rule does not apply.
 
 ## Handoff
 

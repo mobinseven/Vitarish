@@ -23,16 +23,17 @@ Skip it when the request is a normal correctness review unless over-engineering 
 ## Procedure
 
 1. Understand the real flow before calling something unnecessary.
-2. Apply the ladder: does it need to exist, does it already exist, does the standard library do it, does the platform do it, does an installed dependency do it, can one line or one existing pattern cover it, and only then keep custom code.
-3. Prefer fixing root causes in shared functions over patching only the reported symptom path.
-4. Tag findings as:
+2. Check `.agents/skills/README.md` → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
+3. Apply the ladder: does it need to exist, does it already exist, does the standard library do it, does the platform do it, does an installed dependency do it, can one line or one existing pattern cover it, and only then keep custom code.
+4. Prefer fixing root causes in shared functions over patching only the reported symptom path.
+5. Tag findings as:
    - `delete`: remove dead code, speculative features, unused flexibility, or duplicate state.
    - `reuse`: use an existing local helper, type, component, route, hook, validator, or convention.
    - `stdlib`: replace hand-rolled behavior with standard library behavior.
    - `native`: replace code or dependency with a platform/browser/database/framework feature already in use.
    - `yagni`: remove abstractions, configuration, or layers with no current second use.
    - `shrink`: keep behavior but reduce code or files.
-5. Never simplify away trust-boundary validation, explicit failure handling, cancellation, security, accessibility, localization, architecture boundaries, or required tests.
+6. Never simplify away trust-boundary validation, explicit failure handling, cancellation, security, accessibility, localization, architecture boundaries, or required tests.
 
 ## Output
 
@@ -55,6 +56,7 @@ If there is nothing meaningful to cut, say `Lean already. Ship.`
 - Do not recommend deleting validation, tests, accessibility affordances, error handling, or boundary checks merely to reduce line count.
 - Do not recommend a clever shorter form when it weakens edge-case behavior.
 - Do not add a new abstraction as a simplification unless it removes real duplication now.
+- A doc, ADR, or validator script this skill names under Read or Validation cannot be found or read. Stop and report the gap. Do not proceed as if the rule does not apply.
 
 ## Handoff
 

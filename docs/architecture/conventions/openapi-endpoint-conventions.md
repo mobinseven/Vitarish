@@ -59,7 +59,6 @@ Run:
 ```bash
 python3 tools/architecture/validate_openapi_endpoint_coverage.py
 python3 tools/architecture/validate_module_api_boundaries.py
-dotnet test tests/Architecture.Tests/Architecture.Tests.csproj --filter InternalModuleApiArchitectureTests
 ```
 
 The OpenAPI coverage validator reports the file, line, violation kind, endpoint expression, and remediation.
