@@ -24,12 +24,13 @@ Skip it for pure documentation edits and trivial mechanical edits with no behavi
 ## Procedure
 
 1. Identify the behavior or rule that can break.
-2. Choose the narrowest deterministic check first: unit, component, contract, architecture validator, lint, typecheck, or self-check.
-3. Place tests near the production owner using existing conventions. Do not invent a new test layout.
-4. Add regression coverage for bug fixes at the root-cause boundary, not only the reported symptom path.
-5. Use contract or architecture validation for boundary rules instead of duplicating those rules in many tests.
-6. Mark a hot scenario when confidence requires DB, browser, network, files, queues, realtime, clocks, external services, permissions, latency, or deployment wiring.
-7. Defer tests only with a reason, risk, owner, and trigger to revisit.
+2. Check `.agents/skills/README.md` → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
+3. Choose the narrowest deterministic check first: unit, component, contract, architecture validator, lint, typecheck, or self-check.
+4. Place tests near the production owner using existing conventions. Do not invent a new test layout.
+5. Add regression coverage for bug fixes at the root-cause boundary, not only the reported symptom path.
+6. Use contract or architecture validation for boundary rules instead of duplicating those rules in many tests.
+7. Mark a hot scenario when confidence requires DB, browser, network, files, queues, realtime, clocks, external services, permissions, latency, or deployment wiring.
+8. Defer tests only with a reason, risk, owner, and trigger to revisit.
 
 ## Output
 
@@ -50,6 +51,7 @@ Risk left:
 - Tests verify implementation details while missing the observable rule.
 - A runtime-dependent behavior is claimed safe using only mocks.
 - Test data creates a second source of truth for business rules.
+- A doc, ADR, or validator script this skill names under Read or Validation cannot be found or read. Stop and report the gap. Do not proceed as if the rule does not apply.
 
 ## Handoff
 
