@@ -12,6 +12,30 @@ export const enMessages = {
       empty: "Nothing to show yet",
     },
   },
+  landing: {
+    eyebrow: "Knowledge QA Demo",
+    title: "Grounded answers from your knowledge",
+    description: "Sign in to ask questions across the knowledge available to you and review answers with their supporting sources.",
+    loginAction: "Log in",
+  },
+  auth: {
+    login: {
+      title: "Log in to Knowledge QA",
+      subtitle: "Use your Vitarish account to continue.",
+      backToLanding: "Back to landing page",
+      usernameOrEmailLabel: "Username or email",
+      usernameOrEmailPlaceholder: "Enter your username or email",
+      passwordLabel: "Password",
+      passwordPlaceholder: "Enter your password",
+      signInAction: "Log in",
+      otherMethods: "Other login methods",
+    },
+    guard: {
+      loading: "Checking your session...",
+      accessDenied: "Access denied",
+      noPermission: "You do not have permission to use this page.",
+    },
+  },
   knowledge: {
     qa: {
       title: "Knowledge Q&A",

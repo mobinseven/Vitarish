@@ -14,6 +14,7 @@ using Vitarish.Parties.Domain.Entities;
 using Vitarish.Platform.Module.DependencyInjection;
 using Vitarish.Modules.Base.Core;
 using Vitarish.Modules.Base.Core.Endpoints;
+using Vitarish.Apps.Aggregator.Core;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 

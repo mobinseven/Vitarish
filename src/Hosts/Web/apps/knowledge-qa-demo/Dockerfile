@@ -8,8 +8,19 @@ WORKDIR /app
 
 # Copy workspace root package files
 COPY package.json package-lock.json ./
-# Copy app package.json for workspace resolution
+# Copy every workspace manifest so npm can install and link local packages
 COPY apps/knowledge-qa-demo/package.json ./apps/knowledge-qa-demo/
+COPY apps/private-practice-general/package.json ./apps/private-practice-general/
+COPY shared/account-web/package.json ./shared/account-web/
+COPY shared/auth-web/package.json ./shared/auth-web/
+COPY shared/clinic-web/package.json ./shared/clinic-web/
+COPY shared/journey-web/package.json ./shared/journey-web/
+COPY shared/knowledge-web/package.json ./shared/knowledge-web/
+COPY shared/platform-web/package.json ./shared/platform-web/
+COPY shared/sea-web/package.json ./shared/sea-web/
+COPY shared/web-api-client/package.json ./shared/web-api-client/
+COPY shared/web-localization/package.json ./shared/web-localization/
+COPY shared/web-ui/package.json ./shared/web-ui/
 RUN --mount=type=secret,id=HEROUI_AUTH_TOKEN,required=true \
     --mount=type=cache,target=/root/.npm \
     HEROUI_AUTH_TOKEN="$(cat /run/secrets/HEROUI_AUTH_TOKEN)" \
@@ -41,9 +52,11 @@ ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app/apps/knowledge-qa-demo/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/knowledge-qa-demo/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/knowledge-qa-demo/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/knowledge-qa-demo/public ./apps/knowledge-qa-demo/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/knowledge-qa-demo/.next/static ./apps/knowledge-qa-demo/.next/static
+
+WORKDIR /app/apps/knowledge-qa-demo
 
 USER nextjs
 

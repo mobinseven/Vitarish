@@ -12,15 +12,16 @@ User enters the Knowledge QA demo, submits a question against the Knowledge modu
 
 ## Steps
 
-1. **Enter demo**: User navigates to `/` or `/knowledge/qa`. The app renders the QA surface.
-2. **View corpus context**: If authenticated, the user sees available corpora. If public, corpus list may be unavailable.
-3. **Type question**: User enters a natural-language question in the input field.
-4. **Submit question**: User presses submit or Enter. Submit is disabled while a question is in flight.
-5. **Loading state**: A loading indicator appears while the backend processes the question.
-6. **Answer displayed**: On success, the answer card renders with the response text and optional source links.
-7. **Empty/no-answer**: If the backend returns no answer, an empty state suggests rephrasing or selecting a different corpus.
-8. **Error state**: If the backend returns an error, a retryable error state is shown with a retry button.
-9. **Retry or new question**: User may retry the failed question or type a new question.
+1. **Enter demo**: User navigates to `/` and sees the public Knowledge QA landing page.
+2. **Authenticate**: User selects **Log in**, signs in at `/login`, and returns to the originally requested Knowledge route. Direct access to `/knowledge/qa` redirects unauthenticated users to login.
+3. **View corpus context**: The authenticated user sees available corpora. If the user lacks corpus access, the app shows an explicit empty state.
+4. **Type question**: User enters a natural-language question in the input field.
+5. **Submit question**: User presses submit or Enter. Submit is disabled while a question is in flight.
+6. **Loading state**: A loading indicator appears while the backend processes the question.
+7. **Answer displayed**: On success, the answer card renders with the response text and optional source links.
+8. **Empty/no-answer**: If the backend returns no answer, an empty state suggests rephrasing or selecting a different corpus.
+9. **Error state**: If the backend returns an error, a retryable error state is shown with a retry button.
+10. **Retry or new question**: User may retry the failed question or type a new question.
 
 ## Success Scenario
 

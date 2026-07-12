@@ -11,6 +11,10 @@ Verifies journey: [0001 Knowledge QA Demo Journey](../journeys/0001-knowledge-qa
 | Scenario | Expected Behavior | Priority |
 |---|---|---|
 | Initial route renders | `/knowledge/qa` renders the QA surface with input and submit | High |
+| Landing route renders | `/` renders public product context and a login action | High |
+| Protected route redirects | Unauthenticated access to `/knowledge/qa` redirects to `/login` with the return URL | High |
+| Login succeeds | Valid credentials establish a session and continue to the requested Knowledge route | High |
+| Authenticated login redirects | An authenticated user visiting `/login` continues to `/knowledge/qa` | Medium |
 | Question input accepts text | Input field accepts and displays typed text | High |
 | Submit invokes API | Submit triggers the Knowledge QA API call with the question | High |
 | Loading state displays | Loading indicator appears while API call is in flight | High |
@@ -27,7 +31,6 @@ Verifies journey: [0001 Knowledge QA Demo Journey](../journeys/0001-knowledge-qa
 
 | Scenario | Reason |
 |---|---|
-| Auth/permission state | Deferred until auth shell decision is finalized (see step 14) |
 | Cancellation | Not in initial demo scope |
 | Idempotency verification | Accepted as non-cached for demo scope |
 | Concurrency control | Single-question-in-flight is enforced by UI, not deeply tested |
