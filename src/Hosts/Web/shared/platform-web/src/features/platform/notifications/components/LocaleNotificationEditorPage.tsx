@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState, useEffect } from "react";
-import { Button, Input, Textarea } from "@heroui/react";
+import { Button, Textarea, TextField } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import {
   useLocaleNotificationDetail,
@@ -112,7 +112,7 @@ export function LocaleNotificationEditorPage({
 
       <div>
         <h2>{t("platform.notifications.verificationCode")}</h2>
-        <Input
+        <TextField
           label={t("platform.notifications.fields.smsTemplateId")}
           value={form.verificationSmsTemplateId}
           onValueChange={(value) => setForm((prev) => ({ ...prev, verificationSmsTemplateId: value }))}
@@ -123,7 +123,7 @@ export function LocaleNotificationEditorPage({
 
       <div>
         <h2>{t("platform.notifications.seaReminder")}</h2>
-        <Input
+        <TextField
           label={t("platform.notifications.fields.emailSubject")}
           value={form.seaReminderEmailSubject}
           onValueChange={(value) => setForm((prev) => ({ ...prev, seaReminderEmailSubject: value }))}
@@ -145,7 +145,7 @@ export function LocaleNotificationEditorPage({
           errorMessage={errors.seaReminderEmailHtmlBody}
           isInvalid={!!errors.seaReminderEmailHtmlBody}
         />
-        <Input
+        <TextField
           label={t("platform.notifications.fields.smsTemplateId")}
           value={form.seaReminderSmsTemplateId}
           onValueChange={(value) => setForm((prev) => ({ ...prev, seaReminderSmsTemplateId: value }))}
@@ -156,7 +156,7 @@ export function LocaleNotificationEditorPage({
 
       <div>
         <h2>{t("platform.notifications.appointmentReminder")}</h2>
-        <Input
+        <TextField
           label={t("platform.notifications.fields.emailSubject")}
           value={form.appointmentReminderEmailSubject}
           onValueChange={(value) => setForm((prev) => ({ ...prev, appointmentReminderEmailSubject: value }))}
@@ -178,7 +178,7 @@ export function LocaleNotificationEditorPage({
           errorMessage={errors.appointmentReminderEmailHtmlBody}
           isInvalid={!!errors.appointmentReminderEmailHtmlBody}
         />
-        <Input
+        <TextField
           label={t("platform.notifications.fields.smsTemplateId")}
           value={form.appointmentReminderSmsTemplateId}
           onValueChange={(value) => setForm((prev) => ({ ...prev, appointmentReminderSmsTemplateId: value }))}
@@ -188,7 +188,7 @@ export function LocaleNotificationEditorPage({
       </div>
 
       <div>
-        <Button onPress={handleSave} isLoading={createMutation.isPending || updateMutation.isPending}>
+        <Button onPress={handleSave} isPending={createMutation.isPending || updateMutation.isPending}>
           {t("common.actions.save")}
         </Button>
         <Button variant="flat" onPress={() => router.push(basePath)}>
