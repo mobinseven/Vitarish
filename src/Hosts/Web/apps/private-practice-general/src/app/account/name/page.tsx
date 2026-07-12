@@ -2,10 +2,10 @@
 
 import { useCallback } from "react";
 import { TextField, Label, Input, Button } from "@heroui/react";
-import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useAuthSession } from "@vitarish/auth-web";
 import { AccountBackLink, AccountSurface, AccountWidget } from "@/components/account/AccountSurface";
 import { useAccountNameUpdate } from "@vitarish/account-web";
-import { StatusMessage } from "@/components/auth/StatusMessage";
+import { StatusAlert } from "@vitarish/web-ui";
 import { useLocalizedText } from "@/localization";
 
 export default function NamePage() {
@@ -35,10 +35,10 @@ export default function NamePage() {
     <AccountSurface>
       <AccountWidget title={t("account.name.title")}>
         {isError && (
-          <StatusMessage message={t("account.name.updateFailed")} />
+          <StatusAlert className="mb-4" message={t("account.name.updateFailed")} />
         )}
         {success && (
-          <StatusMessage message={t("account.name.updateSucceeded")} type="success" />
+          <StatusAlert className="mb-4" message={t("account.name.updateSucceeded")} type="success" />
         )}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <TextField name="firstName" isRequired>

@@ -1,8 +1,8 @@
 "use client";
 
-import { LoginPageCard } from "@/components/auth/LoginPageCard";
-import { PasskeyButton } from "@/components/auth/PasskeyButton";
+import { LoginPageCard, PasskeyButton } from "@vitarish/auth-web";
 import { useLocalizedText } from "@/localization";
+import { Routes } from "@/app/routes";
 
 export default function PasskeyLoginPage() {
   const { t } = useLocalizedText();
@@ -12,6 +12,7 @@ export default function PasskeyLoginPage() {
       title={t("auth.passkey.title")}
       subtitle={t("auth.passkey.subtitle")}
       skeletonHeight="128px"
+      backHref={Routes.Login.Index}
     >
       <PasskeyButton />
     </LoginPageCard>

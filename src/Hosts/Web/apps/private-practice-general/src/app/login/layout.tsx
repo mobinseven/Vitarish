@@ -1,8 +1,9 @@
 "use client";
 
 import { Suspense, type ReactNode } from "react";
-import { AuthenticatedRedirectBoundary } from "@/components/auth/SessionRedirect";
+import { AuthenticatedRedirectBoundary } from "@vitarish/auth-web";
 import { useLocalizedText } from "@/localization";
+import { Routes } from "@/app/routes";
 
 function LoginRouteFallback() {
   const { t } = useLocalizedText();
@@ -18,7 +19,7 @@ export default function LoginLayout({ children }: { children: ReactNode }) {
   return (
     <main className="min-h-screen">
       <Suspense fallback={<LoginRouteFallback />}>
-        <AuthenticatedRedirectBoundary>{children}</AuthenticatedRedirectBoundary>
+        <AuthenticatedRedirectBoundary authenticatedHref={Routes.Home}>{children}</AuthenticatedRedirectBoundary>
       </Suspense>
     </main>
   );

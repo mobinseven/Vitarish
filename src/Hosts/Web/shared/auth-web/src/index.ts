@@ -62,3 +62,26 @@ export {
   getUsersGetThemeQueryKey,
   getUsersListWebAuthnCredentialsQueryKey,
 } from "./api/generated/users/users";
+
+// Components
+export { AuthMethodSelector } from "./components/AuthMethodSelector";
+export type { AuthMethodRoute } from "./components/AuthMethodSelector";
+export { AuthorizationGuard } from "./components/AuthorizationGuard";
+export { EmailOtpForm } from "./components/EmailOtpForm";
+export { LoginForm } from "./components/LoginForm";
+export { LoginPageCard } from "./components/LoginPageCard";
+export { OtpCodeInput } from "./components/OtpCodeInput";
+export { OtpVerificationStep } from "./components/OtpVerificationStep";
+export { PasskeyButton } from "./components/PasskeyButton";
+export { PhoneOtpForm } from "./components/PhoneOtpForm";
+export { AuthenticatedRedirectBoundary, SessionRedirect, resolveSessionRedirectTarget } from "./components/SessionRedirect";
+
+// Workflow hooks
+export { usePasswordLogin } from "./hooks/usePasswordLogin";
+export { usePhoneLogin } from "./hooks/usePhoneLogin";
+export type { PhoneLoginStep } from "./hooks/usePhoneLogin";
+export { useEmailLogin } from "./hooks/useEmailLogin";
+export type { EmailLoginStep } from "./hooks/useEmailLogin";
+export { usePasskeyLogin } from "./hooks/usePasskeyLogin";
+export { useLogout } from "./hooks/useLogout";
+export type { LogoutContextStatus } from "./hooks/useLogout";

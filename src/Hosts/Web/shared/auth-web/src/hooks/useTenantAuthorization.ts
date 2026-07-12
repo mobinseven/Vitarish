@@ -13,6 +13,12 @@ interface TenantAuthorizationResult {
   displayProfile: ReturnType<typeof useAuthSession>["displayProfile"];
 }
 
+/**
+ * Client-side tenant authorization pre-check.
+ *
+ * Backend authorization remains authoritative; this hook only hides or redirects UI
+ * before protected APIs enforce tenant access.
+ */
 export function useTenantAuthorization(
   requiredRole?: TenantRole
 ): TenantAuthorizationResult {

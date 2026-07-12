@@ -1,12 +1,13 @@
 "use client";
 
 import { Card, Button } from "@heroui/react";
-import { useLogout } from "@/hooks/auth/useLogout";
-import { StatusMessage } from "@/components/auth/StatusMessage";
+import { useLogout } from "@vitarish/auth-web";
+import { StatusAlert } from "@vitarish/web-ui";
 import { useLocalizedText } from "@/localization";
+import { Routes } from "@/app/routes";
 
 export default function LogoutPage() {
-  const { logout, isLoading, isContextLoading, contextStatus, errorMessage } = useLogout();
+  const { logout, isLoading, isContextLoading, contextStatus, errorMessage } = useLogout(undefined, Routes.Login.Index);
   const { t } = useLocalizedText();
 
   return (
@@ -18,12 +19,12 @@ export default function LogoutPage() {
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {contextStatus === "already-signed-out" && (
-            <StatusMessage message={t("auth.logout.alreadyEnded")} />
+            <StatusAlert className="mb-4" message={t("auth.logout.alreadyEnded")} />
           )}
           {contextStatus === "unavailable" && (
-            <StatusMessage message={t("auth.logout.unavailable")} />
+            <StatusAlert className="mb-4" message={t("auth.logout.unavailable")} />
           )}
-          {errorMessage && <StatusMessage message={errorMessage} />}
+          {errorMessage && <StatusAlert className="mb-4" message={errorMessage} />}
           <Button
             variant="danger"
             isPending={isLoading || isContextLoading}

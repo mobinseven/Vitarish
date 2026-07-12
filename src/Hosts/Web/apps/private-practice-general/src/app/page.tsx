@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
-import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useAuthSession } from "@vitarish/auth-web";
 import { useLocalizedText } from "@/localization";
 import { LandingPage } from "@/features/landing/landing-page";
 

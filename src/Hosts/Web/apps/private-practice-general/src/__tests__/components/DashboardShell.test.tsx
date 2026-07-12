@@ -15,7 +15,7 @@ vi.mock("next-themes", () => ({
   }),
 }));
 
-vi.mock("@/hooks/auth/useAuthSession", () => ({
+vi.mock("@vitarish/auth-web", () => ({
   useAuthSession: () => ({
     isAuthenticated: true,
     isLoading: false,
@@ -24,9 +24,6 @@ vi.mock("@/hooks/auth/useAuthSession", () => ({
       initials: "TU",
     },
   }),
-}));
-
-vi.mock("@/hooks/auth/useLogout", () => ({
   useLogout: () => ({
     logout: vi.fn(),
     isLoading: false,

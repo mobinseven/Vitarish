@@ -2,11 +2,11 @@
 
 import { useCallback } from "react";
 import { TextField, Label, Input, Button } from "@heroui/react";
-import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useAuthSession } from "@vitarish/auth-web";
 import { AccountBackLink, AccountSurface, AccountWidget } from "@/components/account/AccountSurface";
 import { useAccountPhoneChange } from "@vitarish/account-web";
-import { StatusMessage } from "@/components/auth/StatusMessage";
-import { OtpCodeInput } from "@/components/auth/OtpCodeInput";
+import { StatusAlert } from "@vitarish/web-ui";
+import { OtpCodeInput } from "@vitarish/auth-web";
 import { localizeApiError, useLocalizedText } from "@/localization";
 
 export default function PhoneChangePage() {
@@ -61,9 +61,9 @@ export default function PhoneChangePage() {
             {t("account.phone.currentValue", { value: profile.phoneNumber })}
           </p>
         )}
-        {error && <StatusMessage message={error} />}
+        {error && <StatusAlert className="mb-4" message={error} />}
         {success && (
-          <StatusMessage message={t("account.phone.updateSucceeded")} type="success" />
+          <StatusAlert className="mb-4" message={t("account.phone.updateSucceeded")} type="success" />
         )}
 
         {step === "phone" ? (

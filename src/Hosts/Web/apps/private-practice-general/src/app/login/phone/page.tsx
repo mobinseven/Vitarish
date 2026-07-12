@@ -1,8 +1,8 @@
 "use client";
 
-import { LoginPageCard } from "@/components/auth/LoginPageCard";
-import { PhoneOtpForm } from "@/components/auth/PhoneOtpForm";
+import { LoginPageCard, PhoneOtpForm } from "@vitarish/auth-web";
 import { useLocalizedText } from "@/localization";
+import { Routes } from "@/app/routes";
 
 export default function PhoneLoginPage() {
   const { t } = useLocalizedText();
@@ -12,6 +12,7 @@ export default function PhoneLoginPage() {
       title={t("auth.otp.phoneTitle")}
       subtitle={t("auth.otp.phoneSubtitle")}
       skeletonHeight="112px"
+      backHref={Routes.Login.Index}
     >
       <PhoneOtpForm />
     </LoginPageCard>

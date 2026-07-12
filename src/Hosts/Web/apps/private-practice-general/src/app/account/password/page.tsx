@@ -2,10 +2,10 @@
 
 import { useState, useCallback } from "react";
 import { TextField, Label, Input, Button } from "@heroui/react";
-import { useAuthSession } from "@/hooks/auth/useAuthSession";
+import { useAuthSession } from "@vitarish/auth-web";
 import { AccountBackLink, AccountSurface, AccountWidget } from "@/components/account/AccountSurface";
 import { useAccountPasswordChange } from "@vitarish/account-web";
-import { StatusMessage } from "@/components/auth/StatusMessage";
+import { StatusAlert } from "@vitarish/web-ui";
 import { localizeApiError, useLocalizedText } from "@/localization";
 
 export default function PasswordChangePage() {
@@ -55,8 +55,8 @@ export default function PasswordChangePage() {
   return (
     <AccountSurface>
       <AccountWidget title={t("account.password.title")}>
-        {error && <StatusMessage message={error} />}
-        {success && <StatusMessage message={t("account.password.changeSucceeded")} type="success" />}
+        {error && <StatusAlert className="mb-4" message={error} />}
+        {success && <StatusAlert className="mb-4" message={t("account.password.changeSucceeded")} type="success" />}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <TextField name="currentPassword" type="password">
             <Label>{t("account.password.currentPassword")}</Label>

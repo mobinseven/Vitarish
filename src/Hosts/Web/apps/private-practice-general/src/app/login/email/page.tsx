@@ -1,8 +1,8 @@
 "use client";
 
-import { LoginPageCard } from "@/components/auth/LoginPageCard";
-import { EmailOtpForm } from "@/components/auth/EmailOtpForm";
+import { EmailOtpForm, LoginPageCard } from "@vitarish/auth-web";
 import { useLocalizedText } from "@/localization";
+import { Routes } from "@/app/routes";
 
 export default function EmailLoginPage() {
   const { t } = useLocalizedText();
@@ -12,6 +12,7 @@ export default function EmailLoginPage() {
       title={t("auth.otp.emailTitle")}
       subtitle={t("auth.otp.emailSubtitle")}
       skeletonHeight="112px"
+      backHref={Routes.Login.Index}
     >
       <EmailOtpForm />
     </LoginPageCard>
