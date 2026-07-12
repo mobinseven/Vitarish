@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 import { useAuthenticationSessionGet } from "../api/generated/authentication/authentication";
 import { resolveUserDisplayProfile } from "../session/userDisplayProfile";
