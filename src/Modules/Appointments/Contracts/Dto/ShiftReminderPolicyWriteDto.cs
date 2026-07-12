@@ -9,6 +9,8 @@ public record ShiftReminderPolicyWriteDto : EntityWriteDto
     public ShiftReminderChannel Channel { get; set; }
     public TimeSpan OffsetBefore { get; set; }
     public IList<ReservationStatus> QualifyingStatuses { get; set; } = [];
+    [Obsolete("Templates are now resolved from Platform locale notification records at send time. This property will be removed in a future migration.")]
     public string SubjectTemplate { get; set; } = string.Empty;
+    [Obsolete("Templates are now resolved from Platform locale notification records at send time. This property will be removed in a future migration.")]
     public string BodyTemplate { get; set; } = string.Empty;
 }

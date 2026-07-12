@@ -7,7 +7,11 @@ using Vitarish.Communications.Domain.Models;
 using Vitarish.Modules.Base.Core.BackgroundJobs;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Platform.Application.Abstractions;
+using Vitarish.Platform.Application.Contracts;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Users.Application.Abstractions;
+using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Sea.Infrastructure.BackgroundJobs;
 
@@ -34,14 +38,15 @@ public class ReminderProcessor(
         {
             IRequestContext ctx = provider.GetRequiredService<IRequestContext>();
             TenantReminderContext tenantContext = new(
-                provider.GetRequiredService<IStringLocalizer>(),
                 provider.GetRequiredService<IRequestContext>(),
                 provider.GetRequiredService<IPartiesService>(),
                 provider.GetRequiredService<IProjectsService>(),
                 provider.GetRequiredService<IProceduresService>(),
                 provider.GetRequiredService<IEventsService>(),
                 provider.GetRequiredService<IRemindersService>(),
-                provider.GetRequiredService<IMessagesService>());
+                provider.GetRequiredService<IMessagesService>(),
+                provider.GetRequiredService<INotificationTemplateResolver>(),
+                provider.GetRequiredService<IUsersService>());
 
             await ProcessTenantRemindersAsync(tenantContext, shutdownToken);
         }
@@ -100,45 +105,93 @@ public class ReminderProcessor(
         TenantReadDto? tenant = await tenantContext.PartiesService.GetTenantAsync(Guid.Parse(tenantContext.RequestContext.TenantId!), cancellationToken);
         if (tenant is null)
         {
+            _logger.LogWarning("Tenant {TenantId} not found for Sea reminder {ReminderId}. Configuration failure — will retry.", tenantContext.RequestContext.TenantId, reminder.Id);
             return;
         }
 
         EventReadDto? evnt = await tenantContext.EventsService.GetAsync(reminder.SourceId, cancellationToken).GetValueOrDefaultAsync();
         if (evnt is null)
         {
+            _logger.LogWarning("Event {EventId} not found for Sea reminder {ReminderId}. Configuration failure — will retry.", reminder.SourceId, reminder.Id);
             return;
         }
 
         ProjectReadDto? proj = await tenantContext.ProjectsService.GetAsync(evnt.ProjectId, cancellationToken).GetValueOrDefaultAsync();
         if (proj is null)
         {
+            _logger.LogWarning("Project {ProjectId} not found for Sea reminder {ReminderId}. Configuration failure — will retry.", evnt.ProjectId, reminder.Id);
             return;
         }
 
         ProcedureReadDto? proc = await tenantContext.ProceduresService.GetAsync(evnt.ProcedureId, cancellationToken).GetValueOrDefaultAsync();
         if (proc is null)
         {
+            _logger.LogWarning("Procedure {ProcedureId} not found for Sea reminder {ReminderId}. Configuration failure — will retry.", evnt.ProcedureId, reminder.Id);
             return;
         }
+
+        string? recipientLocale = reminder.RecipientUserId is not null
+            ? await GetUserLocaleAsync(tenantContext, reminder.RecipientUserId, cancellationToken)
+            : null;
+
+        ResolvedNotificationTemplate? resolvedTemplate = await tenantContext.TemplateResolver.ResolveAsync(
+            recipientLocale,
+            NotificationPurpose.SeaReminder,
+            cancellationToken);
 
         switch (reminder.Kind)
         {
             case ReminderKind.Email:
-                string content = tenantContext.Localizer["ReminderText", evnt.Title, proc.Name, proj.Name];
-                string htmlbody = $"<p>{System.Net.WebUtility.HtmlEncode(content)}</p>";
+                if (resolvedTemplate is null || resolvedTemplate.EmailSubject is null || resolvedTemplate.EmailTextBody is null)
+                {
+                    _logger.LogWarning("No email template resolved for Sea reminder {ReminderId}. Configuration failure — will retry.", reminder.Id);
+                    return;
+                }
+
+                string subject = resolvedTemplate.EmailSubject
+                    .Replace("{EventTitle}", evnt.Title, StringComparison.Ordinal)
+                    .Replace("{ProcedureName}", proc.Name, StringComparison.Ordinal)
+                    .Replace("{ProjectName}", proj.Name, StringComparison.Ordinal);
+                string body = resolvedTemplate.EmailTextBody
+                    .Replace("{EventTitle}", evnt.Title, StringComparison.Ordinal)
+                    .Replace("{ProcedureName}", proc.Name, StringComparison.Ordinal)
+                    .Replace("{ProjectName}", proj.Name, StringComparison.Ordinal);
+                string htmlBody = resolvedTemplate.EmailHtmlBody?
+                    .Replace("{EventTitle}", System.Net.WebUtility.HtmlEncode(evnt.Title), StringComparison.Ordinal)
+                    .Replace("{ProcedureName}", System.Net.WebUtility.HtmlEncode(proc.Name), StringComparison.Ordinal)
+                    .Replace("{ProjectName}", System.Net.WebUtility.HtmlEncode(proj.Name), StringComparison.Ordinal)
+                    ?? $"<p>{System.Net.WebUtility.HtmlEncode(body)}</p>";
+
                 await tenantContext.MessagesService.SendEmail(new Message
                 {
                     Recipient = reminder.Recipient,
-                    Subject = tenantContext.Localizer["Reminder"],
-                    Body = content,
-                    HtmlBody = htmlbody,
+                    Subject = subject,
+                    Body = body,
+                    HtmlBody = htmlBody,
                     Sender = null
                 }, cancellationToken);
                 break;
+
             case ReminderKind.Sms:
+                if (resolvedTemplate is null || resolvedTemplate.SmsTemplateId is null)
+                {
+                    _logger.LogWarning("No SMS template resolved for Sea reminder {ReminderId}. Configuration failure — will retry.", reminder.Id);
+                    return;
+                }
 
-                await tenantContext.MessagesService.SendSmsReminder(reminder.Recipient, proj.Name, proc.Name, evnt.Title, tenant.Name, cancellationToken);
+                Dictionary<string, string> smsParameters = new()
+                {
+                    ["PROJECT"] = proj.Name,
+                    ["PROCEDURE"] = proc.Name,
+                    ["EVENT"] = evnt.Title,
+                    ["TENANT"] = tenant.Name
+                };
 
+                await tenantContext.MessagesService.SendTemplatedSms(
+                    reminder.Recipient,
+                    resolvedTemplate.SmsTemplateId,
+                    smsParameters,
+                    cancellationToken);
                 break;
         }
 
@@ -174,13 +227,21 @@ public class ReminderProcessor(
 
         await tenantContext.RemindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
     }
+    private async Task<string?> GetUserLocaleAsync(TenantReminderContext tenantContext, string userId, CancellationToken cancellationToken)
+    {
+        User? user = await tenantContext.UsersService.GetUserAsync(userId, cancellationToken);
+        if (user?.ProfilePreferences is null) return null;
+        return user.ProfilePreferences.TryGetValue("Culture", out string? culture) ? culture : null;
+    }
+
     private readonly record struct TenantReminderContext(
-        IStringLocalizer Localizer,
         IRequestContext RequestContext,
         IPartiesService PartiesService,
         IProjectsService ProjectsService,
         IProceduresService ProceduresService,
         IEventsService EventsService,
         IRemindersService RemindersService,
-        IMessagesService MessagesService);
+        IMessagesService MessagesService,
+        INotificationTemplateResolver TemplateResolver,
+        IUsersService UsersService);
 }

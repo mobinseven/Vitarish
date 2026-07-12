@@ -2,13 +2,16 @@ using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using Vitarish.Communications.Domain.Options;
+using Vitarish.Platform.Application.Abstractions;
+using Vitarish.Platform.Application.Contracts;
 
 namespace Vitarish.Communications.Infrastructure.Services;
 
-public class MessagesService(IOptionsMonitor<ProvidersOptions> providersOptions, ISmsProvider smsProvider) : IMessagesService
+public class MessagesService(IOptionsMonitor<ProvidersOptions> providersOptions, ISmsProvider smsProvider, INotificationTemplateResolver? templateResolver = null) : IMessagesService
 {
     private readonly IOptionsMonitor<ProvidersOptions> providersOptions = providersOptions ?? throw new ArgumentNullException(nameof(providersOptions));
     private readonly ISmsProvider smsProvider = smsProvider ?? throw new ArgumentNullException(nameof(smsProvider));
+    private readonly INotificationTemplateResolver? _templateResolver = templateResolver;
 
     public async Task SendEmail(Message message, CancellationToken cancellationToken = default)
     {
@@ -35,11 +38,34 @@ public class MessagesService(IOptionsMonitor<ProvidersOptions> providersOptions,
     public Task<SmsSendResult> SendSms(Message message, CancellationToken cancellationToken = default) =>
         smsProvider.SendSms(message, cancellationToken);
 
-    public Task SendSmsCode(Message message, CancellationToken cancellationToken = default) =>
-        smsProvider.SendCode(message, cancellationToken);
+    public async Task SendSmsCode(Message message, CancellationToken cancellationToken = default)
+    {
+        // Try to resolve verification template from Platform locale records.
+        // Fall back to config-based template if Platform templates are unavailable.
+        if (_templateResolver is not null)
+        {
+            ResolvedNotificationTemplate? template = await _templateResolver.ResolveAsync(
+                null, // Use default locale (fa-IR fallback)
+                NotificationPurpose.VerificationCode,
+                cancellationToken);
+
+            if (template?.SmsTemplateId is not null)
+            {
+                Dictionary<string, string> parameters = new() { ["CODE"] = message.Body ?? string.Empty };
+                await smsProvider.SendTemplatedSms(message.Recipient!, template.SmsTemplateId, parameters, cancellationToken);
+                return;
+            }
+        }
+
+        // Fallback to config-based template
+        await smsProvider.SendCode(message, cancellationToken);
+    }
 
     public Task SendSmsReminder(string receipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default) =>
         smsProvider.SendReminder(receipient, project, procedure, evnt, tenant, cancellationToken);
+
+    public Task SendTemplatedSms(string recipient, string templateId, IReadOnlyDictionary<string, string> parameters, CancellationToken cancellationToken = default) =>
+        smsProvider.SendTemplatedSms(recipient, templateId, parameters, cancellationToken);
 
     public Task<SmsDeliveryState> GetSmsDeliveryStateAsync(long messageId, CancellationToken cancellationToken = default) =>
         smsProvider.GetSmsDeliveryStateAsync(messageId, cancellationToken);
