@@ -146,7 +146,7 @@ public static partial class LocaleNotificationRecordValidator
         try
         {
             CultureInfo culture = new(locale);
-            if (culture.Name != locale)
+            if (!string.Equals(culture.Name, locale, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }

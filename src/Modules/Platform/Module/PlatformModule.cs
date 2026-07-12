@@ -84,13 +84,13 @@ public sealed class PlatformModule : Modules.Base.Core.Module
                 NormalizedLocale = "fa-IR",
                 Locale = "fa-IR",
                 VerificationSmsTemplateId = "100004",
-                SeaReminderEmailSubject = "\u0622\u063a\u0627\u0632 \u0627\u0646\u062f\u0627\u0632\u0647",
-                SeaReminderEmailTextBody = "\u0628\u0628\u0645\u0628\u0646\u062f \u063a\u0631\u06cc\u0645\u0647\u060c \u0646\u0628\u0634 \u0634\u0645\u0627 \u0628\u0631\u0627\u06cc {ProcedureName} \u0628\u0627 {ProjectName} \u0628\u0631 {EventTitle} \u062a\u0648\u0636\u0639 \u0634\u062f\u0647 \u0627\u0633\u062a.",
-                SeaReminderEmailHtmlBody = "<p>\u0628\u0628\u0645\u0628\u0646\u062f \u063a\u0631\u06cc\u0645\u0647\u060c \u0646\u0628\u0634 \u0634\u0645\u0627 \u0628\u0631\u0627\u06cc <strong>{ProcedureName}</strong> \u0628\u0627 <strong>{ProjectName}</strong> \u0628\u0631 <strong>{EventTitle}</strong> \u062a\u0648\u0636\u0639 \u0634\u062f\u0647 \u0627\u0633\u062a.</p>",
+                SeaReminderEmailSubject = "یادآوری نوبت",
+                SeaReminderEmailTextBody = "بیمار عزیز، نوبت شما برای {ProcedureName} با {ProjectName} در {EventTitle} تعیین شده است.",
+                SeaReminderEmailHtmlBody = "<p>بیمار عزیز، نوبت شما برای <strong>{ProcedureName}</strong> با <strong>{ProjectName}</strong> در <strong>{EventTitle}</strong> تعیین شده است.</p>",
                 SeaReminderSmsTemplateId = "100005",
-                AppointmentReminderEmailSubject = "\u0646\u0628\u0634 \u0642\u0631\u0628\u0627\u0628\u06cc",
-                AppointmentReminderEmailTextBody = "\u0646\u0628\u0634 \u0634\u0645\u0627 \u0628\u0631 {OccurrenceStart} \u062a\u0648\u0636\u0639 \u0634\u062f\u0647 \u0627\u0633\u062a.",
-                AppointmentReminderEmailHtmlBody = "<p>\u0646\u0628\u0634 \u0634\u0645\u0627 \u0628\u0631 <strong>{OccurrenceStart}</strong> \u062a\u0648\u0636\u0639 \u0634\u062f\u0647 \u0627\u0633\u062a.</p>",
+                AppointmentReminderEmailSubject = "نوبت آینده",
+                AppointmentReminderEmailTextBody = "نوبت شما در {OccurrenceStart} تعیین شده است.",
+                AppointmentReminderEmailHtmlBody = "<p>نوبت شما در <strong>{OccurrenceStart}</strong> تعیین شده است.</p>",
                 AppointmentReminderSmsTemplateId = "100006"
             });
         }
