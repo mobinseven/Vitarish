@@ -7,5 +7,5 @@ export function usePatientUpdate() {
     );
   }, []);
 
-  return { update, isPending: false };
+  return { update, isPending: false, error: null as Error | null };
 }

@@ -2,10 +2,10 @@
 
 import { useCallback, useState } from "react";
 import { Button, Input, Label, TextField } from "@heroui/react";
-import { Widget } from "@heroui-pro/react";
-import { AdvancedSearchForm } from "../../../../../features/clinic/components/AdvancedSearchForm";
-import { AdvancedSearchResults } from "../../../../../features/clinic/components/AdvancedSearchResults";
-import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "../../../../../features/clinic/components/ClinicStateSurface";
+
+import { AdvancedSearchForm } from "./AdvancedSearchForm";
+import { AdvancedSearchResults } from "./AdvancedSearchResults";
+import { EmptyStateSurface as ClinicEmptyState, ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
 import { PatientProfileForm } from "../../../../../features/clinic/patients/profile/components/PatientProfileForm";
 import { emptyFormData } from "../../../../../features/clinic/patients/profile/models/PatientProfileForm";
 import { usePatientFindOrCreate } from "../hooks/usePatientFindOrCreate";
@@ -70,11 +70,11 @@ export function PatientFindOrCreate({
     <div className="flex flex-col gap-6">
       {step === "lookup" && (
         <>
-          <Widget>
-            <Widget.Header>
-              <Widget.Title>{t("clinic.checkIn.step1")}</Widget.Title>
-            </Widget.Header>
-            <Widget.Content className="flex flex-col gap-4">
+          <section className="rounded-medium border border-divider p-4">
+            <header className="mb-3">
+              <h2>{t("clinic.checkIn.step1")}</h2>
+            </header>
+            <div className="flex flex-col gap-4">
               <TextField>
                 <Label>{t("clinic.patient.identification.label")}</Label>
                 <Input
@@ -98,8 +98,8 @@ export function PatientFindOrCreate({
               <Button variant="primary" isPending={isLooking} onPress={handleLookupSubmit}>
                 {t("clinic.patient.identification.lookupAction")}
               </Button>
-            </Widget.Content>
-          </Widget>
+            </div>
+          </section>
 
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-surface-secondary" />

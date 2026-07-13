@@ -406,3 +406,4 @@ FodyWeavers.xsd
 
 /src/Hosts/Web/tsconfig.tsbuildinfo
 **/api/generated/**
+**/*.tsbuildinfo

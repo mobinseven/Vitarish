@@ -23,4 +23,11 @@ describe("localization messages", () => {
     expect(messages.clinic.patients.countFound.one).toContain("{count}");
     expect(messages.clinic.patients.countFound.other).toContain("{count}");
   });
+
+  it.each(["en", "fa"] as const)("composes package-owned clinic messages for %s", (locale) => {
+    const messages = getMessages(locale);
+    expect(messages.clinic.dashboard.title).toBeTruthy();
+    expect(messages.clinic.appointments.agenda.allDay).toBeTruthy();
+    expect(messages.clinic.services.deleteTitle).toBeTruthy();
+  });
 });

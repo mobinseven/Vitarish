@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@heroui/react";
-import { ClinicLoadingState, ClinicErrorState } from "../../../../../features/clinic/components/ClinicStateSurface";
+import { LoadingStateSurface as ClinicLoadingState, ErrorStateSurface as ClinicErrorState } from "@vitarish/web-ui";
 import { usePatientOverview } from "../hooks/usePatientOverview";
-import { PatientSummaryCard } from "./PatientSummaryCard";
+import { PatientSummary } from "./PatientSummary";
 import { PatientCriticalSummary } from "./PatientCriticalSummary";
 import { PatientQuickActions } from "./PatientQuickActions";
-import { PatientDetails } from "../../../../../features/clinic/components/PatientDetails";
+import { PatientDetails } from "./PatientDetails";
 import { PatientProceduresPanel } from "../../../../../features/clinic/patients/procedures/components/PatientProceduresPanel";
 import { useLocalizedText } from "../../../../../localization";
 
@@ -25,7 +25,7 @@ export function PatientOverviewPageSurface({ patientId, onNavigate }: PatientOve
 
   if (error || !patient) {
     return (
-      <ClinicErrorState title={error instanceof Error ? error.message : t("clinic.patient.detail.notFound")}>
+      <ClinicErrorState title={t("clinic.patient.detail.notFound")}>
         <Button variant="ghost" onPress={() => onNavigate?.({ kind: "patientIndex" })}>
           {t("clinic.patients.backToPatients")}
         </Button>
@@ -61,7 +61,7 @@ export function PatientOverviewPageSurface({ patientId, onNavigate }: PatientOve
           <PatientDetails patient={patient} />
         </div>
         <div className="flex flex-col gap-6">
-          <PatientSummaryCard patient={patient} />
+          <PatientSummary patient={patient} />
           <PatientProceduresPanel patientId={patientId} onNavigate={onNavigate} />
         </div>
       </div>

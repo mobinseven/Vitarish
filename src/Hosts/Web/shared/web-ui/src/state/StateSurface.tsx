@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import { Spinner } from "@heroui/react";
 import { EmptyState } from "@heroui-pro/react/empty-state";
 

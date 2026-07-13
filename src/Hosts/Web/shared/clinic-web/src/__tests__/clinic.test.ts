@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { CalendarDate } from "@internationalized/date";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { useAgendaEvents } from "../features/clinic/appointments/agenda/hooks/useAgendaEvents";
+import {
+  ClinicDashboardPage,
+  ClinicPatientListPage,
+  ClinicOwnerShiftListPage,
+  ClinicServiceDetailPage,
+} from "../index";
+import { clinicMessageCatalogs } from "../localization";
 
 describe("useAgendaEvents", () => {
   it("is exported from clinic-web", () => {
@@ -35,15 +44,58 @@ describe("useAgendaEvents", () => {
   });
 });
 
-describe("clinic-web barrel exports", () => {
-  it("exports key components", async () => {
-    const mod = await import("../index");
-    expect(mod.ClinicEmptyState).toBeDefined();
-    expect(mod.ClinicErrorState).toBeDefined();
-    expect(mod.ClinicLoadingState).toBeDefined();
-    expect(mod.useOwnerShifts).toBeDefined();
-    expect(mod.useOwnerReservations).toBeDefined();
-    expect(mod.OwnerShiftsList).toBeDefined();
-    expect(mod.PatientCheckInWizard).toBeDefined();
-  }, 10_000);
+describe("clinic-web public surface", () => {
+  it("exports route-ready page surfaces", () => {
+    expect(ClinicDashboardPage).toBeDefined();
+    expect(ClinicPatientListPage).toBeDefined();
+    expect(ClinicOwnerShiftListPage).toBeDefined();
+    expect(ClinicServiceDetailPage).toBeDefined();
+  });
+});
+
+function leafKeys(value: unknown, prefix = ""): string[] {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return [prefix];
+  return Object.entries(value).flatMap(([key, child]) =>
+    leafKeys(child, prefix ? `${prefix}.${key}` : key)
+  );
+}
+
+describe("clinic message catalogs", () => {
+  it("keeps English and Persian leaf keys equivalent", () => {
+    expect(leafKeys(clinicMessageCatalogs.en).sort()).toEqual(
+      leafKeys(clinicMessageCatalogs.fa).sort()
+    );
+  });
+
+  it("resolves every literal clinic key used by package code", () => {
+    const sourceRoot = join(import.meta.dirname, "..");
+    const files: string[] = [];
+    const walk = (directory: string) => {
+      for (const entry of readdirSync(directory)) {
+        const path = join(directory, entry);
+        if (path.includes("__tests__") || path.includes("api\\generated") || path.includes("api/generated")) continue;
+        if (statSync(path).isDirectory()) walk(path);
+        else if (path.endsWith(".ts") || path.endsWith(".tsx")) files.push(path);
+      }
+    };
+    walk(sourceRoot);
+    const keys = new Set<string>();
+    for (const file of files) {
+      const source = readFileSync(file, "utf8");
+      for (const match of source.matchAll(/\bt\(["'](clinic\.[^"']+)["']/g)) keys.add(match[1]);
+    }
+    const resolve = (catalog: unknown, key: string) =>
+      key.split(".").reduce<unknown>(
+        (current, segment) =>
+          current && typeof current === "object"
+            ? (current as Record<string, unknown>)[segment]
+            : undefined,
+        catalog
+      );
+    const missing = [...keys].flatMap((key) => [
+      ...(typeof resolve(clinicMessageCatalogs.en, key) === "string" ? [] : [`en:${key}`]),
+      ...(typeof resolve(clinicMessageCatalogs.fa, key) === "string" ? [] : [`fa:${key}`]),
+    ]);
+    expect(missing).toEqual([]);
+  });
 });

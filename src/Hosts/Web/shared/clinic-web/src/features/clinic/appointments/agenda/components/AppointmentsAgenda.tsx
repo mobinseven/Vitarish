@@ -6,6 +6,7 @@ import { today, getLocalTimeZone } from "@internationalized/date";
 import type { ClinicNavigationIntent } from "../../../../../navigation";
 import type { ShiftReadDto, ReservationReadDto } from "../../api/appointmentsApi";
 import { useAgendaEvents } from "../hooks/useAgendaEvents";
+import { useLocalizedText } from "../../../../../localization";
 
 interface AppointmentsAgendaProps {
   shifts: ShiftReadDto[];
@@ -14,6 +15,7 @@ interface AppointmentsAgendaProps {
 }
 
 export function AppointmentsAgenda({ shifts, reservations, onNavigate }: AppointmentsAgendaProps) {
+  const { t } = useLocalizedText();
   const [date, setDate] = useState(today(getLocalTimeZone()));
   const [view, setView] = useState<"day" | "week" | "month">("week");
 
@@ -31,9 +33,9 @@ export function AppointmentsAgenda({ shifts, reservations, onNavigate }: Appoint
       if (!id) return;
       if (id.startsWith("shift-")) {
         const shiftId = id.split("-")[1];
-        onNavigate?.({ kind: "shiftDetail", shiftId });
+        onNavigate?.({ kind: "ownerShiftDetail", shiftId });
       } else {
-        onNavigate?.({ kind: "reservationDetail", reservationId: id });
+        onNavigate?.({ kind: "ownerReservationDetail", reservationId: id });
       }
     },
   });
@@ -52,7 +54,7 @@ export function AppointmentsAgenda({ shifts, reservations, onNavigate }: Appoint
       <Agenda.Body>
         <Agenda.WeekHeader />
         <Agenda.AllDaySection>
-          <Agenda.AllDayLabel>All Day</Agenda.AllDayLabel>
+          <Agenda.AllDayLabel>{t("clinic.appointments.agenda.allDay")}</Agenda.AllDayLabel>
           {agenda.allDayLayout.map((item) => (
             <Agenda.AllDayEvent
               key={item.event.id}

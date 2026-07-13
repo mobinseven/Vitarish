@@ -1,8 +1,15 @@
 export type ClinicNavigationIntent =
-  | { kind: "shiftDetail"; shiftId: string }
-  | { kind: "shiftsNew" }
-  | { kind: "reservationDetail"; reservationId: string }
+  | { kind: "dashboard" }
+  | { kind: "ownerShiftIndex" }
+  | { kind: "ownerShiftCreate" }
+  | { kind: "ownerShiftDetail"; shiftId: string }
+  | { kind: "ownerShiftEdit"; shiftId: string }
+  | { kind: "ownerShiftOccurrence"; shiftId: string; occurrenceDate: string }
+  | { kind: "ownerReservationIndex" }
+  | { kind: "ownerReservationDetail"; reservationId: string }
+  | { kind: "userShiftIndex" }
   | { kind: "userShiftDetail"; shiftId: string }
+  | { kind: "userReservationIndex" }
   | { kind: "userReservationDetail"; reservationId: string }
   | { kind: "patientDetail"; patientId: string }
   | { kind: "patientNew" }
@@ -11,10 +18,14 @@ export type ClinicNavigationIntent =
   | { kind: "patientProcedureDetail"; patientId: string; procedureId: string }
   | { kind: "patientProcedureEventDetail"; patientId: string; procedureId: string; eventId: string }
   | { kind: "checkIn" }
-  | { kind: "settingsIndex" }
-  | { kind: "settingsUsers" }
-  | { kind: "settingsStatistics" }
+  | { kind: "appointmentSettings" }
+  | { kind: "clinicSettings" }
+  | { kind: "clinicSettingsUsers" }
+  | { kind: "clinicStatistics" }
   | { kind: "reminders" }
-  | { kind: "serviceTypes" }
-  | { kind: "services" }
-  | { kind: "serviceProviders" };
+  | { kind: "serviceIndex" }
+  | { kind: "serviceDetail"; serviceId: string }
+  | { kind: "serviceTypeIndex" }
+  | { kind: "serviceTypeDetail"; serviceTypeId: string }
+  | { kind: "serviceProviderIndex" }
+  | { kind: "serviceProviderDetail"; serviceProviderId: string };

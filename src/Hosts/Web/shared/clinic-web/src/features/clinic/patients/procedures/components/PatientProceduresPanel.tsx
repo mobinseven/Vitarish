@@ -2,8 +2,8 @@
 
 import { useCallback, useState } from "react";
 import { Button, Chip } from "@heroui/react";
-import { ListView, Widget } from "@heroui-pro/react";
-import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "../../../../../features/clinic/components/ClinicStateSurface";
+import { ListView } from "@heroui-pro/react";
+import { EmptyStateSurface as ClinicEmptyState, ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
 import { usePatientProcedures } from "../hooks/usePatientProcedures";
 import { usePatientProcedureTriage } from "../hooks/usePatientProcedureTriage";
 import { PatientProcedureForm } from "./PatientProcedureForm";
@@ -26,11 +26,11 @@ export function PatientProceduresPanel({ patientId, onNavigate }: PatientProcedu
   );
 
   return (
-    <Widget>
-      <Widget.Header>
-        <Widget.Title>{t("clinic.procedures.title")}</Widget.Title>
-      </Widget.Header>
-      <Widget.Content>
+    <section className="rounded-medium border border-divider p-4">
+      <header className="mb-3">
+        <h2>{t("clinic.procedures.title")}</h2>
+      </header>
+      <div>
         {isLoading && <ClinicLoadingState label={t("common.states.loading")} />}
 
         {error && <ClinicErrorState title={t("clinic.procedures.failedToLoad")} />}
@@ -79,7 +79,7 @@ export function PatientProceduresPanel({ patientId, onNavigate }: PatientProcedu
                   <div className="flex items-center gap-2">
                     {procedure.eventCount > 0 && (
                       <span className="text-xs text-muted">
-                        {procedure.committedEventCount}/{procedure.eventCount} {t("clinic.procedures.events")}
+                        {t("clinic.procedures.events.progress", { committed: procedure.committedEventCount, count: procedure.eventCount })}
                       </span>
                     )}
                     {procedure.newItems > 0 && (
@@ -105,7 +105,7 @@ export function PatientProceduresPanel({ patientId, onNavigate }: PatientProcedu
             onClose={() => setShowCreateForm(false)}
           />
         )}
-      </Widget.Content>
-    </Widget>
+      </div>
+    </section>
   );
 }

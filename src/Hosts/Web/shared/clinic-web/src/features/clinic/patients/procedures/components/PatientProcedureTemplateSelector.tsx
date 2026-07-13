@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Button, Modal } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
-import { ClinicEmptyState, ClinicLoadingState } from "../../../../../features/clinic/components/ClinicStateSurface";
+import { EmptyStateSurface as ClinicEmptyState, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
 import { usePatientProcedureTemplates } from "../hooks/usePatientProcedureTemplates";
 import { PatientProcedureForm } from "./PatientProcedureForm";
 import { useLocalizedText } from "../../../../../localization";

@@ -1,7 +1,7 @@
 "use client";
 
-import { Widget } from "@heroui-pro/react";
-import { ClinicEmptyState } from "../../../../../features/clinic/components/ClinicStateSurface";
+
+import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/web-ui";
 import { usePatientProcedureEventAccess } from "../hooks/usePatientProcedureEventAccess";
 import { useLocalizedText } from "../../../../../localization";
 
@@ -16,11 +16,11 @@ export function PatientProcedureEventAccessPanel({ eventId }: PatientProcedureEv
   if (isLoading) return null;
 
   return (
-    <Widget>
-      <Widget.Header>
-        <Widget.Title>{t("clinic.procedures.access.title")}</Widget.Title>
-      </Widget.Header>
-      <Widget.Content>
+    <section className="rounded-medium border border-divider p-4">
+      <header className="mb-3">
+        <h2>{t("clinic.procedures.access.title")}</h2>
+      </header>
+      <div>
         {!access || (access.readRoles.length === 0 && access.writeRoles.length === 0) ? (
           <ClinicEmptyState title={t("common.states.empty")} />
         ) : (
@@ -51,7 +51,7 @@ export function PatientProcedureEventAccessPanel({ eventId }: PatientProcedureEv
             )}
           </div>
         )}
-      </Widget.Content>
-    </Widget>
+      </div>
+    </section>
   );
 }

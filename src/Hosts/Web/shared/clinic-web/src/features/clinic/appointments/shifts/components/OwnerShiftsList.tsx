@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { Button } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
 import type { ClinicNavigationIntent } from "../../../../../navigation";
-import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "../../../../../features/clinic/components/ClinicStateSurface";
+import { EmptyStateSurface as ClinicEmptyState, ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
 import { useOwnerShifts } from "../hooks/useOwnerShifts";
 import { useLocalizedText, type MessageKey } from "../../../../../localization";
 
@@ -27,7 +27,7 @@ export function OwnerShiftsList({ onNavigate }: OwnerShiftsListProps) {
   const { data: shifts, isLoading, error } = useOwnerShifts();
 
   const handleSelect = useCallback(
-    (id: string) => onNavigate?.({ kind: "shiftDetail", shiftId: id }),
+    (id: string) => onNavigate?.({ kind: "ownerShiftDetail", shiftId: id }),
     [onNavigate]
   );
 
@@ -35,7 +35,7 @@ export function OwnerShiftsList({ onNavigate }: OwnerShiftsListProps) {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{t("clinic.appointments.shifts.title")}</h1>
-        <Button variant="primary" onPress={() => onNavigate?.({ kind: "shiftsNew" })}>
+        <Button variant="primary" onPress={() => onNavigate?.({ kind: "ownerShiftCreate" })}>
           {t("clinic.appointments.shifts.new")}
         </Button>
       </div>
