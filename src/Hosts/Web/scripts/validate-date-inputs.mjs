@@ -4,7 +4,10 @@ import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
-const srcDir = join(webRoot, "apps/private-practice-general/src");
+const srcDirs = [
+  join(webRoot, "apps/private-practice-general/src"),
+  join(webRoot, "apps/platform-admin/src"),
+];
 
 const nativeDateInputPattern = /<Input\s[^>]*type\s*=\s*["']date["']/i;
 const nativeInputDatePattern = /<input\s[^>]*type\s*=\s*["']date["']/i;
@@ -23,22 +26,25 @@ function collect(dir) {
   return files;
 }
 
-for (const file of collect(srcDir)) {
-  const normalizedFile = file.replaceAll("\\", "/");
-  if (normalizedFile.includes("/__tests__/") || normalizedFile.includes("/api/generated/")) continue;
-  const source = readFileSync(file, "utf8");
-  const relPath = relative(webRoot, file);
+for (const srcDir of srcDirs) {
+  if (!existsSync(srcDir)) continue;
+  for (const file of collect(srcDir)) {
+    const normalizedFile = file.replaceAll("\\", "/");
+    if (normalizedFile.includes("/__tests__/") || normalizedFile.includes("/api/generated/")) continue;
+    const source = readFileSync(file, "utf8");
+    const relPath = relative(webRoot, file);
 
-  if (nativeDateInputPattern.test(source)) {
-    const match = source.match(nativeDateInputPattern);
-    findings.push({ file: relPath, pattern: match[0].trim() });
-  }
-  if (nativeInputDatePattern.test(source)) {
-    const match = source.match(nativeInputDatePattern);
-    findings.push({ file: relPath, pattern: match[0].trim() });
-  }
-  if (formDateFieldPattern.test(source)) {
-    findings.push({ file: relPath, pattern: "FormDateField definition" });
+    if (nativeDateInputPattern.test(source)) {
+      const match = source.match(nativeDateInputPattern);
+      findings.push({ file: relPath, pattern: match[0].trim() });
+    }
+    if (nativeInputDatePattern.test(source)) {
+      const match = source.match(nativeInputDatePattern);
+      findings.push({ file: relPath, pattern: match[0].trim() });
+    }
+    if (formDateFieldPattern.test(source)) {
+      findings.push({ file: relPath, pattern: "FormDateField definition" });
+    }
   }
 }
 

@@ -5,9 +5,11 @@ import { fileURLToPath } from "node:url";
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const appRoot = join(webRoot, "apps/private-practice-general");
+const platformAdminAppRoot = join(webRoot, "apps/platform-admin");
 const sharedRoot = join(webRoot, "shared");
 const root = join(webRoot, "../../..");
 const scopes = ["src/app", "src/components", "src/features", "src/design-system"];
+const platformAdminScopes = ["src/app", "src/components"];
 const literalPattern = />\s*([A-Z][A-Za-z0-9 ,.'!?&()/-]{2,})\s*<\//g;
 const attrPattern = /\b(placeholder|aria-label|title|label)="([A-Z][^"]{2,})"/g;
 const findings = [];
@@ -28,6 +30,7 @@ function collect(dir) {
 function validateFile(file) {
   const normalizedFile = file.replaceAll("\\", "/");
   if (normalizedFile.includes("/api/generated/") || normalizedFile.includes("/__tests__/") || normalizedFile.includes("/node_modules/")) return;
+  if (normalizedFile.endsWith(".test.tsx") || normalizedFile.endsWith(".test.ts")) return;
   const source = readFileSync(file, "utf8");
   for (const match of source.matchAll(literalPattern)) findings.push({ file, text: match[1].trim() });
   for (const match of source.matchAll(attrPattern)) findings.push({ file, text: match[1] + '="' + match[2] + '"' });
@@ -41,6 +44,12 @@ function validateFile(file) {
 
 for (const scope of scopes) {
   const dir = join(appRoot, scope);
+  if (!existsSync(dir)) continue;
+  for (const file of collect(dir)) validateFile(file);
+}
+
+for (const scope of platformAdminScopes) {
+  const dir = join(platformAdminAppRoot, scope);
   if (!existsSync(dir)) continue;
   for (const file of collect(dir)) validateFile(file);
 }
