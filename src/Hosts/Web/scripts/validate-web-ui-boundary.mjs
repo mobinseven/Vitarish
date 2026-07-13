@@ -10,7 +10,7 @@
  *   - Feature packages: no apps, no backend, no deep-importing other feature packages
  */
 
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -65,6 +65,11 @@ const forbiddenPathBoundaries = [
     name: "@vitarish/sea-web",
     path: resolve(__dirname, "../shared/sea-web/src/features/sea"),
     reason: "must not reintroduce the removed src/features/sea ownership wrapper",
+  },
+  {
+    name: "@vitarish/clinic-web",
+    path: resolve(__dirname, "../shared/clinic-web/src/features/clinic"),
+    reason: "@vitarish/clinic-web must not reintroduce the removed src/features/clinic wrapper",
   },
 ];
 
@@ -150,6 +155,14 @@ const packageBoundaries = [
 ];
 
 let failed = false;
+
+for (const boundary of forbiddenPathBoundaries) {
+  if (existsSync(boundary.path)) {
+    console.error(`Forbidden path exists: ${boundary.path}: ${boundary.reason}`);
+    failed = true;
+  }
+}
+
 
 function walk(boundary, dir, prefix = "") {
   for (const entry of readdirSync(dir)) {

@@ -3,7 +3,7 @@ import { renderHook } from "@testing-library/react";
 import { CalendarDate } from "@internationalized/date";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { useAgendaEvents } from "../features/clinic/appointments/agenda/hooks/useAgendaEvents";
+import { useAgendaEvents } from "../hooks/appointments/agenda/useAgendaEvents";
 import {
   ClinicDashboardPage,
   ClinicPatientListPage,
