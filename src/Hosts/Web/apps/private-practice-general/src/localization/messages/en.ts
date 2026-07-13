@@ -180,7 +180,7 @@ export const enMessages = {
     culture: {
       title: "Language",
       english: "English",
-      persian: "ÙØ§Ø±Ø³ÛŒ",
+      persian: "فارسی",
       updateFailed: "Failed to update language",
       updateSucceeded: "Language updated successfully",
     },
@@ -612,7 +612,7 @@ export const enMessages = {
       callout1: "Accelerator layer",
       callout2: "Interconnect fabric",
       callout3: "Thermal envelope",
-      viewType: "orthographic Â· exploded view",
+      viewType: "orthographic · exploded view",
       scale: "scale 1:24",
     },
     trustStrip: {
@@ -665,7 +665,7 @@ export const enMessages = {
       copyCode: "Copy code",
       language: "Language",
       revision: "rev. 08 / traces routed",
-      dimensions: "x: 128 Â· y: 96",
+      dimensions: "x: 128 · y: 96",
     },
     featureRows: {
       sectionLabel: "Deep dive",
@@ -701,7 +701,7 @@ export const enMessages = {
       sectionLabel: "Pricing",
       heading: "Priced by the workload",
       subheading: "Start free. Pay for the accelerators you use. No egress traps, no seat minimums.",
-      scaleLabel: "scale â†’",
+      scaleLabel: "scale →",
       recommended: "Recommended",
       plans: [
         {name: "Prototype", desc: "For experiments and first deploys.", cta: "Start free", feature0: "1 GPU node", feature1: "Shared observability", feature2: "10k requests / day", feature3: "Community support"},

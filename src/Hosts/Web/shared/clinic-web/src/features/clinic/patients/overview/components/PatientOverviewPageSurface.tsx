@@ -47,7 +47,7 @@ export function PatientOverviewPageSurface({ patientId, onNavigate }: PatientOve
             className="mb-2"
             onPress={() => onNavigate?.({ kind: "patientIndex" })}
           >
-            â† {t("clinic.patients.backToPatients")}
+            ← {t("clinic.patients.backToPatients")}
           </Button>
           <h1 className="text-2xl font-bold">{displayName}</h1>
         </div>

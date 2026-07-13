@@ -46,7 +46,7 @@ export function PatientProcedureEventItemsPanel({ eventId }: PatientProcedureEve
                         {t(itemTypeLabels[item.type] ?? "clinic.procedures.items.note")}
                       </span>
                       {item.author && (
-                        <span className="text-xs text-muted">Ã¢â‚¬â€ {item.author}</span>
+                        <span className="text-xs text-muted">— {item.author}</span>
                       )}
                     </div>
                     <ListView.Description className="line-clamp-2">
