@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { LocalizationProvider } from "../localization/index";
-import { clinicMessageCatalogs } from "../localization/index";
+import { LocalizationProvider } from "../localization";
+import { clinicMessageCatalogs } from "../localization";
 import { ServiceList } from "../components/services/ServiceList";
 import { ServiceEditor } from "../components/services/ServiceEditor";
 import { ServiceTypeEditor } from "../components/service-types/ServiceTypeEditor";
