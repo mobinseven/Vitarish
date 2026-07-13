@@ -10,6 +10,7 @@ let failed = false;
 const appDirs = [
   resolve(__dirname, "../apps/private-practice-general/src"),
   resolve(__dirname, "../apps/knowledge-qa-demo/src"),
+  resolve(__dirname, "../apps/platform-admin/src"),
 ];
 
 const allowedAppPaths = new Set(["api/client/apiFetch.ts"]);

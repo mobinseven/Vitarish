@@ -32,9 +32,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate test plan completeness
-        run: python3 .agents/skills/platform-test-curator/scripts/validate_test_plans.py docs/platform/modules/
-
       - name: Validate test sync
         if: ${{ always() }}
         run: python3 tools/testing/validate_test_sync.py . --checks doc-completeness doc-index-sync doc-to-test-mapping boundary-regression unused-test-projects

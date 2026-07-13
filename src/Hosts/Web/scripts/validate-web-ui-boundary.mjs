@@ -139,6 +139,14 @@ const packageBoundaries = [
       ...clinicSeaBoundaryPatterns,
     ],
   },
+  {
+    name: "@vitarish/platform-admin-web",
+    src: resolve(__dirname, "../shared/platform-admin-web/src"),
+    forbiddenPatterns: [
+      ...featurePackageForbiddenPatterns,
+      ...noNextNavigationPatterns,
+    ],
+  },
 ];
 
 let failed = false;
