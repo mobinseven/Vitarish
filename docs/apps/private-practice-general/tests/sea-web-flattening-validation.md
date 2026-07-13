@@ -1,8 +1,9 @@
 # SEA Web flattening validation evidence
 
-Status: Follow-up evidence for `Flatten sea-web concern-first source boundaries`  
-Owner: Web platform / Private Practice General  
-Scope: `@vitarish/sea-web` path-only source-boundary refactor  
+Status: Follow-up evidence for `Flatten sea-web concern-first source boundaries`
+Owner: Web platform / Private Practice General
+Scope: `@vitarish/sea-web` path-only source-boundary refactor
+Related journey: N/A
 Collected: 2026-07-13
 
 ## Purpose
