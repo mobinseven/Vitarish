@@ -622,8 +622,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
+          "400": {
+            "description": "Bad Request",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -632,8 +632,8 @@
               }
             }
           },
-          "400": {
-            "description": "Bad Request",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1068,7 +1068,8 @@
         "required": [
           "isAuthenticated",
           "user",
-          "tenantAccess"
+          "tenantAccess",
+          "platformAccess"
         ],
         "type": "object",
         "properties": {
@@ -1087,6 +1088,9 @@
           },
           "tenantAccess": {
             "$ref": "#/components/schemas/TenantAccessDto"
+          },
+          "platformAccess": {
+            "$ref": "#/components/schemas/PlatformAccessDto"
           }
         }
       },
@@ -1472,6 +1476,17 @@
             "type": "boolean"
           },
           "canAccessTenantUser": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PlatformAccessDto": {
+        "required": [
+          "canAccessPlatformAdmin"
+        ],
+        "type": "object",
+        "properties": {
+          "canAccessPlatformAdmin": {
             "type": "boolean"
           }
         }

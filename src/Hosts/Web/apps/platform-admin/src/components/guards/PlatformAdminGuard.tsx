@@ -1,12 +1,11 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthSession } from "@vitarish/auth-web";
 import { useLocalizedText } from "@/localization";
 import { PlatformAdminShell } from "@/components/shell/PlatformAdminShell";
 import { Routes } from "@/app/routes";
-import { useEffect } from "react";
 
 interface PlatformAdminGuardProps {
   children: ReactNode;
@@ -46,9 +45,7 @@ export function PlatformAdminGuard({ children }: PlatformAdminGuardProps) {
     return null;
   }
 
-  // platformAccess is available after OpenAPI spec regeneration from updated backend
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const canAccessPlatformAdmin = (session as any)?.platformAccess?.canAccessPlatformAdmin === true;
+  const canAccessPlatformAdmin = session?.platformAccess.canAccessPlatformAdmin === true;
 
   if (!canAccessPlatformAdmin) {
     return (
