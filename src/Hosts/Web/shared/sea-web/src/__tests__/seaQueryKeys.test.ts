@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { seaAttachmentKeys } from "../features/sea/attachments/hooks/seaAttachmentKeys";
-import { seaEventKeys } from "../features/sea/events/hooks/seaEventKeys";
-import { seaProcedureKeys } from "../features/sea/procedures/hooks/seaProcedureKeys";
-import { seaProjectKeys } from "../features/sea/projects/hooks/seaProjectKeys";
-import { seaRoleKeys } from "../features/sea/roles/hooks/seaRoleKeys";
-import { seaRoleUserKeys } from "../features/sea/roles/hooks/useSeaRoleUsers";
-import { seaTemplateKeys } from "../features/sea/templates/hooks/seaTemplateKeys";
+import { seaAttachmentKeys } from "../hooks/attachments/seaAttachmentKeys";
+import { seaEventKeys } from "../hooks/events/seaEventKeys";
+import { seaProcedureKeys } from "../hooks/procedures/seaProcedureKeys";
+import { seaProjectKeys } from "../hooks/projects/seaProjectKeys";
+import { seaRoleKeys } from "../hooks/roles/seaRoleKeys";
+import { seaRoleUserKeys } from "../hooks/roles/useSeaRoleUsers";
+import { seaTemplateKeys } from "../hooks/templates/seaTemplateKeys";
 
 describe("SEA query keys", () => {
   it("keeps project and procedure server-state keys under SEA ownership", () => {

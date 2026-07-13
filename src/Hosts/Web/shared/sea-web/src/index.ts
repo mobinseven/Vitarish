@@ -2,21 +2,21 @@
 export type { SeaNavigationIntent } from "./navigation";
 
 // Project hooks
-export { useSeaProjects } from "./features/sea/projects/hooks/useSeaProjects";
-export { useSeaProjectDetail } from "./features/sea/projects/hooks/useSeaProjectDetail";
-export { useCreateSeaProject } from "./features/sea/projects/hooks/useCreateSeaProject";
-export { useUpdateSeaProject } from "./features/sea/projects/hooks/useUpdateSeaProject";
-export { useDeleteSeaProject } from "./features/sea/projects/hooks/useDeleteSeaProject";
-export { useMarkSeaProjectRead } from "./features/sea/projects/hooks/useMarkSeaProjectRead";
-export { seaProjectKeys } from "./features/sea/projects/hooks/seaProjectKeys";
+export { useSeaProjects } from "./hooks/projects/useSeaProjects";
+export { useSeaProjectDetail } from "./hooks/projects/useSeaProjectDetail";
+export { useCreateSeaProject } from "./hooks/projects/useCreateSeaProject";
+export { useUpdateSeaProject } from "./hooks/projects/useUpdateSeaProject";
+export { useDeleteSeaProject } from "./hooks/projects/useDeleteSeaProject";
+export { useMarkSeaProjectRead } from "./hooks/projects/useMarkSeaProjectRead";
+export { seaProjectKeys } from "./hooks/projects/seaProjectKeys";
 
 // Procedure hooks
-export { useSeaProcedures } from "./features/sea/procedures/hooks/useSeaProcedures";
-export { useSeaProcedureDetail } from "./features/sea/procedures/hooks/useSeaProcedureDetail";
-export { useCreateSeaProcedure } from "./features/sea/procedures/hooks/useCreateSeaProcedure";
-export { useUpdateSeaProcedure } from "./features/sea/procedures/hooks/useUpdateSeaProcedure";
-export { useDeleteSeaProcedure } from "./features/sea/procedures/hooks/useDeleteSeaProcedure";
-export { seaProcedureKeys } from "./features/sea/procedures/hooks/seaProcedureKeys";
+export { useSeaProcedures } from "./hooks/procedures/useSeaProcedures";
+export { useSeaProcedureDetail } from "./hooks/procedures/useSeaProcedureDetail";
+export { useCreateSeaProcedure } from "./hooks/procedures/useCreateSeaProcedure";
+export { useUpdateSeaProcedure } from "./hooks/procedures/useUpdateSeaProcedure";
+export { useDeleteSeaProcedure } from "./hooks/procedures/useDeleteSeaProcedure";
+export { seaProcedureKeys } from "./hooks/procedures/seaProcedureKeys";
 export {
   listProcedures,
   getProcedure,
@@ -43,61 +43,61 @@ export {
   removeEventRole,
   listAllRoles,
   listTemplateProcedures,
-} from "./features/sea/procedures/api/proceduresApi";
+} from "./api/procedures/proceduresApi";
 
 // Event hooks
-export { useSeaEvents } from "./features/sea/events/hooks/useSeaEvents";
-export { useSeaEventDetail } from "./features/sea/events/hooks/useSeaEventDetail";
-export { useCreateSeaEvent } from "./features/sea/events/hooks/useCreateSeaEvent";
-export { useUpdateSeaEvent } from "./features/sea/events/hooks/useUpdateSeaEvent";
-export { useDeleteSeaEvent } from "./features/sea/events/hooks/useDeleteSeaEvent";
-export { useMoveSeaEventUp, useMoveSeaEventDown } from "./features/sea/events/hooks/useMoveSeaEvent";
-export { useCommitSeaEvent } from "./features/sea/events/hooks/useCommitSeaEvent";
-export { useUncommitSeaEvent } from "./features/sea/events/hooks/useUncommitSeaEvent";
-export { useSeaEventWritePermission } from "./features/sea/events/hooks/useSeaEventWritePermission";
-export { seaEventKeys } from "./features/sea/events/hooks/seaEventKeys";
+export { useSeaEvents } from "./hooks/events/useSeaEvents";
+export { useSeaEventDetail } from "./hooks/events/useSeaEventDetail";
+export { useCreateSeaEvent } from "./hooks/events/useCreateSeaEvent";
+export { useUpdateSeaEvent } from "./hooks/events/useUpdateSeaEvent";
+export { useDeleteSeaEvent } from "./hooks/events/useDeleteSeaEvent";
+export { useMoveSeaEventUp, useMoveSeaEventDown } from "./hooks/events/useMoveSeaEvent";
+export { useCommitSeaEvent } from "./hooks/events/useCommitSeaEvent";
+export { useUncommitSeaEvent } from "./hooks/events/useUncommitSeaEvent";
+export { useSeaEventWritePermission } from "./hooks/events/useSeaEventWritePermission";
+export { seaEventKeys } from "./hooks/events/seaEventKeys";
 
 // Role hooks
-export { useSeaRoles, useSeaUserRoles, useSeaEventRoles, useSeaEventReadRoles, useSeaEventWriteRoles } from "./features/sea/roles/hooks/useSeaRoles";
-export { useCreateSeaRole, useUpdateSeaRole, useDeleteSeaRole, useAssignSeaUserRole, useRemoveSeaUserRole, useAssignSeaEventRole, useRemoveSeaEventRole } from "./features/sea/roles/hooks/useSeaRoleMutations";
-export { useSeaRoleUserSearch, seaRoleUserKeys } from "./features/sea/roles/hooks/useSeaRoleUsers";
-export { seaRoleKeys } from "./features/sea/roles/hooks/seaRoleKeys";
+export { useSeaRoles, useSeaUserRoles, useSeaEventRoles, useSeaEventReadRoles, useSeaEventWriteRoles } from "./hooks/roles/useSeaRoles";
+export { useCreateSeaRole, useUpdateSeaRole, useDeleteSeaRole, useAssignSeaUserRole, useRemoveSeaUserRole, useAssignSeaEventRole, useRemoveSeaEventRole } from "./hooks/roles/useSeaRoleMutations";
+export { useSeaRoleUserSearch, seaRoleUserKeys } from "./hooks/roles/useSeaRoleUsers";
+export { seaRoleKeys } from "./hooks/roles/seaRoleKeys";
 
 // Template hooks
-export { useSeaTemplateProjects, useSeaTemplateProjectDetail } from "./features/sea/templates/hooks/useSeaTemplates";
-export { seaTemplateKeys } from "./features/sea/templates/hooks/seaTemplateKeys";
+export { useSeaTemplateProjects, useSeaTemplateProjectDetail } from "./hooks/templates/useSeaTemplates";
+export { seaTemplateKeys } from "./hooks/templates/seaTemplateKeys";
 
 // Statistics hooks
-export { useSeaStatistics } from "./features/sea/statistics/hooks/useSeaStatistics";
+export { useSeaStatistics } from "./hooks/statistics/useSeaStatistics";
 
 // State surfaces
-export { SeaLoadingState, SeaErrorState, SeaEmptyState } from "./features/sea/shared/components/SeaStateSurface";
+export { SeaLoadingState, SeaErrorState, SeaEmptyState } from "./components/state/SeaStateSurface";
 
 // Attachment hooks
-export { useSeaEventAttachments, useSeaEventAttachmentCount } from "./features/sea/attachments/hooks/useSeaAttachments";
-export { useCreateSeaTextAttachment, useUpdateSeaTextAttachment, useCreateSeaFileAttachment, useDeleteSeaAttachment } from "./features/sea/attachments/hooks/useSeaAttachmentMutations";
-export { seaAttachmentKeys } from "./features/sea/attachments/hooks/seaAttachmentKeys";
+export { useSeaEventAttachments, useSeaEventAttachmentCount } from "./hooks/attachments/useSeaAttachments";
+export { useCreateSeaTextAttachment, useUpdateSeaTextAttachment, useCreateSeaFileAttachment, useDeleteSeaAttachment } from "./hooks/attachments/useSeaAttachmentMutations";
+export { seaAttachmentKeys } from "./hooks/attachments/seaAttachmentKeys";
 
 // Models
-export type { SeaProjectReadDto, SeaProcedureReadDto, SeaEventReadDto, SeaRoleReadDto, SeaAttachmentReadDto, SeaUserRoleReadDto, SeaStatisticsDto } from "./features/sea/shared/models/seaStatModels";
+export type { SeaProjectReadDto, SeaProcedureReadDto, SeaEventReadDto, SeaRoleReadDto, SeaAttachmentReadDto, SeaUserRoleReadDto, SeaStatisticsDto } from "./models/seaStatModels";
 
 // Mappers
-export { mapSeaProject, mapSeaProcedure, mapSeaEvent, mapSeaAttachment, mapSeaRole, mapSeaUserRole, mapSeaAttachmentCount, mapSeaStatistics } from "./features/sea/shared/models/seaReadDtoMappers";
+export { mapSeaProject, mapSeaProcedure, mapSeaEvent, mapSeaAttachment, mapSeaRole, mapSeaUserRole, mapSeaAttachmentCount, mapSeaStatistics } from "./mappers/seaReadDtoMappers";
 
 // Components
-export { SeaProjectsPage } from "./features/sea/projects/components/SeaProjectsPage";
-export { SeaProjectDetailPage } from "./features/sea/projects/components/SeaProjectDetailPage";
-export { SeaProjectForm } from "./features/sea/projects/components/SeaProjectForm";
-export { SeaProjectDeleteDialog } from "./features/sea/projects/components/SeaProjectDeleteDialog";
-export { SeaRolesPage } from "./features/sea/roles/components/SeaRolesPage";
-export { SeaUserRoleAssignmentsPanel } from "./features/sea/roles/components/SeaUserRoleAssignmentsPanel";
-export { SeaTemplateProjectsPage } from "./features/sea/templates/components/SeaTemplateProjectsPage";
-export { SeaTemplateProjectDetailPage } from "./features/sea/templates/components/SeaTemplateProjectDetailPage";
-export { SeaDashboardPage } from "./features/sea/statistics/components/SeaDashboardPage";
-export { SeaProcedureList } from "./features/sea/procedures/components/SeaProcedureList";
-export { SeaProcedureForm } from "./features/sea/procedures/components/SeaProcedureForm";
-export { SeaProcedureDetailPage } from "./features/sea/procedures/components/SeaProcedureDetailPage";
-export { SeaProcedureDeleteDialog } from "./features/sea/procedures/components/SeaProcedureDeleteDialog";
-export { SeaEventForm } from "./features/sea/events/components/SeaEventForm";
-export { SeaEventTimeline } from "./features/sea/events/components/SeaEventTimeline";
-export { SeaEventAttachmentsPanel } from "./features/sea/attachments/components/SeaEventAttachmentsPanel";
+export { SeaProjectsPage } from "./components/projects/SeaProjectsPage";
+export { SeaProjectDetailPage } from "./components/projects/SeaProjectDetailPage";
+export { SeaProjectForm } from "./components/projects/SeaProjectForm";
+export { SeaProjectDeleteDialog } from "./components/projects/SeaProjectDeleteDialog";
+export { SeaRolesPage } from "./components/roles/SeaRolesPage";
+export { SeaUserRoleAssignmentsPanel } from "./components/roles/SeaUserRoleAssignmentsPanel";
+export { SeaTemplateProjectsPage } from "./components/templates/SeaTemplateProjectsPage";
+export { SeaTemplateProjectDetailPage } from "./components/templates/SeaTemplateProjectDetailPage";
+export { SeaDashboardPage } from "./components/statistics/SeaDashboardPage";
+export { SeaProcedureList } from "./components/procedures/SeaProcedureList";
+export { SeaProcedureForm } from "./components/procedures/SeaProcedureForm";
+export { SeaProcedureDetailPage } from "./components/procedures/SeaProcedureDetailPage";
+export { SeaProcedureDeleteDialog } from "./components/procedures/SeaProcedureDeleteDialog";
+export { SeaEventForm } from "./components/events/SeaEventForm";
+export { SeaEventTimeline } from "./components/events/SeaEventTimeline";
+export { SeaEventAttachmentsPanel } from "./components/attachments/SeaEventAttachmentsPanel";

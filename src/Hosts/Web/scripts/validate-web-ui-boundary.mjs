@@ -60,6 +60,14 @@ const seaClinicBoundaryPatterns = [
   { pattern: /from\s+["'].*sea-web\/src\//, reason: "must not deep-import from sea-web" },
 ];
 
+const forbiddenPathBoundaries = [
+  {
+    name: "@vitarish/sea-web",
+    path: resolve(__dirname, "../shared/sea-web/src/features/sea"),
+    reason: "must not reintroduce the removed src/features/sea ownership wrapper",
+  },
+];
+
 const packageBoundaries = [
   {
     name: "@vitarish/web-ui",
@@ -166,6 +174,19 @@ function walk(boundary, dir, prefix = "") {
 for (const boundary of packageBoundaries) {
   if (statSync(boundary.src).isDirectory()) {
     walk(boundary, boundary.src);
+  }
+}
+
+for (const boundary of forbiddenPathBoundaries) {
+  try {
+    if (statSync(boundary.path).isDirectory()) {
+      console.error(`Forbidden path in ${boundary.name}: ${boundary.path} ${boundary.reason}`);
+      failed = true;
+    }
+  } catch (error) {
+    if (error?.code !== "ENOENT") {
+      throw error;
+    }
   }
 }
 
