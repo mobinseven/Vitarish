@@ -28,7 +28,6 @@ Update this file only when repository navigation changes. Keep it folder-level a
 | `.agents/skills` | Canonical project skills for Codex/agents. | Edit only for skill-governance work; keep bridge skills in sync. |
 | `.claude/skills` | Claude bridge skills pointing back to `.agents/skills`. | Do not make canonical policy here. |
 | `.github` | Issue templates and CI workflows. | High-care DevOps area. |
-| `.mimocode` | MimoCode plans, schemas, scripts. | Edit only when maintaining that workflow. |
 | `docs` | Architecture decisions, module/app docs, runbooks, indexes, this map. | Safe for documentation changes; update scoped docs near behavior changes. |
 | `scripts` | Repository scripts. | High-care; check callers before changing. |
 | `src/Apps` | App composition/aggregator projects and app-level contracts/clients/core/interface packages. | Add app-specific composition here when a module is exposed through an app. |
