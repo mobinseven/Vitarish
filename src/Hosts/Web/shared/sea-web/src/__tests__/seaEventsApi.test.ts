@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { apiFetch } from "../api/client/apiFetch";
-import { createSeaEventAfter } from "../features/sea/events/api/seaEventsApi";
+import { createSeaEventAfter } from "../api/events/seaEventsApi";
 
 vi.mock("../api/client/apiFetch", () => ({
   apiFetch: vi.fn(),

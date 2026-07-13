@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toSeaFileAttachment } from "../features/sea/attachments/api/seaAttachmentFile";
+import { toSeaFileAttachment } from "../api/attachments/seaAttachmentFile";
 
 describe("SEA attachment file mapping", () => {
   it("maps a browser file into an inline SEA file attachment payload", async () => {

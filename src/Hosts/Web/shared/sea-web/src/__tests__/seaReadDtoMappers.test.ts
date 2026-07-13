@@ -8,7 +8,7 @@ import {
   mapSeaProject,
   mapSeaStatistics,
   mapSeaUserRole,
-} from "../features/sea/shared/models/seaReadDtoMappers";
+} from "../mappers/seaReadDtoMappers";
 
 function createProject(overrides: Partial<ProjectReadDto> = {}): ProjectReadDto {
   return {
