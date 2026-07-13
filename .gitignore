@@ -407,8 +407,8 @@ FodyWeavers.xsd
 
 **/packages.lock.json
 
-/src/Hosts/Web/tsconfig.tsbuildinfo
-/mimocode.jsonc
-/src/Hosts/Web/.mimocode/.cron-lock
+**/mimocode.jsonc
+**/.mimocode/*
 
 **/api/generated/**
+**/*.tsbuildinfo
