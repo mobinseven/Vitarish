@@ -7,8 +7,8 @@ import { SeaLoadingState, SeaErrorState } from "../state/SeaStateSurface";
 import { useSeaProcedureDetail } from "../../hooks/procedures/useSeaProcedureDetail";
 import { SeaProcedureForm } from "./SeaProcedureForm";
 import { SeaProcedureDeleteDialog } from "./SeaProcedureDeleteDialog";
-import { SeaEventTimeline } from "../../components/events/SeaEventTimeline";
-import { SeaEventForm } from "../../components/events/SeaEventForm";
+import { SeaEventTimeline } from "../events/SeaEventTimeline";
+import { SeaEventForm } from "../events/SeaEventForm";
 import { useSeaEvents } from "../../hooks/events/useSeaEvents";
 import { useLocalizedText } from "../../localization";
 
