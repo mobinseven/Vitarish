@@ -179,7 +179,7 @@ for (const boundary of packageBoundaries) {
 
 for (const boundary of forbiddenPathBoundaries) {
   try {
-    if (statSync(boundary.path).isDirectory()) {
+    if (statSync(boundary.path)) {
       console.error(`Forbidden path in ${boundary.name}: ${boundary.path} ${boundary.reason}`);
       failed = true;
     }
