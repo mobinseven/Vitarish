@@ -1,6 +1,6 @@
 "use client";
 
-import { Widget } from "@heroui-pro/react";
+
 import { useLocalizedText } from "../../../../../localization";
 
 interface PatientProcedureTemplateReviewPanelProps {
@@ -11,16 +11,16 @@ export function PatientProcedureTemplateReviewPanel({ templateName }: PatientPro
   const { t } = useLocalizedText();
 
   return (
-    <Widget>
-      <Widget.Header>
-        <Widget.Title>{t("clinic.procedures.templates.title")}</Widget.Title>
-      </Widget.Header>
-      <Widget.Content>
+    <section className="rounded-medium border border-divider p-4">
+      <header className="mb-3">
+        <h2>{t("clinic.procedures.templates.title")}</h2>
+      </header>
+      <div>
         <div className="flex flex-col gap-2 text-sm text-muted">
           <p>{t("clinic.procedures.templates.createFrom")}: {templateName}</p>
           <p>{t("clinic.procedures.templates.preview")}</p>
         </div>
-      </Widget.Content>
-    </Widget>
+      </div>
+    </section>
   );
 }

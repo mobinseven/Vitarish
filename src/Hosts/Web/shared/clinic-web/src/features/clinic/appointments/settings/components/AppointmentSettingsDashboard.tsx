@@ -1,6 +1,6 @@
 "use client";
 
-import { ClinicNavigationGrid, type ClinicNavigationItem } from "../../../../../features/clinic/components/ClinicNavigationGrid";
+import { ClinicNavigationGrid, type ClinicNavigationItem } from "../../../navigation/components/ClinicNavigationGrid";
 import type { ClinicNavigationIntent } from "../../../../../navigation";
 import { useLocalizedText } from "../../../../../localization";
 
@@ -12,9 +12,9 @@ export function AppointmentSettingsDashboard({ onNavigate }: AppointmentSettings
   const { t } = useLocalizedText();
 
   const settingsLinks: ClinicNavigationItem[] = [
-    { title: t("clinic.serviceTypes.title"), description: t("clinic.serviceTypes.description"), intent: { kind: "serviceTypes" }, icon: "fa-solid fa-tags" },
-    { title: t("clinic.services.title"), description: t("clinic.services.description"), intent: { kind: "services" }, icon: "fa-solid fa-concierge-bell" },
-    { title: t("clinic.serviceProviders.title"), description: t("clinic.serviceProviders.description"), intent: { kind: "serviceProviders" }, icon: "fa-solid fa-user-doctor" },
+    { title: t("clinic.serviceTypes.title"), description: t("clinic.serviceTypes.description"), intent: { kind: "serviceTypeIndex" }, icon: "fa-solid fa-tags" },
+    { title: t("clinic.services.title"), description: t("clinic.services.description"), intent: { kind: "serviceIndex" }, icon: "fa-solid fa-concierge-bell" },
+    { title: t("clinic.serviceProviders.title"), description: t("clinic.serviceProviders.description"), intent: { kind: "serviceProviderIndex" }, icon: "fa-solid fa-user-doctor" },
   ];
 
   return (

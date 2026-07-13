@@ -1,6 +1,6 @@
 "use client";
 
-import { ClinicNavigationGrid, type ClinicNavigationItem } from "../../../../features/clinic/components/ClinicNavigationGrid";
+import { ClinicNavigationGrid, type ClinicNavigationItem } from "../../navigation/components/ClinicNavigationGrid";
 import type { ClinicNavigationIntent } from "../../../../navigation";
 import { useLocalizedText } from "../../../../localization";
 
@@ -12,9 +12,9 @@ export function ClinicSettingsDashboard({ onNavigate }: ClinicSettingsDashboardP
   const { t } = useLocalizedText();
 
   const settingsLinks: ClinicNavigationItem[] = [
-    { title: t("clinic.settings.sections.users.title"), description: t("clinic.settings.sections.users.description"), intent: { kind: "settingsUsers" }, icon: "fa-solid fa-user-gear" },
-    { title: t("clinic.settings.sections.appointmentSettings.title"), description: t("clinic.settings.sections.appointmentSettings.description"), intent: { kind: "settingsIndex" }, icon: "fa-solid fa-calendar-check" },
-    { title: t("clinic.settings.sections.statistics.title"), description: t("clinic.settings.sections.statistics.description"), intent: { kind: "settingsStatistics" }, icon: "fa-solid fa-chart-line" },
+    { title: t("clinic.settings.sections.users.title"), description: t("clinic.settings.sections.users.description"), intent: { kind: "clinicSettingsUsers" }, icon: "fa-solid fa-user-gear" },
+    { title: t("clinic.settings.sections.appointmentSettings.title"), description: t("clinic.settings.sections.appointmentSettings.description"), intent: { kind: "appointmentSettings" }, icon: "fa-solid fa-calendar-check" },
+    { title: t("clinic.settings.sections.statistics.title"), description: t("clinic.settings.sections.statistics.description"), intent: { kind: "clinicStatistics" }, icon: "fa-solid fa-chart-line" },
   ];
 
   return (

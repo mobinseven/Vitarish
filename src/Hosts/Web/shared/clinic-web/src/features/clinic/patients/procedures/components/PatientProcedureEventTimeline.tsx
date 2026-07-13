@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button, Chip } from "@heroui/react";
 import { Timeline } from "@heroui-pro/react";
-import { ClinicEmptyState } from "../../../../../features/clinic/components/ClinicStateSurface";
+import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/web-ui";
 import {
   useMovePatientProcedureEventUp,
   useMovePatientProcedureEventDown,

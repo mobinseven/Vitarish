@@ -1,9 +1,8 @@
 "use client";
 
-import { AppointmentSettingsDashboard } from "@vitarish/clinic-web";
+import { ClinicAppointmentSettingsPage } from "@vitarish/clinic-web";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 
-export default function ClinicAppointmentSettingsPage() {
-  const navigate = useClinicNavigation();
-  return <AppointmentSettingsDashboard onNavigate={navigate} />;
+export default function ClinicAppointmentSettingsRoute() {
+  return <ClinicAppointmentSettingsPage onNavigate={useClinicNavigation()} />;
 }

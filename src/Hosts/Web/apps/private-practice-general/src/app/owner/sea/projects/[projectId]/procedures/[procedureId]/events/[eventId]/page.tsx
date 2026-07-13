@@ -7,7 +7,7 @@ import { Widget } from "@heroui-pro/react";
 import { Routes } from "@/app/routes";
 import { useSeaEventDetail } from "@vitarish/sea-web";
 import { SeaLoadingState, SeaErrorState } from "@vitarish/sea-web";
-import { ClinicDetailGrid, type ClinicDetailItem } from "@vitarish/clinic-web";
+import { DetailGrid, type DetailGridItem } from "@vitarish/web-ui";
 import { useLocalizedText, formatDateTime } from "@/localization";
 
 export default function SeaEventDetailRoute({
@@ -28,7 +28,7 @@ export default function SeaEventDetailRoute({
     return <SeaErrorState title={t("sea.events.notFound")} />;
   }
 
-  const details: ClinicDetailItem[] = [
+  const details: DetailGridItem[] = [
     { label: t("sea.events.title_label"), value: event.title },
     ...(event.description ? [{ label: t("sea.events.description"), value: event.description }] : []),
     { label: t("sea.events.status"), value: event.isCommitted ? t("sea.events.committed") : t("sea.events.draft") },
@@ -51,7 +51,7 @@ export default function SeaEventDetailRoute({
 
       <Widget>
         <Widget.Content>
-          <ClinicDetailGrid items={details} />
+          <DetailGrid items={details} />
         </Widget.Content>
       </Widget>
     </div>

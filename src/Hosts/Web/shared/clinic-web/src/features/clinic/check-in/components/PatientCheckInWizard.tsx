@@ -3,10 +3,10 @@ import { DetailGrid, type DetailGridItem } from "@vitarish/web-ui";
 
 import { useCallback, useState } from "react";
 import { Button } from "@heroui/react";
-import { Stepper, Widget } from "@heroui-pro/react";
+import { Stepper } from "@heroui-pro/react";
 import type { ShiftReservationReadDto } from "../../../../api/generated/appointments/model";
 import { PatientFindOrCreate } from "../../../../features/clinic/patients/find-or-create/components/PatientFindOrCreate";
-import { ClinicEmptyState } from "../../../../features/clinic/components/ClinicStateSurface";
+import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/web-ui";
 import { useLocalizedText } from "../../../../localization";
 
 type CheckInStep = "find-patient" | "select-shift" | "confirm";
@@ -76,29 +76,29 @@ export function PatientCheckInWizard({
       )}
 
       {step === "select-shift" && selectedPatientId && (
-        <Widget>
-          <Widget.Header>
+        <section className="rounded-medium border border-divider p-4">
+          <header className="mb-3">
             <div className="flex items-center justify-between">
-              <Widget.Title>{t("clinic.checkIn.step2")}</Widget.Title>
+              <h2>{t("clinic.checkIn.step2")}</h2>
               <Button variant="ghost" onPress={handleBackToFind}>
                 <i aria-hidden className="fa-solid fa-arrow-left" />
                 {t("clinic.checkIn.changePatient")}
               </Button>
             </div>
-            <Widget.Description>{t("clinic.checkIn.selectShiftDescription")}</Widget.Description>
-          </Widget.Header>
-          <Widget.Content>
+            <p>{t("clinic.checkIn.selectShiftDescription")}</p>
+          </header>
+          <div>
             <ShiftSelectionPanel />
-          </Widget.Content>
-        </Widget>
+          </div>
+        </section>
       )}
 
       {step === "confirm" && selectedPatientId && selectedShift && (
-        <Widget>
-          <Widget.Header>
-            <Widget.Title>{t("clinic.checkIn.step3")}</Widget.Title>
-          </Widget.Header>
-          <Widget.Content className="flex flex-col gap-4">
+        <section className="rounded-medium border border-divider p-4">
+          <header className="mb-3">
+            <h2>{t("clinic.checkIn.step3")}</h2>
+          </header>
+          <div className="flex flex-col gap-4">
             <DetailGrid
               items={[
                 { label: t("clinic.checkIn.shiftDate"), value: selectedShift.date },
@@ -115,8 +115,8 @@ export function PatientCheckInWizard({
                 {t("clinic.checkIn.confirmCheckIn")}
               </Button>
             </div>
-          </Widget.Content>
-        </Widget>
+          </div>
+        </section>
       )}
     </div>
   );

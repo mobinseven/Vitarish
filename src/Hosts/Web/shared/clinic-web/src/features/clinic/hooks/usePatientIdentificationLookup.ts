@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { ApiError } from "@vitarish/web-api-client";
 import { lookupPatientByIdentificationCode } from "../api/patientApi";
 import type { IdentificationLookupState } from "../types";
 
@@ -27,12 +28,10 @@ export function usePatientIdentificationLookup() {
       });
       setState({ status: "found", patient, error: null });
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Lookup failed";
-      if (message.includes("404") || message.includes("Not Found")) {
+      if (error instanceof ApiError && error.status === 404) {
         setState({ status: "not-found", patient: null, error: null });
       } else {
-        setState({ status: "error", patient: null, error: message });
+        setState({ status: "error", patient: null, error: "lookup-failed" });
       }
     }
   }, []);

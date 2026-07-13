@@ -53,6 +53,35 @@ for (const app of apps) {
       if (!entry.endsWith(".ts") && !entry.endsWith(".tsx")) continue;
 
       const text = readFileSync(fullPath, "utf8");
+      const normalizedPath = relativePath.replaceAll("\\", "/");
+      const isClinicRoutePage =
+        app.name === "private-practice-general" &&
+        (/^app\/(owner|user)\/clinic\/.+\/page\.tsx$/.test(normalizedPath) ||
+          normalizedPath === "app/owner/clinic/page.tsx");
+
+      if (isClinicRoutePage) {
+        const forbidden = [
+          [/from\s+["']@heroui(?:-pro)?\/react["']/, "HeroUI import"],
+          [/\buse(?:State|Effect)\b/, "workflow state hook"],
+          [/\buseLocalizedText\b/, "localization hook"],
+          [/\buse(?:Owner|Patient|Service|ClinicOwnerReminder|Bookable|Agenda)[A-Z]\w*\b/, "clinic workflow hook"],
+          [/api\/generated|\b(?:Patient|Shift|Reservation|Service)(?:Read|View|Write)?Dto\b/, "clinic/generated DTO"],
+        ];
+        for (const [pattern, label] of forbidden) {
+          if (pattern.test(text)) {
+            console.error(`Clinic route ${app.name}/${relativePath} contains forbidden ${label}`);
+            failed = true;
+          }
+        }
+        const imports = [...text.matchAll(/import\s*\{([^}]+)\}\s*from\s*["']@vitarish\/clinic-web["']/g)]
+          .flatMap((match) => match[1].split(",").map((name) => name.trim()).filter(Boolean));
+        for (const imported of imports) {
+          if (!/^Clinic[A-Z]\w+Page$/.test(imported)) {
+            console.error(`Clinic route ${app.name}/${relativePath} imports non-page clinic surface ${imported}`);
+            failed = true;
+          }
+        }
+      }
 
       // Block deep imports into any @vitarish package
       const packageDeepImport = text.match(/from\s+["']@vitarish\/([^"'/]+)\/src\//);

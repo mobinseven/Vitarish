@@ -1,9 +1,8 @@
 "use client";
 
-import { UserShiftsList } from "@vitarish/clinic-web";
+import { ClinicUserShiftListPage } from "@vitarish/clinic-web";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 
-export default function ClinicUserShiftsPage() {
-  const navigate = useClinicNavigation();
-  return <UserShiftsList onNavigate={navigate} />;
+export default function ClinicUserShiftListRoute() {
+  return <ClinicUserShiftListPage onNavigate={useClinicNavigation()} />;
 }

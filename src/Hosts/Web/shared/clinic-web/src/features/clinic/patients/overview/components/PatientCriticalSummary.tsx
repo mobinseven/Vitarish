@@ -1,7 +1,7 @@
 "use client";
 import { DetailGrid, type DetailGridItem } from "@vitarish/web-ui";
 
-import { Widget } from "@heroui-pro/react";
+
 import type { PatientViewDto } from "../../../../../api/generated/clinic/model";
 import { useLocalizedText } from "../../../../../localization";
 
@@ -26,13 +26,13 @@ export function PatientCriticalSummary({ patient }: PatientCriticalSummaryProps)
   if (items.length === 0) return null;
 
   return (
-    <Widget>
-      <Widget.Header>
-        <Widget.Title className="text-warning">{t("clinic.patient.clinicalSummary.title")}</Widget.Title>
-      </Widget.Header>
-      <Widget.Content>
+    <section className="rounded-medium border border-divider p-4">
+      <header className="mb-3">
+        <h2 className="text-warning">{t("clinic.patient.clinicalSummary.title")}</h2>
+      </header>
+      <div>
         <DetailGrid items={items} className="flex flex-col gap-3" />
-      </Widget.Content>
-    </Widget>
+      </div>
+    </section>
   );
 }

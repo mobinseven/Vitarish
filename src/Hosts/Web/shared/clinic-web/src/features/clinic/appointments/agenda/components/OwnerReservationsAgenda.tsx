@@ -2,7 +2,7 @@
 
 import { useOwnerReservations } from "../../reservations/hooks/useOwnerReservations";
 import { useOwnerShifts } from "../../shifts/hooks/useOwnerShifts";
-import { ClinicErrorState, ClinicLoadingState } from "../../../components/ClinicStateSurface";
+import { ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
 import type { ClinicNavigationIntent } from "../../../../../navigation";
 import { useLocalizedText } from "../../../../../localization";
 import { AppointmentsAgenda } from "./AppointmentsAgenda";

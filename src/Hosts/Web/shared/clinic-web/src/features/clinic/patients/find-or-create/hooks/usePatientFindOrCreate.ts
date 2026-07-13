@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { ApiError } from "@vitarish/web-api-client";
 import { usePatientSearch } from "../../../../../features/clinic/hooks/usePatientSearch";
 import { useCreatePatientProfile } from "../../../../../features/clinic/patients/profile/hooks/useCreatePatientProfile";
 import { lookupPatientByIdentificationCode } from "../../../../../features/clinic/api/patientApi";
@@ -28,8 +29,7 @@ export function usePatientFindOrCreate() {
       setFoundPatient(patient);
       setStep("selected");
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "";
-      if (msg.includes("404") || msg.includes("Not Found")) {
+      if (error instanceof ApiError && error.status === 404) {
         setLookupError("not-found");
       } else {
         setLookupError("error");

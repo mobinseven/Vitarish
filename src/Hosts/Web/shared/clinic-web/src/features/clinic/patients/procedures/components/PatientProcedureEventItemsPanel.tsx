@@ -1,7 +1,7 @@
 "use client";
 
-import { ListView, Widget } from "@heroui-pro/react";
-import { ClinicEmptyState } from "../../../../../features/clinic/components/ClinicStateSurface";
+import { ListView } from "@heroui-pro/react";
+import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/web-ui";
 import { usePatientProcedureEventItems } from "../hooks/usePatientProcedureEventItems";
 import { useLocalizedText, formatDateTime } from "../../../../../localization";
 import type { EventItemSummary } from "../models/PatientProcedureEventItemModels";
@@ -25,11 +25,11 @@ export function PatientProcedureEventItemsPanel({ eventId }: PatientProcedureEve
   if (isLoading) return null;
 
   return (
-    <Widget>
-      <Widget.Header>
-        <Widget.Title>{t("clinic.procedures.items.title")}</Widget.Title>
-      </Widget.Header>
-      <Widget.Content>
+    <section className="rounded-medium border border-divider p-4">
+      <header className="mb-3">
+        <h2>{t("clinic.procedures.items.title")}</h2>
+      </header>
+      <div>
         {!items || items.length === 0 ? (
           <ClinicEmptyState title={t("common.states.empty")} />
         ) : (
@@ -46,7 +46,7 @@ export function PatientProcedureEventItemsPanel({ eventId }: PatientProcedureEve
                         {t(itemTypeLabels[item.type] ?? "clinic.procedures.items.note")}
                       </span>
                       {item.author && (
-                        <span className="text-xs text-muted">— {item.author}</span>
+                        <span className="text-xs text-muted">Ã¢â‚¬â€ {item.author}</span>
                       )}
                     </div>
                     <ListView.Description className="line-clamp-2">
@@ -61,7 +61,7 @@ export function PatientProcedureEventItemsPanel({ eventId }: PatientProcedureEve
             ))}
           </ListView>
         )}
-      </Widget.Content>
-    </Widget>
+      </div>
+    </section>
   );
 }
