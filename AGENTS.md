@@ -101,7 +101,7 @@ If an artifact fits more than one category, split it.
 
 Stop and correct immediately if:
 
-- A class, method, module, skill, or document has more than one responsibility.
+- A class, method, module, component, skill, or document has more than one responsibility.
 - A method both mutates state and serves as a query.
 - Core logic imports or references infrastructure, frameworks, vendors, or UI.
 - A business rule appears in more than one place.
@@ -113,31 +113,6 @@ Stop and correct immediately if:
 - The design is more complex than the requirement demands.
 
 Do not proceed past a hard stop. Identify the violation, explain it, fix it.
-
----
-
-## Required Audit
-
-For every changed artifact in a code submission, include or be able to produce this audit:
-
-```txt
-Artifact: <name>
-Type: <class / method / module / document / skill / etc.>
-Responsibility: <one sentence>
-
-SRP:                    Pass / Fail - reason
-Single state model:     Pass / Fail - reason
-Low coupling:           Pass / Fail - reason
-Abstraction:            Pass / Fail - reason
-Command-query:          Pass / Fail / N/A - reason
-Failure safety:         Pass / Fail - reason
-Open/Closed:            Pass / Fail - reason
-Core protection:        Pass / Fail / N/A - reason
-KISS/YAGNI:             Pass / Fail - reason
-Single source of truth: Pass / Fail - reason
-```
-
-Any Fail means the artifact is not done.
 
 ---
 
