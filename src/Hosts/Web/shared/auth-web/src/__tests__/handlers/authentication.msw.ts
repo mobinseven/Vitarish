@@ -84,6 +84,7 @@ export const handlers = [
       isAuthenticated: false,
       user: null,
       tenantAccess: { canAccessTenantOwner: false, canAccessTenantUser: false },
+      platformAccess: { canAccessPlatformAdmin: false },
     };
     return HttpResponse.json(body);
   }),
