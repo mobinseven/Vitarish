@@ -48,6 +48,12 @@ namespace Vitarish.Platform.Infrastructure.Migrations.PlatformDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Locale")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -71,12 +77,22 @@ namespace Vitarish.Platform.Infrastructure.Migrations.PlatformDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
                     b.Property<string>("VerificationSmsTemplateId")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.HasKey("NormalizedLocale");
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedLocale")
+                        .IsUnique();
 
                     b.ToTable("LocaleNotificationRecords", "Platform");
                 });

@@ -9,7 +9,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Modules\Platform\Contracts\Platform.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Platform\Application\Platform.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Platform\Infrastructure\Platform.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

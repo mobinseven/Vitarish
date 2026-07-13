@@ -40,8 +40,10 @@ public sealed class PlatformDbContext(DbContextOptions<PlatformDbContext> option
 
         _ = modelBuilder.Entity<LocaleNotificationRecord>(entity =>
         {
-            _ = entity.HasKey(e => e.NormalizedLocale);
+            _ = entity.HasKey(e => e.Id);
+            _ = entity.Property(e => e.Id).ValueGeneratedNever();
             _ = entity.Property(e => e.NormalizedLocale).IsRequired().HasMaxLength(10);
+            _ = entity.HasIndex(e => e.NormalizedLocale).IsUnique();
             _ = entity.Property(e => e.Locale).IsRequired().HasMaxLength(10);
             _ = entity.Property(e => e.VerificationSmsTemplateId).IsRequired().HasMaxLength(64);
             _ = entity.Property(e => e.SeaReminderEmailSubject).IsRequired().HasMaxLength(256);
@@ -52,6 +54,9 @@ public sealed class PlatformDbContext(DbContextOptions<PlatformDbContext> option
             _ = entity.Property(e => e.AppointmentReminderEmailTextBody).IsRequired();
             _ = entity.Property(e => e.AppointmentReminderEmailHtmlBody).IsRequired();
             _ = entity.Property(e => e.AppointmentReminderSmsTemplateId).IsRequired().HasMaxLength(64);
+            _ = entity.Property(e => e.Version).IsRequired().IsConcurrencyToken();
+            _ = entity.Property(e => e.CreatedAt).IsRequired();
+            _ = entity.Property(e => e.UpdatedAt).IsRequired();
         });
     }
 

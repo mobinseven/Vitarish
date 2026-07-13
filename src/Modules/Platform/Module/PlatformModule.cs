@@ -48,20 +48,21 @@ public sealed class PlatformModule : Modules.Base.Core.Module
             });
         }
 
-        await SeedLocaleNotificationRecordsAsync(dbContext);
+        await SeedLocaleNotificationRecordsAsync(dbContext, now);
 
         _ = await dbContext.SaveChangesAsync();
 
         _ = app.MapPlatformApi();
     }
 
-    private static async Task SeedLocaleNotificationRecordsAsync(PlatformDbContext dbContext)
+    private static async Task SeedLocaleNotificationRecordsAsync(PlatformDbContext dbContext, DateTimeOffset now)
     {
         bool hasEnUs = await dbContext.LocaleNotificationRecords.AnyAsync(e => e.NormalizedLocale == "en-US");
         if (!hasEnUs)
         {
             _ = dbContext.LocaleNotificationRecords.Add(new LocaleNotificationRecord
             {
+                Id = Guid.NewGuid(),
                 NormalizedLocale = "en-US",
                 Locale = "en-US",
                 VerificationSmsTemplateId = "100001",
@@ -72,7 +73,10 @@ public sealed class PlatformModule : Modules.Base.Core.Module
                 AppointmentReminderEmailSubject = "Upcoming Appointment",
                 AppointmentReminderEmailTextBody = "Your appointment is scheduled for {OccurrenceStart}.",
                 AppointmentReminderEmailHtmlBody = "<p>Your appointment is scheduled for <strong>{OccurrenceStart}</strong>.</p>",
-                AppointmentReminderSmsTemplateId = "100003"
+                AppointmentReminderSmsTemplateId = "100003",
+                Version = 1,
+                CreatedAt = now,
+                UpdatedAt = now
             });
         }
 
@@ -81,6 +85,7 @@ public sealed class PlatformModule : Modules.Base.Core.Module
         {
             _ = dbContext.LocaleNotificationRecords.Add(new LocaleNotificationRecord
             {
+                Id = Guid.NewGuid(),
                 NormalizedLocale = "fa-IR",
                 Locale = "fa-IR",
                 VerificationSmsTemplateId = "100004",
@@ -91,7 +96,10 @@ public sealed class PlatformModule : Modules.Base.Core.Module
                 AppointmentReminderEmailSubject = "نوبت آینده",
                 AppointmentReminderEmailTextBody = "نوبت شما در {OccurrenceStart} تعیین شده است.",
                 AppointmentReminderEmailHtmlBody = "<p>نوبت شما در <strong>{OccurrenceStart}</strong> تعیین شده است.</p>",
-                AppointmentReminderSmsTemplateId = "100006"
+                AppointmentReminderSmsTemplateId = "100006",
+                Version = 1,
+                CreatedAt = now,
+                UpdatedAt = now
             });
         }
     }

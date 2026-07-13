@@ -6,19 +6,16 @@ namespace Vitarish.Platform.Application.Validation;
 
 public static partial class LocaleNotificationRecordValidator
 {
-    public const string LocaleRequired = "Locale is required.";
-    public const string LocaleInvalid = "Locale is not a valid canonical culture name.";
-    public const string VerificationSmsTemplateIdRequired = "Verification SMS template ID is required.";
-    public const string SeaReminderEmailSubjectRequired = "Sea reminder email subject is required.";
-    public const string SeaReminderEmailTextBodyRequired = "Sea reminder email text body is required.";
-    public const string SeaReminderEmailHtmlBodyRequired = "Sea reminder email HTML body is required.";
-    public const string SeaReminderSmsTemplateIdRequired = "Sea reminder SMS template ID is required.";
-    public const string AppointmentReminderEmailSubjectRequired = "Appointment reminder email subject is required.";
-    public const string AppointmentReminderEmailTextBodyRequired = "Appointment reminder email text body is required.";
-    public const string AppointmentReminderEmailHtmlBodyRequired = "Appointment reminder email HTML body is required.";
-    public const string AppointmentReminderSmsTemplateIdRequired = "Appointment reminder SMS template ID is required.";
-    public const string UnknownPlaceholder = "Template contains unknown placeholder '{0}'.";
-    public const string MissingPlaceholder = "Template is missing required placeholder '{0}'.";
+    public const string LocaleField = "locale";
+    public const string VerificationSmsTemplateIdField = "verificationSmsTemplateId";
+    public const string SeaReminderEmailSubjectField = "seaReminderEmailSubject";
+    public const string SeaReminderEmailTextBodyField = "seaReminderEmailTextBody";
+    public const string SeaReminderEmailHtmlBodyField = "seaReminderEmailHtmlBody";
+    public const string SeaReminderSmsTemplateIdField = "seaReminderSmsTemplateId";
+    public const string AppointmentReminderEmailSubjectField = "appointmentReminderEmailSubject";
+    public const string AppointmentReminderEmailTextBodyField = "appointmentReminderEmailTextBody";
+    public const string AppointmentReminderEmailHtmlBodyField = "appointmentReminderEmailHtmlBody";
+    public const string AppointmentReminderSmsTemplateIdField = "appointmentReminderSmsTemplateId";
 
     private static readonly HashSet<string> SeaReminderPlaceholders = new(StringComparer.Ordinal)
     {
@@ -30,84 +27,98 @@ public static partial class LocaleNotificationRecordValidator
         "{OccurrenceStart}"
     };
 
-    public static string? Validate(LocaleNotificationRecordWriteModel? model)
+    public static LocaleNotificationValidationFailure? Validate(LocaleNotificationRecordWriteModel? model)
     {
         if (model is null || string.IsNullOrWhiteSpace(model.Locale))
         {
-            return LocaleRequired;
+            return new(LocaleNotificationValidationRule.LocaleRequired, LocaleField);
         }
 
         if (!TryNormalizeLocale(model.Locale, out _))
         {
-            return LocaleInvalid;
+            return new(LocaleNotificationValidationRule.LocaleInvalid, LocaleField);
         }
 
         if (string.IsNullOrWhiteSpace(model.VerificationSmsTemplateId))
         {
-            return VerificationSmsTemplateIdRequired;
+            return new(LocaleNotificationValidationRule.VerificationSmsTemplateIdRequired, VerificationSmsTemplateIdField);
         }
 
-        string? error = ValidateSeaReminder(model);
+        LocaleNotificationValidationFailure? error = ValidateSeaReminder(model);
         if (error is not null) return error;
 
         error = ValidateAppointmentReminder(model);
         return error;
     }
 
-    public static string? ValidateNormalizedLocale(string? locale, out string? normalizedLocale)
+    public static LocaleNotificationValidationFailure? ValidateNormalizedLocale(string? locale, out string? normalizedLocale)
     {
         normalizedLocale = null;
         if (string.IsNullOrWhiteSpace(locale))
         {
-            return LocaleRequired;
+            return new(LocaleNotificationValidationRule.LocaleRequired, LocaleField);
         }
 
         if (!TryNormalizeLocale(locale, out string? normalized))
         {
-            return LocaleInvalid;
+            return new(LocaleNotificationValidationRule.LocaleInvalid, LocaleField);
         }
 
         normalizedLocale = normalized;
         return null;
     }
 
-    private static string? ValidateSeaReminder(LocaleNotificationRecordWriteModel model)
+    public static IReadOnlyList<LocaleNotificationRequirement> GetRequirements() =>
+    [
+        new LocaleNotificationRequirement(
+            LocaleNotificationPurpose.SeaReminder,
+            [SeaReminderEmailTextBodyField, SeaReminderEmailHtmlBodyField],
+            [.. SeaReminderPlaceholders],
+            [.. SeaReminderPlaceholders]),
+        new LocaleNotificationRequirement(
+            LocaleNotificationPurpose.AppointmentReminder,
+            [AppointmentReminderEmailTextBodyField, AppointmentReminderEmailHtmlBodyField],
+            [.. AppointmentReminderPlaceholders],
+            [.. AppointmentReminderPlaceholders])
+    ];
+
+    private static LocaleNotificationValidationFailure? ValidateSeaReminder(LocaleNotificationRecordWriteModel model)
     {
         if (string.IsNullOrWhiteSpace(model.SeaReminderEmailSubject))
-            return SeaReminderEmailSubjectRequired;
+            return new(LocaleNotificationValidationRule.SeaReminderEmailSubjectRequired, SeaReminderEmailSubjectField);
         if (string.IsNullOrWhiteSpace(model.SeaReminderEmailTextBody))
-            return SeaReminderEmailTextBodyRequired;
+            return new(LocaleNotificationValidationRule.SeaReminderEmailTextBodyRequired, SeaReminderEmailTextBodyField);
         if (string.IsNullOrWhiteSpace(model.SeaReminderEmailHtmlBody))
-            return SeaReminderEmailHtmlBodyRequired;
+            return new(LocaleNotificationValidationRule.SeaReminderEmailHtmlBodyRequired, SeaReminderEmailHtmlBodyField);
         if (string.IsNullOrWhiteSpace(model.SeaReminderSmsTemplateId))
-            return SeaReminderSmsTemplateIdRequired;
+            return new(LocaleNotificationValidationRule.SeaReminderSmsTemplateIdRequired, SeaReminderSmsTemplateIdField);
 
-        string? error = ValidatePlaceholders(model.SeaReminderEmailTextBody, SeaReminderPlaceholders, "Sea reminder email text");
+        LocaleNotificationValidationFailure? error = ValidatePlaceholders(model.SeaReminderEmailTextBody, SeaReminderPlaceholders, SeaReminderEmailTextBodyField);
         if (error is not null) return error;
 
-        error = ValidatePlaceholders(model.SeaReminderEmailHtmlBody, SeaReminderPlaceholders, "Sea reminder email HTML");
+        error = ValidatePlaceholders(model.SeaReminderEmailHtmlBody, SeaReminderPlaceholders, SeaReminderEmailHtmlBodyField);
         return error;
     }
 
-    private static string? ValidateAppointmentReminder(LocaleNotificationRecordWriteModel model)
+    private static LocaleNotificationValidationFailure? ValidateAppointmentReminder(LocaleNotificationRecordWriteModel model)
     {
         if (string.IsNullOrWhiteSpace(model.AppointmentReminderEmailSubject))
-            return AppointmentReminderEmailSubjectRequired;
+            return new(LocaleNotificationValidationRule.AppointmentReminderEmailSubjectRequired, AppointmentReminderEmailSubjectField);
         if (string.IsNullOrWhiteSpace(model.AppointmentReminderEmailTextBody))
-            return AppointmentReminderEmailTextBodyRequired;
+            return new(LocaleNotificationValidationRule.AppointmentReminderEmailTextBodyRequired, AppointmentReminderEmailTextBodyField);
         if (string.IsNullOrWhiteSpace(model.AppointmentReminderEmailHtmlBody))
-            return AppointmentReminderEmailHtmlBodyRequired;
+            return new(LocaleNotificationValidationRule.AppointmentReminderEmailHtmlBodyRequired, AppointmentReminderEmailHtmlBodyField);
         if (string.IsNullOrWhiteSpace(model.AppointmentReminderSmsTemplateId))
-            return AppointmentReminderSmsTemplateIdRequired;
+            return new(LocaleNotificationValidationRule.AppointmentReminderSmsTemplateIdRequired, AppointmentReminderSmsTemplateIdField);
 
-        string? error = ValidatePlaceholders(model.AppointmentReminderEmailTextBody, AppointmentReminderPlaceholders, "Appointment reminder email text");
+        LocaleNotificationValidationFailure? error = ValidatePlaceholders(model.AppointmentReminderEmailTextBody, AppointmentReminderPlaceholders, AppointmentReminderEmailTextBodyField);
         if (error is not null) return error;
 
-        error = ValidatePlaceholders(model.AppointmentReminderEmailHtmlBody, AppointmentReminderPlaceholders, "Appointment reminder email HTML");
+        error = ValidatePlaceholders(model.AppointmentReminderEmailHtmlBody, AppointmentReminderPlaceholders, AppointmentReminderEmailHtmlBodyField);
         return error;
     }
 
-    private static string? ValidatePlaceholders(string template, HashSet<string> allowedPlaceholders, string fieldName)
+    private static LocaleNotificationValidationFailure? ValidatePlaceholders(string template, HashSet<string> allowedPlaceholders, string fieldName)
     {
         HashSet<string> foundPlaceholders = ExtractPlaceholders(template);
 
@@ -115,7 +126,7 @@ public static partial class LocaleNotificationRecordValidator
         {
             if (!allowedPlaceholders.Contains(placeholder))
             {
-                return string.Format(UnknownPlaceholder, placeholder);
+                return new(LocaleNotificationValidationRule.UnknownPlaceholder, fieldName, placeholder);
             }
         }
 
@@ -123,7 +134,7 @@ public static partial class LocaleNotificationRecordValidator
         {
             if (!foundPlaceholders.Contains(required))
             {
-                return string.Format(MissingPlaceholder, required);
+                return new(LocaleNotificationValidationRule.MissingPlaceholder, fieldName, required);
             }
         }
 

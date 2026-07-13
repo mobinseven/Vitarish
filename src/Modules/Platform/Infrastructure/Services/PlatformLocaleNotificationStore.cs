@@ -11,9 +11,6 @@ namespace Vitarish.Platform.Infrastructure.Services;
 public sealed class PlatformLocaleNotificationStore(PlatformDbContext dbContext)
     : IPlatformLocaleNotificationQuery, IPlatformLocaleNotificationCommand, INotificationTemplateResolver
 {
-    private const string RecordNotFound = "Locale notification record was not found.";
-    private const string DuplicateLocale = "A record for this locale already exists.";
-    private const string NoRecordResolved = "No notification template record resolved for the given locale.";
 
     public async Task<IReadOnlyList<LocaleListItem>> ListAsync(CancellationToken cancellationToken = default)
     {
@@ -51,12 +48,12 @@ public sealed class PlatformLocaleNotificationStore(PlatformDbContext dbContext)
         return await GetAsync("fa-IR", cancellationToken);
     }
 
-    public async Task<PlatformCommandResult> CreateAsync(LocaleNotificationRecordWriteModel model, CancellationToken cancellationToken = default)
+    public async Task<LocaleNotificationCommandResult> CreateAsync(LocaleNotificationRecordWriteModel model, CancellationToken cancellationToken = default)
     {
-        string? validationError = LocaleNotificationRecordValidator.Validate(model);
+        LocaleNotificationValidationFailure? validationError = LocaleNotificationRecordValidator.Validate(model);
         if (validationError is not null)
         {
-            return PlatformCommandResult.Failure(validationError);
+            return LocaleNotificationCommandResult.Validation(validationError);
         }
 
         LocaleNotificationRecordValidator.TryNormalizeLocale(model.Locale, out string? normalizedLocale);
@@ -65,11 +62,12 @@ public sealed class PlatformLocaleNotificationStore(PlatformDbContext dbContext)
             .AnyAsync(e => e.NormalizedLocale == normalizedLocale, cancellationToken);
         if (exists)
         {
-            return PlatformCommandResult.Failure(DuplicateLocale);
+            return LocaleNotificationCommandResult.DuplicateLocale();
         }
 
         LocaleNotificationRecord record = new()
         {
+            Id = Guid.NewGuid(),
             NormalizedLocale = normalizedLocale!,
             Locale = model.Locale,
             VerificationSmsTemplateId = model.VerificationSmsTemplateId,
@@ -80,20 +78,23 @@ public sealed class PlatformLocaleNotificationStore(PlatformDbContext dbContext)
             AppointmentReminderEmailSubject = model.AppointmentReminderEmailSubject,
             AppointmentReminderEmailTextBody = model.AppointmentReminderEmailTextBody,
             AppointmentReminderEmailHtmlBody = model.AppointmentReminderEmailHtmlBody,
-            AppointmentReminderSmsTemplateId = model.AppointmentReminderSmsTemplateId
+            AppointmentReminderSmsTemplateId = model.AppointmentReminderSmsTemplateId,
+            Version = 1,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow
         };
 
         _ = dbContext.LocaleNotificationRecords.Add(record);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
-        return PlatformCommandResult.Success();
+        return LocaleNotificationCommandResult.Success();
     }
 
-    public async Task<PlatformCommandResult> UpdateAsync(string normalizedLocale, LocaleNotificationRecordWriteModel model, CancellationToken cancellationToken = default)
+    public async Task<LocaleNotificationCommandResult> UpdateAsync(string normalizedLocale, LocaleNotificationRecordWriteModel model, long expectedVersion, CancellationToken cancellationToken = default)
     {
-        string? validationError = LocaleNotificationRecordValidator.Validate(model);
+        LocaleNotificationValidationFailure? validationError = LocaleNotificationRecordValidator.Validate(model);
         if (validationError is not null)
         {
-            return PlatformCommandResult.Failure(validationError);
+            return LocaleNotificationCommandResult.Validation(validationError);
         }
 
         LocaleNotificationRecordValidator.TryNormalizeLocale(model.Locale, out string? modelNormalizedLocale);
@@ -102,13 +103,23 @@ public sealed class PlatformLocaleNotificationStore(PlatformDbContext dbContext)
             .SingleOrDefaultAsync(e => e.NormalizedLocale == normalizedLocale, cancellationToken);
         if (existing is null)
         {
-            return PlatformCommandResult.Failure(RecordNotFound);
+            return LocaleNotificationCommandResult.NotFound();
+        }
+
+        if (!string.Equals(existing.NormalizedLocale, modelNormalizedLocale, StringComparison.Ordinal))
+        {
+            return LocaleNotificationCommandResult.Validation(new LocaleNotificationValidationFailure(
+                LocaleNotificationValidationRule.ImmutableLocale,
+                LocaleNotificationRecordValidator.LocaleField));
+        }
+
+        if (existing.Version != expectedVersion)
+        {
+            return LocaleNotificationCommandResult.StaleVersion();
         }
 
         dbContext.LocaleNotificationRecords.Update(existing with
         {
-            NormalizedLocale = modelNormalizedLocale!,
-            Locale = model.Locale,
             VerificationSmsTemplateId = model.VerificationSmsTemplateId,
             SeaReminderEmailSubject = model.SeaReminderEmailSubject,
             SeaReminderEmailTextBody = model.SeaReminderEmailTextBody,
@@ -117,11 +128,13 @@ public sealed class PlatformLocaleNotificationStore(PlatformDbContext dbContext)
             AppointmentReminderEmailSubject = model.AppointmentReminderEmailSubject,
             AppointmentReminderEmailTextBody = model.AppointmentReminderEmailTextBody,
             AppointmentReminderEmailHtmlBody = model.AppointmentReminderEmailHtmlBody,
-            AppointmentReminderSmsTemplateId = model.AppointmentReminderSmsTemplateId
+            AppointmentReminderSmsTemplateId = model.AppointmentReminderSmsTemplateId,
+            Version = existing.Version + 1,
+            UpdatedAt = DateTimeOffset.UtcNow
         });
 
         _ = await dbContext.SaveChangesAsync(cancellationToken);
-        return PlatformCommandResult.Success();
+        return LocaleNotificationCommandResult.Success();
     }
 
     public async Task<ResolvedNotificationTemplate?> ResolveAsync(string? recipientLocale, NotificationPurpose purpose, CancellationToken cancellationToken = default)

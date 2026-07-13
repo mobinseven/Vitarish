@@ -45,11 +45,9 @@ public static class LocaleNotificationEndpoints
         CancellationToken ct)
     {
         LocaleNotificationRecordWriteModel model = ToWriteModel(request);
-        PlatformCommandResult result = await command.CreateAsync(model, ct);
+        LocaleNotificationCommandResult result = await command.CreateAsync(model, ct);
 
-        return result.Succeeded
-            ? Results.Ok(PlatformCommandResponse.Success())
-            : Results.BadRequest(PlatformCommandResponse.Failure(result.Error!));
+        return ToCommandResult(result);
     }
 
     private static async Task<IResult> UpdateAsync(
@@ -59,14 +57,21 @@ public static class LocaleNotificationEndpoints
         CancellationToken ct)
     {
         LocaleNotificationRecordWriteModel model = ToWriteModel(request);
-        PlatformCommandResult result = await command.UpdateAsync(normalizedLocale, model, ct);
+        LocaleNotificationCommandResult result = await command.UpdateAsync(normalizedLocale, model, 1, ct);
 
-        return result.Succeeded
-            ? Results.Ok(PlatformCommandResponse.Success())
-            : result.Error?.StartsWith("Locale notification record") == true
-                ? Results.NotFound(PlatformCommandResponse.Failure(result.Error!))
-                : Results.BadRequest(PlatformCommandResponse.Failure(result.Error!));
+        return ToCommandResult(result);
     }
+
+    private static IResult ToCommandResult(LocaleNotificationCommandResult result)
+        => result.Status switch
+        {
+            LocaleNotificationCommandStatus.Success => Results.Ok(PlatformCommandResponse.Success()),
+            LocaleNotificationCommandStatus.NotFound => Results.NotFound(PlatformCommandResponse.Failure("Locale notification record was not found.")),
+            LocaleNotificationCommandStatus.DuplicateLocale => Results.Conflict(PlatformCommandResponse.Failure("A record for this locale already exists.")),
+            LocaleNotificationCommandStatus.StaleVersion => Results.Conflict(PlatformCommandResponse.Failure("Locale notification record was updated by another request.")),
+            LocaleNotificationCommandStatus.Validation => Results.BadRequest(PlatformCommandResponse.Failure(result.ValidationFailure?.Rule.ToString() ?? "Validation")),
+            _ => Results.BadRequest(PlatformCommandResponse.Failure("Validation"))
+        };
 
     private static LocaleNotificationRecordResponse ToResponse(Domain.Entities.LocaleNotificationRecord record)
         => new(
