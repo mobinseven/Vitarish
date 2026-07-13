@@ -46,7 +46,9 @@ export function PlatformAdminGuard({ children }: PlatformAdminGuardProps) {
     return null;
   }
 
-  const canAccessPlatformAdmin = session?.platformAccess?.canAccessPlatformAdmin === true;
+  // platformAccess is available after OpenAPI spec regeneration from updated backend
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const canAccessPlatformAdmin = (session as any)?.platformAccess?.canAccessPlatformAdmin === true;
 
   if (!canAccessPlatformAdmin) {
     return (
