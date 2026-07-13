@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Modules.Base.Core.Endpoints;
@@ -11,8 +10,7 @@ public static class PlatformApi
 {
     public static IEndpointRouteBuilder MapPlatformApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(PlatformApiRoutes.Base);
-        group.RequireAuthorization(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        RouteGroupBuilder group = endpoints.MapAdminModuleGroup(PlatformApiRoutes.Base);
         group.MapLocaleNotificationEndpoints();
         return endpoints;
     }

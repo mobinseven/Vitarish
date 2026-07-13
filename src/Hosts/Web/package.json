@@ -9,9 +9,11 @@
   "scripts": {
     "dev:private-practice-general": "npm run dev --workspace @vitarish/private-practice-general",
     "dev:knowledge-qa-demo": "npm run dev --workspace @vitarish/knowledge-qa-demo",
+    "dev:platform-admin": "npm run dev --workspace @vitarish/platform-admin",
     "build": "npm run build --workspaces --if-present",
     "build:private-practice-general": "npm run build --workspace @vitarish/private-practice-general",
     "build:knowledge-qa-demo": "npm run build --workspace @vitarish/knowledge-qa-demo",
+    "build:platform-admin": "npm run build --workspace @vitarish/platform-admin",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "validate:api-boundary": "npm run validate:api-boundary --workspaces --if-present",

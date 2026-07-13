@@ -84,7 +84,7 @@ Use module names as the feature map. For each module, the conventional locations
 
 ## 5. Runtime map
 
-- **Running services:** `src/Hosts/Main` is the ASP.NET Core backend/Blazor host. `src/Hosts/Web/apps/private-practice-general` and `src/Hosts/Web/apps/knowledge-qa-demo` are Next.js apps. Docker Compose runs `web` on port 3000 and `main` on port 5000 mapped to container port 8080.
+- **Running services:** `src/Hosts/Main` is the ASP.NET Core backend/Blazor host. `src/Hosts/Web/apps/private-practice-general`, `src/Hosts/Web/apps/knowledge-qa-demo`, and `src/Hosts/Web/apps/platform-admin` are Next.js apps. Docker Compose runs `web` on port 3000 and `main` on port 5000 mapped to container port 8080. Platform Admin runs on port 3002.
 - **Communication:** React apps call backend APIs using generated Orval clients from OpenAPI specs. Blazor pages/components call server-side module services directly through DI. The backend exposes API endpoints, Razor pages/components, IdentityServer, Hangfire dashboard, and development OpenAPI at `/openapi/{documentName}.json`.
 - **Datastores/services:** PostgreSQL via EF Core/Npgsql is the primary database. Redis is configured for data protection/distributed caching where enabled. Hangfire uses PostgreSQL. External integrations include communication providers, file/object storage, search/Elasticsearch, AI/speech providers, passkey authenticators, and medical/prescription providers.
 - **Authentication:** Host-owned identity is configured in `src/Hosts/Main` with Duende IdentityServer, ASP.NET authentication/authorization, session/cookie/antiforgery policy, and module endpoint security. React auth behavior belongs in app auth components/hooks and calls backend auth endpoints.
@@ -125,7 +125,7 @@ Fragile or high-care areas:
 - **Backend tests:** `dotnet test tests/Modules/<Module>.Tests/<Module>.Tests.csproj` for changed module tests.
 - **Architecture validation:** `python3 tools/architecture/validate_no_blazor.py` for ADR-0009 Interface retirement and `python3 tools/architecture/validate_module_api_boundaries.py` for protected module API boundaries; app experience validators live under `tools/architecture` and web scripts.
 - **Web install:** from `src/Hosts/Web`, run `npm install` when dependencies are missing or package files changed.
-- **Web dev:** from `src/Hosts/Web`, `npm run dev:private-practice-general` or `npm run dev:knowledge-qa-demo`.
+- **Web dev:** from `src/Hosts/Web`, `npm run dev:private-practice-general`, `npm run dev:knowledge-qa-demo`, or `npm run dev:platform-admin`.
 - **Web build/typecheck/test:** from `src/Hosts/Web`, use `npm run build`, `npm run typecheck`, `npm run test`, and targeted workspace scripts.
 - **Web API generation:** package or app scripts run `generate:api` before dev/build; after OpenAPI changes, regenerate in the owning feature package when migrated, or in the legacy app workspace until migration is complete.
 - **Docker/dev containers:** `docker compose -f src/Hosts/docker-compose.web.yml up --build` runs web plus main.
