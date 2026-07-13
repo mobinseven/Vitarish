@@ -10,7 +10,7 @@ import {
   ClinicOwnerShiftListPage,
   ClinicServiceDetailPage,
 } from "../index";
-import { clinicMessageCatalogs } from "../localization/index";
+import { clinicMessageCatalogs } from "../localization";
 
 describe("useAgendaEvents", () => {
   it("is exported from clinic-web", () => {
