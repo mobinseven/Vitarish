@@ -6,7 +6,7 @@ import { today, getLocalTimeZone } from "@internationalized/date";
 import type { ClinicNavigationIntent } from "../../../navigation";
 import type { ShiftReadDto, ReservationReadDto } from "../../../api/appointments/appointmentsApi";
 import { useAgendaEvents } from "../../../hooks/appointments/agenda/useAgendaEvents";
-import { useLocalizedText } from "../../../localization/index";
+import { useLocalizedText } from "../../../localization";
 
 interface AppointmentsAgendaProps {
   shifts: ShiftReadDto[];
