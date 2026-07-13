@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { ListView } from "@heroui-pro/react";
 import type { ClinicNavigationIntent } from "../../../../../navigation";
-import { ClinicEmptyState, ClinicErrorState, ClinicLoadingState } from "../../../../../features/clinic/components/ClinicStateSurface";
+import { EmptyStateSurface as ClinicEmptyState, ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
 import { useOwnerReservations } from "../hooks/useOwnerReservations";
 import { useLocalizedText, type MessageKey } from "../../../../../localization";
 
@@ -27,7 +27,7 @@ export function OwnerReservationsList({ onNavigate }: OwnerReservationsListProps
   const { data: reservations, isLoading, error } = useOwnerReservations();
 
   const handleSelect = useCallback(
-    (id: string) => onNavigate?.({ kind: "reservationDetail", reservationId: id }),
+    (id: string) => onNavigate?.({ kind: "ownerReservationDetail", reservationId: id }),
     [onNavigate]
   );
 

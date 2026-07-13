@@ -1,3 +1,5 @@
+export { clinicMessageCatalogs } from "./catalogs";
+
 export {
   LocalizationProvider,
   useLocalizedText,

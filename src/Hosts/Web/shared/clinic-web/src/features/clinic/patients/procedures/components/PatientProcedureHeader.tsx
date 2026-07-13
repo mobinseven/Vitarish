@@ -27,7 +27,7 @@ export function PatientProcedureHeader({ procedure, patientId, onDeleted }: Pati
             <p className="text-sm text-muted mt-1">{procedure.description}</p>
           )}
           <div className="flex items-center gap-3 mt-2 text-xs text-muted">
-            <span>{procedure.eventCount} {t("clinic.procedures.events")}</span>
+            <span>{t("clinic.procedures.events.count", { count: procedure.eventCount })}</span>
             {procedure.committedEventCount > 0 && (
               <span>{procedure.committedEventCount} {t("clinic.procedures.committed")}</span>
             )}

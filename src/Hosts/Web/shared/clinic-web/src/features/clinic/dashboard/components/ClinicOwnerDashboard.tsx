@@ -1,6 +1,6 @@
 "use client";
 
-import { ClinicNavigationGrid, type ClinicNavigationItem } from "../../../../features/clinic/components/ClinicNavigationGrid";
+import { ClinicNavigationGrid, type ClinicNavigationItem } from "../../navigation/components/ClinicNavigationGrid";
 import type { ClinicNavigationIntent } from "../../../../navigation";
 import { useLocalizedText } from "../../../../localization";
 
@@ -14,10 +14,10 @@ export function ClinicOwnerDashboard({ onNavigate }: ClinicOwnerDashboardProps) 
   const sections: ClinicNavigationItem[] = [
     { title: t("clinic.dashboard.sections.patients.title"), description: t("clinic.dashboard.sections.patients.description"), intent: { kind: "patientIndex" }, icon: "fa-solid fa-users" },
     { title: t("clinic.dashboard.sections.checkIn.title"), description: t("clinic.dashboard.sections.checkIn.description"), intent: { kind: "checkIn" }, icon: "fa-solid fa-clipboard-check" },
-    { title: t("clinic.dashboard.sections.appointments.title"), description: t("clinic.dashboard.sections.appointments.description"), intent: { kind: "reservationDetail", reservationId: "" }, icon: "fa-solid fa-calendar" },
+    { title: t("clinic.dashboard.sections.appointments.title"), description: t("clinic.dashboard.sections.appointments.description"), intent: { kind: "ownerReservationIndex" }, icon: "fa-solid fa-calendar" },
     { title: t("clinic.dashboard.sections.reminders.title"), description: t("clinic.dashboard.sections.reminders.description"), intent: { kind: "reminders" }, icon: "fa-solid fa-bell" },
-    { title: t("clinic.dashboard.sections.settings.title"), description: t("clinic.dashboard.sections.settings.description"), intent: { kind: "settingsIndex" }, icon: "fa-solid fa-gear" },
-    { title: t("clinic.dashboard.sections.statistics.title"), description: t("clinic.dashboard.sections.statistics.description"), intent: { kind: "settingsStatistics" }, icon: "fa-solid fa-chart-bar" },
+    { title: t("clinic.dashboard.sections.settings.title"), description: t("clinic.dashboard.sections.settings.description"), intent: { kind: "clinicSettings" }, icon: "fa-solid fa-gear" },
+    { title: t("clinic.dashboard.sections.statistics.title"), description: t("clinic.dashboard.sections.statistics.description"), intent: { kind: "clinicStatistics" }, icon: "fa-solid fa-chart-bar" },
   ];
 
   return (

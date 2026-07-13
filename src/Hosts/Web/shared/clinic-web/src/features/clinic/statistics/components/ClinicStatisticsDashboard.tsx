@@ -1,6 +1,6 @@
 "use client";
 
-import { ClinicEmptyState } from "../../../../features/clinic/components/ClinicStateSurface";
+import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/web-ui";
 import { useLocalizedText } from "../../../../localization";
 
 export function ClinicStatisticsDashboard() {
