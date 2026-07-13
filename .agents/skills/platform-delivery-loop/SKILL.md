@@ -1,6 +1,6 @@
 ---
 name: platform-delivery-loop
-description: Coordinates one focused repository delivery loop from objective, scope, implementation, validation, review, feedback triage, and handoff. Use for one-PR work, plan execution, review verdicts, and delivery status decisions.
+description: Coordinates one focused repository delivery loop covering objective, scope, implementation, validation, review, feedback triage, and handoff. Use for one-PR work, plan execution, review verdicts, and delivery status decisions.
 ---
 
 # Platform Delivery Loop
