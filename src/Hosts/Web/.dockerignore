@@ -9,4 +9,3 @@ coverage
 *.tsbuildinfo
 .env*
 .git
-.mimocode
