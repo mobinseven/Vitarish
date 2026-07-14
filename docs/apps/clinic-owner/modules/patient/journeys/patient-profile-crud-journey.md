@@ -99,7 +99,7 @@
 
 ### Current implementation touchpoints
 - `ClinicOwnerPatientsPage.razor` owns the `/owner/clinic/patients` route and enables the global navigation search before rendering `PatientsGrid`.
-- `PatientsGrid` inherits `ProjectsGrid`, loads `ProjectReadDto` records through `IAccessControlledProjectsService.GetListAsync`, maps them to `PatientReadDto`, then splits the list into `projectsViaSurgeryData` and `projectsLackSurgeryData`.
+- `PatientsGrid` inherits `ProjectsGrid`, loads API-filtered `ProjectReadDto` records, maps them to `PatientReadDto`, then splits the list into `projectsViaSurgeryData` and `projectsLackSurgeryData`.
 - `PatientNewPage.razor` and `PatientEditPage.razor` both render `PatientEditForm`; `PatientEditForm` inherits `ProjectEditForm`, composes `Name` from `FirstName` and `LastName`, and calls `ProjectsService.AddAsync` or `ProjectsService.UpdateAsync`.
 - `PatientDetails` inherits `ProjectDetails`, displays patient metadata from `PatientReadDto`, and delegates deletion to the base `ProjectDetails.DeleteProject()` strict-confirm flow.
 - PatientWriteDto and PatientReadDto store medical fields as typed metadata on top of Sea ProjectWriteDto/ProjectReadDto; the mapper uses ModelMapper and includes fallback logic to map the base project name to the patient's last name.

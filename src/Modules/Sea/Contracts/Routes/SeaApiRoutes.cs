@@ -4,6 +4,7 @@ public static class SeaApiRoutes
 {
     public const string Base = "/api/modules/sea";
     public const string Health = "/health";
+    public const string Capabilities = "/capabilities";
     public const string Projects = "/projects";
     public const string ProjectById = Projects + "/{id:guid}";
     public const string Procedures = "/procedures";

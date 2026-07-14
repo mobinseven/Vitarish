@@ -31,5 +31,11 @@ public partial class SeaContractDtoMapper
 
     public partial Domain.Dto.ProjectWriteDto ToDomain(Contracts.Responses.ProjectWriteDto source);
 
-    public partial Domain.Dto.ProcedureWriteDto ToDomain(Contracts.Responses.ProcedureWriteDto source);
+    public Domain.Dto.ProcedureWriteDto ToDomain(Contracts.Responses.ProcedureWriteDto source) => new()
+    {
+        Id = source.Id,
+        ProjectId = source.ProjectId,
+        Name = source.Name,
+        Description = source.Description
+    };
 }

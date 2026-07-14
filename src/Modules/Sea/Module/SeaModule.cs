@@ -6,6 +6,7 @@ using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.DependencyInjection;
 using Vitarish.Sea.Infrastructure.Services;
 using Vitarish.Sea.Api;
+using Vitarish.Sea.Api.Authorization;
 using Vitarish.Sea.Presentation.Serializers;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Modules.Base.Core;
@@ -28,6 +29,7 @@ public class SeaModule : Modules.Base.Core.Module, ISeaModule
         _ = builder.Services.AddTransientMultiTenantDbContext<SeaDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddSeaInfrastructure();
+        _ = builder.Services.AddSeaApiAuthorization();
 
         _ = builder.Services.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, SeaJsonSerializerContext.Default));

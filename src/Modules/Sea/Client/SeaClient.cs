@@ -76,6 +76,7 @@ public sealed class SeaClient(HttpClient httpClient) : AuthenticatedModuleApiCli
         }
     }
 
+    public Task<SeaResult<SeaCapabilitiesReadDto>> GetCapabilitiesAsync(CancellationToken cancellationToken) => SendAsync<SeaCapabilitiesReadDto>(HttpMethod.Get, SeaApiRoutes.Capabilities, null, cancellationToken);
     public Task<SeaResult<IReadOnlyList<ProjectReadDto>>> ListProjectsAsync(CancellationToken cancellationToken) => SendAsync<IReadOnlyList<ProjectReadDto>>(HttpMethod.Get, SeaApiRoutes.Projects, null, cancellationToken);
     public Task<SeaResult<ProjectReadDto>> GetProjectAsync(Guid projectId, CancellationToken cancellationToken) => SendAsync<ProjectReadDto>(HttpMethod.Get, $"/projects/{projectId}", null, cancellationToken);
     public Task<SeaResult<SeaCommandResult>> CreateProjectAsync(ProjectWriteDto project, CancellationToken cancellationToken) => SendAsync<SeaCommandResult>(HttpMethod.Post, SeaApiRoutes.Projects, project, cancellationToken);
@@ -97,6 +98,7 @@ public sealed class SeaClient(HttpClient httpClient) : AuthenticatedModuleApiCli
 
     public Task<SeaResult<IReadOnlyList<EventReadDto>>> ListEventsByProcedureAsync(Guid procedureId, CancellationToken cancellationToken) => SendAsync<IReadOnlyList<EventReadDto>>(HttpMethod.Get, $"/procedures/{procedureId}/events", null, cancellationToken);
     public Task<SeaResult<EventReadDto>> GetEventAsync(Guid eventId, CancellationToken cancellationToken) => SendAsync<EventReadDto>(HttpMethod.Get, $"/events/{eventId}", null, cancellationToken);
+    public Task<SeaResult<EventCapabilitiesReadDto>> GetEventCapabilitiesAsync(Guid eventId, CancellationToken cancellationToken) => SendAsync<EventCapabilitiesReadDto>(HttpMethod.Get, $"/events/{eventId}/capabilities", null, cancellationToken);
     public Task<SeaResult<bool>> CanWriteEventAsync(Guid eventId, CancellationToken cancellationToken) => SendAsync<bool>(HttpMethod.Get, $"/events/{eventId}/permissions/write", null, cancellationToken);
     public Task<SeaResult<SeaCommandResult>> CreateEventAfterAsync(Guid? previousEventId, EventWriteDto @event, CancellationToken cancellationToken) => SendAsync<SeaCommandResult>(HttpMethod.Post, $"/events/after/{previousEventId}", @event, cancellationToken);
     public Task<SeaResult<SeaCommandResult>> UpdateEventAsync(EventWriteDto @event, CancellationToken cancellationToken) => SendAsync<SeaCommandResult>(HttpMethod.Put, SeaApiRoutes.Events, @event, cancellationToken);

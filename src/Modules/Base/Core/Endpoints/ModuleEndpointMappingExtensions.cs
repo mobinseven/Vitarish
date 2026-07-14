@@ -5,8 +5,8 @@ namespace Vitarish.Modules.Base.Core.Endpoints;
 
 public static class ModuleEndpointMappingExtensions
 {
-    public static RouteHandlerBuilder MapModuleGet(this RouteGroupBuilder group, string pattern, Delegate handler, string operationId, Type? successType = null, int successStatusCode = 200, ModuleEndpointProfile profile = ModuleEndpointProfile.ProtectedJson, string? anonymousJustification = null, string? contentType = null, bool includeStandardErrors = true) =>
-        group.MapGet(pattern, handler).ApplyModuleOpenApiConvention(new(operationId, successStatusCode, successType, profile, anonymousJustification, contentType, includeStandardErrors));
+    public static RouteHandlerBuilder MapModuleGet(this RouteGroupBuilder group, string pattern, Delegate handler, string operationId, Type? successType = null, int successStatusCode = 200, ModuleEndpointProfile profile = ModuleEndpointProfile.ProtectedJson, string? anonymousJustification = null, string? contentType = null, bool includeStandardErrors = true, bool deprecated = false) =>
+        group.MapGet(pattern, handler).ApplyModuleOpenApiConvention(new(operationId, successStatusCode, successType, profile, anonymousJustification, contentType, includeStandardErrors, deprecated));
 
     public static RouteHandlerBuilder MapModulePost(this RouteGroupBuilder group, string pattern, Delegate handler, string operationId, Type? successType = null, int successStatusCode = 200, ModuleEndpointProfile profile = ModuleEndpointProfile.ProtectedJson, string? anonymousJustification = null, string? contentType = null, bool includeStandardErrors = true) =>
         group.MapPost(pattern, handler).ApplyUnsafeModuleOpenApiConvention(new(operationId, successStatusCode, successType, profile, anonymousJustification, contentType, includeStandardErrors));

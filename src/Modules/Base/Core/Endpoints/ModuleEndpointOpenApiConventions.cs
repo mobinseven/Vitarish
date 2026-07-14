@@ -19,7 +19,8 @@ public sealed record ModuleEndpointOpenApiConvention(
     ModuleEndpointProfile Profile = ModuleEndpointProfile.ProtectedJson,
     string? AnonymousJustification = null,
     string? ContentType = null,
-    bool IncludeStandardErrors = true);
+    bool IncludeStandardErrors = true,
+    bool Deprecated = false);
 
 public static class ModuleEndpointOpenApiConventions
 {

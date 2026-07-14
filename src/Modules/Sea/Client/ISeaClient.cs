@@ -5,6 +5,7 @@ namespace Vitarish.Sea.Client;
 
 public interface ISeaClient
 {
+    Task<SeaResult<SeaCapabilitiesReadDto>> GetCapabilitiesAsync(CancellationToken cancellationToken);
     Task<SeaResult<IReadOnlyList<ProjectReadDto>>> ListProjectsAsync(CancellationToken cancellationToken);
     Task<SeaResult<ProjectReadDto>> GetProjectAsync(Guid projectId, CancellationToken cancellationToken);
     Task<SeaResult<SeaCommandResult>> CreateProjectAsync(ProjectWriteDto project, CancellationToken cancellationToken);
@@ -26,6 +27,7 @@ public interface ISeaClient
 
     Task<SeaResult<IReadOnlyList<EventReadDto>>> ListEventsByProcedureAsync(Guid procedureId, CancellationToken cancellationToken);
     Task<SeaResult<EventReadDto>> GetEventAsync(Guid eventId, CancellationToken cancellationToken);
+    Task<SeaResult<EventCapabilitiesReadDto>> GetEventCapabilitiesAsync(Guid eventId, CancellationToken cancellationToken);
     Task<SeaResult<bool>> CanWriteEventAsync(Guid eventId, CancellationToken cancellationToken);
     Task<SeaResult<SeaCommandResult>> CreateEventAfterAsync(Guid? previousEventId, EventWriteDto @event, CancellationToken cancellationToken);
     Task<SeaResult<SeaCommandResult>> UpdateEventAsync(EventWriteDto @event, CancellationToken cancellationToken);

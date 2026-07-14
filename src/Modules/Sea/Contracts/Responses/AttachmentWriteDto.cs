@@ -7,4 +7,6 @@ public record AttachmentWriteDto(
     [property: JsonPropertyName("content")] string Content,
     [property: JsonPropertyName("contentType")] string ContentType,
     [property: JsonPropertyName("contentThumbnail")] string? ContentThumbnail,
-    [property: JsonPropertyName("size")] long Size) : EntityWriteDto;
+    [property: JsonPropertyName("size")] long Size,
+    [property: JsonPropertyName("kind")] Enums.AttachmentKind Kind,
+    [property: JsonPropertyName("fileName")] string? FileName = null) : EntityWriteDto;

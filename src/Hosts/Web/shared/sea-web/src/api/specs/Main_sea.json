@@ -4,6 +4,11 @@
     "title": "Vitarish.Main | sea",
     "version": "1.0.0"
   },
+  "servers": [
+    {
+      "url": "https://localhost:7272/"
+    }
+  ],
   "paths": {
     "/api/modules/sea/health": {
       "get": {
@@ -18,6 +23,62 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SeaCommandResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/sea/capabilities": {
+      "get": {
+        "tags": [
+          "Sea"
+        ],
+        "operationId": "SeaGetCapabilities",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeaCapabilitiesReadDto"
                 }
               }
             }
@@ -1249,6 +1310,73 @@
         }
       }
     },
+    "/api/modules/sea/events/{id}/capabilities": {
+      "get": {
+        "tags": [
+          "Sea"
+        ],
+        "operationId": "SeaGetEventCapabilities",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventCapabilitiesReadDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/sea/events/{id}/permissions/write": {
       "get": {
         "tags": [
@@ -1313,7 +1441,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/api/modules/sea/events/after/{previousEventId}": {
@@ -3262,6 +3391,9 @@
   },
   "components": {
     "schemas": {
+      "AttachmentKind": {
+        "type": "integer"
+      },
       "AttachmentReadDto": {
         "type": "object",
         "properties": {
@@ -3288,6 +3420,15 @@
               "string"
             ],
             "format": "int64"
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AttachmentKind"
           },
           "createdAt": {
             "type": "string",
@@ -3362,7 +3503,8 @@
           "content",
           "contentType",
           "contentThumbnail",
-          "size"
+          "size",
+          "kind"
         ],
         "type": "object",
         "properties": {
@@ -3389,6 +3531,15 @@
               "string"
             ],
             "format": "int64"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AttachmentKind"
+          },
+          "fileName": {
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "id": {
             "type": "string",
@@ -3452,6 +3603,25 @@
               "string"
             ],
             "format": "int32"
+          }
+        }
+      },
+      "EventCapabilitiesReadDto": {
+        "required": [
+          "canRead",
+          "canWrite",
+          "canManage"
+        ],
+        "type": "object",
+        "properties": {
+          "canRead": {
+            "type": "boolean"
+          },
+          "canWrite": {
+            "type": "boolean"
+          },
+          "canManage": {
+            "type": "boolean"
           }
         }
       },
@@ -4178,6 +4348,17 @@
           },
           "metadataValues": {
             "type": "object"
+          }
+        }
+      },
+      "SeaCapabilitiesReadDto": {
+        "required": [
+          "canManage"
+        ],
+        "type": "object",
+        "properties": {
+          "canManage": {
+            "type": "boolean"
           }
         }
       },
