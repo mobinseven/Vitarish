@@ -151,6 +151,34 @@ public sealed class SeaAuthorizationHandlerTests
         userRoles.Verify(service => service.GetListAsync(It.IsAny<UserRoleDescriptorDto>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task Batched_prime_covers_multiple_event_authorization_checks_with_single_lookup()
+    {
+        Guid eventA = Guid.NewGuid();
+        Guid eventB = Guid.NewGuid();
+        Guid eventC = Guid.NewGuid();
+        var userRoles = new Mock<IUserRolesService>();
+        userRoles.Setup(service => service.GetListAsync(It.IsAny<UserRoleDescriptorDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<IReadOnlyList<UserRoleReadDto>>.Success([new UserRoleReadDto { RoleId = ReadRoleId, Type = RoleType.Read }]));
+        var eventRoles = new Mock<IEventRolesService>();
+        eventRoles.Setup(service => service.GetIdsForEventsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IEnumerable<Guid> ids, CancellationToken _) => ids.ToDictionary(
+                id => id,
+                id => id == eventA
+                    ? ((IReadOnlyList<Guid>)[ReadRoleId], (IReadOnlyList<Guid>)Array.Empty<Guid>())
+                    : ((IReadOnlyList<Guid>)Array.Empty<Guid>(), (IReadOnlyList<Guid>)Array.Empty<Guid>())));
+        var handler = new SeaEventAuthorizationHandler(userRoles.Object, eventRoles.Object, RequestContext("tenant-a").Object, Accessor());
+        ClaimsPrincipal principal = Principal(UserId.ToString());
+
+        await handler.PrimeEventRolesAsync([eventA, eventB, eventC], CancellationToken.None);
+
+        (await handler.IsAuthorizedAsync(principal, SeaAuthorizationOperations.Read, new SeaEventResource(eventA))).Should().BeTrue();
+        (await handler.IsAuthorizedAsync(principal, SeaAuthorizationOperations.Read, new SeaEventResource(eventB))).Should().BeFalse();
+        (await handler.IsAuthorizedAsync(principal, SeaAuthorizationOperations.Read, new SeaEventResource(eventC))).Should().BeFalse();
+        eventRoles.Verify(service => service.GetIdsForEventsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()), Times.Once);
+        userRoles.Verify(service => service.GetListAsync(It.IsAny<UserRoleDescriptorDto>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     private static SeaEventAuthorizationHandler CreateEventHandler(
         IReadOnlyList<UserRoleReadDto> userRoleValues,
         IReadOnlyDictionary<Guid, (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> eventRoleValues)
