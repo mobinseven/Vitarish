@@ -10,6 +10,8 @@ describe("SEA attachment file mapping", () => {
       content: "data:text/plain;base64,aGVsbG8=",
       contentType: "text/plain",
       size: 5,
+      kind: 1,
+      fileName: "note.txt",
     });
   });
 

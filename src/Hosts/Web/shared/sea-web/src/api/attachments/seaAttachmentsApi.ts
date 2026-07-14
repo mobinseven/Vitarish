@@ -25,12 +25,15 @@ export interface SeaAttachmentWriteDto {
   contentType: string;
   contentThumbnail?: string;
   size: number;
+  kind: number;
+  fileName?: string;
 }
 
 function toGeneratedAttachmentWrite(data: SeaAttachmentWriteDto): AttachmentWriteDto {
   return {
     ...data,
     contentThumbnail: data.contentThumbnail ?? null,
+    fileName: data.fileName ?? null,
   };
 }
 

@@ -128,16 +128,19 @@ export async function createEventItemText(data: { eventId: string; content: stri
     contentType: data.contentType,
     contentThumbnail: null,
     size: data.size,
+    kind: 0,
   });
 }
 
-export async function createEventItemFile(data: { eventId: string; content: string; contentType: string; size: number }): Promise<SeaCommandResult> {
+export async function createEventItemFile(data: { eventId: string; content: string; contentType: string; size: number; fileName: string }): Promise<SeaCommandResult> {
   return seaCreateFileAttachment({
     eventId: data.eventId,
     content: data.content,
     contentType: data.contentType,
     contentThumbnail: null,
     size: data.size,
+    kind: 1,
+    fileName: data.fileName,
   });
 }
 

@@ -23,6 +23,7 @@ describe("SEA query keys", () => {
   it("keeps event, attachment, role, and template keys stable", () => {
     expect(seaEventKeys.list("procedure-1")).toEqual(["sea", "events", "list", "procedure-1"]);
     expect(seaEventKeys.detail("event-1")).toEqual(["sea", "events", "detail", "event-1"]);
+    expect(seaEventKeys.capabilities("event-1")).toEqual(["sea", "events", "capabilities", "event-1"]);
     expect(seaEventKeys.writePermission("event-1")).toEqual(["sea", "events", "writePermission", "event-1"]);
 
     expect(seaAttachmentKeys.list("event-1")).toEqual(["sea", "attachments", "list", "event-1"]);
