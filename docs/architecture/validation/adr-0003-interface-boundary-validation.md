@@ -13,17 +13,6 @@ python3 tools/architecture/validate_module_api_boundaries.py
 
 The same commands are executed by `.github/workflows/architecture-validation.yml` and should be run before focused or full repository builds.
 
-## Final fail-fast policy
-
-The no-Blazor validator fails for:
-
-- any production Razor component artifact;
-- `Microsoft.NET.Sdk.Razor` or MudBlazor references;
-- Blazor runtime registration patterns;
-- `src/Modules/*/Interface`, `src/Apps/*/Interface`, or `src/Interfaces/*`.
-
-The module API boundary validator fails protected internal module APIs and clients that bypass the approved endpoint/client boundary.
-
 ## Final done criteria
 
 - No production Interface project exists.

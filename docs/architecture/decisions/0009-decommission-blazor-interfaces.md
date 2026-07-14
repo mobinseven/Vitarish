@@ -67,15 +67,6 @@ Rejected. Maintaining two UI frameworks doubles the surface for bugs, design dri
 
 Rejected. The Blazor layer continues to grow stale, confuse contributors, and inflate the build/test matrix.
 
-## Validation / Enforcement
-
-A no-Blazor architecture validator will be added to CI that fails on:
-
-- `*.razor`, `*.razor.cs`, `*.razor.css`, `*.razor.js` in production source
-- `Microsoft.NET.Sdk.Razor` in any production `.csproj`
-- `MudBlazor` package references
-- `AddRazorComponents`, `MapRazorComponents`, `InteractiveServer`, `blazor.web.js`
-- `src/Modules/*/Interface`, `src/Apps/*/Interface`, `src/Interfaces/*`
 
 ## Notes
 

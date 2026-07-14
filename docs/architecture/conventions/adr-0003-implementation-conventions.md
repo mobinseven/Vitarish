@@ -236,15 +236,6 @@ Do not bypass the client with raw UI route construction for migrated workflows. 
 
 ADR-0009 retirement of Blazor/Razor Interface projects is enforced by `tools/architecture/validate_no_blazor.py`. Surviving protected module API boundary checks are enforced by `tools/architecture/validate_module_api_boundaries.py`.
 
-### Files scanned
-
-The no-Blazor validator scans production source for:
-
-- `*.razor`, `*.razor.cs`, `*.razor.css`, and `*.razor.js`
-- `Microsoft.NET.Sdk.Razor`
-- `MudBlazor`
-- Blazor runtime registration patterns
-- `src/Modules/*/Interface`, `src/Apps/*/Interface`, and `src/Interfaces/*`
 
 ### Forbidden Interface artifacts
 
