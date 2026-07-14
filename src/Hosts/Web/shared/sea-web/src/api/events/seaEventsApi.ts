@@ -4,6 +4,7 @@ import {
   seaCreateFirstEvent,
   seaDeleteEvent,
   seaGetEvent,
+  seaGetEventCapabilities,
   seaGetEventWritePermission,
   seaListEvents,
   seaMarkEventRead,
@@ -15,7 +16,7 @@ import {
 } from "../generated/sea/sea";
 import type { SeaCommandResult } from "../generated/sea/model";
 import { mapSeaEvent } from "../../mappers/seaReadDtoMappers";
-import type { SeaEventReadDto } from "../../models/seaStatModels";
+import type { SeaEventReadDto, SeaEventCapabilities } from "../../models/seaStatModels";
 
 export interface SeaEventWriteDto {
   projectId?: string;
@@ -63,6 +64,15 @@ export async function commitSeaEvent(id: string): Promise<SeaCommandResult> {
 
 export async function uncommitSeaEvent(id: string): Promise<SeaCommandResult> {
   return seaUncommitEvent(id);
+}
+
+export async function getSeaEventCapabilities(id: string): Promise<SeaEventCapabilities> {
+  const result = await seaGetEventCapabilities(id);
+  return {
+    canRead: result.canRead ?? false,
+    canWrite: result.canWrite ?? false,
+    isElevated: result.canManage ?? false,
+  };
 }
 
 export async function getSeaEventWritePermission(id: string): Promise<boolean> {

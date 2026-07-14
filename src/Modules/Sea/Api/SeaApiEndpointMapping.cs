@@ -249,11 +249,12 @@ public static class SeaApiEndpointMapping
         return Results.Ok(new SeaCommandResult(true, id));
     }
 
-    private static async Task<IResult> ListEventsAsync(Guid procedureId, ClaimsPrincipal user, IProceduresService procedures, IEventsService events, IAuthorizationService authorization, CancellationToken cancellationToken)
+    private static async Task<IResult> ListEventsAsync(Guid procedureId, ClaimsPrincipal user, IProceduresService procedures, IEventsService events, IAuthorizationService authorization, SeaEventAuthorizationHandler eventAuthorizationHandler, CancellationToken cancellationToken)
     {
         if ((await procedures.GetAsync(procedureId, cancellationToken)).Value is null) return NotFound();
         if (!await CanAsync(authorization, user, new SeaProcedureResource(procedureId), SeaAuthorizationOperations.Read)) return Results.Forbid();
         IReadOnlyList<D.EventReadDto> values = await events.GetByProcedureAsync(procedureId, cancellationToken);
+        await eventAuthorizationHandler.PrimeEventRolesAsync(values.Select(@event => @event.Id), cancellationToken);
         List<C.EventReadDto> result = new(values.Count);
         foreach (D.EventReadDto @event in values)
         {
