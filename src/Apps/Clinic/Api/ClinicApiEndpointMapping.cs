@@ -2,7 +2,9 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Queries.Patients;
+using Vitarish.Clinic.Application.Results;
 using Vitarish.Clinic.Contracts.Errors;
 using Vitarish.Clinic.Contracts.Responses;
 using Vitarish.Clinic.Contracts.Routes;
@@ -23,6 +25,7 @@ public static class ClinicApiEndpointMapping
 {
     private const int DefaultSkip = 0;
     private const int DefaultTake = 100;
+    private const string SeaManagePolicy = "Sea.Manage";
 
     public static IEndpointRouteBuilder MapClinicApi(this IEndpointRouteBuilder endpoints)
     {
@@ -33,7 +36,8 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModulePost(ClinicApiRoutes.PatientCount, CountPatientsAsync, "ClinicCountPatients", typeof(int));
         _ = group.MapModulePost(ClinicApiRoutes.PatientSearch, SearchPatientsAsync, "ClinicSearchPatients", typeof(PatientViewDto[]));
         _ = group.MapModulePost(ClinicApiRoutes.PatientIdentificationLookup, LookupPatientByIdentificationCodeAsync, "ClinicLookupPatientByIdentificationCode", typeof(PatientViewDto));
-        _ = group.MapModulePost(ClinicApiRoutes.PatientFindOrCreate, FindOrCreatePatientAsync, "ClinicFindOrCreatePatient", typeof(PatientViewDto));
+        _ = group.MapModulePost(ClinicApiRoutes.PatientFindOrCreate, FindOrCreatePatientAsync, "ClinicFindOrCreatePatient", typeof(PatientViewDto))
+            .RequireAuthorization(SeaManagePolicy);
         _ = group.MapModuleGet(ClinicApiRoutes.PatientDetails, GetPatientDetailsAsync, "ClinicGetPatientDetails", typeof(PatientViewDto));
 
         return endpoints;
@@ -100,15 +104,52 @@ public static class ClinicApiEndpointMapping
 
     private static async Task<IResult> FindOrCreatePatientAsync(PatientFindOrCreateRequest request, ISender sender, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(request.IdentificationCode))
+        FindOrCreatePatientResult result = await sender.Send(
+            new FindOrCreatePatientCommand(
+                request.IdentificationCode,
+                request.FirstName,
+                request.LastName,
+                request.Phone,
+                request.Email,
+                request.DateOfBirth,
+                request.DateOfSurgery,
+                request.Gender is null ? null : (DomainGender)(int)request.Gender.Value,
+                request.PlaceOfBirth,
+                request.Address,
+                request.Education is null ? null : (DomainEducation)(int)request.Education.Value,
+                request.Occupation,
+                request.FatherName,
+                request.Height,
+                request.Weight,
+                request.Referrer,
+                request.InsuranceProvider,
+                request.VisitReason,
+                request.Allergies,
+                request.CurrentMedications,
+                request.ClinicalNotes,
+                request.EmergencyContactName,
+                request.EmergencyContactPhone),
+            ct);
+
+        if (result is FindOrCreatePatientResult.Success success)
         {
-            return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "Identification code is required to find a patient."));
+            return Results.Ok(ToContract(success.Patient));
         }
 
-        PatientView? patient = await sender.Send(new GetPatientByIdentificationCodeQuery(request.IdentificationCode), ct);
-        return patient is null
-            ? Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient creation is not available through the Clinic API yet."))
-            : Results.Ok(ToContract(patient));
+        FindOrCreatePatientResult.Failure failure = (FindOrCreatePatientResult.Failure)result;
+        return failure.Reason switch
+        {
+            PatientCreationFailureReason.Validation => Results.BadRequest(new ClinicError(
+                ClinicErrorCode.ValidationFailure,
+                failure.Message,
+                failure.ValidationErrors)),
+            PatientCreationFailureReason.Conflict => Results.Conflict(new ClinicError(
+                ClinicErrorCode.Conflict,
+                "A patient with this identification code already exists.")),
+            _ => Results.Json(
+                new ClinicError(ClinicErrorCode.UnexpectedFailure, "Patient creation failed."),
+                statusCode: StatusCodes.Status500InternalServerError)
+        };
     }
 
     private static async Task<IResult> GetPatientDetailsAsync(Guid patientId, ISender sender, CancellationToken ct)

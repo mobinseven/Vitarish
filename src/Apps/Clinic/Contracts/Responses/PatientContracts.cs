@@ -7,7 +7,30 @@ public sealed record PatientListRequest(string? Search = null, int? Skip = null,
 public sealed record PatientCountRequest(string? Search = null, bool? Template = false);
 public sealed record PatientSearchRequest(string? Search = null, int? Skip = null, int? Take = null, bool? Template = false);
 public sealed record PatientIdentificationLookupRequest(string IdentificationCode);
-public sealed record PatientFindOrCreateRequest(string? IdentificationCode, string? FirstName, string? LastName, string? Phone, string? Email);
+public sealed record PatientFindOrCreateRequest(
+    string? IdentificationCode,
+    string? FirstName,
+    string? LastName,
+    string? Phone,
+    string? Email,
+    DateTime? DateOfBirth = null,
+    DateTime? DateOfSurgery = null,
+    Gender? Gender = null,
+    string? PlaceOfBirth = null,
+    string? Address = null,
+    Education? Education = null,
+    string? Occupation = null,
+    string? FatherName = null,
+    int? Height = null,
+    int? Weight = null,
+    string? Referrer = null,
+    string? InsuranceProvider = null,
+    string? VisitReason = null,
+    string? Allergies = null,
+    string? CurrentMedications = null,
+    string? ClinicalNotes = null,
+    string? EmergencyContactName = null,
+    string? EmergencyContactPhone = null);
 public sealed record PatientDetailsRequest(Guid PatientId);
 
 public sealed class PatientViewDto
