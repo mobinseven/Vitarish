@@ -11,6 +11,7 @@ import {
   ChatPromptInput,
   ChatSource,
   ChatSourceList,
+  DashboardFrame,
   EmptyStateSurface,
   ErrorStateSurface,
   LoadingStateSurface,
@@ -147,5 +148,29 @@ describe("@vitarish/web-ui presentation components", () => {
     expect(screen.getByLabelText("Question")).toHaveValue("Can I reuse this?");
     expect(screen.getByText("All sources")).toBeInTheDocument();
     expect(screen.getByText("Answers may cite sources.")).toBeInTheDocument();
+  });
+
+  it("owns page scrolling in its labeled, focusable main content region", () => {
+    const { container } = render(
+      <DashboardFrame
+        currentPath="/patients"
+        identity={{
+          accountHref: "/account",
+          accountLabel: "Account",
+          initials: "TU",
+          label: "Test User",
+          subtitle: "Account",
+        }}
+        navigate={vi.fn()}
+        navigationGroups={[]}
+        navigationLabel="Dashboard navigation"
+        title="Patients"
+      >
+        <div>Dashboard content</div>
+      </DashboardFrame>
+    );
+
+    expect(container.querySelector("[data-app-layout]")).toHaveAttribute("data-scroll-mode", "content");
+    expect(screen.getByRole("main", { name: "Scrollable main content" })).toHaveAttribute("tabindex", "0");
   });
 });

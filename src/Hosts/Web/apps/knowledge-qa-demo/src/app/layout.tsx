@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Providers } from "@/components/providers/AppProviders";
-import { defaultLocale } from "@/localization/locales";
+import { getMessages, I18nAppLayout } from "@/localization";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,16 +9,21 @@ export const metadata: Metadata = {
   description: "Knowledge QA demo application.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const headerStore = await headers();
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <Providers locale={defaultLocale}>{children}</Providers>
-      </body>
-    </html>
+    <I18nAppLayout
+      cookieHeader={headerStore.get("cookie")}
+      acceptLanguageHeader={headerStore.get("accept-language")}
+      getMessages={getMessages}
+      bodyClassName="min-h-screen bg-background font-sans antialiased"
+    >
+      <Providers>{children}</Providers>
+    </I18nAppLayout>
   );
 }

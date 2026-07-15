@@ -58,6 +58,7 @@ export function DashboardFrame({
     <AppLayout
       navigate={navigate}
       navbar={<DashboardFrameNavbar title={title} toolbar={toolbar} />}
+      scrollMode="content"
       sidebar={
         <DashboardFrameSidebar
           currentPath={currentPath}
@@ -78,7 +79,7 @@ export function DashboardFrame({
 
 function DashboardFrameNavbar({ title, toolbar }: { title: string; toolbar?: ReactNode }) {
   return (
-    <Navbar maxWidth="full" hideOnScroll>
+    <Navbar maxWidth="full">
       <Navbar.Header>
         <AppLayout.MenuToggle />
         <Sidebar.Trigger />

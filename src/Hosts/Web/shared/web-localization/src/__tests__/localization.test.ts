@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { resolveLocale } from "../resolveLocale";
+import { parseAcceptLanguage } from "../acceptLanguage";
+import { resolveI18nAppLocale } from "../I18nAppLayout";
 import { formatDate, formatFileSize, formatNumber } from "../format";
 import { parseIsoDateValue, dateValueToIsoDate } from "../dateValue";
 
@@ -20,6 +22,47 @@ describe("resolveLocale", () => {
     const result = resolveLocale({ cookieLocale: "en" });
     expect(result.locale).toBe("en");
     expect(result.source).toBe("cookie");
+  });
+
+  it("prefers a user selection over the browser culture", () => {
+    const result = resolveLocale({ selectedLocale: "fa-IR", browserLocales: ["en-US"] });
+    expect(result.locale).toBe("fa");
+    expect(result.source).toBe("selected");
+  });
+
+  it("uses the first supported browser culture when there is no user selection", () => {
+    const result = resolveLocale({ browserLocales: ["fr-CA", "en-US"] });
+    expect(result.locale).toBe("en");
+    expect(result.source).toBe("browser");
+  });
+
+  it("falls back to the default when the selection and browser cultures are unsupported", () => {
+    const result = resolveLocale({ selectedLocale: "de-DE", browserLocales: ["fr-CA"] });
+    expect(result.locale).toBe("fa");
+    expect(result.source).toBe("default");
+  });
+});
+
+describe("parseAcceptLanguage", () => {
+  it("orders browser cultures by quality and ignores rejected or wildcard values", () => {
+    expect(parseAcceptLanguage("fa-IR;q=0.7, en-US;q=0.9, *;q=1, de;q=0")).toEqual(["en-US", "fa-IR"]);
+  });
+});
+
+describe("resolveI18nAppLocale", () => {
+  it("prefers an explicit selection, then a persisted selection, then browser detection", () => {
+    expect(resolveI18nAppLocale({
+      selectedLocale: "fa-IR",
+      cookieHeader: "vitarish.locale=en",
+      acceptLanguageHeader: "en-US",
+    }).locale).toBe("fa");
+
+    expect(resolveI18nAppLocale({
+      cookieHeader: "vitarish.locale=en",
+      acceptLanguageHeader: "fa-IR",
+    }).locale).toBe("en");
+
+    expect(resolveI18nAppLocale({ acceptLanguageHeader: "en-US" }).locale).toBe("en");
   });
 });
 

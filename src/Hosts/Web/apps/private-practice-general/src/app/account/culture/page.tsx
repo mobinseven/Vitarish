@@ -8,7 +8,7 @@ import { AccountBackLink, AccountSurface } from "@/components/account/AccountSur
 import { useAccountCulture } from "@vitarish/account-web";
 import { StatusAlert } from "@vitarish/web-ui";
 import { OptionSelector } from "@/components/account/OptionSelector";
-import { useLocalizedText } from "@/localization";
+import { setLocaleCookie, toSupportedLocale, useLocalizedText } from "@/localization";
 
 export default function CulturePage() {
   const { user } = useAuthSession();
@@ -26,6 +26,8 @@ export default function CulturePage() {
 
   const handleSave = useCallback(async () => {
     await save(selected);
+    const locale = toSupportedLocale(selected);
+    if (locale) setLocaleCookie(locale);
     router.refresh();
   }, [save, selected, router]);
 

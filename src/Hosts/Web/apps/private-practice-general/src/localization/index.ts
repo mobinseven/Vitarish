@@ -1,6 +1,9 @@
 // Re-export infrastructure from @vitarish/web-localization
 export {
   LocalizationContext,
+  I18nProvider,
+  I18nAppLayout,
+  resolveI18nAppLocale,
   useLocalizedText,
   defaultLocale,
   supportedLocales,
@@ -33,6 +36,9 @@ export type {
   ResolveLocaleInput,
   ResolvedLocale,
   LocaleResolutionSource,
+  I18nProviderProps,
+  I18nAppLayoutProps,
+  ResolveI18nAppLocaleInput,
   SupportedDateCalendar,
   CodeBearingError,
   MessageCatalog,
@@ -41,7 +47,7 @@ export type {
   Translate,
 } from "@vitarish/web-localization";
 
-// App-specific: LocalizationProvider (auto-loads app message catalogs), message catalogs, and metadata
+// App-specific catalog-loading provider, message catalogs, and metadata
 export { LocalizationProvider } from "./LocalizationProvider";
 export { getMessages } from "./messages";
 export type { MessageCatalog as AppMessageCatalog } from "./messages";

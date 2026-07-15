@@ -1,7 +1,6 @@
 import { render, type RenderOptions } from "@testing-library/react";
 import type { ReactElement } from "react";
-import { I18nProvider } from "@react-aria/i18n";
-import { defaultLocale, getReactAriaLocale, LocalizationProvider, type SupportedLocale } from "@/localization";
+import { defaultLocale, I18nProvider, type SupportedLocale } from "@/localization";
 import { getMessages, type MessageCatalog } from "@/localization/messages";
 
 export function renderWithLocalization(ui: ReactElement, options?: RenderOptions & { locale?: SupportedLocale; messages?: MessageCatalog }) {
@@ -10,9 +9,7 @@ export function renderWithLocalization(ui: ReactElement, options?: RenderOptions
   return render(ui, {
     ...options,
     wrapper: ({ children }) => (
-      <I18nProvider locale={getReactAriaLocale(locale)}>
-        <LocalizationProvider locale={locale} messages={messages}>{children}</LocalizationProvider>
-      </I18nProvider>
+      <I18nProvider locale={locale} messages={messages}>{children}</I18nProvider>
     ),
   });
 }

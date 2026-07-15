@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError, apiFetch, resetAntiforgeryToken } from "../apiFetch";
+import { ApiError, apiFetch, apiFetchBlob, resetAntiforgeryToken } from "../apiFetch";
 
 const tenantHostHeader = "X-Vitarish-Tenant-Host";
 
@@ -122,5 +122,42 @@ describe("apiFetch antiforgery", () => {
 
     await expect(apiFetch("/api/modules/example", { method: "POST" })).rejects.toMatchObject({ code: "ValidationFailed" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("apiFetchBlob", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("downloads authenticated tenant-scoped binary content", async () => {
+    const content = new Blob(["image"], { type: "image/png" });
+    const fetchMock = vi.fn().mockResolvedValueOnce(new Response(content));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await apiFetchBlob("/api/modules/files/file-id/content");
+
+    expect(result).toBeInstanceOf(Blob);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "https://localhost:7272/api/modules/files/file-id/content",
+    );
+    expect(fetchMock.mock.calls[0][1].credentials).toBe("include");
+    expect(fetchMock.mock.calls[0][1].headers.get(tenantHostHeader)).toBe(
+      "tenant-a.example.test",
+    );
+  });
+
+  it("maps binary download failures to ApiError", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValueOnce(
+        jsonResponse({ status: 404, code: "NotFound", title: "Missing" }, { status: 404 }),
+      ),
+    );
+
+    await expect(apiFetchBlob("/api/modules/files/missing/content")).rejects.toMatchObject({
+      status: 404,
+      code: "NotFound",
+    });
   });
 });

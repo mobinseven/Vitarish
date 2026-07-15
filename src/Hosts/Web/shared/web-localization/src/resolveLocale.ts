@@ -1,11 +1,13 @@
 import { defaultLocale, type SupportedLocale, toSupportedLocale } from "./locales";
 
-export type LocaleResolutionSource = "account" | "route" | "cookie" | "accept-language" | "default";
+export type LocaleResolutionSource = "selected" | "account" | "route" | "cookie" | "browser" | "accept-language" | "default";
 
 export interface ResolveLocaleInput {
+  selectedLocale?: string | null;
   routeLocale?: string | null;
   accountLocale?: string | null;
   cookieLocale?: string | null;
+  browserLocales?: readonly string[] | null;
   acceptLanguageLocales?: readonly string[] | null;
 }
 
@@ -16,6 +18,9 @@ export interface ResolvedLocale {
 }
 
 export function resolveLocale(input: ResolveLocaleInput = {}): ResolvedLocale {
+  const selectedLocale = toSupportedLocale(input.selectedLocale);
+  if (selectedLocale) return { locale: selectedLocale, source: "selected", reason: "Supported user-selected culture." };
+
   const accountLocale = toSupportedLocale(input.accountLocale);
   if (accountLocale) return { locale: accountLocale, source: "account", reason: "Supported authenticated account culture preference." };
 
@@ -24,6 +29,11 @@ export function resolveLocale(input: ResolveLocaleInput = {}): ResolvedLocale {
 
   const cookieLocale = toSupportedLocale(input.cookieLocale);
   if (cookieLocale) return { locale: cookieLocale, source: "cookie", reason: "Supported persisted locale cookie." };
+
+  for (const candidate of input.browserLocales ?? []) {
+    const supported = toSupportedLocale(candidate);
+    if (supported) return { locale: supported, source: "browser", reason: "Supported browser culture candidate." };
+  }
 
   for (const candidate of input.acceptLanguageLocales ?? []) {
     const supported = toSupportedLocale(candidate);

@@ -19,7 +19,7 @@ export default function ClinicLayout({
   return (
     <AuthorizationGuard requiredRole="owner" loginHref={Routes.Login.Index} onNavigate={navigate}>
       <DashboardShell footerItems={dashboardFooterItems} navGroups={clinicOwnerDashboardNavGroups}>
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 pb-10 pt-4">
+        <div className="mx-auto flex h-full min-h-0 max-w-7xl flex-col gap-4 px-5 pb-10 pt-4">
           <JourneyGateBoundary>{children}</JourneyGateBoundary>
         </div>
       </DashboardShell>

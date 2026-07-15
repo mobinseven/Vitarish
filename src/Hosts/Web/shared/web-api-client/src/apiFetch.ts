@@ -195,6 +195,30 @@ async function sendRequest<T>(url: string, method: string, headers: Headers, bod
   return res.json() as Promise<T>;
 }
 
+export async function apiFetchBlob(url: string, options: Pick<RequestInit, "headers" | "signal"> = {}): Promise<Blob> {
+  const headers = new Headers(options.headers);
+  headers.set("Accept", "application/octet-stream");
+  applyTenantHostHeader(headers);
+
+  const res = await fetch(`${BASE_URL}${url}`, {
+    headers,
+    signal: toFetchSignal(options.signal as AbortSignal | undefined),
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    let problem: ProblemDetails;
+    try {
+      problem = await res.json();
+    } catch {
+      problem = { status: res.status, title: res.statusText };
+    }
+    throw new ApiError(problem);
+  }
+
+  return res.blob();
+}
+
 export async function apiFetch<T>(urlOrConfig: string | OrvalConfig, options: RequestInit = {}): Promise<T> {
   let url: string;
   let method: string;
