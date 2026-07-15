@@ -95,7 +95,6 @@ No test code exists in the working tree. All tests are created fresh based on th
 
 | Suite | Execution mode | Command/procedure | Required environment |
 |---|---|---|---|
-| Static boundary | Automated, every PR | `python3 tools/architecture/validate_no_blazor.py` | None |
 | Contract defaults | Automated, every PR | `dotnet test tests/Modules/Platform.Tests/ --filter "Category=Contract"` | None |
 | Full test suite | Automated, every PR | `dotnet test tests/Modules/Platform.Tests/` | None |
 

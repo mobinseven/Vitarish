@@ -133,7 +133,6 @@ No test code exists in the working tree. All tests are created fresh based on th
 | Contract serialization | Automated, every PR | `dotnet test tests/Modules/Intelligence.Tests/ --filter "Category=Contract"` | None |
 | Client tests | Automated, every PR | `dotnet test tests/Modules/Intelligence.Tests/ --filter "Category=Client"` | None |
 | API mapping | Automated, every PR | `dotnet test tests/Modules/Intelligence.Tests/ --filter "Category=Api"` | None |
-| Static boundary | Automated, every PR | `python3 tools/architecture/validate_no_blazor.py` | None |
 | Full test suite | Automated, every PR | `dotnet test tests/Modules/Intelligence.Tests/` | None |
 | Hot scenarios | Semi-automated, nightly | Manual execution against host with provider stubs | Host with mocked providers |
 

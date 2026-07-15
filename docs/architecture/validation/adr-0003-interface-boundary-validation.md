@@ -7,11 +7,10 @@ Temporary exceptions for reintroducing Interface projects are not permitted unle
 ## Local and CI command
 
 ```bash
-python3 tools/architecture/validate_no_blazor.py
 python3 tools/architecture/validate_module_api_boundaries.py
 ```
 
-The same commands are executed by `.github/workflows/architecture-validation.yml` and should be run before focused or full repository builds.
+The same command is executed by `.github/workflows/architecture-validation.yml` and should be run before focused or full repository builds.
 
 ## Final done criteria
 

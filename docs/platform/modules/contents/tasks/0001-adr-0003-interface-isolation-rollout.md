@@ -22,7 +22,6 @@ This plan completes the module Interface isolation rollout for this module and p
 - External provider clients remain excluded only when explicitly documented and outside internal module API transport.
 
 ## Validation commands
-- `python3 tools/architecture/validate_no_blazor.py`
 - `python3 tools/architecture/validate_module_api_boundaries.py`
 
 ## Done criteria

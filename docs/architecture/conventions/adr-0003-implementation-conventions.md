@@ -234,7 +234,7 @@ Do not bypass the client with raw UI route construction for migrated workflows. 
 
 ## Static boundary enforcement conventions
 
-ADR-0009 retirement of Blazor/Razor Interface projects is enforced by `tools/architecture/validate_no_blazor.py`. Surviving protected module API boundary checks are enforced by `tools/architecture/validate_module_api_boundaries.py`.
+Protected module API boundary checks are enforced by `tools/architecture/validate_module_api_boundaries.py`.
 
 
 ### Forbidden Interface artifacts
@@ -246,7 +246,6 @@ Interface project reintroduction is forbidden unless a future accepted ADR super
 Run:
 
 ```bash
-python3 tools/architecture/validate_no_blazor.py
 python3 tools/architecture/validate_module_api_boundaries.py
 ```
 
