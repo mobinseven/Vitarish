@@ -38,7 +38,7 @@ internal sealed class SeaEventAuthorizationHandler(
         OperationAuthorizationRequirement requirement,
         SeaEventResource resource)
     {
-        if (requirement.Name is not (SeaAuthorizationOperations.Read.Name or SeaAuthorizationOperations.Write.Name))
+        if (requirement.Name != SeaAuthorizationOperations.Read.Name && requirement.Name != SeaAuthorizationOperations.Write.Name)
         {
             return false;
         }
