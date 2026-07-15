@@ -8,6 +8,7 @@ export interface EventItemSummary {
   contentType?: string;
   contentThumbnail?: string;
   size?: number;
+  fileName?: string;
   author?: string;
   createdAt: string;
 }

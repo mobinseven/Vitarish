@@ -4,112 +4,104 @@ import { useState } from "react";
 import { Button, Chip } from "@heroui/react";
 import { Timeline } from "@heroui-pro/react";
 import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/web-ui";
-import {
-  useMovePatientProcedureEventUp,
-  useMovePatientProcedureEventDown,
-  useCommitPatientProcedureEvent,
-  useUncommitPatientProcedureEvent,
-} from "../../../hooks/patients/procedures/usePatientProcedureEventMutations";
 import { PatientProcedureEventForm } from "./PatientProcedureEventForm";
-import { useLocalizedText, formatDateTime } from "../../../localization/index";
+import { useLocalizedText, formatDateTime } from "../../../localization";
 import type { ClinicalEventSummary } from "../../../models/patients/procedures/PatientProcedureEventModels";
+import type { ClinicNavigationIntent } from "../../../navigation";
 
 interface PatientProcedureEventTimelineProps {
   procedureId: string;
   patientId: string;
   events: ClinicalEventSummary[];
-  onNavigate?: (intent: import("../../../navigation").ClinicNavigationIntent) => void;
+  selectedEventId?: string;
+  onNavigate: (intent: ClinicNavigationIntent) => void;
 }
 
-export function PatientProcedureEventTimeline({ procedureId, patientId, events }: PatientProcedureEventTimelineProps) {
+export function PatientProcedureEventTimeline({ procedureId, patientId, events, selectedEventId, onNavigate }: PatientProcedureEventTimelineProps) {
   const { t, locale } = useLocalizedText();
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const moveUpMutation = useMovePatientProcedureEventUp();
-  const moveDownMutation = useMovePatientProcedureEventDown();
-  const commitMutation = useCommitPatientProcedureEvent();
-  const uncommitMutation = useUncommitPatientProcedureEvent();
-
   return (
-    <>
-      <div className="flex justify-end mb-3">
-        <Button size="sm" variant="primary" onPress={() => setShowCreateForm(true)}>
-          {t("clinic.procedures.events.addStep")}
-        </Button>
-      </div>
+    <div className="w-full min-w-0">
+      <Timeline
+        aria-label={t("clinic.procedures.events.title")}
+        density="compact"
+        size="sm"
+      >
+        <Timeline.Item align="center">
+          <Timeline.Marker aria-hidden="true" />
+          <Timeline.Content>
+            <Button size="sm" onPress={() => setShowCreateForm(true)}>
+              {t("clinic.procedures.events.addStep")}
+            </Button>
+          </Timeline.Content>
+        </Timeline.Item>
 
-      {events.length === 0 ? (
-        <ClinicEmptyState title={t("clinic.procedures.events.empty")} />
-      ) : (
-        <Timeline density="compact" size="sm">
-          {events.map((event, index) => (
+        {events.map((event) => {
+          const isSelected = event.id === selectedEventId;
+
+          return (
             <Timeline.Item
               key={event.id}
-              status={event.isCommitted ? "success" : "default"}
+              align="center"
+              id={event.id}
+              status={isSelected ? "current" : event.isCommitted ? "success" : "default"}
             >
               <Timeline.Marker aria-hidden="true" />
-              <Timeline.Content className="gap-1.5">
-                <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <h3 className="text-foreground m-0 text-xs font-medium leading-5">
-                      {event.title}
-                    </h3>
-                    <Chip size="sm" color={event.isCommitted ? "success" : "default"} variant="soft">
-                      {event.isCommitted ? t("clinic.procedures.committed") : t("clinic.procedures.draft")}
-                    </Chip>
-                  </div>
-                  <time className="text-muted shrink-0 text-xs leading-5">
-                    {formatDateTime(event.createdAt, locale)}
-                  </time>
-                </div>
-                {event.committedAt && (
-                  <p className="text-muted m-0 text-xs leading-5">
-                    {t("clinic.procedures.committed")} {formatDateTime(event.committedAt, locale)}
-                  </p>
-                )}
-                <div className="flex items-center gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    isDisabled={index === 0 || moveUpMutation.isPending}
-                    onPress={() => moveUpMutation.mutate(event.id)}
-                  >
-                    <i aria-hidden className="fa-solid fa-chevron-up" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    isDisabled={index === events.length - 1 || moveDownMutation.isPending}
-                    onPress={() => moveDownMutation.mutate(event.id)}
-                  >
-                    <i aria-hidden className="fa-solid fa-chevron-down" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={event.isCommitted ? "secondary" : "primary"}
-                    isDisabled={commitMutation.isPending || uncommitMutation.isPending}
-                    onPress={() =>
-                      event.isCommitted
-                        ? uncommitMutation.mutate(event.id)
-                        : commitMutation.mutate(event.id)
-                    }
-                  >
-                    {event.isCommitted ? t("clinic.procedures.events.reopen") : t("clinic.procedures.events.commit")}
-                  </Button>
-                </div>
+              <Timeline.Content>
+                <Button
+                  aria-label={event.title}
+                  className="h-auto min-h-10 w-full justify-start px-2 py-2 text-start"
+                  variant={isSelected ? "secondary" : "ghost"}
+                  onPress={() =>
+                    onNavigate({
+                      kind: "patientProcedureEventDetail",
+                      patientId,
+                      procedureId,
+                      eventId: event.id,
+                    })
+                  }
+                >
+                  <span className="flex min-w-0 w-full flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                    <span className="flex min-w-0 flex-wrap items-center gap-2">
+                      <span className="text-foreground text-xs font-medium leading-5">
+                        {event.title}
+                      </span>
+                      <Chip
+                        color={event.isCommitted ? "success" : "default"}
+                        size="sm"
+                        variant="soft"
+                      >
+                        {event.isCommitted
+                          ? t("clinic.procedures.committed")
+                          : t("clinic.procedures.draft")}
+                      </Chip>
+                    </span>
+                    <time
+                      className="text-muted shrink-0 text-xs leading-5"
+                      dateTime={event.createdAt}
+                    >
+                      {formatDateTime(event.createdAt, locale)}
+                    </time>
+                  </span>
+                </Button>
               </Timeline.Content>
             </Timeline.Item>
-          ))}
-        </Timeline>
-      )}
+          );
+        })}
+      </Timeline>
 
-      {showCreateForm && (
+      {events.length === 0 ? (
+        <ClinicEmptyState className="mt-3" title={t("clinic.procedures.events.empty")} />
+      ) : null}
+
+      {showCreateForm ? (
         <PatientProcedureEventForm
           procedureId={procedureId}
           projectId={patientId}
           onClose={() => setShowCreateForm(false)}
         />
-      )}
-    </>
+      ) : null}
+    </div>
   );
 }

@@ -11,6 +11,7 @@ import { ShiftEditor } from "../components/appointments/shifts/ShiftEditor";
 import { ServiceDeleteDialog } from "../components/services/ServiceDeleteDialog";
 import { PatientProfileForm } from "../components/patients/profile/PatientProfileForm";
 import { emptyFormData } from "../models/patients/profile/PatientProfileForm";
+import { PatientProcedureEventTimeline } from "../components/patients/procedures/PatientProcedureEventTimeline";
 
 const messages = {
   ...clinicMessageCatalogs.en,
@@ -28,6 +29,18 @@ function Wrapper({ children }: { children: ReactNode }) {
 }
 
 describe("clinic display components", () => {
+  it("uses the clinical timeline as keyboard-accessible navigation without row commands", () => {
+    const onNavigate = vi.fn();
+    render(<PatientProcedureEventTimeline patientId="patient-1" procedureId="procedure-1" selectedEventId="event-2" events={[
+      { id: "event-1", projectId: "patient-1", procedureId: "procedure-1", title: "Assessment", description: "", isCommitted: true, committedAt: "2026-07-13T08:00:00Z", createdAt: "2026-07-13T07:00:00Z", position: 0 },
+      { id: "event-2", projectId: "patient-1", procedureId: "procedure-1", title: "Treatment", description: "", isCommitted: false, createdAt: "2026-07-13T09:00:00Z", position: 1 },
+    ]} onNavigate={onNavigate} />, { wrapper: Wrapper });
+    fireEvent.click(screen.getByRole("button", { name: "Treatment" }));
+    expect(onNavigate).toHaveBeenCalledWith({ kind: "patientProcedureEventDetail", patientId: "patient-1", procedureId: "procedure-1", eventId: "event-2" });
+    expect(document.querySelector("time")?.getAttribute("datetime")).toBe("2026-07-13T07:00:00Z");
+    expect(screen.queryByRole("button", { name: "Move Step Earlier" })).not.toBeInTheDocument();
+  });
+
   it("renders service presentation models and delegates delete", () => {
     const onDelete = vi.fn();
     render(<ServiceList items={[{ id: "s-1", name: "Consultation", serviceTypeName: "Visit" }]} onDelete={onDelete} />, { wrapper: Wrapper });

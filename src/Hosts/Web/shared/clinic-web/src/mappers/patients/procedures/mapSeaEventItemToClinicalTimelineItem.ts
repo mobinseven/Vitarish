@@ -1,23 +1,24 @@
+import type { SeaAttachmentReadDto } from "@vitarish/sea-web";
 import type { EventItemSummary, EventItemType } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 
-function classifyItemType(contentType?: string | null): EventItemType {
-  if (!contentType) return "note";
+function classifyItemType(kind: number, contentType?: string | null): EventItemType {
+  if (kind === 0) return "note";
+  if (!contentType) return "file";
   if (contentType.startsWith("audio/") || contentType.startsWith("video/")) return "media";
   if (contentType.startsWith("image/")) return "media";
-  if (contentType === "text/plain" || contentType === "text/markdown") return "note";
   return "file";
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mapToEventItemSummary(dto: any): EventItemSummary {
+export function mapToEventItemSummary(dto: SeaAttachmentReadDto): EventItemSummary {
   return {
     id: dto.id,
     eventId: dto.eventId,
-    type: classifyItemType(dto.contentType),
+    type: classifyItemType(dto.kind, dto.contentType),
     content: dto.content,
     contentType: dto.contentType ?? undefined,
     contentThumbnail: dto.contentThumbnail ?? undefined,
-    size: typeof dto.size === "string" ? Number(dto.size) : dto.size ?? undefined,
+    size: dto.size,
+    fileName: dto.fileName ?? undefined,
     createdAt: dto.createdAt,
   };
 }

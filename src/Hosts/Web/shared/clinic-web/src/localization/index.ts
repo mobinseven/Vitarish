@@ -21,6 +21,7 @@ export {
   formatCurrency,
   formatList,
   formatRelativeTime,
+  formatFileSize,
   getReactAriaLocale,
   getDateCalendar,
   parseIsoDateValue,
