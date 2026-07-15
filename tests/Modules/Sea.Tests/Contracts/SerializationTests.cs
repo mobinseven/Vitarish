@@ -3,6 +3,8 @@ using FluentAssertions;
 using Vitarish.Sea.Contracts.Errors;
 using Vitarish.Sea.Contracts.Results;
 using Vitarish.Sea.Contracts.Routes;
+using Vitarish.Sea.Contracts.Responses;
+using Vitarish.Sea.Contracts.Enums;
 
 namespace Sea.Tests.Contracts;
 
@@ -71,5 +73,19 @@ public class SerializationTests
         SeaApiRoutes.Events.Should().Be("/events");
         SeaApiRoutes.Attachments.Should().Be("/attachments");
         SeaApiRoutes.Roles.Should().Be("/roles");
+    }
+
+    [Fact]
+    public void Attachment_filename_round_trips_and_legacy_null_remains_valid()
+    {
+        var value = new AttachmentWriteDto(Guid.NewGuid(), "content", "application/pdf", null, 42, AttachmentKind.File, "report.pdf");
+
+        var roundTrip = JsonSerializer.Deserialize<AttachmentWriteDto>(JsonSerializer.Serialize(value, JsonOptions), JsonOptions);
+        var legacy = JsonSerializer.Deserialize<AttachmentWriteDto>("{\"eventId\":\"00000000-0000-0000-0000-000000000001\",\"content\":\"note\",\"contentType\":\"text/plain\",\"size\":4}", JsonOptions);
+
+        roundTrip!.FileName.Should().Be("report.pdf");
+        roundTrip.Kind.Should().Be(AttachmentKind.File);
+        legacy!.FileName.Should().BeNull();
+        legacy.Kind.Should().Be(AttachmentKind.Text);
     }
 }

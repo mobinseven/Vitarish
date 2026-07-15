@@ -55,6 +55,7 @@ export { useMoveSeaEventUp, useMoveSeaEventDown } from "./hooks/events/useMoveSe
 export { useCommitSeaEvent } from "./hooks/events/useCommitSeaEvent";
 export { useUncommitSeaEvent } from "./hooks/events/useUncommitSeaEvent";
 export { useSeaEventWritePermission } from "./hooks/events/useSeaEventWritePermission";
+export { useSeaEventCapabilities } from "./hooks/events/useSeaEventCapabilities";
 export { seaEventKeys } from "./hooks/events/seaEventKeys";
 
 // Role hooks
@@ -75,11 +76,12 @@ export { SeaLoadingState, SeaErrorState, SeaEmptyState } from "./components/stat
 
 // Attachment hooks
 export { useSeaEventAttachments, useSeaEventAttachmentCount } from "./hooks/attachments/useSeaAttachments";
+export { toSeaFileAttachment } from "./api/attachments/seaAttachmentFile";
 export { useCreateSeaTextAttachment, useUpdateSeaTextAttachment, useCreateSeaFileAttachment, useDeleteSeaAttachment } from "./hooks/attachments/useSeaAttachmentMutations";
 export { seaAttachmentKeys } from "./hooks/attachments/seaAttachmentKeys";
 
 // Models
-export type { SeaProjectReadDto, SeaProcedureReadDto, SeaEventReadDto, SeaRoleReadDto, SeaAttachmentReadDto, SeaUserRoleReadDto, SeaStatisticsDto } from "./models/seaStatModels";
+export type { SeaProjectReadDto, SeaProcedureReadDto, SeaEventReadDto, SeaRoleReadDto, SeaAttachmentReadDto, SeaUserRoleReadDto, SeaStatisticsDto, SeaEventCapabilities } from "./models/seaStatModels";
 
 // Mappers
 export { mapSeaProject, mapSeaProcedure, mapSeaEvent, mapSeaAttachment, mapSeaRole, mapSeaUserRole, mapSeaAttachmentCount, mapSeaStatistics } from "./mappers/seaReadDtoMappers";

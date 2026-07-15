@@ -6,7 +6,7 @@ import { Timeline, Widget } from "@heroui-pro/react";
 import type { SeaNavigationIntent } from "../../navigation";
 import { SeaLoadingState, SeaEmptyState } from "../state/SeaStateSurface";
 import { useSeaEvents } from "../../hooks/events/useSeaEvents";
-import { useSeaEventWritePermission } from "../../hooks/events/useSeaEventWritePermission";
+import { useSeaEventCapabilities } from "../../hooks/events/useSeaEventCapabilities";
 import { useCommitSeaEvent } from "../../hooks/events/useCommitSeaEvent";
 import { useUncommitSeaEvent } from "../../hooks/events/useUncommitSeaEvent";
 import { useMoveSeaEventUp } from "../../hooks/events/useMoveSeaEvent";
@@ -184,7 +184,7 @@ function SeaEventTimelineItem({
   onNavigate,
 }: SeaEventTimelineItemProps) {
   const { t } = useLocalizedText();
-  const { data: hasWritePermission } = useSeaEventWritePermission(event.id);
+  const { data: capabilities } = useSeaEventCapabilities(event.id);
 
   return (
     <Timeline.Item id={event.id} status={event.isCommitted ? "success" : "default"}>
@@ -215,18 +215,20 @@ function SeaEventTimelineItem({
                 onNavigate?.({ kind: "eventDetail", projectId, procedureId, eventId: event.id })
               }
             >
-              {t("common.actions.edit")}
+              {capabilities?.isElevated ? t("common.actions.edit") : t("common.actions.view")}
             </Button>
-            {hasWritePermission && (
+            {capabilities?.canWrite && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onPress={() => onToggleCommit(event)}
+                isDisabled={isCommitPending}
+              >
+                {event.isCommitted ? t("sea.events.uncommit") : t("sea.events.commit")}
+              </Button>
+            )}
+            {capabilities?.isElevated && (
               <>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onPress={() => onToggleCommit(event)}
-                  isDisabled={isCommitPending}
-                >
-                  {event.isCommitted ? t("sea.events.uncommit") : t("sea.events.commit")}
-                </Button>
                 {index > 0 && (
                   <Button
                     size="sm"

@@ -15,6 +15,17 @@ public static class OpenApiDocumentExtensions
         return services.AddOpenApi(documentName, options =>
         {
             options.ShouldInclude = description => IsModuleOpenApiDescription(description, moduleGroupName);
+            _ = options.AddOperationTransformer((operation, context, _) =>
+            {
+                ModuleEndpointOpenApiConvention? convention = context.Description.ActionDescriptor.EndpointMetadata
+                    .OfType<ModuleEndpointOpenApiConvention>()
+                    .LastOrDefault();
+                if (convention?.Deprecated == true)
+                {
+                    operation.Deprecated = true;
+                }
+                return Task.CompletedTask;
+            });
         });
     }
 

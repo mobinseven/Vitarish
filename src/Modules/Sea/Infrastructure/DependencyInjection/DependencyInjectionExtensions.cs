@@ -13,9 +13,6 @@ public static class DependencyInjectionExtensions
     {
         _ = services.AddVitarishSeaInfrastructure();
         _ = services.AddEntitySearchInfrastructure();
-        _ = services.AddTransient<IAccessControlledProjectsService, AccessControlledProjectsService>();
-        _ = services.AddTransient<IAccessControlledProceduresService, AccessControlledProceduresService>();
-        _ = services.AddTransient<IAccessControlledEventsService, AccessControlledEventsService>();
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(SeaDbContext).Assembly));
 
         // Register feed data sources

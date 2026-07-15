@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { resolveLocale } from "../resolveLocale";
-import { formatDate, formatNumber } from "../format";
+import { formatDate, formatFileSize, formatNumber } from "../format";
 import { parseIsoDateValue, dateValueToIsoDate } from "../dateValue";
 
 describe("resolveLocale", () => {
@@ -24,6 +24,11 @@ describe("resolveLocale", () => {
 });
 
 describe("formatDate", () => {
+  it("formats file sizes with locale-aware units", () => {
+    expect(formatFileSize(1536, "en")).toContain("1.5");
+    expect(formatFileSize(0, "fa")).not.toBe("");
+    expect(formatFileSize(-1, "en")).toBe("");
+  });
   it("formats a date string", () => {
     const result = formatDate("2024-01-15", "en");
     expect(result).toContain("1");

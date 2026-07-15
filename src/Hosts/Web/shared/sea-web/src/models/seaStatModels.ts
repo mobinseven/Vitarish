@@ -55,12 +55,20 @@ export interface SeaEventReadDto extends SeaTrackedReadFields {
   stats: SeaStatsReadDto | null;
 }
 
+export interface SeaEventCapabilities {
+  canRead: boolean;
+  canWrite: boolean;
+  isElevated: boolean;
+}
+
 export interface SeaAttachmentReadDto extends SeaTrackedReadFields {
   eventId: string;
+  fileName: string | null;
   content: string;
   contentType: string;
   contentThumbnail: string | null;
   size: number;
+  kind: number;
 }
 
 export interface SeaRoleReadDto extends SeaTrackedReadFields {

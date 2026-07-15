@@ -1,211 +1,206 @@
-# AGENTS.md - Architecture Rules
+# AGENTS.md
 
-These rules are non-negotiable. Every artifact you produce must comply. No exceptions, no shortcuts, no "it is just a small thing."
+This file is the repository-wide operating contract for coding agents.
 
----
+- **[MUST]** is mandatory. An agent may deviate only when the user or repository owner explicitly approves the exception and the reason is recorded in the narrowest authoritative document or ADR. Security, authorization, secret-handling, and data-loss protections may never be waived merely to complete a task.
+- **[SHOULD]** is the strong default. Deviate only when the alternative is clearly simpler or safer for the current requirement, and state why.
 
-## What Artifact Means
+Keep this file focused on guidance that applies to nearly every change. Put area-specific guidance in the nearest nested `AGENTS.md`, repeatable workflows in skills, repository navigation and commands in `docs/codebase-map.md`, and detailed architectural reasoning in `docs/architecture-rationale.md`.
 
-Every unit you touch: solution, project, namespace, class, struct, record, interface, enum, method, function, service, command, query, DTO, entity, event, migration, config, test, adapter, port, controller, handler, repository, document, skill, or integration boundary.
+## Scope and precedence
 
----
+These instructions apply to every changed artifact: code, tests, contracts, schemas, migrations, configuration, generated outputs, documentation, and skills.
 
-## The Ten Rules
+Codex loads instruction files from the repository root toward the working directory. A closer nested `AGENTS.md` may specialize commands, placement, and **[SHOULD]** defaults for its subtree, but may not weaken a root **[MUST]** rule. A task-matched skill may specialize a **[SHOULD]** rule. Conflicting **[MUST]** instructions are a policy defect: stop using the conflicting design, report the conflict, and do not silently choose one.
 
-**1. One responsibility per artifact.**
-One reason to change. If it mixes business logic, persistence, validation, orchestration, transport, or UI, split it.
+Before changing files, read only the context that applies:
 
-**2. One active state model.**
-No duplicated domain concepts, no parallel truth sources. If two models exist, define their boundary and mapping explicitly.
+- [`docs/architecture.md`](docs/architecture.md): dependency matrix, module boundaries, allowed dependencies, public contracts, and repository-specific architecture.
+- [`docs/codebase-map.md`](docs/codebase-map.md): module locations, generated areas, canonical build/test commands, and common change destinations.
+- [`docs/memory.md`](docs/memory.md): durable lessons, fragile areas, known failure modes, and unfinished migrations that a future session would otherwise rediscover.
+- [`docs/architecture-rationale.md`](docs/architecture-rationale.md): reasoning and examples behind the invariants below; read for architecture-sensitive work, not every local edit.
 
-**3. Minimize inter-component knowledge.**
-Components know only what they directly need. No reaching through object graphs. No leaking internals, persistence details, or framework specifics.
+Do not duplicate those documents here.
 
-**4. Depend on abstractions, not implementations.**
-Core logic depends on stable contracts only. Never on databases, HTTP clients, filesystems, vendor SDKs, clocks, or UI details.
+## Repository invariants and defaults
 
-**5. Commands change state. Queries return data. Never both.**
-A method that changes state must not return data as a query API. A method that returns data must not change observable state.
+1. **Cohesion [SHOULD]**  
+   Every artifact should have one clear primary reason to change. Split unrelated forces, such as business policy and persistence mechanics, but keep cohesive behavior together when splitting would only add navigation or indirection. A composition root or UI component may own several closely related concerns without violating this rule.
 
-**6. Validate all inputs. Handle all failures explicitly.**
-Invalid input, unavailable dependencies, partial failure, retries, idempotency, cancellation, and concurrency must be handled intentionally. Silent swallowing is a defect.
+2. **Authoritative ownership [MUST]**  
+   Every invariant, mutable state, business rule, and shared value must have one authoritative owner. DTOs, persistence shapes, caches, indexes, generated clients, fixtures, and view models may represent the same concept, but their source and synchronization path must be explicit. Never create two places that can independently decide the same rule or value.
 
-**7. Extend through new code, not edits to stable code.**
-New behavior goes in new implementations, strategies, handlers, or adapters when an extension point already exists.
+3. **Narrow knowledge [SHOULD]**  
+   Give each component only the information and capabilities it needs through the narrowest stable contract appropriate to the boundary. Do not reach through object graphs, depend on another component's internals, or couple to framework implementation details.
 
-**8. Protect core logic from infrastructure.**
-Domain and Application logic must never import or reference UI, database, transport, framework, filesystem, network, clock, or third-party SDKs.
+4. **Dependency direction [MUST]**  
+   Domain logic must remain independent of infrastructure and UI. Application logic may depend on application-defined ports for required capabilities, but never on concrete databases, HTTP clients, filesystems, vendor SDKs, UI frameworks, or other infrastructure implementations. Infrastructure and presentation may depend inward; core and application must not depend outward. Do not introduce an interface merely because a concrete type exists. Add a port when it protects an architectural boundary, controls nondeterminism, supports an existing alternative implementation, or represents a meaningful application capability.
 
-**9. Do not add what is not needed now.**
-No speculative layers, fashionable patterns, or generic frameworks for imagined futures. If it does not solve a present problem, remove it.
+5. **Commands and queries [MUST]**  
+   Queries must not cause externally observable state changes. Commands may return the minimum result needed to describe their outcome, such as an identifier, concurrency token, validation result, or redirect target, but must not become general-purpose read APIs. Command-query separation does not require CQRS infrastructure or a mediator framework.
 
-**10. One source of truth for every rule and value.**
-Business rules, validation logic, state transitions, config values, shared definitions, user-facing copy, and generated artifacts exist in exactly one owner.
+6. **Explicit boundaries and failure behavior [MUST]**  
+   Validate transport shape at transport boundaries, use-case preconditions at application boundaries, domain invariants in their authoritative owner, and external responses before trusting them. Define cancellation, timeout, retry, duplicate-call, idempotency, concurrency, partial-failure, and unavailable-dependency behavior where relevant. Never swallow failures or leave correctness to accidental runtime behavior.
 
----
+7. **Cohesive edits before invented extension points [SHOULD]**  
+   Use an existing extension point when it naturally fits. Otherwise, make the smallest cohesive change to the artifact that already owns the behavior. Do not invent a handler, strategy, plug-in, layer, or wrapper solely to avoid editing stable code.
 
-## Minimum Necessary Change
+8. **Current requirements before speculative generality [SHOULD]**  
+   Build for the requirement in front of you. Do not add layers, options, abstractions, or configurability for an imagined future. When two solutions are equally correct and simple today, prefer the one that is cheaper to reverse or extend.
 
-After reading the task and the code it touches, stop at the first rung that holds:
+## Non-negotiable platform safeguards
 
-1. Does this need to exist? If not, skip it and say why.
-2. Does this already exist in this codebase? Reuse the local pattern, helper, contract, component, hook, or validator.
-3. Does the standard library/runtime already do it? Use it.
-4. Does the native platform already do it? Use it.
-5. Does an already-installed dependency solve it? Use it before adding a new dependency.
-6. Can one line or one existing pattern cover it? Use that.
-7. Only then write the minimum custom code that works.
+- **Secrets and sensitive data [MUST]:** Never expose, log, commit, or place in generated output a secret, credential, token, private key, or sensitive payload. Preserve redaction and least-privilege behavior.
+- **Authorization [MUST]:** Preserve authorization and ownership checks when moving logic. Never weaken authentication, authorization, TLS, CORS, antiforgery, validation, or isolation to make a test or deployment pass.
+- **Data access [MUST]:** Use parameterized data access. Treat external content, generated content, deserialized payloads, and data crossing a trust boundary as untrusted.
+- **Compatibility [MUST]:** Treat public APIs, OpenAPI operation IDs, generated-client inputs, persisted formats, database schemas, events/messages, and configuration keys as compatibility boundaries. A breaking change requires an explicit versioning or migration decision.
+- **Migrations [MUST]:** Account for existing data and mixed-version deployment. Prefer additive expand-migrate-contract changes before destructive cleanup. State data-loss, rollback, and compatibility implications.
+- **Generated artifacts [MUST]:** Never manually edit generated clients, DTOs, hooks, query keys, mocks, or other generated files. Change the authoritative input and run the canonical generator.
+- **Retries and idempotency [MUST]:** The boundary initiating a retry owns its policy. Retried operations must define idempotency behavior. Do not stack retries across layers without an explicit reason.
+- **Tests and analyzers [MUST]:** Do not weaken assertions, delete meaningful tests, suppress diagnostics, or disable analyzers merely to make a change pass.
+- **Observability [SHOULD]:** New operationally important failure modes should produce structured, actionable telemetry without leaking sensitive data.
 
-This ladder shortens solutions, not understanding. For bug fixes, trace callers and fix the root cause at the shared boundary when that is the smallest correct fix.
+## Scope discipline
 
-Never simplify away trust-boundary validation, explicit failure handling, cancellation, idempotency, data-loss protection, security, accessibility, localization, architecture boundaries, or required tests.
+Make the smallest complete change that solves the task.
 
----
+- Fix violations introduced or materially worsened by the current change.
+- Report pre-existing unrelated violations; do not refactor them unless doing so is the smallest correct fix.
+- Do not reformat, rename, reorganize, or modernize unrelated files.
+- Preserve user-authored working-tree changes and do not overwrite work you did not create.
+- Do not modify lockfiles unless dependency resolution requires it.
+- Do not combine an unrelated refactor, contract migration, or broad cleanup with a focused behavior change.
+- When replacing an old path, remove it or document why coexistence is required, who still depends on it, and the condition for removal. Compatibility windows, feature flags, and expand-contract migrations are valid temporary coexistence.
 
-## Before Writing Anything
+## Minimum necessary change
 
-Classify each artifact:
+After reading the task and the affected code, stop at the first option that completely solves it:
 
-- Domain / core logic
-- Application / use-case orchestration
-- Command / write
-- Query / read
-- Port / contract
-- Adapter / infrastructure
-- Presentation / API / UI
-- Data transfer shape
-- Persistence model
-- Test
-- Configuration / composition root
-- Documentation / skill
+1. Do nothing because the requested behavior already exists or should not exist.
+2. Reuse the repository's existing owner, pattern, contract, component, hook, validator, or script.
+3. Use the standard library or runtime.
+4. Use the native platform or framework behavior.
+5. Use an already-installed dependency.
+6. Make the smallest cohesive edit.
+7. Only then add minimum custom code or a new dependency.
 
-If an artifact fits more than one category, split it.
+This ladder reduces implementation, not investigation. For bugs, trace callers and fix the root cause at the shared boundary when that is the smallest correct fix. Never simplify away security, data-loss protection, validation, cancellation, idempotency, accessibility, localization, architecture boundaries, or required tests.
 
----
+## Planning requirements for non-trivial work
 
-## Mandatory Steps
+Before finalizing a non-trivial plan, and again before implementing it:
 
-1. Identify the smallest set of artifacts required.
-2. Assign exactly one responsibility to each.
-3. Define boundaries: core -> application -> infrastructure -> presentation.
-4. Name the single source of truth for every piece of state and rule.
-5. Separate commands from queries.
-6. Define abstractions before writing any infrastructure dependency.
-7. Ask whether extensibility is needed now, not speculatively.
-8. Remove every pattern, layer, and abstraction that serves no current requirement.
-9. Only then write code.
+1. Identify the smallest affected artifact set.
+2. State each new or structurally changed artifact's architectural layer and primary responsibility. Command/query is a behavioral role and may be stated in addition to the layer.
+3. Confirm dependency direction and placement against `docs/architecture.md` and `docs/codebase-map.md`.
+4. Identify the authoritative owner of every changed rule, state, and contract.
+5. Identify trust boundaries, failure modes, compatibility impact, migration needs, and generated outputs.
+6. Route to only the skills that apply.
+7. Define deterministic validation and any runtime hot scenarios before coding.
+8. Check whether reuse or deletion makes the solution smaller.
+9. Separate confirmed facts, assumptions, and unresolved decisions.
+10. Divide implementation into independently valid, reviewable slices.
+11. Define acceptance criteria for each slice.
+12. State explicitly whether the outcome is planning-only or authorized for implementation.
 
----
+Skip ceremonial classification for typo fixes, local styling corrections, test expectation corrections, and similarly trivial changes that do not alter structure or behavior boundaries.
 
-## Hard Stops
+## Restricted architectural choices
 
-Stop and correct immediately if:
+The following require an explicit current need and should normally be recorded in an ADR when they affect repository architecture:
 
-- A class, method, module, component, skill, or document has more than one responsibility.
-- A method both mutates state and serves as a query.
-- Core logic imports or references infrastructure, frameworks, vendors, or UI.
-- A business rule appears in more than one place.
-- Two artifacts represent the same state without an explicit ownership boundary.
-- A component accesses internals through another component.
-- Adding a feature requires editing stable core logic when an extension point exists.
-- An error is swallowed, ignored, or left to accidental runtime failure.
-- A pattern was chosen because it is fashionable rather than necessary.
-- The design is more complex than the requirement demands.
+- Full CQRS with separate read/write models or pipelines
+- Event sourcing
+- Mediator frameworks
+- Generic repositories
+- New cross-cutting framework or package-manager adoption
+- Custom design-system wrappers
+- Inheritance where composition is comparably simple
 
-Do not proceed past a hard stop. Identify the violation, explain it, fix it.
+Names must express a specific responsibility. Generic words such as `Manager`, `Helper`, `Util`, `Common`, and `Service` do not make an otherwise vague name acceptable.
 
----
-
-## Standing Prohibitions
-
-- No `Manager`, `Helper`, `Util`, `Common`, or vague `Service` names unless the single responsibility is precise and explicit.
-- No extension methods that hide business rules, mutate state, or couple unrelated layers.
-- No business rules in controllers, repositories, DTOs, migrations, adapters, UI components, generated clients, localization resources, or skill files.
-- No CQRS, event sourcing, mediator frameworks, generic repositories, custom design-system wrappers, or new package managers unless they provably reduce complexity for the current problem.
-- No inheritance unless it is clearly simpler and safer than composition.
-- No manual edits to generated clients, generated DTOs, generated hooks, generated query keys, or generated MSW mocks.
-
----
+Do not hide business rules or state mutation in extension methods. Do not place business rules in controllers, repositories, DTOs, migrations, adapters, UI components, generated clients, localization resources, or skill files.
 
 ## Skills
 
-Use skills as task-specific operating manuals.
+Project skills live under `.agents/skills/`. Claude bridge skills under `.claude/skills/` must point to the canonical project skills. Open only the task-matched `SKILL.md`; do not load every skill.
 
-Project skills live under `.agents/skills/`. Claude bridge skills live under `.claude/skills/` and only point back to the canonical skill files.
+| Situation | Skill |
+| --- | --- |
+| Product intent, workflow, roadmap, task derivation, PR slicing, ambiguous scope | `platform-scope-planning` |
+| Classification, placement, dependencies, ADR impact, architecture audit | `platform-architecture-governance` |
+| OpenAPI metadata, generated clients, API-to-React boundary | `platform-api-client-boundary` |
+| React, HeroUI, forms, tables, dialogs, localization, accessibility | `platform-react-ui-boundary` |
+| Test selection, regression protection, validation commands, hot scenarios | `platform-test-strategy` |
+| Focused implementation, review feedback, delivery, handoff | `platform-delivery-loop` |
+| Simplification, deletion, native replacement, over-engineering review | `platform-simplification-audit` |
+| Skill creation, consolidation, routing, bridges, policy harmony | `platform-skill-governance` |
 
-When a task matches a skill, open and follow that skill's `SKILL.md`. Do not load every skill by default.
+Typical chains, using only applicable steps:
 
-### Current Skill Set
-
-```txt
-.agents/skills/
-  platform-scope-planning/
-  platform-architecture-governance/
-  platform-api-client-boundary/
-  platform-react-ui-boundary/
-  platform-test-strategy/
-  platform-delivery-loop/
-  platform-simplification-audit/
-  platform-skill-governance/
+```text
+New feature: Scope Planning -> Architecture Governance -> Test Strategy -> Delivery Loop
+OpenAPI to React: Architecture Governance -> API Client Boundary -> React UI Boundary -> Test Strategy -> Delivery Loop
+React UI: React UI Boundary -> Test Strategy -> Delivery Loop
+Architecture-sensitive change: Architecture Governance -> Test Strategy -> Delivery Loop
+Simplification: Simplification Audit -> Architecture Governance when boundaries change
+Skill maintenance: Skill Governance -> Architecture Governance when repository policy changes
 ```
 
-### Skill Routing
+Planning-only feature work:
 
-| Situation | Use this skill | Read |
-| --- | --- | --- |
-| Product intent, user workflow, journey/roadmap need, implementation task derivation, PR slicing, ambiguous feature scope | Platform Scope Planning | `.agents/skills/platform-scope-planning/SKILL.md` |
-| Artifact classification, file placement, dependency direction, ADR impact, frontend/backend isolation, architecture audit | Platform Architecture Governance | `.agents/skills/platform-architecture-governance/SKILL.md` |
-| OpenAPI endpoint metadata, operation IDs, contract DTOs, generated React clients, apiFetch, generated hooks, API-to-React handoff | Platform API Client Boundary | `.agents/skills/platform-api-client-boundary/SKILL.md` |
-| React Web pages/components/hooks, HeroUI, forms/tables/dialogs, localization, formatting, accessibility, shared Web UI | Platform React UI Boundary | `.agents/skills/platform-react-ui-boundary/SKILL.md` |
-| Required tests, regression coverage, test placement, validation commands, hot test scenarios | Platform Test Strategy | `.agents/skills/platform-test-strategy/SKILL.md` |
-| One focused delivery loop, approved plan execution, review verdicts, feedback triage, handoff | Platform Delivery Loop | `.agents/skills/platform-delivery-loop/SKILL.md` |
-| Simplification review, over-engineering audit, deletion opportunities, standard-library/native replacement, bloat criticism | Platform Simplification Audit | `.agents/skills/platform-simplification-audit/SKILL.md` |
-| Skill creation, deletion, consolidation, metadata, bridges, `AGENTS.md` harmony, stale skill routing | Platform Skill Governance | `.agents/skills/platform-skill-governance/SKILL.md` |
+```text
+Scope Planning -> Architecture Governance -> Test Strategy -> STOP
 
-### Default Chains
+Approved feature implementation:
+Revalidate Plan -> applicable boundary skills -> Test Strategy -> Delivery Loop
 
-Use only the steps that apply:
-
-```txt
-New feature:
-Scope Planning -> Architecture Governance -> Test Strategy -> Delivery Loop
-
-OpenAPI to React:
-Architecture Governance -> API Client Boundary -> React UI Boundary -> Test Strategy -> Delivery Loop
-
-React UI:
-React UI Boundary -> Test Strategy -> Delivery Loop
-
-Architecture-sensitive change:
-Architecture Governance -> Test Strategy -> Delivery Loop
-
-Simplification:
-Simplification Audit -> Architecture Governance if boundaries are affected
-
-Skill maintenance:
-Skill Governance -> Architecture Governance if repository policy changes
+End-to-end request:
+Scope Planning -> Architecture Governance -> Test Strategy
+--- implementation boundary ---
+applicable boundary skills -> Delivery Loop
 ```
 
-### Mandatory Checks Before Implementation
+## Completion criteria
 
-For non-trivial changes, answer:
+### Plan complete
 
-```txt
-1. Is a journey, roadmap, or task derivation needed?
-2. Is an ADR or architecture-governance decision needed?
-3. Does the change affect OpenAPI, generated clients, API/client boundaries, React UI, HeroUI, localization, or shared Web UI?
-4. Where should each artifact live?
-5. What deterministic tests or validators are required?
-6. What hot scenarios require runtime validation?
-7. Can the solution be smaller by reuse, deletion, stdlib/runtime, native platform behavior, or installed dependencies?
-```
+A non-trivial plan is complete only when it states:
 
-Skip irrelevant checks for small local bug fixes, styling changes, simple refactors, and test-only corrections.
+- The problem, intended outcome, and excluded scope
+- Relevant repository facts and the evidence supporting them
+- Assumptions and unresolved decisions
+- Affected artifacts and the intended responsibility of each
+- Architectural placement, dependency direction, and authoritative ownership
+- Public-contract, schema, generated-code, security, migration, and compatibility impact
+- Ordered implementation slices and dependencies between them
+- Acceptance criteria, deterministic tests, runtime scenarios, and canonical validation commands
+- Risks, alternatives rejected, and conditions that would require revising the plan
 
-Before making code, test, documentation, or configuration changes, read the project context docs that apply to the task:
+A list of files or generic implementation steps is not a complete plan.
 
-* [Architecture](docs/architecture.md): rules, boundaries, allowed dependencies, forbidden patterns, and simplicity guidance.
-* [Codebase map](docs/codebase-map.md): repository navigation, module locations, generated-code areas, common change destinations, and build/test pointers.
-* [Memory](docs/memory.md): durable lessons from previous Codex sessions, recurring pitfalls, fragile files, known failure modes, and temporary workarounds.
+### Implementation complete
 
-Use these documents as guidance, but do not duplicate them. If a change reveals durable new knowledge, update the narrowest owning document. Update `docs/memory.md` only for lessons future sessions would otherwise waste time rediscovering.
+An implementation is complete only when the handoff states:
+
+- What changed and the responsibility of each materially changed artifact
+- Which tests, builds, generators, linters, analyzers, and runtime checks ran, with their results
+- Which relevant checks did not run and why
+- Whether public contracts, schemas, persisted data, configuration, or generated artifacts changed
+- Migration, compatibility, rollback, security, and operational implications
+- Any deviation from the approved plan
+- Any deliberate shortcut, remaining risk, or intentionally excluded scope
+
+Compilation alone is not completion.
+
+## Durable knowledge
+
+Write durable information to its narrowest authoritative owner:
+
+- Architecture decisions and alternatives: ADR or `docs/architecture.md`
+- Repository navigation and canonical commands: `docs/codebase-map.md`
+- Repeatable procedures: the owning skill or runbook
+- Actionable debt and removal work: issue tracker or structured debt register, including owner and removal condition
+- Durable rediscovery-prevention lessons, fragile areas, and unfinished migration context: `docs/memory.md`
+
+Do not turn `docs/memory.md` into a running project-management log. Link to the owning issue or ADR when future agents need the context.

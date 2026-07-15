@@ -19,5 +19,10 @@ public record AttachmentReadDto : EntityReadDto
     [JsonPropertyName("size")]
     public long Size { get; set; }
 
-}
+    [JsonPropertyName("fileName")]
+    public string? FileName { get; set; }
 
+    [JsonPropertyName("kind")]
+    public Enums.AttachmentKind Kind { get; set; }
+
+}

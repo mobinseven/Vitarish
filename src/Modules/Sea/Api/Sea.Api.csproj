@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Riok.Mapperly" />
   </ItemGroup>
 
@@ -14,6 +18,10 @@
     <ProjectReference Include="..\Contracts\Sea.Contracts.csproj" />
     <ProjectReference Include="..\Application\Sea.Application.csproj" />
     <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Sea.Tests" />
   </ItemGroup>
 
 </Project>

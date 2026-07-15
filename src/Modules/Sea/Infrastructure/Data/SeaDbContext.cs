@@ -155,6 +155,10 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
 
         _ = modelBuilder.Entity<Event>()
             .Ignore(e => e.Stats);
+
+        _ = modelBuilder.Entity<Attachment>()
+            .Property(a => a.FileName)
+            .HasMaxLength(Attachment.MaximumFileNameLength);
     }
 
     private static Dictionary<string, object?> DeserializeMetadata(string? value)

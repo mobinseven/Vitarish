@@ -14,7 +14,7 @@ export function useCreatePatientProcedureEventItemText() {
 export function useCreatePatientProcedureEventItemFile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { eventId: string; content: string; contentType: string; size: number }) =>
+    mutationFn: (data: { eventId: string; content: string; contentType: string; size: number; fileName: string }) =>
       createEventItemFile(data),
     onSuccess: () => qc.invalidateQueries({ queryKey: patientProcedureKeys.all }),
   });

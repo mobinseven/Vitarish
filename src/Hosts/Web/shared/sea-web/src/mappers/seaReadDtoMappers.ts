@@ -155,10 +155,12 @@ export function mapSeaAttachment(dto: AttachmentReadDto): SeaAttachmentReadDto {
   return {
     ...mapTrackedFields(dto, "attachment"),
     eventId: requireString(dto.eventId, "attachment.eventId"),
+    fileName: optionalString(dto.fileName),
     content: requireString(dto.content, "attachment.content"),
     contentType: requireString(dto.contentType, "attachment.contentType"),
     contentThumbnail: optionalString(dto.contentThumbnail),
     size: mapSeaInteger(dto.size, "attachment.size"),
+    kind: typeof dto.kind === "number" ? dto.kind : 0,
   };
 }
 

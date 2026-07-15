@@ -1,5 +1,7 @@
 using Vitarish.Sea.Application.Commands.Attachments;
 using Vitarish.Sea.Application.Queries.Events;
+using Vitarish.Entities.Contracts.Models;
+using Vitarish.Sea.Domain.Enums;
 using Vitarish.Sea.Domain.Mappers;
 
 namespace Vitarish.Sea.Infrastructure.Services;
@@ -23,30 +25,47 @@ internal sealed class AttachmentsService(
     public async Task<int> GetCountByEventAsync(Guid eventId, CancellationToken cancellationToken) => (await CountAsync<Attachment, AttachmentDescriptor>(new() { EventId = eventId }, cancellationToken))
             .EnsureValue("Count attachments by event");
 
-    public async Task<AttachmentReadDto?> AddAsync(
+    public async Task<EntityResult<AttachmentReadDto>> AddAsync(
         Guid eventId,
         string content,
         string contentType,
         string? contentThumbnail,
         long size,
-        CancellationToken cancellationToken) => (await AddAsync(new Attachment
-        {
-            EventId = eventId,
-            Content = content,
-            ContentType = contentType,
-            ContentThumbnail = contentThumbnail,
-            Size = size
-        },
-             cancellationToken)).GetValueOrDefault();
+        string? fileName,
+        AttachmentKind kind,
+        CancellationToken cancellationToken)
+    {
+        EntityResult<Attachment> attachment = Attachment.Create(
+            eventId, content, contentType, contentThumbnail, size, kind, fileName);
+        return attachment.IsFailure
+            ? EntityResult<AttachmentReadDto>.Failure([.. attachment.Errors])
+            : await base.AddAsync(attachment.Value!, cancellationToken);
+    }
 
-    public async Task AddAsync(
-        Guid eventId,
-        IEnumerable<AttachmentReadDto> attachments,
-        CancellationToken cancellationToken) => await Mediator.Send(
-            new AddAttachmentsCommand(
-                eventId,
-                attachments.Select(a => new AttachmentItem(a.Content, a.ContentType, a.ContentThumbnail, a.Size))),
-            cancellationToken);
+    public async Task<EntityResult<IReadOnlyList<AttachmentReadDto>>> AddBatchAsync(
+        IReadOnlyList<AttachmentWriteDto> attachments,
+        CancellationToken cancellationToken)
+    {
+        List<Attachment> entities = new(attachments.Count);
+        foreach (AttachmentWriteDto item in attachments)
+        {
+            EntityResult<Attachment> attachment = Attachment.Create(
+                item.EventId,
+                item.Content,
+                item.ContentType,
+                item.ContentThumbnail,
+                item.Size,
+                item.Kind,
+                item.FileName);
+            if (attachment.IsFailure)
+            {
+                return EntityResult<IReadOnlyList<AttachmentReadDto>>.Failure([.. attachment.Errors]);
+            }
+            entities.Add(attachment.Value!);
+        }
+
+        return await base.AddAsync(entities, cancellationToken);
+    }
 
     public async Task RemoveAsync(Guid eventId, Guid attachmentId, CancellationToken cancellationToken) => await Mediator.Send(new RemoveAttachmentCommand(eventId, attachmentId), cancellationToken);
 

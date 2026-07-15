@@ -40,6 +40,36 @@ def statement_end(text,start):
         elif c in ')}]' and depth>0: depth-=1
         elif c==';' and depth==0: return i
     return -1
+def matching_paren(text,start):
+    depth=0; quote=None; escape=False; line_comment=False; block_comment=False
+    for i in range(start,len(text)):
+        c=text[i]; nxt=text[i+1] if i+1<len(text) else ''
+        if line_comment:
+            if c=='\n': line_comment=False
+            continue
+        if block_comment:
+            if c=='*' and nxt=='/': block_comment=False
+            continue
+        if quote:
+            if escape: escape=False
+            elif c=='\\': escape=True
+            elif c==quote: quote=None
+            continue
+        if c=='/' and nxt=='/': line_comment=True; continue
+        if c=='/' and nxt=='*': block_comment=True; continue
+        if c in ('"',"'"): quote=c
+        elif c=='(': depth+=1
+        elif c==')':
+            depth-=1
+            if depth==0: return i
+    return -1
+def module_calls(text):
+    pattern=re.compile(r'(?P<method>MapModule(?:Get|Post|Put|Delete|Patch|Head))\s*\(')
+    for match in pattern.finditer(text):
+        open_paren=match.end()-1
+        end=matching_paren(text,open_paren)
+        if end!=-1:
+            yield match, text[open_paren+1:end]
 def files():
     found=[]
     for pat in SCAN_PATTERNS: found.extend(p.relative_to(ROOT) for p in ROOT.glob(pat) if p.is_file())
@@ -137,8 +167,8 @@ def scan(p:Path):
     for m in re.finditer(r'MapAnonymousModuleGroup\((?P<args>[^)]*)\)', text):
         strings=re.findall(r'"([^"]*)"', m.group('args'))
         if len(strings)<2 or not strings[1].strip(): out.append(V(p,line(text,m.start()),'AnonymousJustificationMissing','MapAnonymousModuleGroup','Provide a non-empty machine-readable justification.'))
-    for m in re.finditer(r'(?P<method>MapModule(?:Get|Post|Put|Delete|Patch|Head))\((?P<args>[^;]*)\)', text, re.S):
-        method=m.group('method'); args=split_args(m.group('args')); lineno=line(text,m.start())
+    for m, call_args in module_calls(text):
+        method=m.group('method'); args=split_args(call_args); lineno=line(text,m.start())
         op=named(args,'operationId') or positional(args,2)
         if not op or not re.match(r'"[A-Z][A-Za-z0-9]+"$', op): out.append(V(p,lineno,'OperationIdMissing',method,'Pass a stable PascalCase operation ID.'))
         success=named(args,'successType') or positional(args,3); status=named(args,'successStatusCode')
@@ -168,9 +198,32 @@ def scan(p:Path):
     for m in re.finditer(r'OpenApiExclusionJustification:', text):
         out.append(V(p,line(text,m.start()),'RawOpenApiExclusionMetadata','OpenApiExclusionJustification','Use ExcludeFromOpenApiWithJustification; raw string metadata is not accepted.'))
     return out
-violations=[]
-for p in files(): violations.extend(scan(p))
-print('OpenAPI endpoint coverage validation')
-print('Violations found:', len(violations))
-for v in violations: print(f'{v.path}:{v.line}: kind={v.kind}; endpoint={v.expr}; remediation={v.fix}')
-sys.exit(1 if violations else 0)
+def self_test():
+    fixture='''
+_ = group.MapModulePost(
+    "/events/{id:guid}",
+    async (Guid id, C.EventWriteDto request, CancellationToken cancellationToken) =>
+    {
+        await Task.Yield();
+        return Results.Ok(request);
+    },
+    "SeaUpdateEvent",
+    typeof(C.EventReadDto));
+'''
+    calls=list(module_calls(fixture))
+    assert len(calls)==1, 'multiline endpoint call was not parsed'
+    args=split_args(calls[0][1])
+    assert positional(args,2)=='"SeaUpdateEvent"', 'operation ID was truncated by a multiline handler'
+    assert type_token(positional(args,3))=='C.EventReadDto', 'contract type was truncated by a multiline handler'
+    print('OpenAPI endpoint coverage parser self-test passed')
+
+if __name__ == '__main__':
+    if '--self-test' in sys.argv:
+        self_test()
+        sys.exit(0)
+    violations=[]
+    for p in files(): violations.extend(scan(p))
+    print('OpenAPI endpoint coverage validation')
+    print('Violations found:', len(violations))
+    for v in violations: print(f'{v.path}:{v.line}: kind={v.kind}; endpoint={v.expr}; remediation={v.fix}')
+    sys.exit(1 if violations else 0)

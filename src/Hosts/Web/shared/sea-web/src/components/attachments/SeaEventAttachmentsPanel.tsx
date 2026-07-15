@@ -35,6 +35,7 @@ export function SeaEventAttachmentsPanel({ eventId }: SeaEventAttachmentsPanelPr
         content: newText.trim(),
         contentType: "text/plain",
         size: new TextEncoder().encode(newText.trim()).length,
+        kind: 0,
       },
       {
         onSuccess: () => {

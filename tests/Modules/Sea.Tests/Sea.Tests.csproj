@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\..\src\Modules\Sea\Client\Sea.Client.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Sea\Api\Sea.Api.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Sea\Domain\Sea.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Sea\Infrastructure\Sea.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

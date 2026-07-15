@@ -6,6 +6,8 @@ export async function toSeaFileAttachment(eventId: string, file: File): Promise<
     content: await readFileAsDataUrl(file),
     contentType: file.type || "application/octet-stream",
     size: file.size,
+    kind: 1,
+    fileName: file.name,
   };
 }
 
