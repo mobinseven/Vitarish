@@ -408,3 +408,4 @@ FodyWeavers.xsd
 **/api/generated/**
 **/*.tsbuildinfo
 .mimocode/*
+.vscode/settings.json
