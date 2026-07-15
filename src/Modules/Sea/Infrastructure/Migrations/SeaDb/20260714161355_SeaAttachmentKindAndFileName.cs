@@ -23,41 +23,20 @@ namespace Vitarish.Sea.Infrastructure.Migrations.SeaDb
                 schema: "Sea",
                 table: "Attachments",
                 type: "integer",
-                nullable: true);
-
-            migrationBuilder.Sql(
-                """
-                UPDATE "Sea"."Attachments"
-                SET "Kind" = CASE
-                    WHEN "Content" ~* '^data:' THEN 1
-                    WHEN "Content" ~* '^[a-z][a-z0-9+.-]*://' THEN 1
-                    WHEN "Content" ~* '^\\{?[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\}?$' THEN 1
-                    ELSE 0
-                END
-                WHERE "Kind" IS NULL;
-                """);
-
-            migrationBuilder.AlterColumn<int>(
-                name: "Kind",
-                schema: "Sea",
-                table: "Attachments",
-                type: "integer",
                 nullable: false,
-                oldClrType: typeof(int),
-                oldType: "integer",
-                oldNullable: true);
+                defaultValue: 0);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Kind",
+                name: "FileName",
                 schema: "Sea",
                 table: "Attachments");
 
             migrationBuilder.DropColumn(
-                name: "FileName",
+                name: "Kind",
                 schema: "Sea",
                 table: "Attachments");
         }

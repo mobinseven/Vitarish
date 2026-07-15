@@ -10,30 +10,33 @@ export type FindOrCreateStep = "lookup" | "search" | "create" | "selected";
 
 export function usePatientFindOrCreate() {
   const [step, setStep] = useState<FindOrCreateStep>("lookup");
-  const [foundPatient, setFoundPatient] = useState<PatientViewDto | null>(null);
   const [searchResults, setSearchResults] = useState<PatientViewDto[] | null>(null);
   const [lookupError, setLookupError] = useState<string | null>(null);
+  const [createIdentificationCode, setCreateIdentificationCode] = useState("");
   const [isLooking, setIsLooking] = useState(false);
 
   const advancedSearch = usePatientSearch();
   const createPatient = useCreatePatientProfile();
 
-  const handleLookup = useCallback(async (identificationCode: string) => {
-    if (!identificationCode.trim()) return;
+  const handleLookup = useCallback(async (identificationCode: string): Promise<PatientViewDto | null> => {
+    const normalizedCode = identificationCode.trim();
+    if (!normalizedCode) return null;
     setIsLooking(true);
     setLookupError(null);
     try {
       const patient = await lookupPatientByIdentificationCode({
-        identificationCode: identificationCode.trim(),
+        identificationCode: normalizedCode,
       });
-      setFoundPatient(patient);
       setStep("selected");
+      return patient;
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {
-        setLookupError("not-found");
+        setCreateIdentificationCode(normalizedCode);
+        setStep("create");
       } else {
         setLookupError("error");
       }
+      return null;
     } finally {
       setIsLooking(false);
     }
@@ -54,16 +57,16 @@ export function usePatientFindOrCreate() {
 
   const handleGoToLookup = useCallback(() => {
     setStep("lookup");
-    setFoundPatient(null);
     setSearchResults(null);
     setLookupError(null);
+    setCreateIdentificationCode("");
   }, []);
 
   return {
     step,
-    foundPatient,
     searchResults,
     lookupError,
+    createIdentificationCode,
     isLooking,
     handleLookup,
     handleAdvancedSearch,

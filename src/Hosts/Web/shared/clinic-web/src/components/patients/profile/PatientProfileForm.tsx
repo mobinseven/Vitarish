@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Button, FieldError, Input, Label, TextField } from "@heroui/react";
+import { Button, Calendar, DateField, DatePicker, FieldError, Input, Label, TextField } from "@heroui/react";
 import { NativeSelect } from "@heroui-pro/react";
+import { dateValueToIsoDate, parseIsoDateValue } from "@vitarish/web-localization";
 import type { PatientProfileFormData, PatientProfileFormErrors } from "../../../models/patients/profile/PatientProfileForm";
-import { LocalizedDateField } from "../../forms/LocalizedDateField";
 import { useLocalizedText } from "../../../localization/index";
 
 interface PatientProfileFormProps {
@@ -72,11 +72,37 @@ export function PatientProfileForm({
                         value={formData.identificationCode}
                         onChange={(v) => handleChange("identificationCode", v)}
                     />
-                    <LocalizedDateField
-                        label={t("clinic.patient.fields.dateOfBirth")}
-                        value={formData.dateOfBirth}
-                        onChange={(v) => handleChange("dateOfBirth", v)}
-                    />
+                    <DatePicker
+                        value={parseIsoDateValue(formData.dateOfBirth)}
+                        onChange={(value) => handleChange("dateOfBirth", dateValueToIsoDate(value))}
+                    >
+                        <Label>{t("clinic.patient.fields.dateOfBirth")}</Label>
+                        <DateField.Group fullWidth>
+                            <DateField.Input>
+                                {(segment) => <DateField.Segment segment={segment} />}
+                            </DateField.Input>
+                            <DateField.Suffix>
+                                <DatePicker.Trigger>
+                                    <DatePicker.TriggerIndicator />
+                                </DatePicker.Trigger>
+                            </DateField.Suffix>
+                        </DateField.Group>
+                        <DatePicker.Popover>
+                            <Calendar aria-label={t("clinic.patient.fields.dateOfBirth")}>
+                                <Calendar.Header>
+                                    <Calendar.NavButton slot="previous" />
+                                    <Calendar.Heading />
+                                    <Calendar.NavButton slot="next" />
+                                </Calendar.Header>
+                                <Calendar.Grid>
+                                    <Calendar.GridHeader>
+                                        {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+                                    </Calendar.GridHeader>
+                                    <Calendar.GridBody>{(date) => <Calendar.Cell date={date} />}</Calendar.GridBody>
+                                </Calendar.Grid>
+                            </Calendar>
+                        </DatePicker.Popover>
+                    </DatePicker>
                     <FormSelectField
                         label={t("clinic.patient.fields.gender")}
                         value={formData.gender}
@@ -140,11 +166,37 @@ export function PatientProfileForm({
 
             <section>
                 <h2 className="mb-4 text-sm font-semibold text-foreground">{t("clinic.patient.sections.medical")}</h2>
-                <LocalizedDateField
-                    label={t("clinic.patient.fields.dateOfSurgery")}
-                    value={formData.dateOfSurgery}
-                    onChange={(v) => handleChange("dateOfSurgery", v)}
-                />
+                <DatePicker
+                    value={parseIsoDateValue(formData.dateOfSurgery)}
+                    onChange={(value) => handleChange("dateOfSurgery", dateValueToIsoDate(value))}
+                >
+                    <Label>{t("clinic.patient.fields.dateOfSurgery")}</Label>
+                    <DateField.Group fullWidth>
+                        <DateField.Input>
+                            {(segment) => <DateField.Segment segment={segment} />}
+                        </DateField.Input>
+                        <DateField.Suffix>
+                            <DatePicker.Trigger>
+                                <DatePicker.TriggerIndicator />
+                            </DatePicker.Trigger>
+                        </DateField.Suffix>
+                    </DateField.Group>
+                    <DatePicker.Popover>
+                        <Calendar aria-label={t("clinic.patient.fields.dateOfSurgery")}>
+                            <Calendar.Header>
+                                <Calendar.NavButton slot="previous" />
+                                <Calendar.Heading />
+                                <Calendar.NavButton slot="next" />
+                            </Calendar.Header>
+                            <Calendar.Grid>
+                                <Calendar.GridHeader>
+                                    {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+                                </Calendar.GridHeader>
+                                <Calendar.GridBody>{(date) => <Calendar.Cell date={date} />}</Calendar.GridBody>
+                            </Calendar.Grid>
+                        </Calendar>
+                    </DatePicker.Popover>
+                </DatePicker>
                 <div className="grid gap-4 sm:grid-cols-2">
                     <FormTextField
                         label={t("clinic.patient.fields.heightCm")}

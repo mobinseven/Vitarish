@@ -42,6 +42,61 @@ describe("useAgendaEvents", () => {
     expect(result.current).toHaveLength(1);
     expect(result.current[0]?.start.toString()).toBe("2026-07-12T09:00:00");
   });
+
+  it("expands shifts over the selected culture's visible week", () => {
+    const sunday = new CalendarDate(2026, 7, 12);
+    const { result } = renderHook(() =>
+      useAgendaEvents(
+        sunday,
+        "week",
+        [{
+          id: "shift-1",
+          createdAt: "2026-07-01T00:00:00Z",
+          isDeleted: false,
+          status: 0,
+          visibility: 0,
+          dayOfWeek: 6,
+          startTime: "09:00",
+          endTime: "10:00",
+          timeZone: "UTC",
+          totalSeats: 1,
+        }],
+        [],
+        "fa"
+      )
+    );
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]?.start.toString()).toBe("2026-07-11T09:00:00");
+  });
+
+  it("expands shifts across every day visible in the month grid", () => {
+    const july = new CalendarDate(2026, 7, 15);
+    const { result } = renderHook(() =>
+      useAgendaEvents(
+        july,
+        "month",
+        [{
+          id: "shift-1",
+          createdAt: "2026-07-01T00:00:00Z",
+          isDeleted: false,
+          status: 0,
+          visibility: 0,
+          dayOfWeek: 0,
+          startTime: "09:00",
+          endTime: "10:00",
+          timeZone: "UTC",
+          totalSeats: 1,
+        }],
+        [],
+        "en"
+      )
+    );
+
+    expect(result.current).toHaveLength(5);
+    expect(result.current[0]?.start.toString()).toBe("2026-06-28T09:00:00");
+    expect(result.current.at(-1)?.start.toString()).toBe("2026-07-26T09:00:00");
+  });
 });
 
 describe("clinic-web public surface", () => {

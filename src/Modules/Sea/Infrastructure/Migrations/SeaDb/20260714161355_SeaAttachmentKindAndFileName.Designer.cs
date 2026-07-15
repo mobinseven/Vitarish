@@ -12,7 +12,7 @@ using Vitarish.Sea.Infrastructure.Data;
 namespace Vitarish.Sea.Infrastructure.Migrations.SeaDb
 {
     [DbContext(typeof(SeaDbContext))]
-    [Migration("20260714092912_SeaAttachmentKindAndFileName")]
+    [Migration("20260714161355_SeaAttachmentKindAndFileName")]
     partial class SeaAttachmentKindAndFileName
     {
         /// <inheritdoc />

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { CalendarDate, CalendarDateTime, parseDateTime, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getDayOfWeek, parseDate } from "@internationalized/date";
 import type { AgendaEventType, AgendaView } from "@heroui-pro/react";
+import { getReactAriaLocale, type SupportedLocale } from "@vitarish/web-localization";
 import type { ShiftReadDto, ReservationReadDto } from "../../../api/appointments/appointmentsApi";
 
 function calendarDayOfWeek(dayOfWeek: number): number {
@@ -16,14 +17,20 @@ function parseReservationDate(dateStr: string): CalendarDate {
   return parseDate(datePart);
 }
 
-function getVisibleRange(date: CalendarDate, view: AgendaView): { start: CalendarDate; end: CalendarDate } {
+function getVisibleRange(date: CalendarDate, view: AgendaView, locale: SupportedLocale): { start: CalendarDate; end: CalendarDate } {
   switch (view) {
     case "day":
       return { start: date, end: date };
     case "week":
-      return { start: startOfWeek(date, "en-US"), end: endOfWeek(date, "en-US") };
+      return {
+        start: startOfWeek(date, getReactAriaLocale(locale)),
+        end: endOfWeek(date, getReactAriaLocale(locale)),
+      };
     case "month":
-      return { start: startOfMonth(date), end: endOfMonth(date) };
+      return {
+        start: startOfWeek(startOfMonth(date), getReactAriaLocale(locale)),
+        end: endOfWeek(endOfMonth(date), getReactAriaLocale(locale)),
+      };
   }
 }
 
@@ -98,9 +105,10 @@ export function useAgendaEvents(
   date: CalendarDate,
   view: AgendaView,
   shifts: ShiftReadDto[] | undefined,
-  reservations: ReservationReadDto[] | undefined
+  reservations: ReservationReadDto[] | undefined,
+  locale: SupportedLocale = "fa"
 ): AgendaEventType[] {
-  const range = getVisibleRange(date, view);
+  const range = getVisibleRange(date, view, locale);
   const shiftEvents = useMemo(
     () => (shifts ? expandShiftsToEvents(shifts, range) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps

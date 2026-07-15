@@ -2,10 +2,15 @@ import type { SeaAttachmentReadDto } from "@vitarish/sea-web";
 import type { EventItemSummary, EventItemType } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 
 function classifyItemType(kind: number, contentType?: string | null): EventItemType {
-  if (kind === 0) return "note";
-  if (!contentType) return "file";
-  if (contentType.startsWith("audio/") || contentType.startsWith("video/")) return "media";
-  if (contentType.startsWith("image/")) return "media";
+  const mimeType = contentType?.trim().toLowerCase();
+  if (
+    mimeType?.startsWith("audio/") ||
+    mimeType?.startsWith("video/") ||
+    mimeType?.startsWith("image/")
+  ) {
+    return "media";
+  }
+  if (kind === 0 && (!mimeType || mimeType.startsWith("text/"))) return "note";
   return "file";
 }
 
@@ -19,6 +24,7 @@ export function mapToEventItemSummary(dto: SeaAttachmentReadDto): EventItemSumma
     contentThumbnail: dto.contentThumbnail ?? undefined,
     size: dto.size,
     fileName: dto.fileName ?? undefined,
+    authorId: dto.createdBy ?? undefined,
     createdAt: dto.createdAt,
   };
 }

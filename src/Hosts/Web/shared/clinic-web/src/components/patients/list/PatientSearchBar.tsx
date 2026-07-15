@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { TextField, Label, Input, Button } from "@heroui/react";
+import { useEffect, useState } from "react";
+import { SearchField } from "@heroui/react";
 import { useLocalizedText } from "../../../localization/index";
 
 interface PatientSearchBarProps {
@@ -20,27 +20,20 @@ export function PatientSearchBar({ onSearch }: PatientSearchBarProps) {
     return () => clearTimeout(timer);
   }, [value, onSearch]);
 
-  const handleClear = useCallback(() => {
-    setValue("");
-    onSearch("");
-  }, [onSearch]);
-
   return (
-    <div className="flex items-end gap-2">
-      <TextField className="flex-1">
-        <Label>{t("clinic.patient.search.label")}</Label>
-        <Input
-          aria-label={t("clinic.patient.search.label")}
+    <SearchField
+      aria-label={t("clinic.patient.search.label")}
+      className="min-w-0 w-full"
+      value={value}
+      onChange={setValue}
+    >
+      <SearchField.Group>
+        <SearchField.SearchIcon />
+        <SearchField.Input
           placeholder={t("clinic.patient.search.placeholder")}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
         />
-      </TextField>
-      {value && (
-        <Button variant="ghost" onPress={handleClear}>
-          {t("clinic.patient.search.clear")}
-        </Button>
-      )}
-    </div>
+        <SearchField.ClearButton aria-label={t("clinic.patient.search.clear")} />
+      </SearchField.Group>
+    </SearchField>
   );
 }

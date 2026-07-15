@@ -26,6 +26,7 @@ export function PatientFindOrCreate({
     step,
     searchResults,
     lookupError,
+    createIdentificationCode,
     isLooking,
     handleLookup,
     handleAdvancedSearch,
@@ -39,8 +40,10 @@ export function PatientFindOrCreate({
   const [createError, setCreateError] = useState(false);
 
   const handleLookupSubmit = useCallback(() => {
-    handleLookup(code);
-  }, [code, handleLookup]);
+    void handleLookup(code).then((patient) => {
+      if (patient?.id) onPatientSelected(patient.id);
+    });
+  }, [code, handleLookup, onPatientSelected]);
 
   const handleSearchSelect = useCallback(
     (patientId: string) => {
@@ -56,6 +59,7 @@ export function PatientFindOrCreate({
       try {
         const result = await createPatient.create(data);
         if (result?.id) {
+          handleSelectPatient();
           onPatientSelected(result.id);
           onPatientCreated?.(result.id);
         }
@@ -63,7 +67,7 @@ export function PatientFindOrCreate({
         setCreateError(true);
       }
     },
-    [createPatient, onPatientSelected, onPatientCreated]
+    [createPatient, handleSelectPatient, onPatientSelected, onPatientCreated]
   );
 
   return (
@@ -141,7 +145,10 @@ export function PatientFindOrCreate({
             <ClinicErrorState title={t("clinic.patients.createFailed")} />
           )}
           <PatientProfileForm
-            initialData={emptyFormData()}
+            initialData={{
+              ...emptyFormData(),
+              identificationCode: createIdentificationCode,
+            }}
             onSubmit={handleCreateSubmit}
             onCancel={handleGoToLookup}
             isPending={createPatient.isPending}

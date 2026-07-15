@@ -85,7 +85,7 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
   return (
     <div className="flex flex-col gap-4">
       {sections.map((section) => (
-        <section key={section.title} className="rounded-medium border border-divider p-4">
+        <section key={section.title} className="rounded-medium p-4">
           <header className="mb-3">
             <h2>{section.title}</h2>
           </header>

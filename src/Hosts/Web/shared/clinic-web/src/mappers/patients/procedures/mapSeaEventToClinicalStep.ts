@@ -11,6 +11,7 @@ export function mapToClinicalEventSummary(dto: any, position: number): ClinicalE
     isCommitted: dto.isCommitted,
     committedAt: dto.committedAt ?? undefined,
     committedBy: dto.committedBy,
+    itemCount: dto.stats?.eventItems ?? 0,
     position,
     createdAt: dto.createdAt,
   };

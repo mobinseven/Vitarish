@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Button, Input, Label, TextField } from "@heroui/react";
+import { Button, DateField, DatePicker, Input, Label, TextField } from "@heroui/react";
+import { dateValueToIsoDate, parseIsoDateValue } from "@vitarish/web-localization";
 
 import type { AdvancedSearchCriteria } from "../../../models/patients/patientSearchModels";
 import { useLocalizedText } from "../../../localization/index";
-import { LocalizedDateField } from "../../forms/LocalizedDateField";
 
 interface AdvancedSearchFormProps {
   onSearch: (criteria: AdvancedSearchCriteria) => void;
@@ -61,11 +61,13 @@ export function AdvancedSearchForm({
           />
         </TextField>
 
-        <LocalizedDateField
-          label={t("clinic.patient.advancedSearch.dobLabel")}
-          value={dateOfBirth}
-          onChange={setDateOfBirth}
-        />
+        <DatePicker
+          value={parseIsoDateValue(dateOfBirth)}
+          onChange={(value) => setDateOfBirth(dateValueToIsoDate(value))}
+        >
+          <Label>{t("clinic.patient.advancedSearch.dobLabel")}</Label>
+          <DateField value={parseIsoDateValue(dateOfBirth)} />
+        </DatePicker>
 
         <TextField>
           <Label>{t("clinic.patient.advancedSearch.phoneLabel")}</Label>

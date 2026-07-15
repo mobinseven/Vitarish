@@ -9,6 +9,12 @@ export interface EventItemSummary {
   contentThumbnail?: string;
   size?: number;
   fileName?: string;
-  author?: string;
+  authorId?: string;
+  authorName?: string;
   createdAt: string;
+}
+
+export interface ProcedureEventViewer {
+  id: string;
+  label: string;
 }

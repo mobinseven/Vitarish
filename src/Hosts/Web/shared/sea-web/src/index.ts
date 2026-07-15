@@ -77,6 +77,10 @@ export { SeaLoadingState, SeaErrorState, SeaEmptyState } from "./components/stat
 // Attachment hooks
 export { useSeaEventAttachments, useSeaEventAttachmentCount } from "./hooks/attachments/useSeaAttachments";
 export { toSeaFileAttachment } from "./api/attachments/seaAttachmentFile";
+export {
+  isStoredSeaAttachmentContent,
+  loadStoredSeaAttachmentContent,
+} from "./api/attachments/seaAttachmentContent";
 export { useCreateSeaTextAttachment, useUpdateSeaTextAttachment, useCreateSeaFileAttachment, useDeleteSeaAttachment } from "./hooks/attachments/useSeaAttachmentMutations";
 export { seaAttachmentKeys } from "./hooks/attachments/seaAttachmentKeys";
 

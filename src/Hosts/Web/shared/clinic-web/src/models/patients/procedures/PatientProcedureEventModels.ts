@@ -7,6 +7,7 @@ export interface ClinicalEventSummary {
   isCommitted: boolean;
   committedAt?: string;
   committedBy?: string;
+  itemCount: number;
   position: number;
   createdAt: string;
 }

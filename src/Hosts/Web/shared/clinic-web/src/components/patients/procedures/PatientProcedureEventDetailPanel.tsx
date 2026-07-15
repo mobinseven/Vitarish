@@ -9,6 +9,7 @@ import { PatientProcedureEventAccessPanel } from "./PatientProcedureEventAccessP
 import { PatientProcedureEventDeleteDialog } from "./PatientProcedureEventDeleteDialog";
 import { PatientProcedureEventForm } from "./PatientProcedureEventForm";
 import { PatientProcedureEventItemsPanel } from "./PatientProcedureEventItemsPanel";
+import type { ProcedureEventViewer } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 import { usePatientProcedureEventDetail } from "../../../hooks/patients/procedures/usePatientProcedureEventDetail";
 import {
   useCommitPatientProcedureEvent,
@@ -22,10 +23,11 @@ interface Props {
   procedureId: string;
   isFirst: boolean;
   isLast: boolean;
+  viewer?: ProcedureEventViewer;
   onDeleted: () => void;
 }
 
-export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst, isLast, onDeleted }: Props) {
+export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst, isLast, viewer, onDeleted }: Props) {
   const { t, locale } = useLocalizedText();
   const query = usePatientProcedureEventDetail(eventId);
   const capabilitiesQuery = useSeaEventCapabilities(eventId);
@@ -48,12 +50,15 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
   ];
 
   return (
-    <section className="flex flex-col gap-5" aria-labelledby={`clinical-step-${event.id}`}>
-      <header className="flex flex-wrap items-start justify-between gap-3">
+    <section className="flex min-h-0 flex-1 flex-col gap-6" aria-labelledby={`clinical-step-${event.id}`}>
+      <header className="flex shrink-0 flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 id={`clinical-step-${event.id}`} className="text-xl font-bold">
+          <p className="text-muted m-0 text-xs font-medium">
+            {t("clinic.procedures.events.detailsLabel")}
+          </p>
+          <h1 id={`clinical-step-${event.id}`} className="text-2xl font-semibold">
             {event.title}
-          </h2>
+          </h1>
           <Chip
             className="mt-2"
             color={event.isCommitted ? "success" : "default"}
@@ -116,9 +121,11 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
         )}
       </header>
 
-      <DetailGrid items={details} />
-      <PatientProcedureEventItemsPanel eventId={eventId} canWrite={canWrite} />
-      {canManage ? <PatientProcedureEventAccessPanel eventId={eventId} /> : null}
+      <div className="shrink-0">
+        <DetailGrid items={details} />
+      </div>
+      <PatientProcedureEventItemsPanel eventId={eventId} canWrite={canWrite} viewer={viewer} />
+      {canManage ? <div className="shrink-0"><PatientProcedureEventAccessPanel eventId={eventId} /></div> : null}
 
       {editing ? (
         <PatientProcedureEventForm

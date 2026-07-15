@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { Button } from "@heroui/react";
+import { useCallback, useMemo, useState } from "react";
+import { Button, Chip } from "@heroui/react";
+import { ActionBar } from "@heroui-pro/react";
 import { LoadingStateSurface } from "@vitarish/web-ui";
 import type { ClinicNavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization/index";
@@ -10,8 +11,6 @@ import { usePatientCount } from "../../../hooks/patients/usePatientCount";
 import { usePatientList } from "../../../hooks/patients/usePatientList";
 import { PatientSearchBar } from "./PatientSearchBar";
 import { PatientsGrid } from "./PatientsGrid";
-
-const defaultPageSize = 20;
 
 export interface ClinicPatientListPageProps {
   onNavigate: (intent: ClinicNavigationIntent) => void;
@@ -22,20 +21,19 @@ export function ClinicPatientListPage({ onNavigate }: ClinicPatientListPageProps
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<PatientSortBy | undefined>();
   const [descending, setDescending] = useState(false);
-  const [skip, setSkip] = useState(0);
-  const criteria: PatientSearchCriteria = {
-    search: search || undefined,
-    skip,
-    take: defaultPageSize,
-    sortBy,
-    descending,
-  };
-  const { data: patients, isLoading } = usePatientList(criteria);
+  const criteria: PatientSearchCriteria = useMemo(
+    () => ({
+      search: search || undefined,
+      sortBy,
+      descending,
+    }),
+    [descending, search, sortBy],
+  );
+  const patientsQuery = usePatientList(criteria);
   const { data: count } = usePatientCount(search || undefined);
 
   const handleSearch = useCallback((value: string) => {
     setSearch(value);
-    setSkip(0);
   }, []);
   const handleSort = useCallback((field: PatientSortBy) => {
     if (sortBy === field) {
@@ -44,44 +42,71 @@ export function ClinicPatientListPage({ onNavigate }: ClinicPatientListPageProps
       setSortBy(field);
       setDescending(false);
     }
-    setSkip(0);
   }, [sortBy, descending]);
   const totalCount = typeof count === "number" ? count : Number(count) || 0;
+  const patients = patientsQuery.data?.pages.flat() ?? [];
+  const canLoadMore =
+    patientsQuery.hasNextPage && (count == null || patients.length < totalCount);
+  const countLabel =
+    totalCount === 1
+      ? t("clinic.patients.countFound.one", { count: String(totalCount) })
+      : t("clinic.patients.countFound.other", { count: String(totalCount) });
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("clinic.patients.title")}</h1>
-        <Button variant="primary" onPress={() => onNavigate({ kind: "patientNew" })}>
-          {t("clinic.patients.newPatient")}
-        </Button>
-      </div>
-      <PatientSearchBar onSearch={handleSearch} />
-      {isLoading ? (
-        <LoadingStateSurface label={t("clinic.patients.loading")} />
-      ) : (
-        <PatientsGrid
-          patients={patients ?? []}
-          sortBy={sortBy}
-          descending={descending}
-          onSort={handleSort}
-          onSelectPatient={(patientId) => onNavigate({ kind: "patientDetail", patientId })}
-        />
-      )}
-      <div className="flex items-center justify-between text-sm text-muted">
-        <span>
-          {totalCount === 1
-            ? t("clinic.patients.countFound.one", { count: String(totalCount) })
-            : t("clinic.patients.countFound.other", { count: String(totalCount) })}
-        </span>
-        <div className="flex gap-2">
-          <Button variant="ghost" isDisabled={skip === 0} onPress={() => setSkip(Math.max(0, skip - defaultPageSize))}>
-            {t("common.actions.previous")}
+    <div className="flex h-full min-h-0 flex-col">
+      <ActionBar
+        isOpen
+        aria-label={t("clinic.patients.title")}
+        className="w-[calc(100vw-2rem)] max-w-3xl"
+      >
+        <ActionBar.Prefix>
+          <Chip size="sm" variant="secondary">
+            <span aria-hidden="true" className="tabular-nums">{totalCount}</span>
+            <span className="sr-only">{countLabel}</span>
+          </Chip>
+        </ActionBar.Prefix>
+        <ActionBar.Content className="min-w-0 flex-1">
+          <PatientSearchBar onSearch={handleSearch} />
+        </ActionBar.Content>
+        <ActionBar.Suffix>
+          <Button
+            aria-label={t("clinic.patients.newPatient")}
+            size="sm"
+            variant="primary"
+            onPress={() => onNavigate({ kind: "patientNew" })}
+          >
+            <svg
+              aria-hidden="true"
+              className="size-4 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+            </svg>
+            <span className="action-bar__label">{t("clinic.patients.newPatient")}</span>
           </Button>
-          <Button variant="ghost" isDisabled={skip + defaultPageSize >= totalCount} onPress={() => setSkip(skip + defaultPageSize)}>
-            {t("common.actions.next")}
-          </Button>
-        </div>
+        </ActionBar.Suffix>
+      </ActionBar>
+      <div className="min-h-0 flex-1">
+        {patientsQuery.isLoading ? (
+          <LoadingStateSurface label={t("clinic.patients.loading")} />
+        ) : (
+          <PatientsGrid
+            patients={patients}
+            sortBy={sortBy}
+            descending={descending}
+            onSort={handleSort}
+            onSelectPatient={(patientId) => onNavigate({ kind: "patientDetail", patientId })}
+            isLoadingMore={patientsQuery.isFetchingNextPage}
+            onLoadMore={
+              canLoadMore
+                ? () => void patientsQuery.fetchNextPage()
+                : undefined
+            }
+          />
+        )}
       </div>
     </div>
   );
