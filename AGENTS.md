@@ -123,43 +123,30 @@ Do not hide business rules or state mutation in extension methods. Do not place 
 
 ## Skills
 
-Project skills live under `.agents/skills/`. Claude bridge skills under `.claude/skills/` must point to the canonical project skills. Open only the task-matched `SKILL.md`; do not load every skill.
+Project skills live under `.agents/skills/`. Open the index once, select the route, then load only the skills that own decisions in the current task. Do not make every skill rediscover or restate the chain.
 
-| Situation | Skill |
+| Trigger | Skill |
 | --- | --- |
-| Product intent, workflow, roadmap, task derivation, PR slicing, ambiguous scope | `platform-scope-planning` |
-| Classification, placement, dependencies, ADR impact, architecture audit | `platform-architecture-governance` |
-| OpenAPI metadata, generated clients, API-to-React boundary | `platform-api-client-boundary` |
-| React, HeroUI, forms, tables, dialogs, localization, accessibility | `platform-react-ui-boundary` |
-| Test selection, regression protection, validation commands, hot scenarios | `platform-test-strategy` |
-| Focused implementation, review feedback, delivery, handoff | `platform-delivery-loop` |
-| Simplification, deletion, native replacement, over-engineering review | `platform-simplification-audit` |
-| Skill creation, consolidation, routing, bridges, policy harmony | `platform-skill-governance` |
+| Non-trivial plan, scope, slices, assumptions, acceptance | `platform-change-planning` |
+| Artifact ownership, placement, dependencies, ADR impact | `platform-artifact-architecture` |
+| Domain/Application behavior, commands, queries, ports, orchestration | `platform-backend-use-case` |
+| Database schema, migrations, persisted formats, backfills | `platform-data-evolution` |
+| Vendor SDK, remote provider, resilience, configuration, telemetry | `platform-external-integration` |
+| HTTP/OpenAPI, WebSocket/SSE, protocol, contracts, generated clients | `platform-transport-contract` |
+| Authentication, authorization, tenant isolation, origins, privacy, limits | `platform-trust-boundary` |
+| React feature ownership, hooks, browser APIs, localization, accessibility | `platform-react-feature` |
+| Tests, validators, builds, generators, and runtime hot scenarios | `platform-test-validation` |
+| Execute an approved slice and produce evidence-based handoff | `platform-delivery-loop` |
+| Remove duplication, speculative layers, dependencies, or dead paths | `platform-simplification-audit` |
+| Create, merge, rename, validate, or route project skills | `platform-skill-governance` |
 
-Typical chains, using only applicable steps:
+Routing rules:
 
-```text
-New feature: Scope Planning -> Architecture Governance -> Test Strategy -> Delivery Loop
-OpenAPI to React: Architecture Governance -> API Client Boundary -> React UI Boundary -> Test Strategy -> Delivery Loop
-React UI: React UI Boundary -> Test Strategy -> Delivery Loop
-Architecture-sensitive change: Architecture Governance -> Test Strategy -> Delivery Loop
-Simplification: Simplification Audit -> Architecture Governance when boundaries change
-Skill maintenance: Skill Governance -> Architecture Governance when repository policy changes
-```
-
-Planning-only feature work:
-
-```text
-Scope Planning -> Architecture Governance -> Test Strategy -> STOP
-
-Approved feature implementation:
-Revalidate Plan -> applicable boundary skills -> Test Strategy -> Delivery Loop
-
-End-to-end request:
-Scope Planning -> Architecture Governance -> Test Strategy
---- implementation boundary ---
-applicable boundary skills -> Delivery Loop
-```
+1. Use `platform-change-planning` for planning; use `platform-delivery-loop` for implementation. Do not load both for a trivial local fix.
+2. Add only the boundary skills touched by the task. A full-stack feature may require several; a local change usually requires one.
+3. Use `platform-test-validation` after the affected boundaries are known.
+4. Stop after validation for planning-only requests. Implementation requires explicit authorization.
+5. The detailed route matrix and examples live in [`.agents/skills/README.md`](.agents/skills/README.md); this section remains the lean index.
 
 ## Completion criteria
 

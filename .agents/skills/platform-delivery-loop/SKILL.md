@@ -1,58 +1,41 @@
 ---
 name: platform-delivery-loop
-description: Coordinates one focused repository delivery loop covering objective, scope, implementation, validation, review, feedback triage, and handoff. Use for one-PR work, plan execution, review verdicts, and delivery status decisions.
+description: Executes one approved repository change by revalidating the plan, loading only touched boundary skills, implementing coherent slices, running evidence-based validation, reviewing the diff, and producing a precise handoff. Use for implementation or final delivery review. Do not use for planning-only requests.
 ---
 
 # Platform Delivery Loop
 
 ## Purpose
 
-Keep implementation work reviewable, scoped, validated, and finishable. This skill owns the delivery loop; it does not own product scope, architecture decisions, API contracts, UI boundaries, or test strategy.
+Turn an approved plan or well-scoped task into a focused, validated change. This skill orchestrates execution; boundary skills retain ownership of their technical decisions.
 
-## Use
+## Use when
 
-Use this skill when work should land as one focused change, when executing an approved plan, when reviewing completed changes before handoff, or when triaging PR feedback.
+- The user authorizes implementation, asks to execute a plan, or requests final delivery review.
+- A local task is sufficiently explicit to implement without a separate planning artifact.
 
-Skip it for pure analysis where the user explicitly does not want implementation or delivery.
+## Do not use
 
-## Read
-
-- `AGENTS.md`
-- `.agents/skills/README.md`
-- Any approved implementation plan, issue, PR comments, review feedback, and validation logs that define the loop.
+- The requested outcome is planning, critique, or analysis only.
 
 ## Procedure
 
-1. State the objective, one-sentence scope, non-goals, constraints, and success evidence.
-2. Check `.agents/skills/README.md` → Default Chains for any chain containing this skill. If the task also touches another skill from that chain, confirm the chain's stated order before proceeding — do not run out of sequence without a stated reason.
-3. Load only the task-specific skills required by the touched surface.
-4. Implement only the approved slice. Prefer deletion, reuse, native platform features, standard library behavior, and existing dependencies before new code.
-5. Run the smallest validation set that proves the change, plus required architecture/API/UI checks.
-6. Review the diff for scope creep, architecture violations, command/query mixing, failure handling, missing tests, and stale references.
-7. Classify feedback as `Must-fix`, `Should-fix`, `Follow-up`, or `Reject/defer`.
-8. Repeat only while the same focused scope remains valid.
+1. Re-read current files and revalidate plan assumptions; repository state outranks stale plan detail.
+2. State the focused objective, non-goals, expected contract/data/security/generated-output impact, and success evidence.
+3. Select only the boundary skills touched by the implementation.
+4. Implement in coherent slices, keeping each slice buildable/testable when practical. Change authoritative inputs before generated outputs.
+5. Prefer deletion, reuse, standard/native behavior, existing dependencies, and cohesive edits over new abstractions.
+6. Run `platform-test-validation` checks as soon as a slice can prove something, not only at the end.
+7. Review the final diff for scope creep, duplicate sources of truth, wrong placement, inward dependency leaks, command/query mixing, unsafe failures, manual generated edits, missing cleanup, and stale references.
+8. Classify unresolved feedback as Must-fix, Follow-up, or Rejected with reason. Do not silently defer.
+9. Handoff with exact changes, evidence, unrun checks, compatibility/data/security/operational impact, plan deviations, and residual risk.
 
-## Output
+## Hard stops
 
-```md
-## Delivery Loop
-Scope:
-Changes:
-Validation:
-Review result:
-Feedback status:
-Open risks:
-Handoff:
-```
-
-## Hard Stops
-
-- Scope no longer fits one focused change.
-- Required product, architecture, security, migration, data-loss, validation, or external-dependency decision is missing.
-- The plan requires editing stable core logic when an extension point already exists.
-- Review feedback is silently ignored or reclassified without reason.
-- A doc, ADR, or validator script this skill names under Read or Validation cannot be found or read. Stop and report the gap. Do not proceed as if the rule does not apply.
+- Implementation requires a missing product, security, data-loss, compatibility, or provider decision.
+- Scope no longer forms one focused delivery unit.
+- The only path forward weakens repository safeguards or edits generated output manually.
 
 ## Handoff
 
-Hand off unresolved scope to `platform-scope-planning`, architecture to `platform-architecture-governance`, validation gaps to `platform-test-strategy`, simplification concerns to `platform-simplification-audit`, and skill/process defects to `platform-skill-governance`.
+Use the completion criteria in `AGENTS.md`. Route newly discovered design defects back to the owning boundary skill rather than expanding this skill.

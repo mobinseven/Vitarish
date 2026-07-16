@@ -1,4 +1,0 @@
-interface:
-  display_name: "Platform Skill Governance"
-  short_description: "Maintain lean project skill manuals"
-  default_prompt: "Use $platform-skill-governance to create, merge, delete, or revise project skills and AGENTS routing."

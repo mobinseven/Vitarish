@@ -1,4 +1,0 @@
-interface:
-  display_name: "Platform React UI Boundary"
-  short_description: "Shape React UI, HeroUI, and copy"
-  default_prompt: "Use $platform-react-ui-boundary to integrate React UI with feature hooks, HeroUI, localization, and Web UI boundaries."

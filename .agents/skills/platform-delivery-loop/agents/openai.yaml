@@ -1,4 +1,0 @@
-interface:
-  display_name: "Platform Delivery Loop"
-  short_description: "Run focused PR and automation loops"
-  default_prompt: "Use $platform-delivery-loop to keep a repository change inside one focused delivery loop."

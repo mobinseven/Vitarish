@@ -1,4 +1,0 @@
-interface:
-  display_name: "Platform API Client Boundary"
-  short_description: "Align OpenAPI contracts and clients"
-  default_prompt: "Use $platform-api-client-boundary to review OpenAPI contracts, generated clients, and API/client handoffs."

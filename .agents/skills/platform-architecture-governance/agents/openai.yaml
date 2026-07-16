@@ -1,4 +1,0 @@
-interface:
-  display_name: "Platform Architecture Governance"
-  short_description: "Guard ADRs, placement, and boundaries"
-  default_prompt: "Use $platform-architecture-governance to classify artifacts, ADR impact, dependency direction, and architecture boundaries."

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Platform Scope Planning"
-  short_description: "Scope product intent and delivery slices"
-  default_prompt: "Use $platform-scope-planning to classify product intent, scope, and the smallest useful delivery slice."
