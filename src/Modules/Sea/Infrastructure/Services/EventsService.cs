@@ -1,4 +1,5 @@
 using Vitarish.Sea.Domain.Mappers;
+using Vitarish.Sea.Infrastructure.Extensions;
 
 namespace Vitarish.Sea.Infrastructure.Services;
 
@@ -16,7 +17,8 @@ internal class EventsService(
 {
 
     public async Task<IReadOnlyList<EventReadDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken) => (await GetListAsync(new EventDescriptor { ProcedureId = procedureId, IncludeStats = true }, cancellationToken))
-            .EnsureValue("Get events by procedure");
+            .EnsureValue("Get events by procedure")
+            .SortByChain();
 
     public async Task UpdateChainAsync(
         Guid procedureId,
