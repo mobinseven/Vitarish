@@ -1,6 +1,6 @@
 "use client";
 
-import { Breadcrumbs, Button } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { ErrorStateSurface, LoadingStateSurface } from "@vitarish/web-ui";
 import { usePatientProcedureDetail } from "../../../hooks/patients/procedures/usePatientProcedureDetail";
 import { usePatientProcedureEvents } from "../../../hooks/patients/procedures/usePatientProcedureEvents";
@@ -53,23 +53,10 @@ export function ClinicPatientProcedureEventPage({
     );
   }
 
-  const patientName = patientQuery.data
-    ? `${patientQuery.data.firstName ?? ""} ${patientQuery.data.lastName ?? ""}`.trim()
-    : "";
   const event = events[eventIndex];
 
   return (
     <section className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col gap-6">
-      <Breadcrumbs aria-label={t("clinic.procedures.breadcrumbLabel")} className="shrink-0">
-        <Breadcrumbs.Item onPress={() => onNavigate({ kind: "patientDetail", patientId })}>
-          {patientName || t("clinic.patients.title")}
-        </Breadcrumbs.Item>
-        <Breadcrumbs.Item onPress={returnToProcedure}>
-          {procedureQuery.data.name}
-        </Breadcrumbs.Item>
-        <Breadcrumbs.Item>{event.title}</Breadcrumbs.Item>
-      </Breadcrumbs>
-
       <PatientProcedureEventDetailPanel
         eventId={eventId}
         isFirst={eventIndex === 0}

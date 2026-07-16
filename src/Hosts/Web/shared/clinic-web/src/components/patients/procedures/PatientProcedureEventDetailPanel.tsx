@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Button, Chip } from "@heroui/react";
+import { useState, type Key } from "react";
+import { Checkbox, Chip, Dropdown, Header, Label, Separator } from "@heroui/react";
 import { useSeaEventCapabilities } from "@vitarish/sea-web";
 import { DetailGrid, type DetailGridItem } from "@vitarish/web-ui";
 import { formatDateTime, useLocalizedText } from "../../../localization";
 import { PatientProcedureEventAccessPanel } from "./PatientProcedureEventAccessPanel";
 import { PatientProcedureEventDeleteDialog } from "./PatientProcedureEventDeleteDialog";
+import { PatientProcedureEventCommitDialog } from "./PatientProcedureEventCommitDialog";
 import { PatientProcedureEventForm } from "./PatientProcedureEventForm";
 import { PatientProcedureEventItemsPanel } from "./PatientProcedureEventItemsPanel";
 import type { ProcedureEventViewer } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
@@ -37,6 +38,7 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
   const later = useMovePatientProcedureEventDown();
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [commitConfirmationTarget, setCommitConfirmationTarget] = useState<boolean | null>(null);
   if (query.isLoading) return <p>{t("common.states.loading")}</p>;
   if (query.error || !query.data) return <p role="alert">{t("clinic.procedures.eventNotFound")}</p>;
 
@@ -48,6 +50,19 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
     ...(event.committedAt ? [{ label: t("clinic.fields.committedAt"), value: formatDateTime(event.committedAt, locale) }] : []),
     ...(event.description ? [{ label: t("clinic.fields.description"), value: event.description }] : []),
   ];
+  const handleAction = (key: Key) => {
+    if (key === "commit") {
+      event.isCommitted ? uncommit.mutate(event.id) : commit.mutate(event.id);
+    } else if (key === "reorder-earlier") {
+      earlier.mutate(event.id);
+    } else if (key === "reorder-later") {
+      later.mutate(event.id);
+    } else if (key === "edit") {
+      setEditing(true);
+    } else if (key === "delete") {
+      setDeleting(true);
+    }
+  };
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-6" aria-labelledby={`clinical-step-${event.id}`}>
@@ -56,9 +71,25 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
           <p className="text-muted m-0 text-xs font-medium">
             {t("clinic.procedures.events.detailsLabel")}
           </p>
-          <h1 id={`clinical-step-${event.id}`} className="text-2xl font-semibold">
-            {event.title}
-          </h1>
+          {canWrite ? (
+            <Checkbox
+              className="[&_[data-slot='checkbox-default-indicator--checkmark']]:size-4"
+              aria-label={t("clinic.procedures.events.committedState")}
+              isDisabled={commit.isPending || uncommit.isPending}
+              isSelected={event.isCommitted}
+              onChange={setCommitConfirmationTarget}
+            >
+              <Checkbox.Content className="gap-3">
+                <Checkbox.Control className="size-10 rounded-full border-2 data-[selected=true]:border-success data-[selected=true]:bg-success">
+                  <Checkbox.Indicator className="text-success-foreground" />
+                </Checkbox.Control>
+                <Label>
+                  <h1 id={`clinical-step-${event.id}`} className="text-2xl font-semibold">
+                    {event.title}
+                  </h1></Label>
+              </Checkbox.Content>
+            </Checkbox>
+          ) : null}
           <Chip
             className="mt-2"
             color={event.isCommitted ? "success" : "default"}
@@ -71,49 +102,75 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
           </Chip>
         </div>
 
-        {canWrite || canManage ? (
-          <div className="flex flex-wrap gap-2">
-            {canWrite ? (
-              <Button
-                isPending={commit.isPending || uncommit.isPending}
-                size="sm"
-                onPress={() =>
-                  event.isCommitted ? uncommit.mutate(event.id) : commit.mutate(event.id)
-                }
-              >
-                {event.isCommitted
-                  ? t("clinic.procedures.events.reopen")
-                  : t("clinic.procedures.events.commit")}
-              </Button>
-            ) : null}
 
-            {canManage ? (
-              <>
-                <Button
-                  isDisabled={isFirst || earlier.isPending}
-                  size="sm"
-                  variant="secondary"
-                  onPress={() => earlier.mutate(event.id)}
-                >
-                  {t("clinic.procedures.events.reorderEarlier")}
-                </Button>
-                <Button
-                  isDisabled={isLast || later.isPending}
-                  size="sm"
-                  variant="secondary"
-                  onPress={() => later.mutate(event.id)}
-                >
-                  {t("clinic.procedures.events.reorderLater")}
-                </Button>
-                <Button size="sm" variant="secondary" onPress={() => setEditing(true)}>
-                  {t("common.actions.edit")}
-                </Button>
-                <Button size="sm" variant="danger-soft" onPress={() => setDeleting(true)}>
-                  {t("common.actions.delete")}
-                </Button>
-              </>
-            ) : null}
-          </div>
+        {canWrite || canManage ? (
+          <Dropdown>
+            <Dropdown.Trigger
+              aria-label={t("clinic.procedures.events.actionMenu.label")}
+            >
+              {t("clinic.procedures.events.actionMenu.label")}
+            </Dropdown.Trigger>
+            <Dropdown.Popover>
+              <Dropdown.Menu onAction={handleAction}>
+                <Dropdown.Section>
+                  <Header>{t("clinic.procedures.events.actionMenu.workflow")}</Header>
+                  {canWrite ? (
+                    <Dropdown.Item
+                      id="commit"
+                      textValue={event.isCommitted ? t("clinic.procedures.events.reopen") : t("clinic.procedures.events.commit")}
+                      isDisabled={commit.isPending || uncommit.isPending}
+                    >
+                      <Label>
+                        {event.isCommitted
+                          ? t("clinic.procedures.events.reopen")
+                          : t("clinic.procedures.events.commit")}
+                      </Label>
+                    </Dropdown.Item>
+                  ) : null}
+                  {canManage ? (
+                    <>
+                      <Dropdown.Item
+                        id="reorder-earlier"
+                        textValue={t("clinic.procedures.events.reorderEarlier")}
+                        isDisabled={isFirst || earlier.isPending}
+                      >
+                        <Label>{t("clinic.procedures.events.reorderEarlier")}</Label>
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        id="reorder-later"
+                        textValue={t("clinic.procedures.events.reorderLater")}
+                        isDisabled={isLast || later.isPending}
+                      >
+                        <Label>{t("clinic.procedures.events.reorderLater")}</Label>
+                      </Dropdown.Item>
+                    </>
+                  ) : null}
+                </Dropdown.Section>
+                {canManage ? (
+                  <>
+                    <Separator />
+                    <Dropdown.Section>
+                      <Header>{t("clinic.procedures.events.actionMenu.manage")}</Header>
+                      <Dropdown.Item id="edit" textValue={t("common.actions.edit")}>
+                        <Label>{t("common.actions.edit")}</Label>
+                      </Dropdown.Item>
+                    </Dropdown.Section>
+                    <Separator />
+                    <Dropdown.Section>
+                      <Header>{t("clinic.procedures.events.actionMenu.danger")}</Header>
+                      <Dropdown.Item
+                        id="delete"
+                        textValue={t("common.actions.delete")}
+                        variant="danger"
+                      >
+                        <Label>{t("common.actions.delete")}</Label>
+                      </Dropdown.Item>
+                    </Dropdown.Section>
+                  </>
+                ) : null}
+              </Dropdown.Menu>
+            </Dropdown.Popover>
+          </Dropdown>
         ) : capabilitiesQuery.isLoading ? null : (
           <Chip size="sm" variant="soft">
             {t("clinic.procedures.readOnly")}
@@ -144,6 +201,21 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
           eventTitle={event.title}
           onClose={() => setDeleting(false)}
           onDeleted={onDeleted}
+        />
+      ) : null}
+
+      {commitConfirmationTarget !== null ? (
+        <PatientProcedureEventCommitDialog
+          eventTitle={event.title}
+          isCommitted={commitConfirmationTarget}
+          isPending={commit.isPending || uncommit.isPending}
+          onClose={() => setCommitConfirmationTarget(null)}
+          onConfirm={() => {
+            const mutation = commitConfirmationTarget ? commit : uncommit;
+            mutation.mutate(event.id, {
+              onSuccess: () => setCommitConfirmationTarget(null),
+            });
+          }}
         />
       ) : null}
     </section>

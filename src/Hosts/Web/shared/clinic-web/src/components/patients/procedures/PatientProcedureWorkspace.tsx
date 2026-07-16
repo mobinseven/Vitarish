@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Breadcrumbs, Button } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { ErrorStateSurface, LoadingStateSurface } from "@vitarish/web-ui";
 import { usePatientProcedureDetail } from "../../../hooks/patients/procedures/usePatientProcedureDetail";
 import { usePatientProcedureEvents } from "../../../hooks/patients/procedures/usePatientProcedureEvents";
@@ -40,19 +40,8 @@ export function PatientProcedureWorkspace({
     return <ErrorStateSurface title={t("clinic.procedures.notFound")} />;
   }
 
-  const patientName = patientQuery.data
-    ? `${patientQuery.data.firstName ?? ""} ${patientQuery.data.lastName ?? ""}`.trim()
-    : "";
-
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
-      <Breadcrumbs aria-label={t("clinic.procedures.breadcrumbLabel")}>
-        <Breadcrumbs.Item onPress={() => onNavigate({ kind: "patientDetail", patientId })}>
-          {patientName || t("clinic.patients.title")}
-        </Breadcrumbs.Item>
-        <Breadcrumbs.Item>{procedureQuery.data.name}</Breadcrumbs.Item>
-      </Breadcrumbs>
-
       <PatientProcedureHeader
         patientId={patientId}
         procedure={procedureQuery.data}

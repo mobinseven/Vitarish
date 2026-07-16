@@ -87,19 +87,11 @@ export function PatientProcedureEventTimeline({
                           <span className="text-foreground text-sm font-medium leading-5">
                             {event.title}
                           </span>
-                          {event.isCommitted ? (
-                            <Chip color="success" size="sm" variant="soft">
-                              {t("clinic.procedures.committed")}
-                            </Chip>
-                          ) : null}
                         </span>
                       </span>
                       <span className="text-muted flex shrink-0 items-center gap-2 text-xs leading-5 sm:ms-auto">
-                        <time className="tabular-nums" dateTime={event.createdAt}>
-                          {formatDateTime(event.createdAt, locale)}
-                        </time>
-                         {event.itemCount > 0 ? (
-                          <Chip size="sm" variant="secondary">
+                        {event.itemCount > 0 ? (
+                          <Chip size="sm" color={event.isCommitted ? "success" : "default"}>
                             {t("clinic.procedures.items.count", { count: event.itemCount })}
                           </Chip>
                         ) : null}
@@ -108,9 +100,6 @@ export function PatientProcedureEventTimeline({
                   </Button>
                   {isSelected ? (
                     <div className="mt-2 flex min-w-0 flex-col gap-2">
-                      <p className="text-muted m-0 line-clamp-2 text-xs leading-5">
-                        {event.description || t("clinic.procedures.events.noDescription")}
-                      </p>
                       <div className="flex min-w-0 flex-wrap items-center gap-2">
                         <PatientProcedureEventAttachmentMiniView items={selectedEventItems} />
                         <Button

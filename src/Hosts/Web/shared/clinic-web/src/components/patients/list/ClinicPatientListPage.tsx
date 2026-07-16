@@ -60,10 +60,7 @@ export function ClinicPatientListPage({ onNavigate }: ClinicPatientListPageProps
         className="w-[calc(100vw-2rem)] max-w-3xl"
       >
         <ActionBar.Prefix>
-          <Chip size="sm" variant="secondary">
             <span aria-hidden="true" className="tabular-nums">{totalCount}</span>
-            <span className="sr-only">{countLabel}</span>
-          </Chip>
         </ActionBar.Prefix>
         <ActionBar.Content className="min-w-0 flex-1">
           <PatientSearchBar onSearch={handleSearch} />
