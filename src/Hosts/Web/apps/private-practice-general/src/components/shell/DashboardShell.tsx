@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useCallback, useMemo } from "react";
+import { Breadcrumbs } from "@heroui/react";
 import {
   DashboardFrame,
   IconButton,
@@ -15,7 +16,7 @@ import { useAuthSession } from "@vitarish/auth-web";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { CultureSwitcher } from "./CultureSwitcher";
 import { ThemeSwitch } from "./ThemeSwitch";
-import { findCurrentRouteItem } from "./dashboardRouteMatching";
+import { isRouteBranchCurrent } from "./dashboardRouteMatching";
 
 export interface DashboardShellItem {
   href: string;
@@ -52,22 +53,29 @@ export function DashboardShell({
 
   const navigate = useCallback((href: string) => router.push(href), [router]);
 
-  const title = useMemo(() => {
+  const breadcrumbs = useMemo(() => {
     const allItems = [...navGroups.flatMap((g) => g.items), ...footerItems];
-    const currentItem = findCurrentRouteItem(pathname, allItems);
+    const trail = findRouteBreadcrumbs(pathname, allItems).map((item) => ({
+      href: item.href,
+      label: t(item.titleLabelKey ?? item.labelKey),
+    }));
+    const homeCrumb = { href: homeHref, label: t("appShell.navigation.home") };
+    const items = trail[0]?.href === homeHref ? trail : [homeCrumb, ...trail];
 
-    if (currentItem && currentItem.href !== homeHref) {
-      return t(currentItem.titleLabelKey ?? currentItem.labelKey);
-    }
-
-    if (isLoading || !isAuthenticated) {
-      return t("home.welcomeBack");
-    }
-
-    const displayName = displayProfile?.givenName ?? displayProfile?.displayLabel ?? "";
-
-    return t("home.welcomeBackNamed", { name: displayName });
-  }, [displayProfile, footerItems, homeHref, isAuthenticated, isLoading, navGroups, pathname, t]);
+    return (
+      <Breadcrumbs aria-label={t("appShell.navigation.dashboardMenu")} className="min-w-0 truncate">
+        {items.map((item, index) => (
+          <Breadcrumbs.Item
+            key={`${item.href}-${index}`}
+            onPress={index === items.length - 1 ? undefined : () => navigate(item.href)}
+            aria-current={index === items.length - 1 ? "page" : undefined}
+          >
+            {item.label}
+          </Breadcrumbs.Item>
+        ))}
+      </Breadcrumbs>
+    );
+  }, [footerItems, homeHref, navigate, navGroups, pathname, t]);
 
   const sidebarIdentity = useMemo<DashboardIdentity>(() => {
     if (isLoading) {
@@ -117,15 +125,9 @@ export function DashboardShell({
       navigate={navigate}
       navigationGroups={navigationGroups}
       navigationLabel={t("appShell.navigation.dashboardMenu")}
-      title={title}
+      title={breadcrumbs}
       toolbar={
         <>
-          <IconButton label={t("appShell.search.label")} size="sm" variant="tertiary">
-            <i aria-hidden="true" className="fa-solid fa-magnifying-glass size-4" />
-          </IconButton>
-          <IconButton label={t("appShell.actions.notifications")} size="sm" variant="tertiary">
-            <i aria-hidden="true" className="fa-solid fa-bell size-4" />
-          </IconButton>
           <CultureSwitcher />
           <ThemeSwitch />
         </>
@@ -134,6 +136,23 @@ export function DashboardShell({
       {children}
     </DashboardFrame>
   );
+}
+
+function findRouteBreadcrumbs(pathname: string, items: readonly DashboardShellItem[]): DashboardShellItem[] {
+  for (const item of items) {
+    if (item.children) {
+      const childTrail = findRouteBreadcrumbs(pathname, item.children);
+      if (childTrail.length > 0) {
+        return [item, ...childTrail];
+      }
+    }
+
+    if (isRouteBranchCurrent(pathname, item)) {
+      return [item];
+    }
+  }
+
+  return [];
 }
 
 function toNavigationGroup(group: DashboardShellNavGroup, t: (key: MessageKey) => string): DashboardNavigationGroup {

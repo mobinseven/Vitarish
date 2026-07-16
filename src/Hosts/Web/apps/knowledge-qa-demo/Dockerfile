@@ -37,7 +37,7 @@ ARG NEXT_PUBLIC_API_BASE_URL=https://localhost:7272
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN --mount=type=cache,target=/app/.next/cache \
+RUN --mount=type=cache,id=vitarish-knowledge-qa-demo-next-cache,target=/app/apps/knowledge-qa-demo/.next/cache \
     npm run build:knowledge-qa-demo
 
 # --- Production ---

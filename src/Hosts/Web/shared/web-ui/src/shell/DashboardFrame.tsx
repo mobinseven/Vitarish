@@ -37,7 +37,7 @@ export interface DashboardFrameProps {
   navigationGroups: readonly DashboardNavigationGroup[];
   navigationLabel: string;
   navigate: (href: string) => void;
-  title: string;
+  title: ReactNode;
   footerLabel?: string;
   toolbar?: ReactNode;
 }
@@ -77,13 +77,13 @@ export function DashboardFrame({
   );
 }
 
-function DashboardFrameNavbar({ title, toolbar }: { title: string; toolbar?: ReactNode }) {
+function DashboardFrameNavbar({ title, toolbar }: { title: ReactNode; toolbar?: ReactNode }) {
   return (
     <Navbar maxWidth="full">
       <Navbar.Header>
         <AppLayout.MenuToggle />
         <Sidebar.Trigger />
-        <h1 className="text-foreground truncate text-xl font-semibold">{title}</h1>
+        {title}
         <Navbar.Spacer />
         {toolbar ? <div className="flex items-center gap-2">{toolbar}</div> : null}
       </Navbar.Header>
