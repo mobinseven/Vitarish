@@ -1,7 +1,7 @@
 import Image from "next/image";
 import {figures, formatFigureLabel, formatFigureRangeLabel} from "@/features/landing/data/figures";
 import type {Figure as FigureType} from "@/features/landing/data/figures";
-import {FaIcon} from "@/features/landing/icons/fa-icon";
+import {FaIcon} from "@vitarish/web-ui";
 import {useLocalizedText} from "@/localization";
 
 type Row = {

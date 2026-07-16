@@ -1,7 +1,7 @@
 import {Button} from "@heroui/react";
 
 import {BrandIsotipo} from "@/features/landing/brand";
-import {FaIcon} from "@/features/landing/icons/fa-icon";
+import {FaIcon} from "@vitarish/web-ui";
 import {formatFigureLabel} from "@/features/landing/data/figures";
 import {useLocalizedText} from "@/localization";
 

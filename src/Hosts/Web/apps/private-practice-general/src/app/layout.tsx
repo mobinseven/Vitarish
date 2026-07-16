@@ -1,5 +1,4 @@
 import { headers } from "next/headers";
-import "../lib/fa/v7/css/all.min.css";
 import { Providers } from "@/components/providers/AppProviders";
 import { getMessages, I18nAppLayout, localizedMetadata } from "@/localization";
 import "./globals.css";
@@ -14,14 +13,19 @@ export default async function RootLayout({
   const headerStore = await headers();
 
   return (
-    <I18nAppLayout
+    <>
+      <head>
+        <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
+      </head>
+      <I18nAppLayout
       cookieHeader={headerStore.get("cookie")}
       acceptLanguageHeader={headerStore.get("accept-language")}
       getMessages={getMessages}
       htmlClassName="bg-background text-foreground"
       bodyClassName="bg-background text-foreground font-sans antialiased"
-    >
-      <Providers>{children}</Providers>
-    </I18nAppLayout>
+      >
+        <Providers>{children}</Providers>
+      </I18nAppLayout>
+    </>
   );
 }

@@ -2,7 +2,7 @@ import {useState} from "react";
 import Image from "next/image";
 import {Tabs} from "@heroui/react";
 
-import {FaIcon} from "@/features/landing/icons/fa-icon";
+import {FaIcon} from "@vitarish/web-ui";
 import {
   figures,
   figureTitles,

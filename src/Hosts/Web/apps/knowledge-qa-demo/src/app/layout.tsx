@@ -17,13 +17,18 @@ export default async function RootLayout({
   const headerStore = await headers();
 
   return (
-    <I18nAppLayout
+    <>
+      <head>
+        <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
+      </head>
+      <I18nAppLayout
       cookieHeader={headerStore.get("cookie")}
       acceptLanguageHeader={headerStore.get("accept-language")}
       getMessages={getMessages}
       bodyClassName="min-h-screen bg-background font-sans antialiased"
-    >
-      <Providers>{children}</Providers>
-    </I18nAppLayout>
+      >
+        <Providers>{children}</Providers>
+      </I18nAppLayout>
+    </>
   );
 }

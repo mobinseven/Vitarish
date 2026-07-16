@@ -32,6 +32,8 @@ export type {
 } from "./shell/DashboardFrame";
 export { IconButton } from "./shell/IconButton";
 export type { IconButtonProps } from "./shell/IconButton";
+export {FaIcon} from "./icons/FaIcon";
+export type {FaIconProps} from "./icons/FaIcon";
 export { EmptyStateSurface, ErrorStateSurface, LoadingStateSurface } from "./state/StateSurface";
 export type { LoadingStateSurfaceProps, MessageStateSurfaceProps } from "./state/StateSurface";
 export { DetailGrid } from "./state/DetailGrid";

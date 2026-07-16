@@ -1,6 +1,6 @@
 import {Button, Card} from "@heroui/react";
 
-import {FaIcon} from "@/features/landing/icons/fa-icon";
+import {FaIcon} from "@vitarish/web-ui";
 import {formatFigureLabel} from "@/features/landing/data/figures";
 import {useLocalizedText} from "@/localization";
 

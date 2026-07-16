@@ -1,6 +1,6 @@
 import {Button, useTheme} from "@heroui/react";
 
-import {FaIcon} from "@/features/landing/icons/fa-icon";
+import {FaIcon} from "@vitarish/web-ui";
 
 export function ThemeToggle() {
   const {resolvedTheme, setTheme} = useTheme("system");

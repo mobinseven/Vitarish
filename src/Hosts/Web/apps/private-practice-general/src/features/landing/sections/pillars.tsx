@@ -1,7 +1,7 @@
 import Image from "next/image";
 import {Card} from "@heroui/react";
 
-import {FaIcon} from "@/features/landing/icons/fa-icon";
+import {FaIcon} from "@vitarish/web-ui";
 import {figures, formatFigureLabel, formatFigureRangeLabel} from "@/features/landing/data/figures";
 import {useLocalizedText} from "@/localization";
 

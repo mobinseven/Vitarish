@@ -2,7 +2,7 @@ import {Button} from "@heroui/react";
 import {Navbar} from "@heroui-pro/react";
 
 import {BrandLogotipo} from "@/features/landing/brand";
-import {FaIcon} from "@/features/landing/icons/fa-icon";
+import {FaIcon} from "@vitarish/web-ui";
 import {useLocalizedText} from "@/localization";
 import {Routes} from "@/app/routes";
 import {ThemeToggle} from "./theme-toggle";
