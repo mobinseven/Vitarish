@@ -1,0 +1,1 @@
+export { intelligenceMessageCatalogs } from "./catalogs";

@@ -24,7 +24,7 @@ Scope: private-practice-general feature-to-package migration
 | `social` | Main_social.json | none (unused) | hold | |
 | `communications` | Main_communications.json | none (unused) | hold | |
 | `commerce` | Main_commerce.json | none (unused) | hold | |
-| `intelligence` | Main_intelligence.json | none (unused) | hold | |
+| `intelligence` | Main_intelligence.json | live dictation capability | intelligence-web | Extracted from clinic-web; generated client remains package-internal |
 | `requests` | Main_requests.json | none (unused) | hold | |
 
 ## Feature File Ownership

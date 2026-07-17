@@ -3,37 +3,37 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   useIntelligenceGetLiveTranscriptionCapabilities,
-} from "../../../api/generated/intelligence/intelligence";
-import type { RealtimeTranscriptionCapabilities } from "../../../api/generated/intelligence/model";
+} from "../api/generated/intelligence/intelligence";
+import type { RealtimeTranscriptionCapabilities } from "../api/generated/intelligence/model";
 import {
   buildLiveTranscriptionSocketUrl,
   getDictationBrowserFailureCode,
   LiveTranscriptionClient,
   selectSupportedLiveTranscriptionMimeType,
-} from "../../../api/intelligence/liveTranscriptionClient";
+} from "../api/intelligence/liveTranscriptionClient";
 import type {
   LiveTranscriptionClientConfiguration,
-  ProcedureNoteDictationFailureCode,
-  ProcedureNoteDictationLifecycle,
-} from "../../../api/intelligence/liveTranscriptionClient";
+  LiveDictationFailureCode,
+  LiveDictationLifecycle,
+} from "../api/intelligence/liveTranscriptionClient";
 
-interface UseProcedureNoteDictationOptions {
+export interface UseLiveDictationOptions {
   enabled: boolean;
   onSegment: (text: string) => void;
   preferredLanguage: string;
   sessionKey: string;
 }
 
-export interface ProcedureNoteDictationController {
+export interface LiveDictationController {
   available: boolean;
   capabilitiesLoading: boolean;
-  failureCode: ProcedureNoteDictationFailureCode | null;
+  failureCode: LiveDictationFailureCode | null;
   isActive: boolean;
   language: string;
   languages: readonly string[];
   setLanguage: (language: string) => void;
   start: () => Promise<void>;
-  status: ProcedureNoteDictationLifecycle | "unavailable";
+  status: LiveDictationLifecycle | "unavailable";
   stop: () => Promise<void>;
 }
 
@@ -61,12 +61,12 @@ export function selectDictationLanguage(
   return languages.includes(preferredLanguage) ? preferredLanguage : languages[0];
 }
 
-export function useProcedureNoteDictation({
+export function useLiveDictation({
   enabled,
   onSegment,
   preferredLanguage,
   sessionKey,
-}: UseProcedureNoteDictationOptions): ProcedureNoteDictationController {
+}: UseLiveDictationOptions): LiveDictationController {
   const capabilitiesQuery = useIntelligenceGetLiveTranscriptionCapabilities({
     query: {
       enabled,
@@ -76,8 +76,8 @@ export function useProcedureNoteDictation({
     },
   });
   const [language, setLanguage] = useState(preferredLanguage);
-  const [lifecycle, setLifecycle] = useState<ProcedureNoteDictationLifecycle>("idle");
-  const [failureCode, setFailureCode] = useState<ProcedureNoteDictationFailureCode | null>(null);
+  const [lifecycle, setLifecycle] = useState<LiveDictationLifecycle>("idle");
+  const [failureCode, setFailureCode] = useState<LiveDictationFailureCode | null>(null);
   const sessionRef = useRef<LiveTranscriptionClient | null>(null);
   const onSegmentRef = useRef(onSegment);
   const previousPreferredLanguageRef = useRef(preferredLanguage);
@@ -88,7 +88,7 @@ export function useProcedureNoteDictation({
     [capabilitiesQuery.data, language],
   );
   const browserFailure = getDictationBrowserFailureCode();
-  const unavailableCode: ProcedureNoteDictationFailureCode | null = !enabled
+  const unavailableCode: LiveDictationFailureCode | null = !enabled
     ? "CapabilityUnavailable"
     : capabilitiesQuery.isError || capabilitiesQuery.data?.available === false
       ? "CapabilityUnavailable"

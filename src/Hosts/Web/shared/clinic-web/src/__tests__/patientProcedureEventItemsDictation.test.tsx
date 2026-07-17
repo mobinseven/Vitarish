@@ -5,7 +5,8 @@ import { PatientProcedureEventItemsPanel } from "../components/patients/procedur
 import { clinicMessageCatalogs, LocalizationProvider } from "../localization";
 
 const dictation = vi.hoisted(() => ({
-  options: null as null | { enabled: boolean; onSegment: (text: string) => void },
+  options: null as null | { enabled: boolean; onSegment: (text: string) => void; sessionKey: string },
+  sessionKeys: [] as string[],
   start: vi.fn(async () => undefined),
   stop: vi.fn(async () => undefined),
 }));
@@ -37,11 +38,19 @@ vi.mock("../hooks/patients/procedures/usePatientProcedureEventItemMutations", ()
   }),
 }));
 
-vi.mock("../hooks/patients/procedures/useProcedureNoteDictation", () => ({
+vi.mock("@vitarish/intelligence-web", () => ({
   appendConfirmedTranscript: (current: string, segment: string) =>
     current ? `${current} ${segment.trim()}` : segment.trim(),
-  useProcedureNoteDictation: (options: { enabled: boolean; onSegment: (text: string) => void }) => {
+  LiveDictationLanguageSelect: () => null,
+  LiveDictationPromptAction: ({ controller }: { controller: { status: string; stop: () => void } }) => (
+    <button aria-label="Stop voice dictation" onClick={() => controller.stop()} />
+  ),
+  LiveDictationStatus: () => (
+    <p role="status">Recording. Select stop when you are finished.</p>
+  ),
+  useLiveDictation: (options: { enabled: boolean; onSegment: (text: string) => void; sessionKey: string }) => {
     dictation.options = options;
+    dictation.sessionKeys.push(options.sessionKey);
     return {
       available: true,
       capabilitiesLoading: false,
@@ -71,6 +80,7 @@ function Wrapper({ children }: { children: ReactNode }) {
 
 beforeEach(() => {
   dictation.options = null;
+  dictation.sessionKeys = [];
   dictation.start.mockClear();
   dictation.stop.mockClear();
 });
@@ -99,9 +109,25 @@ describe("procedure note dictation integration", () => {
       wrapper: Wrapper,
     });
 
-    expect(dictation.options?.enabled).toBe(false);
+    expect(dictation.options).toBeNull();
     expect(screen.queryByRole("textbox", { name: "Clinical note" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Stop voice dictation" }))
       .not.toBeInTheDocument();
+  });
+
+  it("recreates the composer for a new event so stale drafts and sessions are released", () => {
+    const { rerender } = render(
+      <PatientProcedureEventItemsPanel canWrite eventId="event-1" />,
+      { wrapper: Wrapper },
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "Clinical note" }), {
+      target: { value: "Event one draft" },
+    });
+
+    rerender(<PatientProcedureEventItemsPanel canWrite eventId="event-2" />);
+
+    expect(screen.getByRole("textbox", { name: "Clinical note" })).toHaveValue("");
+    expect(dictation.sessionKeys).toContain("event-1");
+    expect(dictation.sessionKeys).toContain("event-2");
   });
 });

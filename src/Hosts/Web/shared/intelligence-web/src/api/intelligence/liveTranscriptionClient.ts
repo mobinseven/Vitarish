@@ -2,14 +2,14 @@ import { getIntelligenceGetLiveTranscriptionCapabilitiesQueryKey } from "../gene
 
 export const liveTranscriptionSubprotocol = "vitarish.live-transcription.v1";
 
-export type ProcedureNoteDictationLifecycle =
+export type LiveDictationLifecycle =
   | "idle"
   | "connecting"
   | "recording"
   | "completing"
   | "failed";
 
-export type ProcedureNoteDictationFailureCode =
+export type LiveDictationFailureCode =
   | "CapabilityUnavailable"
   | "InsecureContext"
   | "BrowserUnsupported"
@@ -45,9 +45,9 @@ export interface LiveTranscriptionClientConfiguration {
 }
 
 export interface LiveTranscriptionClientCallbacks {
-  onFailure: (code: ProcedureNoteDictationFailureCode) => void;
+  onFailure: (code: LiveDictationFailureCode) => void;
   onSegment: (text: string) => void;
-  onStateChange: (state: ProcedureNoteDictationLifecycle) => void;
+  onStateChange: (state: LiveDictationLifecycle) => void;
 }
 
 interface MediaStreamTrackLike {
@@ -95,7 +95,7 @@ interface RealtimeServerMessage {
 
 const webSocketConnecting = 0;
 const webSocketOpen = 1;
-const knownServerFailureCodes = new Set<ProcedureNoteDictationFailureCode>([
+const knownServerFailureCodes = new Set<LiveDictationFailureCode>([
   "InvalidStart",
   "ProtocolViolation",
   "UnsupportedLanguage",
@@ -130,7 +130,7 @@ export function getDefaultLiveTranscriptionBrowserDependencies(): LiveTranscript
   };
 }
 
-export function getDictationBrowserFailureCode(): ProcedureNoteDictationFailureCode | null {
+export function getDictationBrowserFailureCode(): LiveDictationFailureCode | null {
   if (typeof window === "undefined" || typeof navigator === "undefined") {
     return "BrowserUnsupported";
   }
@@ -187,7 +187,7 @@ export class LiveTranscriptionClient {
   private stopPromise: Promise<void> | undefined;
   private resolveRecorderStop: (() => void) | undefined;
   private sendChain: Promise<void> = Promise.resolve();
-  private lifecycle: ProcedureNoteDictationLifecycle = "idle";
+  private lifecycle: LiveDictationLifecycle = "idle";
   private sessionId: string | undefined;
   private nextSequence = 0;
   private sentBytes = 0;
@@ -443,7 +443,7 @@ export class LiveTranscriptionClient {
     }
   }
 
-  private fail(code: ProcedureNoteDictationFailureCode): void {
+  private fail(code: LiveDictationFailureCode): void {
     if (this.terminal) return;
     this.terminal = true;
     this.clearTimer();
@@ -454,12 +454,12 @@ export class LiveTranscriptionClient {
     this.setLifecycle("failed");
   }
 
-  private setLifecycle(lifecycle: ProcedureNoteDictationLifecycle): void {
+  private setLifecycle(lifecycle: LiveDictationLifecycle): void {
     this.lifecycle = lifecycle;
     this.callbacks.onStateChange(lifecycle);
   }
 
-  private armTimer(code: ProcedureNoteDictationFailureCode, seconds: number): void {
+  private armTimer(code: LiveDictationFailureCode, seconds: number): void {
     this.clearTimer();
     this.timer = this.browser.setTimer(() => this.fail(code), seconds * 1_000);
   }
@@ -512,15 +512,15 @@ export class LiveTranscriptionClient {
   }
 }
 
-function readServerFailureCode(message: RealtimeServerMessage): ProcedureNoteDictationFailureCode {
+function readServerFailureCode(message: RealtimeServerMessage): LiveDictationFailureCode {
   const code = message.error?.code;
   return typeof code === "string"
-    && knownServerFailureCodes.has(code as ProcedureNoteDictationFailureCode)
-    ? code as ProcedureNoteDictationFailureCode
+    && knownServerFailureCodes.has(code as LiveDictationFailureCode)
+    ? code as LiveDictationFailureCode
     : "UnexpectedFailure";
 }
 
-function toBrowserFailureCode(error: unknown): ProcedureNoteDictationFailureCode {
+function toBrowserFailureCode(error: unknown): LiveDictationFailureCode {
   const name = typeof error === "object" && error !== null && "name" in error
     ? String((error as { name: unknown }).name)
     : "";

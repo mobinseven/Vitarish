@@ -144,6 +144,14 @@ const packageBoundaries = [
     ],
   },
   {
+    name: "@vitarish/intelligence-web",
+    src: resolve(__dirname, "../shared/intelligence-web/src"),
+    forbiddenPatterns: [
+      ...featurePackageForbiddenPatterns,
+      ...noNextNavigationPatterns,
+    ],
+  },
+  {
     name: "@vitarish/sea-web",
     src: resolve(__dirname, "../shared/sea-web/src"),
     forbiddenPatterns: [

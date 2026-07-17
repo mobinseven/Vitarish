@@ -79,8 +79,9 @@ Use module names as the feature map. For each module, the conventional locations
 | Sea/clinic workflows | React routes with `src/Hosts/Web/shared/sea-web` and `src/Hosts/Web/shared/clinic-web` | `src/Modules/Sea/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Sea.Tests`, package tests | `docs/platform/modules/sea` |
 | Medical/prescriptions | `src/Hosts/Main/Pages/Prescriptions`, `Pages/Support/Prescriptions` | `src/Modules/Medical/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Medical.Tests` | `docs/platform/modules/medical` |
 | Knowledge/QA | `src/Hosts/Main/Pages/Knowledge`, `src/Hosts/Web/shared/knowledge-web`, app knowledge routes | `src/Modules/Knowledge/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Knowledge.Tests`, package tests | `docs/platform/modules/knowledge` |
+| Intelligence | `src/Hosts/Web/shared/intelligence-web` owns Intelligence OpenAPI generation, browser realtime dictation, and generic localized primitives | `src/Modules/Intelligence/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Intelligence.Tests`, package tests | `docs/platform/modules/intelligence` when present |
 | Search | platform search UI | `src/Modules/Search/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Search.Tests` | `docs/platform/modules/search` |
-| Files, Contents, Communications, Commerce, Links, Feed, Requests, Social, Financial, Intelligence | Matching host/app pages when present | `src/Modules/<Name>/Application` | same | `Domain` | `Infrastructure` | Add/use `tests/Modules/<Name>.Tests` when present | `docs/platform/modules/<name>` when present |
+| Files, Contents, Communications, Commerce, Links, Feed, Requests, Social, Financial | Matching host/app pages when present | `src/Modules/<Name>/Application` | same | `Domain` | `Infrastructure` | Add/use `tests/Modules/<Name>.Tests` when present | `docs/platform/modules/<name>` when present |
 
 ## 5. Runtime map
 

@@ -14,9 +14,9 @@ import { emptyFormData } from "../models/patients/profile/PatientProfileForm";
 import { PatientProcedureEventTimeline } from "../components/patients/procedures/PatientProcedureEventTimeline";
 import { AppointmentsAgenda } from "../components/appointments/agenda/AppointmentsAgenda";
 import {
-  PatientProcedureEventItemMessage,
   PatientProcedureEventItemsPanel,
 } from "../components/patients/procedures/PatientProcedureEventItemsPanel";
+import { PatientProcedureEventItemMessage } from "../components/patients/procedures/PatientProcedureEventItemMessage";
 import { PatientSearchBar } from "../components/patients/list/PatientSearchBar";
 import { PatientsGrid } from "../components/patients/list/PatientsGrid";
 
@@ -47,10 +47,13 @@ vi.mock("../hooks/patients/procedures/usePatientProcedureEventItemMutations", ()
   }),
 }));
 
-vi.mock("../hooks/patients/procedures/useProcedureNoteDictation", () => ({
+vi.mock("@vitarish/intelligence-web", () => ({
   appendConfirmedTranscript: (current: string, segment: string) =>
     current ? `${current} ${segment}` : segment,
-  useProcedureNoteDictation: () => ({
+  LiveDictationLanguageSelect: () => null,
+  LiveDictationPromptAction: () => null,
+  LiveDictationStatus: () => null,
+  useLiveDictation: () => ({
     available: false,
     capabilitiesLoading: false,
     failureCode: "CapabilityUnavailable",
@@ -156,8 +159,24 @@ describe("clinic display components", () => {
     expect(conversation).toHaveClass("min-h-0", "flex-1");
     expect(conversation.closest('[data-slot="scroll-shadow"]')).toBeNull();
     expect(conversation).not.toContainElement(composer);
-    expect(screen.getByRole("button", { name: "Voice dictation is currently unavailable." }))
-      .toBeDisabled();
+  });
+
+  it("uses a unique heading relationship for each event items panel", () => {
+    const { container } = render(
+      <>
+        <PatientProcedureEventItemsPanel canWrite={false} eventId="event-1" />
+        <PatientProcedureEventItemsPanel canWrite={false} eventId="event-2" />
+      </>,
+      { wrapper: Wrapper },
+    );
+    const panels = [...container.querySelectorAll("section[aria-labelledby]")];
+    const headingIds = panels.map((panel) => panel.getAttribute("aria-labelledby"));
+
+    expect(panels).toHaveLength(2);
+    expect(new Set(headingIds).size).toBe(2);
+    for (const headingId of headingIds) {
+      expect(headingId && container.ownerDocument.getElementById(headingId)).not.toBeNull();
+    }
   });
 
   it("renders agenda weekday names from the selected culture instead of the browser culture", () => {
@@ -243,7 +262,8 @@ describe("clinic display components", () => {
     );
     expect(within(dialog).getByText("image/png")).toBeInTheDocument();
     expect(within(dialog).getByText("1 kB")).toBeInTheDocument();
-    expect(within(dialog).getByRole("button", { name: "Download" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("link", { name: "Download" }))
+      .toHaveAttribute("download", "scan.png");
   });
 
   it("resolves legacy image IDs without displaying the identifier", async () => {

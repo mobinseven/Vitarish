@@ -6,13 +6,13 @@ import {
 } from "../api/intelligence/liveTranscriptionClient";
 import type {
   LiveTranscriptionBrowserDependencies,
-  ProcedureNoteDictationFailureCode,
-  ProcedureNoteDictationLifecycle,
+  LiveDictationFailureCode,
+  LiveDictationLifecycle,
 } from "../api/intelligence/liveTranscriptionClient";
 import {
   appendConfirmedTranscript,
   selectDictationLanguage,
-} from "../hooks/patients/procedures/useProcedureNoteDictation";
+} from "../hooks/useLiveDictation";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -62,9 +62,9 @@ describe("live transcription browser adapter", () => {
     const socket = new FakeWebSocket();
     const recorder = new FakeMediaRecorder();
     const track = { stop: vi.fn() };
-    const states: ProcedureNoteDictationLifecycle[] = [];
+    const states: LiveDictationLifecycle[] = [];
     const segments: string[] = [];
-    const failures: ProcedureNoteDictationFailureCode[] = [];
+    const failures: LiveDictationFailureCode[] = [];
     const client = new LiveTranscriptionClient(
       configuration(),
       {
@@ -111,7 +111,7 @@ describe("live transcription browser adapter", () => {
     const socket = new FakeWebSocket();
     const recorder = new FakeMediaRecorder();
     const segments: string[] = [];
-    const failures: ProcedureNoteDictationFailureCode[] = [];
+    const failures: LiveDictationFailureCode[] = [];
     const track = { stop: vi.fn() };
     const client = new LiveTranscriptionClient(
       configuration(),
@@ -138,7 +138,7 @@ describe("live transcription browser adapter", () => {
 
   it("maps microphone denial and makes repeated cleanup idempotent", async () => {
     const failure = Object.assign(new Error("denied"), { name: "NotAllowedError" });
-    const failures: ProcedureNoteDictationFailureCode[] = [];
+    const failures: LiveDictationFailureCode[] = [];
     const browser: LiveTranscriptionBrowserDependencies = {
       clearTimer: vi.fn(),
       createMediaRecorder: () => new FakeMediaRecorder(),
