@@ -130,7 +130,7 @@ describe("apiFetchBlob", () => {
     vi.restoreAllMocks();
   });
 
-  it("downloads authenticated tenant-scoped binary content", async () => {
+  it("downloads authenticated tenant-scoped binary content across runtime realms", async () => {
     const fetchMock = vi.fn().mockResolvedValueOnce(new Response("image", {
       headers: { "Content-Type": "image/png" },
     }));
