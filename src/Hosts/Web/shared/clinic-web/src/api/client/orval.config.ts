@@ -21,15 +21,6 @@ export default defineConfig({
       override: { mutator: { path: "./apiFetch.ts", name: "apiFetch" } },
     },
   },
-  intelligence: {
-    input: { target: `${specsDir}/Main_intelligence.json` },
-    output: {
-      target: "../generated/intelligence/intelligence.ts",
-      schemas: "../generated/intelligence/model",
-      client: "react-query",
-      override: { mutator: { path: "./apiFetch.ts", name: "apiFetch" } },
-    },
-  },
   medical: {
     input: { target: `${specsDir}/Main_medical.json` },
     output: {

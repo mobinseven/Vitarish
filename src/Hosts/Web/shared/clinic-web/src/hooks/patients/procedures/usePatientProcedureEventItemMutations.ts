@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { patientProcedureKeys } from "./patientProcedureKeys";
 import { createEventItemText, createEventItemFile, deleteEventItem } from "@vitarish/sea-web";
+import { toSeaFileAttachment } from "@vitarish/sea-web";
 
 export function useCreatePatientProcedureEventItemText() {
   const qc = useQueryClient();
@@ -14,8 +15,10 @@ export function useCreatePatientProcedureEventItemText() {
 export function useCreatePatientProcedureEventItemFile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { eventId: string; content: string; contentType: string; size: number; fileName: string }) =>
-      createEventItemFile(data),
+    mutationFn: async ({ eventId, file }: { eventId: string; file: File }) => {
+      const attachment = await toSeaFileAttachment(eventId, file);
+      return createEventItemFile({ ...attachment, fileName: file.name });
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: patientProcedureKeys.all }),
   });
 }
