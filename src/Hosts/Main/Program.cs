@@ -137,6 +137,7 @@ _ = app.UseHttpsRedirection();
 _ = app.UseRouting();
 
 _ = app.UseCors("WebHostCors");
+app.UseHostWebSockets();
 
 _ = app.UseRateLimiter();
 

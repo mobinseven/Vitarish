@@ -20,6 +20,7 @@ public static class IntelligenceApiEndpointMapping
         _ = group.MapModulePost(IntelligenceApiRoutes.ResponderStream, StreamRespondAsync, "IntelligenceStreamRespond", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
         _ = group.MapModulePost(IntelligenceApiRoutes.Transcription, TranscribeAsync, "IntelligenceTranscribe");
         _ = group.MapModulePost(IntelligenceApiRoutes.TranscriptionStream, StreamTranscribeAsync, "IntelligenceStreamTranscribe", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
+        _ = group.MapRealtimeTranscription();
         _ = group.MapModulePost(IntelligenceApiRoutes.Rewrite, RewriteAsync, "IntelligenceRewrite");
         _ = group.MapModulePost(IntelligenceApiRoutes.RewriteStream, StreamRewriteAsync, "IntelligenceStreamRewrite", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
         return endpoints;

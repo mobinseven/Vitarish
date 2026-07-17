@@ -47,6 +47,23 @@ vi.mock("../hooks/patients/procedures/usePatientProcedureEventItemMutations", ()
   }),
 }));
 
+vi.mock("../hooks/patients/procedures/useProcedureNoteDictation", () => ({
+  appendConfirmedTranscript: (current: string, segment: string) =>
+    current ? `${current} ${segment}` : segment,
+  useProcedureNoteDictation: () => ({
+    available: false,
+    capabilitiesLoading: false,
+    failureCode: "CapabilityUnavailable",
+    isActive: false,
+    language: "en-US",
+    languages: [],
+    setLanguage: vi.fn(),
+    start: vi.fn(),
+    status: "unavailable",
+    stop: vi.fn(),
+  }),
+}));
+
 const messages = {
   ...clinicMessageCatalogs.en,
   common: {
@@ -139,6 +156,8 @@ describe("clinic display components", () => {
     expect(conversation).toHaveClass("min-h-0", "flex-1");
     expect(conversation.closest('[data-slot="scroll-shadow"]')).toBeNull();
     expect(conversation).not.toContainElement(composer);
+    expect(screen.getByRole("button", { name: "Voice dictation is currently unavailable." }))
+      .toBeDisabled();
   });
 
   it("renders agenda weekday names from the selected culture instead of the browser culture", () => {

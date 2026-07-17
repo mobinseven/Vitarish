@@ -1,0 +1,186 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useIntelligenceGetLiveTranscriptionCapabilities,
+} from "../../../api/generated/intelligence/intelligence";
+import type { RealtimeTranscriptionCapabilities } from "../../../api/generated/intelligence/model";
+import {
+  buildLiveTranscriptionSocketUrl,
+  getDictationBrowserFailureCode,
+  LiveTranscriptionClient,
+  selectSupportedLiveTranscriptionMimeType,
+} from "../../../api/intelligence/liveTranscriptionClient";
+import type {
+  LiveTranscriptionClientConfiguration,
+  ProcedureNoteDictationFailureCode,
+  ProcedureNoteDictationLifecycle,
+} from "../../../api/intelligence/liveTranscriptionClient";
+
+interface UseProcedureNoteDictationOptions {
+  enabled: boolean;
+  onSegment: (text: string) => void;
+  preferredLanguage: string;
+  sessionKey: string;
+}
+
+export interface ProcedureNoteDictationController {
+  available: boolean;
+  capabilitiesLoading: boolean;
+  failureCode: ProcedureNoteDictationFailureCode | null;
+  isActive: boolean;
+  language: string;
+  languages: readonly string[];
+  setLanguage: (language: string) => void;
+  start: () => Promise<void>;
+  status: ProcedureNoteDictationLifecycle | "unavailable";
+  stop: () => Promise<void>;
+}
+
+export function appendConfirmedTranscript(current: string, segment: string): string {
+  const confirmed = segment.trim();
+  if (!confirmed) return current;
+  if (!current) return confirmed;
+  return /\s$/u.test(current) ? `${current}${confirmed}` : `${current} ${confirmed}`;
+}
+
+export function useProcedureNoteDictation({
+  enabled,
+  onSegment,
+  preferredLanguage,
+  sessionKey,
+}: UseProcedureNoteDictationOptions): ProcedureNoteDictationController {
+  const capabilitiesQuery = useIntelligenceGetLiveTranscriptionCapabilities({
+    query: {
+      enabled,
+      refetchOnWindowFocus: false,
+      retry: false,
+      staleTime: 60_000,
+    },
+  });
+  const [language, setLanguage] = useState(preferredLanguage);
+  const [lifecycle, setLifecycle] = useState<ProcedureNoteDictationLifecycle>("idle");
+  const [failureCode, setFailureCode] = useState<ProcedureNoteDictationFailureCode | null>(null);
+  const sessionRef = useRef<LiveTranscriptionClient | null>(null);
+  const onSegmentRef = useRef(onSegment);
+  onSegmentRef.current = onSegment;
+
+  const configuration = useMemo(
+    () => toClientConfiguration(capabilitiesQuery.data, language),
+    [capabilitiesQuery.data, language],
+  );
+  const browserFailure = getDictationBrowserFailureCode();
+  const unavailableCode: ProcedureNoteDictationFailureCode | null = !enabled
+    ? "CapabilityUnavailable"
+    : capabilitiesQuery.isError || capabilitiesQuery.data?.available === false
+      ? "CapabilityUnavailable"
+      : browserFailure ?? (capabilitiesQuery.data && !configuration ? "CodecUnavailable" : null);
+  const available = Boolean(
+    enabled
+    && capabilitiesQuery.data?.available
+    && configuration
+    && !unavailableCode,
+  );
+  const isActive = lifecycle === "connecting"
+    || lifecycle === "recording"
+    || lifecycle === "completing";
+
+  useEffect(() => {
+    const languages = capabilitiesQuery.data?.languages ?? [];
+    if (languages.length === 0 || languages.includes(language)) return;
+    setLanguage(languages.includes(preferredLanguage) ? preferredLanguage : languages[0]);
+  }, [capabilitiesQuery.data?.languages, language, preferredLanguage]);
+
+  useEffect(() => {
+    sessionRef.current?.dispose();
+    sessionRef.current = null;
+    setLifecycle("idle");
+    setFailureCode(null);
+  }, [enabled, sessionKey]);
+
+  useEffect(() => () => {
+    sessionRef.current?.dispose();
+    sessionRef.current = null;
+  }, []);
+
+  const start = useCallback(async () => {
+    if (!available || !configuration || isActive) {
+      if (!isActive) {
+        setFailureCode(unavailableCode ?? "CapabilityUnavailable");
+        setLifecycle("failed");
+      }
+      return;
+    }
+
+    sessionRef.current?.dispose();
+    setFailureCode(null);
+    let session: LiveTranscriptionClient;
+    session = new LiveTranscriptionClient(configuration, {
+      onFailure: (code) => {
+        if (sessionRef.current === session) setFailureCode(code);
+      },
+      onSegment: (text) => {
+        if (sessionRef.current === session) onSegmentRef.current(text);
+      },
+      onStateChange: (state) => {
+        if (sessionRef.current === session) setLifecycle(state);
+      },
+    });
+    sessionRef.current = session;
+    try {
+      await session.start();
+    } catch {
+      // The session callback already exposed a stable localized failure code.
+    }
+  }, [available, configuration, isActive, unavailableCode]);
+
+  const stop = useCallback(async () => {
+    await sessionRef.current?.stop();
+  }, []);
+
+  return {
+    available,
+    capabilitiesLoading: enabled && capabilitiesQuery.isLoading,
+    failureCode: failureCode ?? (!available && !capabilitiesQuery.isLoading ? unavailableCode : null),
+    isActive,
+    language,
+    languages: capabilitiesQuery.data?.languages ?? [],
+    setLanguage,
+    start,
+    status: lifecycle === "idle" && !available ? "unavailable" : lifecycle,
+    stop,
+  };
+}
+
+function toClientConfiguration(
+  capabilities: RealtimeTranscriptionCapabilities | undefined,
+  language: string,
+): LiveTranscriptionClientConfiguration | null {
+  if (!capabilities?.available || !capabilities.languages.includes(language)) return null;
+  const mimeType = selectSupportedLiveTranscriptionMimeType(capabilities.mimeTypes);
+  const maxFrameBytes = Number(capabilities.limits.maxFrameBytes);
+  const maxTotalBytes = Number(capabilities.limits.maxTotalBytes);
+  const idleTimeoutSeconds = Number(capabilities.limits.idleTimeoutSeconds);
+  if (
+    !mimeType
+    || !Number.isSafeInteger(maxFrameBytes)
+    || maxFrameBytes <= 0
+    || !Number.isSafeInteger(maxTotalBytes)
+    || maxTotalBytes < maxFrameBytes
+    || !Number.isSafeInteger(idleTimeoutSeconds)
+    || idleTimeoutSeconds <= 0
+  ) {
+    return null;
+  }
+
+  try {
+    return {
+      language,
+      limits: { idleTimeoutSeconds, maxFrameBytes, maxTotalBytes },
+      mimeType,
+      socketUrl: buildLiveTranscriptionSocketUrl(),
+    };
+  } catch {
+    return null;
+  }
+}

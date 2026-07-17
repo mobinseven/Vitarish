@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="FluentAssertions" />
@@ -11,6 +12,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Modules\Intelligence\Contracts\Intelligence.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Intelligence\Client\Intelligence.Client.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Intelligence\Application\Intelligence.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Intelligence\Infrastructure\Intelligence.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Intelligence\Api\Intelligence.Api.csproj" />
   </ItemGroup>
 
 </Project>
