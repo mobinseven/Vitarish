@@ -52,6 +52,9 @@ public class SerializationTests
         IntelligenceApiRoutes.Responder.Should().Be("/responder");
         IntelligenceApiRoutes.Transcription.Should().Be("/transcription");
         IntelligenceApiRoutes.Rewrite.Should().Be("/rewrite");
+        IntelligenceApiRoutes.LiveTranscription.Should().Be("/transcription/live");
+        IntelligenceApiRoutes.LiveTranscriptionCapabilities.Should()
+            .Be(IntelligenceApiRoutes.LiveTranscription + "/capabilities");
     }
 
     [Fact]
@@ -72,5 +75,40 @@ public class SerializationTests
         deserialized!.FileId.Should().Be("file-1");
         deserialized.FileName.Should().Be("test.pdf");
         deserialized.Size.Should().Be(1024);
+    }
+
+    [Fact]
+    public void Realtime_transcription_capability_round_trip_exposes_only_client_safe_values()
+    {
+        var original = new RealtimeTranscriptionCapabilities(
+            true,
+            ["fa-IR", "en-US"],
+            ["audio/webm;codecs=opus"],
+            new RealtimeTranscriptionLimits(65_536, 12_582_912, 270, 20));
+
+        string json = JsonSerializer.Serialize(original, JsonOptions);
+        RealtimeTranscriptionCapabilities? deserialized =
+            JsonSerializer.Deserialize<RealtimeTranscriptionCapabilities>(json, JsonOptions);
+
+        deserialized.Should().BeEquivalentTo(original);
+        json.Should().NotContain("Google");
+        json.Should().NotContain("model");
+        json.Should().NotContain("credential");
+        json.Should().NotContain("project");
+    }
+
+    [Fact]
+    public void Realtime_transcription_error_codes_serialize_as_stable_strings()
+    {
+        var message = new RealtimeTranscriptionServerMessage(
+            RealtimeTranscriptionMessageTypes.Failed,
+            "session-1",
+            Error: new RealtimeTranscriptionError(
+                RealtimeTranscriptionErrorCode.ProviderUnavailable,
+                "Unavailable"));
+
+        string json = JsonSerializer.Serialize(message, JsonOptions);
+
+        json.Should().Contain("\"code\":\"ProviderUnavailable\"");
     }
 }

@@ -9,6 +9,7 @@ import {
   ChatConversation,
   ChatMessage,
   ContextMenu,
+  NativeSelect,
   PromptInput,
 } from "@heroui-pro/react";
 import { MenuItem } from "react-aria-components";
@@ -23,6 +24,11 @@ import {
   useDeletePatientProcedureEventItem,
 } from "../../../hooks/patients/procedures/usePatientProcedureEventItemMutations";
 import { usePatientProcedureEventItems } from "../../../hooks/patients/procedures/usePatientProcedureEventItems";
+import {
+  appendConfirmedTranscript,
+  useProcedureNoteDictation,
+} from "../../../hooks/patients/procedures/useProcedureNoteDictation";
+import type { ProcedureNoteDictationFailureCode } from "../../../api/intelligence/liveTranscriptionClient";
 import { formatDateTime, formatFileSize, useLocalizedText } from "../../../localization";
 import type {
   EventItemSummary,
@@ -343,7 +349,7 @@ export function PatientProcedureEventItemsPanel({
   canWrite,
   viewer,
 }: PatientProcedureEventItemsPanelProps) {
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
   const query = usePatientProcedureEventItems(eventId);
   const createNote = useCreatePatientProcedureEventItemText();
   const createFile = useCreatePatientProcedureEventItemFile();
@@ -352,6 +358,12 @@ export function PatientProcedureEventItemsPanel({
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | undefined>();
   const [fileFailed, setFileFailed] = useState(false);
+  const dictation = useProcedureNoteDictation({
+    enabled: canWrite,
+    onSegment: (segment) => setNote((current) => appendConfirmedTranscript(current, segment)),
+    preferredLanguage: locale === "fa" ? "fa-IR" : "en-US",
+    sessionKey: eventId,
+  });
 
   useEffect(() => {
     return () => {
@@ -370,6 +382,7 @@ export function PatientProcedureEventItemsPanel({
   };
 
   const submit = async () => {
+    if (dictation.isActive) return;
     const content = note.trim();
     if (!content && !file) return;
 
@@ -403,6 +416,64 @@ export function PatientProcedureEventItemsPanel({
     left.createdAt.localeCompare(right.createdAt),
   );
   const isSubmitting = createNote.isPending || createFile.isPending;
+  const dictationFailureText = (code: ProcedureNoteDictationFailureCode | null): string => {
+    switch (code) {
+      case "InsecureContext":
+        return t("clinic.procedures.items.dictation.insecureContext");
+      case "BrowserUnsupported":
+        return t("clinic.procedures.items.dictation.browserUnsupported");
+      case "MicrophoneUnavailable":
+        return t("clinic.procedures.items.dictation.microphoneUnavailable");
+      case "PermissionDenied":
+        return t("clinic.procedures.items.dictation.permissionDenied");
+      case "CodecUnavailable":
+      case "UnsupportedMediaType":
+        return t("clinic.procedures.items.dictation.codecUnavailable");
+      case "NetworkUnavailable":
+        return t("clinic.procedures.items.dictation.networkFailed");
+      case "ProviderUnavailable":
+      case "CapabilityUnavailable":
+        return t("clinic.procedures.items.dictation.unavailable");
+      case "ProviderTimeout":
+        return t("clinic.procedures.items.dictation.providerTimeout");
+      case "InvalidAudio":
+        return t("clinic.procedures.items.dictation.invalidAudio");
+      case "FrameTooLarge":
+      case "PayloadTooLarge":
+      case "DurationLimitExceeded":
+      case "IdleTimeout":
+        return t("clinic.procedures.items.dictation.limitReached");
+      case "Cancellation":
+        return t("clinic.procedures.items.dictation.canceled");
+      default:
+        return t("clinic.procedures.items.dictation.failed");
+    }
+  };
+  const dictationStatusText = dictation.capabilitiesLoading
+    ? t("clinic.procedures.items.dictation.checking")
+    : dictation.status === "connecting"
+      ? t("clinic.procedures.items.dictation.connecting")
+      : dictation.status === "recording"
+        ? t("clinic.procedures.items.dictation.recording")
+        : dictation.status === "completing"
+          ? t("clinic.procedures.items.dictation.completing")
+          : dictation.status === "failed" || dictation.status === "unavailable"
+            ? dictationFailureText(dictation.failureCode)
+            : null;
+  const dictationActionLabel = dictation.status === "recording"
+    ? t("clinic.procedures.items.dictation.stop")
+    : dictation.status === "connecting"
+      ? t("clinic.procedures.items.dictation.connecting")
+      : dictation.status === "completing"
+        ? t("clinic.procedures.items.dictation.completing")
+        : dictation.status === "unavailable"
+          ? t("clinic.procedures.items.dictation.unavailable")
+          : t("clinic.procedures.items.dictation.start");
+  const languageLabel = (language: string): string => language === "fa-IR"
+    ? t("clinic.procedures.items.dictation.persian")
+    : language === "en-US"
+      ? t("clinic.procedures.items.dictation.english")
+      : language;
 
   return (
     <section
@@ -514,11 +585,65 @@ export function PatientProcedureEventItemsPanel({
                             </PromptInput.Action>
                           )}
                         />
+                        <PromptInput.Action
+                          aria-label={dictationActionLabel}
+                          aria-pressed={dictation.status === "recording"}
+                          className={dictation.status === "recording" ? "text-danger" : undefined}
+                          isDisabled={
+                            dictation.capabilitiesLoading
+                            || dictation.status === "unavailable"
+                            || dictation.status === "connecting"
+                            || dictation.status === "completing"
+                          }
+                          tooltip={dictationActionLabel}
+                          onPress={() => {
+                            if (dictation.status === "recording") void dictation.stop();
+                            else void dictation.start();
+                          }}
+                        >
+                          <i
+                            aria-hidden="true"
+                            className={`fa-solid size-4 ${
+                              dictation.status === "recording"
+                                ? "fa-stop"
+                                : dictation.status === "connecting" || dictation.status === "completing"
+                                  ? "fa-spinner fa-spin"
+                                  : dictation.status === "unavailable"
+                                    ? "fa-microphone-slash"
+                                    : "fa-microphone"
+                            }`}
+                          />
+                        </PromptInput.Action>
+                        {dictation.languages.length > 0 ? (
+                          <NativeSelect className="max-w-36">
+                            <Label className="sr-only">
+                              {t("clinic.procedures.items.dictation.language")}
+                            </Label>
+                            <NativeSelect.Trigger
+                              aria-label={t("clinic.procedures.items.dictation.language")}
+                              className="h-8 min-w-28 text-xs"
+                              disabled={dictation.isActive || !dictation.available}
+                              value={dictation.language}
+                              onChange={(event) => dictation.setLanguage(event.target.value)}
+                            >
+                              {dictation.languages.map((language) => (
+                                <NativeSelect.Option key={language} value={language}>
+                                  {languageLabel(language)}
+                                </NativeSelect.Option>
+                              ))}
+                              <NativeSelect.Indicator />
+                            </NativeSelect.Trigger>
+                          </NativeSelect>
+                        ) : null}
                       </PromptInput.ToolbarStart>
                       <PromptInput.ToolbarEnd>
                         <PromptInput.Send
                           aria-label={t("clinic.procedures.items.send")}
-                          isDisabled={isSubmitting || (!note.trim() && !file)}
+                          isDisabled={
+                            isSubmitting
+                            || dictation.isActive
+                            || (!note.trim() && !file)
+                          }
                         />
                       </PromptInput.ToolbarEnd>
                     </PromptInput.Toolbar>
@@ -528,6 +653,17 @@ export function PatientProcedureEventItemsPanel({
             </ChatAttachmentInput>
             <PromptInput.Footer>{t("clinic.procedures.items.oneFile")}</PromptInput.Footer>
           </PromptInput>
+
+          {dictationStatusText ? (
+            <p
+              className={`mx-auto mt-2 w-full max-w-4xl text-sm ${
+                dictation.status === "failed" ? "text-danger" : "text-muted"
+              }`}
+              role={dictation.status === "failed" ? "alert" : "status"}
+            >
+              {dictationStatusText}
+            </p>
+          ) : null}
 
           {createNote.isError ? (
             <p className="text-danger mx-auto mt-2 w-full max-w-4xl text-sm" role="alert">

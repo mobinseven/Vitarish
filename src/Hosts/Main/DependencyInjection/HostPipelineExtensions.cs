@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
@@ -15,7 +16,7 @@ public static class HostPipelineExtensions
             .GetSection(CorsOptions.SectionName)
             .Get<CorsOptions>() ?? new();
 
-        string[] origins = corsOptions.AllowedOrigins.ToArray();
+        string[] origins = corsOptions.AllowedOrigins?.ToArray() ?? [];
 
         if (Array.Exists(origins, x => x == "*"))
         {
@@ -126,5 +127,23 @@ public static class HostPipelineExtensions
                         SegmentsPerWindow = 6
                     }));
         });
+    }
+
+    public static void UseHostWebSockets(this WebApplication app)
+    {
+        CorsOptions corsOptions = app.Configuration
+            .GetSection(CorsOptions.SectionName)
+            .Get<CorsOptions>() ?? new();
+        WebSocketOptions options = new()
+        {
+            KeepAliveInterval = TimeSpan.FromSeconds(30)
+        };
+
+        foreach (string origin in corsOptions.AllowedOrigins ?? [])
+        {
+            options.AllowedOrigins.Add(origin);
+        }
+
+        _ = app.UseWebSockets(options);
     }
 }

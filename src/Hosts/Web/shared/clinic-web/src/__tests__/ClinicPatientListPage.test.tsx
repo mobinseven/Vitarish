@@ -45,7 +45,7 @@ describe("ClinicPatientListPage mobile composition", () => {
 
     expect(screen.queryByRole("heading", { name: "Patients" })).not.toBeInTheDocument();
     expect(screen.getByRole("toolbar", { name: "Patients" })).toBeInTheDocument();
-    expect(screen.getByText("56 patients found")).toBeInTheDocument();
+    expect(screen.getByLabelText("56 patients found")).toHaveTextContent("56");
     expect(screen.getByRole("searchbox", { name: "Search patients" })).toBeInTheDocument();
     expect(screen.getByTestId("patients-grid")).toBeInTheDocument();
 

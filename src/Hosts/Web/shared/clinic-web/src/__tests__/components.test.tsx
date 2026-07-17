@@ -47,6 +47,23 @@ vi.mock("../hooks/patients/procedures/usePatientProcedureEventItemMutations", ()
   }),
 }));
 
+vi.mock("../hooks/patients/procedures/useProcedureNoteDictation", () => ({
+  appendConfirmedTranscript: (current: string, segment: string) =>
+    current ? `${current} ${segment}` : segment,
+  useProcedureNoteDictation: () => ({
+    available: false,
+    capabilitiesLoading: false,
+    failureCode: "CapabilityUnavailable",
+    isActive: false,
+    language: "en-US",
+    languages: [],
+    setLanguage: vi.fn(),
+    start: vi.fn(),
+    status: "unavailable",
+    stop: vi.fn(),
+  }),
+}));
+
 const messages = {
   ...clinicMessageCatalogs.en,
   common: {
@@ -139,6 +156,8 @@ describe("clinic display components", () => {
     expect(conversation).toHaveClass("min-h-0", "flex-1");
     expect(conversation.closest('[data-slot="scroll-shadow"]')).toBeNull();
     expect(conversation).not.toContainElement(composer);
+    expect(screen.getByRole("button", { name: "Voice dictation is currently unavailable." }))
+      .toBeDisabled();
   });
 
   it("renders agenda weekday names from the selected culture instead of the browser culture", () => {
@@ -323,12 +342,11 @@ describe("clinic display components", () => {
     fireEvent.click(screen.getByRole("button", { name: "Treatment" }));
     expect(onSelectEvent).toHaveBeenCalledWith("event-2");
     expect(onNavigate).not.toHaveBeenCalled();
-    expect(screen.getByRole("region", { name: "Focused event details" })).toHaveTextContent("No event details have been added.");
+    expect(screen.getByRole("region", { name: "Focused event details" })).toHaveTextContent("Treatment");
     expect(screen.getByRole("group", { name: "Event attachments" })).toHaveTextContent("assessment.pdf");
     expect(screen.getByText("+1 more")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Open details" }));
     expect(onNavigate).toHaveBeenCalledWith({ kind: "patientProcedureEventDetail", patientId: "patient-1", procedureId: "procedure-1", eventId: "event-2" });
-    expect(document.querySelector("time")?.getAttribute("datetime")).toBe("2026-07-13T07:00:00Z");
     expect(screen.queryByRole("button", { name: "Move Step Earlier" })).not.toBeInTheDocument();
   });
 

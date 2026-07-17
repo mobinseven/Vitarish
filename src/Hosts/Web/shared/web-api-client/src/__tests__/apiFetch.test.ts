@@ -130,14 +130,15 @@ describe("apiFetchBlob", () => {
     vi.restoreAllMocks();
   });
 
-  it("downloads authenticated tenant-scoped binary content", async () => {
-    const content = new Blob(["image"], { type: "image/png" });
-    const fetchMock = vi.fn().mockResolvedValueOnce(new Response(content));
+  it("downloads authenticated tenant-scoped binary content across runtime realms", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(new Response("image", {
+      headers: { "Content-Type": "image/png" },
+    }));
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await apiFetchBlob("/api/modules/files/file-id/content");
 
-    expect(result).toBeInstanceOf(Blob);
+    expect(result).toMatchObject({ size: 5, type: "image/png" });
     expect(fetchMock.mock.calls[0][0]).toBe(
       "https://localhost:7272/api/modules/files/file-id/content",
     );

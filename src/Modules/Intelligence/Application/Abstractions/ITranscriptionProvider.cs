@@ -1,17 +1,15 @@
 using System.Threading.Channels;
+using Vitarish.Intelligence.Application.LiveTranscription;
 
 namespace Vitarish.Intelligence.Application.Abstractions;
 
 public interface ITranscriptionProvider
 {
-    bool SupportsModel(string? modelId);
+    bool IsAvailable { get; }
 
-    Task<string?> TranscribeAsync(Stream audio, string mimeType, string? language, string? modelId, CancellationToken cancellationToken);
-
-    IAsyncEnumerable<string> StreamTranscribeAsync(
+    Task TranscribeAsync(
         ChannelReader<byte[]> audio,
-        string mimeType,
-        string? language,
-        string? modelId,
+        LiveTranscriptionProviderRequest request,
+        Func<TranscriptionProviderEvent, CancellationToken, ValueTask> publish,
         CancellationToken cancellationToken);
 }

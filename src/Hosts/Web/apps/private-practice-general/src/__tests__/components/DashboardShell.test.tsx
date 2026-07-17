@@ -123,7 +123,8 @@ describe("Dashboard Shell Components", () => {
       expect(screen.getByRole("list", { name: "Dashboard navigation" })).toBeInTheDocument();
       expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
       expect(screen.getAllByText("Home").length).toBeGreaterThan(0);
-      expect(screen.getByRole("button", { name: "Notifications" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Language" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Switch to light mode" })).toBeInTheDocument();
       expect(screen.getByText("Dashboard content")).toBeInTheDocument();
     });
   });
