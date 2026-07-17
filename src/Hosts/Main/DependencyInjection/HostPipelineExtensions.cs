@@ -16,7 +16,7 @@ public static class HostPipelineExtensions
             .GetSection(CorsOptions.SectionName)
             .Get<CorsOptions>() ?? new();
 
-        string[] origins = corsOptions.AllowedOrigins.ToArray();
+        string[] origins = corsOptions.AllowedOrigins?.ToArray() ?? [];
 
         if (Array.Exists(origins, x => x == "*"))
         {
@@ -139,7 +139,7 @@ public static class HostPipelineExtensions
             KeepAliveInterval = TimeSpan.FromSeconds(30)
         };
 
-        foreach (string origin in corsOptions.AllowedOrigins)
+        foreach (string origin in corsOptions.AllowedOrigins ?? [])
         {
             options.AllowedOrigins.Add(origin);
         }

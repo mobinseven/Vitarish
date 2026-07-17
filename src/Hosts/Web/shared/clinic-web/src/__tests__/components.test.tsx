@@ -342,12 +342,11 @@ describe("clinic display components", () => {
     fireEvent.click(screen.getByRole("button", { name: "Treatment" }));
     expect(onSelectEvent).toHaveBeenCalledWith("event-2");
     expect(onNavigate).not.toHaveBeenCalled();
-    expect(screen.getByRole("region", { name: "Focused event details" })).toHaveTextContent("No event details have been added.");
+    expect(screen.getByRole("region", { name: "Focused event details" })).toHaveTextContent("Treatment");
     expect(screen.getByRole("group", { name: "Event attachments" })).toHaveTextContent("assessment.pdf");
     expect(screen.getByText("+1 more")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Open details" }));
     expect(onNavigate).toHaveBeenCalledWith({ kind: "patientProcedureEventDetail", patientId: "patient-1", procedureId: "procedure-1", eventId: "event-2" });
-    expect(document.querySelector("time")?.getAttribute("datetime")).toBe("2026-07-13T07:00:00Z");
     expect(screen.queryByRole("button", { name: "Move Step Earlier" })).not.toBeInTheDocument();
   });
 

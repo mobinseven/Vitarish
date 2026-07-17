@@ -70,10 +70,10 @@ public sealed class LiveTranscriptionSession : IAsyncDisposable
     }
 
     public async ValueTask<LiveTranscriptionAcceptResult> AcceptAudioAsync(
-        ReadOnlyMemory<byte> audio,
+        byte[] audio,
         CancellationToken cancellationToken)
     {
-        if (audio.IsEmpty)
+        if (audio.Length == 0)
         {
             return LiveTranscriptionAcceptResult.Success;
         }
@@ -114,7 +114,7 @@ public sealed class LiveTranscriptionSession : IAsyncDisposable
             _lifetimeCancellation.Token);
         try
         {
-            await _audio.Writer.WriteAsync(audio.ToArray(), linked.Token).ConfigureAwait(false);
+            await _audio.Writer.WriteAsync(audio, linked.Token).ConfigureAwait(false);
             return LiveTranscriptionAcceptResult.Success;
         }
         catch (OperationCanceledException) when (_lifetimeCancellation.IsCancellationRequested)

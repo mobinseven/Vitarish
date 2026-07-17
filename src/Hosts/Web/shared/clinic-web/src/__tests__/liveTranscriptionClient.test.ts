@@ -9,7 +9,10 @@ import type {
   ProcedureNoteDictationFailureCode,
   ProcedureNoteDictationLifecycle,
 } from "../api/intelligence/liveTranscriptionClient";
-import { appendConfirmedTranscript } from "../hooks/patients/procedures/useProcedureNoteDictation";
+import {
+  appendConfirmedTranscript,
+  selectDictationLanguage,
+} from "../hooks/patients/procedures/useProcedureNoteDictation";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -42,6 +45,17 @@ describe("live transcription browser adapter", () => {
       .toBe("Existing edit confirmed phrase");
     expect(appendConfirmedTranscript("Existing edit\n", "confirmed phrase"))
       .toBe("Existing edit\nconfirmed phrase");
+  });
+
+  it("tracks locale changes while preserving a supported manual language selection", () => {
+    const languages = ["fa-IR", "en-US"];
+
+    expect(selectDictationLanguage(languages, "en-US", "fa-IR", "en-US"))
+      .toBe("fa-IR");
+    expect(selectDictationLanguage(languages, "en-US", "fa-IR", "fa-IR"))
+      .toBe("en-US");
+    expect(selectDictationLanguage(languages, "de-DE", "fa-IR", "fa-IR"))
+      .toBe("fa-IR");
   });
 
   it("sends ordered bounded audio, accepts ordered final segments, and cleans up after stop", async () => {

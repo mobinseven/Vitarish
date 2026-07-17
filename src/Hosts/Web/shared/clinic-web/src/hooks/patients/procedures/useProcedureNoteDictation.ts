@@ -44,6 +44,23 @@ export function appendConfirmedTranscript(current: string, segment: string): str
   return /\s$/u.test(current) ? `${current}${confirmed}` : `${current} ${confirmed}`;
 }
 
+export function selectDictationLanguage(
+  languages: readonly string[],
+  language: string,
+  preferredLanguage: string,
+  previousPreferredLanguage: string,
+): string {
+  if (languages.length === 0) return language;
+  if (
+    previousPreferredLanguage !== preferredLanguage
+    && languages.includes(preferredLanguage)
+  ) {
+    return preferredLanguage;
+  }
+  if (languages.includes(language)) return language;
+  return languages.includes(preferredLanguage) ? preferredLanguage : languages[0];
+}
+
 export function useProcedureNoteDictation({
   enabled,
   onSegment,
@@ -63,6 +80,7 @@ export function useProcedureNoteDictation({
   const [failureCode, setFailureCode] = useState<ProcedureNoteDictationFailureCode | null>(null);
   const sessionRef = useRef<LiveTranscriptionClient | null>(null);
   const onSegmentRef = useRef(onSegment);
+  const previousPreferredLanguageRef = useRef(preferredLanguage);
   onSegmentRef.current = onSegment;
 
   const configuration = useMemo(
@@ -87,8 +105,16 @@ export function useProcedureNoteDictation({
 
   useEffect(() => {
     const languages = capabilitiesQuery.data?.languages ?? [];
-    if (languages.length === 0 || languages.includes(language)) return;
-    setLanguage(languages.includes(preferredLanguage) ? preferredLanguage : languages[0]);
+    if (languages.length === 0) return;
+
+    const nextLanguage = selectDictationLanguage(
+      languages,
+      language,
+      preferredLanguage,
+      previousPreferredLanguageRef.current,
+    );
+    previousPreferredLanguageRef.current = preferredLanguage;
+    if (nextLanguage !== language) setLanguage(nextLanguage);
   }, [capabilitiesQuery.data?.languages, language, preferredLanguage]);
 
   useEffect(() => {
