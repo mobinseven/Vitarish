@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Label, Modal } from "@heroui/react";
+import { Button, Modal } from "@heroui/react";
 import {
   ChatAttachment,
   ChatAttachmentGroup,
@@ -211,7 +211,7 @@ export function PatientProcedureEventItemMessage({
           {canWrite ? (
             <MenuItem className="text-danger flex items-center gap-2 px-3 py-2 text-sm" id="delete" textValue={t("clinic.procedures.items.delete")}>
               <i aria-hidden="true" className="fa-solid fa-trash-can size-4" />
-              <Label>{t("clinic.procedures.items.delete")}</Label>
+              <span>{t("clinic.procedures.items.delete")}</span>
             </MenuItem>
           ) : null}
         </ContextMenu.Menu>

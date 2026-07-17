@@ -48,6 +48,7 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
     fileRef.current = nextFile ?? null;
     setFile(nextFile ?? null);
     setFileFailed(false);
+    createFile.reset();
     setPreviewUrl(
       nextFile && (nextFile.type.startsWith("image/") || nextFile.type.startsWith("video/"))
         ? URL.createObjectURL(nextFile)
@@ -69,7 +70,7 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
           contentType: "text/plain",
           size: new Blob([content]).size,
         });
-        setNote((current) => current.trim() === content ? "" : current);
+        setNote((current) => current.startsWith(content) ? current.slice(content.length) : current);
       } catch {
         // The mutation state renders the localized failure and retains the draft.
       }
@@ -101,7 +102,7 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
         onSubmit={() => void submit()}
         onValueChange={setNote}
       >
-        <ChatAttachmentInput multiple={false} onFilesSelected={(files) => selectFile(files[0])}>
+        <ChatAttachmentInput multiple={false} onFilesSelected={(files) => selectFile(files?.[0])}>
           <ChatAttachmentInput.Dropzone
             render={(dropzoneProps) => (
               <PromptInput.Shell {...dropzoneProps}>

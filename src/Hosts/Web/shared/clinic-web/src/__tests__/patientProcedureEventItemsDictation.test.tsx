@@ -25,6 +25,7 @@ vi.mock("../hooks/patients/procedures/usePatientProcedureEventItemMutations", ()
     isError: false,
     isPending: false,
     mutateAsync: vi.fn(),
+    reset: vi.fn(),
   }),
   useCreatePatientProcedureEventItemText: () => ({
     isError: false,
