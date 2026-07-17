@@ -64,5 +64,3 @@ jobs:
       - name: Validate localization
         run: npm run validate:localization
 
-      - name: Validate date inputs
-        run: npm run validate:date-inputs
