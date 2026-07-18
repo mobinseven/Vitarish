@@ -28,7 +28,7 @@ export function Header() {
 
           <Navbar.Spacer />
 
-          <Navbar.Content className="hidden md:flex">
+          <Navbar.Content className="hidden lg:flex">
             {navItems.map((item) => (
               <Navbar.Item key={item.href} href={item.href} className="text-[0.7rem]">
                 {t(item.key)}
@@ -43,7 +43,7 @@ export function Header() {
               <ThemeToggle />
             </div>
             <Button
-              className="hidden md:inline-flex"
+              className="hidden lg:inline-flex"
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               render={(props: any) => <a href={Routes.Login.Index} {...props} />}
               size="sm"
@@ -53,7 +53,7 @@ export function Header() {
               <FaIcon icon="arrow-right" className="size-4" />
             </Button>
             <Button
-              className="hidden md:inline-flex"
+              className="hidden lg:inline-flex"
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               render={(props: any) => <a href={Routes.Login.Index} {...props} />}
               size="sm"
@@ -61,7 +61,7 @@ export function Header() {
             >
               {t("landing.header.loginAction")}
             </Button>
-            <Navbar.MenuToggle className="md:hidden" />
+            <Navbar.MenuToggle className="lg:hidden" />
           </Navbar.Content>
         </PageContainer>
       </Navbar.Header>

@@ -14,21 +14,19 @@ function LoginFormSurface() {
   const navigate = useCallback((href: string) => router.push(href), [router]);
 
   return (
-    <StandaloneCenteredPage>
-      <LoginPageCard
-        title={t("auth.login.title")}
-        subtitle={t("auth.login.subtitle")}
-        backHref={Routes.Home}
-        backLabel={t("auth.login.backToLanding")}
-        skeletonHeight="184px"
-      >
-        <LoginForm
-          navigate={navigate}
-          returnUrl={Routes.KnowledgeQa}
-          returnUrlSearchParams={searchParams}
-        />
-      </LoginPageCard>
-    </StandaloneCenteredPage>
+    <LoginPageCard
+      title={t("auth.login.title")}
+      subtitle={t("auth.login.subtitle")}
+      backHref={Routes.Home}
+      backLabel={t("auth.login.backToLanding")}
+      skeletonHeight="184px"
+    >
+      <LoginForm
+        navigate={navigate}
+        returnUrl={Routes.KnowledgeQa}
+        returnUrlSearchParams={searchParams}
+      />
+    </LoginPageCard>
   );
 }
 

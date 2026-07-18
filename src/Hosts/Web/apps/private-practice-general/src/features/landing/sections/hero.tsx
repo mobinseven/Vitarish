@@ -27,7 +27,7 @@ export function Hero() {
       <div className="border-border/70 pointer-events-none absolute inset-x-0 top-0 border-t" aria-hidden="true" />
 
       <PageContainer className="relative grid items-center gap-14 pb-20 pt-16 lg:grid-cols-[1.05fr_1fr] lg:pb-28 lg:pt-24">
-        <div>
+        <div className="min-w-0">
           <div className="flex items-center gap-3">
             <span className="bg-accent inline-block size-1.5" />
             <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
@@ -71,7 +71,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative">
+        <div className="relative min-w-0">
           <div className="border-border bg-surface relative overflow-hidden border">
             <div className="absolute left-3 top-3 z-10">
               <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
