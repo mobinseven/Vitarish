@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { Button, Chip } from "@heroui/react";
 import { ActionBar } from "@heroui-pro/react";
-import { LoadingStateSurface } from "@vitarish/web-ui";
+import { FaIcon, LoadingStateSurface } from "@vitarish/web-ui";
 import type { ClinicNavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization/index";
 import type { PatientSearchCriteria, PatientSortBy } from "../../../models/patients/patientSearchModels";
@@ -72,16 +72,7 @@ export function ClinicPatientListPage({ onNavigate }: ClinicPatientListPageProps
             variant="primary"
             onPress={() => onNavigate({ kind: "patientNew" })}
           >
-            <svg
-              aria-hidden="true"
-              className="size-4 shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path strokeLinecap="round" d="M12 5v14M5 12h14" />
-            </svg>
+            <FaIcon aria-hidden="true" className="size-4 shrink-0" icon="plus" />
             <span className="action-bar__label">{t("clinic.patients.newPatient")}</span>
           </Button>
         </ActionBar.Suffix>

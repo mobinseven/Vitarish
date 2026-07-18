@@ -1,24 +1,7 @@
-import {forwardRef, type HTMLAttributes} from "react";
-
-const iconMap = {
-  "arrow-right": "arrow-right",
-  "arrow-up-right": "arrow-up-right-from-square",
-  "boxes-3": "boxes-stacked",
-  "circle-check": "circle-check",
-  "circle-info": "circle-info",
-  copy: "copy",
-  display: "display",
-  moon: "moon",
-  pulse: "heart-pulse",
-  rocket: "rocket",
-  "shield-check": "shield-halved",
-  sun: "sun",
-} as const;
-
-type IconName = keyof typeof iconMap;
+import { forwardRef, type HTMLAttributes } from "react";
 
 export type FaIconProps = HTMLAttributes<HTMLElement> & {
-  icon: IconName | string;
+  icon: string;
   title?: string;
   size?: "2xs" | "xs" | "sm" | "lg" | "xl" | "2xl" | "1x" | "2x" | "3x" | "4x" | "5x" | "6x" | "7x" | "8x" | "9x" | "10x";
   spin?: boolean;
@@ -35,8 +18,7 @@ export type FaIconProps = HTMLAttributes<HTMLElement> & {
 };
 
 export const FaIcon = forwardRef<HTMLElement, FaIconProps>(
-  ({icon: iconProp, className, size, spin, pulse, beat, bounce, fade, flip, rotation, fixedWidth, border, pull, swapOpacity, title, ...props}, ref) => {
-    const icon = iconMap[iconProp as IconName] ?? "circle-info";
+  ({ icon, className, size, spin, pulse, beat, bounce, fade, flip, rotation, fixedWidth, border, pull, swapOpacity, title, ...props }, ref) => {
     const classes = [
       "fa-solid",
       `fa-${icon}`,

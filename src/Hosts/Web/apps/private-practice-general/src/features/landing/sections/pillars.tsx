@@ -7,9 +7,9 @@ import {useLocalizedText} from "@/localization";
 
 const pillarKeys = [
   {fig: formatFigureLabel("02"), figure: figures.deploy, icon: "rocket", titleKey: "landing.pillars.items.0.title" as const, bodyKey: "landing.pillars.items.0.body" as const, tagKeys: ["landing.pillars.items.0.tag0" as const, "landing.pillars.items.0.tag1" as const]},
-  {fig: formatFigureLabel("03"), figure: figures.scale, icon: "boxes-3", titleKey: "landing.pillars.items.1.title" as const, bodyKey: "landing.pillars.items.1.body" as const, tagKeys: ["landing.pillars.items.1.tag0" as const, "landing.pillars.items.1.tag1" as const]},
-  {fig: formatFigureLabel("04"), figure: figures.observe, icon: "pulse", titleKey: "landing.pillars.items.2.title" as const, bodyKey: "landing.pillars.items.2.body" as const, tagKeys: ["landing.pillars.items.2.tag0" as const, "landing.pillars.items.2.tag1" as const]},
-  {fig: formatFigureLabel("05"), figure: figures.secure, icon: "shield-check", titleKey: "landing.pillars.items.3.title" as const, bodyKey: "landing.pillars.items.3.body" as const, tagKeys: ["landing.pillars.items.3.tag0" as const, "landing.pillars.items.3.tag1" as const]},
+  {fig: formatFigureLabel("03"), figure: figures.scale, icon: "boxes-stacked", titleKey: "landing.pillars.items.1.title" as const, bodyKey: "landing.pillars.items.1.body" as const, tagKeys: ["landing.pillars.items.1.tag0" as const, "landing.pillars.items.1.tag1" as const]},
+  {fig: formatFigureLabel("04"), figure: figures.observe, icon: "heart-pulse", titleKey: "landing.pillars.items.2.title" as const, bodyKey: "landing.pillars.items.2.body" as const, tagKeys: ["landing.pillars.items.2.tag0" as const, "landing.pillars.items.2.tag1" as const]},
+  {fig: formatFigureLabel("05"), figure: figures.secure, icon: "shield-halved", titleKey: "landing.pillars.items.3.title" as const, bodyKey: "landing.pillars.items.3.body" as const, tagKeys: ["landing.pillars.items.3.tag0" as const, "landing.pillars.items.3.tag1" as const]},
 ];
 
 export function Pillars() {

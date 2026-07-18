@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { Spinner } from "@heroui/react";
 import { DataGrid, EmptyState, type DataGridColumn, type DataGridSortDescriptor } from "@heroui-pro/react";
+import { FaIcon } from "@vitarish/web-ui";
 import type { PatientViewDto, PatientSortBy } from "../../../models/patients/patientSearchModels";
 import { useLocalizedText, formatDate } from "../../../localization/index";
 
@@ -108,9 +109,7 @@ export function PatientsGrid({
         <EmptyState size="sm">
           <EmptyState.Header>
             <EmptyState.Media variant="icon">
-              <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" className="size-6" stroke="currentColor" strokeWidth="1.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.75a7.5 7.5 0 1 0-12 0m12 0a9.75 9.75 0 0 0-12 0M18 18.75a9.75 9.75 0 0 1 3.75 3.75M6 18.75A9.75 9.75 0 0 0 2.25 22.5M12 12a3.75 3.75 0 1 0 0-7.5A3.75 3.75 0 0 0 12 12Z" />
-              </svg>
+              <FaIcon aria-hidden="true" className="size-6" icon="users" />
             </EmptyState.Media>
             <EmptyState.Title>{t("clinic.patients.emptyState")}</EmptyState.Title>
             <EmptyState.Description>{t("clinic.patients.searchEmpty")}</EmptyState.Description>

@@ -56,7 +56,7 @@ export function Hero() {
               variant="outline"
             >
               {t("landing.hero.ctaSecondary")}
-              <FaIcon icon="arrow-up-right" className="size-4" />
+              <FaIcon icon="arrow-up-right-from-square" className="size-4" />
             </Button>
           </div>
 

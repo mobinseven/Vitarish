@@ -43,6 +43,18 @@ import { DashboardFrame, EmptyStateSurface, LoginPanel } from "@vitarish/web-ui"
 
 Do not deep-import from `@vitarish/web-ui/src/**`. Use only public exports.
 
+## Icons
+
+The authoritative Web icon policy is defined in [`../../AGENTS.md`](../../AGENTS.md). Interface icons use Font Awesome CSS classes, with the actual Font Awesome icon name visible in the source:
+
+```tsx
+import { FaIcon } from "@vitarish/web-ui";
+
+<FaIcon aria-hidden="true" className="size-6" icon="users" />
+```
+
+A plain `<i aria-hidden="true" className="fa-solid fa-users" />` is also acceptable for simple local markup. Do not paste SVG paths or use SVG icon components. Keep SVG for explicitly reviewed non-icon artwork such as logos and illustrations.
+
 ## Current shared exports
 
 - Auth presentation: `AuthMethodList`, `LoginPanel`.

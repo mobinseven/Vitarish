@@ -43,6 +43,9 @@ jobs:
       - name: Lint
         run: npm run lint --workspace @vitarish/private-practice-general
 
+      - name: Validate icon conventions
+        run: npm run validate:icons
+
       - name: Build private practice app
         run: npm run build:private-practice-general
 

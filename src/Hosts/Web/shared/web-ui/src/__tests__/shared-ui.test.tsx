@@ -14,6 +14,7 @@ import {
   DashboardFrame,
   EmptyStateSurface,
   ErrorStateSurface,
+  FaIcon,
   LoadingStateSurface,
   LoginPanel,
   OptionSelector,
@@ -59,6 +60,12 @@ describe("@vitarish/web-ui presentation components", () => {
     render(<StatusAlert type="success" message="Saved" />);
 
     expect(screen.getByText("Saved")).toBeInTheDocument();
+  });
+
+  it("renders the requested Font Awesome CSS icon without substitution", () => {
+    const { container } = render(<FaIcon aria-hidden="true" icon="users" />);
+
+    expect(container.querySelector("i")).toHaveClass("fa-solid", "fa-users");
   });
 
   it("renders settings layout primitives and option labels", () => {

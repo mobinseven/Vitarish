@@ -16,6 +16,7 @@
     "test": "npm run test --workspaces --if-present",
     "validate:api-boundary": "npm run validate:api-boundary --workspaces --if-present",
     "validate:localization": "npm run validate:localization --workspaces --if-present",
+    "validate:icons": "node scripts/validate-icon-conventions.mjs",
     "validate:web-ui-boundary": "node scripts/validate-web-ui-boundary.mjs",
     "validate:app-boundaries": "node scripts/validate-web-app-boundaries.mjs",
     "validate:docs:app-boundaries": "python ../../../tools/architecture/validate_app_experience_boundaries.py"
