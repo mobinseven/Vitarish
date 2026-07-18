@@ -4,11 +4,8 @@ import { Toast } from "@heroui/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
-import { type ThemeMode } from "@vitarish/account-web";
-import { PaletteProvider } from "./PaletteProvider";
-import { VibrantPaletteProvider } from "./VibrantPaletteProvider";
 
-const themeModeOptions: readonly Exclude<ThemeMode, "system">[] = ["light", "dark"];
+const themeModeOptions = ["light", "dark"] as const;
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -29,12 +26,8 @@ export function Providers({ children }: { children: ReactNode }) {
         enableSystem
         disableTransitionOnChange
       >
-        <PaletteProvider>
-          <VibrantPaletteProvider>
-            {children}
-            <Toast.Provider placement="bottom" />
-          </VibrantPaletteProvider>
-        </PaletteProvider>
+        {children}
+        <Toast.Provider placement="bottom" />
       </ThemeProvider>
     </QueryClientProvider>
   );

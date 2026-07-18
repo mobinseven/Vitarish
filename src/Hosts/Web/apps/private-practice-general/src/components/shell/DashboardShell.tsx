@@ -5,8 +5,9 @@ import { useCallback, useMemo } from "react";
 import { Breadcrumbs } from "@heroui/react";
 import {
   DashboardFrame,
-  IconButton,
+  type DashboardContentMode,
   type DashboardIdentity,
+  type DashboardMobileNavigation,
   type DashboardNavigationGroup,
   type DashboardNavigationItem,
 } from "@vitarish/web-ui";
@@ -35,15 +36,19 @@ export interface DashboardShellNavGroup {
 
 export interface DashboardShellProps {
   children: ReactNode;
+  contentMode?: DashboardContentMode;
   navGroups: readonly DashboardShellNavGroup[];
   footerItems?: readonly DashboardShellItem[];
   homeHref?: string;
+  mobileNavigation?: DashboardMobileNavigation;
 }
 
 export function DashboardShell({
   children,
+  contentMode = "page",
   footerItems = [],
   homeHref = Routes.Home,
+  mobileNavigation = "sidebar",
   navGroups,
 }: DashboardShellProps) {
   const router = useRouter();
@@ -118,13 +123,16 @@ export function DashboardShell({
 
   return (
     <DashboardFrame
+      contentMode={contentMode}
       currentPath={pathname}
       footerItems={footerNavigationItems}
       footerLabel={t("appShell.userMenu.signOut")}
       identity={sidebarIdentity}
+      mobileNavigation={mobileNavigation}
       navigate={navigate}
       navigationGroups={navigationGroups}
       navigationLabel={t("appShell.navigation.dashboardMenu")}
+      skipLinkLabel={t("appShell.navigation.skipToContent")}
       title={breadcrumbs}
       toolbar={
         <>

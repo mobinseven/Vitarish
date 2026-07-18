@@ -8,6 +8,7 @@ import { DashboardShell } from "@/components/shell";
 import { dashboardFooterItems, mainDashboardNavGroups } from "@/components/shell/dashboardShellNavigation";
 import { Routes } from "@/app/routes";
 import { useLocalizedText } from "@/localization";
+import { ContainedPage, StandaloneCenteredPage } from "@vitarish/web-ui/layout";
 
 export default function AccountLayout({
   children,
@@ -26,9 +27,9 @@ export default function AccountLayout({
 
   if (isLoading) {
     return (
-      <main className="grid min-h-screen place-items-center">
+      <StandaloneCenteredPage>
         <p className="text-muted">{t("common.states.loading")}</p>
-      </main>
+      </StandaloneCenteredPage>
     );
   }
 
@@ -38,9 +39,9 @@ export default function AccountLayout({
 
   return (
     <DashboardShell footerItems={dashboardFooterItems} navGroups={mainDashboardNavGroups}>
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 pb-10 pt-4">
+      <ContainedPage>
         <JourneyGateBoundary>{children}</JourneyGateBoundary>
-      </div>
+      </ContainedPage>
     </DashboardShell>
   );
 }

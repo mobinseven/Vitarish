@@ -3,6 +3,7 @@ import {Navbar} from "@heroui-pro/react";
 
 import {BrandLogotipo} from "@/features/landing/brand";
 import {FaIcon} from "@vitarish/web-ui";
+import {PageContainer} from "@vitarish/web-ui/layout";
 import {useLocalizedText} from "@/localization";
 import {Routes} from "@/app/routes";
 import {ThemeToggle} from "./theme-toggle";
@@ -19,46 +20,50 @@ export function Header() {
 
   return (
     <Navbar aria-label={t("landing.header.primaryNav")} height="4.5rem">
-      <Navbar.Header className="mx-auto w-full max-w-[1200px]">
-        <Navbar.Brand className="flex items-center gap-2">
-          <BrandLogotipo className="h-7 w-auto" />
-        </Navbar.Brand>
+      <Navbar.Header>
+        <PageContainer className="flex h-full items-center">
+          <Navbar.Brand className="flex items-center gap-2">
+            <BrandLogotipo className="h-7 w-auto max-w-[35vw] object-contain" />
+          </Navbar.Brand>
 
-        <Navbar.Spacer />
+          <Navbar.Spacer />
 
-        <Navbar.Content className="hidden md:flex">
-          {navItems.map((item) => (
-            <Navbar.Item key={item.href} href={item.href} className="text-[0.7rem]">
-              {t(item.key)}
-            </Navbar.Item>
-          ))}
-        </Navbar.Content>
+          <Navbar.Content className="hidden lg:flex">
+            {navItems.map((item) => (
+              <Navbar.Item key={item.href} href={item.href} className="text-[0.7rem]">
+                {t(item.key)}
+              </Navbar.Item>
+            ))}
+          </Navbar.Content>
 
-        <Navbar.Spacer />
+          <Navbar.Spacer />
 
-        <Navbar.Content className="gap-2">
-          <ThemeToggle />
-          <Button
-            className="hidden md:inline-flex"
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            render={(props: any) => <a href={Routes.Login.Index} {...props} />}
-            size="sm"
-            variant="primary"
-          >
-            {t("landing.header.ctaStartBuilding")}
-            <FaIcon icon="arrow-right" className="size-4" />
-          </Button>
-          <Button
-            className="hidden md:inline-flex"
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            render={(props: any) => <a href={Routes.Login.Index} {...props} />}
-            size="sm"
-            variant="ghost"
-          >
-            {t("landing.header.loginAction")}
-          </Button>
-          <Navbar.MenuToggle className="md:hidden" />
-        </Navbar.Content>
+          <Navbar.Content className="gap-2">
+            <div className="max-[359px]:hidden">
+              <ThemeToggle />
+            </div>
+            <Button
+              className="hidden lg:inline-flex"
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              render={(props: any) => <a href={Routes.Login.Index} {...props} />}
+              size="sm"
+              variant="primary"
+            >
+              {t("landing.header.ctaStartBuilding")}
+              <FaIcon icon="arrow-right" className="size-4" />
+            </Button>
+            <Button
+              className="hidden lg:inline-flex"
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              render={(props: any) => <a href={Routes.Login.Index} {...props} />}
+              size="sm"
+              variant="ghost"
+            >
+              {t("landing.header.loginAction")}
+            </Button>
+            <Navbar.MenuToggle className="lg:hidden" />
+          </Navbar.Content>
+        </PageContainer>
       </Navbar.Header>
 
       <Navbar.Menu>

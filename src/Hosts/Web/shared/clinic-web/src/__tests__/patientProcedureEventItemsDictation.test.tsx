@@ -42,12 +42,11 @@ vi.mock("../hooks/patients/procedures/usePatientProcedureEventItemMutations", ()
 vi.mock("@vitarish/intelligence-web", () => ({
   appendConfirmedTranscript: (current: string, segment: string) =>
     current ? `${current} ${segment.trim()}` : segment.trim(),
-  LiveDictationLanguageSelect: () => null,
-  LiveDictationPromptAction: ({ controller }: { controller: { status: string; stop: () => void } }) => (
-    <button aria-label="Stop voice dictation" onClick={() => controller.stop()} />
-  ),
-  LiveDictationStatus: () => (
-    <p role="status">Recording. Select stop when you are finished.</p>
+  LiveDictation: ({ controller }: { controller: { status: string; stop: () => void } }) => (
+    <>
+      <button aria-label="Stop voice dictation" onClick={() => controller.stop()} />
+      <p role="status">Recording. Select stop when you are finished.</p>
+    </>
   ),
   useLiveDictation: (options: { enabled: boolean; onSegment: (text: string) => void; sessionKey: string }) => {
     dictation.options = options;

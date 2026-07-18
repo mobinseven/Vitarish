@@ -36,7 +36,7 @@ export function HomeDashboard() {
   const displayName = displayProfile.givenName ?? displayProfile.displayLabel;
 
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 pb-10 pt-4">
+    <div className="flex flex-col gap-4">
       <section className="flex flex-col gap-6 p-6 md:p-10">
         <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
             <div className="flex flex-col gap-6">

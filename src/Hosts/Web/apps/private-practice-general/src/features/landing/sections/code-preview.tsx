@@ -3,6 +3,7 @@ import Image from "next/image";
 import {Tabs} from "@heroui/react";
 
 import {FaIcon} from "@vitarish/web-ui";
+import {PageContainer} from "@vitarish/web-ui/layout";
 import {
   figures,
   figureTitles,
@@ -84,7 +85,7 @@ export function CodePreview() {
 
   return (
     <section className="relative scroll-mt-24 py-20 lg:py-28" id="api">
-      <div className="mx-auto max-w-[1200px] px-6">
+      <PageContainer>
         <div className="max-w-2xl">
           <div className="flex items-center gap-3">
             <span className="bg-accent inline-block size-1.5" />
@@ -98,8 +99,8 @@ export function CodePreview() {
           </h2>
         </div>
 
-        <div className="mt-12 grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-          <div>
+        <div className="mt-12 grid min-w-0 items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="min-w-0">
             <div className="border-border bg-surface relative overflow-hidden border">
               <div className="border-border flex items-center justify-between border-b px-4 py-3">
                 <div className="flex items-center gap-1.5">
@@ -125,7 +126,7 @@ export function CodePreview() {
                 variant="secondary"
                 onSelectionChange={(k) => setActive(String(k))}
               >
-                <Tabs.ListContainer className="border-border border-b px-2">
+                <Tabs.ListContainer className="border-border overflow-x-auto border-b px-2" dir="ltr">
                   <Tabs.List aria-label={t("landing.codePreview.language")}>
                     {Object.keys(snippets).map((key) => (
                       <Tabs.Tab key={key} id={key} className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88 px-3 py-2.5">
@@ -138,7 +139,7 @@ export function CodePreview() {
 
                 {Object.entries(snippets).map(([key, snip]) => (
                   <Tabs.Panel key={key} id={key} className="p-0">
-                    <pre className="overflow-x-auto px-4 py-5 font-mono text-[0.8rem] leading-relaxed">
+                    <pre className="overflow-x-auto px-4 py-5 font-mono text-[0.8rem] leading-relaxed" dir="ltr">
                       <code>
                         {snip.lines.map((line, idx) => (
                           <div key={idx} className="flex">
@@ -158,7 +159,7 @@ export function CodePreview() {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative min-w-0">
             <div className="border-border bg-surface relative overflow-hidden border">
               <div className="absolute left-3 top-3 z-10">
                 <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
@@ -180,7 +181,7 @@ export function CodePreview() {
             </div>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </section>
   );
 }

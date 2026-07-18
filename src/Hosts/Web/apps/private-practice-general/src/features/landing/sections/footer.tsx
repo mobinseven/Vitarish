@@ -2,6 +2,7 @@ import {Link} from "@heroui/react";
 
 import {BrandLogotipo, brand} from "@/features/landing/brand";
 import {useLocalizedText} from "@/localization";
+import {PageContainer} from "@vitarish/web-ui/layout";
 
 const columnKeys = [
   {
@@ -37,8 +38,8 @@ export function Footer() {
   const {t} = useLocalizedText();
 
   return (
-    <footer className="relative border-t border-border">
-      <div className="relative mx-auto max-w-[1200px] px-6 py-16">
+    <div className="relative border-t border-border">
+      <PageContainer className="relative py-16">
         <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <BrandLogotipo className="h-7 w-auto" />
@@ -79,7 +80,7 @@ export function Footer() {
             <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">region: us-east-1</span>
           </div>
         </div>
-      </div>
-    </footer>
+      </PageContainer>
+    </div>
   );
 }

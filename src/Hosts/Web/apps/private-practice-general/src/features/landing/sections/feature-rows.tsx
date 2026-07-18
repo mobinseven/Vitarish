@@ -2,6 +2,7 @@ import Image from "next/image";
 import {figures, formatFigureLabel, formatFigureRangeLabel} from "@/features/landing/data/figures";
 import type {Figure as FigureType} from "@/features/landing/data/figures";
 import {FaIcon} from "@vitarish/web-ui";
+import {PageContainer} from "@vitarish/web-ui/layout";
 import {useLocalizedText} from "@/localization";
 
 type Row = {
@@ -45,7 +46,7 @@ export function FeatureRows() {
 
   return (
     <section className="bg-surface relative scroll-mt-24 border-y border-border py-20 lg:py-28" id="features">
-      <div className="mx-auto max-w-[1200px] px-6">
+      <PageContainer>
         <div className="max-w-2xl">
           <div className="flex items-center gap-3">
             <span className="bg-accent inline-block size-1.5" />
@@ -108,7 +109,7 @@ export function FeatureRows() {
             );
           })}
         </div>
-      </div>
+      </PageContainer>
     </section>
   );
 }

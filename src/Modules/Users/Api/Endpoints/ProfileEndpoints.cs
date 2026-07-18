@@ -20,8 +20,6 @@ public static class ProfileEndpoints
         group.MapModulePut(UsersApiRoutes.Profile, UpdateProfileAsync, "UsersUpdateProfile", typeof(UsersCommandResponse));
         group.MapModuleGet(UsersApiRoutes.Culture, GetCultureAsync, "UsersGetCulture", typeof(string));
         group.MapModulePut(UsersApiRoutes.Culture, SetCultureAsync, "UsersSetCulture", typeof(UsersCommandResponse));
-        group.MapModuleGet(UsersApiRoutes.Theme, GetThemeAsync, "UsersGetTheme", typeof(string));
-        group.MapModulePut(UsersApiRoutes.Theme, SetThemeAsync, "UsersSetTheme", typeof(UsersCommandResponse));
         return group;
     }
 
@@ -32,11 +30,10 @@ public static class ProfileEndpoints
 
         Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct) ?? new Dictionary<string, string>();
         string? culture = profile.TryGetValue("Culture", out string? c) ? c : null;
-        string? theme = profile.TryGetValue("Theme", out string? t) ? t : null;
 
         return Results.Ok(new UserProfileResponse(
             user.Id, user.UserName, user.FirstName, user.LastName,
-            user.Email, user.PhoneNumber, culture, theme, culture));
+            user.Email, user.PhoneNumber, culture, culture));
     }
 
     private static async Task<IResult> UpdateProfileAsync(string userId, UpdateUserProfileRequest request, IUsersService usersService, CancellationToken ct)
@@ -78,18 +75,4 @@ public static class ProfileEndpoints
         return Results.Ok(UsersCommandResponse.Success());
     }
 
-    private static async Task<IResult> GetThemeAsync(string userId, IUserProfileService profileService, CancellationToken ct)
-    {
-        Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct) ?? new Dictionary<string, string>();
-        string? theme = profile.TryGetValue("Theme", out string? t) ? t : null;
-        return Results.Ok(theme);
-    }
-
-    private static async Task<IResult> SetThemeAsync(string userId, SetUserThemeRequest request, IUserProfileService profileService, CancellationToken ct)
-    {
-        Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct) ?? new Dictionary<string, string>();
-        profile["Theme"] = request.Theme;
-        await profileService.UpdateProfileAsync(userId, profile, ct);
-        return Results.Ok(UsersCommandResponse.Success());
-    }
 }

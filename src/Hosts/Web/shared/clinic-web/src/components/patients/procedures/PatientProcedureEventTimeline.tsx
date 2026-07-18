@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Chip } from "@heroui/react";
+import { Avatar, Button, Card, Chip } from "@heroui/react";
 import { Timeline } from "@heroui-pro/react";
 import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/web-ui";
 import { PatientProcedureEventForm } from "./PatientProcedureEventForm";
@@ -36,14 +36,6 @@ export function PatientProcedureEventTimeline({
   return (
     <div className="w-full min-w-0">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-muted m-0 text-xs font-medium">
-            {t("clinic.procedures.events.activityLabel")}
-          </p>
-          <h2 className="text-foreground m-0 text-lg font-semibold">
-            {t("clinic.procedures.events.title")}
-          </h2>
-        </div>
         <Button size="sm" onPress={() => setShowCreateForm(true)}>
           {t("clinic.procedures.events.addStep")}
         </Button>
@@ -66,46 +58,50 @@ export function PatientProcedureEventTimeline({
             >
               <Timeline.Marker aria-hidden="true">
                 <i
-                  className={`fa-solid ${event.isCommitted ? "fa-check" : "fa-message"} size-3`}
+                  className={`fa-solid ${event.isCommitted ? "fa-check" : null}`}
                 />
               </Timeline.Marker>
-              <Timeline.Content className="min-w-0 py-1">
-                <div
-                  aria-label={isSelected ? t("clinic.procedures.events.focusedDetails") : undefined}
-                  className={isSelected ? "bg-surface-secondary -mx-2 rounded-xl px-2 py-2" : undefined}
-                  role={isSelected ? "region" : undefined}
-                >
-                  <Button
-                    aria-label={event.title}
-                    className="h-auto min-h-0 w-full justify-start rounded-none p-0 text-start"
-                    variant="ghost"
-                    onPress={() => onSelectEvent(event.id)}
-                  >
-                    <span className="flex w-full min-w-0 flex-col gap-1 sm:flex-row sm:items-start sm:gap-4">
-                      <span className="min-w-0 flex-1">
-                        <span className="flex min-w-0 flex-wrap items-center gap-2">
-                          <span className="text-foreground text-sm font-medium leading-5">
-                            {event.title}
-                          </span>
-                        </span>
-                      </span>
-                      <span className="text-muted flex shrink-0 items-center gap-2 text-xs leading-5 sm:ms-auto">
+              <Timeline.Content>
+                {!isSelected ? (
+                  <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+
+                      <Button
+                        aria-label={event.title}
+                        fullWidth
+                        variant="ghost"
+                        onPress={() => onSelectEvent(event.id)}
+                      >
+                        <span className="text-muted text-xs leading-5">{event.title}</span>
                         {event.itemCount > 0 ? (
-                          <Chip size="sm" color={event.isCommitted ? "success" : "default"}>
+                          <Chip
+                            size="sm"
+                            color={event.isCommitted ? "success" : "default"}
+                            variant="soft"
+                          >
                             {t("clinic.procedures.items.count", { count: event.itemCount })}
                           </Chip>
                         ) : null}
-                      </span>
-                    </span>
-                  </Button>
-                  {isSelected ? (
-                    <div className="mt-2 flex min-w-0 flex-col gap-2">
-                      <div className="flex min-w-0 flex-wrap items-center gap-2">
-                        <PatientProcedureEventAttachmentMiniView items={selectedEventItems} />
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+                {isSelected ? (
+                  <Card
+                    aria-label={isSelected ? t("clinic.procedures.events.focusedDetails") : undefined}
+                    role={isSelected ? "region" : undefined}
+                    variant={isSelected ? "secondary" : "transparent"}
+                  >
+                    <Card.Header>{event.title}</Card.Header>
+                    <Card.Content className="min-w-0">
+                      <div className="mt-2 flex min-w-0 flex-col gap-2">
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
+                          <PatientProcedureEventAttachmentMiniView items={selectedEventItems} />
+                        </div>
                         <Button
-                          className="ms-auto min-h-8 px-2"
+                          className="ms-auto"
                           size="sm"
-                          variant="ghost"
+                          variant="secondary"
                           onPress={() =>
                             onNavigate({
                               kind: "patientProcedureEventDetail",
@@ -118,9 +114,9 @@ export function PatientProcedureEventTimeline({
                           {t("clinic.procedures.events.openDetails")}
                         </Button>
                       </div>
-                    </div>
-                  ) : null}
-                </div>
+                    </Card.Content>
+                  </Card>
+                ) : null}
               </Timeline.Content>
             </Timeline.Item>
           );

@@ -153,6 +153,7 @@ describe("@vitarish/web-ui presentation components", () => {
   it("owns page scrolling in its labeled, focusable main content region", () => {
     const { container } = render(
       <DashboardFrame
+        contentMode="page"
         currentPath="/patients"
         identity={{
           accountHref: "/account",
@@ -162,8 +163,10 @@ describe("@vitarish/web-ui presentation components", () => {
           subtitle: "Account",
         }}
         navigate={vi.fn()}
+        mobileNavigation="sidebar"
         navigationGroups={[]}
         navigationLabel="Dashboard navigation"
+        skipLinkLabel="Skip to main content"
         title="Patients"
       >
         <div>Dashboard content</div>
@@ -171,6 +174,11 @@ describe("@vitarish/web-ui presentation components", () => {
     );
 
     expect(container.querySelector("[data-app-layout]")).toHaveAttribute("data-scroll-mode", "content");
+    expect(container.querySelector("[data-app-layout]")).toHaveAttribute("data-content-mode", "page");
     expect(screen.getByRole("main", { name: "Scrollable main content" })).toHaveAttribute("tabindex", "0");
+    expect(screen.getByRole("link", { name: "Skip to main content" })).toHaveAttribute(
+      "href",
+      "#vitarish-dashboard-main"
+    );
   });
 });

@@ -25,6 +25,26 @@ export const faMessages = {
       unknown: "نامشخص",
     },
   },
+  layoutFixture: {
+    navigationGroupLabel: "نمونه چیدمان",
+    navigationItemLabel: "چیدمان واکنش‌گرا",
+    asideToggleLabel: "تغییر وضعیت پنل زمینه‌ای",
+    accountLabel: "حساب نمونه",
+    identityInitials: "چ‌و",
+    identityLabel: "نمونه چیدمان",
+    identitySubtitle: "سیاست واکنش‌گرا",
+    navigationLabel: "پیمایش نمونه",
+    skipLinkLabel: "رفتن به محتوای نمونه",
+    title: "نمونه سیاست چیدمان",
+    eyebrow: "نمونه قطعی مرورگر",
+    heading: "محتوای داشبورد محدودشده",
+    probeTitle: "بررسی چیدمان {number}",
+    probeDescription:
+      "محتوای پایدار تأیید می‌کند که ناحیه اصلی HeroUI، نه سند، پیمایش عمودی صفحه را در اختیار دارد.",
+    asideTitle: "پنل زمینه‌ای",
+    asideDescription:
+      "این محتوا توسط ناحیه کناری و صفحه موبایل بومی AppLayout نمایش داده می‌شود.",
+  },
   auth: {
     guard: {
       loading: "در حال بارگذاری...",
@@ -100,7 +120,6 @@ export const faMessages = {
       phone: "تلفن",
       password: "رمز عبور",
       passkeys: "کلیدهای عبور",
-      theme: "ظاهر",
       language: "زبان",
     },
     name: {
@@ -153,29 +172,6 @@ export const faMessages = {
       registerCompleteFailed: "ذخیره نهایی کلید عبور انجام نشد. لطفاً دوباره تلاش کنید.",
       deleted: "کلید عبور حذف شد",
       deleteFailed: "حذف کلید عبور انجام نشد",
-    },
-    theme: {
-      title: "ظاهر",
-      description: "پالت HeroUI Pro مورد استفاده در برنامه وب را انتخاب کنید.",
-      light: "روشن",
-      dark: "تاریک",
-      system: "سیستم",
-      vibrantPalette: "پالت زنده",
-      vibrantPaletteDescription: "رنگ‌های نرم وضعیت و تأکید را اشباع‌تر نمایش می‌دهد.",
-      palettes: {
-        default: "پیش‌فرض",
-        brutalism: "بروتالیسم",
-        glass: "شیشه‌ای",
-        mouve: "موو",
-      },
-      paletteDescriptions: {
-        default: "سطوح خنثی و تمیز با رنگ تأکید استاندارد.",
-        brutalism: "بلوک‌های پرکنتراست، گوشه‌های تیز، و سطوح برجسته.",
-        glass: "سطوح شفاف با محوشدگی نرم.",
-        mouve: "تأکیدهای موو و کنترل‌های برجسته.",
-      },
-      updateFailed: "بروزرسانی ظاهر انجام نشد",
-      updateSucceeded: "ظاهر با موفقیت بروزرسانی شد",
     },
     culture: {
       title: "زبان",
@@ -518,6 +514,7 @@ export const faMessages = {
       knowledge: "دانش",
       clinic: "کلینیک",
       dashboardMenu: "ناوبری داشبورد",
+      skipToContent: "رفتن به محتوای اصلی",
       accountMenu: "حساب کاربری",
       mainGroup: "عمومی",
       clinicGroup: "کلینیک",

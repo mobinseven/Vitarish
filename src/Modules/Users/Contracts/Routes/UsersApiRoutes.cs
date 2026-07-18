@@ -14,7 +14,6 @@ public static class UsersApiRoutes
     public const string AddRole = "/{userId}/roles";
     public const string Profile = "/{userId}/profile";
     public const string Culture = "/{userId}/culture";
-    public const string Theme = "/{userId}/theme";
     public const string WebAuthnCredentials = "/{userId}/webauthn";
     public const string WebAuthnBeginRegister = "/{userId}/webauthn/begin-register";
     public const string WebAuthnCompleteRegister = "/{userId}/webauthn/complete-register";

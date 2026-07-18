@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, type Key } from "react";
-import { Checkbox, Chip, Dropdown, Header, Label, Separator } from "@heroui/react";
+import { Button, Checkbox, Chip, Dropdown, Header, Label, Separator } from "@heroui/react";
 import { useSeaEventCapabilities } from "@vitarish/sea-web";
-import { DetailGrid, type DetailGridItem } from "@vitarish/web-ui";
+import { DetailGrid, FaIcon, type DetailGridItem } from "@vitarish/web-ui";
 import { formatDateTime, useLocalizedText } from "../../../localization";
 import { PatientProcedureEventAccessPanel } from "./PatientProcedureEventAccessPanel";
 import { PatientProcedureEventDeleteDialog } from "./PatientProcedureEventDeleteDialog";
@@ -68,9 +68,6 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
     <section className="flex min-h-0 flex-1 flex-col gap-6" aria-labelledby={`clinical-step-${event.id}`}>
       <header className="flex shrink-0 flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-muted m-0 text-xs font-medium">
-            {t("clinic.procedures.events.detailsLabel")}
-          </p>
           {canWrite ? (
             <Checkbox
               className="[&_[data-slot='checkbox-default-indicator--checkmark']]:size-4"
@@ -89,17 +86,22 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
                   </h1></Label>
               </Checkbox.Content>
             </Checkbox>
-          ) : null}
-          <Chip
-            className="mt-2"
-            color={event.isCommitted ? "success" : "default"}
-            size="sm"
-            variant="soft"
-          >
-            {event.isCommitted
-              ? t("clinic.procedures.committed")
-              : t("clinic.procedures.draft")}
-          </Chip>
+          ) :
+            <Label>
+              <h1 id={`clinical-step-${event.id}`} className="text-2xl font-semibold">
+                {event.title}
+              </h1>
+            </Label>}
+          {event.isCommitted
+            ?
+            <Chip
+              className="mt-2"
+              color={event.isCommitted ? "success" : "default"}
+              size="sm"
+              variant="soft"
+            > {t("clinic.procedures.committed")}
+            </Chip>
+            : null}
         </div>
 
 
@@ -108,12 +110,13 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
             <Dropdown.Trigger
               aria-label={t("clinic.procedures.events.actionMenu.label")}
             >
-              {t("clinic.procedures.events.actionMenu.label")}
+              <Button isIconOnly aria-label="Menu" variant="secondary">
+                <FaIcon icon="ellipsis-vertical" aria-hidden="true" className="text-lg" />
+              </Button>
             </Dropdown.Trigger>
             <Dropdown.Popover>
               <Dropdown.Menu onAction={handleAction}>
                 <Dropdown.Section>
-                  <Header>{t("clinic.procedures.events.actionMenu.workflow")}</Header>
                   {canWrite ? (
                     <Dropdown.Item
                       id="commit"
@@ -150,14 +153,12 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
                   <>
                     <Separator />
                     <Dropdown.Section>
-                      <Header>{t("clinic.procedures.events.actionMenu.manage")}</Header>
                       <Dropdown.Item id="edit" textValue={t("common.actions.edit")}>
                         <Label>{t("common.actions.edit")}</Label>
                       </Dropdown.Item>
                     </Dropdown.Section>
                     <Separator />
                     <Dropdown.Section>
-                      <Header>{t("clinic.procedures.events.actionMenu.danger")}</Header>
                       <Dropdown.Item
                         id="delete"
                         textValue={t("common.actions.delete")}
@@ -178,9 +179,6 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
         )}
       </header>
 
-      <div className="shrink-0">
-        <DetailGrid items={details} />
-      </div>
       <PatientProcedureEventItemsPanel eventId={eventId} canWrite={canWrite} viewer={viewer} />
       {canManage ? <div className="shrink-0"><PatientProcedureEventAccessPanel eventId={eventId} /></div> : null}
 

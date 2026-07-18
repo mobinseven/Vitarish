@@ -32,7 +32,7 @@ export interface LiveDictationController {
   language: string;
   languages: readonly string[];
   setLanguage: (language: string) => void;
-  start: () => Promise<void>;
+  start: (language?: string) => Promise<void>;
   status: LiveDictationLifecycle | "unavailable";
   stop: () => Promise<void>;
 }
@@ -129,8 +129,11 @@ export function useLiveDictation({
     sessionRef.current = null;
   }, []);
 
-  const start = useCallback(async () => {
-    if (!available || !configuration || isActive) {
+  const start = useCallback(async (selectedLanguage = language) => {
+    const selectedConfiguration = selectedLanguage === language
+      ? configuration
+      : toClientConfiguration(capabilitiesQuery.data, selectedLanguage);
+    if (!available || !selectedConfiguration || isActive) {
       if (!isActive) {
         setFailureCode(unavailableCode ?? "CapabilityUnavailable");
         setLifecycle("failed");
@@ -138,10 +141,11 @@ export function useLiveDictation({
       return;
     }
 
+    if (selectedLanguage !== language) setLanguage(selectedLanguage);
     sessionRef.current?.dispose();
     setFailureCode(null);
     let session: LiveTranscriptionClient;
-    session = new LiveTranscriptionClient(configuration, {
+    session = new LiveTranscriptionClient(selectedConfiguration, {
       onFailure: (code) => {
         if (sessionRef.current === session) setFailureCode(code);
       },
@@ -158,7 +162,7 @@ export function useLiveDictation({
     } catch {
       // The session callback already exposed a stable localized failure code.
     }
-  }, [available, configuration, isActive, unavailableCode]);
+  }, [available, capabilitiesQuery.data, configuration, isActive, language, unavailableCode]);
 
   const stop = useCallback(async () => {
     await sessionRef.current?.stop();

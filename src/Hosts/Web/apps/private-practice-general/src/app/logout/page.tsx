@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, Button } from "@heroui/react";
 import { useLogout } from "@vitarish/auth-web";
 import { StatusAlert } from "@vitarish/web-ui";
+import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
 import { useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 
@@ -15,7 +16,7 @@ export default function LogoutPage() {
   const { t } = useLocalizedText();
 
   return (
-    <main className="grid min-h-screen place-items-center px-4">
+    <StandaloneCenteredPage>
       <Card className="w-full max-w-md">
         <Card.Header className="flex flex-col items-start gap-1">
           <h1 className="text-2xl font-bold">{t("auth.logout.title")}</h1>
@@ -47,6 +48,6 @@ export default function LogoutPage() {
           </Button>
         </Card.Content>
       </Card>
-    </main>
+    </StandaloneCenteredPage>
   );
 }

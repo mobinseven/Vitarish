@@ -3,6 +3,7 @@ export const clinicEnMessages = {
     patients: {
       title: "Patients",
       newPatient: "New Patient",
+      sortBy: "Sort",
       createPatient: "Create Patient",
       createUnavailable: "Patient creation is currently unavailable. Please contact support if you need assistance.",
       createFailed: "Patient creation failed.",
@@ -123,7 +124,6 @@ export const clinicEnMessages = {
         lookupAction: "Look up patient",
       },
       findOrCreate: { or: "or", patientSelected: "Patient selected", findAnother: "Find another patient" },
-      clinicalSummary: { title: "Clinical Summary" },
       advancedSearch: {
         title: "Advanced Search",
         nameLabel: "Name",

@@ -7,9 +7,10 @@ import { useLocalizedText, formatDate } from "../../../localization/index";
 interface PatientRowProps {
   patient: PatientViewDto;
   onSelect: (patientId: string) => void;
+  variant?: "outline" | "secondary";
 }
 
-export function PatientRow({ patient, onSelect }: PatientRowProps) {
+export function PatientRow({ patient, onSelect, variant = "outline" }: PatientRowProps) {
   const { t, locale } = useLocalizedText();
   const patientName = patient.firstName || patient.lastName
     ? ((patient.firstName ?? "") + " " + (patient.lastName ?? "")).trim()
@@ -36,9 +37,17 @@ export function PatientRow({ patient, onSelect }: PatientRowProps) {
           }}
         />
       )}
-      variant="outline"
+      variant={variant}
     >
       <PressableFeedback.Highlight />
+      <ItemCard.Icon>
+        <span
+          aria-hidden="true"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
+        >
+          <i className="fa-solid fa-user" />
+        </span>
+      </ItemCard.Icon>
       <ItemCard.Content>
         <ItemCard.Title>{patientName}</ItemCard.Title>
         {description && <ItemCard.Description>{description}</ItemCard.Description>}

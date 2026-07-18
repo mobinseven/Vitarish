@@ -1,5 +1,16 @@
 import "@testing-library/jest-dom/vitest";
 
+if (!window.ResizeObserver) {
+  Object.defineProperty(window, "ResizeObserver", {
+    writable: true,
+    value: class ResizeObserver {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  });
+}
+
 if (!Element.prototype.getAnimations) {
   Object.defineProperty(Element.prototype, "getAnimations", {
     configurable: true,

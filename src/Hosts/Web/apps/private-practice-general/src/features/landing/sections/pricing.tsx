@@ -1,6 +1,7 @@
 import {Button, Card} from "@heroui/react";
 
 import {FaIcon} from "@vitarish/web-ui";
+import {PageContainer} from "@vitarish/web-ui/layout";
 import {formatFigureLabel} from "@/features/landing/data/figures";
 import {useLocalizedText} from "@/localization";
 
@@ -15,21 +16,21 @@ export function Pricing() {
 
   return (
     <section className="relative scroll-mt-24 py-20 lg:py-28" id="pricing">
-      <div className="mx-auto max-w-[1200px] px-6">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-3">
+      <PageContainer>
+        <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0 max-w-2xl">
+            <div className="flex min-w-0 flex-wrap items-center gap-3">
               <span className="bg-accent inline-block size-1.5" />
-              <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
+              <span className="min-w-0 break-words font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
                 <span className="text-muted mr-2">{formatFigureLabel("12")}</span>
                 {t("landing.pricing.sectionLabel")}
               </span>
             </div>
-            <h2 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl">
+            <h2 className="mt-6 min-w-0 break-words text-4xl font-semibold tracking-tight sm:text-5xl">
               {t("landing.pricing.heading")}
             </h2>
           </div>
-          <p className="text-muted max-w-sm leading-relaxed lg:text-right">
+          <p className="text-muted min-w-0 max-w-sm break-words leading-relaxed lg:text-right">
             {t("landing.pricing.subheading")}
           </p>
         </div>
@@ -38,7 +39,7 @@ export function Pricing() {
           {planKeys.map((plan) => (
             <Card
               key={plan.nameKey}
-              className={`relative flex h-full flex-col ${
+              className={`relative flex h-full min-w-0 flex-col ${
                 plan.featured ? "border-accent ring-1 ring-accent/20" : ""
               }`}
             >
@@ -51,7 +52,7 @@ export function Pricing() {
                 <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{plan.tag}</span>
                 <Card.Title className="mt-3 text-lg">{t(plan.nameKey)}</Card.Title>
                 <div className="mt-4 flex items-baseline gap-1">
-                  <span className="text-4xl font-semibold tracking-tight">{plan.price}</span>
+                  <span className="min-w-0 break-words text-4xl font-semibold tracking-tight">{plan.price}</span>
                   {plan.unit ? (
                     <span className="text-muted font-mono text-sm">{plan.unit}</span>
                   ) : null}
@@ -83,7 +84,7 @@ export function Pricing() {
             </Card>
           ))}
         </div>
-      </div>
+      </PageContainer>
     </section>
   );
 }

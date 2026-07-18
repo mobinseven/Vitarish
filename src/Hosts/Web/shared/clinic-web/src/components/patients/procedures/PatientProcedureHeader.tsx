@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@heroui/react";
-import { useLocalizedText, formatDateTime } from "../../../localization/index";
+import { useState, type Key } from "react";
+import { Button, Dropdown, Label, Separator } from "@heroui/react";
+import { FaIcon } from "@vitarish/web-ui";
+import { useLocalizedText } from "../../../localization/index";
 import { PatientProcedureForm } from "./PatientProcedureForm";
 import { PatientProcedureDeleteDialog } from "./PatientProcedureDeleteDialog";
 import type { PatientProcedureDetail } from "../../../models/patients/procedures/PatientProcedureModels";
@@ -17,6 +18,10 @@ export function PatientProcedureHeader({ procedure, patientId, onDeleted }: Pati
   const { t, locale } = useLocalizedText();
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const handleAction = (key: Key) => {
+    if (key === "edit") setShowEditForm(true);
+    if (key === "delete") setShowDeleteDialog(true);
+  };
 
   return (
     <>
@@ -31,19 +36,25 @@ export function PatientProcedureHeader({ procedure, patientId, onDeleted }: Pati
             {procedure.committedEventCount > 0 && (
               <span>{procedure.committedEventCount} {t("clinic.procedures.committed")}</span>
             )}
-            {procedure.lastActivity && (
-              <span>{t("clinic.procedures.list.lastActivity")}: {formatDateTime(procedure.lastActivity, locale)}</span>
-            )}
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="secondary" onPress={() => setShowEditForm(true)}>
-            {t("common.actions.edit")}
-          </Button>
-          <Button size="sm" variant="danger" onPress={() => setShowDeleteDialog(true)}>
-            {t("common.actions.delete")}
-          </Button>
-        </div>
+        <Dropdown>
+          <Dropdown.Trigger aria-label={t("clinic.procedures.events.actionMenu.label")}>
+            <Button isIconOnly aria-label={t("clinic.procedures.events.actionMenu.label")} variant="secondary">
+              <FaIcon icon="ellipsis-vertical" aria-hidden="true" className="text-lg" />
+            </Button>
+          </Dropdown.Trigger>
+          <Dropdown.Popover>
+            <Dropdown.Menu onAction={handleAction}>
+              <Dropdown.Item id="edit" textValue={t("common.actions.edit")}>
+                <Label>{t("common.actions.edit")}</Label>
+              </Dropdown.Item>
+              <Dropdown.Item id="delete" textValue={t("common.actions.delete")} variant="danger">
+                <Label>{t("common.actions.delete")}</Label>
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown.Popover>
+        </Dropdown>
       </div>
 
       {showEditForm && (

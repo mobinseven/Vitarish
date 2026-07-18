@@ -2,6 +2,28 @@ export { AuthMethodList } from "./auth/AuthMethodList";
 export type { AuthMethodListItem, AuthMethodListProps } from "./auth/AuthMethodList";
 export { LoginPanel } from "./auth/LoginPanel";
 export type { LoginPanelProps } from "./auth/LoginPanel";
+export {
+  CenteredRegion,
+  ContainedPage,
+  ImmersiveRegion,
+  PageContainer,
+  PublicDocumentShell,
+  StandaloneCenteredPage,
+  StandaloneDocumentPage,
+  StandaloneImmersivePage,
+  pageWidths,
+} from "./layout";
+export type {
+  CenteredRegionProps,
+  ContainedPageProps,
+  ImmersiveRegionProps,
+  PageContainerProps,
+  PageWidth,
+  PublicDocumentShellProps,
+  StandaloneCenteredPageProps,
+  StandaloneDocumentPageProps,
+  StandaloneImmersivePageProps,
+} from "./layout";
 export { ChatEmptyState } from "./chat/ChatEmptyState";
 export type { ChatEmptyStateProps } from "./chat/ChatEmptyState";
 export { ChatLoadingMessage } from "./chat/ChatLoadingMessage";
@@ -25,8 +47,10 @@ export { StatusAlert } from "./feedback/StatusAlert";
 export type { StatusAlertProps } from "./feedback/StatusAlert";
 export { DashboardFrame } from "./shell/DashboardFrame";
 export type {
+  DashboardContentMode,
   DashboardFrameProps,
   DashboardIdentity,
+  DashboardMobileNavigation,
   DashboardNavigationGroup,
   DashboardNavigationItem,
 } from "./shell/DashboardFrame";

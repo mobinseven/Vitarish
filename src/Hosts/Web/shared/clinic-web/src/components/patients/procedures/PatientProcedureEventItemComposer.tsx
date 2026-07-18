@@ -9,9 +9,7 @@ import {
 } from "@heroui-pro/react";
 import {
   appendConfirmedTranscript,
-  LiveDictationLanguageSelect,
-  LiveDictationPromptAction,
-  LiveDictationStatus,
+  LiveDictation,
   useLiveDictation,
 } from "@vitarish/intelligence-web";
 import {
@@ -138,8 +136,7 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
                         </PromptInput.Action>
                       )}
                     />
-                    <LiveDictationPromptAction controller={dictation} />
-                    <LiveDictationLanguageSelect controller={dictation} />
+                    <LiveDictation controller={dictation} />
                   </PromptInput.ToolbarStart>
                   <PromptInput.ToolbarEnd>
                     <PromptInput.Send
@@ -154,8 +151,6 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
         </ChatAttachmentInput>
         <PromptInput.Footer>{t("clinic.procedures.items.oneFile")}</PromptInput.Footer>
       </PromptInput>
-
-      <LiveDictationStatus controller={dictation} className="mx-auto mt-2 w-full max-w-4xl text-sm" />
       {createNote.isError ? (
         <p className="text-danger mx-auto mt-2 w-full max-w-4xl text-sm" role="alert">
           {t("clinic.procedures.items.saveFailed")}

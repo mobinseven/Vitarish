@@ -2,6 +2,7 @@ import Image from "next/image";
 import {Button} from "@heroui/react";
 
 import {FaIcon} from "@vitarish/web-ui";
+import {PageContainer} from "@vitarish/web-ui/layout";
 import {
   figures,
   figureTitles,
@@ -25,8 +26,8 @@ export function Hero() {
     <section className="relative overflow-hidden" id="top">
       <div className="border-border/70 pointer-events-none absolute inset-x-0 top-0 border-t" aria-hidden="true" />
 
-      <div className="relative mx-auto grid max-w-[1200px] items-center gap-14 px-6 pb-20 pt-16 lg:grid-cols-[1.05fr_1fr] lg:pb-28 lg:pt-24">
-        <div>
+      <PageContainer className="relative grid items-center gap-14 pb-20 pt-16 lg:grid-cols-[1.05fr_1fr] lg:pb-28 lg:pt-24">
+        <div className="min-w-0">
           <div className="flex items-center gap-3">
             <span className="bg-accent inline-block size-1.5" />
             <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
@@ -44,19 +45,25 @@ export function Hero() {
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <Button render={(props: any) => <a href="#pricing" {...props} />} size="lg" variant="primary">
+            <Button
+              className="h-auto max-w-full whitespace-normal py-3 text-center"
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              render={(props: any) => <a href="#pricing" {...props} />}
+              size="lg"
+              variant="primary"
+            >
               {t("landing.hero.ctaPrimary")}
               <FaIcon icon="arrow-right" className="size-4" />
             </Button>
             <Button
+              className="h-auto max-w-full whitespace-normal py-3 text-center"
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               render={(props: any) => <a href="#architecture" {...props} />}
               size="lg"
               variant="outline"
             >
               {t("landing.hero.ctaSecondary")}
-              <FaIcon icon="arrow-up-right" className="size-4" />
+              <FaIcon icon="arrow-up-right-from-square" className="size-4" />
             </Button>
           </div>
 
@@ -70,7 +77,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative">
+        <div className="relative min-w-0">
           <div className="border-border bg-surface relative overflow-hidden border">
             <div className="absolute left-3 top-3 z-10">
               <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
@@ -110,7 +117,7 @@ export function Hero() {
             <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{t("landing.hero.scale")}</span>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </section>
   );
 }

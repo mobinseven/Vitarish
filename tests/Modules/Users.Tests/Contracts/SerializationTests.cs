@@ -97,6 +97,17 @@ public class SerializationTests
     }
 
     [Fact]
+    public void UserProfileResponse_does_not_expose_theme_setting()
+    {
+        var response = new UserProfileResponse(
+            "id-1", "johndoe", "John", "Doe", "john@test.com", "+1234567890", "en", "en");
+
+        var json = JsonSerializer.Serialize(response, JsonOptions);
+
+        json.Should().NotContain("\"theme\"");
+    }
+
+    [Fact]
     public void UserExistenceResponse_round_trip()
     {
         var original = new UserExistenceResponse(true);

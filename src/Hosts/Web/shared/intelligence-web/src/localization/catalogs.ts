@@ -13,6 +13,7 @@ export const intelligenceMessageCatalogs = {
           connecting: "Connecting voice dictation",
           completing: "Finishing voice dictation",
           unavailable: "Voice dictation unavailable",
+          cancelLanguage: "Cancel language selection",
         },
         status: {
           checking: "Checking voice dictation availability...",
@@ -51,6 +52,7 @@ export const intelligenceMessageCatalogs = {
           connecting: "در حال اتصال دیکته صوتی",
           completing: "در حال تکمیل دیکته صوتی",
           unavailable: "دیکته صوتی در دسترس نیست",
+          cancelLanguage: "لغو انتخاب زبان",
         },
         status: {
           checking: "در حال بررسی دسترسی به دیکته صوتی...",

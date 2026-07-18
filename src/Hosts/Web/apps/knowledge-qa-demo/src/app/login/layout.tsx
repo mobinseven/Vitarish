@@ -5,11 +5,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthenticatedRedirectBoundary } from "@vitarish/auth-web";
 import { Routes } from "@/app/routes";
 import { useLocalizedText } from "@/localization";
+import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
 
 function LoginFallback() {
   const { t } = useLocalizedText();
 
-  return <p className="text-muted">{t("common.states.loading")}</p>;
+  return (
+    <StandaloneCenteredPage>
+      <p className="text-muted">{t("common.states.loading")}</p>
+    </StandaloneCenteredPage>
+  );
 }
 
 function LoginRedirectBoundary({ children }: { children: ReactNode }) {

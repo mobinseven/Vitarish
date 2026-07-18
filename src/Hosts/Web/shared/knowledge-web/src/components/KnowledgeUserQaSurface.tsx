@@ -127,7 +127,7 @@ export function KnowledgeUserQaSurface({
   }, []);
 
   return (
-    <div className="flex h-svh min-h-0 flex-col overflow-hidden bg-background">
+    <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-background">
       <header className="flex h-16 shrink-0 items-center gap-3 border-b border-separator px-4 sm:px-6">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
           <i aria-hidden="true" className="fa-solid fa-book-open size-4" />
@@ -137,7 +137,7 @@ export function KnowledgeUserQaSurface({
         </div>
       </header>
 
-      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <KnowledgeAnswerList
           question={submittedQuestion}
           scopeKind={lastScope.kind}
@@ -171,7 +171,7 @@ export function KnowledgeUserQaSurface({
             />
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

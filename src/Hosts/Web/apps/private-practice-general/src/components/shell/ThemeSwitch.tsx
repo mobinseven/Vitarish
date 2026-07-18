@@ -4,10 +4,16 @@ import { useEffect, useState } from "react";
 import { Button } from "@heroui/react";
 import { useTheme } from "next-themes";
 import { useLocalizedText } from "@/localization";
-import { resolveThemeMode, type ThemeMode } from "@vitarish/account-web";
 import { FaIcon } from "@vitarish/web-ui";
 
+type ThemeMode = "light" | "dark" | "system";
+
 const THEME_CYCLE: ThemeMode[] = ["light", "dark", "system"];
+
+function resolveThemeMode(value: string | undefined): ThemeMode {
+  if (value === "system") return "system";
+  return value === "dark" ? "dark" : "light";
+}
 
 function nextTheme(current: ThemeMode): ThemeMode {
   const idx = THEME_CYCLE.indexOf(current);

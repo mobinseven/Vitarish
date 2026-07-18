@@ -25,6 +25,26 @@ export const enMessages = {
       unknown: "Unknown",
     },
   },
+  layoutFixture: {
+    navigationGroupLabel: "Layout fixture",
+    navigationItemLabel: "Responsive layout",
+    asideToggleLabel: "Toggle contextual panel",
+    accountLabel: "Fixture account",
+    identityInitials: "LF",
+    identityLabel: "Layout fixture",
+    identitySubtitle: "Responsive policy",
+    navigationLabel: "Fixture navigation",
+    skipLinkLabel: "Skip to fixture content",
+    title: "Layout policy fixture",
+    eyebrow: "Deterministic browser fixture",
+    heading: "Contained dashboard content",
+    probeTitle: "Layout probe {number}",
+    probeDescription:
+      "Stable content verifies that the HeroUI main region, rather than the document, owns page-axis scrolling.",
+    asideTitle: "Contextual panel",
+    asideDescription:
+      "This content is rendered by the native AppLayout aside and mobile sheet.",
+  },
   auth: {
     guard: {
       loading: "Loading...",
@@ -100,7 +120,6 @@ export const enMessages = {
       phone: "Phone",
       password: "Password",
       passkeys: "Passkeys",
-      theme: "Theme",
       language: "Language",
     },
     name: {
@@ -153,29 +172,6 @@ export const enMessages = {
       registerCompleteFailed: "We could not finish saving your passkey. Please try again.",
       deleted: "Passkey deleted",
       deleteFailed: "Failed to delete passkey",
-    },
-    theme: {
-      title: "Theme",
-      description: "Choose the HeroUI Pro palette used across the web app.",
-      light: "Light",
-      dark: "Dark",
-      system: "System",
-      vibrantPalette: "Vibrant palette",
-      vibrantPaletteDescription: "Use more saturated soft status and accent colors.",
-      palettes: {
-        default: "Default",
-        brutalism: "Brutalism",
-        glass: "Glass",
-        mouve: "Mouve",
-      },
-      paletteDescriptions: {
-        default: "Clean neutral surfaces with the standard accent color.",
-        brutalism: "High-contrast blocks, sharp edges, and bold surfaces.",
-        glass: "Translucent surfaces with soft blur.",
-        mouve: "Refined mauve accents and raised controls.",
-      },
-      updateFailed: "Failed to update theme",
-      updateSucceeded: "Theme updated successfully",
     },
     culture: {
       title: "Language",
@@ -528,6 +524,7 @@ export const enMessages = {
       knowledge: "Knowledge",
       clinic: "Clinic",
       dashboardMenu: "Dashboard navigation",
+      skipToContent: "Skip to main content",
       accountMenu: "Account",
       mainGroup: "General",
       clinicGroup: "Clinic",

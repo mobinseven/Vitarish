@@ -14,10 +14,17 @@
     "build:knowledge-qa-demo": "npm run build --workspace @vitarish/knowledge-qa-demo",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "test:layout:visual": "playwright test --config playwright.layout.config.ts --grep @visual",
+    "test:layout:update-linux": "node scripts/update-layout-snapshots-linux.mjs",
     "validate:api-boundary": "npm run validate:api-boundary --workspaces --if-present",
     "validate:localization": "npm run validate:localization --workspaces --if-present",
+    "lint:layout": "node scripts/lint-layout.mjs",
+    "test:layout-lint": "node --test scripts/layout-policy.test.mjs",
     "validate:web-ui-boundary": "node scripts/validate-web-ui-boundary.mjs",
     "validate:app-boundaries": "node scripts/validate-web-app-boundaries.mjs",
     "validate:docs:app-boundaries": "python ../../../tools/architecture/validate_app_experience_boundaries.py"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1"
   }
 }

@@ -5,6 +5,7 @@ import { Routes } from "@/app/routes";
 import { useAuthSession } from "@vitarish/auth-web";
 import { useLocalizedText } from "@/localization";
 import { LandingPage } from "@/features/landing/landing-page";
+import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
 
 export default function RootPage() {
   const router = useRouter();
@@ -13,18 +14,18 @@ export default function RootPage() {
 
   if (isLoading) {
     return (
-      <main className="grid min-h-screen place-items-center">
+      <StandaloneCenteredPage>
         <p className="text-muted">{t("common.states.loading")}</p>
-      </main>
+      </StandaloneCenteredPage>
     );
   }
 
   if (isAuthenticated) {
     router.replace(Routes.Home);
     return (
-      <main className="grid min-h-screen place-items-center">
+      <StandaloneCenteredPage>
         <p className="text-muted">{t("common.states.redirecting")}</p>
-      </main>
+      </StandaloneCenteredPage>
     );
   }
 

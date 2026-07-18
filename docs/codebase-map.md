@@ -3,7 +3,7 @@
 Status: Active  
 Owner: Platform Architecture  
 Scope: Repository navigation  
-Last reviewed: 2026-07-10
+Last reviewed: 2026-07-18
 
 ## 1. Purpose and scope
 
@@ -94,6 +94,7 @@ Use module names as the feature map. For each module, the conventional locations
 ## 6. Common change guide
 
 - **New page:** Blazor: `src/Hosts/Main/Pages/<Area>` plus route constants in `src/Hosts/Main/Common/Routes` if needed. Next: `src/Hosts/Web/apps/<app>/src/app/<route>/page.tsx` imports page/surface components from the owning feature package and wires app navigation/shell files.
+- **Web route layout:** `src/Hosts/Web/shared/web-ui` owns outer geometry, layout primitives, and the `DashboardFrame` adapter. Use `apply-web-layout-policy` to select the shell, main owner, primary scroller, and width before composing a route.
 - **New component:** Workflow feature-specific React components live in `src/Hosts/Web/shared/<feature>-web`; app route/shell components stay in the owning app; generic presentation primitives live in `src/Hosts/Web/shared/web-ui`. App-local workflow feature folders are forbidden. Do not create design-system wrappers unless needed now.
 - **New domain entity:** `src/Modules/<Module>/Domain`; add persistence mapping in Infrastructure only if it must be stored.
 - **New command:** `src/Modules/<Module>/Application` under existing command/write convention; expose through Api only when needed.
@@ -129,6 +130,9 @@ Fragile or high-care areas:
 - **Web dev:** from `src/Hosts/Web`, `npm run dev:private-practice-general` or `npm run dev:knowledge-qa-demo`.
 - **Web build/typecheck/test:** from `src/Hosts/Web`, use `npm run build`, `npm run typecheck`, `npm run test`, and targeted workspace scripts.
 - **Web API generation:** package or app scripts run `generate:api` before dev/build; after OpenAPI changes, regenerate in the owning feature package when migrated, or in the legacy app workspace until migration is complete.
+- **Web layout policy lint:** from `src/Hosts/Web`, run `npm run lint:layout` and `npm run test:layout-lint`.
+- **Web layout visual tests:** from `src/Hosts/Web`, run `npm run test:layout:visual` for committed Linux-Chromium baselines. Both production apps and the deterministic local fixture service are started automatically.
+- **Web layout baseline update:** from `src/Hosts/Web`, run `npm run test:layout:update-linux`; this uses the pinned Playwright Linux container and is never an automatic CI update.
 
 - **Docker/dev containers:** `docker compose -f src/Hosts/docker-compose.web.yml up --build` runs web plus main.
 

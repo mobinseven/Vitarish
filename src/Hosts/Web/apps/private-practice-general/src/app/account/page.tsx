@@ -13,7 +13,6 @@ const settingsLinks = [
   { labelKey: "account.navigation.phone" as MessageKey, href: Routes.Account.Phone, icon: "fa-solid fa-mobile" },
   { labelKey: "account.navigation.password" as MessageKey, href: Routes.Account.Password, icon: "fa-solid fa-lock" },
   { labelKey: "account.navigation.passkeys" as MessageKey, href: Routes.Account.Passkeys, icon: "fa-solid fa-key" },
-  { labelKey: "account.navigation.theme" as MessageKey, href: Routes.Account.Theme, icon: "fa-solid fa-paint-brush" },
   { labelKey: "account.navigation.language" as MessageKey, href: Routes.Account.Culture, icon: "fa-solid fa-globe" },
 ];
 

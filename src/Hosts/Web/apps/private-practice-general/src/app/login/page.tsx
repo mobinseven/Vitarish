@@ -4,6 +4,7 @@ import { Card } from "@heroui/react";
 import { AuthMethodSelector } from "@vitarish/auth-web";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { Routes } from "@/app/routes";
+import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
 
 const authMethods = [
   { id: "password", labelKey: "auth.login.passwordMethod" as MessageKey, href: Routes.Login.Password, iconClassName: "fa-solid fa-lock" },
@@ -16,7 +17,7 @@ export default function LoginPage() {
   const { t } = useLocalizedText();
 
   return (
-    <main className="grid min-h-screen place-items-center px-4">
+    <StandaloneCenteredPage>
       <Card className="w-full max-w-md">
         <Card.Header className="flex flex-col items-start gap-1">
           <h1 className="text-2xl font-bold">{t("auth.login.brandTitle")}</h1>
@@ -26,6 +27,6 @@ export default function LoginPage() {
           <AuthMethodSelector methods={authMethods} />
         </Card.Content>
       </Card>
-    </main>
+    </StandaloneCenteredPage>
   );
 }
