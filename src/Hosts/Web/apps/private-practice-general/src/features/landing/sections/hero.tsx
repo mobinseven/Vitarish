@@ -45,12 +45,18 @@ export function Hero() {
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <Button render={(props: any) => <a href="#pricing" {...props} />} size="lg" variant="primary">
+            <Button
+              className="h-auto max-w-full whitespace-normal py-3 text-center"
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              render={(props: any) => <a href="#pricing" {...props} />}
+              size="lg"
+              variant="primary"
+            >
               {t("landing.hero.ctaPrimary")}
               <FaIcon icon="arrow-right" className="size-4" />
             </Button>
             <Button
+              className="h-auto max-w-full whitespace-normal py-3 text-center"
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               render={(props: any) => <a href="#architecture" {...props} />}
               size="lg"
