@@ -2,6 +2,7 @@ import Image from "next/image";
 import {Card} from "@heroui/react";
 
 import {FaIcon} from "@vitarish/web-ui";
+import {PageContainer} from "@vitarish/web-ui/layout";
 import {figures, formatFigureLabel, formatFigureRangeLabel} from "@/features/landing/data/figures";
 import {useLocalizedText} from "@/localization";
 
@@ -17,19 +18,19 @@ export function Pillars() {
 
   return (
     <section className="relative scroll-mt-24 py-20 lg:py-28" id="pillars">
-      <div className="mx-auto max-w-[1200px] px-6">
-        <div className="max-w-2xl">
-          <div className="flex items-center gap-3">
+      <PageContainer>
+        <div className="min-w-0 max-w-2xl">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
             <span className="bg-accent inline-block size-1.5" />
-            <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
+            <span className="min-w-0 break-words font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
               <span className="text-muted mr-2">{formatFigureRangeLabel("02", "05")}</span>
               {t("landing.pillars.sectionLabel")}
             </span>
           </div>
-          <h2 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl">
+          <h2 className="mt-6 min-w-0 break-words text-4xl font-semibold tracking-tight sm:text-5xl">
             {t("landing.pillars.heading")}
           </h2>
-          <p className="text-muted mt-5 max-w-xl leading-relaxed">
+          <p className="text-muted mt-5 min-w-0 max-w-xl break-words leading-relaxed">
             {t("landing.pillars.subheading")}
           </p>
         </div>
@@ -72,7 +73,7 @@ export function Pillars() {
             </Card>
           ))}
         </div>
-      </div>
+      </PageContainer>
     </section>
   );
 }

@@ -4,6 +4,7 @@ import { useCallback, useMemo } from "react";
 import { KnowledgeUserQaSurface, type KnowledgeQaLabels } from "@vitarish/knowledge-web";
 import { getKnowledgeQaErrorMessage, knowledgeQaClient } from "@/api/knowledgeQaClient";
 import { formatNumber, useLocalizedText } from "@/localization";
+import { ImmersiveRegion, StandaloneImmersivePage } from "@vitarish/web-ui/layout";
 
 export function KnowledgeQaPageSurface() {
   const { direction, locale, t } = useLocalizedText();
@@ -22,13 +23,17 @@ export function KnowledgeQaPageSurface() {
   );
 
   return (
-    <KnowledgeUserQaSurface
-      client={knowledgeQaClient}
-      direction={direction}
-      formatScore={formatScore}
-      labels={labels}
-      resolveErrorMessage={resolveErrorMessage}
-    />
+    <StandaloneImmersivePage>
+      <ImmersiveRegion>
+        <KnowledgeUserQaSurface
+          client={knowledgeQaClient}
+          direction={direction}
+          formatScore={formatScore}
+          labels={labels}
+          resolveErrorMessage={resolveErrorMessage}
+        />
+      </ImmersiveRegion>
+    </StandaloneImmersivePage>
   );
 }
 

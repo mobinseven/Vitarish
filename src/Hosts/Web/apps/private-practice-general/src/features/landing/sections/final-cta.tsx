@@ -2,6 +2,7 @@ import {Button} from "@heroui/react";
 
 import {BrandIsotipo} from "@/features/landing/brand";
 import {FaIcon} from "@vitarish/web-ui";
+import {PageContainer} from "@vitarish/web-ui/layout";
 import {formatFigureLabel} from "@/features/landing/data/figures";
 import {useLocalizedText} from "@/localization";
 
@@ -10,7 +11,7 @@ export function FinalCta() {
 
   return (
     <section className="relative scroll-mt-24 py-20 lg:py-28" id="cta">
-      <div className="mx-auto max-w-[1200px] px-6">
+      <PageContainer>
         <div className="bg-surface relative overflow-hidden border border-border px-6 py-16 text-center lg:px-16 lg:py-24">
           <div className="relative">
             <div className="flex justify-center">
@@ -48,7 +49,7 @@ export function FinalCta() {
             </div>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </section>
   );
 }

@@ -1,0 +1,5 @@
+@import "@vitarish/web-ui/layout.css";
+
+.feature {
+  min-height: 100dvh;
+}

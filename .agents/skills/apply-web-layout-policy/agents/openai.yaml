@@ -1,0 +1,4 @@
+interface:
+  display_name: "Apply Web Layout Policy"
+  short_description: "Route Web pages through shared layout policy"
+  default_prompt: "Use $apply-web-layout-policy to classify this Web surface and apply the canonical responsive layout policy."

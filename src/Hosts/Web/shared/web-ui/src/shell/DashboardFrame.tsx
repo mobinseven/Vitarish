@@ -29,63 +29,138 @@ export interface DashboardIdentity {
   subtitle: string;
 }
 
+export type DashboardContentMode = "page" | "workspace";
+export type DashboardMobileNavigation = "none" | "sidebar";
+
 export interface DashboardFrameProps {
+  aside?: ReactNode;
+  asideMobile?: "hidden" | "sheet";
+  asideOpen?: boolean;
+  asideToggleLabel?: string;
   children: ReactNode;
+  contentMode: DashboardContentMode;
   currentPath: string;
+  defaultAsideOpen?: boolean;
   footerItems?: readonly DashboardNavigationItem[];
   identity: DashboardIdentity;
+  mobileAside?: ReactNode;
+  mobileNavigation: DashboardMobileNavigation;
   navigationGroups: readonly DashboardNavigationGroup[];
   navigationLabel: string;
   navigate: (href: string) => void;
+  onAsideOpenChange?: (open: boolean) => void;
+  skipLinkLabel: string;
   title: ReactNode;
   footerLabel?: string;
   toolbar?: ReactNode;
 }
 
 export function DashboardFrame({
+  aside,
+  asideMobile = "hidden",
+  asideOpen,
+  asideToggleLabel,
   children,
+  contentMode,
   currentPath,
+  defaultAsideOpen,
   footerItems = [],
   footerLabel,
   identity,
+  mobileAside,
+  mobileNavigation,
   navigationGroups,
   navigationLabel,
   navigate,
+  onAsideOpenChange,
+  skipLinkLabel,
   title,
   toolbar,
 }: DashboardFrameProps) {
   return (
-    <AppLayout
-      navigate={navigate}
-      navbar={<DashboardFrameNavbar title={title} toolbar={toolbar} />}
-      scrollMode="content"
-      sidebar={
-        <DashboardFrameSidebar
-          currentPath={currentPath}
-          footerItems={footerItems}
-          footerLabel={footerLabel}
-          identity={identity}
-          navigationGroups={navigationGroups}
-          navigationLabel={navigationLabel}
-          onNavigate={navigate}
-        />
-      }
-      sidebarCollapsible="icon"
-    >
-      {children}
-    </AppLayout>
+    <>
+      <a className="vitarish-skip-link" href="#vitarish-dashboard-main">
+        {skipLinkLabel}
+      </a>
+      <AppLayout
+        aside={aside}
+        asideMobile={asideMobile}
+        asideOpen={asideOpen}
+        data-content-mode={contentMode}
+        data-mobile-navigation={mobileNavigation}
+        data-vitarish-layout="dashboard-frame"
+        data-vitarish-scroll-owner={contentMode === "page" ? "frame-main" : "workspace"}
+        defaultAsideOpen={defaultAsideOpen}
+        navigate={navigate}
+        navbar={
+          <DashboardFrameNavbar
+            asideToggleLabel={asideToggleLabel}
+            hasAside={aside !== undefined && aside !== null}
+            mobileNavigation={mobileNavigation}
+            title={title}
+            toolbar={toolbar}
+          />
+        }
+        onAsideOpenChange={onAsideOpenChange}
+        scrollMode={contentMode === "page" ? "content" : "page"}
+        sidebar={
+          <DashboardFrameSidebar
+            currentPath={currentPath}
+            footerItems={footerItems}
+            footerLabel={footerLabel}
+            identity={identity}
+            mobileNavigation={mobileNavigation}
+            navigationGroups={navigationGroups}
+            navigationLabel={navigationLabel}
+            onNavigate={navigate}
+          />
+        }
+        sidebarCollapsible="icon"
+      >
+        {mobileAside ? <AppLayout.MobileAside>{mobileAside}</AppLayout.MobileAside> : null}
+        <div
+          className="vitarish-dashboard-content"
+          data-vitarish-layout="dashboard-content"
+          id="vitarish-dashboard-main"
+          tabIndex={-1}
+        >
+          {children}
+        </div>
+      </AppLayout>
+    </>
   );
 }
 
-function DashboardFrameNavbar({ title, toolbar }: { title: ReactNode; toolbar?: ReactNode }) {
+interface DashboardFrameNavbarProps {
+  asideToggleLabel?: string;
+  hasAside: boolean;
+  mobileNavigation: DashboardMobileNavigation;
+  title: ReactNode;
+  toolbar?: ReactNode;
+}
+
+function DashboardFrameNavbar({
+  asideToggleLabel,
+  hasAside,
+  mobileNavigation,
+  title,
+  toolbar,
+}: DashboardFrameNavbarProps) {
   return (
     <Navbar maxWidth="full">
       <Navbar.Header>
-        <AppLayout.MenuToggle />
+        {mobileNavigation === "sidebar" ? <AppLayout.MenuToggle /> : null}
         <Sidebar.Trigger />
         {title}
         <Navbar.Spacer />
         {toolbar ? <div className="flex items-center gap-2">{toolbar}</div> : null}
+        {hasAside ? (
+          asideToggleLabel ? (
+            <AppLayout.AsideTrigger aria-label={asideToggleLabel} />
+          ) : (
+            <AppLayout.AsideTrigger />
+          )
+        ) : null}
       </Navbar.Header>
     </Navbar>
   );
@@ -96,25 +171,29 @@ interface DashboardFrameSidebarProps {
   footerItems: readonly DashboardNavigationItem[];
   footerLabel?: string;
   identity: DashboardIdentity;
+  mobileNavigation: DashboardMobileNavigation;
   navigationGroups: readonly DashboardNavigationGroup[];
   navigationLabel: string;
   onNavigate: (href: string) => void;
 }
 
-function DashboardFrameSidebar(props: DashboardFrameSidebarProps) {
+function DashboardFrameSidebar({ mobileNavigation, ...props }: DashboardFrameSidebarProps) {
   return (
     <>
       <Sidebar>
         <DashboardFrameSidebarContents {...props} />
       </Sidebar>
-      <Sidebar.Mobile>
-        <DashboardFrameSidebarContents {...props} idPrefix="mobile-" />
-      </Sidebar.Mobile>
+      {mobileNavigation === "sidebar" ? (
+        <Sidebar.Mobile>
+          <DashboardFrameSidebarContents {...props} idPrefix="mobile-" />
+        </Sidebar.Mobile>
+      ) : null}
     </>
   );
 }
 
-interface DashboardFrameSidebarContentsProps extends DashboardFrameSidebarProps {
+interface DashboardFrameSidebarContentsProps
+  extends Omit<DashboardFrameSidebarProps, "mobileNavigation"> {
   idPrefix?: string;
 }
 

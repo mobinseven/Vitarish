@@ -135,6 +135,7 @@ Project skills live under `.agents/skills/`. Open the index once, select the rou
 | HTTP/OpenAPI, WebSocket/SSE, protocol, contracts, generated clients | `platform-transport-contract` |
 | Authentication, authorization, tenant isolation, origins, privacy, limits | `platform-trust-boundary` |
 | React feature ownership, hooks, browser APIs, localization, accessibility | `platform-react-feature` |
+| Web route shells, main/scroll ownership, viewport geometry, shared gutters/widths | `apply-web-layout-policy` |
 | Tests, validators, builds, generators, and runtime hot scenarios | `platform-test-validation` |
 | Execute an approved slice and produce evidence-based handoff | `platform-delivery-loop` |
 | Remove duplication, speculative layers, dependencies, or dead paths | `platform-simplification-audit` |

@@ -528,6 +528,7 @@ export const enMessages = {
       knowledge: "Knowledge",
       clinic: "Clinic",
       dashboardMenu: "Dashboard navigation",
+      skipToContent: "Skip to main content",
       accountMenu: "Account",
       mainGroup: "General",
       clinicGroup: "Clinic",

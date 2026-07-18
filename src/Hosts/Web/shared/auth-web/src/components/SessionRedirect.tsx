@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { useAuthSession } from "../hooks/useAuthSession";
 import { ignoreAuthNavigation, type AuthNavigate, type AuthReturnUrlSearchParams } from "../hooks/navigation";
+import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
 
 interface RedirectSessionState {
   isLoading: boolean;
@@ -42,9 +43,9 @@ export function resolveSessionRedirectTarget({
 
 function SessionRedirectMessage({ label }: { label: string }) {
   return (
-    <main className="grid min-h-screen place-items-center">
+    <StandaloneCenteredPage>
       <p className="text-muted">{label}</p>
-    </main>
+    </StandaloneCenteredPage>
   );
 }
 

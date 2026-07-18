@@ -2,6 +2,7 @@
 
 import { Card, Spinner } from "@heroui/react";
 import { useLocalizedText } from "@vitarish/web-localization";
+import { CenteredRegion } from "@vitarish/web-ui/layout";
 
 interface JourneyLoadingStateProps {
   title?: string;
@@ -17,7 +18,7 @@ export function JourneyLoadingState({
   const resolvedDescription = description ?? t("journey.loading.description");
 
   return (
-    <main className="grid min-h-screen place-items-center px-4">
+    <CenteredRegion>
       <Card className="w-full max-w-md">
         <Card.Content className="flex flex-col items-center gap-4 p-8 text-center">
           <Spinner aria-label={resolvedTitle} />
@@ -27,6 +28,6 @@ export function JourneyLoadingState({
           </div>
         </Card.Content>
       </Card>
-    </main>
+    </CenteredRegion>
   );
 }

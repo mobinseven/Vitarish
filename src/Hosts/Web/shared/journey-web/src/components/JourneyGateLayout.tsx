@@ -1,13 +1,15 @@
+import { CenteredRegion } from "@vitarish/web-ui/layout";
+
 interface JourneyGateLayoutProps {
   children: React.ReactNode;
 }
 
 export function JourneyGateLayout({ children }: JourneyGateLayoutProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
+    <CenteredRegion>
       <section className="w-full max-w-2xl" aria-live="polite">
         {children}
       </section>
-    </div>
+    </CenteredRegion>
   );
 }

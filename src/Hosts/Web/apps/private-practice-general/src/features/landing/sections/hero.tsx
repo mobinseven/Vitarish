@@ -2,6 +2,7 @@ import Image from "next/image";
 import {Button} from "@heroui/react";
 
 import {FaIcon} from "@vitarish/web-ui";
+import {PageContainer} from "@vitarish/web-ui/layout";
 import {
   figures,
   figureTitles,
@@ -25,7 +26,7 @@ export function Hero() {
     <section className="relative overflow-hidden" id="top">
       <div className="border-border/70 pointer-events-none absolute inset-x-0 top-0 border-t" aria-hidden="true" />
 
-      <div className="relative mx-auto grid max-w-[1200px] items-center gap-14 px-6 pb-20 pt-16 lg:grid-cols-[1.05fr_1fr] lg:pb-28 lg:pt-24">
+      <PageContainer className="relative grid items-center gap-14 pb-20 pt-16 lg:grid-cols-[1.05fr_1fr] lg:pb-28 lg:pt-24">
         <div>
           <div className="flex items-center gap-3">
             <span className="bg-accent inline-block size-1.5" />
@@ -110,7 +111,7 @@ export function Hero() {
             <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{t("landing.hero.scale")}</span>
           </div>
         </div>
-      </div>
+      </PageContainer>
     </section>
   );
 }

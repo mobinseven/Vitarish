@@ -7,6 +7,7 @@ import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { Routes } from "@/app/routes";
 import { DashboardShell } from "@/components/shell";
 import { clinicUserDashboardNavGroups, dashboardFooterItems } from "@/components/shell/dashboardShellNavigation";
+import { ContainedPage } from "@vitarish/web-ui/layout";
 
 export default function ClinicUserLayout({
   children,
@@ -19,9 +20,9 @@ export default function ClinicUserLayout({
   return (
     <AuthorizationGuard requiredRole="user" loginHref={Routes.Login.Index} onNavigate={navigate}>
       <DashboardShell footerItems={dashboardFooterItems} navGroups={clinicUserDashboardNavGroups}>
-        <div className="mx-auto flex h-full min-h-0 max-w-7xl flex-col gap-4 px-5 pb-10 pt-4">
+        <ContainedPage>
           <JourneyGateBoundary>{children}</JourneyGateBoundary>
-        </div>
+        </ContainedPage>
       </DashboardShell>
     </AuthorizationGuard>
   );

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { Card, Link } from "@heroui/react";
+import { StandaloneCenteredPage } from "../layout";
 
 export interface LoginPanelProps {
   title: string;
@@ -22,7 +23,7 @@ export function LoginPanel({
   title,
 }: LoginPanelProps) {
   return (
-    <main className="grid min-h-screen place-items-center px-4">
+    <StandaloneCenteredPage>
       <Card className="w-full max-w-md">
         <Card.Header className="flex flex-col items-start gap-1">
           <h1 className="text-2xl font-bold">{title}</h1>
@@ -48,6 +49,6 @@ export function LoginPanel({
           ) : null}
         </Card.Content>
       </Card>
-    </main>
+    </StandaloneCenteredPage>
   );
 }

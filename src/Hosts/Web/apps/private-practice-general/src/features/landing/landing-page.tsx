@@ -11,12 +11,16 @@ import {FeatureRows} from "./sections/feature-rows";
 import {Pricing} from "./sections/pricing";
 import {FinalCta} from "./sections/final-cta";
 import {Footer} from "./sections/footer";
+import {PublicDocumentShell, StandaloneDocumentPage} from "@vitarish/web-ui/layout";
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Header />
-      <main>
+    <PublicDocumentShell
+      className="bg-background text-foreground"
+      header={<Header />}
+      footer={<Footer />}
+    >
+      <StandaloneDocumentPage>
         <Hero />
         <TrustStrip />
         <Pillars />
@@ -26,8 +30,7 @@ export function LandingPage() {
         <FeatureRows />
         <Pricing />
         <FinalCta />
-      </main>
-      <Footer />
-    </div>
+      </StandaloneDocumentPage>
+    </PublicDocumentShell>
   );
 }

@@ -39,15 +39,66 @@ A UI artifact may move into this package only when it satisfies all of these con
 
 ```tsx
 import { DashboardFrame, EmptyStateSurface, LoginPanel } from "@vitarish/web-ui";
+import {
+  PageContainer,
+  PublicDocumentShell,
+  StandaloneDocumentPage,
+} from "@vitarish/web-ui/layout";
 ```
 
 Do not deep-import from `@vitarish/web-ui/src/**`. Use only public exports.
+
+Import `@vitarish/web-ui/layout.css` exactly once from each app's root global stylesheet.
+
+## Layout selection
+
+| Surface | Composition | Primary page-axis scroll owner |
+| --- | --- | --- |
+| Public or marketing document | `PublicDocumentShell` + `StandaloneDocumentPage`; sections use `PageContainer` | Browser document |
+| Standalone auth, access, session, or loading state | `StandaloneCenteredPage` | Browser document |
+| Normal dashboard page | `DashboardFrame(contentMode="page")` + `ContainedPage` | HeroUI AppLayout main |
+| Framed gate or centered dashboard state | `DashboardFrame(contentMode="page")` + `CenteredRegion` | HeroUI AppLayout main |
+| Dashboard tool that owns its full available height | `DashboardFrame(contentMode="workspace")` + `ImmersiveRegion` | Workspace root or intentional panes |
+| Standalone full-height tool | `StandaloneImmersivePage` | Workspace root or intentional panes |
+
+Choose `PageWidth` before composing content: `compact` for narrow forms, `reading` for prose, `content` for normal pages, and `fluid` for deliberately wide content. `PageContainer` and `ContainedPage` default to `content`.
+
+The three scroll models are distinct:
+
+- Document layouts grow with content and let the browser scroll.
+- Frame-page layouts make HeroUI AppLayout's main region the only page scroller.
+- Workspace layouts keep the outer frame fixed and give overflow to the designated workspace root or panes.
+
+## HeroUI ownership boundary
+
+HeroUI Pro `AppLayout` is the sole dashboard owner of `<main>`, sidebar state, responsive navigation, focus behavior, breakpoints, and the optional contextual aside. `DashboardFrame` only selects Vitarish page/workspace policy and supplies native HeroUI composition. Apps and feature packages must not import `AppLayout` directly, create a second dashboard `<main>`, measure the viewport in JavaScript, or recreate sidebar/aside behavior.
+
+Standalone layout primitives own `<main>`; `ContainedPage`, `CenteredRegion`, and `ImmersiveRegion` are neutral regions intended for an existing `DashboardFrame`.
+
+Representative compositions:
+
+```tsx
+<PublicDocumentShell header={<Header />} footer={<Footer />}>
+  <StandaloneDocumentPage>
+    <PageContainer width="reading">{content}</PageContainer>
+  </StandaloneDocumentPage>
+</PublicDocumentShell>
+
+<DashboardShell contentMode="page">
+  <ContainedPage width="content">{content}</ContainedPage>
+</DashboardShell>
+
+<DashboardShell contentMode="workspace">
+  <ImmersiveRegion>{workspace}</ImmersiveRegion>
+</DashboardShell>
+```
 
 ## Current shared exports
 
 - Auth presentation: `AuthMethodList`, `LoginPanel`.
 - Account/settings presentation: `SettingsSurface`, `SettingsSection`, `SettingsBackLink`, `OptionSelector`.
 - Dashboard shell presentation: `DashboardFrame`, `IconButton`.
+- Responsive layout policy: document, contained, centered, and immersive primitives plus `PageWidth`.
 - Feedback and state presentation: `StatusAlert`, `LoadingStateSurface`, `EmptyStateSurface`, `ErrorStateSurface`.
 - Chat presentation: `ChatEmptyState`, `ChatLoadingMessage`.
 

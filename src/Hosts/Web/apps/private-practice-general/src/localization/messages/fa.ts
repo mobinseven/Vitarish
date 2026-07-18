@@ -518,6 +518,7 @@ export const faMessages = {
       knowledge: "دانش",
       clinic: "کلینیک",
       dashboardMenu: "ناوبری داشبورد",
+      skipToContent: "رفتن به محتوای اصلی",
       accountMenu: "حساب کاربری",
       mainGroup: "عمومی",
       clinicGroup: "کلینیک",

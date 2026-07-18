@@ -133,6 +133,7 @@ describe("Dashboard Shell Components", () => {
     it("expands the current app group when the route is inside that app", () => {
       render(
         <DashboardFrame
+          contentMode="page"
           currentPath="/clinic/patients"
           footerItems={[]}
           identity={{
@@ -143,8 +144,10 @@ describe("Dashboard Shell Components", () => {
             subtitle: "Account",
           }}
           navigate={vi.fn()}
+          mobileNavigation="sidebar"
           navigationGroups={nestedNavigationGroups}
           navigationLabel="Dashboard navigation"
+          skipLinkLabel="Skip to content"
           title="Current page"
         >
           <div>Dashboard content</div>
