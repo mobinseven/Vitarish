@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { LocalizationProvider, clinicMessageCatalogs } from "../localization";
 
@@ -8,6 +8,9 @@ const patientListQuery = vi.hoisted(() => ({
   hasNextPage: false,
   isFetchingNextPage: false,
   isLoading: false,
+}));
+const capturedPatientsGridProps = vi.hoisted(() => ({
+  current: undefined as Record<string, unknown> | undefined,
 }));
 
 vi.mock("../hooks/patients/usePatientList", () => ({
@@ -19,7 +22,10 @@ vi.mock("../hooks/patients/usePatientCount", () => ({
 }));
 
 vi.mock("../components/patients/list/PatientsGrid", () => ({
-  PatientsGrid: () => <div data-testid="patients-grid" />,
+  PatientsGrid: (props: Record<string, unknown>) => {
+    capturedPatientsGridProps.current = props;
+    return <div data-testid="patients-grid" />;
+  },
 }));
 
 import { ClinicPatientListPage } from "../components/patients/list/ClinicPatientListPage";
@@ -34,7 +40,7 @@ const messages = {
 };
 
 describe("ClinicPatientListPage mobile composition", () => {
-  it("leaves the dashboard title to the shell and groups count, search, and create in the action bar", () => {
+  it("leaves toolbar rendering to the grid and supplies its search and navigation behavior", () => {
     const onNavigate = vi.fn();
 
     render(
@@ -44,13 +50,32 @@ describe("ClinicPatientListPage mobile composition", () => {
     );
 
     expect(screen.queryByRole("heading", { name: "Patients" })).not.toBeInTheDocument();
-    expect(screen.getByRole("toolbar", { name: "Patients" })).toBeInTheDocument();
-    expect(screen.getByLabelText("56 patients found")).toHaveTextContent("56");
-    expect(screen.getByRole("searchbox", { name: "Search patients" })).toBeInTheDocument();
+    expect(screen.queryByRole("toolbar", { name: "Patients" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("searchbox", { name: "Search patients" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "New Patient" })).not.toBeInTheDocument();
     expect(screen.getByTestId("patients-grid")).toBeInTheDocument();
+    expect(capturedPatientsGridProps.current?.totalCount).toBe(56);
 
-    fireEvent.click(screen.getByRole("button", { name: "New Patient" }));
+    act(() => {
+      (capturedPatientsGridProps.current?.onAddPatient as () => void)();
+    });
 
     expect(onNavigate).toHaveBeenCalledWith({ kind: "patientNew" });
+  });
+
+  it("keeps the grid mounted while a search starts loading", () => {
+    const view = render(
+      <LocalizationProvider locale="en" messages={messages}>
+        <ClinicPatientListPage onNavigate={vi.fn()} />
+      </LocalizationProvider>,
+    );
+
+    patientListQuery.isLoading = true;
+    act(() => {
+      (capturedPatientsGridProps.current?.onSearch as (value: string) => void)("Ada");
+    });
+
+    expect(within(view.container).getByTestId("patients-grid")).toBeInTheDocument();
+    expect(capturedPatientsGridProps.current?.isLoading).toBe(true);
   });
 });

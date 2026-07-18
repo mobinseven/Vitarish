@@ -3,7 +3,11 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { lintLayoutPolicy, validateLayoutExceptions } from "./layout-policy.mjs";
+import {
+  createProductionLayoutPolicyConfig,
+  lintLayoutPolicy,
+  validateLayoutExceptions,
+} from "./layout-policy.mjs";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const fixturesRoot = resolve(scriptDirectory, "__fixtures__/layout-policy");
@@ -63,6 +67,22 @@ test("future exceptions require exact ownership, tracking, and expiry metadata",
   assert.ok(problems.some((problem) => problem.includes("owner")));
   assert.ok(problems.some((problem) => problem.includes("exact normalized path")));
   assert.ok(problems.some((problem) => problem.includes("expired")));
+});
+
+test("production layout policy scans clinic, SEA, and every private-practice source", () => {
+  const webRoot = resolve(scriptDirectory, "..");
+  const config = createProductionLayoutPolicyConfig(webRoot);
+
+  assert.ok(config.includeRoots.includes("shared/clinic-web/src"));
+  assert.ok(config.includeRoots.includes("shared/sea-web/src"));
+  assert.ok(
+    !config.excludePrefixes.some((prefix) =>
+      prefix.startsWith("apps/private-practice-general/src/app/")
+    )
+  );
+
+  const result = lintLayoutPolicy(config);
+  assert.deepEqual(result.diagnostics, []);
 });
 
 function createFixtureConfig(name) {

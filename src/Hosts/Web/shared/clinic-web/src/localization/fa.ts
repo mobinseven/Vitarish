@@ -3,6 +3,7 @@ export const clinicFaMessages = {
     patients: {
       title: "بیماران",
       newPatient: "بیمار جدید",
+      sortBy: "مرتب‌سازی",
       createPatient: "ایجاد بیمار",
       createUnavailable: "ایجاد بیمار در حال حاضر موجود نیست. لطفاً برای دریافت کمک با پشتیبانی تماس بگیرید.",
       createFailed: "ایجاد بیمار انجام نشد.",
@@ -123,7 +124,6 @@ export const clinicFaMessages = {
         lookupAction: "جستجوی بیمار",
       },
       findOrCreate: { or: "یا", patientSelected: "بیمار انتخاب شد", findAnother: "یافتن بیمار دیگر" },
-      clinicalSummary: { title: "خلاصه بالینی" },
       advancedSearch: {
         title: "جستجوی پیشرفته",
         nameLabel: "نام",

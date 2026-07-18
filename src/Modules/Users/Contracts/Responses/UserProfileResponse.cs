@@ -8,5 +8,4 @@ public sealed record UserProfileResponse(
     string? Email,
     string? PhoneNumber,
     string? Culture,
-    string? Theme,
     string? PreferredLocale = null);

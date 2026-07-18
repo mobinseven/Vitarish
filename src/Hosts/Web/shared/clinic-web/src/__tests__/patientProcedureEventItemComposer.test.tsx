@@ -11,9 +11,7 @@ const mutations = vi.hoisted(() => ({
 
 vi.mock("@vitarish/intelligence-web", () => ({
   appendConfirmedTranscript: (current: string, segment: string) => `${current} ${segment}`.trim(),
-  LiveDictationLanguageSelect: () => null,
-  LiveDictationPromptAction: () => null,
-  LiveDictationStatus: () => null,
+  LiveDictation: () => null,
   useLiveDictation: () => ({
     available: true,
     capabilitiesLoading: false,

@@ -26,7 +26,6 @@ export const Routes = {
     Phone: "/account/phone",
     Password: "/account/password",
     Passkeys: "/account/passkeys",
-    Theme: "/account/theme",
     Culture: "/account/culture",
     Consents: "/account/consents",
     ContactConfirm: "/account/contact/confirm",

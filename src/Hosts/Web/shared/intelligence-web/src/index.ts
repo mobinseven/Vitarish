@@ -10,6 +10,5 @@ export type {
   LiveDictationFailureCode,
   LiveDictationLifecycle,
 } from "./api/intelligence/liveTranscriptionClient";
-export { LiveDictationPromptAction } from "./components/LiveDictationPromptAction";
-export { LiveDictationLanguageSelect } from "./components/LiveDictationLanguageSelect";
-export { LiveDictationStatus } from "./components/LiveDictationStatus";
+export { LiveDictation } from "./components/LiveDictation";
+export type { LiveDictationProps } from "./components/LiveDictation";

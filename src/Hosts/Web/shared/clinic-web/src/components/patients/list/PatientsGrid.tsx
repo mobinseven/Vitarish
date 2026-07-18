@@ -1,122 +1,152 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
-import { Spinner } from "@heroui/react";
-import { DataGrid, EmptyState, type DataGridColumn, type DataGridSortDescriptor } from "@heroui-pro/react";
+import { useEffect, useRef } from "react";
+import { Button, Dropdown, ScrollShadow, Spinner, Toolbar } from "@heroui/react";
+import { EmptyState } from "@heroui-pro/react";
+import { FaIcon, LoadingStateSurface } from "@vitarish/web-ui";
 import type { PatientViewDto, PatientSortBy } from "../../../models/patients/patientSearchModels";
-import { useLocalizedText, formatDate } from "../../../localization/index";
+import { useLocalizedText } from "../../../localization/index";
+import { PatientSearchBar } from "./PatientSearchBar";
+import { PatientRow } from "../find-or-create/PatientRow";
 
 interface PatientsGridProps {
   patients: PatientViewDto[];
+  totalCount: number;
   sortBy?: PatientSortBy;
   descending: boolean;
+  isLoading?: boolean;
   isLoadingMore?: boolean;
+  onAddPatient: () => void;
+  onSearch: (search: string) => void;
   onSort: (field: PatientSortBy) => void;
   onSelectPatient: (patientId: string) => void;
   onLoadMore?: () => void;
 }
 
-const stickyHeaderClassName = "sticky top-0 z-10 bg-surface-secondary";
-
 export function PatientsGrid({
   patients,
+  totalCount,
   sortBy,
   descending,
+  isLoading = false,
   isLoadingMore = false,
+  onAddPatient,
+  onSearch,
   onSort,
   onSelectPatient,
   onLoadMore,
 }: PatientsGridProps) {
-  const { t, locale } = useLocalizedText();
+  const { t } = useLocalizedText();
+  const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
+  const loadRequestPendingRef = useRef(false);
+  const countLabel =
+    totalCount === 1
+      ? t("clinic.patients.countFound.one", { count: String(totalCount) })
+      : t("clinic.patients.countFound.other", { count: String(totalCount) });
+  const getSortLabel = (field: PatientSortBy) => {
+    if (field === "Name") return t("clinic.patient.fields.firstName");
+    if (field === "IdentificationCode") return t("clinic.patient.fields.identificationCode");
+    return t("clinic.patient.fields.dateOfBirth");
+  };
 
-  const sortDescriptor: DataGridSortDescriptor | undefined = useMemo(
-    () => (sortBy ? { column: sortBy, direction: descending ? "descending" : "ascending" } : undefined),
-    [sortBy, descending]
-  );
+  useEffect(() => {
+    if (!isLoadingMore) {
+      loadRequestPendingRef.current = false;
+    }
+  }, [isLoadingMore, patients.length]);
 
-  const handleSortChange = useCallback(
-    (descriptor: DataGridSortDescriptor | undefined) => {
-      if (descriptor?.column) {
-        onSort(descriptor.column as PatientSortBy);
+  useEffect(() => {
+    const sentinel = loadMoreSentinelRef.current;
+    if (!sentinel || !onLoadMore || isLoadingMore || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !loadRequestPendingRef.current) {
+        loadRequestPendingRef.current = true;
+        onLoadMore();
       }
-    },
-    [onSort]
-  );
+    }, { root: sentinel.closest("[data-slot='scroll-shadow']") });
 
-  const handleRowAction = useCallback(
-    (key: string | number) => onSelectPatient(String(key)),
-    [onSelectPatient]
-  );
-
-  const formatPatientName = useCallback(
-    (patient: PatientViewDto) =>
-      patient.firstName || patient.lastName
-        ? ((patient.firstName ?? "") + " " + (patient.lastName ?? "")).trim()
-        : patient.name || t("clinic.patients.unnamedPatient"),
-    [t]
-  );
-
-  const columns: DataGridColumn<PatientViewDto>[] = useMemo(
-    () => [
-      {
-        id: "Name",
-        header: t("clinic.patient.fields.firstName"),
-        headerClassName: stickyHeaderClassName,
-        allowsSorting: true,
-        isRowHeader: true,
-        cell: (patient) => (
-          <span className="block truncate font-medium">{formatPatientName(patient)}</span>
-        ),
-      },
-      {
-        id: "IdentificationCode",
-        header: t("clinic.patient.fields.identificationCode"),
-        headerClassName: stickyHeaderClassName,
-        accessorKey: "identificationCode",
-        allowsSorting: true,
-      },
-      {
-        id: "DateOfBirth",
-        header: t("clinic.patient.fields.dateOfBirth"),
-        headerClassName: stickyHeaderClassName,
-        allowsSorting: true,
-        cell: (patient) =>
-          patient.dateOfBirth ? formatDate(patient.dateOfBirth, locale) : "",
-      },
-    ],
-    [t, locale, formatPatientName]
-  );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [isLoadingMore, onLoadMore]);
 
   return (
-    <DataGrid
-      data={patients}
-      columns={columns}
-      getRowId={(patient) => patient.id ?? ""}
-      aria-label={t("clinic.patients.title")}
-      sortDescriptor={sortDescriptor}
-      onSortChange={handleSortChange}
-      onRowAction={handleRowAction}
-      virtualized
-      rowHeight={48}
-      headingHeight={40}
-      onLoadMore={onLoadMore}
-      isLoadingMore={isLoadingMore}
-      loadMoreContent={<Spinner aria-label={t("common.states.loading")} size="sm" />}
-      className="h-full [&_.table__row]:h-12 [&_.table__row]:cursor-pointer"
-      scrollContainerClassName="h-full min-h-0 overflow-y-auto after:block after:h-20 after:content-['']"
-      renderEmptyState={() => (
-        <EmptyState size="sm">
-          <EmptyState.Header>
-            <EmptyState.Media variant="icon">
-              <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" className="size-6" stroke="currentColor" strokeWidth="1.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.75a7.5 7.5 0 1 0-12 0m12 0a9.75 9.75 0 0 0-12 0M18 18.75a9.75 9.75 0 0 1 3.75 3.75M6 18.75A9.75 9.75 0 0 0 2.25 22.5M12 12a3.75 3.75 0 1 0 0-7.5A3.75 3.75 0 0 0 12 12Z" />
-              </svg>
-            </EmptyState.Media>
-            <EmptyState.Title>{t("clinic.patients.emptyState")}</EmptyState.Title>
-            <EmptyState.Description>{t("clinic.patients.searchEmpty")}</EmptyState.Description>
-          </EmptyState.Header>
-        </EmptyState>
+    <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-4">
+      <Toolbar
+        aria-label={t("clinic.patients.title")}
+        className="grid w-full shrink-0 grid-flow-row grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:flex md:flex-wrap"
+      >
+        <div className="order-1 col-span-2 min-w-0 md:order-none md:flex-1">
+          <PatientSearchBar onSearch={onSearch} />
+        </div>
+        <span aria-label={countLabel} className="order-2 shrink-0 tabular-nums md:order-none">
+          {countLabel}
+        </span>
+        <Dropdown>
+          <Dropdown.Trigger aria-label={t("clinic.patients.sortBy")}>
+            <i aria-hidden="true" className="fa-solid fa-arrow-down-a-z" />
+            {t("clinic.patients.sortBy")}
+          </Dropdown.Trigger>
+          <Dropdown.Popover>
+            <Dropdown.Menu
+              aria-label={t("clinic.patients.sortBy")}
+              onAction={(key) => onSort(key as PatientSortBy)}
+            >
+              {(["Name", "IdentificationCode", "DateOfBirth"] as PatientSortBy[]).map((field) => (
+                <Dropdown.Item key={field} id={field} textValue={getSortLabel(field)}>
+                  {getSortLabel(field)}
+                  {sortBy === field ? <span aria-hidden="true">{descending ? "↓" : "↑"}</span> : null}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown.Popover>
+        </Dropdown>
+        <Button
+          className="order-3 col-span-2 w-full justify-center md:order-none md:w-auto"
+          size="sm"
+          variant="primary"
+          onPress={onAddPatient}
+        >
+          <FaIcon aria-hidden="true" className="shrink-0 text-base" icon="plus" />
+          {t("clinic.patients.newPatient")}
+        </Button>
+      </Toolbar>
+      {isLoading ? (
+        <LoadingStateSurface label={t("clinic.patients.loading")} />
+      ) : (
+        <ScrollShadow className="h-full min-h-0 overflow-y-auto">
+          {patients.length === 0 ? (
+            <EmptyState size="sm">
+              <EmptyState.Header>
+                <EmptyState.Media variant="icon">
+                  <FaIcon aria-hidden="true" className="text-2xl" icon="users" />
+                </EmptyState.Media>
+                <EmptyState.Title>{t("clinic.patients.emptyState")}</EmptyState.Title>
+                <EmptyState.Description>{t("clinic.patients.searchEmpty")}</EmptyState.Description>
+              </EmptyState.Header>
+            </EmptyState>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {patients.map((patient) => (
+                <PatientRow
+                  key={patient.id}
+                  patient={patient}
+                  variant="secondary"
+                  onSelect={onSelectPatient}
+                />
+              ))}
+              {onLoadMore && <div ref={loadMoreSentinelRef} className="h-px sm:col-span-2 xl:col-span-3" />}
+              {isLoadingMore && (
+                <div className="flex justify-center py-3 sm:col-span-2 xl:col-span-3">
+                  <Spinner aria-label={t("common.states.loading")} size="sm" />
+                </div>
+              )}
+            </div>
+          )}
+        </ScrollShadow>
       )}
-    />
+    </div>
   );
 }

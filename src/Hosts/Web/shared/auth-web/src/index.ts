@@ -48,8 +48,6 @@ export {
 export {
   useUsersGetProfile,
   useUsersUpdateProfile,
-  useUsersGetTheme,
-  useUsersSetTheme,
   useUsersGetCulture,
   useUsersSetCulture,
   useUsersListWebAuthnCredentials,
@@ -59,7 +57,6 @@ export {
   usersSearchUsers,
   getUsersGetProfileQueryKey,
   getUsersGetCultureQueryKey,
-  getUsersGetThemeQueryKey,
   getUsersListWebAuthnCredentialsQueryKey,
 } from "./api/generated/users/users";
 

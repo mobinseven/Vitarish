@@ -151,6 +151,8 @@
 
 [data-vitarish-layout="dashboard-frame"][data-content-mode="page"]
   .app-layout__main {
+  /* A framed page must never become a horizontal document scroller. */
+  overflow-x: clip;
   overflow-y: auto;
   scrollbar-gutter: stable;
 }

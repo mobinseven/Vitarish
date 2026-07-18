@@ -55,10 +55,6 @@ export function PatientProcedureWorkspace({
           </Button>
         </ErrorStateSurface>
       ) : (
-        <section aria-labelledby="clinic-procedure-events-title">
-          <h2 id="clinic-procedure-events-title" className="sr-only">
-            {t("clinic.procedures.events.title")}
-          </h2>
           <PatientProcedureEventTimeline
             events={events}
             patientId={patientId}
@@ -68,7 +64,6 @@ export function PatientProcedureWorkspace({
             onSelectEvent={setSelectedEventId}
             onNavigate={onNavigate}
           />
-        </section>
       )}
     </section>
   );

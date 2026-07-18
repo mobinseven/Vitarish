@@ -51,9 +51,7 @@ vi.mock("../hooks/patients/procedures/usePatientProcedureEventItemMutations", ()
 vi.mock("@vitarish/intelligence-web", () => ({
   appendConfirmedTranscript: (current: string, segment: string) =>
     current ? `${current} ${segment}` : segment,
-  LiveDictationLanguageSelect: () => null,
-  LiveDictationPromptAction: () => null,
-  LiveDictationStatus: () => null,
+  LiveDictation: () => null,
   useLiveDictation: () => ({
     available: false,
     capabilitiesLoading: false,
@@ -107,7 +105,10 @@ describe("clinic display components", () => {
     const { container } = render(
       <PatientsGrid
         patients={[]}
+        totalCount={0}
         descending={false}
+        onAddPatient={vi.fn()}
+        onSearch={vi.fn()}
         onSelectPatient={vi.fn()}
         onSort={vi.fn()}
       />,
@@ -119,7 +120,9 @@ describe("clinic display components", () => {
     expect(screen.getByText("Try adjusting your search.")).toBeInTheDocument();
   });
 
-  it("uses a filling nested scrollport and truncates patient rows for virtualization", () => {
+  it("renders responsive patient cards with an icon avatar, selection, and sorting", () => {
+    const onSelectPatient = vi.fn();
+    const onSort = vi.fn();
     const { container } = render(
       <PatientsGrid
         patients={[
@@ -131,21 +134,40 @@ describe("clinic display components", () => {
             phone: "+98 912 000 0000",
           },
         ]}
+        totalCount={1}
         descending={false}
-        onSelectPatient={vi.fn()}
-        onSort={vi.fn()}
+        onAddPatient={vi.fn()}
+        onSearch={vi.fn()}
+        onSelectPatient={onSelectPatient}
+        onSort={onSort}
       />,
       { wrapper: Wrapper },
     );
 
-    expect(container.querySelector('[data-slot="table-scroll-container"]')).toHaveClass(
-      "h-full",
-      "min-h-0",
-      "overflow-y-auto",
+    const cards = container.querySelector(".sm\\:grid-cols-2");
+    expect(cards).toHaveClass("xl:grid-cols-3");
+    expect(screen.getByRole("toolbar", { name: "Patients" })).toHaveClass(
+      "grid-flow-row",
+      "grid-cols-[minmax(0,1fr)_auto]",
     );
-    expect(container.querySelector('[data-slot="table-scroll-container"]')).not.toHaveClass("h-[min(60vh,44rem)]");
-    expect(screen.getByText(/Ada Ada Ada/)).toHaveClass("truncate");
-    expect(screen.queryByText("+98 912 000 0000")).not.toBeInTheDocument();
+    const searchField = screen.getByRole("searchbox", { name: "Search patients" }).closest(
+      '[data-slot="search-field"]',
+    );
+    expect(searchField?.parentElement).toHaveClass(
+      "col-span-2",
+      "md:flex-1",
+    );
+    expect(container.querySelector('[data-slot="item-card"]')).toHaveClass("item-card--secondary");
+    expect(container.querySelector(".fa-user")).toBeInTheDocument();
+    expect(screen.getByText(/Ada Ada Ada/)).toBeInTheDocument();
+    expect(screen.getByText(/Identification Code: P-100 \/ \+98 912 000 0000/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Ada Ada Ada/ }));
+    expect(onSelectPatient).toHaveBeenCalledWith("patient-1");
+
+    fireEvent.click(screen.getByRole("button", { name: "Sort" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Identification Code" }));
+    expect(onSort).toHaveBeenCalledWith("IdentificationCode");
   });
 
   it("lets the conversation own its bounded scrollport while keeping the composer outside it", () => {

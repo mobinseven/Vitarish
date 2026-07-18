@@ -60,7 +60,6 @@ vi.mock("@/localization", () => ({
         "account.navigation.phone": "Phone",
         "account.navigation.password": "Password",
         "account.navigation.passkeys": "Passkeys",
-        "account.navigation.theme": "Theme",
         "account.navigation.language": "Language",
         "clinic.patients.title": "Patients",
         "knowledge.qa.title": "Knowledge Q&A",

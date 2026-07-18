@@ -69,6 +69,8 @@ The three scroll models are distinct:
 - Frame-page layouts make HeroUI AppLayout's main region the only page scroller.
 - Workspace layouts keep the outer frame fixed and give overflow to the designated workspace root or panes.
 
+Framed pages must not create horizontal viewport scrolling at any breakpoint. The shared frame clips accidental inline overflow at the page boundary; feature controls must still reflow or otherwise remain operable within the available inline size. Intentional horizontal workspace panes remain an explicit workspace concern.
+
 ## HeroUI ownership boundary
 
 HeroUI Pro `AppLayout` is the sole dashboard owner of `<main>`, sidebar state, responsive navigation, focus behavior, breakpoints, and the optional contextual aside. `DashboardFrame` only selects Vitarish page/workspace policy and supplies native HeroUI composition. Apps and feature packages must not import `AppLayout` directly, create a second dashboard `<main>`, measure the viewport in JavaScript, or recreate sidebar/aside behavior.

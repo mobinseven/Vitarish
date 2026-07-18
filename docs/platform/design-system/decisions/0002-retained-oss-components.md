@@ -53,7 +53,6 @@ Account pages use OSS form primitives because the workflows are simple text inpu
 - `src/app/account/name/page.tsx` — OSS TextField for first/last name
 - `src/app/account/email/page.tsx` — OSS TextField for email input
 - `src/app/account/phone/page.tsx` — OSS TextField for phone input
-- `src/app/account/theme/page.tsx` — custom OptionSelector with OSS Button
 - `src/app/account/culture/page.tsx` — custom OptionSelector with OSS Button
 - `src/app/account/passkeys/page.tsx` — OSS Card for credential list
 - `src/app/account/password/page.tsx` — OSS Form, TextField, Button

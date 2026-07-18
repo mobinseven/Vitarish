@@ -55,12 +55,13 @@ export function createProductionLayoutPolicyConfig(webRoot) {
       "apps/private-practice-general/src",
       "apps/knowledge-qa-demo/src",
       "shared/auth-web/src",
+      "shared/clinic-web/src",
       "shared/journey-web/src",
       "shared/knowledge-web/src",
+      "shared/sea-web/src",
       "shared/web-ui/src",
     ],
     excludePrefixes: [
-      "apps/private-practice-general/src/app/owner/sea/",
       "shared/web-ui/src/__tests__/",
     ],
     owners: {
