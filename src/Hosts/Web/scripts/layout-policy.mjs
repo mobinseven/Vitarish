@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { relative, resolve } from "node:path";
 
 import postcss from "postcss";
@@ -322,7 +322,14 @@ function isDirectAppLayoutImport(node) {
 }
 
 function isClassValue(node) {
-  if (!ts.isStringLiteralLike(node)) return false;
+  if (
+    !ts.isStringLiteralLike(node) &&
+    !ts.isTemplateHead(node) &&
+    !ts.isTemplateMiddle(node) &&
+    !ts.isTemplateTail(node)
+  ) {
+    return false;
+  }
 
   let parent = node.parent;
   while (
@@ -380,14 +387,18 @@ function collectSourceFiles(rootDir, includeRoots, excluded) {
   return files.sort();
 
   function walk(directory) {
-    for (const entry of readdirSync(directory).sort()) {
-      const absolutePath = resolve(directory, entry);
+    const entries = readdirSync(directory, { withFileTypes: true }).sort((left, right) =>
+      left.name.localeCompare(right.name)
+    );
+
+    for (const entry of entries) {
+      const absolutePath = resolve(directory, entry.name);
       const path = normalizePath(relative(rootDir, absolutePath));
       if (excluded.some((prefix) => path === prefix || path.startsWith(prefix))) continue;
 
-      if (statSync(absolutePath).isDirectory()) {
+      if (entry.isDirectory()) {
         walk(absolutePath);
-      } else if (/\.(?:css|ts|tsx)$/.test(entry)) {
+      } else if (entry.isFile() && /\.(?:css|ts|tsx)$/.test(entry.name)) {
         files.push(absolutePath);
       }
     }

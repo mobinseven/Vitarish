@@ -54,6 +54,11 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
   });
 }
 
+server.on("error", (error) => {
+  console.error(`Unable to start ${workspace}: ${error.message}`);
+  process.exit(1);
+});
+
 server.on("exit", (code, signal) => {
   if (signal) process.kill(process.pid, signal);
   else process.exit(code ?? 1);
@@ -65,6 +70,10 @@ function run(args) {
       env: environment,
       shell: process.platform === "win32",
       stdio: "inherit",
+    });
+    child.on("error", (error) => {
+      console.error(`Unable to run npm for ${workspace}: ${error.message}`);
+      resolveExitCode(1);
     });
     child.on("exit", (code) => resolveExitCode(code ?? 1));
   });

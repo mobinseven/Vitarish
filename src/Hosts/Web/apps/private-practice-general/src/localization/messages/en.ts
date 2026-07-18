@@ -25,6 +25,26 @@ export const enMessages = {
       unknown: "Unknown",
     },
   },
+  layoutFixture: {
+    navigationGroupLabel: "Layout fixture",
+    navigationItemLabel: "Responsive layout",
+    asideToggleLabel: "Toggle contextual panel",
+    accountLabel: "Fixture account",
+    identityInitials: "LF",
+    identityLabel: "Layout fixture",
+    identitySubtitle: "Responsive policy",
+    navigationLabel: "Fixture navigation",
+    skipLinkLabel: "Skip to fixture content",
+    title: "Layout policy fixture",
+    eyebrow: "Deterministic browser fixture",
+    heading: "Contained dashboard content",
+    probeTitle: "Layout probe {number}",
+    probeDescription:
+      "Stable content verifies that the HeroUI main region, rather than the document, owns page-axis scrolling.",
+    asideTitle: "Contextual panel",
+    asideDescription:
+      "This content is rendered by the native AppLayout aside and mobile sheet.",
+  },
   auth: {
     guard: {
       loading: "Loading...",

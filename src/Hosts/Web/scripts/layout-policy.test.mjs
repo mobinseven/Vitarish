@@ -29,6 +29,13 @@ test("invalid fixture reports every policy rule with actionable source locations
       "layout-css-import",
     ])
   );
+  assert.equal(
+    result.diagnostics.filter(
+      (diagnostic) => diagnostic.rule === "legacy-outer-container"
+    ).length,
+    2,
+    "class policy must inspect both plain strings and template literals with substitutions"
+  );
 
   for (const diagnostic of result.diagnostics) {
     assert.ok(diagnostic.line >= 1);
