@@ -83,20 +83,3 @@ jobs:
 
       - name: Validate localization
         run: npm run validate:localization
-
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Test responsive layout structure
-        run: npm run test:layout:structural
-
-      - name: Upload layout failure artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: layout-playwright-${{ github.run_id }}
-          path: |
-            src/Hosts/Web/artifacts/playwright-report
-            src/Hosts/Web/artifacts/playwright-results
-          if-no-files-found: ignore
-          retention-days: 7

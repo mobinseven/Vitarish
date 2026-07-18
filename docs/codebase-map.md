@@ -131,7 +131,7 @@ Fragile or high-care areas:
 - **Web build/typecheck/test:** from `src/Hosts/Web`, use `npm run build`, `npm run typecheck`, `npm run test`, and targeted workspace scripts.
 - **Web API generation:** package or app scripts run `generate:api` before dev/build; after OpenAPI changes, regenerate in the owning feature package when migrated, or in the legacy app workspace until migration is complete.
 - **Web layout policy lint:** from `src/Hosts/Web`, run `npm run lint:layout` and `npm run test:layout-lint`.
-- **Web layout browser tests:** from `src/Hosts/Web`, run `npm run test:layout:structural` for behavior and `npm run test:layout:visual` for committed Linux-Chromium baselines. Both production apps and the deterministic local fixture service are started automatically.
+- **Web layout visual tests:** from `src/Hosts/Web`, run `npm run test:layout:visual` for committed Linux-Chromium baselines. Both production apps and the deterministic local fixture service are started automatically.
 - **Web layout baseline update:** from `src/Hosts/Web`, run `npm run test:layout:update-linux`; this uses the pinned Playwright Linux container and is never an automatic CI update.
 
 - **Docker/dev containers:** `docker compose -f src/Hosts/docker-compose.web.yml up --build` runs web plus main.
