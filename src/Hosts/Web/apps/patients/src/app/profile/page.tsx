@@ -1,1 +1,1 @@
-export default function ProfilePage() { return <main className="mx-auto max-w-2xl p-6"><h1 className="text-2xl font-semibold">Profile</h1><p className="mt-3 text-muted">Your account profile is managed securely through the identity service.</p></main>; }
+export default function ProfilePage() { return <main className="mx-auto max-w-2xl p-6"><h1 className="text-2xl font-semibold">Profile</h1><p className="mt-3 text-muted">Your account profile is managed securely through your account settings.</p></main>; }

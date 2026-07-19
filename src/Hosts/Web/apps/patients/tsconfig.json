@@ -23,5 +23,5 @@
     }
   },
   "include": ["next-env.d.ts", "vitest.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "temp", "src/components/clinic-navigation.tsx", "src/components/shell/**/*.ts", "src/components/shell/**/*.tsx", "src/features/home/**/*.ts", "src/features/home/**/*.tsx", "src/features/landing/**/*.ts", "src/features/landing/**/*.tsx", "src/hooks/journey/**/*.ts", "src/hooks/journey/**/*.tsx"]
+  "exclude": ["node_modules", "temp"]
 }

@@ -8,8 +8,6 @@
     "start": "next start --port 3001",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest --watch",
     "validate:api-boundary": "node ../../scripts/validate-api-boundary.mjs",
     "validate:localization": "node ../../scripts/validate-localization.mjs"
   },
