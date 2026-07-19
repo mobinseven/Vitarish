@@ -83,7 +83,8 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
                 <Label>
                   <h1 id={`clinical-step-${event.id}`} className="text-2xl font-semibold">
                     {event.title}
-                  </h1></Label>
+                  </h1>
+                </Label>
               </Checkbox.Content>
             </Checkbox>
           ) :

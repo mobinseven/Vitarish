@@ -31,6 +31,9 @@ export function PatientProcedureEventItemsPanel({
 
   return (
     <section className="flex min-h-0 flex-1 flex-col" aria-labelledby={headingId}>
+      <h2 id={headingId} className="sr-only">
+        {t("clinic.procedures.items.title")}
+      </h2>
       <ChatConversation className="min-h-0 flex-1">
         <ChatConversation.Content
           aria-label={t("clinic.procedures.items.title")}

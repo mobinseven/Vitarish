@@ -62,30 +62,27 @@ export function PatientProcedureEventTimeline({
                 />
               </Timeline.Marker>
               <Timeline.Content>
-                {!isSelected ? (
-                  <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-                    <div className="flex min-w-0 flex-wrap items-center gap-2">
-
-                      <Button
-                        aria-label={event.title}
-                        fullWidth
-                        variant="ghost"
-                        onPress={() => onSelectEvent(event.id)}
-                      >
-                        <span className="text-muted text-xs leading-5">{event.title}</span>
-                        {event.itemCount > 0 ? (
-                          <Chip
-                            size="sm"
-                            color={event.isCommitted ? "success" : "default"}
-                            variant="soft"
-                          >
-                            {t("clinic.procedures.items.count", { count: event.itemCount })}
-                          </Chip>
-                        ) : null}
-                      </Button>
-                    </div>
+                <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <Button
+                      aria-label={event.title}
+                      fullWidth
+                      variant="ghost"
+                      onPress={() => onSelectEvent(event.id)}
+                    >
+                      <span className="text-muted text-xs leading-5">{event.title}</span>
+                      {event.itemCount > 0 ? (
+                        <Chip
+                          size="sm"
+                          color={event.isCommitted ? "success" : "default"}
+                          variant="soft"
+                        >
+                          {t("clinic.procedures.items.count", { count: event.itemCount })}
+                        </Chip>
+                      ) : null}
+                    </Button>
                   </div>
-                ) : null}
+                </div>
                 {isSelected ? (
                   <Card
                     aria-label={isSelected ? t("clinic.procedures.events.focusedDetails") : undefined}

@@ -148,14 +148,28 @@ describe("clinic display components", () => {
     expect(cards).toHaveClass("xl:grid-cols-3");
     expect(screen.getByRole("toolbar", { name: "Patients" })).toHaveClass(
       "grid-flow-row",
-      "grid-cols-[minmax(0,1fr)_auto]",
+      "grid-cols-1",
     );
+    expect(screen.getByRole("toolbar", { name: "Patients" })).toHaveClass("toolbar--attached");
+    expect(container.querySelector('[data-slot="scroll-shadow"]')).not.toHaveClass("overflow-y-auto");
     const searchField = screen.getByRole("searchbox", { name: "Search patients" }).closest(
       '[data-slot="search-field"]',
     );
     expect(searchField?.parentElement).toHaveClass(
-      "col-span-2",
+      "order-2",
       "md:flex-1",
+    );
+    expect(screen.getByLabelText("1 patient found")).toHaveClass(
+      "order-3",
+      "justify-self-start",
+    );
+    expect(screen.getByRole("button", { name: "Sort" }).parentElement).toHaveClass(
+      "order-1",
+      "justify-self-center",
+    );
+    expect(screen.getByRole("button", { name: "New Patient" })).toHaveClass(
+      "order-4",
+      "w-full",
     );
     expect(container.querySelector('[data-slot="item-card"]')).toHaveClass("item-card--secondary");
     expect(container.querySelector(".fa-user")).toBeInTheDocument();

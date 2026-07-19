@@ -24,10 +24,8 @@ export function LiveDictation({ controller }: LiveDictationProps) {
     controller.languages.length > 0;
   const hasFailure =
     controller.status === "failed" || controller.status === "unavailable";
-  const actionLabel = controller.capabilitiesLoading
-    ? t("intelligence.dictation.status.checking")
-    : isRecording
-      ? t("intelligence.dictation.actions.stop")
+  const actionLabel = isRecording
+    ? t("intelligence.dictation.actions.stop")
       : controller.status === "connecting"
         ? t("intelligence.dictation.actions.connecting")
         : controller.status === "completing"
@@ -45,9 +43,25 @@ export function LiveDictation({ controller }: LiveDictationProps) {
     void controller.start(language);
   };
 
-  if (isChoosingLanguage && canChooseLanguage) {
-    return (
-      <ButtonGroup size="sm" variant="secondary">
+  const statusMessage = controller.capabilitiesLoading
+    ? t("intelligence.dictation.status.checking")
+    : isRecording
+      ? t("intelligence.dictation.status.recording")
+      : controller.status === "connecting"
+        ? t("intelligence.dictation.status.connecting")
+        : hasFailure
+          ? t(failureMessageKey(controller.failureCode))
+          : null;
+
+  return (
+    <>
+      <ButtonGroup
+        aria-hidden={isChoosingLanguage && canChooseLanguage ? "false" : "true"}
+        aria-label={t("intelligence.dictation.language")}
+        className={isChoosingLanguage && canChooseLanguage ? undefined : "hidden"}
+        size="sm"
+        variant="secondary"
+      >
         {controller.languages.map((language) => (
           <Button key={language} onPress={() => chooseLanguage(language)}>
             {language === "en-US" || language === "fa-IR"
@@ -56,40 +70,38 @@ export function LiveDictation({ controller }: LiveDictationProps) {
           </Button>
         ))}
       </ButtonGroup>
-    );
-  }
-
-  return (
-    <Tooltip delay={500}>
-      <Tooltip.Trigger>
-        <Button
-          aria-label={actionLabel}
-          aria-pressed={isRecording}
-          isDisabled={!controller.isActive && !canChooseLanguage}
-          isIconOnly
-          isPending={isBusy}
-          size="sm"
-          variant={isRecording ? "danger" : "ghost"}
-          onPress={() => {
-            if (controller.isActive) void controller.stop();
-            else if (canChooseLanguage) setIsChoosingLanguage(true);
-          }}
-        >
-          {isBusy ? (
-            <Spinner aria-hidden="true" color="current" size="sm" />
-          ) : (
-            <i
-              aria-hidden="true"
-              className={`fa-solid ${isRecording ? "fa-stop" : "fa-microphone"}`}
-            />
-          )}
-        </Button>
-      </Tooltip.Trigger>
-      <Tooltip.Content offset={6} placement="top">
-        <Tooltip.Arrow />
-        {tooltipText}
-      </Tooltip.Content>
-    </Tooltip>
+      <Tooltip delay={500}>
+        <Tooltip.Trigger>
+          <Button
+            aria-label={actionLabel}
+            aria-pressed={isRecording}
+            className={isRecording ? "text-danger animate-pulse" : undefined}
+            isDisabled={!controller.isActive && !canChooseLanguage}
+            isIconOnly
+            isPending={isBusy}
+            size="sm"
+            variant={isRecording ? "danger" : "ghost"}
+            onPress={() => {
+              if (controller.isActive) void controller.stop();
+              else if (canChooseLanguage) setIsChoosingLanguage(true);
+            }}
+          >
+            {isBusy ? <Spinner aria-hidden="true" color="current" size="sm" /> : (
+              <i aria-hidden="true" className={`fa-solid ${isRecording ? "fa-stop" : "fa-microphone"}`} />
+            )}
+          </Button>
+        </Tooltip.Trigger>
+        <Tooltip.Content offset={6} placement="top">
+          <Tooltip.Arrow />
+          {tooltipText}
+        </Tooltip.Content>
+      </Tooltip>
+      {statusMessage ? (
+        <p role={hasFailure && controller.status === "failed" ? "alert" : "status"} className="sr-only">
+          {statusMessage}
+        </p>
+      ) : null}
+    </>
   );
 }
 

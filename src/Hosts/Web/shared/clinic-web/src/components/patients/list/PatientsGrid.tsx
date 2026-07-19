@@ -76,47 +76,64 @@ export function PatientsGrid({
     <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-4">
       <Toolbar
         aria-label={t("clinic.patients.title")}
-        className="grid w-full shrink-0 grid-flow-row grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:flex md:flex-wrap"
+        isAttached={true}
+        className="sticky top-0 z-10 grid w-full shrink-0 grid-flow-row grid-cols-1 gap-2 md:flex md:flex-wrap md:items-center md:gap-3"
       >
-        <div className="order-1 col-span-2 min-w-0 md:order-none md:flex-1">
+        {/* Search: full width row on mobile, flexible column on desktop */}
+        <div className="order-2 w-full min-w-0 md:order-none md:flex-1">
           <PatientSearchBar onSearch={onSearch} />
         </div>
-        <span aria-label={countLabel} className="order-2 shrink-0 tabular-nums md:order-none">
-          {countLabel}
-        </span>
-        <Dropdown>
-          <Dropdown.Trigger aria-label={t("clinic.patients.sortBy")}>
-            <i aria-hidden="true" className="fa-solid fa-arrow-down-a-z" />
-            {t("clinic.patients.sortBy")}
-          </Dropdown.Trigger>
-          <Dropdown.Popover>
-            <Dropdown.Menu
-              aria-label={t("clinic.patients.sortBy")}
-              onAction={(key) => onSort(key as PatientSortBy)}
+
+        {/* Mobile: single row holding count + sort + add. Desktop: dissolves via contents so each child follows its own md:order-N */}
+        <div className="flex w-full items-center justify-between gap-2 md:contents">
+          <span
+            aria-label={countLabel}
+            className="shrink-0 truncate tabular-nums md:order-3 md:justify-self-start"
+          >
+            {countLabel}
+          </span>
+
+          <div className="flex shrink-0 items-center gap-2 md:contents">
+            <Dropdown>
+              <Dropdown.Trigger
+                aria-label={t("clinic.patients.sortBy")}
+                className="button button--secondary shrink-0 md:order-1 md:justify-self-center"
+              >
+                <i aria-hidden="true" className="fa-solid fa-arrow-down-a-z" />
+                <span className="hidden md:inline">{t("clinic.patients.sortBy")}</span>
+              </Dropdown.Trigger>
+              <Dropdown.Popover>
+                <Dropdown.Menu
+                  aria-label={t("clinic.patients.sortBy")}
+                  onAction={(key) => onSort(key as PatientSortBy)}
+                >
+                  {(["Name", "IdentificationCode", "DateOfBirth"] as PatientSortBy[]).map((field) => (
+                    <Dropdown.Item key={field} id={field} textValue={getSortLabel(field)}>
+                      {getSortLabel(field)}
+                      {sortBy === field ? <span aria-hidden="true">{descending ? "↓" : "↑"}</span> : null}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown.Popover>
+            </Dropdown>
+
+            <Button
+              aria-label={t("clinic.patients.newPatient")}
+              className="order-4 w-full shrink-0 justify-center md:order-4 md:w-auto"
+              size="sm"
+              variant="primary"
+              onPress={onAddPatient}
             >
-              {(["Name", "IdentificationCode", "DateOfBirth"] as PatientSortBy[]).map((field) => (
-                <Dropdown.Item key={field} id={field} textValue={getSortLabel(field)}>
-                  {getSortLabel(field)}
-                  {sortBy === field ? <span aria-hidden="true">{descending ? "↓" : "↑"}</span> : null}
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown.Popover>
-        </Dropdown>
-        <Button
-          className="order-3 col-span-2 w-full justify-center md:order-none md:w-auto"
-          size="sm"
-          variant="primary"
-          onPress={onAddPatient}
-        >
-          <FaIcon aria-hidden="true" className="shrink-0 text-base" icon="plus" />
-          {t("clinic.patients.newPatient")}
-        </Button>
+              <FaIcon aria-hidden="true" className="shrink-0 text-base" icon="plus" />
+              <span className="hidden md:inline">{t("clinic.patients.newPatient")}</span>
+            </Button>
+          </div>
+        </div>
       </Toolbar>
       {isLoading ? (
         <LoadingStateSurface label={t("clinic.patients.loading")} />
       ) : (
-        <ScrollShadow className="h-full min-h-0 overflow-y-auto">
+        <ScrollShadow className="h-full min-h-0">
           {patients.length === 0 ? (
             <EmptyState size="sm">
               <EmptyState.Header>

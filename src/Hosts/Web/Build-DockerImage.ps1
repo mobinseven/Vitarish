@@ -22,12 +22,12 @@ if (-not (Test-Path -LiteralPath $appsRoot -PathType Container)) {
 
 $apps = @(
     Get-ChildItem -LiteralPath $appsRoot -Directory |
-        Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'Dockerfile') -PathType Leaf } |
+        Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'package.json') -PathType Leaf } |
         Sort-Object Name
 )
 
 if ($apps.Count -eq 0) {
-    throw "No Docker-enabled apps were found under '$appsRoot'."
+    throw "No npm apps were found under '$appsRoot'."
 }
 
 if (-not (Get-Command docker -CommandType Application -ErrorAction SilentlyContinue)) {
@@ -66,6 +66,11 @@ if ($AppName) {
     $selectedApp = $apps[$selectedIndex - 1]
 }
 
+$dockerfile = Join-Path $selectedApp.FullName 'Dockerfile'
+if (-not (Test-Path -LiteralPath $dockerfile -PathType Leaf)) {
+    throw "App '$($selectedApp.Name)' does not have a Dockerfile at '$dockerfile'."
+}
+
 if (-not $ImageTag) {
     $defaultImageTag = "vitarish/$($selectedApp.Name):latest"
     $ImageTag = Read-Host "Image tag [$defaultImageTag]"
@@ -81,8 +86,6 @@ if (-not $ApiBaseUrl) {
         $ApiBaseUrl = $defaultApiBaseUrl
     }
 }
-
-$dockerfile = Join-Path $selectedApp.FullName 'Dockerfile'
 
 Write-Host "Building '$ImageTag' from app '$($selectedApp.Name)'..."
 & docker build `

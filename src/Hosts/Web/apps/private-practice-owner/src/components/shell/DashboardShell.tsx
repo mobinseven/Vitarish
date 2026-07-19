@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useCallback, useMemo } from "react";
-import { Breadcrumbs } from "@heroui/react";
+import { Breadcrumbs, Button } from "@heroui/react";
 import {
   DashboardFrame,
   type DashboardContentMode,
@@ -75,7 +75,7 @@ export function DashboardShell({
             onPress={index === items.length - 1 ? undefined : () => navigate(item.href)}
             aria-current={index === items.length - 1 ? "page" : undefined}
           >
-            {item.label}
+            {t(item.label)}
           </Breadcrumbs.Item>
         ))}
       </Breadcrumbs>

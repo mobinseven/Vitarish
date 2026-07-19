@@ -28,7 +28,6 @@ export function PatientSearchBar({ onSearch }: PatientSearchBarProps) {
       onChange={setValue}
     >
       <SearchField.Group>
-        <SearchField.SearchIcon />
         <SearchField.Input
           placeholder={t("clinic.patient.search.placeholder")}
         />
