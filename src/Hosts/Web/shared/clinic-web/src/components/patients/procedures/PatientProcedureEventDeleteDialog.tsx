@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
-import { Button, Modal } from "@heroui/react";
+import { AlertDialog, Button } from "@heroui/react";
 import { useDeletePatientProcedureEvent } from "../../../hooks/patients/procedures/usePatientProcedureEventMutations";
 import { useLocalizedText } from "../../../localization/index";
 
@@ -21,19 +20,6 @@ export function PatientProcedureEventDeleteDialog({
   const { t } = useLocalizedText();
   const deleteMutation = useDeletePatientProcedureEvent();
 
-  const modalState = useMemo(
-    () => ({
-      isOpen: true,
-      setOpen: (open: boolean) => {
-        if (!open) onClose();
-      },
-      open: () => undefined,
-      close: onClose,
-      toggle: () => onClose(),
-    }),
-    [onClose]
-  );
-
   const handleConfirm = () => {
     deleteMutation.mutate(eventId, {
       onSuccess: () => onDeleted(),
@@ -41,30 +27,37 @@ export function PatientProcedureEventDeleteDialog({
   };
 
   return (
-    <Modal state={modalState}>
-      <Modal.Backdrop isDismissable>
-        <Modal.Container placement="center">
-          <Modal.Dialog>
-            <Modal.Header>
-              <Modal.Heading className="text-lg font-semibold">
+    <AlertDialog
+      isOpen
+      onOpenChange={(isOpen) => {
+        if (!isOpen && !deleteMutation.isPending) onClose();
+      }}
+    >
+      <Button className="hidden" aria-hidden />
+      <AlertDialog.Backdrop isDismissable={!deleteMutation.isPending}>
+        <AlertDialog.Container placement="center">
+          <AlertDialog.Dialog>
+            <AlertDialog.Header>
+              <AlertDialog.Icon status="danger" />
+              <AlertDialog.Heading>
                 {t("clinic.procedures.events.delete.title")}
-              </Modal.Heading>
-            </Modal.Header>
-            <Modal.Body>
+              </AlertDialog.Heading>
+            </AlertDialog.Header>
+            <AlertDialog.Body>
               <p>{t("clinic.procedures.events.delete.confirm")}</p>
               <p className="text-sm text-muted">{eventTitle}</p>
-            </Modal.Body>
-            <Modal.Footer>
+            </AlertDialog.Body>
+            <AlertDialog.Footer>
               <Button variant="secondary" onPress={onClose} isDisabled={deleteMutation.isPending}>
                 {t("common.actions.cancel")}
               </Button>
               <Button variant="danger" onPress={handleConfirm} isPending={deleteMutation.isPending}>
                 {t("common.actions.delete")}
               </Button>
-            </Modal.Footer>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal>
+            </AlertDialog.Footer>
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
   );
 }
