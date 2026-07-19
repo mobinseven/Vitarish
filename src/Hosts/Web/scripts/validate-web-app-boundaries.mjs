@@ -55,7 +55,7 @@ for (const app of apps) {
       const text = readFileSync(fullPath, "utf8");
       const normalizedPath = relativePath.replaceAll("\\", "/");
       const isClinicRoutePage =
-        app.name === "private-practice-general" &&
+        app.name === "private-practice-owner" &&
         (/^app\/(owner|user)\/clinic\/.+\/page\.tsx$/.test(normalizedPath) ||
           normalizedPath === "app/owner/clinic/page.tsx");
 

@@ -52,7 +52,7 @@ export function createProductionLayoutPolicyConfig(webRoot) {
   return {
     rootDir: webRoot,
     includeRoots: [
-      "apps/private-practice-general/src",
+      "apps/private-practice-owner/src",
       "apps/knowledge-qa-demo/src",
       "shared/auth-web/src",
       "shared/clinic-web/src",
@@ -72,7 +72,7 @@ export function createProductionLayoutPolicyConfig(webRoot) {
       "layout-css-import": [],
     },
     expectedGlobalStylesheets: [
-      "apps/private-practice-general/src/app/globals.css",
+      "apps/private-practice-owner/src/app/globals.css",
       "apps/knowledge-qa-demo/src/app/globals.css",
     ],
     exceptionsPath: "scripts/layout-lint-exceptions.json",

@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 # Copy every workspace manifest so npm can install and link local packages
 COPY apps/knowledge-qa-demo/package.json ./apps/knowledge-qa-demo/
-COPY apps/private-practice-general/package.json ./apps/private-practice-general/
+COPY apps/private-practice-owner/package.json ./apps/private-practice-owner/
 COPY shared/account-web/package.json ./shared/account-web/
 COPY shared/auth-web/package.json ./shared/auth-web/
 COPY shared/clinic-web/package.json ./shared/clinic-web/

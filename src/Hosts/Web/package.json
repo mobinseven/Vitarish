@@ -7,10 +7,12 @@
     "shared/*"
   ],
   "scripts": {
-    "dev:private-practice-general": "npm run dev --workspace @vitarish/private-practice-general",
+    "dev:private-practice-owner": "npm run dev --workspace @vitarish/private-practice-owner",
+    "dev:patients": "npm run dev --workspace @vitarish/patients",
     "dev:knowledge-qa-demo": "npm run dev --workspace @vitarish/knowledge-qa-demo",
     "build": "npm run build --workspaces --if-present",
-    "build:private-practice-general": "npm run build --workspace @vitarish/private-practice-general",
+    "build:private-practice-owner": "npm run build --workspace @vitarish/private-practice-owner",
+    "build:patients": "npm run build --workspace @vitarish/patients",
     "build:knowledge-qa-demo": "npm run build --workspace @vitarish/knowledge-qa-demo",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",

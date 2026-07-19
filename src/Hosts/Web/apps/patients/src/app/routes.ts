@@ -1,0 +1,17 @@
+export const Routes = {
+  Root: "/",
+  Home: "/home",
+  Login: { Index: "/login", Password: "/login/password", Phone: "/login/phone", Email: "/login/email", Passkey: "/login/passkey" },
+  Logout: "/logout",
+  Account: { Index: "/account", Name: "/account/name", Email: "/account/email", Phone: "/account/phone", Password: "/account/password", Passkeys: "/account/passkeys", Culture: "/account/culture", Consents: "/account/consents", ContactConfirm: "/account/contact/confirm", ProfileComplete: "/account/profile/complete" },
+  Knowledge: { Index: "/knowledge", QA: "/knowledge/qa" },
+  Clinic: { Index: "/", CheckIn: "/check-in", Patients: { Index: "/patients", New: "/patients/new", Detail: (id: string) => `/patients/${id}`, Edit: (id: string) => `/patients/${id}/edit` }, Settings: { Index: "/settings", Users: "/settings/users", Statistics: "/settings/statistics" }, Reminders: "/reminders", Appointments: { Settings: "/appointments/settings", Reservations: { Index: "/appointments", Detail: (id: string) => `/appointments/${id}` }, Shifts: { Index: "/appointments/shifts", New: "/appointments/shifts/new", Detail: (id: string) => `/appointments/shifts/${id}`, Edit: (id: string) => `/appointments/shifts/${id}/edit` }, ServiceProviders: { Index: "/appointments/providers" }, ServiceTypes: { Index: "/appointments/types" }, Services: { Index: "/appointments/services" } } },
+  ClinicUser: { Reservations: { Index: "/appointments", Detail: (id: string) => `/appointments/${id}` }, Shifts: { Index: "/appointments/shifts", Detail: (id: string) => `/appointments/shifts/${id}` } },
+  Directory: "/practices",
+  Profile: "/profile",
+  Appointments: "/appointments",
+  Reminders: "/reminders",
+  Records: "/records",
+  Prescriptions: "/prescriptions",
+  Documents: "/documents",
+} as const;

@@ -14,7 +14,7 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
 ## Durable decisions to remember
 
 - UTC `DateTime` for persisted instants.
-- `private-practice-general` is current; `clinic-owner` is historical/compatibility only.
+- `private-practice-owner` and `patients` replace the retired `private-practice-general` web host; the backend Clinic and SEA modules remain active.
 - Internal module API endpoints are protected by default.
 - Generated clients/contracts are regenerated, not manually edited.
 
