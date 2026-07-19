@@ -77,7 +77,7 @@ test("production layout policy scans clinic, SEA, and every private-practice sou
   assert.ok(config.includeRoots.includes("shared/sea-web/src"));
   assert.ok(
     !config.excludePrefixes.some((prefix) =>
-      prefix.startsWith("apps/private-practice-general/src/app/")
+      prefix.startsWith("apps/private-practice-owner/src/app/")
     )
   );
 

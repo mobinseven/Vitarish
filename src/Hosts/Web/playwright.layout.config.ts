@@ -45,8 +45,8 @@ export default defineConfig({
     },
     {
       command:
-        "node scripts/layout-app-server.mjs @vitarish/private-practice-general",
-      name: "private-practice-general",
+        "node scripts/layout-app-server.mjs @vitarish/private-practice-owner",
+      name: "private-practice-owner",
       reuseExistingServer: !process.env.CI,
       timeout: 300_000,
       url: "http://127.0.0.1:3000",

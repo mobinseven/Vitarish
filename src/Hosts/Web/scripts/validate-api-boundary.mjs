@@ -8,7 +8,8 @@ let failed = false;
 
 // Check 1: No direct /api/modules fetch in app source (must use apiFetch from @vitarish/web-api-client)
 const appDirs = [
-  resolve(__dirname, "../apps/private-practice-general/src"),
+  resolve(__dirname, "../apps/private-practice-owner/src"),
+  resolve(__dirname, "../apps/patients/src"),
   resolve(__dirname, "../apps/knowledge-qa-demo/src"),
 ];
 

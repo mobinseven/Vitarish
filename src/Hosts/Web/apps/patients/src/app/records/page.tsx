@@ -1,0 +1,1 @@
+export default function RecordsPage() { return <main className="mx-auto max-w-2xl p-6"><h1 className="text-2xl font-semibold">Released records</h1><p className="mt-3 text-muted">Only records explicitly released by your practice are shown.</p></main>; }

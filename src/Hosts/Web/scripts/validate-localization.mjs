@@ -4,7 +4,7 @@ import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
-const appRoot = join(webRoot, "apps/private-practice-general");
+const appRoot = join(webRoot, "apps/private-practice-owner");
 const sharedRoot = join(webRoot, "shared");
 const root = join(webRoot, "../../..");
 const scopes = ["src/app", "src/components", "src/features", "src/design-system"];

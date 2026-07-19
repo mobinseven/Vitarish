@@ -85,7 +85,7 @@ Use module names as the feature map. For each module, the conventional locations
 
 ## 5. Runtime map
 
-- **Running services:** `src/Hosts/Main` is the ASP.NET Core backend/Blazor host. `src/Hosts/Web/apps/private-practice-general` and `src/Hosts/Web/apps/knowledge-qa-demo` are Next.js apps. Docker Compose runs `web` on port 3000 and `main` on port 5000 mapped to container port 8080.
+- **Running services:** `src/Hosts/Main` is the ASP.NET Core backend/Blazor host. `src/Hosts/Web/apps/private-practice-owner`, `src/Hosts/Web/apps/patients`, and `src/Hosts/Web/apps/knowledge-qa-demo` are Next.js apps. Docker Compose runs `web` on port 3000 and `main` on port 5000 mapped to container port 8080.
 - **Communication:** React apps call backend APIs using generated Orval clients from OpenAPI specs. Blazor pages/components call server-side module services directly through DI. The backend exposes API endpoints, Razor pages/components, IdentityServer, Hangfire dashboard, and development OpenAPI at `/openapi/{documentName}.json`.
 - **Datastores/services:** PostgreSQL via EF Core/Npgsql is the primary database. Redis is configured for data protection/distributed caching where enabled. Hangfire uses PostgreSQL. External integrations include communication providers, file/object storage, search/Elasticsearch, AI/speech providers, passkey authenticators, and medical/prescription providers.
 - **Authentication:** Host-owned identity is configured in `src/Hosts/Main` with Duende IdentityServer, ASP.NET authentication/authorization, session/cookie/antiforgery policy, and module endpoint security. React auth behavior belongs in app auth components/hooks and calls backend auth endpoints.
@@ -127,7 +127,7 @@ Fragile or high-care areas:
 - **Backend tests:** `dotnet test tests/Modules/<Module>.Tests/<Module>.Tests.csproj` for changed module tests.
   
 - **Web install:** from `src/Hosts/Web`, run `npm install` when dependencies are missing or package files changed.
-- **Web dev:** from `src/Hosts/Web`, `npm run dev:private-practice-general` or `npm run dev:knowledge-qa-demo`.
+- **Web dev:** from `src/Hosts/Web`, use `npm run dev:private-practice-owner`, `npm run dev:patients`, or `npm run dev:knowledge-qa-demo`.
 - **Web build/typecheck/test:** from `src/Hosts/Web`, use `npm run build`, `npm run typecheck`, `npm run test`, and targeted workspace scripts.
 - **Web API generation:** package or app scripts run `generate:api` before dev/build; after OpenAPI changes, regenerate in the owning feature package when migrated, or in the legacy app workspace until migration is complete.
 - **Web layout policy lint:** from `src/Hosts/Web`, run `npm run lint:layout` and `npm run test:layout-lint`.

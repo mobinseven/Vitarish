@@ -6,7 +6,8 @@ import { join, resolve } from "node:path";
 
 const workspace = process.argv[2];
 const appConfigurations = new Map([
-  ["@vitarish/private-practice-general", { directory: "private-practice-general", port: "3000" }],
+  ["@vitarish/private-practice-owner", { directory: "private-practice-owner", port: "3000" }],
+  ["@vitarish/patients", { directory: "patients", port: "3001" }],
   ["@vitarish/knowledge-qa-demo", { directory: "knowledge-qa-demo", port: "3001" }],
 ]);
 const appConfiguration = appConfigurations.get(workspace);

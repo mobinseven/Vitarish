@@ -1,0 +1,125 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@import "@heroui-pro/react/css";
+@import "@vitarish/web-ui/layout.css";
+@import "@heroui-pro/react/themes/glass";
+
+@source "../../../../shared/clinic-web/src/**/*.{ts,tsx}";
+
+:root {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  /* App-wide type scale, consumed by Tailwind's text-* utilities. */
+
+  --text-xs: 0.9375rem;
+  --text-xs--line-height: calc(1 / 0.9375);
+  --text-sm: 1.0625rem;
+  --text-sm--line-height: calc(1.25 / 1.0625);
+  --text-base: 1.1875rem;
+  --text-base--line-height: calc(1.5 / 1.1875);
+  --text-lg: 1.375rem;
+  --text-lg--line-height: calc(1.75 / 1.375);
+  --text-xl: 1.5625rem;
+  --text-xl--line-height: calc(1.75 / 1.5625);
+  --text-2xl: 1.8125rem;
+  --text-2xl--line-height: calc(2 / 1.8125);
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: calc(2.25 / 2.25);
+  --text-4xl: 2.75rem;
+  --text-4xl--line-height: calc(2.5 / 2.75);
+  --text-5xl: 3.75rem;
+  --text-6xl: 4.5rem;
+  --text-7xl: 5.5rem;
+  --text-8xl: 7.5rem;
+  --text-9xl: 10rem;
+
+  --radius: 0.5rem;
+}
+
+/*
+ * HeroUI Pro Theme
+ * Add this to your globals.css after importing @heroui/styles
+ * @see https://heroui.com/docs/react/getting-started/theming
+ */
+
+/*
+ * Font: Figtree
+ * Load this font in your app:
+ * <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300..900&display=swap" rel="stylesheet" />
+ *
+ * Font: Inter
+ * Load this font in your app:
+ * <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+ */
+/*
+ * Vibrant Palette: Add data-vibrant-palette="true" to your <html> element
+ * for more saturated soft foreground colors (less accessible contrast).
+ * Example: <html data-vibrant-palette="true">
+ */
+
+.glass-light,
+[data-theme="light"] {
+  /* Theme Colors */
+  --muted: oklch(48% 0.025 310);
+  --scrollbar: oklch(86% 0.035 330);
+  --accent: oklch(42% 0.085 315);
+  --border: oklch(100% 0 0 / 62%);
+  --background: oklch(93% 0.04 12);
+  --surface: oklch(100% 0.015 330 / 34%);
+  --surface-secondary: oklch(100% 0.02 330 / 24%);
+  --surface-tertiary: oklch(100% 0.025 330 / 18%);
+  --overlay: oklch(100% 0.015 330 / 48%);
+  --field-background: oklch(100% 0.015 330 / 28%);
+  --field-border: oklch(100% 0 0 / 58%);
+  --separator: oklch(100% 0 0 / 42%);
+  --surface-shadow: 0 20px 48px oklch(38% 0.06 310 / 14%), inset 0 1px 0 oklch(100% 0 0 / 54%);
+  --overlay-shadow: 0 24px 64px oklch(38% 0.06 310 / 18%), inset 0 1px 0 oklch(100% 0 0 / 56%);
+  --glass-blur: 28px;
+
+
+}
+
+html[data-theme="light"],
+html.glass-light {
+  background:
+    radial-gradient(circle at 12% 28%, oklch(72% 0.16 315 / 48%), transparent 23rem),
+    radial-gradient(circle at 84% 42%, oklch(74% 0.14 300 / 42%), transparent 25rem),
+    radial-gradient(circle at 46% 88%, oklch(82% 0.11 290 / 30%), transparent 24rem),
+    var(--background);
+  background-attachment: fixed;
+}
+
+.glass-dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+  /* Theme Colors */
+  --muted: oklch(76% 0.035 320);
+  --scrollbar: oklch(42% 0.055 310);
+  --accent: oklch(88% 0.075 325);
+  --accent-foreground: oklch(24% 0.035 305);
+  --background: oklch(20% 0.04 305);
+  --surface: oklch(30% 0.045 305 / 42%);
+  --surface-secondary: oklch(35% 0.045 305 / 32%);
+  --surface-tertiary: oklch(40% 0.045 305 / 24%);
+  --overlay: oklch(32% 0.045 305 / 58%);
+  --field-background: oklch(38% 0.04 305 / 36%);
+  --field-border: oklch(100% 0 0 / 18%);
+  --separator: oklch(100% 0 0 / 14%);
+  --border: oklch(100% 0 0 / 22%);
+  --surface-shadow: 0 20px 48px oklch(8% 0.02 305 / 38%), inset 0 1px 0 oklch(100% 0 0 / 12%);
+  --overlay-shadow: 0 24px 64px oklch(8% 0.02 305 / 46%), inset 0 1px 0 oklch(100% 0 0 / 14%);
+  --glass-blur: 32px;
+
+}
+
+html[data-theme="dark"],
+html.glass-dark {
+  background:
+    radial-gradient(circle at 12% 28%, oklch(42% 0.15 320 / 48%), transparent 23rem),
+    radial-gradient(circle at 84% 42%, oklch(40% 0.13 285 / 42%), transparent 25rem),
+    radial-gradient(circle at 46% 88%, oklch(34% 0.1 255 / 34%), transparent 24rem),
+    var(--background);
+  background-attachment: fixed;
+}
