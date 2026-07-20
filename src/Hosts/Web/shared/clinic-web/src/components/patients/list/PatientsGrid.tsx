@@ -80,7 +80,7 @@ export function PatientsGrid({
         className="sticky top-0 z-10 grid w-full shrink-0 grid-flow-row grid-cols-1 gap-2 md:flex md:flex-wrap md:items-center md:gap-3"
       >
         {/* Search: full width row on mobile, flexible column on desktop */}
-        <div className="order-2 w-full min-w-0 md:order-none md:flex-1">
+        <div className="order-0 w-full min-w-0 md:order-none md:flex-1">
           <PatientSearchBar onSearch={onSearch} />
         </div>
 
@@ -95,12 +95,13 @@ export function PatientsGrid({
 
           <div className="flex shrink-0 items-center gap-2 md:contents">
             <Dropdown>
-              <Dropdown.Trigger
-                aria-label={t("clinic.patients.sortBy")}
-                className="button button--secondary shrink-0 md:order-1 md:justify-self-center"
-              >
-                <i aria-hidden="true" className="fa-solid fa-arrow-down-a-z" />
-                <span className="hidden md:inline">{t("clinic.patients.sortBy")}</span>
+              <Dropdown.Trigger>
+                <Button
+                  size="sm"
+                  aria-label={t("clinic.patients.sortBy")} variant="secondary">
+                  <i aria-hidden="true" className="fa-solid fa-arrow-down-a-z" />
+                  <span className="hidden md:inline">{t("clinic.patients.sortBy")}</span>
+                </Button>
               </Dropdown.Trigger>
               <Dropdown.Popover>
                 <Dropdown.Menu
@@ -119,7 +120,6 @@ export function PatientsGrid({
 
             <Button
               aria-label={t("clinic.patients.newPatient")}
-              className="order-4 w-full shrink-0 justify-center md:order-4 md:w-auto"
               size="sm"
               variant="primary"
               onPress={onAddPatient}

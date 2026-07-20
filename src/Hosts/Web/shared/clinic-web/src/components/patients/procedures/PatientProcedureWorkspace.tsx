@@ -28,8 +28,7 @@ export function PatientProcedureWorkspace({
   const procedureQuery = usePatientProcedureDetail(procedureId);
   const eventsQuery = usePatientProcedureEvents(procedureId);
   const events = eventsQuery.data ?? [];
-  const activeEventId = selectedEventId ?? events.at(-1)?.id;
-  const selectedEventItemsQuery = usePatientProcedureEventItems(activeEventId ?? "");
+  const selectedEventItemsQuery = usePatientProcedureEventItems(selectedEventId ?? "");
   const patientQuery = usePatientDetail(patientId);
 
   if (procedureQuery.isLoading || eventsQuery.isLoading || patientQuery.isLoading) {
@@ -59,7 +58,7 @@ export function PatientProcedureWorkspace({
             events={events}
             patientId={patientId}
             procedureId={procedureId}
-            selectedEventId={activeEventId}
+            selectedEventId={selectedEventId}
             selectedEventItems={selectedEventItemsQuery.data ?? []}
             onSelectEvent={setSelectedEventId}
             onNavigate={onNavigate}

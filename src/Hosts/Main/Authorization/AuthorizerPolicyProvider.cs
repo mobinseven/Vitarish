@@ -6,12 +6,18 @@ public class AuthorizerPolicyProvider(IOptions<AuthorizationOptions> options) : 
 {
     private readonly DefaultAuthorizationPolicyProvider _fallback = new(options);
 
-    public Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
+    public async Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
     {
+        AuthorizationPolicy? registeredPolicy = await _fallback.GetPolicyAsync(policyName);
+        if (registeredPolicy is not null)
+        {
+            return registeredPolicy;
+        }
+
         AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
             .AddRequirements(new AuthorizerRequirement(policyName))
             .Build();
-        return Task.FromResult<AuthorizationPolicy?>(policy);
+        return policy;
     }
 
     public Task<AuthorizationPolicy> GetDefaultPolicyAsync()

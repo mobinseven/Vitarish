@@ -66,6 +66,75 @@ internal sealed class SeaPatientDirectory(
             error?.Message ?? "The patient project could not be created.");
     }
 
+    public async Task<PatientUpdateResult> UpdateAsync(
+        PatientWriteDto patient,
+        CancellationToken cancellationToken)
+    {
+        EntityResult<SeaProjectReadDto> existingResult = await projects.GetAsync(patient.Id, cancellationToken);
+        if (existingResult.IsFailure)
+        {
+            return new PatientUpdateResult.Failure(
+                PatientUpdateFailureReason.Unexpected,
+                existingResult.Errors.FirstOrDefault()?.Message ?? "Failed to retrieve the existing patient.");
+        }
+
+        SeaProjectReadDto? existing = existingResult.Value;
+        if (existing is null)
+        {
+            return new PatientUpdateResult.NotFound();
+        }
+
+        PatientWriteDto updated = existing.ToPatientWrite();
+        updated.IdentificationCode = patient.IdentificationCode;
+        updated.Name = patient.Name;
+        updated.Template = patient.Template;
+        updated.FirstName = patient.FirstName;
+        updated.LastName = patient.LastName;
+        updated.Phone = patient.Phone;
+        updated.Email = patient.Email;
+        updated.DateOfBirth = patient.DateOfBirth;
+        updated.DateOfSurgery = patient.DateOfSurgery;
+        updated.Gender = patient.Gender;
+        updated.PlaceOfBirth = patient.PlaceOfBirth;
+        updated.Address = patient.Address;
+        updated.Education = patient.Education;
+        updated.Occupation = patient.Occupation;
+        updated.FatherName = patient.FatherName;
+        updated.Height = patient.Height;
+        updated.Weight = patient.Weight;
+        updated.Referrer = patient.Referrer;
+        updated.InsuranceProvider = patient.InsuranceProvider;
+        updated.VisitReason = patient.VisitReason;
+        updated.Allergies = patient.Allergies;
+        updated.CurrentMedications = patient.CurrentMedications;
+        updated.ClinicalNotes = patient.ClinicalNotes;
+        updated.EmergencyContactName = patient.EmergencyContactName;
+        updated.EmergencyContactPhone = patient.EmergencyContactPhone;
+
+        EntityResult<SeaProjectReadDto> result = await projects.UpdateAsync(updated, cancellationToken);
+        if (result.IsSuccess && result.Value is not null)
+        {
+            return new PatientUpdateResult.Success(ToPatientView(result.Value, updated));
+        }
+
+        EntityError? error = result.Errors.FirstOrDefault();
+        PatientUpdateFailureReason reason = error?.Code switch
+        {
+            EntityErrorCode.Validation => PatientUpdateFailureReason.Validation,
+            EntityErrorCode.Conflict or EntityErrorCode.Concurrency => PatientUpdateFailureReason.Conflict,
+            _ => PatientUpdateFailureReason.Unexpected
+        };
+
+        if (reason == PatientUpdateFailureReason.Unexpected)
+        {
+            logger.LogError("Sea failed to update a patient project with error code {ErrorCode}.", error?.Code);
+        }
+
+        return new PatientUpdateResult.Failure(
+            reason,
+            error?.Message ?? "The patient project could not be updated.");
+    }
+
     private PatientView ToPatientView(SeaProjectReadDto project, PatientWriteDto patient) => new()
     {
         Id = project.Id,

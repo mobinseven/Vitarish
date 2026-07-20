@@ -88,6 +88,71 @@ public sealed class FindOrCreatePatientHandlerTests
         directory.CreatedPatient.Should().BeNull();
     }
 
+    [Fact]
+    public async Task Update_normalizes_the_complete_patient_profile_before_persisting()
+    {
+        PatientView updated = Patient(Guid.NewGuid(), "1234567890");
+        StubPatientDirectory directory = new([])
+        {
+            UpdateResult = new PatientUpdateResult.Success(updated)
+        };
+        UpdatePatientHandler handler = new(directory);
+
+        PatientUpdateResult result = await handler.Handle(
+            new UpdatePatientCommand(
+                updated.Id,
+                " 1234567890 ",
+                " Ada ",
+                " Lovelace ",
+                " +44 20 0000 0000 ",
+                " ada@example.test ",
+                new DateTime(1815, 12, 10, 0, 0, 0, DateTimeKind.Utc),
+                null,
+                Gender.Female,
+                "London",
+                "St James's Square",
+                Education.Professional,
+                "Mathematician",
+                "Lord Byron",
+                165,
+                55,
+                "Charles Babbage",
+                "Private",
+                "Consultation",
+                "None",
+                "None",
+                "Analytical Engine notes",
+                "Charles Babbage",
+                "+44 20 1111 1111"),
+            CancellationToken.None);
+
+        result.Should().BeEquivalentTo(new PatientUpdateResult.Success(updated));
+        directory.UpdatedPatient.Should().NotBeNull();
+        directory.UpdatedPatient!.Id.Should().Be(updated.Id);
+        directory.UpdatedPatient.IdentificationCode.Should().Be("1234567890");
+        directory.UpdatedPatient.Name.Should().Be("Ada Lovelace");
+        directory.UpdatedPatient.FirstName.Should().Be("Ada");
+        directory.UpdatedPatient.LastName.Should().Be("Lovelace");
+    }
+
+    [Fact]
+    public async Task Update_rejects_a_missing_identification_code_without_persisting()
+    {
+        StubPatientDirectory directory = new([]);
+        UpdatePatientHandler handler = new(directory);
+
+        PatientUpdateResult result = await handler.Handle(
+            new UpdatePatientCommand(
+                Guid.NewGuid(), null, "Ada", "Lovelace", null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, null, null),
+            CancellationToken.None);
+
+        PatientUpdateResult.Failure failure = result.Should().BeOfType<PatientUpdateResult.Failure>().Subject;
+        failure.Reason.Should().Be(PatientUpdateFailureReason.Validation);
+        failure.ValidationErrors!.Keys.Should().Contain("identificationCode");
+        directory.UpdatedPatient.Should().BeNull();
+    }
+
     private static FindOrCreatePatientCommand ValidCommand(
         string? identificationCode = "1234567890",
         string? firstName = " Ada ",
@@ -133,8 +198,12 @@ public sealed class FindOrCreatePatientHandlerTests
 
         public PatientWriteDto? CreatedPatient { get; private set; }
 
+        public PatientWriteDto? UpdatedPatient { get; private set; }
+
         public PatientCreationResult CreationResult { get; init; } =
             new PatientCreationResult.Failure(PatientCreationFailureReason.Unexpected, "Not configured.");
+
+        public PatientUpdateResult UpdateResult { get; init; } = new PatientUpdateResult.NotFound();
 
         public Task<PatientView?> FindByIdentificationCodeAsync(
             string identificationCode,
@@ -150,6 +219,14 @@ public sealed class FindOrCreatePatientHandlerTests
         {
             CreatedPatient = patient;
             return Task.FromResult(CreationResult);
+        }
+
+        public Task<PatientUpdateResult> UpdateAsync(
+            PatientWriteDto patient,
+            CancellationToken cancellationToken)
+        {
+            UpdatedPatient = patient;
+            return Task.FromResult(UpdateResult);
         }
     }
 }

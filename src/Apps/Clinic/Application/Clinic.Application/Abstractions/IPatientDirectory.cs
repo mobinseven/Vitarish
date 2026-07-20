@@ -8,4 +8,6 @@ public interface IPatientDirectory
     Task<PatientView?> FindByIdentificationCodeAsync(string identificationCode, CancellationToken cancellationToken);
 
     Task<PatientCreationResult> CreateAsync(PatientWriteDto patient, CancellationToken cancellationToken);
+
+    Task<PatientUpdateResult> UpdateAsync(PatientWriteDto patient, CancellationToken cancellationToken);
 }
