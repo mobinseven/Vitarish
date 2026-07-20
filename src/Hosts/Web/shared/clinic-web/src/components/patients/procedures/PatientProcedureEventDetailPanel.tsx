@@ -156,9 +156,7 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
               </Dropdown.Menu>
             </Dropdown.Popover>
           </Dropdown>
-        ) : capabilitiesQuery.isLoading ? null : (
-          null
-        )}
+        ) : null}
       </header>
 
       <PatientProcedureEventItemsPanel eventId={eventId} canWrite={canWrite} viewer={viewer} />

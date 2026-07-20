@@ -70,7 +70,15 @@ internal sealed class SeaPatientDirectory(
         PatientWriteDto patient,
         CancellationToken cancellationToken)
     {
-        SeaProjectReadDto? existing = (await projects.GetAsync(patient.Id, cancellationToken)).Value;
+        EntityResult<SeaProjectReadDto> existingResult = await projects.GetAsync(patient.Id, cancellationToken);
+        if (existingResult.IsFailure)
+        {
+            return new PatientUpdateResult.Failure(
+                PatientUpdateFailureReason.Unexpected,
+                existingResult.Errors.FirstOrDefault()?.Message ?? "Failed to retrieve the existing patient.");
+        }
+
+        SeaProjectReadDto? existing = existingResult.Value;
         if (existing is null)
         {
             return new PatientUpdateResult.NotFound();
@@ -79,7 +87,6 @@ internal sealed class SeaPatientDirectory(
         PatientWriteDto updated = existing.ToPatientWrite();
         updated.IdentificationCode = patient.IdentificationCode;
         updated.Name = patient.Name;
-        updated.Description = patient.Description;
         updated.Template = patient.Template;
         updated.FirstName = patient.FirstName;
         updated.LastName = patient.LastName;

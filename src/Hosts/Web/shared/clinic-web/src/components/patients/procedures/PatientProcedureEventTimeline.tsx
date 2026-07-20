@@ -65,15 +65,9 @@ export function PatientProcedureEventTimeline({
               <Timeline.Marker aria-hidden="true">
                 <Checkbox
                   className="[&_[data-slot='checkbox-default-indicator--checkmark']]:size-4"
-                  name="xl-rounded"
                   isSelected={event.isCommitted}
-                >
-                  <Checkbox.Content>
-                    <Checkbox.Control className="size-6 rounded-full before:rounded-full">
-                      <Checkbox.Indicator />
-                    </Checkbox.Control>
-                  </Checkbox.Content>
-                </Checkbox>
+                  isReadOnly
+                />
               </Timeline.Marker>
               <Timeline.Content>
 
@@ -174,7 +168,7 @@ function PatientProcedureEventAction({ event }: { event: ClinicalEventSummary })
 
   return (
     <>
-      <Tooltip>
+      <Tooltip content={actionLabel}>
         {event.isCommitted ? (
           <Button
             size="sm"
@@ -198,7 +192,6 @@ function PatientProcedureEventAction({ event }: { event: ClinicalEventSummary })
             <i aria-hidden="true" className="fa-solid fa-check" />
           </Button>
         }
-        <Tooltip.Content>{actionLabel}</Tooltip.Content>
       </Tooltip>
       {commitConfirmationTarget !== null ? (
         <PatientProcedureEventCommitDialog

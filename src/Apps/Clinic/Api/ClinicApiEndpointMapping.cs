@@ -174,6 +174,11 @@ public static class ClinicApiEndpointMapping
             return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "Patient id is required."));
         }
 
+        if (request is null)
+        {
+            return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "Request body is required."));
+        }
+
         PatientUpdateResult result = await sender.Send(
             new UpdatePatientCommand(
                 patientId,

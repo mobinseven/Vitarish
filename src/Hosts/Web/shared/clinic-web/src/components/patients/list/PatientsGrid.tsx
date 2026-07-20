@@ -95,12 +95,14 @@ export function PatientsGrid({
 
           <div className="flex shrink-0 items-center gap-2 md:contents">
             <Dropdown>
-              <Button
-                size="sm"
-                aria-label={t("clinic.patients.sortBy")} variant="secondary">
-                <i aria-hidden="true" className="fa-solid fa-arrow-down-a-z" />
-                <span className="hidden md:inline">{t("clinic.patients.sortBy")}</span>
-              </Button>
+              <Dropdown.Trigger>
+                <Button
+                  size="sm"
+                  aria-label={t("clinic.patients.sortBy")} variant="secondary">
+                  <i aria-hidden="true" className="fa-solid fa-arrow-down-a-z" />
+                  <span className="hidden md:inline">{t("clinic.patients.sortBy")}</span>
+                </Button>
+              </Dropdown.Trigger>
               <Dropdown.Popover>
                 <Dropdown.Menu
                   aria-label={t("clinic.patients.sortBy")}

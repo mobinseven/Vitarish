@@ -49,7 +49,6 @@ public sealed class UpdatePatientHandler(IPatientDirectory patientDirectory)
             Id = request.PatientId,
             IdentificationCode = identificationCode,
             Name = $"{firstName} {lastName}".Trim(),
-            Description = string.Empty,
             Template = false,
             FirstName = firstName,
             LastName = lastName,
