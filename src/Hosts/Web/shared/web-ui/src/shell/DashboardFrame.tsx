@@ -268,10 +268,8 @@ function DashboardFrameSidebarContents({
         </Sidebar.Group>
       </Sidebar.Content>
       <Sidebar.Footer>
-          <CultureSwitcher />
-          <ThemeSwitch />
-        <div className="flex items-center justify-end gap-1">
-        </div>
+        <CultureSwitcher />
+        <ThemeSwitch />
         {footerItems.length > 0 ? (
           <Sidebar.Menu aria-label={footerLabel ?? navigationLabel}>
             {footerItems.map((item) => (

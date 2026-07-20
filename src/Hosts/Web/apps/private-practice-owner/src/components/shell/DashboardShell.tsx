@@ -105,20 +105,21 @@ export function DashboardShell({
       navigationLabel={t("appShell.navigation.dashboardMenu")}
       skipLinkLabel={t("appShell.navigation.skipToContent")}
       title={null}
-      toolbar=
-          {upHref ? (
-        <Tooltip>
-          <Button
-            aria-label={t("appShell.navigation.up")}
-            isDisabled={!upHref}
-            variant="tertiary"
-            onPress={() => upHref && navigate(upHref)}
-          >
-            <i aria-hidden="true" className="fa-solid fa-arrow-up" />
-            {t("appShell.navigation.up")}
-          </Button>
-          <Tooltip.Content>{t("appShell.navigation.up")}</Tooltip.Content>
-        </Tooltip>) : null}
+      toolbar={
+        upHref ? (
+          <Tooltip content={t("appShell.navigation.up")}>
+            <Button
+              aria-label={t("appShell.navigation.up")}
+              isDisabled={!upHref}
+              variant="tertiary"
+              onPress={() => upHref && navigate(upHref)}
+            >
+              <i aria-hidden="true" className="fa-solid fa-arrow-up" />
+              {t("appShell.navigation.up")}
+            </Button>
+          </Tooltip>
+        ) : null
+      }
       
     >
       {children}
