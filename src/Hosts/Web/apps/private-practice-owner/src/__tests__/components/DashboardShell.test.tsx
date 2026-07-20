@@ -1,11 +1,24 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { DashboardFrame, type DashboardNavigationGroup } from "@vitarish/web-ui";
+import { DashboardFrame, ThemeSwitch, type DashboardNavigationGroup } from "@vitarish/web-ui";
 import { DashboardShell, type DashboardShellNavGroup } from "@/components/shell/DashboardShell";
-import { ThemeSwitch } from "@/components/shell/ThemeSwitch";
 import { UserMenu } from "@/components/shell/UserMenu";
 import { SearchInput } from "@/components/shell/SearchInput";
 import { dashboardFooterItems, mainDashboardNavGroups } from "@/components/shell/dashboardShellNavigation";
+
+const routerPush = vi.hoisted(() => vi.fn());
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/patients/example",
+  useRouter: () => ({
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+    push: routerPush,
+    refresh: vi.fn(),
+    replace: vi.fn(),
+  }),
+}));
 
 vi.mock("next-themes", () => ({
   useTheme: () => ({
@@ -36,6 +49,7 @@ vi.mock("@/localization", () => ({
       const translations: Record<string, string> = {
         "appShell.brand": "Vitarish",
         "appShell.navigation.home": "Home",
+        "appShell.navigation.up": "Up",
         "appShell.navigation.clinic": "Clinic",
         "appShell.navigation.knowledge": "Knowledge",
         "appShell.navigation.dashboardMenu": "Dashboard navigation",
@@ -44,9 +58,9 @@ vi.mock("@/localization", () => ({
         "appShell.navigation.staffGroup": "Staff",
         "appShell.actions.notifications": "Notifications",
         "appShell.actions.invite": "Invite",
-        "appShell.theme.light": "Switch to light mode",
-        "appShell.theme.dark": "Switch to dark mode",
-        "appShell.theme.system": "Switch to system mode",
+        "appShell.theme.light": "Light mode",
+        "appShell.theme.dark": "Dark mode",
+        "appShell.theme.system": "System preference",
         "appShell.culture.label": "Language",
         "appShell.userMenu.logIn": "Log In",
         "appShell.userMenu.account": "Account",
@@ -72,6 +86,20 @@ vi.mock("@/localization", () => ({
 
       return translations[key] ?? key;
     },
+    locale: "en",
+  }),
+  setLocaleCookie: vi.fn(),
+  supportedLocales: ["en", "fa"],
+}));
+
+vi.mock("@vitarish/web-localization", () => ({
+  useLocalizedText: () => ({
+    t: (key: string) => ({
+      "appShell.culture.label": "Language",
+      "appShell.theme.light": "Switch to light mode",
+      "appShell.theme.dark": "Switch to dark mode",
+      "appShell.theme.system": "Switch to system mode",
+    }[key] ?? key),
     locale: "en",
   }),
   setLocaleCookie: vi.fn(),
@@ -114,17 +142,28 @@ describe("Dashboard Shell Components", () => {
   describe("DashboardShell", () => {
     it("renders the template-style sidebar, navbar actions, and content", () => {
       render(
-        <DashboardShell footerItems={shellFooterItems} homeHref="/" navGroups={shellNavGroups}>
+        <DashboardShell footerItems={shellFooterItems} navGroups={shellNavGroups}>
           <div>Dashboard content</div>
         </DashboardShell>
       );
 
-      expect(screen.getByRole("list", { name: "Dashboard navigation" })).toBeInTheDocument();
-      expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
       expect(screen.getAllByText("Home").length).toBeGreaterThan(0);
-      expect(screen.getByRole("button", { name: "Language" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Switch to light mode" })).toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: "Language" }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("button", { name: "Switch to light mode" }).length).toBeGreaterThan(0);
+      expect(screen.getByRole("button", { name: "Up" })).toBeInTheDocument();
       expect(screen.getByText("Dashboard content")).toBeInTheDocument();
+    });
+
+    it("navigates to the parent route when the Up button is pressed", () => {
+      render(
+        <DashboardShell footerItems={shellFooterItems} navGroups={shellNavGroups}>
+          <div>Dashboard content</div>
+        </DashboardShell>
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: "Up" }));
+
+      expect(routerPush).toHaveBeenCalledWith("/patients");
     });
   });
 

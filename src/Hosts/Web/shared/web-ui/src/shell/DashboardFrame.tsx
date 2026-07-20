@@ -6,6 +6,8 @@ import { Avatar, Button, Chip } from "@heroui/react";
 import { AppLayout } from "@heroui-pro/react/app-layout";
 import { Navbar } from "@heroui-pro/react/navbar";
 import { Sidebar } from "@heroui-pro/react/sidebar";
+import { CultureSwitcher } from "./CultureSwitcher";
+import { ThemeSwitch } from "./ThemeSwitch";
 
 export interface DashboardNavigationItem {
   href: string;
@@ -180,11 +182,11 @@ interface DashboardFrameSidebarProps {
 function DashboardFrameSidebar({ mobileNavigation, ...props }: DashboardFrameSidebarProps) {
   return (
     <>
-      <Sidebar>
+      <Sidebar className="vitarish-dashboard-sidebar">
         <DashboardFrameSidebarContents {...props} />
       </Sidebar>
       {mobileNavigation === "sidebar" ? (
-        <Sidebar.Mobile>
+        <Sidebar.Mobile className="vitarish-dashboard-sidebar-mobile">
           <DashboardFrameSidebarContents {...props} idPrefix="mobile-" />
         </Sidebar.Mobile>
       ) : null}
@@ -232,7 +234,9 @@ function DashboardFrameSidebarContents({
           className="justify-start px-3 py-2 h-auto"
         >
           <Avatar className="size-9">
-            <Avatar.Fallback>{identity.initials}</Avatar.Fallback>
+            <Avatar.Fallback>
+          <i className="fa-solid fa-user" />
+            </Avatar.Fallback>
           </Avatar>
           <div className="flex min-w-0 flex-col" data-sidebar="label">
             <span className="text-foreground truncate text-sm font-medium leading-tight">{identity.label}</span>
@@ -263,15 +267,19 @@ function DashboardFrameSidebarContents({
           </Sidebar.Menu>
         </Sidebar.Group>
       </Sidebar.Content>
-      {footerItems.length > 0 ? (
-        <Sidebar.Footer>
+      <Sidebar.Footer>
+          <CultureSwitcher />
+          <ThemeSwitch />
+        <div className="flex items-center justify-end gap-1">
+        </div>
+        {footerItems.length > 0 ? (
           <Sidebar.Menu aria-label={footerLabel ?? navigationLabel}>
             {footerItems.map((item) => (
               <DashboardFrameSidebarNavItem key={item.href} currentPath={currentPath} idPrefix={idPrefix} item={item} />
             ))}
           </Sidebar.Menu>
-        </Sidebar.Footer>
-      ) : null}
+        ) : null}
+      </Sidebar.Footer>
     </>
   );
 }

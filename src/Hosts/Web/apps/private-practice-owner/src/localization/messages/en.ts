@@ -520,6 +520,7 @@ export const enMessages = {
   appShell: {
     brand: "Vitarish",
     navigation: {
+      up: "Up",
       home: "Home",
       knowledge: "Knowledge",
       clinic: "Clinic",
@@ -549,9 +550,9 @@ export const enMessages = {
       invite: "Invite",
     },
     theme: {
-      light: "Switch to light mode",
-      dark: "Switch to dark mode",
-      system: "Switch to system theme",
+      light: "Light mode",
+      dark: "Dark mode",
+      system: "System theme",
     },
     footer: {
       poweredBy: "Powered by",
