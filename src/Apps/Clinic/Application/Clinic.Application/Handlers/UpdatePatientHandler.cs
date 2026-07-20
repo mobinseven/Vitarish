@@ -1,0 +1,86 @@
+using MediatR;
+using Vitarish.Clinic.Application.Abstractions;
+using Vitarish.Clinic.Application.Commands.Patients;
+using Vitarish.Clinic.Application.Results;
+using Vitarish.Clinic.Domain.Enums;
+using Vitarish.Clinic.Domain.Models;
+
+namespace Vitarish.Clinic.Application.Handlers;
+
+public sealed class UpdatePatientHandler(IPatientDirectory patientDirectory)
+    : IRequestHandler<UpdatePatientCommand, PatientUpdateResult>
+{
+    public Task<PatientUpdateResult> Handle(UpdatePatientCommand request, CancellationToken cancellationToken)
+    {
+        Dictionary<string, string[]> validationErrors = [];
+        string identificationCode = request.IdentificationCode?.Trim() ?? string.Empty;
+        string firstName = request.FirstName?.Trim() ?? string.Empty;
+        string lastName = request.LastName?.Trim() ?? string.Empty;
+
+        if (identificationCode.Length == 0)
+        {
+            validationErrors["identificationCode"] = ["Identification code is required."];
+        }
+        else if (identificationCode.Length > 256)
+        {
+            validationErrors["identificationCode"] = ["Identification code must not exceed 256 characters."];
+        }
+
+        if (firstName.Length == 0)
+        {
+            validationErrors["firstName"] = ["First name is required."];
+        }
+
+        if (lastName.Length == 0)
+        {
+            validationErrors["lastName"] = ["Last name is required."];
+        }
+
+        if (validationErrors.Count > 0)
+        {
+            return Task.FromResult<PatientUpdateResult>(new PatientUpdateResult.Failure(
+                PatientUpdateFailureReason.Validation,
+                "Patient profile validation failed.",
+                validationErrors));
+        }
+
+        PatientWriteDto patient = new()
+        {
+            Id = request.PatientId,
+            IdentificationCode = identificationCode,
+            Name = $"{firstName} {lastName}".Trim(),
+            Description = string.Empty,
+            Template = false,
+            FirstName = firstName,
+            LastName = lastName,
+            Phone = NormalizeOptional(request.Phone),
+            Email = NormalizeOptional(request.Email),
+            DateOfBirth = request.DateOfBirth,
+            DateOfSurgery = request.DateOfSurgery,
+            Gender = request.Gender ?? Gender.Unspecified,
+            PlaceOfBirth = NormalizeOptional(request.PlaceOfBirth),
+            Address = NormalizeOptional(request.Address),
+            Education = request.Education ?? Education.Unspecified,
+            Occupation = NormalizeOptional(request.Occupation),
+            FatherName = NormalizeOptional(request.FatherName),
+            Height = request.Height ?? 0,
+            Weight = request.Weight ?? 0,
+            Referrer = NormalizeOptional(request.Referrer),
+            InsuranceProvider = NormalizeOptional(request.InsuranceProvider),
+            VisitReason = NormalizeOptional(request.VisitReason),
+            Allergies = NormalizeOptional(request.Allergies),
+            CurrentMedications = NormalizeOptional(request.CurrentMedications),
+            ClinicalNotes = NormalizeOptional(request.ClinicalNotes),
+            EmergencyContactName = NormalizeOptional(request.EmergencyContactName),
+            EmergencyContactPhone = NormalizeOptional(request.EmergencyContactPhone)
+        };
+
+        return patientDirectory.UpdateAsync(patient, cancellationToken);
+    }
+
+    private static string? NormalizeOptional(string? value)
+    {
+        string? normalized = value?.Trim();
+        return string.IsNullOrEmpty(normalized) ? null : normalized;
+    }
+}

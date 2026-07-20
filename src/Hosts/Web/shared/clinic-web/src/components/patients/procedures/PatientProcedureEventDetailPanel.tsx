@@ -106,7 +106,7 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
         </div>
 
 
-        {canWrite || canManage ? (
+        {canManage ? (
           <Dropdown>
             <Dropdown.Trigger
               aria-label={t("clinic.procedures.events.actionMenu.label")}
@@ -118,20 +118,6 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
             <Dropdown.Popover>
               <Dropdown.Menu onAction={handleAction}>
                 <Dropdown.Section>
-                  {canWrite ? (
-                    <Dropdown.Item
-                      id="commit"
-                      textValue={event.isCommitted ? t("clinic.procedures.events.reopen") : t("clinic.procedures.events.commit")}
-                      isDisabled={commit.isPending || uncommit.isPending}
-                    >
-                      <Label>
-                        {event.isCommitted
-                          ? t("clinic.procedures.events.reopen")
-                          : t("clinic.procedures.events.commit")}
-                      </Label>
-                    </Dropdown.Item>
-                  ) : null}
-                  {canManage ? (
                     <>
                       <Dropdown.Item
                         id="reorder-earlier"
@@ -148,9 +134,7 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
                         <Label>{t("clinic.procedures.events.reorderLater")}</Label>
                       </Dropdown.Item>
                     </>
-                  ) : null}
                 </Dropdown.Section>
-                {canManage ? (
                   <>
                     <Separator />
                     <Dropdown.Section>
@@ -169,14 +153,11 @@ export function PatientProcedureEventDetailPanel({ eventId, procedureId, isFirst
                       </Dropdown.Item>
                     </Dropdown.Section>
                   </>
-                ) : null}
               </Dropdown.Menu>
             </Dropdown.Popover>
           </Dropdown>
         ) : capabilitiesQuery.isLoading ? null : (
-          <Chip size="sm" variant="soft">
-            {t("clinic.procedures.readOnly")}
-          </Chip>
+          null
         )}
       </header>
 

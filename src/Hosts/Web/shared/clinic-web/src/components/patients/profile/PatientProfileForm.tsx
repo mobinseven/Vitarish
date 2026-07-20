@@ -36,6 +36,7 @@ export function PatientProfileForm({
         const newErrors: PatientProfileFormErrors = {};
         if (!formData.firstName.trim()) newErrors.firstName = t("clinic.patient.edit.validation.firstNameRequired");
         if (!formData.lastName.trim()) newErrors.lastName = t("clinic.patient.edit.validation.lastNameRequired");
+        if (!formData.identificationCode.trim()) newErrors.identificationCode = t("clinic.patient.edit.validation.identificationCodeRequired");
         if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             newErrors.email = t("clinic.patient.edit.validation.invalidEmail");
         }
@@ -49,7 +50,7 @@ export function PatientProfileForm({
     }, [formData, onSubmit, t]);
 
     return (
-        <form className="flex flex-col gap-8" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+        <form noValidate className="flex flex-col gap-8" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
             <section>
                 <h2 className="mb-4 text-sm font-semibold text-foreground">{t("clinic.patient.sections.personal")}</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -71,16 +72,16 @@ export function PatientProfileForm({
                         label={t("clinic.patient.fields.identificationCode")}
                         value={formData.identificationCode}
                         onChange={(v) => handleChange("identificationCode", v)}
+                        error={errors.identificationCode}
+                        isRequired
                     />
-                    <DatePicker
+
+                    <DatePicker className="w-72"
                         value={parseIsoDateValue(formData.dateOfBirth)}
-                        onChange={(value) => handleChange("dateOfBirth", dateValueToIsoDate(value))}
-                    >
+                        onChange={(value) => handleChange("dateOfBirth", dateValueToIsoDate(value))}>
                         <Label>{t("clinic.patient.fields.dateOfBirth")}</Label>
                         <DateField.Group fullWidth>
-                            <DateField.Input>
-                                {(segment) => <DateField.Segment segment={segment} />}
-                            </DateField.Input>
+                            <DateField.Input>{(segment) => <DateField.Segment segment={segment} />}</DateField.Input>
                             <DateField.Suffix>
                                 <DatePicker.Trigger>
                                     <DatePicker.TriggerIndicator />
@@ -90,8 +91,11 @@ export function PatientProfileForm({
                         <DatePicker.Popover>
                             <Calendar aria-label={t("clinic.patient.fields.dateOfBirth")}>
                                 <Calendar.Header>
+                                    <Calendar.YearPickerTrigger>
+                                        <Calendar.YearPickerTriggerHeading />
+                                        <Calendar.YearPickerTriggerIndicator />
+                                    </Calendar.YearPickerTrigger>
                                     <Calendar.NavButton slot="previous" />
-                                    <Calendar.Heading />
                                     <Calendar.NavButton slot="next" />
                                 </Calendar.Header>
                                 <Calendar.Grid>
@@ -100,9 +104,15 @@ export function PatientProfileForm({
                                     </Calendar.GridHeader>
                                     <Calendar.GridBody>{(date) => <Calendar.Cell date={date} />}</Calendar.GridBody>
                                 </Calendar.Grid>
+                                <Calendar.YearPickerGrid>
+                                    <Calendar.YearPickerGridBody>
+                                        {({ year }) => <Calendar.YearPickerCell year={year} />}
+                                    </Calendar.YearPickerGridBody>
+                                </Calendar.YearPickerGrid>
                             </Calendar>
                         </DatePicker.Popover>
                     </DatePicker>
+
                     <FormSelectField
                         label={t("clinic.patient.fields.gender")}
                         value={formData.gender}
@@ -252,7 +262,7 @@ export function PatientProfileForm({
             </section>
 
             <div className="flex justify-end gap-2">
-                <Button variant="ghost" onPress={onCancel}>
+                <Button type="button" variant="ghost" onPress={onCancel}>
                     {t("clinic.patient.edit.cancel")}
                 </Button>
                 <Button variant="primary" type="submit" isPending={isPending}>

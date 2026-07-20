@@ -1,6 +1,7 @@
 "use client";
 
 import { ErrorStateSurface as ClinicErrorState } from "@vitarish/web-ui";
+import { ApiError } from "@vitarish/web-api-client";
 import type { ClinicNavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization/index";
 import { PatientProfileForm } from "../profile/PatientProfileForm";
@@ -14,6 +15,9 @@ export interface ClinicPatientCreatePageProps {
 export function ClinicPatientCreatePage({ onNavigate }: ClinicPatientCreatePageProps) {
   const { t } = useLocalizedText();
   const mutation = useCreatePatientProfile();
+  const errorTitle = mutation.error instanceof ApiError && mutation.error.status === 403
+    ? t("clinic.patients.createForbidden")
+    : t("clinic.patients.createFailed");
 
   return (
     <section className="flex flex-col gap-6" aria-labelledby="clinic-patient-create-title">
@@ -21,7 +25,7 @@ export function ClinicPatientCreatePage({ onNavigate }: ClinicPatientCreatePageP
         <h1 id="clinic-patient-create-title" className="text-2xl font-bold">{t("clinic.patients.newPatient")}</h1>
         <p className="text-sm text-muted">{t("clinic.patients.createPatient")}</p>
       </header>
-      {mutation.error ? <ClinicErrorState title={t("clinic.patients.createFailed")} /> : null}
+      {mutation.error ? <ClinicErrorState title={errorTitle} /> : null}
       <PatientProfileForm
         initialData={emptyFormData()}
         onSubmit={(data) => {

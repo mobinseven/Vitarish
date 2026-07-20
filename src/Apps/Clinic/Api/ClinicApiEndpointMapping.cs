@@ -39,6 +39,8 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModulePost(ClinicApiRoutes.PatientFindOrCreate, FindOrCreatePatientAsync, "ClinicFindOrCreatePatient", typeof(PatientViewDto))
             .RequireAuthorization(SeaManagePolicy);
         _ = group.MapModuleGet(ClinicApiRoutes.PatientDetails, GetPatientDetailsAsync, "ClinicGetPatientDetails", typeof(PatientViewDto));
+        _ = group.MapModulePut(ClinicApiRoutes.PatientUpdate, UpdatePatientAsync, "ClinicUpdatePatient", typeof(PatientViewDto))
+            .RequireAuthorization(SeaManagePolicy);
 
         return endpoints;
     }
@@ -163,6 +165,58 @@ public static class ClinicApiEndpointMapping
         return patient is null
             ? Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient was not found."))
             : Results.Ok(ToContract(patient));
+    }
+
+    private static async Task<IResult> UpdatePatientAsync(Guid patientId, PatientUpdateRequest request, ISender sender, CancellationToken ct)
+    {
+        if (patientId == Guid.Empty)
+        {
+            return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "Patient id is required."));
+        }
+
+        PatientUpdateResult result = await sender.Send(
+            new UpdatePatientCommand(
+                patientId,
+                request.IdentificationCode,
+                request.FirstName,
+                request.LastName,
+                request.Phone,
+                request.Email,
+                request.DateOfBirth,
+                request.DateOfSurgery,
+                request.Gender is null ? null : (DomainGender)(int)request.Gender.Value,
+                request.PlaceOfBirth,
+                request.Address,
+                request.Education is null ? null : (DomainEducation)(int)request.Education.Value,
+                request.Occupation,
+                request.FatherName,
+                request.Height,
+                request.Weight,
+                request.Referrer,
+                request.InsuranceProvider,
+                request.VisitReason,
+                request.Allergies,
+                request.CurrentMedications,
+                request.ClinicalNotes,
+                request.EmergencyContactName,
+                request.EmergencyContactPhone),
+            ct);
+
+        return result switch
+        {
+            PatientUpdateResult.Success success => Results.Ok(ToContract(success.Patient)),
+            PatientUpdateResult.NotFound => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient was not found.")),
+            PatientUpdateResult.Failure { Reason: PatientUpdateFailureReason.Validation } failure => Results.BadRequest(new ClinicError(
+                ClinicErrorCode.ValidationFailure,
+                failure.Message,
+                failure.ValidationErrors)),
+            PatientUpdateResult.Failure { Reason: PatientUpdateFailureReason.Conflict } => Results.Conflict(new ClinicError(
+                ClinicErrorCode.Conflict,
+                "A patient with this identification code already exists.")),
+            _ => Results.Json(
+                new ClinicError(ClinicErrorCode.UnexpectedFailure, "Patient update failed."),
+                statusCode: StatusCodes.Status500InternalServerError)
+        };
     }
 
     private static DomainPatientSortBy? ToDomain(ContractPatientSortBy? sortBy) => sortBy switch

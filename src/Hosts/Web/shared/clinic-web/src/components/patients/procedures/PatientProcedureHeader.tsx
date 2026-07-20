@@ -40,9 +40,7 @@ export function PatientProcedureHeader({ procedure, patientId, onDeleted }: Pati
         </div>
         <Dropdown>
           <Dropdown.Trigger aria-label={t("clinic.procedures.events.actionMenu.label")}>
-            <Button isIconOnly aria-label={t("clinic.procedures.events.actionMenu.label")} variant="secondary">
               <FaIcon icon="ellipsis-vertical" aria-hidden="true" className="text-lg" />
-            </Button>
           </Dropdown.Trigger>
           <Dropdown.Popover>
             <Dropdown.Menu onAction={handleAction}>

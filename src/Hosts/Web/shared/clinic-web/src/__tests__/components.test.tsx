@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalizationProvider } from "../localization";
 import { clinicMessageCatalogs } from "../localization";
 import { ServiceList } from "../components/services/ServiceList";
@@ -12,6 +12,7 @@ import { ServiceDeleteDialog } from "../components/services/ServiceDeleteDialog"
 import { PatientProfileForm } from "../components/patients/profile/PatientProfileForm";
 import { emptyFormData } from "../models/patients/profile/PatientProfileForm";
 import { PatientProcedureEventTimeline } from "../components/patients/procedures/PatientProcedureEventTimeline";
+import { PatientProcedureWorkspace } from "../components/patients/procedures/PatientProcedureWorkspace";
 import { AppointmentsAgenda } from "../components/appointments/agenda/AppointmentsAgenda";
 import {
   PatientProcedureEventItemsPanel,
@@ -20,13 +21,27 @@ import { PatientProcedureEventItemMessage } from "../components/patients/procedu
 import { PatientSearchBar } from "../components/patients/list/PatientSearchBar";
 import { PatientsGrid } from "../components/patients/list/PatientsGrid";
 
+const hookMocks = vi.hoisted(() => ({
+  usePatientProcedureDetail: vi.fn(),
+  usePatientProcedureEvents: vi.fn(),
+  usePatientProcedureEventItems: vi.fn(),
+  usePatientDetail: vi.fn(),
+}));
+
+vi.mock("../hooks/patients/procedures/usePatientProcedureDetail", () => ({
+  usePatientProcedureDetail: hookMocks.usePatientProcedureDetail,
+}));
+
+vi.mock("../hooks/patients/procedures/usePatientProcedureEvents", () => ({
+  usePatientProcedureEvents: hookMocks.usePatientProcedureEvents,
+}));
+
 vi.mock("../hooks/patients/procedures/usePatientProcedureEventItems", () => ({
-  usePatientProcedureEventItems: () => ({
-    data: [],
-    error: null,
-    isLoading: false,
-    refetch: vi.fn(),
-  }),
+  usePatientProcedureEventItems: hookMocks.usePatientProcedureEventItems,
+}));
+
+vi.mock("../hooks/patients/usePatientDetail", () => ({
+  usePatientDetail: hookMocks.usePatientDetail,
 }));
 
 vi.mock("../hooks/patients/procedures/usePatientProcedureEventItemMutations", () => ({
@@ -46,6 +61,15 @@ vi.mock("../hooks/patients/procedures/usePatientProcedureEventItemMutations", ()
     isPending: false,
     mutate: vi.fn(),
   }),
+}));
+
+vi.mock("@vitarish/sea-web", () => ({
+  useSeaEventCapabilities: () => ({ data: { canWrite: true }, isLoading: false }),
+}));
+
+vi.mock("../hooks/patients/procedures/usePatientProcedureEventMutations", () => ({
+  useCommitPatientProcedureEvent: () => ({ isPending: false, mutate: vi.fn() }),
+  useUncommitPatientProcedureEvent: () => ({ isPending: false, mutate: vi.fn() }),
 }));
 
 vi.mock("@vitarish/intelligence-web", () => ({
@@ -77,6 +101,10 @@ const messages = {
 
 afterEach(() => {
   cleanup();
+  hookMocks.usePatientProcedureDetail.mockReset();
+  hookMocks.usePatientProcedureEvents.mockReset();
+  hookMocks.usePatientProcedureEventItems.mockReset();
+  hookMocks.usePatientDetail.mockReset();
   vi.unstubAllGlobals();
 });
 
@@ -89,6 +117,59 @@ function PersianWrapper({ children }: { children: ReactNode }) {
 }
 
 describe("clinic display components", () => {
+  beforeEach(() => {
+    hookMocks.usePatientProcedureDetail.mockReturnValue({
+      data: {
+        id: "procedure-1",
+        projectId: "patient-1",
+        name: "Root canal",
+        eventCount: 2,
+        committedEventCount: 0,
+        eventItemCount: 0,
+        newItems: 0,
+        createdAt: "2026-07-13T07:00:00Z",
+      },
+      error: null,
+      isLoading: false,
+    });
+    hookMocks.usePatientProcedureEvents.mockReturnValue({
+      data: [
+        { id: "event-1", projectId: "patient-1", procedureId: "procedure-1", title: "Assessment", description: "", isCommitted: true, committedAt: "2026-07-13T08:00:00Z", itemCount: 2, createdAt: "2026-07-13T07:00:00Z", position: 0 },
+        { id: "event-2", projectId: "patient-1", procedureId: "procedure-1", title: "Treatment", description: "", isCommitted: false, itemCount: 0, createdAt: "2026-07-13T09:00:00Z", position: 1 },
+      ],
+      error: null,
+      isLoading: false,
+      refetch: vi.fn(),
+    });
+    hookMocks.usePatientProcedureEventItems.mockReturnValue({
+      data: [],
+      error: null,
+      isLoading: false,
+      refetch: vi.fn(),
+    });
+    hookMocks.usePatientDetail.mockReturnValue({
+      data: { id: "patient-1" },
+      error: null,
+      isLoading: false,
+    });
+  });
+
+  it("does not select a procedure event by default", () => {
+    render(
+      <PatientProcedureWorkspace
+        patientId="patient-1"
+        procedureId="procedure-1"
+        onNavigate={vi.fn()}
+      />,
+      { wrapper: Wrapper },
+    );
+
+    expect(hookMocks.usePatientProcedureEventItems).toHaveBeenCalledWith("");
+    expect(screen.queryByRole("region", { name: "Focused event details" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Assessment" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Treatment" })).toBeInTheDocument();
+  });
+
   it("uses the HeroUI search field for debounced patient searches", async () => {
     const onSearch = vi.fn();
     const { container } = render(<PatientSearchBar onSearch={onSearch} />, { wrapper: Wrapper });
@@ -396,6 +477,9 @@ describe("clinic display components", () => {
       { id: "file-3", eventId: "event-2", type: "file", content: "file-3", fileName: "scan.dcm", createdAt: "2026-07-13T09:03:00Z" },
       { id: "file-4", eventId: "event-2", type: "file", content: "file-4", fileName: "notes.docx", createdAt: "2026-07-13T09:04:00Z" },
     ]} onNavigate={onNavigate} onSelectEvent={onSelectEvent} />, { wrapper: Wrapper });
+    fireEvent.click(screen.getByRole("button", { name: "Mark complete" }));
+    expect(screen.getByRole("alertdialog")).toHaveAccessibleName("Mark step as complete");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     fireEvent.click(screen.getByRole("button", { name: "Treatment" }));
     expect(onSelectEvent).toHaveBeenCalledWith("event-2");
     expect(onNavigate).not.toHaveBeenCalled();
@@ -446,10 +530,12 @@ describe("clinic editors", () => {
     fireEvent.submit(form!);
     expect(screen.getByText("First name is required.")).toBeInTheDocument();
     expect(screen.getByText("Last name is required.")).toBeInTheDocument();
+    expect(screen.getByText("Identification code is required.")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("First Name"), { target: { value: "Ada" } });
     fireEvent.change(screen.getByLabelText("Last Name"), { target: { value: "Lovelace" } });
+    fireEvent.change(screen.getByLabelText("Identification Code"), { target: { value: "1234567890" } });
     fireEvent.submit(form!);
-    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ firstName: "Ada", lastName: "Lovelace" }));
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ firstName: "Ada", lastName: "Lovelace", identificationCode: "1234567890" }));
   });
 
   it.each([
