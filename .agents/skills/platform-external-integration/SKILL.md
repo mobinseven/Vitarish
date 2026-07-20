@@ -1,40 +1,23 @@
 ---
 name: platform-external-integration
-description: Designs and implements infrastructure adapters for vendor SDKs and remote services, including configuration, capability checks, quotas, payload shaping, timeout, retry, cancellation, error mapping, and redacted telemetry. Use whenever a backend crosses an external provider boundary.
+description: Owns Infrastructure adapters for remote providers: configuration, capability, quotas, payloads, timeout/retry/cancellation, error mapping, cleanup, and redacted telemetry.
 ---
 
 # Platform External Integration
 
-## Purpose
+## Rules
 
-Contain provider-specific behavior in Infrastructure while presenting a stable Application-owned capability. This skill owns adapter mechanics, not application policy or transport/UI behavior.
+1. Implement the narrow Application port without leaking provider types inward.
+2. Validate configuration at composition/capability boundaries; distinguish unavailable from misconfigured.
+3. Define provider limits, batching/chunking, ordering, cancellation propagation, timeout ownership, and cleanup.
+4. Retry only at the initiating boundary and only with defined idempotency for mutations.
+5. Map failures to stable application outcomes while retaining safe diagnostic telemetry.
+6. Redact credentials and sensitive payloads; do not log bodies, media, transcripts, clinical content, or tokens without explicit policy.
+7. Keep provider registration/configuration in Infrastructure/composition.
+8. Test mapping with deterministic fakes and use a real-provider hot scenario when mocks cannot prove wiring/runtime behavior.
 
-## Use when
+## Stop
 
-- Adding or changing a cloud service, third-party API, vendor SDK, remote model, queue, object store, search engine, or other nondeterministic provider.
-- Provider availability, credentials, regions, models, quotas, payload limits, timeouts, or provider errors affect delivery.
-
-## Do not use
-
-- The task only consumes an existing stable application port and adapter.
-
-## Procedure
-
-1. Read the Application port and map it to the narrowest provider operations; do not leak provider types inward.
-2. Validate required configuration at composition/capability boundaries and distinguish unavailable from misconfigured.
-3. Define provider limits, chunking/batching, ordering, cancellation propagation, timeout ownership, and connection cleanup.
-4. Put retries only at the initiating boundary; require idempotency before retrying state-changing calls.
-5. Map provider failures into stable application outcomes while retaining safe diagnostic detail in telemetry.
-6. Redact credentials and sensitive payloads. Never log request bodies, media, transcripts, clinical content, or provider tokens unless an explicit approved policy permits it.
-7. Use deterministic fakes for adapter mapping tests and at least one runtime hot scenario with real provider wiring when confidence depends on it.
-8. Keep provider-specific configuration and registration in Infrastructure/composition, not Domain/Application.
-
-## Hard stops
-
-- Provider types, status codes, or configuration leak into Domain/Application contracts.
+- Provider types/status/configuration leak inward.
 - Retry, timeout, cancellation, quota, or cleanup ownership is undefined.
-- Sensitive payloads or secrets can reach logs, exceptions, generated output, or source control.
-
-## Handoff
-
-Route application policy to `platform-backend-use-case`, protocol exposure to `platform-transport-contract`, security/privacy to `platform-trust-boundary`, and runtime verification to `platform-test-validation`.
+- Secrets or sensitive payloads can reach logs, errors, generated output, or source control.

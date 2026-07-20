@@ -1,32 +1,19 @@
 ---
 name: platform-simplification-audit
-description: Finds deletion, reuse, standard-library or native replacements, duplicate state, speculative abstractions, unnecessary configuration, and avoidable dependencies. Use when simplification is requested or a plan/diff introduces notable new layers or parallel paths. Do not use as a mandatory ceremony for every change.
+description: Finds safe deletion, reuse, native/standard replacements, duplicate state, speculative abstractions, unnecessary configuration, and avoidable dependencies. Use when simplification is material.
 ---
 
 # Platform Simplification Audit
 
-## Purpose
+## Rules
 
-Find the smallest correct design without deleting necessary boundaries, validation, security, accessibility, localization, failure handling, or tests.
+1. Trace real flow, callers, and ownership before judging code unnecessary.
+2. Apply the `AGENTS.md` minimum-change ladder in order.
+3. Find duplicate rules/state, unbounded old/new coexistence, one-use wrappers, SDK-renaming abstractions, speculative options, and hand-rolled platform behavior.
+4. Prefer one shared root-cause fix over symptom patches.
+5. Tag findings `delete`, `reuse`, `stdlib`, `native`, `dedupe`, `yagni`, `shrink`, or `keep`; state replacement and protected behavior/risk.
+6. Route recommendations that alter boundaries through architecture review before implementation.
 
-## Procedure
+## Stop
 
-1. Understand the real flow, callers, and ownership before labeling code unnecessary.
-2. Apply the minimum-change ladder from `AGENTS.md` in order: remove, reuse, standard library, native platform, installed dependency, cohesive edit, then minimum custom code.
-3. Look for duplicate rules/state, parallel old/new paths without a removal condition, one-use wrappers, vendor abstractions that merely rename SDK calls, speculative options, and hand-rolled platform behavior.
-4. Prefer fixing one shared root cause over patching multiple symptoms.
-5. State what can be deleted or shrunk, the replacement, and the behavior/risk that must remain protected.
-6. Route boundary-impacting recommendations to `platform-artifact-architecture` before implementation.
-
-## Finding tags
-
-`delete`, `reuse`, `stdlib`, `native`, `dedupe`, `yagni`, `shrink`, `keep`.
-
-## Hard stops
-
-- A proposed simplification weakens a trust boundary, data safety, cancellation, compatibility, accessibility, localization, observability, or meaningful test coverage.
-- A shorter form is less explicit about lifecycle or failure behavior.
-
-## Handoff
-
-Return approved reductions to `platform-change-planning` or `platform-delivery-loop`.
+Do not reduce trust, data safety, cancellation, compatibility, accessibility, localization, observability, failure clarity, or meaningful tests merely to shorten code.

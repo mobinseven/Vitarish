@@ -1,194 +1,108 @@
 # AGENTS.md
 
-This file is the repository-wide operating contract for coding agents.
+Repository-wide operating contract for coding agents.
 
-- **[MUST]** is mandatory. An agent may deviate only when the user or repository owner explicitly approves the exception and the reason is recorded in the narrowest authoritative document or ADR. Security, authorization, secret-handling, and data-loss protections may never be waived merely to complete a task.
-- **[SHOULD]** is the strong default. Deviate only when the alternative is clearly simpler or safer for the current requirement, and state why.
-
-Keep this file focused on guidance that applies to nearly every change. Put area-specific guidance in the nearest nested `AGENTS.md`, repeatable workflows in skills, repository navigation and commands in `docs/codebase-map.md`, and detailed architectural reasoning in `docs/architecture-rationale.md`.
+- **[MUST]** is mandatory. Deviate only with explicit owner approval recorded in the narrowest authoritative document or ADR. Never waive security, authorization, secret handling, or data-loss protection merely to finish work.
+- **[SHOULD]** is the strong default. Deviate only for a clearly simpler or safer solution and state why.
 
 ## Scope and precedence
 
-These instructions apply to every changed artifact: code, tests, contracts, schemas, migrations, configuration, generated outputs, documentation, and skills.
+Applies to every changed artifact. A nearer `AGENTS.md` may specialize commands, placement, and **[SHOULD]** rules, but cannot weaken a root **[MUST]**. A matched skill may specialize **[SHOULD]** guidance. Conflicting **[MUST]** rules are a policy defect: stop, report them, and do not choose silently.
 
-Codex loads instruction files from the repository root toward the working directory. A closer nested `AGENTS.md` may specialize commands, placement, and **[SHOULD]** defaults for its subtree, but may not weaken a root **[MUST]** rule. A task-matched skill may specialize a **[SHOULD]** rule. Conflicting **[MUST]** instructions are a policy defect: stop using the conflicting design, report the conflict, and do not silently choose one.
+Read only relevant sources:
 
-Before changing files, read only the context that applies:
-
-- [`docs/architecture.md`](docs/architecture.md): dependency matrix, module boundaries, allowed dependencies, public contracts, and repository-specific architecture.
-- [`docs/codebase-map.md`](docs/codebase-map.md): module locations, generated areas, canonical build/test commands, and common change destinations.
-- [`docs/memory.md`](docs/memory.md): durable lessons, fragile areas, known failure modes, and unfinished migrations that a future session would otherwise rediscover.
-- [`docs/architecture-rationale.md`](docs/architecture-rationale.md): reasoning and examples behind the invariants below; read for architecture-sensitive work, not every local edit.
+- `docs/architecture.md`: boundaries, dependency matrix, public contracts.
+- `docs/codebase-map.md`: locations, generated areas, canonical commands.
+- `docs/memory.md`: durable lessons, fragile areas, unfinished migrations.
+- `docs/architecture-rationale.md`: reasoning for architecture-sensitive work.
 
 Do not duplicate those documents here.
 
-## Repository invariants and defaults
+## Core rules
 
-1. **Cohesion [SHOULD]**  
-   Every artifact should have one clear primary reason to change. Split unrelated forces, such as business policy and persistence mechanics, but keep cohesive behavior together when splitting would only add navigation or indirection. A composition root or UI component may own several closely related concerns without violating this rule.
+1. **Cohesion [SHOULD]** — Give each artifact one primary reason to change. Split unrelated forces; do not split cohesive behavior merely to add indirection.
+2. **Authoritative ownership [MUST]** — Every rule, invariant, mutable state, and shared value has one owner. Derived DTOs, persistence shapes, caches, indexes, generated clients, fixtures, and view models must have an explicit source and synchronization path.
+3. **Narrow knowledge [SHOULD]** — Expose only the information and capabilities required through the narrowest stable boundary. Do not reach through internals or framework details.
+4. **Dependency direction [MUST]** — Domain is independent of Infrastructure and UI. Application may depend only on Application-owned ports, never concrete databases, HTTP/filesystem clients, vendor SDKs, UI frameworks, or other outward implementations. Add a port only for a real boundary, nondeterminism, alternative implementation, or meaningful capability.
+5. **Commands and queries [MUST]** — Queries cause no observable state change. Commands return only the outcome data required; they are not read APIs. CQRS infrastructure is optional.
+6. **Explicit boundaries [MUST]** — Validate transport shape at Transport, use-case preconditions at Application, invariants at their owner, and external responses before trust. Define relevant cancellation, timeout, retry, duplicate-call, idempotency, concurrency, partial-failure, and dependency-unavailable behavior. Never swallow failures.
+7. **Cohesive edits [SHOULD]** — Reuse a natural extension point; otherwise edit the current owner. Do not invent handlers, strategies, plug-ins, layers, or wrappers solely to avoid changing stable code.
+8. **Current requirements [SHOULD]** — Avoid speculative layers, options, abstractions, and configuration. When solutions are equally correct, prefer the simpler and more reversible one.
 
-2. **Authoritative ownership [MUST]**  
-   Every invariant, mutable state, business rule, and shared value must have one authoritative owner. DTOs, persistence shapes, caches, indexes, generated clients, fixtures, and view models may represent the same concept, but their source and synchronization path must be explicit. Never create two places that can independently decide the same rule or value.
+## Safeguards
 
-3. **Narrow knowledge [SHOULD]**  
-   Give each component only the information and capabilities it needs through the narrowest stable contract appropriate to the boundary. Do not reach through object graphs, depend on another component's internals, or couple to framework implementation details.
+- **Secrets/data [MUST]:** Never expose, log, commit, or generate secrets, credentials, private keys, or sensitive payloads. Preserve redaction and least privilege.
+- **Trust [MUST]:** Never weaken authentication, authorization, ownership/tenant checks, TLS, CORS, antiforgery, validation, or isolation to pass tests or deployment.
+- **Data access [MUST]:** Parameterize data access. Treat external, generated, deserialized, and cross-boundary content as untrusted.
+- **Compatibility [MUST]:** Public APIs, operation IDs, generated-client inputs, persisted formats, schemas, events/messages, and configuration keys are compatibility boundaries. Breaking changes require explicit versioning or migration.
+- **Migrations [MUST]:** Account for existing data and mixed versions. Prefer expand-migrate-contract; state data-loss, rollback, and compatibility effects.
+- **Generated output [MUST]:** Never edit generated clients, DTOs, hooks, keys, mocks, or equivalent output. Change the source and run the canonical generator.
+- **Retries [MUST]:** The initiating boundary owns retry policy. Retried mutations require idempotency. Do not stack retries without explicit reason.
+- **Quality [MUST]:** Do not weaken assertions, tests, analyzers, validators, or diagnostics to obtain a pass.
+- **Observability [SHOULD]:** Important failures produce structured, actionable, redacted telemetry.
 
-4. **Dependency direction [MUST]**  
-   Domain logic must remain independent of infrastructure and UI. Application logic may depend on application-defined ports for required capabilities, but never on concrete databases, HTTP clients, filesystems, vendor SDKs, UI frameworks, or other infrastructure implementations. Infrastructure and presentation may depend inward; core and application must not depend outward. Do not introduce an interface merely because a concrete type exists. Add a port when it protects an architectural boundary, controls nondeterminism, supports an existing alternative implementation, or represents a meaningful application capability.
+## Scope and minimum change
 
-5. **Commands and queries [MUST]**  
-   Queries must not cause externally observable state changes. Commands may return the minimum result needed to describe their outcome, such as an identifier, concurrency token, validation result, or redirect target, but must not become general-purpose read APIs. Command-query separation does not require CQRS infrastructure or a mediator framework.
+Make the smallest complete change. Fix violations introduced or materially worsened by it; report unrelated pre-existing issues. Do not reformat, rename, reorganize, modernize, or refactor unrelated files. Preserve user changes. Modify lockfiles only when dependency resolution requires it.
 
-6. **Explicit boundaries and failure behavior [MUST]**  
-   Validate transport shape at transport boundaries, use-case preconditions at application boundaries, domain invariants in their authoritative owner, and external responses before trusting them. Define cancellation, timeout, retry, duplicate-call, idempotency, concurrency, partial-failure, and unavailable-dependency behavior where relevant. Never swallow failures or leave correctness to accidental runtime behavior.
+When replacing a path, remove it or document the compatibility window, remaining dependents, owner, and removal condition.
 
-7. **Cohesive edits before invented extension points [SHOULD]**  
-   Use an existing extension point when it naturally fits. Otherwise, make the smallest cohesive change to the artifact that already owns the behavior. Do not invent a handler, strategy, plug-in, layer, or wrapper solely to avoid editing stable code.
+Stop at the first complete option:
 
-8. **Current requirements before speculative generality [SHOULD]**  
-   Build for the requirement in front of you. Do not add layers, options, abstractions, or configurability for an imagined future. When two solutions are equally correct and simple today, prefer the one that is cheaper to reverse or extend.
-
-## Non-negotiable platform safeguards
-
-- **Secrets and sensitive data [MUST]:** Never expose, log, commit, or place in generated output a secret, credential, token, private key, or sensitive payload. Preserve redaction and least-privilege behavior.
-- **Authorization [MUST]:** Preserve authorization and ownership checks when moving logic. Never weaken authentication, authorization, TLS, CORS, antiforgery, validation, or isolation to make a test or deployment pass.
-- **Data access [MUST]:** Use parameterized data access. Treat external content, generated content, deserialized payloads, and data crossing a trust boundary as untrusted.
-- **Compatibility [MUST]:** Treat public APIs, OpenAPI operation IDs, generated-client inputs, persisted formats, database schemas, events/messages, and configuration keys as compatibility boundaries. A breaking change requires an explicit versioning or migration decision.
-- **Migrations [MUST]:** Account for existing data and mixed-version deployment. Prefer additive expand-migrate-contract changes before destructive cleanup. State data-loss, rollback, and compatibility implications.
-- **Generated artifacts [MUST]:** Never manually edit generated clients, DTOs, hooks, query keys, mocks, or other generated files. Change the authoritative input and run the canonical generator.
-- **Retries and idempotency [MUST]:** The boundary initiating a retry owns its policy. Retried operations must define idempotency behavior. Do not stack retries across layers without an explicit reason.
-- **Tests and analyzers [MUST]:** Do not weaken assertions, delete meaningful tests, suppress diagnostics, or disable analyzers merely to make a change pass.
-- **Observability [SHOULD]:** New operationally important failure modes should produce structured, actionable telemetry without leaking sensitive data.
-
-## Scope discipline
-
-Make the smallest complete change that solves the task.
-
-- Fix violations introduced or materially worsened by the current change.
-- Report pre-existing unrelated violations; do not refactor them unless doing so is the smallest correct fix.
-- Do not reformat, rename, reorganize, or modernize unrelated files.
-- Preserve user-authored working-tree changes and do not overwrite work you did not create.
-- Do not modify lockfiles unless dependency resolution requires it.
-- Do not combine an unrelated refactor, contract migration, or broad cleanup with a focused behavior change.
-- When replacing an old path, remove it or document why coexistence is required, who still depends on it, and the condition for removal. Compatibility windows, feature flags, and expand-contract migrations are valid temporary coexistence.
-
-## Minimum necessary change
-
-After reading the task and the affected code, stop at the first option that completely solves it:
-
-1. Do nothing because the requested behavior already exists or should not exist.
-2. Reuse the repository's existing owner, pattern, contract, component, hook, validator, or script.
-3. Use the standard library or runtime.
-4. Use the native platform or framework behavior.
-5. Use an already-installed dependency.
+1. No change needed.
+2. Reuse an existing owner, pattern, contract, component, hook, validator, or script.
+3. Use the standard library/runtime.
+4. Use native platform/framework behavior.
+5. Use an installed dependency.
 6. Make the smallest cohesive edit.
-7. Only then add minimum custom code or a new dependency.
+7. Add only the minimum custom code or dependency.
 
-This ladder reduces implementation, not investigation. For bugs, trace callers and fix the root cause at the shared boundary when that is the smallest correct fix. Never simplify away security, data-loss protection, validation, cancellation, idempotency, accessibility, localization, architecture boundaries, or required tests.
+For bugs, trace callers and fix the shared root cause when that is the smallest correct fix. Never simplify away security, data safety, validation, cancellation, idempotency, accessibility, localization, boundaries, or required tests.
 
-## Planning requirements for non-trivial work
+## Planning and delivery
 
-Before finalizing a non-trivial plan, and again before implementing it:
+For non-trivial work, record:
 
-1. Identify the smallest affected artifact set.
-2. State each new or structurally changed artifact's architectural layer and primary responsibility. Command/query is a behavioral role and may be stated in addition to the layer.
-3. Confirm dependency direction and placement against `docs/architecture.md` and `docs/codebase-map.md`.
-4. Identify the authoritative owner of every changed rule, state, and contract.
-5. Identify trust boundaries, failure modes, compatibility impact, migration needs, and generated outputs.
-6. Route to only the skills that apply.
-7. Define deterministic validation and any runtime hot scenarios before coding.
-8. Check whether reuse or deletion makes the solution smaller.
-9. Separate confirmed facts, assumptions, and unresolved decisions.
-10. Divide implementation into independently valid, reviewable slices.
-11. Define acceptance criteria for each slice.
-12. State explicitly whether the outcome is planning-only or authorized for implementation.
+- outcome, non-goals, repository evidence, assumptions, and unresolved decisions;
+- smallest artifact set, layer, primary responsibility, owner, and dependency direction;
+- trust, failure, contract, compatibility, migration, configuration, and generated-output effects;
+- ordered independently valid slices, acceptance criteria, deterministic validation, and runtime hot scenarios;
+- applicable skills and whether work is planning-only or implementation-authorized.
 
-Skip ceremonial classification for typo fixes, local styling corrections, test expectation corrections, and similarly trivial changes that do not alter structure or behavior boundaries.
+Skip this ceremony for trivial edits that do not alter behavior or structural boundaries.
 
-## Restricted architectural choices
+A plan is complete only when it provides the above plus risks, rejected alternatives, and revision triggers. A file list or generic steps are insufficient.
 
-The following require an explicit current need and should normally be recorded in an ADR when they affect repository architecture:
+An implementation handoff must state material changes, validation commands/results, unrun checks and reasons, contract/data/configuration/generated-output effects, migration/rollback/security/operational implications, plan deviations, residual risk, and excluded scope. Compilation alone is insufficient.
 
-- Full CQRS with separate read/write models or pipelines
-- Event sourcing
-- Mediator frameworks
-- Generic repositories
-- New cross-cutting framework or package-manager adoption
-- Custom design-system wrappers
-- Inheritance where composition is comparably simple
+## Restricted choices
 
-Names must express a specific responsibility. Generic words such as `Manager`, `Helper`, `Util`, `Common`, and `Service` do not make an otherwise vague name acceptable.
+Require a current need and normally an ADR when repository architecture changes: full CQRS with separate models/pipelines, event sourcing, mediator frameworks, generic repositories, new cross-cutting frameworks or package managers, custom design-system wrappers, and inheritance where composition is comparably simple.
 
-Do not hide business rules or state mutation in extension methods. Do not place business rules in controllers, repositories, DTOs, migrations, adapters, UI components, generated clients, localization resources, or skill files.
+Names must express a specific responsibility; `Manager`, `Helper`, `Util`, `Common`, or `Service` cannot rescue a vague name. Do not hide business rules or mutation in extension methods or place business rules in controllers, repositories, DTOs, migrations, adapters, UI, generated clients, localization resources, or skills.
 
 ## Skills
 
-Project skills live under `.agents/skills/`. Open the index once, select the route, then load only the skills that own decisions in the current task. Do not make every skill rediscover or restate the chain.
+Skills live in `.agents/skills/`. Load only those owning current decisions.
 
 | Trigger | Skill |
 | --- | --- |
-| Non-trivial plan, scope, slices, assumptions, acceptance | `platform-change-planning` |
-| Artifact ownership, placement, dependencies, ADR impact | `platform-artifact-architecture` |
-| Domain/Application behavior, commands, queries, ports, orchestration | `platform-backend-use-case` |
-| Database schema, migrations, persisted formats, backfills | `platform-data-evolution` |
-| Vendor SDK, remote provider, resilience, configuration, telemetry | `platform-external-integration` |
-| HTTP/OpenAPI, WebSocket/SSE, protocol, contracts, generated clients | `platform-transport-contract` |
-| Authentication, authorization, tenant isolation, origins, privacy, limits | `platform-trust-boundary` |
-| React feature ownership, hooks, browser APIs, localization, accessibility | `platform-react-feature` |
-| Web route shells, main/scroll ownership, viewport geometry, shared gutters/widths | `apply-web-layout-policy` |
-| Tests, validators, builds, generators, and runtime hot scenarios | `platform-test-validation` |
-| Execute an approved slice and produce evidence-based handoff | `platform-delivery-loop` |
-| Remove duplication, speculative layers, dependencies, or dead paths | `platform-simplification-audit` |
-| Create, merge, rename, validate, or route project skills | `platform-skill-governance` |
+| Plan scope, assumptions, slices, acceptance | `platform-change-planning` |
+| Authorized implementation or final handoff | `platform-delivery-loop` |
+| Artifact ownership, placement, dependencies, ADR | `platform-artifact-architecture` |
+| Domain/Application behavior and ports | `platform-backend-use-case` |
+| Persisted data and migrations | `platform-data-evolution` |
+| Vendor/provider adapters | `platform-external-integration` |
+| HTTP/OpenAPI/WebSocket/SSE contracts | `platform-transport-contract` |
+| Auth, ownership, privacy, untrusted input | `platform-trust-boundary` |
+| React, browser APIs, localization, accessibility | `platform-react-feature` |
+| Route shells, viewport, main/scroll ownership | `apply-web-layout-policy` |
+| Tests, validators, builds, generators, hot scenarios | `platform-test-validation` |
+| Requested simplification or notable new layers | `platform-simplification-audit` |
+| Skill-system maintenance | `platform-skill-governance` |
 
-Routing rules:
-
-1. Use `platform-change-planning` for planning; use `platform-delivery-loop` for implementation. Do not load both for a trivial local fix.
-2. Add only the boundary skills touched by the task. A full-stack feature may require several; a local change usually requires one.
-3. Use `platform-test-validation` after the affected boundaries are known.
-4. Stop after validation for planning-only requests. Implementation requires explicit authorization.
-5. The detailed route matrix and examples live in [`.agents/skills/README.md`](.agents/skills/README.md); this section remains the lean index.
-
-## Completion criteria
-
-### Plan complete
-
-A non-trivial plan is complete only when it states:
-
-- The problem, intended outcome, and excluded scope
-- Relevant repository facts and the evidence supporting them
-- Assumptions and unresolved decisions
-- Affected artifacts and the intended responsibility of each
-- Architectural placement, dependency direction, and authoritative ownership
-- Public-contract, schema, generated-code, security, migration, and compatibility impact
-- Ordered implementation slices and dependencies between them
-- Acceptance criteria, deterministic tests, runtime scenarios, and canonical validation commands
-- Risks, alternatives rejected, and conditions that would require revising the plan
-
-A list of files or generic implementation steps is not a complete plan.
-
-### Implementation complete
-
-An implementation is complete only when the handoff states:
-
-- What changed and the responsibility of each materially changed artifact
-- Which tests, builds, generators, linters, analyzers, and runtime checks ran, with their results
-- Which relevant checks did not run and why
-- Whether public contracts, schemas, persisted data, configuration, or generated artifacts changed
-- Migration, compatibility, rollback, security, and operational implications
-- Any deviation from the approved plan
-- Any deliberate shortcut, remaining risk, or intentionally excluded scope
-
-Compilation alone is not completion.
+Planning uses `platform-change-planning`; implementation uses `platform-delivery-loop`. Add only touched boundary skills. Use `platform-test-validation` after boundaries are known. Planning-only work stops before edits unless implementation is explicitly authorized. See `.agents/skills/README.md` only for mode and layout-routing edge cases.
 
 ## Durable knowledge
 
-Write durable information to its narrowest authoritative owner:
-
-- Architecture decisions and alternatives: ADR or `docs/architecture.md`
-- Repository navigation and canonical commands: `docs/codebase-map.md`
-- Repeatable procedures: the owning skill or runbook
-- Actionable debt and removal work: issue tracker or structured debt register, including owner and removal condition
-- Durable rediscovery-prevention lessons, fragile areas, and unfinished migration context: `docs/memory.md`
-
-Do not turn `docs/memory.md` into a running project-management log. Link to the owning issue or ADR when future agents need the context.
+Write information to its owner: architecture decisions to ADRs or `docs/architecture.md`; navigation/commands to `docs/codebase-map.md`; repeatable procedures to skills/runbooks; actionable debt to the issue/debt tracker with owner and removal condition; rediscovery-prevention lessons and unfinished migration context to `docs/memory.md`. Do not turn memory into a project log.
