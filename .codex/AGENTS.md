@@ -83,7 +83,7 @@ Names must express a specific responsibility; `Manager`, `Helper`, `Util`, `Comm
 
 ## Skills
 
-Skills live in `.agents/skills/`. Load only those owning current decisions.
+Skills live in `.codex/.agents/skills/`. Load only those owning current decisions.
 
 | Trigger | Skill |
 | --- | --- |
@@ -101,7 +101,7 @@ Skills live in `.agents/skills/`. Load only those owning current decisions.
 | Requested simplification or notable new layers | `platform-simplification-audit` |
 | Skill-system maintenance | `platform-skill-governance` |
 
-Planning uses `platform-change-planning`; implementation uses `platform-delivery-loop`. Add only touched boundary skills. Use `platform-test-validation` after boundaries are known. Planning-only work stops before edits unless implementation is explicitly authorized. See `.agents/skills/README.md` only for mode and layout-routing edge cases.
+Planning uses `platform-change-planning`; implementation uses `platform-delivery-loop`. Add only touched boundary skills. Use `platform-test-validation` after boundaries are known. Planning-only work stops before edits unless implementation is explicitly authorized. See `.codex/.agents/skills/README.md` only for mode and layout-routing edge cases.
 
 ## Durable knowledge
 
