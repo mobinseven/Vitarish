@@ -1,8 +1,8 @@
 "use client";
 
-import { ClinicSettingsPage } from "@vitarish/clinic-web";
+import { SettingsPage } from "@vitarish/clinic-web";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 
-export default function ClinicSettingsRoute() {
-  return <ClinicSettingsPage onNavigate={useClinicNavigation()} />;
+export default function SettingsRoute() {
+  return <SettingsPage onNavigate={useClinicNavigation()} />;
 }

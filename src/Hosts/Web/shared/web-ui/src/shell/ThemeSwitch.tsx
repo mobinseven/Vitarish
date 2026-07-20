@@ -22,7 +22,7 @@ export function ThemeSwitch() {
   const label = t(`appShell.theme.${currentTheme}`);
 
   return (
-    <Tooltip content={label}>
+    <Tooltip>
       <Button
         fullWidth
         size="sm"
@@ -34,6 +34,9 @@ export function ThemeSwitch() {
         <FaIcon icon={themeIcons[currentTheme]} className="size-4 shrink-0" />
         <span data-sidebar="label" className="truncate">{label}</span>
       </Button>
+        <Tooltip.Content>
+          {label}
+        </Tooltip.Content>
     </Tooltip>
   );
 }

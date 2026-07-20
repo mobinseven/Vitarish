@@ -10,7 +10,7 @@ import { PatientProcedureEventCommitDialog } from "./PatientProcedureEventCommit
 import { useLocalizedText, formatDateTime } from "../../../localization";
 import type { ClinicalEventSummary } from "../../../models/patients/procedures/PatientProcedureEventModels";
 import type { EventItemSummary } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
-import type { ClinicNavigationIntent } from "../../../navigation";
+import type { NavigationIntent } from "../../../navigation";
 import { PatientProcedureEventAttachmentMiniView } from "./PatientProcedureEventAttachmentMiniView";
 import {
   useCommitPatientProcedureEvent,
@@ -24,7 +24,7 @@ interface PatientProcedureEventTimelineProps {
   selectedEventId?: string;
   selectedEventItems?: EventItemSummary[];
   onSelectEvent: (eventId: string) => void;
-  onNavigate: (intent: ClinicNavigationIntent) => void;
+  onNavigate: (intent: NavigationIntent) => void;
 }
 
 export function PatientProcedureEventTimeline({
@@ -168,7 +168,7 @@ function PatientProcedureEventAction({ event }: { event: ClinicalEventSummary })
 
   return (
     <>
-      <Tooltip content={actionLabel}>
+      <Tooltip>
         {event.isCommitted ? (
           <Button
             size="sm"
@@ -192,6 +192,9 @@ function PatientProcedureEventAction({ event }: { event: ClinicalEventSummary })
             <i aria-hidden="true" className="fa-solid fa-check" />
           </Button>
         }
+        <Tooltip.Content>
+          {actionLabel}
+        </Tooltip.Content>
       </Tooltip>
       {commitConfirmationTarget !== null ? (
         <PatientProcedureEventCommitDialog

@@ -2,16 +2,16 @@
 
 import { use } from "react";
 import { useAuthSession } from "@vitarish/auth-web";
-import { ClinicPatientProcedureEventPage } from "@vitarish/clinic-web";
+import { PatientProcedureEventPage } from "@vitarish/clinic-web";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 
-interface ClinicPatientProcedureEventRouteProps {
+interface PatientProcedureEventRouteProps {
   params: Promise<{ patientId: string; procedureId: string; eventId: string }>;
 }
 
-export default function ClinicPatientProcedureEventRoute({
+export default function PatientProcedureEventRoute({
   params,
-}: ClinicPatientProcedureEventRouteProps) {
+}: PatientProcedureEventRouteProps) {
   const { patientId, procedureId, eventId } = use(params);
   const { displayProfile, user } = useAuthSession();
   const onNavigate = useClinicNavigation();
@@ -23,7 +23,7 @@ export default function ClinicPatientProcedureEventRoute({
     : undefined;
 
   return (
-    <ClinicPatientProcedureEventPage
+    <PatientProcedureEventPage
       eventId={eventId}
       patientId={patientId}
       procedureId={procedureId}

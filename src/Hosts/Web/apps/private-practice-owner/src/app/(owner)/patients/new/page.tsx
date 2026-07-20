@@ -1,6 +1,6 @@
 "use client";
-import { ClinicPatientCreatePage } from "@vitarish/clinic-web";
+import { PatientCreatePage } from "@vitarish/clinic-web";
 import { useClinicNavigation } from "@/components/clinic-navigation";
-export default function ClinicPatientCreateRoute() {
-  return <ClinicPatientCreatePage onNavigate={useClinicNavigation()} />;
+export default function PatientCreateRoute() {
+  return <PatientCreatePage onNavigate={useClinicNavigation()} />;
 }

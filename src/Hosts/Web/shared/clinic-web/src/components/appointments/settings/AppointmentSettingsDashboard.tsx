@@ -1,17 +1,17 @@
 "use client";
 
-import { ClinicNavigationGrid, type ClinicNavigationItem } from "../../navigation/ClinicNavigationGrid";
-import type { ClinicNavigationIntent } from "../../../navigation";
+import { NavigationGrid, type NavigationItem } from "../../navigation/NavigationGrid";
+import type { NavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization/index";
 
 interface AppointmentSettingsDashboardProps {
-  onNavigate?: (intent: ClinicNavigationIntent) => void;
+  onNavigate?: (intent: NavigationIntent) => void;
 }
 
 export function AppointmentSettingsDashboard({ onNavigate }: AppointmentSettingsDashboardProps) {
   const { t } = useLocalizedText();
 
-  const settingsLinks: ClinicNavigationItem[] = [
+  const settingsLinks: NavigationItem[] = [
     { title: t("clinic.serviceTypes.title"), description: t("clinic.serviceTypes.description"), intent: { kind: "serviceTypeIndex" }, icon: "fa-solid fa-tags" },
     { title: t("clinic.services.title"), description: t("clinic.services.description"), intent: { kind: "serviceIndex" }, icon: "fa-solid fa-concierge-bell" },
     { title: t("clinic.serviceProviders.title"), description: t("clinic.serviceProviders.description"), intent: { kind: "serviceProviderIndex" }, icon: "fa-solid fa-user-doctor" },
@@ -24,7 +24,7 @@ export function AppointmentSettingsDashboard({ onNavigate }: AppointmentSettings
         <p className="text-sm text-muted">{t("clinic.appointments.settings.description")}</p>
       </div>
 
-      <ClinicNavigationGrid items={settingsLinks} onNavigate={onNavigate} />
+      <NavigationGrid items={settingsLinks} onNavigate={onNavigate} />
     </div>
   );
 }

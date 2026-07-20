@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { Button } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
-import type { ClinicNavigationIntent } from "../../../navigation";
+import type { NavigationIntent } from "../../../navigation";
 import { EmptyStateSurface as ClinicEmptyState, ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
 import { useOwnerShifts } from "../../../hooks/appointments/shifts/useOwnerShifts";
 import { useLocalizedText, type MessageKey } from "../../../localization/index";
@@ -19,7 +19,7 @@ const dayNameKeys = [
 ] satisfies MessageKey[];
 
 interface OwnerShiftsListProps {
-  onNavigate?: (intent: ClinicNavigationIntent) => void;
+  onNavigate?: (intent: NavigationIntent) => void;
 }
 
 export function OwnerShiftsList({ onNavigate }: OwnerShiftsListProps) {

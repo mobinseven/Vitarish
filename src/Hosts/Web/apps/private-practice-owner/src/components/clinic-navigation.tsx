@@ -3,13 +3,13 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
-import type { ClinicNavigationIntent } from "@vitarish/clinic-web";
+import type { NavigationIntent } from "@vitarish/clinic-web";
 
 export function useClinicNavigation() {
   const router = useRouter();
 
   const navigate = useCallback(
-    (intent: ClinicNavigationIntent) => {
+    (intent: NavigationIntent) => {
       switch (intent.kind) {
         case "dashboard":
           router.push(Routes.Clinic.Index);

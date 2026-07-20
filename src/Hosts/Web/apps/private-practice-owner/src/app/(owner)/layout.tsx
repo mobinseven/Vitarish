@@ -17,7 +17,7 @@ import {
 } from "@vitarish/web-ui/layout";
 import { isClinicWorkspaceRoute } from "./clinicRouteLayout";
 
-export default function ClinicLayout({
+export default function OwnerLayout({
   children,
 }: {
   children: React.ReactNode;

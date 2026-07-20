@@ -235,7 +235,7 @@ function DashboardFrameSidebarContents({
         >
           <Avatar className="size-9">
             <Avatar.Fallback>
-          <i className="fa-solid fa-user" />
+              <i className="fa-solid fa-user" />
             </Avatar.Fallback>
           </Avatar>
           <div className="flex min-w-0 flex-col" data-sidebar="label">

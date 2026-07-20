@@ -5,10 +5,10 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { useAgendaEvents } from "../hooks/appointments/agenda/useAgendaEvents";
 import {
-  ClinicDashboardPage,
-  ClinicPatientListPage,
-  ClinicOwnerShiftListPage,
-  ClinicServiceDetailPage,
+  DashboardPage,
+  PatientListPage,
+  OwnerShiftListPage,
+  ServiceDetailPage,
 } from "../index";
 import { clinicMessageCatalogs } from "../localization";
 
@@ -101,10 +101,10 @@ describe("useAgendaEvents", () => {
 
 describe("clinic-web public surface", () => {
   it("exports route-ready page surfaces", () => {
-    expect(ClinicDashboardPage).toBeDefined();
-    expect(ClinicPatientListPage).toBeDefined();
-    expect(ClinicOwnerShiftListPage).toBeDefined();
-    expect(ClinicServiceDetailPage).toBeDefined();
+    expect(DashboardPage).toBeDefined();
+    expect(PatientListPage).toBeDefined();
+    expect(OwnerShiftListPage).toBeDefined();
+    expect(ServiceDetailPage).toBeDefined();
   });
 });
 

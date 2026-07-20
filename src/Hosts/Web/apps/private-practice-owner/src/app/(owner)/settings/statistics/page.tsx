@@ -1,5 +1,5 @@
-import { ClinicStatisticsPage } from "@vitarish/clinic-web";
+import { StatisticsPage } from "@vitarish/clinic-web";
 
-export default function ClinicStatisticsRoute() {
-  return <ClinicStatisticsPage />;
+export default function StatisticsRoute() {
+  return <StatisticsPage />;
 }

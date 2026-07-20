@@ -8,14 +8,14 @@ import { usePatientProcedureEvents } from "../../../hooks/patients/procedures/us
 import { usePatientProcedureEventItems } from "../../../hooks/patients/procedures/usePatientProcedureEventItems";
 import { usePatientDetail } from "../../../hooks/patients/usePatientDetail";
 import { useLocalizedText } from "../../../localization";
-import type { ClinicNavigationIntent } from "../../../navigation";
+import type { NavigationIntent } from "../../../navigation";
 import { PatientProcedureEventTimeline } from "./PatientProcedureEventTimeline";
 import { PatientProcedureHeader } from "./PatientProcedureHeader";
 
 interface PatientProcedureWorkspaceProps {
   patientId: string;
   procedureId: string;
-  onNavigate: (intent: ClinicNavigationIntent) => void;
+  onNavigate: (intent: NavigationIntent) => void;
 }
 
 export function PatientProcedureWorkspace({

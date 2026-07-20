@@ -1,5 +1,5 @@
-import { ClinicCheckInPage } from "@vitarish/clinic-web";
+import { CheckInPage } from "@vitarish/clinic-web";
 
-export default function ClinicCheckInRoute() {
-  return <ClinicCheckInPage />;
+export default function CheckInRoute() {
+  return <CheckInPage />;
 }

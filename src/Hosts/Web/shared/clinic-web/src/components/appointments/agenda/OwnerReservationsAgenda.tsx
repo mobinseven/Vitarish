@@ -3,12 +3,12 @@
 import { useOwnerReservations } from "../../../hooks/appointments/reservations/useOwnerReservations";
 import { useOwnerShifts } from "../../../hooks/appointments/shifts/useOwnerShifts";
 import { ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
-import type { ClinicNavigationIntent } from "../../../navigation";
+import type { NavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization/index";
 import { AppointmentsAgenda } from "./AppointmentsAgenda";
 
 interface OwnerReservationsAgendaProps {
-  onNavigate?: (intent: ClinicNavigationIntent) => void;
+  onNavigate?: (intent: NavigationIntent) => void;
 }
 
 export function OwnerReservationsAgenda({ onNavigate }: OwnerReservationsAgendaProps) {

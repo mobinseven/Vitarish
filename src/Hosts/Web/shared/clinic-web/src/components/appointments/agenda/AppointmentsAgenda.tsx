@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Agenda, Segment, useAgenda } from "@heroui-pro/react";
 import { Button } from "@heroui/react";
 import { today, getLocalTimeZone } from "@internationalized/date";
-import type { ClinicNavigationIntent } from "../../../navigation";
+import type { NavigationIntent } from "../../../navigation";
 import type { ShiftReadDto, ReservationReadDto } from "../../../api/appointments/appointmentsApi";
 import { useAgendaEvents } from "../../../hooks/appointments/agenda/useAgendaEvents";
 import { formatNumber, useLocalizedText } from "../../../localization";
@@ -12,7 +12,7 @@ import { formatNumber, useLocalizedText } from "../../../localization";
 interface AppointmentsAgendaProps {
   shifts: ShiftReadDto[];
   reservations: ReservationReadDto[];
-  onNavigate?: (intent: ClinicNavigationIntent) => void;
+  onNavigate?: (intent: NavigationIntent) => void;
 }
 
 export function AppointmentsAgenda({ shifts, reservations, onNavigate }: AppointmentsAgendaProps) {

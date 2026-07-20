@@ -10,7 +10,7 @@ import { useLocalizedText, formatDateTime } from "../../../localization/index";
 interface PatientProceduresPanelProps {
   patientId: string;
   onNavigate?: (
-    intent: import("../../../navigation").ClinicNavigationIntent,
+    intent: import("../../../navigation").NavigationIntent,
   ) => void;
 }
 

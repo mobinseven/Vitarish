@@ -1,5 +1,5 @@
-import { ClinicSettingsUsersPage } from "@vitarish/clinic-web";
+import { SettingsUsersPage } from "@vitarish/clinic-web";
 
-export default function ClinicSettingsUsersRoute() {
-  return <ClinicSettingsUsersPage />;
+export default function SettingsUsersRoute() {
+  return <SettingsUsersPage />;
 }

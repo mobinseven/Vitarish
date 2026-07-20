@@ -1,5 +1,5 @@
-import { ClinicServiceProviderListPage } from "@vitarish/clinic-web";
+import { ServiceProviderListPage } from "@vitarish/clinic-web";
 
-export default function ClinicServiceProviderListRoute() {
-  return <ClinicServiceProviderListPage />;
+export default function ServiceProviderListRoute() {
+  return <ServiceProviderListPage />;
 }

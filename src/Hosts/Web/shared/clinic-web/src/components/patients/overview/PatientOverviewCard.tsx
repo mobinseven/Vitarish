@@ -88,9 +88,11 @@ export function PatientOverviewCard({ patient, onBack, onCheckIn, onEdit }: Pati
 
   return (
     <Card className="overflow-hidden" variant="secondary">
-      <Card.Header className="flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center">
+      <Card.Header className="flex flex-col items-start gap-4 p-2 sm:flex-row sm:items-center">
         <Avatar color="accent" size="lg" variant="soft" role="img" aria-label={displayName}>
-          <Avatar.Fallback className="text-lg font-semibold">{getInitials(patient)}</Avatar.Fallback>
+          <Avatar.Fallback className="text-lg font-semibold">
+            <i className="fa-solid fa-user" />
+          </Avatar.Fallback>
         </Avatar>
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-xl font-semibold text-foreground sm:text-2xl">{displayName}</h1>
@@ -104,8 +106,7 @@ export function PatientOverviewCard({ patient, onBack, onCheckIn, onEdit }: Pati
 
       {sections.length > 0 ? (
         <>
-          <Separator />
-          <Card.Content className="grid gap-5 p-5 sm:grid-cols-2 xl:grid-cols-3">
+          <Card.Content className="grid gap-1 p-2 sm:grid-cols-2 xl:grid-cols-3">
             {sections.map((section) => (
               <section key={section.title} className="min-w-0">
                 <h2 className="mb-3 text-sm font-semibold text-foreground">
@@ -118,8 +119,7 @@ export function PatientOverviewCard({ patient, onBack, onCheckIn, onEdit }: Pati
         </>
       ) : null}
 
-      <Separator />
-      <Card.Footer className="flex flex-wrap justify-end gap-2 p-4 sm:p-5">
+      <Card.Footer className="flex flex-wrap justify-end gap-1 p-2 sm:p-5">
         <Button variant="ghost" onPress={onBack}>
           {t("clinic.patients.backToPatients")}
         </Button>

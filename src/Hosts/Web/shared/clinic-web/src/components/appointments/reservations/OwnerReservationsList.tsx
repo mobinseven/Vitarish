@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { ListView } from "@heroui-pro/react";
-import type { ClinicNavigationIntent } from "../../../navigation";
+import type { NavigationIntent } from "../../../navigation";
 import { EmptyStateSurface as ClinicEmptyState, ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
 import { useOwnerReservations } from "../../../hooks/appointments/reservations/useOwnerReservations";
 import { useLocalizedText, type MessageKey } from "../../../localization/index";
@@ -19,7 +19,7 @@ const reservationStatusKeys: Record<number, MessageKey> = {
 };
 
 interface OwnerReservationsListProps {
-  onNavigate?: (intent: ClinicNavigationIntent) => void;
+  onNavigate?: (intent: NavigationIntent) => void;
 }
 
 export function OwnerReservationsList({ onNavigate }: OwnerReservationsListProps) {

@@ -107,7 +107,7 @@ export function DashboardShell({
       title={null}
       toolbar={
         upHref ? (
-          <Tooltip content={t("appShell.navigation.up")}>
+          <Tooltip>
             <Button
               aria-label={t("appShell.navigation.up")}
               isDisabled={!upHref}
@@ -117,10 +117,13 @@ export function DashboardShell({
               <i aria-hidden="true" className="fa-solid fa-arrow-up" />
               {t("appShell.navigation.up")}
             </Button>
+            <Tooltip.Content>
+              {t("appShell.navigation.up")}
+            </Tooltip.Content>
           </Tooltip>
         ) : null
       }
-      
+
     >
       {children}
     </DashboardFrame>

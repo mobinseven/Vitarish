@@ -1,4 +1,4 @@
-export type ClinicNavigationIntent =
+export type NavigationIntent =
   | { kind: "dashboard" }
   | { kind: "ownerShiftIndex" }
   | { kind: "ownerShiftCreate" }
