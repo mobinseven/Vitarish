@@ -510,6 +510,7 @@ export const faMessages = {
   appShell: {
     brand: "ویتاریش",
     navigation: {
+      up: "بالا",
       home: "خانه",
       knowledge: "دانش",
       clinic: "کلینیک",
@@ -535,9 +536,9 @@ export const faMessages = {
       placeholder: "جستجو...",
     },
     theme: {
-      light: "تغییر به حالت روشن",
-      dark: "تغییر به حالت تاریک",
-      system: "تغییر به حالت سیستم",
+      light: "حالت روشن",
+      dark: "حالت تاریک",
+      system: "حالت سیستم",
     },
     actions: {
       notifications: "اعلان‌ها",

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useCallback, useMemo } from "react";
-import { Breadcrumbs, Button } from "@heroui/react";
+import { Button, Tooltip } from "@heroui/react";
 import {
   DashboardFrame,
   type DashboardContentMode,
@@ -15,9 +15,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@vitarish/auth-web";
 import { useLocalizedText, type MessageKey } from "@/localization";
-import { CultureSwitcher } from "./CultureSwitcher";
-import { ThemeSwitch } from "./ThemeSwitch";
-import { isRouteBranchCurrent } from "./dashboardRouteMatching";
 
 export interface DashboardShellItem {
   href: string;
@@ -26,7 +23,6 @@ export interface DashboardShellItem {
   badgeKey?: MessageKey;
   children?: readonly DashboardShellItem[];
   exactMatch?: boolean;
-  titleLabelKey?: MessageKey;
 }
 
 export interface DashboardShellNavGroup {
@@ -39,7 +35,6 @@ export interface DashboardShellProps {
   contentMode?: DashboardContentMode;
   navGroups: readonly DashboardShellNavGroup[];
   footerItems?: readonly DashboardShellItem[];
-  homeHref?: string;
   mobileNavigation?: DashboardMobileNavigation;
 }
 
@@ -47,7 +42,6 @@ export function DashboardShell({
   children,
   contentMode = "page",
   footerItems = [],
-  homeHref = Routes.Home,
   mobileNavigation = "sidebar",
   navGroups,
 }: DashboardShellProps) {
@@ -57,30 +51,7 @@ export function DashboardShell({
   const { t } = useLocalizedText();
 
   const navigate = useCallback((href: string) => router.push(href), [router]);
-
-  const breadcrumbs = useMemo(() => {
-    const allItems = [...navGroups.flatMap((g) => g.items), ...footerItems];
-    const trail = findRouteBreadcrumbs(pathname, allItems).map((item) => ({
-      href: item.href,
-      label: t(item.titleLabelKey ?? item.labelKey),
-    }));
-    const homeCrumb = { href: homeHref, label: t("appShell.navigation.home") };
-    const items = trail[0]?.href === homeHref ? trail : [homeCrumb, ...trail];
-
-    return (
-      <Breadcrumbs aria-label={t("appShell.navigation.dashboardMenu")} className="min-w-0 truncate">
-        {items.map((item, index) => (
-          <Breadcrumbs.Item
-            key={`${item.href}-${index}`}
-            onPress={index === items.length - 1 ? undefined : () => navigate(item.href)}
-            aria-current={index === items.length - 1 ? "page" : undefined}
-          >
-            {t(item.label)}
-          </Breadcrumbs.Item>
-        ))}
-      </Breadcrumbs>
-    );
-  }, [footerItems, homeHref, navigate, navGroups, pathname, t]);
+  const upHref = getBreadcrumbParent(pathname);
 
   const sidebarIdentity = useMemo<DashboardIdentity>(() => {
     if (isLoading) {
@@ -133,34 +104,37 @@ export function DashboardShell({
       navigationGroups={navigationGroups}
       navigationLabel={t("appShell.navigation.dashboardMenu")}
       skipLinkLabel={t("appShell.navigation.skipToContent")}
-      title={breadcrumbs}
+      title={null}
       toolbar={
-        <>
-          <CultureSwitcher />
-          <ThemeSwitch />
-        </>
+        upHref ? (
+          <Tooltip content={t("appShell.navigation.up")}>
+            <Button
+              aria-label={t("appShell.navigation.up")}
+              isDisabled={!upHref}
+              variant="tertiary"
+              onPress={() => upHref && navigate(upHref)}
+            >
+              <i aria-hidden="true" className="fa-solid fa-arrow-up" />
+              {t("appShell.navigation.up")}
+            </Button>
+          </Tooltip>
+        ) : null
       }
+      
     >
       {children}
     </DashboardFrame>
   );
 }
 
-function findRouteBreadcrumbs(pathname: string, items: readonly DashboardShellItem[]): DashboardShellItem[] {
-  for (const item of items) {
-    if (item.children) {
-      const childTrail = findRouteBreadcrumbs(pathname, item.children);
-      if (childTrail.length > 0) {
-        return [item, ...childTrail];
-      }
-    }
+function getBreadcrumbParent(pathname: string): string | undefined {
+  const segments = pathname.split("/").filter(Boolean);
 
-    if (isRouteBranchCurrent(pathname, item)) {
-      return [item];
-    }
+  if (pathname === Routes.Home) {
+    return undefined;
   }
 
-  return [];
+  return segments.length > 1 ? `/${segments.slice(0, -1).join("/")}` : Routes.Home;
 }
 
 function toNavigationGroup(group: DashboardShellNavGroup, t: (key: MessageKey) => string): DashboardNavigationGroup {
