@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@heroui/react";
+import { Button, Card } from "@heroui/react";
 import { ErrorStateSurface, LoadingStateSurface } from "@vitarish/web-ui";
 import { usePatientProcedureDetail } from "../../../hooks/patients/procedures/usePatientProcedureDetail";
 import { usePatientProcedureEvents } from "../../../hooks/patients/procedures/usePatientProcedureEvents";
@@ -8,6 +8,7 @@ import { usePatientDetail } from "../../../hooks/patients/usePatientDetail";
 import { useLocalizedText } from "../../../localization";
 import type { ProcedureEventViewer } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 import type { NavigationIntent } from "../../../navigation";
+import { PatientOverviewHeader } from "../overview/PatientOverviewHeader";
 import { PatientProcedureEventDetailPanel } from "./PatientProcedureEventDetailPanel";
 
 export interface PatientProcedureEventPageProps {
@@ -57,14 +58,25 @@ export function PatientProcedureEventPage({
 
   return (
     <section className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col gap-6">
-      <PatientProcedureEventDetailPanel
-        eventId={eventId}
-        isFirst={eventIndex === 0}
-        isLast={eventIndex === events.length - 1}
-        procedureId={procedureId}
-        viewer={viewer}
-        onDeleted={returnToProcedure}
-      />
+      {patientQuery.data ? (
+        <>
+          <Card className="overflow-hidden" variant="transparent">
+            <PatientOverviewHeader patient={patientQuery.data} />
+          </Card>
+
+          <Card>
+            <Card.Content>
+              <PatientProcedureEventDetailPanel
+                eventId={eventId}
+                procedureId={procedureId}
+                viewer={viewer}
+                onDeleted={returnToProcedure}
+              />
+            </Card.Content>
+          </Card>
+        </>
+      ) : null}
+
     </section>
   );
 }

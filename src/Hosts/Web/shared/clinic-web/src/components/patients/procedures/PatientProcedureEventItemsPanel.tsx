@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 import { Button } from "@heroui/react";
-import { ChatConversation } from "@heroui-pro/react";
+import { ChatConversation, EmptyState } from "@heroui-pro/react";
 import { useDeletePatientProcedureEventItem } from "../../../hooks/patients/procedures/usePatientProcedureEventItemMutations";
 import { usePatientProcedureEventItems } from "../../../hooks/patients/procedures/usePatientProcedureEventItems";
 import { useLocalizedText } from "../../../localization";
@@ -50,9 +50,15 @@ export function PatientProcedureEventItemsPanel({
               </Button>
             </div>
           ) : items.length === 0 ? (
-            <p className="text-muted py-10 text-center text-sm">
-              {t("clinic.procedures.items.empty")}
-            </p>
+              <EmptyState size="sm">
+                <EmptyState.Header>
+                  <EmptyState.Media variant="icon">
+                    <i className="fa-solid fa-messages" />
+                  </EmptyState.Media>
+                  <EmptyState.Title>
+              {t("clinic.procedures.items.empty")}</EmptyState.Title>
+                </EmptyState.Header>
+              </EmptyState>
           ) : items.map((item) => (
             <PatientProcedureEventItemMessage
               key={item.id}

@@ -80,7 +80,7 @@ export function PatientProfileForm({
                         value={parseIsoDateValue(formData.dateOfBirth)}
                         onChange={(value) => handleChange("dateOfBirth", dateValueToIsoDate(value))}>
                         <Label>{t("clinic.patient.fields.dateOfBirth")}</Label>
-                        <DateField.Group fullWidth>
+                        <DateField.Group fullWidth variant="secondary">
                             <DateField.Input>{(segment) => <DateField.Segment segment={segment} />}</DateField.Input>
                             <DateField.Suffix>
                                 <DatePicker.Trigger>
@@ -181,7 +181,7 @@ export function PatientProfileForm({
                     onChange={(value) => handleChange("dateOfSurgery", dateValueToIsoDate(value))}
                 >
                     <Label>{t("clinic.patient.fields.dateOfSurgery")}</Label>
-                    <DateField.Group fullWidth>
+                    <DateField.Group fullWidth variant="secondary">
                         <DateField.Input>
                             {(segment) => <DateField.Segment segment={segment} />}
                         </DateField.Input>
@@ -289,7 +289,7 @@ function FormTextField({
     className?: string;
 }) {
     return (
-        <TextField isInvalid={!!error} isRequired={isRequired} className={className}>
+        <TextField isInvalid={!!error} isRequired={isRequired} className={className} variant="secondary">
             <Label>{label}</Label>
             <Input value={value} onChange={(e) => onChange(e.target.value)} />
             {error && <FieldError>{error}</FieldError>}
@@ -311,7 +311,7 @@ function FormSelectField({
     const { t } = useLocalizedText();
 
     return (
-        <NativeSelect fullWidth>
+        <NativeSelect fullWidth variant="secondary">
             <Label>{label}</Label>
             <NativeSelect.Trigger value={value} onChange={(e) => onChange(e.target.value)}>
                 <NativeSelect.Option value="">{t("clinic.patient.edit.selectPlaceholder")}</NativeSelect.Option>

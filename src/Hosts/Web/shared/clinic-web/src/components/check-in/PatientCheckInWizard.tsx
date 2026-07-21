@@ -59,7 +59,7 @@ export function PatientCheckInWizard({
         <p className="text-sm text-muted">{t("clinic.checkIn.description")}</p>
       </div>
 
-      <Stepper currentStep={currentStep}>
+      <Stepper currentStep={currentStep} orientation="vertical">
         {steps.map((stepLabel) => (
           <Stepper.Step key={stepLabel}>
             <Stepper.Indicator />

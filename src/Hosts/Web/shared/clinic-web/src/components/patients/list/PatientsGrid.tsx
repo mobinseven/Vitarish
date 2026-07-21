@@ -77,7 +77,7 @@ export function PatientsGrid({
       <Toolbar
         aria-label={t("clinic.patients.title")}
         isAttached={true}
-        className="sticky top-0 z-10 grid w-full shrink-0 grid-flow-row grid-cols-1 gap-2 md:flex md:flex-wrap md:items-center md:gap-3"
+        className="sticky top-0 z-10 grid w-full shrink-0 grid-flow-row grid-cols-1 gap-2 md:flex md:flex-wrap md:items-center md:gap-3 p-5"
       >
         {/* Search: full width row on mobile, flexible column on desktop */}
         <div className="order-0 w-full min-w-0 md:order-none md:flex-1">

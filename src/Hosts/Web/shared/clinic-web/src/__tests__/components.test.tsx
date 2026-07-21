@@ -25,6 +25,7 @@ const hookMocks = vi.hoisted(() => ({
   usePatientProcedureDetail: vi.fn(),
   usePatientProcedureEvents: vi.fn(),
   usePatientProcedureEventItems: vi.fn(),
+  usePatientProcedureEventDetail: vi.fn(),
   usePatientDetail: vi.fn(),
 }));
 
@@ -34,6 +35,10 @@ vi.mock("../hooks/patients/procedures/usePatientProcedureDetail", () => ({
 
 vi.mock("../hooks/patients/procedures/usePatientProcedureEvents", () => ({
   usePatientProcedureEvents: hookMocks.usePatientProcedureEvents,
+}));
+
+vi.mock("../hooks/patients/procedures/usePatientProcedureEventDetail", () => ({
+  usePatientProcedureEventDetail: hookMocks.usePatientProcedureEventDetail,
 }));
 
 vi.mock("../hooks/patients/procedures/usePatientProcedureEventItems", () => ({
@@ -70,6 +75,8 @@ vi.mock("@vitarish/sea-web", () => ({
 vi.mock("../hooks/patients/procedures/usePatientProcedureEventMutations", () => ({
   useCommitPatientProcedureEvent: () => ({ isPending: false, mutate: vi.fn() }),
   useUncommitPatientProcedureEvent: () => ({ isPending: false, mutate: vi.fn() }),
+  useMovePatientProcedureEventUp: () => ({ isPending: false, mutate: vi.fn() }),
+  useMovePatientProcedureEventDown: () => ({ isPending: false, mutate: vi.fn() }),
 }));
 
 vi.mock("@vitarish/intelligence-web", () => ({
@@ -146,6 +153,11 @@ describe("clinic display components", () => {
       error: null,
       isLoading: false,
       refetch: vi.fn(),
+    });
+    hookMocks.usePatientProcedureEventDetail.mockReturnValue({
+      data: null,
+      error: null,
+      isLoading: false,
     });
     hookMocks.usePatientDetail.mockReturnValue({
       data: { id: "patient-1" },
@@ -468,27 +480,20 @@ describe("clinic display components", () => {
   it("focuses a clinical timeline entry before opening its details", () => {
     const onNavigate = vi.fn();
     const onSelectEvent = vi.fn();
-    render(<PatientProcedureEventTimeline patientId="patient-1" procedureId="procedure-1" selectedEventId="event-2" events={[
+    hookMocks.usePatientProcedureEventDetail.mockReturnValue({
+      data: {
+        id: "event-2", projectId: "patient-1", procedureId: "procedure-1", title: "Treatment", description: "", isCommitted: false, createdAt: "2026-07-13T09:00:00Z", position: 1,
+      },
+      error: null,
+      isLoading: false,
+    });
+    render(<PatientProcedureEventTimeline patientId="patient-1" procedureId="procedure-1" events={[
       { id: "event-1", projectId: "patient-1", procedureId: "procedure-1", title: "Assessment", description: "", isCommitted: true, committedAt: "2026-07-13T08:00:00Z", itemCount: 2, createdAt: "2026-07-13T07:00:00Z", position: 0 },
       { id: "event-2", projectId: "patient-1", procedureId: "procedure-1", title: "Treatment", description: "", isCommitted: false, itemCount: 0, createdAt: "2026-07-13T09:00:00Z", position: 1 },
-    ]} selectedEventItems={[
-      { id: "file-1", eventId: "event-2", type: "file", content: "file-1", contentType: "application/pdf", fileName: "assessment.pdf", size: 2048, createdAt: "2026-07-13T09:01:00Z" },
-      { id: "file-2", eventId: "event-2", type: "file", content: "file-2", fileName: "plan.txt", createdAt: "2026-07-13T09:02:00Z" },
-      { id: "file-3", eventId: "event-2", type: "file", content: "file-3", fileName: "scan.dcm", createdAt: "2026-07-13T09:03:00Z" },
-      { id: "file-4", eventId: "event-2", type: "file", content: "file-4", fileName: "notes.docx", createdAt: "2026-07-13T09:04:00Z" },
     ]} onNavigate={onNavigate} onSelectEvent={onSelectEvent} />, { wrapper: Wrapper });
-    fireEvent.click(screen.getByRole("button", { name: "Mark complete" }));
-    expect(screen.getByRole("alertdialog")).toHaveAccessibleName("Mark step as complete");
-    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     fireEvent.click(screen.getByRole("button", { name: "Treatment" }));
     expect(onSelectEvent).toHaveBeenCalledWith("event-2");
     expect(onNavigate).not.toHaveBeenCalled();
-    expect(screen.getByRole("region", { name: "Focused event details" })).toHaveTextContent("Treatment");
-    expect(screen.getByRole("group", { name: "Event attachments" })).toHaveTextContent("assessment.pdf");
-    expect(screen.getByText("+1 more")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Open details" }));
-    expect(onNavigate).toHaveBeenCalledWith({ kind: "patientProcedureEventDetail", patientId: "patient-1", procedureId: "procedure-1", eventId: "event-2" });
-    expect(screen.queryByRole("button", { name: "Move Step Earlier" })).not.toBeInTheDocument();
   });
 
   it("renders service presentation models and delegates delete", () => {

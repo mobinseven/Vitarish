@@ -22,6 +22,7 @@ export function PatientSearchBar({ onSearch }: PatientSearchBarProps) {
 
   return (
     <SearchField
+      variant="secondary"
       aria-label={t("clinic.patient.search.label")}
       className="min-w-0 w-full"
       value={value}

@@ -91,7 +91,7 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
 
   const isSubmitting = createNote.isPending || createFile.isPending;
   return (
-    <div className="bg-background shrink-0 pt-3">
+    <div className="shrink-0 pt-3">
       <PromptInput
         className="mx-auto w-full max-w-4xl"
         status={isSubmitting ? "submitted" : "ready"}

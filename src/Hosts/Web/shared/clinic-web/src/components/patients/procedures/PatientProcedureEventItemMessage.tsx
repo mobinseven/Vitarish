@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Modal } from "@heroui/react";
+import { Avatar, Button, Modal } from "@heroui/react";
 import {
   ChatAttachment,
   ChatAttachmentGroup,
   ChatMessage,
   ContextMenu,
+  EmptyState,
 } from "@heroui-pro/react";
 import { MenuItem } from "react-aria-components";
 import { isStoredSeaAttachmentContent } from "@vitarish/sea-web";
@@ -175,9 +176,7 @@ export function PatientProcedureEventItemMessage({
     </ChatMessage.Content>
   );
   const attachmentError = source.error ? (
-    <span className="text-danger text-xs" role="alert">
-      {t("clinic.procedures.items.attachmentUnavailable")}
-    </span>
+    null
   ) : null;
   const message = isCurrentUser ? (
     <ChatMessage.User id={item.id} role="article">
@@ -186,7 +185,11 @@ export function PatientProcedureEventItemMessage({
     </ChatMessage.User>
   ) : (
     <ChatMessage.Assistant id={item.id} role="article">
-      <ChatMessage.Avatar show alt={authorLabel} fallback={authorLabel} />
+      <ChatMessage.Avatar show alt={authorLabel}>
+        <Avatar.Fallback>
+          <i className="fa-solid fa-user" />
+        </Avatar.Fallback>
+      </ChatMessage.Avatar>
       <ChatMessage.Body>{body}{attachmentError}</ChatMessage.Body>
     </ChatMessage.Assistant>
   );

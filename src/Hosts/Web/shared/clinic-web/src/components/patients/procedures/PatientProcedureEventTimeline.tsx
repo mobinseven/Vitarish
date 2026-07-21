@@ -1,19 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { Avatar, Button, Card, Checkbox, Chip, Tooltip } from "@heroui/react";
-import { Timeline } from "@heroui-pro/react";
-import { useSeaEventCapabilities } from "@vitarish/sea-web";
+import { useState, type Key } from "react";
+import { Button, Card, Chip, Label } from "@heroui/react";
+import { ContextMenu, Timeline } from "@heroui-pro/react";
+import { MenuItem } from "react-aria-components";
+import { FaIcon } from "@vitarish/web-ui";
 import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/web-ui";
 import { PatientProcedureEventForm } from "./PatientProcedureEventForm";
-import { PatientProcedureEventCommitDialog } from "./PatientProcedureEventCommitDialog";
-import { useLocalizedText, formatDateTime } from "../../../localization";
+import { PatientProcedureEventDeleteDialog } from "./PatientProcedureEventDeleteDialog";
+import { PatientProcedureEventDetailPanel } from "./PatientProcedureEventDetailPanel";
+import { useLocalizedText } from "../../../localization";
 import type { ClinicalEventSummary } from "../../../models/patients/procedures/PatientProcedureEventModels";
-import type { EventItemSummary } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 import type { NavigationIntent } from "../../../navigation";
-import { PatientProcedureEventAttachmentMiniView } from "./PatientProcedureEventAttachmentMiniView";
 import {
   useCommitPatientProcedureEvent,
+  useMovePatientProcedureEventDown,
+  useMovePatientProcedureEventUp,
   useUncommitPatientProcedureEvent,
 } from "../../../hooks/patients/procedures/usePatientProcedureEventMutations";
 
@@ -22,7 +24,6 @@ interface PatientProcedureEventTimelineProps {
   patientId: string;
   events: ClinicalEventSummary[];
   selectedEventId?: string;
-  selectedEventItems?: EventItemSummary[];
   onSelectEvent: (eventId: string) => void;
   onNavigate: (intent: NavigationIntent) => void;
 }
@@ -32,27 +33,46 @@ export function PatientProcedureEventTimeline({
   patientId,
   events,
   selectedEventId,
-  selectedEventItems = [],
   onNavigate,
   onSelectEvent,
 }: PatientProcedureEventTimelineProps) {
-  const { t, locale } = useLocalizedText();
+  const { t } = useLocalizedText();
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
+  const commit = useCommitPatientProcedureEvent();
+  const uncommit = useUncommitPatientProcedureEvent();
+  const earlier = useMovePatientProcedureEventUp();
+  const later = useMovePatientProcedureEventDown();
+
+  const handleAction = (eventId: string, key: Key) => {
+    const event = events.find((e) => e.id === eventId);
+    if (!event) return;
+
+    if (key === "commit") {
+      event.isCommitted ? uncommit.mutate(event.id) : commit.mutate(event.id);
+    } else if (key === "reorder-earlier") {
+      earlier.mutate(event.id);
+    } else if (key === "reorder-later") {
+      later.mutate(event.id);
+    } else if (key === "edit") {
+      setEditingEventId(event.id);
+    } else if (key === "delete") {
+      setDeletingEventId(event.id);
+    }
+  };
+
+  const editingEvent = editingEventId ? events.find((e) => e.id === editingEventId) : null;
+  const deletingEvent = deletingEventId ? events.find((e) => e.id === deletingEventId) : null;
 
   return (
     <div className="w-full min-w-0">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <Button size="sm" onPress={() => setShowCreateForm(true)}>
-          {t("clinic.procedures.events.addStep")}
-        </Button>
-      </div>
-
       <Timeline
         aria-label={t("clinic.procedures.events.title")}
         density="compact"
         size="sm"
       >
-        {events.map((event) => {
+        {events.map((event, index) => {
           const isSelected = event.id === selectedEventId;
 
           return (
@@ -60,75 +80,77 @@ export function PatientProcedureEventTimeline({
               key={event.id}
               align="center"
               id={event.id}
-              status={isSelected ? "current" : event.isCommitted ? "success" : "default"}
+              status={event.isCommitted ? "success" : "default"}
             >
               <Timeline.Marker aria-hidden="true">
-                <Checkbox
-                  className="[&_[data-slot='checkbox-default-indicator--checkmark']]:size-4"
-                  isSelected={event.isCommitted}
-                  isReadOnly
-                />
+                <div>
+                  <i className={event.isCommitted ? "fa-solid fa-check" : ""}></i>
+                </div>
               </Timeline.Marker>
               <Timeline.Content>
-
-                {!isSelected ? (
-                  <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-                    <div className="flex min-w-0 flex-wrap items-center gap-2">
-                      <Button
-                        aria-label={event.title}
-                        fullWidth
-                        variant="ghost"
-                        onPress={() => onSelectEvent(event.id)}
+                <ContextMenu>
+                  <ContextMenu.Trigger>
+                    <Button variant="ghost"
+                      className="w-full max-w-md text-center"
+                      onPress={() => onSelectEvent(isSelected ? "" : event.id)}>
+                      <Chip
+                        className="w-full max-w-md p-2"
+                        color={event.isCommitted ? "success" :isSelected ? "accent" : "default"}
+                        size="sm"
+                        style={{ textWrap: "wrap" }}
+                        variant="soft"
                       >
-                        <span className="text-muted text-xs leading-5">{event.title}</span>
-                        {event.itemCount > 0 ? (
-                          <Chip
-                            size="sm"
-                            color={event.isCommitted ? "success" : "default"}
-                            variant="soft"
-                          >
-                            {t("clinic.procedures.items.count", { count: event.itemCount })}
-                          </Chip>
-                        ) : null}
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
+                        {event.title}
+                      </Chip>
+                    </Button>
+                  </ContextMenu.Trigger>
+                  <ContextMenu.Popover>
+                    <ContextMenu.Menu
+                      aria-label={t("clinic.procedures.events.actionMenu.label")}
+                      onAction={(key) => handleAction(event.id, key)}
+                    >
+                      <MenuItem
+                        id="reorder-earlier"
+                        isDisabled={index === 0 || earlier.isPending}
+                        textValue={t("clinic.procedures.events.reorderEarlier")}
+                      >
+                        <FaIcon icon="arrow-up" aria-hidden="true" className="size-4" />
+                        <Label>{t("clinic.procedures.events.reorderEarlier")}</Label>
+                      </MenuItem>
+                      <MenuItem
+                        id="reorder-later"
+                        isDisabled={index === events.length - 1 || later.isPending}
+                        textValue={t("clinic.procedures.events.reorderLater")}
+                      >
+                        <FaIcon icon="arrow-down" aria-hidden="true" className="size-4" />
+                        <Label>{t("clinic.procedures.events.reorderLater")}</Label>
+                      </MenuItem>
+                      <ContextMenu.Separator />
+                      <MenuItem id="edit" textValue={t("common.actions.edit")}>
+                        <FaIcon icon="pen" aria-hidden="true" className="size-4" />
+                        <Label>{t("common.actions.edit")}</Label>
+                      </MenuItem>
+                      <ContextMenu.Separator />
+                      <MenuItem
+                        id="delete"
+                        className="text-danger"
+                        textValue={t("common.actions.delete")}
+                      >
+                        <FaIcon icon="trash-can" aria-hidden="true" className="size-4" />
+                        <Label>{t("common.actions.delete")}</Label>
+                      </MenuItem>
+                    </ContextMenu.Menu>
+                  </ContextMenu.Popover>
+                </ContextMenu>
                 {isSelected ? (
-                  <Card
-                    aria-label={isSelected ? t("clinic.procedures.events.focusedDetails") : undefined}
-                    role={isSelected ? "region" : undefined}
-                    variant={isSelected ? "secondary" : "transparent"}
-                  >
-                    <Card.Header>
-                      {event.title}
-                    </Card.Header>
-                    <Card.Content className="min-w-0">
-                      <div className="mt-2 flex min-w-0 flex-col gap-2">
-                        <div className="flex min-w-0 flex-wrap items-center gap-2">
-                          <PatientProcedureEventAttachmentMiniView items={selectedEventItems} />
-                        </div>
-                      </div>
+                  <Card variant="default">
+                    <Card.Content>
+                      <PatientProcedureEventDetailPanel
+                        eventId={event.id}
+                        procedureId={procedureId}
+                        onDeleted={() => onSelectEvent("")}
+                      />
                     </Card.Content>
-                    <Card.Footer>
-                      <div className="flex w-full flex-wrap justify-end gap-1">
-                        <PatientProcedureEventAction event={event} />
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onPress={() =>
-                            onNavigate({
-                              kind: "patientProcedureEventDetail",
-                              patientId,
-                              procedureId,
-                              eventId: event.id,
-                            })
-                          }
-                        >
-                          {t("clinic.procedures.events.openDetails")}
-                        </Button>
-                      </div>
-                    </Card.Footer>
                   </Card>
                 ) : null}
               </Timeline.Content>
@@ -141,75 +163,28 @@ export function PatientProcedureEventTimeline({
         <ClinicEmptyState className="mt-3" title={t("clinic.procedures.events.empty")} />
       ) : null}
 
-      {showCreateForm ? (
+      {editingEvent ? (
         <PatientProcedureEventForm
+          eventId={editingEvent.id}
+          initialDescription={editingEvent.description}
+          initialTitle={editingEvent.title}
           procedureId={procedureId}
-          projectId={patientId}
-          onClose={() => setShowCreateForm(false)}
+          projectId={editingEvent.projectId}
+          onClose={() => setEditingEventId(null)}
         />
       ) : null}
-    </div>
-  );
-}
 
-function PatientProcedureEventAction({ event }: { event: ClinicalEventSummary }) {
-  const { t } = useLocalizedText();
-  const capabilitiesQuery = useSeaEventCapabilities(event.id);
-  const commit = useCommitPatientProcedureEvent();
-  const uncommit = useUncommitPatientProcedureEvent();
-  const [commitConfirmationTarget, setCommitConfirmationTarget] = useState<boolean | null>(null);
-  const canWrite = capabilitiesQuery.data?.canWrite ?? false;
-  const isPending = commit.isPending || uncommit.isPending;
-  const actionLabel = t(
-    event.isCommitted
-      ? "clinic.procedures.events.commitConfirmation.confirmReopen"
-      : "clinic.procedures.events.commitConfirmation.confirmCommit",
-  );
-
-  return (
-    <>
-      <Tooltip>
-        {event.isCommitted ? (
-          <Button
-            size="sm"
-            aria-label={actionLabel}
-            isDisabled={!canWrite || isPending}
-            variant="danger-soft"
-            onPress={() => setCommitConfirmationTarget(!event.isCommitted)}
-          >
-            {actionLabel}
-            <i aria-hidden="true" className="fa-solid fa-arrow-rotate-right" />
-          </Button>
-        ) :
-          <Button
-            size="sm"
-            aria-label={actionLabel}
-            isDisabled={!canWrite || isPending}
-            variant="primary"
-            onPress={() => setCommitConfirmationTarget(!event.isCommitted)}
-          >
-            {actionLabel}
-            <i aria-hidden="true" className="fa-solid fa-check" />
-          </Button>
-        }
-        <Tooltip.Content>
-          {actionLabel}
-        </Tooltip.Content>
-      </Tooltip>
-      {commitConfirmationTarget !== null ? (
-        <PatientProcedureEventCommitDialog
-          eventTitle={event.title}
-          isCommitted={commitConfirmationTarget}
-          isPending={isPending}
-          onClose={() => setCommitConfirmationTarget(null)}
-          onConfirm={() => {
-            const mutation = commitConfirmationTarget ? commit : uncommit;
-            mutation.mutate(event.id, {
-              onSuccess: () => setCommitConfirmationTarget(null),
-            });
+      {deletingEvent ? (
+        <PatientProcedureEventDeleteDialog
+          eventId={deletingEvent.id}
+          eventTitle={deletingEvent.title}
+          onClose={() => setDeletingEventId(null)}
+          onDeleted={() => {
+            setDeletingEventId(null);
+            onSelectEvent("");
           }}
         />
       ) : null}
-    </>
+    </div>
   );
 }

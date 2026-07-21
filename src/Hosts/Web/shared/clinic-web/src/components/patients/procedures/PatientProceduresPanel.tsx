@@ -1,24 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Alert, Button, Card, Chip, ListBox, Spinner } from "@heroui/react";
+import { Alert, Button, Chip, Separator, Spinner, Tooltip } from "@heroui/react";
 import { usePatientProcedures } from "../../../hooks/patients/procedures/usePatientProcedures";
 import { usePatientProcedureTriage } from "../../../hooks/patients/procedures/usePatientProcedureTriage";
 import { PatientProcedureForm } from "./PatientProcedureForm";
-import { useLocalizedText, formatDateTime } from "../../../localization/index";
+import { PatientProcedureProgress } from "./PatientProcedureProgress";
+import { useLocalizedText } from "../../../localization/index";
+import type { NavigationIntent } from "../../../navigation";
+import { EmptyState, ItemCard, ItemCardGroup, PressableFeedback } from "@heroui-pro/react";
+
+const ProcedureCard = ItemCard<"button">;
 
 interface PatientProceduresPanelProps {
   patientId: string;
-  onNavigate?: (
-    intent: import("../../../navigation").NavigationIntent,
-  ) => void;
+  onNavigate?: (intent: NavigationIntent) => void;
 }
 
 export function PatientProceduresPanel({
   patientId,
   onNavigate,
 }: PatientProceduresPanelProps) {
-  const { t, locale } = useLocalizedText();
+  const { t } = useLocalizedText();
   const {
     data: procedures,
     isLoading,
@@ -28,115 +31,109 @@ export function PatientProceduresPanel({
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   return (
-    <Card variant="secondary">
-      <Card.Header className="flex gap-3">
-        {!isLoading && !error && (
-          <Button
-            size="sm"
-            variant="primary"
-            onPress={() => setShowCreateForm(true)}
-          >
-            {t("clinic.procedures.new")}
-          </Button>
-        )}
-      </Card.Header>
-      <Card.Content className="flex flex-col gap-3">
-        {isLoading ? (
-          <Spinner
-            aria-label={t("common.states.loading")}
-            className="self-center"
-          />
-        ) : error ? (
-          <Alert status="danger">
-            <Alert.Indicator />
-            <Alert.Content>
-              <Alert.Title>{t("clinic.procedures.failedToLoad")}</Alert.Title>
-            </Alert.Content>
-          </Alert>
-        ) : (
-          <>
-            {triage && triage.totalProcedures > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {triage.incompleteProcedures > 0 && (
-                  <Chip size="sm" color="warning" variant="soft">
-                    {triage.incompleteProcedures}{" "}
-                    {t("clinic.procedures.triage.incomplete")}
-                  </Chip>
-                )}
-                {triage.newEvidence > 0 && (
-                  <Chip size="sm" color="accent" variant="soft">
-                    {triage.newEvidence}{" "}
-                    {t("clinic.procedures.triage.newEvidence")}
-                  </Chip>
-                )}
-              </div>
-            )}
+    <>
+      {isLoading ? (
+        <Spinner
+          aria-label={t("common.states.loading")}
+          className="self-center"
+        />
+      ) : error ? (
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>{t("clinic.procedures.failedToLoad")}</Alert.Title>
+          </Alert.Content>
+        </Alert>
+      ) : (
+        <ItemCardGroup variant="transparent">
+          <ItemCardGroup.Header className="flex items-center justify-between">
+            <Tooltip>
+              <Button size="sm" variant="primary" onPress={() => setShowCreateForm(true)}>
+                <i className="fa-solid fa-plus" aria-hidden="true" />
+                {t("clinic.procedures.new")}
+              </Button>
+              <Tooltip.Content>{t("clinic.procedures.new")}</Tooltip.Content>
+            </Tooltip>
+          </ItemCardGroup.Header>
 
-            {procedures?.length ? (
-              <ListBox
-                aria-label={t("clinic.procedures.title")}
-                onAction={(key) =>
-                  onNavigate?.({
-                    kind: "patientProcedureDetail",
-                    patientId,
-                    procedureId: String(key),
-                  })
-                }
-              >
-                {procedures.map((procedure) => (
-                  <ListBox.Item
-                    key={procedure.id}
-                    id={procedure.id}
-                    textValue={procedure.name}
-                  >
-                    <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-medium">{procedure.name}</p>
-                        {procedure.description && (
-                          <p className="truncate text-sm text-muted">
-                            {procedure.description}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        {procedure.eventCount > 0 && (
-                          <span className="text-xs text-muted">
-                            {t("clinic.procedures.events.progress", {
-                              committed: procedure.committedEventCount,
-                              count: procedure.eventCount,
-                            })}
-                          </span>
-                        )}
-                        {procedure.newItems > 0 && (
-                          <Chip size="sm" color="accent" variant="soft">
-                            {procedure.newItems}
-                          </Chip>
-                        )}
-                        {procedure.lastActivity && (
-                          <span className="text-xs text-muted">
-                            {formatDateTime(procedure.lastActivity, locale)}
-                          </span>
-                        )}
-                      </div>
+          {procedures?.length ? (
+            <ItemCardGroup className="overflow-hidden">
+              {procedures.flatMap((procedure, index) => [
+                ...(index > 0 ? [<Separator key={`sep-${procedure.id}`} />] : []),
+                <ProcedureCard
+                  key={procedure.id}
+                  className="hover:bg-default/20 active:bg-default-hover/50 relative w-full cursor-pointer overflow-hidden transition-colors"
+                  render={(props) => (
+                    <button
+                      type="button"
+                      {...props}
+                      onClick={() =>
+                        onNavigate?.({
+                          kind: "patientProcedureDetail",
+                          patientId,
+                          procedureId: procedure.id,
+                        })
+                      }
+                    />
+                  )}
+                >
+                  <PressableFeedback.Ripple />
+                  <ItemCard.Icon>
+                    <i className="fa-solid fa-list-check" aria-hidden="true" />
+                  </ItemCard.Icon>
+                  <ItemCard.Content>
+                    <ItemCard.Title>{procedure.name}</ItemCard.Title>
+                    {procedure.description ? (
+                      <ItemCard.Description>
+                        {procedure.description}
+                        <br />
+                        <PatientProcedureProgress
+                          eventCount={procedure.eventCount}
+                          committedEventCount={procedure.committedEventCount}
+                        />
+                      </ItemCard.Description>
+                    ) : (
+                      <ItemCard.Description>
+                        <PatientProcedureProgress
+                          eventCount={procedure.eventCount}
+                          committedEventCount={procedure.committedEventCount}
+                        />
+                      </ItemCard.Description>
+                    )}
+                  </ItemCard.Content>
+                  <ItemCard.Action>
+                    <div className="flex items-center gap-2">
+                      {procedure.newItems > 0 && (
+                        <Chip size="sm" color="accent" variant="soft">
+                          {procedure.newItems}
+                        </Chip>
+                      )}
                     </div>
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            ) : (
-              <Card.Description className="py-6 text-center">
-                {t("clinic.procedures.empty")}
-              </Card.Description>
-            )}
-          </>
-        )}
+                  </ItemCard.Action>
+                </ProcedureCard>,
+              ])}
+            </ItemCardGroup>
+          ) : (
+            <EmptyState size="sm">
+              <EmptyState.Header>
+                <EmptyState.Media variant="icon">
+                  <i className="fa-solid fa-list" />
+                </EmptyState.Media>
+                <EmptyState.Title>
+                  {t("clinic.procedures.empty")}
+                </EmptyState.Title>
+              </EmptyState.Header>
+            </EmptyState>
+          )}
+        </ItemCardGroup>
+      )}
 
-        {showCreateForm && (
-          <PatientProcedureForm
-            patientId={patientId}
-            onClose={() => setShowCreateForm(false)}
-          />
-        )}
-      </Card.Content>
-    </Card>
+      {showCreateForm && (
+        <PatientProcedureForm
+          patientId={patientId}
+          onClose={() => setShowCreateForm(false)}
+        />
+      )}
+    </>
   );
 }
