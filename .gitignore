@@ -409,3 +409,5 @@ FodyWeavers.xsd
 **/*.tsbuildinfo
 .mimocode/*
 .vscode/settings.json
+
+**/.next-stale-layout/*

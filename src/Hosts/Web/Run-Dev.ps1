@@ -67,17 +67,14 @@ if (-not $ApiBaseUrl) {
     }
 }
 
-$package = Get-Content (Join-Path $selectedApp.FullName 'package.json') -Raw | ConvertFrom-Json
-if (-not $package.name) {
-    throw "App '$($selectedApp.Name)' does not define a package name."
-}
-
 $env:NEXT_PUBLIC_API_BASE_URL = $ApiBaseUrl
 
 Write-Host "Starting '$($selectedApp.Name)' in development mode..."
-Push-Location $webRoot
+Write-Host "App directory: $($selectedApp.FullName)"
+
+Push-Location $selectedApp.FullName
 try {
-    & npm run dev --workspace $package.name
+    & npm run dev
     if ($LASTEXITCODE -ne 0) {
         throw "npm run dev failed with exit code $LASTEXITCODE."
     }
