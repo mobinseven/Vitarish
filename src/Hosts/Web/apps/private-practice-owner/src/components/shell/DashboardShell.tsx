@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { useCallback, useMemo } from "react";
-import { Button, Tooltip } from "@heroui/react";
 import {
   DashboardFrame,
   type DashboardContentMode,
@@ -15,6 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@vitarish/auth-web";
 import { useLocalizedText, type MessageKey } from "@/localization";
+import { BreadcrumbUpButton } from "./BreadcrumbUpButton";
 
 export interface DashboardShellItem {
   href: string;
@@ -51,7 +51,6 @@ export function DashboardShell({
   const { t } = useLocalizedText();
 
   const navigate = useCallback((href: string) => router.push(href), [router]);
-  const upHref = getBreadcrumbParent(pathname);
 
   const sidebarIdentity = useMemo<DashboardIdentity>(() => {
     if (isLoading) {
@@ -105,39 +104,11 @@ export function DashboardShell({
       navigationLabel={t("appShell.navigation.dashboardMenu")}
       skipLinkLabel={t("appShell.navigation.skipToContent")}
       title={null}
-      toolbar={
-        upHref ? (
-          <Tooltip>
-            <Button
-              aria-label={t("appShell.navigation.up")}
-              isDisabled={!upHref}
-              variant="tertiary"
-              onPress={() => upHref && navigate(upHref)}
-            >
-              <i aria-hidden="true" className="fa-solid fa-arrow-up" />
-              {t("appShell.navigation.up")}
-            </Button>
-            <Tooltip.Content>
-              {t("appShell.navigation.up")}
-            </Tooltip.Content>
-          </Tooltip>
-        ) : null
-      }
-
+      toolbar={<BreadcrumbUpButton navGroups={navGroups} />}
     >
       {children}
     </DashboardFrame>
   );
-}
-
-function getBreadcrumbParent(pathname: string): string | undefined {
-  const segments = pathname.split("/").filter(Boolean);
-
-  if (pathname === Routes.Home) {
-    return undefined;
-  }
-
-  return segments.length > 1 ? `/${segments.slice(0, -1).join("/")}` : Routes.Home;
 }
 
 function toNavigationGroup(group: DashboardShellNavGroup, t: (key: MessageKey) => string): DashboardNavigationGroup {

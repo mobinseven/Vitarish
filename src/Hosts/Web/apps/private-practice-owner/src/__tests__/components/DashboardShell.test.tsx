@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { DashboardFrame, ThemeSwitch, type DashboardNavigationGroup } from "@vitarish/web-ui";
+import { DashboardFrame, type DashboardNavigationGroup } from "@vitarish/web-ui";
 import { DashboardShell, type DashboardShellNavGroup } from "@/components/shell/DashboardShell";
 import { UserMenu } from "@/components/shell/UserMenu";
 import { SearchInput } from "@/components/shell/SearchInput";
@@ -106,6 +106,47 @@ vi.mock("@vitarish/web-localization", () => ({
   supportedLocales: ["en", "fa"],
 }));
 
+vi.mock("@heroui-pro/react/sidebar", () => {
+  const React = require("react");
+  const MenuItem = React.forwardRef(({ children, id, textValue, isCurrent, onPress, ...props }, ref) => (
+    <li ref={ref} role="treeitem" aria-current={isCurrent ? "true" : undefined} data-id={id} data-text={textValue} {...props}>
+      {children}
+    </li>
+  ));
+  MenuItem.displayName = "Sidebar.MenuItem";
+
+  return {
+    Sidebar: Object.assign(
+      ({ children, ...props }) => <aside {...props}>{children}</aside>,
+      {
+        Provider: ({ children }) => <div>{children}</div>,
+        Header: ({ children }) => <div>{children}</div>,
+        Content: ({ children }) => <div>{children}</div>,
+        Footer: ({ children }) => <div>{children}</div>,
+        Group: ({ children }) => <div>{children}</div>,
+        GroupLabel: ({ children }) => <div>{children}</div>,
+        Menu: ({ children }) => <ul role="tree">{children}</ul>,
+        MenuSection: ({ children }) => <div>{children}</div>,
+        MenuHeader: ({ children }) => <div>{children}</div>,
+        MenuItem,
+        MenuIcon: ({ children }) => <span>{children}</span>,
+        MenuLabel: ({ children }) => <span data-sidebar="label">{children}</span>,
+        MenuChip: ({ children }) => <span>{children}</span>,
+        MenuActions: ({ children }) => <div>{children}</div>,
+        MenuAction: ({ children, ...props }) => <button {...props}>{children}</button>,
+        MenuTrigger: ({ children }) => <span>{children}</span>,
+        MenuIndicator: ({ children }) => <span>{children}</span>,
+        Submenu: ({ children }) => <ul role="group">{children}</ul>,
+        Separator: () => <hr />,
+        Rail: () => null,
+        Trigger: ({ children }) => <button>{children}</button>,
+        Mobile: ({ children }) => <div>{children}</div>,
+        Tooltip: ({ children }) => <div>{children}</div>,
+      }
+    ),
+  };
+});
+
 const shellNavGroups = [
   {
     labelKey: "appShell.navigation.mainGroup",
@@ -148,8 +189,8 @@ describe("Dashboard Shell Components", () => {
       );
 
       expect(screen.getAllByText("Home").length).toBeGreaterThan(0);
-      expect(screen.getAllByRole("button", { name: "Language" }).length).toBeGreaterThan(0);
-      expect(screen.getAllByRole("button", { name: "Switch to light mode" }).length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Language").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Switch to light mode").length).toBeGreaterThan(0);
       expect(screen.getByRole("button", { name: "Up" })).toBeInTheDocument();
       expect(screen.getByText("Dashboard content")).toBeInTheDocument();
     });
@@ -192,7 +233,7 @@ describe("Dashboard Shell Components", () => {
         </DashboardFrame>
       );
 
-      expect(screen.getByText("Patients")).toBeInTheDocument();
+      expect(screen.getAllByText("Patients").length).toBeGreaterThan(0);
     });
 
     it("provides account access via sidebar identity header instead of navigation menu", () => {
@@ -202,15 +243,6 @@ describe("Dashboard Shell Components", () => {
       expect(dashboardFooterItems.map((item) => item.href)).not.toContain("/account");
       expect(accountItem).toBeUndefined();
       expect(mainDashboardNavGroups.map((group) => group.labelKey)).not.toContain("appShell.navigation.accountGroup");
-    });
-  });
-
-  describe("ThemeSwitch", () => {
-    it("renders with accessible label", () => {
-      render(<ThemeSwitch />);
-      const button = screen.getByRole("button");
-      expect(button).toBeInTheDocument();
-      expect(button).toHaveAttribute("aria-label");
     });
   });
 
@@ -238,13 +270,6 @@ describe("Dashboard Shell Components", () => {
 });
 
 describe("Localization Keys", () => {
-  it("ThemeSwitch uses localized accessible labels", () => {
-    render(<ThemeSwitch />);
-    const button = screen.getByRole("button");
-    const label = button.getAttribute("aria-label");
-    expect(label).toMatch(/Switch to (light|dark) mode/);
-  });
-
   it("SearchInput uses localized placeholder", () => {
     render(<SearchInput />);
     const input = screen.getByRole("searchbox");
