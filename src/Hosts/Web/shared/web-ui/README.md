@@ -42,6 +42,7 @@ import { DashboardFrame, EmptyStateSurface, LoginPanel } from "@vitarish/web-ui"
 import {
   PageContainer,
   PublicDocumentShell,
+  RevealHeader,
   StandaloneDocumentPage,
 } from "@vitarish/web-ui/layout";
 ```
@@ -49,6 +50,29 @@ import {
 Do not deep-import from `@vitarish/web-ui/src/**`. Use only public exports.
 
 Import `@vitarish/web-ui/layout.css` exactly once from each app's root global stylesheet.
+
+## Reveal headers
+
+`RevealHeader` renders a separate compact header pinned within the nearest shared page or workspace layout. Place its `Boundary`
+where the compact representation should take over; it does not own the hero, primary header, or
+page content.
+
+```tsx
+<RevealHeader compactContent={<CompactHeader />} />
+
+<Hero>
+  <PrimaryHeader />
+  <RevealHeader.Boundary />
+</Hero>
+
+<MainContent />
+```
+
+It observes document scrolling by default, detects an inherited workspace scroll owner, or accepts
+an explicit `scrollRoot`. `positioning="overlay"` is the default; use `positioning="inset"` to
+reserve the compact header's height. Within `ContainedPage` and `ImmersiveRegion`, it stays inside
+the available layout boundary rather than covering dashboard chrome. Hidden headers are inert and
+hidden from assistive technology.
 
 ## Layout selection
 

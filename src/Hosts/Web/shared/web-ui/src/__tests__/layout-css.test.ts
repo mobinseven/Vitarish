@@ -44,5 +44,13 @@ describe("shared layout policy stylesheet", () => {
     expect(css).toMatch(/data-content-mode="page"[\s\S]*?overflow-y: auto/);
     expect(css).toMatch(/data-content-mode="workspace"[\s\S]*?overflow: hidden/);
     expect(css).toContain("scrollbar-gutter: stable");
+    expect(css).toMatch(/data-content-mode="workspace"[\s\S]*?vitarish-dashboard-content[\s\S]*?overflow-y: auto/);
+    expect(css).toMatch(/immersive-region[\s\S]*?min-block-size: 100%[\s\S]*?overflow: visible/);
+  });
+
+  it("keeps reveal headers sticky inside page and workspace hosts", () => {
+    expect(css).toMatch(/\[data-vitarish-reveal-header-host\][\s\S]*?position: sticky/);
+    expect(css).toMatch(/\.vitarish-reveal-header[\s\S]*?position: absolute/);
+    expect(css).not.toMatch(/\.vitarish-reveal-header\s*\{[\s\S]*?position: fixed/);
   });
 });

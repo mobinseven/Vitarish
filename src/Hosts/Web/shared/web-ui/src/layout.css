@@ -30,16 +30,16 @@
   min-inline-size: 0;
 }
 
-.vitarish-public-document-shell > [data-vitarish-layout-slot="header"] {
+.vitarish-public-document-shell>[data-vitarish-layout-slot="header"] {
   grid-row: 1;
   min-inline-size: 0;
 }
 
-.vitarish-public-document-shell > .vitarish-standalone-document-page {
+.vitarish-public-document-shell>.vitarish-standalone-document-page {
   grid-row: 2;
 }
 
-.vitarish-public-document-shell > [data-vitarish-layout-slot="footer"] {
+.vitarish-public-document-shell>[data-vitarish-layout-slot="footer"] {
   grid-row: 3;
   min-inline-size: 0;
 }
@@ -49,13 +49,17 @@
   inline-size: 100%;
   margin-inline: auto;
   min-inline-size: 0;
-  padding-inline: var(--vitarish-layout-gutter-inline);
-  padding-left: calc(
-    var(--vitarish-layout-gutter-inline) + var(--vitarish-layout-safe-left)
-  );
-  padding-right: calc(
-    var(--vitarish-layout-gutter-inline) + var(--vitarish-layout-safe-right)
-  );
+  padding-inline: 0;
+  padding-left: var(--vitarish-layout-safe-left);
+  padding-right: var(--vitarish-layout-safe-right);
+}
+
+@media (min-width: 640px) {
+  .vitarish-page-container {
+    padding-inline: var(--vitarish-layout-gutter-inline);
+    padding-left: calc(var(--vitarish-layout-gutter-inline) + var(--vitarish-layout-safe-left));
+    padding-right: calc(var(--vitarish-layout-gutter-inline) + var(--vitarish-layout-safe-right));
+  }
 }
 
 .vitarish-page-container[data-vitarish-page-width="compact"] {
@@ -80,11 +84,10 @@
   flex-direction: column;
   min-block-size: 100%;
   min-inline-size: 0;
-  padding-block: var(--vitarish-layout-page-block-start)
-    var(--vitarish-layout-page-block-end);
+  padding-block: var(--vitarish-layout-page-block-start) var(--vitarish-layout-page-block-end);
 }
 
-.vitarish-contained-page > .vitarish-page-container {
+.vitarish-contained-page>.vitarish-page-container {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -120,8 +123,7 @@
   min-block-size: 100vh;
   min-block-size: 100dvh;
   min-inline-size: 0;
-  padding-block: var(--vitarish-layout-page-block-start)
-    var(--vitarish-layout-page-block-end);
+  padding-block: var(--vitarish-layout-page-block-start) var(--vitarish-layout-page-block-end);
   place-items: center;
 }
 
@@ -149,16 +151,14 @@
   min-inline-size: 0;
 }
 
-[data-vitarish-layout="dashboard-frame"][data-content-mode="page"]
-  .app-layout__main {
+[data-vitarish-layout="dashboard-frame"][data-content-mode="page"] .app-layout__main {
   /* A framed page must never become a horizontal document scroller. */
   overflow-x: clip;
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
 
-[data-vitarish-layout="dashboard-frame"][data-content-mode="workspace"]
-  .app-layout__main {
+[data-vitarish-layout="dashboard-frame"][data-content-mode="workspace"] .app-layout__main {
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -168,6 +168,27 @@
   min-block-size: 0;
   min-inline-size: 0;
   outline: none;
+}
+
+.vitarish-dashboard-workspace-controls {
+  display: flex;
+  inset-block-start: 1rem;
+  inset-inline: 1rem;
+  justify-content: space-between;
+  pointer-events: none;
+  position: fixed;
+  z-index: 20;
+}
+
+@media (min-width: 640px) {
+  .vitarish-dashboard-workspace-controls {
+    inset-block-start: 1.5rem;
+    inset-inline: 1.5rem;
+  }
+}
+
+.vitarish-dashboard-workspace-controls>button {
+  pointer-events: all;
 }
 
 /* Keep the dashboard's visual texture in the navigation chrome only. */
@@ -186,18 +207,34 @@
   background-attachment: fixed;
 }
 
-[data-vitarish-layout="dashboard-frame"][data-content-mode="page"]
-  .vitarish-dashboard-content {
+[data-vitarish-layout="dashboard-frame"][data-content-mode="page"] .vitarish-dashboard-content {
   min-block-size: 100%;
 }
 
-[data-vitarish-layout="dashboard-frame"][data-content-mode="workspace"]
-  .vitarish-dashboard-content {
+[data-vitarish-layout="dashboard-frame"][data-content-mode="workspace"] .vitarish-dashboard-content {
   block-size: 100%;
   display: flex;
   flex: 1;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+/* AppLayout adapts prop-provided navbars to occupy its header row. Workspace
+   navbars are main-content children, so they need their natural bar height. */
+[data-vitarish-layout="dashboard-frame"][data-content-mode="workspace"]
+  .vitarish-dashboard-content .navbar[data-in-app-layout="true"] {
+  block-size: auto;
+  flex-shrink: 0;
+}
+
+[data-vitarish-layout="dashboard-frame"][data-content-mode="workspace"]
+  .vitarish-dashboard-content > [data-vitarish-layout="immersive-region"] {
+  block-size: auto;
+  flex: 0 0 auto;
+  min-block-size: 100%;
+  overflow: visible;
 }
 
 .vitarish-skip-link {
@@ -215,4 +252,46 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
   transform: translateY(0);
+}
+
+[data-vitarish-reveal-header-host] {
+  block-size: 0;
+  flex: none;
+  inline-size: 100%;
+  inset-block-start: 0;
+  position: sticky;
+  z-index: 30;
+}
+
+.vitarish-reveal-header {
+  box-sizing: border-box;
+  inset-block-start: 0;
+  inset-inline: 0;
+  opacity: 0;
+  padding-block-start: env(safe-area-inset-top, 0px);
+  pointer-events: none;
+  position: absolute;
+  transform: translateY(-0.5rem);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.vitarish-reveal-header[data-state="revealed"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.vitarish-reveal-header-inset {
+  pointer-events: none;
+}
+
+.vitarish-reveal-header-boundary {
+  block-size: 1px;
+  inline-size: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vitarish-reveal-header {
+    transition: none;
+  }
 }

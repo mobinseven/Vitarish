@@ -73,6 +73,7 @@ describe("shared layout policy components", () => {
 
     expect(ref.current).toHaveAttribute("aria-label", "Settings");
     expect(ref.current).toHaveAttribute("data-vitarish-page-width", "fluid");
+    expect(container.querySelector("[data-vitarish-reveal-header-host]")).toBeInTheDocument();
     expect(screen.getByTestId("gate")).toHaveAttribute(
       "data-vitarish-layout",
       "centered-region"
@@ -99,6 +100,10 @@ describe("shared layout policy components", () => {
     expect(screen.getByTestId("workspace-region")).toHaveAttribute(
       "data-vitarish-layout",
       "immersive-region"
+    );
+    expect(screen.getByTestId("workspace-region")).toHaveAttribute(
+      "data-vitarish-reveal-header-region",
+      "workspace"
     );
   });
 
@@ -148,8 +153,19 @@ describe("shared layout policy components", () => {
       "data-scroll-mode",
       "page"
     );
+    expect(container.querySelector("[data-slot='app-layout-header']")).toBeNull();
+    expect(container.querySelector("#vitarish-dashboard-main > .navbar")).toBeInTheDocument();
+    expect(container.querySelector("#vitarish-dashboard-main")).toHaveAttribute(
+      "data-vitarish-scroll-owner",
+      "workspace"
+    );
+    expect(container.querySelector("#vitarish-dashboard-main .vitarish-reveal-header")).toBeInTheDocument();
+    expect(container.querySelector("#vitarish-dashboard-main .vitarish-reveal-header-inset")).toBeInTheDocument();
+    expect(
+      container.querySelector("#vitarish-dashboard-main .vitarish-reveal-header [data-slot='navbar-header']")
+    ).toHaveTextContent("Workspace");
     expect(container.querySelector("[data-slot='app-layout-menu-toggle']")).toBeNull();
-    expect(screen.getByRole("button", { name: "Toggle context panel" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Toggle context panel" })).toHaveLength(2);
     expect(container.querySelector("#vitarish-dashboard-main")).toHaveAttribute("tabindex", "-1");
   });
 });

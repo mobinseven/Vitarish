@@ -1,13 +1,14 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Avatar, Button, Chip } from "@heroui/react";
 import { AppLayout } from "@heroui-pro/react/app-layout";
 import { Navbar } from "@heroui-pro/react/navbar";
 import { Sidebar } from "@heroui-pro/react/sidebar";
-import { CultureSwitcher } from "./CultureSwitcher";
-import { ThemeSwitch } from "./ThemeSwitch";
+import { useTheme } from "next-themes";
+import { setLocaleCookie, supportedLocales, useLocalizedText, type SupportedLocale } from "@vitarish/web-localization";
+import { RevealHeader } from "../layout/RevealHeader";
 
 export interface DashboardNavigationItem {
   href: string;
@@ -79,6 +80,8 @@ export function DashboardFrame({
   title,
   toolbar,
 }: DashboardFrameProps) {
+  const { direction } = useLocalizedText();
+
   return (
     <>
       <a className="vitarish-skip-link" href="#vitarish-dashboard-main">
@@ -94,7 +97,7 @@ export function DashboardFrame({
         data-vitarish-scroll-owner={contentMode === "page" ? "frame-main" : "workspace"}
         defaultAsideOpen={defaultAsideOpen}
         navigate={navigate}
-        navbar={
+        navbar={contentMode === "page" ? (
           <DashboardFrameNavbar
             asideToggleLabel={asideToggleLabel}
             hasAside={aside !== undefined && aside !== null}
@@ -102,9 +105,10 @@ export function DashboardFrame({
             title={title}
             toolbar={toolbar}
           />
-        }
+        ) : undefined}
         onAsideOpenChange={onAsideOpenChange}
         scrollMode={contentMode === "page" ? "content" : "page"}
+        sidebarVariant="inset"
         sidebar={
           <DashboardFrameSidebar
             currentPath={currentPath}
@@ -118,18 +122,79 @@ export function DashboardFrame({
           />
         }
         sidebarCollapsible="icon"
-      >
+        sidebarSide={direction === "rtl" ? "right" : "left"}
+        >
         {mobileAside ? <AppLayout.MobileAside>{mobileAside}</AppLayout.MobileAside> : null}
         <div
           className="vitarish-dashboard-content"
           data-vitarish-layout="dashboard-content"
+          data-vitarish-reveal-header-region={contentMode === "workspace" ? "workspace" : undefined}
+          data-vitarish-scroll-owner={contentMode === "workspace" ? "workspace" : undefined}
           id="vitarish-dashboard-main"
           tabIndex={-1}
         >
+          {contentMode === "workspace" ? (
+            <>
+              <div data-vitarish-reveal-header-host="" />
+              <DashboardFrameNavbar
+                asideToggleLabel={asideToggleLabel}
+                hasAside={aside !== undefined && aside !== null}
+                mobileNavigation={mobileNavigation}
+                title={title}
+                toolbar={toolbar}
+              />
+              <RevealHeader
+                compactContent={
+                  <DashboardFrameNavbar
+                    asideToggleLabel={asideToggleLabel}
+                    hasAside={aside !== undefined && aside !== null}
+                    mobileNavigation={mobileNavigation}
+                    title={title}
+                    toolbar={toolbar}
+                  />
+                }
+                positioning="inset"
+              />
+              <RevealHeader.Boundary />
+            </>
+          ) : null}
           {children}
         </div>
       </AppLayout>
     </>
+  );
+}
+
+interface DashboardFrameWorkspaceControlsProps {
+  asideToggleLabel?: string;
+  hasAside: boolean;
+  mobileNavigation: DashboardMobileNavigation;
+  toolbar?: ReactNode;
+}
+
+function DashboardFrameWorkspaceControls({
+  asideToggleLabel,
+  hasAside,
+  mobileNavigation,
+  toolbar,
+}: DashboardFrameWorkspaceControlsProps) {
+  return (
+    <div className="vitarish-dashboard-workspace-controls" data-vitarish-layout="workspace-controls">
+      <div className="pointer-events-auto flex items-center gap-2">
+        {mobileNavigation === "sidebar" ? <AppLayout.MenuToggle variant="secondary" /> : null}
+        <Sidebar.Trigger variant="secondary" />
+      </div>
+      <div className="pointer-events-auto flex items-center gap-2">
+        {toolbar}
+        {hasAside ? (
+          asideToggleLabel ? (
+            <AppLayout.AsideTrigger aria-label={asideToggleLabel} />
+          ) : (
+            <AppLayout.AsideTrigger />
+          )
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -148,11 +213,14 @@ function DashboardFrameNavbar({
   title,
   toolbar,
 }: DashboardFrameNavbarProps) {
+  const { direction } = useLocalizedText();
+
   return (
-    <Navbar maxWidth="full">
+    <Navbar maxWidth="full" position="floating">
       <Navbar.Header>
+        {direction === "rtl" ? <Sidebar.Trigger /> : null}
         {mobileNavigation === "sidebar" ? <AppLayout.MenuToggle /> : null}
-        <Sidebar.Trigger />
+        {direction === "ltr" ? <Sidebar.Trigger /> : null}
         {title}
         <Navbar.Spacer />
         {toolbar ? <div className="flex items-center gap-2">{toolbar}</div> : null}
@@ -219,9 +287,22 @@ function DashboardFrameSidebarContents({
     [expandedKeys, requiredExpandedKeys]
   );
 
+  const [themeMounted, setThemeMounted] = useState(false);
+  const { setTheme, theme } = useTheme();
+  const { locale, t } = useLocalizedText();
+  const currentTheme: ThemeMode = theme === "system" ? "system" : theme === "dark" ? "dark" : "light";
+
   useEffect(() => {
     setExpandedKeys((current) => mergeRequiredExpandedKeys(current, requiredExpandedKeys));
   }, [requiredExpandedKeys]);
+
+  useEffect(() => setThemeMounted(true), []);
+
+  const handleLocaleChange = useCallback((key: React.Key) => {
+    if (key === locale) return;
+    setLocaleCookie(key as SupportedLocale);
+    window.location.reload();
+  }, [locale]);
 
   return (
     <>
@@ -268,15 +349,64 @@ function DashboardFrameSidebarContents({
         </Sidebar.Group>
       </Sidebar.Content>
       <Sidebar.Footer>
-        <CultureSwitcher />
-        <ThemeSwitch />
-        {footerItems.length > 0 ? (
-          <Sidebar.Menu aria-label={footerLabel ?? navigationLabel}>
-            {footerItems.map((item) => (
+        <Sidebar.Menu aria-label={footerLabel ?? navigationLabel}>
+          <Sidebar.MenuItem id="culture-switcher" textValue={t("appShell.culture.label")}>
+            <Sidebar.MenuIcon>
+              <i aria-hidden="true" className="fa-solid fa-globe size-4 shrink-0" />
+            </Sidebar.MenuIcon>
+            <Sidebar.MenuLabel>{t("appShell.culture.label")}</Sidebar.MenuLabel>
+            <Sidebar.MenuTrigger aria-label={t("appShell.culture.label")}>
+              <Sidebar.MenuIndicator aria-hidden="true" />
+            </Sidebar.MenuTrigger>
+            <Sidebar.Submenu>
+              {supportedLocales.map((loc) => (
+                <Sidebar.MenuItem
+                  key={loc}
+                  id={`culture-${loc}`}
+                  isCurrent={loc === locale}
+                  textValue={localeLabels[loc]}
+                  onAction={() => handleLocaleChange(loc)}
+                >
+                  <Sidebar.MenuLabel>{localeLabels[loc]}</Sidebar.MenuLabel>
+                </Sidebar.MenuItem>
+              ))}
+            </Sidebar.Submenu>
+          </Sidebar.MenuItem>
+          {themeMounted ? (
+            <Sidebar.MenuItem id="theme-switcher" textValue={t(`appShell.theme.${currentTheme}`)}>
+              <Sidebar.MenuIcon>
+                <i aria-hidden="true" className={`fa-solid fa-${themeIcons[currentTheme]} size-4 shrink-0`} />
+              </Sidebar.MenuIcon>
+              <Sidebar.MenuLabel>{t(`appShell.theme.${currentTheme}`)}</Sidebar.MenuLabel>
+              <Sidebar.MenuTrigger aria-label={t(`appShell.theme.${currentTheme}`)}>
+                <Sidebar.MenuIndicator aria-hidden="true" />
+              </Sidebar.MenuTrigger>
+              <Sidebar.Submenu>
+                {themeModes.map((mode) => (
+                  <Sidebar.MenuItem
+                    key={mode}
+                    id={`theme-${mode}`}
+                    isCurrent={mode === currentTheme}
+                    textValue={t(`appShell.theme.${mode}`)}
+                    onAction={() => setTheme(mode)}
+                  >
+                    <Sidebar.MenuIcon>
+                      <i aria-hidden="true" className={`fa-solid fa-${themeIcons[mode]} size-4 shrink-0`} />
+                    </Sidebar.MenuIcon>
+                    <Sidebar.MenuLabel>{t(`appShell.theme.${mode}`)}</Sidebar.MenuLabel>
+                  </Sidebar.MenuItem>
+                ))}
+              </Sidebar.Submenu>
+            </Sidebar.MenuItem>
+          ) : (
+            <div aria-hidden="true" className="h-9 w-9" />
+          )}
+          {footerItems.length > 0 ? (
+            footerItems.map((item) => (
               <DashboardFrameSidebarNavItem key={item.href} currentPath={currentPath} idPrefix={idPrefix} item={item} />
-            ))}
-          </Sidebar.Menu>
-        ) : null}
+            ))
+          ) : null}
+        </Sidebar.Menu>
       </Sidebar.Footer>
     </>
   );
@@ -327,6 +457,11 @@ function DashboardFrameSidebarNavItem({ currentPath, idPrefix, item }: Dashboard
     </Sidebar.MenuItem>
   );
 }
+
+const themeModes = ["light", "dark", "system"] as const;
+type ThemeMode = (typeof themeModes)[number];
+const themeIcons: Record<ThemeMode, string> = { light: "sun", dark: "moon", system: "display" };
+const localeLabels: Record<SupportedLocale, string> = { fa: "فارسی", en: "English" };
 
 function isSidebarItemCurrent(pathname: string, item: DashboardNavigationItem) {
   if (item.children?.some((child) => isRouteBranchCurrent(pathname, child))) {

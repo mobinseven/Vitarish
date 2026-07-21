@@ -8,6 +8,8 @@ export {
   ImmersiveRegion,
   PageContainer,
   PublicDocumentShell,
+  RevealHeader,
+  RevealHeaderBoundary,
   StandaloneCenteredPage,
   StandaloneDocumentPage,
   StandaloneImmersivePage,
@@ -20,6 +22,9 @@ export type {
   PageContainerProps,
   PageWidth,
   PublicDocumentShellProps,
+  RevealHeaderClassNames,
+  RevealHeaderPositioning,
+  RevealHeaderProps,
   StandaloneCenteredPageProps,
   StandaloneDocumentPageProps,
   StandaloneImmersivePageProps,
@@ -46,8 +51,6 @@ export type { ChatMessageKind, ChatTextDirection, ChatTone } from "./chat/types"
 export { StatusAlert } from "./feedback/StatusAlert";
 export type { StatusAlertProps } from "./feedback/StatusAlert";
 export { DashboardFrame } from "./shell/DashboardFrame";
-export { CultureSwitcher } from "./shell/CultureSwitcher";
-export { ThemeSwitch } from "./shell/ThemeSwitch";
 export type {
   DashboardContentMode,
   DashboardFrameProps,

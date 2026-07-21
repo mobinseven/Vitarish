@@ -9,6 +9,7 @@ export {
   StandaloneImmersivePage,
   pageWidths,
 } from "./LayoutPrimitives";
+export { RevealHeader, RevealHeaderBoundary } from "./RevealHeader";
 export type {
   CenteredRegionProps,
   ContainedPageProps,
@@ -20,3 +21,8 @@ export type {
   StandaloneDocumentPageProps,
   StandaloneImmersivePageProps,
 } from "./LayoutPrimitives";
+export type {
+  RevealHeaderClassNames,
+  RevealHeaderPositioning,
+  RevealHeaderProps,
+} from "./RevealHeader";

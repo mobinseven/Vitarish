@@ -71,9 +71,13 @@ export const ContainedPage = forwardRef<HTMLDivElement, ContainedPageProps>(
         ref={ref}
         className={mergeClassNames("vitarish-contained-page", className)}
         data-vitarish-layout="contained-page"
+        data-vitarish-reveal-header-region="page"
         data-vitarish-page-width={width}
       >
-        <PageContainer width={width}>{children}</PageContainer>
+        <PageContainer width={width}>
+          <RevealHeaderHost />
+          {children}
+        </PageContainer>
       </div>
     );
   }
@@ -110,8 +114,10 @@ export const ImmersiveRegion = forwardRef<HTMLDivElement, ImmersiveRegionProps>(
         ref={ref}
         className={mergeClassNames("vitarish-immersive-region", className)}
         data-vitarish-layout="immersive-region"
+        data-vitarish-reveal-header-region="workspace"
         data-vitarish-scroll-owner="workspace"
       >
+        <RevealHeaderHost />
         {children}
       </div>
     );
@@ -181,6 +187,10 @@ export const StandaloneImmersivePage = forwardRef<HTMLElement, StandaloneImmersi
     );
   }
 );
+
+function RevealHeaderHost() {
+  return <div data-vitarish-reveal-header-host="" />;
+}
 
 function mergeClassNames(...classNames: Array<string | undefined>) {
   const result = classNames.filter(Boolean).join(" ");
