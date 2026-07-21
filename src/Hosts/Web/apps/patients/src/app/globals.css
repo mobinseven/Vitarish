@@ -60,7 +60,7 @@
  */
 
 .glass-light,
-[data-theme="light"] {
+[data-theme="glass-light"] {
   /* Theme Colors */
   --muted: oklch(48% 0.025 310);
   --scrollbar: oklch(86% 0.035 330);
@@ -81,7 +81,7 @@
 
 }
 
-html[data-theme="light"],
+html[data-theme="glass-light"],
 html.glass-light {
   background:
     radial-gradient(circle at 12% 28%, oklch(72% 0.16 315 / 48%), transparent 23rem),
@@ -92,7 +92,7 @@ html.glass-light {
 }
 
 .glass-dark,
-[data-theme="dark"] {
+[data-theme="glass-dark"] {
   color-scheme: dark;
   /* Theme Colors */
   --muted: oklch(76% 0.035 320);
@@ -114,7 +114,7 @@ html.glass-light {
 
 }
 
-html[data-theme="dark"],
+html[data-theme="glass-dark"],
 html.glass-dark {
   background:
     radial-gradient(circle at 12% 28%, oklch(42% 0.15 320 / 48%), transparent 23rem),

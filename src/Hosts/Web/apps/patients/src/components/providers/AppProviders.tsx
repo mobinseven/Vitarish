@@ -23,6 +23,7 @@ export function Providers({ children }: { children: ReactNode }) {
         attribute="data-theme"
         defaultTheme="system"
         themes={[...themeModeOptions]}
+        // value={{ light: "glass-light", dark: "glass-dark" }}
         enableSystem
         disableTransitionOnChange
       >

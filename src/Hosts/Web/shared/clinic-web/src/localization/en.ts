@@ -53,6 +53,7 @@ export const clinicEnMessages = {
         unknown: "Unknown",
       },
       sections: {
+        profile: "Profile",
         personal: "Personal Information",
         contact: "Contact Information",
         medical: "Medical Information",
@@ -301,7 +302,7 @@ export const clinicEnMessages = {
         attachmentsPreview: "Event attachments",
         title: "Clinical Evidence",
         conversationDescription: "Share notes and files with the care team.",
-        empty: "No clinical evidence yet.",
+        empty: "No items to show",
         loadFailed: "Clinical evidence could not be loaded.",
         note: "Note",
         file: "File",
