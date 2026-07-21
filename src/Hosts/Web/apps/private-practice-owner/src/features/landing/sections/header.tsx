@@ -19,7 +19,7 @@ export function Header() {
   const {t} = useLocalizedText();
 
   return (
-    <Navbar aria-label={t("landing.header.primaryNav")} height="4.5rem">
+    <Navbar aria-label={t("landing.header.primaryNav")} height="4.5rem" position="floating">
       <Navbar.Header>
         <PageContainer className="flex h-full items-center">
           <Navbar.Brand className="flex items-center gap-2">
