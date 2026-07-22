@@ -19,7 +19,10 @@ interface PatientDetail {
   value: ReactNode;
 }
 
-function formatPatientDate(value: string | null | undefined, locale: SupportedLocale): string | null {
+function formatPatientDate(
+  value: string | null | undefined,
+  locale: SupportedLocale,
+): string | null {
   if (!value || value.startsWith("0001-01-01")) return null;
   return formatDate(value, locale) || null;
 }
@@ -30,7 +33,9 @@ function formatEnum(value: string | null | undefined): string | null {
 }
 
 function detail(label: string, value: ReactNode): PatientDetail | null {
-  return value === null || value === undefined || value === "" ? null : { label, value };
+  return value === null || value === undefined || value === ""
+    ? null
+    : { label, value };
 }
 
 function DetailList({ items }: { items: PatientDetail[] }) {
@@ -39,7 +44,9 @@ function DetailList({ items }: { items: PatientDetail[] }) {
       {items.map((item) => (
         <div key={item.label} className="min-w-0">
           <dt className="text-xs font-medium text-muted">{item.label}</dt>
-          <dd className="mt-0.5 break-words text-sm text-foreground">{item.value}</dd>
+          <dd className="mt-0.5 break-words text-sm text-foreground">
+            {item.value}
+          </dd>
         </div>
       ))}
     </dl>
@@ -49,7 +56,10 @@ function DetailList({ items }: { items: PatientDetail[] }) {
 export function PatientProfileCard({ patient }: PatientProfileCardProps) {
   const { t, locale } = useLocalizedText();
   const personalDetails = [
-    detail(t("clinic.patient.fields.dateOfBirth"), formatPatientDate(patient.dateOfBirth, locale)),
+    detail(
+      t("clinic.patient.fields.dateOfBirth"),
+      formatPatientDate(patient.dateOfBirth, locale),
+    ),
     detail(t("clinic.patient.fields.gender"), formatEnum(patient.gender)),
   ].filter((item): item is PatientDetail => item !== null);
   const contactDetails = [
@@ -58,14 +68,32 @@ export function PatientProfileCard({ patient }: PatientProfileCardProps) {
     detail(t("clinic.patient.fields.address"), patient.address),
   ].filter((item): item is PatientDetail => item !== null);
   const careDetails = [
-    detail(t("clinic.patient.fields.insuranceProvider"), patient.insuranceProvider),
+    detail(
+      t("clinic.patient.fields.insuranceProvider"),
+      patient.insuranceProvider,
+    ),
     detail(t("clinic.patient.fields.allergies"), patient.allergies),
-    detail(t("clinic.patient.fields.currentMedications"), patient.currentMedications),
+    detail(
+      t("clinic.patient.fields.currentMedications"),
+      patient.currentMedications,
+    ),
   ].filter((item): item is PatientDetail => item !== null);
   const sections = [
-    { title: t("clinic.patient.sections.personal"), icon: "user", items: personalDetails },
-    { title: t("clinic.patient.sections.contact"), icon: "phone", items: contactDetails },
-    { title: t("clinic.patient.sections.medical"), icon: "heart-pulse", items: careDetails },
+    {
+      title: t("clinic.patient.sections.personal"),
+      icon: "user",
+      items: personalDetails,
+    },
+    {
+      title: t("clinic.patient.sections.contact"),
+      icon: "phone",
+      items: contactDetails,
+    },
+    {
+      title: t("clinic.patient.sections.medical"),
+      icon: "heart-pulse",
+      items: careDetails,
+    },
   ].filter((section) => section.items.length > 0);
 
   if (sections.length === 0) return null;
@@ -80,12 +108,12 @@ export function PatientProfileCard({ patient }: PatientProfileCardProps) {
             </span>
             <div className="flex gap-2">
               <Label className="text-sm font-semibold">{section.title}</Label>
-
             </div>
           </Card.Header>
           <Card.Content>
             <Description className="mt-2">
-              <DetailList items={section.items} /></Description>
+              <DetailList items={section.items} />
+            </Description>
           </Card.Content>
         </Card>
       ))}

@@ -1,14 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { Alert, Button, Chip, Separator, Spinner, Tooltip } from "@heroui/react";
+import {
+  Alert,
+  Button,
+  Chip,
+  Separator,
+  Spinner,
+  Tooltip,
+} from "@heroui/react";
 import { usePatientProcedures } from "../../../hooks/patients/procedures/usePatientProcedures";
 import { usePatientProcedureTriage } from "../../../hooks/patients/procedures/usePatientProcedureTriage";
 import { PatientProcedureForm } from "./PatientProcedureForm";
 import { PatientProcedureProgress } from "./PatientProcedureProgress";
 import { useLocalizedText } from "../../../localization/index";
 import type { NavigationIntent } from "../../../navigation";
-import { EmptyState, ItemCard, ItemCardGroup, PressableFeedback } from "@heroui-pro/react";
+import {
+  EmptyState,
+  ItemCard,
+  ItemCardGroup,
+  PressableFeedback,
+} from "@heroui-pro/react";
 import { FaIcon } from "@vitarish/web-ui";
 
 const ProcedureCard = ItemCard<"button">;
@@ -49,7 +61,11 @@ export function PatientProceduresPanel({
         <ItemCardGroup variant="transparent">
           <ItemCardGroup.Header className="flex items-center justify-between">
             <Tooltip>
-              <Button size="sm" variant="primary" onPress={() => setShowCreateForm(true)}>
+              <Button
+                size="sm"
+                variant="primary"
+                onPress={() => setShowCreateForm(true)}
+              >
                 <FaIcon icon="plus" aria-hidden="true" />
                 {t("clinic.procedures.new")}
               </Button>
@@ -60,7 +76,9 @@ export function PatientProceduresPanel({
           {procedures?.length ? (
             <ItemCardGroup className="overflow-hidden">
               {procedures.flatMap((procedure, index) => [
-                ...(index > 0 ? [<Separator key={`sep-${procedure.id}`} />] : []),
+                ...(index > 0
+                  ? [<Separator key={`sep-${procedure.id}`} />]
+                  : []),
                 <ProcedureCard
                   key={procedure.id}
                   className="hover:bg-default/20 active:bg-default-hover/50 relative w-full cursor-pointer overflow-hidden transition-colors"

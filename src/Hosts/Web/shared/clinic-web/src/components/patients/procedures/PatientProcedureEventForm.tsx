@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { Button, Input, Label, Modal, TextField } from "@heroui/react";
-import { useCreatePatientProcedureEvent, useUpdatePatientProcedureEvent } from "../../../hooks/patients/procedures/usePatientProcedureEventMutations";
+import {
+  useCreatePatientProcedureEvent,
+  useUpdatePatientProcedureEvent,
+} from "../../../hooks/patients/procedures/usePatientProcedureEventMutations";
 import { useLocalizedText } from "../../../localization/index";
 
 interface PatientProcedureEventFormProps {
@@ -44,7 +47,7 @@ export function PatientProcedureEventForm({
       close: onClose,
       toggle: () => onClose(),
     }),
-    [onClose]
+    [onClose],
   );
 
   const handleSubmit = () => {
@@ -53,12 +56,21 @@ export function PatientProcedureEventForm({
 
     mutation.mutate(
       isEditing
-        ? { id: eventId, title: title.trim(), description: description.trim() || undefined }
-        : { projectId, procedureId, title: title.trim(), description: description.trim() || undefined },
+        ? {
+            id: eventId,
+            title: title.trim(),
+            description: description.trim() || undefined,
+          }
+        : {
+            projectId,
+            procedureId,
+            title: title.trim(),
+            description: description.trim() || undefined,
+          },
       {
         onSuccess: () => onClose(),
         onError: () => setError(t("clinic.procedures.form.error")),
-      }
+      },
     );
   };
 
@@ -69,22 +81,34 @@ export function PatientProcedureEventForm({
           <Modal.Dialog>
             <Modal.Header>
               <Modal.Heading className="text-lg font-semibold">
-                {isEditing ? t("clinic.procedures.form.edit") : t("clinic.procedures.events.addStep")}
+                {isEditing
+                  ? t("clinic.procedures.form.edit")
+                  : t("clinic.procedures.events.addStep")}
               </Modal.Heading>
             </Modal.Header>
             <Modal.Body>
               <TextField isRequired value={title} onChange={setTitle}>
                 <Label>{t("clinic.procedures.form.nameLabel")}</Label>
-                <Input placeholder={t("clinic.procedures.form.namePlaceholder")} />
+                <Input
+                  placeholder={t("clinic.procedures.form.namePlaceholder")}
+                />
               </TextField>
               <TextField value={description} onChange={setDescription}>
                 <Label>{t("clinic.procedures.form.descriptionLabel")}</Label>
-                <Input placeholder={t("clinic.procedures.form.descriptionPlaceholder")} />
+                <Input
+                  placeholder={t(
+                    "clinic.procedures.form.descriptionPlaceholder",
+                  )}
+                />
               </TextField>
               {error && <p className="text-sm text-danger">{error}</p>}
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onPress={onClose} isDisabled={isPending}>
+              <Button
+                variant="secondary"
+                onPress={onClose}
+                isDisabled={isPending}
+              >
                 {t("common.actions.cancel")}
               </Button>
               <Button
@@ -93,7 +117,9 @@ export function PatientProcedureEventForm({
                 isDisabled={!title.trim()}
                 isPending={isPending}
               >
-                {isEditing ? t("clinic.procedures.form.edit") : t("clinic.procedures.events.addStep")}
+                {isEditing
+                  ? t("clinic.procedures.form.edit")
+                  : t("clinic.procedures.events.addStep")}
               </Button>
             </Modal.Footer>
           </Modal.Dialog>

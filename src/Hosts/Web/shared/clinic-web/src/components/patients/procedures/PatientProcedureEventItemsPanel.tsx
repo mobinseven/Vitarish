@@ -49,7 +49,10 @@ export function PatientProcedureEventItemsPanel({
   const itemGroups = groupItemsByCreator(items);
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col" aria-labelledby={headingId}>
+    <section
+      className="flex min-h-0 flex-1 flex-col"
+      aria-labelledby={headingId}
+    >
       <h2 id={headingId} className="sr-only">
         {t("clinic.procedures.items.title")}
       </h2>
@@ -60,36 +63,50 @@ export function PatientProcedureEventItemsPanel({
           role="feed"
         >
           {query.isLoading ? (
-            <p className="text-muted text-center text-sm">{t("common.states.loading")}</p>
+            <p className="text-muted text-center text-sm">
+              {t("common.states.loading")}
+            </p>
           ) : query.error ? (
-            <div className="flex flex-col items-center gap-3 py-10" role="alert">
-              <p className="text-danger m-0 text-sm">{t("clinic.procedures.items.loadFailed")}</p>
-              <Button size="sm" variant="secondary" onPress={() => void query.refetch()}>
+            <div
+              className="flex flex-col items-center gap-3 py-10"
+              role="alert"
+            >
+              <p className="text-danger m-0 text-sm">
+                {t("clinic.procedures.items.loadFailed")}
+              </p>
+              <Button
+                size="sm"
+                variant="secondary"
+                onPress={() => void query.refetch()}
+              >
                 {t("common.actions.retry")}
               </Button>
             </div>
           ) : items.length === 0 ? (
-              <EmptyState size="sm">
-                <EmptyState.Header>
-                  <EmptyState.Media variant="icon">
-                    <FaIcon icon="messages" />
-                  </EmptyState.Media>
-                  <EmptyState.Title>
-              {t("clinic.procedures.items.empty")}</EmptyState.Title>
-                </EmptyState.Header>
-              </EmptyState>
-          ) : itemGroups.map((group) =>
-            group.map((item, index) => (
-              <PatientProcedureEventItemMessage
-                key={item.id}
-                canWrite={canWrite}
-                isDeleting={remove.isPending}
-                item={item}
-                showAuthor={index === 0}
-                viewer={viewer}
-                onDelete={() => remove.mutate(item.id)}
-              />
-            )),
+            <EmptyState size="sm">
+              <EmptyState.Header>
+                <EmptyState.Media variant="icon">
+                  <FaIcon icon="messages" />
+                </EmptyState.Media>
+                <EmptyState.Title>
+                  {t("clinic.procedures.items.empty")}
+                </EmptyState.Title>
+              </EmptyState.Header>
+            </EmptyState>
+          ) : (
+            itemGroups.map((group) =>
+              group.map((item, index) => (
+                <PatientProcedureEventItemMessage
+                  key={item.id}
+                  canWrite={canWrite}
+                  isDeleting={remove.isPending}
+                  item={item}
+                  showAuthor={index === 0}
+                  viewer={viewer}
+                  onDelete={() => remove.mutate(item.id)}
+                />
+              )),
+            )
           )}
         </ChatConversation.Content>
         <ChatConversation.ScrollButton
@@ -99,12 +116,17 @@ export function PatientProcedureEventItemsPanel({
       </ChatConversation>
 
       {remove.isError ? (
-        <p className="text-danger mx-auto mb-2 w-full max-w-4xl text-sm" role="alert">
+        <p
+          className="text-danger mx-auto mb-2 w-full max-w-4xl text-sm"
+          role="alert"
+        >
           {t("clinic.procedures.items.deleteFailed")}
         </p>
       ) : null}
 
-      {canWrite ? <PatientProcedureEventItemComposer key={eventId} eventId={eventId} /> : null}
+      {canWrite ? (
+        <PatientProcedureEventItemComposer key={eventId} eventId={eventId} />
+      ) : null}
     </section>
   );
 }

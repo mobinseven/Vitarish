@@ -37,19 +37,24 @@ const patient = {
 
 describe("PatientOverviewHeader", () => {
   it("renders the patient avatar, name, and summary details", () => {
-    const { container } = render(
-      <PatientOverviewHeader patient={patient} />,
-      { wrapper: Wrapper },
-    );
+    const { container } = render(<PatientOverviewHeader patient={patient} />, {
+      wrapper: Wrapper,
+    });
 
-    expect(container.querySelector('[data-slot="avatar-fallback"]')).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Ada Lovelace", level: 1 })).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-slot="avatar-fallback"]'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Ada Lovelace", level: 1 }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Identification Code: P-100")).toBeInTheDocument();
     expect(container.querySelector(".vitarish-reveal-header")).toHaveAttribute(
       "data-positioning",
       "overlay",
     );
-    expect(container.querySelector("[data-vitarish-reveal-header-boundary]")).toBeInTheDocument();
+    expect(
+      container.querySelector("[data-vitarish-reveal-header-boundary]"),
+    ).toBeInTheDocument();
   });
 });
 

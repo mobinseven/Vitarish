@@ -1,13 +1,14 @@
 "use client";
 
-
 import { useLocalizedText } from "../../../localization/index";
 
 interface PatientProcedureTemplateReviewPanelProps {
   templateName: string;
 }
 
-export function PatientProcedureTemplateReviewPanel({ templateName }: PatientProcedureTemplateReviewPanelProps) {
+export function PatientProcedureTemplateReviewPanel({
+  templateName,
+}: PatientProcedureTemplateReviewPanelProps) {
   const { t } = useLocalizedText();
 
   return (
@@ -17,7 +18,9 @@ export function PatientProcedureTemplateReviewPanel({ templateName }: PatientPro
       </header>
       <div>
         <div className="flex flex-col gap-2 text-sm text-muted">
-          <p>{t("clinic.procedures.templates.createFrom")}: {templateName}</p>
+          <p>
+            {t("clinic.procedures.templates.createFrom")}: {templateName}
+          </p>
           <p>{t("clinic.procedures.templates.preview")}</p>
         </div>
       </div>

@@ -48,10 +48,18 @@ export function PatientProcedureEventDeleteDialog({
               <p className="text-sm text-muted">{eventTitle}</p>
             </AlertDialog.Body>
             <AlertDialog.Footer>
-              <Button variant="secondary" onPress={onClose} isDisabled={deleteMutation.isPending}>
+              <Button
+                variant="secondary"
+                onPress={onClose}
+                isDisabled={deleteMutation.isPending}
+              >
                 {t("common.actions.cancel")}
               </Button>
-              <Button variant="danger" onPress={handleConfirm} isPending={deleteMutation.isPending}>
+              <Button
+                variant="danger"
+                onPress={handleConfirm}
+                isPending={deleteMutation.isPending}
+              >
                 {t("common.actions.delete")}
               </Button>
             </AlertDialog.Footer>

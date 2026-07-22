@@ -1,6 +1,5 @@
 "use client";
 
-
 import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/web-ui";
 import { usePatientProcedureEventAccess } from "../../../hooks/patients/procedures/usePatientProcedureEventAccess";
 import { useLocalizedText } from "../../../localization/index";
@@ -9,7 +8,9 @@ interface PatientProcedureEventAccessPanelProps {
   eventId: string;
 }
 
-export function PatientProcedureEventAccessPanel({ eventId }: PatientProcedureEventAccessPanelProps) {
+export function PatientProcedureEventAccessPanel({
+  eventId,
+}: PatientProcedureEventAccessPanelProps) {
   const { t } = useLocalizedText();
   const { data: access, isLoading } = usePatientProcedureEventAccess(eventId);
 
@@ -21,16 +22,22 @@ export function PatientProcedureEventAccessPanel({ eventId }: PatientProcedureEv
         <h2>{t("clinic.procedures.access.title")}</h2>
       </header>
       <div>
-        {!access || (access.readRoles.length === 0 && access.writeRoles.length === 0) ? (
+        {!access ||
+        (access.readRoles.length === 0 && access.writeRoles.length === 0) ? (
           <ClinicEmptyState title={t("common.states.empty")} />
         ) : (
           <div className="flex flex-col gap-3">
             {access.readRoles.length > 0 && (
               <div>
-                <p className="text-sm font-medium mb-1">{t("clinic.procedures.access.read")}</p>
+                <p className="text-sm font-medium mb-1">
+                  {t("clinic.procedures.access.read")}
+                </p>
                 <div className="flex flex-wrap gap-1">
                   {access.readRoles.map((role) => (
-                    <span key={role} className="text-xs bg-default-100 px-2 py-1 rounded">
+                    <span
+                      key={role}
+                      className="text-xs bg-default-100 px-2 py-1 rounded"
+                    >
                       {role}
                     </span>
                   ))}
@@ -39,10 +46,15 @@ export function PatientProcedureEventAccessPanel({ eventId }: PatientProcedureEv
             )}
             {access.writeRoles.length > 0 && (
               <div>
-                <p className="text-sm font-medium mb-1">{t("clinic.procedures.access.write")}</p>
+                <p className="text-sm font-medium mb-1">
+                  {t("clinic.procedures.access.write")}
+                </p>
                 <div className="flex flex-wrap gap-1">
                   {access.writeRoles.map((role) => (
-                    <span key={role} className="text-xs bg-default-100 px-2 py-1 rounded">
+                    <span
+                      key={role}
+                      className="text-xs bg-default-100 px-2 py-1 rounded"
+                    >
                       {role}
                     </span>
                   ))}

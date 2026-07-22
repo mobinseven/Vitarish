@@ -49,10 +49,18 @@ describe("PatientListPage mobile composition", () => {
       </LocalizationProvider>,
     );
 
-    expect(screen.queryByRole("heading", { name: "Patients" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("toolbar", { name: "Patients" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("searchbox", { name: "Search patients" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "New Patient" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Patients" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("toolbar", { name: "Patients" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("searchbox", { name: "Search patients" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "New Patient" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByTestId("patients-grid")).toBeInTheDocument();
     expect(capturedPatientsGridProps.current?.totalCount).toBe(56);
 
@@ -72,10 +80,14 @@ describe("PatientListPage mobile composition", () => {
 
     patientListQuery.isLoading = true;
     act(() => {
-      (capturedPatientsGridProps.current?.onSearch as (value: string) => void)("Ada");
+      (capturedPatientsGridProps.current?.onSearch as (value: string) => void)(
+        "Ada",
+      );
     });
 
-    expect(within(view.container).getByTestId("patients-grid")).toBeInTheDocument();
+    expect(
+      within(view.container).getByTestId("patients-grid"),
+    ).toBeInTheDocument();
     expect(capturedPatientsGridProps.current?.isLoading).toBe(true);
   });
 });

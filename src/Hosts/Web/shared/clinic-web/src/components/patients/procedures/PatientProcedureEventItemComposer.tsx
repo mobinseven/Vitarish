@@ -23,7 +23,9 @@ interface PatientProcedureEventItemComposerProps {
   eventId: string;
 }
 
-export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureEventItemComposerProps) {
+export function PatientProcedureEventItemComposer({
+  eventId,
+}: PatientProcedureEventItemComposerProps) {
   const { t, locale } = useLocalizedText();
   const createNote = useCreatePatientProcedureEventItemText();
   const createFile = useCreatePatientProcedureEventItemFile();
@@ -34,14 +36,18 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
   const [fileFailed, setFileFailed] = useState(false);
   const dictation = useLiveDictation({
     enabled: true,
-    onSegment: (segment) => setNote((current) => appendConfirmedTranscript(current, segment)),
+    onSegment: (segment) =>
+      setNote((current) => appendConfirmedTranscript(current, segment)),
     preferredLanguage: locale === "fa" ? "fa-IR" : "en-US",
     sessionKey: eventId,
   });
 
-  useEffect(() => () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-  }, [previewUrl]);
+  useEffect(
+    () => () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    },
+    [previewUrl],
+  );
 
   const selectFile = (nextFile?: File) => {
     fileRef.current = nextFile ?? null;
@@ -49,7 +55,9 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
     setFileFailed(false);
     createFile.reset();
     setPreviewUrl(
-      nextFile && (nextFile.type.startsWith("image/") || nextFile.type.startsWith("video/"))
+      nextFile &&
+        (nextFile.type.startsWith("image/") ||
+          nextFile.type.startsWith("video/"))
         ? URL.createObjectURL(nextFile)
         : undefined,
     );
@@ -69,7 +77,9 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
           contentType: "text/plain",
           size: new Blob([content]).size,
         });
-        setNote((current) => current.startsWith(content) ? current.slice(content.length) : current);
+        setNote((current) =>
+          current.startsWith(content) ? current.slice(content.length) : current,
+        );
       } catch {
         // The mutation state renders the localized failure and retains the draft.
       }
@@ -101,7 +111,10 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
         onSubmit={() => void submit()}
         onValueChange={setNote}
       >
-        <ChatAttachmentInput multiple={false} onFilesSelected={(files) => selectFile(files?.[0])}>
+        <ChatAttachmentInput
+          multiple={false}
+          onFilesSelected={(files) => selectFile(files?.[0])}
+        >
           <ChatAttachmentInput.Dropzone
             render={(dropzoneProps) => (
               <PromptInput.Shell {...dropzoneProps}>
@@ -109,7 +122,11 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
                   {file ? (
                     <PromptInput.Attachments>
                       <ChatAttachmentGroup>
-                        <ChatAttachment mimeType={file.type} name={file.name} src={previewUrl}>
+                        <ChatAttachment
+                          mimeType={file.type}
+                          name={file.name}
+                          src={previewUrl}
+                        >
                           <ChatAttachment.Preview />
                           <ChatAttachment.Remove
                             aria-label={t("common.actions.remove")}
@@ -121,7 +138,9 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
                   ) : null}
                   <PromptInput.TextArea
                     aria-label={t("clinic.procedures.items.noteLabel")}
-                    placeholder={t("clinic.procedures.items.composerPlaceholder")}
+                    placeholder={t(
+                      "clinic.procedures.items.composerPlaceholder",
+                    )}
                   />
                 </PromptInput.Content>
                 <PromptInput.Toolbar>
@@ -133,7 +152,11 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
                           aria-label={t("clinic.procedures.items.chooseFile")}
                           tooltip={t("clinic.procedures.items.chooseFile")}
                         >
-                          <FaIcon icon="paperclip" aria-hidden="true" className="size-4" />
+                          <FaIcon
+                            icon="paperclip"
+                            aria-hidden="true"
+                            className="size-4"
+                          />
                         </PromptInput.Action>
                       )}
                     />
@@ -142,7 +165,11 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
                   <PromptInput.ToolbarEnd>
                     <PromptInput.Send
                       aria-label={t("clinic.procedures.items.send")}
-                      isDisabled={isSubmitting || dictation.isActive || (!note.trim() && !file)}
+                      isDisabled={
+                        isSubmitting ||
+                        dictation.isActive ||
+                        (!note.trim() && !file)
+                      }
                     />
                   </PromptInput.ToolbarEnd>
                 </PromptInput.Toolbar>
@@ -150,15 +177,23 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
             )}
           />
         </ChatAttachmentInput>
-        <PromptInput.Footer>{t("clinic.procedures.items.oneFile")}</PromptInput.Footer>
+        <PromptInput.Footer>
+          {t("clinic.procedures.items.oneFile")}
+        </PromptInput.Footer>
       </PromptInput>
       {createNote.isError ? (
-        <p className="text-danger mx-auto mt-2 w-full max-w-4xl text-sm" role="alert">
+        <p
+          className="text-danger mx-auto mt-2 w-full max-w-4xl text-sm"
+          role="alert"
+        >
           {t("clinic.procedures.items.saveFailed")}
         </p>
       ) : null}
       {createFile.isError || fileFailed ? (
-        <p className="text-danger mx-auto mt-2 w-full max-w-4xl text-sm" role="alert">
+        <p
+          className="text-danger mx-auto mt-2 w-full max-w-4xl text-sm"
+          role="alert"
+        >
           {t("clinic.procedures.items.uploadFailed")}
         </p>
       ) : null}

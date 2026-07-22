@@ -30,7 +30,7 @@ export function ServiceDeleteDialog({
         if (isOpen && !isPending) onCancel();
       },
     }),
-    [isOpen, isPending, onCancel]
+    [isOpen, isPending, onCancel],
   );
 
   if (!isOpen) return null;
@@ -47,10 +47,18 @@ export function ServiceDeleteDialog({
               <p>{t("clinic.services.confirmDelete")}</p>
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onPress={onCancel} isDisabled={isPending}>
+              <Button
+                variant="secondary"
+                onPress={onCancel}
+                isDisabled={isPending}
+              >
                 {t("common.actions.cancel")}
               </Button>
-              <Button variant="danger" onPress={onConfirm} isPending={isPending}>
+              <Button
+                variant="danger"
+                onPress={onConfirm}
+                isPending={isPending}
+              >
                 {t("common.actions.delete")}
               </Button>
             </Modal.Footer>

@@ -5,7 +5,12 @@ import { Button, Input, Label, TextField } from "@heroui/react";
 
 import { AdvancedSearchForm } from "./AdvancedSearchForm";
 import { AdvancedSearchResults } from "./AdvancedSearchResults";
-import { EmptyStateSurface as ClinicEmptyState, ErrorStateSurface as ClinicErrorState, FaIcon, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
+import {
+  EmptyStateSurface as ClinicEmptyState,
+  ErrorStateSurface as ClinicErrorState,
+  FaIcon,
+  LoadingStateSurface as ClinicLoadingState,
+} from "@vitarish/web-ui";
 import { PatientProfileForm } from "../profile/PatientProfileForm";
 import { emptyFormData } from "../../../models/patients/profile/PatientProfileForm";
 import { usePatientFindOrCreate } from "../../../hooks/patients/find-or-create/usePatientFindOrCreate";
@@ -50,7 +55,7 @@ export function PatientFindOrCreate({
       handleSelectPatient();
       onPatientSelected(patientId);
     },
-    [handleSelectPatient, onPatientSelected]
+    [handleSelectPatient, onPatientSelected],
   );
 
   const handleCreateSubmit = useCallback(
@@ -67,7 +72,7 @@ export function PatientFindOrCreate({
         setCreateError(true);
       }
     },
-    [createPatient, handleSelectPatient, onPatientSelected, onPatientCreated]
+    [createPatient, handleSelectPatient, onPatientSelected, onPatientCreated],
   );
 
   return (
@@ -91,15 +96,25 @@ export function PatientFindOrCreate({
                 />
               </TextField>
               {isLooking && (
-                <ClinicLoadingState label={t("clinic.patient.identification.lookingUp")} />
+                <ClinicLoadingState
+                  label={t("clinic.patient.identification.lookingUp")}
+                />
               )}
               {lookupError === "not-found" && (
-                <ClinicEmptyState title={t("clinic.patient.identification.notFound")} />
+                <ClinicEmptyState
+                  title={t("clinic.patient.identification.notFound")}
+                />
               )}
               {lookupError === "error" && (
-                <ClinicErrorState title={t("clinic.patient.identification.error")} />
+                <ClinicErrorState
+                  title={t("clinic.patient.identification.error")}
+                />
               )}
-              <Button variant="primary" isPending={isLooking} onPress={handleLookupSubmit}>
+              <Button
+                variant="primary"
+                isPending={isLooking}
+                onPress={handleLookupSubmit}
+              >
                 {t("clinic.patient.identification.lookupAction")}
               </Button>
             </div>
@@ -107,18 +122,25 @@ export function PatientFindOrCreate({
 
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-surface-secondary" />
-            <span className="text-sm text-muted">{t("clinic.patient.findOrCreate.or")}</span>
+            <span className="text-sm text-muted">
+              {t("clinic.patient.findOrCreate.or")}
+            </span>
             <div className="h-px flex-1 bg-surface-secondary" />
           </div>
 
-          <AdvancedSearchForm onSearch={handleAdvancedSearch} isPending={isPending} />
+          <AdvancedSearchForm
+            onSearch={handleAdvancedSearch}
+            isPending={isPending}
+          />
         </>
       )}
 
       {step === "search" && (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">{t("clinic.patient.search.results")}</h2>
+            <h2 className="text-lg font-semibold">
+              {t("clinic.patient.search.results")}
+            </h2>
             <Button variant="ghost" onPress={handleGoToLookup}>
               <FaIcon icon="arrow-left" aria-hidden="true" />
               {t("common.actions.previous")}
@@ -135,7 +157,9 @@ export function PatientFindOrCreate({
       {step === "create" && (
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">{t("clinic.patients.newPatient")}</h1>
+            <h1 className="text-2xl font-bold">
+              {t("clinic.patients.newPatient")}
+            </h1>
             <Button variant="ghost" onPress={handleGoToLookup}>
               <FaIcon icon="arrow-left" aria-hidden="true" />
               {t("common.actions.previous")}
@@ -157,7 +181,9 @@ export function PatientFindOrCreate({
       )}
 
       {step === "selected" && (
-        <ClinicEmptyState title={t("clinic.patient.findOrCreate.patientSelected")}>
+        <ClinicEmptyState
+          title={t("clinic.patient.findOrCreate.patientSelected")}
+        >
           <Button variant="ghost" onPress={handleGoToLookup}>
             {t("clinic.patient.findOrCreate.findAnother")}
           </Button>

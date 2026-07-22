@@ -13,7 +13,10 @@ type CheckInStep = "find-patient" | "select-shift" | "confirm";
 
 interface PatientCheckInWizardProps {
   onPatientSelected: (patientId: string) => void;
-  onCheckInComplete?: (patientId: string, shiftReservation: ShiftReservationReadDto) => void;
+  onCheckInComplete?: (
+    patientId: string,
+    shiftReservation: ShiftReservationReadDto,
+  ) => void;
 }
 
 export function PatientCheckInWizard({
@@ -22,9 +25,13 @@ export function PatientCheckInWizard({
 }: PatientCheckInWizardProps) {
   const { t } = useLocalizedText();
   const [step, setStep] = useState<CheckInStep>("find-patient");
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-  const [selectedShift, setSelectedShift] = useState<ShiftReservationReadDto | null>(null);
-  const currentStep = step === "find-patient" ? 0 : step === "select-shift" ? 1 : 2;
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
+    null,
+  );
+  const [selectedShift, setSelectedShift] =
+    useState<ShiftReservationReadDto | null>(null);
+  const currentStep =
+    step === "find-patient" ? 0 : step === "select-shift" ? 1 : 2;
   const steps = [
     t("clinic.checkIn.step1"),
     t("clinic.checkIn.step2"),
@@ -37,7 +44,7 @@ export function PatientCheckInWizard({
       onPatientSelected(patientId);
       setStep("select-shift");
     },
-    [onPatientSelected]
+    [onPatientSelected],
   );
 
   const handleConfirm = useCallback(() => {
@@ -101,9 +108,18 @@ export function PatientCheckInWizard({
           <div className="flex flex-col gap-4">
             <DetailGrid
               items={[
-                { label: t("clinic.checkIn.shiftDate"), value: selectedShift.date },
-                { label: t("clinic.checkIn.shiftTime"), value: `${selectedShift.startTime} - ${selectedShift.endTime}` },
-                { label: t("clinic.checkIn.availableSeats"), value: selectedShift.availableSeats },
+                {
+                  label: t("clinic.checkIn.shiftDate"),
+                  value: selectedShift.date,
+                },
+                {
+                  label: t("clinic.checkIn.shiftTime"),
+                  value: `${selectedShift.startTime} - ${selectedShift.endTime}`,
+                },
+                {
+                  label: t("clinic.checkIn.availableSeats"),
+                  value: selectedShift.availableSeats,
+                },
               ]}
             />
 
@@ -125,7 +141,5 @@ export function PatientCheckInWizard({
 function ShiftSelectionPanel() {
   const { t } = useLocalizedText();
 
-  return (
-    <ClinicEmptyState title={t("clinic.checkIn.shiftUnavailable")} />
-  );
+  return <ClinicEmptyState title={t("clinic.checkIn.shiftUnavailable")} />;
 }

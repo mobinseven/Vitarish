@@ -14,23 +14,48 @@ interface Props {
   onDeleted: () => void;
 }
 
-export function PatientProcedureEventDetailPanel({ eventId, procedureId, viewer, onDeleted }: Props) {
+export function PatientProcedureEventDetailPanel({
+  eventId,
+  procedureId,
+  viewer,
+  onDeleted,
+}: Props) {
   const { t, locale } = useLocalizedText();
   const query = usePatientProcedureEventDetail(eventId);
   const capabilitiesQuery = useSeaEventCapabilities(eventId);
   if (query.isLoading) return <p>{t("common.states.loading")}</p>;
-  if (query.error || !query.data) return <p role="alert">{t("clinic.procedures.eventNotFound")}</p>;
+  if (query.error || !query.data)
+    return <p role="alert">{t("clinic.procedures.eventNotFound")}</p>;
 
   const event = query.data;
   const canWrite = capabilitiesQuery.data?.canWrite ?? false;
   const details: DetailGridItem[] = [
-    { label: t("clinic.fields.created"), value: formatDateTime(event.createdAt, locale) },
-    ...(event.committedAt ? [{ label: t("clinic.fields.committedAt"), value: formatDateTime(event.committedAt, locale) }] : []),
-    ...(event.description ? [{ label: t("clinic.fields.description"), value: event.description }] : []),
+    {
+      label: t("clinic.fields.created"),
+      value: formatDateTime(event.createdAt, locale),
+    },
+    ...(event.committedAt
+      ? [
+          {
+            label: t("clinic.fields.committedAt"),
+            value: formatDateTime(event.committedAt, locale),
+          },
+        ]
+      : []),
+    ...(event.description
+      ? [{ label: t("clinic.fields.description"), value: event.description }]
+      : []),
   ];
   return (
-    <section className="flex min-h-0 flex-1 flex-col gap-6" aria-labelledby={`clinical-step-${event.id}`}>
-      <PatientProcedureEventItemsPanel eventId={eventId} canWrite={canWrite} viewer={viewer} />
+    <section
+      className="flex min-h-0 flex-1 flex-col gap-6"
+      aria-labelledby={`clinical-step-${event.id}`}
+    >
+      <PatientProcedureEventItemsPanel
+        eventId={eventId}
+        canWrite={canWrite}
+        viewer={viewer}
+      />
     </section>
   );
 }

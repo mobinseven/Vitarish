@@ -7,6 +7,8 @@ export interface AppointmentSettingsPageProps {
   onNavigate: (intent: NavigationIntent) => void;
 }
 
-export function AppointmentSettingsPage({ onNavigate }: AppointmentSettingsPageProps) {
+export function AppointmentSettingsPage({
+  onNavigate,
+}: AppointmentSettingsPageProps) {
   return <AppointmentSettingsDashboard onNavigate={onNavigate} />;
 }

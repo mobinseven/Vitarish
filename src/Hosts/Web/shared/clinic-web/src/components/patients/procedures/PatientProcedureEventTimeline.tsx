@@ -1,11 +1,26 @@
 "use client";
 
 import { useState, type Key } from "react";
-import { Button, ButtonGroup, Chip, Disclosure, Label, Tooltip } from "@heroui/react";
-import { ContextMenu, PressableFeedback, Sheet, Timeline } from "@heroui-pro/react";
+import {
+  Button,
+  ButtonGroup,
+  Chip,
+  Disclosure,
+  Label,
+  Tooltip,
+} from "@heroui/react";
+import {
+  ContextMenu,
+  PressableFeedback,
+  Sheet,
+  Timeline,
+} from "@heroui-pro/react";
 import { MenuItem } from "react-aria-components";
 import { useSeaEventCapabilities } from "@vitarish/sea-web";
-import { EmptyStateSurface as ClinicEmptyState, FaIcon } from "@vitarish/web-ui";
+import {
+  EmptyStateSurface as ClinicEmptyState,
+  FaIcon,
+} from "@vitarish/web-ui";
 import { PatientProcedureEventDeleteDialog } from "./PatientProcedureEventDeleteDialog";
 import { PatientProcedureEventForm } from "./PatientProcedureEventForm";
 import { PatientProcedureEventAttachmentMiniView } from "./PatientProcedureEventAttachmentMiniView";
@@ -24,18 +39,30 @@ interface PatientProcedureEventTimelineProps {
   events: ClinicalEventSummary[];
 }
 
-function EventAttachmentsDrawer({ eventId, onClose }: { eventId?: string; onClose: () => void }) {
+function EventAttachmentsDrawer({
+  eventId,
+  onClose,
+}: {
+  eventId?: string;
+  onClose: () => void;
+}) {
   const { t } = useLocalizedText();
   const capabilitiesQuery = useSeaEventCapabilities(eventId ?? "");
 
   return (
-    <Sheet isOpen={Boolean(eventId)} placement="bottom" onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Sheet
+      isOpen={Boolean(eventId)}
+      placement="bottom"
+      onOpenChange={(isOpen) => !isOpen && onClose()}
+    >
       <Sheet.Backdrop>
         <Sheet.Content className="mx-auto max-h-[95vh] max-w-[420px]">
           <Sheet.Dialog className="flex h-[75vh] flex-col">
             <Sheet.Handle />
             <Sheet.Header>
-              <Sheet.Heading>{t("clinic.procedures.items.attachmentsPreview")}</Sheet.Heading>
+              <Sheet.Heading>
+                {t("clinic.procedures.items.attachmentsPreview")}
+              </Sheet.Heading>
               <Sheet.CloseTrigger
                 aria-label={t("clinic.procedures.items.closePreview")}
               >
@@ -55,7 +82,10 @@ function EventAttachmentsDrawer({ eventId, onClose }: { eventId?: string; onClos
   );
 }
 
-export function PatientProcedureEventTimeline({ procedureId, events }: PatientProcedureEventTimelineProps) {
+export function PatientProcedureEventTimeline({
+  procedureId,
+  events,
+}: PatientProcedureEventTimelineProps) {
   const { t } = useLocalizedText();
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
@@ -69,21 +99,35 @@ export function PatientProcedureEventTimeline({ procedureId, events }: PatientPr
     const event = events.find((candidate) => candidate.id === eventId);
     if (!event) return;
 
-    if (key === "commit") event.isCommitted ? uncommit.mutate(event.id) : commit.mutate(event.id);
+    if (key === "commit")
+      event.isCommitted ? uncommit.mutate(event.id) : commit.mutate(event.id);
     else if (key === "reorder-earlier") earlier.mutate(event.id);
     else if (key === "reorder-later") later.mutate(event.id);
     else if (key === "edit") setEditingEventId(event.id);
     else if (key === "delete") setDeletingEventId(event.id);
   };
 
-  const editingEvent = editingEventId ? events.find((event) => event.id === editingEventId) : null;
-  const deletingEvent = deletingEventId ? events.find((event) => event.id === deletingEventId) : null;
+  const editingEvent = editingEventId
+    ? events.find((event) => event.id === editingEventId)
+    : null;
+  const deletingEvent = deletingEventId
+    ? events.find((event) => event.id === deletingEventId)
+    : null;
 
   return (
     <div className="w-full min-w-0">
-      <Timeline aria-label={t("clinic.procedures.events.title")} density="compact" size="sm">
+      <Timeline
+        aria-label={t("clinic.procedures.events.title")}
+        density="compact"
+        size="sm"
+      >
         {events.map((event, index) => (
-          <Timeline.Item key={event.id} align="center" id={event.id} status={event.isCommitted ? "success" : "default"}>
+          <Timeline.Item
+            key={event.id}
+            align="center"
+            id={event.id}
+            status={event.isCommitted ? "success" : "default"}
+          >
             <Timeline.Marker aria-hidden="true">
               {event.isCommitted ? <FaIcon icon="check" /> : null}
             </Timeline.Marker>
@@ -93,9 +137,17 @@ export function PatientProcedureEventTimeline({ procedureId, events }: PatientPr
                   <ContextMenu>
                     <ContextMenu.Trigger>
                       <Tooltip>
-                        <Button slot="trigger" style={{ textWrap: "wrap" }} variant="secondary">
+                        <Button
+                          slot="trigger"
+                          style={{ textWrap: "wrap" }}
+                          variant="secondary"
+                        >
                           {event.title}
-                          {event.isCommitted ? <Chip color="success" variant="soft">{t("clinic.procedures.committed")}</Chip> : null}
+                          {event.isCommitted ? (
+                            <Chip color="success" variant="soft">
+                              {t("clinic.procedures.committed")}
+                            </Chip>
+                          ) : null}
                           <Disclosure.Indicator />
                         </Button>
                         <Tooltip.Content>{event.description}</Tooltip.Content>
@@ -103,25 +155,66 @@ export function PatientProcedureEventTimeline({ procedureId, events }: PatientPr
                     </ContextMenu.Trigger>
                     <ContextMenu.Popover>
                       <ContextMenu.Menu
-                        aria-label={t("clinic.procedures.events.actionMenu.label")}
+                        aria-label={t(
+                          "clinic.procedures.events.actionMenu.label",
+                        )}
                         onAction={(key) => handleAction(event.id, key)}
                       >
-                        <MenuItem id="reorder-earlier" isDisabled={index === 0 || earlier.isPending} textValue={t("clinic.procedures.events.reorderEarlier")}>
-                          <FaIcon icon="arrow-up" aria-hidden="true" className="size-4" />
-                          <Label>{t("clinic.procedures.events.reorderEarlier")}</Label>
+                        <MenuItem
+                          id="reorder-earlier"
+                          isDisabled={index === 0 || earlier.isPending}
+                          textValue={t(
+                            "clinic.procedures.events.reorderEarlier",
+                          )}
+                        >
+                          <FaIcon
+                            icon="arrow-up"
+                            aria-hidden="true"
+                            className="size-4"
+                          />
+                          <Label>
+                            {t("clinic.procedures.events.reorderEarlier")}
+                          </Label>
                         </MenuItem>
-                        <MenuItem id="reorder-later" isDisabled={index === events.length - 1 || later.isPending} textValue={t("clinic.procedures.events.reorderLater")}>
-                          <FaIcon icon="arrow-down" aria-hidden="true" className="size-4" />
-                          <Label>{t("clinic.procedures.events.reorderLater")}</Label>
+                        <MenuItem
+                          id="reorder-later"
+                          isDisabled={
+                            index === events.length - 1 || later.isPending
+                          }
+                          textValue={t("clinic.procedures.events.reorderLater")}
+                        >
+                          <FaIcon
+                            icon="arrow-down"
+                            aria-hidden="true"
+                            className="size-4"
+                          />
+                          <Label>
+                            {t("clinic.procedures.events.reorderLater")}
+                          </Label>
                         </MenuItem>
                         <ContextMenu.Separator />
-                        <MenuItem id="edit" textValue={t("common.actions.edit")}>
-                          <FaIcon icon="pen" aria-hidden="true" className="size-4" />
+                        <MenuItem
+                          id="edit"
+                          textValue={t("common.actions.edit")}
+                        >
+                          <FaIcon
+                            icon="pen"
+                            aria-hidden="true"
+                            className="size-4"
+                          />
                           <Label>{t("common.actions.edit")}</Label>
                         </MenuItem>
                         <ContextMenu.Separator />
-                        <MenuItem id="delete" className="text-danger" textValue={t("common.actions.delete")}>
-                          <FaIcon icon="trash-can" aria-hidden="true" className="size-4" />
+                        <MenuItem
+                          id="delete"
+                          className="text-danger"
+                          textValue={t("common.actions.delete")}
+                        >
+                          <FaIcon
+                            icon="trash-can"
+                            aria-hidden="true"
+                            className="size-4"
+                          />
                           <Label>{t("common.actions.delete")}</Label>
                         </MenuItem>
                       </ContextMenu.Menu>
@@ -132,7 +225,9 @@ export function PatientProcedureEventTimeline({ procedureId, events }: PatientPr
                   <Disclosure.Body className="shadow-panel flex flex-col rounded-3xl bg-surface p-2">
                     <div className="flex min-w-0 flex-col gap-1 py-1">
                       {event.attachments?.length ? (
-                        <PatientProcedureEventAttachmentMiniView items={event.attachments} />
+                        <PatientProcedureEventAttachmentMiniView
+                          items={event.attachments}
+                        />
                       ) : null}
                       <div className="space-y-3">
                         <ButtonGroup fullWidth>
@@ -147,22 +242,49 @@ export function PatientProcedureEventTimeline({ procedureId, events }: PatientPr
                               <FaIcon icon="paperclip" aria-hidden="true" />
                               {t("clinic.procedures.items.title")}
                             </Button>
-                            <Tooltip.Content>{t("clinic.procedures.items.title")}</Tooltip.Content>
+                            <Tooltip.Content>
+                              {t("clinic.procedures.items.title")}
+                            </Tooltip.Content>
                           </Tooltip>
                           <Tooltip>
                             <Button
-                              aria-label={t(event.isCommitted ? "clinic.procedures.events.reopen" : "clinic.procedures.events.commit")}
-                              isDisabled={commit.isPending || uncommit.isPending}
+                              aria-label={t(
+                                event.isCommitted
+                                  ? "clinic.procedures.events.reopen"
+                                  : "clinic.procedures.events.commit",
+                              )}
+                              isDisabled={
+                                commit.isPending || uncommit.isPending
+                              }
                               size="sm"
-                              variant={event.isCommitted ? "secondary" : "primary"}
+                              variant={
+                                event.isCommitted ? "secondary" : "primary"
+                              }
                               onPress={() => handleAction(event.id, "commit")}
                             >
                               <ButtonGroup.Separator />
                               <PressableFeedback.Ripple />
-                              <FaIcon icon={event.isCommitted ? "arrow-rotate-left" : "check"} aria-hidden="true" />
-                              {t(event.isCommitted ? "clinic.procedures.events.reopen" : "clinic.procedures.events.commit")}
+                              <FaIcon
+                                icon={
+                                  event.isCommitted
+                                    ? "arrow-rotate-left"
+                                    : "check"
+                                }
+                                aria-hidden="true"
+                              />
+                              {t(
+                                event.isCommitted
+                                  ? "clinic.procedures.events.reopen"
+                                  : "clinic.procedures.events.commit",
+                              )}
                             </Button>
-                            <Tooltip.Content>{t(event.isCommitted ? "clinic.procedures.events.reopen" : "clinic.procedures.events.commit")}</Tooltip.Content>
+                            <Tooltip.Content>
+                              {t(
+                                event.isCommitted
+                                  ? "clinic.procedures.events.reopen"
+                                  : "clinic.procedures.events.commit",
+                              )}
+                            </Tooltip.Content>
                           </Tooltip>
                         </ButtonGroup>
                       </div>
@@ -175,7 +297,12 @@ export function PatientProcedureEventTimeline({ procedureId, events }: PatientPr
         ))}
       </Timeline>
 
-      {events.length === 0 ? <ClinicEmptyState className="mt-3" title={t("clinic.procedures.events.empty")} /> : null}
+      {events.length === 0 ? (
+        <ClinicEmptyState
+          className="mt-3"
+          title={t("clinic.procedures.events.empty")}
+        />
+      ) : null}
 
       {editingEvent ? (
         <PatientProcedureEventForm
@@ -197,7 +324,10 @@ export function PatientProcedureEventTimeline({ procedureId, events }: PatientPr
         />
       ) : null}
 
-      <EventAttachmentsDrawer eventId={attachmentsEventId} onClose={() => setAttachmentsEventId(undefined)} />
+      <EventAttachmentsDrawer
+        eventId={attachmentsEventId}
+        onClose={() => setAttachmentsEventId(undefined)}
+      />
     </div>
   );
 }

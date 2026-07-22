@@ -5,7 +5,10 @@ import { Agenda, Segment, useAgenda } from "@heroui-pro/react";
 import { Button } from "@heroui/react";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import type { NavigationIntent } from "../../../navigation";
-import type { ShiftReadDto, ReservationReadDto } from "../../../api/appointments/appointmentsApi";
+import type {
+  ShiftReadDto,
+  ReservationReadDto,
+} from "../../../api/appointments/appointmentsApi";
 import { useAgendaEvents } from "../../../hooks/appointments/agenda/useAgendaEvents";
 import { formatNumber, useLocalizedText } from "../../../localization";
 
@@ -15,7 +18,11 @@ interface AppointmentsAgendaProps {
   onNavigate?: (intent: NavigationIntent) => void;
 }
 
-export function AppointmentsAgenda({ shifts, reservations, onNavigate }: AppointmentsAgendaProps) {
+export function AppointmentsAgenda({
+  shifts,
+  reservations,
+  onNavigate,
+}: AppointmentsAgendaProps) {
   const { t, locale } = useLocalizedText();
   const [date, setDate] = useState(today(getLocalTimeZone()));
   const [view, setView] = useState<"day" | "week" | "month">("week");
@@ -46,9 +53,15 @@ export function AppointmentsAgenda({ shifts, reservations, onNavigate }: Appoint
       <Agenda.Header>
         <Agenda.Heading />
         <Agenda.ViewSelector>
-          <Segment.Item id="day">{t("clinic.appointments.agenda.day")}</Segment.Item>
-          <Segment.Item id="week">{t("clinic.appointments.agenda.week")}</Segment.Item>
-          <Segment.Item id="month">{t("clinic.appointments.agenda.month")}</Segment.Item>
+          <Segment.Item id="day">
+            {t("clinic.appointments.agenda.day")}
+          </Segment.Item>
+          <Segment.Item id="week">
+            {t("clinic.appointments.agenda.week")}
+          </Segment.Item>
+          <Segment.Item id="month">
+            {t("clinic.appointments.agenda.month")}
+          </Segment.Item>
         </Agenda.ViewSelector>
         <Agenda.Navigation>
           <Button
@@ -61,7 +74,9 @@ export function AppointmentsAgenda({ shifts, reservations, onNavigate }: Appoint
           >
             <span aria-hidden="true">‹</span>
           </Button>
-          <Agenda.TodayButton>{t("clinic.appointments.agenda.today")}</Agenda.TodayButton>
+          <Agenda.TodayButton>
+            {t("clinic.appointments.agenda.today")}
+          </Agenda.TodayButton>
           <Button
             isIconOnly
             aria-label={t("clinic.appointments.agenda.next")}
@@ -81,7 +96,10 @@ export function AppointmentsAgenda({ shifts, reservations, onNavigate }: Appoint
               const rowLayout = agenda.getMonthRowLayout(week);
 
               return (
-                <Agenda.MonthRow key={week[0]?.toString()} spanningRowCount={rowLayout.rowCount}>
+                <Agenda.MonthRow
+                  key={week[0]?.toString()}
+                  spanningRowCount={rowLayout.rowCount}
+                >
                   {rowLayout.items.map((item) => (
                     <Agenda.MonthSpanningEvent
                       key={item.event.id}
@@ -95,10 +113,14 @@ export function AppointmentsAgenda({ shifts, reservations, onNavigate }: Appoint
                     <Agenda.MonthCell
                       key={day.toString()}
                       date={day}
-                      moreLabel={(count) => t("clinic.appointments.agenda.more", {
-                        count: formatNumber(count, locale),
-                      })}
-                      spanningRowCount={rowLayout.rowCountPerCol[columnIndex] ?? 0}
+                      moreLabel={(count) =>
+                        t("clinic.appointments.agenda.more", {
+                          count: formatNumber(count, locale),
+                        })
+                      }
+                      spanningRowCount={
+                        rowLayout.rowCountPerCol[columnIndex] ?? 0
+                      }
                     >
                       {agenda.getPerCellEvents(day, week).map((event) => (
                         <Agenda.MonthEvent key={event.id} event={event} />
@@ -113,7 +135,9 @@ export function AppointmentsAgenda({ shifts, reservations, onNavigate }: Appoint
           <>
             <Agenda.WeekHeader />
             <Agenda.AllDaySection>
-              <Agenda.AllDayLabel>{t("clinic.appointments.agenda.allDay")}</Agenda.AllDayLabel>
+              <Agenda.AllDayLabel>
+                {t("clinic.appointments.agenda.allDay")}
+              </Agenda.AllDayLabel>
               {agenda.allDayLayout.map((item) => (
                 <Agenda.AllDayEvent
                   key={item.event.id}

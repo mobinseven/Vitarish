@@ -1,5 +1,12 @@
 import type { ReactNode } from "react";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalizationProvider } from "../localization";
 import { clinicMessageCatalogs } from "../localization";
@@ -14,9 +21,7 @@ import { emptyFormData } from "../models/patients/profile/PatientProfileForm";
 import { PatientProcedureEventTimeline } from "../components/patients/procedures/PatientProcedureEventTimeline";
 import { PatientProcedureWorkspace } from "../components/patients/procedures/PatientProcedureWorkspace";
 import { AppointmentsAgenda } from "../components/appointments/agenda/AppointmentsAgenda";
-import {
-  PatientProcedureEventItemsPanel,
-} from "../components/patients/procedures/PatientProcedureEventItemsPanel";
+import { PatientProcedureEventItemsPanel } from "../components/patients/procedures/PatientProcedureEventItemsPanel";
 import { PatientProcedureEventItemMessage } from "../components/patients/procedures/PatientProcedureEventItemMessage";
 import { PatientSearchBar } from "../components/patients/list/PatientSearchBar";
 import { PatientsGrid } from "../components/patients/list/PatientsGrid";
@@ -49,37 +54,58 @@ vi.mock("../hooks/patients/usePatientDetail", () => ({
   usePatientDetail: hookMocks.usePatientDetail,
 }));
 
-vi.mock("../hooks/patients/procedures/usePatientProcedureEventItemMutations", () => ({
-  useCreatePatientProcedureEventItemFile: () => ({
-    isError: false,
-    isPending: false,
-    mutateAsync: vi.fn(),
-    reset: vi.fn(),
+vi.mock(
+  "../hooks/patients/procedures/usePatientProcedureEventItemMutations",
+  () => ({
+    useCreatePatientProcedureEventItemFile: () => ({
+      isError: false,
+      isPending: false,
+      mutateAsync: vi.fn(),
+      reset: vi.fn(),
+    }),
+    useCreatePatientProcedureEventItemText: () => ({
+      isError: false,
+      isPending: false,
+      mutateAsync: vi.fn(),
+    }),
+    useDeletePatientProcedureEventItem: () => ({
+      isError: false,
+      isPending: false,
+      mutate: vi.fn(),
+    }),
   }),
-  useCreatePatientProcedureEventItemText: () => ({
-    isError: false,
-    isPending: false,
-    mutateAsync: vi.fn(),
-  }),
-  useDeletePatientProcedureEventItem: () => ({
-    isError: false,
-    isPending: false,
-    mutate: vi.fn(),
-  }),
-}));
+);
 
 vi.mock("@vitarish/sea-web", () => ({
   isStoredSeaAttachmentContent: () => false,
   loadStoredSeaAttachmentContent: vi.fn(),
-  useSeaEventCapabilities: () => ({ data: { canWrite: true }, isLoading: false }),
+  useSeaEventCapabilities: () => ({
+    data: { canWrite: true },
+    isLoading: false,
+  }),
 }));
 
-vi.mock("../hooks/patients/procedures/usePatientProcedureEventMutations", () => ({
-  useCommitPatientProcedureEvent: () => ({ isPending: false, mutate: vi.fn() }),
-  useUncommitPatientProcedureEvent: () => ({ isPending: false, mutate: vi.fn() }),
-  useMovePatientProcedureEventUp: () => ({ isPending: false, mutate: vi.fn() }),
-  useMovePatientProcedureEventDown: () => ({ isPending: false, mutate: vi.fn() }),
-}));
+vi.mock(
+  "../hooks/patients/procedures/usePatientProcedureEventMutations",
+  () => ({
+    useCommitPatientProcedureEvent: () => ({
+      isPending: false,
+      mutate: vi.fn(),
+    }),
+    useUncommitPatientProcedureEvent: () => ({
+      isPending: false,
+      mutate: vi.fn(),
+    }),
+    useMovePatientProcedureEventUp: () => ({
+      isPending: false,
+      mutate: vi.fn(),
+    }),
+    useMovePatientProcedureEventDown: () => ({
+      isPending: false,
+      mutate: vi.fn(),
+    }),
+  }),
+);
 
 vi.mock("@vitarish/intelligence-web", () => ({
   appendConfirmedTranscript: (current: string, segment: string) =>
@@ -118,11 +144,19 @@ afterEach(() => {
 });
 
 function Wrapper({ children }: { children: ReactNode }) {
-  return <LocalizationProvider locale="en" messages={messages}>{children}</LocalizationProvider>;
+  return (
+    <LocalizationProvider locale="en" messages={messages}>
+      {children}
+    </LocalizationProvider>
+  );
 }
 
 function PersianWrapper({ children }: { children: ReactNode }) {
-  return <LocalizationProvider locale="fa" messages={clinicMessageCatalogs.fa}>{children}</LocalizationProvider>;
+  return (
+    <LocalizationProvider locale="fa" messages={clinicMessageCatalogs.fa}>
+      {children}
+    </LocalizationProvider>
+  );
 }
 
 describe("clinic display components", () => {
@@ -143,8 +177,31 @@ describe("clinic display components", () => {
     });
     hookMocks.usePatientProcedureEvents.mockReturnValue({
       data: [
-        { id: "event-1", projectId: "patient-1", procedureId: "procedure-1", title: "Assessment", description: "", isCommitted: true, committedAt: "2026-07-13T08:00:00Z", attachments: [], itemCount: 2, createdAt: "2026-07-13T07:00:00Z", position: 0 },
-        { id: "event-2", projectId: "patient-1", procedureId: "procedure-1", title: "Treatment", description: "", isCommitted: false, attachments: [], itemCount: 0, createdAt: "2026-07-13T09:00:00Z", position: 1 },
+        {
+          id: "event-1",
+          projectId: "patient-1",
+          procedureId: "procedure-1",
+          title: "Assessment",
+          description: "",
+          isCommitted: true,
+          committedAt: "2026-07-13T08:00:00Z",
+          attachments: [],
+          itemCount: 2,
+          createdAt: "2026-07-13T07:00:00Z",
+          position: 0,
+        },
+        {
+          id: "event-2",
+          projectId: "patient-1",
+          procedureId: "procedure-1",
+          title: "Treatment",
+          description: "",
+          isCommitted: false,
+          attachments: [],
+          itemCount: 0,
+          createdAt: "2026-07-13T09:00:00Z",
+          position: 1,
+        },
       ],
       error: null,
       isLoading: false,
@@ -179,19 +236,32 @@ describe("clinic display components", () => {
     );
 
     expect(hookMocks.usePatientProcedureEventItems).toHaveBeenCalledWith("");
-    expect(screen.queryByRole("region", { name: "Focused event details" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Assessment" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Treatment" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Focused event details" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Assessment" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Treatment" }),
+    ).toBeInTheDocument();
   });
 
   it("uses the HeroUI search field for debounced patient searches", async () => {
     const onSearch = vi.fn();
-    const { container } = render(<PatientSearchBar onSearch={onSearch} />, { wrapper: Wrapper });
-
-    expect(container.querySelector('[data-slot="search-field"]')).toBeInTheDocument();
-    fireEvent.change(screen.getByRole("searchbox", { name: "Search patients" }), {
-      target: { value: "Ada" },
+    const { container } = render(<PatientSearchBar onSearch={onSearch} />, {
+      wrapper: Wrapper,
     });
+
+    expect(
+      container.querySelector('[data-slot="search-field"]'),
+    ).toBeInTheDocument();
+    fireEvent.change(
+      screen.getByRole("searchbox", { name: "Search patients" }),
+      {
+        target: { value: "Ada" },
+      },
+    );
 
     await waitFor(() => expect(onSearch).toHaveBeenCalledWith("Ada"));
   });
@@ -210,8 +280,12 @@ describe("clinic display components", () => {
       { wrapper: Wrapper },
     );
 
-    expect(container.querySelector('[data-slot="empty-state"]')).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "No patients found" })).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-slot="empty-state"]'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "No patients found" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Try adjusting your search.")).toBeInTheDocument();
   });
 
@@ -238,13 +312,15 @@ describe("clinic display components", () => {
   it("shows the selected surgery date as the patient-row subtitle", () => {
     render(
       <PatientsGrid
-        patients={[{
-          id: "patient-1",
-          firstName: "Ada",
-          lastName: "Lovelace",
-          identificationCode: "P-100",
-          dateOfSurgery: "2026-07-16",
-        }]}
+        patients={[
+          {
+            id: "patient-1",
+            firstName: "Ada",
+            lastName: "Lovelace",
+            identificationCode: "P-100",
+            dateOfSurgery: "2026-07-16",
+          },
+        ]}
         totalCount={1}
         sortBy="DateOfSurgery"
         descending={false}
@@ -257,7 +333,9 @@ describe("clinic display components", () => {
     );
 
     expect(screen.getByText("7/16/2026")).toBeInTheDocument();
-    expect(screen.queryByText(/Identification Code: P-100/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Identification Code: P-100/),
+    ).not.toBeInTheDocument();
   });
 
   it("renders responsive patient cards with an icon avatar, selection, and sorting", () => {
@@ -268,7 +346,8 @@ describe("clinic display components", () => {
         patients={[
           {
             id: "patient-1",
-            firstName: "Ada Ada Ada Ada Ada Ada Ada Ada Ada Ada Ada Ada Ada Ada Ada",
+            firstName:
+              "Ada Ada Ada Ada Ada Ada Ada Ada Ada Ada Ada Ada Ada Ada Ada",
             lastName: "Lovelace",
             identificationCode: "P-100",
             phone: "+98 912 000 0000",
@@ -290,39 +369,44 @@ describe("clinic display components", () => {
       "grid-flow-row",
       "grid-cols-1",
     );
-    expect(screen.getByRole("toolbar", { name: "Patients" })).toHaveClass("toolbar--attached");
-    expect(container.querySelector('[data-slot="scroll-shadow"]')).not.toHaveClass("overflow-y-auto");
-    const searchField = screen.getByRole("searchbox", { name: "Search patients" }).closest(
-      '[data-slot="search-field"]',
+    expect(screen.getByRole("toolbar", { name: "Patients" })).toHaveClass(
+      "toolbar--attached",
     );
-    expect(searchField?.parentElement).toHaveClass(
-      "order-2",
-      "md:flex-1",
-    );
+    expect(
+      container.querySelector('[data-slot="scroll-shadow"]'),
+    ).not.toHaveClass("overflow-y-auto");
+    const searchField = screen
+      .getByRole("searchbox", { name: "Search patients" })
+      .closest('[data-slot="search-field"]');
+    expect(searchField?.parentElement).toHaveClass("order-2", "md:flex-1");
     expect(screen.getByLabelText("1 patient found")).toHaveClass(
       "order-3",
       "justify-self-start",
     );
-    expect(screen.getByRole("button", { name: "Sort" }).parentElement).toHaveClass(
-      "order-1",
-      "justify-self-center",
-    );
+    expect(
+      screen.getByRole("button", { name: "Sort" }).parentElement,
+    ).toHaveClass("order-1", "justify-self-center");
     expect(screen.getByRole("button", { name: "New Patient" })).toHaveClass(
       "order-4",
       "w-full",
     );
-    expect(container.querySelector('[data-slot="item-card"]')).toHaveClass("item-card--secondary");
+    expect(container.querySelector('[data-slot="item-card"]')).toHaveClass(
+      "item-card--secondary",
+    );
     expect(container.querySelector(".fa-user")).toBeInTheDocument();
     expect(screen.getByText(/Ada Ada Ada/)).toBeInTheDocument();
-    expect(screen.getByText(/Identification Code: P-100 \/ \+98 912 000 0000/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Identification Code: P-100 \/ \+98 912 000 0000/),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Ada Ada Ada/ }));
     expect(onSelectPatient).toHaveBeenCalledWith("patient-1");
 
     fireEvent.click(screen.getByRole("button", { name: "Sort" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Identification Code" }));
+    fireEvent.click(
+      screen.getByRole("menuitem", { name: "Identification Code" }),
+    );
     expect(onSort).toHaveBeenCalledWith("IdentificationCode");
-
   });
 
   it("lets the conversation own its bounded scrollport while keeping the composer outside it", () => {
@@ -342,21 +426,50 @@ describe("clinic display components", () => {
   it("groups event items by creator ID while retaining chronological order within each group", () => {
     hookMocks.usePatientProcedureEventItems.mockReturnValue({
       data: [
-        { id: "item-1", eventId: "event-1", type: "note", content: "First from Grace", authorId: "clinician-2", authorName: "Grace Hopper", createdAt: "2026-07-14T08:00:00Z" },
-        { id: "item-2", eventId: "event-1", type: "note", content: "From Lin", authorId: "clinician-3", authorName: "Lin Chen", createdAt: "2026-07-14T08:01:00Z" },
-        { id: "item-3", eventId: "event-1", type: "note", content: "Second from Grace", authorId: "clinician-2", authorName: "Grace Hopper", createdAt: "2026-07-14T08:02:00Z" },
+        {
+          id: "item-1",
+          eventId: "event-1",
+          type: "note",
+          content: "First from Grace",
+          authorId: "clinician-2",
+          authorName: "Grace Hopper",
+          createdAt: "2026-07-14T08:00:00Z",
+        },
+        {
+          id: "item-2",
+          eventId: "event-1",
+          type: "note",
+          content: "From Lin",
+          authorId: "clinician-3",
+          authorName: "Lin Chen",
+          createdAt: "2026-07-14T08:01:00Z",
+        },
+        {
+          id: "item-3",
+          eventId: "event-1",
+          type: "note",
+          content: "Second from Grace",
+          authorId: "clinician-2",
+          authorName: "Grace Hopper",
+          createdAt: "2026-07-14T08:02:00Z",
+        },
       ],
       error: null,
       isLoading: false,
       refetch: vi.fn(),
     });
 
-    render(<PatientProcedureEventItemsPanel canWrite={false} eventId="event-1" />, { wrapper: Wrapper });
+    render(
+      <PatientProcedureEventItemsPanel canWrite={false} eventId="event-1" />,
+      { wrapper: Wrapper },
+    );
 
     expect(screen.getAllByText("Grace Hopper")).toHaveLength(1);
     expect(screen.getAllByText("Lin Chen")).toHaveLength(1);
     const conversation = screen.getByRole("log");
-    expect(conversation.textContent).toMatch(/First from Grace[\s\S]*Second from Grace[\s\S]*From Lin/);
+    expect(conversation.textContent).toMatch(
+      /First from Grace[\s\S]*Second from Grace[\s\S]*From Lin/,
+    );
   });
 
   it("uses a unique heading relationship for each event items panel", () => {
@@ -368,18 +481,27 @@ describe("clinic display components", () => {
       { wrapper: Wrapper },
     );
     const panels = [...container.querySelectorAll("section[aria-labelledby]")];
-    const headingIds = panels.map((panel) => panel.getAttribute("aria-labelledby"));
+    const headingIds = panels.map((panel) =>
+      panel.getAttribute("aria-labelledby"),
+    );
 
     expect(panels).toHaveLength(2);
     expect(new Set(headingIds).size).toBe(2);
     for (const headingId of headingIds) {
-      expect(headingId && container.ownerDocument.getElementById(headingId)).not.toBeNull();
+      expect(
+        headingId && container.ownerDocument.getElementById(headingId),
+      ).not.toBeNull();
     }
   });
 
   it("renders agenda weekday names from the selected culture instead of the browser culture", () => {
-    const { container } = render(<AppointmentsAgenda shifts={[]} reservations={[]} />, { wrapper: PersianWrapper });
-    const weekdayNames = [...container.querySelectorAll('[data-slot="agenda-day-header-name"]')];
+    const { container } = render(
+      <AppointmentsAgenda shifts={[]} reservations={[]} />,
+      { wrapper: PersianWrapper },
+    );
+    const weekdayNames = [
+      ...container.querySelectorAll('[data-slot="agenda-day-header-name"]'),
+    ];
 
     expect(weekdayNames).toHaveLength(7);
     for (const weekdayName of weekdayNames) {
@@ -389,25 +511,44 @@ describe("clinic display components", () => {
     expect(screen.getByRole("radio", { name: "روز" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "هفته" })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "ماه" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "بازه قبلی" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "بازه قبلی" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "امروز" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "بازه بعدی" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "بازه بعدی" }),
+    ).toBeInTheDocument();
   });
 
   it("switches from the weekly time grid to the month grid", () => {
-    const { container } = render(<AppointmentsAgenda shifts={[]} reservations={[]} />, { wrapper: Wrapper });
+    const { container } = render(
+      <AppointmentsAgenda shifts={[]} reservations={[]} />,
+      { wrapper: Wrapper },
+    );
 
-    expect(container.querySelector('[data-slot="agenda-time-grid"]')).toBeInTheDocument();
-    expect(container.querySelector('[data-slot="agenda-month-grid"]')).not.toBeInTheDocument();
+    expect(
+      container.querySelector('[data-slot="agenda-time-grid"]'),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-slot="agenda-month-grid"]'),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("radio", { name: "Month" }));
 
-    expect(container.querySelector('[data-slot="agenda-time-grid"]')).not.toBeInTheDocument();
-    expect(container.querySelector('[data-slot="agenda-month-grid"]')).toBeInTheDocument();
-    const monthRows = [...container.querySelectorAll('[data-slot="agenda-month-row"]')];
+    expect(
+      container.querySelector('[data-slot="agenda-time-grid"]'),
+    ).not.toBeInTheDocument();
+    expect(
+      container.querySelector('[data-slot="agenda-month-grid"]'),
+    ).toBeInTheDocument();
+    const monthRows = [
+      ...container.querySelectorAll('[data-slot="agenda-month-row"]'),
+    ];
     expect(monthRows.length).toBeGreaterThanOrEqual(4);
     for (const row of monthRows) {
-      expect(row.querySelectorAll('[data-slot="agenda-month-cell"]')).toHaveLength(7);
+      expect(
+        row.querySelectorAll('[data-slot="agenda-month-cell"]'),
+      ).toHaveLength(7);
     }
   });
 
@@ -443,32 +584,41 @@ describe("clinic display components", () => {
     expect(screen.queryByText("image/png")).not.toBeInTheDocument();
     expect(screen.queryByText("1 KB")).not.toBeInTheDocument();
     expect(screen.getByRole("article")).toHaveClass("chat-message--assistant");
-    expect(screen.getByText("Grace Hopper")).toHaveAttribute("data-slot", "avatar-fallback");
+    expect(screen.getByText("Grace Hopper")).toHaveAttribute(
+      "data-slot",
+      "avatar-fallback",
+    );
     expect(document.querySelector(".chat-message__avatar")).not.toBeNull();
 
     fireEvent.contextMenu(screen.getByRole("article"));
-    expect(await screen.findByRole("menuitem", { name: /Grace Hopper/ })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("menuitem", { name: /Grace Hopper/ }),
+    ).toBeInTheDocument();
     fireEvent.keyDown(screen.getByRole("menu"), { key: "Escape" });
-    await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByRole("menu")).not.toBeInTheDocument(),
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Preview scan.png" }));
 
     const dialog = screen.getByRole("dialog", { name: "scan.png" });
-    expect(within(dialog).getByRole("img", { name: "scan.png" })).toHaveAttribute(
-      "src",
-      mediaItem.content,
-    );
+    expect(
+      within(dialog).getByRole("img", { name: "scan.png" }),
+    ).toHaveAttribute("src", mediaItem.content);
     expect(within(dialog).getByText("image/png")).toBeInTheDocument();
     expect(within(dialog).getByText("1 kB")).toBeInTheDocument();
-    expect(within(dialog).getByRole("link", { name: "Download" }))
-      .toHaveAttribute("download", "scan.png");
+    expect(
+      within(dialog).getByRole("link", { name: "Download" }),
+    ).toHaveAttribute("download", "scan.png");
   });
 
   it("resolves legacy image IDs without displaying the identifier", async () => {
     const legacyId = "019ea70e-dc73-73b3-9f03-1744bc58eeee";
     const fetchMock = vi
       .fn()
-      .mockResolvedValue(new Response(new Blob(["image"], { type: "image/png" })));
+      .mockResolvedValue(
+        new Response(new Blob(["image"], { type: "image/png" })),
+      );
     vi.stubGlobal("fetch", fetchMock);
 
     render(
@@ -494,12 +644,13 @@ describe("clinic display components", () => {
 
     expect(screen.queryByText(legacyId)).not.toBeInTheDocument();
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Preview legacy-scan.png" })).toBeEnabled(),
+      expect(
+        screen.getByRole("button", { name: "Preview legacy-scan.png" }),
+      ).toBeEnabled(),
     );
-    expect(screen.getByRole("img", { name: "legacy-scan.png" })).toHaveAttribute(
-      "src",
-      "blob:vitest",
-    );
+    expect(
+      screen.getByRole("img", { name: "legacy-scan.png" }),
+    ).toHaveAttribute("src", "blob:vitest");
     expect(String(fetchMock.mock.calls[0][0])).toContain(
       `/api/modules/files/${legacyId}/content`,
     );
@@ -530,17 +681,23 @@ describe("clinic display components", () => {
       { wrapper: Wrapper },
     );
 
-    const downloadLink = screen.getByRole("link", { name: "Download instructions.pdf" });
+    const downloadLink = screen.getByRole("link", {
+      name: "Download instructions.pdf",
+    });
     expect(downloadLink).toHaveAttribute("download", "instructions.pdf");
     expect(downloadLink).toHaveAttribute("href", fileItem.content);
     expect(screen.queryByText("application/pdf")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Delete Item" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Delete Item" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("article")).toHaveClass("chat-message--user");
     expect(screen.queryByText("Ava Patel")).not.toBeInTheDocument();
     expect(screen.queryByRole("time")).not.toBeInTheDocument();
 
     fireEvent.contextMenu(screen.getByRole("article"));
-    const deleteMenuItem = await screen.findByRole("menuitem", { name: "Delete Item" });
+    const deleteMenuItem = await screen.findByRole("menuitem", {
+      name: "Delete Item",
+    });
     fireEvent.click(deleteMenuItem);
     expect(onDelete).toHaveBeenCalledOnce();
   });
@@ -548,29 +705,98 @@ describe("clinic display components", () => {
   it("renders attachment actions for clinical timeline entries", () => {
     hookMocks.usePatientProcedureEventDetail.mockReturnValue({
       data: {
-        id: "event-2", projectId: "patient-1", procedureId: "procedure-1", title: "Treatment", description: "", isCommitted: false, createdAt: "2026-07-13T09:00:00Z", position: 1,
+        id: "event-2",
+        projectId: "patient-1",
+        procedureId: "procedure-1",
+        title: "Treatment",
+        description: "",
+        isCommitted: false,
+        createdAt: "2026-07-13T09:00:00Z",
+        position: 1,
       },
       error: null,
       isLoading: false,
     });
-    render(<PatientProcedureEventTimeline procedureId="procedure-1" events={[
-      { id: "event-1", projectId: "patient-1", procedureId: "procedure-1", title: "Assessment", description: "", isCommitted: true, committedAt: "2026-07-13T08:00:00Z", attachments: [
-        { id: "attachment-1", eventId: "event-1", type: "note", content: "Use the provided aftercare instructions.", createdAt: "2026-07-13T07:00:00Z" },
-        { id: "attachment-2", eventId: "event-1", type: "media", content: "data:image/png;base64,image", contentType: "image/png", fileName: "intraoral.png", createdAt: "2026-07-13T07:00:00Z" },
-        { id: "attachment-3", eventId: "event-1", type: "file", content: "stored:attachment-3", fileName: "assessment.pdf", createdAt: "2026-07-13T07:00:00Z" },
-      ], itemCount: 2, createdAt: "2026-07-13T07:00:00Z", position: 0 },
-      { id: "event-2", projectId: "patient-1", procedureId: "procedure-1", title: "Treatment", description: "", isCommitted: false, attachments: [], itemCount: 0, createdAt: "2026-07-13T09:00:00Z", position: 1 },
-    ]} />, { wrapper: Wrapper });
+    render(
+      <PatientProcedureEventTimeline
+        procedureId="procedure-1"
+        events={[
+          {
+            id: "event-1",
+            projectId: "patient-1",
+            procedureId: "procedure-1",
+            title: "Assessment",
+            description: "",
+            isCommitted: true,
+            committedAt: "2026-07-13T08:00:00Z",
+            attachments: [
+              {
+                id: "attachment-1",
+                eventId: "event-1",
+                type: "note",
+                content: "Use the provided aftercare instructions.",
+                createdAt: "2026-07-13T07:00:00Z",
+              },
+              {
+                id: "attachment-2",
+                eventId: "event-1",
+                type: "media",
+                content: "data:image/png;base64,image",
+                contentType: "image/png",
+                fileName: "intraoral.png",
+                createdAt: "2026-07-13T07:00:00Z",
+              },
+              {
+                id: "attachment-3",
+                eventId: "event-1",
+                type: "file",
+                content: "stored:attachment-3",
+                fileName: "assessment.pdf",
+                createdAt: "2026-07-13T07:00:00Z",
+              },
+            ],
+            itemCount: 2,
+            createdAt: "2026-07-13T07:00:00Z",
+            position: 0,
+          },
+          {
+            id: "event-2",
+            projectId: "patient-1",
+            procedureId: "procedure-1",
+            title: "Treatment",
+            description: "",
+            isCommitted: false,
+            attachments: [],
+            itemCount: 0,
+            createdAt: "2026-07-13T09:00:00Z",
+            position: 1,
+          },
+        ]}
+      />,
+      { wrapper: Wrapper },
+    );
     expect(screen.getByText("Treatment")).toBeInTheDocument();
-    expect(screen.getByText("Use the provided aftercare instructions.")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "intraoral.png" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Use the provided aftercare instructions."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "intraoral.png" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("assessment.pdf")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Add attachment" })).toHaveLength(2);
+    expect(
+      screen.getAllByRole("button", { name: "Add attachment" }),
+    ).toHaveLength(2);
   });
 
   it("renders service presentation models and delegates delete", () => {
     const onDelete = vi.fn();
-    render(<ServiceList items={[{ id: "s-1", name: "Consultation", serviceTypeName: "Visit" }]} onDelete={onDelete} />, { wrapper: Wrapper });
+    render(
+      <ServiceList
+        items={[{ id: "s-1", name: "Consultation", serviceTypeName: "Visit" }]}
+        onDelete={onDelete}
+      />,
+      { wrapper: Wrapper },
+    );
     expect(screen.getByText("Consultation")).toBeInTheDocument();
     expect(screen.getByText("Visit")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
@@ -586,10 +812,16 @@ describe("clinic editors", () => {
       dateOfSurgery: "2026-07-16",
     };
     const { container } = render(
-      <PatientProfileForm initialData={initialData} onSubmit={vi.fn()} onCancel={vi.fn()} />,
+      <PatientProfileForm
+        initialData={initialData}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+      />,
       { wrapper: PersianWrapper },
     );
-    const datePickers = [...container.querySelectorAll('[data-slot="date-picker"]')];
+    const datePickers = [
+      ...container.querySelectorAll('[data-slot="date-picker"]'),
+    ];
 
     expect(datePickers).toHaveLength(2);
     expect(screen.getByText("تاریخ تولد")).toBeInTheDocument();
@@ -601,18 +833,41 @@ describe("clinic editors", () => {
 
   it("validates and submits the patient editor", () => {
     const onSubmit = vi.fn();
-    render(<PatientProfileForm initialData={emptyFormData()} onSubmit={onSubmit} onCancel={vi.fn()} />, { wrapper: Wrapper });
-    const form = screen.getByRole("button", { name: "Save Patient" }).closest("form");
+    render(
+      <PatientProfileForm
+        initialData={emptyFormData()}
+        onSubmit={onSubmit}
+        onCancel={vi.fn()}
+      />,
+      { wrapper: Wrapper },
+    );
+    const form = screen
+      .getByRole("button", { name: "Save Patient" })
+      .closest("form");
     expect(form).not.toBeNull();
     fireEvent.submit(form!);
     expect(screen.getByText("First name is required.")).toBeInTheDocument();
     expect(screen.getByText("Last name is required.")).toBeInTheDocument();
-    expect(screen.getByText("Identification code is required.")).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("First Name"), { target: { value: "Ada" } });
-    fireEvent.change(screen.getByLabelText("Last Name"), { target: { value: "Lovelace" } });
-    fireEvent.change(screen.getByLabelText("Identification Code"), { target: { value: "1234567890" } });
+    expect(
+      screen.getByText("Identification code is required."),
+    ).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("First Name"), {
+      target: { value: "Ada" },
+    });
+    fireEvent.change(screen.getByLabelText("Last Name"), {
+      target: { value: "Lovelace" },
+    });
+    fireEvent.change(screen.getByLabelText("Identification Code"), {
+      target: { value: "1234567890" },
+    });
     fireEvent.submit(form!);
-    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ firstName: "Ada", lastName: "Lovelace", identificationCode: "1234567890" }));
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        firstName: "Ada",
+        lastName: "Lovelace",
+        identificationCode: "1234567890",
+      }),
+    );
   });
 
   it.each([
@@ -621,17 +876,52 @@ describe("clinic editors", () => {
     ["service provider", ServiceProviderEditor],
   ] as const)("submits localized %s editor values", (_name, Editor) => {
     const onSubmit = vi.fn();
-    render(<Editor initialValue={{ name: "Initial", description: "Description" }} isPending={false} onSubmit={onSubmit} onCancel={vi.fn()} />, { wrapper: Wrapper });
-    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Updated" } });
+    render(
+      <Editor
+        initialValue={{ name: "Initial", description: "Description" }}
+        isPending={false}
+        onSubmit={onSubmit}
+        onCancel={vi.fn()}
+      />,
+      { wrapper: Wrapper },
+    );
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Updated" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
-    expect(onSubmit).toHaveBeenCalledWith({ name: "Updated", description: "Description" });
+    expect(onSubmit).toHaveBeenCalledWith({
+      name: "Updated",
+      description: "Description",
+    });
   });
 
   it("submits shift values through the shift editor", () => {
     const onSubmit = vi.fn();
-    render(<ShiftEditor initialValue={{ dayOfWeek: 1, startTime: "09:00", endTime: "10:00", totalSeats: 10, timeZone: "UTC" }} isPending={false} onSubmit={onSubmit} onCancel={vi.fn()} />, { wrapper: Wrapper });
+    render(
+      <ShiftEditor
+        initialValue={{
+          dayOfWeek: 1,
+          startTime: "09:00",
+          endTime: "10:00",
+          totalSeats: 10,
+          timeZone: "UTC",
+        }}
+        isPending={false}
+        onSubmit={onSubmit}
+        onCancel={vi.fn()}
+      />,
+      { wrapper: Wrapper },
+    );
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
-    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ dayOfWeek: 1, startTime: "09:00", endTime: "10:00", totalSeats: 10, timeZone: "UTC" }));
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dayOfWeek: 1,
+        startTime: "09:00",
+        endTime: "10:00",
+        totalSeats: 10,
+        timeZone: "UTC",
+      }),
+    );
   });
 });
 
@@ -639,7 +929,15 @@ describe("clinic delete dialogs", () => {
   it("exposes cancel and confirm actions", () => {
     const onCancel = vi.fn();
     const onConfirm = vi.fn();
-    render(<ServiceDeleteDialog isOpen isPending={false} onCancel={onCancel} onConfirm={onConfirm} />, { wrapper: Wrapper });
+    render(
+      <ServiceDeleteDialog
+        isOpen
+        isPending={false}
+        onCancel={onCancel}
+        onConfirm={onConfirm}
+      />,
+      { wrapper: Wrapper },
+    );
     expect(screen.getByRole("dialog")).toHaveAccessibleName("Delete Service");
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(onConfirm).toHaveBeenCalledOnce();
@@ -648,7 +946,15 @@ describe("clinic delete dialogs", () => {
   });
 
   it("disables cancellation while deletion is pending", () => {
-    render(<ServiceDeleteDialog isOpen isPending onCancel={vi.fn()} onConfirm={vi.fn()} />, { wrapper: Wrapper });
+    render(
+      <ServiceDeleteDialog
+        isOpen
+        isPending
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+      />,
+      { wrapper: Wrapper },
+    );
     expect(screen.getByRole("button", { name: "Cancel" })).toBeDisabled();
   });
 });

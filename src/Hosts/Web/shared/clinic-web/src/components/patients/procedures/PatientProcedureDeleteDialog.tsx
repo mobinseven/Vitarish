@@ -33,7 +33,7 @@ export function PatientProcedureDeleteDialog({
       close: onClose,
       toggle: () => onClose(),
     }),
-    [onClose]
+    [onClose],
   );
 
   const handleConfirm = () => {
@@ -62,7 +62,11 @@ export function PatientProcedureDeleteDialog({
               </p>
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onPress={onClose} isDisabled={deleteMutation.isPending}>
+              <Button
+                variant="secondary"
+                onPress={onClose}
+                isDisabled={deleteMutation.isPending}
+              >
                 {t("common.actions.cancel")}
               </Button>
               <Button

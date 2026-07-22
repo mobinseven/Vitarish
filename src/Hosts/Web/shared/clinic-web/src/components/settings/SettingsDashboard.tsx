@@ -1,6 +1,9 @@
 "use client";
 
-import { NavigationGrid, type NavigationItem } from "../navigation/NavigationGrid";
+import {
+  NavigationGrid,
+  type NavigationItem,
+} from "../navigation/NavigationGrid";
 import type { NavigationIntent } from "../../navigation";
 import { useLocalizedText } from "../../localization/index";
 
@@ -12,9 +15,32 @@ export function SettingsDashboard({ onNavigate }: SettingsDashboardProps) {
   const { t } = useLocalizedText();
 
   const settingsLinks: NavigationItem[] = [
-    { title: t("clinic.settings.sections.users.title"), description: t("clinic.settings.sections.users.description"), intent: { kind: "clinicSettingsUsers" }, icon: "user-gear" },
-    { title: t("clinic.settings.sections.appointmentSettings.title"), description: t("clinic.settings.sections.appointmentSettings.description"), intent: { kind: "appointmentSettings" }, icon: "calendar-check" },
-    { title: t("clinic.settings.sections.statistics.title"), description: t("clinic.settings.sections.statistics.description"), intent: { kind: "clinicStatistics" }, icon: "chart-line" },
+    {
+      title: t("clinic.settings.sections.users.title"),
+      description: t("clinic.settings.sections.users.description"),
+      intent: { kind: "clinicSettingsUsers" },
+      icon: "user-gear",
+    },
+    {
+      title: t("clinic.settings.sections.appointmentSettings.title"),
+      description: t(
+        "clinic.settings.sections.appointmentSettings.description",
+      ),
+      intent: { kind: "appointmentSettings" },
+      icon: "calendar-check",
+    },
+    {
+      title: t("clinic.settings.sections.statistics.title"),
+      description: t("clinic.settings.sections.statistics.description"),
+      intent: { kind: "clinicStatistics" },
+      icon: "chart-line",
+    },
+    {
+      title: t("clinic.settings.sections.procedureTemplates.title"),
+      description: t("clinic.settings.sections.procedureTemplates.description"),
+      intent: { kind: "procedureTemplateManagement" },
+      icon: "folder-tree",
+    },
   ];
 
   return (

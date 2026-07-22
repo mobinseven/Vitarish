@@ -1,6 +1,12 @@
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@vitarish/web-api-client";
 import { PatientFindOrCreate } from "../components/patients/find-or-create/PatientFindOrCreate";
@@ -41,31 +47,54 @@ function Wrapper({ children }: { children: ReactNode }) {
 
 describe("patient find or create", () => {
   it("notifies the parent when the identification lookup finds a patient", async () => {
-    const patient = { id: "patient-1", identificationCode: "1234567890" } as PatientViewDto;
+    const patient = {
+      id: "patient-1",
+      identificationCode: "1234567890",
+    } as PatientViewDto;
     lookupPatient.mockResolvedValue(patient);
     const onPatientSelected = vi.fn();
 
-    render(<PatientFindOrCreate onPatientSelected={onPatientSelected} />, { wrapper: Wrapper });
-    fireEvent.change(screen.getByPlaceholderText("Enter identification code..."), {
-      target: { value: " 1234567890 " },
+    render(<PatientFindOrCreate onPatientSelected={onPatientSelected} />, {
+      wrapper: Wrapper,
     });
+    fireEvent.change(
+      screen.getByPlaceholderText("Enter identification code..."),
+      {
+        target: { value: " 1234567890 " },
+      },
+    );
     fireEvent.click(screen.getByRole("button", { name: "Look up patient" }));
 
-    await waitFor(() => expect(onPatientSelected).toHaveBeenCalledWith("patient-1"));
-    expect(lookupPatient).toHaveBeenCalledWith({ identificationCode: "1234567890" });
+    await waitFor(() =>
+      expect(onPatientSelected).toHaveBeenCalledWith("patient-1"),
+    );
+    expect(lookupPatient).toHaveBeenCalledWith({
+      identificationCode: "1234567890",
+    });
   });
 
   it("opens a create form prefilled with the missed identification code", async () => {
-    lookupPatient.mockRejectedValue(new ApiError({ status: 404, title: "Not found" }));
+    lookupPatient.mockRejectedValue(
+      new ApiError({ status: 404, title: "Not found" }),
+    );
 
-    render(<PatientFindOrCreate onPatientSelected={vi.fn()} />, { wrapper: Wrapper });
-    fireEvent.change(screen.getByPlaceholderText("Enter identification code..."), {
-      target: { value: " 1234567890 " },
+    render(<PatientFindOrCreate onPatientSelected={vi.fn()} />, {
+      wrapper: Wrapper,
     });
+    fireEvent.change(
+      screen.getByPlaceholderText("Enter identification code..."),
+      {
+        target: { value: " 1234567890 " },
+      },
+    );
     fireEvent.click(screen.getByRole("button", { name: "Look up patient" }));
 
-    expect(await screen.findByRole("heading", { name: "New Patient" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Identification Code")).toHaveValue("1234567890");
+    expect(
+      await screen.findByRole("heading", { name: "New Patient" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Identification Code")).toHaveValue(
+      "1234567890",
+    );
   });
 
   it("maps every patient profile field into the create command request", () => {

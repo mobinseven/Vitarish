@@ -23,12 +23,20 @@ export function NavigationGrid({ items, onNavigate }: NavigationGridProps) {
         <button
           key={item.intent.kind}
           type="button"
+          title={item.title}
           className="block h-full text-left"
           onClick={() => onNavigate?.(item.intent)}
         >
-          <ItemCard className="h-full transition-colors hover:bg-surface-secondary" variant="outline">
+          <ItemCard
+            className="h-full transition-colors hover:bg-surface-secondary"
+            variant="outline"
+          >
             <ItemCard.Icon>
-              <FaIcon icon={item.icon} aria-hidden="true" className="text-lg text-accent" />
+              <FaIcon
+                icon={item.icon}
+                aria-hidden="true"
+                className="text-lg text-accent"
+              />
             </ItemCard.Icon>
             <ItemCard.Content>
               <ItemCard.Title>{item.title}</ItemCard.Title>

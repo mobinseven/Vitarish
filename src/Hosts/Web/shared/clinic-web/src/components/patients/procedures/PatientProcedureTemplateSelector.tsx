@@ -3,7 +3,10 @@
 import { useMemo, useState } from "react";
 import { Button, Modal } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
-import { EmptyStateSurface as ClinicEmptyState, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
+import {
+  EmptyStateSurface as ClinicEmptyState,
+  LoadingStateSurface as ClinicLoadingState,
+} from "@vitarish/web-ui";
 import { usePatientProcedureTemplates } from "../../../hooks/patients/procedures/usePatientProcedureTemplates";
 import { PatientProcedureForm } from "./PatientProcedureForm";
 import { useLocalizedText } from "../../../localization/index";
@@ -19,7 +22,10 @@ export function PatientProcedureTemplateSelector({
 }: PatientProcedureTemplateSelectorProps) {
   const { t } = useLocalizedText();
   const { data: templates, isLoading } = usePatientProcedureTemplates();
-  const [selectedTemplate, setSelectedTemplate] = useState<{ name: string; description?: string } | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<{
+    name: string;
+    description?: string;
+  } | null>(null);
 
   const modalState = useMemo(
     () => ({
@@ -31,7 +37,7 @@ export function PatientProcedureTemplateSelector({
       close: onClose,
       toggle: () => onClose(),
     }),
-    [onClose, selectedTemplate]
+    [onClose, selectedTemplate],
   );
 
   if (selectedTemplate) {
@@ -56,7 +62,9 @@ export function PatientProcedureTemplateSelector({
               </Modal.Heading>
             </Modal.Header>
             <Modal.Body>
-              {isLoading && <ClinicLoadingState label={t("common.states.loading")} />}
+              {isLoading && (
+                <ClinicLoadingState label={t("common.states.loading")} />
+              )}
 
               {!isLoading && (!templates || templates.length === 0) && (
                 <ClinicEmptyState title={t("clinic.procedures.empty")} />
@@ -66,20 +74,31 @@ export function PatientProcedureTemplateSelector({
                 <ListView
                   aria-label={t("clinic.procedures.templates.title")}
                   onAction={(key) => {
-                    const template = templates.find((p) => p.id === String(key));
+                    const template = templates.find(
+                      (p) => p.id === String(key),
+                    );
                     if (template) {
-                      setSelectedTemplate({ name: template.name, description: template.description ?? undefined });
+                      setSelectedTemplate({
+                        name: template.name,
+                        description: template.description ?? undefined,
+                      });
                     }
                   }}
                   variant="secondary"
                 >
                   {templates.map((template) => (
-                    <ListView.Item key={template.id} id={template.id} textValue={template.name}>
+                    <ListView.Item
+                      key={template.id}
+                      id={template.id}
+                      textValue={template.name}
+                    >
                       <ListView.ItemContent>
                         <div className="flex flex-col gap-1">
                           <ListView.Title>{template.name}</ListView.Title>
                           {template.description && (
-                            <ListView.Description>{template.description}</ListView.Description>
+                            <ListView.Description>
+                              {template.description}
+                            </ListView.Description>
                           )}
                         </div>
                       </ListView.ItemContent>

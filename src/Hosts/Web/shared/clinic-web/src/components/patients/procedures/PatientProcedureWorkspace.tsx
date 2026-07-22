@@ -28,7 +28,11 @@ export function PatientProcedureWorkspace({
   const events = eventsQuery.data ?? [];
   const patientQuery = usePatientDetail(patientId);
 
-  if (procedureQuery.isLoading || eventsQuery.isLoading || patientQuery.isLoading) {
+  if (
+    procedureQuery.isLoading ||
+    eventsQuery.isLoading ||
+    patientQuery.isLoading
+  ) {
     return <LoadingStateSurface label={t("common.states.loading")} />;
   }
 
@@ -39,7 +43,10 @@ export function PatientProcedureWorkspace({
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
       {patientQuery.data ? (
-        <PatientProcedureHeader patient={patientQuery.data} procedure={procedureQuery.data} />
+        <PatientProcedureHeader
+          patient={patientQuery.data}
+          procedure={procedureQuery.data}
+        />
       ) : null}
       <Card className="m-0 w-full lg:max-w-4xl lg:self-center">
         <Card.Content>
@@ -50,7 +57,11 @@ export function PatientProcedureWorkspace({
           />
           {eventsQuery.error ? (
             <ErrorStateSurface title={t("clinic.procedures.failedToLoad")}>
-              <Button size="sm" variant="secondary" onPress={() => void eventsQuery.refetch()}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onPress={() => void eventsQuery.refetch()}
+              >
                 {t("common.actions.retry")}
               </Button>
             </ErrorStateSurface>

@@ -33,7 +33,11 @@ export function PatientProcedureEventPage({
   const returnToProcedure = () =>
     onNavigate({ kind: "patientProcedureDetail", patientId, procedureId });
 
-  if (patientQuery.isLoading || procedureQuery.isLoading || eventsQuery.isLoading) {
+  if (
+    patientQuery.isLoading ||
+    procedureQuery.isLoading ||
+    eventsQuery.isLoading
+  ) {
     return <LoadingStateSurface label={t("common.states.loading")} />;
   }
 
@@ -76,7 +80,6 @@ export function PatientProcedureEventPage({
           </Card>
         </>
       ) : null}
-
     </section>
   );
 }

@@ -21,10 +21,16 @@ export function ServiceList({ items, onDelete }: ServiceListProps) {
   return (
     <ListView
       aria-label={t("clinic.services.title")}
-      renderEmptyState={() => <ClinicEmptyState title={t("clinic.services.empty")} />}
+      renderEmptyState={() => (
+        <ClinicEmptyState title={t("clinic.services.empty")} />
+      )}
     >
       {items.map((service) => (
-        <ListView.Item key={service.id} id={service.id} textValue={service.name}>
+        <ListView.Item
+          key={service.id}
+          id={service.id}
+          textValue={service.name}
+        >
           <ListView.ItemContent>
             <div className="flex flex-col gap-1">
               <ListView.Title>{service.name}</ListView.Title>
@@ -34,7 +40,11 @@ export function ServiceList({ items, onDelete }: ServiceListProps) {
             </div>
           </ListView.ItemContent>
           <ListView.ItemAction>
-            <Button variant="ghost" className="text-danger" onPress={() => onDelete(service.id)}>
+            <Button
+              variant="ghost"
+              className="text-danger"
+              onPress={() => onDelete(service.id)}
+            >
               {t("common.actions.delete")}
             </Button>
           </ListView.ItemAction>

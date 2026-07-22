@@ -10,7 +10,8 @@ const mutations = vi.hoisted(() => ({
 }));
 
 vi.mock("@vitarish/intelligence-web", () => ({
-  appendConfirmedTranscript: (current: string, segment: string) => `${current} ${segment}`.trim(),
+  appendConfirmedTranscript: (current: string, segment: string) =>
+    `${current} ${segment}`.trim(),
   LiveDictation: () => null,
   useLiveDictation: () => ({
     available: true,
@@ -26,19 +27,22 @@ vi.mock("@vitarish/intelligence-web", () => ({
   }),
 }));
 
-vi.mock("../hooks/patients/procedures/usePatientProcedureEventItemMutations", () => ({
-  useCreatePatientProcedureEventItemFile: () => ({
-    isError: false,
-    isPending: false,
-    mutateAsync: mutations.createFile,
-    reset: vi.fn(),
+vi.mock(
+  "../hooks/patients/procedures/usePatientProcedureEventItemMutations",
+  () => ({
+    useCreatePatientProcedureEventItemFile: () => ({
+      isError: false,
+      isPending: false,
+      mutateAsync: mutations.createFile,
+      reset: vi.fn(),
+    }),
+    useCreatePatientProcedureEventItemText: () => ({
+      isError: false,
+      isPending: false,
+      mutateAsync: mutations.createNote,
+    }),
   }),
-  useCreatePatientProcedureEventItemText: () => ({
-    isError: false,
-    isPending: false,
-    mutateAsync: mutations.createNote,
-  }),
-}));
+);
 
 const messages = {
   ...clinicMessageCatalogs.en,
@@ -46,7 +50,11 @@ const messages = {
 };
 
 function Wrapper({ children }: { children: ReactNode }) {
-  return <LocalizationProvider locale="en" messages={messages}>{children}</LocalizationProvider>;
+  return (
+    <LocalizationProvider locale="en" messages={messages}>
+      {children}
+    </LocalizationProvider>
+  );
 }
 
 beforeEach(() => {
@@ -58,10 +66,15 @@ describe("patient procedure event item composer", () => {
   it("clears a successful note while retaining a failed file for retry", async () => {
     mutations.createNote.mockResolvedValue(undefined);
     mutations.createFile.mockRejectedValue(new Error("upload failed"));
-    const { container } = render(<PatientProcedureEventItemComposer eventId="event-1" />, {
-      wrapper: Wrapper,
+    const { container } = render(
+      <PatientProcedureEventItemComposer eventId="event-1" />,
+      {
+        wrapper: Wrapper,
+      },
+    );
+    const file = new File(["document"], "plan.pdf", {
+      type: "application/pdf",
     });
-    const file = new File(["document"], "plan.pdf", { type: "application/pdf" });
     const fileInput = container.querySelector('input[type="file"]');
     expect(fileInput).not.toBeNull();
     fireEvent.change(fileInput!, { target: { files: [file] } });
@@ -71,15 +84,23 @@ describe("patient procedure event item composer", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
 
-    await waitFor(() => expect(mutations.createFile).toHaveBeenCalledWith({
-      eventId: "event-1",
-      file,
-    }));
-    expect(mutations.createNote).toHaveBeenCalledWith(expect.objectContaining({
-      eventId: "event-1",
-      content: "Keep the treatment plan",
-    }));
-    await waitFor(() => expect(screen.getByRole("textbox", { name: "Clinical note" })).toHaveValue(""));
+    await waitFor(() =>
+      expect(mutations.createFile).toHaveBeenCalledWith({
+        eventId: "event-1",
+        file,
+      }),
+    );
+    expect(mutations.createNote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventId: "event-1",
+        content: "Keep the treatment plan",
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("textbox", { name: "Clinical note" }),
+      ).toHaveValue(""),
+    );
     expect(screen.getByRole("button", { name: "Remove" })).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent(
       "The file could not be uploaded. It is still ready to retry.",

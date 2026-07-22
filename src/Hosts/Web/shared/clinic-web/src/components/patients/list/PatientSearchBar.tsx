@@ -32,7 +32,9 @@ export function PatientSearchBar({ onSearch }: PatientSearchBarProps) {
         <SearchField.Input
           placeholder={t("clinic.patient.search.placeholder")}
         />
-        <SearchField.ClearButton aria-label={t("clinic.patient.search.clear")} />
+        <SearchField.ClearButton
+          aria-label={t("clinic.patient.search.clear")}
+        />
       </SearchField.Group>
     </SearchField>
   );

@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Button, Dropdown, ScrollShadow, Spinner, Toolbar } from "@heroui/react";
+import {
+  Button,
+  Dropdown,
+  ScrollShadow,
+  Spinner,
+  Toolbar,
+} from "@heroui/react";
 import { EmptyState } from "@heroui-pro/react";
 import { FaIcon, LoadingStateSurface } from "@vitarish/web-ui";
-import type { PatientViewDto, PatientSortBy } from "../../../models/patients/patientSearchModels";
+import type {
+  PatientViewDto,
+  PatientSortBy,
+} from "../../../models/patients/patientSearchModels";
 import { useLocalizedText } from "../../../localization/index";
 import { PatientSearchBar } from "./PatientSearchBar";
 import { PatientRow } from "../find-or-create/PatientRow";
@@ -45,8 +54,10 @@ export function PatientsGrid({
       : t("clinic.patients.countFound.other", { count: String(totalCount) });
   const getSortLabel = (field: PatientSortBy) => {
     if (field === "Name") return t("clinic.patient.fields.firstName");
-    if (field === "IdentificationCode") return t("clinic.patient.fields.identificationCode");
-    if (field === "DateOfSurgery") return t("clinic.patient.fields.dateOfSurgery");
+    if (field === "IdentificationCode")
+      return t("clinic.patient.fields.identificationCode");
+    if (field === "DateOfSurgery")
+      return t("clinic.patient.fields.dateOfSurgery");
     return t("clinic.patient.fields.dateOfBirth");
   };
 
@@ -58,16 +69,24 @@ export function PatientsGrid({
 
   useEffect(() => {
     const sentinel = loadMoreSentinelRef.current;
-    if (!sentinel || !onLoadMore || isLoadingMore || typeof IntersectionObserver === "undefined") {
+    if (
+      !sentinel ||
+      !onLoadMore ||
+      isLoadingMore ||
+      typeof IntersectionObserver === "undefined"
+    ) {
       return;
     }
 
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !loadRequestPendingRef.current) {
-        loadRequestPendingRef.current = true;
-        onLoadMore();
-      }
-    }, { root: sentinel.closest("[data-slot='scroll-shadow']") });
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !loadRequestPendingRef.current) {
+          loadRequestPendingRef.current = true;
+          onLoadMore();
+        }
+      },
+      { root: sentinel.closest("[data-slot='scroll-shadow']") },
+    );
 
     observer.observe(sentinel);
     return () => observer.disconnect();
@@ -96,21 +115,38 @@ export function PatientsGrid({
 
           <div className="flex shrink-0 items-center gap-2 md:contents">
             <Dropdown>
-                <Button
-                  size="sm"
-                  aria-label={t("clinic.patients.sortBy")} variant="secondary">
-                  <FaIcon icon="arrow-down-a-z" aria-hidden="true" />
-                  <span className="hidden md:inline">{t("clinic.patients.sortBy")}</span>
-                </Button>
+              <Button
+                size="sm"
+                aria-label={t("clinic.patients.sortBy")}
+                variant="secondary"
+              >
+                <FaIcon icon="arrow-down-a-z" aria-hidden="true" />
+                <span className="hidden md:inline">
+                  {t("clinic.patients.sortBy")}
+                </span>
+              </Button>
               <Dropdown.Popover>
                 <Dropdown.Menu
                   aria-label={t("clinic.patients.sortBy")}
                   onAction={(key) => onSort(key as PatientSortBy)}
                 >
-                  {(["Name", "IdentificationCode", "DateOfBirth", "DateOfSurgery"] as PatientSortBy[]).map((field) => (
-                    <Dropdown.Item key={field} id={field} textValue={getSortLabel(field)}>
+                  {(
+                    [
+                      "Name",
+                      "IdentificationCode",
+                      "DateOfBirth",
+                      "DateOfSurgery",
+                    ] as PatientSortBy[]
+                  ).map((field) => (
+                    <Dropdown.Item
+                      key={field}
+                      id={field}
+                      textValue={getSortLabel(field)}
+                    >
                       {getSortLabel(field)}
-                      {sortBy === field ? <span aria-hidden="true">{descending ? "↓" : "↑"}</span> : null}
+                      {sortBy === field ? (
+                        <span aria-hidden="true">{descending ? "↓" : "↑"}</span>
+                      ) : null}
                     </Dropdown.Item>
                   ))}
                 </Dropdown.Menu>
@@ -123,8 +159,14 @@ export function PatientsGrid({
               variant="primary"
               onPress={onAddPatient}
             >
-              <FaIcon aria-hidden="true" className="shrink-0 text-base" icon="plus" />
-              <span className="hidden md:inline">{t("clinic.patients.newPatient")}</span>
+              <FaIcon
+                aria-hidden="true"
+                className="shrink-0 text-base"
+                icon="plus"
+              />
+              <span className="hidden md:inline">
+                {t("clinic.patients.newPatient")}
+              </span>
             </Button>
           </div>
         </div>
@@ -137,10 +179,18 @@ export function PatientsGrid({
             <EmptyState size="sm">
               <EmptyState.Header>
                 <EmptyState.Media variant="icon">
-                  <FaIcon aria-hidden="true" className="text-2xl" icon="users" />
+                  <FaIcon
+                    aria-hidden="true"
+                    className="text-2xl"
+                    icon="users"
+                  />
                 </EmptyState.Media>
-                <EmptyState.Title>{t("clinic.patients.emptyState")}</EmptyState.Title>
-                <EmptyState.Description>{t("clinic.patients.searchEmpty")}</EmptyState.Description>
+                <EmptyState.Title>
+                  {t("clinic.patients.emptyState")}
+                </EmptyState.Title>
+                <EmptyState.Description>
+                  {t("clinic.patients.searchEmpty")}
+                </EmptyState.Description>
               </EmptyState.Header>
             </EmptyState>
           ) : (
@@ -154,7 +204,12 @@ export function PatientsGrid({
                   onSelect={onSelectPatient}
                 />
               ))}
-              {onLoadMore && <div ref={loadMoreSentinelRef} className="h-px sm:col-span-2 xl:col-span-3" />}
+              {onLoadMore && (
+                <div
+                  ref={loadMoreSentinelRef}
+                  className="h-px sm:col-span-2 xl:col-span-3"
+                />
+              )}
               {isLoadingMore && (
                 <div className="flex justify-center py-3 sm:col-span-2 xl:col-span-3">
                   <Spinner aria-label={t("common.states.loading")} size="sm" />

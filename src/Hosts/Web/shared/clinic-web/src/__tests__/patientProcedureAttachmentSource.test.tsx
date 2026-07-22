@@ -7,7 +7,8 @@ const storedContent = vi.hoisted(() => ({
 }));
 
 vi.mock("@vitarish/sea-web", () => ({
-  isStoredSeaAttachmentContent: (content: string) => content.startsWith("stored:"),
+  isStoredSeaAttachmentContent: (content: string) =>
+    content.startsWith("stored:"),
   loadStoredSeaAttachmentContent: storedContent.load,
 }));
 
@@ -21,9 +22,18 @@ describe("patient procedure attachment source", () => {
     let resolveSecond: ((blob: Blob) => void) | undefined;
     storedContent.load
       .mockImplementationOnce(() => new Promise(() => undefined))
-      .mockImplementationOnce(() => new Promise((resolve) => { resolveSecond = resolve; }));
-    const createObjectUrl = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:attachment");
-    const revokeObjectUrl = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveSecond = resolve;
+          }),
+      );
+    const createObjectUrl = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:attachment");
+    const revokeObjectUrl = vi
+      .spyOn(URL, "revokeObjectURL")
+      .mockImplementation(() => undefined);
 
     const { rerender, result, unmount } = renderHook(
       ({ content }) => usePatientProcedureAttachmentSource(content, true),

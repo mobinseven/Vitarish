@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react";
 import { Alert, Spinner } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
-import { useSeaEvents, useSeaProcedures, useSeaTemplateProjects } from "@vitarish/sea-web";
+import {
+  useSeaEvents,
+  useSeaProcedures,
+  useSeaTemplateProjects,
+} from "@vitarish/sea-web";
 import { useLocalizedText } from "../../localization";
 import { TemplateProjectListPane } from "./TemplateProjectListPane";
 import { TemplateProjectDetailPane } from "./TemplateProjectDetailPane";
-import { RoutineStepEditorPane } from "./RoutineStepEditorPane";
 
 export function ProcedureTemplateManagementPanel() {
   const { t } = useLocalizedText();
@@ -22,21 +25,59 @@ export function ProcedureTemplateManagementPanel() {
   const events = eventsQuery.data ?? [];
 
   useEffect(() => {
-    setProjectId((id) => projects.some((project) => project.id === id) ? id : projects[0]?.id ?? null);
+    setProjectId((id) =>
+      projects.some((project) => project.id === id)
+        ? id
+        : (projects[0]?.id ?? null),
+    );
   }, [projects]);
   useEffect(() => {
-    setProcedureId((id) => procedures.some((procedure) => procedure.id === id) ? id : procedures[0]?.id ?? null);
+    setProcedureId((id) =>
+      procedures.some((procedure) => procedure.id === id)
+        ? id
+        : (procedures[0]?.id ?? null),
+    );
   }, [procedures]);
   useEffect(() => {
-    setEventId((id) => events.some((event) => event.id === id) ? id : events[0]?.id ?? null);
+    setEventId((id) =>
+      events.some((event) => event.id === id) ? id : (events[0]?.id ?? null),
+    );
   }, [events]);
 
-  if (projectsQuery.isLoading) return <Spinner aria-label={t("common.states.loading")} />;
-  if (projectsQuery.error) return <Alert status="danger"><Alert.Indicator /><Alert.Content><Alert.Title>{t("clinic.procedures.templateManagement.loadFailed")}</Alert.Title></Alert.Content></Alert>;
+  if (projectsQuery.isLoading)
+    return <Spinner aria-label={t("common.states.loading")} />;
+  if (projectsQuery.error)
+    return (
+      <Alert status="danger">
+        <Alert.Indicator />
+        <Alert.Content>
+          <Alert.Title>
+            {t("clinic.procedures.templateManagement.loadFailed")}
+          </Alert.Title>
+        </Alert.Content>
+      </Alert>
+    );
 
-  return <div className="flex h-full min-h-0 gap-3">
-    <Widget className="w-72 shrink-0 overflow-auto"><TemplateProjectListPane projects={projects} selectedProjectId={projectId} onSelect={setProjectId} /></Widget>
-    <Widget className="min-w-0 flex-1 overflow-auto"><TemplateProjectDetailPane projectId={projectId} procedures={procedures} selectedProcedureId={procedureId} onSelectProcedure={setProcedureId} events={events} selectedEventId={eventId} onSelectEvent={setEventId} /></Widget>
-    <Widget className="w-96 shrink-0 overflow-auto"><RoutineStepEditorPane procedureId={procedureId} eventId={eventId} /></Widget>
-  </div>;
+  return (
+    <div className="flex h-full min-h-0 gap-3">
+      <Widget className="w-72 shrink-0 overflow-auto">
+        <TemplateProjectListPane
+          projects={projects}
+          selectedProjectId={projectId}
+          onSelect={setProjectId}
+        />
+      </Widget>
+      <Widget className="min-w-0 flex-1 overflow-auto">
+        <TemplateProjectDetailPane
+          projectId={projectId}
+          procedures={procedures}
+          selectedProcedureId={procedureId}
+          onSelectProcedure={setProcedureId}
+          events={events}
+          selectedEventId={eventId}
+          onSelectEvent={setEventId}
+        />
+      </Widget>
+    </div>
+  );
 }

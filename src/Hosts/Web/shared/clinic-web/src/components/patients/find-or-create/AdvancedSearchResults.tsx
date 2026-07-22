@@ -1,7 +1,9 @@
 "use client";
 
-
-import { EmptyStateSurface as ClinicEmptyState, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
+import {
+  EmptyStateSurface as ClinicEmptyState,
+  LoadingStateSurface as ClinicLoadingState,
+} from "@vitarish/web-ui";
 import { PatientRow } from "./PatientRow";
 import type { PatientViewDto } from "../../../models/patients/patientSearchModels";
 import { useLocalizedText } from "../../../localization/index";
@@ -20,18 +22,26 @@ export function AdvancedSearchResults({
   const { t } = useLocalizedText();
 
   if (isLoading) {
-    return <ClinicLoadingState label={t("clinic.patient.advancedSearch.searching")} />;
+    return (
+      <ClinicLoadingState
+        label={t("clinic.patient.advancedSearch.searching")}
+      />
+    );
   }
 
   if (results.length === 0) {
-    return <ClinicEmptyState title={t("clinic.patient.advancedSearch.noResults")} />;
+    return (
+      <ClinicEmptyState title={t("clinic.patient.advancedSearch.noResults")} />
+    );
   }
 
   return (
     <section className="rounded-medium border border-divider p-4">
       <header className="mb-3">
         <h2>
-          {t("clinic.patient.advancedSearch.resultsCount", { count: String(results.length) })}
+          {t("clinic.patient.advancedSearch.resultsCount", {
+            count: String(results.length),
+          })}
         </h2>
       </header>
       <div className="flex flex-col gap-1">

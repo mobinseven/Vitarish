@@ -231,7 +231,9 @@ export const clinicFaMessages = {
       },
     },
     procedures: {
-      templateManagement: { title: "قالب‌های روند", searchPlaceholder: "جستجوی قالب‌ها...", newTemplate: "قالب جدید", projectName: "نام قالب", projectNamePlaceholder: "نام قالب را وارد کنید...", projectDescription: "توضیحات", projectDescriptionPlaceholder: "توضیحات اختیاری...", noTemplates: "قالبی یافت نشد.", noProcedures: "روتینی در این قالب نیست.", noSteps: "مرحله‌ای در این روتین نیست.", selectTemplate: "برای شروع یک قالب انتخاب کنید.", selectRoutine: "برای مشاهده مراحل یک روتین انتخاب کنید.", selectStep: "برای ویرایش یک مرحله انتخاب کنید.", routineCount: "{count} روتین", stepCount: "{count} مرحله", committedSteps: "{count} تکمیل‌شده", newRoutine: "روتین جدید", editRoutine: "ویرایش روتین", duplicateRoutine: "تکثیر روتین", deleteRoutine: "حذف روتین", deleteRoutineConfirm: "این روتین حذف شود؟", deleteRoutineConsequences: "این کار روتین و مراحل آن را برای همیشه حذف می‌کند.", duplicateSuccess: "روتین تکثیر شد.", duplicateFailed: "تکثیر روتین ناموفق بود.", duplicatePartial: "روتین ایجاد شد اما برخی مراحل تکثیر نشدند.", routineName: "نام روتین", routineNamePlaceholder: "نام روتین را وارد کنید...", routineDescription: "توضیحات", routineDescriptionPlaceholder: "توضیحات اختیاری...", routineDetail: "جزئیات روتین", steps: "مراحل", stepEditor: "ویرایشگر مرحله", stepTitle: "عنوان مرحله", stepTitlePlaceholder: "عنوان مرحله را وارد کنید...", stepDescription: "جزئیات مرحله", stepDescriptionPlaceholder: "جزئیات مرحله را وارد کنید...", addStep: "افزودن مرحله", moveStepUp: "انتقال به قبل", moveStepDown: "انتقال به بعد", deleteStep: "حذف مرحله", deleteStepConfirm: "این مرحله حذف شود؟", pending: "در حال ذخیره...", createPending: "در حال ایجاد...", duplicatePending: "در حال تکثیر...", error: "خطایی رخ داد.", loadFailed: "بارگذاری قالب‌ها ناموفق بود." },
+      templateManagement: { 
+          projects: "دسته‌بندی روندها",
+          procedures: "قالبهای روند", searchPlaceholder: "جستجوی قالب‌ها...", newTemplate: "قالب جدید", projectName: "نام قالب", projectNamePlaceholder: "نام قالب را وارد کنید...", projectDescription: "توضیحات", projectDescriptionPlaceholder: "توضیحات اختیاری...", noTemplates: "قالبی یافت نشد.", noProcedures: "روتینی در این قالب نیست.", noSteps: "مرحله‌ای در این روتین نیست.", selectTemplate: "برای شروع یک قالب انتخاب کنید.", selectRoutine: "برای مشاهده مراحل یک روتین انتخاب کنید.", selectStep: "برای ویرایش یک مرحله انتخاب کنید.", routineCount: "{count} روتین", stepCount: "{count} مرحله", committedSteps: "{count} تکمیل‌شده", newRoutine: "روتین جدید", editRoutine: "ویرایش روتین", duplicateRoutine: "تکثیر روتین", deleteRoutine: "حذف روتین", deleteRoutineConfirm: "این روتین حذف شود؟", deleteRoutineConsequences: "این کار روتین و مراحل آن را برای همیشه حذف می‌کند.", duplicateSuccess: "روتین تکثیر شد.", duplicateFailed: "تکثیر روتین ناموفق بود.", duplicatePartial: "روتین ایجاد شد اما برخی مراحل تکثیر نشدند.", routineName: "نام روتین", routineNamePlaceholder: "نام روتین را وارد کنید...", routineDescription: "توضیحات", routineDescriptionPlaceholder: "توضیحات اختیاری...", routineDetail: "جزئیات روتین", steps: "مراحل", stepEditor: "ویرایشگر مرحله", stepTitle: "عنوان مرحله", stepTitlePlaceholder: "عنوان مرحله را وارد کنید...", stepDescription: "جزئیات مرحله", stepDescriptionPlaceholder: "جزئیات مرحله را وارد کنید...", addStep: "افزودن مرحله", moveStepUp: "انتقال به قبل", moveStepDown: "انتقال به بعد", deleteStep: "حذف مرحله", deleteStepConfirm: "این مرحله حذف شود؟", pending: "در حال ذخیره...", createPending: "در حال ایجاد...", duplicatePending: "در حال تکثیر...", error: "خطایی رخ داد.", loadFailed: "بارگذاری قالب‌ها ناموفق بود." },
       title: "روند‌ها",
       new: "روند جدید",
       empty: "هنوز روندی وجود ندارد.",
@@ -466,6 +468,11 @@ export const clinicFaMessages = {
         users: { title: "کاربران", description: "مدیریت حساب‌ها و مجوزهای کارکنان کلینیک." },
         appointmentSettings: { title: "تنظیمات نوبت‌دهی", description: "پیکربندی خدمات، انواع خدمات و ارائه‌دهندگان." },
         statistics: { title: "آمار", description: "مشاهده معیارها و تحلیل‌های عملکرد کلینیک." },
+        procedureTemplates: {
+          projects: "دسته‌بندی روندها",
+          procedures: "قالبهای روند",
+          description: "ایجاد و مدیریت روال‌ها و مراحل مرتب‌شده قابل استفاده مجدد."
+        },
       },
       users: { title: "کاربران کلینیک", description: "مدیریت حساب‌ها و مجوزهای کارکنان کلینیک", comingSoon: "مدیریت کاربران به زودی در دسترس خواهد بود." },
     },

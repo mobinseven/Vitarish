@@ -7,6 +7,8 @@ export interface OwnerReservationListPageProps {
   onNavigate: (intent: NavigationIntent) => void;
 }
 
-export function OwnerReservationListPage({ onNavigate }: OwnerReservationListPageProps) {
+export function OwnerReservationListPage({
+  onNavigate,
+}: OwnerReservationListPageProps) {
   return <OwnerReservationsAgenda onNavigate={onNavigate} />;
 }

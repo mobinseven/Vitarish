@@ -2,7 +2,10 @@
 
 import { useCallback, useMemo, useState } from "react";
 import type { NavigationIntent } from "../../../navigation";
-import type { PatientSearchCriteria, PatientSortBy } from "../../../models/patients/patientSearchModels";
+import type {
+  PatientSearchCriteria,
+  PatientSortBy,
+} from "../../../models/patients/patientSearchModels";
 import { usePatientCount } from "../../../hooks/patients/usePatientCount";
 import { usePatientList } from "../../../hooks/patients/usePatientList";
 import { PatientsGrid } from "./PatientsGrid";
@@ -32,21 +35,28 @@ export function PatientListPage({ onNavigate }: PatientListPageProps) {
   const handleAddPatient = useCallback(() => {
     onNavigate({ kind: "patientNew" });
   }, [onNavigate]);
-  const handleSelectPatient = useCallback((patientId: string) => {
-    onNavigate({ kind: "patientDetail", patientId });
-  }, [onNavigate]);
-  const handleSort = useCallback((field: PatientSortBy) => {
-    if (sortBy === field) {
-      setDescending(!descending);
-    } else {
-      setSortBy(field);
-      setDescending(false);
-    }
-  }, [sortBy, descending]);
+  const handleSelectPatient = useCallback(
+    (patientId: string) => {
+      onNavigate({ kind: "patientDetail", patientId });
+    },
+    [onNavigate],
+  );
+  const handleSort = useCallback(
+    (field: PatientSortBy) => {
+      if (sortBy === field) {
+        setDescending(!descending);
+      } else {
+        setSortBy(field);
+        setDescending(false);
+      }
+    },
+    [sortBy, descending],
+  );
   const totalCount = typeof count === "number" ? count : Number(count) || 0;
   const patients = patientsQuery.data?.pages.flat() ?? [];
   const canLoadMore =
-    patientsQuery.hasNextPage && (count == null || patients.length < totalCount);
+    patientsQuery.hasNextPage &&
+    (count == null || patients.length < totalCount);
 
   return (
     <div className="h-full min-h-0">
@@ -62,9 +72,7 @@ export function PatientListPage({ onNavigate }: PatientListPageProps) {
         isLoading={patientsQuery.isLoading}
         isLoadingMore={patientsQuery.isFetchingNextPage}
         onLoadMore={
-          canLoadMore
-            ? () => void patientsQuery.fetchNextPage()
-            : undefined
+          canLoadMore ? () => void patientsQuery.fetchNextPage() : undefined
         }
       />
     </div>

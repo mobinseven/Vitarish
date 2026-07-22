@@ -1,4 +1,60 @@
 "use client";
-import{useState}from"react";import{Button,Input,Label,TextField}from"@heroui/react";import{useLocalizedText}from"../../localization";
-export interface ServiceTypeEditorValue{name:string;description:string}export interface ServiceTypeEditorProps{initialValue:ServiceTypeEditorValue;isPending:boolean;failure?:string;onSubmit:(value:ServiceTypeEditorValue)=>void;onCancel:()=>void}
-export function ServiceTypeEditor({initialValue,isPending,failure,onSubmit,onCancel}:ServiceTypeEditorProps){const{t}=useLocalizedText();const[name,setName]=useState(initialValue.name);const[description,setDescription]=useState(initialValue.description);return <form className="flex flex-col gap-4" onSubmit={event=>{event.preventDefault();onSubmit({name,description})}}><TextField isRequired><Label>{t("clinic.fields.name")}</Label><Input value={name} onChange={event=>setName(event.target.value)}/></TextField><TextField><Label>{t("clinic.fields.description")}</Label><Input value={description} onChange={event=>setDescription(event.target.value)}/></TextField>{failure?<p role="alert" className="text-sm text-danger">{failure}</p>:null}<div className="flex justify-end gap-2"><Button variant="ghost" onPress={onCancel} isDisabled={isPending}>{t("common.actions.cancel")}</Button><Button variant="primary" type="submit" isPending={isPending}>{t("common.actions.save")}</Button></div></form>}
+import { useState } from "react";
+import { Button, Input, Label, TextField } from "@heroui/react";
+import { useLocalizedText } from "../../localization";
+export interface ServiceTypeEditorValue {
+  name: string;
+  description: string;
+}
+export interface ServiceTypeEditorProps {
+  initialValue: ServiceTypeEditorValue;
+  isPending: boolean;
+  failure?: string;
+  onSubmit: (value: ServiceTypeEditorValue) => void;
+  onCancel: () => void;
+}
+export function ServiceTypeEditor({
+  initialValue,
+  isPending,
+  failure,
+  onSubmit,
+  onCancel,
+}: ServiceTypeEditorProps) {
+  const { t } = useLocalizedText();
+  const [name, setName] = useState(initialValue.name);
+  const [description, setDescription] = useState(initialValue.description);
+  return (
+    <form
+      className="flex flex-col gap-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit({ name, description });
+      }}
+    >
+      <TextField isRequired>
+        <Label>{t("clinic.fields.name")}</Label>
+        <Input value={name} onChange={(event) => setName(event.target.value)} />
+      </TextField>
+      <TextField>
+        <Label>{t("clinic.fields.description")}</Label>
+        <Input
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+        />
+      </TextField>
+      {failure ? (
+        <p role="alert" className="text-sm text-danger">
+          {failure}
+        </p>
+      ) : null}
+      <div className="flex justify-end gap-2">
+        <Button variant="ghost" onPress={onCancel} isDisabled={isPending}>
+          {t("common.actions.cancel")}
+        </Button>
+        <Button variant="primary" type="submit" isPending={isPending}>
+          {t("common.actions.save")}
+        </Button>
+      </div>
+    </form>
+  );
+}
