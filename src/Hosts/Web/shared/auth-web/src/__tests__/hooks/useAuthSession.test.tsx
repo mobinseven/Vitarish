@@ -46,9 +46,12 @@ describe("useAuthSession", () => {
             email: "avery@example.com",
             phoneNumber: null,
           },
-          tenantAccess: { canAccessTenantOwner: true, canAccessTenantUser: true },
-        })
-      )
+          tenantAccess: {
+            canAccessTenantOwner: true,
+            canAccessTenantUser: true,
+          },
+        }),
+      ),
     );
 
     const { result } = renderHook(() => useAuthSession(), { wrapper });
@@ -64,7 +67,9 @@ describe("useAuthSession", () => {
   });
 
   it("memoizes the fallback display profile while the user reference is unchanged", async () => {
-    const { result, rerender } = renderHook(() => useAuthSession(), { wrapper });
+    const { result, rerender } = renderHook(() => useAuthSession(), {
+      wrapper,
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

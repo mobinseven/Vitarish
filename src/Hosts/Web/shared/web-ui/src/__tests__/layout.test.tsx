@@ -31,35 +31,46 @@ describe("shared layout policy components", () => {
         <StandaloneDocumentPage id="main-content">
           <PageContainer width="reading">Article</PageContainer>
         </StandaloneDocumentPage>
-      </PublicDocumentShell>
+      </PublicDocumentShell>,
     );
 
     expect(ref.current).toBe(screen.getByTestId("public-shell"));
-    expect(ref.current).toHaveClass("vitarish-public-document-shell", "caller-shell");
+    expect(ref.current).toHaveClass(
+      "vitarish-public-document-shell",
+      "caller-shell",
+    );
     expect(container.querySelectorAll("main")).toHaveLength(1);
     expect(screen.getByRole("main")).toHaveAttribute(
       "data-vitarish-layout",
-      "standalone-document-page"
+      "standalone-document-page",
     );
-    expect(screen.getByRole("navigation", { name: "Public navigation" })).toBeInTheDocument();
-    expect(container.querySelector("footer")).toHaveTextContent("Footer content");
+    expect(
+      screen.getByRole("navigation", { name: "Public navigation" }),
+    ).toBeInTheDocument();
+    expect(container.querySelector("footer")).toHaveTextContent(
+      "Footer content",
+    );
   });
 
   it("exposes every typed page width without changing the element contract", () => {
     render(
       <>
         {pageWidths.map((width) => (
-          <PageContainer key={width} data-testid={`width-${width}`} width={width}>
+          <PageContainer
+            key={width}
+            data-testid={`width-${width}`}
+            width={width}
+          >
             {width}
           </PageContainer>
         ))}
-      </>
+      </>,
     );
 
     for (const width of pageWidths) {
       expect(screen.getByTestId(`width-${width}`)).toHaveAttribute(
         "data-vitarish-page-width",
-        width
+        width,
       );
     }
   });
@@ -69,15 +80,17 @@ describe("shared layout policy components", () => {
     const { container } = render(
       <ContainedPage ref={ref} aria-label="Settings" width="fluid">
         <CenteredRegion data-testid="gate">Gate</CenteredRegion>
-      </ContainedPage>
+      </ContainedPage>,
     );
 
     expect(ref.current).toHaveAttribute("aria-label", "Settings");
     expect(ref.current).toHaveAttribute("data-vitarish-page-width", "fluid");
-    expect(container.querySelector("[data-vitarish-reveal-header-host]")).toBeInTheDocument();
+    expect(
+      container.querySelector("[data-vitarish-reveal-header-host]"),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("gate")).toHaveAttribute(
       "data-vitarish-layout",
-      "centered-region"
+      "centered-region",
     );
     expect(container.querySelector("main")).toBeNull();
   });
@@ -86,25 +99,32 @@ describe("shared layout policy components", () => {
     const { container } = render(
       <>
         <StandaloneDocumentPage>Document</StandaloneDocumentPage>
-        <StandaloneCenteredPage width="compact">Centered</StandaloneCenteredPage>
+        <StandaloneCenteredPage width="compact">
+          Centered
+        </StandaloneCenteredPage>
         <StandaloneImmersivePage>
-          <ImmersiveRegion data-testid="workspace-region">Workspace</ImmersiveRegion>
+          <ImmersiveRegion data-testid="workspace-region">
+            Workspace
+          </ImmersiveRegion>
         </StandaloneImmersivePage>
-      </>
+      </>,
     );
 
     const mains = container.querySelectorAll("main");
     expect(mains).toHaveLength(3);
     expect(mains[0]).toHaveAttribute("data-vitarish-scroll-owner", "document");
-    expect(mains[1]).toHaveAttribute("data-vitarish-layout", "standalone-centered-page");
+    expect(mains[1]).toHaveAttribute(
+      "data-vitarish-layout",
+      "standalone-centered-page",
+    );
     expect(mains[2]).toHaveAttribute("data-vitarish-scroll-owner", "workspace");
     expect(screen.getByTestId("workspace-region")).toHaveAttribute(
       "data-vitarish-layout",
-      "immersive-region"
+      "immersive-region",
     );
     expect(screen.getByTestId("workspace-region")).toHaveAttribute(
       "data-vitarish-reveal-header-region",
-      "workspace"
+      "workspace",
     );
   });
 
@@ -115,8 +135,8 @@ describe("shared layout policy components", () => {
           <StandaloneDocumentPage>
             <ContainedPage width="content">Server content</ContainedPage>
           </StandaloneDocumentPage>
-        </PublicDocumentShell>
-      )
+        </PublicDocumentShell>,
+      ),
     ).not.toThrow();
   });
 
@@ -142,32 +162,52 @@ describe("shared layout policy components", () => {
         title="Workspace"
       >
         <ImmersiveRegion>Workspace content</ImmersiveRegion>
-      </DashboardFrame>
+      </DashboardFrame>,
     );
 
     expect(container.querySelectorAll("main")).toHaveLength(1);
     expect(container.querySelector("[data-app-layout]")).toHaveAttribute(
       "data-content-mode",
-      "workspace"
+      "workspace",
     );
-    expect(container.querySelector("[data-slot='app-layout-main']")).toHaveAttribute(
-      "data-scroll-mode",
-      "page"
-    );
-    expect(container.querySelector("[data-slot='app-layout-header']")).toBeNull();
-    expect(container.querySelector("#vitarish-dashboard-main > .navbar")).toBeInTheDocument();
+    expect(
+      container.querySelector("[data-slot='app-layout-main']"),
+    ).toHaveAttribute("data-scroll-mode", "page");
+    expect(
+      container.querySelector("[data-slot='app-layout-header']"),
+    ).toBeNull();
+    expect(
+      container.querySelector("#vitarish-dashboard-main > .navbar"),
+    ).toBeInTheDocument();
     expect(container.querySelector("#vitarish-dashboard-main")).toHaveAttribute(
       "data-vitarish-scroll-owner",
-      "workspace"
+      "workspace",
     );
-    expect(container.querySelector("#vitarish-dashboard-main .vitarish-reveal-header")).toBeInTheDocument();
-    expect(container.querySelector("#vitarish-dashboard-main .vitarish-reveal-header-inset")).toBeInTheDocument();
     expect(
-      container.querySelector("#vitarish-dashboard-main .vitarish-reveal-header [data-slot='navbar-header']")
+      container.querySelector(
+        "#vitarish-dashboard-main .vitarish-reveal-header",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector(
+        "#vitarish-dashboard-main .vitarish-reveal-header-inset",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector(
+        "#vitarish-dashboard-main .vitarish-reveal-header [data-slot='navbar-header']",
+      ),
     ).toHaveTextContent("Workspace");
-    expect(container.querySelector("[data-slot='app-layout-menu-toggle']")).toBeNull();
-    expect(screen.getAllByRole("button", { name: "Toggle context panel" })).toHaveLength(2);
-    expect(container.querySelector("#vitarish-dashboard-main")).toHaveAttribute("tabindex", "-1");
+    expect(
+      container.querySelector("[data-slot='app-layout-menu-toggle']"),
+    ).toBeNull();
+    expect(
+      screen.getAllByRole("button", { name: "Toggle context panel" }),
+    ).toHaveLength(2);
+    expect(container.querySelector("#vitarish-dashboard-main")).toHaveAttribute(
+      "tabindex",
+      "-1",
+    );
   });
 
   it("keeps the desktop sidebar on the physical right in RTL layouts", () => {
@@ -192,10 +232,16 @@ describe("shared layout policy components", () => {
         >
           Content
         </DashboardFrame>
-      </I18nProvider>
+      </I18nProvider>,
     );
 
-    expect(container.querySelector("[data-app-layout]")).toHaveAttribute("data-direction", "rtl");
-    expect(container.querySelector("[data-slot='sidebar']")).toHaveAttribute("data-side", "right");
+    expect(container.querySelector("[data-app-layout]")).toHaveAttribute(
+      "data-direction",
+      "rtl",
+    );
+    expect(container.querySelector("[data-slot='sidebar']")).toHaveAttribute(
+      "data-side",
+      "right",
+    );
   });
 });

@@ -35,7 +35,9 @@ export function ChatPromptInput({
 }: ChatPromptInputProps) {
   const canSend = value.trim().length > 0;
   const toolbarEndStyle: CSSProperties | undefined =
-    direction === "rtl" ? { marginInlineStart: "auto", marginLeft: 0 } : undefined;
+    direction === "rtl"
+      ? { marginInlineStart: "auto", marginLeft: 0 }
+      : undefined;
 
   const handleSubmit = () => {
     onSubmit(value);

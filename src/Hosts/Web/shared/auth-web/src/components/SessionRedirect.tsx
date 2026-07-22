@@ -2,7 +2,11 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useAuthSession } from "../hooks/useAuthSession";
-import { ignoreAuthNavigation, type AuthNavigate, type AuthReturnUrlSearchParams } from "../hooks/navigation";
+import {
+  ignoreAuthNavigation,
+  type AuthNavigate,
+  type AuthReturnUrlSearchParams,
+} from "../hooks/navigation";
 import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
 
 interface RedirectSessionState {
@@ -81,7 +85,9 @@ export function AuthenticatedRedirectBoundary({
 }: AuthenticatedRedirectBoundaryProps) {
   const { isAuthenticated, isLoading } = useAuthSession();
 
-  const returnUrl = returnUrlSearchParams?.get("returnUrl") || returnUrlSearchParams?.get("redirectTo");
+  const returnUrl =
+    returnUrlSearchParams?.get("returnUrl") ||
+    returnUrlSearchParams?.get("redirectTo");
   const safeReturnUrl =
     returnUrl && returnUrl.startsWith("/") && !returnUrl.startsWith("//")
       ? returnUrl

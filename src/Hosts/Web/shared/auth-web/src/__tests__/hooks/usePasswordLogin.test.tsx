@@ -48,8 +48,8 @@ describe("usePasswordLogin", () => {
             returnUrl: "/home",
             requiresProfileCompletion: false,
           });
-        }
-      )
+        },
+      ),
     );
 
     const { result } = renderHook(() => usePasswordLogin(), { wrapper });
@@ -72,8 +72,8 @@ describe("usePasswordLogin", () => {
             returnUrl: "/home",
             requiresProfileCompletion: false,
           });
-        }
-      )
+        },
+      ),
     );
 
     const { result } = renderHook(() => usePasswordLogin(), { wrapper });
@@ -82,7 +82,7 @@ describe("usePasswordLogin", () => {
       await result.current.login(
         "user@test.com",
         "password123",
-        "/login/password"
+        "/login/password",
       );
     });
 
@@ -105,22 +105,20 @@ describe("usePasswordLogin", () => {
   it("refreshes a cached unauthenticated session after successful login", async () => {
     let isAuthenticated = false;
     server.use(
-      http.get(
-        /\/api\/modules\/authentication\/session(?:\?|$)/,
-        () =>
-          HttpResponse.json({
-            isAuthenticated,
-            user: isAuthenticated
-              ? {
-                  userId: "user-1",
-                  displayName: "Avery Stone",
-                  givenName: "Avery",
-                  familyName: "Stone",
-                  email: "avery@example.com",
-                  phoneNumber: null,
-                }
-              : null,
-          })
+      http.get(/\/api\/modules\/authentication\/session(?:\?|$)/, () =>
+        HttpResponse.json({
+          isAuthenticated,
+          user: isAuthenticated
+            ? {
+                userId: "user-1",
+                displayName: "Avery Stone",
+                givenName: "Avery",
+                familyName: "Stone",
+                email: "avery@example.com",
+                phoneNumber: null,
+              }
+            : null,
+        }),
       ),
       http.post(
         /\/api\/modules\/authentication\/login\/password(?:\?|$)/,
@@ -130,13 +128,13 @@ describe("usePasswordLogin", () => {
             returnUrl: "/home",
             requiresProfileCompletion: false,
           });
-        }
-      )
+        },
+      ),
     );
 
     const { result } = renderHook(
       () => ({ login: usePasswordLogin(), session: useAuthSession() }),
-      { wrapper }
+      { wrapper },
     );
 
     await waitFor(() => {
@@ -159,16 +157,16 @@ describe("usePasswordLogin", () => {
         /\/api\/modules\/authentication\/login\/password(?:\?|$)/,
         () => {
           return HttpResponse.json(
-          {
-            status: 401,
-            title: "InvalidCredentials",
-            detail: "Invalid username or password",
-            code: "invalid_credentials",
-          },
-            { status: 401 }
+            {
+              status: 401,
+              title: "InvalidCredentials",
+              detail: "Invalid username or password",
+              code: "invalid_credentials",
+            },
+            { status: 401 },
           );
-        }
-      )
+        },
+      ),
     );
 
     const { result } = renderHook(() => usePasswordLogin(), { wrapper });

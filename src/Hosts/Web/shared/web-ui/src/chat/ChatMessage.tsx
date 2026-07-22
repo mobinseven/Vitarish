@@ -26,10 +26,15 @@ interface ChatAssistantMessageProps extends ChatMessageBaseProps {
   avatarFallback: string;
 }
 
-export type ChatMessageProps = ChatQuestionMessageProps | ChatAssistantMessageProps;
+export type ChatMessageProps =
+  ChatQuestionMessageProps | ChatAssistantMessageProps;
 
 function ChatStatus({ label, tone }: { label: string; tone: ChatTone }) {
-  return <span className={`text-xs font-medium ${getChatToneTextClassName(tone)}`}>{label}</span>;
+  return (
+    <span className={`text-xs font-medium ${getChatToneTextClassName(tone)}`}>
+      {label}
+    </span>
+  );
 }
 
 export function ChatMessage({
@@ -61,7 +66,11 @@ export function ChatMessage({
         {title || subtitle || status ? (
           <div className="flex flex-col gap-1">
             <div className="flex flex-wrap items-center gap-2">
-              {title && <span className="text-sm font-medium text-foreground">{title}</span>}
+              {title && (
+                <span className="text-sm font-medium text-foreground">
+                  {title}
+                </span>
+              )}
               {status && <ChatStatus label={status} tone={tone} />}
             </div>
             {subtitle && <p className="text-sm text-muted">{subtitle}</p>}
@@ -70,7 +79,9 @@ export function ChatMessage({
 
         {children}
 
-        {actions && <HeroChatMessage.Actions>{actions}</HeroChatMessage.Actions>}
+        {actions && (
+          <HeroChatMessage.Actions>{actions}</HeroChatMessage.Actions>
+        )}
       </HeroChatMessage.Body>
     </HeroChatMessage.Assistant>
   );

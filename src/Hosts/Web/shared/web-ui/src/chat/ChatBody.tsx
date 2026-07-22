@@ -11,7 +11,11 @@ export interface ChatBodyProps {
 export function ChatBody({ children }: ChatBodyProps) {
   return (
     <ChatMessage.Content>
-      {typeof children === "string" ? <Markdown>{children}</Markdown> : children}
+      {typeof children === "string" ? (
+        <Markdown>{children}</Markdown>
+      ) : (
+        children
+      )}
     </ChatMessage.Content>
   );
 }

@@ -11,8 +11,15 @@ interface PasskeyButtonProps extends AuthNavigationOptions {
   returnUrl?: string;
 }
 
-export function PasskeyButton({ returnUrl, navigate, returnUrlSearchParams }: PasskeyButtonProps) {
-  const { login, isLoading, errorMessage } = usePasskeyLogin({ navigate, returnUrlSearchParams });
+export function PasskeyButton({
+  returnUrl,
+  navigate,
+  returnUrlSearchParams,
+}: PasskeyButtonProps) {
+  const { login, isLoading, errorMessage } = usePasskeyLogin({
+    navigate,
+    returnUrlSearchParams,
+  });
   const { t } = useLocalizedText();
   const [userNameOrEmail, setUserNameOrEmail] = useState("");
 
@@ -25,7 +32,7 @@ export function PasskeyButton({ returnUrl, navigate, returnUrlSearchParams }: Pa
       e.preventDefault();
       handleLogin();
     },
-    [handleLogin]
+    [handleLogin],
   );
 
   return (

@@ -5,13 +5,21 @@ import { Button, Tooltip } from "@heroui/react";
 
 type ButtonProps = ComponentPropsWithRef<typeof Button>;
 
-export interface IconButtonProps extends Omit<ButtonProps, "children" | "isIconOnly"> {
+export interface IconButtonProps extends Omit<
+  ButtonProps,
+  "children" | "isIconOnly"
+> {
   children: ReactNode;
   label: string;
   tooltip?: ReactNode;
 }
 
-export function IconButton({ children, label, tooltip, ...buttonProps }: IconButtonProps) {
+export function IconButton({
+  children,
+  label,
+  tooltip,
+  ...buttonProps
+}: IconButtonProps) {
   return (
     <Tooltip>
       <Button isIconOnly aria-label={label} {...buttonProps}>

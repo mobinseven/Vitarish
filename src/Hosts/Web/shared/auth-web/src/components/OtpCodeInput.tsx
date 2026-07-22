@@ -27,15 +27,11 @@ export function OtpCodeInput({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange(normalizeOtpCode(e.target.value, expectedLength));
     },
-    [expectedLength, onChange]
+    [expectedLength, onChange],
   );
 
   return (
-    <TextField
-      name="otp"
-      isInvalid={isInvalid}
-      isDisabled={isDisabled}
-    >
+    <TextField name="otp" isInvalid={isInvalid} isDisabled={isDisabled}>
       <Label>{t("auth.otp.codeLabel")}</Label>
       <Input
         placeholder={t("auth.otp.codePlaceholder", { length: expectedLength })}

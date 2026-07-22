@@ -37,10 +37,12 @@ describe("useLogout", () => {
 
   it("maps logout context 401 to an already-signed-out state", async () => {
     server.use(
-      http.get(
-        /\/api\/modules\/authentication\/logout\/context(?:\?|$)/,
-        () => HttpResponse.json({ status: 401, title: "Unauthorized" }, { status: 401 })
-      )
+      http.get(/\/api\/modules\/authentication\/logout\/context(?:\?|$)/, () =>
+        HttpResponse.json(
+          { status: 401, title: "Unauthorized" },
+          { status: 401 },
+        ),
+      ),
     );
 
     const { result } = renderHook(() => useLogout("expired"), { wrapper });
@@ -68,7 +70,9 @@ describe("useLogout", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(queryClient.getQueryData(getAuthenticationSessionGetQueryKey())).toBeUndefined();
+    expect(
+      queryClient.getQueryData(getAuthenticationSessionGetQueryKey()),
+    ).toBeUndefined();
     expect(result.current.error).toBeNull();
   });
 });

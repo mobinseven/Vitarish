@@ -15,27 +15,31 @@ export interface PublicDocumentShellProps extends HTMLAttributes<HTMLDivElement>
   header?: ReactNode;
 }
 
-export const PublicDocumentShell = forwardRef<HTMLDivElement, PublicDocumentShellProps>(
-  function PublicDocumentShell({ children, className, footer, header, ...props }, ref) {
-    return (
-      <div
-        {...props}
-        ref={ref}
-        className={mergeClassNames("vitarish-public-document-shell", className)}
-        data-vitarish-layout="public-document-shell"
-        data-vitarish-scroll-owner="document"
-      >
-        {header ? (
-          <header data-vitarish-layout-slot="header">{header}</header>
-        ) : null}
-        {children}
-        {footer ? (
-          <footer data-vitarish-layout-slot="footer">{footer}</footer>
-        ) : null}
-      </div>
-    );
-  }
-);
+export const PublicDocumentShell = forwardRef<
+  HTMLDivElement,
+  PublicDocumentShellProps
+>(function PublicDocumentShell(
+  { children, className, footer, header, ...props },
+  ref,
+) {
+  return (
+    <div
+      {...props}
+      ref={ref}
+      className={mergeClassNames("vitarish-public-document-shell", className)}
+      data-vitarish-layout="public-document-shell"
+      data-vitarish-scroll-owner="document"
+    >
+      {header ? (
+        <header data-vitarish-layout-slot="header">{header}</header>
+      ) : null}
+      {children}
+      {footer ? (
+        <footer data-vitarish-layout-slot="footer">{footer}</footer>
+      ) : null}
+    </div>
+  );
+});
 
 export interface PageContainerProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
@@ -43,7 +47,10 @@ export interface PageContainerProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const PageContainer = forwardRef<HTMLDivElement, PageContainerProps>(
-  function PageContainer({ children, className, width = "content", ...props }, ref) {
+  function PageContainer(
+    { children, className, width = "content", ...props },
+    ref,
+  ) {
     return (
       <div
         {...props}
@@ -55,7 +62,7 @@ export const PageContainer = forwardRef<HTMLDivElement, PageContainerProps>(
         {children}
       </div>
     );
-  }
+  },
 );
 
 export interface ContainedPageProps extends HTMLAttributes<HTMLDivElement> {
@@ -64,7 +71,10 @@ export interface ContainedPageProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const ContainedPage = forwardRef<HTMLDivElement, ContainedPageProps>(
-  function ContainedPage({ children, className, width = "content", ...props }, ref) {
+  function ContainedPage(
+    { children, className, width = "content", ...props },
+    ref,
+  ) {
     return (
       <div
         {...props}
@@ -80,7 +90,7 @@ export const ContainedPage = forwardRef<HTMLDivElement, ContainedPageProps>(
         </PageContainer>
       </div>
     );
-  }
+  },
 );
 
 export interface CenteredRegionProps extends HTMLAttributes<HTMLDivElement> {
@@ -99,7 +109,7 @@ export const CenteredRegion = forwardRef<HTMLDivElement, CenteredRegionProps>(
         {children}
       </div>
     );
-  }
+  },
 );
 
 export interface ImmersiveRegionProps extends HTMLAttributes<HTMLDivElement> {
@@ -121,72 +131,84 @@ export const ImmersiveRegion = forwardRef<HTMLDivElement, ImmersiveRegionProps>(
         {children}
       </div>
     );
-  }
+  },
 );
 
 export interface StandaloneDocumentPageProps extends ComponentPropsWithoutRef<"main"> {
   children: ReactNode;
 }
 
-export const StandaloneDocumentPage = forwardRef<HTMLElement, StandaloneDocumentPageProps>(
-  function StandaloneDocumentPage({ children, className, ...props }, ref) {
-    return (
-      <main
-        {...props}
-        ref={ref}
-        className={mergeClassNames("vitarish-standalone-document-page", className)}
-        data-vitarish-layout="standalone-document-page"
-        data-vitarish-scroll-owner="document"
-      >
-        {children}
-      </main>
-    );
-  }
-);
+export const StandaloneDocumentPage = forwardRef<
+  HTMLElement,
+  StandaloneDocumentPageProps
+>(function StandaloneDocumentPage({ children, className, ...props }, ref) {
+  return (
+    <main
+      {...props}
+      ref={ref}
+      className={mergeClassNames(
+        "vitarish-standalone-document-page",
+        className,
+      )}
+      data-vitarish-layout="standalone-document-page"
+      data-vitarish-scroll-owner="document"
+    >
+      {children}
+    </main>
+  );
+});
 
 export interface StandaloneCenteredPageProps extends ComponentPropsWithoutRef<"main"> {
   children: ReactNode;
   width?: PageWidth;
 }
 
-export const StandaloneCenteredPage = forwardRef<HTMLElement, StandaloneCenteredPageProps>(
-  function StandaloneCenteredPage(
-    { children, className, width = "compact", ...props },
-    ref
-  ) {
-    return (
-      <main
-        {...props}
-        ref={ref}
-        className={mergeClassNames("vitarish-standalone-centered-page", className)}
-        data-vitarish-layout="standalone-centered-page"
-        data-vitarish-scroll-owner="document"
-      >
-        <PageContainer width={width}>{children}</PageContainer>
-      </main>
-    );
-  }
-);
+export const StandaloneCenteredPage = forwardRef<
+  HTMLElement,
+  StandaloneCenteredPageProps
+>(function StandaloneCenteredPage(
+  { children, className, width = "compact", ...props },
+  ref,
+) {
+  return (
+    <main
+      {...props}
+      ref={ref}
+      className={mergeClassNames(
+        "vitarish-standalone-centered-page",
+        className,
+      )}
+      data-vitarish-layout="standalone-centered-page"
+      data-vitarish-scroll-owner="document"
+    >
+      <PageContainer width={width}>{children}</PageContainer>
+    </main>
+  );
+});
 
 export interface StandaloneImmersivePageProps extends ComponentPropsWithoutRef<"main"> {
   children: ReactNode;
 }
 
-export const StandaloneImmersivePage = forwardRef<HTMLElement, StandaloneImmersivePageProps>(
-  function StandaloneImmersivePage({ children, className, ...props }, ref) {
-    return (
-      <main
-        {...props}
-        ref={ref}
-        className={mergeClassNames("vitarish-standalone-immersive-page", className)}
-        data-vitarish-layout="standalone-immersive-page"
-        data-vitarish-scroll-owner="workspace"
-      >
-        {children}
-      </main>
-    );
-  }
-);
+export const StandaloneImmersivePage = forwardRef<
+  HTMLElement,
+  StandaloneImmersivePageProps
+>(function StandaloneImmersivePage({ children, className, ...props }, ref) {
+  return (
+    <main
+      {...props}
+      ref={ref}
+      className={mergeClassNames(
+        "vitarish-standalone-immersive-page",
+        className,
+      )}
+      data-vitarish-layout="standalone-immersive-page"
+      data-vitarish-scroll-owner="workspace"
+    >
+      {children}
+    </main>
+  );
+});
 
 function RevealHeaderHost() {
   return <div data-vitarish-reveal-header-host="" />;

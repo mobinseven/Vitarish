@@ -8,9 +8,16 @@ export interface StatusAlertProps {
   className?: string;
 }
 
-export function StatusAlert({ className = "", message, type = "error" }: StatusAlertProps) {
+export function StatusAlert({
+  className = "",
+  message,
+  type = "error",
+}: StatusAlertProps) {
   return (
-    <Alert status={type === "error" ? "danger" : "success"} className={className}>
+    <Alert
+      status={type === "error" ? "danger" : "success"}
+      className={className}
+    >
       <Alert.Indicator />
       <Alert.Content>{message}</Alert.Content>
     </Alert>

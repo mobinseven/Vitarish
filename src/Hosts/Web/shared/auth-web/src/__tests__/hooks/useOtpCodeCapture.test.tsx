@@ -24,7 +24,10 @@ describe("useOtpCodeCapture", () => {
 
   it("emits a normalized complete SMS code", async () => {
     const onCode = vi.fn();
-    Object.defineProperty(window, "OTPCredential", { configurable: true, value: function OTPCredential() {} });
+    Object.defineProperty(window, "OTPCredential", {
+      configurable: true,
+      value: function OTPCredential() {},
+    });
     Object.defineProperty(navigator, "credentials", {
       configurable: true,
       value: { get: vi.fn().mockResolvedValue({ code: "کد ۱۲٣456" }) },
@@ -37,7 +40,10 @@ describe("useOtpCodeCapture", () => {
 
   it("aborts capture on cleanup", () => {
     let signal: AbortSignal | undefined;
-    Object.defineProperty(window, "OTPCredential", { configurable: true, value: function OTPCredential() {} });
+    Object.defineProperty(window, "OTPCredential", {
+      configurable: true,
+      value: function OTPCredential() {},
+    });
     Object.defineProperty(navigator, "credentials", {
       configurable: true,
       value: {
@@ -48,7 +54,9 @@ describe("useOtpCodeCapture", () => {
       },
     });
 
-    const { unmount } = renderHook(() => useOtpCodeCapture({ enabled: true, onCode: vi.fn() }));
+    const { unmount } = renderHook(() =>
+      useOtpCodeCapture({ enabled: true, onCode: vi.fn() }),
+    );
     unmount();
 
     expect(signal?.aborted).toBe(true);
@@ -56,7 +64,10 @@ describe("useOtpCodeCapture", () => {
 
   it("rejects invalid or incomplete capture output", async () => {
     const onCode = vi.fn();
-    Object.defineProperty(window, "OTPCredential", { configurable: true, value: function OTPCredential() {} });
+    Object.defineProperty(window, "OTPCredential", {
+      configurable: true,
+      value: function OTPCredential() {},
+    });
     Object.defineProperty(navigator, "credentials", {
       configurable: true,
       value: { get: vi.fn().mockResolvedValue({ code: "12ab" }) },

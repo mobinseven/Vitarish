@@ -25,29 +25,51 @@ import {
 
 describe("@vitarish/web-ui presentation components", () => {
   it("renders shared auth method links from caller-provided labels and hrefs", () => {
-    render(<AuthMethodList methods={[{ id: "password", href: "/login/password", label: "Password" }]} />);
+    render(
+      <AuthMethodList
+        methods={[
+          { id: "password", href: "/login/password", label: "Password" },
+        ]}
+      />,
+    );
 
-    expect(screen.getByRole("link", { name: "Password" })).toHaveAttribute("href", "/login/password");
+    expect(screen.getByRole("link", { name: "Password" })).toHaveAttribute(
+      "href",
+      "/login/password",
+    );
   });
 
   it("renders the login panel without app providers", () => {
     render(
-      <LoginPanel title="Sign in" subtitle="Choose a method" backHref="/login" backLabel="Other methods">
+      <LoginPanel
+        title="Sign in"
+        subtitle="Choose a method"
+        backHref="/login"
+        backLabel="Other methods"
+      >
         <button type="button">Continue</button>
-      </LoginPanel>
+      </LoginPanel>,
     );
 
-    expect(screen.getByRole("heading", { name: "Sign in" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Other methods" })).toHaveAttribute("href", "/login");
+    expect(
+      screen.getByRole("heading", { name: "Sign in" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Other methods" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
   });
 
   it("renders state surfaces from caller-provided messages", () => {
     render(
       <>
         <LoadingStateSurface label="Loading records" />
-        <EmptyStateSurface title="No records" description="Create the first record." />
+        <EmptyStateSurface
+          title="No records"
+          description="Create the first record."
+        />
         <ErrorStateSurface title="Could not load" description="Try again." />
-      </>
+      </>,
     );
 
     expect(screen.getByText("Loading records")).toBeInTheDocument();
@@ -78,16 +100,25 @@ describe("@vitarish/web-ui presentation components", () => {
           />
           <SettingsBackLink href="/account" label="Back to settings" />
         </SettingsSection>
-      </SettingsSurface>
+      </SettingsSurface>,
     );
 
-    expect(screen.getByRole("heading", { name: "Preferences" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Preferences" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("English")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Back to settings" })).toHaveAttribute("href", "/account");
+    expect(
+      screen.getByRole("link", { name: "Back to settings" }),
+    ).toHaveAttribute("href", "/account");
   });
 
   it("renders chat empty state without feature data", () => {
-    render(<ChatEmptyState title="Ask a question" description="Answers appear here." />);
+    render(
+      <ChatEmptyState
+        title="Ask a question"
+        description="Answers appear here."
+      />,
+    );
 
     expect(screen.getByText("Ask a question")).toBeInTheDocument();
     expect(screen.getByText("Answers appear here.")).toBeInTheDocument();
@@ -106,9 +137,15 @@ describe("@vitarish/web-ui presentation components", () => {
           tone="success"
         >
           <ChatBody>Coverage is available.</ChatBody>
-          <ChatCallout tone="warning">Check the source before acting.</ChatCallout>
+          <ChatCallout tone="warning">
+            Check the source before acting.
+          </ChatCallout>
           <ChatSourceList title="Sources">
-            <ChatSource title="Guide" meta="Score 1.00" body="Relevant excerpt" />
+            <ChatSource
+              title="Guide"
+              meta="Score 1.00"
+              body="Relevant excerpt"
+            />
           </ChatSourceList>
         </ChatMessage>
         <ChatLoadingMessage
@@ -118,14 +155,16 @@ describe("@vitarish/web-ui presentation components", () => {
           message="Searching context"
           title="Working"
         />
-      </ChatConversation>
+      </ChatConversation>,
     );
 
     expect(screen.getByText("What is covered?")).toBeInTheDocument();
     expect(screen.getByText("Guidance")).toBeInTheDocument();
     expect(screen.getByText("Answered")).toBeInTheDocument();
     expect(screen.getByText("Coverage is available.")).toBeInTheDocument();
-    expect(screen.getByText("Check the source before acting.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Check the source before acting."),
+    ).toBeInTheDocument();
     expect(screen.getByText("Sources")).toBeInTheDocument();
     expect(screen.getByText("Working")).toBeInTheDocument();
   });
@@ -142,7 +181,7 @@ describe("@vitarish/web-ui presentation components", () => {
         value="Can I reuse this?"
         onChange={vi.fn()}
         onSubmit={vi.fn()}
-      />
+      />,
     );
 
     expect(screen.getByLabelText("Question")).toHaveValue("Can I reuse this?");
@@ -170,15 +209,22 @@ describe("@vitarish/web-ui presentation components", () => {
         title="Patients"
       >
         <div>Dashboard content</div>
-      </DashboardFrame>
+      </DashboardFrame>,
     );
 
-    expect(container.querySelector("[data-app-layout]")).toHaveAttribute("data-scroll-mode", "content");
-    expect(container.querySelector("[data-app-layout]")).toHaveAttribute("data-content-mode", "page");
-    expect(screen.getByRole("main", { name: "Scrollable main content" })).toHaveAttribute("tabindex", "0");
-    expect(screen.getByRole("link", { name: "Skip to main content" })).toHaveAttribute(
-      "href",
-      "#vitarish-dashboard-main"
+    expect(container.querySelector("[data-app-layout]")).toHaveAttribute(
+      "data-scroll-mode",
+      "content",
     );
+    expect(container.querySelector("[data-app-layout]")).toHaveAttribute(
+      "data-content-mode",
+      "page",
+    );
+    expect(
+      screen.getByRole("main", { name: "Scrollable main content" }),
+    ).toHaveAttribute("tabindex", "0");
+    expect(
+      screen.getByRole("link", { name: "Skip to main content" }),
+    ).toHaveAttribute("href", "#vitarish-dashboard-main");
   });
 });

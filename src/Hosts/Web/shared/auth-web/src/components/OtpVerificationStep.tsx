@@ -43,11 +43,13 @@ export function OtpVerificationStep({
   changeDestinationLabel,
 }: OtpVerificationStepProps) {
   const { t } = useLocalizedText();
-  const resetLabel = changeDestinationLabel ?? t("auth.otp.differentDestinationAction");
+  const resetLabel =
+    changeDestinationLabel ?? t("auth.otp.differentDestinationAction");
   const expiry = useOtpExpiry(expiresAt);
   const lastSubmittedCapturedCodeRef = useRef<string | null>(null);
   const normalizedCode = normalizeOtpCode(code, expectedLength);
-  const canVerify = normalizedCode.length === expectedLength && !expiry.isExpired && !isLoading;
+  const canVerify =
+    normalizedCode.length === expectedLength && !expiry.isExpired && !isLoading;
 
   const handleCapturedCode = useCallback(
     (capturedCode: string) => {
@@ -64,7 +66,13 @@ export function OtpVerificationStep({
       lastSubmittedCapturedCodeRef.current = capturedCode;
       onVerify(capturedCode);
     },
-    [autoSubmitOnCapturedCode, expiry.isExpired, isLoading, onCodeChange, onVerify]
+    [
+      autoSubmitOnCapturedCode,
+      expiry.isExpired,
+      isLoading,
+      onCodeChange,
+      onVerify,
+    ],
   );
 
   useOtpCodeCapture({
@@ -85,13 +93,15 @@ export function OtpVerificationStep({
         onVerify(normalizedCode);
       }
     },
-    [canVerify, normalizedCode, onVerify]
+    [canVerify, normalizedCode, onVerify],
   );
 
   return (
     <Form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {errorMessage && <StatusAlert className="mb-4" message={errorMessage} />}
-      {statusMessage && !errorMessage && <StatusAlert className="mb-4" message={statusMessage} />}
+      {statusMessage && !errorMessage && (
+        <StatusAlert className="mb-4" message={statusMessage} />
+      )}
       <p className="text-sm text-muted">
         {t("auth.otp.codeSentTo", { destination: destinationLabel })}
         {remainingAttempts !== undefined && remainingAttempts !== null && (
@@ -99,16 +109,18 @@ export function OtpVerificationStep({
             {t("auth.otp.attemptsRemaining", { count: remainingAttempts })}
           </span>
         )}
-        {expiry.label && (
-          <span className="block text-xs">{expiry.label}</span>
-        )}
+        {expiry.label && <span className="block text-xs">{expiry.label}</span>}
       </p>
       <OtpCodeInput
         value={normalizedCode}
         onChange={onCodeChange}
         isDisabled={isLoading || expiry.isExpired}
         isInvalid={Boolean(errorMessage) || expiry.isExpired}
-        errorMessage={expiry.isExpired ? t("auth.otp.codeExpired") : errorMessage ?? undefined}
+        errorMessage={
+          expiry.isExpired
+            ? t("auth.otp.codeExpired")
+            : (errorMessage ?? undefined)
+        }
         expectedLength={expectedLength}
       />
       <Button

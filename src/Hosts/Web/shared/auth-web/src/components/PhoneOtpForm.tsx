@@ -12,7 +12,11 @@ interface PhoneOtpFormProps extends AuthNavigationOptions {
   returnUrl?: string;
 }
 
-export function PhoneOtpForm({ returnUrl, navigate, returnUrlSearchParams }: PhoneOtpFormProps) {
+export function PhoneOtpForm({
+  returnUrl,
+  navigate,
+  returnUrlSearchParams,
+}: PhoneOtpFormProps) {
   const {
     step,
     phoneNumber,
@@ -35,7 +39,7 @@ export function PhoneOtpForm({ returnUrl, navigate, returnUrlSearchParams }: Pho
       e.preventDefault();
       begin(phoneInput, returnUrl);
     },
-    [phoneInput, returnUrl, begin]
+    [phoneInput, returnUrl, begin],
   );
 
   if (step === "code") {
@@ -71,11 +75,7 @@ export function PhoneOtpForm({ returnUrl, navigate, returnUrlSearchParams }: Pho
           inputMode="tel"
         />
       </TextField>
-      <Button
-        type="submit"
-        isPending={isLoading}
-        className="w-full"
-      >
+      <Button type="submit" isPending={isLoading} className="w-full">
         {t("auth.otp.sendAction")}
       </Button>
     </Form>

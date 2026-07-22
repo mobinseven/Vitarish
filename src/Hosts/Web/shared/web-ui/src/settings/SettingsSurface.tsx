@@ -13,7 +13,10 @@ export interface SettingsSectionProps extends ComponentPropsWithoutRef<"section"
   title: string;
 }
 
-export interface SettingsBackLinkProps extends Omit<ComponentPropsWithoutRef<typeof Link>, "children"> {
+export interface SettingsBackLinkProps extends Omit<
+  ComponentPropsWithoutRef<typeof Link>,
+  "children"
+> {
   label: string;
 }
 
@@ -22,7 +25,12 @@ const surfaceWidthClassNames: Record<SettingsSurfaceWidth, string> = {
   wide: "max-w-4xl",
 };
 
-export function SettingsSurface({ children, className = "", width = "form", ...props }: SettingsSurfaceProps) {
+export function SettingsSurface({
+  children,
+  className = "",
+  width = "form",
+  ...props
+}: SettingsSurfaceProps) {
   return (
     <section
       className={`mx-auto flex w-full min-w-0 flex-col gap-4 ${surfaceWidthClassNames[width]} ${className}`.trim()}
@@ -33,18 +41,35 @@ export function SettingsSurface({ children, className = "", width = "form", ...p
   );
 }
 
-export function SettingsSection({ children, className = "", title, ...props }: SettingsSectionProps) {
+export function SettingsSection({
+  children,
+  className = "",
+  title,
+  ...props
+}: SettingsSectionProps) {
   return (
-    <section className={`flex w-full min-w-0 flex-col gap-4 ${className}`.trim()} {...props}>
-      <h1 className="whitespace-normal break-words text-2xl font-bold">{title}</h1>
+    <section
+      className={`flex w-full min-w-0 flex-col gap-4 ${className}`.trim()}
+      {...props}
+    >
+      <h1 className="whitespace-normal break-words text-2xl font-bold">
+        {title}
+      </h1>
       {children}
     </section>
   );
 }
 
-export function SettingsBackLink({ className = "", label, ...props }: SettingsBackLinkProps) {
+export function SettingsBackLink({
+  className = "",
+  label,
+  ...props
+}: SettingsBackLinkProps) {
   return (
-    <Link className={`w-fit max-w-full text-sm whitespace-normal break-words ${className}`.trim()} {...props}>
+    <Link
+      className={`w-fit max-w-full text-sm whitespace-normal break-words ${className}`.trim()}
+      {...props}
+    >
       {label}
     </Link>
   );

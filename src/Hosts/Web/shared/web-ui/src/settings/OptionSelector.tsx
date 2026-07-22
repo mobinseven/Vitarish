@@ -14,10 +14,17 @@ export interface OptionSelectorProps<T extends string> {
   onSelect: (value: T) => void;
 }
 
-export function OptionSelector<T extends string>({ onSelect, options, selected, title }: OptionSelectorProps<T>) {
+export function OptionSelector<T extends string>({
+  onSelect,
+  options,
+  selected,
+  title,
+}: OptionSelectorProps<T>) {
   return (
     <section className="flex w-full min-w-0 flex-col gap-4">
-      <h1 className="whitespace-normal break-words text-2xl font-bold">{title}</h1>
+      <h1 className="whitespace-normal break-words text-2xl font-bold">
+        {title}
+      </h1>
       <RadioGroup
         aria-label={title}
         value={selected}

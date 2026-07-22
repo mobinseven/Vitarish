@@ -20,7 +20,10 @@ export interface RevealHeaderClassNames {
   content?: string;
 }
 
-export interface RevealHeaderProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
+export interface RevealHeaderProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  "children"
+> {
   compactContent: ReactNode;
   positioning?: RevealHeaderPositioning;
   scrollRoot?: HTMLElement | null;
@@ -29,39 +32,44 @@ export interface RevealHeaderProps extends Omit<HTMLAttributes<HTMLDivElement>, 
 
 const boundaryEventName = "vitarish-reveal-header-boundary";
 
-export const RevealHeaderBoundary = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  function RevealHeaderBoundary({ className, ...props }, forwardedRef) {
-    const setRef = useCallback(
-      (element: HTMLDivElement | null) => {
-        document.dispatchEvent(new CustomEvent(boundaryEventName, { detail: element }));
+export const RevealHeaderBoundary = forwardRef<
+  HTMLDivElement,
+  HTMLAttributes<HTMLDivElement>
+>(function RevealHeaderBoundary({ className, ...props }, forwardedRef) {
+  const setRef = useCallback(
+    (element: HTMLDivElement | null) => {
+      document.dispatchEvent(
+        new CustomEvent(boundaryEventName, { detail: element }),
+      );
 
-        if (typeof forwardedRef === "function") {
-          forwardedRef(element);
-        } else if (forwardedRef) {
-          forwardedRef.current = element;
-        }
-      },
-      [forwardedRef]
-    );
+      if (typeof forwardedRef === "function") {
+        forwardedRef(element);
+      } else if (forwardedRef) {
+        forwardedRef.current = element;
+      }
+    },
+    [forwardedRef],
+  );
 
-    useEffect(
-      () => () => {
-        document.dispatchEvent(new CustomEvent(boundaryEventName, { detail: null }));
-      },
-      []
-    );
+  useEffect(
+    () => () => {
+      document.dispatchEvent(
+        new CustomEvent(boundaryEventName, { detail: null }),
+      );
+    },
+    [],
+  );
 
-    return (
-      <div
-        {...props}
-        ref={setRef}
-        aria-hidden="true"
-        className={mergeClassNames("vitarish-reveal-header-boundary", className)}
-        data-vitarish-reveal-header-boundary=""
-      />
-    );
-  }
-);
+  return (
+    <div
+      {...props}
+      ref={setRef}
+      aria-hidden="true"
+      className={mergeClassNames("vitarish-reveal-header-boundary", className)}
+      data-vitarish-reveal-header-boundary=""
+    />
+  );
+});
 
 export const RevealHeader = Object.assign(
   forwardRef<HTMLDivElement, RevealHeaderProps>(function RevealHeader(
@@ -73,7 +81,7 @@ export const RevealHeader = Object.assign(
       classNames,
       ...props
     },
-    ref
+    ref,
   ) {
     const [boundary, setBoundary] = useState<HTMLElement | null>(null);
     const [isRevealed, setIsRevealed] = useState(false);
@@ -81,7 +89,7 @@ export const RevealHeader = Object.assign(
     const headerRef = useRef<HTMLDivElement | null>(null);
     const resolvedScrollRoot = useMemo(
       () => scrollRoot ?? getScrollRoot(boundary),
-      [boundary, scrollRoot]
+      [boundary, scrollRoot],
     );
     const revealHost = useMemo(() => getRevealHeaderHost(boundary), [boundary]);
 
@@ -92,7 +100,8 @@ export const RevealHeader = Object.assign(
       }
 
       const boundaryTop = boundary.getBoundingClientRect().top;
-      const activationLine = resolvedScrollRoot?.getBoundingClientRect().top ?? 0;
+      const activationLine =
+        resolvedScrollRoot?.getBoundingClientRect().top ?? 0;
       setIsRevealed(boundaryTop <= activationLine);
     }, [boundary, resolvedScrollRoot]);
 
@@ -100,21 +109,25 @@ export const RevealHeader = Object.assign(
       const onBoundaryChange = (event: Event) =>
         setBoundary((event as CustomEvent<HTMLElement | null>).detail);
       const existingBoundary = document.querySelector<HTMLElement>(
-        "[data-vitarish-reveal-header-boundary]"
+        "[data-vitarish-reveal-header-boundary]",
       );
 
       setBoundary(existingBoundary);
       document.addEventListener(boundaryEventName, onBoundaryChange);
-      return () => document.removeEventListener(boundaryEventName, onBoundaryChange);
+      return () =>
+        document.removeEventListener(boundaryEventName, onBoundaryChange);
     }, []);
 
     useEffect(() => {
       updateRevealedState();
       const scrollTarget: EventTarget = resolvedScrollRoot ?? window;
-      scrollTarget.addEventListener("scroll", updateRevealedState, { passive: true });
+      scrollTarget.addEventListener("scroll", updateRevealedState, {
+        passive: true,
+      });
 
       if (!boundary || typeof IntersectionObserver === "undefined") {
-        return () => scrollTarget.removeEventListener("scroll", updateRevealedState);
+        return () =>
+          scrollTarget.removeEventListener("scroll", updateRevealedState);
       }
 
       const observer = new IntersectionObserver(updateRevealedState, {
@@ -134,7 +147,8 @@ export const RevealHeader = Object.assign(
         return;
       }
 
-      const updateHeight = () => setHeaderHeight(header.getBoundingClientRect().height);
+      const updateHeight = () =>
+        setHeaderHeight(header.getBoundingClientRect().height);
       updateHeight();
 
       if (typeof ResizeObserver === "undefined") {
@@ -152,7 +166,8 @@ export const RevealHeader = Object.assign(
       }
 
       const scrollContainer = resolvedScrollRoot ?? document.documentElement;
-      const previousScrollPadding = scrollContainer.style.scrollPaddingBlockStart;
+      const previousScrollPadding =
+        scrollContainer.style.scrollPaddingBlockStart;
       scrollContainer.style.scrollPaddingBlockStart = `${headerHeight}px`;
       return () => {
         scrollContainer.style.scrollPaddingBlockStart = previousScrollPadding;
@@ -168,7 +183,11 @@ export const RevealHeader = Object.assign(
           else if (ref) ref.current = element;
         }}
         aria-hidden={!isRevealed}
-        className={mergeClassNames("vitarish-reveal-header", className, classNames?.base)}
+        className={mergeClassNames(
+          "vitarish-reveal-header",
+          className,
+          classNames?.base,
+        )}
         data-state={isRevealed ? "revealed" : "hidden"}
         data-positioning={positioning}
         inert={!isRevealed}
@@ -190,7 +209,7 @@ export const RevealHeader = Object.assign(
       </>
     );
   }),
-  { Boundary: RevealHeaderBoundary }
+  { Boundary: RevealHeaderBoundary },
 );
 
 export type { RevealHeaderPositioning };
@@ -201,20 +220,29 @@ function mergeClassNames(...classNames: Array<string | undefined>) {
 }
 
 function getRevealHeaderHost(boundary: HTMLElement | null): HTMLElement | null {
-  const region = boundary?.closest<HTMLElement>("[data-vitarish-reveal-header-region]");
-  return region?.querySelector<HTMLElement>("[data-vitarish-reveal-header-host]") ?? null;
+  const region = boundary?.closest<HTMLElement>(
+    "[data-vitarish-reveal-header-region]",
+  );
+  return (
+    region?.querySelector<HTMLElement>("[data-vitarish-reveal-header-host]") ??
+    null
+  );
 }
 
 function getScrollRoot(boundary: HTMLElement | null): HTMLElement | null {
   const workspaceRoot = boundary?.closest<HTMLElement>(
-    '[data-vitarish-reveal-header-region="workspace"][data-vitarish-scroll-owner="workspace"]'
+    '[data-vitarish-reveal-header-region="workspace"][data-vitarish-scroll-owner="workspace"]',
   );
   if (workspaceRoot) {
     return workspaceRoot;
   }
 
-  const dashboardFrame = boundary?.closest<HTMLElement>('[data-vitarish-layout="dashboard-frame"]');
-  return dashboardFrame?.querySelector<HTMLElement>(".app-layout__main")
-    ?? boundary?.closest<HTMLElement>("[data-vitarish-scroll-owner]")
-    ?? null;
+  const dashboardFrame = boundary?.closest<HTMLElement>(
+    '[data-vitarish-layout="dashboard-frame"]',
+  );
+  return (
+    dashboardFrame?.querySelector<HTMLElement>(".app-layout__main") ??
+    boundary?.closest<HTMLElement>("[data-vitarish-scroll-owner]") ??
+    null
+  );
 }

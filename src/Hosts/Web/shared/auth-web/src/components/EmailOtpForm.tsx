@@ -12,7 +12,11 @@ interface EmailOtpFormProps extends AuthNavigationOptions {
   returnUrl?: string;
 }
 
-export function EmailOtpForm({ returnUrl, navigate, returnUrlSearchParams }: EmailOtpFormProps) {
+export function EmailOtpForm({
+  returnUrl,
+  navigate,
+  returnUrlSearchParams,
+}: EmailOtpFormProps) {
   const {
     step,
     email,
@@ -35,7 +39,7 @@ export function EmailOtpForm({ returnUrl, navigate, returnUrlSearchParams }: Ema
       e.preventDefault();
       begin(emailInput, returnUrl);
     },
-    [emailInput, returnUrl, begin]
+    [emailInput, returnUrl, begin],
   );
 
   if (step === "code") {
@@ -70,11 +74,7 @@ export function EmailOtpForm({ returnUrl, navigate, returnUrlSearchParams }: Ema
           autoComplete="email"
         />
       </TextField>
-      <Button
-        type="submit"
-        isPending={isLoading}
-        className="w-full"
-      >
+      <Button type="submit" isPending={isLoading} className="w-full">
         {t("auth.otp.sendAction")}
       </Button>
     </Form>

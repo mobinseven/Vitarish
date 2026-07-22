@@ -31,9 +31,12 @@ function authenticatedSessionWithoutTenantAccess() {
           email: "avery@example.com",
           phoneNumber: null,
         },
-        tenantAccess: { canAccessTenantOwner: false, canAccessTenantUser: false },
-      })
-    )
+        tenantAccess: {
+          canAccessTenantOwner: false,
+          canAccessTenantUser: false,
+        },
+      }),
+    ),
   );
 }
 

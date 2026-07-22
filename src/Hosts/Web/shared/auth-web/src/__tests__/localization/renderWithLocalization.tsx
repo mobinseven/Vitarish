@@ -1,6 +1,9 @@
 import { render, type RenderOptions } from "@testing-library/react";
 import type { ReactElement } from "react";
-import { LocalizationProvider, type MessageCatalog } from "@vitarish/web-localization";
+import {
+  LocalizationProvider,
+  type MessageCatalog,
+} from "@vitarish/web-localization";
 
 const messages: MessageCatalog = {
   auth: {
@@ -36,9 +39,16 @@ const messages: MessageCatalog = {
   },
 };
 
-export function renderWithLocalization(ui: ReactElement, options?: RenderOptions) {
+export function renderWithLocalization(
+  ui: ReactElement,
+  options?: RenderOptions,
+) {
   return render(ui, {
     ...options,
-    wrapper: ({ children }) => <LocalizationProvider locale="en" messages={messages}>{children}</LocalizationProvider>,
+    wrapper: ({ children }) => (
+      <LocalizationProvider locale="en" messages={messages}>
+        {children}
+      </LocalizationProvider>
+    ),
   });
 }

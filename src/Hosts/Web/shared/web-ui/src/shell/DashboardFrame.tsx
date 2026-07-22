@@ -7,7 +7,12 @@ import { AppLayout } from "@heroui-pro/react/app-layout";
 import { Navbar } from "@heroui-pro/react/navbar";
 import { Sidebar } from "@heroui-pro/react/sidebar";
 import { useTheme } from "next-themes";
-import { setLocaleCookie, supportedLocales, useLocalizedText, type SupportedLocale } from "@vitarish/web-localization";
+import {
+  setLocaleCookie,
+  supportedLocales,
+  useLocalizedText,
+  type SupportedLocale,
+} from "@vitarish/web-localization";
 import { FaIcon } from "../icons/FaIcon";
 import { RevealHeader } from "../layout/RevealHeader";
 
@@ -96,18 +101,22 @@ export function DashboardFrame({
         data-direction={direction}
         data-mobile-navigation={mobileNavigation}
         data-vitarish-layout="dashboard-frame"
-        data-vitarish-scroll-owner={contentMode === "page" ? "frame-main" : "workspace"}
+        data-vitarish-scroll-owner={
+          contentMode === "page" ? "frame-main" : "workspace"
+        }
         defaultAsideOpen={defaultAsideOpen}
         navigate={navigate}
-        navbar={contentMode === "page" ? (
-          <DashboardFrameNavbar
-            asideToggleLabel={asideToggleLabel}
-            hasAside={aside !== undefined && aside !== null}
-            mobileNavigation={mobileNavigation}
-            title={title}
-            toolbar={toolbar}
-          />
-        ) : undefined}
+        navbar={
+          contentMode === "page" ? (
+            <DashboardFrameNavbar
+              asideToggleLabel={asideToggleLabel}
+              hasAside={aside !== undefined && aside !== null}
+              mobileNavigation={mobileNavigation}
+              title={title}
+              toolbar={toolbar}
+            />
+          ) : undefined
+        }
         onAsideOpenChange={onAsideOpenChange}
         scrollMode={contentMode === "page" ? "content" : "page"}
         sidebarVariant="inset"
@@ -125,13 +134,19 @@ export function DashboardFrame({
         }
         sidebarCollapsible="icon"
         sidebarSide={direction === "rtl" ? "right" : "left"}
-        >
-        {mobileAside ? <AppLayout.MobileAside>{mobileAside}</AppLayout.MobileAside> : null}
+      >
+        {mobileAside ? (
+          <AppLayout.MobileAside>{mobileAside}</AppLayout.MobileAside>
+        ) : null}
         <div
           className="vitarish-dashboard-content"
           data-vitarish-layout="dashboard-content"
-          data-vitarish-reveal-header-region={contentMode === "workspace" ? "workspace" : undefined}
-          data-vitarish-scroll-owner={contentMode === "workspace" ? "workspace" : undefined}
+          data-vitarish-reveal-header-region={
+            contentMode === "workspace" ? "workspace" : undefined
+          }
+          data-vitarish-scroll-owner={
+            contentMode === "workspace" ? "workspace" : undefined
+          }
           id="vitarish-dashboard-main"
           tabIndex={-1}
         >
@@ -145,18 +160,7 @@ export function DashboardFrame({
                 title={title}
                 toolbar={toolbar}
               />
-              <RevealHeader
-                compactContent={
-                  <DashboardFrameNavbar
-                    asideToggleLabel={asideToggleLabel}
-                    hasAside={aside !== undefined && aside !== null}
-                    mobileNavigation={mobileNavigation}
-                    title={title}
-                    toolbar={toolbar}
-                  />
-                }
-                positioning="inset"
-              />
+
               <RevealHeader.Boundary />
             </>
           ) : null}
@@ -181,9 +185,14 @@ function DashboardFrameWorkspaceControls({
   toolbar,
 }: DashboardFrameWorkspaceControlsProps) {
   return (
-    <div className="vitarish-dashboard-workspace-controls" data-vitarish-layout="workspace-controls">
+    <div
+      className="vitarish-dashboard-workspace-controls"
+      data-vitarish-layout="workspace-controls"
+    >
       <div className="pointer-events-auto flex items-center gap-2">
-        {mobileNavigation === "sidebar" ? <AppLayout.MenuToggle variant="secondary" /> : null}
+        {mobileNavigation === "sidebar" ? (
+          <AppLayout.MenuToggle variant="secondary" />
+        ) : null}
         <Sidebar.Trigger variant="secondary" />
       </div>
       <div className="pointer-events-auto flex items-center gap-2">
@@ -225,7 +234,9 @@ function DashboardFrameNavbar({
         {direction === "ltr" ? <Sidebar.Trigger /> : null}
         {title}
         <Navbar.Spacer />
-        {toolbar ? <div className="flex items-center gap-2">{toolbar}</div> : null}
+        {toolbar ? (
+          <div className="flex items-center gap-2">{toolbar}</div>
+        ) : null}
         {hasAside ? (
           asideToggleLabel ? (
             <AppLayout.AsideTrigger aria-label={asideToggleLabel} />
@@ -249,7 +260,10 @@ interface DashboardFrameSidebarProps {
   onNavigate: (href: string) => void;
 }
 
-function DashboardFrameSidebar({ mobileNavigation, ...props }: DashboardFrameSidebarProps) {
+function DashboardFrameSidebar({
+  mobileNavigation,
+  ...props
+}: DashboardFrameSidebarProps) {
   return (
     <>
       <Sidebar className="vitarish-dashboard-sidebar">
@@ -264,8 +278,10 @@ function DashboardFrameSidebar({ mobileNavigation, ...props }: DashboardFrameSid
   );
 }
 
-interface DashboardFrameSidebarContentsProps
-  extends Omit<DashboardFrameSidebarProps, "mobileNavigation"> {
+interface DashboardFrameSidebarContentsProps extends Omit<
+  DashboardFrameSidebarProps,
+  "mobileNavigation"
+> {
   idPrefix?: string;
 }
 
@@ -281,30 +297,38 @@ function DashboardFrameSidebarContents({
 }: DashboardFrameSidebarContentsProps) {
   const requiredExpandedKeys = useMemo(
     () => getCurrentExpandedItemIds(navigationGroups, currentPath, idPrefix),
-    [currentPath, idPrefix, navigationGroups]
+    [currentPath, idPrefix, navigationGroups],
   );
-  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(() => new Set(requiredExpandedKeys));
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(
+    () => new Set(requiredExpandedKeys),
+  );
   const displayedExpandedKeys = useMemo(
     () => mergeRequiredExpandedKeys(expandedKeys, requiredExpandedKeys),
-    [expandedKeys, requiredExpandedKeys]
+    [expandedKeys, requiredExpandedKeys],
   );
 
   const [themeMounted, setThemeMounted] = useState(false);
   const { setTheme, theme } = useTheme();
   const { locale, t } = useLocalizedText();
-  const currentTheme: ThemeMode = theme === "system" ? "system" : theme === "dark" ? "dark" : "light";
+  const currentTheme: ThemeMode =
+    theme === "system" ? "system" : theme === "dark" ? "dark" : "light";
 
   useEffect(() => {
-    setExpandedKeys((current) => mergeRequiredExpandedKeys(current, requiredExpandedKeys));
+    setExpandedKeys((current) =>
+      mergeRequiredExpandedKeys(current, requiredExpandedKeys),
+    );
   }, [requiredExpandedKeys]);
 
   useEffect(() => setThemeMounted(true), []);
 
-  const handleLocaleChange = useCallback((key: React.Key) => {
-    if (key === locale) return;
-    setLocaleCookie(key as SupportedLocale);
-    window.location.reload();
-  }, [locale]);
+  const handleLocaleChange = useCallback(
+    (key: React.Key) => {
+      if (key === locale) return;
+      setLocaleCookie(key as SupportedLocale);
+      window.location.reload();
+    },
+    [locale],
+  );
 
   return (
     <>
@@ -322,8 +346,12 @@ function DashboardFrameSidebarContents({
             </Avatar.Fallback>
           </Avatar>
           <div className="flex min-w-0 flex-col" data-sidebar="label">
-            <span className="text-foreground truncate text-sm font-medium leading-tight">{identity.label}</span>
-            <span className="text-muted truncate text-xs font-medium leading-tight">{identity.subtitle}</span>
+            <span className="text-foreground truncate text-sm font-medium leading-tight">
+              {identity.label}
+            </span>
+            <span className="text-muted truncate text-xs font-medium leading-tight">
+              {identity.subtitle}
+            </span>
           </div>
         </Button>
       </Sidebar.Header>
@@ -332,7 +360,9 @@ function DashboardFrameSidebarContents({
           <Sidebar.Menu
             aria-label={navigationLabel}
             expandedKeys={displayedExpandedKeys}
-            onExpandedChange={(keys) => setExpandedKeys(new Set(Array.from(keys, String)))}
+            onExpandedChange={(keys) =>
+              setExpandedKeys(new Set(Array.from(keys, String)))
+            }
           >
             {navigationGroups.map((group) => (
               <Sidebar.MenuSection key={group.label}>
@@ -352,9 +382,16 @@ function DashboardFrameSidebarContents({
       </Sidebar.Content>
       <Sidebar.Footer>
         <Sidebar.Menu aria-label={footerLabel ?? navigationLabel}>
-          <Sidebar.MenuItem id="culture-switcher" textValue={t("appShell.culture.label")}>
+          <Sidebar.MenuItem
+            id="culture-switcher"
+            textValue={t("appShell.culture.label")}
+          >
             <Sidebar.MenuIcon>
-              <FaIcon icon="globe" aria-hidden="true" className="size-4 shrink-0" />
+              <FaIcon
+                icon="globe"
+                aria-hidden="true"
+                className="size-4 shrink-0"
+              />
             </Sidebar.MenuIcon>
             <Sidebar.MenuLabel>{t("appShell.culture.label")}</Sidebar.MenuLabel>
             <Sidebar.MenuTrigger aria-label={t("appShell.culture.label")}>
@@ -375,12 +412,23 @@ function DashboardFrameSidebarContents({
             </Sidebar.Submenu>
           </Sidebar.MenuItem>
           {themeMounted ? (
-            <Sidebar.MenuItem id="theme-switcher" textValue={t(`appShell.theme.${currentTheme}`)}>
+            <Sidebar.MenuItem
+              id="theme-switcher"
+              textValue={t(`appShell.theme.${currentTheme}`)}
+            >
               <Sidebar.MenuIcon>
-                <FaIcon icon={themeIcons[currentTheme]} aria-hidden="true" className="size-4 shrink-0" />
+                <FaIcon
+                  icon={themeIcons[currentTheme]}
+                  aria-hidden="true"
+                  className="size-4 shrink-0"
+                />
               </Sidebar.MenuIcon>
-              <Sidebar.MenuLabel>{t(`appShell.theme.${currentTheme}`)}</Sidebar.MenuLabel>
-              <Sidebar.MenuTrigger aria-label={t(`appShell.theme.${currentTheme}`)}>
+              <Sidebar.MenuLabel>
+                {t(`appShell.theme.${currentTheme}`)}
+              </Sidebar.MenuLabel>
+              <Sidebar.MenuTrigger
+                aria-label={t(`appShell.theme.${currentTheme}`)}
+              >
                 <Sidebar.MenuIndicator aria-hidden="true" />
               </Sidebar.MenuTrigger>
               <Sidebar.Submenu>
@@ -393,9 +441,15 @@ function DashboardFrameSidebarContents({
                     onAction={() => setTheme(mode)}
                   >
                     <Sidebar.MenuIcon>
-                      <FaIcon icon={themeIcons[mode]} aria-hidden="true" className="size-4 shrink-0" />
+                      <FaIcon
+                        icon={themeIcons[mode]}
+                        aria-hidden="true"
+                        className="size-4 shrink-0"
+                      />
                     </Sidebar.MenuIcon>
-                    <Sidebar.MenuLabel>{t(`appShell.theme.${mode}`)}</Sidebar.MenuLabel>
+                    <Sidebar.MenuLabel>
+                      {t(`appShell.theme.${mode}`)}
+                    </Sidebar.MenuLabel>
                   </Sidebar.MenuItem>
                 ))}
               </Sidebar.Submenu>
@@ -403,11 +457,16 @@ function DashboardFrameSidebarContents({
           ) : (
             <div aria-hidden="true" className="h-9 w-9" />
           )}
-          {footerItems.length > 0 ? (
-            footerItems.map((item) => (
-              <DashboardFrameSidebarNavItem key={item.href} currentPath={currentPath} idPrefix={idPrefix} item={item} />
-            ))
-          ) : null}
+          {footerItems.length > 0
+            ? footerItems.map((item) => (
+                <DashboardFrameSidebarNavItem
+                  key={item.href}
+                  currentPath={currentPath}
+                  idPrefix={idPrefix}
+                  item={item}
+                />
+              ))
+            : null}
         </Sidebar.Menu>
       </Sidebar.Footer>
     </>
@@ -420,7 +479,11 @@ interface DashboardFrameSidebarNavItemProps {
   item: DashboardNavigationItem;
 }
 
-function DashboardFrameSidebarNavItem({ currentPath, idPrefix, item }: DashboardFrameSidebarNavItemProps) {
+function DashboardFrameSidebarNavItem({
+  currentPath,
+  idPrefix,
+  item,
+}: DashboardFrameSidebarNavItemProps) {
   return (
     <Sidebar.MenuItem
       href={item.children?.length ? undefined : item.href}
@@ -462,8 +525,15 @@ function DashboardFrameSidebarNavItem({ currentPath, idPrefix, item }: Dashboard
 
 const themeModes = ["light", "dark", "system"] as const;
 type ThemeMode = (typeof themeModes)[number];
-const themeIcons: Record<ThemeMode, string> = { light: "sun", dark: "moon", system: "display" };
-const localeLabels: Record<SupportedLocale, string> = { fa: "فارسی", en: "English" };
+const themeIcons: Record<ThemeMode, string> = {
+  light: "sun",
+  dark: "moon",
+  system: "display",
+};
+const localeLabels: Record<SupportedLocale, string> = {
+  fa: "فارسی",
+  en: "English",
+};
 
 function isSidebarItemCurrent(pathname: string, item: DashboardNavigationItem) {
   if (item.children?.some((child) => isRouteBranchCurrent(pathname, child))) {
@@ -481,12 +551,18 @@ function isRouteCurrent(pathname: string, item: DashboardNavigationItem) {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function isRouteBranchCurrent(pathname: string, item: DashboardNavigationItem): boolean {
+function isRouteBranchCurrent(
+  pathname: string,
+  item: DashboardNavigationItem,
+): boolean {
   if (isHrefBranchCurrent(pathname, item.href)) {
     return true;
   }
 
-  return item.children?.some((child) => isRouteBranchCurrent(pathname, child)) ?? false;
+  return (
+    item.children?.some((child) => isRouteBranchCurrent(pathname, child)) ??
+    false
+  );
 }
 
 function isHrefBranchCurrent(pathname: string, href: string) {
@@ -500,24 +576,26 @@ function getSidebarItemId(idPrefix: string, item: DashboardNavigationItem) {
 function getCurrentExpandedItemIds(
   navGroups: readonly DashboardNavigationGroup[],
   pathname: string,
-  idPrefix: string
+  idPrefix: string,
 ) {
   return navGroups.flatMap((group) =>
-    group.items.flatMap((item) => getCurrentExpandedItemIdsForItem(item, pathname, idPrefix))
+    group.items.flatMap((item) =>
+      getCurrentExpandedItemIdsForItem(item, pathname, idPrefix),
+    ),
   );
 }
 
 function getCurrentExpandedItemIdsForItem(
   item: DashboardNavigationItem,
   pathname: string,
-  idPrefix: string
+  idPrefix: string,
 ): string[] {
   if (!item.children?.length) {
     return [];
   }
 
   const childExpandedIds = item.children.flatMap((child) =>
-    getCurrentExpandedItemIdsForItem(child, pathname, idPrefix)
+    getCurrentExpandedItemIdsForItem(child, pathname, idPrefix),
   );
 
   if (!isRouteBranchCurrent(pathname, item)) {
@@ -527,7 +605,10 @@ function getCurrentExpandedItemIdsForItem(
   return [getSidebarItemId(idPrefix, item), ...childExpandedIds];
 }
 
-function mergeRequiredExpandedKeys(expandedKeys: Set<string>, requiredExpandedKeys: readonly string[]) {
+function mergeRequiredExpandedKeys(
+  expandedKeys: Set<string>,
+  requiredExpandedKeys: readonly string[],
+) {
   let hasChanges = false;
   const nextExpandedKeys = new Set(expandedKeys);
 

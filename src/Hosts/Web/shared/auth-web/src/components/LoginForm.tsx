@@ -11,8 +11,15 @@ interface LoginFormProps extends AuthNavigationOptions {
   returnUrl?: string;
 }
 
-export function LoginForm({ returnUrl, navigate, returnUrlSearchParams }: LoginFormProps) {
-  const { login, isLoading, errorMessage } = usePasswordLogin({ navigate, returnUrlSearchParams });
+export function LoginForm({
+  returnUrl,
+  navigate,
+  returnUrlSearchParams,
+}: LoginFormProps) {
+  const { login, isLoading, errorMessage } = usePasswordLogin({
+    navigate,
+    returnUrlSearchParams,
+  });
   const { t } = useLocalizedText();
   const [userNameOrEmail, setUserNameOrEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +29,7 @@ export function LoginForm({ returnUrl, navigate, returnUrlSearchParams }: LoginF
       e.preventDefault();
       login(userNameOrEmail, password, returnUrl);
     },
-    [userNameOrEmail, password, returnUrl, login]
+    [userNameOrEmail, password, returnUrl, login],
   );
 
   return (
@@ -37,7 +44,12 @@ export function LoginForm({ returnUrl, navigate, returnUrlSearchParams }: LoginF
           autoComplete="username"
         />
       </TextField>
-      <TextField name="password" type="password" isRequired isDisabled={isLoading}>
+      <TextField
+        name="password"
+        type="password"
+        isRequired
+        isDisabled={isLoading}
+      >
         <Label>{t("auth.login.passwordLabel")}</Label>
         <Input
           placeholder={t("auth.login.passwordPlaceholder")}
@@ -46,11 +58,7 @@ export function LoginForm({ returnUrl, navigate, returnUrlSearchParams }: LoginF
           autoComplete="current-password"
         />
       </TextField>
-      <Button
-        type="submit"
-        isPending={isLoading}
-        className="w-full"
-      >
+      <Button type="submit" isPending={isLoading} className="w-full">
         {t("auth.login.signInAction")}
       </Button>
     </Form>

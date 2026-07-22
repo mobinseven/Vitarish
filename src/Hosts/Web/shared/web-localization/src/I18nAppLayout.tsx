@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
 import { parseAcceptLanguage } from "./acceptLanguage";
 import { I18nProvider } from "./LocalizationProvider";
-import { getLocaleDirection, toSupportedLocale, type SupportedLocale } from "./locales";
+import {
+  getLocaleDirection,
+  toSupportedLocale,
+  type SupportedLocale,
+} from "./locales";
 import { parseLocaleCookie } from "./localeCookie";
 import type { MessageCatalog } from "./messageTypes";
 import { resolveLocale, type ResolvedLocale } from "./resolveLocale";
@@ -27,7 +31,8 @@ export function resolveI18nAppLocale({
   cookieHeader,
   acceptLanguageHeader,
 }: ResolveI18nAppLocaleInput = {}): ResolvedLocale {
-  const persistedLocale = toSupportedLocale(selectedLocale) ?? parseLocaleCookie(cookieHeader);
+  const persistedLocale =
+    toSupportedLocale(selectedLocale) ?? parseLocaleCookie(cookieHeader);
   return resolveLocale({
     selectedLocale: persistedLocale,
     browserLocales: parseAcceptLanguage(acceptLanguageHeader),
@@ -43,7 +48,11 @@ export function I18nAppLayout({
   htmlClassName,
   bodyClassName,
 }: I18nAppLayoutProps) {
-  const { locale } = resolveI18nAppLocale({ selectedLocale, cookieHeader, acceptLanguageHeader });
+  const { locale } = resolveI18nAppLocale({
+    selectedLocale,
+    cookieHeader,
+    acceptLanguageHeader,
+  });
 
   return (
     <html

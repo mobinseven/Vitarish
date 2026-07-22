@@ -28,7 +28,9 @@ describe("OtpCodeInput", () => {
 
   it("uses the provided expected length", async () => {
     const onChange = vi.fn();
-    renderWithLocalization(<OtpCodeInput value="" onChange={onChange} expectedLength={4} />);
+    renderWithLocalization(
+      <OtpCodeInput value="" onChange={onChange} expectedLength={4} />,
+    );
 
     const input = screen.getByLabelText(/code/i);
     fireEvent.change(input, { target: { value: "123456" } });

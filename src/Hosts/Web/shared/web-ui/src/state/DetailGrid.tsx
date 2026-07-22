@@ -13,7 +13,10 @@ interface DetailGridProps {
   className?: string;
 }
 
-export function DetailGrid({ items, className = "grid gap-3 sm:grid-cols-2" }: DetailGridProps) {
+export function DetailGrid({
+  items,
+  className = "grid gap-3 sm:grid-cols-2",
+}: DetailGridProps) {
   return (
     <div className={className}>
       {items.map((item) => (

@@ -15,7 +15,10 @@ export interface AuthMethodListProps {
   className?: string;
 }
 
-export function AuthMethodList({ className = "", methods }: AuthMethodListProps) {
+export function AuthMethodList({
+  className = "",
+  methods,
+}: AuthMethodListProps) {
   return (
     <div className={`flex flex-col gap-4 ${className}`.trim()}>
       {methods.map((method) => (

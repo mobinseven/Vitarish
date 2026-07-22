@@ -5,8 +5,18 @@ import { OtpVerificationStep } from "../../components/OtpVerificationStep";
 import { renderWithLocalization } from "../localization/renderWithLocalization";
 
 vi.mock("@vitarish/web-ui", () => ({
-  StatusAlert: ({ message, type, className }: { message: string; type?: string; className?: string }) => (
-    <div className={className} data-type={type}>{message}</div>
+  StatusAlert: ({
+    message,
+    type,
+    className,
+  }: {
+    message: string;
+    type?: string;
+    className?: string;
+  }) => (
+    <div className={className} data-type={type}>
+      {message}
+    </div>
   ),
 }));
 
@@ -25,7 +35,9 @@ describe("OtpVerificationStep", () => {
     capturedHandler = null;
   });
 
-  function renderStep(overrides: Partial<React.ComponentProps<typeof OtpVerificationStep>> = {}) {
+  function renderStep(
+    overrides: Partial<React.ComponentProps<typeof OtpVerificationStep>> = {},
+  ) {
     return renderWithLocalization(
       <OtpVerificationStep
         destinationLabel="user@example.test"
@@ -42,13 +54,22 @@ describe("OtpVerificationStep", () => {
   }
 
   it("renders shared destination, attempts, expiry, resend, and reset controls", () => {
-    renderStep({ remainingAttempts: 3, changeDestinationLabel: "Use a different email" });
+    renderStep({
+      remainingAttempts: 3,
+      changeDestinationLabel: "Use a different email",
+    });
 
-    expect(screen.getByText(/code sent to user@example.test/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/code sent to user@example.test/i),
+    ).toBeInTheDocument();
     expect(screen.getByText(/3 attempts remaining/i)).toBeInTheDocument();
     expect(screen.getByText(/expires in/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /resend code/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /use a different email/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /resend code/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /use a different email/i }),
+    ).toBeInTheDocument();
   });
 
   it("enables verify only for complete manual codes", async () => {
@@ -65,7 +86,7 @@ describe("OtpVerificationStep", () => {
         onResend={vi.fn()}
         isLoading={false}
         expiresAt={new Date(Date.now() + 5 * 60 * 1000).toISOString()}
-      />
+      />,
     );
 
     expect(screen.getByRole("button", { name: /verify/i })).toBeEnabled();
@@ -96,19 +117,30 @@ describe("OtpVerificationStep", () => {
   });
 
   it("disables verification when expired", () => {
-    renderStep({ code: "123456", expiresAt: new Date(Date.now() - 1000).toISOString() });
+    renderStep({
+      code: "123456",
+      expiresAt: new Date(Date.now() - 1000).toISOString(),
+    });
 
-    expect(screen.getAllByText(/code expired; request a new code/i).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(/code expired; request a new code/i).length,
+    ).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /verify/i })).toBeDisabled();
   });
 
   it("calls resend and reset actions", async () => {
     const onResend = vi.fn();
     const onReset = vi.fn();
-    renderStep({ onResend, onReset, changeDestinationLabel: "Use a different number" });
+    renderStep({
+      onResend,
+      onReset,
+      changeDestinationLabel: "Use a different number",
+    });
 
     await userEvent.click(screen.getByRole("button", { name: /resend code/i }));
-    await userEvent.click(screen.getByRole("button", { name: /use a different number/i }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /use a different number/i }),
+    );
 
     expect(onResend).toHaveBeenCalledTimes(1);
     expect(onReset).toHaveBeenCalledTimes(1);
@@ -128,7 +160,7 @@ describe("OtpVerificationStep", () => {
         onResend={vi.fn()}
         isLoading={false}
         errorMessage="Too many requests"
-      />
+      />,
     );
     expect(screen.getAllByText("Too many requests").length).toBeGreaterThan(0);
   });
