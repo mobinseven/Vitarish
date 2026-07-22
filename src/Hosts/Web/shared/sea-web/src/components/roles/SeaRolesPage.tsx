@@ -5,7 +5,11 @@ import { Button, Label, Input, TextField } from "@heroui/react";
 import { DataGrid, type DataGridColumn, Widget } from "@heroui-pro/react";
 import { SeaLoadingState, SeaEmptyState } from "../state/SeaStateSurface";
 import { useSeaRoles } from "../../hooks/roles/useSeaRoles";
-import { useCreateSeaRole, useDeleteSeaRole, useUpdateSeaRole } from "../../hooks/roles/useSeaRoleMutations";
+import {
+  useCreateSeaRole,
+  useDeleteSeaRole,
+  useUpdateSeaRole,
+} from "../../hooks/roles/useSeaRoleMutations";
 import { useLocalizedText } from "../../localization";
 import type { SeaRoleReadDto } from "../../api/roles/seaRolesApi";
 import { SeaUserRoleAssignmentsPanel } from "./SeaUserRoleAssignmentsPanel";
@@ -47,7 +51,7 @@ export function SeaRolesPage() {
           setNewRoleName("");
           setIsAdding(false);
         },
-      }
+      },
     );
   };
 
@@ -61,7 +65,7 @@ export function SeaRolesPage() {
           setEditTarget(null);
           setEditRoleName("");
         },
-      }
+      },
     );
   };
 
@@ -134,7 +138,13 @@ export function SeaRolesPage() {
               <Input placeholder={t("sea.roles.roleNamePlaceholder")} />
             </TextField>
             <div className="flex justify-end gap-2">
-              <Button variant="ghost" onPress={() => { setIsAdding(false); setNewRoleName(""); }}>
+              <Button
+                variant="ghost"
+                onPress={() => {
+                  setIsAdding(false);
+                  setNewRoleName("");
+                }}
+              >
                 {t("common.actions.cancel")}
               </Button>
               <Button
@@ -152,14 +162,21 @@ export function SeaRolesPage() {
       {editTarget && (
         <Widget>
           <Widget.Content className="flex flex-col gap-4">
-            <TextField isRequired value={editRoleName} onChange={setEditRoleName}>
+            <TextField
+              isRequired
+              value={editRoleName}
+              onChange={setEditRoleName}
+            >
               <Label>{t("sea.roles.roleName")}</Label>
               <Input placeholder={t("sea.roles.roleNamePlaceholder")} />
             </TextField>
             <div className="flex justify-end gap-2">
               <Button
                 variant="ghost"
-                onPress={() => { setEditTarget(null); setEditRoleName(""); }}
+                onPress={() => {
+                  setEditTarget(null);
+                  setEditRoleName("");
+                }}
                 isDisabled={updateMutation.isPending}
               >
                 {t("common.actions.cancel")}
@@ -169,7 +186,9 @@ export function SeaRolesPage() {
                 onPress={handleUpdateRole}
                 isDisabled={!editRoleName.trim() || updateMutation.isPending}
               >
-                {updateMutation.isPending ? t("common.states.saving") : t("common.actions.save")}
+                {updateMutation.isPending
+                  ? t("common.states.saving")
+                  : t("common.actions.save")}
               </Button>
             </div>
           </Widget.Content>
@@ -209,7 +228,9 @@ export function SeaRolesPage() {
               onPress={handleDeleteRole}
               isDisabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? t("common.states.saving") : t("common.actions.delete")}
+              {deleteMutation.isPending
+                ? t("common.states.saving")
+                : t("common.actions.delete")}
             </Button>
           </div>
         </div>

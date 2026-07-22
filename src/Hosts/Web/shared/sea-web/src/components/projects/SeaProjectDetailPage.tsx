@@ -15,7 +15,10 @@ interface SeaProjectDetailPageProps {
   onNavigate?: (intent: SeaNavigationIntent) => void;
 }
 
-export function SeaProjectDetailPage({ projectId, onNavigate }: SeaProjectDetailPageProps) {
+export function SeaProjectDetailPage({
+  projectId,
+  onNavigate,
+}: SeaProjectDetailPageProps) {
   const { t, locale } = useLocalizedText();
   const { data: project, isLoading, error } = useSeaProjectDetail(projectId);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -30,9 +33,21 @@ export function SeaProjectDetailPage({ projectId, onNavigate }: SeaProjectDetail
 
   const details: DetailGridItem[] = [
     { label: t("sea.projects.name"), value: project.name },
-    ...(project.description ? [{ label: t("sea.projects.description"), value: project.description }] : []),
-    { label: t("sea.projects.createdAt"), value: formatDateTime(project.createdAt, locale) },
-    ...(project.updatedAt ? [{ label: t("sea.projects.updatedAt"), value: formatDateTime(project.updatedAt, locale) }] : []),
+    ...(project.description
+      ? [{ label: t("sea.projects.description"), value: project.description }]
+      : []),
+    {
+      label: t("sea.projects.createdAt"),
+      value: formatDateTime(project.createdAt, locale),
+    },
+    ...(project.updatedAt
+      ? [
+          {
+            label: t("sea.projects.updatedAt"),
+            value: formatDateTime(project.updatedAt, locale),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -58,10 +73,7 @@ export function SeaProjectDetailPage({ projectId, onNavigate }: SeaProjectDetail
           >
             {t("sea.projects.editProject")}
           </Button>
-          <Button
-            variant="danger"
-            onPress={() => setIsDeleteOpen(true)}
-          >
+          <Button variant="danger" onPress={() => setIsDeleteOpen(true)}>
             {t("sea.projects.deleteProject")}
           </Button>
         </div>
@@ -76,7 +88,10 @@ export function SeaProjectDetailPage({ projectId, onNavigate }: SeaProjectDetail
             <KPIGroup orientation="horizontal">
               <KPI>
                 <KPI.Content>
-                  <KPI.Value maximumFractionDigits={0} value={Number(project.stats.procedures) || 0} />
+                  <KPI.Value
+                    maximumFractionDigits={0}
+                    value={Number(project.stats.procedures) || 0}
+                  />
                 </KPI.Content>
                 <KPI.Header>
                   <KPI.Title>{t("sea.stats.procedures")}</KPI.Title>
@@ -84,7 +99,10 @@ export function SeaProjectDetailPage({ projectId, onNavigate }: SeaProjectDetail
               </KPI>
               <KPI>
                 <KPI.Content>
-                  <KPI.Value maximumFractionDigits={0} value={Number(project.stats.events) || 0} />
+                  <KPI.Value
+                    maximumFractionDigits={0}
+                    value={Number(project.stats.events) || 0}
+                  />
                 </KPI.Content>
                 <KPI.Header>
                   <KPI.Title>{t("sea.stats.events")}</KPI.Title>
@@ -92,7 +110,10 @@ export function SeaProjectDetailPage({ projectId, onNavigate }: SeaProjectDetail
               </KPI>
               <KPI>
                 <KPI.Content>
-                  <KPI.Value maximumFractionDigits={0} value={Number(project.stats.committedEvents) || 0} />
+                  <KPI.Value
+                    maximumFractionDigits={0}
+                    value={Number(project.stats.committedEvents) || 0}
+                  />
                 </KPI.Content>
                 <KPI.Header>
                   <KPI.Title>{t("sea.stats.committedEvents")}</KPI.Title>
@@ -100,7 +121,10 @@ export function SeaProjectDetailPage({ projectId, onNavigate }: SeaProjectDetail
               </KPI>
               <KPI>
                 <KPI.Content>
-                  <KPI.Value maximumFractionDigits={0} value={Number(project.stats.eventItems) || 0} />
+                  <KPI.Value
+                    maximumFractionDigits={0}
+                    value={Number(project.stats.eventItems) || 0}
+                  />
                 </KPI.Content>
                 <KPI.Header>
                   <KPI.Title>{t("sea.stats.eventItems")}</KPI.Title>
@@ -109,10 +133,15 @@ export function SeaProjectDetailPage({ projectId, onNavigate }: SeaProjectDetail
               {project.stats.newItems > 0 && (
                 <KPI>
                   <KPI.Content>
-                    <KPI.Value maximumFractionDigits={0} value={Number(project.stats.newItems)} />
+                    <KPI.Value
+                      maximumFractionDigits={0}
+                      value={Number(project.stats.newItems)}
+                    />
                   </KPI.Content>
                   <KPI.Header>
-                    <KPI.Title className="text-warning">{t("sea.stats.newItems")}</KPI.Title>
+                    <KPI.Title className="text-warning">
+                      {t("sea.stats.newItems")}
+                    </KPI.Title>
                   </KPI.Header>
                 </KPI>
               )}

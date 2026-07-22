@@ -27,13 +27,13 @@ export function LiveDictation({ controller }: LiveDictationProps) {
     controller.status === "failed" || controller.status === "unavailable";
   const actionLabel = isRecording
     ? t("intelligence.dictation.actions.stop")
-      : controller.status === "connecting"
-        ? t("intelligence.dictation.actions.connecting")
-        : controller.status === "completing"
-          ? t("intelligence.dictation.actions.completing")
-          : controller.status === "unavailable"
-            ? t("intelligence.dictation.actions.unavailable")
-            : t("intelligence.dictation.actions.start");
+    : controller.status === "connecting"
+      ? t("intelligence.dictation.actions.connecting")
+      : controller.status === "completing"
+        ? t("intelligence.dictation.actions.completing")
+        : controller.status === "unavailable"
+          ? t("intelligence.dictation.actions.unavailable")
+          : t("intelligence.dictation.actions.start");
   const tooltipText = hasFailure
     ? t(failureMessageKey(controller.failureCode))
     : actionLabel;
@@ -59,7 +59,9 @@ export function LiveDictation({ controller }: LiveDictationProps) {
       <ButtonGroup
         aria-hidden={isChoosingLanguage && canChooseLanguage ? "false" : "true"}
         aria-label={t("intelligence.dictation.language")}
-        className={isChoosingLanguage && canChooseLanguage ? undefined : "hidden"}
+        className={
+          isChoosingLanguage && canChooseLanguage ? undefined : "hidden"
+        }
         size="sm"
         variant="secondary"
       >
@@ -87,8 +89,13 @@ export function LiveDictation({ controller }: LiveDictationProps) {
               else if (canChooseLanguage) setIsChoosingLanguage(true);
             }}
           >
-            {isBusy ? <Spinner aria-hidden="true" color="current" size="sm" /> : (
-              <FaIcon icon={isRecording ? "stop" : "microphone"} aria-hidden="true" />
+            {isBusy ? (
+              <Spinner aria-hidden="true" color="current" size="sm" />
+            ) : (
+              <FaIcon
+                icon={isRecording ? "stop" : "microphone"}
+                aria-hidden="true"
+              />
             )}
           </Button>
         </Tooltip.Trigger>
@@ -98,7 +105,12 @@ export function LiveDictation({ controller }: LiveDictationProps) {
         </Tooltip.Content>
       </Tooltip>
       {statusMessage ? (
-        <p role={hasFailure && controller.status === "failed" ? "alert" : "status"} className="sr-only">
+        <p
+          role={
+            hasFailure && controller.status === "failed" ? "alert" : "status"
+          }
+          className="sr-only"
+        >
           {statusMessage}
         </p>
       ) : null}

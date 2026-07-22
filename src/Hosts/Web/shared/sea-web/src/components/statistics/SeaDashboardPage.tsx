@@ -29,7 +29,10 @@ export function SeaDashboardPage() {
           <KPIGroup orientation="horizontal">
             <KPI>
               <KPI.Content>
-                <KPI.Value maximumFractionDigits={0} value={Number(stats.projects) || 0} />
+                <KPI.Value
+                  maximumFractionDigits={0}
+                  value={Number(stats.projects) || 0}
+                />
               </KPI.Content>
               <KPI.Header>
                 <KPI.Title>{t("sea.stats.projects")}</KPI.Title>
@@ -37,7 +40,10 @@ export function SeaDashboardPage() {
             </KPI>
             <KPI>
               <KPI.Content>
-                <KPI.Value maximumFractionDigits={0} value={Number(stats.procedures) || 0} />
+                <KPI.Value
+                  maximumFractionDigits={0}
+                  value={Number(stats.procedures) || 0}
+                />
               </KPI.Content>
               <KPI.Header>
                 <KPI.Title>{t("sea.stats.procedures")}</KPI.Title>
@@ -45,7 +51,10 @@ export function SeaDashboardPage() {
             </KPI>
             <KPI>
               <KPI.Content>
-                <KPI.Value maximumFractionDigits={0} value={Number(stats.events) || 0} />
+                <KPI.Value
+                  maximumFractionDigits={0}
+                  value={Number(stats.events) || 0}
+                />
               </KPI.Content>
               <KPI.Header>
                 <KPI.Title>{t("sea.stats.events")}</KPI.Title>
@@ -53,7 +62,10 @@ export function SeaDashboardPage() {
             </KPI>
             <KPI>
               <KPI.Content>
-                <KPI.Value maximumFractionDigits={0} value={Number(stats.roles) || 0} />
+                <KPI.Value
+                  maximumFractionDigits={0}
+                  value={Number(stats.roles) || 0}
+                />
               </KPI.Content>
               <KPI.Header>
                 <KPI.Title>{t("sea.stats.roles")}</KPI.Title>
@@ -61,7 +73,10 @@ export function SeaDashboardPage() {
             </KPI>
             <KPI>
               <KPI.Content>
-                <KPI.Value maximumFractionDigits={0} value={Number(stats.attachments) || 0} />
+                <KPI.Value
+                  maximumFractionDigits={0}
+                  value={Number(stats.attachments) || 0}
+                />
               </KPI.Content>
               <KPI.Header>
                 <KPI.Title>{t("sea.stats.attachments")}</KPI.Title>
@@ -69,7 +84,10 @@ export function SeaDashboardPage() {
             </KPI>
             <KPI>
               <KPI.Content>
-                <KPI.Value maximumFractionDigits={0} value={Number(stats.reminders) || 0} />
+                <KPI.Value
+                  maximumFractionDigits={0}
+                  value={Number(stats.reminders) || 0}
+                />
               </KPI.Content>
               <KPI.Header>
                 <KPI.Title>{t("sea.stats.reminders")}</KPI.Title>

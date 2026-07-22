@@ -1,9 +1,18 @@
 "use client";
 
 import { useCallback } from "react";
-import { DataGrid, type DataGridColumn, KPI, KPIGroup } from "@heroui-pro/react";
+import {
+  DataGrid,
+  type DataGridColumn,
+  KPI,
+  KPIGroup,
+} from "@heroui-pro/react";
 import type { SeaNavigationIntent } from "../../navigation";
-import { SeaLoadingState, SeaErrorState, SeaEmptyState } from "../state/SeaStateSurface";
+import {
+  SeaLoadingState,
+  SeaErrorState,
+  SeaEmptyState,
+} from "../state/SeaStateSurface";
 import { useSeaProjects } from "../../hooks/projects/useSeaProjects";
 import { useLocalizedText, formatDateTime } from "../../localization";
 import type { SeaProjectReadDto } from "../../models/seaStatModels";
@@ -24,7 +33,7 @@ export function SeaProjectsPage({ onNavigate }: SeaProjectsPageProps) {
     (projectId: string) => {
       onNavigate?.({ kind: "projectDetail", projectId });
     },
-    [onNavigate]
+    [onNavigate],
   );
 
   const columns: DataGridColumn<SeaProjectReadDto>[] = [
@@ -43,7 +52,9 @@ export function SeaProjectsPage({ onNavigate }: SeaProjectsPageProps) {
           <div className="min-w-0">
             <div className="text-sm font-medium truncate">{item.name}</div>
             {item.description && (
-              <div className="text-xs text-muted truncate">{item.description}</div>
+              <div className="text-xs text-muted truncate">
+                {item.description}
+              </div>
             )}
           </div>
         </div>
@@ -59,7 +70,10 @@ export function SeaProjectsPage({ onNavigate }: SeaProjectsPageProps) {
           <KPIGroup orientation="horizontal">
             <KPI>
               <KPI.Content>
-                <KPI.Value maximumFractionDigits={0} value={Number(item.stats.procedures) || 0} />
+                <KPI.Value
+                  maximumFractionDigits={0}
+                  value={Number(item.stats.procedures) || 0}
+                />
               </KPI.Content>
               <KPI.Header>
                 <KPI.Title>{t("sea.stats.procedures")}</KPI.Title>
@@ -67,7 +81,10 @@ export function SeaProjectsPage({ onNavigate }: SeaProjectsPageProps) {
             </KPI>
             <KPI>
               <KPI.Content>
-                <KPI.Value maximumFractionDigits={0} value={Number(item.stats.events) || 0} />
+                <KPI.Value
+                  maximumFractionDigits={0}
+                  value={Number(item.stats.events) || 0}
+                />
               </KPI.Content>
               <KPI.Header>
                 <KPI.Title>{t("sea.stats.events")}</KPI.Title>
@@ -76,10 +93,15 @@ export function SeaProjectsPage({ onNavigate }: SeaProjectsPageProps) {
             {item.stats.newItems > 0 && (
               <KPI>
                 <KPI.Content>
-                  <KPI.Value maximumFractionDigits={0} value={Number(item.stats.newItems)} />
+                  <KPI.Value
+                    maximumFractionDigits={0}
+                    value={Number(item.stats.newItems)}
+                  />
                 </KPI.Content>
                 <KPI.Header>
-                  <KPI.Title className="text-warning">{t("sea.stats.newItems")}</KPI.Title>
+                  <KPI.Title className="text-warning">
+                    {t("sea.stats.newItems")}
+                  </KPI.Title>
                 </KPI.Header>
               </KPI>
             )}

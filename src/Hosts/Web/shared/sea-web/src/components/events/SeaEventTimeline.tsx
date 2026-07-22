@@ -21,7 +21,11 @@ interface SeaEventTimelineProps {
   onNavigate?: (intent: SeaNavigationIntent) => void;
 }
 
-export function SeaEventTimeline({ procedureId, projectId, onNavigate }: SeaEventTimelineProps) {
+export function SeaEventTimeline({
+  procedureId,
+  projectId,
+  onNavigate,
+}: SeaEventTimelineProps) {
   const { t, locale } = useLocalizedText();
   const { data: events, isLoading } = useSeaEvents(procedureId);
   const commitMutation = useCommitSeaEvent();
@@ -31,7 +35,9 @@ export function SeaEventTimeline({ procedureId, projectId, onNavigate }: SeaEven
   const deleteMutation = useDeleteSeaEvent();
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [confirmUncommitId, setConfirmUncommitId] = useState<string | null>(null);
+  const [confirmUncommitId, setConfirmUncommitId] = useState<string | null>(
+    null,
+  );
 
   const handleToggleCommit = useCallback(
     (event: SeaEventReadDto) => {
@@ -41,7 +47,7 @@ export function SeaEventTimeline({ procedureId, projectId, onNavigate }: SeaEven
         commitMutation.mutate(event.id);
       }
     },
-    [commitMutation]
+    [commitMutation],
   );
 
   const handleConfirmUncommit = useCallback(() => {
@@ -76,7 +82,11 @@ export function SeaEventTimeline({ procedureId, projectId, onNavigate }: SeaEven
         <Widget.Title>{t("sea.events.title")}</Widget.Title>
       </Widget.Header>
       <Widget.Content>
-        <Timeline aria-label={t("sea.events.title")} density="compact" size="sm">
+        <Timeline
+          aria-label={t("sea.events.title")}
+          density="compact"
+          size="sm"
+        >
           {eventList.map((event, index) => (
             <SeaEventTimelineItem
               key={event.id}
@@ -91,7 +101,9 @@ export function SeaEventTimeline({ procedureId, projectId, onNavigate }: SeaEven
               onMoveUp={(id) => moveUpMutation.mutate(id)}
               onToggleCommit={handleToggleCommit}
               onNavigate={onNavigate}
-              isCommitPending={commitMutation.isPending || uncommitMutation.isPending}
+              isCommitPending={
+                commitMutation.isPending || uncommitMutation.isPending
+              }
               isMoveDownPending={moveDownMutation.isPending}
               isMoveUpPending={moveUpMutation.isPending}
             />
@@ -116,7 +128,9 @@ export function SeaEventTimeline({ procedureId, projectId, onNavigate }: SeaEven
                 onPress={handleConfirmUncommit}
                 isDisabled={uncommitMutation.isPending}
               >
-                {uncommitMutation.isPending ? t("common.states.saving") : t("sea.events.uncommit")}
+                {uncommitMutation.isPending
+                  ? t("common.states.saving")
+                  : t("sea.events.uncommit")}
               </Button>
             </div>
           </div>
@@ -140,7 +154,9 @@ export function SeaEventTimeline({ procedureId, projectId, onNavigate }: SeaEven
                 onPress={handleConfirmDelete}
                 isDisabled={deleteMutation.isPending}
               >
-                {deleteMutation.isPending ? t("common.states.saving") : t("common.actions.delete")}
+                {deleteMutation.isPending
+                  ? t("common.states.saving")
+                  : t("common.actions.delete")}
               </Button>
             </div>
           </div>
@@ -187,7 +203,10 @@ function SeaEventTimelineItem({
   const { data: capabilities } = useSeaEventCapabilities(event.id);
 
   return (
-    <Timeline.Item id={event.id} status={event.isCommitted ? "success" : "default"}>
+    <Timeline.Item
+      id={event.id}
+      status={event.isCommitted ? "success" : "default"}
+    >
       <Timeline.Marker aria-hidden="true" />
       <Timeline.Content>
         <div className="flex min-w-0 flex-col gap-2">
@@ -198,7 +217,9 @@ function SeaEventTimelineItem({
               variant="soft"
               color={event.isCommitted ? "success" : "default"}
             >
-              {event.isCommitted ? t("sea.events.committed") : t("sea.events.draft")}
+              {event.isCommitted
+                ? t("sea.events.committed")
+                : t("sea.events.draft")}
             </Chip>
           </div>
           {event.description && (
@@ -212,10 +233,17 @@ function SeaEventTimelineItem({
               size="sm"
               variant="ghost"
               onPress={() =>
-                onNavigate?.({ kind: "eventDetail", projectId, procedureId, eventId: event.id })
+                onNavigate?.({
+                  kind: "eventDetail",
+                  projectId,
+                  procedureId,
+                  eventId: event.id,
+                })
               }
             >
-              {capabilities?.isElevated ? t("common.actions.edit") : t("common.actions.view")}
+              {capabilities?.isElevated
+                ? t("common.actions.edit")
+                : t("common.actions.view")}
             </Button>
             {capabilities?.canWrite && (
               <Button
@@ -224,7 +252,9 @@ function SeaEventTimelineItem({
                 onPress={() => onToggleCommit(event)}
                 isDisabled={isCommitPending}
               >
-                {event.isCommitted ? t("sea.events.uncommit") : t("sea.events.commit")}
+                {event.isCommitted
+                  ? t("sea.events.uncommit")
+                  : t("sea.events.commit")}
               </Button>
             )}
             {capabilities?.isElevated && (

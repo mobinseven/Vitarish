@@ -17,7 +17,13 @@ interface SeaProcedureFormProps {
   onNavigate?: (intent: SeaNavigationIntent) => void;
 }
 
-export function SeaProcedureForm({ isOpen, onClose, projectId, procedure, onNavigate }: SeaProcedureFormProps) {
+export function SeaProcedureForm({
+  isOpen,
+  onClose,
+  projectId,
+  procedure,
+  onNavigate,
+}: SeaProcedureFormProps) {
   const { t } = useLocalizedText();
   const createMutation = useCreateSeaProcedure();
   const updateMutation = useUpdateSeaProcedure();
@@ -42,7 +48,11 @@ export function SeaProcedureForm({ isOpen, onClose, projectId, procedure, onNavi
       updateMutation.mutate(data, {
         onSuccess: () => {
           onClose();
-          onNavigate?.({ kind: "procedureDetail", projectId, procedureId: procedure!.id });
+          onNavigate?.({
+            kind: "procedureDetail",
+            projectId,
+            procedureId: procedure!.id,
+          });
         },
       });
     } else {
@@ -53,14 +63,28 @@ export function SeaProcedureForm({ isOpen, onClose, projectId, procedure, onNavi
         },
       });
     }
-  }, [name, description, projectId, isEditing, procedure, createMutation, updateMutation, onClose, onNavigate]);
+  }, [
+    name,
+    description,
+    projectId,
+    isEditing,
+    procedure,
+    createMutation,
+    updateMutation,
+    onClose,
+    onNavigate,
+  ]);
 
   if (!isOpen) return null;
 
   return (
     <Widget>
       <Widget.Header>
-        <Widget.Title>{isEditing ? t("sea.procedures.editTitle") : t("sea.procedures.createTitle")}</Widget.Title>
+        <Widget.Title>
+          {isEditing
+            ? t("sea.procedures.editTitle")
+            : t("sea.procedures.createTitle")}
+        </Widget.Title>
       </Widget.Header>
       <Widget.Content className="flex flex-col gap-4">
         <TextField isRequired value={name} onChange={setName}>
@@ -75,7 +99,11 @@ export function SeaProcedureForm({ isOpen, onClose, projectId, procedure, onNavi
           <Button variant="ghost" onPress={onClose} isDisabled={isPending}>
             {t("common.actions.cancel")}
           </Button>
-          <Button variant="primary" onPress={handleSubmit} isDisabled={isPending || !name.trim()}>
+          <Button
+            variant="primary"
+            onPress={handleSubmit}
+            isDisabled={isPending || !name.trim()}
+          >
             {isPending ? t("common.states.saving") : t("common.actions.save")}
           </Button>
         </div>

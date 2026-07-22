@@ -24,7 +24,9 @@ export function JourneyGateHeader({
           {title}
         </h1>
         {description ? (
-          <p className="text-base leading-7 text-foreground/70">{description}</p>
+          <p className="text-base leading-7 text-foreground/70">
+            {description}
+          </p>
         ) : null}
       </div>
     </div>

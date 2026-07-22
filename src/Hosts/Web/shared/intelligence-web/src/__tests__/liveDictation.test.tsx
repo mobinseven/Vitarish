@@ -45,9 +45,13 @@ function Harness({ value }: { value: LiveDictationController }) {
 
 describe("LiveDictation", () => {
   it("gates the action while availability is loading", () => {
-    render(<Harness value={controller({ capabilitiesLoading: true })} />, { wrapper: Wrapper });
+    render(<Harness value={controller({ capabilitiesLoading: true })} />, {
+      wrapper: Wrapper,
+    });
 
-    expect(screen.getByRole("button", { name: "Start voice dictation" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Start voice dictation" }),
+    ).toBeDisabled();
     expect(screen.getByRole("status")).toHaveTextContent(
       "Checking voice dictation availability",
     );
@@ -57,7 +61,9 @@ describe("LiveDictation", () => {
     const value = controller();
     render(<Harness value={value} />, { wrapper: Wrapper });
 
-    fireEvent.click(screen.getByRole("button", { name: "Start voice dictation" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Start voice dictation" }),
+    );
     const languages = screen.getByRole("group", { name: "Dictation language" });
     expect(languages).toHaveAttribute("aria-hidden", "false");
 
@@ -94,7 +100,9 @@ describe("LiveDictation", () => {
       { wrapper: Wrapper },
     );
 
-    expect(screen.getByRole("button", { name: "Voice dictation unavailable" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Voice dictation unavailable" }),
+    ).toBeDisabled();
     expect(screen.getByRole("status")).toHaveTextContent(
       "Voice dictation is currently unavailable.",
     );
@@ -102,10 +110,17 @@ describe("LiveDictation", () => {
 
   it("renders session failures as visible alerts", () => {
     render(
-      <Harness value={controller({ failureCode: "PermissionDenied", status: "failed" })} />,
+      <Harness
+        value={controller({
+          failureCode: "PermissionDenied",
+          status: "failed",
+        })}
+      />,
       { wrapper: Wrapper },
     );
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Microphone access was not granted.");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Microphone access was not granted.",
+    );
   });
 });

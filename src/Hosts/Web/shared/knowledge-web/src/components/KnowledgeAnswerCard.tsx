@@ -31,7 +31,9 @@ export function KnowledgeAnswerCard({
   const { corpus, answer, errorMessage } = result;
   const citations = answer?.citations ?? [];
   const retrievedContext = answer?.retrievedContext ?? [];
-  const answerText = answer?.isAnswered ? answer.answer : answer?.missingInformation ?? answer?.answer;
+  const answerText = answer?.isAnswered
+    ? answer.answer
+    : (answer?.missingInformation ?? answer?.answer);
 
   return (
     <ChatMessage
@@ -75,7 +77,9 @@ export function KnowledgeAnswerCard({
 
           {answer.missingInformation && answer.isAnswered && (
             <ChatCallout tone="warning">
-              <span className="font-medium">{labels.missingInformationPrefix} </span>
+              <span className="font-medium">
+                {labels.missingInformationPrefix}{" "}
+              </span>
               {answer.missingInformation}
             </ChatCallout>
           )}
@@ -93,7 +97,9 @@ export function KnowledgeAnswerCard({
           )}
 
           {retrievedContext.length > 0 && (
-            <ChatSourceList title={labels.retrievedContext(retrievedContext.length)}>
+            <ChatSourceList
+              title={labels.retrievedContext(retrievedContext.length)}
+            >
               {retrievedContext.map((hit) => (
                 <ChatSource
                   key={hit.chunkId}
@@ -113,7 +119,7 @@ export function KnowledgeAnswerCard({
 function answerStatusLabel(
   isAnswered: boolean | undefined,
   hasError: boolean,
-  labels: KnowledgeQaLabels
+  labels: KnowledgeQaLabels,
 ): string {
   if (hasError) {
     return labels.unavailableStatus;
@@ -124,7 +130,7 @@ function answerStatusLabel(
 
 function answerStatusTone(
   isAnswered: boolean | undefined,
-  hasError: boolean
+  hasError: boolean,
 ): "success" | "warning" | "danger" {
   if (hasError) {
     return "danger";

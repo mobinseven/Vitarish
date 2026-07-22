@@ -13,7 +13,12 @@ interface SeaProjectDeleteDialogProps {
   project: SeaProjectReadDto;
 }
 
-export function SeaProjectDeleteDialog({ isOpen, onClose, onDeleted, project }: SeaProjectDeleteDialogProps) {
+export function SeaProjectDeleteDialog({
+  isOpen,
+  onClose,
+  onDeleted,
+  project,
+}: SeaProjectDeleteDialogProps) {
   const { t } = useLocalizedText();
   const deleteMutation = useDeleteSeaProject();
 
@@ -29,7 +34,7 @@ export function SeaProjectDeleteDialog({ isOpen, onClose, onDeleted, project }: 
         if (isOpen) onClose();
       },
     }),
-    [isOpen, onClose]
+    [isOpen, onClose],
   );
 
   if (!isOpen) return null;
@@ -51,7 +56,11 @@ export function SeaProjectDeleteDialog({ isOpen, onClose, onDeleted, project }: 
               <p className="text-sm font-medium">{project.name}</p>
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onPress={onClose} isDisabled={deleteMutation.isPending}>
+              <Button
+                variant="secondary"
+                onPress={onClose}
+                isDisabled={deleteMutation.isPending}
+              >
                 {t("common.actions.cancel")}
               </Button>
               <Button
@@ -66,7 +75,9 @@ export function SeaProjectDeleteDialog({ isOpen, onClose, onDeleted, project }: 
                 }}
                 isDisabled={deleteMutation.isPending}
               >
-                {deleteMutation.isPending ? t("common.states.saving") : t("common.actions.delete")}
+                {deleteMutation.isPending
+                  ? t("common.states.saving")
+                  : t("common.actions.delete")}
               </Button>
             </Modal.Footer>
           </Modal.Dialog>

@@ -44,15 +44,12 @@ export function KnowledgeAnswerList({
   statusMessage,
 }: KnowledgeAnswerListProps) {
   const hasQuestion = !!question?.trim();
-  const showAnswers = hasQuestion && !isPending && !statusMessage && results.length > 0;
+  const showAnswers =
+    hasQuestion && !isPending && !statusMessage && results.length > 0;
 
   return (
     <ChatConversation>
-      {hasQuestion && (
-        <ChatMessage kind="question">
-          {question}
-        </ChatMessage>
-      )}
+      {hasQuestion && <ChatMessage kind="question">{question}</ChatMessage>}
 
       {isPending && (
         <ChatLoadingMessage
@@ -100,7 +97,11 @@ export function KnowledgeAnswerList({
           avatarAlt={labels.assistantAvatarAlt}
           avatarFallback={labels.assistantAvatarFallback}
           kind="answer"
-          title={scopeKind === "all" ? labels.allCorpusAnswer : labels.selectedCorpusAnswer}
+          title={
+            scopeKind === "all"
+              ? labels.allCorpusAnswer
+              : labels.selectedCorpusAnswer
+          }
           status={labels.needsContextStatus}
           tone="warning"
         >
@@ -110,17 +111,18 @@ export function KnowledgeAnswerList({
         </ChatMessage>
       )}
 
-      {showAnswers && results.map((result) => (
-        <KnowledgeAnswerCard
-          key={result.corpus.corpusId}
-          result={result}
-          formatScore={formatScore}
-          isSingleCorpusMode={scopeKind === "corpus"}
-          labels={labels}
-          onAskAgain={onAskAgain}
-          onContinueInCorpus={onContinueInCorpus}
-        />
-      ))}
+      {showAnswers &&
+        results.map((result) => (
+          <KnowledgeAnswerCard
+            key={result.corpus.corpusId}
+            result={result}
+            formatScore={formatScore}
+            isSingleCorpusMode={scopeKind === "corpus"}
+            labels={labels}
+            onAskAgain={onAskAgain}
+            onContinueInCorpus={onContinueInCorpus}
+          />
+        ))}
     </ChatConversation>
   );
 }

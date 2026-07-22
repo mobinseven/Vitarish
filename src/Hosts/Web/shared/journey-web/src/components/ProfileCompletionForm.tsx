@@ -1,22 +1,38 @@
 "use client";
 
-import { Alert, Button, FieldError, Form, Input, Label, TextField } from "@heroui/react";
+import {
+  Alert,
+  Button,
+  FieldError,
+  Form,
+  Input,
+  Label,
+  TextField,
+} from "@heroui/react";
 import { useLocalizedText } from "@vitarish/web-localization";
 import { useCompleteProfile } from "../hooks/useCompleteProfile";
 
 export function ProfileCompletionForm() {
-  const { values, errors, setField, isSubmitting, canSubmit } = useCompleteProfile();
+  const { values, errors, setField, isSubmitting, canSubmit } =
+    useCompleteProfile();
   const { t } = useLocalizedText();
 
   return (
-    <Form onSubmit={(event) => event.preventDefault()} className="flex flex-col gap-4">
+    <Form
+      onSubmit={(event) => event.preventDefault()}
+      className="flex flex-col gap-4"
+    >
       {errors.form ? (
         <Alert status="warning">
           <Alert.Indicator />
           <Alert.Content>{errors.form}</Alert.Content>
         </Alert>
       ) : null}
-      <TextField name="firstName" isRequired isInvalid={Boolean(errors.firstName)}>
+      <TextField
+        name="firstName"
+        isRequired
+        isInvalid={Boolean(errors.firstName)}
+      >
         <Label>{t("journey.gates.profile.firstName")}</Label>
         <Input
           value={values.firstName}
@@ -26,7 +42,11 @@ export function ProfileCompletionForm() {
         />
         {errors.firstName ? <FieldError>{errors.firstName}</FieldError> : null}
       </TextField>
-      <TextField name="lastName" isRequired isInvalid={Boolean(errors.lastName)}>
+      <TextField
+        name="lastName"
+        isRequired
+        isInvalid={Boolean(errors.lastName)}
+      >
         <Label>{t("journey.gates.profile.lastName")}</Label>
         <Input
           value={values.lastName}
@@ -36,7 +56,12 @@ export function ProfileCompletionForm() {
         />
         {errors.lastName ? <FieldError>{errors.lastName}</FieldError> : null}
       </TextField>
-      <Button type="submit" isDisabled={!canSubmit} isPending={isSubmitting} className="w-full">
+      <Button
+        type="submit"
+        isDisabled={!canSubmit}
+        isPending={isSubmitting}
+        className="w-full"
+      >
         {t("journey.gates.profile.saveAndContinue")}
       </Button>
     </Form>

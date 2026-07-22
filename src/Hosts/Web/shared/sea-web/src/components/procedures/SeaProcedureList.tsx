@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback } from "react";
-import { DataGrid, type DataGridColumn, KPI, KPIGroup, Widget } from "@heroui-pro/react";
+import {
+  DataGrid,
+  type DataGridColumn,
+  KPI,
+  KPIGroup,
+  Widget,
+} from "@heroui-pro/react";
 import type { SeaNavigationIntent } from "../../navigation";
 import { SeaLoadingState, SeaEmptyState } from "../state/SeaStateSurface";
 import { useSeaProcedures } from "../../hooks/procedures/useSeaProcedures";
@@ -13,7 +19,10 @@ interface SeaProcedureListProps {
   onNavigate?: (intent: SeaNavigationIntent) => void;
 }
 
-export function SeaProcedureList({ projectId, onNavigate }: SeaProcedureListProps) {
+export function SeaProcedureList({
+  projectId,
+  onNavigate,
+}: SeaProcedureListProps) {
   const { t } = useLocalizedText();
   const { data: procedures, isLoading } = useSeaProcedures(projectId);
 
@@ -21,7 +30,7 @@ export function SeaProcedureList({ projectId, onNavigate }: SeaProcedureListProp
     (procedureId: string) => {
       onNavigate?.({ kind: "procedureDetail", projectId, procedureId });
     },
-    [onNavigate, projectId]
+    [onNavigate, projectId],
   );
 
   const columns: DataGridColumn<SeaProcedureReadDto>[] = [
@@ -36,7 +45,9 @@ export function SeaProcedureList({ projectId, onNavigate }: SeaProcedureListProp
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">{item.name}</div>
           {item.description && (
-            <div className="text-xs text-muted truncate">{item.description}</div>
+            <div className="text-xs text-muted truncate">
+              {item.description}
+            </div>
           )}
         </div>
       ),
@@ -51,7 +62,10 @@ export function SeaProcedureList({ projectId, onNavigate }: SeaProcedureListProp
           <KPIGroup orientation="horizontal">
             <KPI>
               <KPI.Content>
-                <KPI.Value maximumFractionDigits={0} value={Number(item.stats.events) || 0} />
+                <KPI.Value
+                  maximumFractionDigits={0}
+                  value={Number(item.stats.events) || 0}
+                />
               </KPI.Content>
               <KPI.Header>
                 <KPI.Title>{t("sea.stats.events")}</KPI.Title>
@@ -60,10 +74,15 @@ export function SeaProcedureList({ projectId, onNavigate }: SeaProcedureListProp
             {item.stats.newItems > 0 && (
               <KPI>
                 <KPI.Content>
-                  <KPI.Value maximumFractionDigits={0} value={Number(item.stats.newItems)} />
+                  <KPI.Value
+                    maximumFractionDigits={0}
+                    value={Number(item.stats.newItems)}
+                  />
                 </KPI.Content>
                 <KPI.Header>
-                  <KPI.Title className="text-warning">{t("sea.stats.newItems")}</KPI.Title>
+                  <KPI.Title className="text-warning">
+                    {t("sea.stats.newItems")}
+                  </KPI.Title>
                 </KPI.Header>
               </KPI>
             )}

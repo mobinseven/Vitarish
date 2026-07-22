@@ -39,13 +39,23 @@ export function KnowledgeCorpusSelect({
       aria-label={labels.railTitle}
       className={className}
       isDisabled={isLoading}
-      placeholder={isLoading ? labels.loadingCorpora : corpora.length === 0 ? labels.noCorpora : undefined}
+      placeholder={
+        isLoading
+          ? labels.loadingCorpora
+          : corpora.length === 0
+            ? labels.noCorpora
+            : undefined
+      }
       value={selectedCorpusId ?? ALL_KEY}
       variant="secondary"
       onChange={handleSelectionChange}
     >
       <Select.Trigger>
-        <FaIcon icon="book" aria-hidden="true" className="size-4 shrink-0 text-muted" />
+        <FaIcon
+          icon="book"
+          aria-hidden="true"
+          className="size-4 shrink-0 text-muted"
+        />
         <Select.Value />
         <Select.Indicator />
       </Select.Trigger>
@@ -56,7 +66,11 @@ export function KnowledgeCorpusSelect({
             <ListBox.ItemIndicator />
           </ListBox.Item>
           {corpora.map((corpus) => (
-            <ListBox.Item key={corpus.corpusId} id={corpus.corpusId} textValue={corpus.name}>
+            <ListBox.Item
+              key={corpus.corpusId}
+              id={corpus.corpusId}
+              textValue={corpus.name}
+            >
               {corpus.name}
               <ListBox.ItemIndicator />
             </ListBox.Item>

@@ -1,7 +1,15 @@
 "use client";
 
 import { useCallback } from "react";
-import { Button, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
+import {
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+} from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useLocaleNotificationList } from "../hooks/useLocaleNotifications";
 import { useLocalizedText } from "@vitarish/web-localization";
@@ -10,7 +18,9 @@ interface LocaleNotificationListPageProps {
   basePath: string;
 }
 
-export function LocaleNotificationListPage({ basePath }: LocaleNotificationListPageProps) {
+export function LocaleNotificationListPage({
+  basePath,
+}: LocaleNotificationListPageProps) {
   const { t } = useLocalizedText();
   const router = useRouter();
   const { data: locales, isLoading, isError } = useLocaleNotificationList();
@@ -19,7 +29,7 @@ export function LocaleNotificationListPage({ basePath }: LocaleNotificationListP
     (normalizedLocale: string) => {
       router.push(`${basePath}/${normalizedLocale}`);
     },
-    [router, basePath]
+    [router, basePath],
   );
 
   if (isLoading) {
@@ -40,7 +50,9 @@ export function LocaleNotificationListPage({ basePath }: LocaleNotificationListP
       <Table>
         <TableHeader>
           <TableColumn>{t("platform.notifications.locale")}</TableColumn>
-          <TableColumn>{t("platform.notifications.normalizedLocale")}</TableColumn>
+          <TableColumn>
+            {t("platform.notifications.normalizedLocale")}
+          </TableColumn>
           <TableColumn>{t("common.actions.edit")}</TableColumn>
         </TableHeader>
         <TableBody>
@@ -49,7 +61,10 @@ export function LocaleNotificationListPage({ basePath }: LocaleNotificationListP
               <TableCell>{locale.locale}</TableCell>
               <TableCell>{locale.normalizedLocale}</TableCell>
               <TableCell>
-                <Button size="sm" onPress={() => handleEdit(locale.normalizedLocale)}>
+                <Button
+                  size="sm"
+                  onPress={() => handleEdit(locale.normalizedLocale)}
+                >
                   {t("common.actions.edit")}
                 </Button>
               </TableCell>

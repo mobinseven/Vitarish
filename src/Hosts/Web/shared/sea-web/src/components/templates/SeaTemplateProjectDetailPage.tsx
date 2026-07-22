@@ -13,9 +13,16 @@ interface SeaTemplateProjectDetailPageProps {
   onNavigate?: (intent: SeaNavigationIntent) => void;
 }
 
-export function SeaTemplateProjectDetailPage({ projectId, onNavigate }: SeaTemplateProjectDetailPageProps) {
+export function SeaTemplateProjectDetailPage({
+  projectId,
+  onNavigate,
+}: SeaTemplateProjectDetailPageProps) {
   const { t, locale } = useLocalizedText();
-  const { data: project, isLoading, error } = useSeaTemplateProjectDetail(projectId);
+  const {
+    data: project,
+    isLoading,
+    error,
+  } = useSeaTemplateProjectDetail(projectId);
 
   if (isLoading) {
     return <SeaLoadingState label={t("sea.templates.loading")} />;
@@ -27,8 +34,13 @@ export function SeaTemplateProjectDetailPage({ projectId, onNavigate }: SeaTempl
 
   const details: DetailGridItem[] = [
     { label: t("sea.projects.name"), value: project.name },
-    ...(project.description ? [{ label: t("sea.projects.description"), value: project.description }] : []),
-    { label: t("sea.projects.createdAt"), value: formatDateTime(project.createdAt, locale) },
+    ...(project.description
+      ? [{ label: t("sea.projects.description"), value: project.description }]
+      : []),
+    {
+      label: t("sea.projects.createdAt"),
+      value: formatDateTime(project.createdAt, locale),
+    },
   ];
 
   return (

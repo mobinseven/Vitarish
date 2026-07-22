@@ -19,7 +19,15 @@ interface SeaEventFormProps {
   onNavigate?: (intent: SeaNavigationIntent) => void;
 }
 
-export function SeaEventForm({ isOpen, onClose, projectId, procedureId, previousEventId, event, onNavigate }: SeaEventFormProps) {
+export function SeaEventForm({
+  isOpen,
+  onClose,
+  projectId,
+  procedureId,
+  previousEventId,
+  event,
+  onNavigate,
+}: SeaEventFormProps) {
   const { t } = useLocalizedText();
   const createMutation = useCreateSeaEvent();
   const updateMutation = useUpdateSeaEvent();
@@ -45,9 +53,14 @@ export function SeaEventForm({ isOpen, onClose, projectId, procedureId, previous
         {
           onSuccess: () => {
             onClose();
-            onNavigate?.({ kind: "eventDetail", projectId, procedureId, eventId: event.id });
+            onNavigate?.({
+              kind: "eventDetail",
+              projectId,
+              procedureId,
+              eventId: event.id,
+            });
           },
-        }
+        },
       );
     } else {
       createMutation.mutate(
@@ -65,17 +78,31 @@ export function SeaEventForm({ isOpen, onClose, projectId, procedureId, previous
             onClose();
             onNavigate?.({ kind: "procedureDetail", projectId, procedureId });
           },
-        }
+        },
       );
     }
-  }, [title, description, projectId, procedureId, previousEventId, isEditing, event, createMutation, updateMutation, onClose, onNavigate]);
+  }, [
+    title,
+    description,
+    projectId,
+    procedureId,
+    previousEventId,
+    isEditing,
+    event,
+    createMutation,
+    updateMutation,
+    onClose,
+    onNavigate,
+  ]);
 
   if (!isOpen) return null;
 
   return (
     <Widget>
       <Widget.Header>
-        <Widget.Title>{isEditing ? t("sea.events.editTitle") : t("sea.events.createTitle")}</Widget.Title>
+        <Widget.Title>
+          {isEditing ? t("sea.events.editTitle") : t("sea.events.createTitle")}
+        </Widget.Title>
       </Widget.Header>
       <Widget.Content className="flex flex-col gap-4">
         <TextField isRequired value={title} onChange={setTitle}>
@@ -90,7 +117,11 @@ export function SeaEventForm({ isOpen, onClose, projectId, procedureId, previous
           <Button variant="ghost" onPress={onClose} isDisabled={isPending}>
             {t("common.actions.cancel")}
           </Button>
-          <Button variant="primary" onPress={handleSubmit} isDisabled={isPending || !title.trim()}>
+          <Button
+            variant="primary"
+            onPress={handleSubmit}
+            isDisabled={isPending || !title.trim()}
+          >
             {isPending ? t("common.states.saving") : t("common.actions.save")}
           </Button>
         </div>

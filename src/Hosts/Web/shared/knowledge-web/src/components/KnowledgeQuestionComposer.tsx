@@ -1,7 +1,11 @@
 "use client";
 
 import { PromptInput } from "@heroui-pro/react/prompt-input";
-import { ChatPromptInput, FaIcon, type ChatTextDirection } from "@vitarish/web-ui";
+import {
+  ChatPromptInput,
+  FaIcon,
+  type ChatTextDirection,
+} from "@vitarish/web-ui";
 import { KnowledgeCorpusSelect } from "./KnowledgeCorpusSelect";
 import type { KnowledgeQaLabels, KnowledgeUserCorpus } from "../types";
 

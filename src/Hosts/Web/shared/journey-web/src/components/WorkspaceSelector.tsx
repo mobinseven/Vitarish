@@ -6,7 +6,8 @@ import { useLocalizedText } from "@vitarish/web-localization";
 import { useJourneyWorkspaceOptions } from "../hooks/useJourneyWorkspaceOptions";
 
 export function WorkspaceSelector() {
-  const { options, isLoading, unavailableReason } = useJourneyWorkspaceOptions();
+  const { options, isLoading, unavailableReason } =
+    useJourneyWorkspaceOptions();
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>();
   const { t } = useLocalizedText();
 
@@ -30,20 +31,26 @@ export function WorkspaceSelector() {
           <Card key={option.id}>
             <Card.Content className="p-4">
               <Button
-                variant={selectedWorkspaceId === option.id ? "primary" : "secondary"}
+                variant={
+                  selectedWorkspaceId === option.id ? "primary" : "secondary"
+                }
                 className="w-full justify-start"
                 onPress={() => setSelectedWorkspaceId(option.id)}
               >
                 <span className="flex flex-col items-start gap-1 text-start">
                   <span>{option.name}</span>
-                  <span className="text-sm font-normal text-foreground/70">{option.description}</span>
+                  <span className="text-sm font-normal text-foreground/70">
+                    {option.description}
+                  </span>
                 </span>
               </Button>
             </Card.Content>
           </Card>
         ))}
       </div>
-      <Button isDisabled={!selectedWorkspaceId} className="w-full">{t("journey.gates.workspace.continueAction")}</Button>
+      <Button isDisabled={!selectedWorkspaceId} className="w-full">
+        {t("journey.gates.workspace.continueAction")}
+      </Button>
     </div>
   );
 }

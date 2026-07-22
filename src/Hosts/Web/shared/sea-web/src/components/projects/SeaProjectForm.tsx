@@ -16,7 +16,12 @@ interface SeaProjectFormProps {
   onNavigate?: (intent: SeaNavigationIntent) => void;
 }
 
-export function SeaProjectForm({ isOpen, onClose, project, onNavigate }: SeaProjectFormProps) {
+export function SeaProjectForm({
+  isOpen,
+  onClose,
+  project,
+  onNavigate,
+}: SeaProjectFormProps) {
   const { t } = useLocalizedText();
   const createMutation = useCreateSeaProject();
   const updateMutation = useUpdateSeaProject();
@@ -54,14 +59,27 @@ export function SeaProjectForm({ isOpen, onClose, project, onNavigate }: SeaProj
         },
       });
     }
-  }, [name, description, isEditing, project, createMutation, updateMutation, onClose, onNavigate]);
+  }, [
+    name,
+    description,
+    isEditing,
+    project,
+    createMutation,
+    updateMutation,
+    onClose,
+    onNavigate,
+  ]);
 
   if (!isOpen) return null;
 
   return (
     <Widget>
       <Widget.Header>
-        <Widget.Title>{isEditing ? t("sea.projects.editTitle") : t("sea.projects.createTitle")}</Widget.Title>
+        <Widget.Title>
+          {isEditing
+            ? t("sea.projects.editTitle")
+            : t("sea.projects.createTitle")}
+        </Widget.Title>
       </Widget.Header>
       <Widget.Content className="flex flex-col gap-4">
         <TextField isRequired value={name} onChange={setName}>
@@ -76,7 +94,11 @@ export function SeaProjectForm({ isOpen, onClose, project, onNavigate }: SeaProj
           <Button variant="ghost" onPress={onClose} isDisabled={isPending}>
             {t("common.actions.cancel")}
           </Button>
-          <Button variant="primary" onPress={handleSubmit} isDisabled={isPending || !name.trim()}>
+          <Button
+            variant="primary"
+            onPress={handleSubmit}
+            isDisabled={isPending || !name.trim()}
+          >
             {isPending ? t("common.states.saving") : t("common.actions.save")}
           </Button>
         </div>

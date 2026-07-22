@@ -12,7 +12,9 @@ interface SeaTemplateProjectsPageProps {
   onNavigate?: (intent: SeaNavigationIntent) => void;
 }
 
-export function SeaTemplateProjectsPage({ onNavigate }: SeaTemplateProjectsPageProps) {
+export function SeaTemplateProjectsPage({
+  onNavigate,
+}: SeaTemplateProjectsPageProps) {
   const { t, locale } = useLocalizedText();
   const { data: templates, isLoading } = useSeaTemplateProjects();
 
@@ -20,7 +22,7 @@ export function SeaTemplateProjectsPage({ onNavigate }: SeaTemplateProjectsPageP
     (projectId: string) => {
       onNavigate?.({ kind: "templateDetail", projectId });
     },
-    [onNavigate]
+    [onNavigate],
   );
 
   const columns: DataGridColumn<SeaProjectReadDto>[] = [

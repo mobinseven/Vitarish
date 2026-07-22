@@ -49,17 +49,25 @@ export function KnowledgeUserQaSurface({
   });
   const { askAcrossCorpora } = ask;
 
-  const corpora = useMemo(() => workspace.data?.corpora ?? [], [workspace.data?.corpora]);
+  const corpora = useMemo(
+    () => workspace.data?.corpora ?? [],
+    [workspace.data?.corpora],
+  );
   const [selectedCorpusId, setSelectedCorpusId] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
   const [submittedQuestion, setSubmittedQuestion] = useState("");
-  const [answerResults, setAnswerResults] = useState<KnowledgeCorpusAnswerResult[]>([]);
-  const [lastScope, setLastScope] = useState<KnowledgeQuestionScope>({ kind: "all" });
+  const [answerResults, setAnswerResults] = useState<
+    KnowledgeCorpusAnswerResult[]
+  >([]);
+  const [lastScope, setLastScope] = useState<KnowledgeQuestionScope>({
+    kind: "all",
+  });
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const selectedCorpus = useMemo(
-    () => corpora.find((corpus) => corpus.corpusId === selectedCorpusId) ?? null,
-    [corpora, selectedCorpusId]
+    () =>
+      corpora.find((corpus) => corpus.corpusId === selectedCorpusId) ?? null,
+    [corpora, selectedCorpusId],
   );
 
   const answerScopeLabel = getScopeLabel(lastScope, corpora, labels);
@@ -93,7 +101,14 @@ export function KnowledgeUserQaSurface({
 
       setAnswerResults(results);
     },
-    [askAcrossCorpora, corpora, labels.noSourcesForQuestion, labels.questionRequired, selectedCorpus, topK]
+    [
+      askAcrossCorpora,
+      corpora,
+      labels.noSourcesForQuestion,
+      labels.questionRequired,
+      selectedCorpus,
+      topK,
+    ],
   );
 
   const askAgain = useCallback(async () => {
@@ -134,7 +149,9 @@ export function KnowledgeUserQaSurface({
           <FaIcon icon="book-open" aria-hidden="true" className="size-4" />
         </div>
         <div className="min-w-0">
-          <h1 className="truncate text-sm font-semibold text-foreground sm:text-base">{labels.title}</h1>
+          <h1 className="truncate text-sm font-semibold text-foreground sm:text-base">
+            {labels.title}
+          </h1>
         </div>
       </header>
 
@@ -145,7 +162,11 @@ export function KnowledgeUserQaSurface({
           scopeLabel={answerScopeLabel}
           results={answerResults}
           isPending={ask.isPending}
-          statusMessage={statusMessage ?? workspaceError(workspace.error, labels, resolveErrorMessage) ?? ask.errorMessage}
+          statusMessage={
+            statusMessage ??
+            workspaceError(workspace.error, labels, resolveErrorMessage) ??
+            ask.errorMessage
+          }
           formatScore={formatScore}
           labels={labels}
           onAskAgain={askAgain}
@@ -187,7 +208,7 @@ function toScope(corpus: KnowledgeUserCorpus | null): KnowledgeQuestionScope {
 
 function resolveScopeCorpora(
   scope: KnowledgeQuestionScope,
-  corpora: KnowledgeUserCorpus[]
+  corpora: KnowledgeUserCorpus[],
 ): KnowledgeUserCorpus[] {
   if (scope.kind === "all") {
     return corpora;
@@ -200,19 +221,22 @@ function resolveScopeCorpora(
 function getScopeLabel(
   scope: KnowledgeQuestionScope,
   corpora: KnowledgeUserCorpus[],
-  labels: KnowledgeQaLabels
+  labels: KnowledgeQaLabels,
 ): string {
   if (scope.kind === "all") {
     return labels.allCorpora;
   }
 
-  return corpora.find((item) => item.corpusId === scope.corpusId)?.name ?? labels.selectedCorpus;
+  return (
+    corpora.find((item) => item.corpusId === scope.corpusId)?.name ??
+    labels.selectedCorpus
+  );
 }
 
 function workspaceError(
   error: unknown,
   labels: KnowledgeQaLabels,
-  resolveErrorMessage?: KnowledgeQaErrorMessageResolver
+  resolveErrorMessage?: KnowledgeQaErrorMessageResolver,
 ): string | null {
   if (!error) {
     return null;

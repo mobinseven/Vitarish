@@ -18,9 +18,17 @@ interface SeaProcedureDetailPageProps {
   onNavigate?: (intent: SeaNavigationIntent) => void;
 }
 
-export function SeaProcedureDetailPage({ projectId, procedureId, onNavigate }: SeaProcedureDetailPageProps) {
+export function SeaProcedureDetailPage({
+  projectId,
+  procedureId,
+  onNavigate,
+}: SeaProcedureDetailPageProps) {
   const { t } = useLocalizedText();
-  const { data: procedure, isLoading, error } = useSeaProcedureDetail(procedureId);
+  const {
+    data: procedure,
+    isLoading,
+    error,
+  } = useSeaProcedureDetail(procedureId);
   const { data: events } = useSeaEvents(procedureId);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -64,7 +72,11 @@ export function SeaProcedureDetailPage({ projectId, procedureId, onNavigate }: S
         </div>
       </div>
 
-      <SeaEventTimeline procedureId={procedureId} projectId={projectId} onNavigate={onNavigate} />
+      <SeaEventTimeline
+        procedureId={procedureId}
+        projectId={projectId}
+        onNavigate={onNavigate}
+      />
 
       <SeaProcedureForm
         isOpen={isEditOpen}
@@ -85,7 +97,9 @@ export function SeaProcedureDetailPage({ projectId, procedureId, onNavigate }: S
         onClose={() => setIsCreateEventOpen(false)}
         projectId={projectId}
         procedureId={procedureId}
-        previousEventId={events && events.length > 0 ? events[events.length - 1].id : undefined}
+        previousEventId={
+          events && events.length > 0 ? events[events.length - 1].id : undefined
+        }
         onNavigate={onNavigate}
       />
     </div>

@@ -5,7 +5,11 @@ import { Button, Label, TextArea, TextField } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
 import { SeaLoadingState, SeaEmptyState } from "../state/SeaStateSurface";
 import { useSeaEventAttachments } from "../../hooks/attachments/useSeaAttachments";
-import { useCreateSeaFileAttachment, useCreateSeaTextAttachment, useDeleteSeaAttachment } from "../../hooks/attachments/useSeaAttachmentMutations";
+import {
+  useCreateSeaFileAttachment,
+  useCreateSeaTextAttachment,
+  useDeleteSeaAttachment,
+} from "../../hooks/attachments/useSeaAttachmentMutations";
 import { useLocalizedText } from "../../localization";
 import { toSeaFileAttachment } from "../../api/attachments/seaAttachmentFile";
 import type { SeaAttachmentReadDto } from "../../api/attachments/seaAttachmentsApi";
@@ -14,7 +18,9 @@ interface SeaEventAttachmentsPanelProps {
   eventId: string;
 }
 
-export function SeaEventAttachmentsPanel({ eventId }: SeaEventAttachmentsPanelProps) {
+export function SeaEventAttachmentsPanel({
+  eventId,
+}: SeaEventAttachmentsPanelProps) {
   const { t } = useLocalizedText();
   const { data: attachments, isLoading } = useSeaEventAttachments(eventId);
   const createTextMutation = useCreateSeaTextAttachment();
@@ -24,7 +30,9 @@ export function SeaEventAttachmentsPanel({ eventId }: SeaEventAttachmentsPanelPr
 
   const [newText, setNewText] = useState("");
   const [isAdding, setIsAdding] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<SeaAttachmentReadDto | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<SeaAttachmentReadDto | null>(
+    null,
+  );
   const [fileError, setFileError] = useState<string | null>(null);
 
   const handleAddText = () => {
@@ -42,7 +50,7 @@ export function SeaEventAttachmentsPanel({ eventId }: SeaEventAttachmentsPanelPr
           setNewText("");
           setIsAdding(false);
         },
-      }
+      },
     );
   };
 
@@ -101,15 +109,21 @@ export function SeaEventAttachmentsPanel({ eventId }: SeaEventAttachmentsPanelPr
               event.currentTarget.value = "";
             }}
           />
-          <p className="text-sm font-medium">{t("sea.attachments.dropzoneTitle")}</p>
-          <p className="text-xs text-muted">{t("sea.attachments.dropzoneDescription")}</p>
+          <p className="text-sm font-medium">
+            {t("sea.attachments.dropzoneTitle")}
+          </p>
+          <p className="text-xs text-muted">
+            {t("sea.attachments.dropzoneDescription")}
+          </p>
           <Button
             size="sm"
             variant="ghost"
             onPress={() => fileInputRef.current?.click()}
             isDisabled={createFileMutation.isPending}
           >
-            {createFileMutation.isPending ? t("common.states.saving") : t("sea.attachments.addFile")}
+            {createFileMutation.isPending
+              ? t("common.states.saving")
+              : t("sea.attachments.addFile")}
           </Button>
           {fileError && <p className="text-xs text-danger">{fileError}</p>}
         </div>
@@ -121,7 +135,14 @@ export function SeaEventAttachmentsPanel({ eventId }: SeaEventAttachmentsPanelPr
               <TextArea placeholder={t("sea.attachments.textPlaceholder")} />
             </TextField>
             <div className="flex justify-end gap-2">
-              <Button size="sm" variant="ghost" onPress={() => { setIsAdding(false); setNewText(""); }}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onPress={() => {
+                  setIsAdding(false);
+                  setNewText("");
+                }}
+              >
                 {t("common.actions.cancel")}
               </Button>
               <Button
@@ -154,7 +175,8 @@ export function SeaEventAttachmentsPanel({ eventId }: SeaEventAttachmentsPanelPr
           <div className="rounded-lg border border-danger/20 bg-danger/5 p-4">
             <p className="text-sm mb-2">{t("sea.attachments.confirmDelete")}</p>
             <p className="text-sm text-muted mb-3">
-              {deleteTarget.contentType} - {deleteTarget.size} {t("sea.attachments.byteUnit")}
+              {deleteTarget.contentType} - {deleteTarget.size}{" "}
+              {t("sea.attachments.byteUnit")}
             </p>
             <div className="flex gap-2">
               <Button
@@ -171,7 +193,9 @@ export function SeaEventAttachmentsPanel({ eventId }: SeaEventAttachmentsPanelPr
                 onPress={handleDeleteAttachment}
                 isDisabled={deleteMutation.isPending}
               >
-                {deleteMutation.isPending ? t("common.states.saving") : t("common.actions.delete")}
+                {deleteMutation.isPending
+                  ? t("common.states.saving")
+                  : t("common.actions.delete")}
               </Button>
             </div>
           </div>
@@ -211,7 +235,8 @@ function AttachmentItem({
           </a>
         )}
         <p className="text-xs text-muted mt-1">
-          {attachment.contentType} - {attachment.size} {t("sea.attachments.byteUnit")}
+          {attachment.contentType} - {attachment.size}{" "}
+          {t("sea.attachments.byteUnit")}
         </p>
       </div>
       <Button

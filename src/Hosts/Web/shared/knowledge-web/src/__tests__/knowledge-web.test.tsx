@@ -67,14 +67,18 @@ describe("@vitarish/knowledge-web", () => {
     render(
       <QueryClientProvider client={new QueryClient()}>
         <KnowledgeUserQaSurface client={client} labels={labels} />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
 
     expect(screen.getByText("Choose a corpus")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Knowledge Q&A" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Knowledge Q&A" }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("Question")).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.getByLabelText("Knowledge sources")).toHaveTextContent("All corpora");
+      expect(screen.getByLabelText("Knowledge sources")).toHaveTextContent(
+        "All corpora",
+      );
       expect(screen.getByText("Clinical guide")).toBeInTheDocument();
     });
   });
