@@ -1,3 +1,5 @@
+import type { EventItemSummary } from "./PatientProcedureEventItemModels";
+
 export interface ClinicalEventSummary {
   id: string;
   procedureId: string;
@@ -7,6 +9,7 @@ export interface ClinicalEventSummary {
   isCommitted: boolean;
   committedAt?: string;
   committedBy?: string;
+  attachments: EventItemSummary[];
   itemCount: number;
   position: number;
   createdAt: string;

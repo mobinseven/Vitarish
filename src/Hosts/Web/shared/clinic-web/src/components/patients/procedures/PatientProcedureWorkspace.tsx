@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Button, Card } from "@heroui/react";
 import { ErrorStateSurface, LoadingStateSurface } from "@vitarish/web-ui";
 import { usePatientProcedureDetail } from "../../../hooks/patients/procedures/usePatientProcedureDetail";
@@ -24,7 +23,6 @@ export function PatientProcedureWorkspace({
   onNavigate,
 }: PatientProcedureWorkspaceProps) {
   const { t } = useLocalizedText();
-  const [selectedEventId, setSelectedEventId] = useState<string>();
   const procedureQuery = usePatientProcedureDetail(procedureId);
   const eventsQuery = usePatientProcedureEvents(procedureId);
   const events = eventsQuery.data ?? [];
@@ -59,11 +57,7 @@ export function PatientProcedureWorkspace({
           ) : (
             <PatientProcedureEventTimeline
               events={events}
-              patientId={patientId}
               procedureId={procedureId}
-              selectedEventId={selectedEventId}
-              onSelectEvent={setSelectedEventId}
-              onNavigate={onNavigate}
             />
           )}
         </Card.Content>

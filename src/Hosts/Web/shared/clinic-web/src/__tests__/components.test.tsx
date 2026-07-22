@@ -69,6 +69,8 @@ vi.mock("../hooks/patients/procedures/usePatientProcedureEventItemMutations", ()
 }));
 
 vi.mock("@vitarish/sea-web", () => ({
+  isStoredSeaAttachmentContent: () => false,
+  loadStoredSeaAttachmentContent: vi.fn(),
   useSeaEventCapabilities: () => ({ data: { canWrite: true }, isLoading: false }),
 }));
 
@@ -141,8 +143,8 @@ describe("clinic display components", () => {
     });
     hookMocks.usePatientProcedureEvents.mockReturnValue({
       data: [
-        { id: "event-1", projectId: "patient-1", procedureId: "procedure-1", title: "Assessment", description: "", isCommitted: true, committedAt: "2026-07-13T08:00:00Z", itemCount: 2, createdAt: "2026-07-13T07:00:00Z", position: 0 },
-        { id: "event-2", projectId: "patient-1", procedureId: "procedure-1", title: "Treatment", description: "", isCommitted: false, itemCount: 0, createdAt: "2026-07-13T09:00:00Z", position: 1 },
+        { id: "event-1", projectId: "patient-1", procedureId: "procedure-1", title: "Assessment", description: "", isCommitted: true, committedAt: "2026-07-13T08:00:00Z", attachments: [], itemCount: 2, createdAt: "2026-07-13T07:00:00Z", position: 0 },
+        { id: "event-2", projectId: "patient-1", procedureId: "procedure-1", title: "Treatment", description: "", isCommitted: false, attachments: [], itemCount: 0, createdAt: "2026-07-13T09:00:00Z", position: 1 },
       ],
       error: null,
       isLoading: false,
@@ -213,6 +215,51 @@ describe("clinic display components", () => {
     expect(screen.getByText("Try adjusting your search.")).toBeInTheDocument();
   });
 
+  it("offers date-of-surgery sorting", () => {
+    const onSort = vi.fn();
+    render(
+      <PatientsGrid
+        patients={[]}
+        totalCount={0}
+        descending={false}
+        onAddPatient={vi.fn()}
+        onSearch={vi.fn()}
+        onSelectPatient={vi.fn()}
+        onSort={onSort}
+      />,
+      { wrapper: Wrapper },
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Sort" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Date of Surgery" }));
+    expect(onSort).toHaveBeenCalledWith("DateOfSurgery");
+  });
+
+  it("shows the selected surgery date as the patient-row subtitle", () => {
+    render(
+      <PatientsGrid
+        patients={[{
+          id: "patient-1",
+          firstName: "Ada",
+          lastName: "Lovelace",
+          identificationCode: "P-100",
+          dateOfSurgery: "2026-07-16",
+        }]}
+        totalCount={1}
+        sortBy="DateOfSurgery"
+        descending={false}
+        onAddPatient={vi.fn()}
+        onSearch={vi.fn()}
+        onSelectPatient={vi.fn()}
+        onSort={vi.fn()}
+      />,
+      { wrapper: Wrapper },
+    );
+
+    expect(screen.getByText("7/16/2026")).toBeInTheDocument();
+    expect(screen.queryByText(/Identification Code: P-100/)).not.toBeInTheDocument();
+  });
+
   it("renders responsive patient cards with an icon avatar, selection, and sorting", () => {
     const onSelectPatient = vi.fn();
     const onSort = vi.fn();
@@ -275,6 +322,7 @@ describe("clinic display components", () => {
     fireEvent.click(screen.getByRole("button", { name: "Sort" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Identification Code" }));
     expect(onSort).toHaveBeenCalledWith("IdentificationCode");
+
   });
 
   it("lets the conversation own its bounded scrollport while keeping the composer outside it", () => {
@@ -289,6 +337,26 @@ describe("clinic display components", () => {
     expect(conversation).toHaveClass("min-h-0", "flex-1");
     expect(conversation.closest('[data-slot="scroll-shadow"]')).toBeNull();
     expect(conversation).not.toContainElement(composer);
+  });
+
+  it("groups event items by creator ID while retaining chronological order within each group", () => {
+    hookMocks.usePatientProcedureEventItems.mockReturnValue({
+      data: [
+        { id: "item-1", eventId: "event-1", type: "note", content: "First from Grace", authorId: "clinician-2", authorName: "Grace Hopper", createdAt: "2026-07-14T08:00:00Z" },
+        { id: "item-2", eventId: "event-1", type: "note", content: "From Lin", authorId: "clinician-3", authorName: "Lin Chen", createdAt: "2026-07-14T08:01:00Z" },
+        { id: "item-3", eventId: "event-1", type: "note", content: "Second from Grace", authorId: "clinician-2", authorName: "Grace Hopper", createdAt: "2026-07-14T08:02:00Z" },
+      ],
+      error: null,
+      isLoading: false,
+      refetch: vi.fn(),
+    });
+
+    render(<PatientProcedureEventItemsPanel canWrite={false} eventId="event-1" />, { wrapper: Wrapper });
+
+    expect(screen.getAllByText("Grace Hopper")).toHaveLength(1);
+    expect(screen.getAllByText("Lin Chen")).toHaveLength(1);
+    const conversation = screen.getByRole("log");
+    expect(conversation.textContent).toMatch(/First from Grace[\s\S]*Second from Grace[\s\S]*From Lin/);
   });
 
   it("uses a unique heading relationship for each event items panel", () => {
@@ -477,9 +545,7 @@ describe("clinic display components", () => {
     expect(onDelete).toHaveBeenCalledOnce();
   });
 
-  it("focuses a clinical timeline entry before opening its details", () => {
-    const onNavigate = vi.fn();
-    const onSelectEvent = vi.fn();
+  it("renders attachment actions for clinical timeline entries", () => {
     hookMocks.usePatientProcedureEventDetail.mockReturnValue({
       data: {
         id: "event-2", projectId: "patient-1", procedureId: "procedure-1", title: "Treatment", description: "", isCommitted: false, createdAt: "2026-07-13T09:00:00Z", position: 1,
@@ -487,13 +553,19 @@ describe("clinic display components", () => {
       error: null,
       isLoading: false,
     });
-    render(<PatientProcedureEventTimeline patientId="patient-1" procedureId="procedure-1" events={[
-      { id: "event-1", projectId: "patient-1", procedureId: "procedure-1", title: "Assessment", description: "", isCommitted: true, committedAt: "2026-07-13T08:00:00Z", itemCount: 2, createdAt: "2026-07-13T07:00:00Z", position: 0 },
-      { id: "event-2", projectId: "patient-1", procedureId: "procedure-1", title: "Treatment", description: "", isCommitted: false, itemCount: 0, createdAt: "2026-07-13T09:00:00Z", position: 1 },
-    ]} onNavigate={onNavigate} onSelectEvent={onSelectEvent} />, { wrapper: Wrapper });
-    fireEvent.click(screen.getByRole("button", { name: "Treatment" }));
-    expect(onSelectEvent).toHaveBeenCalledWith("event-2");
-    expect(onNavigate).not.toHaveBeenCalled();
+    render(<PatientProcedureEventTimeline procedureId="procedure-1" events={[
+      { id: "event-1", projectId: "patient-1", procedureId: "procedure-1", title: "Assessment", description: "", isCommitted: true, committedAt: "2026-07-13T08:00:00Z", attachments: [
+        { id: "attachment-1", eventId: "event-1", type: "note", content: "Use the provided aftercare instructions.", createdAt: "2026-07-13T07:00:00Z" },
+        { id: "attachment-2", eventId: "event-1", type: "media", content: "data:image/png;base64,image", contentType: "image/png", fileName: "intraoral.png", createdAt: "2026-07-13T07:00:00Z" },
+        { id: "attachment-3", eventId: "event-1", type: "file", content: "stored:attachment-3", fileName: "assessment.pdf", createdAt: "2026-07-13T07:00:00Z" },
+      ], itemCount: 2, createdAt: "2026-07-13T07:00:00Z", position: 0 },
+      { id: "event-2", projectId: "patient-1", procedureId: "procedure-1", title: "Treatment", description: "", isCommitted: false, attachments: [], itemCount: 0, createdAt: "2026-07-13T09:00:00Z", position: 1 },
+    ]} />, { wrapper: Wrapper });
+    expect(screen.getByText("Treatment")).toBeInTheDocument();
+    expect(screen.getByText("Use the provided aftercare instructions.")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "intraoral.png" })).toBeInTheDocument();
+    expect(screen.getByText("assessment.pdf")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Add attachment" })).toHaveLength(2);
   });
 
   it("renders service presentation models and delegates delete", () => {

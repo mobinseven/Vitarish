@@ -25,6 +25,7 @@ export interface PatientProcedureEventItemMessageProps {
   canWrite: boolean;
   isDeleting: boolean;
   item: EventItemSummary;
+  showAuthor?: boolean;
   viewer?: ProcedureEventViewer;
   onDelete: () => void;
 }
@@ -104,6 +105,7 @@ export function PatientProcedureEventItemMessage({
   canWrite,
   isDeleting,
   item,
+  showAuthor = true,
   viewer,
   onDelete,
 }: PatientProcedureEventItemMessageProps) {
@@ -189,7 +191,7 @@ export function PatientProcedureEventItemMessage({
   ) : (
     <ChatMessage.Assistant id={item.id}>
       <ChatMessage.Body>
-        <ChatSource sourceType="document" title={item.authorName} />
+        {showAuthor ? <ChatSource sourceType="document" title={item.authorName} /> : null}
         {body}
         {attachmentError}
       </ChatMessage.Body>

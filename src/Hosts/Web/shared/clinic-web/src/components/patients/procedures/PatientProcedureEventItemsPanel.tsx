@@ -7,7 +7,10 @@ import { FaIcon } from "@vitarish/web-ui";
 import { useDeletePatientProcedureEventItem } from "../../../hooks/patients/procedures/usePatientProcedureEventItemMutations";
 import { usePatientProcedureEventItems } from "../../../hooks/patients/procedures/usePatientProcedureEventItems";
 import { useLocalizedText } from "../../../localization";
-import type { ProcedureEventViewer } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
+import type {
+  EventItemSummary,
+  ProcedureEventViewer,
+} from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 import { PatientProcedureEventItemComposer } from "./PatientProcedureEventItemComposer";
 import { PatientProcedureEventItemMessage } from "./PatientProcedureEventItemMessage";
 
@@ -15,6 +18,20 @@ interface PatientProcedureEventItemsPanelProps {
   eventId: string;
   canWrite: boolean;
   viewer?: ProcedureEventViewer;
+}
+
+function groupItemsByCreator(items: EventItemSummary[]) {
+  const groups = new Map<string, EventItemSummary[]>();
+
+  for (const item of items) {
+    // Entries without a creator ID must not be attributed to the same person.
+    const creatorKey = item.authorId ?? item.id;
+    const group = groups.get(creatorKey);
+    if (group) group.push(item);
+    else groups.set(creatorKey, [item]);
+  }
+
+  return [...groups.values()];
 }
 
 export function PatientProcedureEventItemsPanel({
@@ -29,6 +46,7 @@ export function PatientProcedureEventItemsPanel({
   const items = [...(query.data ?? [])].sort((left, right) =>
     left.createdAt.localeCompare(right.createdAt),
   );
+  const itemGroups = groupItemsByCreator(items);
 
   return (
     <section className="flex min-h-0 flex-1 flex-col" aria-labelledby={headingId}>
@@ -60,16 +78,19 @@ export function PatientProcedureEventItemsPanel({
               {t("clinic.procedures.items.empty")}</EmptyState.Title>
                 </EmptyState.Header>
               </EmptyState>
-          ) : items.map((item) => (
-            <PatientProcedureEventItemMessage
-              key={item.id}
-              canWrite={canWrite}
-              isDeleting={remove.isPending}
-              item={item}
-              viewer={viewer}
-              onDelete={() => remove.mutate(item.id)}
-            />
-          ))}
+          ) : itemGroups.map((group) =>
+            group.map((item, index) => (
+              <PatientProcedureEventItemMessage
+                key={item.id}
+                canWrite={canWrite}
+                isDeleting={remove.isPending}
+                item={item}
+                showAuthor={index === 0}
+                viewer={viewer}
+                onDelete={() => remove.mutate(item.id)}
+              />
+            )),
+          )}
         </ChatConversation.Content>
         <ChatConversation.ScrollButton
           aria-label={t("clinic.procedures.items.scrollToLatest")}
