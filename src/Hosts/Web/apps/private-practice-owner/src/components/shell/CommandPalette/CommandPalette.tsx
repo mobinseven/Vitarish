@@ -12,7 +12,7 @@ export function CommandPalette() {
 
   return (
     <>
-      <Button variant="outline" onPress={() => setOpen(true)}>
+      <Button variant="secondary" onPress={() => setOpen(true)}>
         {t("commandPalette.open")}{" "}
         <Kbd>
           <Kbd.Abbr keyValue="command">

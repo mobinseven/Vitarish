@@ -52,7 +52,7 @@
   --text-9xl: 11rem;
   --text-9xl--line-height: 1.15;
 
-  --radius: .75rem;
+  --radius: .25rem;
   /* --field-radius: 1.75rem; */
 
   /*
@@ -90,9 +90,9 @@
 .glass-light,
 [data-theme="light"] {
 
-  --background: oklch(92.882% 0.01537 241.979 / 0.525);
-  --surface: oklch(99.849% 0.00215 200.033 / 0.484);
-  --surface-secondary: oklch(100% 0.006 240 / 40%);
+  --background: oklch(93% 0.012 240 / 52%);
+  --surface: oklch(97% 0.008 240 / 48%);
+  --surface-secondary: oklch(98.5% 0.008 240 / 40%);
   --surface-tertiary: oklch(100% 0.008 240 / 28%);
   --overlay: oklch(100% 0.004 240 / 70%);
   --field-background: oklch(100% 0.006 240 / 42%);
@@ -137,10 +137,10 @@ html.glass-light {
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --background: oklch(18% 0.02 250);
-  --surface: oklch(29% 0.025 245 / 44%);
-  --surface-secondary: oklch(34% 0.025 245 / 34%);
-  --surface-tertiary: oklch(39% 0.025 245 / 26%);
+  --background: oklch(18% 0.02 240);
+  --surface: oklch(27% 0.02 240 / 44%);
+  --surface-secondary: oklch(33% 0.02 240 / 34%);
+  --surface-tertiary: oklch(39% 0.02 240 / 26%);
   --overlay: oklch(31% 0.025 245 / 60%);
   --field-background: oklch(37% 0.025 245 / 38%);
   --field-border: oklch(100% 0 0 / 22%);
