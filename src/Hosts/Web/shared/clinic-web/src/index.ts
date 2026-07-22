@@ -8,6 +8,7 @@ export { PatientCreatePage } from "./components/patients/create/PatientCreatePag
 export { PatientEditPage } from "./components/patients/edit/PatientEditPage";
 export { PatientProcedurePage } from "./components/patients/procedures/PatientProcedurePage";
 export { PatientProcedureEventPage } from "./components/patients/procedures/PatientProcedureEventPage";
+export { ProcedureTemplateManagementPanel } from "./components/procedures";
 export { OwnerShiftListPage } from "./components/appointments/shifts/OwnerShiftListPage";
 export { OwnerShiftDetailPage } from "./components/appointments/shifts/OwnerShiftDetailPage";
 export { OwnerShiftCreatePage } from "./components/appointments/shifts/OwnerShiftCreatePage";

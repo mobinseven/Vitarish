@@ -1,0 +1,1 @@
+export { ProcedureTemplateManagementPanel } from "./ProcedureTemplateManagementPanel";
