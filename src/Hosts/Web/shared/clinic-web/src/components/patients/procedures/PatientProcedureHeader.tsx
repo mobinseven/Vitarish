@@ -1,79 +1,58 @@
 "use client";
 
-import { useState, type Key } from "react";
-import { Button, Dropdown, Label, Separator } from "@heroui/react";
-import { FaIcon } from "@vitarish/web-ui";
-import { useLocalizedText } from "../../../localization/index";
-import { PatientProcedureForm } from "./PatientProcedureForm";
-import { PatientProcedureDeleteDialog } from "./PatientProcedureDeleteDialog";
+import { Avatar, Card } from "@heroui/react";
+import { FaIcon, RevealHeader } from "@vitarish/web-ui";
+import type { PatientViewDto } from "../../../models/patients/patientSearchModels";
 import type { PatientProcedureDetail } from "../../../models/patients/procedures/PatientProcedureModels";
+import { useLocalizedText } from "../../../localization";
 
 interface PatientProcedureHeaderProps {
+  patient: PatientViewDto;
   procedure: PatientProcedureDetail;
-  patientId: string;
-  onDeleted: () => void;
 }
 
-export function PatientProcedureHeader({ procedure, patientId, onDeleted }: PatientProcedureHeaderProps) {
-  const { t, locale } = useLocalizedText();
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const handleAction = (key: Key) => {
-    if (key === "edit") setShowEditForm(true);
-    if (key === "delete") setShowDeleteDialog(true);
-  };
+function getDisplayName(patient: PatientViewDto, fallback: string): string {
+  const name = [patient.firstName, patient.lastName].filter(Boolean).join(" ").trim();
+  return name || patient.name?.trim() || fallback;
+}
+
+export function PatientProcedureHeader({ patient, procedure }: PatientProcedureHeaderProps) {
+  const { t } = useLocalizedText();
+  const displayName = getDisplayName(patient, t("clinic.patients.unnamedPatient"));
 
   return (
-    <>
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{procedure.name}</h1>
-          {procedure.description && (
-            <p className="text-sm text-muted mt-1">{procedure.description}</p>
-          )}
-          <div className="flex items-center gap-3 mt-2 text-xs text-muted">
-            <span>{t("clinic.procedures.events.count", { count: procedure.eventCount })}</span>
-            {procedure.committedEventCount > 0 && (
-              <span>{procedure.committedEventCount} {t("clinic.procedures.committed")}</span>
-            )}
+    <Card variant="transparent">
+      <Card.Header className="flex flex-col items-center gap-4 px-4 py-5 text-center sm:flex-row sm:text-left">
+        <Avatar color="accent" size="lg" variant="soft" role="img" aria-label={displayName}>
+          <Avatar.Fallback className="text-lg font-semibold">
+            <FaIcon icon="user" />
+          </Avatar.Fallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+            <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">{displayName}</h1>
+          </div>
+          <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-sm text-muted sm:justify-start">
+            <span>{procedure.name}</span>
           </div>
         </div>
-        <Dropdown>
-          <Dropdown.Trigger aria-label={t("clinic.procedures.events.actionMenu.label")}>
-            <FaIcon icon="ellipsis-vertical" aria-hidden="true" className="text-lg" />
-          </Dropdown.Trigger>
-          <Dropdown.Popover>
-            <Dropdown.Menu onAction={handleAction}>
-              <Dropdown.Item id="edit" textValue={t("common.actions.edit")}>
-                <Label>{t("common.actions.edit")}</Label>
-              </Dropdown.Item>
-              <Dropdown.Item id="delete" textValue={t("common.actions.delete")} variant="danger">
-                <Label>{t("common.actions.delete")}</Label>
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown.Popover>
-        </Dropdown>
-      </div>
-
-      {showEditForm && (
-        <PatientProcedureForm
-          patientId={patientId}
-          procedureId={procedure.id}
-          initialName={procedure.name}
-          initialDescription={procedure.description}
-          onClose={() => setShowEditForm(false)}
-        />
-      )}
-
-      {showDeleteDialog && (
-        <PatientProcedureDeleteDialog
-          procedureId={procedure.id}
-          procedureName={procedure.name}
-          eventCount={procedure.eventCount}
-          onClose={() => setShowDeleteDialog(false)}
-          onDeleted={onDeleted}
-        />
-      )}
-    </>
+      </Card.Header>
+      <RevealHeader
+        compactContent={
+          <div className="flex min-h-14 items-center gap-3 border-b border-border bg-background/95 px-4 shadow-sm backdrop-blur">
+            <Avatar color="accent" size="sm" variant="soft" role="img" aria-label={displayName}>
+              <Avatar.Fallback>
+                <FaIcon icon="user" />
+              </Avatar.Fallback>
+            </Avatar>
+            <div className="min-w-0">
+              <p className="truncate font-semibold text-foreground">{displayName}</p>
+              <p className="truncate text-sm text-muted">{procedure.name}</p>
+            </div>
+          </div>
+        }
+      />
+      <RevealHeader.Boundary />
+    </Card>
   );
 }

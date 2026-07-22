@@ -8,7 +8,7 @@ import { usePatientProcedureEvents } from "../../../hooks/patients/procedures/us
 import { usePatientDetail } from "../../../hooks/patients/usePatientDetail";
 import { useLocalizedText } from "../../../localization";
 import type { NavigationIntent } from "../../../navigation";
-import { PatientOverviewHeader } from "../overview/PatientOverviewHeader";
+import { PatientProcedureActions } from "./PatientProcedureActions";
 import { PatientProcedureEventTimeline } from "./PatientProcedureEventTimeline";
 import { PatientProcedureHeader } from "./PatientProcedureHeader";
 
@@ -41,13 +41,11 @@ export function PatientProcedureWorkspace({
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
       {patientQuery.data ? (
-        <Card className="overflow-hidden" variant="transparent">
-          <PatientOverviewHeader patient={patientQuery.data} />
-        </Card>
+        <PatientProcedureHeader patient={patientQuery.data} procedure={procedureQuery.data} />
       ) : null}
       <Card className="m-0">
         <Card.Content>
-          <PatientProcedureHeader
+          <PatientProcedureActions
             patientId={patientId}
             procedure={procedureQuery.data}
             onDeleted={() => onNavigate({ kind: "patientDetail", patientId })}
