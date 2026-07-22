@@ -46,6 +46,7 @@ export function PatientsGrid({
   const getSortLabel = (field: PatientSortBy) => {
     if (field === "Name") return t("clinic.patient.fields.firstName");
     if (field === "IdentificationCode") return t("clinic.patient.fields.identificationCode");
+    if (field === "DateOfSurgery") return t("clinic.patient.fields.dateOfSurgery");
     return t("clinic.patient.fields.dateOfBirth");
   };
 
@@ -106,7 +107,7 @@ export function PatientsGrid({
                   aria-label={t("clinic.patients.sortBy")}
                   onAction={(key) => onSort(key as PatientSortBy)}
                 >
-                  {(["Name", "IdentificationCode", "DateOfBirth"] as PatientSortBy[]).map((field) => (
+                  {(["Name", "IdentificationCode", "DateOfBirth", "DateOfSurgery"] as PatientSortBy[]).map((field) => (
                     <Dropdown.Item key={field} id={field} textValue={getSortLabel(field)}>
                       {getSortLabel(field)}
                       {sortBy === field ? <span aria-hidden="true">{descending ? "↓" : "↑"}</span> : null}
@@ -149,6 +150,7 @@ export function PatientsGrid({
                   key={patient.id}
                   patient={patient}
                   variant="secondary"
+                  subtitleField={sortBy}
                   onSelect={onSelectPatient}
                 />
               ))}

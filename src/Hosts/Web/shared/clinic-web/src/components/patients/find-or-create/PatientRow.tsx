@@ -2,26 +2,30 @@
 
 import { ItemCard, PressableFeedback } from "@heroui-pro/react";
 import { FaIcon } from "@vitarish/web-ui";
-import type { PatientViewDto } from "../../../models/patients/patientSearchModels";
+import type { PatientSortBy, PatientViewDto } from "../../../models/patients/patientSearchModels";
 import { useLocalizedText, formatDate } from "../../../localization/index";
 
 interface PatientRowProps {
   patient: PatientViewDto;
   onSelect: (patientId: string) => void;
+  subtitleField?: PatientSortBy;
   variant?: "outline" | "secondary";
 }
 
-export function PatientRow({ patient, onSelect, variant = "outline" }: PatientRowProps) {
+export function PatientRow({ patient, onSelect, subtitleField, variant = "outline" }: PatientRowProps) {
   const { t, locale } = useLocalizedText();
   const patientName = patient.firstName || patient.lastName
     ? ((patient.firstName ?? "") + " " + (patient.lastName ?? "")).trim()
     : patient.name || t("clinic.patients.unnamedPatient");
-  const description = [
-    patient.identificationCode
-      ? `${t("clinic.patient.fields.identificationCode")}: ${patient.identificationCode}`
-      : null,
-    patient.phone,
-  ].filter(Boolean).join(" / ");
+  const description = subtitleField === "DateOfBirth"
+    ? patient.dateOfBirth && formatDate(patient.dateOfBirth, locale)
+    : subtitleField === "DateOfSurgery"
+      ? patient.dateOfSurgery && formatDate(patient.dateOfSurgery, locale)
+      : subtitleField === "Name"
+        ? patientName
+        : patient.identificationCode
+          ? `${t("clinic.patient.fields.identificationCode")}: ${patient.identificationCode}`
+          : null;
 
   return (
     <ItemCard<"button">
