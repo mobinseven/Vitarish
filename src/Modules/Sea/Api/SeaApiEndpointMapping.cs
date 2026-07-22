@@ -316,9 +316,10 @@ public static class SeaApiEndpointMapping
 
     private static async Task<IResult> DeleteEventAsync(Guid id, ClaimsPrincipal user, IEventsService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if ((await service.GetAsync(id, cancellationToken)).Value is null) return NotFound();
+        var eventResult = await service.GetAsync(id, cancellationToken);
+        if (eventResult.Value is null) return NotFound();
         if (!await CanManageAsync(authorization, user)) return Results.Forbid();
-        return Results.Ok(new SeaCommandResult(await service.RemoveEventAsync(Guid.Empty, id, cancellationToken), id));
+        return Results.Ok(new SeaCommandResult(await service.RemoveEventAsync(eventResult.Value.ProcedureId, id, cancellationToken), id));
     }
 
     private static Task<IResult> MoveEventUpAsync(Guid id, ClaimsPrincipal user, IEventsService service, IAuthorizationService authorization, CancellationToken cancellationToken) =>

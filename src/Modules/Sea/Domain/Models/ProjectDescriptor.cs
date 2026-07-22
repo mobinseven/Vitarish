@@ -3,7 +3,7 @@ namespace Vitarish.Sea.Domain.Models;
 [EntityDescriptorFor(typeof(Project))]
 public record ProjectDescriptor : EntityDescriptor
 {
-    public bool? Template { get; init; } = false;
+    public bool? Template { get; init; }
     public string? IdentificationCode { get; init; }
     public ProjectSortBy? SortBy { get; init; }
     public bool Descending { get; init; }

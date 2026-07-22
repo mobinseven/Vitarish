@@ -5,7 +5,7 @@ namespace Vitarish.Sea.Domain.Dto;
 public record ProjectDescriptorDto : EntityDescriptorDto
 {
     [JsonPropertyName("template")]
-    public bool? Template { get; set; } = false;
+    public bool? Template { get; set; }
 
     [JsonPropertyName("identificationCode")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
