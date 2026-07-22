@@ -31,7 +31,7 @@ function EventAttachmentsDrawer({ eventId, onClose }: { eventId?: string; onClos
   return (
     <Sheet isOpen={Boolean(eventId)} placement="bottom" onOpenChange={(isOpen) => !isOpen && onClose()}>
       <Sheet.Backdrop>
-        <Sheet.Content>
+        <Sheet.Content className="mx-auto max-h-[95vh] max-w-[420px]">
           <Sheet.Dialog className="flex h-[75vh] flex-col">
             <Sheet.Handle />
             <Sheet.Header>
@@ -129,7 +129,7 @@ export function PatientProcedureEventTimeline({ procedureId, events }: PatientPr
                   </ContextMenu>
                 </Disclosure.Heading>
                 <Disclosure.Content>
-                  <Disclosure.Body className="shadow-panel flex flex-col items-center rounded-3xl bg-surface p-2">
+                  <Disclosure.Body className="shadow-panel flex flex-col rounded-3xl bg-surface p-2">
                     <div className="flex min-w-0 flex-col gap-1 py-1">
                       {event.attachments?.length ? (
                         <PatientProcedureEventAttachmentMiniView items={event.attachments} />

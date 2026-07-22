@@ -62,12 +62,19 @@ export function PatientProcedureEventAttachmentMiniView({
   items,
 }: PatientProcedureEventAttachmentMiniViewProps) {
   const { t } = useLocalizedText();
+  const visibleItems = items.slice(-5);
+  const remainingCount = items.length - visibleItems.length;
 
   if (items.length === 0) return null;
 
   return (
     <div aria-label={t("clinic.procedures.items.attachmentsPreview")} className="flex min-w-0 flex-col" role="group">
-      {items.map((item) => <EventAttachmentPreview key={item.id} item={item} />)}
+      {visibleItems.map((item) => <EventAttachmentPreview key={item.id} item={item} />)}
+      {remainingCount > 0 && (
+        <span className="text-muted pt-1 text-xs leading-5">
+          {t("clinic.procedures.items.moreAttachments", { count: remainingCount })}
+        </span>
+      )}
     </div>
   );
 }
