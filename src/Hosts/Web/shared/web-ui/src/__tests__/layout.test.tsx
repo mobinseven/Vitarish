@@ -2,6 +2,7 @@ import { createRef } from "react";
 import { render, screen } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { I18nProvider } from "@vitarish/web-localization";
 import {
   CenteredRegion,
   ContainedPage,
@@ -167,5 +168,34 @@ describe("shared layout policy components", () => {
     expect(container.querySelector("[data-slot='app-layout-menu-toggle']")).toBeNull();
     expect(screen.getAllByRole("button", { name: "Toggle context panel" })).toHaveLength(2);
     expect(container.querySelector("#vitarish-dashboard-main")).toHaveAttribute("tabindex", "-1");
+  });
+
+  it("keeps the desktop sidebar on the physical right in RTL layouts", () => {
+    const { container } = render(
+      <I18nProvider locale="fa">
+        <DashboardFrame
+          contentMode="page"
+          currentPath="/patients"
+          identity={{
+            accountHref: "/account",
+            accountLabel: "Account",
+            initials: "TU",
+            label: "Test User",
+            subtitle: "Account",
+          }}
+          mobileNavigation="sidebar"
+          navigate={vi.fn()}
+          navigationGroups={[]}
+          navigationLabel="Dashboard navigation"
+          skipLinkLabel="Skip to content"
+          title="Patients"
+        >
+          Content
+        </DashboardFrame>
+      </I18nProvider>
+    );
+
+    expect(container.querySelector("[data-app-layout]")).toHaveAttribute("data-direction", "rtl");
+    expect(container.querySelector("[data-slot='sidebar']")).toHaveAttribute("data-side", "right");
   });
 });

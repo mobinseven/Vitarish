@@ -48,6 +48,11 @@ describe("shared layout policy stylesheet", () => {
     expect(css).toMatch(/immersive-region[\s\S]*?min-block-size: 100%[\s\S]*?overflow: visible/);
   });
 
+  it("keeps RTL dashboard shell geometry physical while its regions remain RTL", () => {
+    expect(css).toMatch(/dashboard-frame"\]\[data-direction="rtl"\][\s\S]*?direction: ltr/);
+    expect(css).toMatch(/dashboard-frame"\]\[data-direction="rtl"\] > \*[\s\S]*?direction: rtl/);
+  });
+
   it("keeps reveal headers sticky inside page and workspace hosts", () => {
     expect(css).toMatch(/\[data-vitarish-reveal-header-host\][\s\S]*?position: sticky/);
     expect(css).toMatch(/\.vitarish-reveal-header[\s\S]*?position: absolute/);

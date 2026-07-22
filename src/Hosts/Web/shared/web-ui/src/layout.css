@@ -221,6 +221,17 @@
   overscroll-behavior-y: contain;
 }
 
+/* HeroUI Pro's physical sidebar order is evaluated inside a flex row. Keep the
+   shell geometry physical in RTL, then restore the document direction for each
+   rendered region so navigation and page content remain RTL. */
+[data-vitarish-layout="dashboard-frame"][data-direction="rtl"] {
+  direction: ltr;
+}
+
+[data-vitarish-layout="dashboard-frame"][data-direction="rtl"] > * {
+  direction: rtl;
+}
+
 /* AppLayout adapts prop-provided navbars to occupy its header row. Workspace
    navbars are main-content children, so they need their natural bar height. */
 [data-vitarish-layout="dashboard-frame"][data-content-mode="workspace"]
