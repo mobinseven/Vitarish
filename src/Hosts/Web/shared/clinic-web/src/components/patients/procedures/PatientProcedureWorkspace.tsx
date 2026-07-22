@@ -41,7 +41,7 @@ export function PatientProcedureWorkspace({
       {patientQuery.data ? (
         <PatientProcedureHeader patient={patientQuery.data} procedure={procedureQuery.data} />
       ) : null}
-      <Card className="m-0">
+      <Card className="m-0 w-full lg:max-w-4xl lg:self-center">
         <Card.Content>
           <PatientProcedureActions
             patientId={patientId}
