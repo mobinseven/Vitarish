@@ -1,7 +1,7 @@
 "use client";
 
 import { PromptInput } from "@heroui-pro/react/prompt-input";
-import { ChatPromptInput, type ChatTextDirection } from "@vitarish/web-ui";
+import { ChatPromptInput, FaIcon, type ChatTextDirection } from "@vitarish/web-ui";
 import { KnowledgeCorpusSelect } from "./KnowledgeCorpusSelect";
 import type { KnowledgeQaLabels, KnowledgeUserCorpus } from "../types";
 
@@ -65,7 +65,7 @@ export function KnowledgeQuestionComposer({
             tooltip={labels.newQuestionAction}
             onPress={onNewQuestion}
           >
-            <i aria-hidden="true" className="fa-solid fa-plus size-4" />
+            <FaIcon icon="plus" aria-hidden="true" className="size-4" />
           </PromptInput.Action>
         ) : null
       }

@@ -32,7 +32,7 @@ export function BreadcrumbUpButton({ navGroups }: BreadcrumbUpButtonProps) {
         variant="secondary"
         onPress={() => navigate(href)}
       >
-        <FaIcon icon={direction === "rtl" ? "arrow-left" : "arrow-right"} className="size-4" />
+        <FaIcon icon={direction === "rtl" ? "level-up-alt" : "level-up-alt"} />
       </Button>
       <Tooltip.Content>
         {t("appShell.navigation.up")}

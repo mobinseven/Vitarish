@@ -98,7 +98,7 @@ export function PatientsGrid({
                 <Button
                   size="sm"
                   aria-label={t("clinic.patients.sortBy")} variant="secondary">
-                  <i aria-hidden="true" className="fa-solid fa-arrow-down-a-z" />
+                  <FaIcon icon="arrow-down-a-z" aria-hidden="true" />
                   <span className="hidden md:inline">{t("clinic.patients.sortBy")}</span>
                 </Button>
               <Dropdown.Popover>
@@ -143,7 +143,7 @@ export function PatientsGrid({
               </EmptyState.Header>
             </EmptyState>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 p-1">
               {patients.map((patient) => (
                 <PatientRow
                   key={patient.id}

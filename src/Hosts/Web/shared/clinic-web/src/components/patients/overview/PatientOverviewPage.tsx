@@ -3,6 +3,7 @@
 import { Button, Card, Tabs, Tooltip } from "@heroui/react";
 import {
   ErrorStateSurface as ClinicErrorState,
+  FaIcon,
   LoadingStateSurface as ClinicLoadingState,
 } from "@vitarish/web-ui";
 import { usePatientDetail } from "../../../hooks/patients/usePatientDetail";
@@ -38,16 +39,16 @@ export function PatientOverviewPage({ patientId, onNavigate }: PatientOverviewPa
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-4" aria-label={t("clinic.patient.overview.title")}>
       <PatientOverviewHeader patient={patient} />
-      <Card variant="tertiary">
+      <Card variant="tertiary" className="text-center">
         <Card.Content>
           <div className="flex flex-wrap gap-3">
             <div className="hidden flex-wrap gap-3 md:flex">
               <Button variant="outline" onPress={() => onNavigate({ kind: "patientEdit", patientId })}>
-                <i className="fa-solid fa-pen" aria-hidden="true" />
+                <FaIcon icon="pen" aria-hidden="true" />
                 {t("clinic.patient.quickActions.edit")}
               </Button>
               <Button variant="primary" onPress={() => onNavigate({ kind: "checkIn" })}>
-                <i className="fa-solid fa-calendar-check" aria-hidden="true" />
+                <FaIcon icon="calendar-check" aria-hidden="true" />
                 {t("clinic.patient.quickActions.checkIn")}
               </Button>
             </div>
@@ -59,7 +60,7 @@ export function PatientOverviewPage({ patientId, onNavigate }: PatientOverviewPa
                   variant="outline"
                   onPress={() => onNavigate({ kind: "patientEdit", patientId })}
                 >
-                  <i className="fa-solid fa-pen" aria-hidden="true" />
+                  <FaIcon icon="pen" aria-hidden="true" />
                 </Button>
                 <Tooltip.Content>{t("clinic.patient.quickActions.edit")}</Tooltip.Content>
               </Tooltip>
@@ -70,7 +71,7 @@ export function PatientOverviewPage({ patientId, onNavigate }: PatientOverviewPa
                   variant="primary"
                   onPress={() => onNavigate({ kind: "checkIn" })}
                 >
-                  <i className="fa-solid fa-calendar-check" aria-hidden="true" />
+                  <FaIcon icon="calendar-check" aria-hidden="true" />
                 </Button>
                 <Tooltip.Content>{t("clinic.patient.quickActions.checkIn")}</Tooltip.Content>
               </Tooltip>
@@ -92,12 +93,12 @@ export function PatientOverviewPage({ patientId, onNavigate }: PatientOverviewPa
             <Tabs.ListContainer className="flex justify-center border-b border-border px-1">
               <Tabs.List aria-label={t("clinic.patient.overview.title")} className="w-full justify-between sm:w-auto sm:justify-center">
                 <Tabs.Tab id="procedures" className="min-h-12 px-3 text-base sm:px-5">
-                  <i className="fa-solid fa-list-check mr-2" aria-hidden="true" />
+                  <FaIcon icon="list-check" aria-hidden="true" className="mr-2" />
                   {t("clinic.procedures.title")}
                   <Tabs.Indicator />
                 </Tabs.Tab>
                 <Tabs.Tab id="profile" className="min-h-12 px-3 text-base sm:px-5">
-                  <i className="fa-solid fa-user mr-2" aria-hidden="true" />
+                  <FaIcon icon="user" aria-hidden="true" className="mr-2" />
                   {t("clinic.patient.sections.profile")}
                   <Tabs.Indicator />
                 </Tabs.Tab>

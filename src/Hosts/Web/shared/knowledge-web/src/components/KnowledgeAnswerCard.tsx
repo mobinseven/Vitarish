@@ -7,6 +7,7 @@ import {
   ChatMessage,
   ChatSource,
   ChatSourceList,
+  FaIcon,
 } from "@vitarish/web-ui";
 import type { KnowledgeCorpusAnswerResult, KnowledgeQaLabels } from "../types";
 
@@ -50,7 +51,7 @@ export function KnowledgeAnswerCard({
             variant="ghost"
             onPress={onAskAgain}
           >
-            <i aria-hidden="true" className="fa-solid fa-rotate-right size-4" />
+            <FaIcon icon="rotate-right" aria-hidden="true" className="size-4" />
           </Button>
           {!isSingleCorpusMode && (
             <Button
@@ -60,7 +61,7 @@ export function KnowledgeAnswerCard({
               variant="ghost"
               onPress={() => onContinueInCorpus(corpus.corpusId)}
             >
-              <i aria-hidden="true" className="fa-solid fa-filter size-4" />
+              <FaIcon icon="filter" aria-hidden="true" className="size-4" />
             </Button>
           )}
         </>

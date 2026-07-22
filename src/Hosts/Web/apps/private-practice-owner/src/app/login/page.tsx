@@ -7,10 +7,10 @@ import { Routes } from "@/app/routes";
 import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
 
 const authMethods = [
-  { id: "password", labelKey: "auth.login.passwordMethod" as MessageKey, href: Routes.Login.Password, iconClassName: "fa-solid fa-lock" },
-  { id: "phone", labelKey: "auth.login.phoneMethod" as MessageKey, href: Routes.Login.Phone, iconClassName: "fa-solid fa-mobile-screen-button" },
-  { id: "email", labelKey: "auth.login.emailMethod" as MessageKey, href: Routes.Login.Email, iconClassName: "fa-solid fa-envelope" },
-  { id: "passkey", labelKey: "auth.login.passkeyMethod" as MessageKey, href: Routes.Login.Passkey, iconClassName: "fa-solid fa-key" },
+  { id: "password", labelKey: "auth.login.passwordMethod" as MessageKey, href: Routes.Login.Password, icon: "lock" },
+  { id: "phone", labelKey: "auth.login.phoneMethod" as MessageKey, href: Routes.Login.Phone, icon: "mobile-screen-button" },
+  { id: "email", labelKey: "auth.login.emailMethod" as MessageKey, href: Routes.Login.Email, icon: "envelope" },
+  { id: "passkey", labelKey: "auth.login.passkeyMethod" as MessageKey, href: Routes.Login.Passkey, icon: "key" },
 ];
 
 export default function LoginPage() {

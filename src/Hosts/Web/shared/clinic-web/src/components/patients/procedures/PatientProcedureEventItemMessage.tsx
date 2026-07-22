@@ -6,10 +6,13 @@ import {
   ChatAttachment,
   ChatAttachmentGroup,
   ChatMessage,
+  ChatMessageActions,
+  ChatSource,
   ContextMenu,
   EmptyState,
 } from "@heroui-pro/react";
 import { MenuItem } from "react-aria-components";
+import { FaIcon } from "@vitarish/web-ui";
 import { isStoredSeaAttachmentContent } from "@vitarish/sea-web";
 import { usePatientProcedureAttachmentSource } from "../../../hooks/patients/procedures/usePatientProcedureAttachmentSource";
 import { formatDateTime, formatFileSize, useLocalizedText } from "../../../localization";
@@ -87,7 +90,7 @@ function AttachmentPreviewDialog({
               download={fileName}
               href={src}
             >
-              <i aria-hidden="true" className="fa-solid fa-download size-4" />
+              <FaIcon icon="download" aria-hidden="true" className="size-4" />
               {t("clinic.procedures.items.download")}
             </a>
           </Modal.Footer>
@@ -179,18 +182,17 @@ export function PatientProcedureEventItemMessage({
     null
   ) : null;
   const message = isCurrentUser ? (
-    <ChatMessage.User id={item.id} role="article">
+    <ChatMessage.User id={item.id}>
       {attachment ? body : <ChatMessage.Bubble>{body}</ChatMessage.Bubble>}
       {attachmentError}
     </ChatMessage.User>
   ) : (
-    <ChatMessage.Assistant id={item.id} role="article">
-      <ChatMessage.Avatar show alt={authorLabel}>
-        <Avatar.Fallback>
-          <i className="fa-solid fa-user" />
-        </Avatar.Fallback>
-      </ChatMessage.Avatar>
-      <ChatMessage.Body>{body}{attachmentError}</ChatMessage.Body>
+    <ChatMessage.Assistant id={item.id}>
+      <ChatMessage.Body>
+        <ChatSource sourceType="document" title={item.authorName} />
+        {body}
+        {attachmentError}
+      </ChatMessage.Body>
     </ChatMessage.Assistant>
   );
 
@@ -213,7 +215,7 @@ export function PatientProcedureEventItemMessage({
           ) : null}
           {canWrite ? (
             <MenuItem className="text-danger flex items-center gap-2 px-3 py-2 text-sm" id="delete" textValue={t("clinic.procedures.items.delete")}>
-              <i aria-hidden="true" className="fa-solid fa-trash-can size-4" />
+              <FaIcon icon="trash-can" aria-hidden="true" className="size-4" />
               <span>{t("clinic.procedures.items.delete")}</span>
             </MenuItem>
           ) : null}

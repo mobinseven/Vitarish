@@ -1,5 +1,5 @@
 "use client";
-import { DetailGrid, type DetailGridItem } from "@vitarish/web-ui";
+import { DetailGrid, FaIcon, type DetailGridItem } from "@vitarish/web-ui";
 
 import { useCallback, useState } from "react";
 import { Button } from "@heroui/react";
@@ -81,7 +81,7 @@ export function PatientCheckInWizard({
             <div className="flex items-center justify-between">
               <h2>{t("clinic.checkIn.step2")}</h2>
               <Button variant="ghost" onPress={handleBackToFind}>
-                <i aria-hidden className="fa-solid fa-arrow-left" />
+                <FaIcon icon="arrow-left" aria-hidden="true" />
                 {t("clinic.checkIn.changePatient")}
               </Button>
             </div>

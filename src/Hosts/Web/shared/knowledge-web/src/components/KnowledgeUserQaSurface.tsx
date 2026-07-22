@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { FaIcon } from "@vitarish/web-ui";
 import { KnowledgeAnswerList } from "./KnowledgeAnswerList";
 import { KnowledgeQuestionComposer } from "./KnowledgeQuestionComposer";
 import { useKnowledgeUserAsk } from "../hooks/useKnowledgeUserAsk";
@@ -130,7 +131,7 @@ export function KnowledgeUserQaSurface({
     <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-background">
       <header className="flex h-16 shrink-0 items-center gap-3 border-b border-separator px-4 sm:px-6">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
-          <i aria-hidden="true" className="fa-solid fa-book-open size-4" />
+          <FaIcon icon="book-open" aria-hidden="true" className="size-4" />
         </div>
         <div className="min-w-0">
           <h1 className="truncate text-sm font-semibold text-foreground sm:text-base">{labels.title}</h1>

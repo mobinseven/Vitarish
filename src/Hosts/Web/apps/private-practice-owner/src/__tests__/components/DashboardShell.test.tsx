@@ -107,9 +107,10 @@ vi.mock("@vitarish/web-localization", () => ({
 }));
 
 vi.mock("@heroui-pro/react/sidebar", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
-  const MenuItem = React.forwardRef(({ children, id, textValue, isCurrent, onPress, ...props }, ref) => (
-    <li ref={ref} role="treeitem" aria-current={isCurrent ? "true" : undefined} data-id={id} data-text={textValue} {...props}>
+  const MenuItem = React.forwardRef(({ children, id, textValue, isCurrent, ...props }, ref) => (
+    <li ref={ref} role="treeitem" aria-selected={isCurrent ? "true" : "false"} aria-current={isCurrent ? "true" : undefined} data-id={id} data-text={textValue} {...props}>
       {children}
     </li>
   ));
@@ -151,28 +152,28 @@ const shellNavGroups = [
   {
     labelKey: "appShell.navigation.mainGroup",
     items: [
-      { href: "/", iconClassName: "fa-solid fa-house", labelKey: "appShell.navigation.home", exactMatch: true },
+      { href: "/", icon: "house", labelKey: "appShell.navigation.home", exactMatch: true },
     ],
   },
 ] as const satisfies readonly DashboardShellNavGroup[];
 
 const shellFooterItems = [
-  { href: "/account", iconClassName: "fa-solid fa-circle-user", labelKey: "appShell.userMenu.account" },
+  { href: "/account", icon: "circle-user", labelKey: "appShell.userMenu.account" },
 ] as const;
 
 const nestedNavigationGroups = [
   {
     label: "General",
     items: [
-      { href: "/home", iconClassName: "fa-solid fa-house", label: "Home", exactMatch: true },
-      { href: "/clinic/patients", iconClassName: "fa-solid fa-users", label: "Patients", exactMatch: true },
+      { href: "/home", icon: "house", label: "Home", exactMatch: true },
+      { href: "/clinic/patients", icon: "users", label: "Patients", exactMatch: true },
       {
         href: "/knowledge",
-        iconClassName: "fa-solid fa-book-open",
+        icon: "book-open",
         label: "Knowledge",
         exactMatch: true,
         children: [
-          { href: "/knowledge/qa", iconClassName: "fa-solid fa-comments", label: "Knowledge Q&A" },
+          { href: "/knowledge/qa", icon: "comments", label: "Knowledge Q&A" },
         ],
       },
     ],

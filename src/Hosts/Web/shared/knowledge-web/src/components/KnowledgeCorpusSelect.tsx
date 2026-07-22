@@ -1,6 +1,7 @@
 "use client";
 
 import { ListBox, Select } from "@heroui/react";
+import { FaIcon } from "@vitarish/web-ui";
 import type { KnowledgeQaLabels, KnowledgeUserCorpus } from "../types";
 
 const ALL_KEY = "__all__";
@@ -44,7 +45,7 @@ export function KnowledgeCorpusSelect({
       onChange={handleSelectionChange}
     >
       <Select.Trigger>
-        <i aria-hidden="true" className="fa-solid fa-book size-4 shrink-0 text-muted" />
+        <FaIcon icon="book" aria-hidden="true" className="size-4 shrink-0 text-muted" />
         <Select.Value />
         <Select.Indicator />
       </Select.Trigger>

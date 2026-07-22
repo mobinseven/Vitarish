@@ -9,6 +9,7 @@ import { PatientProcedureProgress } from "./PatientProcedureProgress";
 import { useLocalizedText } from "../../../localization/index";
 import type { NavigationIntent } from "../../../navigation";
 import { EmptyState, ItemCard, ItemCardGroup, PressableFeedback } from "@heroui-pro/react";
+import { FaIcon } from "@vitarish/web-ui";
 
 const ProcedureCard = ItemCard<"button">;
 
@@ -49,7 +50,7 @@ export function PatientProceduresPanel({
           <ItemCardGroup.Header className="flex items-center justify-between">
             <Tooltip>
               <Button size="sm" variant="primary" onPress={() => setShowCreateForm(true)}>
-                <i className="fa-solid fa-plus" aria-hidden="true" />
+                <FaIcon icon="plus" aria-hidden="true" />
                 {t("clinic.procedures.new")}
               </Button>
               <Tooltip.Content>{t("clinic.procedures.new")}</Tooltip.Content>
@@ -79,7 +80,7 @@ export function PatientProceduresPanel({
                 >
                   <PressableFeedback.Ripple />
                   <ItemCard.Icon>
-                    <i className="fa-solid fa-list-check" aria-hidden="true" />
+                    <FaIcon icon="list-check" aria-hidden="true" />
                   </ItemCard.Icon>
                   <ItemCard.Content>
                     <ItemCard.Title>{procedure.name}</ItemCard.Title>
@@ -117,7 +118,7 @@ export function PatientProceduresPanel({
             <EmptyState size="sm">
               <EmptyState.Header>
                 <EmptyState.Media variant="icon">
-                  <i className="fa-solid fa-list" />
+                  <FaIcon icon="list" />
                 </EmptyState.Media>
                 <EmptyState.Title>
                   {t("clinic.procedures.empty")}

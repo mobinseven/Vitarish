@@ -7,6 +7,7 @@ import {
   ChatAttachmentInput,
   PromptInput,
 } from "@heroui-pro/react";
+import { FaIcon } from "@vitarish/web-ui";
 import {
   appendConfirmedTranscript,
   LiveDictation,
@@ -132,7 +133,7 @@ export function PatientProcedureEventItemComposer({ eventId }: PatientProcedureE
                           aria-label={t("clinic.procedures.items.chooseFile")}
                           tooltip={t("clinic.procedures.items.chooseFile")}
                         >
-                          <i aria-hidden="true" className="fa-solid fa-paperclip size-4" />
+                          <FaIcon icon="paperclip" aria-hidden="true" className="size-4" />
                         </PromptInput.Action>
                       )}
                     />

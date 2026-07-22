@@ -84,7 +84,7 @@ export function PatientProcedureEventTimeline({
             >
               <Timeline.Marker aria-hidden="true">
                 <div>
-                  <i className={event.isCommitted ? "fa-solid fa-check" : ""}></i>
+                  {event.isCommitted ? <FaIcon icon="check" /> : null}
                 </div>
               </Timeline.Marker>
               <Timeline.Content>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, ButtonGroup, Spinner, Tooltip } from "@heroui/react";
+import { FaIcon } from "@vitarish/web-ui";
 import { useLocalizedText } from "@vitarish/web-localization";
 import type { LiveDictationFailureCode } from "../api/intelligence/liveTranscriptionClient";
 import type { LiveDictationController } from "../hooks/useLiveDictation";
@@ -87,7 +88,7 @@ export function LiveDictation({ controller }: LiveDictationProps) {
             }}
           >
             {isBusy ? <Spinner aria-hidden="true" color="current" size="sm" /> : (
-              <i aria-hidden="true" className={`fa-solid ${isRecording ? "fa-stop" : "fa-microphone"}`} />
+              <FaIcon icon={isRecording ? "stop" : "microphone"} aria-hidden="true" />
             )}
           </Button>
         </Tooltip.Trigger>

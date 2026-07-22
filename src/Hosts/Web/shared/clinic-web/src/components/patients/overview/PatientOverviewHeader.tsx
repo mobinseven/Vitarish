@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, Card } from "@heroui/react";
-import { RevealHeader } from "@vitarish/web-ui/layout";
+import { FaIcon, RevealHeader } from "@vitarish/web-ui";
 import type { PatientViewDto } from "../../../models/patients/patientSearchModels";
 import {
   formatDate,
@@ -49,7 +49,7 @@ export function PatientOverviewHeader({ patient }: PatientOverviewHeaderProps) {
       <Card.Header className="flex flex-col items-center gap-4 px-4 py-5 text-center sm:flex-row sm:text-left">
         <Avatar color="accent" size="lg" variant="soft" role="img" aria-label={displayName}>
           <Avatar.Fallback className="text-lg font-semibold">
-            <i className="fa-solid fa-user"></i>
+            <FaIcon icon="user" />
           </Avatar.Fallback>
         </Avatar>
         <div className="min-w-0 flex-1">
@@ -67,7 +67,9 @@ export function PatientOverviewHeader({ patient }: PatientOverviewHeaderProps) {
         compactContent={
           <div className="flex min-h-14 items-center gap-3 border-b border-border bg-background/95 px-4 shadow-sm backdrop-blur">
             <Avatar color="accent" size="sm" variant="soft" role="img" aria-label={displayName}>
-              <Avatar.Fallback>{initials}</Avatar.Fallback>
+              <Avatar.Fallback>
+                <FaIcon icon="user" />
+              </Avatar.Fallback>
             </Avatar>
             <div className="min-w-0">
               <p className="truncate font-semibold text-foreground">{displayName}</p>

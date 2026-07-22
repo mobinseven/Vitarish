@@ -2,6 +2,7 @@
 
 import { Card, Chip, Description, Label } from "@heroui/react";
 import type { ReactNode } from "react";
+import { FaIcon } from "@vitarish/web-ui";
 import type { PatientViewDto } from "../../../models/patients/patientSearchModels";
 import {
   formatDate,
@@ -62,9 +63,9 @@ export function PatientProfileCard({ patient }: PatientProfileCardProps) {
     detail(t("clinic.patient.fields.currentMedications"), patient.currentMedications),
   ].filter((item): item is PatientDetail => item !== null);
   const sections = [
-    { title: t("clinic.patient.sections.personal"), icon: "fa-user", items: personalDetails },
-    { title: t("clinic.patient.sections.contact"), icon: "fa-phone", items: contactDetails },
-    { title: t("clinic.patient.sections.medical"), icon: "fa-heart-pulse", items: careDetails },
+    { title: t("clinic.patient.sections.personal"), icon: "user", items: personalDetails },
+    { title: t("clinic.patient.sections.contact"), icon: "phone", items: contactDetails },
+    { title: t("clinic.patient.sections.medical"), icon: "heart-pulse", items: careDetails },
   ].filter((section) => section.items.length > 0);
 
   if (sections.length === 0) return null;
@@ -75,7 +76,7 @@ export function PatientProfileCard({ patient }: PatientProfileCardProps) {
         <Card className="w-[200px] gap-2">
           <Card.Header>
             <span className="bg-surface shadow-surface flex size-8 items-center justify-center rounded-lg">
-              <i className="fa-solid fa-gear"></i>
+              <FaIcon icon="gear" />
             </span>
             <div className="flex gap-2">
               <Label className="text-sm font-semibold">{section.title}</Label>

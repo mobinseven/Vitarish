@@ -1,13 +1,14 @@
 "use client";
 
 import { AuthMethodList, type AuthMethodListItem } from "@vitarish/web-ui";
+import { FaIcon } from "@vitarish/web-ui";
 import { useLocalizedText, type MessageKey } from "@vitarish/web-localization";
 
 export interface AuthMethodRoute {
   id: string;
   labelKey: MessageKey;
   href: string;
-  iconClassName: string;
+  icon: string;
 }
 
 interface AuthMethodSelectorProps {
@@ -20,7 +21,7 @@ export function AuthMethodSelector({ methods }: AuthMethodSelectorProps) {
     id: method.id,
     href: method.href,
     label: t(method.labelKey),
-    icon: <i aria-hidden="true" className={`${method.iconClassName} size-5`} />,
+    icon: <FaIcon icon={method.icon} aria-hidden="true" className="size-5" />,
   }));
 
   return <AuthMethodList methods={localizedMethods} />;

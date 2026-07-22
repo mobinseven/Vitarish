@@ -8,11 +8,12 @@ import { Navbar } from "@heroui-pro/react/navbar";
 import { Sidebar } from "@heroui-pro/react/sidebar";
 import { useTheme } from "next-themes";
 import { setLocaleCookie, supportedLocales, useLocalizedText, type SupportedLocale } from "@vitarish/web-localization";
+import { FaIcon } from "../icons/FaIcon";
 import { RevealHeader } from "../layout/RevealHeader";
 
 export interface DashboardNavigationItem {
   href: string;
-  iconClassName: string;
+  icon: string;
   label: string;
   badge?: string;
   children?: readonly DashboardNavigationItem[];
@@ -92,6 +93,7 @@ export function DashboardFrame({
         asideMobile={asideMobile}
         asideOpen={asideOpen}
         data-content-mode={contentMode}
+        data-direction={direction}
         data-mobile-navigation={mobileNavigation}
         data-vitarish-layout="dashboard-frame"
         data-vitarish-scroll-owner={contentMode === "page" ? "frame-main" : "workspace"}
@@ -316,7 +318,7 @@ function DashboardFrameSidebarContents({
         >
           <Avatar className="size-9">
             <Avatar.Fallback>
-              <i className="fa-solid fa-user" />
+              <FaIcon icon="user" />
             </Avatar.Fallback>
           </Avatar>
           <div className="flex min-w-0 flex-col" data-sidebar="label">
@@ -352,7 +354,7 @@ function DashboardFrameSidebarContents({
         <Sidebar.Menu aria-label={footerLabel ?? navigationLabel}>
           <Sidebar.MenuItem id="culture-switcher" textValue={t("appShell.culture.label")}>
             <Sidebar.MenuIcon>
-              <i aria-hidden="true" className="fa-solid fa-globe size-4 shrink-0" />
+              <FaIcon icon="globe" aria-hidden="true" className="size-4 shrink-0" />
             </Sidebar.MenuIcon>
             <Sidebar.MenuLabel>{t("appShell.culture.label")}</Sidebar.MenuLabel>
             <Sidebar.MenuTrigger aria-label={t("appShell.culture.label")}>
@@ -375,7 +377,7 @@ function DashboardFrameSidebarContents({
           {themeMounted ? (
             <Sidebar.MenuItem id="theme-switcher" textValue={t(`appShell.theme.${currentTheme}`)}>
               <Sidebar.MenuIcon>
-                <i aria-hidden="true" className={`fa-solid fa-${themeIcons[currentTheme]} size-4 shrink-0`} />
+                <FaIcon icon={themeIcons[currentTheme]} aria-hidden="true" className="size-4 shrink-0" />
               </Sidebar.MenuIcon>
               <Sidebar.MenuLabel>{t(`appShell.theme.${currentTheme}`)}</Sidebar.MenuLabel>
               <Sidebar.MenuTrigger aria-label={t(`appShell.theme.${currentTheme}`)}>
@@ -391,7 +393,7 @@ function DashboardFrameSidebarContents({
                     onAction={() => setTheme(mode)}
                   >
                     <Sidebar.MenuIcon>
-                      <i aria-hidden="true" className={`fa-solid fa-${themeIcons[mode]} size-4 shrink-0`} />
+                      <FaIcon icon={themeIcons[mode]} aria-hidden="true" className="size-4 shrink-0" />
                     </Sidebar.MenuIcon>
                     <Sidebar.MenuLabel>{t(`appShell.theme.${mode}`)}</Sidebar.MenuLabel>
                   </Sidebar.MenuItem>
@@ -427,7 +429,7 @@ function DashboardFrameSidebarNavItem({ currentPath, idPrefix, item }: Dashboard
       textValue={item.label}
     >
       <Sidebar.MenuIcon>
-        <i aria-hidden="true" className={`${item.iconClassName} size-4`} />
+        <FaIcon icon={item.icon} aria-hidden="true" className="size-4" />
       </Sidebar.MenuIcon>
       <Sidebar.MenuLabel>{item.label}</Sidebar.MenuLabel>
       {item.children?.length ? (

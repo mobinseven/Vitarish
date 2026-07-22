@@ -1,6 +1,7 @@
 "use client";
 
 import { ItemCard } from "@heroui-pro/react";
+import { FaIcon } from "@vitarish/web-ui";
 import type { NavigationIntent } from "../../navigation";
 
 export interface NavigationItem {
@@ -27,7 +28,7 @@ export function NavigationGrid({ items, onNavigate }: NavigationGridProps) {
         >
           <ItemCard className="h-full transition-colors hover:bg-surface-secondary" variant="outline">
             <ItemCard.Icon>
-              <i aria-hidden className={`${item.icon} text-lg text-accent`} />
+              <FaIcon icon={item.icon} aria-hidden="true" className="text-lg text-accent" />
             </ItemCard.Icon>
             <ItemCard.Content>
               <ItemCard.Title>{item.title}</ItemCard.Title>

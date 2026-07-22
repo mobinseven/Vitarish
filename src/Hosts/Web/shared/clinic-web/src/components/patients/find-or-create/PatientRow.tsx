@@ -1,6 +1,7 @@
 "use client";
 
 import { ItemCard, PressableFeedback } from "@heroui-pro/react";
+import { FaIcon } from "@vitarish/web-ui";
 import type { PatientViewDto } from "../../../models/patients/patientSearchModels";
 import { useLocalizedText, formatDate } from "../../../localization/index";
 
@@ -45,7 +46,7 @@ export function PatientRow({ patient, onSelect, variant = "outline" }: PatientRo
           aria-hidden="true"
           className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent"
         >
-          <i className="fa-solid fa-user" />
+          <FaIcon icon="user" />
         </span>
       </ItemCard.Icon>
       <ItemCard.Content>

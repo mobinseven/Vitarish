@@ -19,7 +19,7 @@ export function ContextualAsideLayoutFixture({
       items: [
         {
           href: "/layout-fixture/contextual-aside",
-          iconClassName: "fa-solid fa-table-columns",
+          icon: "table-columns",
           label: t("layoutFixture.navigationItemLabel"),
         },
       ],

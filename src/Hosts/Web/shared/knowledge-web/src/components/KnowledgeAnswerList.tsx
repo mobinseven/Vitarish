@@ -7,6 +7,7 @@ import {
   ChatEmptyState,
   ChatLoadingMessage,
   ChatMessage,
+  FaIcon,
 } from "@vitarish/web-ui";
 import { KnowledgeAnswerCard } from "./KnowledgeAnswerCard";
 import type {
@@ -79,7 +80,7 @@ export function KnowledgeAnswerList({
               variant="ghost"
               onPress={onNewQuestion}
             >
-              <i aria-hidden="true" className="fa-solid fa-plus size-4" />
+              <FaIcon icon="plus" aria-hidden="true" className="size-4" />
             </Button>
           }
         >

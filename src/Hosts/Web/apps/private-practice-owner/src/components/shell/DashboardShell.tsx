@@ -15,10 +15,11 @@ import { Routes } from "@/app/routes";
 import { useAuthSession } from "@vitarish/auth-web";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { BreadcrumbUpButton } from "./BreadcrumbUpButton";
+import { CommandPalette } from "./CommandPalette/CommandPalette";
 
 export interface DashboardShellItem {
   href: string;
-  iconClassName: string;
+  icon: string;
   labelKey: MessageKey;
   badgeKey?: MessageKey;
   children?: readonly DashboardShellItem[];
@@ -104,7 +105,12 @@ export function DashboardShell({
       navigationLabel={t("appShell.navigation.dashboardMenu")}
       skipLinkLabel={t("appShell.navigation.skipToContent")}
       title={null}
-      toolbar={<BreadcrumbUpButton navGroups={navGroups} />}
+      toolbar={
+        <>
+          <CommandPalette />
+          <BreadcrumbUpButton navGroups={navGroups} />
+        </>
+      }
     >
       {children}
     </DashboardFrame>
@@ -121,7 +127,7 @@ function toNavigationGroup(group: DashboardShellNavGroup, t: (key: MessageKey) =
 function toNavigationItem(item: DashboardShellItem, t: (key: MessageKey) => string): DashboardNavigationItem {
   return {
     href: item.href,
-    iconClassName: item.iconClassName,
+    icon: item.icon,
     label: t(item.labelKey),
     badge: item.badgeKey ? t(item.badgeKey) : undefined,
     children: item.children?.map((child) => toNavigationItem(child, t)),

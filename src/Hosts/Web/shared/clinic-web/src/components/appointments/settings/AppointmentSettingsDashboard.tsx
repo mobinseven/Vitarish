@@ -12,9 +12,9 @@ export function AppointmentSettingsDashboard({ onNavigate }: AppointmentSettings
   const { t } = useLocalizedText();
 
   const settingsLinks: NavigationItem[] = [
-    { title: t("clinic.serviceTypes.title"), description: t("clinic.serviceTypes.description"), intent: { kind: "serviceTypeIndex" }, icon: "fa-solid fa-tags" },
-    { title: t("clinic.services.title"), description: t("clinic.services.description"), intent: { kind: "serviceIndex" }, icon: "fa-solid fa-concierge-bell" },
-    { title: t("clinic.serviceProviders.title"), description: t("clinic.serviceProviders.description"), intent: { kind: "serviceProviderIndex" }, icon: "fa-solid fa-user-doctor" },
+    { title: t("clinic.serviceTypes.title"), description: t("clinic.serviceTypes.description"), intent: { kind: "serviceTypeIndex" }, icon: "tags" },
+    { title: t("clinic.services.title"), description: t("clinic.services.description"), intent: { kind: "serviceIndex" }, icon: "concierge-bell" },
+    { title: t("clinic.serviceProviders.title"), description: t("clinic.serviceProviders.description"), intent: { kind: "serviceProviderIndex" }, icon: "user-doctor" },
   ];
 
   return (

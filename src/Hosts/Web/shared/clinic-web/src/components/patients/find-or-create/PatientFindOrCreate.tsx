@@ -5,7 +5,7 @@ import { Button, Input, Label, TextField } from "@heroui/react";
 
 import { AdvancedSearchForm } from "./AdvancedSearchForm";
 import { AdvancedSearchResults } from "./AdvancedSearchResults";
-import { EmptyStateSurface as ClinicEmptyState, ErrorStateSurface as ClinicErrorState, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
+import { EmptyStateSurface as ClinicEmptyState, ErrorStateSurface as ClinicErrorState, FaIcon, LoadingStateSurface as ClinicLoadingState } from "@vitarish/web-ui";
 import { PatientProfileForm } from "../profile/PatientProfileForm";
 import { emptyFormData } from "../../../models/patients/profile/PatientProfileForm";
 import { usePatientFindOrCreate } from "../../../hooks/patients/find-or-create/usePatientFindOrCreate";
@@ -120,7 +120,7 @@ export function PatientFindOrCreate({
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">{t("clinic.patient.search.results")}</h2>
             <Button variant="ghost" onPress={handleGoToLookup}>
-              <i aria-hidden className="fa-solid fa-arrow-left" />
+              <FaIcon icon="arrow-left" aria-hidden="true" />
               {t("common.actions.previous")}
             </Button>
           </div>
@@ -137,7 +137,7 @@ export function PatientFindOrCreate({
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">{t("clinic.patients.newPatient")}</h1>
             <Button variant="ghost" onPress={handleGoToLookup}>
-              <i aria-hidden className="fa-solid fa-arrow-left" />
+              <FaIcon icon="arrow-left" aria-hidden="true" />
               {t("common.actions.previous")}
             </Button>
           </div>
