@@ -1,25 +1,29 @@
-import {Button} from "@heroui/react";
-import {Navbar} from "@heroui-pro/react";
+import { Button } from "@heroui/react";
+import { Navbar } from "@heroui-pro/react";
 
-import {BrandLogotipo} from "@/features/landing/brand";
-import {FaIcon} from "@vitarish/web-ui";
-import {PageContainer} from "@vitarish/web-ui/layout";
-import {useLocalizedText} from "@/localization";
-import {Routes} from "@/app/routes";
-import {ThemeToggle} from "./theme-toggle";
+import { BrandLogotipo } from "@/features/landing/brand";
+import { FaIcon } from "@vitarish/web-ui";
+import { PageContainer } from "@vitarish/web-ui/layout";
+import { useLocalizedText } from "@/localization";
+import { Routes } from "@/app/routes";
+import { ThemeToggle } from "./theme-toggle";
 
 const navItems = [
-  {href: "#pillars", key: "landing.header.navPlatform" as const},
-  {href: "#architecture", key: "landing.header.navArchitecture" as const},
-  {href: "#features", key: "landing.header.navFeatures" as const},
-  {href: "#pricing", key: "landing.header.navPricing" as const},
+  { href: "#pillars", key: "landing.header.navPlatform" as const },
+  { href: "#architecture", key: "landing.header.navArchitecture" as const },
+  { href: "#features", key: "landing.header.navFeatures" as const },
+  { href: "#pricing", key: "landing.header.navPricing" as const },
 ];
 
 export function Header() {
-  const {t} = useLocalizedText();
+  const { t } = useLocalizedText();
 
   return (
-    <Navbar aria-label={t("landing.header.primaryNav")} height="4.5rem" position="floating">
+    <Navbar
+      aria-label={t("landing.header.primaryNav")}
+      height="4.5rem"
+      position="floating"
+    >
       <Navbar.Header>
         <PageContainer className="flex h-full items-center">
           <Navbar.Brand className="flex items-center gap-2">
@@ -30,7 +34,11 @@ export function Header() {
 
           <Navbar.Content className="hidden lg:flex">
             {navItems.map((item) => (
-              <Navbar.Item key={item.href} href={item.href} className="text-[0.7rem]">
+              <Navbar.Item
+                key={item.href}
+                href={item.href}
+                className="text-[0.7rem]"
+              >
                 {t(item.key)}
               </Navbar.Item>
             ))}
@@ -45,7 +53,9 @@ export function Header() {
             <Button
               className="hidden lg:inline-flex"
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              render={(props: any) => <a href={Routes.Login.Index} {...props} />}
+              render={(props: any) => (
+                <a href={Routes.Login.Index} {...props} />
+              )}
               size="sm"
               variant="primary"
             >
@@ -55,7 +65,9 @@ export function Header() {
             <Button
               className="hidden lg:inline-flex"
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              render={(props: any) => <a href={Routes.Login.Index} {...props} />}
+              render={(props: any) => (
+                <a href={Routes.Login.Index} {...props} />
+              )}
               size="sm"
               variant="ghost"
             >

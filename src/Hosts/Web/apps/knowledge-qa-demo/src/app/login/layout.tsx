@@ -20,7 +20,10 @@ function LoginFallback() {
 function LoginRedirectBoundary({ children }: { children: ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const navigate = useCallback((href: string) => router.replace(href), [router]);
+  const navigate = useCallback(
+    (href: string) => router.replace(href),
+    [router],
+  );
 
   return (
     <AuthenticatedRedirectBoundary

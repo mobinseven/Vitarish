@@ -1,73 +1,74 @@
-import {useState} from "react";
+import { useState } from "react";
 import Image from "next/image";
-import {Tabs} from "@heroui/react";
+import { Tabs } from "@heroui/react";
 
-import {FaIcon} from "@vitarish/web-ui";
-import {PageContainer} from "@vitarish/web-ui/layout";
+import { FaIcon } from "@vitarish/web-ui";
+import { PageContainer } from "@vitarish/web-ui/layout";
 import {
   figures,
   figureTitles,
   formatFigureLabel,
   formatFigureTitleLabel,
 } from "@/features/landing/data/figures";
-import {useLocalizedText} from "@/localization";
+import { useLocalizedText } from "@/localization";
 
-const snippets: Record<string, {lang: string; lines: string[]; raw: string}> = {
-  python: {
-    lang: "python",
-    raw: 'from axon import Grid\n\ngrid = Grid(region="us-east-1")\n\n# deploy a model endpoint\nep = grid.deploy(\n    model="llama-3.1-70b",\n    replicas="auto",   # scales 0 -> 10k\n    accelerator="h100",\n)\n\nprint(ep.url)',
-    lines: [
-      "from axon import Grid",
-      "",
-      'grid = Grid(region="us-east-1")',
-      "",
-      "# deploy a model endpoint",
-      "ep = grid.deploy(",
-      '    model="llama-3.1-70b",',
-      '    replicas="auto",   # scales 0 -> 10k',
-      '    accelerator="h100",',
-      ")",
-      "",
-      "print(ep.url)",
-    ],
-  },
-  typescript: {
-    lang: "typescript",
-    raw: 'import { Grid } from "@axon/grid";\n\nconst grid = new Grid({ region: "us-east-1" });\n\n// deploy a model endpoint\nconst ep = await grid.deploy({\n  model: "llama-3.1-70b",\n  replicas: "auto",\n  accelerator: "h100",\n});\n\nconsole.log(ep.url);',
-    lines: [
-      'import { Grid } from "@axon/grid";',
-      "",
-      'const grid = new Grid({ region: "us-east-1" });',
-      "",
-      "// deploy a model endpoint",
-      "const ep = await grid.deploy({",
-      '  model: "llama-3.1-70b",',
-      '  replicas: "auto",',
-      '  accelerator: "h100",',
-      "});",
-      "",
-      "console.log(ep.url);",
-    ],
-  },
-  curl: {
-    lang: "bash",
-    raw: 'curl https://api.axongrid.dev/v1/deploy \\\n  -H "Authorization: Bearer $AXON_KEY" \\\n  -d model="llama-3.1-70b" \\\n  -d replicas="auto" \\\n  -d accelerator="h100"',
-    lines: [
-      "curl https://api.axongrid.dev/v1/deploy \\",
-      '  -H "Authorization: Bearer $AXON_KEY" \\',
-      '  -d model="llama-3.1-70b" \\',
-      '  -d replicas="auto" \\',
-      '  -d accelerator="h100"',
-    ],
-  },
-};
+const snippets: Record<string, { lang: string; lines: string[]; raw: string }> =
+  {
+    python: {
+      lang: "python",
+      raw: 'from axon import Grid\n\ngrid = Grid(region="us-east-1")\n\n# deploy a model endpoint\nep = grid.deploy(\n    model="llama-3.1-70b",\n    replicas="auto",   # scales 0 -> 10k\n    accelerator="h100",\n)\n\nprint(ep.url)',
+      lines: [
+        "from axon import Grid",
+        "",
+        'grid = Grid(region="us-east-1")',
+        "",
+        "# deploy a model endpoint",
+        "ep = grid.deploy(",
+        '    model="llama-3.1-70b",',
+        '    replicas="auto",   # scales 0 -> 10k',
+        '    accelerator="h100",',
+        ")",
+        "",
+        "print(ep.url)",
+      ],
+    },
+    typescript: {
+      lang: "typescript",
+      raw: 'import { Grid } from "@axon/grid";\n\nconst grid = new Grid({ region: "us-east-1" });\n\n// deploy a model endpoint\nconst ep = await grid.deploy({\n  model: "llama-3.1-70b",\n  replicas: "auto",\n  accelerator: "h100",\n});\n\nconsole.log(ep.url);',
+      lines: [
+        'import { Grid } from "@axon/grid";',
+        "",
+        'const grid = new Grid({ region: "us-east-1" });',
+        "",
+        "// deploy a model endpoint",
+        "const ep = await grid.deploy({",
+        '  model: "llama-3.1-70b",',
+        '  replicas: "auto",',
+        '  accelerator: "h100",',
+        "});",
+        "",
+        "console.log(ep.url);",
+      ],
+    },
+    curl: {
+      lang: "bash",
+      raw: 'curl https://api.axongrid.dev/v1/deploy \\\n  -H "Authorization: Bearer $AXON_KEY" \\\n  -d model="llama-3.1-70b" \\\n  -d replicas="auto" \\\n  -d accelerator="h100"',
+      lines: [
+        "curl https://api.axongrid.dev/v1/deploy \\",
+        '  -H "Authorization: Bearer $AXON_KEY" \\',
+        '  -d model="llama-3.1-70b" \\',
+        '  -d replicas="auto" \\',
+        '  -d accelerator="h100"',
+      ],
+    },
+  };
 
 function isComment(line: string) {
   return line.trim().startsWith("#") || line.trim().startsWith("//");
 }
 
 export function CodePreview() {
-  const {t} = useLocalizedText();
+  const { t } = useLocalizedText();
   const [active, setActive] = useState<string>("python");
   const [copied, setCopied] = useState(false);
 
@@ -107,7 +108,9 @@ export function CodePreview() {
                   <span className="border-border size-2.5 rounded-full border" />
                   <span className="border-border size-2.5 rounded-full border" />
                   <span className="border-border size-2.5 rounded-full border" />
-                  <span className="ml-3 font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">~/axon</span>
+                  <span className="ml-3 font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">
+                    ~/axon
+                  </span>
                 </div>
                 <button
                   aria-label={t("landing.codePreview.copyCode")}
@@ -115,8 +118,15 @@ export function CodePreview() {
                   onClick={copy}
                   type="button"
                 >
-                  <FaIcon icon={copied ? "circle-check" : "copy"} className="size-3.5" />
-                  <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{copied ? t("landing.codePreview.copied") : t("landing.codePreview.copy")}</span>
+                  <FaIcon
+                    icon={copied ? "circle-check" : "copy"}
+                    className="size-3.5"
+                  />
+                  <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">
+                    {copied
+                      ? t("landing.codePreview.copied")
+                      : t("landing.codePreview.copy")}
+                  </span>
                 </button>
               </div>
 
@@ -126,10 +136,17 @@ export function CodePreview() {
                 variant="secondary"
                 onSelectionChange={(k) => setActive(String(k))}
               >
-                <Tabs.ListContainer className="border-border overflow-x-auto border-b px-2" dir="ltr">
+                <Tabs.ListContainer
+                  className="border-border overflow-x-auto border-b px-2"
+                  dir="ltr"
+                >
                   <Tabs.List aria-label={t("landing.codePreview.language")}>
                     {Object.keys(snippets).map((key) => (
-                      <Tabs.Tab key={key} id={key} className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88 px-3 py-2.5">
+                      <Tabs.Tab
+                        key={key}
+                        id={key}
+                        className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88 px-3 py-2.5"
+                      >
                         {key}
                         <Tabs.Indicator />
                       </Tabs.Tab>
@@ -139,14 +156,23 @@ export function CodePreview() {
 
                 {Object.entries(snippets).map(([key, snip]) => (
                   <Tabs.Panel key={key} id={key} className="p-0">
-                    <pre className="overflow-x-auto px-4 py-5 font-mono text-[0.8rem] leading-relaxed" dir="ltr">
+                    <pre
+                      className="overflow-x-auto px-4 py-5 font-mono text-[0.8rem] leading-relaxed"
+                      dir="ltr"
+                    >
                       <code>
                         {snip.lines.map((line, idx) => (
                           <div key={idx} className="flex">
                             <span className="text-muted/50 mr-4 w-5 shrink-0 select-none text-right">
                               {idx + 1}
                             </span>
-                            <span className={isComment(line) ? "text-muted" : "text-foreground"}>
+                            <span
+                              className={
+                                isComment(line)
+                                  ? "text-muted"
+                                  : "text-foreground"
+                              }
+                            >
                               {line || "\u00A0"}
                             </span>
                           </div>
@@ -176,8 +202,12 @@ export function CodePreview() {
               />
             </div>
             <div className="mt-3 flex items-center justify-between">
-              <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{t("landing.codePreview.revision")}</span>
-              <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{t("landing.codePreview.dimensions")}</span>
+              <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">
+                {t("landing.codePreview.revision")}
+              </span>
+              <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">
+                {t("landing.codePreview.dimensions")}
+              </span>
             </div>
           </div>
         </div>

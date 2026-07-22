@@ -27,11 +27,20 @@ export function useClinicNavigation() {
           router.push(Routes.Clinic.Patients.Index);
           break;
         case "patientProcedureDetail":
-          router.push(Routes.Clinic.Patients.Procedure(intent.patientId, intent.procedureId));
+          router.push(
+            Routes.Clinic.Patients.Procedure(
+              intent.patientId,
+              intent.procedureId,
+            ),
+          );
           break;
         case "patientProcedureEventDetail":
           router.push(
-            Routes.Clinic.Patients.ProcedureEvent(intent.patientId, intent.procedureId, intent.eventId)
+            Routes.Clinic.Patients.ProcedureEvent(
+              intent.patientId,
+              intent.procedureId,
+              intent.eventId,
+            ),
           );
           break;
         case "checkIn":
@@ -49,6 +58,9 @@ export function useClinicNavigation() {
         case "clinicStatistics":
           router.push(Routes.Clinic.Settings.Statistics);
           break;
+        case "procedureTemplateManagement":
+          router.push(Routes.Clinic.Settings.ProcedureTemplates);
+          break;
         case "reminders":
           router.push(Routes.Clinic.Reminders);
           break;
@@ -56,19 +68,29 @@ export function useClinicNavigation() {
           router.push(Routes.Clinic.Appointments.ServiceTypes.Index);
           break;
         case "serviceTypeDetail":
-          router.push(Routes.Clinic.Appointments.ServiceTypes.Detail(intent.serviceTypeId));
+          router.push(
+            Routes.Clinic.Appointments.ServiceTypes.Detail(
+              intent.serviceTypeId,
+            ),
+          );
           break;
         case "serviceIndex":
           router.push(Routes.Clinic.Appointments.Services.Index);
           break;
         case "serviceDetail":
-          router.push(Routes.Clinic.Appointments.Services.Detail(intent.serviceId));
+          router.push(
+            Routes.Clinic.Appointments.Services.Detail(intent.serviceId),
+          );
           break;
         case "serviceProviderIndex":
           router.push(Routes.Clinic.Appointments.ServiceProviders.Index);
           break;
         case "serviceProviderDetail":
-          router.push(Routes.Clinic.Appointments.ServiceProviders.Detail(intent.serviceProviderId));
+          router.push(
+            Routes.Clinic.Appointments.ServiceProviders.Detail(
+              intent.serviceProviderId,
+            ),
+          );
           break;
         case "ownerShiftIndex":
           router.push(Routes.Clinic.Appointments.Shifts.Index);
@@ -83,13 +105,22 @@ export function useClinicNavigation() {
           router.push(Routes.Clinic.Appointments.Shifts.Edit(intent.shiftId));
           break;
         case "ownerShiftOccurrence":
-          router.push(Routes.Clinic.Appointments.Shifts.Occurrence(intent.shiftId, intent.occurrenceDate));
+          router.push(
+            Routes.Clinic.Appointments.Shifts.Occurrence(
+              intent.shiftId,
+              intent.occurrenceDate,
+            ),
+          );
           break;
         case "ownerReservationIndex":
           router.push(Routes.Clinic.Appointments.Reservations.Index);
           break;
         case "ownerReservationDetail":
-          router.push(Routes.Clinic.Appointments.Reservations.Detail(intent.reservationId));
+          router.push(
+            Routes.Clinic.Appointments.Reservations.Detail(
+              intent.reservationId,
+            ),
+          );
           break;
         case "userShiftIndex":
           router.push(Routes.ClinicUser.Shifts.Index);
@@ -101,11 +132,13 @@ export function useClinicNavigation() {
           router.push(Routes.ClinicUser.Reservations.Index);
           break;
         case "userReservationDetail":
-          router.push(Routes.ClinicUser.Reservations.Detail(intent.reservationId));
+          router.push(
+            Routes.ClinicUser.Reservations.Detail(intent.reservationId),
+          );
           break;
       }
     },
-    [router]
+    [router],
   );
 
   return navigate;

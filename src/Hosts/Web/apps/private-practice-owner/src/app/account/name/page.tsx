@@ -3,7 +3,11 @@
 import { useCallback } from "react";
 import { TextField, Label, Input, Button } from "@heroui/react";
 import { useAuthSession } from "@vitarish/auth-web";
-import { AccountBackLink, AccountSurface, AccountWidget } from "@/components/account/AccountSurface";
+import {
+  AccountBackLink,
+  AccountSurface,
+  AccountWidget,
+} from "@/components/account/AccountSurface";
 import { useAccountNameUpdate } from "@vitarish/account-web";
 import { StatusAlert } from "@vitarish/web-ui";
 import { useLocalizedText } from "@/localization";
@@ -28,32 +32,41 @@ export default function NamePage() {
       e.preventDefault();
       await save(firstName, lastName);
     },
-    [firstName, lastName, save]
+    [firstName, lastName, save],
   );
 
   return (
     <AccountSurface>
       <AccountWidget title={t("account.name.title")}>
         {isError && (
-          <StatusAlert className="mb-4" message={t("account.name.updateFailed")} />
+          <StatusAlert
+            className="mb-4"
+            message={t("account.name.updateFailed")}
+          />
         )}
         {success && (
-          <StatusAlert className="mb-4" message={t("account.name.updateSucceeded")} type="success" />
+          <StatusAlert
+            className="mb-4"
+            message={t("account.name.updateSucceeded")}
+            type="success"
+          />
         )}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <TextField name="firstName" isRequired>
             <Label>{t("account.name.firstName")}</Label>
-            <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            <Input
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
           </TextField>
           <TextField name="lastName" isRequired>
             <Label>{t("account.name.lastName")}</Label>
-            <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+            <Input
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
           </TextField>
-          <Button
-            type="submit"
-            isPending={isPending}
-            className="w-full"
-          >
+          <Button type="submit" isPending={isPending} className="w-full">
             {t("common.actions.save")}
           </Button>
         </form>

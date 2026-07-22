@@ -1,16 +1,36 @@
-import {formatFigureLabel} from "@/features/landing/data/figures";
-import {useLocalizedText} from "@/localization";
-import {PageContainer} from "@vitarish/web-ui/layout";
+import { formatFigureLabel } from "@/features/landing/data/figures";
+import { useLocalizedText } from "@/localization";
+import { PageContainer } from "@vitarish/web-ui/layout";
 
 const metricKeys = [
-  {value: "99.99", unit: "%", labelKey: "landing.metrics.items.0.label" as const, noteKey: "landing.metrics.items.0.note" as const},
-  {value: "12", unit: "ms", labelKey: "landing.metrics.items.1.label" as const, noteKey: "landing.metrics.items.1.note" as const},
-  {value: "10", unit: "k+", labelKey: "landing.metrics.items.2.label" as const, noteKey: "landing.metrics.items.2.note" as const},
-  {value: "38", unit: "s", labelKey: "landing.metrics.items.3.label" as const, noteKey: "landing.metrics.items.3.note" as const},
+  {
+    value: "99.99",
+    unit: "%",
+    labelKey: "landing.metrics.items.0.label" as const,
+    noteKey: "landing.metrics.items.0.note" as const,
+  },
+  {
+    value: "12",
+    unit: "ms",
+    labelKey: "landing.metrics.items.1.label" as const,
+    noteKey: "landing.metrics.items.1.note" as const,
+  },
+  {
+    value: "10",
+    unit: "k+",
+    labelKey: "landing.metrics.items.2.label" as const,
+    noteKey: "landing.metrics.items.2.note" as const,
+  },
+  {
+    value: "38",
+    unit: "s",
+    labelKey: "landing.metrics.items.3.label" as const,
+    noteKey: "landing.metrics.items.3.note" as const,
+  },
 ];
 
 export function Metrics() {
-  const {t} = useLocalizedText();
+  const { t } = useLocalizedText();
 
   return (
     <section className="relative py-20 lg:py-24">
@@ -37,10 +57,16 @@ export function Metrics() {
                 <span className="text-4xl font-semibold tracking-tight tabular-nums min-[360px]:text-5xl sm:text-6xl">
                   {m.value}
                 </span>
-                <span className="text-accent font-mono text-xl font-medium">{m.unit}</span>
+                <span className="text-accent font-mono text-xl font-medium">
+                  {m.unit}
+                </span>
               </div>
-              <p className="text-foreground mt-4 text-sm font-medium">{t(m.labelKey)}</p>
-              <p className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88 mt-2">{t(m.noteKey)}</p>
+              <p className="text-foreground mt-4 text-sm font-medium">
+                {t(m.labelKey)}
+              </p>
+              <p className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88 mt-2">
+                {t(m.noteKey)}
+              </p>
             </div>
           ))}
         </div>

@@ -61,6 +61,7 @@ export const Routes = {
       Index: "/settings",
       Users: "/settings/users",
       Statistics: "/settings/statistics",
+      ProcedureTemplates: "/settings/procedure-templates",
     },
     Reminders: "/reminders",
     Appointments: {

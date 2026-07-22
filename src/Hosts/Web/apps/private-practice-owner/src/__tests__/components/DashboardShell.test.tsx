@@ -1,10 +1,19 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { DashboardFrame, type DashboardNavigationGroup } from "@vitarish/web-ui";
-import { DashboardShell, type DashboardShellNavGroup } from "@/components/shell/DashboardShell";
+import {
+  DashboardFrame,
+  type DashboardNavigationGroup,
+} from "@vitarish/web-ui";
+import {
+  DashboardShell,
+  type DashboardShellNavGroup,
+} from "@/components/shell/DashboardShell";
 import { UserMenu } from "@/components/shell/UserMenu";
 import { SearchInput } from "@/components/shell/SearchInput";
-import { dashboardFooterItems, mainDashboardNavGroups } from "@/components/shell/dashboardShellNavigation";
+import {
+  dashboardFooterItems,
+  mainDashboardNavGroups,
+} from "@/components/shell/dashboardShellNavigation";
 
 const routerPush = vi.hoisted(() => vi.fn());
 
@@ -94,12 +103,13 @@ vi.mock("@/localization", () => ({
 
 vi.mock("@vitarish/web-localization", () => ({
   useLocalizedText: () => ({
-    t: (key: string) => ({
-      "appShell.culture.label": "Language",
-      "appShell.theme.light": "Switch to light mode",
-      "appShell.theme.dark": "Switch to dark mode",
-      "appShell.theme.system": "Switch to system mode",
-    }[key] ?? key),
+    t: (key: string) =>
+      ({
+        "appShell.culture.label": "Language",
+        "appShell.theme.light": "Switch to light mode",
+        "appShell.theme.dark": "Switch to dark mode",
+        "appShell.theme.system": "Switch to system mode",
+      })[key] ?? key,
     locale: "en",
   }),
   setLocaleCookie: vi.fn(),
@@ -109,11 +119,21 @@ vi.mock("@vitarish/web-localization", () => ({
 vi.mock("@heroui-pro/react/sidebar", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
-  const MenuItem = React.forwardRef(({ children, id, textValue, isCurrent, ...props }, ref) => (
-    <li ref={ref} role="treeitem" aria-selected={isCurrent ? "true" : "false"} aria-current={isCurrent ? "true" : undefined} data-id={id} data-text={textValue} {...props}>
-      {children}
-    </li>
-  ));
+  const MenuItem = React.forwardRef(
+    ({ children, id, textValue, isCurrent, ...props }, ref) => (
+      <li
+        ref={ref}
+        role="treeitem"
+        aria-selected={isCurrent ? "true" : "false"}
+        aria-current={isCurrent ? "true" : undefined}
+        data-id={id}
+        data-text={textValue}
+        {...props}
+      >
+        {children}
+      </li>
+    ),
+  );
   MenuItem.displayName = "Sidebar.MenuItem";
 
   return {
@@ -131,10 +151,14 @@ vi.mock("@heroui-pro/react/sidebar", () => {
         MenuHeader: ({ children }) => <div>{children}</div>,
         MenuItem,
         MenuIcon: ({ children }) => <span>{children}</span>,
-        MenuLabel: ({ children }) => <span data-sidebar="label">{children}</span>,
+        MenuLabel: ({ children }) => (
+          <span data-sidebar="label">{children}</span>
+        ),
         MenuChip: ({ children }) => <span>{children}</span>,
         MenuActions: ({ children }) => <div>{children}</div>,
-        MenuAction: ({ children, ...props }) => <button {...props}>{children}</button>,
+        MenuAction: ({ children, ...props }) => (
+          <button {...props}>{children}</button>
+        ),
         MenuTrigger: ({ children }) => <span>{children}</span>,
         MenuIndicator: ({ children }) => <span>{children}</span>,
         Submenu: ({ children }) => <ul role="group">{children}</ul>,
@@ -143,7 +167,7 @@ vi.mock("@heroui-pro/react/sidebar", () => {
         Trigger: ({ children }) => <button>{children}</button>,
         Mobile: ({ children }) => <div>{children}</div>,
         Tooltip: ({ children }) => <div>{children}</div>,
-      }
+      },
     ),
   };
 });
@@ -152,13 +176,22 @@ const shellNavGroups = [
   {
     labelKey: "appShell.navigation.mainGroup",
     items: [
-      { href: "/", icon: "house", labelKey: "appShell.navigation.home", exactMatch: true },
+      {
+        href: "/",
+        icon: "house",
+        labelKey: "appShell.navigation.home",
+        exactMatch: true,
+      },
     ],
   },
 ] as const satisfies readonly DashboardShellNavGroup[];
 
 const shellFooterItems = [
-  { href: "/account", icon: "circle-user", labelKey: "appShell.userMenu.account" },
+  {
+    href: "/account",
+    icon: "circle-user",
+    labelKey: "appShell.userMenu.account",
+  },
 ] as const;
 
 const nestedNavigationGroups = [
@@ -166,7 +199,12 @@ const nestedNavigationGroups = [
     label: "General",
     items: [
       { href: "/home", icon: "house", label: "Home", exactMatch: true },
-      { href: "/clinic/patients", icon: "users", label: "Patients", exactMatch: true },
+      {
+        href: "/clinic/patients",
+        icon: "users",
+        label: "Patients",
+        exactMatch: true,
+      },
       {
         href: "/knowledge",
         icon: "book-open",
@@ -184,23 +222,31 @@ describe("Dashboard Shell Components", () => {
   describe("DashboardShell", () => {
     it("renders the template-style sidebar, navbar actions, and content", () => {
       render(
-        <DashboardShell footerItems={shellFooterItems} navGroups={shellNavGroups}>
+        <DashboardShell
+          footerItems={shellFooterItems}
+          navGroups={shellNavGroups}
+        >
           <div>Dashboard content</div>
-        </DashboardShell>
+        </DashboardShell>,
       );
 
       expect(screen.getAllByText("Home").length).toBeGreaterThan(0);
       expect(screen.getAllByText("Language").length).toBeGreaterThan(0);
-      expect(screen.getAllByText("Switch to light mode").length).toBeGreaterThan(0);
+      expect(
+        screen.getAllByText("Switch to light mode").length,
+      ).toBeGreaterThan(0);
       expect(screen.getByRole("button", { name: "Up" })).toBeInTheDocument();
       expect(screen.getByText("Dashboard content")).toBeInTheDocument();
     });
 
     it("navigates to the parent route when the Up button is pressed", () => {
       render(
-        <DashboardShell footerItems={shellFooterItems} navGroups={shellNavGroups}>
+        <DashboardShell
+          footerItems={shellFooterItems}
+          navGroups={shellNavGroups}
+        >
           <div>Dashboard content</div>
-        </DashboardShell>
+        </DashboardShell>,
       );
 
       fireEvent.click(screen.getByRole("button", { name: "Up" }));
@@ -231,7 +277,7 @@ describe("Dashboard Shell Components", () => {
           title="Current page"
         >
           <div>Dashboard content</div>
-        </DashboardFrame>
+        </DashboardFrame>,
       );
 
       expect(screen.getAllByText("Patients").length).toBeGreaterThan(0);
@@ -239,11 +285,17 @@ describe("Dashboard Shell Components", () => {
 
     it("provides account access via sidebar identity header instead of navigation menu", () => {
       const [mainGroup] = mainDashboardNavGroups;
-      const accountItem = mainGroup.items.find((item) => item.href === "/account");
+      const accountItem = mainGroup.items.find(
+        (item) => item.href === "/account",
+      );
 
-      expect(dashboardFooterItems.map((item) => item.href)).not.toContain("/account");
+      expect(dashboardFooterItems.map((item) => item.href)).not.toContain(
+        "/account",
+      );
       expect(accountItem).toBeUndefined();
-      expect(mainDashboardNavGroups.map((group) => group.labelKey)).not.toContain("appShell.navigation.accountGroup");
+      expect(
+        mainDashboardNavGroups.map((group) => group.labelKey),
+      ).not.toContain("appShell.navigation.accountGroup");
     });
   });
 

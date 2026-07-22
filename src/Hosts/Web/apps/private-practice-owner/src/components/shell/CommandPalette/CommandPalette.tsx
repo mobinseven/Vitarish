@@ -7,7 +7,8 @@ import { useCommandPalette } from "./hooks/useCommandPalette";
 import { useLocalizedText } from "@/localization";
 
 export function CommandPalette() {
-  const { isOpen, setOpen, commandGroups, executeCommand } = useCommandPalette();
+  const { isOpen, setOpen, commandGroups, executeCommand } =
+    useCommandPalette();
   const { t } = useLocalizedText();
 
   return (
@@ -18,7 +19,9 @@ export function CommandPalette() {
           <Kbd.Abbr keyValue="command">
             <FaIcon icon="command" />
           </Kbd.Abbr>
-          <Kbd.Content><span className="text-[0.875rem]">K</span></Kbd.Content>
+          <Kbd.Content>
+            <span className="text-[0.875rem]">K</span>
+          </Kbd.Content>
         </Kbd>
       </Button>
       <Command>
@@ -27,9 +30,15 @@ export function CommandPalette() {
             <Command.Dialog>
               <Command.InputGroup>
                 <Command.InputGroup.Prefix>
-                  <FaIcon icon="magnifying-glass" aria-hidden="true" className="text-muted" />
+                  <FaIcon
+                    icon="magnifying-glass"
+                    aria-hidden="true"
+                    className="text-muted"
+                  />
                 </Command.InputGroup.Prefix>
-                <Command.InputGroup.Input placeholder={t("commandPalette.placeholder")} />
+                <Command.InputGroup.Input
+                  placeholder={t("commandPalette.placeholder")}
+                />
                 <Command.InputGroup.ClearButton />
                 <Command.InputGroup.Suffix>
                   <Kbd className="text-xs">
@@ -44,7 +53,9 @@ export function CommandPalette() {
                       <EmptyState.Media variant="icon">
                         <FaIcon icon="magnifying-glass" />
                       </EmptyState.Media>
-                      <EmptyState.Title>{t("commandPalette.noResults")}</EmptyState.Title>
+                      <EmptyState.Title>
+                        {t("commandPalette.noResults")}
+                      </EmptyState.Title>
                     </EmptyState.Header>
                   </EmptyState>
                 )}
@@ -101,6 +112,7 @@ export function CommandPalette() {
             </Command.Dialog>
           </Command.Container>
         </Command.Backdrop>
-      </Command></>
+      </Command>
+    </>
   );
 }

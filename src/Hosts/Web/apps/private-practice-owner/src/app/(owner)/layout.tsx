@@ -14,7 +14,11 @@ export default function OwnerLayout({
   const navigate = useCallback((href: string) => router.push(href), [router]);
 
   return (
-    <AuthorizationGuard requiredRole="owner" loginHref={Routes.Login.Index} onNavigate={navigate}>
+    <AuthorizationGuard
+      requiredRole="owner"
+      loginHref={Routes.Login.Index}
+      onNavigate={navigate}
+    >
       {children}
     </AuthorizationGuard>
   );

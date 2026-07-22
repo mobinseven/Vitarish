@@ -1,30 +1,33 @@
 import Image from "next/image";
-import {Button} from "@heroui/react";
+import { Button } from "@heroui/react";
 
-import {FaIcon} from "@vitarish/web-ui";
-import {PageContainer} from "@vitarish/web-ui/layout";
+import { FaIcon } from "@vitarish/web-ui";
+import { PageContainer } from "@vitarish/web-ui/layout";
 import {
   figures,
   figureTitles,
   formatFigureLabel,
   formatFigureTitleLabel,
 } from "@/features/landing/data/figures";
-import {useLocalizedText} from "@/localization";
+import { useLocalizedText } from "@/localization";
 
 const callouts = [
-  {id: "01", key: "landing.hero.callout1" as const, top: "14%", left: "8%"},
-  {id: "02", key: "landing.hero.callout2" as const, top: "46%", left: "58%"},
-  {id: "03", key: "landing.hero.callout3" as const, top: "78%", left: "20%"},
+  { id: "01", key: "landing.hero.callout1" as const, top: "14%", left: "8%" },
+  { id: "02", key: "landing.hero.callout2" as const, top: "46%", left: "58%" },
+  { id: "03", key: "landing.hero.callout3" as const, top: "78%", left: "20%" },
 ];
 
 const specs = ["v2.4.0", "region: us-east-1", "x: 1440", "grid: 56px"];
 
 export function Hero() {
-  const {t} = useLocalizedText();
+  const { t } = useLocalizedText();
 
   return (
     <section className="relative overflow-hidden" id="top">
-      <div className="border-border/70 pointer-events-none absolute inset-x-0 top-0 border-t" aria-hidden="true" />
+      <div
+        className="border-border/70 pointer-events-none absolute inset-x-0 top-0 border-t"
+        aria-hidden="true"
+      />
 
       <PageContainer className="relative grid items-center gap-14 pb-20 pt-16 lg:grid-cols-[1.05fr_1fr] lg:pb-28 lg:pt-24">
         <div className="min-w-0">
@@ -71,7 +74,9 @@ export function Hero() {
             {specs.map((spec) => (
               <div key={spec} className="flex items-center gap-2">
                 <span className="bg-accent/70 size-1 rounded-full" />
-                <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{spec}</span>
+                <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">
+                  {spec}
+                </span>
               </div>
             ))}
           </div>
@@ -98,7 +103,7 @@ export function Hero() {
                 <div
                   key={c.id}
                   className="absolute flex items-center gap-2"
-                  style={{top: c.top, left: c.left}}
+                  style={{ top: c.top, left: c.left }}
                 >
                   <span className="bg-accent size-1.5 rounded-full ring-2 ring-accent/25" />
                   <span className="bg-background/75 border-border/70 border px-1.5 py-0.5 backdrop-blur-sm">
@@ -113,8 +118,12 @@ export function Hero() {
           </div>
 
           <div className="mt-3 flex items-center justify-between">
-            <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{t("landing.hero.viewType")}</span>
-            <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">{t("landing.hero.scale")}</span>
+            <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">
+              {t("landing.hero.viewType")}
+            </span>
+            <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-muted/88">
+              {t("landing.hero.scale")}
+            </span>
           </div>
         </div>
       </PageContainer>

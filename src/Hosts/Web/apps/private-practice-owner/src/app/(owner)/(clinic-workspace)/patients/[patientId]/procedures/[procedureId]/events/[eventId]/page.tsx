@@ -16,10 +16,10 @@ export default function PatientProcedureEventRoute({
   const { displayProfile, user } = useAuthSession();
   const onNavigate = useClinicNavigation();
   const viewer = user
-      ? {
-          id: user.userId,
-          label: displayProfile.displayLabel,
-        }
+    ? {
+        id: user.userId,
+        label: displayProfile.displayLabel,
+      }
     : undefined;
 
   return (

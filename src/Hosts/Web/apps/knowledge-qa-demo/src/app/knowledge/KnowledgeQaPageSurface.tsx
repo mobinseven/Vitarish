@@ -1,10 +1,19 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { KnowledgeUserQaSurface, type KnowledgeQaLabels } from "@vitarish/knowledge-web";
-import { getKnowledgeQaErrorMessage, knowledgeQaClient } from "@/api/knowledgeQaClient";
+import {
+  KnowledgeUserQaSurface,
+  type KnowledgeQaLabels,
+} from "@vitarish/knowledge-web";
+import {
+  getKnowledgeQaErrorMessage,
+  knowledgeQaClient,
+} from "@/api/knowledgeQaClient";
 import { formatNumber, useLocalizedText } from "@/localization";
-import { ImmersiveRegion, StandaloneImmersivePage } from "@vitarish/web-ui/layout";
+import {
+  ImmersiveRegion,
+  StandaloneImmersivePage,
+} from "@vitarish/web-ui/layout";
 
 export function KnowledgeQaPageSurface() {
   const { direction, locale, t } = useLocalizedText();
@@ -15,11 +24,12 @@ export function KnowledgeQaPageSurface() {
         maximumFractionDigits: 2,
         minimumFractionDigits: 2,
       }),
-    [locale]
+    [locale],
   );
   const resolveErrorMessage = useCallback(
-    (error: unknown) => getKnowledgeQaErrorMessage(error, labels.unavailableStatus),
-    [labels.unavailableStatus]
+    (error: unknown) =>
+      getKnowledgeQaErrorMessage(error, labels.unavailableStatus),
+    [labels.unavailableStatus],
   );
 
   return (
@@ -37,7 +47,9 @@ export function KnowledgeQaPageSurface() {
   );
 }
 
-function createKnowledgeQaLabels(t: ReturnType<typeof useLocalizedText>["t"]): KnowledgeQaLabels {
+function createKnowledgeQaLabels(
+  t: ReturnType<typeof useLocalizedText>["t"],
+): KnowledgeQaLabels {
   return {
     allCorpora: t("knowledge.qa.allCorpora"),
     allCorporaDescription: t("knowledge.qa.allCorporaDescription"),
@@ -49,7 +61,13 @@ function createKnowledgeQaLabels(t: ReturnType<typeof useLocalizedText>["t"]): K
     askAgainAction: t("knowledge.qa.askAgainAction"),
     askFromCorpusAction: t("knowledge.qa.askFromCorpusAction"),
     checkingScope: (scope) => t("knowledge.qa.checkingScope", { scope }),
-    chunkCount: (count) => t(count === 1 ? "knowledge.qa.chunkCount.one" : "knowledge.qa.chunkCount.other", { count }),
+    chunkCount: (count) =>
+      t(
+        count === 1
+          ? "knowledge.qa.chunkCount.one"
+          : "knowledge.qa.chunkCount.other",
+        { count },
+      ),
     citations: t("knowledge.qa.citations"),
     composerFooter: t("knowledge.qa.composerFooter"),
     contextSection: t("knowledge.qa.contextSection"),
@@ -74,7 +92,13 @@ function createKnowledgeQaLabels(t: ReturnType<typeof useLocalizedText>["t"]): K
     searchingContext: t("knowledge.qa.searchingContext"),
     selectedCorpus: t("knowledge.qa.selectedCorpus"),
     selectedCorpusAnswer: t("knowledge.qa.selectedCorpusAnswer"),
-    sourceCount: (count) => t(count === 1 ? "knowledge.qa.sourceCount.one" : "knowledge.qa.sourceCount.other", { count }),
+    sourceCount: (count) =>
+      t(
+        count === 1
+          ? "knowledge.qa.sourceCount.one"
+          : "knowledge.qa.sourceCount.other",
+        { count },
+      ),
     thinking: t("knowledge.qa.thinking"),
     title: t("knowledge.qa.title"),
     unavailableStatus: t("knowledge.qa.unavailableStatus"),

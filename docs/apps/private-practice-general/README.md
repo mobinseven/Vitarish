@@ -38,6 +38,8 @@ App-level journeys are the canonical source of truth for Private Practice Genera
 - [0025 Owner Reminders Journey](journeys/0025-owner-reminders-journey.md)
 - [0026 Clinic Settings Users Journey](journeys/0026-clinic-settings-users-journey.md)
 - [0027 Clinic Statistics Journey](journeys/0027-clinic-statistics-journey.md)
+- [0028 Patient Procedure Clinical Workspace Journey](journeys/0028-patient-procedure-workspace-journey.md)
+- [0029 Procedure Template Management Journey](journeys/0029-procedure-template-management-journey.md)
 
 ## Flattened module usage journeys
 

@@ -13,7 +13,11 @@ export function UserMenu() {
   const router = useRouter();
   const navigate = useCallback((href: string) => router.push(href), [router]);
   const { isAuthenticated, isLoading, displayProfile } = useAuthSession();
-  const { logout, isLoading: isLoggingOut } = useLogout(undefined, Routes.Login.Index, navigate);
+  const { logout, isLoading: isLoggingOut } = useLogout(
+    undefined,
+    Routes.Login.Index,
+    navigate,
+  );
   const { t } = useLocalizedText();
 
   function handleAction(key: React.Key) {
@@ -30,7 +34,10 @@ export function UserMenu() {
 
   if (!isAuthenticated) {
     return (
-      <Link href={Routes.Login.Index} className="text-sm font-medium text-foreground no-underline">
+      <Link
+        href={Routes.Login.Index}
+        className="text-sm font-medium text-foreground no-underline"
+      >
         {t("appShell.userMenu.logIn")}
       </Link>
     );
@@ -39,9 +46,7 @@ export function UserMenu() {
   return (
     <Dropdown>
       <Dropdown.Trigger aria-label={t("appShell.userMenu.account")}>
-        <span
-          className="flex min-w-0 items-center gap-2 px-2"
-        >
+        <span className="flex min-w-0 items-center gap-2 px-2">
           <Avatar size="sm" className="h-7 w-7 text-xs">
             <AvatarFallback>{displayProfile.initials ?? ""}</AvatarFallback>
           </Avatar>
@@ -52,7 +57,10 @@ export function UserMenu() {
       </Dropdown.Trigger>
       <Dropdown.Popover>
         <Dropdown.Menu onAction={handleAction}>
-          <Dropdown.Item id="account" textValue={t("appShell.userMenu.account")}>
+          <Dropdown.Item
+            id="account"
+            textValue={t("appShell.userMenu.account")}
+          >
             <Label>{t("appShell.userMenu.account")}</Label>
           </Dropdown.Item>
           <Dropdown.Item

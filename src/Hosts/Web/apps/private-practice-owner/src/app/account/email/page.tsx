@@ -3,7 +3,11 @@
 import { useCallback } from "react";
 import { TextField, Label, Input, Button } from "@heroui/react";
 import { useAuthSession } from "@vitarish/auth-web";
-import { AccountBackLink, AccountSurface, AccountWidget } from "@/components/account/AccountSurface";
+import {
+  AccountBackLink,
+  AccountSurface,
+  AccountWidget,
+} from "@/components/account/AccountSurface";
 import { useAccountEmailChange } from "@vitarish/account-web";
 import { StatusAlert } from "@vitarish/web-ui";
 import { OtpCodeInput } from "@vitarish/auth-web";
@@ -38,7 +42,7 @@ export default function EmailChangePage() {
         setError(localizeApiError(err, t));
       }
     },
-    [email, beginEmailChange, setError, t]
+    [email, beginEmailChange, setError, t],
   );
 
   const handleCodeSubmit = useCallback(
@@ -50,7 +54,7 @@ export default function EmailChangePage() {
         setError(localizeApiError(err, t));
       }
     },
-    [code, verifyEmailChange, setError, t]
+    [code, verifyEmailChange, setError, t],
   );
 
   return (
@@ -63,7 +67,11 @@ export default function EmailChangePage() {
         )}
         {error && <StatusAlert className="mb-4" message={error} />}
         {success && (
-          <StatusAlert className="mb-4" message={t("account.email.updateSucceeded")} type="success" />
+          <StatusAlert
+            className="mb-4"
+            message={t("account.email.updateSucceeded")}
+            type="success"
+          />
         )}
 
         {step === "email" ? (
@@ -76,11 +84,7 @@ export default function EmailChangePage() {
                 autoComplete="email"
               />
             </TextField>
-            <Button
-              type="submit"
-              isPending={isLoading}
-              className="w-full"
-            >
+            <Button type="submit" isPending={isLoading} className="w-full">
               {t("auth.otp.sendAction")}
             </Button>
           </form>

@@ -26,7 +26,11 @@ export function AccountWidget(props: AccountWidgetProps) {
   return <SettingsSection {...props} />;
 }
 
-export function AccountBackLink({ href = Routes.Account.Index, className = "", ...props }: AccountBackLinkProps) {
+export function AccountBackLink({
+  href = Routes.Account.Index,
+  className = "",
+  ...props
+}: AccountBackLinkProps) {
   const { t } = useLocalizedText();
 
   return (

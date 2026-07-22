@@ -6,28 +6,49 @@ import {
   formatFigureLabel,
   formatFigureTitleLabel,
 } from "@/features/landing/data/figures";
-import {useLocalizedText} from "@/localization";
-import {PageContainer} from "@vitarish/web-ui/layout";
+import { useLocalizedText } from "@/localization";
+import { PageContainer } from "@vitarish/web-ui/layout";
 
 const nodeKeys = [
-  {id: "01", titleKey: "landing.architecture.nodes.0.title" as const, bodyKey: "landing.architecture.nodes.0.body" as const},
-  {id: "02", titleKey: "landing.architecture.nodes.1.title" as const, bodyKey: "landing.architecture.nodes.1.body" as const},
-  {id: "03", titleKey: "landing.architecture.nodes.2.title" as const, bodyKey: "landing.architecture.nodes.2.body" as const},
-  {id: "04", titleKey: "landing.architecture.nodes.3.title" as const, bodyKey: "landing.architecture.nodes.3.body" as const},
+  {
+    id: "01",
+    titleKey: "landing.architecture.nodes.0.title" as const,
+    bodyKey: "landing.architecture.nodes.0.body" as const,
+  },
+  {
+    id: "02",
+    titleKey: "landing.architecture.nodes.1.title" as const,
+    bodyKey: "landing.architecture.nodes.1.body" as const,
+  },
+  {
+    id: "03",
+    titleKey: "landing.architecture.nodes.2.title" as const,
+    bodyKey: "landing.architecture.nodes.2.body" as const,
+  },
+  {
+    id: "04",
+    titleKey: "landing.architecture.nodes.3.title" as const,
+    bodyKey: "landing.architecture.nodes.3.body" as const,
+  },
 ];
 
 export function Architecture() {
-  const {t} = useLocalizedText();
+  const { t } = useLocalizedText();
 
   return (
-    <section className="bg-surface relative scroll-mt-24 border-y border-border py-20 lg:py-28" id="architecture">
+    <section
+      className="bg-surface relative scroll-mt-24 border-y border-border py-20 lg:py-28"
+      id="architecture"
+    >
       <PageContainer className="relative">
         <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0 max-w-2xl">
             <div className="flex min-w-0 flex-wrap items-center gap-3">
               <span className="bg-accent inline-block size-1.5" />
               <span className="min-w-0 break-words font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
-                <span className="text-muted mr-2">{formatFigureLabel("06")}</span>
+                <span className="text-muted mr-2">
+                  {formatFigureLabel("06")}
+                </span>
                 {t("landing.architecture.sectionLabel")}
               </span>
             </div>
@@ -60,10 +81,16 @@ export function Architecture() {
           {nodeKeys.map((n) => (
             <div key={n.id} className="min-w-0">
               <div className="flex items-center gap-3">
-                <span className="text-accent font-mono text-sm font-semibold">{n.id}</span>
+                <span className="text-accent font-mono text-sm font-semibold">
+                  {n.id}
+                </span>
               </div>
-              <h3 className="mt-4 text-base font-semibold tracking-tight">{t(n.titleKey)}</h3>
-              <p className="text-muted mt-2 text-sm leading-relaxed">{t(n.bodyKey)}</p>
+              <h3 className="mt-4 text-base font-semibold tracking-tight">
+                {t(n.titleKey)}
+              </h3>
+              <p className="text-muted mt-2 text-sm leading-relaxed">
+                {t(n.bodyKey)}
+              </p>
             </div>
           ))}
         </div>

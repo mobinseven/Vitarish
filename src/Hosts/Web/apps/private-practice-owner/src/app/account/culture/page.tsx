@@ -4,25 +4,26 @@ import { useCallback } from "react";
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useAuthSession } from "@vitarish/auth-web";
-import { AccountBackLink, AccountSurface } from "@/components/account/AccountSurface";
+import {
+  AccountBackLink,
+  AccountSurface,
+} from "@/components/account/AccountSurface";
 import { useAccountCulture } from "@vitarish/account-web";
 import { StatusAlert } from "@vitarish/web-ui";
 import { OptionSelector } from "@/components/account/OptionSelector";
-import { setLocaleCookie, toSupportedLocale, useLocalizedText } from "@/localization";
+import {
+  setLocaleCookie,
+  toSupportedLocale,
+  useLocalizedText,
+} from "@/localization";
 
 export default function CulturePage() {
   const { user } = useAuthSession();
   const userId = user?.userId ?? "";
   const router = useRouter();
   const { t } = useLocalizedText();
-  const {
-    selected,
-    setSelected,
-    success,
-    isError,
-    isPending,
-    save,
-  } = useAccountCulture(userId);
+  const { selected, setSelected, success, isError, isPending, save } =
+    useAccountCulture(userId);
 
   const handleSave = useCallback(async () => {
     await save(selected);
@@ -45,16 +46,19 @@ export default function CulturePage() {
         onSelect={setSelected}
       />
       {isError && (
-        <StatusAlert className="mb-4" message={t("account.culture.updateFailed")} />
+        <StatusAlert
+          className="mb-4"
+          message={t("account.culture.updateFailed")}
+        />
       )}
       {success && (
-        <StatusAlert className="mb-4" message={t("account.culture.updateSucceeded")} type="success" />
+        <StatusAlert
+          className="mb-4"
+          message={t("account.culture.updateSucceeded")}
+          type="success"
+        />
       )}
-      <Button
-        onPress={handleSave}
-        isPending={isPending}
-        className="w-full"
-      >
+      <Button onPress={handleSave} isPending={isPending} className="w-full">
         {t("common.actions.save")}
       </Button>
       <AccountBackLink />

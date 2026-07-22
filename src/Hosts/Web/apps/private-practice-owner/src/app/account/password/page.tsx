@@ -3,7 +3,11 @@
 import { useState, useCallback } from "react";
 import { TextField, Label, Input, Button } from "@heroui/react";
 import { useAuthSession } from "@vitarish/auth-web";
-import { AccountBackLink, AccountSurface, AccountWidget } from "@/components/account/AccountSurface";
+import {
+  AccountBackLink,
+  AccountSurface,
+  AccountWidget,
+} from "@/components/account/AccountSurface";
 import { useAccountPasswordChange } from "@vitarish/account-web";
 import { StatusAlert } from "@vitarish/web-ui";
 import { localizeApiError, useLocalizedText } from "@/localization";
@@ -11,14 +15,8 @@ import { localizeApiError, useLocalizedText } from "@/localization";
 export default function PasswordChangePage() {
   useAuthSession();
   const { t } = useLocalizedText();
-  const {
-    isLoading,
-    error,
-    setError,
-    success,
-    setSuccess,
-    changePassword,
-  } = useAccountPasswordChange();
+  const { isLoading, error, setError, success, setSuccess, changePassword } =
+    useAccountPasswordChange();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -49,14 +47,28 @@ export default function PasswordChangePage() {
         setError(localizeApiError(err, t));
       }
     },
-    [currentPassword, newPassword, confirmPassword, changePassword, setError, setSuccess, t]
+    [
+      currentPassword,
+      newPassword,
+      confirmPassword,
+      changePassword,
+      setError,
+      setSuccess,
+      t,
+    ],
   );
 
   return (
     <AccountSurface>
       <AccountWidget title={t("account.password.title")}>
         {error && <StatusAlert className="mb-4" message={error} />}
-        {success && <StatusAlert className="mb-4" message={t("account.password.changeSucceeded")} type="success" />}
+        {success && (
+          <StatusAlert
+            className="mb-4"
+            message={t("account.password.changeSucceeded")}
+            type="success"
+          />
+        )}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <TextField name="currentPassword" type="password">
             <Label>{t("account.password.currentPassword")}</Label>
@@ -82,11 +94,7 @@ export default function PasswordChangePage() {
               autoComplete="new-password"
             />
           </TextField>
-          <Button
-            type="submit"
-            isPending={isLoading}
-            className="w-full"
-          >
+          <Button type="submit" isPending={isLoading} className="w-full">
             {t("account.password.changeAction")}
           </Button>
         </form>

@@ -49,26 +49,30 @@ const queryClient = new QueryClient({
 });
 
 function wrapper({ children }: { children: ReactNode }) {
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 }
 
 describe("parsePasskeyRegistrationOptions", () => {
   it("rejects malformed begin-register JSON", () => {
     expect(() => parsePasskeyRegistrationOptions("{")).toThrow(
-      PasskeyRegistrationOptionsError
+      PasskeyRegistrationOptionsError,
     );
   });
 
   it("rejects missing required WebAuthn option fields", () => {
     const missingChallenge = { ...validOptions, challenge: "" };
 
-    expect(() => parsePasskeyRegistrationOptions(JSON.stringify(missingChallenge))).toThrow(
-      PasskeyRegistrationOptionsError
-    );
+    expect(() =>
+      parsePasskeyRegistrationOptions(JSON.stringify(missingChallenge)),
+    ).toThrow(PasskeyRegistrationOptionsError);
   });
 
   it("accepts required WebAuthn creation options", () => {
-    expect(parsePasskeyRegistrationOptions(JSON.stringify(validOptions))).toEqual(validOptions);
+    expect(
+      parsePasskeyRegistrationOptions(JSON.stringify(validOptions)),
+    ).toEqual(validOptions);
   });
 });
 
@@ -84,7 +88,9 @@ describe("useAccountPasskeys", () => {
     beginRegisterMutateAsync.mockResolvedValue(JSON.stringify(validOptions));
     completeRegisterMutateAsync.mockResolvedValue(undefined);
 
-    const { result } = renderHook(() => useAccountPasskeys("user-1"), { wrapper });
+    const { result } = renderHook(() => useAccountPasskeys("user-1"), {
+      wrapper,
+    });
 
     // register will fail because WebAuthn is not available in jsdom, but begin-register should still be called
     try {
@@ -99,7 +105,9 @@ describe("useAccountPasskeys", () => {
   });
 
   it("exposes credentials and loading state", () => {
-    const { result } = renderHook(() => useAccountPasskeys("user-1"), { wrapper });
+    const { result } = renderHook(() => useAccountPasskeys("user-1"), {
+      wrapper,
+    });
 
     expect(result.current.credentials).toEqual([]);
     expect(result.current.isLoadingCredentials).toBe(false);
@@ -109,7 +117,9 @@ describe("useAccountPasskeys", () => {
   it("calls delete-credential when remove is invoked", async () => {
     deleteCredentialMutateAsync.mockResolvedValue(undefined);
 
-    const { result } = renderHook(() => useAccountPasskeys("user-1"), { wrapper });
+    const { result } = renderHook(() => useAccountPasskeys("user-1"), {
+      wrapper,
+    });
 
     await act(async () => {
       await result.current.remove("cred-123");

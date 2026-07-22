@@ -77,7 +77,9 @@ export function DashboardShell({
     return {
       accountHref: Routes.Account.Index,
       accountLabel: t("appShell.userMenu.account"),
-      initials: displayProfile?.initials ?? getInitials(displayProfile?.displayLabel ?? ""),
+      initials:
+        displayProfile?.initials ??
+        getInitials(displayProfile?.displayLabel ?? ""),
       label: displayProfile?.displayLabel ?? "",
       subtitle: t("appShell.userMenu.account"),
     };
@@ -85,11 +87,11 @@ export function DashboardShell({
 
   const navigationGroups = useMemo(
     () => navGroups.map((group) => toNavigationGroup(group, t)),
-    [navGroups, t]
+    [navGroups, t],
   );
   const footerNavigationItems = useMemo(
     () => footerItems.map((item) => toNavigationItem(item, t)),
-    [footerItems, t]
+    [footerItems, t],
   );
 
   return (
@@ -117,14 +119,20 @@ export function DashboardShell({
   );
 }
 
-function toNavigationGroup(group: DashboardShellNavGroup, t: (key: MessageKey) => string): DashboardNavigationGroup {
+function toNavigationGroup(
+  group: DashboardShellNavGroup,
+  t: (key: MessageKey) => string,
+): DashboardNavigationGroup {
   return {
     label: t(group.labelKey),
     items: group.items.map((item) => toNavigationItem(item, t)),
   };
 }
 
-function toNavigationItem(item: DashboardShellItem, t: (key: MessageKey) => string): DashboardNavigationItem {
+function toNavigationItem(
+  item: DashboardShellItem,
+  t: (key: MessageKey) => string,
+): DashboardNavigationItem {
   return {
     href: item.href,
     icon: item.icon,

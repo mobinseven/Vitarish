@@ -11,7 +11,7 @@ export function Providers({ children }: { children: ReactNode }) {
         defaultOptions: {
           queries: { staleTime: 5 * 60 * 1000, retry: 1 },
         },
-      })
+      }),
   );
 
   return (

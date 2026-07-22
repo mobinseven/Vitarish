@@ -50,7 +50,10 @@ export function ContextualAsideLayoutFixture({
       title={<span className="font-semibold">{t("layoutFixture.title")}</span>}
     >
       <ContainedPage>
-        <section aria-labelledby="layout-fixture-heading" className="flex flex-col gap-6">
+        <section
+          aria-labelledby="layout-fixture-heading"
+          className="flex flex-col gap-6"
+        >
           <div>
             <p className="text-sm font-semibold uppercase tracking-wider text-muted">
               {t("layoutFixture.eyebrow")}

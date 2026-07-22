@@ -35,7 +35,11 @@ export function SearchInput({ onSearch }: SearchInputProps) {
       <TextField aria-label={t("appShell.search.label")} type="search">
         <InputGroup>
           <InputGroup.Prefix>
-            <FaIcon aria-hidden="true" className="pointer-events-none flex-shrink-0 text-base text-muted" icon="magnifying-glass" />
+            <FaIcon
+              aria-hidden="true"
+              className="pointer-events-none flex-shrink-0 text-base text-muted"
+              icon="magnifying-glass"
+            />
           </InputGroup.Prefix>
           <InputGroup.Input
             ref={inputRef}

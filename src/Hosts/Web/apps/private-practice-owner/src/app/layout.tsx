@@ -4,7 +4,10 @@ import { Providers } from "@/components/providers/AppProviders";
 import { getMessages, I18nAppLayout, localizedMetadata } from "@/localization";
 import "./globals.css";
 
-export const metadata = localizedMetadata("metadata.root.title", "metadata.root.description");
+export const metadata = localizedMetadata(
+  "metadata.root.title",
+  "metadata.root.description",
+);
 
 export const viewport: Viewport = { viewportFit: "cover" };
 

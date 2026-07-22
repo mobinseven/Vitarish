@@ -9,12 +9,36 @@ import { AccountSurface } from "@/components/account/AccountSurface";
 import { useLocalizedText, type MessageKey } from "@/localization";
 
 const settingsLinks = [
-  { labelKey: "account.navigation.name" as MessageKey, href: Routes.Account.Name, icon: "person" },
-  { labelKey: "account.navigation.email" as MessageKey, href: Routes.Account.Email, icon: "envelope" },
-  { labelKey: "account.navigation.phone" as MessageKey, href: Routes.Account.Phone, icon: "mobile" },
-  { labelKey: "account.navigation.password" as MessageKey, href: Routes.Account.Password, icon: "lock" },
-  { labelKey: "account.navigation.passkeys" as MessageKey, href: Routes.Account.Passkeys, icon: "key" },
-  { labelKey: "account.navigation.language" as MessageKey, href: Routes.Account.Culture, icon: "globe" },
+  {
+    labelKey: "account.navigation.name" as MessageKey,
+    href: Routes.Account.Name,
+    icon: "person",
+  },
+  {
+    labelKey: "account.navigation.email" as MessageKey,
+    href: Routes.Account.Email,
+    icon: "envelope",
+  },
+  {
+    labelKey: "account.navigation.phone" as MessageKey,
+    href: Routes.Account.Phone,
+    icon: "mobile",
+  },
+  {
+    labelKey: "account.navigation.password" as MessageKey,
+    href: Routes.Account.Password,
+    icon: "lock",
+  },
+  {
+    labelKey: "account.navigation.passkeys" as MessageKey,
+    href: Routes.Account.Passkeys,
+    icon: "key",
+  },
+  {
+    labelKey: "account.navigation.language" as MessageKey,
+    href: Routes.Account.Culture,
+    icon: "globe",
+  },
 ];
 
 export default function AccountSettingsPage() {
@@ -33,10 +57,21 @@ export default function AccountSettingsPage() {
           )}
         </ItemCardGroup.Header>
         {settingsLinks.map((item) => (
-          <Link key={item.href} href={item.href} className="block h-full min-w-0">
-            <ItemCard className="h-full min-w-0 transition-colors hover:bg-surface-secondary" variant="outline">
+          <Link
+            key={item.href}
+            href={item.href}
+            className="block h-full min-w-0"
+          >
+            <ItemCard
+              className="h-full min-w-0 transition-colors hover:bg-surface-secondary"
+              variant="outline"
+            >
               <ItemCard.Icon>
-                <FaIcon icon={item.icon} aria-hidden="true" className="text-lg text-accent" />
+                <FaIcon
+                  icon={item.icon}
+                  aria-hidden="true"
+                  className="text-lg text-accent"
+                />
               </ItemCard.Icon>
               <ItemCard.Content>
                 <ItemCard.Title className="whitespace-normal break-words">

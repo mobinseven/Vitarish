@@ -3,7 +3,11 @@
 import { useCallback } from "react";
 import { TextField, Label, Input, Button } from "@heroui/react";
 import { useAuthSession } from "@vitarish/auth-web";
-import { AccountBackLink, AccountSurface, AccountWidget } from "@/components/account/AccountSurface";
+import {
+  AccountBackLink,
+  AccountSurface,
+  AccountWidget,
+} from "@/components/account/AccountSurface";
 import { useAccountPhoneChange } from "@vitarish/account-web";
 import { StatusAlert } from "@vitarish/web-ui";
 import { OtpCodeInput } from "@vitarish/auth-web";
@@ -38,7 +42,7 @@ export default function PhoneChangePage() {
         setError(localizeApiError(err, t));
       }
     },
-    [phoneNumber, beginPhoneChange, setError, t]
+    [phoneNumber, beginPhoneChange, setError, t],
   );
 
   const handleCodeSubmit = useCallback(
@@ -50,7 +54,7 @@ export default function PhoneChangePage() {
         setError(localizeApiError(err, t));
       }
     },
-    [code, verifyPhoneChange, setError, t]
+    [code, verifyPhoneChange, setError, t],
   );
 
   return (
@@ -63,7 +67,11 @@ export default function PhoneChangePage() {
         )}
         {error && <StatusAlert className="mb-4" message={error} />}
         {success && (
-          <StatusAlert className="mb-4" message={t("account.phone.updateSucceeded")} type="success" />
+          <StatusAlert
+            className="mb-4"
+            message={t("account.phone.updateSucceeded")}
+            type="success"
+          />
         )}
 
         {step === "phone" ? (
@@ -77,11 +85,7 @@ export default function PhoneChangePage() {
                 inputMode="tel"
               />
             </TextField>
-            <Button
-              type="submit"
-              isPending={isLoading}
-              className="w-full"
-            >
+            <Button type="submit" isPending={isLoading} className="w-full">
               {t("auth.otp.sendAction")}
             </Button>
           </form>

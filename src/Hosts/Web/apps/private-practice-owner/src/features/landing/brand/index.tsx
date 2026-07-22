@@ -1,4 +1,4 @@
-import type {SVGProps} from "react";
+import type { SVGProps } from "react";
 import Image from "next/image";
 
 import metadata from "./metadata.json";
@@ -27,7 +27,12 @@ export const brandGuidelines = guidelines;
 
 export type BrandIconProps = SVGProps<SVGSVGElement>;
 
-export function BrandLogotipo({className, height, width, ...props}: BrandIconProps) {
+export function BrandLogotipo({
+  className,
+  height,
+  width,
+  ...props
+}: BrandIconProps) {
   const asset = brand.assets?.logotipo ?? brand.assets?.logo;
 
   if (asset?.src) {
@@ -107,7 +112,12 @@ export function BrandLogotipo({className, height, width, ...props}: BrandIconPro
   );
 }
 
-export function BrandIsotipo({className, height, width, ...props}: BrandIconProps) {
+export function BrandIsotipo({
+  className,
+  height,
+  width,
+  ...props
+}: BrandIconProps) {
   const asset = brand.assets?.isotipo ?? brand.assets?.mark;
 
   if (asset?.src) {

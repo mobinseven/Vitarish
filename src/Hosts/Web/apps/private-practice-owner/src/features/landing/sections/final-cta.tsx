@@ -1,13 +1,13 @@
-import {Button} from "@heroui/react";
+import { Button } from "@heroui/react";
 
-import {BrandIsotipo} from "@/features/landing/brand";
-import {FaIcon} from "@vitarish/web-ui";
-import {PageContainer} from "@vitarish/web-ui/layout";
-import {formatFigureLabel} from "@/features/landing/data/figures";
-import {useLocalizedText} from "@/localization";
+import { BrandIsotipo } from "@/features/landing/brand";
+import { FaIcon } from "@vitarish/web-ui";
+import { PageContainer } from "@vitarish/web-ui/layout";
+import { formatFigureLabel } from "@/features/landing/data/figures";
+import { useLocalizedText } from "@/localization";
 
 export function FinalCta() {
-  const {t} = useLocalizedText();
+  const { t } = useLocalizedText();
 
   return (
     <section className="relative scroll-mt-24 py-20 lg:py-28" id="cta">
@@ -21,7 +21,9 @@ export function FinalCta() {
               <div className="flex items-center gap-3">
                 <span className="bg-accent inline-block size-1.5" />
                 <span className="font-mono text-[0.6875rem] leading-none tracking-[0.18em] uppercase text-accent">
-                  <span className="text-muted mr-2">{formatFigureLabel("13")}</span>
+                  <span className="text-muted mr-2">
+                    {formatFigureLabel("13")}
+                  </span>
                   {t("landing.finalCta.sectionLabel")}
                 </span>
               </div>
@@ -34,7 +36,11 @@ export function FinalCta() {
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              <Button render={(props: any) => <a href="#top" {...props} />} size="lg" variant="primary">
+              <Button
+                render={(props: any) => <a href="#top" {...props} />}
+                size="lg"
+                variant="primary"
+              >
                 {t("landing.finalCta.ctaPrimary")}
                 <FaIcon icon="arrow-right" className="size-4" />
               </Button>

@@ -20,11 +20,20 @@ function LoginRouteFallback() {
 export default function LoginLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const navigate = useCallback((href: string) => router.replace(href), [router]);
+  const navigate = useCallback(
+    (href: string) => router.replace(href),
+    [router],
+  );
 
   return (
     <Suspense fallback={<LoginRouteFallback />}>
-      <AuthenticatedRedirectBoundary authenticatedHref={Routes.Home} onNavigate={navigate} returnUrlSearchParams={searchParams}>{children}</AuthenticatedRedirectBoundary>
+      <AuthenticatedRedirectBoundary
+        authenticatedHref={Routes.Home}
+        onNavigate={navigate}
+        returnUrlSearchParams={searchParams}
+      >
+        {children}
+      </AuthenticatedRedirectBoundary>
     </Suspense>
   );
 }

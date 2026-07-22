@@ -16,6 +16,20 @@ describe("private-practice route layout coverage", () => {
 
     expect(uncoveredPages.map((pagePath) => relative(appRoot, pagePath))).toEqual([]);
   });
+
+  it("assigns procedure-template management to the clinic workspace layout", () => {
+    const pagePath = resolve(
+      appRoot,
+      "(owner)",
+      "(clinic-workspace)",
+      "settings",
+      "procedure-templates",
+      "page.tsx",
+    );
+
+    expect(existsSync(pagePath)).toBe(true);
+    expect(existsSync(resolve(appRoot, "(owner)", "(clinic-workspace)", "layout.tsx"))).toBe(true);
+  });
 });
 
 function collectPageFiles(directory: string): string[] {

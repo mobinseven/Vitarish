@@ -1,9 +1,9 @@
-import {Button, useTheme} from "@heroui/react";
+import { Button, useTheme } from "@heroui/react";
 
-import {FaIcon} from "@vitarish/web-ui";
+import { FaIcon } from "@vitarish/web-ui";
 
 export function ThemeToggle() {
-  const {resolvedTheme, setTheme} = useTheme("system");
+  const { resolvedTheme, setTheme } = useTheme("system");
   const isDark = resolvedTheme === "dark";
 
   return (

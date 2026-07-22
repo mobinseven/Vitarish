@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { useAuthSession } from "@vitarish/auth-web";
 import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { DashboardShell } from "@/components/shell";
-import { dashboardFooterItems, mainDashboardNavGroups } from "@/components/shell/dashboardShellNavigation";
+import {
+  dashboardFooterItems,
+  mainDashboardNavGroups,
+} from "@/components/shell/dashboardShellNavigation";
 import { Routes } from "@/app/routes";
 import { useLocalizedText } from "@/localization";
 import { ContainedPage, StandaloneCenteredPage } from "@vitarish/web-ui/layout";
@@ -38,7 +41,10 @@ export default function AccountLayout({
   }
 
   return (
-    <DashboardShell footerItems={dashboardFooterItems} navGroups={mainDashboardNavGroups}>
+    <DashboardShell
+      footerItems={dashboardFooterItems}
+      navGroups={mainDashboardNavGroups}
+    >
       <ContainedPage>
         <JourneyGateBoundary>{children}</JourneyGateBoundary>
       </ContainedPage>

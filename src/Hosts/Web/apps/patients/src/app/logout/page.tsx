@@ -12,7 +12,8 @@ import { Routes } from "@/app/routes";
 export default function LogoutPage() {
   const router = useRouter();
   const navigate = useCallback((href: string) => router.push(href), [router]);
-  const { logout, isLoading, isContextLoading, contextStatus, errorMessage } = useLogout(undefined, Routes.Login.Index, navigate);
+  const { logout, isLoading, isContextLoading, contextStatus, errorMessage } =
+    useLogout(undefined, Routes.Login.Index, navigate);
   const { t } = useLocalizedText();
 
   return (
@@ -24,12 +25,20 @@ export default function LogoutPage() {
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {contextStatus === "already-signed-out" && (
-            <StatusAlert className="mb-4" message={t("auth.logout.alreadyEnded")} />
+            <StatusAlert
+              className="mb-4"
+              message={t("auth.logout.alreadyEnded")}
+            />
           )}
           {contextStatus === "unavailable" && (
-            <StatusAlert className="mb-4" message={t("auth.logout.unavailable")} />
+            <StatusAlert
+              className="mb-4"
+              message={t("auth.logout.unavailable")}
+            />
           )}
-          {errorMessage && <StatusAlert className="mb-4" message={errorMessage} />}
+          {errorMessage && (
+            <StatusAlert className="mb-4" message={errorMessage} />
+          )}
           <Button
             variant="danger"
             isPending={isLoading || isContextLoading}
