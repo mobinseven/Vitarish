@@ -91,9 +91,9 @@
 [data-theme="light"] {
 
   --background: oklch(93% 0.012 240 / 52%);
-  --surface: oklch(97% 0.008 240 / 48%);
-  --surface-secondary: oklch(98.5% 0.008 240 / 40%);
-  --surface-tertiary: oklch(100% 0.008 240 / 28%);
+  --surface: oklch(97.051% 0.00766 242.075 / 0.968);
+  --surface-secondary: oklch(98.546% 0.00763 242.081 / 0.831);
+  --surface-tertiary: oklch(99.7% 0.00426 198.556 / 0.699);
   --overlay: oklch(100% 0.004 240 / 70%);
   --field-background: oklch(100% 0.006 240 / 42%);
   --field-border: oklch(100% 0 0 / 58%);
