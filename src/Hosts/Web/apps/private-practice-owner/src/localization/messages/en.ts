@@ -748,4 +748,25 @@ export const enMessages = {
       ],
     },
   },
+  commandPalette: {
+    open: "Commands",
+    placeholder: "Type a command or search...",
+    noResults: "No results found",
+    navigate: "Navigate",
+    select: "Select",
+    groups: {
+      navigation: "Navigation",
+      quickActions: "Quick Actions",
+      appointments: "Appointments",
+      patients: "Patients",
+      account: "Account",
+      settings: "Clinic Settings",
+      system: "System",
+    },
+    commands: {
+      newPatient: "New Patient",
+      newShift: "New Shift",
+      toggleTheme: "Toggle Theme",
+    },
+  },
 } as const;

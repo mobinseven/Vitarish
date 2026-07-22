@@ -738,4 +738,25 @@ export const faMessages = {
       ],
     },
   },
+  commandPalette: {
+    open: "فرمان‌ها",
+    placeholder: "دستوری تایپ کنید یا جستجو کنید...",
+    noResults: "نتیجه‌ای یافت نشد",
+    navigate: "حرکت",
+    select: "انتخاب",
+    groups: {
+      navigation: "ناوبری",
+      quickActions: "عملیات سریع",
+      appointments: "وقت‌ها",
+      patients: "بیماران",
+      account: "حساب کاربری",
+      settings: "تنظیمات کلینیک",
+      system: "سیستم",
+    },
+    commands: {
+      newPatient: "بیمار جدید",
+      newShift: "شیفت جدید",
+      toggleTheme: "تغییر تم",
+    },
+  },
 } as const;
