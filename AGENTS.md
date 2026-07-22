@@ -96,6 +96,7 @@ Skills live in `.agents/skills/`. Load only those owning current decisions.
 | HTTP/OpenAPI/WebSocket/SSE contracts | `platform-transport-contract` |
 | Auth, ownership, privacy, untrusted input | `platform-trust-boundary` |
 | React, browser APIs, localization, accessibility | `platform-react-feature` |
+| Web routes, feature entry points, navigation registries | `web-route-change-audit` |
 | Route shells, viewport, main/scroll ownership | `apply-web-layout-policy` |
 | Tests, validators, builds, generators, hot scenarios | `platform-test-validation` |
 | Requested simplification or notable new layers | `platform-simplification-audit` |
