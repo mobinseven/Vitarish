@@ -136,17 +136,50 @@ html.glass-dark {
     var(--background);
   background-attachment: fixed;
 } */
- 
+
 .glass-light,
 [data-theme="light"] {
-  --accent: oklch(30% 0.045 240);
-  --accent-foreground: oklch(98% 0.006 240);
+  --accent: oklch(54% 0.2 355);
+  --accent-foreground: oklch(98% 0.008 350);
 
+  --default: oklch(93% 0.035 345);
+  --default-foreground: oklch(31% 0.055 325);
+
+  --background: oklch(97% 0.018 25 / 62%);
+
+}
+
+html[data-theme="light"],
+html.glass-light {
+  background:
+    radial-gradient(circle at 12% 28%, oklch(75% 0.17 350 / 58%), transparent 23rem),
+    radial-gradient(circle at 84% 18%, oklch(78% 0.12 235 / 46%), transparent 26rem),
+    radial-gradient(circle at 70% 72%, oklch(78% 0.15 20 / 48%), transparent 30rem),
+    radial-gradient(circle at 42% 92%, oklch(92% 0.16 98 / 42%), transparent 24rem),
+    var(--background);
+  background-attachment: fixed;
 }
 
 .glass-dark,
 [data-theme="dark"] {
   color-scheme: dark;
-  --accent: oklch(76% 0.1 225);
-  --accent-foreground: oklch(18% 0.03 240);
+
+  --accent: oklch(76% 0.16 350);
+  --accent-foreground: oklch(19% 0.04 325);
+
+  --default: oklch(34% 0.06 325);
+  --default-foreground: oklch(94% 0.025 345);
+
+  --background: oklch(18% 0.04 305 / 92%);
+}
+
+html[data-theme="dark"],
+html.glass-dark {
+  background:
+    radial-gradient(circle at 12% 28%, oklch(50% 0.16 350 / 48%), transparent 23rem),
+    radial-gradient(circle at 84% 18%, oklch(48% 0.12 245 / 42%), transparent 26rem),
+    radial-gradient(circle at 70% 72%, oklch(49% 0.14 20 / 38%), transparent 30rem),
+    radial-gradient(circle at 42% 92%, oklch(60% 0.12 95 / 27%), transparent 24rem),
+    var(--background);
+  background-attachment: fixed;
 }
