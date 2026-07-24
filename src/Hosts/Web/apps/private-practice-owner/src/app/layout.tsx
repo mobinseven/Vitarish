@@ -1,6 +1,7 @@
 import type { Viewport } from "next";
 import { headers } from "next/headers";
 import { Providers } from "@/components/providers/AppProviders";
+import { InitialPageLoader } from "@/components/loading/InitialPageLoader";
 import { getMessages, I18nAppLayout, localizedMetadata } from "@/localization";
 import "./globals.css";
 
@@ -30,7 +31,10 @@ export default async function RootLayout({
         htmlClassName="bg-background text-foreground"
         bodyClassName="bg-background text-foreground font-sans antialiased"
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <InitialPageLoader />
+          {children}
+        </Providers>
       </I18nAppLayout>
     </>
   );
