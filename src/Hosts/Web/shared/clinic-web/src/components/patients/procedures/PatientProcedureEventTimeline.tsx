@@ -230,7 +230,7 @@ export function PatientProcedureEventTimeline({
                         />
                       ) : null}
                       <div className="space-y-3">
-                        <ButtonGroup fullWidth>
+                        <ButtonGroup>
                           <Tooltip>
                             <Button
                               aria-label={t("clinic.procedures.items.title")}

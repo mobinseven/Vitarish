@@ -48,7 +48,7 @@ export function PatientOverviewPage({
       aria-label={t("clinic.patient.overview.title")}
     >
       <PatientOverviewHeader patient={patient} />
-      <Card variant="tertiary" className="text-center">
+      <Card variant="transparent">
         <Card.Content>
           <div className="flex flex-wrap gap-3">
             <div className="hidden flex-wrap gap-3 md:flex">
