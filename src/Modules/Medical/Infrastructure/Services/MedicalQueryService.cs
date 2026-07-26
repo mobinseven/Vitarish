@@ -126,6 +126,74 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ProviderReferenceSearchResult>> SearchPrescriptionReferenceCodesAsync(string providerKey, PrescriptionItemCategory? category, string textOrCode, bool activeOnly, DateOnly? asOfDate, int limit, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(providerKey) || string.IsNullOrWhiteSpace(textOrCode))
+        {
+            return [];
+        }
+
+        string normalizedProviderKey = providerKey.Trim().ToLowerInvariant();
+        string normalizedText = Normalize(textOrCode);
+        string[] systemKeys = category switch
+        {
+            PrescriptionItemCategory.Drug => [$"{normalizedProviderKey}.drug"],
+            not null => [$"{normalizedProviderKey}.service"],
+            null => [$"{normalizedProviderKey}.drug", $"{normalizedProviderKey}.service"]
+        };
+        int boundedLimit = NormalizeSearchLimit(limit);
+
+        var rows = await (
+            from code in dbContext.MedicalCodes.AsNoTracking()
+            join release in dbContext.CodeSystemReleases.AsNoTracking() on code.CodeSystemReleaseId equals release.Id
+            join system in dbContext.CodeSystems.AsNoTracking() on release.CodeSystemId equals system.Id
+            where systemKeys.Contains(system.SystemKey) && release.IsActive
+                  && (!activeOnly || code.Status == MedicalCodeStatus.Active || code.Status == MedicalCodeStatus.Imported)
+                  && (code.NormalizedCode.Contains(normalizedText) || code.NormalizedDisplayName.Contains(normalizedText) || (code.NormalizedProviderCategory != null && code.NormalizedProviderCategory.Contains(normalizedText)))
+                  && (asOfDate == null ||
+                      (code.EffectiveFrom == null || code.EffectiveFrom <= asOfDate) &&
+                      (code.EffectiveTo == null || code.EffectiveTo >= asOfDate))
+            orderby code.NormalizedCode, code.NormalizedDisplayName, code.Id
+            select new { system.SystemKey, code.Code, code.DisplayName, code.ProviderCategory, code.SourceMetadataJson })
+            .Take(boundedLimit)
+            .ToListAsync(cancellationToken);
+
+        return rows.Select(row => new ProviderReferenceSearchResult(
+            providerKey.Trim(),
+            row.SystemKey.EndsWith(".drug", StringComparison.Ordinal) ? "drug" : "service",
+            row.SystemKey.EndsWith(".drug", StringComparison.Ordinal) ? PrescriptionItemCategory.Drug : PrescriptionItemCategory.MedicalService,
+            row.Code,
+            row.DisplayName,
+            row.ProviderCategory,
+            ReadSafeMetadata(row.SourceMetadataJson))).ToList();
+    }
+
+    public async Task<IReadOnlyList<ProviderReferenceSearchResult>> SearchProviderReferenceDataAsync(string providerKey, string codeSystem, string text, string? providerCategory, int limit, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(providerKey) || string.IsNullOrWhiteSpace(codeSystem) || string.IsNullOrWhiteSpace(text)) return [];
+
+        string systemKey = $"{providerKey.Trim().ToLowerInvariant()}.{codeSystem.Trim().ToLowerInvariant()}";
+        string normalizedText = Normalize(text);
+        string? normalizedCategory = string.IsNullOrWhiteSpace(providerCategory) ? null : Normalize(providerCategory);
+        int boundedLimit = NormalizeSearchLimit(limit);
+        var rows = await (
+            from code in dbContext.MedicalCodes.AsNoTracking()
+            join release in dbContext.CodeSystemReleases.AsNoTracking() on code.CodeSystemReleaseId equals release.Id
+            join system in dbContext.CodeSystems.AsNoTracking() on release.CodeSystemId equals system.Id
+            where system.SystemKey == systemKey && release.IsActive
+                  && (code.Status == MedicalCodeStatus.Active || code.Status == MedicalCodeStatus.Imported)
+                  && (code.NormalizedCode.Contains(normalizedText) || code.NormalizedDisplayName.Contains(normalizedText) || (code.NormalizedProviderCategory != null && code.NormalizedProviderCategory.Contains(normalizedText)))
+                  && (normalizedCategory == null || code.NormalizedProviderCategory == normalizedCategory)
+            orderby code.NormalizedCode, code.NormalizedDisplayName, code.Id
+            select new { code.Code, code.DisplayName, code.ProviderCategory, code.SourceMetadataJson })
+            .Take(boundedLimit)
+            .ToListAsync(cancellationToken);
+
+        PrescriptionItemCategory category = codeSystem.Trim().Equals("drug", StringComparison.OrdinalIgnoreCase)
+            ? PrescriptionItemCategory.Drug : PrescriptionItemCategory.MedicalService;
+        return rows.Select(row => new ProviderReferenceSearchResult(providerKey.Trim(), codeSystem.Trim(), category, row.Code, row.DisplayName, row.ProviderCategory, ReadSafeMetadata(row.SourceMetadataJson))).ToList();
+    }
+
     public async Task<ImportBatch?> GetImportBatchAsync(Guid importBatchId, CancellationToken cancellationToken)
         => await dbContext.ImportBatches.AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == importBatchId, cancellationToken);
@@ -351,4 +419,11 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
     }
 
     private static int NormalizeSearchLimit(int requestedLimit) => Math.Clamp(requestedLimit, 1, MaxSearchLimit);
+    private static string Normalize(string value) => value.Trim().ToUpperInvariant();
+    private static IReadOnlyDictionary<string, string?> ReadSafeMetadata(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return new Dictionary<string, string?>();
+        try { return System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string?>>(value) ?? new Dictionary<string, string?>(); }
+        catch (System.Text.Json.JsonException) { return new Dictionary<string, string?>(); }
+    }
 }

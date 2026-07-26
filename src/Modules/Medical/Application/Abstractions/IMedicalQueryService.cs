@@ -1,3 +1,5 @@
+using Vitarish.Medical.Domain.Enums.Prescriptions;
+
 namespace Vitarish.Medical.Application.Abstractions;
 
 public interface IMedicalQueryService
@@ -12,6 +14,8 @@ public interface IMedicalQueryService
 
     Task<MedicalCode?> ResolveMedicalCodeAsync(string systemKey, string code, Guid? releaseId = null, DateOnly? asOfDate = null, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<MedicalCode>> SearchMedicalCodesAsync(string systemKey, string textOrCode, Guid? releaseId = null, bool activeOnly = true, DateOnly? asOfDate = null, int limit = 20, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ProviderReferenceSearchResult>> SearchPrescriptionReferenceCodesAsync(string providerKey, PrescriptionItemCategory? category, string textOrCode, bool activeOnly = true, DateOnly? asOfDate = null, int limit = 20, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ProviderReferenceSearchResult>> SearchProviderReferenceDataAsync(string providerKey, string codeSystem, string text, string? providerCategory = null, int limit = 20, CancellationToken cancellationToken = default);
 
     Task<ImportBatch?> GetImportBatchAsync(Guid importBatchId, CancellationToken cancellationToken = default);
 
@@ -28,3 +32,5 @@ public interface IMedicalQueryService
 
     Task<IReadOnlyList<CodeMap>> GetCodeMapsAsync(Guid sourceCodeId, string? targetSystemKey = null, MappingType? mappingType = null, DateOnly? asOfDate = null, CancellationToken cancellationToken = default);
 }
+
+public sealed record ProviderReferenceSearchResult(string ProviderKey, string CodeSystem, PrescriptionItemCategory PrescriptionCategory, string ReferenceCode, string DisplayName, string? ProviderCategory, IReadOnlyDictionary<string, string?> Metadata);

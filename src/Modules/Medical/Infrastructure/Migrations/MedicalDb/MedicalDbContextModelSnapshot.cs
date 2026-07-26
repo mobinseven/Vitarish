@@ -493,6 +493,24 @@ namespace Vitarish.Medical.Infrastructure.Migrations.MedicalDb
                         .HasMaxLength(4096)
                         .HasColumnType("character varying(4096)");
 
+                    b.Property<string>("NormalizedCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("NormalizedDisplayName")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("NormalizedProviderCategory")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("ProviderCategory")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.Property<int>("RecordOrigin")
                         .HasColumnType("integer");
 
@@ -515,9 +533,15 @@ namespace Vitarish.Medical.Infrastructure.Migrations.MedicalDb
 
                     b.HasIndex("ImportBatchId");
 
+                    b.HasIndex("CodeSystemReleaseId", "NormalizedProviderCategory")
+                        .HasDatabaseName("IX_MedicalCode_ProviderCategory");
+
                     b.HasIndex("CodeSystemReleaseId", "Code", "RecordOrigin")
                         .IsUnique()
                         .HasDatabaseName("IX_MedicalCode_Release_Code_Origin");
+
+                    b.HasIndex("CodeSystemReleaseId", "NormalizedCode", "NormalizedDisplayName")
+                        .HasDatabaseName("IX_MedicalCode_ReferenceSearch");
 
                     b.ToTable("MedicalCodes", "Medical");
                 });
