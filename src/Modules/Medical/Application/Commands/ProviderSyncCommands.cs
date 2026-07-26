@@ -30,4 +30,5 @@ public sealed record SyncProviderCodeItem(
     string Code,
     string DisplayName,
     string? Category,
-    bool IsActive);
+    bool IsActive,
+    string? SafeMetadataJson = null);

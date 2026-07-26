@@ -112,8 +112,17 @@ public static class MedicalApiEndpointMapping
     private static async Task<IResult> GetActiveCodeSystemReleaseAsync(GetActiveCodeSystemReleaseRequest request, IMedicalQueryService service, CancellationToken ct) => OkOrNotFound(ToContract(await service.GetActiveReleaseAsync(request.SystemKey, request.AsOfDate, ct)));
     private static async Task<IResult> SearchMedicalCodesAsync(SearchMedicalCodesRequest request, IMedicalQueryService service, CancellationToken ct) => Ok((await service.SearchMedicalCodesAsync(request.SystemKey, request.TextOrCode, request.ReleaseId, request.ActiveOnly, request.AsOfDate, request.Limit, ct)).Select(ToSearchContract).ToArray());
     private static async Task<IResult> ResolveMedicalCodeAsync(ResolveMedicalCodeRequest request, IMedicalQueryService service, CancellationToken ct) => OkOrNotFound(ToContract(await service.ResolveMedicalCodeAsync(request.SystemKey, request.Code, request.ReleaseId, request.AsOfDate, ct)));
-    private static async Task<IResult> SearchPrescriptionReferenceCodesAsync(SearchPrescriptionReferenceCodesRequest request, IMedicalQueryService service, CancellationToken ct) => Ok((await service.SearchPrescriptionReferenceCodesAsync(request.ProviderKey, (PrescriptionItemCategory?)request.Category, request.TextOrCode, request.ActiveOnly, request.AsOfDate, request.Limit, ct)).Select(ToProviderReferenceSearchContract).ToArray());
-    private static async Task<IResult> SearchProviderReferenceDataAsync(SearchProviderReferenceDataRequest request, IMedicalQueryService service, CancellationToken ct) => Ok((await service.SearchProviderReferenceDataAsync(request.ProviderKey, request.CodeSystem, request.Text, request.ProviderCategory, request.Limit, ct)).Select(ToProviderReferenceSearchContract).ToArray());
+    private static async Task<IResult> SearchPrescriptionReferenceCodesAsync(SearchPrescriptionReferenceCodesRequest request, IMedicalQueryService service, CancellationToken ct)
+        => Ok((await service.SearchPrescriptionReferenceCodesAsync(
+                request.ProviderKey,
+                request.Category is null ? null : (DEP.PrescriptionItemCategory)request.Category,
+                request.TextOrCode,
+                request.ActiveOnly,
+                request.AsOfDate,
+                request.Limit,
+                ct))
+            .Select(ToContract)
+            .ToArray());
     private static async Task<IResult> SearchDrugsAsync(SearchDrugsRequest request, IMedicalQueryService service, CancellationToken ct) => Ok((await service.SearchDrugsAsync(request.Text, request.ActiveOnly, request.AsOfDate, request.Limit, ct)).Select(ToSearchContract).ToArray());
     private static async Task<IResult> GetDrugAsync(Guid drugId, GetDrugRequest? request, IMedicalQueryService service, CancellationToken ct) => OkOrNotFound(ToContract(await service.GetDrugAsync(drugId, request?.AsOfDate, ct)));
     private static async Task<IResult> ResolveDrugIdentifierAsync(ResolveDrugIdentifierRequest request, IMedicalQueryService service, CancellationToken ct)
@@ -259,7 +268,7 @@ public static class MedicalApiEndpointMapping
     private static CodeSystemReleaseResponse? ToContract(D.CodeSystemRelease? e) => e is null ? null : new() { Id = e.Id, CodeSystemId = e.CodeSystemId, Version = e.SourceVersion ?? e.ReleaseName, EffectiveFrom = e.EffectiveFrom ?? DateOnly.MinValue, EffectiveTo = e.EffectiveTo, IsActive = e.IsActive };
     private static MedicalCodeResponse? ToContract(D.MedicalCode? e) => e is null ? null : new() { Id = e.Id, CodeSystemReleaseId = e.CodeSystemReleaseId, Code = e.Code, DisplayName = e.DisplayName, Description = e.LongDescription, Status = (MedicalCodeStatus)e.Status };
     private static MedicalCodeSearchResultResponse ToSearchContract(D.MedicalCode e) => new() { Id = e.Id, Code = e.Code, DisplayName = e.DisplayName, Status = (MedicalCodeStatus)e.Status, CanRetire = true };
-    private static ProviderReferenceSearchResultResponse ToProviderReferenceSearchContract(ProviderReferenceSearchResult result) => new() { ProviderKey = result.ProviderKey, CodeSystem = result.CodeSystem, PrescriptionCategory = (MedicalPrescriptionItemCategory)result.PrescriptionCategory, ReferenceCode = result.ReferenceCode, DisplayName = result.DisplayName, ProviderCategory = result.ProviderCategory, Metadata = result.Metadata };
+    private static ProviderReferenceSearchResultResponse ToContract(ProviderReferenceSearchResult e) => new() { ProviderKey = e.ProviderKey, CodeSystem = e.CodeSystem, PrescriptionCategory = (MedicalPrescriptionItemCategory)e.PrescriptionCategory, ReferenceCode = e.ReferenceCode, DisplayName = e.DisplayName, ProviderCategory = e.ProviderCategory, Metadata = e.Metadata };
     private static DrugResponse? ToContract(D.Drug? e) => e is null ? null : new() { Id = e.Id, PrimaryName = e.PrimaryName, PrimaryIdentifierType = e.PrimaryIdentifierType.ToString(), PrimaryIdentifierValue = e.PrimaryIdentifierValue, Status = (DrugStatus)e.Status };
     private static DrugSearchResultResponse ToSearchContract(D.Drug e) => new() { Id = e.Id, PrimaryName = e.PrimaryName, PrimaryIdentifierType = e.PrimaryIdentifierType.ToString(), PrimaryIdentifierValue = e.PrimaryIdentifierValue, Status = (DrugStatus)e.Status, CanRetire = true };
     private static DrugProductResponse? ToContract(D.DrugProduct? e) => e is null ? null : new() { Id = e.Id, DrugId = e.DrugId, BrandName = e.BrandName, GenericName = e.GenericName, DoseForm = e.DoseForm, Route = e.Route, Strength = e.Strength, Manufacturer = e.Manufacturer, MarketStatus = e.MarketStatus.ToString() };

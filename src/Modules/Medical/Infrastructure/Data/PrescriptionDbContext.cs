@@ -95,8 +95,9 @@ public sealed class PrescriptionDbContext : DbContext, IMultiTenantDbContext
         _ = entity.Property(e => e.ProviderClinicIdentifier).HasMaxLength(256);
         _ = entity.Property(e => e.ProviderUsername).HasMaxLength(256);
         _ = entity.Property(e => e.CredentialSecretRef).HasMaxLength(512);
-        _ = entity.Property(e => e.TokenSecretRef).HasMaxLength(512);
-        _ = entity.Property(e => e.SessionId).HasMaxLength(512);
+        _ = entity.Property(e => e.TokenSecretRef).HasMaxLength(4096);
+        _ = entity.Property(e => e.RefreshTokenSecretRef).HasMaxLength(4096);
+        _ = entity.Property(e => e.SessionId).HasMaxLength(2048);
         _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
         _ = entity.HasIndex(e => new { e.DoctorId, e.ProviderKey, e.ClinicId }).IsUnique()
             .HasDatabaseName("IX_DoctorCredential_Doctor_Provider_Clinic");

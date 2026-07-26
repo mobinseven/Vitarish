@@ -20,5 +20,13 @@ public sealed class MedicalCode : Entity
 
     public string? SourceMetadataJson { get; set; }
 
+    /// <summary>Provider-owned category retained from synchronized reference data.</summary>
+    public string? ProviderCategory { get; set; }
+
+    /// <summary>Invariant search projections derived when reference data is written.</summary>
+    public string NormalizedCode { get; set; } = string.Empty;
+    public string NormalizedDisplayName { get; set; } = string.Empty;
+    public string? NormalizedProviderCategory { get; set; }
+
     public Guid? ImportBatchId { get; set; }
 }

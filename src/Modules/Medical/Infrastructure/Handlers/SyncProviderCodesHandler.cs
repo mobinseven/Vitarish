@@ -127,6 +127,11 @@ internal sealed class SyncProviderCodesHandler(MedicalDbContext dbContext)
                     CodeSystemReleaseId = release.Id,
                     Code = item.Code,
                     DisplayName = item.DisplayName,
+                    ProviderCategory = item.Category,
+                    NormalizedCode = Normalize(item.Code),
+                    NormalizedDisplayName = Normalize(item.DisplayName),
+                    NormalizedProviderCategory = NormalizeOptional(item.Category),
+                    SourceMetadataJson = item.SafeMetadataJson,
                     Status = item.IsActive ? MedicalCodeStatus.Imported : MedicalCodeStatus.Retired,
                     RecordOrigin = RecordOrigin.Imported,
                     ImportBatchId = importBatch.Id
@@ -167,4 +172,7 @@ internal sealed class SyncProviderCodesHandler(MedicalDbContext dbContext)
                     []));
         });
     }
+
+    private static string Normalize(string value) => value.Trim().ToUpperInvariant();
+    private static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : Normalize(value);
 }
