@@ -4,6 +4,7 @@ using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Requests.Application.Abstractions;
+using System.Text.Json;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
@@ -89,6 +90,7 @@ public sealed class AddPrescriptionTemplateItemHandler(PrescriptionDbContext dbC
 
         if (string.IsNullOrWhiteSpace(request.ReferenceCode) && string.IsNullOrWhiteSpace(request.DisplayName)) return PrescriptionTemplateCommandResult.Failure("آیتم قالب باید کد مرجع یا نام نمایشی داشته باشد.");
         if (request.Quantity < 1) return PrescriptionTemplateCommandResult.Failure("تعداد آیتم باید حداقل یک باشد.");
+        if (!HasValidClinicalMetadata(request.MetadataJson)) return PrescriptionTemplateCommandResult.Failure("فراداده بالینی آیتم قالب معتبر نیست.");
         PrescriptionTemplate? template = await dbContext.PrescriptionTemplates.Include(t => t.Items).FirstOrDefaultAsync(t => t.Id == request.TemplateId && t.TenantId == request.TenantId, cancellationToken);
         if (template is null) return PrescriptionTemplateCommandResult.Failure("قالب نسخه یافت نشد.");
         if (!template.IsActive) return PrescriptionTemplateCommandResult.Failure("قالب بایگانی‌شده قابل ویرایش نیست.");
@@ -108,6 +110,22 @@ public sealed class AddPrescriptionTemplateItemHandler(PrescriptionDbContext dbC
     private static int CurrentMaxSortOrder(IEnumerable<PrescriptionTemplateItem> items)
     {
         return items.Any() ? items.Max(i => i.SortOrder) : 0;
+    }
+
+    private static bool HasValidClinicalMetadata(string? metadataJson)
+    {
+        if (string.IsNullOrWhiteSpace(metadataJson)) return true;
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(metadataJson);
+            if (document.RootElement.ValueKind != JsonValueKind.Object) return false;
+            foreach (JsonProperty property in document.RootElement.EnumerateObject())
+            {
+                if (property.Value.ValueKind is JsonValueKind.Object or JsonValueKind.Array || property.Value.GetRawText().Length > 256) return false;
+            }
+            return true;
+        }
+        catch (JsonException) { return false; }
     }
 }
 
@@ -315,6 +333,6 @@ public sealed class GetPrescriptionTemplateHandler(PrescriptionDbContext dbConte
     public async Task<PrescriptionTemplateDto?> Handle(GetPrescriptionTemplateQuery request, CancellationToken cancellationToken)
     {
         PrescriptionTemplate? template = await dbContext.PrescriptionTemplates.AsNoTracking().Include(t => t.Items.OrderBy(i => i.SortOrder)).FirstOrDefaultAsync(t => t.Id == request.TemplateId && t.TenantId == request.TenantId, cancellationToken);
-        return template is null ? null : new PrescriptionTemplateDto { Id = template.Id, Name = template.Name, Description = template.Description, Status = template.Status, ItemCount = template.Items.Count, CreatedAt = template.CreatedAt, Items = template.Items.Select(i => new PrescriptionTemplateItemDto { Id = i.Id, Category = i.Category, ReferenceCode = i.ReferenceCode, DisplayName = i.DisplayName, DosageJson = i.DosageJson, Quantity = i.Quantity, DurationDays = i.DurationDays, SortOrder = i.SortOrder }).ToList() };
+        return template is null ? null : new PrescriptionTemplateDto { Id = template.Id, Name = template.Name, Description = template.Description, Status = template.Status, ItemCount = template.Items.Count, CreatedAt = template.CreatedAt, Items = template.Items.Select(i => new PrescriptionTemplateItemDto { Id = i.Id, Category = i.Category, ReferenceCode = i.ReferenceCode, DisplayName = i.DisplayName, DosageJson = i.DosageJson, Quantity = i.Quantity, DurationDays = i.DurationDays, MetadataJson = i.MetadataJson, SortOrder = i.SortOrder }).ToList() };
     }
 }
