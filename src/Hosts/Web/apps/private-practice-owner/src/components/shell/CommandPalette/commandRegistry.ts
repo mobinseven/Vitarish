@@ -217,6 +217,13 @@ export function createCommandGroups(
           action: () => navigate(Routes.Clinic.Settings.Statistics),
           keywords: ["statistics", "analytics", "reports", "metrics"],
         },
+        {
+          id: "prescription-templates",
+          labelKey: "clinic.settings.sections.prescriptionTemplates.title",
+          icon: "prescription",
+          action: () => navigate(Routes.Clinic.Settings.PrescriptionTemplates),
+          keywords: ["prescription", "templates", "medication", "drug"],
+        },
       ],
     },
     {

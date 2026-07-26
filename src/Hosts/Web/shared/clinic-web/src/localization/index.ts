@@ -25,6 +25,7 @@ export {
   getReactAriaLocale,
   getDateCalendar,
   parseIsoDateValue,
+  parseIsoDateTimeValue,
   dateValueToIsoDate,
   getApiErrorMessageKey,
   localizeApiError,

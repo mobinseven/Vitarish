@@ -55,6 +55,9 @@ export function useClinicNavigation() {
         case "clinicSettingsUsers":
           router.push(Routes.Clinic.Settings.Users);
           break;
+        case "clinicSettingsInsurance":
+          router.push(Routes.Clinic.Settings.Insurance);
+          break;
         case "clinicStatistics":
           router.push(Routes.Clinic.Settings.Statistics);
           break;

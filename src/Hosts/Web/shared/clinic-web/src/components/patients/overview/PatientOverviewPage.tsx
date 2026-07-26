@@ -10,6 +10,7 @@ import { usePatientDetail } from "../../../hooks/patients/usePatientDetail";
 import { useLocalizedText } from "../../../localization";
 import type { NavigationIntent } from "../../../navigation";
 import { PatientProceduresPanel } from "../procedures/PatientProceduresPanel";
+import { PatientReservationsPanel } from "./PatientReservationsPanel";
 import { PatientOverviewHeader } from "./PatientOverviewHeader";
 import { PatientProfileCard } from "./PatientProfileCard";
 
@@ -99,14 +100,21 @@ export function PatientOverviewPage({
         </Card.Content>
       </Card>
       <div className="hidden items-start gap-4 md:grid md:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
-        <Card>
-          <Card.Content>
-            <PatientProceduresPanel
-              patientId={patientId}
-              onNavigate={onNavigate}
-            />
-          </Card.Content>
-        </Card>
+        <div className="flex flex-col gap-4">
+          <Card>
+            <Card.Content>
+              <PatientProceduresPanel
+                patientId={patientId}
+                onNavigate={onNavigate}
+              />
+            </Card.Content>
+          </Card>
+          <Card>
+            <Card.Content>
+              <PatientReservationsPanel patientId={patientId} />
+            </Card.Content>
+          </Card>
+        </div>
         <PatientProfileCard patient={patient} />
       </div>
       <Card className="md:hidden">
@@ -130,6 +138,18 @@ export function PatientOverviewPage({
                   <Tabs.Indicator />
                 </Tabs.Tab>
                 <Tabs.Tab
+                  id="reservations"
+                  className="min-h-12 px-3 text-base sm:px-5"
+                >
+                  <FaIcon
+                    icon="calendar"
+                    aria-hidden="true"
+                    className="mr-2"
+                  />
+                  {t("clinic.appointments.reservations.title")}
+                  <Tabs.Indicator />
+                </Tabs.Tab>
+                <Tabs.Tab
                   id="profile"
                   className="min-h-12 px-3 text-base sm:px-5"
                 >
@@ -144,6 +164,9 @@ export function PatientOverviewPage({
                 patientId={patientId}
                 onNavigate={onNavigate}
               />
+            </Tabs.Panel>
+            <Tabs.Panel id="reservations" className="pt-4">
+              <PatientReservationsPanel patientId={patientId} />
             </Tabs.Panel>
             <Tabs.Panel id="profile" className="pt-4">
               <PatientProfileCard patient={patient} />

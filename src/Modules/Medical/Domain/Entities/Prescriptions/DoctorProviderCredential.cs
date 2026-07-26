@@ -27,6 +27,9 @@ public sealed class DoctorProviderCredential : Entity
     /// <summary>Reference to encrypted token (never store plaintext).</summary>
     public string? TokenSecretRef { get; set; }
 
+    /// <summary>Reference to the encrypted OAuth refresh token (never store plaintext).</summary>
+    public string? RefreshTokenSecretRef { get; set; }
+
     /// <summary>Active provider session ID.</summary>
     public string? SessionId { get; set; }
 

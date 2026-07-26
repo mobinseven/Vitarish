@@ -60,6 +60,8 @@ export const Routes = {
     Settings: {
       Index: "/settings",
       Users: "/settings/users",
+      Insurance: "/settings/insurance",
+      InsuranceCallback: "/settings/insurance/callback",
       Statistics: "/settings/statistics",
       ProcedureTemplates: "/settings/procedure-templates",
       PrescriptionTemplates: "/settings/prescription-templates",

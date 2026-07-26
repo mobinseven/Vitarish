@@ -30,6 +30,12 @@ export function SettingsDashboard({ onNavigate }: SettingsDashboardProps) {
       icon: "calendar-check",
     },
     {
+      title: t("clinic.settings.sections.insurance.title"),
+      description: t("clinic.settings.sections.insurance.description"),
+      intent: { kind: "clinicSettingsInsurance" },
+      icon: "shield-check",
+    },
+    {
       title: t("clinic.settings.sections.statistics.title"),
       description: t("clinic.settings.sections.statistics.description"),
       intent: { kind: "clinicStatistics" },
@@ -45,7 +51,7 @@ export function SettingsDashboard({ onNavigate }: SettingsDashboardProps) {
       title: t("clinic.settings.sections.prescriptionTemplates.title"),
       description: t("clinic.settings.sections.prescriptionTemplates.description"),
       intent: { kind: "prescriptionTemplateManagement" },
-      icon: "prescription-bottle-medical",
+      icon: "prescription",
     },
   ];
 

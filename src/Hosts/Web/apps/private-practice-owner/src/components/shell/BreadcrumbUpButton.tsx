@@ -3,7 +3,6 @@
 import { useCallback, useMemo } from "react";
 import { Button, Tooltip } from "@heroui/react";
 import { usePathname, useRouter } from "next/navigation";
-import { Routes } from "@/app/routes";
 import { useLocalizedText } from "@/localization";
 import { FaIcon } from "@vitarish/web-ui";
 import type {
@@ -25,9 +24,10 @@ export function BreadcrumbUpButton({ navGroups }: BreadcrumbUpButtonProps) {
     () => collectSidebarHrefs(navGroups),
     [navGroups],
   );
-  const routeParent = getBreadcrumbParent(pathname);
+
+  const parentHref = getParentPathname(pathname);
   const href =
-    routeParent && !sidebarHrefs.has(routeParent) ? routeParent : undefined;
+    parentHref && !sidebarHrefs.has(parentHref) ? parentHref : undefined;
 
   if (!href) return null;
 
@@ -46,125 +46,11 @@ export function BreadcrumbUpButton({ navGroups }: BreadcrumbUpButtonProps) {
   );
 }
 
-// ── Route-tree breadcrumb parent resolution ──
-
-type RouteBreadcrumbPattern = {
-  pattern: RegExp;
-  parent: (match: RegExpMatchArray) => string | undefined;
-};
-
-/** Ordered most-specific first — first match wins. */
-const routeBreadcrumbPatterns: readonly RouteBreadcrumbPattern[] = [
-  // ── Patients ──
-  { pattern: /^\/patients\/new$/, parent: () => Routes.Clinic.Patients.Index },
-  {
-    pattern: /^\/patients\/([^/]+)\/edit$/,
-    parent: (m) => Routes.Clinic.Patients.Detail(m[1]),
-  },
-  {
-    pattern: /^\/patients\/([^/]+)\/procedures\/([^/]+)\/events\/([^/]+)$/,
-    parent: (m) => Routes.Clinic.Patients.Procedure(m[1], m[2]),
-  },
-  {
-    pattern: /^\/patients\/([^/]+)\/procedures\/([^/]+)$/,
-    parent: (m) => Routes.Clinic.Patients.Detail(m[1]),
-  },
-  {
-    pattern: /^\/patients\/([^/]+)$/,
-    parent: () => Routes.Clinic.Patients.Index,
-  },
-  { pattern: /^\/patients$/, parent: () => Routes.Home },
-
-  // ── Appointments ──
-  {
-    pattern: /^\/appointments\/shifts\/new\/([^/]+)$/,
-    parent: () => Routes.Clinic.Appointments.Shifts.Index,
-  },
-  {
-    pattern: /^\/appointments\/shifts\/new$/,
-    parent: () => Routes.Clinic.Appointments.Shifts.Index,
-  },
-  {
-    pattern: /^\/appointments\/shifts\/([^/]+)\/occurrence\/([^/]+)$/,
-    parent: (m) => Routes.Clinic.Appointments.Shifts.Detail(m[1]),
-  },
-  {
-    pattern: /^\/appointments\/shifts\/([^/]+)\/edit$/,
-    parent: (m) => Routes.Clinic.Appointments.Shifts.Detail(m[1]),
-  },
-  {
-    pattern: /^\/appointments\/shifts\/([^/]+)$/,
-    parent: () => Routes.Clinic.Appointments.Shifts.Index,
-  },
-  {
-    pattern: /^\/appointments\/shifts$/,
-    parent: () => Routes.Clinic.Appointments.Reservations.Index,
-  },
-  {
-    pattern: /^\/appointments\/service-types\/([^/]+)$/,
-    parent: () => Routes.Clinic.Appointments.ServiceTypes.Index,
-  },
-  {
-    pattern: /^\/appointments\/service-types$/,
-    parent: () => Routes.Clinic.Appointments.Reservations.Index,
-  },
-  {
-    pattern: /^\/appointments\/services\/([^/]+)$/,
-    parent: () => Routes.Clinic.Appointments.Services.Index,
-  },
-  {
-    pattern: /^\/appointments\/services$/,
-    parent: () => Routes.Clinic.Appointments.Reservations.Index,
-  },
-  {
-    pattern: /^\/appointments\/service-providers\/([^/]+)$/,
-    parent: () => Routes.Clinic.Appointments.ServiceProviders.Index,
-  },
-  {
-    pattern: /^\/appointments\/service-providers$/,
-    parent: () => Routes.Clinic.Appointments.Reservations.Index,
-  },
-  {
-    pattern: /^\/appointments\/settings$/,
-    parent: () => Routes.Clinic.Appointments.Reservations.Index,
-  },
-  {
-    pattern: /^\/appointments\/([^/]+)$/,
-    parent: () => Routes.Clinic.Appointments.Reservations.Index,
-  },
-  { pattern: /^\/appointments$/, parent: () => Routes.Home },
-
-  // ── Settings ──
-  {
-    pattern: /^\/settings\/users$/,
-    parent: () => Routes.Clinic.Settings.Index,
-  },
-  {
-    pattern: /^\/settings\/statistics$/,
-    parent: () => Routes.Clinic.Settings.Index,
-  },
-  { pattern: /^\/settings$/, parent: () => Routes.Home },
-
-  // ── Knowledge ──
-  { pattern: /^\/knowledge\/qa$/, parent: () => Routes.Knowledge.Index },
-  { pattern: /^\/knowledge$/, parent: () => Routes.Home },
-
-  // ── Account ──
-  { pattern: /^\/account\/.+$/, parent: () => Routes.Account.Index },
-  { pattern: /^\/account$/, parent: () => Routes.Home },
-
-  // ── Other top-level ──
-  { pattern: /^\/reminders$/, parent: () => Routes.Home },
-  { pattern: /^\/check-in$/, parent: () => Routes.Home },
-  { pattern: /^\/home$/, parent: () => undefined },
-];
-
-function getBreadcrumbParent(pathname: string): string | undefined {
-  for (const { pattern, parent } of routeBreadcrumbPatterns) {
-    const match = pathname.match(pattern);
-    if (match) return parent(match);
-  }
-  return undefined;
+/** Derive the parent path by stripping the last segment. Returns undefined at root or single-segment paths. */
+function getParentPathname(pathname: string): string | undefined {
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length < 2) return undefined;
+  return "/" + segments.slice(0, -1).join("/");
 }
 
 function collectSidebarHrefs(

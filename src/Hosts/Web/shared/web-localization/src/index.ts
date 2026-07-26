@@ -12,7 +12,11 @@ export { parseAcceptLanguage } from "./acceptLanguage";
 export { formatDate, formatDateTime, formatNumber, formatPercent, formatCurrency, formatList, formatRelativeTime, formatFileSize } from "./format";
 export { getReactAriaLocale, getDateCalendar } from "./dateLocale";
 export type { SupportedDateCalendar } from "./dateLocale";
-export { parseIsoDateValue, dateValueToIsoDate } from "./dateValue";
+export {
+  parseIsoDateValue,
+  parseIsoDateTimeValue,
+  dateValueToIsoDate,
+} from "./dateValue";
 export { getApiErrorMessageKey, localizeApiError } from "./errors";
 export type { CodeBearingError } from "./errors";
 export type { MessageCatalog, MessageKey, MessageParameters, Translate } from "./messageTypes";

@@ -30,6 +30,9 @@ export function useUpdateReservationStatus() {
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: number }) => updateReservationStatus(id, status),
     onSuccess: () => qc.invalidateQueries({ queryKey: appointmentKeys.reservations }),
+    onError: (error) => {
+      console.error("[useUpdateReservationStatus] failed", error);
+    },
   });
 }
 

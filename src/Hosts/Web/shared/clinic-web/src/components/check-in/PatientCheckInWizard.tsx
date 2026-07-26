@@ -1,15 +1,15 @@
 "use client";
-import { DetailGrid, FaIcon, type DetailGridItem } from "@vitarish/web-ui";
 
+import { Button, Chip } from "@heroui/react";
+import { ItemCard, PressableFeedback } from "@heroui-pro/react";
 import { useCallback, useState } from "react";
-import { Button } from "@heroui/react";
-import { Stepper } from "@heroui-pro/react";
-import type { ShiftReservationReadDto } from "../../api/generated/appointments/model";
-import { PatientFindOrCreate } from "../patients/find-or-create/PatientFindOrCreate";
-import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/web-ui";
-import { useLocalizedText } from "../../localization/index";
 
-type CheckInStep = "find-patient" | "select-shift" | "confirm";
+import { FaIcon } from "@vitarish/web-ui";
+import { useLocalizedText } from "../../localization/index";
+import { PatientFindOrCreate } from "../patients/find-or-create/PatientFindOrCreate";
+import type { ShiftReservationReadDto } from "../../api/generated/appointments/model";
+
+type WizardStep = "find-patient" | "select-shift" | "success";
 
 interface PatientCheckInWizardProps {
   onPatientSelected: (patientId: string) => void;
@@ -19,127 +19,175 @@ interface PatientCheckInWizardProps {
   ) => void;
 }
 
+const MOCK_TODAY_SHIFTS: ShiftReservationReadDto[] = [
+  { shiftId: "1", startTime: "08:00", endTime: "10:00", availableSeats: 5, totalSeats: 8 },
+  { shiftId: "2", startTime: "10:00", endTime: "12:00", availableSeats: 3, totalSeats: 8 },
+  { shiftId: "3", startTime: "14:00", endTime: "16:00", availableSeats: 7, totalSeats: 10 },
+];
+
 export function PatientCheckInWizard({
   onPatientSelected,
   onCheckInComplete,
 }: PatientCheckInWizardProps) {
   const { t } = useLocalizedText();
-  const [step, setStep] = useState<CheckInStep>("find-patient");
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
-    null,
-  );
-  const [selectedShift, setSelectedShift] =
-    useState<ShiftReservationReadDto | null>(null);
-  const currentStep =
-    step === "find-patient" ? 0 : step === "select-shift" ? 1 : 2;
-  const steps = [
-    t("clinic.checkIn.step1"),
-    t("clinic.checkIn.step2"),
-    t("clinic.checkIn.step3"),
-  ];
+  const [step, setStep] = useState<WizardStep>("find-patient");
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [patientName, setPatientName] = useState("");
+  const [completedShiftId, setCompletedShiftId] = useState<string | null>(null);
 
-  const handlePatientSelect = useCallback(
+  const handlePatientSelected = useCallback(
     (patientId: string) => {
       setSelectedPatientId(patientId);
-      onPatientSelected(patientId);
+      // Derive name from hook isn't available here — pass a placeholder
+      // The parent should set the real name via onPatientSelected
+      setPatientName("");
       setStep("select-shift");
+      onPatientSelected(patientId);
     },
     [onPatientSelected],
   );
 
-  const handleConfirm = useCallback(() => {
-    if (selectedPatientId && selectedShift) {
-      onCheckInComplete?.(selectedPatientId, selectedShift);
-    }
-  }, [selectedPatientId, selectedShift, onCheckInComplete]);
+  const handleShiftSelect = useCallback(
+    (shift: ShiftReservationReadDto) => {
+      if (!selectedPatientId) return;
+      setCompletedShiftId(shift.shiftId ?? null);
+      setStep("success");
+      onCheckInComplete?.(selectedPatientId, shift);
+      setTimeout(() => {
+        setStep("find-patient");
+        setSelectedPatientId(null);
+        setPatientName("");
+        setCompletedShiftId(null);
+      }, 1800);
+    },
+    [selectedPatientId, onCheckInComplete],
+  );
 
-  const handleBackToFind = useCallback(() => {
+  const handleStartOver = useCallback(() => {
     setStep("find-patient");
     setSelectedPatientId(null);
-    setSelectedShift(null);
+    setPatientName("");
+    setCompletedShiftId(null);
   }, []);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t("clinic.checkIn.title")}</h1>
-        <p className="text-sm text-muted">{t("clinic.checkIn.description")}</p>
-      </div>
+    <div className="mx-auto flex max-w-xl flex-col gap-4">
+      {/* ─── Beat 1: Who ─── */}
+      <PatientFindOrCreate
+        onPatientSelected={handlePatientSelected}
+        hideSelectedState={step !== "find-patient"}
+      />
 
-      <Stepper currentStep={currentStep} orientation="vertical">
-        {steps.map((stepLabel) => (
-          <Stepper.Step key={stepLabel}>
-            <Stepper.Indicator />
-            <Stepper.Content>
-              <Stepper.Title>{stepLabel}</Stepper.Title>
-            </Stepper.Content>
-            <Stepper.Separator />
-          </Stepper.Step>
-        ))}
-      </Stepper>
-
-      {step === "find-patient" && (
-        <PatientFindOrCreate onPatientSelected={handlePatientSelect} />
-      )}
-
+      {/* ─── Beat 2: Which shift ─── */}
       {step === "select-shift" && selectedPatientId && (
-        <section className="rounded-medium border border-divider p-4">
-          <header className="mb-3">
-            <div className="flex items-center justify-between">
-              <h2>{t("clinic.checkIn.step2")}</h2>
-              <Button variant="ghost" onPress={handleBackToFind}>
-                <FaIcon icon="arrow-left" aria-hidden="true" />
-                {t("clinic.checkIn.changePatient")}
-              </Button>
-            </div>
-            <p>{t("clinic.checkIn.selectShiftDescription")}</p>
-          </header>
-          <div>
-            <ShiftSelectionPanel />
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <Chip size="sm" variant="soft" color="accent">
+              <FaIcon icon="user" aria-hidden="true" className="mr-1" />
+              {patientName || t("clinic.checkIn.patientSelected")}
+            </Chip>
+            <Button
+              isIconOnly
+              variant="ghost"
+              size="sm"
+              onPress={handleStartOver}
+              aria-label={t("clinic.checkIn.changePatient")}
+            >
+              <FaIcon icon="xmark" aria-hidden="true" />
+            </Button>
           </div>
-        </section>
+
+          <div className="flex flex-col gap-1.5">
+            {MOCK_TODAY_SHIFTS.map((shift) => (
+              <ShiftCard
+                key={shift.shiftId}
+                shift={shift}
+                onSelect={handleShiftSelect}
+                isCompleted={completedShiftId === shift.shiftId}
+              />
+            ))}
+            {MOCK_TODAY_SHIFTS.length === 0 && (
+              <p className="py-3 text-center text-sm text-muted">
+                {t("clinic.checkIn.noShiftsToday")}
+              </p>
+            )}
+          </div>
+        </div>
       )}
 
-      {step === "confirm" && selectedPatientId && selectedShift && (
-        <section className="rounded-medium border border-divider p-4">
-          <header className="mb-3">
-            <h2>{t("clinic.checkIn.step3")}</h2>
-          </header>
-          <div className="flex flex-col gap-4">
-            <DetailGrid
-              items={[
-                {
-                  label: t("clinic.checkIn.shiftDate"),
-                  value: selectedShift.date,
-                },
-                {
-                  label: t("clinic.checkIn.shiftTime"),
-                  value: `${selectedShift.startTime} - ${selectedShift.endTime}`,
-                },
-                {
-                  label: t("clinic.checkIn.availableSeats"),
-                  value: selectedShift.availableSeats,
-                },
-              ]}
-            />
-
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" onPress={() => setStep("select-shift")}>
-                {t("clinic.checkIn.changeShift")}
-              </Button>
-              <Button variant="primary" onPress={handleConfirm}>
-                {t("clinic.checkIn.confirmCheckIn")}
-              </Button>
-            </div>
-          </div>
-        </section>
+      {/* ─── Success ─── */}
+      {step === "success" && (
+        <div className="rounded-medium border border-success/30 bg-success/5 p-4 text-center">
+          <FaIcon
+            icon="circle-check"
+            aria-hidden="true"
+            className="mb-2 text-2xl text-success"
+          />
+          <p className="text-sm font-medium text-success">
+            {t("clinic.checkIn.confirmed")}
+          </p>
+        </div>
       )}
     </div>
   );
 }
 
-function ShiftSelectionPanel() {
-  const { t } = useLocalizedText();
+/* ─── Shift Card ─── */
 
-  return <ClinicEmptyState title={t("clinic.checkIn.shiftUnavailable")} />;
+interface ShiftCardProps {
+  shift: ShiftReservationReadDto;
+  onSelect: (shift: ShiftReservationReadDto) => void;
+  isCompleted: boolean;
+}
+
+function ShiftCard({ shift, onSelect, isCompleted }: ShiftCardProps) {
+  const { t } = useLocalizedText();
+  const seats = typeof shift.availableSeats === "number" ? shift.availableSeats : null;
+  const isFull = seats !== null && seats <= 0;
+
+  return (
+    <ItemCard<"button">
+      className="relative w-full cursor-pointer overflow-hidden text-start"
+      render={(props) => (
+        <button
+          type="button"
+          {...props}
+          onClick={(event) => {
+            props.onClick?.(event);
+            if (!isFull) onSelect(shift);
+          }}
+          disabled={isFull}
+        />
+      )}
+      variant="outline"
+    >
+      <PressableFeedback.Highlight />
+      <ItemCard.Icon>
+        <FaIcon
+          icon={isCompleted ? "circle-check" : "clock"}
+          aria-hidden="true"
+          className={isCompleted ? "text-success" : "text-muted"}
+        />
+      </ItemCard.Icon>
+      <ItemCard.Content>
+        <ItemCard.Title>
+          {shift.startTime} – {shift.endTime}
+        </ItemCard.Title>
+        {seats !== null && (
+          <ItemCard.Description>
+            {isFull
+              ? t("clinic.checkIn.shiftFull")
+              : t("clinic.checkIn.seatsAvailable", { count: String(seats) })}
+          </ItemCard.Description>
+        )}
+      </ItemCard.Content>
+      <ItemCard.Action>
+        {isCompleted ? (
+          <FaIcon icon="check" aria-hidden="true" className="text-success" />
+        ) : (
+          <FaIcon icon="chevron-right" aria-hidden="true" className="text-muted" />
+        )}
+      </ItemCard.Action>
+    </ItemCard>
+  );
 }
