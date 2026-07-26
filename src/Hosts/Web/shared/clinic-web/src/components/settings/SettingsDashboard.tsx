@@ -41,6 +41,12 @@ export function SettingsDashboard({ onNavigate }: SettingsDashboardProps) {
       intent: { kind: "procedureTemplateManagement" },
       icon: "folder-tree",
     },
+    {
+      title: t("clinic.settings.sections.prescriptionTemplates.title"),
+      description: t("clinic.settings.sections.prescriptionTemplates.description"),
+      intent: { kind: "prescriptionTemplateManagement" },
+      icon: "prescription-bottle-medical",
+    },
   ];
 
   return (

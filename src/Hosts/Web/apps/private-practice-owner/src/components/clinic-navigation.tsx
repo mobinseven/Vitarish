@@ -61,6 +61,9 @@ export function useClinicNavigation() {
         case "procedureTemplateManagement":
           router.push(Routes.Clinic.Settings.ProcedureTemplates);
           break;
+        case "prescriptionTemplateManagement":
+          router.push(Routes.Clinic.Settings.PrescriptionTemplates);
+          break;
         case "reminders":
           router.push(Routes.Clinic.Reminders);
           break;

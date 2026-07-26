@@ -23,6 +23,7 @@ export type NavigationIntent =
   | { kind: "clinicSettingsUsers" }
   | { kind: "clinicStatistics" }
   | { kind: "procedureTemplateManagement" }
+  | { kind: "prescriptionTemplateManagement" }
   | { kind: "reminders" }
   | { kind: "serviceIndex" }
   | { kind: "serviceDetail"; serviceId: string }

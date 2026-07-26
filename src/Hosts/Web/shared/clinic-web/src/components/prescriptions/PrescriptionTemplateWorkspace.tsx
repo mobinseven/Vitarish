@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Key } from "@heroui/react";
-import { Badge, Button, Chip, Input, Label, ListBox, SearchField, Select, Separator, Tag, TagGroup, TextArea, TextField } from "@heroui/react";
+import { Badge, Button, Chip, Input, Label, ListBox, SearchField, Select, Tag, TagGroup, TextArea, TextField, Tooltip } from "@heroui/react";
 import { EmptyState, ItemCard, ItemCardGroup, PressableFeedback } from "@heroui-pro/react";
 import { FaIcon } from "@vitarish/web-ui";
 import { useLocalizedText } from "../../localization";
@@ -136,8 +136,8 @@ export function PrescriptionTemplateWorkspace() {
               </SearchField.Group>
             </SearchField>
             <div className="mt-3 flex flex-wrap gap-2" aria-label={t("prescriptionTemplates.tags")}>
-              <Button size="sm" variant={activeTag === null ? "primary" : "secondary"} onPress={() => setActiveTag(null)}>{t("prescriptionTemplates.allTemplates")}</Button>
-              {tags.map((tag) => <Button key={tag} size="sm" variant={activeTag === tag ? "primary" : "secondary"} onPress={() => setActiveTag(tag)}>{tag}</Button>)}
+              <Tooltip><Button isIconOnly size="sm" variant={activeTag === null ? "primary" : "secondary"} aria-label={t("prescriptionTemplates.allTemplates")} onPress={() => setActiveTag(null)}><FaIcon icon="layer-group" aria-hidden="true" /></Button><Tooltip.Content>{t("prescriptionTemplates.allTemplates")}</Tooltip.Content></Tooltip>
+              {tags.map((tag) => <Tooltip key={tag}><Button isIconOnly size="sm" variant={activeTag === tag ? "primary" : "secondary"} aria-label={tag} onPress={() => setActiveTag(tag)}><FaIcon icon="tag" aria-hidden="true" /></Button><Tooltip.Content>{tag}</Tooltip.Content></Tooltip>)}
             </div>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-2">
@@ -184,7 +184,7 @@ export function PrescriptionTemplateWorkspace() {
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <Chip color="success" variant="soft">{t("prescriptionTemplates.active")}</Chip>
-                <Button variant="primary" onPress={() => setSaved(true)}>{saved ? t("prescriptionTemplates.saved") : t("prescriptionTemplates.save")}</Button>
+                <Tooltip><Button isIconOnly variant="primary" aria-label={t("prescriptionTemplates.save")} onPress={() => setSaved(true)}><FaIcon icon={saved ? "check" : "floppy-disk"} aria-hidden="true" /></Button><Tooltip.Content>{saved ? t("prescriptionTemplates.saved") : t("prescriptionTemplates.saveTooltip")}</Tooltip.Content></Tooltip>
               </div>
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -200,9 +200,7 @@ export function PrescriptionTemplateWorkspace() {
                   ))}
                 </TagGroup.List>
               </TagGroup>
-              <Button variant="ghost" size="sm" onPress={() => updateSelected({ tags: [...selected.tags, t("prescriptionTemplates.newTag")] })} className="rounded-md border border-dashed px-2.5 py-1 text-xs font-medium text-muted hover:border-accent hover:text-accent">
-                + {t("prescriptionTemplates.addTag")}
-              </Button>
+              <Tooltip><Button isIconOnly variant="ghost" size="sm" aria-label={t("prescriptionTemplates.addTag")} onPress={() => updateSelected({ tags: [...selected.tags, t("prescriptionTemplates.newTag")] })} className="rounded-md border border-dashed text-xs font-medium text-muted hover:border-accent hover:text-accent"><FaIcon icon="plus" aria-hidden="true" /></Button><Tooltip.Content>{t("prescriptionTemplates.addTagTooltip")}</Tooltip.Content></Tooltip>
             </div>
           </div>
 
@@ -255,7 +253,7 @@ export function PrescriptionTemplateWorkspace() {
                           </ItemCard.Action>
                         </ItemCard>
                         {isOpen && (
-                          <div className="p-4 sm:grid-cols-2 lg:grid-cols-3">
+                          <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
                             <TextField value={item.name} onChange={(value) => updateItem(item.id, { name: value })}><Label>{t("prescriptionTemplates.itemName")}</Label><Input placeholder={t("prescriptionTemplates.itemNamePlaceholder")} /></TextField>
                             <TextField value={item.code} onChange={(value) => updateItem(item.id, { code: value })}><Label>{t("prescriptionTemplates.referenceCode")}</Label><Input placeholder={t("prescriptionTemplates.referencePlaceholder")} /></TextField>
                             <div>

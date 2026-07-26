@@ -62,6 +62,7 @@ export const Routes = {
       Users: "/settings/users",
       Statistics: "/settings/statistics",
       ProcedureTemplates: "/settings/procedure-templates",
+      PrescriptionTemplates: "/settings/prescription-templates",
     },
     Reminders: "/reminders",
     Appointments: {
