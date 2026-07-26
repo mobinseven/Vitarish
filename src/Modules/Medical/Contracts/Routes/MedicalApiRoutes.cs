@@ -32,8 +32,11 @@ public static class MedicalApiRoutes
     public const string PrescriptionEdit = "/prescriptions/{prescriptionId:guid}/edit";
     public const string AvailableProviders = "/providers/available";
     public const string CredentialSetupGrid = "/credentials/setup-grid";
+    public const string CredentialSetupContext = "/credentials/setup-context";
     public const string CredentialTest = "/credentials/test";
     public const string CredentialRevoke = "/credentials/revoke";
+    public const string CredentialAuthorizationBegin = "/credentials/authorization/begin";
+    public const string CredentialAuthorizationComplete = "/credentials/authorization/complete";
     public const string PrescriptionTemplateArchive = "/prescription-templates/archive";
     public const string PrescriptionTemplateItems = "/prescription-templates/items";
     public const string PrescriptionTemplateItemRemove = "/prescription-templates/items/remove";
@@ -45,6 +48,7 @@ public static class MedicalApiRoutes
     public const string CodeSystemReleases = "/code-systems/{codeSystemId:guid}/releases";
     public const string CodeSystemReleaseImport = "/code-system-releases/imports";
     public const string ReferenceSearch = "/reference/search";
+    public const string ProviderReferenceSearch = "/providers/reference-data/search";
     public const string MedicalCodeSearch = "/reference/medical-codes/search";
     public const string PrescriptionReferenceCodeSearch = "/prescriptions/reference-codes/search";
     public const string DrugSearch = "/reference/drugs/search";

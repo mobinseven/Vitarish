@@ -513,7 +513,17 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderReferenceSearchResultResponse"
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -3418,7 +3428,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalCommandResult"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -3477,7 +3494,73 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CredentialSetupDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/medical/credentials/setup-context": {
+      "get": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalGetProviderCredentialSetupContext",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderCredentialSetupContextResponse"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -3596,6 +3679,138 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/medical/credentials/authorization/begin": {
+      "post": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalBeginProviderAuthorization",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeginProviderAuthorizationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeginProviderAuthorizationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/medical/credentials/authorization/complete": {
+      "post": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalCompleteProviderAuthorization",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteProviderAuthorizationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalCommandResult"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -4555,6 +4770,38 @@
           }
         }
       },
+      "BeginProviderAuthorizationRequest": {
+        "required": [
+          "credentialId"
+        ],
+        "type": "object",
+        "properties": {
+          "credentialId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "BeginProviderAuthorizationResult": {
+        "type": "object",
+        "properties": {
+          "isSuccess": {
+            "type": "boolean"
+          },
+          "authorizationUri": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "errorMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "CancelPrescriptionRequest": {
         "required": [
           "prescriptionId",
@@ -4593,6 +4840,26 @@
           "clinicId": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "CompleteProviderAuthorizationRequest": {
+        "required": [
+          "credentialId",
+          "authorizationCode",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "credentialId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "authorizationCode": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
           }
         }
       },
@@ -4837,6 +5104,78 @@
           "clinicId": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "CredentialSetupDto": {
+        "type": "object",
+        "properties": {
+          "credentialId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "doctorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "doctorName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "providerKey": {
+            "type": "string"
+          },
+          "providerDoctorIdentifier": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "providerUsername": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "providerClinicIdentifier": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "daysUntilExpiry": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "isExpiringSoon": {
+            "type": "boolean"
+          },
+          "lastTestedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MedicalCredentialStatus"
           }
         }
       },
@@ -5415,8 +5754,91 @@
       "MedicalCodeSystemCategory": {
         "type": "integer"
       },
+      "MedicalCommandResult": {
+        "type": "object",
+        "properties": {
+          "entityId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "accepted": {
+            "type": "boolean",
+            "default": true
+          },
+          "userSafeMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "correlationId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isSuccess": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "value": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "errorMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemFailures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MedicalItemFailure"
+            }
+          }
+        }
+      },
+      "MedicalCredentialStatus": {
+        "type": "integer"
+      },
       "MedicalImportSourceType": {
         "type": "integer"
+      },
+      "MedicalItemFailure": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "referenceCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "category": {
+            "$ref": "#/components/schemas/MedicalPrescriptionItemCategory"
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
       },
       "MedicalPrescriptionItemCategory": {
         "type": "integer"
@@ -5536,6 +5958,23 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "ProviderCredentialSetupContextResponse": {
+        "required": [
+          "doctorId",
+          "clinicId"
+        ],
+        "type": "object",
+        "properties": {
+          "doctorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -6061,11 +6500,14 @@
       },
       "SearchPrescriptionReferenceCodesRequest": {
         "required": [
-          "category",
+          "providerKey",
           "textOrCode"
         ],
         "type": "object",
         "properties": {
+          "providerKey": {
+            "type": "string"
+          },
           "category": {
             "$ref": "#/components/schemas/MedicalPrescriptionItemCategory"
           },
@@ -6099,6 +6541,19 @@
             "format": "int32",
             "default": 20
           }
+        }
+      },
+      "ProviderReferenceSearchResultResponse": {
+        "required": ["providerKey", "codeSystem", "prescriptionCategory", "referenceCode", "displayName", "metadata"],
+        "type": "object",
+        "properties": {
+          "providerKey": { "type": "string" },
+          "codeSystem": { "type": "string" },
+          "prescriptionCategory": { "$ref": "#/components/schemas/MedicalPrescriptionItemCategory" },
+          "referenceCode": { "type": "string" },
+          "displayName": { "type": "string" },
+          "providerCategory": { "type": ["null", "string"] },
+          "metadata": { "type": "object", "additionalProperties": { "type": ["null", "string"] } }
         }
       },
       "SelectPrescriptionProviderRequest": {

@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Text.Json;
+using Tamin.Integration.Auth;
+using Tamin.Integration.Http;
+using Tamin.Integration.Mapping;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Entities;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
-using Vorn.Tamin;
 using Vitarish.Modules.Base.Core.Platform.Errors;
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
@@ -18,16 +19,18 @@ namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 internal sealed class TaminInsuranceAdapter(
     ITaminCredentialSessionStore sessionStore,
     ITaminMedicalInfrastructureGateway gateway,
+    TaminPrescriptionMapper prescriptionMapper,
     ITaminDateFormatter dateFormatter,
     IOptionsMonitor<TaminOptions> taminOptions,
     PrescriptionDbContext dbContext,
     TaminErrorMapper errorMapper,
-    ILogger<TaminInsuranceAdapter> logger) : IInsuranceProviderAdapter
+    ILogger<TaminInsuranceAdapter> logger) : IInsuranceProviderAdapter, IInsuranceProviderAuthorizationAdapter
 {
     public const string ProviderKeyConst = "TAMIN";
 
     private readonly ITaminCredentialSessionStore _sessionStore = sessionStore;
     private readonly ITaminMedicalInfrastructureGateway _gateway = gateway;
+    private readonly TaminPrescriptionMapper _prescriptionMapper = prescriptionMapper;
     private readonly ITaminDateFormatter _dateFormatter = dateFormatter;
     private readonly IOptionsMonitor<TaminOptions> _taminOptions = taminOptions;
     private readonly PrescriptionDbContext _dbContext = dbContext;
@@ -49,13 +52,54 @@ internal sealed class TaminInsuranceAdapter(
         InsuranceProviderCapabilityType.SupportsCancelPrescription,
         InsuranceProviderCapabilityType.SupportsReferenceDrugSync,
         InsuranceProviderCapabilityType.SupportsReferenceServiceSync,
-        InsuranceProviderCapabilityType.SupportsWarningInquiry,
         InsuranceProviderCapabilityType.SupportsProviderSession,
     ];
 
     public string ProviderKey => ProviderKeyConst;
 
     public IReadOnlySet<InsuranceProviderCapabilityType> GetCapabilities() => SupportedCapabilities;
+
+    public async Task<AdapterResult<ProviderAuthorizationStartResponse>> BeginAuthorizationAsync(
+        ProviderAuthorizationStartRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request.CredentialId == Guid.Empty)
+        {
+            return AdapterResult<ProviderAuthorizationStartResponse>.Failure(
+                ValidationError("شناسه اعتبارنامه مشخص نشده است.", "CredentialId is required."));
+        }
+
+        TaminAuthorizationStartResult result = await _sessionStore.BeginAuthorizationAsync(
+            request.CredentialId,
+            cancellationToken);
+        return result.IsSuccess
+            ? AdapterResult<ProviderAuthorizationStartResponse>.Success(new ProviderAuthorizationStartResponse
+            {
+                AuthorizationUri = result.AuthorizationUri!
+            })
+            : AdapterResult<ProviderAuthorizationStartResponse>.Failure(result.Error!);
+    }
+
+    public async Task<AdapterResult> CompleteAuthorizationAsync(
+        ProviderAuthorizationCompleteRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request.CredentialId == Guid.Empty ||
+            string.IsNullOrWhiteSpace(request.AuthorizationCode) ||
+            string.IsNullOrWhiteSpace(request.State))
+        {
+            return AdapterResult.Failure(
+                ValidationError("اطلاعات بازگشت احراز هویت کامل نیست.", "CredentialId, AuthorizationCode, and State are required."));
+        }
+
+        TaminSessionResult result = await _sessionStore.CompleteAuthorizationAsync(
+            request.CredentialId,
+            request.AuthorizationCode,
+            request.State,
+            cancellationToken);
+        result.Session?.Dispose();
+        return result.IsSuccess ? AdapterResult.Success() : AdapterResult.Failure(result.Error!);
+    }
 
     public async Task<AdapterResult> AuthenticateAsync(AuthenticateRequest request, CancellationToken cancellationToken = default)
     {
@@ -66,6 +110,7 @@ internal sealed class TaminInsuranceAdapter(
         }
 
         TaminSessionResult sessionResult = await _sessionStore.AuthenticateAsync(request.DoctorId, request.ClinicId, cancellationToken);
+        sessionResult.Session?.Dispose();
         return sessionResult.IsSuccess ? AdapterResult.Success() : AdapterResult.Failure(sessionResult.Error!);
     }
 
@@ -84,21 +129,21 @@ internal sealed class TaminInsuranceAdapter(
 
         if (string.IsNullOrWhiteSpace(sessionResult.ClinicSiamId))
         {
+            sessionResult.Session!.Dispose();
             return AdapterResult<EntitlementResponse>.Failure(MissingClinicSiamIdError(request.ClinicId));
         }
 
         try
         {
-            JsonElement result = await sessionResult.Session!.Eligibility.LookupPrivatePracticeAsync(
-                new EligibilityLookupRequest
-                {
-                    SiamId = sessionResult.ClinicSiamId,
-                    DoctorId = sessionResult.DoctorTaminId ?? string.Empty,
-                    DoctorNationalCode = sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
-                    PatientNationalCode = request.PatientNationalId
-                }, cancellationToken);
-
-            return AdapterResult<EntitlementResponse>.Success(TaminPrescriptionMapper.ToEntitlementResponse(result));
+            using TaminProviderSession session = sessionResult.Session!;
+            EntitlementResponse result = await _prescriptionMapper.CheckEntitlementAsync(
+                session,
+                sessionResult.ClinicSiamId,
+                sessionResult.DoctorTaminId ?? string.Empty,
+                sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
+                request.PatientNationalId,
+                cancellationToken);
+            return AdapterResult<EntitlementResponse>.Success(result);
         }
         catch (Exception ex) when (IsProviderException(ex))
         {
@@ -141,6 +186,15 @@ internal sealed class TaminInsuranceAdapter(
             });
         }
 
+        string fallbackMobile = _taminOptions.CurrentValue.FallbackMobileNumber;
+        if (string.IsNullOrWhiteSpace(fallbackMobile))
+        {
+            return AdapterResult<SubmissionResponse>.Failure(
+                ValidationError(
+                    "شماره همراه بیمار برای ارسال نسخه تامین اجتماعی پیکربندی نشده است.",
+                    "Tamin FallbackMobileNumber is required until prescriptions carry a patient mobile number."));
+        }
+
         TaminSessionResult sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
         if (!sessionResult.IsSuccess)
         {
@@ -149,14 +203,18 @@ internal sealed class TaminInsuranceAdapter(
 
         try
         {
-            JsonElement result = await TaminPrescriptionMapper.RegisterPrescriptionAsync(
-                sessionResult.Session!,
+            using TaminProviderSession session = sessionResult.Session!;
+            SubmissionResponse result = await _prescriptionMapper.RegisterPrescriptionAsync(
+                session,
                 prescription,
                 sessionResult.DoctorTaminId ?? string.Empty,
+                sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
+                sessionResult.ClinicSiamId,
+                fallbackMobile,
                 _dateFormatter,
                 cancellationToken);
 
-            return AdapterResult<SubmissionResponse>.Success(TaminPrescriptionMapper.ToSubmissionResponse(result));
+            return AdapterResult<SubmissionResponse>.Success(result);
         }
         catch (Exception ex) when (IsProviderException(ex))
         {
@@ -197,18 +255,20 @@ internal sealed class TaminInsuranceAdapter(
 
         try
         {
-            if (!TryParseHeaderId(request.RemotePrescriptionId, out int headerId))
+            if (!TryParseHeaderId(request.RemotePrescriptionId, out long headerId))
             {
                 return AdapterResult<FetchResponse>.Failure(InvalidHeaderIdError(request.RemotePrescriptionId));
             }
 
-            JsonElement result = await sessionResult.Session!.Prescription.GetRegisteredPrescriptionAsync(
+            using TaminProviderSession session = sessionResult.Session!;
+            FetchResponse result = await _prescriptionMapper.FetchPrescriptionAsync(
+                session,
                 headerId,
-                sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
                 sessionResult.DoctorTaminId ?? string.Empty,
+                sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
                 cancellationToken);
 
-            return AdapterResult<FetchResponse>.Success(TaminPrescriptionMapper.ToFetchResponse(result));
+            return AdapterResult<FetchResponse>.Success(result);
         }
         catch (Exception ex) when (IsProviderException(ex))
         {
@@ -269,24 +329,20 @@ internal sealed class TaminInsuranceAdapter(
 
         try
         {
-            if (!TryParseHeaderId(submission.RemotePrescriptionId, out int headerId))
+            if (!TryParseHeaderId(submission.RemotePrescriptionId, out long headerId))
             {
                 return AdapterResult<SubmissionResponse>.Failure(InvalidHeaderIdError(submission.RemotePrescriptionId));
             }
 
-            IReadOnlyList<object> editedItems = TaminEditedPrescriptionItemMapper.ToEditedItems(prescription.Items);
-
-            JsonElement result = await sessionResult.Session!.Prescription.EditElectronicPrescriptionAsync(
-                new EditPrescriptionRequest
-                {
-                    HeaderId = headerId,
-                    DoctorNationalCode = sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
-                    DoctorId = sessionResult.DoctorTaminId ?? string.Empty,
-                    EditedItems = editedItems
-                }, cancellationToken);
-
-            return AdapterResult<SubmissionResponse>.Success(
-                TaminPrescriptionMapper.ToSubmissionResponse(result, submission.RemotePrescriptionId));
+            using TaminProviderSession session = sessionResult.Session!;
+            SubmissionResponse result = await _prescriptionMapper.EditPrescriptionAsync(
+                session,
+                headerId,
+                sessionResult.DoctorTaminId ?? string.Empty,
+                sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
+                prescription.Items,
+                cancellationToken);
+            return AdapterResult<SubmissionResponse>.Success(result);
         }
         catch (Exception ex) when (IsProviderException(ex))
         {
@@ -327,18 +383,18 @@ internal sealed class TaminInsuranceAdapter(
 
         try
         {
-            if (!TryParseHeaderId(request.RemotePrescriptionId, out int headerId))
+            if (!TryParseHeaderId(request.RemotePrescriptionId, out long headerId))
             {
                 return AdapterResult.Failure(InvalidHeaderIdError(request.RemotePrescriptionId));
             }
 
-            _ = await sessionResult.Session!.Prescription.DeleteElectronicPrescriptionAsync(
-                new DeletePrescriptionRequest
-                {
-                    HeaderId = headerId,
-                    DoctorNationalCode = sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
-                    DoctorId = sessionResult.DoctorTaminId ?? string.Empty
-                }, cancellationToken);
+            using TaminProviderSession session = sessionResult.Session!;
+            await _prescriptionMapper.CancelPrescriptionAsync(
+                session,
+                headerId,
+                sessionResult.DoctorTaminId ?? string.Empty,
+                sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
+                cancellationToken);
 
             return AdapterResult.Success();
         }
@@ -422,7 +478,11 @@ internal sealed class TaminInsuranceAdapter(
             Code = item.Code,
             DisplayName = item.DisplayName,
             Category = item.Category,
-            IsActive = item.IsActive
+            IsActive = item.IsActive,
+            SafeMetadata = new Dictionary<string, string?>
+            {
+                ["providerKind"] = item.ProviderKind
+            }
         }).ToList()
     };
 
@@ -444,8 +504,8 @@ internal sealed class TaminInsuranceAdapter(
 
     private static readonly IReadOnlyDictionary<string, string?> EmptyQuery = new Dictionary<string, string?>();
 
-    private static bool TryParseHeaderId(string? remotePrescriptionId, out int headerId) =>
-        int.TryParse(remotePrescriptionId, out headerId) && headerId > 0;
+    private static bool TryParseHeaderId(string? remotePrescriptionId, out long headerId) =>
+        long.TryParse(remotePrescriptionId, out headerId) && headerId > 0;
 
     private static IntegrationError InvalidHeaderIdError(string? remotePrescriptionId) => new()
     {
@@ -486,19 +546,18 @@ internal sealed class TaminInsuranceAdapter(
             ? ValidationError("شناسه پزشک مشخص نشده است.", "DoctorId is required.")
             : clinicId == Guid.Empty ? ValidationError("شناسه کلینیک مشخص نشده است.", "ClinicId is required.") : null;
 
-    private IntegrationError MapProviderException(Exception exception) => exception is ConnectionError connectionError
+    private IntegrationError MapProviderException(Exception exception) => exception is TaminApiException apiException
             ? _errorMapper.MapError(new ProviderErrorContext
             {
-                HttpStatusCode = connectionError.StatusCode.HasValue ? (int)connectionError.StatusCode.Value : null,
-                ProviderErrorCode = connectionError.StatusCode.HasValue ? ((int)connectionError.StatusCode.Value).ToString() : null,
-                ProviderErrorMessage = connectionError.Content
+                HttpStatusCode = apiException.StatusCode,
+                ProviderErrorCode = apiException.StatusCode?.ToString(),
+                ProviderErrorMessage = apiException.Message
             })
-            : exception is UserLoginException loginException
+            : exception is TaminReauthorizationRequiredException
             ? _errorMapper.MapError(new ProviderErrorContext
             {
-                HttpStatusCode = loginException.Status,
-                ProviderErrorCode = loginException.Status?.ToString(),
-                ProviderErrorMessage = loginException.ReasonText ?? loginException.Message
+                ProviderErrorCode = "reauthorization_required",
+                ProviderErrorMessage = exception.Message
             })
             : _errorMapper.MapError(new ProviderErrorContext
             {
@@ -507,7 +566,11 @@ internal sealed class TaminInsuranceAdapter(
             });
 
     private static bool IsProviderException(Exception exception) =>
-        exception is ConnectionError or UserLoginException or HttpRequestException or TaskCanceledException;
+        exception is TaminApiException
+            or TaminReauthorizationRequiredException
+            or TaminRequestValidationException
+            or HttpRequestException
+            or TaskCanceledException;
 
     private static IntegrationError ValidationError(string userMessage, string technicalDetail) => new()
     {
