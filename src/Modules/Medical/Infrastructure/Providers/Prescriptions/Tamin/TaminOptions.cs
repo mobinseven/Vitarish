@@ -7,11 +7,32 @@ public sealed class TaminOptions
 {
     public const string SectionName = "Prescription:Providers:Tamin";
 
-    /// <summary>Base URL for the Tamin API.</summary>
+    /// <summary>Legacy shared API base URL. Used only when a v3-specific base URL is absent.</summary>
     public string BaseUrl { get; set; } = string.Empty;
+
+    /// <summary>Base URL for the Tamin account API.</summary>
+    public string AccountBaseUrl { get; set; } = string.Empty;
+
+    /// <summary>Base URL for the Tamin SOA API.</summary>
+    public string SoaBaseUrl { get; set; } = string.Empty;
+
+    /// <summary>Base URL for the Tamin clinical API.</summary>
+    public string ApiBaseUrl { get; set; } = string.Empty;
+
+    /// <summary>OAuth v2 token endpoint.</summary>
+    public string TokenEndpoint { get; set; } = string.Empty;
 
     /// <summary>API key or client identifier for Tamin.</summary>
     public string ApiKey { get; set; } = string.Empty;
+
+    /// <summary>OAuth audience required by Tamin.</summary>
+    public string Audience { get; set; } = string.Empty;
+
+    /// <summary>Fallback mobile sent only when the prescription domain has no patient mobile field.</summary>
+    public string FallbackMobileNumber { get; set; } = string.Empty;
+
+    /// <summary>Hosts to which bearer tokens may be sent.</summary>
+    public string[] AllowedHosts { get; set; } = [];
 
     /// <summary>Whether this provider is enabled.</summary>
     public bool IsEnabled { get; set; } = true;
@@ -43,14 +64,19 @@ public sealed class TaminOptions
     /// <summary>Sign-out redirect URI for future provider logout flows.</summary>
     public string? SignOutRedirectUri { get; set; }
 
-    /// <summary>Sandbox base URL (if different from production).</summary>
+    /// <summary>Legacy sandbox base URL. Used only when a v3-specific base URL is absent.</summary>
     public string? SandboxBaseUrl { get; set; }
 
     /// <summary>Resolves the effective endpoint based on explicit endpoint or legacy sandbox mode.</summary>
     public TaminEndpointMode EffectiveEndpoint => UseSandbox ? TaminEndpointMode.Sandbox : Endpoint;
 
-    /// <summary>Resolves the effective base URL based on endpoint mode.</summary>
-    public string EffectiveBaseUrl => EffectiveEndpoint == TaminEndpointMode.Sandbox && !string.IsNullOrWhiteSpace(SandboxBaseUrl)
-        ? SandboxBaseUrl
-        : BaseUrl;
+    public string EffectiveAccountBaseUrl => ResolveBaseUrl(AccountBaseUrl);
+    public string EffectiveSoaBaseUrl => ResolveBaseUrl(SoaBaseUrl);
+    public string EffectiveApiBaseUrl => ResolveBaseUrl(ApiBaseUrl);
+
+    private string ResolveBaseUrl(string v3BaseUrl) => !string.IsNullOrWhiteSpace(v3BaseUrl)
+        ? v3BaseUrl
+        : EffectiveEndpoint == TaminEndpointMode.Sandbox && !string.IsNullOrWhiteSpace(SandboxBaseUrl)
+            ? SandboxBaseUrl
+            : BaseUrl;
 }

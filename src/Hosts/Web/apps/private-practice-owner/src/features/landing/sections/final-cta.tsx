@@ -35,9 +35,10 @@ export function FinalCta() {
               {t("landing.finalCta.body")}
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               <Button
-                render={(props: any) => <a href="#top" {...props} />}
+                onPress={() => {
+                  window.location.hash = "top";
+                }}
                 size="lg"
                 variant="primary"
               >
@@ -45,8 +46,9 @@ export function FinalCta() {
                 <FaIcon icon="arrow-right" className="size-4" />
               </Button>
               <Button
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                render={(props: any) => <a href="#architecture" {...props} />}
+                onPress={() => {
+                  window.location.hash = "architecture";
+                }}
                 size="lg"
                 variant="outline"
               >

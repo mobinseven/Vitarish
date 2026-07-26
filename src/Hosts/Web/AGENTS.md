@@ -1,3 +1,7 @@
+## Localization convention
+
+- **[MUST]** All localization keys used in components must be defined.
+
 ## Icon conventions
 
 - **[MUST]** Render interface icons using Font Awesome CSS classes. The icon name must be recognizable directly from the JSX, for example `fa-light fa-users`.
@@ -9,3 +13,8 @@
 ## Button conventions
 
 - **[MUST]** All buttons must have localized tooltips and icons. so in mobile view they can be shrunk to icon and tooltips to avoid confusing users.
+
+## Date conventions
+
+- **[MUST]** All dates must be displayed in localized formats. 
+- **[MUST]** All date conversions must be used by central conventions.

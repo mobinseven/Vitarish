@@ -11,6 +11,8 @@ public interface IEventsService : IEntityService<EventReadDto, EventWriteDto, Ev
         Guid projectId,
         Guid procedureId,
         Guid? previousEventId,
+        string title,
+        string description,
         CancellationToken cancellationToken);
 
     Task<bool> MoveUpAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken);

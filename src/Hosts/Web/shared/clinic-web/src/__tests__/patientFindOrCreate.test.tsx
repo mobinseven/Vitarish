@@ -16,15 +16,18 @@ import { LocalizationProvider, clinicMessageCatalogs } from "../localization";
 import type { PatientViewDto } from "../api/generated/clinic/model";
 
 const lookupPatient = vi.hoisted(() => vi.fn());
+const searchPatients = vi.hoisted(() => vi.fn());
 
 vi.mock("../api/patients/patientApi", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../api/patients/patientApi")>()),
   lookupPatientByIdentificationCode: lookupPatient,
+  searchPatients,
 }));
 
 afterEach(() => {
   cleanup();
   lookupPatient.mockReset();
+  searchPatients.mockReset();
 });
 
 const messages = {
@@ -46,6 +49,50 @@ function Wrapper({ children }: { children: ReactNode }) {
 }
 
 describe("patient find or create", () => {
+  it("queries and displays matching patients while entering a short identification code", async () => {
+    searchPatients.mockResolvedValue([
+      {
+        id: "patient-1",
+        firstName: "Ada",
+        lastName: "Lovelace",
+        identificationCode: "1234",
+      },
+    ]);
+    const onPatientSelected = vi.fn();
+
+    render(<PatientFindOrCreate onPatientSelected={onPatientSelected} />, {
+      wrapper: Wrapper,
+    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Enter identification code..."),
+      { target: { value: "1234" } },
+    );
+
+    await waitFor(() =>
+      expect(searchPatients).toHaveBeenCalledWith({ search: "1234", take: 5 }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Ada Lovelace/i }));
+
+    expect(onPatientSelected).toHaveBeenCalledWith("patient-1");
+  });
+
+  it("debounces autocomplete queries after four digits", async () => {
+    searchPatients.mockResolvedValue([]);
+
+    render(<PatientFindOrCreate onPatientSelected={vi.fn()} />, {
+      wrapper: Wrapper,
+    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Enter identification code..."),
+      { target: { value: "12345" } },
+    );
+
+    expect(searchPatients).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(searchPatients).toHaveBeenCalledWith({ search: "12345", take: 5 }),
+    );
+  });
+
   it("notifies the parent when the identification lookup finds a patient", async () => {
     const patient = {
       id: "patient-1",

@@ -40,5 +40,6 @@ public sealed record PrescriptionTemplateItemDto
     public string? DosageJson { get; init; }
     public int Quantity { get; init; }
     public int? DurationDays { get; init; }
+    public string? MetadataJson { get; init; }
     public int SortOrder { get; init; }
 }

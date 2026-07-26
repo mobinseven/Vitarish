@@ -20,4 +20,13 @@ describe("useClinicNavigation", () => {
     );
     expect(push).toHaveBeenCalledWith("/settings/procedure-templates");
   });
+
+  it("resolves insurance settings to the owner settings route", () => {
+    const { result } = renderHook(() => useClinicNavigation());
+
+    act(() => result.current({ kind: "clinicSettingsInsurance" }));
+
+    expect(Routes.Clinic.Settings.Insurance).toBe("/settings/insurance");
+    expect(push).toHaveBeenCalledWith("/settings/insurance");
+  });
 });

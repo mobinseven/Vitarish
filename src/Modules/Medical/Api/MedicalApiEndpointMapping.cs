@@ -11,6 +11,7 @@ using Vitarish.Medical.Contracts.Responses;
 using Vitarish.Medical.Contracts.Results;
 using Vitarish.Medical.Contracts.Routes;
 using Vitarish.Modules.Base.Core.Endpoints;
+using Vitarish.Requests.Application.Abstractions;
 using A = Vitarish.Medical.Application.Commands;
 using AP = Vitarish.Medical.Application.Commands.Prescriptions;
 using AQ = Vitarish.Medical.Application.Queries.Prescriptions;
@@ -33,7 +34,8 @@ public static class MedicalApiEndpointMapping
         _ = group.MapModulePost(MedicalApiRoutes.CodeSystemReleaseImport, ImportCodeSystemReleaseAsync, "MedicalImportCodeSystemRelease");
         _ = group.MapModulePost(MedicalApiRoutes.MedicalCodeSearch, SearchMedicalCodesAsync, "MedicalSearchMedicalCodes");
         _ = group.MapModulePost(MedicalApiRoutes.MedicalCodeResolve, ResolveMedicalCodeAsync, "MedicalResolveMedicalCode");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionReferenceCodeSearch, SearchPrescriptionReferenceCodesAsync, "MedicalSearchPrescriptionReferenceCodes");
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionReferenceCodeSearch, SearchPrescriptionReferenceCodesAsync, "MedicalSearchPrescriptionReferenceCodes", typeof(IReadOnlyList<ProviderReferenceSearchResultResponse>));
+        _ = group.MapModulePost(MedicalApiRoutes.ProviderReferenceSearch, SearchProviderReferenceDataAsync, "MedicalSearchProviderReferenceData");
         _ = group.MapModulePost(MedicalApiRoutes.DrugSearch, SearchDrugsAsync, "MedicalSearchDrugs");
         _ = group.MapModulePost(MedicalApiRoutes.DrugById, GetDrugAsync, "MedicalGetDrug");
         _ = group.MapModulePost(MedicalApiRoutes.DrugIdentifierResolve, ResolveDrugIdentifierAsync, "MedicalResolveDrugIdentifier");
@@ -80,10 +82,13 @@ public static class MedicalApiEndpointMapping
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplateItemRemove, RemovePrescriptionTemplateItemAsync, "MedicalRemovePrescriptionTemplateItem");
         _ = group.MapModulePost(MedicalApiRoutes.AvailableProviders, GetAvailableProvidersAsync, "MedicalGetAvailableProviders");
         _ = group.MapModulePost(MedicalApiRoutes.Credentials + "/list", ListProviderCredentialsAsync, "MedicalListProviderCredentials");
-        _ = group.MapModulePost(MedicalApiRoutes.Credentials, ConfigureProviderCredentialAsync, "MedicalConfigureProviderCredential");
-        _ = group.MapModulePost(MedicalApiRoutes.CredentialSetupGrid, GetCredentialSetupGridAsync, "MedicalGetCredentialSetupGrid");
+        _ = group.MapModulePost(MedicalApiRoutes.Credentials, ConfigureProviderCredentialAsync, "MedicalConfigureProviderCredential", typeof(MedicalCommandResult));
+        _ = group.MapModulePost(MedicalApiRoutes.CredentialSetupGrid, GetCredentialSetupGridAsync, "MedicalGetCredentialSetupGrid", typeof(IReadOnlyList<CredentialSetupDto>));
+        _ = group.MapModuleGet(MedicalApiRoutes.CredentialSetupContext, GetProviderCredentialSetupContext, "MedicalGetProviderCredentialSetupContext", typeof(ProviderCredentialSetupContextResponse));
         _ = group.MapModulePost(MedicalApiRoutes.CredentialTest, TestCredentialAsync, "MedicalTestCredential");
         _ = group.MapModulePost(MedicalApiRoutes.CredentialRevoke, RevokeCredentialAsync, "MedicalRevokeCredential");
+        _ = group.MapModulePost(MedicalApiRoutes.CredentialAuthorizationBegin, BeginProviderAuthorizationAsync, "MedicalBeginProviderAuthorization", typeof(BeginProviderAuthorizationResult));
+        _ = group.MapModulePost(MedicalApiRoutes.CredentialAuthorizationComplete, CompleteProviderAuthorizationAsync, "MedicalCompleteProviderAuthorization", typeof(MedicalCommandResult));
         _ = group.MapModulePost(MedicalApiRoutes.ProviderReferenceDataSync, SyncProviderReferenceDataAsync, "MedicalSyncProviderReferenceData");
         _ = group.MapModulePost(MedicalApiRoutes.ObservabilityDashboard, GetPrescriptionOperationalDashboardAsync, "MedicalGetPrescriptionOperationalDashboard");
         _ = group.MapModulePost(MedicalApiRoutes.TransactionMetrics, GetProviderTransactionMetricsAsync, "MedicalGetProviderTransactionMetrics");
@@ -190,10 +195,37 @@ public static class MedicalApiEndpointMapping
     private static async Task<IResult> RemovePrescriptionTemplateItemAsync(RemovePrescriptionTemplateItemRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.RemovePrescriptionTemplateItemCommand { TemplateId = request.TemplateId, ItemId = request.ItemId, TenantId = request.TenantId }, ct));
     private static async Task<IResult> GetAvailableProvidersAsync(GetAvailableProvidersRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetAvailableProvidersQuery(), ct));
     private static async Task<IResult> ListProviderCredentialsAsync(OperationalDashboardRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetCredentialHealthQuery { ProviderKey = request.ProviderKey, ClinicId = request.ClinicId }, ct));
-    private static async Task<IResult> ConfigureProviderCredentialAsync(ConfigureProviderCredentialRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.SaveCredentialCommand { CredentialId = request.CredentialId, DoctorId = request.DoctorId, ClinicId = request.ClinicId, ProviderKey = request.ProviderKey }, ct));
-    private static async Task<IResult> GetCredentialSetupGridAsync(GetCredentialSetupGridRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AP.GetCredentialSetupGridQuery { ClinicId = request.ClinicId, ProviderKey = request.ProviderKey }, ct));
+    private static async Task<IResult> ConfigureProviderCredentialAsync(ConfigureProviderCredentialRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.SaveCredentialCommand
+    {
+        CredentialId = request.CredentialId,
+        DoctorId = request.DoctorId,
+        ClinicId = request.ClinicId,
+        ProviderKey = request.ProviderKey,
+        ProviderDoctorIdentifier = GetConfigurationValue(request.ConfigurationValues, "providerDoctorIdentifier"),
+        ProviderUsername = GetConfigurationValue(request.ConfigurationValues, "providerUsername"),
+        ProviderClinicIdentifier = GetConfigurationValue(request.ConfigurationValues, "providerClinicIdentifier"),
+        CredentialSecretRef = GetConfigurationValue(request.ConfigurationValues, "credentialSecretRef")
+    }, ct));
+    private static async Task<IResult> GetCredentialSetupGridAsync(GetCredentialSetupGridRequest request, IMediator mediator, CancellationToken ct) =>
+        Ok((await mediator.Send(new AP.GetCredentialSetupGridQuery { ClinicId = request.ClinicId, ProviderKey = request.ProviderKey }, ct))
+            .Select(ToContract)
+            .ToArray());
+    private static IResult GetProviderCredentialSetupContext(IRequestContext requestContext) =>
+        Guid.TryParse(requestContext.OwnerId, out Guid doctorId) &&
+        Guid.TryParse(requestContext.TenantId, out Guid clinicId)
+            ? Ok(new ProviderCredentialSetupContextResponse(doctorId, clinicId))
+            : Results.Forbid();
     private static async Task<IResult> TestCredentialAsync(TestCredentialRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.TestCredentialCommand { CredentialId = request.CredentialId }, ct));
     private static async Task<IResult> RevokeCredentialAsync(RevokeCredentialRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.RevokeCredentialCommand { CredentialId = request.CredentialId }, ct));
+    private static async Task<IResult> BeginProviderAuthorizationAsync(BeginProviderAuthorizationRequest request, IMediator mediator, CancellationToken ct) =>
+        Ok(await mediator.Send(new AP.BeginProviderAuthorizationCommand { CredentialId = request.CredentialId }, ct));
+    private static async Task<IResult> CompleteProviderAuthorizationAsync(CompleteProviderAuthorizationRequest request, IMediator mediator, CancellationToken ct) =>
+        Command(await mediator.Send(new AP.CompleteProviderAuthorizationCommand
+        {
+            CredentialId = request.CredentialId,
+            AuthorizationCode = request.AuthorizationCode,
+            State = request.State
+        }, ct));
     private static async Task<IResult> SyncProviderReferenceDataAsync(SyncProviderReferenceDataRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.SyncReferenceDataCommand { ProviderKey = request.ProviderKey, CodeSystem = request.CodeSystem }, ct));
     private static async Task<IResult> GetPrescriptionOperationalDashboardAsync(OperationalDashboardRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetOperationalAlertsQuery { ProviderKey = request.ProviderKey }, ct));
     private static async Task<IResult> GetProviderTransactionMetricsAsync(GetProviderTransactionMetricsRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetProviderTransactionMetricsQuery { ProviderKey = request.ProviderKey, From = request.From, To = request.To }, ct));
@@ -209,6 +241,11 @@ public static class MedicalApiEndpointMapping
     private static async Task<IResult> EscalatePrescriptionAsync(EscalatePrescriptionRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.EscalateCommand { PrescriptionId = request.PrescriptionId, OperatorId = Guid.Empty, Summary = request.Reason, CorrelationId = Guid.NewGuid().ToString("N") }, ct));
 
     private static IResult Ok<T>(T value) => Results.Ok(value);
+
+    private static string? GetConfigurationValue(
+        IReadOnlyDictionary<string, string> values,
+        string key) =>
+        values.FirstOrDefault(pair => string.Equals(pair.Key, key, StringComparison.OrdinalIgnoreCase)).Value;
     private static IResult OkOrNotFound<T>(T? value) => value is null ? Results.NotFound() : Results.Ok(value);
     private static IResult Command(dynamic? result)
     {
@@ -241,5 +278,28 @@ public static class MedicalApiEndpointMapping
     private static ServiceValuationResponse? ToContract(D.ServiceValuation? e) => e is null ? null : new() { Id = e.Id, ServiceCodeId = e.ServiceCodeId, Year = e.ValuationYear, Locality = e.Locality, Amount = e.ConversionFactor };
     private static CodeMapResponse ToContract(D.CodeMap e) => new() { Id = e.Id, SourceMedicalCodeId = e.SourceMedicalCodeId, TargetMedicalCodeId = e.TargetMedicalCodeId, Status = (MedicalCodeMapStatus)e.Status };
     private static ImportBatchResponse? ToContract(D.ImportBatch? e) => e is null ? null : new() { Id = e.Id, Status = (MedicalImportBatchStatus)e.Status, CreatedAt = e.CreatedAt, CompletedAt = e.CompletedAt, Errors = string.IsNullOrWhiteSpace(e.ErrorReport) ? [] : [e.ErrorReport], Warnings = string.IsNullOrWhiteSpace(e.ValidationSummary) ? [] : [e.ValidationSummary] };
+    private static CredentialSetupDto ToContract(AP.CredentialSetupDto value) => new()
+    {
+        CredentialId = value.CredentialId,
+        DoctorId = value.DoctorId,
+        DoctorName = value.DoctorName,
+        ClinicId = value.ClinicId,
+        ProviderKey = value.ProviderKey,
+        ProviderDoctorIdentifier = value.ProviderDoctorIdentifier,
+        ProviderUsername = value.ProviderUsername,
+        ProviderClinicIdentifier = value.ProviderClinicIdentifier,
+        ExpiresAt = value.ExpiresAt,
+        DaysUntilExpiry = value.DaysUntilExpiry,
+        IsExpiringSoon = value.IsExpiringSoon,
+        LastTestedAt = value.LastTestedAt,
+        Status = value.Status switch
+        {
+            DEP.CredentialStatus.Pending => MedicalCredentialStatus.Pending,
+            DEP.CredentialStatus.Active => MedicalCredentialStatus.Active,
+            DEP.CredentialStatus.Expired => MedicalCredentialStatus.Expired,
+            DEP.CredentialStatus.Revoked => MedicalCredentialStatus.Revoked,
+            _ => MedicalCredentialStatus.Invalid
+        }
+    };
     public static IResult ToHttpFailure(MedicalError error) => error.Code switch { MedicalErrorCode.ValidationFailure => Results.BadRequest(error), MedicalErrorCode.Unauthorized => Results.Unauthorized(), MedicalErrorCode.Forbidden => Results.Forbid(), MedicalErrorCode.NotFound => Results.NotFound(error), MedicalErrorCode.Conflict => Results.Conflict(error), MedicalErrorCode.ProviderUnavailable => Results.StatusCode(StatusCodes.Status503ServiceUnavailable), MedicalErrorCode.Timeout => Results.StatusCode(StatusCodes.Status504GatewayTimeout), MedicalErrorCode.ProviderRejected => Results.UnprocessableEntity(error), MedicalErrorCode.CredentialInvalid or MedicalErrorCode.CredentialExpired or MedicalErrorCode.CredentialRevoked => Results.BadRequest(error), _ => Results.Problem(error.Message) };
 }

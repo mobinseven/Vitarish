@@ -71,9 +71,13 @@ namespace Vitarish.Medical.Infrastructure.Migrations.PrescriptionDb
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<string>("RefreshTokenSecretRef")
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)");
+
                     b.Property<string>("SessionId")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -89,8 +93,8 @@ namespace Vitarish.Medical.Infrastructure.Migrations.PrescriptionDb
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("TokenSecretRef")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");

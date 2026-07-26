@@ -1,4 +1,4 @@
-import { parseDate, type DateValue } from "@internationalized/date";
+import { parseDate, parseDateTime, type CalendarDateTime, type DateValue } from "@internationalized/date";
 
 const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -14,4 +14,13 @@ export function parseIsoDateValue(value: string | null | undefined): DateValue |
 
 export function dateValueToIsoDate(value: DateValue | null): string {
   return value?.toString() ?? "";
+}
+
+/** Parses an API date plus either HH:mm or HH:mm:ss time into one date-time value. */
+export function parseIsoDateTimeValue(
+  date: string,
+  time: string,
+): CalendarDateTime {
+  const normalizedTime = time.length === 5 ? `${time}:00` : time;
+  return parseDateTime(`${date}T${normalizedTime}`);
 }

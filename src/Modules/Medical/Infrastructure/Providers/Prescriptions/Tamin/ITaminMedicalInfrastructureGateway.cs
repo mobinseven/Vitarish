@@ -12,12 +12,4 @@ internal interface ITaminMedicalInfrastructureGateway
     Task<TaminReferencePageResult> GetDrugAmountsAsync(TaminRawReferenceQueryOperationRequest request, CancellationToken cancellationToken);
     Task<TaminReferencePageResult> GetDrugInstructionsAsync(TaminRawReferenceQueryOperationRequest request, CancellationToken cancellationToken);
 
-    Task<TaminProviderJsonResult> CheckPrescriptionWarningAsync(TaminWarningOperationRequest request, CancellationToken cancellationToken);
-    Task<TaminProviderJsonResult> CheckDentalRulesAsync(TaminWarningOperationRequest request, CancellationToken cancellationToken);
-    Task<TaminProviderJsonResult> GetReferralCountsAsync(TaminReferralCountOperationRequest request, CancellationToken cancellationToken);
-    Task<TaminProviderJsonResult> RecordReferralFeedbackAsync(TaminReferralFeedbackOperationRequest request, CancellationToken cancellationToken);
-    Task<TaminProviderJsonResult> GetNurseTodoListAsync(TaminNurseTodoListOperationRequest request, CancellationToken cancellationToken);
-    Task<TaminProviderJsonResult> RecordNurseActionAsync(TaminNurseActionOperationRequest request, CancellationToken cancellationToken);
-    Task<TaminProviderJsonResult> CreateHospitalizationAsync(TaminHospitalizationCreateOperationRequest request, CancellationToken cancellationToken);
-    Task<TaminProviderJsonResult> GetHospitalizationSecretaryListAsync(TaminHospitalizationSecretaryListOperationRequest request, CancellationToken cancellationToken);
 }

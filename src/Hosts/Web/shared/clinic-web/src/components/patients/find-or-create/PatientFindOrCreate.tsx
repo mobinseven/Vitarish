@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, Input, Label, TextField } from "@heroui/react";
 
 import { AdvancedSearchForm } from "./AdvancedSearchForm";
@@ -20,11 +20,14 @@ import type { PatientProfileFormData } from "../../../models/patients/profile/Pa
 interface PatientFindOrCreateProps {
   onPatientSelected: (patientId: string) => void;
   onPatientCreated?: (patientId: string) => void;
+  /** When true, the "selected" step is hidden — the parent handles post-selection. */
+  hideSelectedState?: boolean;
 }
 
 export function PatientFindOrCreate({
   onPatientSelected,
   onPatientCreated,
+  hideSelectedState,
 }: PatientFindOrCreateProps) {
   const { t } = useLocalizedText();
   const {
@@ -33,7 +36,10 @@ export function PatientFindOrCreate({
     lookupError,
     createIdentificationCode,
     isLooking,
+    autocompleteResults,
+    isAutocompleting,
     handleLookup,
+    handleAutocomplete,
     handleAdvancedSearch,
     handleSelectPatient,
     handleGoToLookup,
@@ -43,6 +49,25 @@ export function PatientFindOrCreate({
 
   const [code, setCode] = useState("");
   const [createError, setCreateError] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  useEffect(() => {
+    const query = code.trim();
+    const digitCount = (query.match(/\d/g) ?? []).length;
+    const search = () => void handleAutocomplete(query);
+
+    if (!query) {
+      search();
+      return;
+    }
+
+    if (digitCount > 4) {
+      const timer = window.setTimeout(search, 300);
+      return () => window.clearTimeout(timer);
+    }
+
+    search();
+  }, [code, handleAutocomplete]);
 
   const handleLookupSubmit = useCallback(() => {
     void handleLookup(code).then((patient) => {
@@ -75,74 +100,104 @@ export function PatientFindOrCreate({
     [createPatient, handleSelectPatient, onPatientSelected, onPatientCreated],
   );
 
+  if (hideSelectedState && step === "selected") return null;
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {step === "lookup" && (
         <>
-          <section className="rounded-medium border border-divider p-4">
-            <header className="mb-3">
-              <h2>{t("clinic.checkIn.step1")}</h2>
-            </header>
-            <div className="flex flex-col gap-4">
-              <TextField>
-                <Label>{t("clinic.patient.identification.label")}</Label>
-                <Input
-                  placeholder={t("clinic.patient.identification.placeholder")}
-                  value={code}
-                  onChange={(event) => setCode(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") handleLookupSubmit();
-                  }}
-                />
-              </TextField>
-              {isLooking && (
-                <ClinicLoadingState
-                  label={t("clinic.patient.identification.lookingUp")}
-                />
-              )}
-              {lookupError === "not-found" && (
-                <ClinicEmptyState
-                  title={t("clinic.patient.identification.notFound")}
-                />
-              )}
-              {lookupError === "error" && (
-                <ClinicErrorState
-                  title={t("clinic.patient.identification.error")}
-                />
-              )}
+          <TextField>
+            <Label>{t("clinic.patient.identification.label")}</Label>
+            <Input
+              placeholder={t("clinic.patient.identification.placeholder")}
+              value={code}
+              onChange={(event) => setCode(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") handleLookupSubmit();
+              }}
+            />
+          </TextField>
+
+          {code.trim() && (isAutocompleting || autocompleteResults.length > 0) && (
+            <AdvancedSearchResults
+              results={autocompleteResults}
+              isLoading={isAutocompleting}
+              onSelectPatient={handleSearchSelect}
+            />
+          )}
+
+          {isLooking && (
+            <ClinicLoadingState
+              label={t("clinic.patient.identification.lookingUp")}
+            />
+          )}
+
+          {lookupError === "not-found" && (
+            <ClinicEmptyState
+              title={t("clinic.patient.identification.notFound")}
+            />
+          )}
+
+          {lookupError === "error" && (
+            <ClinicErrorState
+              title={t("clinic.patient.identification.error")}
+            />
+          )}
+
+          <Button
+            variant="primary"
+            isPending={isLooking}
+            isDisabled={!code.trim()}
+            onPress={handleLookupSubmit}
+          >
+            {t("clinic.patient.identification.lookupAction")}
+          </Button>
+
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="self-start text-sm text-muted transition-colors hover:text-foreground"
+          >
+            <FaIcon icon={showAdvanced ? "chevron-up" : "chevron-down"} aria-hidden="true" className="mr-1.5" />
+            {t("clinic.checkIn.cantFindPatient")}
+          </button>
+
+          {showAdvanced && (
+            <>
+              <AdvancedSearchForm
+                onSearch={handleAdvancedSearch}
+                isPending={isPending}
+              />
+
+              <div className="flex items-center gap-4">
+                <div className="h-px flex-1 bg-divider" />
+                <span className="text-xs text-muted">
+                  {t("clinic.patient.findOrCreate.or")}
+                </span>
+                <div className="h-px flex-1 bg-divider" />
+              </div>
+
               <Button
-                variant="primary"
-                isPending={isLooking}
-                onPress={handleLookupSubmit}
+                variant="ghost"
+                size="sm"
+                onPress={handleGoToLookup}
               >
-                {t("clinic.patient.identification.lookupAction")}
+                <FaIcon icon="plus" aria-hidden="true" className="mr-1.5" />
+                {t("clinic.checkIn.createNewPatient")}
               </Button>
-            </div>
-          </section>
-
-          <div className="flex items-center gap-4">
-            <div className="h-px flex-1 bg-surface-secondary" />
-            <span className="text-sm text-muted">
-              {t("clinic.patient.findOrCreate.or")}
-            </span>
-            <div className="h-px flex-1 bg-surface-secondary" />
-          </div>
-
-          <AdvancedSearchForm
-            onSearch={handleAdvancedSearch}
-            isPending={isPending}
-          />
+            </>
+          )}
         </>
       )}
 
       {step === "search" && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
+            <h3 className="text-sm font-medium">
               {t("clinic.patient.search.results")}
-            </h2>
-            <Button variant="ghost" onPress={handleGoToLookup}>
-              <FaIcon icon="arrow-left" aria-hidden="true" />
+            </h3>
+            <Button variant="ghost" size="sm" onPress={handleGoToLookup}>
+              <FaIcon icon="arrow-left" aria-hidden="true" className="mr-1" />
               {t("common.actions.previous")}
             </Button>
           </div>
@@ -155,13 +210,13 @@ export function PatientFindOrCreate({
       )}
 
       {step === "create" && (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">
+            <h3 className="text-sm font-medium">
               {t("clinic.patients.newPatient")}
-            </h1>
-            <Button variant="ghost" onPress={handleGoToLookup}>
-              <FaIcon icon="arrow-left" aria-hidden="true" />
+            </h3>
+            <Button variant="ghost" size="sm" onPress={handleGoToLookup}>
+              <FaIcon icon="arrow-left" aria-hidden="true" className="mr-1" />
               {t("common.actions.previous")}
             </Button>
           </div>

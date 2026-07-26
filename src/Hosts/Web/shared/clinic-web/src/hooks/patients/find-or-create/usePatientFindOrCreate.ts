@@ -1,8 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ApiError } from "@vitarish/web-api-client";
 import { usePatientSearch } from "../usePatientSearch";
 import { useCreatePatientProfile } from "../profile/useCreatePatientProfile";
-import { lookupPatientByIdentificationCode } from "../../../api/patients/patientApi";
+import {
+  lookupPatientByIdentificationCode,
+  searchPatients,
+} from "../../../api/patients/patientApi";
 import type { AdvancedSearchCriteria } from "../../../models/patients/patientSearchModels";
 import type { PatientViewDto } from "../../../api/generated/clinic/model";
 
@@ -14,6 +17,9 @@ export function usePatientFindOrCreate() {
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [createIdentificationCode, setCreateIdentificationCode] = useState("");
   const [isLooking, setIsLooking] = useState(false);
+  const [autocompleteResults, setAutocompleteResults] = useState<PatientViewDto[]>([]);
+  const [isAutocompleting, setIsAutocompleting] = useState(false);
+  const autocompleteRequestId = useRef(0);
 
   const advancedSearch = usePatientSearch();
   const createPatient = useCreatePatientProfile();
@@ -51,6 +57,33 @@ export function usePatientFindOrCreate() {
     [advancedSearch]
   );
 
+  const handleAutocomplete = useCallback(async (query: string) => {
+    const requestId = ++autocompleteRequestId.current;
+    const normalizedQuery = query.trim();
+
+    if (!normalizedQuery) {
+      setAutocompleteResults([]);
+      setIsAutocompleting(false);
+      return;
+    }
+
+    setIsAutocompleting(true);
+    try {
+      const results = await searchPatients({ search: normalizedQuery, take: 5 });
+      if (requestId === autocompleteRequestId.current) {
+        setAutocompleteResults(results as PatientViewDto[]);
+      }
+    } catch {
+      if (requestId === autocompleteRequestId.current) {
+        setAutocompleteResults([]);
+      }
+    } finally {
+      if (requestId === autocompleteRequestId.current) {
+        setIsAutocompleting(false);
+      }
+    }
+  }, []);
+
   const handleSelectPatient = useCallback(() => {
     setStep("selected");
   }, []);
@@ -60,6 +93,9 @@ export function usePatientFindOrCreate() {
     setSearchResults(null);
     setLookupError(null);
     setCreateIdentificationCode("");
+    setAutocompleteResults([]);
+    setIsAutocompleting(false);
+    autocompleteRequestId.current += 1;
   }, []);
 
   return {
@@ -68,7 +104,10 @@ export function usePatientFindOrCreate() {
     lookupError,
     createIdentificationCode,
     isLooking,
+    autocompleteResults,
+    isAutocompleting,
     handleLookup,
+    handleAutocomplete,
     handleAdvancedSearch,
     handleSelectPatient,
     handleGoToLookup,
