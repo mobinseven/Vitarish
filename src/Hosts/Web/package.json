@@ -19,7 +19,7 @@
     "test:layout:visual": "playwright test --config playwright.layout.config.ts --grep @visual",
     "test:layout:update-linux": "node scripts/update-layout-snapshots-linux.mjs",
     "validate:api-boundary": "npm run validate:api-boundary --workspaces --if-present",
-    "validate:localization": "npm run validate:localization --workspaces --if-present",
+    "validate:localization": "node scripts/validate-localization.mjs",
     "lint:layout": "node scripts/lint-layout.mjs",
     "test:layout-lint": "node --test scripts/layout-policy.test.mjs",
     "validate:web-ui-boundary": "node scripts/validate-web-ui-boundary.mjs",

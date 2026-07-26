@@ -23,7 +23,7 @@ export function useInsuranceProviderSetup() {
   const context = useQuery({
     queryKey: ["medical", "provider-credential-context"],
     queryFn: ({ signal }) =>
-      medicalGetProviderCredentialSetupContext(undefined, signal),
+      medicalGetProviderCredentialSetupContext(signal),
   });
   const credentials = useQuery({
     queryKey: [
@@ -36,7 +36,6 @@ export function useInsuranceProviderSetup() {
     queryFn: ({ signal }) =>
       medicalGetCredentialSetupGrid(
         { clinicId: context.data!.clinicId, providerKey: "TAMIN" },
-        undefined,
         signal,
       ),
   });

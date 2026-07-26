@@ -551,27 +551,6 @@ export const clinicEnMessages = {
     settings: {
       title: "Clinic Settings",
       description: "Configure your clinic settings",
-      insurance: {
-        title: "Insurance provider",
-        description: "Connect your Tamin account to submit insurance requests.",
-        loadFailed: "Insurance provider settings could not be loaded.",
-        authorizationFailed: "Insurance provider authorization failed.",
-        tryAgain: "Please try again.",
-        taminTitle: "Tamin Social Security",
-        taminDescription: "Authorize this clinic to use Tamin services.",
-        active: "Active",
-        pending: "Authorization required",
-        loading: "Loading insurance provider settings",
-        doctorIdentifier: "Tamin doctor identifier",
-        nationalCode: "National code",
-        clinicIdentifier: "Tamin clinic identifier",
-        authorize: "Authorize Tamin",
-        reauthorize: "Reauthorize Tamin",
-        completing: "Completing authorization",
-        completingDescription: "Your Tamin authorization is being completed.",
-        completed: "Authorization completed",
-        returnToSettings: "Return to insurance settings",
-      },
       sections: {
         users: { title: "Users", description: "Manage clinic staff accounts and permissions." },
         appointmentSettings: { title: "Appointment Settings", description: "Configure services, service types, and providers." },
@@ -582,7 +561,6 @@ export const clinicEnMessages = {
           procedures: "Procedure Templates",
           description: "Create and manage reusable procedure routines and ordered steps."
         },
-<<<<<<< HEAD
         insurance: { title: "Insurance providers", description: "Connect prescription providers and manage doctor credentials." },
         prescriptionTemplates: { title: "Prescription templates", description: "Build reusable bundles of medicines, tests, and imaging for faster prescribing." },
       },

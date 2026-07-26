@@ -34,4 +34,3 @@ export { ServiceTypeListPage } from "./components/service-types/ServiceTypeListP
 export { ServiceTypeDetailPage } from "./components/service-types/ServiceTypeDetailPage";
 export { ServiceProviderListPage } from "./components/service-providers/ServiceProviderListPage";
 export { ServiceProviderDetailPage } from "./components/service-providers/ServiceProviderDetailPage";
-export { PrescriptionTemplateWorkspace } from "./components/prescriptions/PrescriptionTemplateWorkspace";
