@@ -23,6 +23,8 @@ export { UserReservationDetailPage } from "./components/user-appointments/reserv
 export { AppointmentSettingsPage } from "./components/appointments/settings/AppointmentSettingsPage";
 export { SettingsPage } from "./components/settings/SettingsPage";
 export { SettingsUsersPage } from "./components/settings/users/SettingsUsersPage";
+export { InsuranceProviderSettingsPage } from "./components/settings/insurance/InsuranceProviderSettingsPage";
+export { InsuranceProviderAuthorizationCallbackPage } from "./components/settings/insurance/InsuranceProviderAuthorizationCallbackPage";
 export { StatisticsPage } from "./components/statistics/StatisticsPage";
 export { RemindersPage } from "./components/reminders/RemindersPage";
 export { ServiceListPage } from "./components/services/ServiceListPage";
@@ -31,3 +33,4 @@ export { ServiceTypeListPage } from "./components/service-types/ServiceTypeListP
 export { ServiceTypeDetailPage } from "./components/service-types/ServiceTypeDetailPage";
 export { ServiceProviderListPage } from "./components/service-providers/ServiceProviderListPage";
 export { ServiceProviderDetailPage } from "./components/service-providers/ServiceProviderDetailPage";
+export { PrescriptionTemplateWorkspace } from "./components/prescriptions/PrescriptionTemplateWorkspace";

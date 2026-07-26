@@ -6,6 +6,25 @@ import { SettingsDashboard } from "../components/settings/SettingsDashboard";
 afterEach(cleanup);
 
 describe("SettingsDashboard", () => {
+  it("emits the insurance-provider settings intent", () => {
+    const onNavigate = vi.fn();
+    render(
+      <LocalizationProvider locale="en" messages={clinicMessageCatalogs.en}>
+        <SettingsDashboard onNavigate={onNavigate} />
+      </LocalizationProvider>,
+    );
+
+    const insurance = screen.getByRole("button", {
+      name: /Insurance providers/,
+    });
+    expect(insurance).toHaveAttribute("title", "Insurance providers");
+    expect(insurance.querySelector(".fa-shield-check")).toBeInTheDocument();
+    fireEvent.click(insurance);
+    expect(onNavigate).toHaveBeenCalledWith({
+      kind: "clinicSettingsInsurance",
+    });
+  });
+
   it("emits the procedure-template management intent", () => {
     const onNavigate = vi.fn();
     render(
