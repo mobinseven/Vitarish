@@ -32,9 +32,13 @@ internal class EventsService(
         Guid projectId,
         Guid procedureId,
         Guid? previousEventId,
+        string title,
+        string description,
         CancellationToken cancellationToken)
     {
-        Event? entity = await Mediator.Send(new AddEventAfterCommand(projectId, procedureId, previousEventId), cancellationToken);
+        Event? entity = await Mediator.Send(
+            new AddEventAfterCommand(projectId, procedureId, previousEventId, title, description),
+            cancellationToken);
 
         return entity?.ToRead();
     }

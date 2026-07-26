@@ -304,7 +304,13 @@ public static class SeaApiEndpointMapping
     private static async Task<IResult> CreateEventAsync(Guid? previousEventId, C.EventWriteDto request, ClaimsPrincipal user, IEventsService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
         if (!await CanManageAsync(authorization, user)) return Results.Forbid();
-        return Command(await service.AddAsync(request.ProjectId, request.ProcedureId, previousEventId, cancellationToken));
+        return Command(await service.AddAsync(
+            request.ProjectId,
+            request.ProcedureId,
+            previousEventId,
+            request.Title ?? string.Empty,
+            request.Description ?? string.Empty,
+            cancellationToken));
     }
 
     private static async Task<IResult> UpdateEventAsync(C.EventWriteDto request, ClaimsPrincipal user, IEventsService service, IAuthorizationService authorization, CancellationToken cancellationToken)
