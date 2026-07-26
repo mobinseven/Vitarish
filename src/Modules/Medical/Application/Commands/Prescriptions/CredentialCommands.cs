@@ -57,6 +57,40 @@ public sealed record RevokeCredentialResult
     public static RevokeCredentialResult Failure(string error) => new() { IsSuccess = false, ErrorMessage = error };
 }
 
+public sealed record BeginProviderAuthorizationCommand : IRequest<BeginProviderAuthorizationResult>
+{
+    public required Guid CredentialId { get; init; }
+}
+
+public sealed record BeginProviderAuthorizationResult
+{
+    public bool IsSuccess { get; init; }
+    public Uri? AuthorizationUri { get; init; }
+    public string? ErrorMessage { get; init; }
+
+    public static BeginProviderAuthorizationResult Success(Uri authorizationUri) =>
+        new() { IsSuccess = true, AuthorizationUri = authorizationUri };
+
+    public static BeginProviderAuthorizationResult Failure(string error) =>
+        new() { ErrorMessage = error };
+}
+
+public sealed record CompleteProviderAuthorizationCommand : IRequest<CompleteProviderAuthorizationResult>
+{
+    public required Guid CredentialId { get; init; }
+    public required string AuthorizationCode { get; init; }
+    public required string State { get; init; }
+}
+
+public sealed record CompleteProviderAuthorizationResult
+{
+    public bool IsSuccess { get; init; }
+    public string? ErrorMessage { get; init; }
+
+    public static CompleteProviderAuthorizationResult Success() => new() { IsSuccess = true };
+    public static CompleteProviderAuthorizationResult Failure(string error) => new() { ErrorMessage = error };
+}
+
 /// <summary>Returns doctor × provider credential grid for a clinic.</summary>
 public sealed record GetCredentialSetupGridQuery : IRequest<IReadOnlyList<CredentialSetupDto>>
 {
