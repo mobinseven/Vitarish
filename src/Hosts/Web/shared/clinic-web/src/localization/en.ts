@@ -514,6 +514,7 @@ export const clinicEnMessages = {
         appointmentSettings: { title: "Appointment Settings", description: "Configure services, service types, and providers." },
         statistics: { title: "Statistics", description: "View clinic performance metrics and analytics." },
         procedureTemplates: {
+          title: "Procedure Templates",
           projects: "Procedure Categories",
           procedures: "Procedure Templates",
           description: "Create and manage reusable procedure routines and ordered steps."

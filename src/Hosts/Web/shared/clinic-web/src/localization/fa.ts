@@ -469,6 +469,7 @@ export const clinicFaMessages = {
         appointmentSettings: { title: "تنظیمات نوبت‌دهی", description: "پیکربندی خدمات، انواع خدمات و ارائه‌دهندگان." },
         statistics: { title: "آمار", description: "مشاهده معیارها و تحلیل‌های عملکرد کلینیک." },
         procedureTemplates: {
+          title: "قالب‌های روال",
           projects: "دسته‌بندی روندها",
           procedures: "قالبهای روند",
           description: "ایجاد و مدیریت روال‌ها و مراحل مرتب‌شده قابل استفاده مجدد."

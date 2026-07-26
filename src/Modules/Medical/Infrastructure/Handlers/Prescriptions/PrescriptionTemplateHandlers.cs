@@ -315,6 +315,6 @@ public sealed class GetPrescriptionTemplateHandler(PrescriptionDbContext dbConte
     public async Task<PrescriptionTemplateDto?> Handle(GetPrescriptionTemplateQuery request, CancellationToken cancellationToken)
     {
         PrescriptionTemplate? template = await dbContext.PrescriptionTemplates.AsNoTracking().Include(t => t.Items.OrderBy(i => i.SortOrder)).FirstOrDefaultAsync(t => t.Id == request.TemplateId && t.TenantId == request.TenantId, cancellationToken);
-        return template is null ? null : new PrescriptionTemplateDto { Id = template.Id, Name = template.Name, Description = template.Description, Status = template.Status, ItemCount = template.Items.Count, CreatedAt = template.CreatedAt, Items = template.Items.Select(i => new PrescriptionTemplateItemDto { Id = i.Id, Category = i.Category, ReferenceCode = i.ReferenceCode, DisplayName = i.DisplayName, DosageJson = i.DosageJson, Quantity = i.Quantity, DurationDays = i.DurationDays, SortOrder = i.SortOrder }).ToList() };
+        return template is null ? null : new PrescriptionTemplateDto { Id = template.Id, Name = template.Name, Description = template.Description, Status = template.Status, ItemCount = template.Items.Count, CreatedAt = template.CreatedAt, Items = template.Items.Select(i => new PrescriptionTemplateItemDto { Id = i.Id, Category = i.Category, ReferenceCode = i.ReferenceCode, DisplayName = i.DisplayName, DosageJson = i.DosageJson, Quantity = i.Quantity, DurationDays = i.DurationDays, MetadataJson = i.MetadataJson, SortOrder = i.SortOrder }).ToList() };
     }
 }
