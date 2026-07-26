@@ -4,6 +4,7 @@ using Vitarish.Medical.Application.Contracts;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
 using Vitarish.Entities.Contracts.Models;
+using System.Text.Json;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
@@ -61,7 +62,8 @@ public sealed class SyncReferenceDataHandler(
         ReferenceDataResponse response = fetchResult.Data;
 
         IReadOnlyList<SyncProviderCodeItem> codes = response.Items
-            .Select(i => new SyncProviderCodeItem(i.Code, i.DisplayName, i.Category, i.IsActive))
+            .Select(i => new SyncProviderCodeItem(i.Code, i.DisplayName, i.Category, i.IsActive,
+                i.SafeMetadata.Count == 0 ? null : JsonSerializer.Serialize(i.SafeMetadata)))
             .ToList();
 
         SyncProviderCodesCommand syncCommand = new()

@@ -79,6 +79,10 @@ public sealed class MedicalDbContext(
                                                                                     _ = entity.Property(e => e.DisplayName).HasMaxLength(512);
                                                                                     _ = entity.Property(e => e.LongDescription).HasMaxLength(4096);
                                                                                     _ = entity.Property(e => e.SourceMetadataJson);
+                                                                                    _ = entity.Property(e => e.ProviderCategory).HasMaxLength(256);
+                                                                                    _ = entity.Property(e => e.NormalizedCode).HasMaxLength(64);
+                                                                                    _ = entity.Property(e => e.NormalizedDisplayName).HasMaxLength(512);
+                                                                                    _ = entity.Property(e => e.NormalizedProviderCategory).HasMaxLength(256);
                                                                                     _ = entity.HasOne<CodeSystemRelease>()
                                                                                         .WithMany()
                                                                                         .HasForeignKey(e => e.CodeSystemReleaseId)
@@ -92,6 +96,10 @@ public sealed class MedicalDbContext(
                                                                                         .HasDatabaseName("IX_MedicalCode_Release_Code_Origin");
                                                                                     _ = entity.HasIndex(e => e.DisplayName)
                                                                                         .HasDatabaseName("IX_MedicalCode_DisplayName");
+                                                                                    _ = entity.HasIndex(e => new { e.CodeSystemReleaseId, e.NormalizedCode, e.NormalizedDisplayName })
+                                                                                        .HasDatabaseName("IX_MedicalCode_ReferenceSearch");
+                                                                                    _ = entity.HasIndex(e => new { e.CodeSystemReleaseId, e.NormalizedProviderCategory })
+                                                                                        .HasDatabaseName("IX_MedicalCode_ProviderCategory");
                                                                                 });
 
     private static void ConfigureImportBatch(ModelBuilder modelBuilder) => modelBuilder.Entity<ImportBatch>(entity =>

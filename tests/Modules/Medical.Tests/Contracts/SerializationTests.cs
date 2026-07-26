@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FluentAssertions;
 using Vitarish.Medical.Contracts.Errors;
+using Vitarish.Medical.Contracts.Requests;
 using Vitarish.Medical.Contracts.Results;
 using Vitarish.Medical.Contracts.Routes;
 
@@ -49,5 +50,19 @@ public class SerializationTests
     public void MedicalApiRoutes_constants_are_correct()
     {
         MedicalApiRoutes.Base.Should().Be("/api/modules/medical");
+    }
+
+    [Fact]
+    public void Prescription_reference_code_search_contract_requires_provider_and_allows_cross_category_search()
+    {
+        var request = new SearchPrescriptionReferenceCodesRequest("tamin", "acetaminophen");
+
+        string json = JsonSerializer.Serialize(request, JsonOptions);
+        var deserialized = JsonSerializer.Deserialize<SearchPrescriptionReferenceCodesRequest>(json, JsonOptions);
+
+        deserialized.Should().NotBeNull();
+        deserialized!.ProviderKey.Should().Be("tamin");
+        deserialized.Category.Should().BeNull();
+        deserialized.TextOrCode.Should().Be("acetaminophen");
     }
 }
