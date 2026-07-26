@@ -11,7 +11,11 @@ internal class AddEventAfterHandler(IEntityRepository<Event, EventDescriptor> re
             ? existing
             : EventChainUtilities.FindLast(events);
 
-        Event entity = new(request.ProjectId, request.ProcedureId, after?.Id);
+        Event entity = new(request.ProjectId, request.ProcedureId, after?.Id)
+        {
+            Title = request.Title,
+            Description = request.Description,
+        };
         Event? added = await repository.AddAsync(entity, cancellationToken);
         if (added is null)
         {
