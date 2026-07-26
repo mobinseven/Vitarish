@@ -10,10 +10,9 @@ internal sealed class TaminCredentialAccessTokenProvider(
     PrescriptionDbContext dbContext,
     TaminTokenVault tokenVault,
     IHttpClientFactory httpClientFactory,
-    IOptionsMonitor<TaminOptions> optionsMonitor) : IAccessTokenProvider
+    IOptionsMonitor<TaminOptions> optionsMonitor,
+    TaminCredentialRefreshCoordinator refreshCoordinator) : IAccessTokenProvider
 {
-    private readonly SemaphoreSlim _gate = new(1, 1);
-
     public AllowedHostsValidator AllowedHostsValidator { get; } =
         new(optionsMonitor.CurrentValue.AllowedHosts);
 
@@ -27,9 +26,10 @@ internal sealed class TaminCredentialAccessTokenProvider(
             return string.Empty;
         }
 
-        await _gate.WaitAsync(cancellationToken);
+        await refreshCoordinator.WaitAsync(credential.Id, cancellationToken);
         try
         {
+            await dbContext.Entry(credential).ReloadAsync(cancellationToken);
             TaminStoredToken stored = tokenVault.Read(credential);
             if (!string.IsNullOrWhiteSpace(stored.AccessToken) &&
                 stored.ExpiresAt > DateTimeOffset.UtcNow.Add(optionsMonitor.CurrentValue.TokenSkew))
@@ -63,8 +63,6 @@ internal sealed class TaminCredentialAccessTokenProvider(
             }
             catch (Exception exception)
             {
-                tokenVault.Clear(credential);
-                _ = await dbContext.SaveChangesAsync(cancellationToken);
                 throw new TaminReauthorizationRequiredException(
                     "Doctor token refresh failed; authorization must be completed again.",
                     exception);
@@ -76,7 +74,7 @@ internal sealed class TaminCredentialAccessTokenProvider(
         }
         finally
         {
-            _gate.Release();
+            refreshCoordinator.Release(credential.Id);
         }
     }
 

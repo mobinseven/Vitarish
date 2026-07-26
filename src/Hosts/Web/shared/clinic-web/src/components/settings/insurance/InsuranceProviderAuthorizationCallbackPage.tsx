@@ -1,6 +1,7 @@
 "use client";
 
-import { Alert, Button, Spinner } from "@heroui/react";
+import { Alert, Button, Spinner, Tooltip } from "@heroui/react";
+import { FaIcon } from "@vitarish/web-ui";
 import { useEffect } from "react";
 import { useLocalizedText } from "../../../localization";
 import { useCompleteInsuranceProviderAuthorization } from "../../../hooks/settings/insurance/useInsuranceProviderSetup";
@@ -51,9 +52,16 @@ export function InsuranceProviderAuthorizationCallbackPage({
         </Alert>
       )}
       {!complete.isPending ? (
-        <Button onPress={onReturn}>
-          {t("clinic.settings.insurance.returnToSettings")}
-        </Button>
+        <Tooltip>
+          <Button
+            isIconOnly
+            aria-label={t("clinic.settings.insurance.returnToSettings")}
+            onPress={onReturn}
+          >
+            <FaIcon icon="arrow-left" aria-hidden="true" />
+          </Button>
+          <Tooltip.Content>{t("clinic.settings.insurance.returnToSettings")}</Tooltip.Content>
+        </Tooltip>
       ) : null}
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
-import { Alert, Button, Card, Chip, Input, Label, Spinner, TextField } from "@heroui/react";
+import { Alert, Button, Card, Chip, Input, Label, Spinner, TextField, Tooltip } from "@heroui/react";
+import { FaIcon } from "@vitarish/web-ui";
 import { useEffect, useState } from "react";
 import { useLocalizedText } from "../../../localization";
 import {
@@ -137,18 +138,22 @@ export function InsuranceProviderSettingsPage() {
           )}
         </Card.Content>
         <Card.Footer className="justify-end">
-          <Button
-            isDisabled={pending || invalid}
-            isPending={authorize.isPending}
-            onPress={() => authorize.mutate(input)}
-          >
-            {authorize.isPending ? (
-              <Spinner color="current" size="sm" />
-            ) : null}
-            {credential
+          <Tooltip>
+            <Button
+              isIconOnly
+              aria-label={credential
+                ? t("clinic.settings.insurance.reauthorize")
+                : t("clinic.settings.insurance.authorize")}
+              isDisabled={pending || invalid}
+              isPending={authorize.isPending}
+              onPress={() => authorize.mutate(input)}
+            >
+              {authorize.isPending ? <Spinner color="current" size="sm" /> : <FaIcon icon="arrow-right-to-bracket" aria-hidden="true" />}
+            </Button>
+            <Tooltip.Content>{credential
               ? t("clinic.settings.insurance.reauthorize")
-              : t("clinic.settings.insurance.authorize")}
-          </Button>
+              : t("clinic.settings.insurance.authorize")}</Tooltip.Content>
+          </Tooltip>
         </Card.Footer>
       </Card>
     </div>

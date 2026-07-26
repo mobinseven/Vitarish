@@ -50,6 +50,7 @@ public static class DependencyInjectionExtensions
         _ = services.Configure<TaminOptions>(configuration.GetSection(TaminOptions.SectionName));
         _ = services.AddHttpClient("TaminOAuthClient");
         _ = services.AddSingleton<ITaminDateFormatter, TaminDateFormatter>();
+        _ = services.AddSingleton<TaminCredentialRefreshCoordinator>();
         _ = services.AddScoped<TaminTokenVault>();
         _ = services.AddScoped<TaminProviderSessionFactory>();
         _ = services.AddSingleton<TaminMappingService>();

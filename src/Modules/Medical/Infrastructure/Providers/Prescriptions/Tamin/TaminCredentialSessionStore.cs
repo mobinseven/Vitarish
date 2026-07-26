@@ -17,6 +17,7 @@ internal sealed class TaminCredentialSessionStore(
     TaminTokenVault tokenVault,
     IHttpClientFactory httpClientFactory,
     IOptionsMonitor<TaminOptions> taminOptions,
+    TaminCredentialRefreshCoordinator refreshCoordinator,
     TaminErrorMapper errorMapper,
     ILogger<TaminCredentialSessionStore> logger) : ITaminCredentialSessionStore
 {
@@ -25,6 +26,7 @@ internal sealed class TaminCredentialSessionStore(
     private readonly TaminTokenVault _tokenVault = tokenVault;
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly IOptionsMonitor<TaminOptions> _taminOptions = taminOptions;
+    private readonly TaminCredentialRefreshCoordinator _refreshCoordinator = refreshCoordinator;
     private readonly TaminErrorMapper _errorMapper = errorMapper;
     private readonly ILogger<TaminCredentialSessionStore> _logger = logger;
 
@@ -187,7 +189,8 @@ internal sealed class TaminCredentialSessionStore(
         _dbContext,
         _tokenVault,
         _httpClientFactory,
-        _taminOptions);
+        _taminOptions,
+        _refreshCoordinator);
 
     private static string Require(string? value, string name) =>
         string.IsNullOrWhiteSpace(value) ? throw new InvalidOperationException($"Tamin {name} is required.") : value;

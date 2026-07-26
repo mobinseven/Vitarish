@@ -283,7 +283,14 @@ public static class MedicalApiEndpointMapping
         DaysUntilExpiry = value.DaysUntilExpiry,
         IsExpiringSoon = value.IsExpiringSoon,
         LastTestedAt = value.LastTestedAt,
-        Status = (MedicalCredentialStatus)value.Status
+        Status = value.Status switch
+        {
+            DEP.CredentialStatus.Pending => MedicalCredentialStatus.Pending,
+            DEP.CredentialStatus.Active => MedicalCredentialStatus.Active,
+            DEP.CredentialStatus.Expired => MedicalCredentialStatus.Expired,
+            DEP.CredentialStatus.Revoked => MedicalCredentialStatus.Revoked,
+            _ => MedicalCredentialStatus.Invalid
+        }
     };
     public static IResult ToHttpFailure(MedicalError error) => error.Code switch { MedicalErrorCode.ValidationFailure => Results.BadRequest(error), MedicalErrorCode.Unauthorized => Results.Unauthorized(), MedicalErrorCode.Forbidden => Results.Forbid(), MedicalErrorCode.NotFound => Results.NotFound(error), MedicalErrorCode.Conflict => Results.Conflict(error), MedicalErrorCode.ProviderUnavailable => Results.StatusCode(StatusCodes.Status503ServiceUnavailable), MedicalErrorCode.Timeout => Results.StatusCode(StatusCodes.Status504GatewayTimeout), MedicalErrorCode.ProviderRejected => Results.UnprocessableEntity(error), MedicalErrorCode.CredentialInvalid or MedicalErrorCode.CredentialExpired or MedicalErrorCode.CredentialRevoked => Results.BadRequest(error), _ => Results.Problem(error.Message) };
 }
