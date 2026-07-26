@@ -38,6 +38,35 @@ public interface IInsuranceProviderAdapter
     Task<AdapterResult<ReferenceDataResponse>> FetchReferenceDataAsync(ReferenceDataRequest request, CancellationToken cancellationToken = default);
 }
 
+/// <summary>Optional interactive authorization capability for OAuth-based provider adapters.</summary>
+public interface IInsuranceProviderAuthorizationAdapter
+{
+    Task<AdapterResult<ProviderAuthorizationStartResponse>> BeginAuthorizationAsync(
+        ProviderAuthorizationStartRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<AdapterResult> CompleteAuthorizationAsync(
+        ProviderAuthorizationCompleteRequest request,
+        CancellationToken cancellationToken = default);
+}
+
+public sealed record ProviderAuthorizationStartRequest
+{
+    public required Guid CredentialId { get; init; }
+}
+
+public sealed record ProviderAuthorizationStartResponse
+{
+    public required Uri AuthorizationUri { get; init; }
+}
+
+public sealed record ProviderAuthorizationCompleteRequest
+{
+    public required Guid CredentialId { get; init; }
+    public required string AuthorizationCode { get; init; }
+    public required string State { get; init; }
+}
+
 /// <summary>
 /// Result wrapper for adapter operations. Carries success/failure, error classification,
 /// and optional payload.
@@ -152,4 +181,6 @@ public sealed record ReferenceDataItem
     public required string DisplayName { get; init; }
     public string? Category { get; init; }
     public bool IsActive { get; init; } = true;
+    /// <summary>Provider metadata explicitly selected as safe for local reference use.</summary>
+    public IReadOnlyDictionary<string, string?> SafeMetadata { get; init; } = new Dictionary<string, string?>();
 }
