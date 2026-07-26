@@ -123,6 +123,16 @@ public static class MedicalApiEndpointMapping
                 ct))
             .Select(ToContract)
             .ToArray());
+    private static async Task<IResult> SearchProviderReferenceDataAsync(SearchProviderReferenceDataRequest request, IMedicalQueryService service, CancellationToken ct)
+        => Ok((await service.SearchProviderReferenceDataAsync(
+                request.ProviderKey,
+                request.CodeSystem,
+                request.Text,
+                request.ProviderCategory,
+                request.Limit,
+                ct))
+            .Select(ToContract)
+            .ToArray());
     private static async Task<IResult> SearchDrugsAsync(SearchDrugsRequest request, IMedicalQueryService service, CancellationToken ct) => Ok((await service.SearchDrugsAsync(request.Text, request.ActiveOnly, request.AsOfDate, request.Limit, ct)).Select(ToSearchContract).ToArray());
     private static async Task<IResult> GetDrugAsync(Guid drugId, GetDrugRequest? request, IMedicalQueryService service, CancellationToken ct) => OkOrNotFound(ToContract(await service.GetDrugAsync(drugId, request?.AsOfDate, ct)));
     private static async Task<IResult> ResolveDrugIdentifierAsync(ResolveDrugIdentifierRequest request, IMedicalQueryService service, CancellationToken ct)
