@@ -46,6 +46,30 @@ describe("SettingsDashboard", () => {
     });
   });
 
+  it("emits the prescription-template management intent", () => {
+    const onNavigate = vi.fn();
+    render(
+      <LocalizationProvider locale="en" messages={clinicMessageCatalogs.en}>
+        <SettingsDashboard onNavigate={onNavigate} />
+      </LocalizationProvider>,
+    );
+
+    const prescriptionTemplates = screen.getByRole("button", {
+      name: /Prescription Templates/,
+    });
+    expect(prescriptionTemplates).toHaveAttribute(
+      "title",
+      "Prescription Templates",
+    );
+    expect(
+      prescriptionTemplates.querySelector(".fa-prescription-bottle-medical"),
+    ).toBeInTheDocument();
+    fireEvent.click(prescriptionTemplates);
+    expect(onNavigate).toHaveBeenCalledWith({
+      kind: "prescriptionTemplateManagement",
+    });
+  });
+
   it.each([
     [
       "en",
