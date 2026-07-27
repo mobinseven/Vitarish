@@ -1,0 +1,28 @@
+name: Gemini code review
+
+on:
+  pull_request:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    # Run on PR events, or on PR comments containing the command.
+    if: >
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       startsWith(github.event.comment.body, '/gemini-review'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jgunnink/gemini-review-bot@v1
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          # model: gemini-flash-latest                              # optional override
+          # instructions: "Flag new modules that ship without tests."  # optional review guidance
