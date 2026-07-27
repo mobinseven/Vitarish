@@ -4,7 +4,10 @@ import { useCallback, useMemo, useState } from "react";
 import { Button, Chip, Modal } from "@heroui/react";
 
 import { FaIcon } from "@vitarish/web-ui";
-import { useLocalizedText } from "../../../localization/index";
+import {
+  formatDate,
+  useLocalizedText,
+} from "../../../localization/index";
 import { useCreateReservation, useUpdateReservationStatus } from "../../../hooks/appointments/reservations/useOwnerReservations";
 import { PatientFindOrCreate } from "../../patients/find-or-create/PatientFindOrCreate";
 import type { ShiftReadDto } from "../../../api/appointments/appointmentsApi";
@@ -24,7 +27,7 @@ export function AddReservationDialog({
   date,
   availableSeats,
 }: AddReservationDialogProps) {
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -32,6 +35,12 @@ export function AddReservationDialog({
   const confirmReservation = useUpdateReservationStatus();
 
   const isFull = availableSeats <= 0;
+  const localizedDate = formatDate(date, locale);
+  const formatShiftTime = (time: string) =>
+    formatDate(`${date}T${time.length === 5 ? `${time}:00` : time}`, locale, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
 
   const handleClose = useCallback(() => {
     setSelectedPatientId(null);
@@ -95,7 +104,7 @@ export function AddReservationDialog({
                 </div>
               </Modal.Heading>
               <p className="text-sm text-muted">
-                {shift.startTime} – {shift.endTime} · {date}
+                {localizedDate} · {formatShiftTime(shift.startTime)} – {formatShiftTime(shift.endTime)}
               </p>
             </Modal.Header>
             <Modal.Body>

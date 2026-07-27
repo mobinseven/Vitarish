@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Card, Tabs, Tooltip } from "@heroui/react";
+import { Widget } from "@heroui-pro/react";
 import {
   ErrorStateSurface as ClinicErrorState,
   FaIcon,
@@ -99,26 +100,40 @@ export function PatientOverviewPage({
           </div>
         </Card.Content>
       </Card>
-      <div className="hidden items-start gap-4 md:grid md:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
-        <div className="flex flex-col gap-4">
-          <Card>
-            <Card.Content>
-              <PatientProceduresPanel
-                patientId={patientId}
-                onNavigate={onNavigate}
-              />
-            </Card.Content>
-          </Card>
-          <Card>
-            <Card.Content>
-              <PatientReservationsPanel patientId={patientId} />
-            </Card.Content>
-          </Card>
-        </div>
-        <PatientProfileCard patient={patient} />
+      <div className="hidden w-full grid-cols-1 gap-3 md:grid md:grid-cols-2">
+        <Widget className="md:col-span-2 md:row-start-2">
+          <Widget.Header>
+            <Widget.Title>{t("clinic.procedures.title")}</Widget.Title>
+          </Widget.Header>
+          <Widget.Content>
+            <PatientProceduresPanel
+              patientId={patientId}
+              onNavigate={onNavigate}
+            />
+          </Widget.Content>
+        </Widget>
+        <Widget>
+          <Widget.Header>
+            <Widget.Title>{t("clinic.appointments.reservations.title")}</Widget.Title>
+          </Widget.Header>
+          <Widget.Content>
+            <PatientReservationsPanel
+              patientId={patientId}
+              onCreateReservation={() => onNavigate({ kind: "ownerReservationIndex" })}
+            />
+          </Widget.Content>
+        </Widget>
+        <Widget>
+          <Widget.Header>
+            <Widget.Title>{t("clinic.patient.sections.profile")}</Widget.Title>
+          </Widget.Header>
+          <Widget.Content>
+            <PatientProfileCard patient={patient} />
+          </Widget.Content>
+        </Widget>
       </div>
-      <Card className="md:hidden">
-        <Card.Content>
+      <Widget className="md:hidden">
+        <Widget.Content>
           <Tabs defaultSelectedKey="procedures" className="w-full">
             <Tabs.ListContainer className="flex justify-center border-b border-border px-1">
               <Tabs.List
@@ -166,14 +181,17 @@ export function PatientOverviewPage({
               />
             </Tabs.Panel>
             <Tabs.Panel id="reservations" className="pt-4">
-              <PatientReservationsPanel patientId={patientId} />
+              <PatientReservationsPanel
+                patientId={patientId}
+                onCreateReservation={() => onNavigate({ kind: "ownerReservationIndex" })}
+              />
             </Tabs.Panel>
             <Tabs.Panel id="profile" className="pt-4">
               <PatientProfileCard patient={patient} />
             </Tabs.Panel>
           </Tabs>
-        </Card.Content>
-      </Card>
+        </Widget.Content>
+      </Widget>
     </section>
   );
 }

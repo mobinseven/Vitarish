@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { Agenda, Segment, useAgenda } from "@heroui-pro/react";
 import { Button } from "@heroui/react";
 import {
@@ -21,6 +22,7 @@ import { useShiftCapacity } from "../../../hooks/appointments/useShiftCapacity";
 import { useServices } from "../../../hooks/services/useServices";
 import { useServiceProviders } from "../../../hooks/service-providers/useServiceProviders";
 import {
+  formatDate,
   formatNumber,
   getDateCalendar,
   useLocalizedText,
@@ -83,7 +85,18 @@ export function AppointmentsAgenda({
   const capacityMap = useShiftCapacity(shifts, reservations, visibleDates);
   const { data: services } = useServices();
   const { data: serviceProviders } = useServiceProviders();
-  const events = useAgendaEvents(date, view, shifts, reservations, locale, capacityMap, services, serviceProviders);
+  const formatShiftTime = useCallback(
+    (time: string) => formatDate(`${date.toString()}T${time.length === 5 ? `${time}:00` : time}`, locale, {
+      hour: "numeric",
+      minute: "2-digit",
+    }),
+    [date, locale],
+  );
+  const events = useAgendaEvents(
+    date, view, shifts, reservations, locale, capacityMap, services, serviceProviders,
+    t("clinic.fields.shift"), formatShiftTime,
+    (available: number, total: number) => `${formatNumber(available, locale)}/${formatNumber(total, locale)}`,
+  );
 
   const shiftMap = useMemo(
     () => new Map(shifts.map((s) => [s.id, s])),
@@ -211,19 +224,40 @@ export function AppointmentsAgenda({
             </Agenda.MonthGrid>
           ) : (
             <>
-              <Agenda.WeekHeader />
+              <Agenda.WeekHeader>
+                {agenda.visibleDays.map((day) => (
+                  <div key={day.toString()} className="agenda__day-header">
+                    <span className="agenda__day-header-name">
+                      {formatDate(day.toDate(getLocalTimeZone()), locale, { weekday: "short" })}
+                    </span>
+                    <span className="agenda__day-header-date">
+                      {formatNumber(day.day, locale)}
+                    </span>
+                  </div>
+                ))}
+              </Agenda.WeekHeader>
               <Agenda.AllDaySection>
                 <Agenda.AllDayLabel>
                   {t("clinic.appointments.agenda.allDay")}
                 </Agenda.AllDayLabel>
                 {agenda.allDayLayout.map((item) => (
-                  <Agenda.AllDayEvent
+                  <Button
                     key={item.event.id}
-                    event={item.event}
-                    colStart={item.colStart}
-                    colSpan={item.colSpan}
-                    row={item.row}
-                  />
+                    type="button"
+                    className="agenda__all-day-event h-auto min-h-8 min-w-0 justify-start overflow-hidden px-2 py-1 text-start"
+                    style={{
+                      gridColumn: `${item.colStart + 1} / span ${item.colSpan}`,
+                      gridRow: item.row + 1,
+                      ...(item.event.color
+                        ? { "--agenda-event-accent": item.event.color }
+                        : {}),
+                    } as CSSProperties}
+                    variant="ghost"
+                    aria-label={`${t("clinic.appointments.agenda.bookShift")}: ${item.event.title}`}
+                    onPress={() => agenda.selectEvent(item.event.id)}
+                  >
+                    <span className="truncate">{item.event.title}</span>
+                  </Button>
                 ))}
               </Agenda.AllDaySection>
               <Agenda.TimeGrid>

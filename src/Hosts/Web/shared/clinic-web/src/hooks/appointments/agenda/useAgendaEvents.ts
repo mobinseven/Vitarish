@@ -54,6 +54,9 @@ function expandShiftsToEvents(
   capacityMap: Map<string, ShiftCapacity> | undefined,
   serviceMap: Map<string, string>,
   providerMap: Map<string, string>,
+  shiftLabel = "Shift",
+  formatShiftTimeValue = (time: string) => time,
+  formatCapacityValue = (available: number, total: number) => `${available}/${total}`,
 ): AgendaEventType[] {
   const events: AgendaEventType[] = [];
   for (const shift of shifts) {
@@ -65,21 +68,22 @@ function expandShiftsToEvents(
         const dateStr = cursor.toString();
         const cap = capacityMap?.get(`${shift.id}|${dateStr}`);
         const capacityLabel = cap
-          ? `${cap.availableSeats}/${cap.totalSeats}`
-          : `${shift.totalSeats}`;
+          ? formatCapacityValue(cap.availableSeats, cap.totalSeats)
+          : formatCapacityValue(shift.totalSeats, shift.totalSeats);
         const capColor = cap
           ? shiftColor(cap.availableSeats, cap.totalSeats)
           : "var(--accent)";
 
         const serviceName = shift.serviceId ? serviceMap.get(shift.serviceId) : null;
         const providerName = shift.serviceProviderId ? providerMap.get(shift.serviceProviderId) : null;
-        const shiftLabel = serviceName ?? providerName ?? "Shift";
+        const displayShiftLabel = serviceName ?? providerName ?? shiftLabel;
 
         events.push({
           id: `shift|${shift.id}|${dateStr}`,
-          title: `${shiftLabel} · ${capacityLabel}`,
+          title: `${displayShiftLabel} · ${formatShiftTimeValue(shift.startTime)}–${formatShiftTimeValue(shift.endTime)} · ${capacityLabel}`,
           start: parseIsoDateTimeValue(cursor.toString(), shift.startTime),
           end: parseIsoDateTimeValue(cursor.toString(), shift.endTime),
+          isAllDay: true,
           status: "unconfirmed",
           color: capColor,
         });
@@ -137,6 +141,9 @@ export function useAgendaEvents(
   capacityMap?: Map<string, ShiftCapacity>,
   services?: ServiceReadDto[],
   serviceProviders?: ServiceProviderReadDto[],
+  shiftLabel = "Shift",
+  formatShiftTimeValue = (time: string) => time,
+  formatCapacityValue = (available: number, total: number) => `${available}/${total}`,
 ): AgendaEventType[] {
   const range = getVisibleRange(date, view, locale);
 
@@ -150,9 +157,9 @@ export function useAgendaEvents(
   );
 
   const shiftEvents = useMemo(
-    () => (shifts ? expandShiftsToEvents(shifts, range, capacityMap, serviceMap, providerMap) : []),
+    () => (shifts ? expandShiftsToEvents(shifts, range, capacityMap, serviceMap, providerMap, shiftLabel, formatShiftTimeValue, formatCapacityValue) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [shifts, range.start.toString(), range.end.toString(), capacityMap, serviceMap, providerMap]
+    [shifts, range.start.toString(), range.end.toString(), capacityMap, serviceMap, providerMap, shiftLabel, formatShiftTimeValue, formatCapacityValue]
   );
   const reservationEvents = useMemo(
     () => (reservations ? reservationsToEvents(reservations, shifts ?? [], serviceMap, providerMap) : []),

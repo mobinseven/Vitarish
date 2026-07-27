@@ -8,7 +8,13 @@ import {
   ErrorStateSurface as ClinicErrorState,
   LoadingStateSurface as ClinicLoadingState,
 } from "@vitarish/web-ui";
-import { useLocalizedText, type MessageKey } from "../../../localization/index";
+import {
+  formatDate,
+  formatDateTime,
+  formatNumber,
+  useLocalizedText,
+  type MessageKey,
+} from "../../../localization/index";
 import {
   useOwnerReservationDetail,
   useUpdateReservationStatus,
@@ -51,7 +57,7 @@ export function ReservationDetailDialog({
   reservationId,
   onViewPatient,
 }: ReservationDetailDialogProps) {
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
   const [deleting, setDeleting] = useState(false);
 
   const query = useOwnerReservationDetail(reservationId);
@@ -59,6 +65,12 @@ export function ReservationDetailDialog({
   const deletion = useDeleteReservation();
 
   const reservation = query.data;
+
+  const formatDuration = (value: string) =>
+    value
+      .split(":")
+      .map((part) => formatNumber(Number(part), locale, { minimumIntegerDigits: 2 }))
+      .join(":");
 
   const handleClose = useCallback(() => {
     setDeleting(false);
@@ -152,24 +164,24 @@ export function ReservationDetailDialog({
                     <dl className="flex flex-col gap-2 text-sm">
                       <div className="flex justify-between">
                         <dt className="text-muted">{t("clinic.fields.date")}</dt>
-                        <dd className="font-medium">{reservation.date}</dd>
+                        <dd className="font-medium">{formatDate(reservation.date, locale)}</dd>
                       </div>
                       {reservation.estimatedSessionLength && (
                         <div className="flex justify-between">
                           <dt className="text-muted">{t("clinic.fields.sessionLength")}</dt>
-                          <dd className="font-medium">{reservation.estimatedSessionLength}</dd>
+                          <dd className="font-medium">{formatDuration(reservation.estimatedSessionLength)}</dd>
                         </div>
                       )}
                       {reservation.confirmedAt && (
                         <div className="flex justify-between">
                           <dt className="text-muted">{t("clinic.fields.confirmedAt")}</dt>
-                          <dd className="font-medium">{reservation.confirmedAt}</dd>
+                        <dd className="font-medium">{formatDateTime(reservation.confirmedAt, locale)}</dd>
                         </div>
                       )}
                       {reservation.cancelledAt && (
                         <div className="flex justify-between">
                           <dt className="text-muted">{t("clinic.fields.cancelledAt")}</dt>
-                          <dd className="font-medium">{reservation.cancelledAt}</dd>
+                        <dd className="font-medium">{formatDateTime(reservation.cancelledAt, locale)}</dd>
                         </div>
                       )}
                     </dl>
