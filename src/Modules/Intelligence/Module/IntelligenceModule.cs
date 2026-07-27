@@ -5,12 +5,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Vitarish.Intelligence.Application.Abstractions;
+using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Intelligence.Application.LiveTranscription;
 using Vitarish.Intelligence.Domain.Options;
 using Vitarish.Intelligence.Api;
 using Vitarish.Intelligence.Infrastructure.DependencyInjection;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 using Vitarish.Intelligence.Infrastructure.Services.Google;
+using Vitarish.Intelligence.Infrastructure.Services.OpenAi.Agents;
 
 namespace Vitarish.Intelligence.Module;
 
@@ -60,6 +62,11 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
         _ = builder.Services.AddSingleton<IIntelligenceModule, IntelligenceModule>();
         _ = builder.Services.AddSingleton<ModelRegistry>();
         _ = builder.Services.AddTransient<IResponder, ProviderDispatchingResponder>();
+        _ = builder.Services.AddSingleton<IAgentToolDispatcher, RegisteredAgentToolDispatcher>();
+        _ = builder.Services.AddSingleton<OpenAiToolSchemaMapper>();
+        _ = builder.Services.AddSingleton<OpenAiAgentRequestMapper>();
+        _ = builder.Services.AddSingleton<OpenAiAgentResponseMapper>();
+        _ = builder.Services.AddTransient<IAgentRunner, OpenAiAgentRunner>();
         _ = builder.Services.AddSingleton<ITranscriber, ProviderDispatchingTranscriber>();
         _ = builder.Services.AddSingleton(sp =>
             sp.GetRequiredService<IOptions<LiveTranscriptionSettings>>().Value);
