@@ -459,6 +459,7 @@ describe("clinic display components", () => {
       ],
       error: null,
       isLoading: false,
+      isSuccess: true,
       refetch: vi.fn(),
     });
 
@@ -473,6 +474,9 @@ describe("clinic display components", () => {
     expect(conversation.textContent).toMatch(
       /First from Grace[\s\S]*Second from Grace[\s\S]*From Lin/,
     );
+    expect(hookMocks.useMarkRenderedSeaEventsRead).toHaveBeenCalledWith([
+      "event-1",
+    ]);
   });
 
   it("uses a unique heading relationship for each event items panel", () => {
@@ -794,9 +798,12 @@ describe("clinic display components", () => {
       screen.getAllByRole("button", { name: "Add attachment" })[0],
     );
     expect(screen.getByText("Attachments preview")).toBeInTheDocument();
-    expect(hookMocks.useMarkRenderedSeaEventsRead).toHaveBeenLastCalledWith([
+    expect(hookMocks.useMarkRenderedSeaEventsRead).toHaveBeenCalledWith([
       "event-1",
       "event-2",
+    ]);
+    expect(hookMocks.useMarkRenderedSeaEventsRead).not.toHaveBeenCalledWith([
+      "event-1",
     ]);
   });
 

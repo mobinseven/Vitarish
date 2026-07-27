@@ -31,11 +31,6 @@ export function PatientProcedureFocusedLane({
     Math.max(focusEventIndex - 1, 0),
     Math.min(focusEventIndex === 0 ? 3 : focusEventIndex + 2, events.length),
   );
-  useMarkRenderedSeaEventsRead(
-    !eventsQuery.isLoading && !eventsQuery.error
-      ? visibleEvents.map((event) => event.id)
-      : [],
-  );
   const currentStep =
     visibleEvents.findIndex((event) => !event.isCommitted) === -1
       ? visibleEvents.length
@@ -44,6 +39,7 @@ export function PatientProcedureFocusedLane({
     .flatMap((event) =>
       event.attachments.map((item) => ({
         ...item,
+        eventId: event.id,
         eventTitle: event.title,
       })),
     )
@@ -52,6 +48,14 @@ export function PatientProcedureFocusedLane({
         new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
     )
     .slice(0, 3);
+  useMarkRenderedSeaEventsRead(
+    eventsQuery.isSuccess
+      ? [
+          ...visibleEvents.map((event) => event.id),
+          ...recentItems.map((item) => item.eventId),
+        ]
+      : [],
+  );
   return (
     <div className="border-t border-separator px-4 py-5 sm:px-5">
       <div className="mb-4 flex items-center justify-between gap-3">

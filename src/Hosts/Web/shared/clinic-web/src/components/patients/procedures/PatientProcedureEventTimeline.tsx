@@ -76,6 +76,7 @@ function EventAttachmentsDrawer({
               <PatientProcedureEventItemsPanel
                 canWrite={capabilitiesQuery.data?.canWrite ?? false}
                 eventId={eventId ?? ""}
+                eventReadReceiptHandled
               />
             </Sheet.Body>
           </Sheet.Dialog>

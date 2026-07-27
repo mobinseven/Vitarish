@@ -21,6 +21,10 @@ const dictation = vi.hoisted(() => ({
   stop: vi.fn(async () => undefined),
 }));
 
+vi.mock("@vitarish/sea-web", () => ({
+  useMarkRenderedSeaEventsRead: vi.fn(),
+}));
+
 vi.mock("../hooks/patients/procedures/usePatientProcedureEventItems", () => ({
   usePatientProcedureEventItems: () => ({
     data: [],

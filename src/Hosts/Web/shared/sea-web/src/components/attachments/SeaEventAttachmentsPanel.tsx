@@ -11,6 +11,7 @@ import {
   useDeleteSeaAttachment,
 } from "../../hooks/attachments/useSeaAttachmentMutations";
 import { useLocalizedText } from "../../localization";
+import { useMarkRenderedSeaEventsRead } from "../../hooks/events/useMarkSeaEventRead";
 import { toSeaFileAttachment } from "../../api/attachments/seaAttachmentFile";
 import type { SeaAttachmentReadDto } from "../../api/attachments/seaAttachmentsApi";
 
@@ -22,7 +23,8 @@ export function SeaEventAttachmentsPanel({
   eventId,
 }: SeaEventAttachmentsPanelProps) {
   const { t } = useLocalizedText();
-  const { data: attachments, isLoading } = useSeaEventAttachments(eventId);
+  const { data: attachments, isLoading, isSuccess } =
+    useSeaEventAttachments(eventId);
   const createTextMutation = useCreateSeaTextAttachment();
   const createFileMutation = useCreateSeaFileAttachment();
   const deleteMutation = useDeleteSeaAttachment();
@@ -34,6 +36,10 @@ export function SeaEventAttachmentsPanel({
     null,
   );
   const [fileError, setFileError] = useState<string | null>(null);
+  const attachmentList = attachments ?? [];
+  useMarkRenderedSeaEventsRead(
+    isSuccess && attachmentList.length > 0 ? [eventId] : [],
+  );
 
   const handleAddText = () => {
     if (!newText.trim()) return;
@@ -78,8 +84,6 @@ export function SeaEventAttachmentsPanel({
   if (isLoading) {
     return <SeaLoadingState label={t("sea.attachments.loading")} />;
   }
-
-  const attachmentList = attachments ?? [];
 
   return (
     <Widget>

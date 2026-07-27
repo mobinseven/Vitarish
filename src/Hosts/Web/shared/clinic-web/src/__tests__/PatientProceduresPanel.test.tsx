@@ -209,13 +209,25 @@ describe("PatientProceduresPanel", () => {
         projectId: "patient-1",
         title: `Step ${index + 1}`,
         isCommitted: index < 4,
-        attachments: [],
+        attachments:
+          index === 5
+            ? [
+                {
+                  id: "evidence-6",
+                  eventId: "event-6",
+                  type: "note",
+                  content: "Recent evidence",
+                  createdAt: "2026-07-27T08:00:00Z",
+                },
+              ]
+            : [],
         itemCount: 0,
         position: index,
         createdAt: "2026-07-20T08:00:00Z",
       })),
       isLoading: false,
       error: null,
+      isSuccess: true,
     });
 
     render(<PatientProceduresPanel patientId="patient-1" />, {
@@ -226,6 +238,7 @@ describe("PatientProceduresPanel", () => {
       "event-3",
       "event-4",
       "event-5",
+      "event-6",
     ]);
   });
 });

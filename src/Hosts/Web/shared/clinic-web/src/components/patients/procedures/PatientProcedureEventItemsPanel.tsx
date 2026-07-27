@@ -4,6 +4,7 @@ import { useId } from "react";
 import { Button } from "@heroui/react";
 import { ChatConversation, EmptyState } from "@heroui-pro/react";
 import { FaIcon } from "@vitarish/web-ui";
+import { useMarkRenderedSeaEventsRead } from "@vitarish/sea-web";
 import { useDeletePatientProcedureEventItem } from "../../../hooks/patients/procedures/usePatientProcedureEventItemMutations";
 import { usePatientProcedureEventItems } from "../../../hooks/patients/procedures/usePatientProcedureEventItems";
 import { useLocalizedText } from "../../../localization";
@@ -18,6 +19,7 @@ interface PatientProcedureEventItemsPanelProps {
   eventId: string;
   canWrite: boolean;
   viewer?: ProcedureEventViewer;
+  eventReadReceiptHandled?: boolean;
 }
 
 function groupItemsByCreator(items: EventItemSummary[]) {
@@ -34,10 +36,16 @@ function groupItemsByCreator(items: EventItemSummary[]) {
   return [...groups.values()];
 }
 
+function EventItemsReadReceipt({ eventId }: { eventId: string }) {
+  useMarkRenderedSeaEventsRead([eventId]);
+  return null;
+}
+
 export function PatientProcedureEventItemsPanel({
   eventId,
   canWrite,
   viewer,
+  eventReadReceiptHandled = false,
 }: PatientProcedureEventItemsPanelProps) {
   const { t } = useLocalizedText();
   const headingId = useId();
@@ -53,6 +61,9 @@ export function PatientProcedureEventItemsPanel({
       className="flex min-h-0 flex-1 flex-col"
       aria-labelledby={headingId}
     >
+      {query.isSuccess && items.length > 0 && !eventReadReceiptHandled ? (
+        <EventItemsReadReceipt eventId={eventId} />
+      ) : null}
       <h2 id={headingId} className="sr-only">
         {t("clinic.procedures.items.title")}
       </h2>
