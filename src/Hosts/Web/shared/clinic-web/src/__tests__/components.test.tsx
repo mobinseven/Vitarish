@@ -32,6 +32,7 @@ const hookMocks = vi.hoisted(() => ({
   usePatientProcedureEventItems: vi.fn(),
   usePatientProcedureEventDetail: vi.fn(),
   usePatientDetail: vi.fn(),
+  useMarkRenderedSeaEventsRead: vi.fn(),
 }));
 
 vi.mock("../hooks/patients/procedures/usePatientProcedureDetail", () => ({
@@ -83,6 +84,7 @@ vi.mock("@vitarish/sea-web", () => ({
     data: { canWrite: true },
     isLoading: false,
   }),
+  useMarkRenderedSeaEventsRead: hookMocks.useMarkRenderedSeaEventsRead,
 }));
 
 vi.mock(
@@ -140,6 +142,7 @@ afterEach(() => {
   hookMocks.usePatientProcedureEvents.mockReset();
   hookMocks.usePatientProcedureEventItems.mockReset();
   hookMocks.usePatientDetail.mockReset();
+  hookMocks.useMarkRenderedSeaEventsRead.mockReset();
   vi.unstubAllGlobals();
 });
 
@@ -702,7 +705,8 @@ describe("clinic display components", () => {
     expect(onDelete).toHaveBeenCalledOnce();
   });
 
-  it("renders attachment actions for clinical timeline entries", () => {
+  it("keeps full timeline evidence and actions usable when a receipt fails", () => {
+    hookMocks.useMarkRenderedSeaEventsRead.mockReturnValue({ isError: true });
     hookMocks.usePatientProcedureEventDetail.mockReturnValue({
       data: {
         id: "event-2",
@@ -786,6 +790,14 @@ describe("clinic display components", () => {
     expect(
       screen.getAllByRole("button", { name: "Add attachment" }),
     ).toHaveLength(2);
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Add attachment" })[0],
+    );
+    expect(screen.getByText("Attachments preview")).toBeInTheDocument();
+    expect(hookMocks.useMarkRenderedSeaEventsRead).toHaveBeenLastCalledWith([
+      "event-1",
+      "event-2",
+    ]);
   });
 
   it("renders service presentation models and delegates delete", () => {

@@ -8,6 +8,11 @@ const hooks = vi.hoisted(() => ({
   usePatientProcedures: vi.fn(),
   usePatientProcedureTriage: vi.fn(),
   usePatientProcedureEvents: vi.fn(),
+  useMarkRenderedSeaEventsRead: vi.fn(),
+}));
+
+vi.mock("@vitarish/sea-web", () => ({
+  useMarkRenderedSeaEventsRead: hooks.useMarkRenderedSeaEventsRead,
 }));
 
 vi.mock("../hooks/patients/procedures/usePatientProcedures", () => ({
@@ -177,5 +182,50 @@ describe("PatientProceduresPanel", () => {
 
     expect(first).toHaveAttribute("aria-expanded", "false");
     expect(second).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("supplies receipts only for the focused lane's visible events", () => {
+    hooks.usePatientProcedures.mockReturnValue({
+      data: [
+        {
+          id: "procedure-1",
+          projectId: "patient-1",
+          name: "Care",
+          eventCount: 6,
+          committedEventCount: 4,
+          eventItemCount: 0,
+          newItems: 0,
+          createdAt: "2026-07-20T08:00:00Z",
+        },
+      ],
+      isLoading: false,
+      error: null,
+    });
+    hooks.usePatientProcedureTriage.mockReturnValue({ data: {} });
+    hooks.usePatientProcedureEvents.mockReturnValue({
+      data: Array.from({ length: 6 }, (_, index) => ({
+        id: `event-${index + 1}`,
+        procedureId: "procedure-1",
+        projectId: "patient-1",
+        title: `Step ${index + 1}`,
+        isCommitted: index < 4,
+        attachments: [],
+        itemCount: 0,
+        position: index,
+        createdAt: "2026-07-20T08:00:00Z",
+      })),
+      isLoading: false,
+      error: null,
+    });
+
+    render(<PatientProceduresPanel patientId="patient-1" />, {
+      wrapper: Wrapper,
+    });
+
+    expect(hooks.useMarkRenderedSeaEventsRead).toHaveBeenLastCalledWith([
+      "event-3",
+      "event-4",
+      "event-5",
+    ]);
   });
 });

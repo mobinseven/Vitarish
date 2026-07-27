@@ -12,6 +12,7 @@ import { useUncommitSeaEvent } from "../../hooks/events/useUncommitSeaEvent";
 import { useMoveSeaEventUp } from "../../hooks/events/useMoveSeaEvent";
 import { useMoveSeaEventDown } from "../../hooks/events/useMoveSeaEvent";
 import { useDeleteSeaEvent } from "../../hooks/events/useDeleteSeaEvent";
+import { useMarkRenderedSeaEventsRead } from "../../hooks/events/useMarkSeaEventRead";
 import { useLocalizedText, formatDateTime } from "../../localization";
 import type { SeaEventReadDto } from "../../models/seaStatModels";
 
@@ -27,12 +28,16 @@ export function SeaEventTimeline({
   onNavigate,
 }: SeaEventTimelineProps) {
   const { t, locale } = useLocalizedText();
-  const { data: events, isLoading } = useSeaEvents(procedureId);
+  const { data: events, isLoading, isSuccess } = useSeaEvents(procedureId);
   const commitMutation = useCommitSeaEvent();
   const uncommitMutation = useUncommitSeaEvent();
   const moveUpMutation = useMoveSeaEventUp();
   const moveDownMutation = useMoveSeaEventDown();
   const deleteMutation = useDeleteSeaEvent();
+  const eventList = events ?? [];
+  useMarkRenderedSeaEventsRead(
+    isSuccess && eventList.length > 0 ? eventList.map((event) => event.id) : [],
+  );
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [confirmUncommitId, setConfirmUncommitId] = useState<string | null>(
@@ -69,8 +74,6 @@ export function SeaEventTimeline({
   if (isLoading) {
     return <SeaLoadingState label={t("sea.events.loading")} />;
   }
-
-  const eventList = events ?? [];
 
   if (eventList.length === 0) {
     return <SeaEmptyState title={t("sea.events.emptyState")} />;

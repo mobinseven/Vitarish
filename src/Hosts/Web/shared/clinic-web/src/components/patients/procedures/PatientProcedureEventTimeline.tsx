@@ -16,7 +16,10 @@ import {
   Timeline,
 } from "@heroui-pro/react";
 import { MenuItem } from "react-aria-components";
-import { useSeaEventCapabilities } from "@vitarish/sea-web";
+import {
+  useMarkRenderedSeaEventsRead,
+  useSeaEventCapabilities,
+} from "@vitarish/sea-web";
 import {
   EmptyStateSurface as ClinicEmptyState,
   FaIcon,
@@ -94,6 +97,7 @@ export function PatientProcedureEventTimeline({
   const uncommit = useUncommitPatientProcedureEvent();
   const earlier = useMovePatientProcedureEventUp();
   const later = useMovePatientProcedureEventDown();
+  useMarkRenderedSeaEventsRead(events.map((event) => event.id));
 
   const handleAction = (eventId: string, key: Key) => {
     const event = events.find((candidate) => candidate.id === eventId);

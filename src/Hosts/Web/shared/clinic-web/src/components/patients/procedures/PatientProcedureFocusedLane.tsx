@@ -3,6 +3,7 @@
 import { Alert, Button, Chip, Spinner } from "@heroui/react";
 import { Stepper } from "@heroui-pro/react";
 import { FaIcon } from "@vitarish/web-ui";
+import { useMarkRenderedSeaEventsRead } from "@vitarish/sea-web";
 import { usePatientProcedureEvents } from "../../../hooks/patients/procedures/usePatientProcedureEvents";
 import { formatDate, useLocalizedText } from "../../../localization";
 import type { NavigationIntent } from "../../../navigation";
@@ -29,6 +30,11 @@ export function PatientProcedureFocusedLane({
   const visibleEvents = events.slice(
     Math.max(focusEventIndex - 1, 0),
     Math.min(focusEventIndex === 0 ? 3 : focusEventIndex + 2, events.length),
+  );
+  useMarkRenderedSeaEventsRead(
+    !eventsQuery.isLoading && !eventsQuery.error
+      ? visibleEvents.map((event) => event.id)
+      : [],
   );
   const currentStep =
     visibleEvents.findIndex((event) => !event.isCommitted) === -1

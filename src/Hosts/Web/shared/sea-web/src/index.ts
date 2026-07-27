@@ -56,6 +56,10 @@ export { useCommitSeaEvent } from "./hooks/events/useCommitSeaEvent";
 export { useUncommitSeaEvent } from "./hooks/events/useUncommitSeaEvent";
 export { useSeaEventWritePermission } from "./hooks/events/useSeaEventWritePermission";
 export { useSeaEventCapabilities } from "./hooks/events/useSeaEventCapabilities";
+export {
+  useMarkSeaEventRead,
+  useMarkRenderedSeaEventsRead,
+} from "./hooks/events/useMarkSeaEventRead";
 export { seaEventKeys } from "./hooks/events/seaEventKeys";
 
 // Role hooks
