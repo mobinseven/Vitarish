@@ -1,5 +1,26 @@
 CREATE SCHEMA IF NOT EXISTS "Clinic";
 
+-- Additive Clinic-owned storage for reviewable patient-agent clinical actions.
+CREATE TABLE IF NOT EXISTS "Clinic"."ClinicalEventProposals" (
+  "ActionId" uuid PRIMARY KEY,
+  "TenantId" varchar(64) NOT NULL,
+  "AgentRunId" varchar(128) NOT NULL,
+  "PatientId" uuid NOT NULL,
+  "ClinicianId" varchar(128) NOT NULL,
+  "ActionType" varchar(64) NOT NULL,
+  "ProposalJson" jsonb NOT NULL,
+  "ProjectId" uuid NOT NULL,
+  "ProcedureId" uuid NOT NULL,
+  "PreviousEventId" uuid NULL,
+  "StateFingerprint" varchar(128) NOT NULL,
+  "ExpiresAt" timestamptz NOT NULL,
+  "Status" integer NOT NULL,
+  "CreatedEventId" uuid NULL
+);
+
+CREATE INDEX IF NOT EXISTS "IX_ClinicalEventProposals_TenantId_ExpiresAt"
+  ON "Clinic"."ClinicalEventProposals" ("TenantId", "ExpiresAt");
+
 CREATE OR REPLACE FUNCTION "Clinic"."try_int"(value text)
 RETURNS integer
 LANGUAGE plpgsql

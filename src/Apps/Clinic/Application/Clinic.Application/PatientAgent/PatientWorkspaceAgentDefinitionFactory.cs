@@ -33,6 +33,7 @@ public sealed class PatientWorkspaceAgentDefinitionFactory(
             ["practiceId"] = context.PracticeId,
             ["patientId"] = context.PatientId.ToString("D"),
             ["authenticatedUserId"] = context.AuthenticatedUserId,
+            ["permissions"] = System.Text.Json.JsonSerializer.Serialize(context.Permissions),
             ["role"] = context.Role,
             ["locale"] = context.Locale,
             ["timeZone"] = context.TimeZone,

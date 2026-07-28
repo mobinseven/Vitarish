@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Clinic.Domain.Models;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Sea.Domain.Models;
+using Vitarish.Clinic.Infrastructure.ClinicalEvents;
 
 namespace Vitarish.Clinic.Infrastructure.Data;
 
@@ -30,6 +31,7 @@ public class ClinicDbContext : DbContext, Finbuckle.MultiTenant.EntityFrameworkC
     }
     internal DbSet<PatientView> PatientViews => Set<PatientView>();
     internal DbSet<ProjectStats> ProjectStats => Set<ProjectStats>();
+    internal DbSet<ClinicalEventProposalEntity> ClinicalEventProposals => Set<ClinicalEventProposalEntity>();
     public ClinicDbContext(
     DbContextOptions<ClinicDbContext> options,
     IRequestContext requestIdentity,
@@ -54,6 +56,19 @@ public class ClinicDbContext : DbContext, Finbuckle.MultiTenant.EntityFrameworkC
         {
             _ = eb.ToView("vw_ProjectStats", nameof(Sea));
             _ = eb.HasNoKey();
+        });
+
+        _ = modelBuilder.Entity<ClinicalEventProposalEntity>(eb =>
+        {
+            _ = eb.ToTable("ClinicalEventProposals", nameof(Clinic));
+            _ = eb.HasKey(item => item.ActionId);
+            _ = eb.Property(item => item.TenantId).HasMaxLength(64);
+            _ = eb.Property(item => item.AgentRunId).HasMaxLength(128);
+            _ = eb.Property(item => item.ClinicianId).HasMaxLength(128);
+            _ = eb.Property(item => item.ActionType).HasMaxLength(64);
+            _ = eb.Property(item => item.StateFingerprint).HasMaxLength(128);
+            _ = eb.Property(item => item.ProposalJson).HasColumnType("jsonb");
+            _ = eb.IsMultiTenant();
         });
     }
 
