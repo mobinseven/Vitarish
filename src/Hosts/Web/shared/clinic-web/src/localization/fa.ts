@@ -5,7 +5,8 @@ export const clinicFaMessages = {
       newPatient: "بیمار جدید",
       sortBy: "مرتب‌سازی",
       createPatient: "ایجاد بیمار",
-      createUnavailable: "ایجاد بیمار در حال حاضر موجود نیست. لطفاً برای دریافت کمک با پشتیبانی تماس بگیرید.",
+      createUnavailable:
+        "ایجاد بیمار در حال حاضر موجود نیست. لطفاً برای دریافت کمک با پشتیبانی تماس بگیرید.",
       createFailed: "ایجاد بیمار انجام نشد.",
       createForbidden: "شما اجازه ایجاد بیمار را ندارید.",
       emptyState: "بیماری یافت نشد",
@@ -22,7 +23,8 @@ export const clinicFaMessages = {
     patient: {
       delete: {
         title: "حذف بیمار",
-        unavailable: "حذف بیمار در حال حاضر موجود نیست. لطفاً برای دریافت کمک با پشتیبانی تماس بگیرید.",
+        unavailable:
+          "حذف بیمار در حال حاضر موجود نیست. لطفاً برای دریافت کمک با پشتیبانی تماس بگیرید.",
       },
       edit: {
         title: "ویرایش بیمار",
@@ -30,10 +32,16 @@ export const clinicFaMessages = {
         error: "به‌روزرسانی بیمار انجام نشد.",
         forbidden: "شما اجازه به‌روزرسانی بیمار را ندارید.",
         save: "ذخیره بیمار",
-        unavailable: "ویرایش بیمار در حال حاضر موجود نیست. لطفاً برای دریافت کمک با پشتیبانی تماس بگیرید.",
+        unavailable:
+          "ویرایش بیمار در حال حاضر موجود نیست. لطفاً برای دریافت کمک با پشتیبانی تماس بگیرید.",
         cancel: "لغو",
         selectPlaceholder: "انتخاب...",
-        validation: { firstNameRequired: "نام الزامی است.", lastNameRequired: "نام خانوادگی الزامی است.", identificationCodeRequired: "کد شناسایی الزامی است.", invalidEmail: "یک نشانی ایمیل معتبر وارد کنید." },
+        validation: {
+          firstNameRequired: "نام الزامی است.",
+          lastNameRequired: "نام خانوادگی الزامی است.",
+          identificationCodeRequired: "کد شناسایی الزامی است.",
+          invalidEmail: "یک نشانی ایمیل معتبر وارد کنید.",
+        },
       },
       detail: {
         loading: "در حال بارگذاری جزئیات بیمار...",
@@ -128,7 +136,11 @@ export const clinicFaMessages = {
         error: "جستجوی بیمار انجام نشد.",
         lookupAction: "جستجوی بیمار",
       },
-      findOrCreate: { or: "یا", patientSelected: "بیمار انتخاب شد", findAnother: "یافتن بیمار دیگر" },
+      findOrCreate: {
+        or: "یا",
+        patientSelected: "بیمار انتخاب شد",
+        findAnother: "یافتن بیمار دیگر",
+      },
       reservations: {
         empty: "هنوز رزروی وجود ندارد",
         emptyHint: "از پذیرش برای رزرو نوبت این بیمار استفاده کنید.",
@@ -157,12 +169,31 @@ export const clinicFaMessages = {
       title: "داشبورد کلینیک",
       description: "مدیریت عملیات کلینیک",
       sections: {
-        patients: { title: "بیماران", description: "مشاهده و مدیریت پرونده‌ها، پروفایل‌ها و اطلاعات پزشکی بیماران." },
-        checkIn: { title: "پذیرش", description: "ثبت بیماران برای قرارها و مدیریت فرآیندهای پذیرش." },
-        appointments: { title: "نوبت‌دهی", description: "مدیریت رزروها، شیفت‌ها، خدمات و تنظیمات نوبت‌دهی." },
-        reminders: { title: "یادآورها", description: "مشاهده و مدیریت یادآورها و اعلان‌های بیماران." },
-        settings: { title: "تنظیمات", description: "پیکربندی تنظیمات کلینیک، کاربران و سیاست‌های نوبت‌دهی." },
-        statistics: { title: "آمار", description: "مشاهده معیارها و تحلیل‌های عملکرد کلینیک." },
+        patients: {
+          title: "بیماران",
+          description:
+            "مشاهده و مدیریت پرونده‌ها، پروفایل‌ها و اطلاعات پزشکی بیماران.",
+        },
+        checkIn: {
+          title: "پذیرش",
+          description: "ثبت بیماران برای قرارها و مدیریت فرآیندهای پذیرش.",
+        },
+        appointments: {
+          title: "نوبت‌دهی",
+          description: "مدیریت رزروها، شیفت‌ها، خدمات و تنظیمات نوبت‌دهی.",
+        },
+        reminders: {
+          title: "یادآورها",
+          description: "مشاهده و مدیریت یادآورها و اعلان‌های بیماران.",
+        },
+        settings: {
+          title: "تنظیمات",
+          description: "پیکربندی تنظیمات کلینیک، کاربران و سیاست‌های نوبت‌دهی.",
+        },
+        statistics: {
+          title: "آمار",
+          description: "مشاهده معیارها و تحلیل‌های عملکرد کلینیک.",
+        },
       },
     },
     checkIn: {
@@ -171,7 +202,8 @@ export const clinicFaMessages = {
       step1: "مرحله ۱: یافتن بیمار",
       step2: "مرحله ۲: انتخاب شیفت",
       step3: "مرحله ۳: تأیید پذیرش",
-      shiftUnavailable: "انتخاب شیفت برای بیمار انتخاب شده به زودی در دسترس خواهد بود.",
+      shiftUnavailable:
+        "انتخاب شیفت برای بیمار انتخاب شده به زودی در دسترس خواهد بود.",
       changePatient: "تغییر بیمار",
       selectShiftDescription: "رزرو شیفت این پذیرش را انتخاب کنید.",
       shiftDate: "تاریخ شیفت",
@@ -222,7 +254,10 @@ export const clinicFaMessages = {
         cancelReservation: "لغو رزرو",
         updateFailed: "به‌روزرسانی رزرو انجام نشد.",
       },
-      settings: { title: "تنظیمات نوبت‌دهی", description: "پیکربندی خدمات، ارائه‌دهندگان و سیاست‌های نوبت‌دهی" },
+      settings: {
+        title: "تنظیمات نوبت‌دهی",
+        description: "پیکربندی خدمات، ارائه‌دهندگان و سیاست‌های نوبت‌دهی",
+      },
       shifts: {
         new: "شیفت جدید",
         title: "شیفت‌ها",
@@ -263,7 +298,8 @@ export const clinicFaMessages = {
         new: "ویزیت جدید",
         dialog: {
           title: "ثبت ویزیت جدید",
-          description: "ویزیت را شروع کنید. پس از ادامه می‌توانید مدارک و پیوست‌ها را اضافه کنید.",
+          description:
+            "ویزیت را شروع کنید. پس از ادامه می‌توانید مدارک و پیوست‌ها را اضافه کنید.",
           titleLabel: "عنوان ویزیت",
           titlePlaceholder: "عنوان ویزیت را وارد کنید",
           notesLabel: "یادداشت ویزیت (اختیاری)",
@@ -272,9 +308,56 @@ export const clinicFaMessages = {
           createFailed: "ایجاد ویزیت انجام نشد. اطلاعات واردشده حفظ شده است.",
         },
       },
-      templateManagement: { 
-          projects: "دسته‌بندی روندها",
-          procedures: "قالبهای روند", searchPlaceholder: "جستجوی قالب‌ها...", newTemplate: "قالب جدید", projectName: "نام قالب", projectNamePlaceholder: "نام قالب را وارد کنید...", projectDescription: "توضیحات", projectDescriptionPlaceholder: "توضیحات اختیاری...", noTemplates: "قالبی یافت نشد.", noProcedures: "روتینی در این قالب نیست.", noSteps: "مرحله‌ای در این روتین نیست.", selectTemplate: "برای شروع یک قالب انتخاب کنید.", selectRoutine: "برای مشاهده مراحل یک روتین انتخاب کنید.", selectStep: "برای ویرایش یک مرحله انتخاب کنید.", routineCount: "{count} روتین", stepCount: "{count} مرحله", committedSteps: "{count} تکمیل‌شده", newRoutine: "روتین جدید", editRoutine: "ویرایش روتین", duplicateRoutine: "تکثیر روتین", deleteRoutine: "حذف روتین", deleteRoutineConfirm: "این روتین حذف شود؟", deleteRoutineConsequences: "این کار روتین و مراحل آن را برای همیشه حذف می‌کند.", duplicateSuccess: "روتین تکثیر شد.", duplicateFailed: "تکثیر روتین ناموفق بود.", duplicatePartial: "روتین ایجاد شد اما برخی مراحل تکثیر نشدند.", routineName: "نام روتین", routineNamePlaceholder: "نام روتین را وارد کنید...", routineDescription: "توضیحات", routineDescriptionPlaceholder: "توضیحات اختیاری...", routineDetail: "جزئیات روتین", steps: "مراحل", stepEditor: "ویرایشگر مرحله", stepTitle: "عنوان مرحله", stepTitlePlaceholder: "عنوان مرحله را وارد کنید...", stepDescription: "جزئیات مرحله", stepDescriptionPlaceholder: "جزئیات مرحله را وارد کنید...", addStep: "افزودن مرحله", moveStepUp: "انتقال به قبل", moveStepDown: "انتقال به بعد", deleteStep: "حذف مرحله", deleteStepConfirm: "این مرحله حذف شود؟", pending: "در حال ذخیره...", createPending: "در حال ایجاد...", duplicatePending: "در حال تکثیر...", error: "خطایی رخ داد.", loadFailed: "بارگذاری قالب‌ها ناموفق بود." },
+      templateManagement: {
+        projects: "دسته‌بندی روندها",
+        procedures: "قالبهای روند",
+        searchPlaceholder: "جستجوی قالب‌ها...",
+        newTemplate: "قالب جدید",
+        projectName: "نام قالب",
+        projectNamePlaceholder: "نام قالب را وارد کنید...",
+        projectDescription: "توضیحات",
+        projectDescriptionPlaceholder: "توضیحات اختیاری...",
+        noTemplates: "قالبی یافت نشد.",
+        noProcedures: "روتینی در این قالب نیست.",
+        noSteps: "مرحله‌ای در این روتین نیست.",
+        selectTemplate: "برای شروع یک قالب انتخاب کنید.",
+        selectRoutine: "برای مشاهده مراحل یک روتین انتخاب کنید.",
+        selectStep: "برای ویرایش یک مرحله انتخاب کنید.",
+        routineCount: "{count} روتین",
+        stepCount: "{count} مرحله",
+        committedSteps: "{count} تکمیل‌شده",
+        newRoutine: "روتین جدید",
+        editRoutine: "ویرایش روتین",
+        duplicateRoutine: "تکثیر روتین",
+        deleteRoutine: "حذف روتین",
+        deleteRoutineConfirm: "این روتین حذف شود؟",
+        deleteRoutineConsequences:
+          "این کار روتین و مراحل آن را برای همیشه حذف می‌کند.",
+        duplicateSuccess: "روتین تکثیر شد.",
+        duplicateFailed: "تکثیر روتین ناموفق بود.",
+        duplicatePartial: "روتین ایجاد شد اما برخی مراحل تکثیر نشدند.",
+        routineName: "نام روتین",
+        routineNamePlaceholder: "نام روتین را وارد کنید...",
+        routineDescription: "توضیحات",
+        routineDescriptionPlaceholder: "توضیحات اختیاری...",
+        routineDetail: "جزئیات روتین",
+        steps: "مراحل",
+        stepEditor: "ویرایشگر مرحله",
+        stepTitle: "عنوان مرحله",
+        stepTitlePlaceholder: "عنوان مرحله را وارد کنید...",
+        stepDescription: "جزئیات مرحله",
+        stepDescriptionPlaceholder: "جزئیات مرحله را وارد کنید...",
+        addStep: "افزودن مرحله",
+        moveStepUp: "انتقال به قبل",
+        moveStepDown: "انتقال به بعد",
+        deleteStep: "حذف مرحله",
+        deleteStepConfirm: "این مرحله حذف شود؟",
+        pending: "در حال ذخیره...",
+        createPending: "در حال ایجاد...",
+        duplicatePending: "در حال تکثیر...",
+        error: "خطایی رخ داد.",
+        loadFailed: "بارگذاری قالب‌ها ناموفق بود.",
+      },
       title: "روند‌ها",
       new: "روند جدید",
       empty: "هنوز روندی وجود ندارد.",
@@ -286,7 +369,8 @@ export const clinicFaMessages = {
       failedToLoad: "بارگذاری روند‌ها انجام نشد.",
       progressAtGlance: {
         title: "پیشرفت در یک نگاه",
-        description: "ببینید چه چیزی پیش رفته، چه چیزی تازه است و این بیمار کجا به توجه نیاز دارد.",
+        description:
+          "ببینید چه چیزی پیش رفته، چه چیزی تازه است و این بیمار کجا به توجه نیاز دارد.",
         attention: "موارد نیازمند توجه",
         steps: "مراحل روند",
         loadingSteps: "در حال بارگذاری مراحل روند",
@@ -326,10 +410,16 @@ export const clinicFaMessages = {
       delete: {
         title: "حذف روند",
         confirm: "آیا از حذف این روند اطمینان دارید؟",
-        consequences: "این عمل {name} و تمام {events} رویداد را به طور دائم حذف می‌کند.",
+        consequences:
+          "این عمل {name} و تمام {events} رویداد را به طور دائم حذف می‌کند.",
       },
       events: {
-        actionMenu: { label: "گزینه‌های بیشتر", workflow: "روند کار", manage: "مدیریت", danger: "منطقه خطر" },
+        actionMenu: {
+          label: "گزینه‌های بیشتر",
+          workflow: "روند کار",
+          manage: "مدیریت",
+          danger: "منطقه خطر",
+        },
         committedState: "تکمیل‌شده",
         commitConfirmation: {
           commitTitle: "علامت‌گذاری مرحله به‌عنوان تکمیل‌شده",
@@ -395,7 +485,8 @@ export const clinicFaMessages = {
         browse: "انتخاب فایل",
         upload: "بارگذاری فایل",
         retry: "تلاش مجدد",
-        uploadFailed: "بارگذاری فایل انجام نشد. فایل برای تلاش دوباره حفظ شده است.",
+        uploadFailed:
+          "بارگذاری فایل انجام نشد. فایل برای تلاش دوباره حفظ شده است.",
       },
       access: {
         title: "دسترسی و نقش‌ها",
@@ -527,24 +618,48 @@ export const clinicFaMessages = {
       title: "تنظیمات کلینیک",
       description: "پیکربندی تنظیمات کلینیک",
       sections: {
-        users: { title: "کاربران", description: "مدیریت حساب‌ها و مجوزهای کارکنان کلینیک." },
-        appointmentSettings: { title: "تنظیمات نوبت‌دهی", description: "پیکربندی خدمات، انواع خدمات و ارائه‌دهندگان." },
-        statistics: { title: "آمار", description: "مشاهده معیارها و تحلیل‌های عملکرد کلینیک." },
+        users: {
+          title: "کاربران",
+          description: "مدیریت حساب‌ها و مجوزهای کارکنان کلینیک.",
+        },
+        appointmentSettings: {
+          title: "تنظیمات نوبت‌دهی",
+          description: "پیکربندی خدمات، انواع خدمات و ارائه‌دهندگان.",
+        },
+        statistics: {
+          title: "آمار",
+          description: "مشاهده معیارها و تحلیل‌های عملکرد کلینیک.",
+        },
         procedureTemplates: {
           title: "قالب‌های روند",
           projects: "دسته‌بندی روندها",
           procedures: "قالبهای روند",
-          description: "ایجاد و مدیریت روال‌ها و مراحل مرتب‌شده قابل استفاده مجدد."
+          description:
+            "ایجاد و مدیریت روال‌ها و مراحل مرتب‌شده قابل استفاده مجدد.",
         },
-        insurance: { title: "بیمه‌گران", description: "اتصال بیمه‌گران نسخه الکترونیک و مدیریت اعتبارنامه پزشک." },
-        prescriptionTemplates: { title: "قالب‌های نسخه", description: "بسته‌های قابل استفاده مجدد از دارو، آزمایش و تصویربرداری برای نسخه‌نویسی سریع‌تر بسازید." },
+        insurance: {
+          title: "بیمه‌گران",
+          description:
+            "اتصال بیمه‌گران نسخه الکترونیک و مدیریت اعتبارنامه پزشک.",
+        },
+        prescriptionTemplates: {
+          title: "قالب‌های نسخه",
+          description:
+            "بسته‌های قابل استفاده مجدد از دارو، آزمایش و تصویربرداری برای نسخه‌نویسی سریع‌تر بسازید.",
+        },
       },
-      users: { title: "کاربران کلینیک", description: "مدیریت حساب‌ها و مجوزهای کارکنان کلینیک", comingSoon: "مدیریت کاربران به زودی در دسترس خواهد بود." },
+      users: {
+        title: "کاربران کلینیک",
+        description: "مدیریت حساب‌ها و مجوزهای کارکنان کلینیک",
+        comingSoon: "مدیریت کاربران به زودی در دسترس خواهد بود.",
+      },
       insurance: {
         title: "بیمه‌گران",
-        description: "حساب پزشک و درمانگاه را به سامانه‌های نسخه الکترونیک متصل کنید.",
+        description:
+          "حساب پزشک و درمانگاه را به سامانه‌های نسخه الکترونیک متصل کنید.",
         taminTitle: "سازمان تأمین اجتماعی",
-        taminDescription: "شناسه‌های صادرشده توسط تأمین اجتماعی را وارد کنید و سپس احراز هویت امن را ادامه دهید.",
+        taminDescription:
+          "شناسه‌های صادرشده توسط تأمین اجتماعی را وارد کنید و سپس احراز هویت امن را ادامه دهید.",
         doctorIdentifier: "شناسه پزشک در تأمین اجتماعی",
         nationalCode: "کد ملی پزشک",
         clinicIdentifier: "شناسه سیام درمانگاه",
@@ -562,11 +677,17 @@ export const clinicFaMessages = {
         returnToSettings: "بازگشت به تنظیمات بیمه",
       },
     },
-    statistics: { title: "آمار کلینیک", description: "مشاهده معیارها و تحلیل‌های عملکرد کلینیک", comingSoon: "معیارها و تحلیل‌های عملکرد کلینیک به زودی در دسترس خواهد بود." },
+    statistics: {
+      title: "آمار کلینیک",
+      description: "مشاهده معیارها و تحلیل‌های عملکرد کلینیک",
+      comingSoon:
+        "معیارها و تحلیل‌های عملکرد کلینیک به زودی در دسترس خواهد بود.",
+    },
     prescriptionTemplates: {
       settingsLabel: "تنظیمات کلینیک",
       title: "قالب‌های نسخه",
-      description: "قالب‌های قابل استفاده مجدد برای دارو، آزمایش، تصویربرداری، خدمات و ارجاع بسازید.",
+      description:
+        "قالب‌های قابل استفاده مجدد برای دارو، آزمایش، تصویربرداری، خدمات و ارجاع بسازید.",
       newTemplate: "قالب جدید",
       newTemplateName: "قالب نسخه بدون نام",
       search: "جست‌وجوی قالب‌ها",
@@ -591,7 +712,8 @@ export const clinicFaMessages = {
       addItem: "افزودن قلم",
       addItemTooltip: "افزودن قلم نسخه",
       itemsTitle: "اقلام نسخه",
-      itemsDescription: "اقلامی را که با اعمال این قالب افزوده می‌شوند تعریف کنید.",
+      itemsDescription:
+        "اقلامی را که با اعمال این قالب افزوده می‌شوند تعریف کنید.",
       unnamedItem: "قلم بدون نام",
       referencePending: "کد مرجع ثبت نشده",
       quantityShort: "تعداد",
@@ -616,9 +738,27 @@ export const clinicFaMessages = {
       identityLocked: "هویت قلم پس از انتخاب از فهرست قفل می‌شود.",
       changeIdentity: "حذف و انتخاب دوباره",
       saveFailed: "ذخیره انجام نشد؛ ویرایش‌های شما حفظ شده‌اند.",
-      categories: { drug: "دارو", lab: "آزمایش", imaging: "تصویربرداری", service: "خدمت", referral: "ارجاع" },
+      categories: {
+        drug: "دارو",
+        lab: "آزمایش",
+        imaging: "تصویربرداری",
+        service: "خدمت",
+        referral: "ارجاع",
+      },
     },
     prescriptionFeed: {
+      edit: "ویرایش نسخه",
+      editReason: "دلیل ویرایش",
+      editQuantity: "تعداد",
+      editDosage: "دوز و دستور مصرف",
+      editDuration: "مدت (روز)",
+      addItem: "افزودن آیتم",
+      searchItems: "جستجوی داروها و خدمات تأمین اجتماعی",
+      searchFailed: "جستجو در فهرست تأمین اجتماعی انجام نشد.",
+      duplicateItem: "این آیتم از قبل در نسخه وجود دارد.",
+      removeItem: "حذف آیتم",
+      submitEdit: "ارسال ویرایش",
+      editFailed: "ارسال ویرایش نسخه انجام نشد.",
       title: "نسخه",
       detailsTitle: "جزئیات نسخه",
       openDetails: "مشاهده جزئیات نسخه",
@@ -631,18 +771,55 @@ export const clinicFaMessages = {
       noItems: "این نسخه قلمی ندارد.",
       notFound: "نسخه پیدا نشد.",
       unavailable: "جزئیات نسخه اکنون در دسترس نیست.",
-      loadFailed: "نسخه‌ها بارگذاری نشدند. یادداشت‌ها و پیوست‌ها همچنان در دسترس‌اند.",
+      loadFailed:
+        "نسخه‌ها بارگذاری نشدند. یادداشت‌ها و پیوست‌ها همچنان در دسترس‌اند.",
       retry: "تلاش دوباره برای بارگذاری نسخه‌ها",
-      categories: { drug: "دارو", lab: "آزمایش", imaging: "تصویربرداری", service: "خدمت", referral: "ارجاع", unknown: "سایر" },
+      categories: {
+        drug: "دارو",
+        lab: "آزمایش",
+        imaging: "تصویربرداری",
+        service: "خدمت",
+        referral: "ارجاع",
+        unknown: "سایر",
+      },
       statuses: {
-        draft: "پیش‌نویس", readyForSubmission: "آماده", submitting: "در حال ارسال", submitted: "ارسال‌شده",
-        acceptedByProvider: "پذیرفته‌شده", rejectedByProvider: "ردشده", needsCorrection: "نیازمند اصلاح",
-        editRequested: "درخواست ویرایش", edited: "ویرایش‌شده", cancelRequested: "درخواست لغو",
-        cancelled: "لغوشده", paperFallback: "نسخه کاغذی", syncPending: "در انتظار همگام‌سازی",
-        syncFailed: "همگام‌سازی ناموفق", duplicateRisk: "احتمال تکرار", providerUnavailable: "ارائه‌دهنده در دسترس نیست",
-        manuallyReconciled: "تطبیق‌شده", unknown: "نامشخص",
+        draft: "پیش‌نویس",
+        readyForSubmission: "آماده",
+        submitting: "در حال ارسال",
+        submitted: "ارسال‌شده",
+        acceptedByProvider: "پذیرفته‌شده",
+        rejectedByProvider: "ردشده",
+        needsCorrection: "نیازمند اصلاح",
+        editRequested: "درخواست ویرایش",
+        edited: "ویرایش‌شده",
+        cancelRequested: "درخواست لغو",
+        cancelled: "لغوشده",
+        paperFallback: "نسخه کاغذی",
+        syncPending: "در انتظار همگام‌سازی",
+        syncFailed: "همگام‌سازی ناموفق",
+        duplicateRisk: "احتمال تکرار",
+        providerUnavailable: "ارائه‌دهنده در دسترس نیست",
+        manuallyReconciled: "تطبیق‌شده",
+        unknown: "نامشخص",
       },
     },
-    prescriptionSubmission: { title: "ایجاد نسخه", eventTitle: "نسخه", provider: "انتخاب ارائه‌دهنده", providerRequired: "برای شروع ارسال، یک ارائه‌دهنده انتخاب کنید.", providerFailed: "پیش‌نویس نسخه ایجاد نشد.", template: "قالب اختیاری", templateApplied: "قالب اعمال شد.", templateFailed: "قالب اعمال نشد.", items: "اقلام نسخه", search: "جستجو در فهرست ارائه‌دهنده", searchFailed: "جستجوی فهرست ناموفق بود.", itemFailed: "افزودن قلم ناموفق بود.", validationFailed: "پیش از ارسال، نسخه را بررسی کنید.", submit: "ارسال نسخه", submitted: "نسخه ارسال شد.", submitFailed: "ارسال نسخه ناموفق بود." },
+    prescriptionSubmission: {
+      title: "ایجاد نسخه",
+      eventTitle: "نسخه",
+      provider: "انتخاب ارائه‌دهنده",
+      providerRequired: "برای شروع ارسال، یک ارائه‌دهنده انتخاب کنید.",
+      providerFailed: "پیش‌نویس نسخه ایجاد نشد.",
+      template: "قالب اختیاری",
+      templateApplied: "قالب اعمال شد.",
+      templateFailed: "قالب اعمال نشد.",
+      items: "اقلام نسخه",
+      search: "جستجو در فهرست ارائه‌دهنده",
+      searchFailed: "جستجوی فهرست ناموفق بود.",
+      itemFailed: "افزودن قلم ناموفق بود.",
+      validationFailed: "پیش از ارسال، نسخه را بررسی کنید.",
+      submit: "ارسال نسخه",
+      submitted: "نسخه ارسال شد.",
+      submitFailed: "ارسال نسخه ناموفق بود.",
+    },
   },
 } as const;

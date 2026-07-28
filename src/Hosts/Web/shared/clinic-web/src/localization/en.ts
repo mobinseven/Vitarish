@@ -5,7 +5,8 @@ export const clinicEnMessages = {
       newPatient: "New Patient",
       sortBy: "Sort",
       createPatient: "Create Patient",
-      createUnavailable: "Patient creation is currently unavailable. Please contact support if you need assistance.",
+      createUnavailable:
+        "Patient creation is currently unavailable. Please contact support if you need assistance.",
       createFailed: "Patient creation failed.",
       createForbidden: "You do not have permission to create patients.",
       emptyState: "No patients found",
@@ -22,7 +23,8 @@ export const clinicEnMessages = {
     patient: {
       delete: {
         title: "Delete Patient",
-        unavailable: "Patient deletion is currently unavailable. Please contact support if you need assistance.",
+        unavailable:
+          "Patient deletion is currently unavailable. Please contact support if you need assistance.",
       },
       edit: {
         title: "Edit Patient",
@@ -30,10 +32,16 @@ export const clinicEnMessages = {
         error: "Failed to update patient.",
         forbidden: "You do not have permission to update patients.",
         save: "Save Patient",
-        unavailable: "Patient editing is currently unavailable. Please contact support if you need assistance.",
+        unavailable:
+          "Patient editing is currently unavailable. Please contact support if you need assistance.",
         cancel: "Cancel",
         selectPlaceholder: "Select...",
-        validation: { firstNameRequired: "First name is required.", lastNameRequired: "Last name is required.", identificationCodeRequired: "Identification code is required.", invalidEmail: "Enter a valid email address." },
+        validation: {
+          firstNameRequired: "First name is required.",
+          lastNameRequired: "Last name is required.",
+          identificationCodeRequired: "Identification code is required.",
+          invalidEmail: "Enter a valid email address.",
+        },
       },
       detail: {
         loading: "Loading patient details...",
@@ -128,7 +136,11 @@ export const clinicEnMessages = {
         error: "Patient lookup failed.",
         lookupAction: "Look up patient",
       },
-      findOrCreate: { or: "or", patientSelected: "Patient selected", findAnother: "Find another patient" },
+      findOrCreate: {
+        or: "or",
+        patientSelected: "Patient selected",
+        findAnother: "Find another patient",
+      },
       reservations: {
         empty: "No reservations yet",
         emptyHint: "Use Check-in to book appointments for this patient.",
@@ -157,12 +169,34 @@ export const clinicEnMessages = {
       title: "Clinic Dashboard",
       description: "Manage your clinic operations",
       sections: {
-        patients: { title: "Patients", description: "View and manage patient records, profiles, and medical information." },
-        checkIn: { title: "Check-in", description: "Register patients for appointments and manage check-in workflows." },
-        appointments: { title: "Appointments", description: "Manage reservations, shifts, services, and appointment settings." },
-        reminders: { title: "Reminders", description: "View and manage patient reminders and notifications." },
-        settings: { title: "Settings", description: "Configure clinic settings, users, and appointment policies." },
-        statistics: { title: "Statistics", description: "View clinic performance metrics and analytics." },
+        patients: {
+          title: "Patients",
+          description:
+            "View and manage patient records, profiles, and medical information.",
+        },
+        checkIn: {
+          title: "Check-in",
+          description:
+            "Register patients for appointments and manage check-in workflows.",
+        },
+        appointments: {
+          title: "Appointments",
+          description:
+            "Manage reservations, shifts, services, and appointment settings.",
+        },
+        reminders: {
+          title: "Reminders",
+          description: "View and manage patient reminders and notifications.",
+        },
+        settings: {
+          title: "Settings",
+          description:
+            "Configure clinic settings, users, and appointment policies.",
+        },
+        statistics: {
+          title: "Statistics",
+          description: "View clinic performance metrics and analytics.",
+        },
       },
     },
     checkIn: {
@@ -171,7 +205,8 @@ export const clinicEnMessages = {
       step1: "Step 1: Find Patient",
       step2: "Step 2: Select Shift",
       step3: "Step 3: Confirm Check-in",
-      shiftUnavailable: "Shift selection for the selected patient will be available here soon.",
+      shiftUnavailable:
+        "Shift selection for the selected patient will be available here soon.",
       changePatient: "Change patient",
       selectShiftDescription: "Choose the shift reservation for this check-in.",
       shiftDate: "Shift date",
@@ -202,7 +237,8 @@ export const clinicEnMessages = {
         addReservation: "Add Reservation",
         bookShift: "Book this shift",
         reservationCreated: "Reservation created!",
-        bookingFailed: "The reservation could not be created. Please try again.",
+        bookingFailed:
+          "The reservation could not be created. Please try again.",
         seatsAvailable: "{available} of {total} seats available",
         book: "Book",
         viewPatient: "View patient",
@@ -222,7 +258,10 @@ export const clinicEnMessages = {
         cancelReservation: "Cancel reservation",
         updateFailed: "Failed to update reservation.",
       },
-      settings: { title: "Appointment Settings", description: "Configure services, providers, and appointment policies" },
+      settings: {
+        title: "Appointment Settings",
+        description: "Configure services, providers, and appointment policies",
+      },
       shifts: {
         new: "New Shift",
         title: "Shifts",
@@ -263,13 +302,16 @@ export const clinicEnMessages = {
         new: "New visit",
         dialog: {
           title: "Record a new visit",
-          description: "Start the visit now. You can add evidence and attachments after continuing.",
+          description:
+            "Start the visit now. You can add evidence and attachments after continuing.",
           titleLabel: "Visit title",
           titlePlaceholder: "Enter a visit title",
           notesLabel: "Visit notes (optional)",
-          notesPlaceholder: "Reason for visit, observations, or follow-up notes",
+          notesPlaceholder:
+            "Reason for visit, observations, or follow-up notes",
           create: "Continue to visit",
-          createFailed: "The visit could not be created. Your entries have been preserved.",
+          createFailed:
+            "The visit could not be created. Your entries have been preserved.",
         },
       },
       title: "Procedures",
@@ -294,7 +336,8 @@ export const clinicEnMessages = {
         duplicateRoutine: "Duplicate Routine",
         deleteRoutine: "Delete Routine",
         deleteRoutineConfirm: "Are you sure you want to delete this routine?",
-        deleteRoutineConsequences: "This will permanently delete \"{name}\" and all its steps.",
+        deleteRoutineConsequences:
+          'This will permanently delete "{name}" and all its steps.',
         duplicateSuccess: "Routine duplicated.",
         duplicateFailed: "Failed to duplicate routine.",
         duplicatePartial: "Routine created but some steps failed to duplicate.",
@@ -318,7 +361,7 @@ export const clinicEnMessages = {
         createPending: "Creating...",
         duplicatePending: "Duplicating...",
         error: "An error occurred.",
-        loadFailed: "Failed to load template data."
+        loadFailed: "Failed to load template data.",
       },
       new: "New Procedure",
       empty: "No procedures yet.",
@@ -330,7 +373,8 @@ export const clinicEnMessages = {
       failedToLoad: "Failed to load procedures.",
       progressAtGlance: {
         title: "Progress at a glance",
-        description: "See what has moved forward, what is new, and where this patient needs attention.",
+        description:
+          "See what has moved forward, what is new, and where this patient needs attention.",
         attention: "Items needing attention",
         steps: "Routine steps",
         loadingSteps: "Loading routine steps",
@@ -370,13 +414,19 @@ export const clinicEnMessages = {
       delete: {
         title: "Delete Procedure",
         confirm: "Are you sure you want to delete this procedure?",
-        consequences: "This will permanently delete {name} and all {events} events.",
+        consequences:
+          "This will permanently delete {name} and all {events} events.",
       },
       events: {
         title: "Steps",
         activityLabel: "Procedure Timeline",
         detailsLabel: "Event Details",
-        actionMenu: { label: "More actions", workflow: "Workflow", manage: "Manage", danger: "Danger zone" },
+        actionMenu: {
+          label: "More actions",
+          workflow: "Workflow",
+          manage: "Manage",
+          danger: "Danger zone",
+        },
         committedState: "Committed",
         commitConfirmation: {
           commitTitle: "Mark step as complete",
@@ -439,7 +489,8 @@ export const clinicEnMessages = {
         browse: "Choose file",
         upload: "Upload file",
         retry: "Retry upload",
-        uploadFailed: "The file could not be uploaded. It is still ready to retry.",
+        uploadFailed:
+          "The file could not be uploaded. It is still ready to retry.",
       },
       access: {
         title: "Access & Roles",
@@ -462,7 +513,8 @@ export const clinicEnMessages = {
       },
       committed: "Committed",
       draft: "Draft",
-      comingSoon: "Procedures management for this patient will be available here soon.",
+      comingSoon:
+        "Procedures management for this patient will be available here soon.",
     },
     reminders: {
       title: "Clinic Reminders",
@@ -572,24 +624,48 @@ export const clinicEnMessages = {
       title: "Clinic Settings",
       description: "Configure your clinic settings",
       sections: {
-        users: { title: "Users", description: "Manage clinic staff accounts and permissions." },
-        appointmentSettings: { title: "Appointment Settings", description: "Configure services, service types, and providers." },
-        statistics: { title: "Statistics", description: "View clinic performance metrics and analytics." },
+        users: {
+          title: "Users",
+          description: "Manage clinic staff accounts and permissions.",
+        },
+        appointmentSettings: {
+          title: "Appointment Settings",
+          description: "Configure services, service types, and providers.",
+        },
+        statistics: {
+          title: "Statistics",
+          description: "View clinic performance metrics and analytics.",
+        },
         procedureTemplates: {
           title: "Procedure Templates",
           projects: "Procedure Categories",
           procedures: "Procedure Templates",
-          description: "Create and manage reusable procedure routines and ordered steps."
+          description:
+            "Create and manage reusable procedure routines and ordered steps.",
         },
-        insurance: { title: "Insurance providers", description: "Connect prescription providers and manage doctor credentials." },
-        prescriptionTemplates: { title: "Prescription templates", description: "Build reusable bundles of medicines, tests, and imaging for faster prescribing." },
+        insurance: {
+          title: "Insurance providers",
+          description:
+            "Connect prescription providers and manage doctor credentials.",
+        },
+        prescriptionTemplates: {
+          title: "Prescription templates",
+          description:
+            "Build reusable bundles of medicines, tests, and imaging for faster prescribing.",
+        },
       },
-      users: { title: "Clinic Users", description: "Manage clinic staff accounts and permissions", comingSoon: "User management coming soon." },
+      users: {
+        title: "Clinic Users",
+        description: "Manage clinic staff accounts and permissions",
+        comingSoon: "User management coming soon.",
+      },
       insurance: {
         title: "Insurance providers",
-        description: "Connect your clinic and doctor account to electronic prescription providers.",
+        description:
+          "Connect your clinic and doctor account to electronic prescription providers.",
         taminTitle: "Social Security Insurance (Tamin)",
-        taminDescription: "Enter the identifiers issued by Tamin, then continue to its secure authorization page.",
+        taminDescription:
+          "Enter the identifiers issued by Tamin, then continue to its secure authorization page.",
         doctorIdentifier: "Tamin doctor identifier",
         nationalCode: "Doctor national code",
         clinicIdentifier: "Clinic SIAM identifier",
@@ -602,16 +678,23 @@ export const clinicEnMessages = {
         authorizationFailed: "Tamin authorization failed",
         tryAgain: "Please return to insurance settings and try again.",
         completing: "Completing Tamin authorization",
-        completingDescription: "Keep this page open while the secure connection is finalized.",
+        completingDescription:
+          "Keep this page open while the secure connection is finalized.",
         completed: "Tamin was connected successfully.",
         returnToSettings: "Return to insurance settings",
       },
     },
-    statistics: { title: "Clinic Statistics", description: "View clinic performance metrics and analytics", comingSoon: "Clinic performance metrics and analytics will be available here soon." },
+    statistics: {
+      title: "Clinic Statistics",
+      description: "View clinic performance metrics and analytics",
+      comingSoon:
+        "Clinic performance metrics and analytics will be available here soon.",
+    },
     prescriptionTemplates: {
       settingsLabel: "Clinic settings",
       title: "Prescription templates",
-      description: "Build reusable medication, laboratory, imaging, service, and referral templates.",
+      description:
+        "Build reusable medication, laboratory, imaging, service, and referral templates.",
       newTemplate: "New template",
       newTemplateName: "Untitled prescription template",
       search: "Search templates",
@@ -636,7 +719,8 @@ export const clinicEnMessages = {
       addItem: "Add item",
       addItemTooltip: "Add prescription item",
       itemsTitle: "Prescription items",
-      itemsDescription: "Define the items included when this template is applied.",
+      itemsDescription:
+        "Define the items included when this template is applied.",
       unnamedItem: "Unnamed item",
       referencePending: "Reference pending",
       quantityShort: "Qty",
@@ -661,9 +745,27 @@ export const clinicEnMessages = {
       identityLocked: "Catalog identity is locked after selection.",
       changeIdentity: "Remove and reselect",
       saveFailed: "Could not save. Your edits are still here.",
-      categories: { drug: "Medication", lab: "Laboratory", imaging: "Imaging", service: "Service", referral: "Referral" },
+      categories: {
+        drug: "Medication",
+        lab: "Laboratory",
+        imaging: "Imaging",
+        service: "Service",
+        referral: "Referral",
+      },
     },
     prescriptionFeed: {
+      edit: "Edit prescription",
+      editReason: "Reason for amendment",
+      editQuantity: "Quantity",
+      editDosage: "Dosage and instructions",
+      editDuration: "Duration (days)",
+      addItem: "Add an item",
+      searchItems: "Search Tamin drugs and services",
+      searchFailed: "Tamin reference search failed.",
+      duplicateItem: "This item is already in the prescription.",
+      removeItem: "Remove item",
+      submitEdit: "Submit amendment",
+      editFailed: "The prescription amendment could not be submitted.",
       title: "Prescription",
       detailsTitle: "Prescription details",
       openDetails: "Open prescription details",
@@ -676,18 +778,55 @@ export const clinicEnMessages = {
       noItems: "This prescription has no items.",
       notFound: "The prescription was not found.",
       unavailable: "Prescription details are currently unavailable.",
-      loadFailed: "Prescriptions could not be loaded. Notes and attachments are still available.",
+      loadFailed:
+        "Prescriptions could not be loaded. Notes and attachments are still available.",
       retry: "Retry loading prescriptions",
-      categories: { drug: "Medication", lab: "Laboratory", imaging: "Imaging", service: "Service", referral: "Referral", unknown: "Other" },
+      categories: {
+        drug: "Medication",
+        lab: "Laboratory",
+        imaging: "Imaging",
+        service: "Service",
+        referral: "Referral",
+        unknown: "Other",
+      },
       statuses: {
-        draft: "Draft", readyForSubmission: "Ready", submitting: "Submitting", submitted: "Submitted",
-        acceptedByProvider: "Accepted", rejectedByProvider: "Rejected", needsCorrection: "Needs correction",
-        editRequested: "Edit requested", edited: "Edited", cancelRequested: "Cancellation requested",
-        cancelled: "Cancelled", paperFallback: "Paper fallback", syncPending: "Sync pending",
-        syncFailed: "Sync failed", duplicateRisk: "Duplicate risk", providerUnavailable: "Provider unavailable",
-        manuallyReconciled: "Reconciled", unknown: "Unknown",
+        draft: "Draft",
+        readyForSubmission: "Ready",
+        submitting: "Submitting",
+        submitted: "Submitted",
+        acceptedByProvider: "Accepted",
+        rejectedByProvider: "Rejected",
+        needsCorrection: "Needs correction",
+        editRequested: "Edit requested",
+        edited: "Edited",
+        cancelRequested: "Cancellation requested",
+        cancelled: "Cancelled",
+        paperFallback: "Paper fallback",
+        syncPending: "Sync pending",
+        syncFailed: "Sync failed",
+        duplicateRisk: "Duplicate risk",
+        providerUnavailable: "Provider unavailable",
+        manuallyReconciled: "Reconciled",
+        unknown: "Unknown",
       },
     },
-    prescriptionSubmission: { title: "Create prescription", eventTitle: "Prescription", provider: "Select provider", providerRequired: "Select a provider to begin this submission.", providerFailed: "The prescription draft could not be created.", template: "Optional template", templateApplied: "Template applied.", templateFailed: "The template could not be applied.", items: "Prescription items", search: "Search the provider catalog", searchFailed: "Catalog search failed.", itemFailed: "The item could not be added.", validationFailed: "Review the prescription before submitting.", submit: "Submit prescription", submitted: "Prescription submitted.", submitFailed: "Prescription submission failed." },
+    prescriptionSubmission: {
+      title: "Create prescription",
+      eventTitle: "Prescription",
+      provider: "Select provider",
+      providerRequired: "Select a provider to begin this submission.",
+      providerFailed: "The prescription draft could not be created.",
+      template: "Optional template",
+      templateApplied: "Template applied.",
+      templateFailed: "The template could not be applied.",
+      items: "Prescription items",
+      search: "Search the provider catalog",
+      searchFailed: "Catalog search failed.",
+      itemFailed: "The item could not be added.",
+      validationFailed: "Review the prescription before submitting.",
+      submit: "Submit prescription",
+      submitted: "Prescription submitted.",
+      submitFailed: "Prescription submission failed.",
+    },
   },
 } as const;
