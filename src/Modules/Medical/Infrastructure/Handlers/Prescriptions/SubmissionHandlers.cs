@@ -169,6 +169,12 @@ public sealed class EditPrescriptionHandler(
     ILogger<EditPrescriptionHandler> logger)
     : IRequestHandler<EditPrescriptionCommand, EditPrescriptionResult>
 {
+    private const int MaxEditItems = 100;
+    private const int MaxReasonLength = 1024;
+    private const int MaxReferenceCodeLength = 128;
+    private const int MaxDisplayNameLength = 512;
+    private const int MaxJsonLength = 4096;
+
     public async Task<EditPrescriptionResult> Handle(EditPrescriptionCommand request, CancellationToken cancellationToken)
     {
         PrescriptionRecord? prescription = await dbContext.Prescriptions
@@ -196,9 +202,9 @@ public sealed class EditPrescriptionHandler(
             return EditPrescriptionResult.Failure("نسخه توسط شخص دیگری تغییر کرده است. لطفاً صفحه را بازخوانی کنید.", prescription.Status);
         }
 
-        if (request.Items.Count == 0 || request.Items.Any(item => item.Quantity < 1))
+        if (!IsValidEditRequest(request))
         {
-            return EditPrescriptionResult.Failure("نسخه ویرایش‌شده باید حداقل یک آیتم با تعداد معتبر داشته باشد.", prescription.Status);
+            return EditPrescriptionResult.Failure("اطلاعات ویرایش نسخه نامعتبر یا بیش از حد مجاز است.", prescription.Status);
         }
 
         if (string.IsNullOrEmpty(prescription.SelectedProviderKey))
@@ -245,12 +251,39 @@ public sealed class EditPrescriptionHandler(
 
         string idempotencyKey = $"{prescription.Id}:edit:v{prescription.VersionNumber}";
 
-        AdapterResult<SubmissionResponse> editResult = await adapter.EditPrescriptionAsync(new EditRequest
+        AdapterResult<SubmissionResponse> editResult;
+        try
         {
-            PrescriptionId = prescription.Id,
-            IdempotencyKey = idempotencyKey,
-            CorrelationId = request.CorrelationId
-        }, cancellationToken);
+            editResult = await adapter.EditPrescriptionAsync(new EditRequest
+            {
+                PrescriptionId = prescription.Id,
+                IdempotencyKey = idempotencyKey,
+                CorrelationId = request.CorrelationId
+            }, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            await MarkEditOutcomeUnknownAsync(
+                dbContext,
+                prescription,
+                audit,
+                logger,
+                "Prescription amendment was canceled after the provider mutation started.");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            await MarkEditOutcomeUnknownAsync(
+                dbContext,
+                prescription,
+                audit,
+                logger,
+                "Prescription amendment failed with an unknown provider outcome.",
+                ex);
+            return EditPrescriptionResult.Failure(
+                "نتیجه ویرایش نسخه نامشخص است و برای تطبیق ثبت شد.",
+                PrescriptionStatus.SyncPending);
+        }
 
         if (editResult.IsSuccess && editResult.Data is not null)
         {
@@ -317,6 +350,64 @@ public sealed class EditPrescriptionHandler(
         return EditPrescriptionResult.Failure(
             editResult.Error?.UserMessage ?? "خطا در ویرایش نسخه.",
             PrescriptionStatus.SyncPending);
+    }
+
+    private static async Task MarkEditOutcomeUnknownAsync(
+        PrescriptionDbContext dbContext,
+        PrescriptionRecord prescription,
+        PrescriptionEditAudit audit,
+        ILogger logger,
+        string message,
+        Exception? exception = null)
+    {
+        prescription.TransitionTo(PrescriptionStatus.SyncPending, DateTime.UtcNow);
+        audit.Outcome = "SyncPending";
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+        logger.LogWarning(
+            exception,
+            "{Message} Prescription {PrescriptionId} requires reconciliation.",
+            message,
+            prescription.Id);
+    }
+
+    internal static bool IsValidEditRequest(EditPrescriptionCommand request)
+    {
+        if (request.Items is not { Count: > 0 and <= MaxEditItems } ||
+            request.EditReason?.Length > MaxReasonLength)
+        {
+            return false;
+        }
+
+        return request.Items.All(item =>
+            item.Quantity >= 1 &&
+            item.DurationDays is null or > 0 &&
+            item.ReferenceCode is null or { Length: <= MaxReferenceCodeLength } &&
+            item.DisplayName is null or { Length: <= MaxDisplayNameLength } &&
+            IsValidJson(item.DosageJson) &&
+            IsValidJson(item.MetadataJson));
+    }
+
+    private static bool IsValidJson(string? value)
+    {
+        if (value is null)
+        {
+            return true;
+        }
+
+        if (value.Length > MaxJsonLength)
+        {
+            return false;
+        }
+
+        try
+        {
+            using JsonDocument _ = JsonDocument.Parse(value);
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 }
 

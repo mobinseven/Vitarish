@@ -1,9 +1,11 @@
 using System.Text.Json;
 using Vitarish.Appointments.Application.AgentCapabilities;
 using Vitarish.Appointments.Interface.AgentCapabilities;
+using Vitarish.Clinic.Application.PatientAgent;
+using Vitarish.Clinic.Application.PatientAgent.Capabilities;
 using Vitarish.Intelligence.Application.Agents;
 
-namespace Vitarish.Clinic.Application.PatientAgent.Capabilities.Appointments;
+namespace Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Appointments;
 
 public sealed class AppointmentAgentCapability(
     CheckAppointmentAvailabilityTool check,

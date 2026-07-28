@@ -21,7 +21,6 @@ import {
   medicalSearchPrescriptionReferenceCodes,
 } from "../../../api/generated/medical/medical";
 import type {
-  MedicalCommandResult,
   PrescriptionItemDto,
   PrescriptionSummaryDto,
 } from "../../../api/generated/medical/model";
@@ -219,7 +218,7 @@ export function PrescriptionEventFeedItem({
     setIsSaving(true);
     setEditMessage("");
     try {
-      const result = (await medicalEditPrescription(detail.data.id, {
+      const result = await medicalEditPrescription(detail.data.id, {
         prescriptionId: detail.data.id,
         expectedVersion: detail.data.versionNumber ?? 0,
         idempotencyKey: crypto.randomUUID(),
@@ -233,7 +232,7 @@ export function PrescriptionEventFeedItem({
           durationDays: value.durationDays ?? null,
           metadataJson: null,
         })),
-      })) as unknown as MedicalCommandResult;
+      });
       if (result.accepted) {
         setIsEditing(false);
         setEditReason("");

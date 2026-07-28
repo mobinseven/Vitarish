@@ -7,8 +7,8 @@ using Vitarish.Clinic.Application.PatientAgent.Capabilities;
 using Vitarish.Clinic.Application.PatientAgent.Policies;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Clinic.Infrastructure.Handlers;
-using Vitarish.Clinic.Application.PatientAgent.Capabilities.Appointments;
-using Vitarish.Clinic.Application.PatientAgent.Capabilities.Prescriptions;
+using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Appointments;
+using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Prescriptions;
 
 namespace Vitarish.Clinic.Infrastructure.Extensions
 {

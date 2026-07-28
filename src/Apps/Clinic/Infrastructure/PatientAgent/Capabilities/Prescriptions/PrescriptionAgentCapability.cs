@@ -1,9 +1,11 @@
 using System.Text.Json;
+using Vitarish.Clinic.Application.PatientAgent;
+using Vitarish.Clinic.Application.PatientAgent.Capabilities;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Medical.Application.AgentCapabilities.Prescriptions;
 using Vitarish.Medical.Interface.AgentCapabilities.Prescriptions;
 
-namespace Vitarish.Clinic.Application.PatientAgent.Capabilities.Prescriptions;
+namespace Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Prescriptions;
 
 public sealed class PrescriptionAgentCapability(
     SearchPrescriptionTemplatesTool search,

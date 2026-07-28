@@ -324,8 +324,6 @@ export const clinicFaMessages = {
         selectRoutine: "برای مشاهده مراحل یک روتین انتخاب کنید.",
         selectStep: "برای ویرایش یک مرحله انتخاب کنید.",
         routineCount: "{count} روتین",
-        stepCount: "{count} مرحله",
-        committedSteps: "{count} تکمیل‌شده",
         newRoutine: "روتین جدید",
         editRoutine: "ویرایش روتین",
         duplicateRoutine: "تکثیر روتین",
@@ -509,6 +507,8 @@ export const clinicFaMessages = {
       },
       committed: "ثبت‌شده",
       draft: "پیش‌نویس",
+      comingSoon:
+        "مدیریت فرایندهای این بیمار به‌زودی در این بخش در دسترس خواهد بود.",
     },
     reminders: {
       title: "یادآورهای کلینیک",
