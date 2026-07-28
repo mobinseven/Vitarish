@@ -8,5 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="../../../src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj" />
     <ProjectReference Include="../../../src/Apps/Clinic/Contracts/Clinic.Contracts.csproj" />
+    <ProjectReference Include="../../../src/Apps/Clinic/Infrastructure/Clinic.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

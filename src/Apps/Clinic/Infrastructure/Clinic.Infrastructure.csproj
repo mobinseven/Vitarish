@@ -10,6 +10,10 @@
     <EmbeddedResource Include="Views\views.pgsql" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="StackExchange.Redis" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 		<ProjectReference Include="..\Application\Clinic.Application\Clinic.Application.csproj" />

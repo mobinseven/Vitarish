@@ -1,5 +1,6 @@
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Clinic.Application.PatientAgent.Capabilities;
+using System.Text.Json;
 
 namespace Vitarish.Clinic.Application.PatientAgent;
 
@@ -33,6 +34,7 @@ public sealed class PatientWorkspaceAgentDefinitionFactory(
             ["practiceId"] = context.PracticeId,
             ["patientId"] = context.PatientId.ToString("D"),
             ["authenticatedUserId"] = context.AuthenticatedUserId,
+            ["permissions"] = JsonSerializer.Serialize(context.Permissions),
             ["role"] = context.Role,
             ["locale"] = context.Locale,
             ["timeZone"] = context.TimeZone,

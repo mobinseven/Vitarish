@@ -36,12 +36,3 @@ public sealed class PrescriptionsPatientAgentCapability(
     public override string Description => "Review and prepare patient prescription operations.";
     public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>(StringComparer.Ordinal) { "Prescriptions.Read" };
 }
-
-public sealed class ClinicalEventsPatientAgentCapability(
-    IEnumerable<IClinicalEventsPatientAgentTool> tools,
-    IReadOnlyCollection<string>? actionTypes = null) : PatientAgentCapability([.. tools], actionTypes ?? ["add_clinical_event"])
-{
-    public override string Name => "ClinicalEvents";
-    public override string Description => "Review patient clinical events.";
-    public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>(StringComparer.Ordinal) { "ClinicalEvents.Read" };
-}

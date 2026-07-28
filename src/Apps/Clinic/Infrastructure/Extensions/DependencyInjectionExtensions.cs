@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Clinic.Application.Abstractions;
 using Vitarish.Clinic.Application.Handlers;
 using Vitarish.Clinic.Application.PatientAgent;
@@ -9,6 +10,9 @@ using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Clinic.Infrastructure.Handlers;
 using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Appointments;
 using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Prescriptions;
+using Vitarish.Clinic.Application.ClinicalEvents;
+using Vitarish.Clinic.Infrastructure.ClinicalEvents;
+using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.ClinicalEvents;
 
 namespace Vitarish.Clinic.Infrastructure.Extensions
 {
@@ -41,7 +45,15 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<PreparePrescriptionTool>();
             _ = services.AddTransient<ConfirmPrescriptionTool>();
             _ = services.AddTransient<IPatientAgentCapability, PrescriptionAgentCapability>();
-            _ = services.AddTransient<IPatientAgentCapability, ClinicalEventsPatientAgentCapability>();
+            services.TryAddSingleton(TimeProvider.System);
+            _ = services.AddTransient<IClinicalEventProcedureBoundary, SeaClinicalEventProcedureBoundary>();
+            _ = services.AddSingleton<IClinicalEventProposalStore, RedisClinicalEventProposalStore>();
+            _ = services.AddTransient<GetPatientProcedureContext>();
+            _ = services.AddTransient<PrepareClinicalEvent>();
+            _ = services.AddTransient<ConfirmClinicalEventProposal>();
+            _ = services.AddTransient<GetPatientProcedureContextTool>();
+            _ = services.AddTransient<PrepareClinicalEventTool>();
+            _ = services.AddTransient<IPatientAgentCapability, ClinicalEventAgentCapability>();
             _ = services.AddTransient<PatientAgentCapabilityRegistry>();
             _ = services.AddTransient<PatientAgentToolDispatcher>();
             _ = services.AddTransient<PatientAgentInstructionComposer>();
