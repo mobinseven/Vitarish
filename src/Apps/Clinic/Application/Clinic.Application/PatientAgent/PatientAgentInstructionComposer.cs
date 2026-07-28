@@ -1,4 +1,5 @@
 using System.Text;
+using Vitarish.Clinic.Application.PatientAgent.Capabilities;
 
 namespace Vitarish.Clinic.Application.PatientAgent;
 
@@ -17,6 +18,11 @@ public sealed class PatientAgentInstructionComposer
         foreach (IPatientAgentCapability capability in capabilities.OrderBy(item => item.Name, StringComparer.Ordinal))
         {
             _ = instructions.Append("- ").Append(capability.Name).Append(": ").AppendLine(capability.Description);
+            string capabilityInstructions = capability.GetInstructions();
+            if (!string.IsNullOrWhiteSpace(capabilityInstructions))
+            {
+                _ = instructions.Append("  ").AppendLine(capabilityInstructions);
+            }
             if (capability.ActionTypes.Count > 0)
             {
                 _ = instructions.Append("  Supported action types: ").AppendLine(string.Join(", ", capability.ActionTypes));
