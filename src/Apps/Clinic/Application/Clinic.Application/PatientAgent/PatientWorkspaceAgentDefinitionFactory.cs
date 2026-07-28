@@ -23,7 +23,6 @@ public sealed class PatientWorkspaceAgentDefinitionFactory(
         }
 
         IReadOnlyCollection<IPatientAgentCapability> enabled = capabilityRegistry.GetAvailable(context);
-        IReadOnlyCollection<IAgentTool> tools = toolDispatcher.CreateTools(context, enabled);
         Dictionary<string, IReadOnlySet<string>> enabledActions = enabled.ToDictionary(
             capability => capability.Name,
             capability => (IReadOnlySet<string>)capability.ActionTypes.ToHashSet(StringComparer.Ordinal),
@@ -39,6 +38,8 @@ public sealed class PatientWorkspaceAgentDefinitionFactory(
             ["timeZone"] = context.TimeZone,
             ["conversationId"] = context.ConversationId
         };
+        AgentExecutionContext executionContext = new(Guid.NewGuid().ToString("N"), metadata);
+        IReadOnlyCollection<IAgentTool> tools = toolDispatcher.CreateTools(context, executionContext, enabled);
 
         return new PatientWorkspaceAgentDefinition(
             new AgentDefinition(
@@ -47,7 +48,7 @@ public sealed class PatientWorkspaceAgentDefinitionFactory(
                 new AgentResultDefinition("patient_workspace_result", PatientWorkspaceAgentDefinition.ResultSchema)),
             tools,
             enabledActions,
-            new AgentExecutionContext(context.ConversationId, metadata),
+            executionContext,
             new AgentExecutionLimits());
     }
 

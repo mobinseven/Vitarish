@@ -118,6 +118,8 @@ public sealed class PatientWorkspaceAgentTests
 
         registry.GetAvailable(Context(role: "Receptionist", permissions: new HashSet<string> { "Appointments.Read" })).Select(item => item.Name)
             .Should().Equal("appointments");
+        registry.GetAvailable(Context(role: "Clinician", permissions: new HashSet<string> { "Appointments.Read", "Prescriptions.Read" }))
+            .Select(item => item.Name).Should().Equal("appointments", "prescriptions");
         Registry([appointments, prescriptions], enabledCapabilities: new HashSet<string> { "appointments" })
             .GetAvailable(Context(role: "Clinician", permissions: new HashSet<string> { "Appointments.Read", "Prescriptions.Read" }))
             .Select(item => item.Name).Should().Equal("appointments");
@@ -128,11 +130,12 @@ public sealed class PatientWorkspaceAgentTests
     {
         TestTool handler = new("appointments_list");
         PatientAgentContext trusted = Context();
+        AgentExecutionContext execution = Execution(trusted);
         IAgentTool guarded = new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy())
-            .CreateTools(trusted, [new Capability("appointments", new HashSet<string>(), [handler], [])]).Single();
+            .CreateTools(trusted, execution, [new Capability("appointments", new HashSet<string>(), [handler], [])]).Single();
 
-        Func<Task> unknown = () => guarded.ExecuteAsync(new AgentToolCall("call-1", "other", "{}"), Execution(trusted));
-        Func<Task> uncorrelated = () => guarded.ExecuteAsync(new AgentToolCall("call-1", "appointments_list", "{}"), Execution(trusted) with { ExecutionId = "other-run" });
+        Func<Task> unknown = () => guarded.ExecuteAsync(new AgentToolCall("call-1", "other", "{}"), execution);
+        Func<Task> uncorrelated = () => guarded.ExecuteAsync(new AgentToolCall("call-1", "appointments_list", "{}"), execution with { ExecutionId = "other-run" });
 
         await unknown.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not registered*");
         await uncorrelated.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not correlated*");
@@ -142,18 +145,35 @@ public sealed class PatientWorkspaceAgentTests
     [Fact]
     public async Task Tool_dispatch_validates_arguments_and_preserves_run_correlation()
     {
-        TestTool handler = new("appointments_list", """{"type":"object","additionalProperties":false,"required":["range"],"properties":{"range":{"type":"string"}}}""");
+        TestTool handler = new("appointments_list", """{"type":"object","additionalProperties":false,"required":["range"],"properties":{"range":{"type":"string","enum":["future"]}}}""");
         PatientAgentContext trusted = Context();
+        AgentExecutionContext execution = Execution(trusted);
         IAgentTool guarded = new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy())
-            .CreateTools(trusted, [new Capability("appointments", new HashSet<string>(), [handler], [])]).Single();
+            .CreateTools(trusted, execution, [new Capability("appointments", new HashSet<string>(), [handler], [])]).Single();
 
-        Func<Task> invalid = () => guarded.ExecuteAsync(new AgentToolCall("call-1", "appointments_list", "{}"), Execution(trusted));
+        Func<Task> invalid = () => guarded.ExecuteAsync(new AgentToolCall("call-1", "appointments_list", "{}"), execution);
         await invalid.Should().ThrowAsync<JsonException>().WithMessage("*required property*");
+        Func<Task> wrongType = () => guarded.ExecuteAsync(new AgentToolCall("call-1", "appointments_list", "{\"range\":1}"), execution);
+        await wrongType.Should().ThrowAsync<JsonException>().WithMessage("*declared type*");
 
         AgentToolResult result = await guarded.ExecuteAsync(
-            new AgentToolCall("call-2", "appointments_list", "{\"range\":\"future\"}"), Execution(trusted));
+            new AgentToolCall("call-2", "appointments_list", "{\"range\":\"future\"}"), execution);
         result.CallId.Should().Be("call-2");
-        handler.LastExecutionId.Should().Be(trusted.ConversationId);
+        handler.LastExecutionId.Should().Be(execution.ExecutionId);
+    }
+
+    [Fact]
+    public void Each_agent_definition_has_a_unique_run_correlation_id()
+    {
+        PatientWorkspaceAgentDefinitionFactory factory = Factory();
+        PatientAgentContext context = Context();
+
+        PatientWorkspaceAgentDefinition first = factory.Create(context);
+        PatientWorkspaceAgentDefinition second = factory.Create(context);
+
+        first.ExecutionContext.ExecutionId.Should().NotBe(context.ConversationId);
+        second.ExecutionContext.ExecutionId.Should().NotBe(first.ExecutionContext.ExecutionId);
+        first.ExecutionContext.Metadata!["conversationId"].Should().Be(context.ConversationId);
     }
 
     [Fact]

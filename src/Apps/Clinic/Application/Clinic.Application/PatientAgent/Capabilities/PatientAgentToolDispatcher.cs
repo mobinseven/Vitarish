@@ -8,14 +8,16 @@ public sealed class PatientAgentToolDispatcher(PatientAgentApprovalPolicy approv
 {
     public IReadOnlyCollection<IAgentTool> CreateTools(
         PatientAgentContext context,
+        AgentExecutionContext executionContext,
         IReadOnlyCollection<IPatientAgentCapability> capabilities) =>
         capabilities.SelectMany(capability => capability.Tools)
-            .Select(tool => (IAgentTool)new GuardedTool(tool, context, approvalPolicy))
+            .Select(tool => (IAgentTool)new GuardedTool(tool, context, executionContext.ExecutionId, approvalPolicy))
             .ToArray();
 
     private sealed class GuardedTool(
         IAgentTool handler,
         PatientAgentContext trustedContext,
+        string agentRunId,
         PatientAgentApprovalPolicy approvalPolicy) : IAgentTool
     {
         public AgentToolDefinition Definition => handler.Definition;
@@ -30,7 +32,7 @@ public sealed class PatientAgentToolDispatcher(PatientAgentApprovalPolicy approv
                 throw new InvalidOperationException("The requested patient agent tool is not registered.");
             }
 
-            if (!IsCorrelated(context, trustedContext))
+            if (!IsCorrelated(context, trustedContext, agentRunId))
             {
                 throw new InvalidOperationException("The patient agent tool invocation is not correlated with the current run.");
             }
@@ -44,8 +46,8 @@ public sealed class PatientAgentToolDispatcher(PatientAgentApprovalPolicy approv
             return handler.ExecuteAsync(call, context, cancellationToken);
         }
 
-        private static bool IsCorrelated(AgentExecutionContext execution, PatientAgentContext trusted) =>
-            string.Equals(execution.ExecutionId, trusted.ConversationId, StringComparison.Ordinal) &&
+        private static bool IsCorrelated(AgentExecutionContext execution, PatientAgentContext trusted, string expectedRunId) =>
+            string.Equals(execution.ExecutionId, expectedRunId, StringComparison.Ordinal) &&
             execution.Metadata is not null &&
             execution.Metadata.TryGetValue("practiceId", out string? practiceId) && practiceId == trusted.PracticeId &&
             execution.Metadata.TryGetValue("patientId", out string? patientId) && patientId == trusted.PatientId.ToString("D") &&
@@ -55,14 +57,43 @@ public sealed class PatientAgentToolDispatcher(PatientAgentApprovalPolicy approv
         {
             using JsonDocument arguments = JsonDocument.Parse(argumentsJson);
             using JsonDocument schema = JsonDocument.Parse(schemaJson);
-            if (arguments.RootElement.ValueKind != JsonValueKind.Object || schema.RootElement.ValueKind != JsonValueKind.Object)
+            if (schema.RootElement.ValueKind != JsonValueKind.Object)
             {
-                throw new JsonException("Patient agent tool arguments must be an object.");
+                throw new JsonException("The patient agent tool schema must be an object.");
             }
 
-            HashSet<string> argumentNames = arguments.RootElement.EnumerateObject()
+            ValidateValue(arguments.RootElement, schema.RootElement);
+        }
+
+        private static void ValidateValue(JsonElement value, JsonElement schema)
+        {
+            if (schema.TryGetProperty("type", out JsonElement type) && !MatchesType(value, type.GetString()))
+            {
+                throw new JsonException("Patient agent tool arguments do not match the declared type.");
+            }
+
+            if (schema.TryGetProperty("enum", out JsonElement allowed) &&
+                !allowed.EnumerateArray().Any(item => JsonElement.DeepEquals(item, value)))
+            {
+                throw new JsonException("Patient agent tool arguments contain a value outside the declared enum.");
+            }
+
+            if (value.ValueKind == JsonValueKind.Array && schema.TryGetProperty("items", out JsonElement itemSchema))
+            {
+                foreach (JsonElement item in value.EnumerateArray())
+                {
+                    ValidateValue(item, itemSchema);
+                }
+            }
+
+            if (value.ValueKind != JsonValueKind.Object)
+            {
+                return;
+            }
+
+            HashSet<string> argumentNames = value.EnumerateObject()
                 .Select(property => property.Name).ToHashSet(StringComparer.Ordinal);
-            if (schema.RootElement.TryGetProperty("required", out JsonElement required))
+            if (schema.TryGetProperty("required", out JsonElement required))
             {
                 foreach (JsonElement property in required.EnumerateArray())
                 {
@@ -73,10 +104,10 @@ public sealed class PatientAgentToolDispatcher(PatientAgentApprovalPolicy approv
                 }
             }
 
-            if (schema.RootElement.TryGetProperty("additionalProperties", out JsonElement additionalProperties) &&
+            if (schema.TryGetProperty("additionalProperties", out JsonElement additionalProperties) &&
                 additionalProperties.ValueKind == JsonValueKind.False)
             {
-                HashSet<string> definedNames = schema.RootElement.TryGetProperty("properties", out JsonElement properties)
+                HashSet<string> definedNames = schema.TryGetProperty("properties", out JsonElement properties)
                     ? properties.EnumerateObject().Select(property => property.Name).ToHashSet(StringComparer.Ordinal)
                     : [];
                 if (!argumentNames.IsSubsetOf(definedNames))
@@ -84,6 +115,30 @@ public sealed class PatientAgentToolDispatcher(PatientAgentApprovalPolicy approv
                     throw new JsonException("Patient agent tool arguments contain an unknown property.");
                 }
             }
+
+            if (schema.TryGetProperty("properties", out JsonElement propertySchemas))
+            {
+                foreach (JsonProperty property in value.EnumerateObject())
+                {
+                    if (propertySchemas.TryGetProperty(property.Name, out JsonElement propertySchema))
+                    {
+                        ValidateValue(property.Value, propertySchema);
+                    }
+                }
+            }
         }
+
+        private static bool MatchesType(JsonElement value, string? type) => type switch
+        {
+            "object" => value.ValueKind == JsonValueKind.Object,
+            "array" => value.ValueKind == JsonValueKind.Array,
+            "string" => value.ValueKind == JsonValueKind.String,
+            "number" => value.ValueKind == JsonValueKind.Number,
+            "integer" => value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out _),
+            "boolean" => value.ValueKind is JsonValueKind.True or JsonValueKind.False,
+            "null" => value.ValueKind == JsonValueKind.Null,
+            null => true,
+            _ => throw new JsonException("The patient agent tool schema declares an unsupported type.")
+        };
     }
 }
