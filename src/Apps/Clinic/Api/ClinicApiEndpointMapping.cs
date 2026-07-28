@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc;
 using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Commands.Visits;
 using Vitarish.Clinic.Application.Queries.Patients;
@@ -58,7 +59,7 @@ public static class ClinicApiEndpointMapping
     private static async Task<IResult> RunPatientAgentAsync(
         Guid patientId,
         RunPatientAgentRequest request,
-        IPatientAgentContextFactory contextFactory,
+        [FromServices] IPatientAgentContextFactory contextFactory,
         ISender sender,
         CancellationToken ct)
     {
@@ -82,6 +83,8 @@ public static class ClinicApiEndpointMapping
                 (PatientAgentActionResponseStatus)(int)action.Status,
                 System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(action.ArgumentsJson),
                 action.Summary)).ToArray()));
+    }
+
     private static async Task<IResult> StartVisitPrescriptionDraftAsync(
         StartVisitPrescriptionDraftRequest request,
         ISender sender,

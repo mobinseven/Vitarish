@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.OpenApi.Generated</InterceptorsNamespaces>
 		<OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
-		<OpenApiGenerateDocumentsOnBuild>false</OpenApiGenerateDocumentsOnBuild>
+		<OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>
 		<OpenApiDocumentsDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '..', '..', '..', 'src', 'Hosts', 'Web', 'src', 'api', 'specs'))</OpenApiDocumentsDirectory>
 
 	</PropertyGroup>

@@ -537,6 +537,83 @@
         }
       }
     },
+    "/api/modules/clinic/patients/{patientId}/agent": {
+      "post": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicRunPatientAgent",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunPatientAgentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunPatientAgentResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/clinic/visits/prescription-drafts/start": {
       "post": {
         "tags": [
@@ -624,6 +701,67 @@
           "Unspecified",
           "Female",
           "Male"
+        ]
+      },
+      "JsonElement": { },
+      "PatientAgentActionResponse": {
+        "required": [
+          "id",
+          "capability",
+          "actionType",
+          "status",
+          "arguments",
+          "summary"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "capability": {
+            "type": "string"
+          },
+          "actionType": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PatientAgentActionResponseStatus"
+          },
+          "arguments": {
+            "$ref": "#/components/schemas/JsonElement"
+          },
+          "summary": {
+            "type": "string"
+          }
+        }
+      },
+      "PatientAgentActionResponseStatus": {
+        "enum": [
+          "Proposed",
+          "Completed"
+        ]
+      },
+      "PatientAgentMessageResponse": {
+        "required": [
+          "kind",
+          "content"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PatientAgentMessageResponseKind"
+          },
+          "content": {
+            "type": "string"
+          }
+        }
+      },
+      "PatientAgentMessageResponseKind": {
+        "enum": [
+          "AssistantMessage",
+          "InformationalToolResult",
+          "MissingInformationRequest",
+          "Failure"
         ]
       },
       "PatientCountRequest": {
@@ -1355,6 +1493,52 @@
           "Completed",
           null
         ]
+      },
+      "RunPatientAgentRequest": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "conversationId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "RunPatientAgentResponse": {
+        "required": [
+          "agentRunId",
+          "conversationId",
+          "messages",
+          "actions"
+        ],
+        "type": "object",
+        "properties": {
+          "agentRunId": {
+            "type": "string"
+          },
+          "conversationId": {
+            "type": "string"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PatientAgentMessageResponse"
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PatientAgentActionResponse"
+            }
+          }
+        }
       },
       "StartVisitPrescriptionDraftRequest": {
         "required": [

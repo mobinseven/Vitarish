@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Vitarish.Clinic.Application.Abstractions;
 using Vitarish.Clinic.Application.Handlers;
 using Vitarish.Clinic.Application.PatientAgent;
@@ -15,6 +16,9 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
     {
         public static IServiceCollection AddClinicInfrastructure(this IServiceCollection services)
         {
+            _ = services.AddSingleton(serviceProvider => new PatientWorkspaceAgentOptions(
+                serviceProvider.GetRequiredService<IConfiguration>()["Vitarish:Intelligence:DefaultResponseModel"]
+                ?? throw new InvalidOperationException("Vitarish:Intelligence:DefaultResponseModel must be configured.")));
             _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
                 typeof(ClinicDbContext).Assembly,
                 typeof(FindOrCreatePatientHandler).Assembly));
