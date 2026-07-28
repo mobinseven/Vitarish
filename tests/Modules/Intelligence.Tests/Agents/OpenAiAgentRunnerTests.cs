@@ -91,6 +91,37 @@ public sealed class OpenAiAgentRunnerTests
     }
 
     [Fact]
+    public async Task RunAsync_RejectsNonObjectToolArgumentsWithoutDispatching()
+    {
+        RecordingTool tool = new("echo");
+        FakeClient client = new(new OpenAiAgentResponse(
+            "response-1", null, [new("call-1", "echo", "[]")], 1, 1));
+
+        AgentRunResult result = await CreateRunner(client).RunAsync(Definition, Input, [tool], Context, Limits);
+
+        result.Error!.Code.Should().Be(AgentRunErrorCode.MalformedToolArguments);
+        tool.Calls.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task RunAsync_RejectsInvalidSchemasBeforeCallingProvider()
+    {
+        RecordingTool tool = new("echo", "not-json");
+        AgentDefinition definition = Definition with
+        {
+            Result = new AgentResultDefinition("answer", "[]")
+        };
+        FakeClient client = new(new OpenAiAgentResponse("unused", "unused", [], 1, 1));
+
+        AgentRunResult toolResult = await CreateRunner(client).RunAsync(Definition, Input, [tool], Context, Limits);
+        AgentRunResult resultDefinitionResult = await CreateRunner(client).RunAsync(definition, Input, [], Context, Limits);
+
+        toolResult.Error!.Code.Should().Be(AgentRunErrorCode.InvalidRequest);
+        resultDefinitionResult.Error!.Code.Should().Be(AgentRunErrorCode.InvalidRequest);
+        client.Requests.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task RunAsync_EnforcesIterationLimit()
     {
         FakeClient client = new(
@@ -220,12 +251,14 @@ public sealed class OpenAiAgentRunnerTests
         }
     }
 
-    private sealed class RecordingTool(string name) : IAgentTool
+    private sealed class RecordingTool(
+        string name,
+        string parametersJsonSchema = "{\"type\":\"object\",\"additionalProperties\":false}") : IAgentTool
     {
         public AgentToolDefinition Definition { get; } = new(
             name,
             "Returns a test response.",
-            "{\"type\":\"object\",\"additionalProperties\":false}");
+            parametersJsonSchema);
 
         public ConcurrentQueue<AgentToolCall> Calls { get; } = [];
 

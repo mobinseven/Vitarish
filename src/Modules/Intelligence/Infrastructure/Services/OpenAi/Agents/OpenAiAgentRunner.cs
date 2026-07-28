@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Intelligence.Domain.Options;
@@ -10,23 +12,30 @@ public sealed class OpenAiAgentRunner : IAgentRunner
 {
     private readonly IAgentToolDispatcher dispatcher;
     private readonly IOpenAiAgentClient client;
+    private readonly ILogger<OpenAiAgentRunner> logger;
 
     public OpenAiAgentRunner(
         IAgentToolDispatcher dispatcher,
         IOptionsMonitor<AiOptions> options,
         OpenAiAgentRequestMapper requestMapper,
-        OpenAiAgentResponseMapper responseMapper)
+        OpenAiAgentResponseMapper responseMapper,
+        ILogger<OpenAiAgentRunner> logger)
         : this(dispatcher, new OpenAiResponsesAgentClient(
             options.CurrentValue.OpenAi.ApiKey,
             requestMapper,
-            responseMapper))
+            responseMapper),
+            logger)
     {
     }
 
-    internal OpenAiAgentRunner(IAgentToolDispatcher dispatcher, IOpenAiAgentClient client)
+    internal OpenAiAgentRunner(
+        IAgentToolDispatcher dispatcher,
+        IOpenAiAgentClient client,
+        ILogger<OpenAiAgentRunner>? logger = null)
     {
         this.dispatcher = dispatcher;
         this.client = client;
+        this.logger = logger ?? NullLogger<OpenAiAgentRunner>.Instance;
     }
 
     public async Task<AgentRunResult> RunAsync(
@@ -84,8 +93,11 @@ public sealed class OpenAiAgentRunner : IAgentRunner
             {
                 return Failure(new(AgentRunErrorCode.Cancelled, "The agent execution was cancelled."), inputTokens, outputTokens, iteration, toolCallCount, providerLatency + stopwatch.Elapsed);
             }
-            catch (Exception)
+            catch (Exception exception)
             {
+                logger.LogError(
+                    "The AI provider failed during an agent execution. Failure type: {FailureType}.",
+                    exception.GetType().Name);
                 return Failure(new(AgentRunErrorCode.ProviderFailure, "The AI provider could not complete the request."), inputTokens, outputTokens, iteration, toolCallCount, providerLatency + stopwatch.Elapsed);
             }
             finally
@@ -141,7 +153,11 @@ public sealed class OpenAiAgentRunner : IAgentRunner
 
                 try
                 {
-                    using JsonDocument _ = JsonDocument.Parse(call.ArgumentsJson);
+                    using JsonDocument arguments = JsonDocument.Parse(call.ArgumentsJson);
+                    if (arguments.RootElement.ValueKind != JsonValueKind.Object)
+                    {
+                        return Failure(new(AgentRunErrorCode.MalformedToolArguments, "The provider supplied malformed tool arguments."), inputTokens, outputTokens, iteration, toolCallCount, providerLatency);
+                    }
                 }
                 catch (JsonException)
                 {
@@ -161,8 +177,11 @@ public sealed class OpenAiAgentRunner : IAgentRunner
                 {
                     return Failure(new(AgentRunErrorCode.Cancelled, "The agent execution was cancelled."), inputTokens, outputTokens, iteration, toolCallCount, providerLatency);
                 }
-                catch (Exception)
+                catch (Exception exception)
                 {
+                    logger.LogError(
+                        "A registered agent tool failed during dispatch. Failure type: {FailureType}.",
+                        exception.GetType().Name);
                     return Failure(new(AgentRunErrorCode.ToolFailure, "A registered tool failed."), inputTokens, outputTokens, iteration, toolCallCount, providerLatency);
                 }
 
@@ -202,13 +221,37 @@ public sealed class OpenAiAgentRunner : IAgentRunner
         if (tools.Any(static tool =>
                 string.IsNullOrWhiteSpace(tool.Definition.Name) ||
                 string.IsNullOrWhiteSpace(tool.Definition.Description) ||
-                string.IsNullOrWhiteSpace(tool.Definition.ParametersJsonSchema)) ||
+                !IsJsonObject(tool.Definition.ParametersJsonSchema)) ||
             tools.GroupBy(static tool => tool.Definition.Name, StringComparer.Ordinal).Any(static group => group.Count() > 1))
         {
-            return new(AgentRunErrorCode.InvalidRequest, "Agent tools must have unique, complete definitions.");
+            return new(AgentRunErrorCode.InvalidRequest, "Agent tools must have unique names, descriptions, and JSON object schemas.");
+        }
+
+        if (definition.Result is { } result &&
+            (string.IsNullOrWhiteSpace(result.Name) || !IsJsonObject(result.JsonSchema)))
+        {
+            return new(AgentRunErrorCode.InvalidRequest, "The structured result must have a name and a JSON object schema.");
         }
 
         return null;
+    }
+
+    private static bool IsJsonObject(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return false;
+        }
+
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(json);
+            return document.RootElement.ValueKind == JsonValueKind.Object;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 
     private static AgentRunResult Failure(
