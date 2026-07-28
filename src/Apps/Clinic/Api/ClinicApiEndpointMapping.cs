@@ -63,6 +63,8 @@ public static class ClinicApiEndpointMapping
         PatientAgentContext context = await contextFactory.CreateAsync(patientId, request.ConversationId, ct);
         PatientAgentResult result = await sender.Send(new RunPatientAgent(context, new PatientAgentInput(request.Message)), ct);
         return Results.Ok(new RunPatientAgentResponse(
+            result.AgentRunId,
+            result.ConversationId,
             result.Messages.Select(message => new PatientAgentMessageResponse(
                 (PatientAgentMessageResponseKind)(int)message.Kind,
                 message.Content)).ToArray(),

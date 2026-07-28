@@ -7,16 +7,14 @@ namespace Vitarish.Clinic.Application.PatientAgent.Capabilities.Appointments;
 
 public sealed class AppointmentAgentCapability(
     CheckAppointmentAvailabilityTool check,
-    PrepareAppointmentTool prepare,
-    ConfirmAppointmentTool confirm) : PatientAgentCapability([check, prepare, confirm])
+    PrepareAppointmentTool prepare) : PatientAgentCapability([check, prepare], ["create_appointment"])
 {
     public override string Name => "Appointments";
-    public override string Description => "Check appointment availability, prepare an exact proposal for review, and confirm it only after explicit patient-scoped approval.";
+    public override string Description => "Check appointment availability and prepare an exact proposal for later explicit confirmation.";
     public override IReadOnlySet<string> RequiredPermissions { get; } =
         new HashSet<string>(StringComparer.Ordinal) { "Appointments.Read", "Appointments.Create" };
     public override string GetInstructions() =>
-        "Ask for a local date and time, duration, and appointment type or service. Prepare and show the exact proposal. " +
-        "Call confirm_appointment only after explicit confirmation; confirmation accepts only the immutable proposal id.";
+        "Ask for a local date and time, duration, and appointment type or service. Prepare and show the exact proposal; do not commit it.";
 }
 
 public abstract class AppointmentTool(IPatientAppointmentAgentCapability capability) : IAppointmentsPatientAgentTool

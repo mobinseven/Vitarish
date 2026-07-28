@@ -3,6 +3,8 @@ using FluentAssertions;
 using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Capabilities;
 using Vitarish.Clinic.Application.PatientAgent.Policies;
+using Vitarish.Clinic.Application.PatientAgent.Capabilities.Appointments;
+using Vitarish.Clinic.Application.PatientAgent.Capabilities.Prescriptions;
 using Vitarish.Clinic.Contracts.PatientAgent;
 using Vitarish.Clinic.Contracts.Routes;
 using Vitarish.Intelligence.Application.Agents;
@@ -82,9 +84,7 @@ public sealed class PatientWorkspaceAgentTests
             ]).Handle(
             new RunPatientAgent(Context(), new PatientAgentInput("Reschedule and send a reminder")), CancellationToken.None);
 
-        result.Actions.Should().HaveCount(2);
-        result.Actions.Select(action => action.Capability).Should().Equal("appointments", "communications");
-        result.Actions.Should().OnlyContain(action => action.Status == PatientAgentActionStatus.Proposed);
+        result.Actions.Should().BeEmpty("model output without successful preparation calls is not authoritative");
     }
 
     [Fact]
@@ -188,6 +188,58 @@ public sealed class PatientWorkspaceAgentTests
     }
 
     [Fact]
+    public async Task Successful_appointment_preparation_creates_one_server_derived_action()
+    {
+        Guid proposalId = Guid.NewGuid();
+        TestTool prepare = new("prepare_appointment", output: JsonSerializer.Serialize(new
+        {
+            status = "Prepared",
+            proposal = new { id = proposalId, expiresAt = DateTimeOffset.Parse("2030-01-01T00:00:00Z"), slot = new { service = "Review" } }
+        }));
+        const string model = """
+            {"messages":[],"actions":[{"id":"model-invented","capability":"Appointments","actionType":"create_appointment","status":"proposed","arguments":{"id":"model-proposal"},"summary":"Review appointment"}]}
+            """;
+        ExecutingRunner runner = new(Result(model), "prepare_appointment");
+
+        PatientAgentResult result = await Handler(runner,
+            [new Capability("Appointments", new HashSet<string>(), [prepare], ["create_appointment"])]).Handle(
+            new RunPatientAgent(Context(), new PatientAgentInput("Prepare it")), CancellationToken.None);
+
+        PatientAgentAction action = result.Actions.Should().ContainSingle().Subject;
+        action.Id.Should().NotBe("model-invented");
+        action.ArgumentsJson.Should().Contain(proposalId.ToString()).And.NotContain("model-proposal");
+        result.AgentRunId.Should().Be(runner.Context!.ExecutionId);
+        result.ConversationId.Should().Be("conversation-1");
+    }
+
+    [Fact]
+    public async Task Successful_prescription_preparation_creates_one_server_derived_action()
+    {
+        Guid reviewId = Guid.NewGuid();
+        TestTool prepare = new("prepare_prescription", output: JsonSerializer.Serialize(new
+        {
+            status = "Prepared",
+            review = new { reviewId, insuranceCoverage = "Named coverage" }
+        }));
+        ExecutingRunner runner = new(Result("""{"messages":[],"actions":[]}"""), "prepare_prescription");
+
+        PatientAgentResult result = await Handler(runner,
+            [new Capability("Prescriptions", new HashSet<string>(), [prepare], ["create_prescription"])]).Handle(
+            new RunPatientAgent(Context(), new PatientAgentInput("Prepare it")), CancellationToken.None);
+
+        result.Actions.Should().ContainSingle().Which.ArgumentsJson.Should().Contain(reviewId.ToString());
+    }
+
+    [Fact]
+    public void Ordinary_capability_adapters_do_not_accept_confirmation_tools()
+    {
+        typeof(AppointmentAgentCapability).GetConstructors().Single().GetParameters().Select(x => x.ParameterType)
+            .Should().NotContain(typeof(ConfirmAppointmentTool));
+        typeof(PrescriptionAgentCapability).GetConstructors().Single().GetParameters().Select(x => x.ParameterType)
+            .Should().NotContain(typeof(ConfirmPrescriptionTool));
+    }
+
+    [Fact]
     public async Task Interpretation_does_not_execute_context_tools_or_write_actions()
     {
         TestTool tool = new("patient_context");
@@ -198,7 +250,7 @@ public sealed class PatientWorkspaceAgentTests
             new RunPatientAgent(Context(), new PatientAgentInput("Update the address")), CancellationToken.None);
 
         tool.ExecutionCount.Should().Be(0);
-        result.Actions.Should().ContainSingle().Which.Status.Should().Be(PatientAgentActionStatus.Proposed);
+        result.Actions.Should().BeEmpty();
     }
 
     private static RunPatientAgentHandler Handler(IAgentRunner runner, IEnumerable<IPatientAgentCapability> capabilities) =>
@@ -239,7 +291,7 @@ public sealed class PatientWorkspaceAgentTests
         public bool IsAvailable(PatientAgentContext context) => true;
     }
 
-    private sealed class TestTool(string name, string schema = "{\"type\":\"object\",\"additionalProperties\":false}") : IAgentTool
+    private sealed class TestTool(string name, string schema = "{\"type\":\"object\",\"additionalProperties\":false}", string output = "{}") : IAgentTool
     {
         public int ExecutionCount { get; private set; }
         public string? LastExecutionId { get; private set; }
@@ -249,7 +301,7 @@ public sealed class PatientWorkspaceAgentTests
         {
             ExecutionCount++;
             LastExecutionId = context.ExecutionId;
-            return Task.FromResult(new AgentToolResult(call.Id, "{}"));
+            return Task.FromResult(new AgentToolResult(call.Id, output));
         }
     }
 
@@ -280,6 +332,21 @@ public sealed class PatientWorkspaceAgentTests
             Tools = tools;
             Context = context;
             return Task.FromResult(result);
+        }
+    }
+
+    private sealed class ExecutingRunner(AgentRunResult result, string toolName) : IAgentRunner
+    {
+        public AgentExecutionContext? Context { get; private set; }
+
+        public async Task<AgentRunResult> RunAsync(AgentDefinition definition, AgentInput input,
+            IReadOnlyCollection<IAgentTool> tools, AgentExecutionContext context, AgentExecutionLimits limits,
+            CancellationToken cancellationToken = default)
+        {
+            Context = context;
+            IAgentTool tool = tools.Single(x => x.Definition.Name == toolName);
+            _ = await tool.ExecuteAsync(new AgentToolCall("server-observed-call", toolName, "{}"), context, cancellationToken);
+            return result;
         }
     }
 }

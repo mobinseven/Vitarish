@@ -13,7 +13,7 @@ public sealed class RunPatientAgentHandler(
     {
         if (string.IsNullOrWhiteSpace(request.Input.Message))
         {
-            return PatientAgentResult.Failure("A message is required.");
+            return PatientAgentResult.Failure(string.Empty, request.Context.ConversationId, "A message is required.");
         }
 
         PatientWorkspaceAgentDefinition workspace = definitionFactory.Create(request.Context);
@@ -27,22 +27,23 @@ public sealed class RunPatientAgentHandler(
 
         if (!run.IsSuccess || run.StructuredOutput is not JsonElement output)
         {
-            return PatientAgentResult.Failure(run.Error?.Message ?? "The patient agent did not return a valid result.");
+            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, run.Error?.Message ?? "The patient agent did not return a valid result.");
         }
 
         try
         {
-            return Parse(output, workspace.EnabledActions);
+            return Parse(output, workspace, request.Context.ConversationId);
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException or KeyNotFoundException)
         {
-            return PatientAgentResult.Failure("The patient agent returned an invalid structured result.");
+            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, "The patient agent returned an invalid structured result.");
         }
     }
 
     private static PatientAgentResult Parse(
         JsonElement output,
-        IReadOnlyDictionary<string, IReadOnlySet<string>> enabledActions)
+        PatientWorkspaceAgentDefinition workspace,
+        string conversationId)
     {
         List<PatientAgentMessage> messages = [];
         foreach (JsonElement item in output.GetProperty("messages").EnumerateArray())
@@ -58,45 +59,37 @@ public sealed class RunPatientAgentHandler(
             messages.Add(new PatientAgentMessage(kind, item.GetProperty("content").GetString() ?? string.Empty));
         }
 
-        List<PatientAgentAction> actions = [];
+        Dictionary<(string Capability, string ActionType), Queue<string>> summaries = new();
         foreach (JsonElement item in output.GetProperty("actions").EnumerateArray())
         {
             string capability = item.GetProperty("capability").GetString() ?? string.Empty;
             string actionType = item.GetProperty("actionType").GetString() ?? string.Empty;
-            if (!enabledActions.TryGetValue(capability, out IReadOnlySet<string>? actionTypes) || !actionTypes.Contains(actionType))
+            if (!workspace.EnabledActions.TryGetValue(capability, out IReadOnlySet<string>? actionTypes) || !actionTypes.Contains(actionType))
             {
                 throw new JsonException("The patient agent returned an action that is not enabled.");
             }
 
-            JsonElement arguments = item.GetProperty("arguments");
-            if (item.GetProperty("status").GetString() != "proposed" ||
-                arguments.ValueKind != JsonValueKind.Object ||
-                ContainsPatientId(arguments))
+            if (item.GetProperty("status").GetString() != "proposed")
             {
-                throw new JsonException("Patient action arguments cannot select a patient.");
+                throw new JsonException("Patient actions must be proposed.");
             }
-
-            actions.Add(new PatientAgentAction(
-                item.GetProperty("id").GetString() ?? string.Empty,
-                capability,
-                actionType,
-                PatientAgentActionStatus.Proposed,
-                arguments.GetRawText(),
-                item.GetProperty("summary").GetString() ?? string.Empty));
+            var key = (capability, actionType);
+            if (!summaries.TryGetValue(key, out Queue<string>? values)) summaries[key] = values = new();
+            values.Enqueue(item.GetProperty("summary").GetString() ?? string.Empty);
         }
 
-        return new PatientAgentResult(messages, actions);
-    }
-
-    private static bool ContainsPatientId(JsonElement element)
-    {
-        if (element.ValueKind == JsonValueKind.Object)
+        List<PatientAgentAction> actions = [];
+        foreach (PatientAgentToolExecution execution in workspace.ExecutionCollector.Executions)
         {
-            return element.EnumerateObject().Any(property =>
-                string.Equals(property.Name, "patientId", StringComparison.OrdinalIgnoreCase) ||
-                ContainsPatientId(property.Value));
+            PatientAgentPreparedAction prepared = execution.PreparedAction;
+            if (!workspace.EnabledActions.TryGetValue(prepared.Capability, out IReadOnlySet<string>? registered) ||
+                !registered.Contains(prepared.ActionType))
+                throw new JsonException("A preparation tool produced an action type that is not enabled.");
+            summaries.TryGetValue((prepared.Capability, prepared.ActionType), out Queue<string>? values);
+            actions.Add(new PatientAgentAction(Guid.NewGuid().ToString("N"), prepared.Capability, prepared.ActionType,
+                PatientAgentActionStatus.Proposed, prepared.ReviewDataJson,
+                values is { Count: > 0 } ? values.Dequeue() : string.Empty));
         }
-
-        return element.ValueKind == JsonValueKind.Array && element.EnumerateArray().Any(ContainsPatientId);
+        return new PatientAgentResult(workspace.ExecutionContext.ExecutionId, conversationId, messages, actions);
     }
 }

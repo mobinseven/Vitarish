@@ -8,16 +8,15 @@ namespace Vitarish.Clinic.Application.PatientAgent.Capabilities.Prescriptions;
 public sealed class PrescriptionAgentCapability(
     SearchPrescriptionTemplatesTool search,
     GetPrescriptionTemplateRequirementsTool requirements,
-    PreparePrescriptionTool prepare,
-    ConfirmPrescriptionTool confirm) : PatientAgentCapability([search, requirements, prepare, confirm])
+    PreparePrescriptionTool prepare) : PatientAgentCapability([search, requirements, prepare], ["create_prescription"])
 {
     public override string Name => "Prescriptions";
-    public override string Description => "Prepare a Medical-owned prescription draft from a clinician-selected template and insurance coverage, then submit only after full review and explicit clinician confirmation.";
+    public override string Description => "Prepare a Medical-owned prescription draft from a clinician-selected template and insurance coverage for later explicit confirmation.";
     public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>(StringComparer.Ordinal) { "Prescriptions.Read", "Prescriptions.Create" };
     public override string GetInstructions() =>
         "Never diagnose or choose/infer medication, dosage, frequency, route, duration, instructions, coverage, contraindications, or eligibility. " +
         "Search the named template, obtain requirements, and ask the clinician for every missing material field. Coverage must be explicitly named. " +
-        "Prepare and show the entire returned draft. Call confirm_prescription only after explicit clinician confirmation using its reviewId.";
+        "Prepare and show the entire returned draft; do not submit it.";
 }
 
 public abstract class PrescriptionTool(IPrescriptionAgentCapability capability) : IPrescriptionsPatientAgentTool

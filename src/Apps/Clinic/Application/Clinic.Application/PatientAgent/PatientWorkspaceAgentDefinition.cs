@@ -6,6 +6,7 @@ public sealed record PatientWorkspaceAgentDefinition(
     AgentDefinition Definition,
     IReadOnlyCollection<IAgentTool> Tools,
     IReadOnlyDictionary<string, IReadOnlySet<string>> EnabledActions,
+    PatientAgentExecutionCollector ExecutionCollector,
     AgentExecutionContext ExecutionContext,
     AgentExecutionLimits Limits)
 {

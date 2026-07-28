@@ -21,7 +21,7 @@ public interface IClinicalEventsPatientAgentTool : IAgentTool;
 
 public sealed class AppointmentsPatientAgentCapability(
     IEnumerable<IAppointmentsPatientAgentTool> tools,
-    IReadOnlyCollection<string>? actionTypes = null) : PatientAgentCapability([.. tools], actionTypes)
+    IReadOnlyCollection<string>? actionTypes = null) : PatientAgentCapability([.. tools], actionTypes ?? ["create_appointment"])
 {
     public override string Name => "Appointments";
     public override string Description => "Review and prepare patient appointment operations.";
@@ -30,7 +30,7 @@ public sealed class AppointmentsPatientAgentCapability(
 
 public sealed class PrescriptionsPatientAgentCapability(
     IEnumerable<IPrescriptionsPatientAgentTool> tools,
-    IReadOnlyCollection<string>? actionTypes = null) : PatientAgentCapability([.. tools], actionTypes)
+    IReadOnlyCollection<string>? actionTypes = null) : PatientAgentCapability([.. tools], actionTypes ?? ["create_prescription"])
 {
     public override string Name => "Prescriptions";
     public override string Description => "Review and prepare patient prescription operations.";
@@ -39,7 +39,7 @@ public sealed class PrescriptionsPatientAgentCapability(
 
 public sealed class ClinicalEventsPatientAgentCapability(
     IEnumerable<IClinicalEventsPatientAgentTool> tools,
-    IReadOnlyCollection<string>? actionTypes = null) : PatientAgentCapability([.. tools], actionTypes)
+    IReadOnlyCollection<string>? actionTypes = null) : PatientAgentCapability([.. tools], actionTypes ?? ["add_clinical_event"])
 {
     public override string Name => "ClinicalEvents";
     public override string Description => "Review patient clinical events.";
