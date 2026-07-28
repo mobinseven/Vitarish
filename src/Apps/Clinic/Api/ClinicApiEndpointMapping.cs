@@ -8,6 +8,7 @@ using Vitarish.Clinic.Application.Commands.Visits;
 using Vitarish.Clinic.Application.Queries.Patients;
 using Vitarish.Clinic.Application.Results;
 using Vitarish.Clinic.Application.PatientAgent;
+using Vitarish.Clinic.Application.PatientAgent.Actions;
 using Vitarish.Clinic.Contracts.Errors;
 using Vitarish.Clinic.Contracts.PatientAgent;
 using Vitarish.Clinic.Contracts.Responses;
@@ -46,6 +47,9 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModulePut(ClinicApiRoutes.PatientUpdate, UpdatePatientAsync, "ClinicUpdatePatient", typeof(PatientViewDto))
             .RequireAuthorization(SeaManagePolicy);
         _ = group.MapModulePost(ClinicApiRoutes.PatientAgent, RunPatientAgentAsync, "ClinicRunPatientAgent", typeof(RunPatientAgentResponse));
+        _ = group.MapModuleGet(ClinicApiRoutes.PatientAgentAction, GetPatientAgentActionAsync, "ClinicGetPatientAgentAction", typeof(PatientAgentActionDetailsResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.ConfirmPatientAgentAction, ConfirmPatientAgentActionAsync, "ClinicConfirmPatientAgentAction", typeof(ConfirmPatientAgentActionResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.RejectPatientAgentAction, RejectPatientAgentActionAsync, "ClinicRejectPatientAgentAction", typeof(RejectPatientAgentActionResponse));
         _ = group.MapModulePost(
                 ClinicApiRoutes.StartVisitPrescriptionDraft,
                 StartVisitPrescriptionDraftAsync,
@@ -55,6 +59,72 @@ public static class ClinicApiEndpointMapping
 
         return endpoints;
     }
+
+    private static async Task<IResult> GetPatientAgentActionAsync(
+        Guid patientId, Guid actionId, [FromServices] IPatientAgentContextFactory contextFactory,
+        ISender sender, CancellationToken ct)
+    {
+        if (patientId == Guid.Empty || actionId == Guid.Empty) return InvalidActionRequest();
+        PatientAgentContext context = await contextFactory.CreateAsync(patientId, null, ct);
+        PatientAgentActionResult result = await sender.Send(new GetPatientAgentAction(actionId, context), ct);
+        return MapActionResult(result, action => Results.Ok(ToDetails(action)));
+    }
+
+    private static async Task<IResult> ConfirmPatientAgentActionAsync(
+        Guid patientId, Guid actionId, ConfirmPatientAgentActionRequest request,
+        [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
+    {
+        if (patientId == Guid.Empty || actionId == Guid.Empty || request is null ||
+            !Guid.TryParse(request.ActionId, out Guid bodyActionId) || bodyActionId != actionId)
+            return InvalidActionRequest();
+        PatientAgentContext context = await contextFactory.CreateAsync(patientId, null, ct);
+        PatientAgentActionResult result = await sender.Send(new ConfirmPatientAgentAction(actionId, context), ct);
+        return MapActionResult(result, action => Results.Ok(new ConfirmPatientAgentActionResponse(
+            action.ActionId, ToContract(action.Status), Json(action.CompletionPayload), ToFailure(action.Failure))));
+    }
+
+    private static async Task<IResult> RejectPatientAgentActionAsync(
+        Guid patientId, Guid actionId, RejectPatientAgentActionRequest request,
+        [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
+    {
+        if (patientId == Guid.Empty || actionId == Guid.Empty || request is null ||
+            !Guid.TryParse(request.ActionId, out Guid bodyActionId) || bodyActionId != actionId)
+            return InvalidActionRequest();
+        PatientAgentContext context = await contextFactory.CreateAsync(patientId, null, ct);
+        PatientAgentActionResult result = await sender.Send(new RejectPatientAgentAction(actionId, context, request.Reason), ct);
+        return MapActionResult(result, action => Results.Ok(new RejectPatientAgentActionResponse(
+            action.ActionId, ToContract(action.Status))));
+    }
+
+    private static IResult MapActionResult(PatientAgentActionResult result, Func<PatientAgentAction, IResult> success) =>
+        result.Outcome switch
+        {
+            PatientAgentActionOutcome.Succeeded when result.Action is not null => success(result.Action),
+            PatientAgentActionOutcome.NotFound => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent action was not found.")),
+            PatientAgentActionOutcome.ScopeMismatch => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent action was not found.")),
+            PatientAgentActionOutcome.PermissionDenied => Results.Json(new ClinicError(ClinicErrorCode.Forbidden, "The action is not permitted."), statusCode: StatusCodes.Status403Forbidden),
+            PatientAgentActionOutcome.Expired => Results.Conflict(ToDetails(result.Action!)),
+            PatientAgentActionOutcome.Conflict => Results.Conflict(result.Action is null ? new ClinicError(ClinicErrorCode.Conflict, "The action cannot be changed.") : ToDetails(result.Action)),
+            PatientAgentActionOutcome.Failed => Results.Json(ToDetails(result.Action!), statusCode: StatusCodes.Status422UnprocessableEntity),
+            _ => Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The action operation failed."), statusCode: StatusCodes.Status500InternalServerError)
+        };
+
+    private static PatientAgentActionDetailsResponse ToDetails(PatientAgentAction action) => new(
+        action.ActionId, action.AgentRunId, action.ConversationId, action.Capability, action.ActionType,
+        ToContract(action.Status), Json(action.ReviewPayload)!.Value, action.ExpiresAt,
+        Json(action.CompletionPayload), ToFailure(action.Failure));
+
+    private static Contracts.PatientAgent.PatientAgentActionStatus ToContract(Application.PatientAgent.PatientAgentActionStatus status) =>
+        (Contracts.PatientAgent.PatientAgentActionStatus)(int)status;
+
+    private static PatientAgentActionFailureResponse? ToFailure(PatientAgentActionFailure? failure) =>
+        failure is null ? null : new(failure.Code, failure.Message, failure.Retryable);
+
+    private static System.Text.Json.JsonElement? Json(string? value) => string.IsNullOrWhiteSpace(value)
+        ? null : System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(value);
+
+    private static IResult InvalidActionRequest() => Results.BadRequest(
+        new ClinicError(ClinicErrorCode.ValidationFailure, "Route patient id and matching action id are required."));
 
     private static async Task<IResult> RunPatientAgentAsync(
         Guid patientId,
@@ -77,11 +147,11 @@ public static class ClinicApiEndpointMapping
                 (PatientAgentMessageResponseKind)(int)message.Kind,
                 message.Content)).ToArray(),
             result.Actions.Select(action => new PatientAgentActionResponse(
-                action.Id,
+                action.ActionId.ToString("D"),
                 action.Capability,
                 action.ActionType,
                 (PatientAgentActionResponseStatus)(int)action.Status,
-                System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(action.ArgumentsJson),
+                System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(action.ReviewPayload),
                 action.Summary)).ToArray()));
     }
 

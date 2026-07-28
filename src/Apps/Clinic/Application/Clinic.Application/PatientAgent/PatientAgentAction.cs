@@ -3,13 +3,43 @@ namespace Vitarish.Clinic.Application.PatientAgent;
 public enum PatientAgentActionStatus
 {
     Proposed,
-    Completed
+    Confirming,
+    Completed,
+    Rejected,
+    Expired,
+    Failed
 }
 
 public sealed record PatientAgentAction(
-    string Id,
+    Guid ActionId,
+    string AgentRunId,
+    string ConversationId,
+    Guid PatientId,
+    string PracticeId,
+    string RequestedByUserId,
     string Capability,
     string ActionType,
+    Guid OwningProposalId,
+    string ReviewPayload,
     PatientAgentActionStatus Status,
-    string ArgumentsJson,
-    string Summary);
+    DateTimeOffset PreparedAt,
+    DateTimeOffset ExpiresAt,
+    DateTimeOffset? ConfirmedAt = null,
+    string? ConfirmedByUserId = null,
+    DateTimeOffset? RejectedAt = null,
+    string? RejectionReason = null,
+    PatientAgentActionFailure? Failure = null,
+    string? CompletionPayload = null,
+    string Summary = "")
+{
+    [Obsolete("Use ActionId.")]
+    public string Id => ActionId.ToString("D");
+
+    [Obsolete("Use ReviewPayload.")]
+    public string ArgumentsJson => ReviewPayload;
+}
+
+public sealed record PatientAgentActionFailure(
+    string Code,
+    string Message,
+    bool Retryable);
