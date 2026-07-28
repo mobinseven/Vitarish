@@ -10,19 +10,28 @@ public sealed class PatientAgentToolDispatcher(PatientAgentApprovalPolicy approv
         PatientAgentContext context,
         AgentExecutionContext executionContext,
         IReadOnlyCollection<IPatientAgentCapability> capabilities) =>
-        capabilities.SelectMany(capability => capability.Tools)
-            .Select(tool => (IAgentTool)new GuardedTool(tool, context, executionContext.ExecutionId, approvalPolicy))
+        CreateTools(context, executionContext, capabilities, new PatientAgentExecutionCollector());
+
+    public IReadOnlyCollection<IAgentTool> CreateTools(
+        PatientAgentContext context,
+        AgentExecutionContext executionContext,
+        IReadOnlyCollection<IPatientAgentCapability> capabilities,
+        PatientAgentExecutionCollector collector) =>
+        capabilities.SelectMany(capability => capability.Tools.Select(tool => (capability.Name, Tool: tool)))
+            .Select(item => (IAgentTool)new GuardedTool(item.Tool, item.Name, context, executionContext.ExecutionId, approvalPolicy, collector))
             .ToArray();
 
     private sealed class GuardedTool(
         IAgentTool handler,
+        string capability,
         PatientAgentContext trustedContext,
         string agentRunId,
-        PatientAgentApprovalPolicy approvalPolicy) : IAgentTool
+        PatientAgentApprovalPolicy approvalPolicy,
+        PatientAgentExecutionCollector collector) : IAgentTool
     {
         public AgentToolDefinition Definition => handler.Definition;
 
-        public Task<AgentToolResult> ExecuteAsync(
+        public async Task<AgentToolResult> ExecuteAsync(
             AgentToolCall call,
             AgentExecutionContext context,
             CancellationToken cancellationToken = default)
@@ -43,7 +52,9 @@ public sealed class PatientAgentToolDispatcher(PatientAgentApprovalPolicy approv
             }
 
             ValidateArguments(call.ArgumentsJson, Definition.ParametersJsonSchema);
-            return handler.ExecuteAsync(call, context, cancellationToken);
+            AgentToolResult result = await handler.ExecuteAsync(call, context, cancellationToken);
+            collector.Record(capability, handler, call, context, result);
+            return result;
         }
 
         private static bool IsCorrelated(AgentExecutionContext execution, PatientAgentContext trusted, string expectedRunId) =>

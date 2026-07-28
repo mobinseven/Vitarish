@@ -43,7 +43,8 @@ public sealed class PatientWorkspaceAgentDefinitionFactory(
             metadata["patientNationalId"] = context.PatientNationalId;
         }
         AgentExecutionContext executionContext = new(Guid.NewGuid().ToString("N"), metadata);
-        IReadOnlyCollection<IAgentTool> tools = toolDispatcher.CreateTools(context, executionContext, enabled);
+        PatientAgentExecutionCollector collector = new();
+        IReadOnlyCollection<IAgentTool> tools = toolDispatcher.CreateTools(context, executionContext, enabled, collector);
 
         return new PatientWorkspaceAgentDefinition(
             new AgentDefinition(
@@ -52,6 +53,7 @@ public sealed class PatientWorkspaceAgentDefinitionFactory(
                 new AgentResultDefinition("patient_workspace_result", PatientWorkspaceAgentDefinition.ResultSchema)),
             tools,
             enabledActions,
+            collector,
             executionContext,
             new AgentExecutionLimits());
     }

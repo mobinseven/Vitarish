@@ -7,16 +7,14 @@ namespace Vitarish.Clinic.Application.PatientAgent.Capabilities.Appointments;
 
 public sealed class AppointmentAgentCapability(
     CheckAppointmentAvailabilityTool check,
-    PrepareAppointmentTool prepare,
-    ConfirmAppointmentTool confirm) : PatientAgentCapability([check, prepare, confirm])
+    PrepareAppointmentTool prepare) : PatientAgentCapability([check, prepare], ["create_appointment"])
 {
     public override string Name => "Appointments";
-    public override string Description => "Check appointment availability, prepare an exact proposal for review, and confirm it only after explicit patient-scoped approval.";
+    public override string Description => "Check appointment availability and prepare an exact proposal for later explicit confirmation.";
     public override IReadOnlySet<string> RequiredPermissions { get; } =
         new HashSet<string>(StringComparer.Ordinal) { "Appointments.Read", "Appointments.Create" };
     public override string GetInstructions() =>
-        "Ask for a local date and time, duration, and appointment type or service. Prepare and show the exact proposal. " +
-        "Call confirm_appointment only after explicit confirmation; confirmation accepts only the immutable proposal id.";
+        "Ask for a local date and time, duration, and appointment type or service. Prepare and show the exact proposal; do not commit it.";
 }
 
 public abstract class AppointmentTool(IPatientAppointmentAgentCapability capability) : IAppointmentsPatientAgentTool
@@ -65,13 +63,21 @@ public sealed class CheckAppointmentAvailabilityTool(IPatientAppointmentAgentCap
     }
 }
 
-public sealed class PrepareAppointmentTool(IPatientAppointmentAgentCapability capability) : AppointmentTool(capability)
+public sealed class PrepareAppointmentTool(IPatientAppointmentAgentCapability capability) : AppointmentTool(capability), IPatientAgentPreparationTool
 {
     public override AgentToolDefinition Definition { get; } = new("prepare_appointment", "Prepare an immutable appointment proposal for explicit review; this does not book.", RequestSchema);
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument args = JsonDocument.Parse(call.ArgumentsJson);
         return Result(call, await Capability.PrepareAsync(Request(args.RootElement, context), cancellationToken));
+    }
+
+    public PatientAgentPreparedAction? GetPreparedAction(AgentToolResult result)
+    {
+        AppointmentProposalResult? preparation = JsonSerializer.Deserialize<AppointmentProposalResult>(result.Output);
+        return preparation is { Status: AppointmentProposalResultStatus.Prepared, Proposal: { } proposal }
+            ? new("Appointments", "create_appointment", proposal.Id, JsonSerializer.Serialize(proposal), proposal.ExpiresAt)
+            : null;
     }
 }
 
