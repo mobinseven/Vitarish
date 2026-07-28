@@ -56,12 +56,27 @@ public sealed class PrescriptionAgentWorkflowTests
         Mock<ISender> sender = new();
         var requirements = new GetPrescriptionTemplateRequirements(sender.Object);
         var prepare = new PreparePrescriptionDraftFromTemplate(sender.Object, requirements, new InMemoryPrescriptionAgentReviewStore());
-        var scope = new PrescriptionAgentScope("tenant", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "clinician");
+        var scope = new PrescriptionAgentScope("tenant", Guid.NewGuid(), "national-id", Guid.NewGuid(), Guid.NewGuid(), "clinician");
         var provenance = new PrescriptionAgentProvenance("AgentAssisted", "run", "tool", "clinician", null, "version");
 
         PrescriptionDraftPreparationResult result = await prepare.ExecuteAsync(Guid.NewGuid(), null, scope, provenance, default);
 
         result.Status.Should().Be(PrescriptionDraftPreparationStatus.MissingInsuranceCoverage);
+        sender.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Prepare_rejects_missing_authoritative_patient_insurance_identity()
+    {
+        Mock<ISender> sender = new();
+        var prepare = new PreparePrescriptionDraftFromTemplate(sender.Object, new GetPrescriptionTemplateRequirements(sender.Object), new InMemoryPrescriptionAgentReviewStore());
+        var scope = new PrescriptionAgentScope("tenant", Guid.NewGuid(), null, Guid.NewGuid(), Guid.NewGuid(), "clinician");
+        var provenance = new PrescriptionAgentProvenance("AgentAssisted", "run", "tool", "clinician", null, "version");
+
+        PrescriptionDraftPreparationResult result = await prepare.ExecuteAsync(Guid.NewGuid(), "named-coverage", scope, provenance, default);
+
+        result.Status.Should().Be(PrescriptionDraftPreparationStatus.MissingInformation);
+        result.MissingFields.Should().ContainSingle("patient insurance identifier");
         sender.VerifyNoOtherCalls();
     }
 

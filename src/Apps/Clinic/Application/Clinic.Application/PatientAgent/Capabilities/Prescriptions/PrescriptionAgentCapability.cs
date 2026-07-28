@@ -36,7 +36,8 @@ public abstract class PrescriptionTool(IPrescriptionAgentCapability capability) 
         Guid clinicId = Guid.TryParse(practiceId, out Guid parsedClinic) ? parsedClinic : throw new InvalidOperationException("The trusted practice id is not a clinic identifier.");
         string userId = RequiredMetadata(context, "authenticatedUserId");
         Guid doctorId = Guid.TryParse(userId, out Guid parsedDoctor) ? parsedDoctor : throw new InvalidOperationException("The authenticated clinician id is invalid.");
-        return new(practiceId, patientId, doctorId, clinicId, userId);
+        string? patientNationalId = context.Metadata is not null && context.Metadata.TryGetValue("patientNationalId", out string? nationalId) ? nationalId : null;
+        return new(practiceId, patientId, patientNationalId, doctorId, clinicId, userId);
     }
 }
 

@@ -7,13 +7,13 @@ using Vitarish.Medical.Domain.Enums.Prescriptions;
 
 namespace Vitarish.Medical.Application.AgentCapabilities.Prescriptions;
 
-public sealed record PrescriptionAgentScope(string TenantId, Guid PatientId, Guid DoctorId, Guid ClinicId, string RequestedByUserId);
+public sealed record PrescriptionAgentScope(string TenantId, Guid PatientId, string? PatientNationalId, Guid DoctorId, Guid ClinicId, string RequestedByUserId);
 public sealed record PrescriptionAgentProvenance(string Origin, string AgentRunId, string ToolInvocationId, string RequestedByUserId, string? ConfirmedByUserId, string TemplateVersion);
 public sealed record PrescriptionTemplateMatch(Guid Id, string Name, string? Description, string TemplateVersion);
 public enum PrescriptionTemplateSearchStatus { ExactMatch, Ambiguous, NotFound }
 public sealed record PrescriptionTemplateSearchResult(PrescriptionTemplateSearchStatus Status, IReadOnlyList<PrescriptionTemplateMatch> Matches);
 public sealed record PrescriptionTemplateRequirements(Guid TemplateId, string Name, string TemplateVersion, IReadOnlyList<PrescriptionTemplateItemDto> Items, IReadOnlyList<string> MissingFields);
-public enum PrescriptionDraftPreparationStatus { Prepared, MissingInformation, MissingInsuranceCoverage, InvalidTemplate, Failed }
+public enum PrescriptionDraftPreparationStatus { Prepared, MissingInformation, MissingInsuranceCoverage, Ineligible, InvalidTemplate, Failed }
 public sealed record PrescriptionDraftReview(Guid ReviewId, Guid PrescriptionId, Guid TemplateId, string TemplateVersion, string InsuranceCoverage, IReadOnlyList<PrescriptionItemDto> Items, PrescriptionAgentProvenance Provenance);
 public sealed record PrescriptionDraftPreparationResult(PrescriptionDraftPreparationStatus Status, PrescriptionDraftReview? Review = null, IReadOnlyList<string>? MissingFields = null, string? Message = null);
 public enum PrescriptionConfirmationStatus { Submitted, AlreadyConfirmed, ExpiredOrChangedTemplate, NotFound, Forbidden, InvalidDraft, SubmissionFailed }
@@ -24,6 +24,7 @@ public interface IPrescriptionAgentReviewStore
     Task<PrescriptionDraftReview?> GetAsync(Guid reviewId, CancellationToken cancellationToken);
     Task SaveAsync(PrescriptionDraftReview review, CancellationToken cancellationToken);
     Task<PrescriptionConfirmationResult?> GetConfirmationAsync(Guid reviewId, CancellationToken cancellationToken);
+    Task<bool> TryBeginConfirmationAsync(Guid reviewId, CancellationToken cancellationToken);
     Task SaveConfirmationAsync(Guid reviewId, PrescriptionConfirmationResult result, CancellationToken cancellationToken);
 }
 
@@ -75,16 +76,23 @@ public sealed class PreparePrescriptionDraftFromTemplate(ISender sender, GetPres
     public async Task<PrescriptionDraftPreparationResult> ExecuteAsync(Guid templateId, string? insuranceCoverage, PrescriptionAgentScope scope, PrescriptionAgentProvenance provenance, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(insuranceCoverage)) return new(PrescriptionDraftPreparationStatus.MissingInsuranceCoverage, Message: "The clinician must explicitly name insurance coverage.");
+        if (string.IsNullOrWhiteSpace(scope.PatientNationalId)) return new(PrescriptionDraftPreparationStatus.MissingInformation, MissingFields: ["patient insurance identifier"], Message: "Authoritative patient insurance identity is required; do not infer it.");
         PrescriptionTemplateRequirements? template = await requirements.ExecuteAsync(templateId, scope.TenantId, cancellationToken);
         if (template is null || !string.Equals(template.TemplateVersion, provenance.TemplateVersion, StringComparison.Ordinal)) return new(PrescriptionDraftPreparationStatus.InvalidTemplate, Message: "The template is inactive, missing, or changed.");
         if (template.MissingFields.Count > 0) return new(PrescriptionDraftPreparationStatus.MissingInformation, MissingFields: template.MissingFields, Message: "Material prescription information is missing; ask the clinician rather than infer it.");
-        CreateDraftResult created = await sender.Send(new CreateDraftCommand { PatientId = scope.PatientId, DoctorId = scope.DoctorId, ClinicId = scope.ClinicId, TenantId = scope.TenantId, SelectedProviderKey = insuranceCoverage.Trim() }, cancellationToken);
+        string providerKey = insuranceCoverage.Trim();
+        EligibilityResultDto eligibility = await sender.Send(new GetEligibilityQuery { PatientNationalId = scope.PatientNationalId, ProviderKey = providerKey, DoctorId = scope.DoctorId, ClinicId = scope.ClinicId }, cancellationToken);
+        if (!eligibility.IsSuccess || eligibility.Status != EligibilityStatus.Eligible)
+            return new(PrescriptionDraftPreparationStatus.Ineligible, Message: eligibility.ErrorMessage ?? "Medical could not confirm eligibility for the explicitly selected coverage.");
+        CreateDraftResult created = await sender.Send(new CreateDraftCommand { PatientId = scope.PatientId, PatientNationalId = scope.PatientNationalId, DoctorId = scope.DoctorId, ClinicId = scope.ClinicId, TenantId = scope.TenantId, SelectedProviderKey = providerKey }, cancellationToken);
         if (!created.IsSuccess || created.PrescriptionId is not Guid prescriptionId) return new(PrescriptionDraftPreparationStatus.Failed, Message: created.ErrorMessage);
+        RecordEligibilityResult recorded = await sender.Send(new RecordEligibilityCommand { PrescriptionId = prescriptionId, Status = eligibility.Status, TrackingCode = eligibility.TrackingCode }, cancellationToken);
+        if (!recorded.IsSuccess) return new(PrescriptionDraftPreparationStatus.Failed, Message: recorded.ErrorMessage);
         PrescriptionTemplateCommandResult loaded = await sender.Send(new LoadPrescriptionTemplateIntoDraftCommand { TemplateId = templateId, PrescriptionId = prescriptionId, TenantId = scope.TenantId }, cancellationToken);
         if (!loaded.IsSuccess) return new(PrescriptionDraftPreparationStatus.Failed, Message: loaded.ErrorMessage);
         PrescriptionDto? draft = await sender.Send(new GetPrescriptionQuery { PrescriptionId = prescriptionId }, cancellationToken);
         if (draft is null || draft.PatientId != scope.PatientId) return new(PrescriptionDraftPreparationStatus.Failed, Message: "The prepared Medical draft could not be reviewed.");
-        PrescriptionDraftReview review = new(Guid.NewGuid(), prescriptionId, templateId, template.TemplateVersion, insuranceCoverage.Trim(), draft.Items, provenance);
+        PrescriptionDraftReview review = new(Guid.NewGuid(), prescriptionId, templateId, template.TemplateVersion, providerKey, draft.Items, provenance);
         await store.SaveAsync(review, cancellationToken);
         return new(PrescriptionDraftPreparationStatus.Prepared, review);
     }
@@ -103,10 +111,17 @@ public sealed class ConfirmPrescriptionDraft(ISender sender, GetPrescriptionTemp
         if (draft is null || draft.PatientId != scope.PatientId || draft.DoctorId != scope.DoctorId || draft.ClinicId != scope.ClinicId) return new(PrescriptionConfirmationStatus.Forbidden);
         PrescriptionTemplateRequirements? current = await requirements.ExecuteAsync(review.TemplateId, scope.TenantId, cancellationToken);
         if (current is null || current.TemplateVersion != review.TemplateVersion) return new(PrescriptionConfirmationStatus.ExpiredOrChangedTemplate, review.PrescriptionId);
+        if (!await store.TryBeginConfirmationAsync(reviewId, cancellationToken))
+            return new(PrescriptionConfirmationStatus.AlreadyConfirmed, review.PrescriptionId, Message: "Confirmation is already in progress or complete.");
         review = review with { Provenance = review.Provenance with { ConfirmedByUserId = confirmedByUserId } };
         await store.SaveAsync(review, cancellationToken);
         ValidateDraftResult validation = await sender.Send(new ValidateDraftCommand { PrescriptionId = review.PrescriptionId }, cancellationToken);
-        if (!validation.IsValid) return new(PrescriptionConfirmationStatus.InvalidDraft, review.PrescriptionId, Message: string.Join(" ", validation.Errors));
+        if (!validation.IsValid)
+        {
+            PrescriptionConfirmationResult invalid = new(PrescriptionConfirmationStatus.InvalidDraft, review.PrescriptionId, Message: string.Join(" ", validation.Errors));
+            await store.SaveConfirmationAsync(reviewId, invalid, cancellationToken);
+            return invalid;
+        }
         SubmitPrescriptionResult submitted = await sender.Send(new SubmitPrescriptionCommand { PrescriptionId = review.PrescriptionId, CorrelationId = $"agent:{review.Provenance.AgentRunId}:{review.Provenance.ToolInvocationId}" }, cancellationToken);
         PrescriptionConfirmationResult result = submitted.IsSuccess
             ? new(PrescriptionConfirmationStatus.Submitted, review.PrescriptionId, submitted.ResultStatus, submitted.TrackingCode)
