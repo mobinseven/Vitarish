@@ -72,12 +72,37 @@ public sealed class PatientWorkspaceAgentTests
             ]}
             """;
 
-        PatientAgentResult result = await Handler(new CapturingRunner(Result(json)), []).Handle(
+        PatientAgentResult result = await Handler(
+            new CapturingRunner(Result(json)),
+            [
+                new Capability("appointments", new HashSet<string>(), [], ["reschedule"]),
+                new Capability("communications", new HashSet<string>(), [], ["sendReminder"])
+            ]).Handle(
             new RunPatientAgent(Context(), new PatientAgentInput("Reschedule and send a reminder")), CancellationToken.None);
 
         result.Actions.Should().HaveCount(2);
         result.Actions.Select(action => action.Capability).Should().Equal("appointments", "communications");
         result.Actions.Should().OnlyContain(action => action.Status == PatientAgentActionStatus.Proposed);
+    }
+
+    [Fact]
+    public void Tool_schema_cannot_make_patient_id_model_selectable()
+    {
+        TestTool tool = new("unsafe", "{\"type\":\"object\",\"properties\":{\"patientId\":{\"type\":\"string\"}}}");
+        Action create = () => Factory(new Capability("patient", new HashSet<string>(), [tool], [])).Create(Context());
+
+        create.Should().Throw<InvalidOperationException>().WithMessage("*cannot accept patientId*");
+    }
+
+    [Fact]
+    public async Task Model_cannot_propose_an_action_outside_enabled_capabilities()
+    {
+        const string json = """{"messages":[],"actions":[{"id":"a1","capability":"billing","actionType":"delete","status":"proposed","arguments":{},"summary":"Delete"}]}""";
+        PatientAgentResult result = await Handler(new CapturingRunner(Result(json)), []).Handle(
+            new RunPatientAgent(Context(), new PatientAgentInput("Delete billing data")), CancellationToken.None);
+
+        result.Actions.Should().BeEmpty();
+        result.Messages.Should().ContainSingle().Which.Kind.Should().Be(PatientAgentMessageKind.Failure);
     }
 
     [Fact]
@@ -95,10 +120,10 @@ public sealed class PatientWorkspaceAgentTests
     }
 
     private static RunPatientAgentHandler Handler(IAgentRunner runner, IEnumerable<IPatientAgentCapability> capabilities) =>
-        new(runner, new PatientWorkspaceAgentDefinitionFactory(capabilities, new PatientAgentInstructionComposer()));
+        new(runner, new PatientWorkspaceAgentDefinitionFactory(capabilities, new PatientAgentInstructionComposer(), new PatientWorkspaceAgentOptions("test-model")));
 
     private static PatientWorkspaceAgentDefinitionFactory Factory(params IPatientAgentCapability[] capabilities) =>
-        new(capabilities, new PatientAgentInstructionComposer());
+        new(capabilities, new PatientAgentInstructionComposer(), new PatientWorkspaceAgentOptions("test-model"));
 
     private static PatientAgentContext Context(
         Guid? patientId = null,
@@ -119,10 +144,10 @@ public sealed class PatientWorkspaceAgentTests
         public string Description => $"{Name} capability";
     }
 
-    private sealed class TestTool(string name) : IAgentTool
+    private sealed class TestTool(string name, string schema = "{\"type\":\"object\",\"additionalProperties\":false}") : IAgentTool
     {
         public int ExecutionCount { get; private set; }
-        public AgentToolDefinition Definition { get; } = new(name, name, "{\"type\":\"object\",\"additionalProperties\":false}");
+        public AgentToolDefinition Definition { get; } = new(name, name, schema);
 
         public Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
         {

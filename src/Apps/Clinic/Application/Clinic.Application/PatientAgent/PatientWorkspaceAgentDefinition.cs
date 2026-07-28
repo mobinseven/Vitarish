@@ -5,6 +5,7 @@ namespace Vitarish.Clinic.Application.PatientAgent;
 public sealed record PatientWorkspaceAgentDefinition(
     AgentDefinition Definition,
     IReadOnlyCollection<IAgentTool> Tools,
+    IReadOnlyDictionary<string, IReadOnlySet<string>> EnabledActions,
     AgentExecutionContext ExecutionContext,
     AgentExecutionLimits Limits)
 {
@@ -15,7 +16,7 @@ public sealed record PatientWorkspaceAgentDefinition(
           "required":["messages","actions"],
           "properties":{
             "messages":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["kind","content"],"properties":{"kind":{"type":"string","enum":["assistantMessage","informationalToolResult","missingInformationRequest","failure"]},"content":{"type":"string"}}}},
-            "actions":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","capability","actionType","status","arguments","summary"],"properties":{"id":{"type":"string"},"capability":{"type":"string"},"actionType":{"type":"string"},"status":{"type":"string","enum":["proposed","completed"]},"arguments":{"type":"object"},"summary":{"type":"string"}}}}
+            "actions":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","capability","actionType","status","arguments","summary"],"properties":{"id":{"type":"string"},"capability":{"type":"string"},"actionType":{"type":"string"},"status":{"type":"string","enum":["proposed"]},"arguments":{"type":"object"},"summary":{"type":"string"}}}}
           }
         }
         """;
