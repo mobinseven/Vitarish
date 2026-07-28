@@ -70,7 +70,7 @@ public static class MedicalApiEndpointMapping
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionEligibility, CheckPrescriptionEligibilityAsync, "MedicalCheckPrescriptionEligibility");
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionDraftValidation, ValidatePrescriptionDraftAsync, "MedicalValidatePrescriptionDraft", typeof(ValidationResultDto));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionSubmission, SubmitPrescriptionAsync, "MedicalSubmitPrescription", typeof(MedicalCommandResult));
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionEdit, EditPrescriptionAsync, "MedicalEditPrescription");
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionEdit, EditPrescriptionAsync, "MedicalEditPrescription", typeof(MedicalCommandResult));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionCancellation, CancelPrescriptionAsync, "MedicalCancelPrescription");
         _ = group.MapModulePost(MedicalApiRoutes.PaperFallback, StartPaperFallbackAsync, "MedicalStartPaperFallback");
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplates + "/list", ListPrescriptionTemplatesAsync, "MedicalListPrescriptionTemplates", typeof(IReadOnlyList<PrescriptionTemplateSummaryDto>));

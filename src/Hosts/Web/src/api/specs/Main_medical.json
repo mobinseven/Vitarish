@@ -5375,13 +5375,29 @@
       },
       "EditPrescriptionRequest": {
         "required": [
-          "prescriptionId"
+          "prescriptionId",
+          "expectedVersion",
+          "items"
         ],
         "type": "object",
         "properties": {
           "prescriptionId": {
             "type": "string",
             "format": "uuid"
+          },
+          "expectedVersion": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrescriptionEditItemRequest"
+            }
           },
           "idempotencyKey": {
             "type": [
@@ -6189,6 +6205,63 @@
           },
           "canRetry": {
             "type": "boolean"
+          }
+        }
+      },
+      "PrescriptionEditItemRequest": {
+        "required": [
+          "category",
+          "referenceCode",
+          "displayName",
+          "dosageJson",
+          "quantity",
+          "durationDays"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/MedicalPrescriptionItemCategory"
+          },
+          "referenceCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "displayName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "dosageJson": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "durationDays": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "metadataJson": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

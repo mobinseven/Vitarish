@@ -113,6 +113,68 @@ namespace Vitarish.Medical.Infrastructure.Migrations.PrescriptionDb
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
+            modelBuilder.Entity("Vitarish.Medical.Domain.Entities.Prescriptions.PrescriptionEditAudit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid>("PrescriptionRecordId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PreviousItemsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("PreviousVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ProposedItemsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PrescriptionRecordId")
+                        .HasDatabaseName("IX_PrescriptionEditAudit_PrescriptionId");
+
+                    b.ToTable("PrescriptionEditAudits", "Prescription");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
+
             modelBuilder.Entity("Vitarish.Medical.Domain.Entities.Prescriptions.PrescriptionEscalation", b =>
                 {
                     b.Property<Guid>("Id")
