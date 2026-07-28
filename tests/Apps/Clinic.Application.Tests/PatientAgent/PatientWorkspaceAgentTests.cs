@@ -1,6 +1,8 @@
 using System.Text.Json;
 using FluentAssertions;
 using Vitarish.Clinic.Application.PatientAgent;
+using Vitarish.Clinic.Application.PatientAgent.Capabilities;
+using Vitarish.Clinic.Application.PatientAgent.Policies;
 using Vitarish.Clinic.Contracts.PatientAgent;
 using Vitarish.Clinic.Contracts.Routes;
 using Vitarish.Intelligence.Application.Agents;
@@ -44,7 +46,7 @@ public sealed class PatientWorkspaceAgentTests
             new Capability("billing", new HashSet<string> { "Billing.Read" }, [deniedTool], ["prepareInvoice"]))
             .Create(Context(permissions: new HashSet<string> { "Patient.Read" }));
 
-        definition.Tools.Should().ContainSingle().Which.Should().BeSameAs(allowedTool);
+        definition.Tools.Should().ContainSingle().Which.Definition.Name.Should().Be(allowedTool.Definition.Name);
         definition.Definition.Instructions.Should().Contain("patient:").And.NotContain("billing:");
     }
 
@@ -95,6 +97,66 @@ public sealed class PatientWorkspaceAgentTests
     }
 
     [Fact]
+    public void Duplicate_tools_are_rejected_even_when_one_capability_is_disabled()
+    {
+        Action create = () => Registry(
+            [
+                new Capability("appointments", new HashSet<string>(), [new TestTool("duplicate")], []),
+                new Capability("prescriptions", new HashSet<string>(), [new TestTool("duplicate")], [])
+            ],
+            enabledCapabilities: new HashSet<string> { "appointments" });
+
+        create.Should().Throw<InvalidOperationException>().WithMessage("*stable and unique*");
+    }
+
+    [Fact]
+    public void Receptionist_and_clinician_permissions_produce_different_tool_sets_and_honor_configuration()
+    {
+        Capability appointments = new("appointments", new HashSet<string> { "Appointments.Read" }, [new TestTool("appointments_list")], []);
+        Capability prescriptions = new("prescriptions", new HashSet<string> { "Prescriptions.Read" }, [new TestTool("prescriptions_list")], []);
+        PatientAgentCapabilityRegistry registry = Registry([appointments, prescriptions], enabledCapabilities: new HashSet<string> { "appointments", "prescriptions" });
+
+        registry.GetAvailable(Context(role: "Receptionist", permissions: new HashSet<string> { "Appointments.Read" })).Select(item => item.Name)
+            .Should().Equal("appointments");
+        Registry([appointments, prescriptions], enabledCapabilities: new HashSet<string> { "appointments" })
+            .GetAvailable(Context(role: "Clinician", permissions: new HashSet<string> { "Appointments.Read", "Prescriptions.Read" }))
+            .Select(item => item.Name).Should().Equal("appointments");
+    }
+
+    [Fact]
+    public async Task Tool_dispatch_rejects_unknown_name_and_uncorrelated_run()
+    {
+        TestTool handler = new("appointments_list");
+        PatientAgentContext trusted = Context();
+        IAgentTool guarded = new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy())
+            .CreateTools(trusted, [new Capability("appointments", new HashSet<string>(), [handler], [])]).Single();
+
+        Func<Task> unknown = () => guarded.ExecuteAsync(new AgentToolCall("call-1", "other", "{}"), Execution(trusted));
+        Func<Task> uncorrelated = () => guarded.ExecuteAsync(new AgentToolCall("call-1", "appointments_list", "{}"), Execution(trusted) with { ExecutionId = "other-run" });
+
+        await unknown.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not registered*");
+        await uncorrelated.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not correlated*");
+        handler.ExecutionCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Tool_dispatch_validates_arguments_and_preserves_run_correlation()
+    {
+        TestTool handler = new("appointments_list", """{"type":"object","additionalProperties":false,"required":["range"],"properties":{"range":{"type":"string"}}}""");
+        PatientAgentContext trusted = Context();
+        IAgentTool guarded = new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy())
+            .CreateTools(trusted, [new Capability("appointments", new HashSet<string>(), [handler], [])]).Single();
+
+        Func<Task> invalid = () => guarded.ExecuteAsync(new AgentToolCall("call-1", "appointments_list", "{}"), Execution(trusted));
+        await invalid.Should().ThrowAsync<JsonException>().WithMessage("*required property*");
+
+        AgentToolResult result = await guarded.ExecuteAsync(
+            new AgentToolCall("call-2", "appointments_list", "{\"range\":\"future\"}"), Execution(trusted));
+        result.CallId.Should().Be("call-2");
+        handler.LastExecutionId.Should().Be(trusted.ConversationId);
+    }
+
+    [Fact]
     public async Task Model_cannot_propose_an_action_outside_enabled_capabilities()
     {
         const string json = """{"messages":[],"actions":[{"id":"a1","capability":"billing","actionType":"delete","status":"proposed","arguments":{},"summary":"Delete"}]}""";
@@ -120,17 +182,27 @@ public sealed class PatientWorkspaceAgentTests
     }
 
     private static RunPatientAgentHandler Handler(IAgentRunner runner, IEnumerable<IPatientAgentCapability> capabilities) =>
-        new(runner, new PatientWorkspaceAgentDefinitionFactory(capabilities, new PatientAgentInstructionComposer(), new PatientWorkspaceAgentOptions("test-model")));
+        new(runner, new PatientWorkspaceAgentDefinitionFactory(
+            Registry(capabilities),
+            new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy()),
+            new PatientAgentInstructionComposer(),
+            new PatientWorkspaceAgentOptions("test-model")));
 
     private static PatientWorkspaceAgentDefinitionFactory Factory(params IPatientAgentCapability[] capabilities) =>
-        new(capabilities, new PatientAgentInstructionComposer(), new PatientWorkspaceAgentOptions("test-model"));
+        new(Registry(capabilities), new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy()), new PatientAgentInstructionComposer(), new PatientWorkspaceAgentOptions("test-model"));
+
+    private static PatientAgentCapabilityRegistry Registry(
+        IEnumerable<IPatientAgentCapability> capabilities,
+        IReadOnlySet<string>? enabledCapabilities = null) =>
+        new(capabilities, new PatientAgentAuthorizationPolicy(), new PatientAgentToolAvailabilityPolicy(enabledCapabilities));
 
     private static PatientAgentContext Context(
         Guid? patientId = null,
         IReadOnlySet<string>? permissions = null,
+        string role = "Clinician",
         string locale = "en-US",
         string timeZone = "UTC") =>
-        new("practice-1", patientId ?? Guid.NewGuid(), "user-1", permissions ?? new HashSet<string>(), "Clinician", locale, timeZone, "conversation-1");
+        new("practice-1", patientId ?? Guid.NewGuid(), "user-1", permissions ?? new HashSet<string>(), role, locale, timeZone, "conversation-1");
 
     private static AgentRunResult Result(string json) =>
         new(true, null, JsonDocument.Parse(json).RootElement.Clone(), new AgentRunUsage(1, 1), TimeSpan.Zero, 1, 0);
@@ -142,19 +214,33 @@ public sealed class PatientWorkspaceAgentTests
         IReadOnlyCollection<string> ActionTypes) : IPatientAgentCapability
     {
         public string Description => $"{Name} capability";
+        public IReadOnlyCollection<IAgentTool> Tools => ContextTools;
+        public string GetInstructions() => $"Use {Name} tools only for this patient.";
+        public bool IsAvailable(PatientAgentContext context) => true;
     }
 
     private sealed class TestTool(string name, string schema = "{\"type\":\"object\",\"additionalProperties\":false}") : IAgentTool
     {
         public int ExecutionCount { get; private set; }
+        public string? LastExecutionId { get; private set; }
         public AgentToolDefinition Definition { get; } = new(name, name, schema);
 
         public Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
         {
             ExecutionCount++;
+            LastExecutionId = context.ExecutionId;
             return Task.FromResult(new AgentToolResult(call.Id, "{}"));
         }
     }
+
+    private static AgentExecutionContext Execution(PatientAgentContext context) => new(
+        context.ConversationId,
+        new Dictionary<string, string>
+        {
+            ["practiceId"] = context.PracticeId,
+            ["patientId"] = context.PatientId.ToString("D"),
+            ["authenticatedUserId"] = context.AuthenticatedUserId
+        });
 
     private sealed class CapturingRunner(AgentRunResult result) : IAgentRunner
     {
