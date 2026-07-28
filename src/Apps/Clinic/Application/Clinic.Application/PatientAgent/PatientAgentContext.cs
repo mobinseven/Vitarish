@@ -8,4 +8,5 @@ public sealed record PatientAgentContext(
     string Role,
     string Locale,
     string TimeZone,
-    string ConversationId);
+    string ConversationId,
+    string? PatientNationalId = null);

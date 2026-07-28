@@ -12,6 +12,7 @@
     <ProjectReference Include="..\..\..\src\Modules\Medical\Contracts\Medical.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Medical\Client\Medical.Client.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Medical\Infrastructure\Medical.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Medical\Interface\Medical.Interface.csproj" />
   </ItemGroup>
 
 </Project>

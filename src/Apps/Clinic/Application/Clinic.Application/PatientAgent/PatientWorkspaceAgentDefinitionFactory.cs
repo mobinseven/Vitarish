@@ -38,6 +38,10 @@ public sealed class PatientWorkspaceAgentDefinitionFactory(
             ["timeZone"] = context.TimeZone,
             ["conversationId"] = context.ConversationId
         };
+        if (!string.IsNullOrWhiteSpace(context.PatientNationalId))
+        {
+            metadata["patientNationalId"] = context.PatientNationalId;
+        }
         AgentExecutionContext executionContext = new(Guid.NewGuid().ToString("N"), metadata);
         IReadOnlyCollection<IAgentTool> tools = toolDispatcher.CreateTools(context, executionContext, enabled);
 

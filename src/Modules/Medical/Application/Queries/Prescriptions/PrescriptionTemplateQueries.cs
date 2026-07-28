@@ -24,6 +24,7 @@ public record PrescriptionTemplateSummaryDto
     public PrescriptionTemplateStatus Status { get; init; }
     public int ItemCount { get; init; }
     public DateTime CreatedAt { get; init; }
+    public DateTime? UpdatedAt { get; init; }
 }
 
 public sealed record PrescriptionTemplateDto : PrescriptionTemplateSummaryDto
