@@ -10,6 +10,7 @@
     <ProjectReference Include="..\Api\Appointments.Api.csproj" />
     <ProjectReference Include="..\Infrastructure\Appointments.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Appointments.Application.csproj" />
+    <ProjectReference Include="..\Interface\Appointments.Interface.csproj" />
     <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
