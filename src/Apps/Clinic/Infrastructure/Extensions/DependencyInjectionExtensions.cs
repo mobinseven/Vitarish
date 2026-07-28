@@ -19,6 +19,10 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
                 typeof(ClinicDbContext).Assembly,
                 typeof(FindOrCreatePatientHandler).Assembly));
             _ = services.AddTransient<IPatientDirectory, SeaPatientDirectory>();
+            _ = services.AddTransient<IClinicActorContext, RequestClinicActorContext>();
+            _ = services.AddTransient<IVisitsEventWriter, SeaVisitsEventWriter>();
+            _ = services.AddTransient<IPrescriptionDraftWriter, MedicalPrescriptionDraftWriter>();
+            _ = services.AddTransient<CreatePatientVisitsProcedureHandler>();
             _ = services.AddTransient<PatientViewQueryShape>();
             _ = services.AddTransient<PatientViewStatsLoader>();
             _ = services.AddSingleton<PatientAgentAuthorizationPolicy>();

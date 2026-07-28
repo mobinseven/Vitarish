@@ -22,8 +22,23 @@ public static class AppointmentsApiEndpointMapping
         _ = group.MapModuleGet("/health", (CancellationToken cancellationToken) => Results.Ok(new AppointmentsCommandResult(true)), "AppointmentsGetHealth", typeof(AppointmentsCommandResult));
 
         // Bookable dates/slots endpoints
-        _ = group.MapModulePost(AppointmentsApiRoutes.BookableDates, (BookableDateQueryRequest request, CancellationToken cancellationToken) => Results.Ok(Array.Empty<ShiftReservationReadDto>()), "AppointmentsListBookableDates", typeof(ShiftReservationReadDto[]));
-        _ = group.MapModulePost(AppointmentsApiRoutes.BookableSlots, (BookableSlotQueryRequest request, CancellationToken cancellationToken) => Results.Ok(Array.Empty<BookableShiftSlot>()), "AppointmentsListBookableSlots", typeof(BookableShiftSlot[]));
+        _ = group.MapModulePost(AppointmentsApiRoutes.BookableDates,
+            async (BookableDateQueryRequest request, IShiftBookableDateQueryService query, CancellationToken ct) =>
+                Results.Ok(await query.GetBookableDatesAsync(request.ShiftId, new Vitarish.Appointments.Domain.Models.ShiftDateRangeQuery
+                {
+                    DateFrom = request.From,
+                    DateTo = request.To
+                }, ct)),
+            "AppointmentsListBookableDates", typeof(ShiftReservationReadDto[]));
+
+        _ = group.MapModulePost(AppointmentsApiRoutes.BookableSlots,
+            async (BookableSlotQueryRequest request, IShiftBookableDateQueryService query, CancellationToken ct) =>
+                Results.Ok(await query.GetBookableSlotsAsync(new Vitarish.Appointments.Domain.Dto.ShiftDescriptorDto { Id = request.ShiftId }, new Vitarish.Appointments.Domain.Models.ShiftDateRangeQuery
+                {
+                    DateFrom = request.Date,
+                    DateTo = request.Date
+                }, ct)),
+            "AppointmentsListBookableSlots", typeof(BookableShiftSlot[]));
 
         // Reservations endpoints
         _ = group.MapModulePost(AppointmentsApiRoutes.Reservations,
@@ -52,7 +67,7 @@ public static class AppointmentsApiEndpointMapping
             "AppointmentsDeleteReservation", typeof(AppointmentsCommandResult));
 
         _ = group.MapModulePost(AppointmentsApiRoutes.ReservationStatus,
-            async (Guid id, UpdateReservationStatusRequest request, IReservationManager m, CancellationToken ct) =>
+            (Guid id, UpdateReservationStatusRequest request, IReservationManager m, CancellationToken ct) =>
                 CommandStatus(request.Status, id, m, ct),
             "AppointmentsReservationStatus", typeof(AppointmentsCommandResult));
 
@@ -88,7 +103,7 @@ public static class AppointmentsApiEndpointMapping
             "AppointmentsDeleteShift", typeof(AppointmentsCommandResult));
 
         _ = group.MapModulePost(AppointmentsApiRoutes.ShiftStatus,
-            async (Guid id, UpdateShiftStatusRequest request, IShiftManager m, CancellationToken ct) =>
+            (Guid id, UpdateShiftStatusRequest request, IShiftManager m, CancellationToken ct) =>
                 CommandShiftStatus(request.Status, id, m, ct),
             "AppointmentsShiftStatus", typeof(AppointmentsCommandResult));
 

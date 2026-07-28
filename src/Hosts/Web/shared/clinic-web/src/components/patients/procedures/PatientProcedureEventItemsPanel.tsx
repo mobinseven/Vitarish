@@ -1,7 +1,7 @@
 "use client";
 
-import { useId } from "react";
-import { Button } from "@heroui/react";
+import { useEffect, useId, useState } from "react";
+import { Button, Tooltip } from "@heroui/react";
 import { ChatConversation, EmptyState } from "@heroui-pro/react";
 import { FaIcon } from "@vitarish/web-ui";
 import { useDeletePatientProcedureEventItem } from "../../../hooks/patients/procedures/usePatientProcedureEventItemMutations";
@@ -13,40 +13,102 @@ import type {
 } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 import { PatientProcedureEventItemComposer } from "./PatientProcedureEventItemComposer";
 import { PatientProcedureEventItemMessage } from "./PatientProcedureEventItemMessage";
+import {
+  patientProcedureEventFeedPlugins,
+  type PatientProcedureEventContext,
+  type ProcedureEventPluginItem,
+} from "./eventFeedPlugins";
 
 interface PatientProcedureEventItemsPanelProps {
-  eventId: string;
+  context?: PatientProcedureEventContext;
+  /** Compatibility for existing SEA-only consumers. New feature surfaces pass context. */
+  eventId?: string;
   canWrite: boolean;
   viewer?: ProcedureEventViewer;
 }
 
-function groupItemsByCreator(items: EventItemSummary[]) {
-  const groups = new Map<string, EventItemSummary[]>();
+type FeedItem =
+  | { kind: "sea"; id: string; createdAt: string; payload: EventItemSummary }
+  | { kind: "plugin"; id: string; createdAt: string; payload: ProcedureEventPluginItem };
 
-  for (const item of items) {
-    // Entries without a creator ID must not be attributed to the same person.
-    const creatorKey = item.authorId ?? item.id;
-    const group = groups.get(creatorKey);
-    if (group) group.push(item);
-    else groups.set(creatorKey, [item]);
-  }
-
-  return [...groups.values()];
+export function mergeProcedureEventFeed(
+  seaItems: EventItemSummary[],
+  pluginItems: ProcedureEventPluginItem[],
+) {
+  return [
+    ...seaItems.map((payload): FeedItem => ({
+      kind: "sea",
+      id: `sea:${payload.id}`,
+      createdAt: payload.createdAt,
+      payload,
+    })),
+    ...pluginItems.map((payload): FeedItem => ({
+      kind: "plugin",
+      id: `${payload.pluginId}:${payload.id}`,
+      createdAt: payload.createdAt,
+      payload,
+    })),
+  ].sort(
+    (left, right) =>
+      left.createdAt.localeCompare(right.createdAt) ||
+      left.id.localeCompare(right.id),
+  );
 }
 
 export function PatientProcedureEventItemsPanel({
+  context,
   eventId,
   canWrite,
   viewer,
 }: PatientProcedureEventItemsPanelProps) {
   const { t } = useLocalizedText();
+  const eventContext = context ?? {
+    patientId: "",
+    procedureId: "",
+    eventId: eventId ?? "",
+  };
+  const [pluginItems, setPluginItems] = useState<ProcedureEventPluginItem[]>([]);
+  const [pluginState, setPluginState] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [pluginAttempt, setPluginAttempt] = useState(0);
   const headingId = useId();
-  const query = usePatientProcedureEventItems(eventId);
+  const query = usePatientProcedureEventItems(eventContext.eventId);
+  useEffect(() => {
+    if (!eventContext.patientId || !eventContext.procedureId) {
+      setPluginItems([]);
+      setPluginState("idle");
+      return;
+    }
+
+    const controller = new AbortController();
+    setPluginState("loading");
+    void Promise.all(
+      patientProcedureEventFeedPlugins.map((plugin) =>
+        plugin.load(eventContext, controller.signal),
+      ),
+    ).then(
+      (contributions) => {
+        if (controller.signal.aborted) return;
+        setPluginItems(contributions.flat());
+        setPluginState("success");
+      },
+      () => {
+        if (controller.signal.aborted) return;
+        setPluginState("error");
+      },
+    );
+    return () => controller.abort();
+  }, [
+    eventContext.eventId,
+    eventContext.patientId,
+    eventContext.procedureId,
+    pluginAttempt,
+  ]);
   const remove = useDeletePatientProcedureEventItem();
-  const items = [...(query.data ?? [])].sort((left, right) =>
-    left.createdAt.localeCompare(right.createdAt),
-  );
-  const itemGroups = groupItemsByCreator(items);
+  const feed = mergeProcedureEventFeed(query.data ?? [], pluginItems);
+  const isLoading = query.isLoading || pluginState === "loading";
+  const pluginFailed = pluginState === "error";
 
   return (
     <section
@@ -62,7 +124,7 @@ export function PatientProcedureEventItemsPanel({
           className="max-w-4xl flex-col gap-6 px-2 py-6 sm:px-4"
           role="feed"
         >
-          {query.isLoading ? (
+          {isLoading && feed.length === 0 ? (
             <p className="text-muted text-center text-sm">
               {t("common.states.loading")}
             </p>
@@ -74,15 +136,19 @@ export function PatientProcedureEventItemsPanel({
               <p className="text-danger m-0 text-sm">
                 {t("clinic.procedures.items.loadFailed")}
               </p>
-              <Button
-                size="sm"
-                variant="secondary"
-                onPress={() => void query.refetch()}
-              >
-                {t("common.actions.retry")}
-              </Button>
+              <Tooltip>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onPress={() => void query.refetch()}
+                >
+                  <FaIcon icon="arrow-rotate-right" aria-hidden="true" />
+                  {t("common.actions.retry")}
+                </Button>
+                <Tooltip.Content>{t("common.actions.retry")}</Tooltip.Content>
+              </Tooltip>
             </div>
-          ) : items.length === 0 ? (
+          ) : feed.length === 0 && !pluginFailed ? (
             <EmptyState size="sm">
               <EmptyState.Header>
                 <EmptyState.Media variant="icon">
@@ -94,20 +160,50 @@ export function PatientProcedureEventItemsPanel({
               </EmptyState.Header>
             </EmptyState>
           ) : (
-            itemGroups.map((group) =>
-              group.map((item, index) => (
+            feed.map((item, index) => {
+              if (item.kind === "plugin") {
+                const plugin = patientProcedureEventFeedPlugins.find(
+                  (candidate) => candidate.id === item.payload.pluginId,
+                );
+                if (!plugin) return null;
+                const Renderer = plugin.Renderer;
+                return <Renderer key={item.id} item={item.payload as never} />;
+              }
+              const previous = feed[index - 1];
+              const showAuthor =
+                previous?.kind !== "sea" ||
+                (previous.payload.authorId ?? previous.payload.id) !==
+                  (item.payload.authorId ?? item.payload.id);
+              return (
                 <PatientProcedureEventItemMessage
                   key={item.id}
                   canWrite={canWrite}
                   isDeleting={remove.isPending}
-                  item={item}
-                  showAuthor={index === 0}
+                  item={item.payload}
+                  showAuthor={showAuthor}
                   viewer={viewer}
-                  onDelete={() => remove.mutate(item.id)}
+                  onDelete={() => remove.mutate(item.payload.id)}
                 />
-              )),
-            )
+              );
+            })
           )}
+          {pluginFailed ? (
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-danger-soft p-3" role="alert">
+              <p className="text-sm">{t("clinic.prescriptionFeed.loadFailed")}</p>
+              <Tooltip>
+                <Button
+                  isIconOnly
+                  aria-label={t("clinic.prescriptionFeed.retry")}
+                  size="sm"
+                  variant="ghost"
+                  onPress={() => setPluginAttempt((attempt) => attempt + 1)}
+                >
+                  <FaIcon icon="arrow-rotate-right" aria-hidden="true" />
+                </Button>
+                <Tooltip.Content>{t("clinic.prescriptionFeed.retry")}</Tooltip.Content>
+              </Tooltip>
+            </div>
+          ) : null}
         </ChatConversation.Content>
         <ChatConversation.ScrollButton
           aria-label={t("clinic.procedures.items.scrollToLatest")}
@@ -125,7 +221,10 @@ export function PatientProcedureEventItemsPanel({
       ) : null}
 
       {canWrite ? (
-        <PatientProcedureEventItemComposer key={eventId} eventId={eventId} />
+        <PatientProcedureEventItemComposer
+          key={eventContext.eventId}
+          eventId={eventContext.eventId}
+        />
       ) : null}
     </section>
   );

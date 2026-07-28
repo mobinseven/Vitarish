@@ -97,6 +97,87 @@ describe("useAgendaEvents", () => {
     expect(result.current[0]?.start.toString()).toBe("2026-06-28T09:00:00");
     expect(result.current.at(-1)?.start.toString()).toBe("2026-07-26T09:00:00");
   });
+
+  it("divides appointment time by capacity or over-capacity reservations", () => {
+    const date = new CalendarDate(2026, 7, 12);
+    const shift = {
+      id: "shift-1",
+      createdAt: "2026-07-01T00:00:00Z",
+      isDeleted: false,
+      status: 0,
+      visibility: 0,
+      dayOfWeek: 0,
+      startTime: "09:00",
+      endTime: "10:00",
+      timeZone: "UTC",
+      totalSeats: 2,
+    };
+    const reservations = [1, 2, 3].map((id) => ({
+      id: `reservation-${id}`,
+      createdAt: "2026-07-01T00:00:00Z",
+      isDeleted: false,
+      status: 1,
+      shiftId: "shift-1",
+      date: "2026-07-12",
+      isHold: false,
+    }));
+
+    const { result } = renderHook(() =>
+      useAgendaEvents(date, "day", [shift], reservations),
+    );
+
+    const reservationEvents = result.current
+      .filter((event) => event.id.startsWith("reservation-"));
+
+    expect(reservationEvents.map((event) => event.start.toString())).toEqual([
+      "2026-07-12T09:00:00",
+      "2026-07-12T09:20:00",
+      "2026-07-12T09:40:00",
+    ]);
+    expect(reservationEvents.map((event) => event.end.toString())).toEqual([
+      "2026-07-12T09:20:00",
+      "2026-07-12T09:40:00",
+      "2026-07-12T10:00:00",
+    ]);
+  });
+
+  it("does not expose a reservation action for an occurrence absent from the server bookable set", () => {
+    const date = new CalendarDate(2026, 7, 12);
+    const { result } = renderHook(() =>
+      useAgendaEvents(date, "day", [{
+        id: "shift-1",
+        createdAt: "2026-07-01T00:00:00Z",
+        isDeleted: false,
+        status: 1,
+        visibility: 0,
+        dayOfWeek: 0,
+        startTime: "09:00",
+        endTime: "10:00",
+        timeZone: "UTC",
+        totalSeats: 1,
+      }], [], "en", undefined, new Set()),
+    );
+
+    expect(result.current).toHaveLength(0);
+  });
+
+  it("uses the reservee name for a reservation event", () => {
+    const { result } = renderHook(() =>
+      useAgendaEvents(new CalendarDate(2026, 7, 12), "day", [], [{
+        id: "reservation-1",
+        createdAt: "2026-07-01T00:00:00Z",
+        isDeleted: false,
+        status: 1,
+        shiftId: "shift-1",
+        date: "2026-07-12",
+        reservingPartyId: "patient-1",
+        isHold: false,
+      }], "en", undefined, undefined, undefined, undefined, "Shift", undefined, undefined,
+        new Map([["patient-1", "Ada Lovelace"]])),
+    );
+
+    expect(result.current[0]?.title).toBe("Ada Lovelace");
+  });
 });
 
 describe("clinic-web public surface", () => {

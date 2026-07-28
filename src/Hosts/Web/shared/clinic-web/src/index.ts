@@ -4,6 +4,7 @@ export { DashboardPage } from "./components/dashboard/DashboardPage";
 export { CheckInPage } from "./components/check-in/CheckInPage";
 export { PatientListPage } from "./components/patients/list/PatientListPage";
 export { PatientOverviewPage } from "./components/patients/overview/PatientOverviewPage";
+export { PatientPrescriptionSubmissionSheet } from "./components/patients/prescriptions/PatientPrescriptionSubmissionSheet";
 export { PatientCreatePage } from "./components/patients/create/PatientCreatePage";
 export { PatientEditPage } from "./components/patients/edit/PatientEditPage";
 export { PatientProcedurePage } from "./components/patients/procedures/PatientProcedurePage";

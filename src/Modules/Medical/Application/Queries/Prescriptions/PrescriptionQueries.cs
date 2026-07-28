@@ -13,6 +13,7 @@ public sealed record GetPrescriptionQuery : IRequest<PrescriptionDto?>
 public sealed record GetPrescriptionHistoryQuery : IRequest<IReadOnlyList<PrescriptionSummaryDto>>
 {
     public Guid? PatientId { get; init; }
+    public Guid? EncounterId { get; init; }
     public Guid? ClinicId { get; init; }
     public PrescriptionStatus? StatusFilter { get; init; }
     public string? ProviderKeyFilter { get; init; }
@@ -43,6 +44,7 @@ public sealed record PrescriptionDto
     public string? PatientNationalId { get; init; }
     public Guid DoctorId { get; init; }
     public Guid ClinicId { get; init; }
+    public Guid? EncounterId { get; init; }
     public string? SelectedProviderKey { get; init; }
     public PrescriptionStatus Status { get; init; }
     public int VersionNumber { get; init; }
@@ -67,11 +69,14 @@ public sealed record PrescriptionItemDto
 public sealed record PrescriptionSummaryDto
 {
     public Guid Id { get; init; }
+    public Guid? EncounterId { get; init; }
     public PrescriptionStatus Status { get; init; }
     public string? SelectedProviderKey { get; init; }
     public int ItemCount { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime? SubmittedAt { get; init; }
+    public string? TrackingCode { get; init; }
+    public IReadOnlyList<string> ItemDisplayNames { get; init; } = [];
 }
 
 public sealed record EligibilityResultDto

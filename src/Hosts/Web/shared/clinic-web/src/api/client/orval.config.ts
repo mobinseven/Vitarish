@@ -1,6 +1,6 @@
 import { defineConfig } from "orval";
 
-const specsDir = "../specs";
+const specsDir = "../../../../../src/api/specs";
 
 export default defineConfig({
   appointments: {

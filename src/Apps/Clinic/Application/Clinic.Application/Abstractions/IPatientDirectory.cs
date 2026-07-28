@@ -6,6 +6,7 @@ namespace Vitarish.Clinic.Application.Abstractions;
 public interface IPatientDirectory
 {
     Task<PatientView?> FindByIdentificationCodeAsync(string identificationCode, CancellationToken cancellationToken);
+    Task<PatientView?> FindByIdAsync(Guid patientId, CancellationToken cancellationToken);
 
     Task<PatientCreationResult> CreateAsync(PatientWriteDto patient, CancellationToken cancellationToken);
 

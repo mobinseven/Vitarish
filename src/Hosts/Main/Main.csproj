@@ -33,6 +33,7 @@
 		<ProjectReference Include="..\..\Libraries\Audit\Audit.Server\Audit.Server.csproj" />
 		<ProjectReference Include="..\..\Modules\Authentication\Module\Authentication.Module.csproj" />
 		<ProjectReference Include="..\..\Modules\Journey\Module\Journey.Module.csproj" />
+		<ProjectReference Include="..\..\Modules\Base\Infrastructure\Modules.Base.Infrastructure.csproj" />
 		<ProjectReference Include="..\..\Modules\Requests\Client\Requests.Client.csproj" />
 		<ProjectReference Include="..\..\Modules\Sea\Application\Sea.Application.csproj" />
 		<ProjectReference Include="..\..\Modules\Users\Domain\Users.Domain.csproj" />

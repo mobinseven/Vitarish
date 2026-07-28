@@ -56,6 +56,12 @@ public sealed record PatientUpdateRequest(
     string? EmergencyContactName = null,
     string? EmergencyContactPhone = null);
 public sealed record PatientDetailsRequest(Guid PatientId);
+public sealed record StartVisitPrescriptionDraftRequest(
+    Guid PatientId,
+    string ProviderKey,
+    string EventTitle,
+    string IdempotencyKey);
+public sealed record StartVisitPrescriptionDraftResponse(Guid EventId, Guid PrescriptionId);
 
 public sealed class PatientViewDto
 {

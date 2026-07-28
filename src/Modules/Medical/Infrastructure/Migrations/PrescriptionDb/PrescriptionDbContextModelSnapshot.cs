@@ -522,6 +522,10 @@ namespace Vitarish.Medical.Infrastructure.Migrations.PrescriptionDb
                     b.HasIndex("Status", "TenantId")
                         .HasDatabaseName("IX_Prescription_Status_Tenant");
 
+                    b.HasIndex("TenantId", "EncounterId")
+                        .HasDatabaseName("IX_Prescription_Tenant_Encounter")
+                        .HasFilter("\"EncounterId\" IS NOT NULL");
+
                     b.HasIndex("DoctorId", "TenantId", "CreatedAt")
                         .HasDatabaseName("IX_Prescription_Doctor_Tenant_Created");
 

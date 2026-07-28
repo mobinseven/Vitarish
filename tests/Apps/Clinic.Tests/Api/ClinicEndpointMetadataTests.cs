@@ -30,4 +30,22 @@ public sealed class ClinicEndpointMetadataTests
         endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()
             .Should().Contain(metadata => metadata.Policy == "Sea.Manage");
     }
+
+    [Fact]
+    public void Start_visit_prescription_keeps_its_operation_id_and_requires_sea_manage_authorization()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton(Mock.Of<ISender>());
+        using WebApplication app = builder.Build();
+        _ = app.MapClinicApi();
+
+        Endpoint endpoint = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName
+                == "ClinicStartVisitPrescriptionDraft");
+
+        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()
+            .Should().Contain(metadata => metadata.Policy == "Sea.Manage");
+    }
 }

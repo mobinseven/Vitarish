@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Chip, Modal } from "@heroui/react";
 
 import { FaIcon } from "@vitarish/web-ui";
@@ -30,6 +30,7 @@ export function AddReservationDialog({
   const { t, locale } = useLocalizedText();
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [bookingError, setBookingError] = useState(false);
 
   const createReservation = useCreateReservation();
   const confirmReservation = useUpdateReservationStatus();
@@ -45,8 +46,15 @@ export function AddReservationDialog({
   const handleClose = useCallback(() => {
     setSelectedPatientId(null);
     setSuccess(false);
+    setBookingError(false);
     onClose();
   }, [onClose]);
+
+  useEffect(() => {
+    if (!success) return;
+    const timer = window.setTimeout(handleClose, 1200);
+    return () => window.clearTimeout(timer);
+  }, [success, handleClose]);
 
   const state = useMemo(
     () => ({
@@ -70,22 +78,29 @@ export function AddReservationDialog({
 
   const handleBook = useCallback(async () => {
     if (!selectedPatientId || isFull) return;
+    setBookingError(false);
     try {
       const result = await createReservation.mutateAsync({
         shiftId: shift.id,
         date,
         userId: selectedPatientId,
       });
+      if (!result.succeeded || !result.entityId) {
+        setBookingError(true);
+        return;
+      }
       // Auto-confirm: set status to 1 (confirmed) immediately after creation
-      if (result.entityId) {
-        await confirmReservation.mutateAsync({ id: result.entityId, status: 1 });
+      const confirmation = await confirmReservation.mutateAsync({
+        id: result.entityId,
+        status: 1,
+      });
+      if (!confirmation.succeeded) {
+        setBookingError(true);
+        return;
       }
       setSuccess(true);
-      setTimeout(() => {
-        handleClose();
-      }, 1200);
-    } catch (error) {
-      console.error("[AddReservation] failed", error);
+    } catch {
+      setBookingError(true);
     }
   }, [selectedPatientId, isFull, createReservation, confirmReservation, shift.id, date, handleClose]);
 
@@ -157,6 +172,11 @@ export function AddReservationDialog({
                       hideSelectedState
                     />
                   )}
+                  {bookingError && (
+                    <p role="alert" className="text-sm text-danger">
+                      {t("clinic.appointments.agenda.bookingFailed")}
+                    </p>
+                  )}
                 </div>
               )}
             </Modal.Body>
@@ -167,8 +187,8 @@ export function AddReservationDialog({
               <Button
                 variant="primary"
                 onPress={handleBook}
-                isDisabled={!selectedPatientId || isFull}
-                isPending={createReservation.isPending}
+                isDisabled={!selectedPatientId || isFull || createReservation.isPending || confirmReservation.isPending}
+                isPending={createReservation.isPending || confirmReservation.isPending}
               >
                 <FaIcon icon="calendar-check" aria-hidden="true" className="mr-1.5" />
                 {t("clinic.appointments.agenda.book")}

@@ -59,7 +59,7 @@ await builder.AddHostDataProtection();
 
 _ = builder.Services.AddMemoryCache();
 _ = builder.Services.AddHttpContextAccessor();
-_ = builder.Services.AddDistributedMemoryCache();
+builder.AddRedisCaching();
 _ = builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(2);  // Align with WebAuthn timeout (60s) + buffer

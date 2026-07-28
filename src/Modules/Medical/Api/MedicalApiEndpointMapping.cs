@@ -59,28 +59,28 @@ public static class MedicalApiEndpointMapping
         _ = group.MapModulePost(MedicalApiRoutes.CreateDrug, CreateDrugAsync, "MedicalCreateDrug");
         _ = group.MapModulePost(MedicalApiRoutes.UpdateLocalDrug, UpdateLocalDrugAsync, "MedicalUpdateLocalDrug");
         _ = group.MapModulePost(MedicalApiRoutes.RetireDrug, RetireDrugAsync, "MedicalRetireDrug");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionById, GetPrescriptionAsync, "MedicalGetPrescription");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionHistory, ListPatientPrescriptionsAsync, "MedicalListPatientPrescriptions");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionDrafts, CreatePrescriptionDraftAsync, "MedicalCreatePrescriptionDraft");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionDrafts + "/update", UpdatePrescriptionDraftAsync, "MedicalUpdatePrescriptionDraft");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionItems, AddPrescriptionItemAsync, "MedicalAddPrescriptionItem");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionItemById, UpdatePrescriptionItemAsync, "MedicalUpdatePrescriptionItem");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionItemById + "/remove", RemovePrescriptionItemAsync, "MedicalRemovePrescriptionItem");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionProviderSelection, SelectPrescriptionProviderAsync, "MedicalSelectPrescriptionProvider");
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionById, GetPrescriptionAsync, "MedicalGetPrescription", typeof(PrescriptionDto));
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionHistory, ListPatientPrescriptionsAsync, "MedicalListPatientPrescriptions", typeof(IReadOnlyList<PrescriptionSummaryDto>));
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionDrafts, CreatePrescriptionDraftAsync, "MedicalCreatePrescriptionDraft", typeof(MedicalCommandResult));
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionDrafts + "/update", UpdatePrescriptionDraftAsync, "MedicalUpdatePrescriptionDraft", typeof(MedicalCommandResult));
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionItems, AddPrescriptionItemAsync, "MedicalAddPrescriptionItem", typeof(MedicalCommandResult));
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionItemById, UpdatePrescriptionItemAsync, "MedicalUpdatePrescriptionItem", typeof(MedicalCommandResult));
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionItemById + "/remove", RemovePrescriptionItemAsync, "MedicalRemovePrescriptionItem", typeof(MedicalCommandResult));
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionProviderSelection, SelectPrescriptionProviderAsync, "MedicalSelectPrescriptionProvider", typeof(MedicalCommandResult));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionEligibility, CheckPrescriptionEligibilityAsync, "MedicalCheckPrescriptionEligibility");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionDraftValidation, ValidatePrescriptionDraftAsync, "MedicalValidatePrescriptionDraft");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionSubmission, SubmitPrescriptionAsync, "MedicalSubmitPrescription");
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionDraftValidation, ValidatePrescriptionDraftAsync, "MedicalValidatePrescriptionDraft", typeof(ValidationResultDto));
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionSubmission, SubmitPrescriptionAsync, "MedicalSubmitPrescription", typeof(MedicalCommandResult));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionEdit, EditPrescriptionAsync, "MedicalEditPrescription");
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionCancellation, CancelPrescriptionAsync, "MedicalCancelPrescription");
         _ = group.MapModulePost(MedicalApiRoutes.PaperFallback, StartPaperFallbackAsync, "MedicalStartPaperFallback");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplates + "/list", ListPrescriptionTemplatesAsync, "MedicalListPrescriptionTemplates");
-        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplateById, GetPrescriptionTemplateAsync, "MedicalGetPrescriptionTemplate");
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplates + "/list", ListPrescriptionTemplatesAsync, "MedicalListPrescriptionTemplates", typeof(IReadOnlyList<PrescriptionTemplateSummaryDto>));
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplateById, GetPrescriptionTemplateAsync, "MedicalGetPrescriptionTemplate", typeof(PrescriptionTemplateDto));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplates, SavePrescriptionTemplateAsync, "MedicalSavePrescriptionTemplate");
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplateApply, ApplyPrescriptionTemplateAsync, "MedicalApplyPrescriptionTemplate");
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplateArchive, ArchivePrescriptionTemplateAsync, "MedicalArchivePrescriptionTemplate");
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplateItems, AddPrescriptionTemplateItemAsync, "MedicalAddPrescriptionTemplateItem");
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionTemplateItemRemove, RemovePrescriptionTemplateItemAsync, "MedicalRemovePrescriptionTemplateItem");
-        _ = group.MapModulePost(MedicalApiRoutes.AvailableProviders, GetAvailableProvidersAsync, "MedicalGetAvailableProviders");
+        _ = group.MapModulePost(MedicalApiRoutes.AvailableProviders, GetAvailableProvidersAsync, "MedicalGetAvailableProviders", typeof(IReadOnlyList<AvailableProviderDto>));
         _ = group.MapModulePost(MedicalApiRoutes.Credentials + "/list", ListProviderCredentialsAsync, "MedicalListProviderCredentials");
         _ = group.MapModulePost(MedicalApiRoutes.Credentials, ConfigureProviderCredentialAsync, "MedicalConfigureProviderCredential", typeof(MedicalCommandResult));
         _ = group.MapModulePost(MedicalApiRoutes.CredentialSetupGrid, GetCredentialSetupGridAsync, "MedicalGetCredentialSetupGrid", typeof(IReadOnlyList<CredentialSetupDto>));
@@ -182,7 +182,7 @@ public static class MedicalApiEndpointMapping
     private static async Task<IResult> RetireDrugAsync(RetireDrugCommand request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new A.RetireDrugCommand(request.DrugId), ct));
 
     private static async Task<IResult> GetPrescriptionAsync(Guid prescriptionId, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetPrescriptionQuery { PrescriptionId = prescriptionId }, ct));
-    private static async Task<IResult> ListPatientPrescriptionsAsync(ListPatientPrescriptionsRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetPrescriptionHistoryQuery { PatientId = request.PatientId, ClinicId = request.ClinicId, StatusFilter = request.StatusFilter is null ? null : (DEP.PrescriptionStatus)request.StatusFilter, ProviderKeyFilter = request.ProviderKeyFilter, FromDate = request.FromDate, ToDate = request.ToDate, Skip = request.Skip, Take = request.Take }, ct));
+    private static async Task<IResult> ListPatientPrescriptionsAsync(ListPatientPrescriptionsRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetPrescriptionHistoryQuery { PatientId = request.PatientId, EncounterId = request.EncounterId, ClinicId = request.ClinicId, StatusFilter = request.StatusFilter is null ? null : (DEP.PrescriptionStatus)request.StatusFilter, ProviderKeyFilter = request.ProviderKeyFilter, FromDate = request.FromDate, ToDate = request.ToDate, Skip = request.Skip, Take = request.Take }, ct));
     private static async Task<IResult> CreatePrescriptionDraftAsync(CreatePrescriptionDraftRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.CreateDraftCommand { PatientId = request.PatientId, PatientNationalId = request.PatientNationalId, DoctorId = request.DoctorId, ClinicId = request.ClinicId }, ct));
     private static Task<IResult> UpdatePrescriptionDraftAsync(UpdatePrescriptionDraftRequest request, CancellationToken ct) => Task.FromResult<IResult>(Ok(new MedicalCommandResult(request.PrescriptionId)));
     private static async Task<IResult> AddPrescriptionItemAsync(Guid prescriptionId, AddPrescriptionItemRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.AddItemCommand { PrescriptionId = prescriptionId, Category = (DEP.PrescriptionItemCategory)request.Category, ReferenceCode = request.ReferenceCode, DisplayName = request.DisplayName, DosageJson = request.DosageJson, Quantity = request.Quantity, DurationDays = request.DurationDays }, ct));
@@ -192,7 +192,9 @@ public static class MedicalApiEndpointMapping
     private static async Task<IResult> CheckPrescriptionEligibilityAsync(CheckPrescriptionEligibilityRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetEligibilityQuery { PatientNationalId = request.PatientNationalId, ProviderKey = request.ProviderKey, DoctorId = request.DoctorId, ClinicId = request.ClinicId }, ct));
     private static async Task<IResult> ValidatePrescriptionDraftAsync(Guid prescriptionId, IMediator mediator, CancellationToken ct) { var result = await mediator.Send(new AP.ValidateDraftCommand { PrescriptionId = prescriptionId }, ct); return Ok(new ValidationResultDto { IsValid = result.IsValid, Errors = result.Errors, Warnings = result.Warnings }); }
     private static async Task<IResult> SubmitPrescriptionAsync(Guid prescriptionId, SubmitPrescriptionRequest? request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.SubmitPrescriptionCommand { PrescriptionId = prescriptionId, CorrelationId = request?.IdempotencyKey ?? Guid.NewGuid().ToString("N") }, ct));
-    private static async Task<IResult> EditPrescriptionAsync(Guid prescriptionId, EditPrescriptionRequest? request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.EditPrescriptionCommand { PrescriptionId = prescriptionId, CorrelationId = request?.IdempotencyKey ?? Guid.NewGuid().ToString("N"), EditReason = request?.Reason }, ct));
+    private static async Task<IResult> EditPrescriptionAsync(Guid prescriptionId, EditPrescriptionRequest? request, IMediator mediator, CancellationToken ct) => request is null
+        ? Results.BadRequest()
+        : Command(await mediator.Send(new AP.EditPrescriptionCommand { PrescriptionId = prescriptionId, CorrelationId = request.IdempotencyKey ?? Guid.NewGuid().ToString("N"), EditReason = request.Reason, ExpectedVersion = request.ExpectedVersion, Items = request.Items.Select(item => new AP.PrescriptionEditItem((DEP.PrescriptionItemCategory)item.Category, item.ReferenceCode, item.DisplayName, item.DosageJson, item.Quantity, item.DurationDays, item.MetadataJson)).ToArray() }, ct));
     private static async Task<IResult> CancelPrescriptionAsync(Guid prescriptionId, CancelPrescriptionRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.CancelPrescriptionCommand { PrescriptionId = prescriptionId, CorrelationId = Guid.NewGuid().ToString("N"), Reason = request.Reason }, ct));
     private static async Task<IResult> StartPaperFallbackAsync(Guid prescriptionId, PaperFallbackRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.PaperFallbackCommand { PrescriptionId = prescriptionId, Reason = request.Reason, CorrelationId = Guid.NewGuid().ToString("N") }, ct));
 

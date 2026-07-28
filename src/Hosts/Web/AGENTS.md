@@ -1,3 +1,7 @@
+## Date conventions
+
+- **[MUST]** all inputs that take data that can be compared to another record (whether temporary or persistent) must always normalize the input and the comparison must be done with the normalized data. Converting Persian numbers to English number characters is considered a normalization practice.
+
 ## Localization convention
 
 - **[MUST]** All localization keys used in components must be defined.
@@ -18,3 +22,7 @@
 
 - **[MUST]** All dates must be displayed in localized formats. 
 - **[MUST]** All date conversions must be used by central conventions.
+
+## Code conventions
+
+- **[MUST]** use `prettier' to have cleanly styled code.

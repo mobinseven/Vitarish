@@ -13,7 +13,7 @@ public sealed record ImportCodeSystemReleaseRequest(Guid CodeSystemId, string Ve
 public sealed record ImportMedicalCodeItemRequest(string Code, string DisplayName, string? Description = null);
 public sealed record GetImportBatchRequest(Guid ImportBatchId);
 public sealed record GetPrescriptionRequest { public required Guid PrescriptionId { get; init; } }
-public sealed record ListPatientPrescriptionsRequest(Guid? PatientId = null, Guid? ClinicId = null, MedicalPrescriptionStatus? StatusFilter = null, string? ProviderKeyFilter = null, DateTime? FromDate = null, DateTime? ToDate = null, int Skip = 0, int Take = 20);
+public sealed record ListPatientPrescriptionsRequest(Guid? PatientId = null, Guid? EncounterId = null, Guid? ClinicId = null, MedicalPrescriptionStatus? StatusFilter = null, string? ProviderKeyFilter = null, DateTime? FromDate = null, DateTime? ToDate = null, int Skip = 0, int Take = 20);
 public sealed record CreatePrescriptionDraftRequest(Guid PatientId, string? PatientNationalId, Guid DoctorId, Guid ClinicId);
 public sealed record UpdatePrescriptionDraftRequest(Guid PrescriptionId, string? PatientNationalId);
 public sealed record AddPrescriptionItemRequest { public Guid PrescriptionId { get; init; } public MedicalPrescriptionItemCategory Category { get; init; } public string? ReferenceCode { get; init; } public string? DisplayName { get; init; } public string? DosageJson { get; init; } public int Quantity { get; init; } public int? DurationDays { get; init; } }
@@ -68,7 +68,8 @@ public sealed record ResolveServiceCodeRequest(string SystemKey, string Code, Gu
 public sealed record GetServiceValuationRequest(Guid ServiceCodeId, int Year, string? Locality = null, string? FacilityIndicator = null, DateOnly? AsOfDate = null);
 public sealed record GetCodeMapsRequest(Guid SourceCodeId, string? TargetSystemKey = null, string? MappingType = null, DateOnly? AsOfDate = null);
 public sealed record ValidatePrescriptionDraftRequest(Guid PrescriptionId);
-public sealed record EditPrescriptionRequest(Guid PrescriptionId, string? IdempotencyKey = null, string? Reason = null);
+public sealed record PrescriptionEditItemRequest(MedicalPrescriptionItemCategory Category, string? ReferenceCode, string? DisplayName, string? DosageJson, int Quantity, int? DurationDays, string? MetadataJson = null);
+public sealed record EditPrescriptionRequest(Guid PrescriptionId, int ExpectedVersion, IReadOnlyList<PrescriptionEditItemRequest> Items, string? IdempotencyKey = null, string? Reason = null);
 public sealed record GetAvailableProvidersRequest;
 public sealed record GetCredentialSetupGridRequest(Guid ClinicId, string? ProviderKey = null);
 public sealed record TestCredentialRequest(Guid CredentialId);

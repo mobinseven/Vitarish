@@ -1,21 +1,26 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "testhost | clinic",
+    "title": "Vitarish.Main | intelligence",
     "version": "1.0.0"
   },
-  "servers": [
-    {
-      "url": "http://127.0.0.1:62707/"
-    }
-  ],
   "paths": {
-    "/api/modules/clinic/health": {
-      "get": {
+    "/api/modules/intelligence/responder": {
+      "post": {
         "tags": [
-          "Clinic"
+          "Intelligence"
         ],
-        "operationId": "ClinicGetHealth",
+        "operationId": "IntelligenceRespond",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResponderRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -59,17 +64,17 @@
         }
       }
     },
-    "/api/modules/clinic/patients": {
+    "/api/modules/intelligence/responder/stream": {
       "post": {
         "tags": [
-          "Clinic"
+          "Intelligence"
         ],
-        "operationId": "ClinicListPatients",
+        "operationId": "IntelligenceStreamRespond",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PatientListRequest"
+                "$ref": "#/components/schemas/ResponderRequest"
               }
             }
           },
@@ -77,17 +82,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PatientViewDto"
-                  }
-                }
-              }
-            }
+            "description": "OK"
           },
           "401": {
             "description": "Unauthorized"
@@ -128,17 +123,17 @@
         }
       }
     },
-    "/api/modules/clinic/patients/count": {
+    "/api/modules/intelligence/transcription": {
       "post": {
         "tags": [
-          "Clinic"
+          "Intelligence"
         ],
-        "operationId": "ClinicCountPatients",
+        "operationId": "IntelligenceTranscribe",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PatientCountRequest"
+                "$ref": "#/components/schemas/TranscriptionRequest"
               }
             }
           },
@@ -146,19 +141,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "pattern": "^-?(?:0|[1-9]\\d*)$",
-                  "type": [
-                    "integer",
-                    "string"
-                  ],
-                  "format": "int32"
-                }
-              }
-            }
+            "description": "OK"
           },
           "401": {
             "description": "Unauthorized"
@@ -199,17 +182,17 @@
         }
       }
     },
-    "/api/modules/clinic/patients/search": {
+    "/api/modules/intelligence/transcription/stream": {
       "post": {
         "tags": [
-          "Clinic"
+          "Intelligence"
         ],
-        "operationId": "ClinicSearchPatients",
+        "operationId": "IntelligenceStreamTranscribe",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PatientSearchRequest"
+                "$ref": "#/components/schemas/TranscriptionRequest"
               }
             }
           },
@@ -217,17 +200,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PatientViewDto"
-                  }
-                }
-              }
-            }
+            "description": "OK"
           },
           "401": {
             "description": "Unauthorized"
@@ -268,162 +241,19 @@
         }
       }
     },
-    "/api/modules/clinic/patients/identification-lookup": {
-      "post": {
-        "tags": [
-          "Clinic"
-        ],
-        "operationId": "ClinicLookupPatientByIdentificationCode",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PatientIdentificationLookupRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PatientViewDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/modules/clinic/patients/find-or-create": {
-      "post": {
-        "tags": [
-          "Clinic"
-        ],
-        "operationId": "ClinicFindOrCreatePatient",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PatientFindOrCreateRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PatientViewDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/modules/clinic/patients/{patientId}": {
+    "/api/modules/intelligence/transcription/live/capabilities": {
       "get": {
         "tags": [
-          "Clinic"
+          "Intelligence"
         ],
-        "operationId": "ClinicGetPatientDetails",
-        "parameters": [
-          {
-            "name": "patientId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
+        "operationId": "IntelligenceGetLiveTranscriptionCapabilities",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PatientViewDto"
+                  "$ref": "#/components/schemas/RealtimeTranscriptionCapabilities"
                 }
               }
             }
@@ -465,28 +295,19 @@
             }
           }
         }
-      },
-      "put": {
+      }
+    },
+    "/api/modules/intelligence/rewrite": {
+      "post": {
         "tags": [
-          "Clinic"
+          "Intelligence"
         ],
-        "operationId": "ClinicUpdatePatient",
-        "parameters": [
-          {
-            "name": "patientId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
+        "operationId": "IntelligenceRewrite",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PatientUpdateRequest"
+                "$ref": "#/components/schemas/RewriteRequest"
               }
             }
           },
@@ -494,14 +315,66 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
             "content": {
-              "application/json": {
+              "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PatientViewDto"
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/intelligence/rewrite/stream": {
+      "post": {
+        "tags": [
+          "Intelligence"
+        ],
+        "operationId": "IntelligenceStreamRewrite",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RewriteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
           },
           "401": {
             "description": "Unauthorized"
@@ -545,203 +418,49 @@
   },
   "components": {
     "schemas": {
-      "Education": {
-        "enum": [
-          "Unspecified",
-          "NoFormalEducation",
-          "PrimarySchool",
-          "HighSchool",
-          "AssociateDegree",
-          "BachelorDegree",
-          "MasterDegree",
-          "Doctorate",
-          "Professional"
-        ]
-      },
-      "Gender": {
-        "enum": [
-          "Unspecified",
-          "Female",
-          "Male"
-        ]
-      },
-      "PatientCountRequest": {
+      "IntelligenceFileReference": {
         "type": "object",
         "properties": {
-          "search": {
+          "fileId": {
             "type": [
               "null",
               "string"
             ]
           },
-          "template": {
-            "type": [
-              "null",
-              "boolean"
-            ],
-            "default": false
-          }
-        }
-      },
-      "PatientFindOrCreateRequest": {
-        "required": [
-          "identificationCode",
-          "firstName",
-          "lastName",
-          "phone",
-          "email"
-        ],
-        "type": "object",
-        "properties": {
-          "identificationCode": {
+          "fileName": {
             "type": [
               "null",
               "string"
             ]
           },
-          "firstName": {
+          "contentType": {
             "type": [
               "null",
               "string"
             ]
           },
-          "lastName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "phone": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "email": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "dateOfBirth": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "dateOfSurgery": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "gender": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/Gender"
-              }
-            ]
-          },
-          "placeOfBirth": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "address": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "education": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/Education"
-              }
-            ]
-          },
-          "occupation": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "fatherName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "height": {
+          "size": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
               "null",
               "integer",
               "string"
             ],
-            "format": "int32"
+            "format": "int64"
           },
-          "weight": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "referrer": {
+          "checksum": {
             "type": [
               "null",
               "string"
             ]
           },
-          "insuranceProvider": {
+          "temporaryUploadReference": {
             "type": [
               "null",
               "string"
             ]
           },
-          "visitReason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "allergies": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "currentMedications": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "clinicalNotes": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "emergencyContactName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "emergencyContactPhone": {
+          "previewReference": {
             "type": [
               "null",
               "string"
@@ -749,336 +468,25 @@
           }
         }
       },
-      "PatientUpdateRequest": {
-        "$ref": "#/components/schemas/PatientFindOrCreateRequest"
-      },
-      "PatientIdentificationLookupRequest": {
-        "required": [
-          "identificationCode"
-        ],
+      "IntelligenceSessionContext": {
         "type": "object",
         "properties": {
-          "identificationCode": {
-            "type": "string"
-          }
-        }
-      },
-      "PatientListRequest": {
-        "type": "object",
-        "properties": {
-          "search": {
+          "sessionId": {
             "type": [
               "null",
               "string"
             ]
           },
-          "skip": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "take": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "template": {
-            "type": [
-              "null",
-              "boolean"
-            ],
-            "default": false
-          },
-          "sortBy": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/PatientSortBy"
-              }
-            ]
-          },
-          "descending": {
-            "type": "boolean",
-            "default": false
-          }
-        }
-      },
-      "PatientSearchRequest": {
-        "type": "object",
-        "properties": {
-          "search": {
+          "conversationId": {
             "type": [
               "null",
               "string"
             ]
           },
-          "skip": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "take": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "template": {
-            "type": [
-              "null",
-              "boolean"
-            ],
-            "default": false
-          }
-        }
-      },
-      "PatientSortBy": {
-        "enum": [
-          "Name",
-          "Template",
-          "IdentificationCode",
-          "DateOfBirth",
-          "DateOfSurgery",
-          "CreatedAt",
-          "UpdatedAt",
-          null
-        ],
-        "default": "Name"
-      },
-      "PatientViewDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "tenantId": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "avatarFileId": {
+          "operationId": {
             "type": [
               "null",
               "string"
-            ],
-            "format": "uuid"
-          },
-          "identificationCode": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "template": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "updatedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "updatedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "deletedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "deletedBy": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "isDeleted": {
-            "type": "boolean"
-          },
-          "userIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "firstName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "lastName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "dateOfBirth": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "dateOfSurgery": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "gender": {
-            "$ref": "#/components/schemas/Gender"
-          },
-          "placeOfBirth": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "address": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "education": {
-            "$ref": "#/components/schemas/Education"
-          },
-          "occupation": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "fatherName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "height": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "weight": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "email": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "phone": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "referrer": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "insuranceProvider": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "visitReason": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "allergies": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "currentMedications": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "clinicalNotes": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "emergencyContactName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "emergencyContactPhone": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "stats": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/StatsReadDto"
-              }
             ]
           }
         }
@@ -1121,79 +529,457 @@
           }
         }
       },
-      "ProgressState": {
-        "enum": [
-          "NotStarted",
-          "Quarter",
-          "Half",
-          "ThreeQuarters",
-          "InProgress",
-          "Completed",
-          null
-        ]
-      },
-      "StatsReadDto": {
+      "RealtimeTranscriptionCapabilities": {
+        "required": [
+          "available",
+          "languages",
+          "mimeTypes",
+          "limits"
+        ],
         "type": "object",
         "properties": {
-          "state": {
+          "available": {
+            "type": "boolean"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mimeTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "limits": {
+            "$ref": "#/components/schemas/RealtimeTranscriptionLimits"
+          }
+        }
+      },
+      "RealtimeTranscriptionLimits": {
+        "required": [
+          "maxFrameBytes",
+          "maxTotalBytes",
+          "maxDurationSeconds",
+          "idleTimeoutSeconds"
+        ],
+        "type": "object",
+        "properties": {
+          "maxFrameBytes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "maxTotalBytes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "maxDurationSeconds": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "idleTimeoutSeconds": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ResponderInput": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/ResponderInputType"
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "imageUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "detail": {
             "oneOf": [
               {
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/ProgressState"
+                "$ref": "#/components/schemas/ResponderInputImageDetail"
               }
             ]
           },
-          "procedures": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "events": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "committedEvents": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "eventItems": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "newItems": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "unread": {
-            "type": "boolean"
-          },
-          "lastUpdate": {
+          "fileId": {
             "type": [
               "null",
               "string"
+            ]
+          },
+          "fileData": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "filename": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "approvalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "file": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntelligenceFileReference"
+              }
+            ]
+          }
+        }
+      },
+      "ResponderInputImageDetail": {
+        "type": "integer"
+      },
+      "ResponderInputType": {
+        "type": "integer",
+        "default": 0
+      },
+      "ResponderOptions": {
+        "type": "object",
+        "properties": {
+          "instructions": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "textFormat": {
+            "$ref": "#/components/schemas/ResponseTextFormat"
+          },
+          "jsonSchema": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "previousResponseId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "model": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResponderToolDefinition"
+            }
+          },
+          "provider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "modelId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "profile": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "temperature": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
             ],
-            "format": "date-time"
+            "format": "double"
+          },
+          "maxOutputTokens": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ResponderRequest": {
+        "required": [
+          "inputs"
+        ],
+        "type": "object",
+        "properties": {
+          "inputs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResponderInput"
+            }
+          },
+          "options": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ResponderOptions"
+              }
+            ]
+          },
+          "context": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntelligenceSessionContext"
+              }
+            ]
+          }
+        }
+      },
+      "ResponderToolApprovalRequirement": {
+        "type": "integer"
+      },
+      "ResponderToolDefinition": {
+        "required": [
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "serverLabel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "serverUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "serverToken": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "allowedTools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "requireApproval": {
+            "$ref": "#/components/schemas/ResponderToolApprovalRequirement"
+          }
+        }
+      },
+      "ResponseTextFormat": {
+        "type": "integer"
+      },
+      "RewriteOptions": {
+        "type": "object",
+        "properties": {
+          "instructions": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "provider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "modelId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "profile": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "temperature": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "maxOutputTokens": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "RewriteRequest": {
+        "required": [
+          "prompt"
+        ],
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RewriteOptions"
+              }
+            ]
+          },
+          "context": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntelligenceSessionContext"
+              }
+            ]
+          }
+        }
+      },
+      "TranscriberOptions": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "provider": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "modelId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "profile": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "temperature": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "maxOutputTokens": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "TranscriptionRequest": {
+        "required": [
+          "audioFile"
+        ],
+        "type": "object",
+        "properties": {
+          "audioFile": {
+            "$ref": "#/components/schemas/IntelligenceFileReference"
+          },
+          "options": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TranscriberOptions"
+              }
+            ]
+          },
+          "context": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IntelligenceSessionContext"
+              }
+            ]
           }
         }
       }
@@ -1201,7 +987,7 @@
   },
   "tags": [
     {
-      "name": "Clinic"
+      "name": "Intelligence"
     }
   ]
 }

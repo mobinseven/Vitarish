@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Card, Tabs, Tooltip } from "@heroui/react";
+import { useState } from "react";
 import { Widget } from "@heroui-pro/react";
 import {
   ErrorStateSurface as ClinicErrorState,
@@ -8,12 +9,16 @@ import {
   LoadingStateSurface as ClinicLoadingState,
 } from "@vitarish/web-ui";
 import { usePatientDetail } from "../../../hooks/patients/usePatientDetail";
+import { patientVisitsProcedureName, useEnsurePatientVisitsProcedure } from "../../../hooks/patients/procedures/useEnsurePatientVisitsProcedure";
 import { useLocalizedText } from "../../../localization";
 import type { NavigationIntent } from "../../../navigation";
 import { PatientProceduresPanel } from "../procedures/PatientProceduresPanel";
+import { PatientVisitsPanel } from "../procedures/PatientVisitsPanel";
+import { PatientVisitEventDialog } from "../procedures/PatientVisitEventDialog";
 import { PatientReservationsPanel } from "./PatientReservationsPanel";
 import { PatientOverviewHeader } from "./PatientOverviewHeader";
 import { PatientProfileCard } from "./PatientProfileCard";
+import { PatientPrescriptionSubmissionSheet } from "../prescriptions/PatientPrescriptionSubmissionSheet";
 
 export interface PatientOverviewPageProps {
   patientId: string;
@@ -25,8 +30,14 @@ export function PatientOverviewPage({
   onNavigate,
 }: PatientOverviewPageProps) {
   const { t } = useLocalizedText();
+  const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
+  const [hasVisits, setHasVisits] = useState(false);
+  const [isNewVisitOpen, setIsNewVisitOpen] = useState(false);
   const { data: patient, isLoading, error } = usePatientDetail(patientId);
-
+  const { visitsProcedure } = useEnsurePatientVisitsProcedure(patientId, !!patient);
+  const openNewVisit = () => {
+    if (visitsProcedure) setIsNewVisitOpen(true);
+  };
   if (isLoading) {
     return <ClinicLoadingState label={t("clinic.patient.detail.loading")} />;
   }
@@ -61,12 +72,14 @@ export function PatientOverviewPage({
                 <FaIcon icon="pen" aria-hidden="true" />
                 {t("clinic.patient.quickActions.edit")}
               </Button>
-              <Button
-                variant="primary"
-                onPress={() => onNavigate({ kind: "checkIn" })}
-              >
-                <FaIcon icon="calendar-check" aria-hidden="true" />
-                {t("clinic.patient.quickActions.checkIn")}
+
+              <Button variant="primary" onPress={() => setIsPrescriptionOpen(true)}>
+                <FaIcon icon="prescription-bottle-medical" aria-hidden="true" />
+                {t("clinic.patient.quickActions.prescription")}
+              </Button>
+              <Button variant="primary" onPress={openNewVisit} isDisabled={!visitsProcedure}>
+                <FaIcon icon="calendar-plus" aria-hidden="true" />
+                {t("clinic.patient.quickActions.newVisit")}
               </Button>
             </div>
             <div className="flex gap-3 md:hidden">
@@ -82,6 +95,12 @@ export function PatientOverviewPage({
                 <Tooltip.Content>
                   {t("clinic.patient.quickActions.edit")}
                 </Tooltip.Content>
+              </Tooltip>
+              <Tooltip>
+                <Button isIconOnly aria-label={t("clinic.patient.quickActions.newVisit")} variant="primary" onPress={openNewVisit} isDisabled={!visitsProcedure}>
+                  <FaIcon icon="calendar-plus" aria-hidden="true" />
+                </Button>
+                <Tooltip.Content>{t("clinic.patient.quickActions.newVisit")}</Tooltip.Content>
               </Tooltip>
               <Tooltip>
                 <Button
@@ -100,8 +119,18 @@ export function PatientOverviewPage({
           </div>
         </Card.Content>
       </Card>
+      <div className="hidden" aria-hidden="true">
+        <PatientVisitsPanel patientId={patientId} onVisibilityChange={setHasVisits} />
+      </div>
       <div className="hidden w-full grid-cols-1 gap-3 md:grid md:grid-cols-2">
-        <Widget className="md:col-span-2 md:row-start-2">
+        {hasVisits ? <Widget className="md:col-span-2 md:row-start-2">
+          <Widget.Header>
+            <Widget.Title>{t("clinic.procedures.visits.title")}</Widget.Title>
+          </Widget.Header>
+          <Widget.Content><PatientVisitsPanel patientId={patientId} onVisibilityChange={setHasVisits} onNewVisit={openNewVisit} /></Widget.Content>
+        </Widget>
+        : null}
+        <Widget className="md:col-span-2 md:row-start-3">
           <Widget.Header>
             <Widget.Title>{t("clinic.procedures.title")}</Widget.Title>
           </Widget.Header>
@@ -109,6 +138,7 @@ export function PatientOverviewPage({
             <PatientProceduresPanel
               patientId={patientId}
               onNavigate={onNavigate}
+              excludedProcedureName={patientVisitsProcedureName}
             />
           </Widget.Content>
         </Widget>
@@ -175,9 +205,14 @@ export function PatientOverviewPage({
               </Tabs.List>
             </Tabs.ListContainer>
             <Tabs.Panel id="procedures" className="pt-4">
+              {hasVisits ? <div className="mb-4">
+                <h2 className="mb-2 text-base font-semibold">{t("clinic.procedures.visits.title")}</h2>
+                <PatientVisitsPanel patientId={patientId} onVisibilityChange={setHasVisits} onNewVisit={openNewVisit} />
+              </div> : null}
               <PatientProceduresPanel
                 patientId={patientId}
                 onNavigate={onNavigate}
+                excludedProcedureName={patientVisitsProcedureName}
               />
             </Tabs.Panel>
             <Tabs.Panel id="reservations" className="pt-4">
@@ -192,6 +227,30 @@ export function PatientOverviewPage({
           </Tabs>
         </Widget.Content>
       </Widget>
+      <PatientPrescriptionSubmissionSheet
+        patient={patient}
+        isOpen={isPrescriptionOpen}
+        onOpenChange={setIsPrescriptionOpen}
+        onCreated={(eventId) => {
+          if (!visitsProcedure) return;
+          setIsPrescriptionOpen(false);
+          onNavigate({
+            kind: "patientProcedureEventDetail",
+            patientId,
+            procedureId: visitsProcedure.id,
+            eventId,
+          });
+        }}
+      />
+      {visitsProcedure ? (
+        <PatientVisitEventDialog
+          patientId={patientId}
+          procedureId={visitsProcedure.id}
+          isOpen={isNewVisitOpen}
+          onOpenChange={setIsNewVisitOpen}
+          onCreated={(eventId) => onNavigate({ kind: "patientProcedureEventDetail", patientId, procedureId: visitsProcedure.id, eventId })}
+        />
+      ) : null}
     </section>
   );
 }

@@ -63,7 +63,7 @@ export function PrescriptionTemplateWorkspace() {
     if (!value.trim() || !providerKey) { setResults([]); setStatus(providerKey ? "ready" : "unavailable"); return; }
     searchRef.current = setTimeout(() => {
       const controller = new AbortController(); requestRef.current = controller; setStatus("loading");
-      void medicalSearchPrescriptionReferenceCodes({ providerKey, textOrCode: value, activeOnly: true, limit: 20 }, controller.signal).then((response) => { if (!controller.signal.aborted) { const next = asArray<CatalogResult>(response); setResults(next); setStatus(next.length ? "ready" : "empty"); } }).catch(() => { if (!controller.signal.aborted) setStatus("error"); });
+      void medicalSearchPrescriptionReferenceCodes({ providerKey, textOrCode: value, activeOnly: true, limit: 20 }, undefined, controller.signal).then((response) => { if (!controller.signal.aborted) { const next = asArray<CatalogResult>(response); setResults(next); setStatus(next.length ? "ready" : "empty"); } }).catch(() => { if (!controller.signal.aborted) setStatus("error"); });
     }, 300);
   }
 

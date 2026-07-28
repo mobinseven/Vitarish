@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
-import { Agenda, Segment, useAgenda } from "@heroui-pro/react";
+import { Agenda, Segment, useAgenda, Widget } from "@heroui-pro/react";
 import { Button } from "@heroui/react";
 import {
   createCalendar,
@@ -18,7 +18,8 @@ import type {
   ReservationReadDto,
 } from "../../../api/appointments/appointmentsApi";
 import { useAgendaEvents } from "../../../hooks/appointments/agenda/useAgendaEvents";
-import { useShiftCapacity } from "../../../hooks/appointments/useShiftCapacity";
+import { useBookableShiftOccurrences } from "../../../hooks/appointments/agenda/useBookableShiftOccurrences";
+import { useReservationPartyNames } from "../../../hooks/appointments/agenda/useReservationPartyNames";
 import { useServices } from "../../../hooks/services/useServices";
 import { useServiceProviders } from "../../../hooks/service-providers/useServiceProviders";
 import {
@@ -82,7 +83,8 @@ export function AppointmentsAgenda({
     [date, view],
   );
 
-  const capacityMap = useShiftCapacity(shifts, reservations, visibleDates);
+  const { capacityMap, occurrenceKeys } = useBookableShiftOccurrences(shifts, visibleDates);
+  const reservingPartyNames = useReservationPartyNames(reservations);
   const { data: services } = useServices();
   const { data: serviceProviders } = useServiceProviders();
   const formatShiftTime = useCallback(
@@ -93,9 +95,10 @@ export function AppointmentsAgenda({
     [date, locale],
   );
   const events = useAgendaEvents(
-    date, view, shifts, reservations, locale, capacityMap, services, serviceProviders,
+    date, view, shifts, reservations, locale, capacityMap, occurrenceKeys, services, serviceProviders,
     t("clinic.fields.shift"), formatShiftTime,
     (available: number, total: number) => `${formatNumber(available, locale)}/${formatNumber(total, locale)}`,
+    reservingPartyNames,
   );
 
   const shiftMap = useMemo(
@@ -116,6 +119,19 @@ export function AppointmentsAgenda({
     [shiftMap, capacityMap],
   );
 
+  const handleAgendaEventSelect = useCallback(
+    (id: string | null) => {
+      if (!id) return;
+      const [kind, shiftId, dateStr] = id.split("|");
+      if (kind === "shift" && shiftId && dateStr) {
+        openAddDialog(shiftId, dateStr);
+        return;
+      }
+      setDetailReservationId(id);
+    },
+    [openAddDialog],
+  );
+
   const agenda = useAgenda({
     events,
     view,
@@ -124,23 +140,13 @@ export function AppointmentsAgenda({
     onDateChange: setDate,
     startHour: 7,
     endHour: 20,
-    onEventSelect: (id) => {
-      if (!id) return;
-      if (id.startsWith("shift|")) {
-        // Format: "shift|{shiftId}|{date}"
-        const parts = id.split("|");
-        const shiftId = parts[1];
-        const dateStr = parts[2];
-        openAddDialog(shiftId, dateStr);
-      } else {
-        setDetailReservationId(id);
-      }
-    },
+    onEventSelect: handleAgendaEventSelect,
   });
 
   return (
-    <div className="flex flex-col gap-4">
-      <Agenda {...agenda}>
+    <Widget>
+      <Widget.Content className="p-0">
+        <Agenda {...agenda}>
         <Agenda.Header>
           <Agenda.Heading />
           <Agenda.ViewSelector>
@@ -254,7 +260,7 @@ export function AppointmentsAgenda({
                     } as CSSProperties}
                     variant="ghost"
                     aria-label={`${t("clinic.appointments.agenda.bookShift")}: ${item.event.title}`}
-                    onPress={() => agenda.selectEvent(item.event.id)}
+                    onPress={() => handleAgendaEventSelect(item.event.id)}
                   >
                     <span className="truncate">{item.event.title}</span>
                   </Button>
@@ -273,7 +279,8 @@ export function AppointmentsAgenda({
             </>
           )}
         </Agenda.Body>
-      </Agenda>
+        </Agenda>
+      </Widget.Content>
 
       {selectedShift && (
         <AddReservationDialog
@@ -295,6 +302,6 @@ export function AppointmentsAgenda({
           }
         />
       )}
-    </div>
+    </Widget>
   );
 }

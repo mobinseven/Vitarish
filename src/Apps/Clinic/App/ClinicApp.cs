@@ -24,7 +24,6 @@ public class ClinicApp : Vitarish.Apps.Base.Core.App
     {
         _ = app.InitializeViews();
         _ = app.MapClinicApi();
-
         return Task.CompletedTask;
     }
 }

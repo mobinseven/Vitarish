@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Clinic.Application.Commands.Patients;
+using Vitarish.Clinic.Application.Commands.Visits;
 using Vitarish.Clinic.Application.Queries.Patients;
 using Vitarish.Clinic.Application.Results;
 using Vitarish.Clinic.Application.PatientAgent;
@@ -44,6 +45,12 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModulePut(ClinicApiRoutes.PatientUpdate, UpdatePatientAsync, "ClinicUpdatePatient", typeof(PatientViewDto))
             .RequireAuthorization(SeaManagePolicy);
         _ = group.MapModulePost(ClinicApiRoutes.PatientAgent, RunPatientAgentAsync, "ClinicRunPatientAgent", typeof(RunPatientAgentResponse));
+        _ = group.MapModulePost(
+                ClinicApiRoutes.StartVisitPrescriptionDraft,
+                StartVisitPrescriptionDraftAsync,
+                "ClinicStartVisitPrescriptionDraft",
+                typeof(StartVisitPrescriptionDraftResponse))
+            .RequireAuthorization(SeaManagePolicy);
 
         return endpoints;
     }
@@ -75,6 +82,36 @@ public static class ClinicApiEndpointMapping
                 (PatientAgentActionResponseStatus)(int)action.Status,
                 System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(action.ArgumentsJson),
                 action.Summary)).ToArray()));
+    private static async Task<IResult> StartVisitPrescriptionDraftAsync(
+        StartVisitPrescriptionDraftRequest request,
+        ISender sender,
+        CancellationToken ct)
+    {
+        StartVisitPrescriptionDraftResult result = await sender.Send(
+            new StartVisitPrescriptionDraftCommand(
+                request.PatientId,
+                request.ProviderKey,
+                request.EventTitle,
+                request.IdempotencyKey),
+            ct);
+        return result.Outcome switch
+        {
+            StartVisitPrescriptionDraftOutcome.Succeeded => Results.Ok(
+                new StartVisitPrescriptionDraftResponse(result.EventId!.Value, result.PrescriptionId!.Value)),
+            StartVisitPrescriptionDraftOutcome.ValidationFailure => Results.BadRequest(
+                new ClinicError(ClinicErrorCode.ValidationFailure, result.Message ?? "The request is invalid.")),
+            StartVisitPrescriptionDraftOutcome.PatientNotFound => Results.NotFound(
+                new ClinicError(ClinicErrorCode.NotFound, "Patient was not found.")),
+            StartVisitPrescriptionDraftOutcome.InProgress => Results.Conflict(
+                new ClinicError(ClinicErrorCode.Conflict, "The visit prescription draft is already being started.")),
+            StartVisitPrescriptionDraftOutcome.RecoverablePartialFailure => Results.Conflict(
+                new ClinicError(ClinicErrorCode.Conflict, result.Message ?? "The visit was created but the prescription draft requires recovery.")),
+            StartVisitPrescriptionDraftOutcome.UnknownMutationOutcome => Results.Conflict(
+                new ClinicError(ClinicErrorCode.Conflict, "Visit creation has an unknown outcome and was not retried automatically.")),
+            _ => Results.Json(
+                new ClinicError(ClinicErrorCode.UnexpectedFailure, "The visit prescription draft could not be started."),
+                statusCode: StatusCodes.Status503ServiceUnavailable)
+        };
     }
 
     private static async Task<IResult> ListPatientsAsync(PatientListRequest request, ISender sender, CancellationToken ct)

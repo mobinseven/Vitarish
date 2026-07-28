@@ -2,6 +2,7 @@ using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Application.Commands.Prescriptions;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
@@ -9,11 +10,34 @@ public sealed class CreateDraftHandler(
     PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     IAuditWriter auditWriter,
+    IRequestContext requestContext,
     ILogger<CreateDraftHandler> logger)
     : IRequestHandler<CreateDraftCommand, CreateDraftResult>
 {
     public async Task<CreateDraftResult> Handle(CreateDraftCommand request, CancellationToken cancellationToken)
     {
+        string? tenantId = ResolveTenantId(requestContext);
+        if (tenantId is null)
+        {
+            return CreateDraftResult.Failure("شناسه مستأجر از زمینه درخواست قابل تشخیص نیست.");
+        }
+
+        if (request.PrescriptionId is Guid requestedId)
+        {
+            PrescriptionRecord? existing = await dbContext.Prescriptions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == requestedId, cancellationToken);
+            if (existing is not null)
+            {
+                return existing.PatientId == request.PatientId &&
+                    existing.EncounterId == request.EncounterId &&
+                    existing.DoctorId == request.DoctorId &&
+                    existing.ClinicId == request.ClinicId
+                    ? CreateDraftResult.Success(existing.Id)
+                    : CreateDraftResult.Failure("The requested prescription id is already in use.");
+            }
+        }
+
         string? selectedProviderKey = string.IsNullOrWhiteSpace(request.SelectedProviderKey)
             ? null
             : request.SelectedProviderKey.Trim();
@@ -27,7 +51,7 @@ public sealed class CreateDraftHandler(
 
         PrescriptionRecord prescription = new()
         {
-            Id = Guid.NewGuid(),
+            Id = request.PrescriptionId ?? Guid.NewGuid(),
             PatientId = request.PatientId,
             PatientNationalId = request.PatientNationalId,
             DoctorId = request.DoctorId,
@@ -37,7 +61,7 @@ public sealed class CreateDraftHandler(
             Status = PrescriptionStatus.Draft,
             VersionNumber = 1,
             CreatedAt = createdAt,
-            TenantId = request.TenantId
+            TenantId = tenantId
         };
 
         _ = dbContext.Prescriptions.Add(prescription);
@@ -51,7 +75,7 @@ public sealed class CreateDraftHandler(
             NewState = PrescriptionStatus.Draft.ToString(),
             ProviderKey = selectedProviderKey,
             OccurredAt = createdAt,
-            TenantId = request.TenantId
+            TenantId = tenantId
         }, cancellationToken);
 
         logger.LogInformation("Created draft prescription {PrescriptionId} for patient {PatientId}",
@@ -59,6 +83,9 @@ public sealed class CreateDraftHandler(
 
         return CreateDraftResult.Success(prescription.Id);
     }
+
+    internal static string? ResolveTenantId(IRequestContext requestContext) =>
+        string.IsNullOrWhiteSpace(requestContext.TenantId) ? null : requestContext.TenantId.Trim();
 }
 
 public sealed class AddItemHandler(

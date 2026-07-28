@@ -5,6 +5,7 @@ using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Application.Commands.Prescriptions;
 using Vitarish.Modules.Base.Core.Platform.Errors;
 using Vitarish.Modules.Base.Core.Platform.Retry;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
@@ -164,6 +165,7 @@ public sealed class EditPrescriptionHandler(
     PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     IAuditWriter auditWriter,
+    IRequestContext requestContext,
     ILogger<EditPrescriptionHandler> logger)
     : IRequestHandler<EditPrescriptionCommand, EditPrescriptionResult>
 {
@@ -183,6 +185,22 @@ public sealed class EditPrescriptionHandler(
             return EditPrescriptionResult.Failure("فقط نسخه‌های تایید شده قابل ویرایش هستند.", prescription.Status);
         }
 
+        if (!Guid.TryParse(requestContext.OwnerId, out Guid actorId) || actorId != prescription.DoctorId ||
+            !string.Equals(requestContext.TenantId, prescription.TenantId, StringComparison.Ordinal))
+        {
+            return EditPrescriptionResult.Failure("شما مجاز به ویرایش این نسخه نیستید.", prescription.Status);
+        }
+
+        if (request.ExpectedVersion != prescription.VersionNumber)
+        {
+            return EditPrescriptionResult.Failure("نسخه توسط شخص دیگری تغییر کرده است. لطفاً صفحه را بازخوانی کنید.", prescription.Status);
+        }
+
+        if (request.Items.Count == 0 || request.Items.Any(item => item.Quantity < 1))
+        {
+            return EditPrescriptionResult.Failure("نسخه ویرایش‌شده باید حداقل یک آیتم با تعداد معتبر داشته باشد.", prescription.Status);
+        }
+
         if (string.IsNullOrEmpty(prescription.SelectedProviderKey))
         {
             return EditPrescriptionResult.Failure("بیمه‌گر انتخاب نشده است.", prescription.Status);
@@ -193,6 +211,30 @@ public sealed class EditPrescriptionHandler(
         {
             return EditPrescriptionResult.Failure("آداپتور بیمه‌گر در دسترس نیست.", prescription.Status);
         }
+
+        if (!string.Equals(adapter.ProviderKey, "tamin", StringComparison.OrdinalIgnoreCase) ||
+            !adapter.GetCapabilities().Contains(InsuranceProviderCapabilityType.SupportsEditPrescription))
+        {
+            return EditPrescriptionResult.Failure("این بیمه‌گر از ویرایش نسخه پشتیبانی نمی‌کند.", prescription.Status);
+        }
+
+        string previousItems = JsonSerializer.Serialize(prescription.Items);
+        string proposedItems = JsonSerializer.Serialize(request.Items);
+        PrescriptionEditAudit audit = new()
+        {
+            Id = Guid.NewGuid(), PrescriptionRecordId = prescription.Id, PreviousVersion = prescription.VersionNumber,
+            Reason = request.EditReason, PreviousItemsJson = previousItems, ProposedItemsJson = proposedItems,
+            TenantId = prescription.TenantId, CreatedAt = DateTime.UtcNow
+        };
+        _ = dbContext.PrescriptionEditAudits.Add(audit);
+        dbContext.PrescriptionItems.RemoveRange(prescription.Items);
+        prescription.Items = request.Items.Select((item, index) => new PrescriptionItem
+        {
+            Id = Guid.NewGuid(), PrescriptionRecordId = prescription.Id, Category = item.Category,
+            ReferenceCode = item.ReferenceCode, DisplayName = item.DisplayName, DosageJson = item.DosageJson,
+            Quantity = item.Quantity, DurationDays = item.DurationDays, MetadataJson = item.MetadataJson,
+            SortOrder = index + 1, CreatedAt = DateTime.UtcNow
+        }).ToList();
 
         // Transition to EditRequested → Submitting
         DateTime occurredAt = DateTime.UtcNow;
@@ -214,6 +256,14 @@ public sealed class EditPrescriptionHandler(
         {
             PrescriptionStatus targetStatus = editResult.Data.CanonicalStatus;
             prescription.TransitionTo(targetStatus, DateTime.UtcNow);
+            audit.Outcome = "Accepted";
+            _ = dbContext.PrescriptionSubmissions.Add(new PrescriptionProviderSubmission
+            {
+                Id = Guid.NewGuid(), PrescriptionRecordId = prescription.Id, ProviderKey = prescription.SelectedProviderKey!,
+                OperationName = "EditPrescription", RemotePrescriptionId = editResult.Data.RemotePrescriptionId,
+                RemoteTrackingCode = editResult.Data.RemoteTrackingCode, RemoteStatusCode = editResult.Data.RemoteStatusCode,
+                CanonicalStatus = targetStatus, SubmissionVersion = prescription.VersionNumber, SubmittedAt = occurredAt
+            });
             _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             await auditWriter.WriteAsync(new AuditEntry
@@ -234,8 +284,21 @@ public sealed class EditPrescriptionHandler(
             return EditPrescriptionResult.Success(editResult.Data.RemoteTrackingCode, targetStatus);
         }
 
-        // On failure, stay in SyncPending
+        if (editResult.Error?.Category is ErrorCategory.Validation or ErrorCategory.BusinessRule)
+        {
+            List<PrescriptionItem>? original = JsonSerializer.Deserialize<List<PrescriptionItem>>(previousItems);
+            dbContext.PrescriptionItems.RemoveRange(prescription.Items);
+            prescription.Items = original ?? [];
+            foreach (PrescriptionItem item in prescription.Items) { item.Id = Guid.NewGuid(); item.PrescriptionRecordId = prescription.Id; }
+            prescription.TransitionTo(PrescriptionStatus.AcceptedByProvider, DateTime.UtcNow);
+            audit.Outcome = "RejectedRestored";
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
+            return EditPrescriptionResult.Failure(editResult.Error?.UserMessage ?? "ویرایش نسخه رد شد.", prescription.Status);
+        }
+
+        // Technical uncertainty retains the proposed items for reconciliation.
         prescription.TransitionTo(PrescriptionStatus.SyncPending, DateTime.UtcNow);
+        audit.Outcome = "SyncPending";
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry

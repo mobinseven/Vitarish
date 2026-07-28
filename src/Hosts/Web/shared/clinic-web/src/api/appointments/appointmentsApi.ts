@@ -151,11 +151,14 @@ export async function getReservation(id: string): Promise<ReservationReadDto> {
   return apiFetch<ReservationReadDto>({ url: `${BASE}/reservations/${id}`, method: "GET" });
 }
 
-export async function createReservation(params: { shiftId: string; date: string; userId?: string }): Promise<AppointmentsCommandResult> {
+export async function createReservation(params: { shiftId: string; date: string; userId: string }): Promise<AppointmentsCommandResult> {
   return apiFetch<AppointmentsCommandResult>({
     url: `${BASE}/reservations/create`,
     method: "POST",
-    data: params,
+    data: {
+      ...params,
+      estimatedSessionLengthOverride: null,
+    },
   });
 }
 

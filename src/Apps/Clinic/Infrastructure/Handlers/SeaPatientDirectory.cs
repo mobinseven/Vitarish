@@ -12,6 +12,7 @@ namespace Vitarish.Clinic.Infrastructure.Handlers;
 
 internal sealed class SeaPatientDirectory(
     IProjectsService projects,
+    CreatePatientVisitsProcedureHandler createVisitsProcedure,
     IRequestContext requestContext,
     ILogger<SeaPatientDirectory> logger) : IPatientDirectory
 {
@@ -45,6 +46,13 @@ internal sealed class SeaPatientDirectory(
         EntityResult<SeaProjectReadDto> result = await projects.AddAsync(patient, cancellationToken);
         if (result.IsSuccess && result.Value is not null)
         {
+            if (!await createVisitsProcedure.CreateAsync(result.Value.Id, cancellationToken))
+            {
+                return new PatientCreationResult.Failure(
+                    PatientCreationFailureReason.Unexpected,
+                    "The patient visits procedure could not be created.");
+            }
+
             return new PatientCreationResult.Success(ToPatientView(result.Value, patient));
         }
 
@@ -133,6 +141,14 @@ internal sealed class SeaPatientDirectory(
         return new PatientUpdateResult.Failure(
             reason,
             error?.Message ?? "The patient project could not be updated.");
+    }
+
+    public async Task<PatientView?> FindByIdAsync(Guid patientId, CancellationToken cancellationToken)
+    {
+        EntityResult<SeaProjectReadDto> result = await projects.GetAsync(patientId, cancellationToken);
+        return result.IsSuccess && result.Value is not null && !result.Value.Template
+            ? ToPatientView(result.Value, result.Value.ToPatientWrite())
+            : null;
     }
 
     private PatientView ToPatientView(SeaProjectReadDto project, PatientWriteDto patient) => new()

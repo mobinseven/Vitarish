@@ -6,6 +6,7 @@ namespace Vitarish.Medical.Application.Commands.Prescriptions;
 /// <summary>Creates a new draft prescription.</summary>
 public sealed record CreateDraftCommand : IRequest<CreateDraftResult>
 {
+    public Guid? PrescriptionId { get; init; }
     public required Guid PatientId { get; init; }
     public string? PatientNationalId { get; init; }
     public required Guid DoctorId { get; init; }
@@ -104,7 +105,18 @@ public sealed record EditPrescriptionCommand : IRequest<EditPrescriptionResult>
     public required Guid PrescriptionId { get; init; }
     public required string CorrelationId { get; init; }
     public string? EditReason { get; init; }
+    public required int ExpectedVersion { get; init; }
+    public required IReadOnlyList<PrescriptionEditItem> Items { get; init; }
 }
+
+public sealed record PrescriptionEditItem(
+    PrescriptionItemCategory Category,
+    string? ReferenceCode,
+    string? DisplayName,
+    string? DosageJson,
+    int Quantity,
+    int? DurationDays,
+    string? MetadataJson);
 
 public sealed record EditPrescriptionResult
 {

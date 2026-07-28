@@ -11,6 +11,7 @@
     <ProjectReference Include="..\..\..\..\Modules\Intelligence\Application\Intelligence.Application.csproj" />
     <ProjectReference Include="..\..\..\..\Modules\Appointments\Interface\Appointments.Interface.csproj" />
     <ProjectReference Include="..\..\..\..\Modules\Medical\Interface\Medical.Interface.csproj" />
+    <ProjectReference Include="..\..\..\..\Modules\Base\Core\Modules.Base.Core.csproj" />
   </ItemGroup>
 
 </Project>

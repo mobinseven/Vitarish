@@ -71,6 +71,7 @@ export function PatientProcedureEventPage({
           <Card>
             <Card.Content>
               <PatientProcedureEventDetailPanel
+                patientId={patientId}
                 eventId={eventId}
                 procedureId={procedureId}
                 viewer={viewer}

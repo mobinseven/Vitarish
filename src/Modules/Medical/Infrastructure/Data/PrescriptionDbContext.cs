@@ -53,6 +53,7 @@ public sealed class PrescriptionDbContext : DbContext, IMultiTenantDbContext
     public DbSet<PrescriptionTemplate> PrescriptionTemplates => Set<PrescriptionTemplate>();
     public DbSet<PrescriptionTemplateItem> PrescriptionTemplateItems => Set<PrescriptionTemplateItem>();
     public DbSet<PrescriptionProviderSubmission> PrescriptionSubmissions => Set<PrescriptionProviderSubmission>();
+    public DbSet<PrescriptionEditAudit> PrescriptionEditAudits => Set<PrescriptionEditAudit>();
     public DbSet<PrescriptionOutboxRecord> OutboxRecords => Set<PrescriptionOutboxRecord>();
     public DbSet<PrescriptionEscalation> Escalations => Set<PrescriptionEscalation>();
 
@@ -83,6 +84,7 @@ public sealed class PrescriptionDbContext : DbContext, IMultiTenantDbContext
         ConfigurePrescriptionTemplate(modelBuilder);
         ConfigurePrescriptionTemplateItem(modelBuilder);
         ConfigurePrescriptionProviderSubmission(modelBuilder);
+        ConfigurePrescriptionEditAudit(modelBuilder);
         ConfigurePrescriptionOutboxRecord(modelBuilder);
         ConfigurePrescriptionEscalation(modelBuilder);
     }
@@ -119,6 +121,9 @@ public sealed class PrescriptionDbContext : DbContext, IMultiTenantDbContext
         _ = entity.HasIndex(e => new { e.PatientId, e.TenantId }).HasDatabaseName("IX_Prescription_Patient_Tenant");
         _ = entity.HasIndex(e => new { e.DoctorId, e.TenantId, e.CreatedAt }).HasDatabaseName("IX_Prescription_Doctor_Tenant_Created");
         _ = entity.HasIndex(e => new { e.Status, e.TenantId }).HasDatabaseName("IX_Prescription_Status_Tenant");
+        _ = entity.HasIndex(e => new { e.TenantId, e.EncounterId })
+            .HasFilter("\"EncounterId\" IS NOT NULL")
+            .HasDatabaseName("IX_Prescription_Tenant_Encounter");
         _ = entity.IsMultiTenant();
     });
 
@@ -176,6 +181,16 @@ public sealed class PrescriptionDbContext : DbContext, IMultiTenantDbContext
         _ = entity.Property(e => e.CanonicalStatus).HasConversion<string>().HasMaxLength(32);
         _ = entity.Property(e => e.RawResponseRef).HasMaxLength(1024);
         _ = entity.HasIndex(e => new { e.PrescriptionRecordId, e.ProviderKey }).HasDatabaseName("IX_Submission_Prescription_Provider");
+    });
+
+    private static void ConfigurePrescriptionEditAudit(ModelBuilder modelBuilder) => modelBuilder.Entity<PrescriptionEditAudit>(entity =>
+    {
+        ConfigureTenantEntity(entity, "PrescriptionEditAudits");
+        _ = entity.Property(e => e.Reason).HasMaxLength(1024);
+        _ = entity.Property(e => e.PreviousItemsJson).IsRequired();
+        _ = entity.Property(e => e.ProposedItemsJson).IsRequired();
+        _ = entity.Property(e => e.Outcome).HasMaxLength(32);
+        _ = entity.HasIndex(e => e.PrescriptionRecordId).HasDatabaseName("IX_PrescriptionEditAudit_PrescriptionId");
     });
 
     private static void ConfigurePrescriptionOutboxRecord(ModelBuilder modelBuilder) => modelBuilder.Entity<PrescriptionOutboxRecord>(entity =>

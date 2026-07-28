@@ -32,8 +32,11 @@ internal class ShiftBookableDateQueryService(
         Dictionary<DateOnly, ShiftReservation> existingByDate = (await existingTask)
             .ToDictionary(sr => sr.Date);
 
+        DateTime now = DateTime.UtcNow;
+
         return [.. GetScheduledDates(shift.DayOfWeek, dateFrom, dateTo)
             .Select(date => (date, policy: ResolvePolicy(policies, date)))
+            .Where(t => ShiftBookingRules.IsBookingOpen(shift, t.date, now, t.policy))
             .Select(t => existingByDate.TryGetValue(t.date, out ShiftReservation? existing)
                 ? existing.ToRead() with
                 {

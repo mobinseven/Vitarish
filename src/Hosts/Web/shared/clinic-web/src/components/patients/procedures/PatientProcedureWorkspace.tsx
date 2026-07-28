@@ -67,6 +67,7 @@ export function PatientProcedureWorkspace({
             </ErrorStateSurface>
           ) : (
             <PatientProcedureEventTimeline
+              patientId={patientId}
               events={events}
               procedureId={procedureId}
             />

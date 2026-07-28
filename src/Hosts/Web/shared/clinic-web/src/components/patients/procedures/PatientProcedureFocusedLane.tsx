@@ -30,10 +30,8 @@ export function PatientProcedureFocusedLane({
     Math.max(focusEventIndex - 1, 0),
     Math.min(focusEventIndex === 0 ? 3 : focusEventIndex + 2, events.length),
   );
-  const currentStep =
-    visibleEvents.findIndex((event) => !event.isCommitted) === -1
-      ? visibleEvents.length
-      : visibleEvents.findIndex((event) => !event.isCommitted);
+
+
   const recentItems = events
     .flatMap((event) =>
       event.attachments.map((item) => ({
@@ -48,64 +46,6 @@ export function PatientProcedureFocusedLane({
     .slice(0, 3);
   return (
     <div className="border-t border-separator px-4 py-5 sm:px-5">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="text-base font-semibold">
-          {t("clinic.procedures.progressAtGlance.steps")}
-        </h3>
-        {events.length > visibleEvents.length ? (
-          <span className="text-sm text-muted">
-            {t("clinic.procedures.progressAtGlance.moreSteps", {
-              count: events.length - visibleEvents.length,
-            })}
-          </span>
-        ) : null}
-      </div>
-
-      {eventsQuery.isLoading ? (
-        <div className="flex min-h-24 items-center justify-center">
-          <Spinner
-            size="sm"
-            aria-label={t("clinic.procedures.progressAtGlance.loadingSteps")}
-          />
-        </div>
-      ) : eventsQuery.error ? (
-        <Alert status="danger">
-          <Alert.Indicator />
-          <Alert.Content>
-            <Alert.Title>
-              {t("clinic.procedures.progressAtGlance.stepsLoadFailed")}
-            </Alert.Title>
-          </Alert.Content>
-        </Alert>
-      ) : visibleEvents.length ? (
-        <Stepper
-          aria-label={t("clinic.procedures.events.title")}
-          currentStep={currentStep}
-          orientation="vertical"
-          size="sm"
-        >
-          {visibleEvents.map((event) => (
-            <Stepper.Step
-              key={event.id}
-            >
-              <Stepper.Indicator />
-              <Stepper.Content>
-                <Stepper.Title>{event.title}</Stepper.Title>
-                <Stepper.Description>
-                  {event.isCommitted
-                    ? t("clinic.procedures.progressAtGlance.completed")
-                    : t("clinic.procedures.progressAtGlance.next")}
-                </Stepper.Description>
-              </Stepper.Content>
-              <Stepper.Separator />
-            </Stepper.Step>
-          ))}
-        </Stepper>
-      ) : (
-        <p className="text-sm text-muted">
-          {t("clinic.procedures.progressAtGlance.noSteps")}
-        </p>
-      )}
 
       {recentItems.length ? (
         <div className="mt-6">
@@ -152,7 +92,7 @@ export function PatientProcedureFocusedLane({
           }
         >
           <FaIcon icon="timeline" aria-hidden="true" />
-          {t("clinic.procedures.progressAtGlance.openTimeline")}
+          {t("clinic.procedures.open")}
         </Button>
 
         <Button
@@ -165,5 +105,15 @@ export function PatientProcedureFocusedLane({
         </Button>
       </div>
     </div>
+  );
+}
+
+function ProcedureStepEllipsis() {
+  return (
+    <Stepper.Step aria-hidden="true" className="pointer-events-none">
+      <Stepper.Indicator>
+        <FaIcon icon="ellipsis" aria-hidden="true" />
+      </Stepper.Indicator>
+    </Stepper.Step>
   );
 }

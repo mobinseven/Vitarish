@@ -564,6 +564,65 @@
         }
       }
     },
+    "/api/modules/medical/providers/reference-data/search": {
+      "post": {
+        "tags": [
+          "Medical"
+        ],
+        "operationId": "MedicalSearchProviderReferenceData",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchProviderReferenceDataRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/medical/reference/drugs/search": {
       "post": {
         "tags": [
@@ -1934,7 +1993,14 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrescriptionDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -1993,7 +2059,17 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PrescriptionSummaryDto"
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -2052,7 +2128,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalCommandResult"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -2111,7 +2194,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalCommandResult"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -2181,7 +2271,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalCommandResult"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -2260,7 +2357,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalCommandResult"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -2329,7 +2433,14 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalCommandResult"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -2399,7 +2510,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalCommandResult"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -2518,7 +2636,14 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationResultDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -2594,7 +2719,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalCommandResult"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -2869,7 +3001,17 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PrescriptionTemplateSummaryDto"
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -2945,7 +3087,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrescriptionTemplateDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -3310,7 +3459,17 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AvailableProviderDto"
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -4730,6 +4889,18 @@
               "string"
             ],
             "format": "int32"
+          },
+          "dosageJson": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "metadataJson": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4766,6 +4937,14 @@
             "format": "uuid"
           },
           "tenantId": {
+            "type": "string"
+          }
+        }
+      },
+      "AvailableProviderDto": {
+        "type": "object",
+        "properties": {
+          "providerKey": {
             "type": "string"
           }
         }
@@ -5650,6 +5829,13 @@
             ],
             "format": "uuid"
           },
+          "encounterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
           "clinicId": {
             "type": [
               "null",
@@ -5923,6 +6109,329 @@
           }
         }
       },
+      "PrescriptionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "patientNationalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "doctorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clinicId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "encounterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "selectedProviderKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/MedicalPrescriptionStatus"
+          },
+          "versionNumber": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submittedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "trackingCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrescriptionItemDto"
+            }
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canSubmit": {
+            "type": "boolean"
+          },
+          "canRetry": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PrescriptionItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "$ref": "#/components/schemas/MedicalPrescriptionItemCategory"
+          },
+          "referenceCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "displayName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "dosageJson": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "durationDays": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sortOrder": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PrescriptionSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "encounterId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MedicalPrescriptionStatus"
+          },
+          "selectedProviderKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submittedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "trackingCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemDisplayNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PrescriptionTemplateDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/MedicalPrescriptionTemplateStatus"
+          },
+          "itemCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrescriptionTemplateItemDto"
+            }
+          }
+        }
+      },
+      "PrescriptionTemplateItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "category": {
+            "$ref": "#/components/schemas/MedicalPrescriptionItemCategory"
+          },
+          "referenceCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "displayName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "dosageJson": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "durationDays": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "metadataJson": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sortOrder": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PrescriptionTemplateSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/MedicalPrescriptionTemplateStatus"
+          },
+          "itemCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ProblemDetails": {
         "type": "object",
         "properties": {
@@ -5975,6 +6484,38 @@
           "clinicId": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "ProviderReferenceSearchResultResponse": {
+        "type": "object",
+        "properties": {
+          "providerKey": {
+            "type": "string"
+          },
+          "codeSystem": {
+            "type": "string"
+          },
+          "prescriptionCategory": {
+            "$ref": "#/components/schemas/MedicalPrescriptionItemCategory"
+          },
+          "referenceCode": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "providerCategory": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         }
       },
@@ -6508,11 +7049,18 @@
           "providerKey": {
             "type": "string"
           },
-          "category": {
-            "$ref": "#/components/schemas/MedicalPrescriptionItemCategory"
-          },
           "textOrCode": {
             "type": "string"
+          },
+          "category": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MedicalPrescriptionItemCategory"
+              }
+            ]
           },
           "releaseId": {
             "type": [
@@ -6543,17 +7091,38 @@
           }
         }
       },
-      "ProviderReferenceSearchResultResponse": {
-        "required": ["providerKey", "codeSystem", "prescriptionCategory", "referenceCode", "displayName", "metadata"],
+      "SearchProviderReferenceDataRequest": {
+        "required": [
+          "providerKey",
+          "codeSystem",
+          "text"
+        ],
         "type": "object",
         "properties": {
-          "providerKey": { "type": "string" },
-          "codeSystem": { "type": "string" },
-          "prescriptionCategory": { "$ref": "#/components/schemas/MedicalPrescriptionItemCategory" },
-          "referenceCode": { "type": "string" },
-          "displayName": { "type": "string" },
-          "providerCategory": { "type": ["null", "string"] },
-          "metadata": { "type": "object", "additionalProperties": { "type": ["null", "string"] } }
+          "providerKey": {
+            "type": "string"
+          },
+          "codeSystem": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "providerCategory": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "limit": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32",
+            "default": 20
+          }
         }
       },
       "SelectPrescriptionProviderRequest": {
@@ -6770,6 +7339,26 @@
               "string"
             ],
             "format": "int32"
+          }
+        }
+      },
+      "ValidationResultDto": {
+        "type": "object",
+        "properties": {
+          "isValid": {
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }

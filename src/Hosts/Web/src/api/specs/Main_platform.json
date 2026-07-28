@@ -1,0 +1,449 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Vitarish.Main | platform",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/modules/platform/locale-notifications": {
+      "get": {
+        "tags": [
+          "Platform"
+        ],
+        "operationId": "PlatformListLocaleNotifications",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LocaleListItemResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Platform"
+        ],
+        "operationId": "PlatformCreateLocaleNotification",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocaleNotificationRecordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformCommandResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/platform/locale-notifications/{normalizedLocale}": {
+      "get": {
+        "tags": [
+          "Platform"
+        ],
+        "operationId": "PlatformGetLocaleNotification",
+        "parameters": [
+          {
+            "name": "normalizedLocale",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocaleNotificationRecordResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Platform"
+        ],
+        "operationId": "PlatformUpdateLocaleNotification",
+        "parameters": [
+          {
+            "name": "normalizedLocale",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocaleNotificationRecordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformCommandResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LocaleListItemResponse": {
+        "required": [
+          "normalizedLocale",
+          "locale"
+        ],
+        "type": "object",
+        "properties": {
+          "normalizedLocale": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          }
+        }
+      },
+      "LocaleNotificationRecordRequest": {
+        "required": [
+          "locale",
+          "verificationSmsTemplateId",
+          "seaReminderEmailSubject",
+          "seaReminderEmailTextBody",
+          "seaReminderEmailHtmlBody",
+          "seaReminderSmsTemplateId",
+          "appointmentReminderEmailSubject",
+          "appointmentReminderEmailTextBody",
+          "appointmentReminderEmailHtmlBody",
+          "appointmentReminderSmsTemplateId"
+        ],
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "verificationSmsTemplateId": {
+            "type": "string"
+          },
+          "seaReminderEmailSubject": {
+            "type": "string"
+          },
+          "seaReminderEmailTextBody": {
+            "type": "string"
+          },
+          "seaReminderEmailHtmlBody": {
+            "type": "string"
+          },
+          "seaReminderSmsTemplateId": {
+            "type": "string"
+          },
+          "appointmentReminderEmailSubject": {
+            "type": "string"
+          },
+          "appointmentReminderEmailTextBody": {
+            "type": "string"
+          },
+          "appointmentReminderEmailHtmlBody": {
+            "type": "string"
+          },
+          "appointmentReminderSmsTemplateId": {
+            "type": "string"
+          }
+        }
+      },
+      "LocaleNotificationRecordResponse": {
+        "required": [
+          "normalizedLocale",
+          "locale",
+          "verificationSmsTemplateId",
+          "seaReminderEmailSubject",
+          "seaReminderEmailTextBody",
+          "seaReminderEmailHtmlBody",
+          "seaReminderSmsTemplateId",
+          "appointmentReminderEmailSubject",
+          "appointmentReminderEmailTextBody",
+          "appointmentReminderEmailHtmlBody",
+          "appointmentReminderSmsTemplateId"
+        ],
+        "type": "object",
+        "properties": {
+          "normalizedLocale": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "verificationSmsTemplateId": {
+            "type": "string"
+          },
+          "seaReminderEmailSubject": {
+            "type": "string"
+          },
+          "seaReminderEmailTextBody": {
+            "type": "string"
+          },
+          "seaReminderEmailHtmlBody": {
+            "type": "string"
+          },
+          "seaReminderSmsTemplateId": {
+            "type": "string"
+          },
+          "appointmentReminderEmailSubject": {
+            "type": "string"
+          },
+          "appointmentReminderEmailTextBody": {
+            "type": "string"
+          },
+          "appointmentReminderEmailHtmlBody": {
+            "type": "string"
+          },
+          "appointmentReminderSmsTemplateId": {
+            "type": "string"
+          }
+        }
+      },
+      "PlatformCommandResponse": {
+        "required": [
+          "succeeded"
+        ],
+        "type": "object",
+        "properties": {
+          "succeeded": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Platform"
+    }
+  ]
+}

@@ -192,6 +192,9 @@ public sealed class FindOrCreatePatientHandlerTests
 
     private sealed class StubPatientDirectory(IEnumerable<PatientView?> lookupResults) : IPatientDirectory
     {
+        public Task<PatientView?> FindByIdAsync(Guid patientId, CancellationToken cancellationToken) =>
+            Task.FromResult<PatientView?>(null);
+
         private readonly Queue<PatientView?> _lookupResults = new(lookupResults);
 
         public List<string> LookedUpCodes { get; } = [];

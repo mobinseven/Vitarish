@@ -22,11 +22,13 @@ import { PatientProcedureProgress } from "./PatientProcedureProgress";
 interface PatientProceduresPanelProps {
   patientId: string;
   onNavigate?: (intent: NavigationIntent) => void;
+  excludedProcedureName?: string;
 }
 
 export function PatientProceduresPanel({
   patientId,
   onNavigate,
+  excludedProcedureName,
 }: PatientProceduresPanelProps) {
   const { t, locale } = useLocalizedText();
   const {
@@ -37,23 +39,18 @@ export function PatientProceduresPanel({
   const { data: triage } = usePatientProcedureTriage(patientId);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [focusedProcedureId, setFocusedProcedureId] = useState<string>();
-  const effectiveFocusedProcedureId = procedures?.some(
+  const visibleProcedures = procedures?.filter(
+    (procedure) => procedure.name !== excludedProcedureName,
+  );
+  const effectiveFocusedProcedureId = visibleProcedures?.some(
     ({ id }) => id === focusedProcedureId,
   )
     ? focusedProcedureId
-    : procedures?.[0]?.id;
+    : visibleProcedures?.[0]?.id;
 
   return (
     <>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-2xl">
-          <h2 className="text-xl font-semibold">
-            {t("clinic.procedures.progressAtGlance.title")}
-          </h2>
-          <p className="mt-1 text-sm leading-6 text-muted">
-            {t("clinic.procedures.progressAtGlance.description")}
-          </p>
-        </div>
         <Tooltip>
           <Button
             size="sm"
@@ -66,35 +63,6 @@ export function PatientProceduresPanel({
           <Tooltip.Content>{t("clinic.procedures.new")}</Tooltip.Content>
         </Tooltip>
       </div>
-
-      {triage &&
-      (triage.incompleteProcedures > 0 ||
-        triage.newEvidence > 0 ||
-        triage.pendingReminders > 0) ? (
-        <div
-          className="mb-4 flex flex-wrap gap-2"
-          aria-label={t("clinic.procedures.progressAtGlance.attention")}
-        >
-          {triage.incompleteProcedures > 0 ? (
-            <Chip size="sm" color="warning" variant="soft">
-              {triage.incompleteProcedures}{" "}
-              {t("clinic.procedures.triage.incomplete")}
-            </Chip>
-          ) : null}
-          {triage.newEvidence > 0 ? (
-            <Chip size="sm" color="accent" variant="soft">
-              {triage.newEvidence}{" "}
-              {t("clinic.procedures.triage.newEvidence")}
-            </Chip>
-          ) : null}
-          {triage.pendingReminders > 0 ? (
-            <Chip size="sm" color="danger" variant="soft">
-              {triage.pendingReminders}{" "}
-              {t("clinic.procedures.triage.pendingReminders")}
-            </Chip>
-          ) : null}
-        </div>
-      ) : null}
 
       {isLoading ? (
         <div className="flex min-h-40 items-center justify-center">
@@ -110,9 +78,9 @@ export function PatientProceduresPanel({
             <Alert.Title>{t("clinic.procedures.failedToLoad")}</Alert.Title>
           </Alert.Content>
         </Alert>
-      ) : procedures?.length ? (
+      ) : visibleProcedures?.length ? (
         <div className="overflow-hidden rounded-2xl border border-separator bg-surface">
-          {procedures.map((procedure, index) => {
+          {visibleProcedures.map((procedure, index) => {
             const isFocused = procedure.id === effectiveFocusedProcedureId;
             const lastActivity = procedure.lastActivity
               ? formatDate(procedure.lastActivity, locale, {

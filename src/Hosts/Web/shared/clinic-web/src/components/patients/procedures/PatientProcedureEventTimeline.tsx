@@ -35,14 +35,19 @@ import {
 } from "../../../hooks/patients/procedures/usePatientProcedureEventMutations";
 
 interface PatientProcedureEventTimelineProps {
+  patientId?: string;
   procedureId: string;
   events: ClinicalEventSummary[];
 }
 
 function EventAttachmentsDrawer({
+  patientId,
+  procedureId,
   eventId,
   onClose,
 }: {
+  patientId: string;
+  procedureId: string;
   eventId?: string;
   onClose: () => void;
 }) {
@@ -72,7 +77,11 @@ function EventAttachmentsDrawer({
             <Sheet.Body className="flex min-h-0 flex-1 flex-col">
               <PatientProcedureEventItemsPanel
                 canWrite={capabilitiesQuery.data?.canWrite ?? false}
-                eventId={eventId ?? ""}
+                context={{
+                  patientId,
+                  procedureId,
+                  eventId: eventId ?? "",
+                }}
               />
             </Sheet.Body>
           </Sheet.Dialog>
@@ -83,6 +92,7 @@ function EventAttachmentsDrawer({
 }
 
 export function PatientProcedureEventTimeline({
+  patientId = "",
   procedureId,
   events,
 }: PatientProcedureEventTimelineProps) {
@@ -325,6 +335,8 @@ export function PatientProcedureEventTimeline({
       ) : null}
 
       <EventAttachmentsDrawer
+        patientId={patientId}
+        procedureId={procedureId}
         eventId={attachmentsEventId}
         onClose={() => setAttachmentsEventId(undefined)}
       />

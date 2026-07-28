@@ -8,6 +8,7 @@ import type { ProcedureEventViewer } from "../../../models/patients/procedures/P
 import { usePatientProcedureEventDetail } from "../../../hooks/patients/procedures/usePatientProcedureEventDetail";
 
 interface Props {
+  patientId: string;
   eventId: string;
   procedureId: string;
   viewer?: ProcedureEventViewer;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function PatientProcedureEventDetailPanel({
+  patientId,
   eventId,
   procedureId,
   viewer,
@@ -52,7 +54,7 @@ export function PatientProcedureEventDetailPanel({
       aria-labelledby={`clinical-step-${event.id}`}
     >
       <PatientProcedureEventItemsPanel
-        eventId={eventId}
+        context={{ patientId, procedureId, eventId }}
         canWrite={canWrite}
         viewer={viewer}
       />

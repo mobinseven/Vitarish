@@ -35,6 +35,7 @@ public sealed class GetPrescriptionHandler(PrescriptionDbContext dbContext)
             PatientNationalId = prescription.PatientNationalId,
             DoctorId = prescription.DoctorId,
             ClinicId = prescription.ClinicId,
+            EncounterId = prescription.EncounterId,
             SelectedProviderKey = prescription.SelectedProviderKey,
             Status = prescription.Status,
             VersionNumber = prescription.VersionNumber,
@@ -66,6 +67,16 @@ public sealed class GetPrescriptionHistoryHandler(PrescriptionDbContext dbContex
         if (request.PatientId.HasValue)
         {
             query = query.Where(p => p.PatientId == request.PatientId.Value);
+        }
+
+        if (request.EncounterId.HasValue)
+        {
+            if (!request.PatientId.HasValue)
+            {
+                return [];
+            }
+
+            query = query.Where(p => p.EncounterId == request.EncounterId.Value);
         }
 
         if (request.ClinicId.HasValue)
@@ -105,11 +116,23 @@ public sealed class GetPrescriptionHistoryHandler(PrescriptionDbContext dbContex
             .Select(p => new PrescriptionSummaryDto
             {
                 Id = p.Id,
+                EncounterId = p.EncounterId,
                 Status = p.Status,
                 SelectedProviderKey = p.SelectedProviderKey,
                 ItemCount = p.Items.Count,
                 CreatedAt = p.CreatedAt,
-                SubmittedAt = p.SubmittedAt
+                SubmittedAt = p.SubmittedAt,
+                TrackingCode = dbContext.PrescriptionSubmissions
+                    .Where(s => s.PrescriptionRecordId == p.Id && s.RemoteTrackingCode != null)
+                    .OrderByDescending(s => s.SubmittedAt)
+                    .Select(s => s.RemoteTrackingCode)
+                    .FirstOrDefault(),
+                ItemDisplayNames = p.Items
+                    .OrderBy(i => i.SortOrder)
+                    .Where(i => i.DisplayName != null)
+                    .Select(i => i.DisplayName!)
+                    .Take(3)
+                    .ToList()
             })
             .ToListAsync(cancellationToken);
     }
