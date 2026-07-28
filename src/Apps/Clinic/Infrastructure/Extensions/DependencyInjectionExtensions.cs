@@ -7,6 +7,7 @@ using Vitarish.Clinic.Application.PatientAgent.Policies;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Clinic.Infrastructure.Handlers;
 using Vitarish.Clinic.Application.PatientAgent.Capabilities.Appointments;
+using Vitarish.Clinic.Application.PatientAgent.Capabilities.Prescriptions;
 
 namespace Vitarish.Clinic.Infrastructure.Extensions
 {
@@ -27,7 +28,11 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<PrepareAppointmentTool>();
             _ = services.AddTransient<ConfirmAppointmentTool>();
             _ = services.AddTransient<IPatientAgentCapability, AppointmentAgentCapability>();
-            _ = services.AddTransient<IPatientAgentCapability, PrescriptionsPatientAgentCapability>();
+            _ = services.AddTransient<SearchPrescriptionTemplatesTool>();
+            _ = services.AddTransient<GetPrescriptionTemplateRequirementsTool>();
+            _ = services.AddTransient<PreparePrescriptionTool>();
+            _ = services.AddTransient<ConfirmPrescriptionTool>();
+            _ = services.AddTransient<IPatientAgentCapability, PrescriptionAgentCapability>();
             _ = services.AddTransient<IPatientAgentCapability, ClinicalEventsPatientAgentCapability>();
             _ = services.AddTransient<PatientAgentCapabilityRegistry>();
             _ = services.AddTransient<PatientAgentToolDispatcher>();

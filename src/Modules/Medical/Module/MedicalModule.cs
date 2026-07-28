@@ -7,6 +7,8 @@ using Vitarish.Medical.Infrastructure.DependencyInjection;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Medical.Api;
 using Vitarish.Modules.Base.Core;
+using Vitarish.Medical.Application.AgentCapabilities.Prescriptions;
+using Vitarish.Medical.Interface.AgentCapabilities.Prescriptions;
 
 namespace Vitarish.Medical.Module;
 
@@ -20,6 +22,12 @@ public sealed class MedicalModule : Modules.Base.Core.Module, IMedicalModule
         _ = builder.Services.AddTransientDbContext<MedicalDbContext>((_, options) => configureDbContext?.Invoke(options));
         _ = builder.Services.AddTransientMultiTenantDbContext<PrescriptionDbContext>((_, options) => configureDbContext?.Invoke(options));
         _ = builder.Services.AddMedicalInfrastructure(builder.Configuration);
+        _ = builder.Services.AddTransient<SearchPrescriptionTemplatesForAgent>();
+        _ = builder.Services.AddTransient<GetPrescriptionTemplateRequirements>();
+        _ = builder.Services.AddTransient<PreparePrescriptionDraftFromTemplate>();
+        _ = builder.Services.AddTransient<ConfirmPrescriptionDraft>();
+        _ = builder.Services.AddSingleton<IPrescriptionAgentReviewStore, InMemoryPrescriptionAgentReviewStore>();
+        _ = builder.Services.AddTransient<IPrescriptionAgentCapability, PrescriptionAgentCapability>();
 
         return Task.CompletedTask;
     }
