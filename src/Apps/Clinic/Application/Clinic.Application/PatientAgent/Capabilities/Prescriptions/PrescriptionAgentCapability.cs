@@ -54,7 +54,7 @@ public sealed class GetPrescriptionTemplateRequirementsTool(IPrescriptionAgentCa
     { using JsonDocument args = JsonDocument.Parse(call.ArgumentsJson); return Result(call, await Capability.GetRequirementsAsync(args.RootElement.GetProperty("templateId").GetGuid(), RequiredMetadata(context, "practiceId"), cancellationToken)); }
 }
 
-public sealed class PreparePrescriptionTool(IPrescriptionAgentCapability capability) : PrescriptionTool(capability)
+public sealed class PreparePrescriptionTool(IPrescriptionAgentCapability capability) : PrescriptionTool(capability), IPatientAgentPreparationTool
 {
     public override AgentToolDefinition Definition { get; } = new("prepare_prescription", "Create a Medical-owned draft for complete review; this does not submit it.", "{\"type\":\"object\",\"properties\":{\"templateId\":{\"type\":\"string\"},\"templateVersion\":{\"type\":\"string\"},\"insuranceCoverage\":{\"type\":\"string\"}},\"required\":[\"templateId\",\"templateVersion\",\"insuranceCoverage\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
@@ -62,6 +62,14 @@ public sealed class PreparePrescriptionTool(IPrescriptionAgentCapability capabil
         using JsonDocument args = JsonDocument.Parse(call.ArgumentsJson); PrescriptionAgentScope scope = Scope(context);
         var provenance = new PrescriptionAgentProvenance("AgentAssisted", context.ExecutionId, call.Id, scope.RequestedByUserId, null, args.RootElement.GetProperty("templateVersion").GetString()!);
         return Result(call, await Capability.PrepareAsync(args.RootElement.GetProperty("templateId").GetGuid(), args.RootElement.GetProperty("insuranceCoverage").GetString(), scope, provenance, cancellationToken));
+    }
+
+    public PatientAgentPreparedAction? GetPreparedAction(AgentToolResult result)
+    {
+        PrescriptionDraftPreparationResult? preparation = JsonSerializer.Deserialize<PrescriptionDraftPreparationResult>(result.Output);
+        return preparation is { Status: PrescriptionDraftPreparationStatus.Prepared, Review: { } review }
+            ? new("Prescriptions", "create_prescription", review.ReviewId, JsonSerializer.Serialize(review), null)
+            : null;
     }
 }
 

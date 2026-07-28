@@ -71,8 +71,8 @@ public sealed class PatientWorkspaceAgentTests
     {
         const string json = """
             {"messages":[{"kind":"assistantMessage","content":"Prepared for review"}],"actions":[
-              {"id":"a1","capability":"appointments","actionType":"reschedule","status":"proposed","arguments":{"slot":"tomorrow"},"summary":"Reschedule visit"},
-              {"id":"a2","capability":"communications","actionType":"sendReminder","status":"proposed","arguments":{"channel":"sms"},"summary":"Send reminder"}
+              {"capability":"appointments","actionType":"reschedule","summary":"Reschedule visit"},
+              {"capability":"communications","actionType":"sendReminder","summary":"Send reminder"}
             ]}
             """;
 
@@ -179,7 +179,7 @@ public sealed class PatientWorkspaceAgentTests
     [Fact]
     public async Task Model_cannot_propose_an_action_outside_enabled_capabilities()
     {
-        const string json = """{"messages":[],"actions":[{"id":"a1","capability":"billing","actionType":"delete","status":"proposed","arguments":{},"summary":"Delete"}]}""";
+        const string json = """{"messages":[],"actions":[{"capability":"billing","actionType":"delete","summary":"Delete"}]}""";
         PatientAgentResult result = await Handler(new CapturingRunner(Result(json)), []).Handle(
             new RunPatientAgent(Context(), new PatientAgentInput("Delete billing data")), CancellationToken.None);
 
@@ -197,7 +197,7 @@ public sealed class PatientWorkspaceAgentTests
             proposal = new { id = proposalId, expiresAt = DateTimeOffset.Parse("2030-01-01T00:00:00Z"), slot = new { service = "Review" } }
         }));
         const string model = """
-            {"messages":[],"actions":[{"id":"model-invented","capability":"Appointments","actionType":"create_appointment","status":"proposed","arguments":{"id":"model-proposal"},"summary":"Review appointment"}]}
+            {"messages":[],"actions":[{"capability":"Appointments","actionType":"create_appointment","summary":"Review appointment using model-proposal"}]}
             """;
         ExecutingRunner runner = new(Result(model), "prepare_appointment");
 
@@ -206,7 +206,7 @@ public sealed class PatientWorkspaceAgentTests
             new RunPatientAgent(Context(), new PatientAgentInput("Prepare it")), CancellationToken.None);
 
         PatientAgentAction action = result.Actions.Should().ContainSingle().Subject;
-        action.Id.Should().NotBe("model-invented");
+        action.Id.Should().Be(proposalId.ToString("D"));
         action.ArgumentsJson.Should().Contain(proposalId.ToString()).And.NotContain("model-proposal");
         result.AgentRunId.Should().Be(runner.Context!.ExecutionId);
         result.ConversationId.Should().Be("conversation-1");
@@ -243,7 +243,7 @@ public sealed class PatientWorkspaceAgentTests
     public async Task Interpretation_does_not_execute_context_tools_or_write_actions()
     {
         TestTool tool = new("patient_context");
-        CapturingRunner runner = new(Result("""{"messages":[],"actions":[{"id":"a1","capability":"patient","actionType":"update","status":"proposed","arguments":{},"summary":"Update"}]}"""));
+        CapturingRunner runner = new(Result("""{"messages":[],"actions":[{"capability":"patient","actionType":"update","summary":"Update"}]}"""));
         RunPatientAgentHandler handler = Handler(runner, [new Capability("patient", new HashSet<string>(), [tool], ["update"])]);
 
         PatientAgentResult result = await handler.Handle(
@@ -291,7 +291,7 @@ public sealed class PatientWorkspaceAgentTests
         public bool IsAvailable(PatientAgentContext context) => true;
     }
 
-    private sealed class TestTool(string name, string schema = "{\"type\":\"object\",\"additionalProperties\":false}", string output = "{}") : IAgentTool
+    private sealed class TestTool(string name, string schema = "{\"type\":\"object\",\"additionalProperties\":false}", string output = "{}") : IPatientAgentPreparationTool
     {
         public int ExecutionCount { get; private set; }
         public string? LastExecutionId { get; private set; }
@@ -302,6 +302,18 @@ public sealed class PatientWorkspaceAgentTests
             ExecutionCount++;
             LastExecutionId = context.ExecutionId;
             return Task.FromResult(new AgentToolResult(call.Id, output));
+        }
+
+        public PatientAgentPreparedAction? GetPreparedAction(AgentToolResult result)
+        {
+            using JsonDocument document = JsonDocument.Parse(result.Output);
+            JsonElement root = document.RootElement;
+            if (name == "prepare_appointment" && root.GetProperty("proposal") is JsonElement proposal)
+                return new("Appointments", "create_appointment", proposal.GetProperty("id").GetGuid(),
+                    proposal.GetRawText(), proposal.GetProperty("expiresAt").GetDateTimeOffset());
+            if (name == "prepare_prescription" && root.GetProperty("review") is JsonElement review)
+                return new("Prescriptions", "create_prescription", review.GetProperty("reviewId").GetGuid(), review.GetRawText(), null);
+            return null;
         }
     }
 

@@ -53,7 +53,7 @@ public sealed class PatientAgentToolDispatcher(PatientAgentApprovalPolicy approv
 
             ValidateArguments(call.ArgumentsJson, Definition.ParametersJsonSchema);
             AgentToolResult result = await handler.ExecuteAsync(call, context, cancellationToken);
-            collector.Record(capability, call, context, result);
+            collector.Record(capability, handler, call, context, result);
             return result;
         }
 

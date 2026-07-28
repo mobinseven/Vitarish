@@ -11,12 +11,12 @@ public sealed class RunPatientAgentHandler(
 {
     public async Task<PatientAgentResult> Handle(RunPatientAgent request, CancellationToken cancellationToken)
     {
+        PatientWorkspaceAgentDefinition workspace = definitionFactory.Create(request.Context);
         if (string.IsNullOrWhiteSpace(request.Input.Message))
         {
-            return PatientAgentResult.Failure(string.Empty, request.Context.ConversationId, "A message is required.");
+            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, "A message is required.");
         }
 
-        PatientWorkspaceAgentDefinition workspace = definitionFactory.Create(request.Context);
         AgentRunResult run = await agentRunner.RunAsync(
             workspace.Definition,
             new AgentInput(request.Input.Message),
@@ -69,10 +69,6 @@ public sealed class RunPatientAgentHandler(
                 throw new JsonException("The patient agent returned an action that is not enabled.");
             }
 
-            if (item.GetProperty("status").GetString() != "proposed")
-            {
-                throw new JsonException("Patient actions must be proposed.");
-            }
             var key = (capability, actionType);
             if (!summaries.TryGetValue(key, out Queue<string>? values)) summaries[key] = values = new();
             values.Enqueue(item.GetProperty("summary").GetString() ?? string.Empty);
@@ -86,7 +82,7 @@ public sealed class RunPatientAgentHandler(
                 !registered.Contains(prepared.ActionType))
                 throw new JsonException("A preparation tool produced an action type that is not enabled.");
             summaries.TryGetValue((prepared.Capability, prepared.ActionType), out Queue<string>? values);
-            actions.Add(new PatientAgentAction(Guid.NewGuid().ToString("N"), prepared.Capability, prepared.ActionType,
+            actions.Add(new PatientAgentAction(prepared.OwningId.ToString("D"), prepared.Capability, prepared.ActionType,
                 PatientAgentActionStatus.Proposed, prepared.ReviewDataJson,
                 values is { Count: > 0 } ? values.Dequeue() : string.Empty));
         }

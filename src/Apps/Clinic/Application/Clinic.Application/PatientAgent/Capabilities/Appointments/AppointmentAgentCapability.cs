@@ -63,13 +63,21 @@ public sealed class CheckAppointmentAvailabilityTool(IPatientAppointmentAgentCap
     }
 }
 
-public sealed class PrepareAppointmentTool(IPatientAppointmentAgentCapability capability) : AppointmentTool(capability)
+public sealed class PrepareAppointmentTool(IPatientAppointmentAgentCapability capability) : AppointmentTool(capability), IPatientAgentPreparationTool
 {
     public override AgentToolDefinition Definition { get; } = new("prepare_appointment", "Prepare an immutable appointment proposal for explicit review; this does not book.", RequestSchema);
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument args = JsonDocument.Parse(call.ArgumentsJson);
         return Result(call, await Capability.PrepareAsync(Request(args.RootElement, context), cancellationToken));
+    }
+
+    public PatientAgentPreparedAction? GetPreparedAction(AgentToolResult result)
+    {
+        AppointmentProposalResult? preparation = JsonSerializer.Deserialize<AppointmentProposalResult>(result.Output);
+        return preparation is { Status: AppointmentProposalResultStatus.Prepared, Proposal: { } proposal }
+            ? new("Appointments", "create_appointment", proposal.Id, JsonSerializer.Serialize(proposal), proposal.ExpiresAt)
+            : null;
     }
 }
 
