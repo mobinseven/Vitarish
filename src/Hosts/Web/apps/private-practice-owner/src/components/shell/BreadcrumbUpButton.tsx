@@ -48,6 +48,18 @@ export function BreadcrumbUpButton({ navGroups }: BreadcrumbUpButtonProps) {
 
 /** Derive the parent path by stripping the last segment. Returns undefined at root or single-segment paths. */
 function getParentPathname(pathname: string): string | undefined {
+  const procedureEventMatch = pathname.match(
+    /^\/patients\/([^/]+)\/procedures\/([^/]+)\/events\/[^/]+\/?$/,
+  );
+  if (procedureEventMatch) {
+    return `/patients/${procedureEventMatch[1]}/procedures/${procedureEventMatch[2]}`;
+  }
+
+  const procedureMatch = pathname.match(
+    /^\/patients\/([^/]+)\/procedures\/[^/]+\/?$/,
+  );
+  if (procedureMatch) return `/patients/${procedureMatch[1]}`;
+
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length < 2) return undefined;
   return "/" + segments.slice(0, -1).join("/");
