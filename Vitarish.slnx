@@ -35,6 +35,9 @@
       <Build Solution="Debug|x86" Project="false" />
     </Project>
   </Folder>
+  <Folder Name="/tests/Apps/Clinic.Application.Tests/">
+    <Project Path="tests/Apps/Clinic.Application.Tests/Clinic.Application.Tests.csproj" />
+  </Folder>
   <Folder Name="/src/Hosts/">
     <Project Path="src/Hosts/Main/Main.csproj" />
   </Folder>

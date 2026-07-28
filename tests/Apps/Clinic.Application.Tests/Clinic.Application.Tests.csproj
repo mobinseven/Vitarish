@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="FluentAssertions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj" />
+    <ProjectReference Include="../../../src/Apps/Clinic/Contracts/Clinic.Contracts.csproj" />
+  </ItemGroup>
+</Project>
