@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Routing;
 using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Queries.Patients;
 using Vitarish.Clinic.Application.Results;
+using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Contracts.Errors;
+using Vitarish.Clinic.Contracts.PatientAgent;
 using Vitarish.Clinic.Contracts.Responses;
 using Vitarish.Clinic.Contracts.Routes;
 using Vitarish.Clinic.Domain.Models;
@@ -41,8 +43,36 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModuleGet(ClinicApiRoutes.PatientDetails, GetPatientDetailsAsync, "ClinicGetPatientDetails", typeof(PatientViewDto));
         _ = group.MapModulePut(ClinicApiRoutes.PatientUpdate, UpdatePatientAsync, "ClinicUpdatePatient", typeof(PatientViewDto))
             .RequireAuthorization(SeaManagePolicy);
+        _ = group.MapModulePost(ClinicApiRoutes.PatientAgent, RunPatientAgentAsync, "ClinicRunPatientAgent", typeof(RunPatientAgentResponse));
 
         return endpoints;
+    }
+
+    private static async Task<IResult> RunPatientAgentAsync(
+        Guid patientId,
+        RunPatientAgentRequest request,
+        IPatientAgentContextFactory contextFactory,
+        ISender sender,
+        CancellationToken ct)
+    {
+        if (patientId == Guid.Empty || request is null || string.IsNullOrWhiteSpace(request.Message))
+        {
+            return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "Patient id and message are required."));
+        }
+
+        PatientAgentContext context = await contextFactory.CreateAsync(patientId, request.ConversationId, ct);
+        PatientAgentResult result = await sender.Send(new RunPatientAgent(context, new PatientAgentInput(request.Message)), ct);
+        return Results.Ok(new RunPatientAgentResponse(
+            result.Messages.Select(message => new PatientAgentMessageResponse(
+                (PatientAgentMessageResponseKind)(int)message.Kind,
+                message.Content)).ToArray(),
+            result.Actions.Select(action => new PatientAgentActionResponse(
+                action.Id,
+                action.Capability,
+                action.ActionType,
+                (PatientAgentActionResponseStatus)(int)action.Status,
+                System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(action.ArgumentsJson),
+                action.Summary)).ToArray()));
     }
 
     private static async Task<IResult> ListPatientsAsync(PatientListRequest request, ISender sender, CancellationToken ct)
