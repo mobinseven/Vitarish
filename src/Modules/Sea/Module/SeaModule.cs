@@ -10,6 +10,9 @@ using Vitarish.Sea.Api.Authorization;
 using Vitarish.Sea.Presentation.Serializers;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Modules.Base.Core;
+using Vitarish.Sea.Application.AgentCapabilities.ClinicalEvents;
+using Vitarish.Sea.Infrastructure.AgentCapabilities.ClinicalEvents;
+using Vitarish.Sea.Interface.AgentCapabilities;
 
 namespace Vitarish.Sea.Module;
 /// <summary>
@@ -30,6 +33,13 @@ public class SeaModule : Modules.Base.Core.Module, ISeaModule
 
         _ = builder.Services.AddSeaInfrastructure();
         _ = builder.Services.AddSeaApiAuthorization();
+        _ = builder.Services.AddSingleton(TimeProvider.System);
+        _ = builder.Services.AddSingleton<IClinicalEventProposalStore, InMemoryClinicalEventProposalStore>();
+        _ = builder.Services.AddTransient<IClinicalEventProcedureBoundary, SeaClinicalEventProcedureBoundary>();
+        _ = builder.Services.AddTransient<GetPatientProcedureContext>();
+        _ = builder.Services.AddTransient<PrepareClinicalEvent>();
+        _ = builder.Services.AddTransient<ConfirmClinicalEventProposal>();
+        _ = builder.Services.AddTransient<IClinicalEventAgentCapability, ClinicalEventAgentCapability>();
 
         _ = builder.Services.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, SeaJsonSerializerContext.Default));

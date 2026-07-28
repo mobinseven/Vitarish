@@ -1,0 +1,200 @@
+namespace Vitarish.Sea.Application.AgentCapabilities.ClinicalEvents;
+
+public sealed record ClinicalEventScope(Guid PatientId, string PracticeId, string UserId);
+
+public sealed record ClinicalEventProvenance(
+    string Origin,
+    string AgentRunId,
+    string AssertedByUserId,
+    string? ConfirmedByUserId,
+    bool PreparedByAgent = true);
+
+public sealed record PatientProcedureContext(
+    Guid ProcedureId,
+    Guid ProjectId,
+    Guid? ProcedureTemplateOrProjectId,
+    string ProcedureName,
+    IReadOnlySet<int> ValidVisitOrSessionNumbers,
+    string StateVersion,
+    bool CanRecordClinicalEvent);
+
+public sealed record ClinicalEventContent(
+    Guid ProcedureId,
+    Guid? ProcedureTemplateOrProjectId,
+    int VisitOrSessionNumber,
+    string EventType,
+    string CompletionStatus,
+    DateTimeOffset PerformedAt,
+    string? ClinicianAuthoredObservations,
+    string? ClinicianAuthoredDiagnosisText,
+    string? PlanOrFollowUp,
+    IReadOnlyList<string> AttachmentReferences,
+    string NarrativeNote);
+
+public sealed record PrepareClinicalEventRequest(
+    ClinicalEventScope Scope,
+    Guid ProcedureId,
+    int VisitOrSessionNumber,
+    string? EventType,
+    string? CompletionStatus,
+    DateTimeOffset? PerformedAt,
+    string? ClinicianAuthoredObservations,
+    string? ClinicianAuthoredDiagnosisText,
+    string? PlanOrFollowUp,
+    IReadOnlyList<string>? AttachmentReferences,
+    string? GeneratedDiagnosisText,
+    ClinicalEventProvenance Provenance);
+
+public sealed record ClinicalEventProposal(
+    Guid Id,
+    Guid PatientId,
+    string PracticeId,
+    string ProcedureStateVersion,
+    ClinicalEventContent StructuredContent,
+    ClinicalEventProvenance Provenance,
+    DateTimeOffset PreparedAt);
+
+public enum ClinicalEventProposalStatus
+{
+    Prepared,
+    UnknownProcedure,
+    InvalidVisitNumber,
+    MissingInformation,
+    UnsupportedDiagnosis,
+    Forbidden
+}
+
+public sealed record ClinicalEventProposalResult(
+    ClinicalEventProposalStatus Status,
+    ClinicalEventProposal? Proposal = null,
+    IReadOnlyList<string>? MissingFields = null,
+    string? Message = null);
+
+public enum ClinicalEventCommitStatus
+{
+    Committed,
+    AlreadyConfirmed,
+    NotFound,
+    Forbidden,
+    StaleProcedureState,
+    Failed
+}
+
+public sealed record ClinicalEventCommitResult(
+    ClinicalEventCommitStatus Status,
+    Guid? EventId = null,
+    ClinicalEventContent? Event = null,
+    ClinicalEventProvenance? Provenance = null,
+    string? Message = null);
+
+public interface IClinicalEventProcedureBoundary
+{
+    Task<PatientProcedureContext?> GetContextAsync(ClinicalEventScope scope, Guid procedureId, CancellationToken cancellationToken);
+    Task<Guid?> AddClinicalEventItemAsync(ClinicalEventScope scope, ClinicalEventContent content, ClinicalEventProvenance provenance, CancellationToken cancellationToken);
+}
+
+public interface IClinicalEventProposalStore
+{
+    Task<ClinicalEventProposal?> GetAsync(Guid proposalId, CancellationToken cancellationToken);
+    Task SaveAsync(ClinicalEventProposal proposal, CancellationToken cancellationToken);
+    Task<ClinicalEventCommitResult?> GetCommitAsync(Guid proposalId, CancellationToken cancellationToken);
+    Task<bool> TryBeginConfirmationAsync(Guid proposalId, CancellationToken cancellationToken);
+    Task SaveCommitAsync(Guid proposalId, ClinicalEventCommitResult result, CancellationToken cancellationToken);
+}
+
+public sealed class GetPatientProcedureContext(IClinicalEventProcedureBoundary boundary)
+{
+    public Task<PatientProcedureContext?> ExecuteAsync(ClinicalEventScope scope, Guid procedureId, CancellationToken cancellationToken) =>
+        boundary.GetContextAsync(scope, procedureId, cancellationToken);
+}
+
+public sealed class PrepareClinicalEvent(GetPatientProcedureContext getContext, IClinicalEventProposalStore store, TimeProvider timeProvider)
+{
+    public async Task<ClinicalEventProposalResult> ExecuteAsync(PrepareClinicalEventRequest request, CancellationToken cancellationToken)
+    {
+        PatientProcedureContext? context = await getContext.ExecuteAsync(request.Scope, request.ProcedureId, cancellationToken);
+        if (context is null)
+            return new(ClinicalEventProposalStatus.UnknownProcedure, Message: "The referenced procedure was not found for the current patient.");
+        if (!context.CanRecordClinicalEvent)
+            return new(ClinicalEventProposalStatus.Forbidden, Message: "The clinician is not authorized to record an event for this procedure.");
+        if (!context.ValidVisitOrSessionNumbers.Contains(request.VisitOrSessionNumber))
+            return new(ClinicalEventProposalStatus.InvalidVisitNumber, Message: "Sea does not allow the requested visit or session number.");
+        if (!string.IsNullOrWhiteSpace(request.GeneratedDiagnosisText))
+            return new(ClinicalEventProposalStatus.UnsupportedDiagnosis, Message: "Diagnosis text must be an explicit clinician assertion and cannot be generated by the agent.");
+
+        List<string> missing = [];
+        if (string.IsNullOrWhiteSpace(request.EventType)) missing.Add("eventType");
+        if (string.IsNullOrWhiteSpace(request.CompletionStatus)) missing.Add("completionStatus");
+        if (request.PerformedAt is null) missing.Add("performedAt");
+        if (string.IsNullOrWhiteSpace(request.ClinicianAuthoredObservations) &&
+            string.IsNullOrWhiteSpace(request.ClinicianAuthoredDiagnosisText) &&
+            string.IsNullOrWhiteSpace(request.PlanOrFollowUp)) missing.Add("clinicalContent");
+        if (missing.Count > 0)
+            return new(ClinicalEventProposalStatus.MissingInformation, MissingFields: missing, Message: "Ask the clinician for the missing material event information.");
+
+        IReadOnlyList<string> attachments = request.AttachmentReferences?
+            .Where(value => !string.IsNullOrWhiteSpace(value)).Select(value => value.Trim()).Distinct(StringComparer.Ordinal).ToArray() ?? [];
+        string narrative = BuildNarrative(request);
+        ClinicalEventContent content = new(context.ProcedureId, context.ProcedureTemplateOrProjectId,
+            request.VisitOrSessionNumber, request.EventType!.Trim(), request.CompletionStatus!.Trim(), request.PerformedAt!.Value,
+            Trim(request.ClinicianAuthoredObservations), Trim(request.ClinicianAuthoredDiagnosisText), Trim(request.PlanOrFollowUp),
+            attachments, narrative);
+        ClinicalEventProposal proposal = new(Guid.NewGuid(), request.Scope.PatientId, request.Scope.PracticeId,
+            context.StateVersion, content, request.Provenance with { Origin = "AgentAssisted", ConfirmedByUserId = null, PreparedByAgent = true },
+            timeProvider.GetUtcNow());
+        await store.SaveAsync(proposal, cancellationToken);
+        return new(ClinicalEventProposalStatus.Prepared, proposal);
+    }
+
+    private static string BuildNarrative(PrepareClinicalEventRequest request)
+    {
+        List<string> parts =
+        [
+            $"{request.EventType!.Trim()} — visit/session {request.VisitOrSessionNumber} ({request.CompletionStatus!.Trim()}).",
+            $"Performed {request.PerformedAt!.Value:O}."
+        ];
+        Add(parts, "Observations", request.ClinicianAuthoredObservations);
+        Add(parts, "Clinician-stated diagnosis", request.ClinicianAuthoredDiagnosisText);
+        Add(parts, "Plan/follow-up", request.PlanOrFollowUp);
+        return string.Join(" ", parts);
+    }
+
+    private static void Add(List<string> parts, string label, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value)) parts.Add($"{label}: {value.Trim()}");
+    }
+
+    private static string? Trim(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+}
+
+public sealed class ConfirmClinicalEventProposal(
+    GetPatientProcedureContext getContext,
+    IClinicalEventProposalStore store,
+    IClinicalEventProcedureBoundary boundary)
+{
+    public async Task<ClinicalEventCommitResult> ExecuteAsync(Guid proposalId, ClinicalEventScope scope, string confirmedByUserId, CancellationToken cancellationToken)
+    {
+        ClinicalEventCommitResult? prior = await store.GetCommitAsync(proposalId, cancellationToken);
+        if (prior is not null) return prior with { Status = ClinicalEventCommitStatus.AlreadyConfirmed };
+        ClinicalEventProposal? proposal = await store.GetAsync(proposalId, cancellationToken);
+        if (proposal is null) return new(ClinicalEventCommitStatus.NotFound);
+        if (proposal.PatientId != scope.PatientId || proposal.PracticeId != scope.PracticeId ||
+            proposal.Provenance.AssertedByUserId != confirmedByUserId || scope.UserId != confirmedByUserId)
+            return new(ClinicalEventCommitStatus.Forbidden, Message: "Only the asserting clinician in the current patient scope may confirm this proposal.");
+
+        PatientProcedureContext? current = await getContext.ExecuteAsync(scope, proposal.StructuredContent.ProcedureId, cancellationToken);
+        if (current is null || !current.CanRecordClinicalEvent || current.StateVersion != proposal.ProcedureStateVersion ||
+            !current.ValidVisitOrSessionNumbers.Contains(proposal.StructuredContent.VisitOrSessionNumber))
+            return new(ClinicalEventCommitStatus.StaleProcedureState, Event: proposal.StructuredContent, Message: "The procedure changed; prepare a new proposal.");
+        if (!await store.TryBeginConfirmationAsync(proposalId, cancellationToken))
+            return new(ClinicalEventCommitStatus.AlreadyConfirmed, Event: proposal.StructuredContent, Message: "Confirmation is already in progress or complete.");
+
+        ClinicalEventProvenance provenance = proposal.Provenance with { ConfirmedByUserId = confirmedByUserId };
+        Guid? eventId = await boundary.AddClinicalEventItemAsync(scope, proposal.StructuredContent, provenance, cancellationToken);
+        ClinicalEventCommitResult result = eventId is Guid id && id != Guid.Empty
+            ? new(ClinicalEventCommitStatus.Committed, id, proposal.StructuredContent, provenance)
+            : new(ClinicalEventCommitStatus.Failed, Event: proposal.StructuredContent, Provenance: provenance, Message: "Sea did not commit the clinical event item.");
+        await store.SaveCommitAsync(proposalId, result, cancellationToken);
+        return result;
+    }
+}

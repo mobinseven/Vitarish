@@ -10,6 +10,7 @@
     <ProjectReference Include="..\Infrastructure\Sea.Infrastructure.csproj" />
 		<ProjectReference Include="..\Api\Sea.Api.csproj" />
     <ProjectReference Include="..\Application\Sea.Application.csproj" />
+    <ProjectReference Include="..\Interface\Sea.Interface.csproj" />
     <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
