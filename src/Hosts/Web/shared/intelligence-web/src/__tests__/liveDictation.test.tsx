@@ -44,9 +44,11 @@ function Harness({ value }: { value: LiveDictationController }) {
 }
 
 function getDictationButton(name: string) {
-  return screen
+  const button = screen
     .getAllByRole("button", { name })
     .find((element) => element.tagName === "BUTTON");
+  if (!button) throw new Error(`Expected dictation button: ${name}`);
+  return button;
 }
 
 describe("LiveDictation", () => {
