@@ -416,7 +416,7 @@ describe("clinic display components", () => {
     );
 
     const conversation = screen.getByRole("log");
-    const composer = screen.getByLabelText("Clinical note");
+    const composer = screen.getByLabelText("Note");
 
     expect(conversation).toHaveClass("min-h-0", "flex-1");
     expect(conversation.closest('[data-slot="scroll-shadow"]')).toBeNull();

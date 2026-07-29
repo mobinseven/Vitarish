@@ -78,7 +78,7 @@ describe("patient procedure event item composer", () => {
     const fileInput = container.querySelector('input[type="file"]');
     expect(fileInput).not.toBeNull();
     fireEvent.change(fileInput!, { target: { files: [file] } });
-    fireEvent.change(screen.getByRole("textbox", { name: "Clinical note" }), {
+    fireEvent.change(screen.getByRole("textbox", { name: "Note" }), {
       target: { value: "Keep the treatment plan" },
     });
 
@@ -98,7 +98,7 @@ describe("patient procedure event item composer", () => {
     );
     await waitFor(() =>
       expect(
-        screen.getByRole("textbox", { name: "Clinical note" }),
+        screen.getByRole("textbox", { name: "Note" }),
       ).toHaveValue(""),
     );
     expect(screen.getByRole("button", { name: "Remove" })).toBeInTheDocument();
