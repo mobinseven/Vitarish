@@ -37,7 +37,10 @@ interface AppointmentsAgendaProps {
   onNavigate?: (intent: NavigationIntent) => void;
 }
 
-function getVisibleDateStrings(date: CalendarDate, view: "day" | "week" | "month"): string[] {
+function getVisibleDateStrings(
+  date: CalendarDate,
+  view: "day" | "week" | "month",
+): string[] {
   const dates: string[] = [];
   if (view === "day") {
     dates.push(date.toString());
@@ -76,28 +79,48 @@ export function AppointmentsAgenda({
   const [selectedShift, setSelectedShift] = useState<ShiftReadDto | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedAvailableSeats, setSelectedAvailableSeats] = useState(0);
-  const [detailReservationId, setDetailReservationId] = useState<string | null>(null);
+  const [detailReservationId, setDetailReservationId] = useState<string | null>(
+    null,
+  );
 
   const visibleDates = useMemo(
     () => getVisibleDateStrings(date, view),
     [date, view],
   );
 
-  const { capacityMap, occurrenceKeys } = useBookableShiftOccurrences(shifts, visibleDates);
+  const { capacityMap, occurrenceKeys } = useBookableShiftOccurrences(
+    shifts,
+    visibleDates,
+  );
   const reservingPartyNames = useReservationPartyNames(reservations);
   const { data: services } = useServices();
   const { data: serviceProviders } = useServiceProviders();
   const formatShiftTime = useCallback(
-    (time: string) => formatDate(`${date.toString()}T${time.length === 5 ? `${time}:00` : time}`, locale, {
-      hour: "numeric",
-      minute: "2-digit",
-    }),
+    (time: string) =>
+      formatDate(
+        `${date.toString()}T${time.length === 5 ? `${time}:00` : time}`,
+        locale,
+        {
+          hour: "numeric",
+          minute: "2-digit",
+        },
+      ),
     [date, locale],
   );
   const events = useAgendaEvents(
-    date, view, shifts, reservations, locale, capacityMap, occurrenceKeys, services, serviceProviders,
-    t("clinic.fields.shift"), formatShiftTime,
-    (available: number, total: number) => `${formatNumber(available, locale)}/${formatNumber(total, locale)}`,
+    date,
+    view,
+    shifts,
+    reservations,
+    locale,
+    capacityMap,
+    occurrenceKeys,
+    services,
+    serviceProviders,
+    t("clinic.fields.shift"),
+    formatShiftTime,
+    (available: number, total: number) =>
+      `${formatNumber(available, locale)}/${formatNumber(total, locale)}`,
     reservingPartyNames,
   );
 
@@ -147,138 +170,142 @@ export function AppointmentsAgenda({
     <Widget>
       <Widget.Content className="p-0">
         <Agenda {...agenda}>
-        <Agenda.Header>
-          <Agenda.Heading />
-          <Agenda.ViewSelector>
-            <Segment.Item id="day">
-              {t("clinic.appointments.agenda.day")}
-            </Segment.Item>
-            <Segment.Item id="week">
-              {t("clinic.appointments.agenda.week")}
-            </Segment.Item>
-            <Segment.Item id="month">
-              {t("clinic.appointments.agenda.month")}
-            </Segment.Item>
-          </Agenda.ViewSelector>
-          <Agenda.Navigation>
-            <Button
-              isIconOnly
-              aria-label={t("clinic.appointments.agenda.previous")}
-              className="agenda__nav-button"
-              size="sm"
-              variant="ghost"
-              onPress={agenda.goToPrevious}
-            >
-              <span aria-hidden="true">‹</span>
-            </Button>
-            <Agenda.TodayButton>
-              {t("clinic.appointments.agenda.today")}
-            </Agenda.TodayButton>
-            <Button
-              isIconOnly
-              aria-label={t("clinic.appointments.agenda.next")}
-              className="agenda__nav-button"
-              size="sm"
-              variant="ghost"
-              onPress={agenda.goToNext}
-            >
-              <span aria-hidden="true">›</span>
-            </Button>
-          </Agenda.Navigation>
-        </Agenda.Header>
-        <Agenda.Body>
-          {view === "month" ? (
-            <Agenda.MonthGrid>
-              {agenda.visibleWeeks.map((week) => {
-                const rowLayout = agenda.getMonthRowLayout(week);
+          <Agenda.Header>
+            <Agenda.Heading />
+            <Agenda.ViewSelector>
+              <Segment.Item id="day">
+                {t("clinic.appointments.agenda.day")}
+              </Segment.Item>
+              <Segment.Item id="week">
+                {t("clinic.appointments.agenda.week")}
+              </Segment.Item>
+              <Segment.Item id="month">
+                {t("clinic.appointments.agenda.month")}
+              </Segment.Item>
+            </Agenda.ViewSelector>
+            <Agenda.Navigation>
+              <Button
+                isIconOnly
+                aria-label={t("clinic.appointments.agenda.previous")}
+                className="agenda__nav-button"
+                size="sm"
+                variant="ghost"
+                onPress={agenda.goToPrevious}
+              >
+                <span aria-hidden="true">‹</span>
+              </Button>
+              <Agenda.TodayButton>
+                {t("clinic.appointments.agenda.today")}
+              </Agenda.TodayButton>
+              <Button
+                isIconOnly
+                aria-label={t("clinic.appointments.agenda.next")}
+                className="agenda__nav-button"
+                size="sm"
+                variant="ghost"
+                onPress={agenda.goToNext}
+              >
+                <span aria-hidden="true">›</span>
+              </Button>
+            </Agenda.Navigation>
+          </Agenda.Header>
+          <Agenda.Body>
+            {view === "month" ? (
+              <Agenda.MonthGrid>
+                {agenda.visibleWeeks.map((week) => {
+                  const rowLayout = agenda.getMonthRowLayout(week);
 
-                return (
-                  <Agenda.MonthRow
-                    key={week[0]?.toString()}
-                    spanningRowCount={rowLayout.rowCount}
-                  >
-                    {rowLayout.items.map((item) => (
-                      <Agenda.MonthSpanningEvent
-                        key={item.event.id}
-                        event={item.event}
-                        colStart={item.colStart}
-                        colSpan={item.colSpan}
-                        row={item.row}
-                      />
-                    ))}
-                    {week.map((day, columnIndex) => (
-                      <Agenda.MonthCell
-                        key={day.toString()}
-                        date={day}
-                        moreLabel={(count) =>
-                          t("clinic.appointments.agenda.more", {
-                            count: formatNumber(count, locale),
-                          })
-                        }
-                        spanningRowCount={
-                          rowLayout.rowCountPerCol[columnIndex] ?? 0
-                        }
-                      >
-                        {agenda.getPerCellEvents(day, week).map((event) => (
-                          <Agenda.MonthEvent key={event.id} event={event} />
-                        ))}
-                      </Agenda.MonthCell>
-                    ))}
-                  </Agenda.MonthRow>
-                );
-              })}
-            </Agenda.MonthGrid>
-          ) : (
-            <>
-              <Agenda.WeekHeader>
-                {agenda.visibleDays.map((day) => (
-                  <div key={day.toString()} className="agenda__day-header">
-                    <span className="agenda__day-header-name">
-                      {formatDate(day.toDate(getLocalTimeZone()), locale, { weekday: "short" })}
-                    </span>
-                    <span className="agenda__day-header-date">
-                      {formatNumber(day.day, locale)}
-                    </span>
-                  </div>
-                ))}
-              </Agenda.WeekHeader>
-              <Agenda.AllDaySection>
-                <Agenda.AllDayLabel>
-                  {t("clinic.appointments.agenda.allDay")}
-                </Agenda.AllDayLabel>
-                {agenda.allDayLayout.map((item) => (
-                  <Button
-                    key={item.event.id}
-                    type="button"
-                    className="agenda__all-day-event h-auto min-h-8 min-w-0 justify-start overflow-hidden px-2 py-1 text-start"
-                    style={{
-                      gridColumn: `${item.colStart + 1} / span ${item.colSpan}`,
-                      gridRow: item.row + 1,
-                      ...(item.event.color
-                        ? { "--agenda-event-accent": item.event.color }
-                        : {}),
-                    } as CSSProperties}
-                    variant="ghost"
-                    aria-label={`${t("clinic.appointments.agenda.bookShift")}: ${item.event.title}`}
-                    onPress={() => handleAgendaEventSelect(item.event.id)}
-                  >
-                    <span className="truncate">{item.event.title}</span>
-                  </Button>
-                ))}
-              </Agenda.AllDaySection>
-              <Agenda.TimeGrid>
-                <Agenda.CurrentTimeIndicator />
-                {agenda.visibleDays.map((day) => (
-                  <Agenda.DayColumn key={day.toString()} date={day}>
-                    {agenda.getEventsForDay(day).map((event) => (
-                      <Agenda.Event key={event.id} event={event} />
-                    ))}
-                  </Agenda.DayColumn>
-                ))}
-              </Agenda.TimeGrid>
-            </>
-          )}
-        </Agenda.Body>
+                  return (
+                    <Agenda.MonthRow
+                      key={week[0]?.toString()}
+                      spanningRowCount={rowLayout.rowCount}
+                    >
+                      {rowLayout.items.map((item) => (
+                        <Agenda.MonthSpanningEvent
+                          key={item.event.id}
+                          event={item.event}
+                          colStart={item.colStart}
+                          colSpan={item.colSpan}
+                          row={item.row}
+                        />
+                      ))}
+                      {week.map((day, columnIndex) => (
+                        <Agenda.MonthCell
+                          key={day.toString()}
+                          date={day}
+                          moreLabel={(count) =>
+                            t("clinic.appointments.agenda.more", {
+                              count: formatNumber(count, locale),
+                            })
+                          }
+                          spanningRowCount={
+                            rowLayout.rowCountPerCol[columnIndex] ?? 0
+                          }
+                        >
+                          {agenda.getPerCellEvents(day, week).map((event) => (
+                            <Agenda.MonthEvent key={event.id} event={event} />
+                          ))}
+                        </Agenda.MonthCell>
+                      ))}
+                    </Agenda.MonthRow>
+                  );
+                })}
+              </Agenda.MonthGrid>
+            ) : (
+              <>
+                <Agenda.WeekHeader>
+                  {agenda.visibleDays.map((day) => (
+                    <div key={day.toString()} className="agenda__day-header">
+                      <span className="agenda__day-header-name">
+                        {formatDate(day.toDate(getLocalTimeZone()), locale, {
+                          weekday: "short",
+                        })}
+                      </span>
+                      <span className="agenda__day-header-date">
+                        {formatNumber(day.day, locale)}
+                      </span>
+                    </div>
+                  ))}
+                </Agenda.WeekHeader>
+                <Agenda.AllDaySection>
+                  <Agenda.AllDayLabel>
+                    {t("clinic.appointments.agenda.allDay")}
+                  </Agenda.AllDayLabel>
+                  {agenda.allDayLayout.map((item) => (
+                    <Button
+                      key={item.event.id}
+                      type="button"
+                      className="agenda__all-day-event h-auto min-h-8 min-w-0 justify-start overflow-hidden px-2 py-1 text-start"
+                      style={
+                        {
+                          gridColumn: `${item.colStart + 1} / span ${item.colSpan}`,
+                          gridRow: item.row + 1,
+                          ...(item.event.color
+                            ? { "--agenda-event-accent": item.event.color }
+                            : {}),
+                        } as CSSProperties
+                      }
+                      variant="ghost"
+                      aria-label={`${t("clinic.appointments.agenda.bookShift")}: ${item.event.title}`}
+                      onPress={() => handleAgendaEventSelect(item.event.id)}
+                    >
+                      <span className="truncate">{item.event.title}</span>
+                    </Button>
+                  ))}
+                </Agenda.AllDaySection>
+                <Agenda.TimeGrid>
+                  <Agenda.CurrentTimeIndicator />
+                  {agenda.visibleDays.map((day) => (
+                    <Agenda.DayColumn key={day.toString()} date={day}>
+                      {agenda.getEventsForDay(day).map((event) => (
+                        <Agenda.Event key={event.id} event={event} />
+                      ))}
+                    </Agenda.DayColumn>
+                  ))}
+                </Agenda.TimeGrid>
+              </>
+            )}
+          </Agenda.Body>
         </Agenda>
       </Widget.Content>
 

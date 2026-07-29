@@ -103,10 +103,9 @@ describe("PatientProceduresPanel", () => {
     );
 
     expect(screen.getByText("Progress at a glance")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Skin renewal/ })).toHaveAttribute(
-      "aria-expanded",
-      "true",
-    );
+    expect(
+      screen.getByRole("button", { name: /Skin renewal/ }),
+    ).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByText("Five-step protocol")).toBeInTheDocument();
     expect(screen.getByText("4/5 events")).toBeInTheDocument();
     expect(await screen.findByText("Initial assessment")).toBeInTheDocument();

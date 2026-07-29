@@ -18,6 +18,13 @@ if (!Element.prototype.getAnimations) {
   });
 }
 
+if (!HTMLElement.prototype.scrollTo) {
+  Object.defineProperty(HTMLElement.prototype, "scrollTo", {
+    configurable: true,
+    value: () => undefined,
+  });
+}
+
 if (!window.matchMedia) {
   Object.defineProperty(window, "matchMedia", {
     writable: true,

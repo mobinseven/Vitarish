@@ -33,7 +33,10 @@ const statusKeys: Record<number, MessageKey> = {
   7: "clinic.reservationStatus.completed",
 };
 
-const statusColors: Record<number, "warning" | "success" | "danger" | "default" | "accent"> = {
+const statusColors: Record<
+  number,
+  "warning" | "success" | "danger" | "default" | "accent"
+> = {
   0: "warning",
   1: "success",
   2: "danger",
@@ -69,7 +72,9 @@ export function ReservationDetailDialog({
   const formatDuration = (value: string) =>
     value
       .split(":")
-      .map((part) => formatNumber(Number(part), locale, { minimumIntegerDigits: 2 }))
+      .map((part) =>
+        formatNumber(Number(part), locale, { minimumIntegerDigits: 2 }),
+      )
       .join(":");
 
   const handleClose = useCallback(() => {
@@ -123,7 +128,9 @@ export function ReservationDetailDialog({
   return (
     <>
       <Modal state={state}>
-        <Modal.Backdrop isDismissable={!updateStatus.isPending && !deletion.isPending}>
+        <Modal.Backdrop
+          isDismissable={!updateStatus.isPending && !deletion.isPending}
+        >
           <Modal.Container placement="center">
             <Modal.Dialog>
               <Modal.Header>
@@ -151,7 +158,10 @@ export function ReservationDetailDialog({
                         variant="soft"
                         color={statusColors[reservation.status] ?? "default"}
                       >
-                        {t(statusKeys[reservation.status] ?? "common.values.unknown")}
+                        {t(
+                          statusKeys[reservation.status] ??
+                            "common.values.unknown",
+                        )}
                       </Chip>
                       {reservation.isHold && (
                         <Chip size="sm" variant="soft" color="accent">
@@ -163,25 +173,41 @@ export function ReservationDetailDialog({
                     {/* Detail list */}
                     <dl className="flex flex-col gap-2 text-sm">
                       <div className="flex justify-between">
-                        <dt className="text-muted">{t("clinic.fields.date")}</dt>
-                        <dd className="font-medium">{formatDate(reservation.date, locale)}</dd>
+                        <dt className="text-muted">
+                          {t("clinic.fields.date")}
+                        </dt>
+                        <dd className="font-medium">
+                          {formatDate(reservation.date, locale)}
+                        </dd>
                       </div>
                       {reservation.estimatedSessionLength && (
                         <div className="flex justify-between">
-                          <dt className="text-muted">{t("clinic.fields.sessionLength")}</dt>
-                          <dd className="font-medium">{formatDuration(reservation.estimatedSessionLength)}</dd>
+                          <dt className="text-muted">
+                            {t("clinic.fields.sessionLength")}
+                          </dt>
+                          <dd className="font-medium">
+                            {formatDuration(reservation.estimatedSessionLength)}
+                          </dd>
                         </div>
                       )}
                       {reservation.confirmedAt && (
                         <div className="flex justify-between">
-                          <dt className="text-muted">{t("clinic.fields.confirmedAt")}</dt>
-                        <dd className="font-medium">{formatDateTime(reservation.confirmedAt, locale)}</dd>
+                          <dt className="text-muted">
+                            {t("clinic.fields.confirmedAt")}
+                          </dt>
+                          <dd className="font-medium">
+                            {formatDateTime(reservation.confirmedAt, locale)}
+                          </dd>
                         </div>
                       )}
                       {reservation.cancelledAt && (
                         <div className="flex justify-between">
-                          <dt className="text-muted">{t("clinic.fields.cancelledAt")}</dt>
-                        <dd className="font-medium">{formatDateTime(reservation.cancelledAt, locale)}</dd>
+                          <dt className="text-muted">
+                            {t("clinic.fields.cancelledAt")}
+                          </dt>
+                          <dd className="font-medium">
+                            {formatDateTime(reservation.cancelledAt, locale)}
+                          </dd>
                         </div>
                       )}
                     </dl>
@@ -203,7 +229,11 @@ export function ReservationDetailDialog({
                       size="sm"
                       onPress={handleViewPatient}
                     >
-                      <FaIcon icon="user" aria-hidden="true" className="mr-1.5" />
+                      <FaIcon
+                        icon="user"
+                        aria-hidden="true"
+                        className="mr-1.5"
+                      />
                       {t("clinic.appointments.agenda.viewPatient")}
                     </Button>
                   )}
@@ -213,7 +243,11 @@ export function ReservationDetailDialog({
                     onPress={() => setDeleting(true)}
                     isDisabled={!reservation}
                   >
-                    <FaIcon icon="trash" aria-hidden="true" className="mr-1.5" />
+                    <FaIcon
+                      icon="trash"
+                      aria-hidden="true"
+                      className="mr-1.5"
+                    />
                     {t("common.actions.delete")}
                   </Button>
                   {canConfirm && (
@@ -225,8 +259,14 @@ export function ReservationDetailDialog({
                         onPress={handleConfirm}
                         isPending={updateStatus.isPending}
                       >
-                        <FaIcon icon="check" aria-hidden="true" className="mr-1.5" />
-                        {t("clinic.appointments.reservations.confirmReservation")}
+                        <FaIcon
+                          icon="check"
+                          aria-hidden="true"
+                          className="mr-1.5"
+                        />
+                        {t(
+                          "clinic.appointments.reservations.confirmReservation",
+                        )}
                       </Button>
                     </>
                   )}

@@ -118,13 +118,14 @@ export function PatientFindOrCreate({
             />
           </TextField>
 
-          {code.trim() && (isAutocompleting || autocompleteResults.length > 0) && (
-            <AdvancedSearchResults
-              results={autocompleteResults}
-              isLoading={isAutocompleting}
-              onSelectPatient={handleSearchSelect}
-            />
-          )}
+          {code.trim() &&
+            (isAutocompleting || autocompleteResults.length > 0) && (
+              <AdvancedSearchResults
+                results={autocompleteResults}
+                isLoading={isAutocompleting}
+                onSelectPatient={handleSearchSelect}
+              />
+            )}
 
           {isLooking && (
             <ClinicLoadingState
@@ -158,7 +159,11 @@ export function PatientFindOrCreate({
             onClick={() => setShowAdvanced(!showAdvanced)}
             className="self-start text-sm text-muted transition-colors hover:text-foreground"
           >
-            <FaIcon icon={showAdvanced ? "chevron-up" : "chevron-down"} aria-hidden="true" className="mr-1.5" />
+            <FaIcon
+              icon={showAdvanced ? "chevron-up" : "chevron-down"}
+              aria-hidden="true"
+              className="mr-1.5"
+            />
             {t("clinic.checkIn.cantFindPatient")}
           </button>
 
@@ -177,11 +182,7 @@ export function PatientFindOrCreate({
                 <div className="h-px flex-1 bg-divider" />
               </div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onPress={handleGoToLookup}
-              >
+              <Button variant="ghost" size="sm" onPress={handleGoToLookup}>
                 <FaIcon icon="plus" aria-hidden="true" className="mr-1.5" />
                 {t("clinic.checkIn.createNewPatient")}
               </Button>

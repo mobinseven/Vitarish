@@ -56,7 +56,7 @@ export function PatientRow({
     >
       <PressableFeedback.Highlight />
       <ItemCard.Icon className="bg-accent/10">
-          <FaIcon icon="user" />
+        <FaIcon icon="user" />
       </ItemCard.Icon>
       <ItemCard.Content>
         <ItemCard.Title>{patientName}</ItemCard.Title>

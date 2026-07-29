@@ -49,7 +49,9 @@ export function SettingsDashboard({ onNavigate }: SettingsDashboardProps) {
     },
     {
       title: t("clinic.settings.sections.prescriptionTemplates.title"),
-      description: t("clinic.settings.sections.prescriptionTemplates.description"),
+      description: t(
+        "clinic.settings.sections.prescriptionTemplates.description",
+      ),
       intent: { kind: "prescriptionTemplateManagement" },
       icon: "prescription",
     },

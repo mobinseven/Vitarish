@@ -28,7 +28,9 @@ export function InsuranceProviderAuthorizationCallbackPage({
             <Spinner size="sm" />
           </Alert.Indicator>
           <Alert.Content>
-            <Alert.Title>{t("clinic.settings.insurance.completing")}</Alert.Title>
+            <Alert.Title>
+              {t("clinic.settings.insurance.completing")}
+            </Alert.Title>
             <Alert.Description>
               {t("clinic.settings.insurance.completingDescription")}
             </Alert.Description>
@@ -60,7 +62,9 @@ export function InsuranceProviderAuthorizationCallbackPage({
           >
             <FaIcon icon="arrow-left" aria-hidden="true" />
           </Button>
-          <Tooltip.Content>{t("clinic.settings.insurance.returnToSettings")}</Tooltip.Content>
+          <Tooltip.Content>
+            {t("clinic.settings.insurance.returnToSettings")}
+          </Tooltip.Content>
         </Tooltip>
       ) : null}
     </div>

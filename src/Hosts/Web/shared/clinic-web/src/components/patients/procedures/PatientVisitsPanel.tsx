@@ -14,7 +14,11 @@ interface PatientVisitsPanelProps {
   onNewVisit?: () => void;
 }
 
-export function PatientVisitsPanel({ patientId, onVisibilityChange, onNewVisit }: PatientVisitsPanelProps) {
+export function PatientVisitsPanel({
+  patientId,
+  onVisibilityChange,
+  onNewVisit,
+}: PatientVisitsPanelProps) {
   const { t } = useLocalizedText();
   const { data: procedures, isLoading } = usePatientProcedures(patientId);
   const visitsProcedure = procedures?.find(
@@ -39,7 +43,9 @@ export function PatientVisitsPanel({ patientId, onVisibilityChange, onNewVisit }
   return (
     <>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted">{t("clinic.procedures.visits.description")}</p>
+        <p className="text-sm text-muted">
+          {t("clinic.procedures.visits.description")}
+        </p>
         <Button size="sm" variant="primary" onPress={onNewVisit}>
           <FaIcon icon="plus" aria-hidden="true" />
           {t("clinic.procedures.visits.new")}

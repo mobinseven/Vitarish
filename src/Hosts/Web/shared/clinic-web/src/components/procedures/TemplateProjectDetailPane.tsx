@@ -155,113 +155,167 @@ export function TemplateProjectDetailPane({
       <ItemCardGroup className="overflow-hidden" variant="secondary">
         <ItemCardGroup.Header>
           <div className="flex items-center justify-between gap-2">
-            <ItemCardGroup.Title>{t("clinic.procedures.templateManagement.procedures")}</ItemCardGroup.Title>
-            <Tooltip><Button isIconOnly aria-label={t("clinic.procedures.templateManagement.newRoutine")} onPress={() => begin()}><FaIcon icon="plus" aria-hidden="true" /></Button><Tooltip.Content>{t("clinic.procedures.templateManagement.newRoutine")}</Tooltip.Content></Tooltip>
+            <ItemCardGroup.Title>
+              {t("clinic.procedures.templateManagement.procedures")}
+            </ItemCardGroup.Title>
+            <Tooltip>
+              <Button
+                isIconOnly
+                aria-label={t(
+                  "clinic.procedures.templateManagement.newRoutine",
+                )}
+                onPress={() => begin()}
+              >
+                <FaIcon icon="plus" aria-hidden="true" />
+              </Button>
+              <Tooltip.Content>
+                {t("clinic.procedures.templateManagement.newRoutine")}
+              </Tooltip.Content>
+            </Tooltip>
           </div>
         </ItemCardGroup.Header>
         {procedures.map((p) => (
           <ItemCard key={p.id}>
-            <ItemCard.Icon><FaIcon icon="list-check" aria-hidden="true" /></ItemCard.Icon>
+            <ItemCard.Icon>
+              <FaIcon icon="list-check" aria-hidden="true" />
+            </ItemCard.Icon>
             <ItemCard.Content className="min-w-0">
-            <Tooltip>
-              <Button
-                variant={selectedProcedureId === p.id ? "primary" : "secondary"}
-                className="justify-start"
-                onPress={() => onSelectProcedure(p.id)}
-              >
-                {p.name}
-              </Button>
-              <Tooltip.Content>{p.name}</Tooltip.Content>
-            </Tooltip>
-            <p className="text-sm text-muted">{p.description}</p>
-            </ItemCard.Content>
-            <ItemCard.Action><div className="flex gap-2">
-              <Chip size="sm">
-                {p.stats?.events ?? 0}{" "}
-                {t("clinic.procedures.templateManagement.steps")}
-              </Chip>
               <Tooltip>
                 <Button
-                  isIconOnly
-                  size="sm"
-                  aria-label={t(
-                    "clinic.procedures.templateManagement.editRoutine",
-                  )}
-                  onPress={() => begin(p)}
+                  variant={
+                    selectedProcedureId === p.id ? "primary" : "secondary"
+                  }
+                  className="justify-start"
+                  onPress={() => onSelectProcedure(p.id)}
                 >
-                  <FaIcon icon="pen" aria-hidden="true" />
+                  {p.name}
                 </Button>
-                <Tooltip.Content>
-                  {t("clinic.procedures.templateManagement.editRoutine")}
-                </Tooltip.Content>
+                <Tooltip.Content>{p.name}</Tooltip.Content>
               </Tooltip>
-              {p.id === selectedProcedureId && (
+              <p className="text-sm text-muted">{p.description}</p>
+            </ItemCard.Content>
+            <ItemCard.Action>
+              <div className="flex gap-2">
+                <Chip size="sm">
+                  {p.stats?.events ?? 0}{" "}
+                  {t("clinic.procedures.templateManagement.steps")}
+                </Chip>
                 <Tooltip>
                   <Button
                     isIconOnly
                     size="sm"
                     aria-label={t(
-                      "clinic.procedures.templateManagement.duplicateRoutine",
+                      "clinic.procedures.templateManagement.editRoutine",
                     )}
-                    isPending={isDuplicating}
-                    isDisabled={isDuplicating}
-                    onPress={() => duplicate(p)}
+                    onPress={() => begin(p)}
                   >
-                    <FaIcon icon="copy" aria-hidden="true" />
+                    <FaIcon icon="pen" aria-hidden="true" />
                   </Button>
                   <Tooltip.Content>
-                    {isDuplicating
-                      ? t(
-                          "clinic.procedures.templateManagement.duplicatePending",
-                        )
-                      : t(
-                          "clinic.procedures.templateManagement.duplicateRoutine",
-                        )}
+                    {t("clinic.procedures.templateManagement.editRoutine")}
                   </Tooltip.Content>
                 </Tooltip>
-              )}
-              <Tooltip>
-                <Button
-                  isIconOnly
-                  size="sm"
-                  aria-label={t(
-                    "clinic.procedures.templateManagement.deleteRoutine",
-                  )}
-                  variant="danger"
-                  isDisabled={remove.isPending}
-                  onPress={() => setDeleteId(p.id)}
-                >
-                  <FaIcon icon="trash" aria-hidden="true" />
-                </Button>
-                <Tooltip.Content>
-                  {t("clinic.procedures.templateManagement.deleteRoutine")}
-                </Tooltip.Content>
-              </Tooltip>
-            </div></ItemCard.Action>
+                {p.id === selectedProcedureId && (
+                  <Tooltip>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      aria-label={t(
+                        "clinic.procedures.templateManagement.duplicateRoutine",
+                      )}
+                      isPending={isDuplicating}
+                      isDisabled={isDuplicating}
+                      onPress={() => duplicate(p)}
+                    >
+                      <FaIcon icon="copy" aria-hidden="true" />
+                    </Button>
+                    <Tooltip.Content>
+                      {isDuplicating
+                        ? t(
+                            "clinic.procedures.templateManagement.duplicatePending",
+                          )
+                        : t(
+                            "clinic.procedures.templateManagement.duplicateRoutine",
+                          )}
+                    </Tooltip.Content>
+                  </Tooltip>
+                )}
+                <Tooltip>
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    aria-label={t(
+                      "clinic.procedures.templateManagement.deleteRoutine",
+                    )}
+                    variant="danger"
+                    isDisabled={remove.isPending}
+                    onPress={() => setDeleteId(p.id)}
+                  >
+                    <FaIcon icon="trash" aria-hidden="true" />
+                  </Button>
+                  <Tooltip.Content>
+                    {t("clinic.procedures.templateManagement.deleteRoutine")}
+                  </Tooltip.Content>
+                </Tooltip>
+              </div>
+            </ItemCard.Action>
           </ItemCard>
         ))}
       </ItemCardGroup>
       {selectedProcedureId && (
         <div className="flex flex-col gap-3">
           <div>
-            <h3 className="text-lg font-semibold">{t("clinic.procedures.templateManagement.steps")}</h3>
-            <p className="text-sm text-muted">{t("clinic.procedures.templateManagement.selectStep")}</p>
+            <h3 className="text-lg font-semibold">
+              {t("clinic.procedures.templateManagement.steps")}
+            </h3>
+            <p className="text-sm text-muted">
+              {t("clinic.procedures.templateManagement.selectStep")}
+            </p>
           </div>
           {events.map((e, i) => (
-            <Disclosure key={e.id} className={selectedEventId === e.id ? "rounded-2xl border border-accent" : "rounded-2xl border"} isExpanded={selectedEventId === e.id} onExpandedChange={(expanded) => onSelectEvent(expanded ? e.id : null)}>
+            <Disclosure
+              key={e.id}
+              className={
+                selectedEventId === e.id
+                  ? "rounded-2xl border border-accent"
+                  : "rounded-2xl border"
+              }
+              isExpanded={selectedEventId === e.id}
+              onExpandedChange={(expanded) =>
+                onSelectEvent(expanded ? e.id : null)
+              }
+            >
               <Disclosure.Heading>
-                <Button slot="trigger" variant="ghost" className="h-auto w-full justify-start gap-3 p-4 text-start">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-lg font-semibold text-accent">{i + 1}</span>
+                <Button
+                  slot="trigger"
+                  variant="ghost"
+                  className="h-auto w-full justify-start gap-3 p-4 text-start"
+                >
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-lg font-semibold text-accent">
+                    {i + 1}
+                  </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-base font-medium">{e.title}</span>
-                    <span className="mt-1 block truncate text-sm text-muted">{e.description || t("clinic.procedures.templateManagement.stepDescription")}</span>
+                    <span className="block truncate text-base font-medium">
+                      {e.title}
+                    </span>
+                    <span className="mt-1 block truncate text-sm text-muted">
+                      {e.description ||
+                        t(
+                          "clinic.procedures.templateManagement.stepDescription",
+                        )}
+                    </span>
                   </span>
                   <Disclosure.Indicator className="ms-auto" />
                 </Button>
               </Disclosure.Heading>
               <Disclosure.Content>
                 <Disclosure.Body className="p-3">
-                  {selectedEventId === e.id && <RoutineStepEditorPane procedureId={selectedProcedureId} eventId={e.id} />}
+                  {selectedEventId === e.id && (
+                    <RoutineStepEditorPane
+                      procedureId={selectedProcedureId}
+                      eventId={e.id}
+                    />
+                  )}
                 </Disclosure.Body>
               </Disclosure.Content>
             </Disclosure>

@@ -27,7 +27,14 @@ interface ProcedureEventFeedPlugin<TPayload> {
 
 export const prescriptionEventFeedQueryKey = (
   context: Pick<PatientProcedureEventContext, "patientId" | "eventId">,
-) => ["clinic", "procedure-event-feed", "prescriptions", context.patientId, context.eventId] as const;
+) =>
+  [
+    "clinic",
+    "procedure-event-feed",
+    "prescriptions",
+    context.patientId,
+    context.eventId,
+  ] as const;
 
 const prescriptionsPlugin: ProcedureEventFeedPlugin<PrescriptionSummaryDto> = {
   id: "medical.prescriptions",
@@ -45,7 +52,9 @@ const prescriptionsPlugin: ProcedureEventFeedPlugin<PrescriptionSummaryDto> = {
 
     return prescriptions
       .filter(
-        (prescription): prescription is PrescriptionSummaryDto & {
+        (
+          prescription,
+        ): prescription is PrescriptionSummaryDto & {
           id: string;
           createdAt: string;
         } => Boolean(prescription.id && prescription.createdAt),

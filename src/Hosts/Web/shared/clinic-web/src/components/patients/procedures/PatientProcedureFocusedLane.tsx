@@ -31,7 +31,6 @@ export function PatientProcedureFocusedLane({
     Math.min(focusEventIndex === 0 ? 3 : focusEventIndex + 2, events.length),
   );
 
-
   const recentItems = events
     .flatMap((event) =>
       event.attachments.map((item) => ({
@@ -41,12 +40,12 @@ export function PatientProcedureFocusedLane({
     )
     .sort(
       (left, right) =>
-        new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+        new Date(right.createdAt).getTime() -
+        new Date(left.createdAt).getTime(),
     )
     .slice(0, 3);
   return (
     <div className="border-t border-separator px-4 py-5 sm:px-5">
-
       {recentItems.length ? (
         <div className="mt-6">
           <h3 className="mb-3 text-base font-semibold">

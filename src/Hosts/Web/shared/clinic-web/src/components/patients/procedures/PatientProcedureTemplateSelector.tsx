@@ -34,9 +34,12 @@ export function PatientProcedureTemplateSelector({
   const { t } = useLocalizedText();
   const { data: groups, isLoading, error } = usePatientProcedureTemplates();
   const createMutation = useCreatePatientProcedure();
-  const [selectedProcedure, setSelectedProcedure] = useState<SeaProcedureReadDto | null>(null);
+  const [selectedProcedure, setSelectedProcedure] =
+    useState<SeaProcedureReadDto | null>(null);
   const [customName, setCustomName] = useState("");
-  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
+  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(
+    null,
+  );
   const [creationError, setCreationError] = useState(false);
 
   const modalState = useMemo(
@@ -88,7 +91,11 @@ export function PatientProcedureTemplateSelector({
             <Modal.Body>
               {selectedProcedure ? (
                 <>
-                  <TextField isRequired value={customName} onChange={setCustomName}>
+                  <TextField
+                    isRequired
+                    value={customName}
+                    onChange={setCustomName}
+                  >
                     <Label>{t("clinic.procedures.form.nameLabel")}</Label>
                     <Input
                       placeholder={t("clinic.procedures.form.namePlaceholder")}
@@ -115,7 +122,9 @@ export function PatientProcedureTemplateSelector({
                     <Alert status="danger">
                       <Alert.Indicator />
                       <Alert.Content>
-                        <Alert.Title>{t("clinic.procedures.failedToLoad")}</Alert.Title>
+                        <Alert.Title>
+                          {t("clinic.procedures.failedToLoad")}
+                        </Alert.Title>
                       </Alert.Content>
                     </Alert>
                   )}
@@ -131,7 +140,9 @@ export function PatientProcedureTemplateSelector({
                           key={group.project.id}
                           isExpanded={expandedProjectId === group.project.id}
                           onExpandedChange={(expanded) =>
-                            setExpandedProjectId(expanded ? group.project.id : null)
+                            setExpandedProjectId(
+                              expanded ? group.project.id : null,
+                            )
                           }
                         >
                           <Disclosure.Heading>
@@ -140,11 +151,20 @@ export function PatientProcedureTemplateSelector({
                               variant="ghost"
                               className="h-auto w-full justify-start gap-3 p-3 text-start"
                             >
-                              <FaIcon icon="folder" aria-hidden="true" className="text-muted" />
+                              <FaIcon
+                                icon="folder"
+                                aria-hidden="true"
+                                className="text-muted"
+                              />
                               <span className="min-w-0 flex-1">
-                                <span className="block font-medium">{group.project.name}</span>
+                                <span className="block font-medium">
+                                  {group.project.name}
+                                </span>
                                 <span className="mt-1 block text-sm text-muted">
-                                  {t("clinic.procedures.templates.procedureCount", { count: group.procedures.length })}
+                                  {t(
+                                    "clinic.procedures.templates.procedureCount",
+                                    { count: group.procedures.length },
+                                  )}
                                 </span>
                               </span>
                               <Disclosure.Indicator className="ms-auto" />
@@ -154,7 +174,9 @@ export function PatientProcedureTemplateSelector({
                             <Disclosure.Body className="flex flex-col gap-1 px-3 pb-3">
                               {group.procedures.length === 0 ? (
                                 <p className="text-sm text-muted">
-                                  {t("clinic.procedures.templateManagement.noProcedures")}
+                                  {t(
+                                    "clinic.procedures.templateManagement.noProcedures",
+                                  )}
                                 </p>
                               ) : (
                                 group.procedures.map((procedure) => (
@@ -164,9 +186,15 @@ export function PatientProcedureTemplateSelector({
                                       className="h-auto w-full justify-start gap-3 p-3 text-start"
                                       onPress={() => handleSelect(procedure)}
                                     >
-                                      <FaIcon icon="list-check" aria-hidden="true" className="text-muted" />
+                                      <FaIcon
+                                        icon="list-check"
+                                        aria-hidden="true"
+                                        className="text-muted"
+                                      />
                                       <span className="min-w-0 flex-1">
-                                        <span className="block font-medium">{procedure.name}</span>
+                                        <span className="block font-medium">
+                                          {procedure.name}
+                                        </span>
                                         {procedure.description && (
                                           <span className="mt-1 block text-sm text-muted line-clamp-1">
                                             {procedure.description}
@@ -177,7 +205,9 @@ export function PatientProcedureTemplateSelector({
                                         {procedure.stats?.events ?? 0}
                                       </Chip>
                                     </Button>
-                                    <Tooltip.Content>{procedure.name}</Tooltip.Content>
+                                    <Tooltip.Content>
+                                      {procedure.name}
+                                    </Tooltip.Content>
                                   </Tooltip>
                                 ))
                               )}

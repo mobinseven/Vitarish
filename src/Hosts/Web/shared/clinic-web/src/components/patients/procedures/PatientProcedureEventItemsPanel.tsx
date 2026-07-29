@@ -29,7 +29,12 @@ interface PatientProcedureEventItemsPanelProps {
 
 type FeedItem =
   | { kind: "sea"; id: string; createdAt: string; payload: EventItemSummary }
-  | { kind: "plugin"; id: string; createdAt: string; payload: ProcedureEventPluginItem };
+  | {
+      kind: "plugin";
+      id: string;
+      createdAt: string;
+      payload: ProcedureEventPluginItem;
+    };
 
 export function mergeProcedureEventFeed(
   seaItems: EventItemSummary[],
@@ -67,7 +72,9 @@ export function PatientProcedureEventItemsPanel({
     procedureId: "",
     eventId: eventId ?? "",
   };
-  const [pluginItems, setPluginItems] = useState<ProcedureEventPluginItem[]>([]);
+  const [pluginItems, setPluginItems] = useState<ProcedureEventPluginItem[]>(
+    [],
+  );
   const [pluginState, setPluginState] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
@@ -188,8 +195,13 @@ export function PatientProcedureEventItemsPanel({
             })
           )}
           {pluginFailed ? (
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-danger-soft p-3" role="alert">
-              <p className="text-sm">{t("clinic.prescriptionFeed.loadFailed")}</p>
+            <div
+              className="flex items-center justify-between gap-3 rounded-xl bg-danger-soft p-3"
+              role="alert"
+            >
+              <p className="text-sm">
+                {t("clinic.prescriptionFeed.loadFailed")}
+              </p>
               <Tooltip>
                 <Button
                   isIconOnly
@@ -200,7 +212,9 @@ export function PatientProcedureEventItemsPanel({
                 >
                   <FaIcon icon="arrow-rotate-right" aria-hidden="true" />
                 </Button>
-                <Tooltip.Content>{t("clinic.prescriptionFeed.retry")}</Tooltip.Content>
+                <Tooltip.Content>
+                  {t("clinic.prescriptionFeed.retry")}
+                </Tooltip.Content>
               </Tooltip>
             </div>
           ) : null}

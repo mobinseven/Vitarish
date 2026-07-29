@@ -69,7 +69,11 @@ export function RoutineStepEditorPane({
           )}
         />
       </TextField>
-      <TextField value={description} onChange={setDescription} variant="secondary">
+      <TextField
+        value={description}
+        onChange={setDescription}
+        variant="secondary"
+      >
         <Label>
           {t("clinic.procedures.templateManagement.stepDescription")}
         </Label>

@@ -1,6 +1,13 @@
 "use client";
 
-import { Button, Input, Label, Modal, TextArea, TextField } from "@heroui/react";
+import {
+  Button,
+  Input,
+  Label,
+  Modal,
+  TextArea,
+  TextField,
+} from "@heroui/react";
 import { useEffect, useState } from "react";
 import { FaIcon } from "@vitarish/web-ui";
 import { useCreatePatientProcedureEvent } from "../../../hooks/patients/procedures/usePatientProcedureEventMutations";
@@ -64,7 +71,9 @@ export function PatientVisitEventDialog({
             <Modal.Icon className="bg-accent-soft text-accent-soft-foreground">
               <FaIcon icon="calendar-plus" aria-hidden="true" />
             </Modal.Icon>
-            <Modal.Heading>{t("clinic.procedures.visits.dialog.title")}</Modal.Heading>
+            <Modal.Heading>
+              {t("clinic.procedures.visits.dialog.title")}
+            </Modal.Heading>
             <p className="text-sm leading-5 text-muted">
               {t("clinic.procedures.visits.dialog.description")}
             </p>
@@ -72,13 +81,20 @@ export function PatientVisitEventDialog({
           <Modal.Body className="gap-5">
             <TextField isRequired value={title} onChange={setTitle}>
               <Label>{t("clinic.procedures.visits.dialog.titleLabel")}</Label>
-              <Input autoFocus placeholder={t("clinic.procedures.visits.dialog.titlePlaceholder")} />
+              <Input
+                autoFocus
+                placeholder={t(
+                  "clinic.procedures.visits.dialog.titlePlaceholder",
+                )}
+              />
             </TextField>
             <TextField value={notes} onChange={setNotes}>
               <Label>{t("clinic.procedures.visits.dialog.notesLabel")}</Label>
               <TextArea
                 rows={4}
-                placeholder={t("clinic.procedures.visits.dialog.notesPlaceholder")}
+                placeholder={t(
+                  "clinic.procedures.visits.dialog.notesPlaceholder",
+                )}
                 style={{ resize: "vertical" }}
               />
             </TextField>
@@ -89,10 +105,19 @@ export function PatientVisitEventDialog({
             ) : null}
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onPress={() => onOpenChange(false)} isDisabled={createEvent.isPending}>
+            <Button
+              variant="secondary"
+              onPress={() => onOpenChange(false)}
+              isDisabled={createEvent.isPending}
+            >
               {t("common.actions.cancel")}
             </Button>
-            <Button variant="primary" onPress={submit} isPending={createEvent.isPending} isDisabled={!title.trim()}>
+            <Button
+              variant="primary"
+              onPress={submit}
+              isPending={createEvent.isPending}
+              isDisabled={!title.trim()}
+            >
               {t("clinic.procedures.visits.dialog.create")}
             </Button>
           </Modal.Footer>

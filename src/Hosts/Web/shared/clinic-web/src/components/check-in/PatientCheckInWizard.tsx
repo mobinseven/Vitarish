@@ -20,9 +20,27 @@ interface PatientCheckInWizardProps {
 }
 
 const MOCK_TODAY_SHIFTS: ShiftReservationReadDto[] = [
-  { shiftId: "1", startTime: "08:00", endTime: "10:00", availableSeats: 5, totalSeats: 8 },
-  { shiftId: "2", startTime: "10:00", endTime: "12:00", availableSeats: 3, totalSeats: 8 },
-  { shiftId: "3", startTime: "14:00", endTime: "16:00", availableSeats: 7, totalSeats: 10 },
+  {
+    shiftId: "1",
+    startTime: "08:00",
+    endTime: "10:00",
+    availableSeats: 5,
+    totalSeats: 8,
+  },
+  {
+    shiftId: "2",
+    startTime: "10:00",
+    endTime: "12:00",
+    availableSeats: 3,
+    totalSeats: 8,
+  },
+  {
+    shiftId: "3",
+    startTime: "14:00",
+    endTime: "16:00",
+    availableSeats: 7,
+    totalSeats: 10,
+  },
 ];
 
 export function PatientCheckInWizard({
@@ -31,7 +49,9 @@ export function PatientCheckInWizard({
 }: PatientCheckInWizardProps) {
   const { t } = useLocalizedText();
   const [step, setStep] = useState<WizardStep>("find-patient");
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
+    null,
+  );
   const [patientName, setPatientName] = useState("");
   const [completedShiftId, setCompletedShiftId] = useState<string | null>(null);
 
@@ -142,7 +162,8 @@ interface ShiftCardProps {
 
 function ShiftCard({ shift, onSelect, isCompleted }: ShiftCardProps) {
   const { t } = useLocalizedText();
-  const seats = typeof shift.availableSeats === "number" ? shift.availableSeats : null;
+  const seats =
+    typeof shift.availableSeats === "number" ? shift.availableSeats : null;
   const isFull = seats !== null && seats <= 0;
 
   return (
@@ -185,7 +206,11 @@ function ShiftCard({ shift, onSelect, isCompleted }: ShiftCardProps) {
         {isCompleted ? (
           <FaIcon icon="check" aria-hidden="true" className="text-success" />
         ) : (
-          <FaIcon icon="chevron-right" aria-hidden="true" className="text-muted" />
+          <FaIcon
+            icon="chevron-right"
+            aria-hidden="true"
+            className="text-muted"
+          />
         )}
       </ItemCard.Action>
     </ItemCard>

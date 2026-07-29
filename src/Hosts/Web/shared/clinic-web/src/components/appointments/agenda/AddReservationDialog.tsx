@@ -4,11 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Chip, Modal } from "@heroui/react";
 
 import { FaIcon } from "@vitarish/web-ui";
+import { formatDate, useLocalizedText } from "../../../localization/index";
 import {
-  formatDate,
-  useLocalizedText,
-} from "../../../localization/index";
-import { useCreateReservation, useUpdateReservationStatus } from "../../../hooks/appointments/reservations/useOwnerReservations";
+  useCreateReservation,
+  useUpdateReservationStatus,
+} from "../../../hooks/appointments/reservations/useOwnerReservations";
 import { PatientFindOrCreate } from "../../patients/find-or-create/PatientFindOrCreate";
 import type { ShiftReadDto } from "../../../api/appointments/appointmentsApi";
 
@@ -28,7 +28,9 @@ export function AddReservationDialog({
   availableSeats,
 }: AddReservationDialogProps) {
   const { t, locale } = useLocalizedText();
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
+    null,
+  );
   const [success, setSuccess] = useState(false);
   const [bookingError, setBookingError] = useState(false);
 
@@ -102,7 +104,15 @@ export function AddReservationDialog({
     } catch {
       setBookingError(true);
     }
-  }, [selectedPatientId, isFull, createReservation, confirmReservation, shift.id, date, handleClose]);
+  }, [
+    selectedPatientId,
+    isFull,
+    createReservation,
+    confirmReservation,
+    shift.id,
+    date,
+    handleClose,
+  ]);
 
   if (!isOpen) return null;
 
@@ -114,12 +124,17 @@ export function AddReservationDialog({
             <Modal.Header>
               <Modal.Heading>
                 <div className="flex items-center gap-2">
-                  <FaIcon icon="calendar-plus" aria-hidden="true" className="text-muted" />
+                  <FaIcon
+                    icon="calendar-plus"
+                    aria-hidden="true"
+                    className="text-muted"
+                  />
                   <span>{t("clinic.appointments.agenda.addReservation")}</span>
                 </div>
               </Modal.Heading>
               <p className="text-sm text-muted">
-                {localizedDate} · {formatShiftTime(shift.startTime)} – {formatShiftTime(shift.endTime)}
+                {localizedDate} · {formatShiftTime(shift.startTime)} –{" "}
+                {formatShiftTime(shift.endTime)}
               </p>
             </Modal.Header>
             <Modal.Body>
@@ -153,7 +168,11 @@ export function AddReservationDialog({
                   {selectedPatientId ? (
                     <div className="flex items-center gap-2">
                       <Chip size="sm" variant="soft" color="accent">
-                        <FaIcon icon="user" aria-hidden="true" className="mr-1" />
+                        <FaIcon
+                          icon="user"
+                          aria-hidden="true"
+                          className="mr-1"
+                        />
                         {t("clinic.checkIn.patientSelected")}
                       </Chip>
                       <Button
@@ -187,10 +206,21 @@ export function AddReservationDialog({
               <Button
                 variant="primary"
                 onPress={handleBook}
-                isDisabled={!selectedPatientId || isFull || createReservation.isPending || confirmReservation.isPending}
-                isPending={createReservation.isPending || confirmReservation.isPending}
+                isDisabled={
+                  !selectedPatientId ||
+                  isFull ||
+                  createReservation.isPending ||
+                  confirmReservation.isPending
+                }
+                isPending={
+                  createReservation.isPending || confirmReservation.isPending
+                }
               >
-                <FaIcon icon="calendar-check" aria-hidden="true" className="mr-1.5" />
+                <FaIcon
+                  icon="calendar-check"
+                  aria-hidden="true"
+                  className="mr-1.5"
+                />
                 {t("clinic.appointments.agenda.book")}
               </Button>
             </Modal.Footer>

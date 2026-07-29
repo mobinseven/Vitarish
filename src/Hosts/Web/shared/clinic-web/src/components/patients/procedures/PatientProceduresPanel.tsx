@@ -124,9 +124,12 @@ export function PatientProceduresPanel({
                           </span>
                         ) : null}
                         <span className="mt-2 block text-xs text-muted">
-                          {t("clinic.procedures.progressAtGlance.lastActivity", {
-                            value: lastActivity,
-                          })}
+                          {t(
+                            "clinic.procedures.progressAtGlance.lastActivity",
+                            {
+                              value: lastActivity,
+                            },
+                          )}
                         </span>
                       </div>
                       <PatientProcedureProgress

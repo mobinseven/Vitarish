@@ -10,10 +10,29 @@ import {
 } from "@vitarish/web-ui";
 import type { NavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization/index";
-import { useServiceTypes, useCreateServiceType, useUpdateServiceType, useDeleteServiceType } from "../../../hooks/service-types/useServiceTypes";
-import { useServices, useCreateService, useUpdateService, useDeleteService } from "../../../hooks/services/useServices";
-import { useServiceProviders, useCreateServiceProvider, useUpdateServiceProvider, useDeleteServiceProvider } from "../../../hooks/service-providers/useServiceProviders";
-import { useOwnerShifts, useCreateShift, useDeleteShift } from "../../../hooks/appointments/shifts/useOwnerShifts";
+import {
+  useServiceTypes,
+  useCreateServiceType,
+  useUpdateServiceType,
+  useDeleteServiceType,
+} from "../../../hooks/service-types/useServiceTypes";
+import {
+  useServices,
+  useCreateService,
+  useUpdateService,
+  useDeleteService,
+} from "../../../hooks/services/useServices";
+import {
+  useServiceProviders,
+  useCreateServiceProvider,
+  useUpdateServiceProvider,
+  useDeleteServiceProvider,
+} from "../../../hooks/service-providers/useServiceProviders";
+import {
+  useOwnerShifts,
+  useCreateShift,
+  useDeleteShift,
+} from "../../../hooks/appointments/shifts/useOwnerShifts";
 
 interface ServiceConfigurationWorkspaceProps {
   onNavigate: (intent: NavigationIntent) => void;
@@ -21,7 +40,9 @@ interface ServiceConfigurationWorkspaceProps {
 
 type ActiveSection = "types" | "services" | "providers" | "shifts";
 
-export function ServiceConfigurationWorkspace({ onNavigate }: ServiceConfigurationWorkspaceProps) {
+export function ServiceConfigurationWorkspace({
+  onNavigate,
+}: ServiceConfigurationWorkspaceProps) {
   const { t } = useLocalizedText();
   const [activeSection, setActiveSection] = useState<ActiveSection>("types");
 
@@ -48,15 +69,26 @@ export function ServiceConfigurationWorkspace({ onNavigate }: ServiceConfigurati
   const deleteShift = useDeleteShift();
 
   // Summary counts
-  const summary = useMemo(() => ({
-    types: serviceTypes.data?.length ?? 0,
-    services: services.data?.length ?? 0,
-    providers: serviceProviders.data?.length ?? 0,
-    shifts: shifts.data?.length ?? 0,
-  }), [serviceTypes.data, services.data, serviceProviders.data, shifts.data]);
+  const summary = useMemo(
+    () => ({
+      types: serviceTypes.data?.length ?? 0,
+      services: services.data?.length ?? 0,
+      providers: serviceProviders.data?.length ?? 0,
+      shifts: shifts.data?.length ?? 0,
+    }),
+    [serviceTypes.data, services.data, serviceProviders.data, shifts.data],
+  );
 
-  const isLoading = serviceTypes.isLoading || services.isLoading || serviceProviders.isLoading || shifts.isLoading;
-  const hasError = serviceTypes.error || services.error || serviceProviders.error || shifts.error;
+  const isLoading =
+    serviceTypes.isLoading ||
+    services.isLoading ||
+    serviceProviders.isLoading ||
+    shifts.isLoading;
+  const hasError =
+    serviceTypes.error ||
+    services.error ||
+    serviceProviders.error ||
+    shifts.error;
 
   if (isLoading) {
     return <ClinicLoadingState label={t("common.states.loading")} />;
@@ -114,10 +146,17 @@ export function ServiceConfigurationWorkspace({ onNavigate }: ServiceConfigurati
             isUpdating={updateServiceType.isPending}
             isDeleting={deleteServiceType.isPending}
             onCreate={(name, description) =>
-              createServiceType.mutate({ name, description: description || undefined })
+              createServiceType.mutate({
+                name,
+                description: description || undefined,
+              })
             }
             onUpdate={(id, name, description) =>
-              updateServiceType.mutate({ id, name, description: description || undefined })
+              updateServiceType.mutate({
+                id,
+                name,
+                description: description || undefined,
+              })
             }
             onDelete={(id) => deleteServiceType.mutate(id)}
             onNavigate={onNavigate}
@@ -132,10 +171,19 @@ export function ServiceConfigurationWorkspace({ onNavigate }: ServiceConfigurati
             isUpdating={updateService.isPending}
             isDeleting={deleteService.isPending}
             onCreate={(name, description, serviceTypeId) =>
-              createService.mutate({ name, description: description || undefined, serviceTypeId })
+              createService.mutate({
+                name,
+                description: description || undefined,
+                serviceTypeId,
+              })
             }
             onUpdate={(id, name, description, serviceTypeId) =>
-              updateService.mutate({ id, name, description: description || undefined, serviceTypeId })
+              updateService.mutate({
+                id,
+                name,
+                description: description || undefined,
+                serviceTypeId,
+              })
             }
             onDelete={(id) => deleteService.mutate(id)}
             onNavigate={onNavigate}
@@ -150,10 +198,17 @@ export function ServiceConfigurationWorkspace({ onNavigate }: ServiceConfigurati
             isUpdating={updateServiceProvider.isPending}
             isDeleting={deleteServiceProvider.isPending}
             onCreate={(name, description) =>
-              createServiceProvider.mutate({ name, description: description || undefined })
+              createServiceProvider.mutate({
+                name,
+                description: description || undefined,
+              })
             }
             onUpdate={(id, name, description) =>
-              updateServiceProvider.mutate({ id, name, description: description || undefined })
+              updateServiceProvider.mutate({
+                id,
+                name,
+                description: description || undefined,
+              })
             }
             onDelete={(id) => deleteServiceProvider.mutate(id)}
             onNavigate={onNavigate}
@@ -248,8 +303,14 @@ function ServiceTypesSection({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t("clinic.serviceTypes.title")}</h2>
-        <Button variant="primary" onPress={() => setCreating(true)} isDisabled={creating || isCreating}>
+        <h2 className="text-lg font-semibold">
+          {t("clinic.serviceTypes.title")}
+        </h2>
+        <Button
+          variant="primary"
+          onPress={() => setCreating(true)}
+          isDisabled={creating || isCreating}
+        >
           {t("common.actions.new")}
         </Button>
       </div>
@@ -272,16 +333,23 @@ function ServiceTypesSection({
               <ListView.ItemContent>
                 {editingId === item.id ? (
                   <InlineEditor
-                    initialValue={{ name: item.name, description: item.description ?? "" }}
+                    initialValue={{
+                      name: item.name,
+                      description: item.description ?? "",
+                    }}
                     isPending={isUpdating}
-                    onSubmit={(value) => handleUpdate(item.id, value.name, value.description)}
+                    onSubmit={(value) =>
+                      handleUpdate(item.id, value.name, value.description)
+                    }
                     onCancel={() => setEditingId(null)}
                   />
                 ) : (
                   <>
                     <ListView.Title>{item.name}</ListView.Title>
                     {item.description ? (
-                      <ListView.Description>{item.description}</ListView.Description>
+                      <ListView.Description>
+                        {item.description}
+                      </ListView.Description>
                     ) : null}
                   </>
                 )}
@@ -289,7 +357,10 @@ function ServiceTypesSection({
               {editingId !== item.id && (
                 <ListView.ItemAction>
                   <div className="flex gap-2">
-                    <Button variant="ghost" onPress={() => setEditingId(item.id)}>
+                    <Button
+                      variant="ghost"
+                      onPress={() => setEditingId(item.id)}
+                    >
                       {t("common.actions.edit")}
                     </Button>
                     <Button
@@ -323,13 +394,23 @@ function ServicesSection({
   onDelete,
   onNavigate,
 }: {
-  items: readonly { id: string; name: string; serviceTypeName?: string | null; serviceTypeId: string }[];
+  items: readonly {
+    id: string;
+    name: string;
+    serviceTypeName?: string | null;
+    serviceTypeId: string;
+  }[];
   serviceTypes: readonly { id: string; name: string }[];
   isCreating: boolean;
   isUpdating: boolean;
   isDeleting: boolean;
   onCreate: (name: string, description: string, serviceTypeId: string) => void;
-  onUpdate: (id: string, name: string, description: string, serviceTypeId: string) => void;
+  onUpdate: (
+    id: string,
+    name: string,
+    description: string,
+    serviceTypeId: string,
+  ) => void;
   onDelete: (id: string) => void;
   onNavigate: (intent: NavigationIntent) => void;
 }) {
@@ -357,17 +438,27 @@ function ServicesSection({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{t("clinic.services.title")}</h2>
-        <Button variant="primary" onPress={() => setCreating(true)} isDisabled={creating || isCreating}>
+        <Button
+          variant="primary"
+          onPress={() => setCreating(true)}
+          isDisabled={creating || isCreating}
+        >
           {t("common.actions.new")}
         </Button>
       </div>
 
       {creating && (
         <ServiceEditor
-          initialValue={{ name: "", description: "", serviceTypeId: serviceTypes[0]?.id ?? "" }}
+          initialValue={{
+            name: "",
+            description: "",
+            serviceTypeId: serviceTypes[0]?.id ?? "",
+          }}
           serviceTypes={serviceTypes}
           isPending={isCreating}
-          onSubmit={(value) => handleCreate(value.name, value.description, value.serviceTypeId)}
+          onSubmit={(value) =>
+            handleCreate(value.name, value.description, value.serviceTypeId)
+          }
           onCancel={() => setCreating(false)}
         />
       )}
@@ -381,10 +472,21 @@ function ServicesSection({
               <ListView.ItemContent>
                 {editingId === item.id ? (
                   <ServiceEditor
-                    initialValue={{ name: item.name, description: "", serviceTypeId: item.serviceTypeId }}
+                    initialValue={{
+                      name: item.name,
+                      description: "",
+                      serviceTypeId: item.serviceTypeId,
+                    }}
                     serviceTypes={serviceTypes}
                     isPending={isUpdating}
-                    onSubmit={(value) => handleUpdate(item.id, value.name, value.description, value.serviceTypeId)}
+                    onSubmit={(value) =>
+                      handleUpdate(
+                        item.id,
+                        value.name,
+                        value.description,
+                        value.serviceTypeId,
+                      )
+                    }
                     onCancel={() => setEditingId(null)}
                   />
                 ) : (
@@ -399,7 +501,10 @@ function ServicesSection({
               {editingId !== item.id && (
                 <ListView.ItemAction>
                   <div className="flex gap-2">
-                    <Button variant="ghost" onPress={() => setEditingId(item.id)}>
+                    <Button
+                      variant="ghost"
+                      onPress={() => setEditingId(item.id)}
+                    >
                       {t("common.actions.edit")}
                     </Button>
                     <Button
@@ -433,7 +538,11 @@ function ProvidersSection({
   onDelete,
   onNavigate,
 }: {
-  items: readonly { id: string; name: string; linkedUserIds: readonly string[] }[];
+  items: readonly {
+    id: string;
+    name: string;
+    linkedUserIds: readonly string[];
+  }[];
   services: readonly { id: string; name: string }[];
   isCreating: boolean;
   isUpdating: boolean;
@@ -466,8 +575,14 @@ function ProvidersSection({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t("clinic.serviceProviders.title")}</h2>
-        <Button variant="primary" onPress={() => setCreating(true)} isDisabled={creating || isCreating}>
+        <h2 className="text-lg font-semibold">
+          {t("clinic.serviceProviders.title")}
+        </h2>
+        <Button
+          variant="primary"
+          onPress={() => setCreating(true)}
+          isDisabled={creating || isCreating}
+        >
           {t("common.actions.new")}
         </Button>
       </div>
@@ -492,14 +607,18 @@ function ProvidersSection({
                   <InlineEditor
                     initialValue={{ name: item.name, description: "" }}
                     isPending={isUpdating}
-                    onSubmit={(value) => handleUpdate(item.id, value.name, value.description)}
+                    onSubmit={(value) =>
+                      handleUpdate(item.id, value.name, value.description)
+                    }
                     onCancel={() => setEditingId(null)}
                   />
                 ) : (
                   <>
                     <ListView.Title>{item.name}</ListView.Title>
                     <ListView.Description>
-                      {t("clinic.serviceProviders.linkedUsers", { count: item.linkedUserIds.length })}
+                      {t("clinic.serviceProviders.linkedUsers", {
+                        count: item.linkedUserIds.length,
+                      })}
                     </ListView.Description>
                   </>
                 )}
@@ -507,7 +626,10 @@ function ProvidersSection({
               {editingId !== item.id && (
                 <ListView.ItemAction>
                   <div className="flex gap-2">
-                    <Button variant="ghost" onPress={() => setEditingId(item.id)}>
+                    <Button
+                      variant="ghost"
+                      onPress={() => setEditingId(item.id)}
+                    >
                       {t("common.actions.edit")}
                     </Button>
                     <Button
@@ -540,12 +662,27 @@ function ShiftsSection({
   onDelete,
   onNavigate,
 }: {
-  items: readonly { id: string; dayOfWeek: number; startTime: string; endTime: string; totalSeats: number; serviceProviderId?: string | null; serviceId?: string | null }[];
+  items: readonly {
+    id: string;
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+    totalSeats: number;
+    serviceProviderId?: string | null;
+    serviceId?: string | null;
+  }[];
   providers: readonly { id: string; name: string }[];
   services: readonly { id: string; name: string }[];
   isCreating: boolean;
   isDeleting: boolean;
-  onCreate: (shift: { dayOfWeek: number; startTime: string; endTime: string; totalSeats: number; serviceProviderId?: string; serviceId?: string }) => void;
+  onCreate: (shift: {
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+    totalSeats: number;
+    serviceProviderId?: string;
+    serviceId?: string;
+  }) => void;
   onDelete: (id: string) => void;
   onNavigate: (intent: NavigationIntent) => void;
 }) {
@@ -563,7 +700,14 @@ function ShiftsSection({
   ] as const;
 
   const handleCreate = useCallback(
-    (shift: { dayOfWeek: number; startTime: string; endTime: string; totalSeats: number; serviceProviderId?: string; serviceId?: string }) => {
+    (shift: {
+      dayOfWeek: number;
+      startTime: string;
+      endTime: string;
+      totalSeats: number;
+      serviceProviderId?: string;
+      serviceId?: string;
+    }) => {
       onCreate(shift);
       setCreating(false);
     },
@@ -573,8 +717,14 @@ function ShiftsSection({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t("clinic.appointments.shifts.title")}</h2>
-        <Button variant="primary" onPress={() => setCreating(true)} isDisabled={creating || isCreating}>
+        <h2 className="text-lg font-semibold">
+          {t("clinic.appointments.shifts.title")}
+        </h2>
+        <Button
+          variant="primary"
+          onPress={() => setCreating(true)}
+          isDisabled={creating || isCreating}
+        >
           {t("clinic.appointments.shifts.new")}
         </Button>
       </div>
@@ -594,17 +744,24 @@ function ShiftsSection({
       ) : (
         <ListView aria-label={t("clinic.appointments.shifts.title")}>
           {items.map((item) => (
-            <ListView.Item key={item.id} id={item.id} textValue={`${t(dayNameKeys[item.dayOfWeek])} ${item.startTime}`}>
+            <ListView.Item
+              key={item.id}
+              id={item.id}
+              textValue={`${t(dayNameKeys[item.dayOfWeek])} ${item.startTime}`}
+            >
               <ListView.ItemContent>
                 <div className="flex flex-col gap-1">
                   <ListView.Title>
-                    {t(dayNameKeys[item.dayOfWeek])} {item.startTime} - {item.endTime}
+                    {t(dayNameKeys[item.dayOfWeek])} {item.startTime} -{" "}
+                    {item.endTime}
                   </ListView.Title>
                   <ListView.Description>
                     {t("clinic.fields.totalSeats")}: {item.totalSeats}
                     {item.serviceProviderId ? (
                       <span className="ml-2">
-                        · {providers.find((p) => p.id === item.serviceProviderId)?.name ?? ""}
+                        ·{" "}
+                        {providers.find((p) => p.id === item.serviceProviderId)
+                          ?.name ?? ""}
                       </span>
                     ) : null}
                   </ListView.Description>
@@ -665,7 +822,10 @@ function InlineEditor({
       </TextField>
       <TextField>
         <Label>{t("clinic.fields.description")}</Label>
-        <Input value={description} onChange={(event) => setDescription(event.target.value)} />
+        <Input
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+        />
       </TextField>
       <div className="flex justify-end gap-2">
         <Button variant="ghost" onPress={onCancel} isDisabled={isPending}>
@@ -690,13 +850,19 @@ function ServiceEditor({
   initialValue: { name: string; description: string; serviceTypeId: string };
   serviceTypes: readonly { id: string; name: string }[];
   isPending: boolean;
-  onSubmit: (value: { name: string; description: string; serviceTypeId: string }) => void;
+  onSubmit: (value: {
+    name: string;
+    description: string;
+    serviceTypeId: string;
+  }) => void;
   onCancel: () => void;
 }) {
   const { t } = useLocalizedText();
   const [name, setName] = useState(initialValue.name);
   const [description, setDescription] = useState(initialValue.description);
-  const [serviceTypeId, setServiceTypeId] = useState(initialValue.serviceTypeId);
+  const [serviceTypeId, setServiceTypeId] = useState(
+    initialValue.serviceTypeId,
+  );
 
   return (
     <form
@@ -712,7 +878,10 @@ function ServiceEditor({
       </TextField>
       <TextField>
         <Label>{t("clinic.fields.description")}</Label>
-        <Input value={description} onChange={(event) => setDescription(event.target.value)} />
+        <Input
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+        />
       </TextField>
       <div className="flex flex-col gap-1">
         <Label>{t("clinic.fields.serviceType")}</Label>
@@ -751,7 +920,14 @@ function ShiftEditor({
   providers: readonly { id: string; name: string }[];
   services: readonly { id: string; name: string }[];
   isPending: boolean;
-  onSubmit: (shift: { dayOfWeek: number; startTime: string; endTime: string; totalSeats: number; serviceProviderId?: string; serviceId?: string }) => void;
+  onSubmit: (shift: {
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+    totalSeats: number;
+    serviceProviderId?: string;
+    serviceId?: string;
+  }) => void;
   onCancel: () => void;
 }) {
   const { t } = useLocalizedText();
@@ -812,11 +988,19 @@ function ShiftEditor({
         </div>
         <div className="flex flex-col gap-1">
           <Label>{t("clinic.fields.startTime")}</Label>
-          <Input type="time" value={startTime} onChange={(event) => setStartTime(event.target.value)} />
+          <Input
+            type="time"
+            value={startTime}
+            onChange={(event) => setStartTime(event.target.value)}
+          />
         </div>
         <div className="flex flex-col gap-1">
           <Label>{t("clinic.fields.endTime")}</Label>
-          <Input type="time" value={endTime} onChange={(event) => setEndTime(event.target.value)} />
+          <Input
+            type="time"
+            value={endTime}
+            onChange={(event) => setEndTime(event.target.value)}
+          />
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">

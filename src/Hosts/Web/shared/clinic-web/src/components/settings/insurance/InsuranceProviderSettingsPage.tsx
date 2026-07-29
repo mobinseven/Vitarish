@@ -1,6 +1,16 @@
 "use client";
 
-import { Alert, Button, Card, Chip, Input, Label, Spinner, TextField, Tooltip } from "@heroui/react";
+import {
+  Alert,
+  Button,
+  Card,
+  Chip,
+  Input,
+  Label,
+  Spinner,
+  TextField,
+  Tooltip,
+} from "@heroui/react";
 import { FaIcon } from "@vitarish/web-ui";
 import { useEffect, useState } from "react";
 import { useLocalizedText } from "../../../localization";
@@ -52,7 +62,9 @@ export function InsuranceProviderSettingsPage() {
         <Alert status="danger">
           <Alert.Indicator />
           <Alert.Content>
-            <Alert.Title>{t("clinic.settings.insurance.loadFailed")}</Alert.Title>
+            <Alert.Title>
+              {t("clinic.settings.insurance.loadFailed")}
+            </Alert.Title>
           </Alert.Content>
         </Alert>
       ) : null}
@@ -61,7 +73,9 @@ export function InsuranceProviderSettingsPage() {
         <Alert status="danger">
           <Alert.Indicator />
           <Alert.Content>
-            <Alert.Title>{t("clinic.settings.insurance.authorizationFailed")}</Alert.Title>
+            <Alert.Title>
+              {t("clinic.settings.insurance.authorizationFailed")}
+            </Alert.Title>
             <Alert.Description>
               {t("clinic.settings.insurance.tryAgain")}
             </Alert.Description>
@@ -141,18 +155,26 @@ export function InsuranceProviderSettingsPage() {
           <Tooltip>
             <Button
               isIconOnly
-              aria-label={credential
-                ? t("clinic.settings.insurance.reauthorize")
-                : t("clinic.settings.insurance.authorize")}
+              aria-label={
+                credential
+                  ? t("clinic.settings.insurance.reauthorize")
+                  : t("clinic.settings.insurance.authorize")
+              }
               isDisabled={pending || invalid}
               isPending={authorize.isPending}
               onPress={() => authorize.mutate(input)}
             >
-              {authorize.isPending ? <Spinner color="current" size="sm" /> : <FaIcon icon="arrow-right-to-bracket" aria-hidden="true" />}
+              {authorize.isPending ? (
+                <Spinner color="current" size="sm" />
+              ) : (
+                <FaIcon icon="arrow-right-to-bracket" aria-hidden="true" />
+              )}
             </Button>
-            <Tooltip.Content>{credential
-              ? t("clinic.settings.insurance.reauthorize")
-              : t("clinic.settings.insurance.authorize")}</Tooltip.Content>
+            <Tooltip.Content>
+              {credential
+                ? t("clinic.settings.insurance.reauthorize")
+                : t("clinic.settings.insurance.authorize")}
+            </Tooltip.Content>
           </Tooltip>
         </Card.Footer>
       </Card>
