@@ -11,6 +11,7 @@ COPY apps/private-practice-owner/package.json ./apps/private-practice-owner/
 COPY shared/account-web/package.json ./shared/account-web/
 COPY shared/auth-web/package.json ./shared/auth-web/
 COPY shared/clinic-web/package.json ./shared/clinic-web/
+COPY shared/communications-web/package.json ./shared/communications-web/
 COPY shared/journey-web/package.json ./shared/journey-web/
 COPY shared/knowledge-web/package.json ./shared/knowledge-web/
 COPY shared/platform-web/package.json ./shared/platform-web/
