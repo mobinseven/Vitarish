@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Contents.Application.Abstractions;
+using Vitarish.Contents.Api;
 using Vitarish.Contents.Infrastructure.Data;
 using Vitarish.Contents.Infrastructure.DependencyInjection;
 using Vitarish.Entities.Server.Extensions;
@@ -27,5 +28,9 @@ public sealed class ContentsModule : Modules.Base.Core.Module, IContentsModule
         return Task.CompletedTask;
     }
 
-    public override Task Initialize(WebApplication app) => app.MigrateDatabaseAsync<ContentsDbContext>();
+    public override async Task Initialize(WebApplication app)
+    {
+        await app.MigrateDatabaseAsync<ContentsDbContext>();
+        _ = app.MapContentsApi();
+    }
 }
