@@ -1,12 +1,15 @@
 using System.Text.Json;
 using MediatR;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Clinic.Application.PatientAgent.Actions;
 
 namespace Vitarish.Clinic.Application.PatientAgent;
 
 public sealed class RunPatientAgentHandler(
     IAgentRunner agentRunner,
-    PatientWorkspaceAgentDefinitionFactory definitionFactory)
+    PatientWorkspaceAgentDefinitionFactory definitionFactory,
+    IPatientAgentActionStore actionStore,
+    TimeProvider timeProvider)
     : IRequestHandler<RunPatientAgent, PatientAgentResult>
 {
     public async Task<PatientAgentResult> Handle(RunPatientAgent request, CancellationToken cancellationToken)
@@ -32,7 +35,12 @@ public sealed class RunPatientAgentHandler(
 
         try
         {
-            return Parse(output, workspace, request.Context.ConversationId);
+            PatientAgentResult result = Parse(output, workspace, request.Context, timeProvider.GetUtcNow());
+            foreach (PatientAgentAction action in result.Actions)
+            {
+                await actionStore.SaveAsync(action, cancellationToken);
+            }
+            return result;
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException or KeyNotFoundException)
         {
@@ -43,7 +51,8 @@ public sealed class RunPatientAgentHandler(
     private static PatientAgentResult Parse(
         JsonElement output,
         PatientWorkspaceAgentDefinition workspace,
-        string conversationId)
+        PatientAgentContext context,
+        DateTimeOffset preparedAt)
     {
         List<PatientAgentMessage> messages = [];
         foreach (JsonElement item in output.GetProperty("messages").EnumerateArray())
@@ -82,10 +91,14 @@ public sealed class RunPatientAgentHandler(
                 !registered.Contains(prepared.ActionType))
                 throw new JsonException("A preparation tool produced an action type that is not enabled.");
             summaries.TryGetValue((prepared.Capability, prepared.ActionType), out Queue<string>? values);
-            actions.Add(new PatientAgentAction(prepared.OwningId.ToString("D"), prepared.Capability, prepared.ActionType,
-                PatientAgentActionStatus.Proposed, prepared.ReviewDataJson,
-                values is { Count: > 0 } ? values.Dequeue() : string.Empty));
+            actions.Add(new PatientAgentAction(
+                prepared.OwningId, workspace.ExecutionContext.ExecutionId, context.ConversationId,
+                context.PatientId, context.PracticeId, context.AuthenticatedUserId,
+                prepared.Capability, prepared.ActionType, prepared.OwningId, prepared.ReviewDataJson,
+                PatientAgentActionStatus.Proposed, preparedAt,
+                prepared.Expiration ?? preparedAt.AddMinutes(30),
+                Summary: values is { Count: > 0 } ? values.Dequeue() : string.Empty));
         }
-        return new PatientAgentResult(workspace.ExecutionContext.ExecutionId, conversationId, messages, actions);
+        return new PatientAgentResult(workspace.ExecutionContext.ExecutionId, context.ConversationId, messages, actions);
     }
 }

@@ -13,6 +13,8 @@ using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Prescriptions;
 using Vitarish.Clinic.Application.ClinicalEvents;
 using Vitarish.Clinic.Infrastructure.ClinicalEvents;
 using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.ClinicalEvents;
+using Vitarish.Clinic.Application.PatientAgent.Actions;
+using Vitarish.Clinic.Infrastructure.PatientAgent.Actions;
 
 namespace Vitarish.Clinic.Infrastructure.Extensions
 {
@@ -58,6 +60,11 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<PatientAgentToolDispatcher>();
             _ = services.AddTransient<PatientAgentInstructionComposer>();
             _ = services.AddTransient<PatientWorkspaceAgentDefinitionFactory>();
+            _ = services.AddSingleton<IPatientAgentActionStore, RedisPatientAgentActionStore>();
+            _ = services.AddTransient<IPatientAgentActionCommitter, AppointmentPatientAgentActionCommitter>();
+            _ = services.AddTransient<IPatientAgentActionCommitter, PrescriptionPatientAgentActionCommitter>();
+            _ = services.AddTransient<IPatientAgentActionCommitter, ClinicalEventPatientAgentActionCommitter>();
+            _ = services.AddTransient<IPatientAgentActionCommitterRegistry, PatientAgentActionCommitterRegistry>();
 
             return services;
         }
