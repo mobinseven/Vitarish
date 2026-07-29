@@ -54,7 +54,7 @@ public static class SubmitContactInquiry
             <p><strong>Goal:</strong> {WebUtility.HtmlEncode(goal)}</p>
             <p><strong>Need:</strong> {WebUtility.HtmlEncode(need)}</p>
             <p><strong>Message:</strong></p>
-            <p>{WebUtility.HtmlEncode(message).Replace(Environment.NewLine, "<br>", StringComparison.Ordinal)}</p>
+            <p>{WebUtility.HtmlEncode(message).Replace("\r\n", "\n", StringComparison.Ordinal).Replace("\n", "<br>", StringComparison.Ordinal)}</p>
             """;
 
         await service.SendEmail(

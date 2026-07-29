@@ -46,7 +46,7 @@ public class CommunicationModule : Modules.Base.Core.Module, ICommunicationsModu
             options.AddPolicy(
                 ContactInquiryRateLimitPolicies.PublicInquiry,
                 context => RateLimitPartition.GetSlidingWindowLimiter(
-                    context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+                    context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
                     _ => new SlidingWindowRateLimiterOptions
                     {
                         Window = TimeSpan.FromMinutes(10),

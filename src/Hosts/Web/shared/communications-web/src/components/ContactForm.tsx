@@ -50,8 +50,8 @@ export function ContactForm({
   const form = useContactForm({
     onSubmit,
     context,
-    goal: conversation?.goals[0]?.id,
-    need: conversation?.needs[0]?.id,
+    goal: conversation?.goals[0]?.id ?? "general",
+    need: conversation?.needs[0]?.id ?? "inquiry",
   });
   const isSubmitting = form.status === "submitting";
   const requiredMessage = t("communications.contactForm.validation.required");

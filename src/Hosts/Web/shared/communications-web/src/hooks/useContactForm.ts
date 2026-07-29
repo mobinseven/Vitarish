@@ -73,8 +73,10 @@ export function useContactForm({
     setValues((current) => ({
       ...current,
       ...(context === undefined ? { context: undefined } : { context }),
+      ...(goal === undefined ? {} : { goal }),
+      ...(need === undefined ? {} : { need }),
     }));
-  }, [context]);
+  }, [context, goal, need]);
 
   const updateValue = useCallback(
     (key: "name" | "email" | "message" | "goal" | "need", value: string) => {

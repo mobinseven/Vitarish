@@ -120,6 +120,8 @@ describe("ContactForm", () => {
         email: "sam@example.com",
         message: "Please contact me.",
         context: "landing-contact",
+        goal: "general",
+        need: "inquiry",
       },
       { signal: expect.any(AbortSignal) },
     );
@@ -176,6 +178,40 @@ describe("ContactForm", () => {
 
     pending.resolve();
     await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
+  });
+
+  it("synchronizes choices when the conversation defaults change", () => {
+    const onSubmit = vi.fn(async () => undefined);
+    const conversation = {
+      prefix: "I want to",
+      between: "my",
+      suffix: ".",
+      goalLabel: "Goal",
+      needLabel: "Need",
+      goals: [{ id: "grow", label: "grow" }],
+      needs: [{ id: "business", label: "business" }],
+    };
+    const { rerender } = render(
+      <LocalizationProvider locale="en" messages={communicationsMessageCatalogs.en}>
+        <ContactForm conversation={conversation} onSubmit={onSubmit} />
+      </LocalizationProvider>,
+    );
+
+    rerender(
+      <LocalizationProvider locale="fa" messages={communicationsMessageCatalogs.fa}>
+        <ContactForm
+          conversation={{
+            ...conversation,
+            goals: [{ id: "business", label: "کسب و کار" }],
+            needs: [{ id: "grow", label: "رشد" }],
+          }}
+          onSubmit={onSubmit}
+        />
+      </LocalizationProvider>,
+    );
+
+    expect(screen.getByLabelText("Goal")).toHaveValue("business");
+    expect(screen.getByLabelText("Need")).toHaveValue("grow");
   });
 });
 
