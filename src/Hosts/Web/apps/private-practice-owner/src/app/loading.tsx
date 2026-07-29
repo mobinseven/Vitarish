@@ -1,9 +1,10 @@
 import { LoadingSpinner } from "@/components/loading/LoadingSpinner";
+import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
 
 export default function Loading() {
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-background">
+    <StandaloneCenteredPage className="bg-background">
       <LoadingSpinner />
-    </main>
+    </StandaloneCenteredPage>
   );
 }
