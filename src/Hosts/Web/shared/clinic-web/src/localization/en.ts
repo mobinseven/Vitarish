@@ -172,6 +172,7 @@ export const clinicEnMessages = {
       running: "The patient agent is working…",
       error: "The patient agent request could not be completed. Your reviewed actions remain unchanged.",
       actionError: "The action could not be updated. Review it and try again.",
+      actionUnavailable: "This action type cannot be reviewed in this client.",
       retry: "Retry request",
       composer: { label: "Message to the patient agent", placeholder: "Describe what you want to do for this patient…", send: "Send message" },
       messages: { label: "Patient agent conversation", assistant: "Assistant", information: "Information", missing: "More information needed", failure: "Failure" },

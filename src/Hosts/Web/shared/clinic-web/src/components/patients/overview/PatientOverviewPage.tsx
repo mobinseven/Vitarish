@@ -65,6 +65,7 @@ export function PatientOverviewPage({
       <Widget>
         <Widget.Content>
           <PatientAgentPanel
+            key={patientId}
             patientId={patientId}
             patientName={[patient.firstName, patient.lastName].filter(Boolean).join(" ") || patient.name || t("clinic.patients.unnamedPatient")}
           />

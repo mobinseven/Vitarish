@@ -1,11 +1,24 @@
 import type { ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { AppointmentActionCard, ClinicalEventActionCard, PatientAgentComposer, PatientAgentMessage, PatientAgentActionStatus, PrescriptionActionCard } from "../features/patient-agent/PatientAgentPanel";
+import { AppointmentActionCard, ClinicalEventActionCard, PrescriptionActionCard } from "../features/patient-agent/ActionCards";
+import { PatientAgentActionStatus } from "../features/patient-agent/PatientAgentActions";
+import { PatientAgentComposer, PatientAgentMessage, PatientAgentPanel } from "../features/patient-agent/PatientAgentPanel";
 import { LocalizationProvider, clinicMessageCatalogs } from "../localization";
+
+vi.mock("@vitarish/web-ui", () => ({
+  FaIcon: ({ icon }: { icon: string }) => <span data-icon={icon} aria-hidden="true" />,
+}));
 
 const common = { actions: { cancel: "Cancel", save: "Save", delete: "Delete" }, values: { notAvailable: "Not available", unknown: "Unknown" }, states: { loading: "Loading" } };
 function wrapper(locale: "en" | "fa" = "en") { return function Wrapper({ children }: { children: ReactNode }) { return <LocalizationProvider locale={locale} messages={{ ...clinicMessageCatalogs[locale], common }}>{children}</LocalizationProvider>; }; }
+function panelWrapper(locale: "en" | "fa") {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={client}><LocalizationProvider locale={locale} messages={{ ...clinicMessageCatalogs[locale], common }}>{children}</LocalizationProvider></QueryClientProvider>;
+  };
+}
 
 describe("patient agent review", () => {
   it("submits from the keyboard without exposing a patient selector", async () => {
@@ -32,8 +45,10 @@ describe("patient agent review", () => {
   });
 
   it("renders Persian copy in an RTL localization context", () => {
-    const { container } = render(<PatientAgentMessage message={{ kind: "AssistantMessage", content: "انجام شد" }} />, { wrapper: wrapper("fa") });
-    expect(screen.getByText("دستیار")).toBeInTheDocument();
-    expect(container.closest("body")?.dir || document.documentElement.dir).toBeDefined();
+    render(<PatientAgentPanel patientId="patient-1" patientName="مریم احمدی" />, { wrapper: panelWrapper("fa") });
+    const panel = screen.getByRole("region", { name: "دستیار فضای کاری بیمار" });
+    expect(panel).toHaveAttribute("dir", "rtl");
+    expect(screen.getByText("در حال کار برای مریم احمدی")).toBeInTheDocument();
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 });

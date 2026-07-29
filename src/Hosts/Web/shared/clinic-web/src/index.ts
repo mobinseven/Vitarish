@@ -12,13 +12,17 @@ export {
   PatientAgentMessage,
   PatientAgentActivity,
   PatientAgentErrorState,
+} from "./features/patient-agent/PatientAgentPanel";
+export {
   PatientAgentActionList,
   PatientAgentActionReview,
   PatientAgentActionStatus,
+} from "./features/patient-agent/PatientAgentActions";
+export {
   AppointmentActionCard,
   PrescriptionActionCard,
   ClinicalEventActionCard,
-} from "./features/patient-agent/PatientAgentPanel";
+} from "./features/patient-agent/ActionCards";
 export {
   usePatientAgent,
   usePatientAgentConversation,
