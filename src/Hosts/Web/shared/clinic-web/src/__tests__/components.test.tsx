@@ -690,11 +690,12 @@ describe("clinic display components", () => {
     expect(
       screen.queryByRole("button", { name: "Delete Item" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("article")).toHaveClass("chat-message--user");
+    const message = document.querySelector('[data-slot="chat-message-user"]');
+    expect(message).toHaveClass("chat-message--user");
     expect(screen.queryByText("Ava Patel")).not.toBeInTheDocument();
     expect(screen.queryByRole("time")).not.toBeInTheDocument();
 
-    fireEvent.contextMenu(screen.getByRole("article"));
+    fireEvent.contextMenu(message!);
     const deleteMenuItem = await screen.findByRole("menuitem", {
       name: "Delete Item",
     });
