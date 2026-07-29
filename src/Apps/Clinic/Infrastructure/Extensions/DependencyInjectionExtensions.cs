@@ -15,6 +15,7 @@ using Vitarish.Clinic.Infrastructure.ClinicalEvents;
 using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.ClinicalEvents;
 using Vitarish.Clinic.Application.PatientAgent.Actions;
 using Vitarish.Clinic.Infrastructure.PatientAgent.Actions;
+using Vitarish.Clinic.Infrastructure.PatientAgent;
 
 namespace Vitarish.Clinic.Infrastructure.Extensions
 {
@@ -30,6 +31,7 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
                 typeof(FindOrCreatePatientHandler).Assembly));
             _ = services.AddTransient<IPatientDirectory, SeaPatientDirectory>();
             _ = services.AddTransient<IClinicActorContext, RequestClinicActorContext>();
+            _ = services.AddTransient<IPatientAgentContextFactory, HttpPatientAgentContextFactory>();
             _ = services.AddTransient<IVisitsEventWriter, SeaVisitsEventWriter>();
             _ = services.AddTransient<IPrescriptionDraftWriter, MedicalPrescriptionDraftWriter>();
             _ = services.AddTransient<CreatePatientVisitsProcedureHandler>();
