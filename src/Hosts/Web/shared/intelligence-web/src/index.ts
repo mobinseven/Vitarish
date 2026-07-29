@@ -12,3 +12,12 @@ export type {
 } from "./api/intelligence/liveTranscriptionClient";
 export { LiveDictation } from "./components/LiveDictation";
 export type { LiveDictationProps } from "./components/LiveDictation";
+export { rewrite, useRewrite } from "./hooks/useRewrite";
+export type {
+  IntelligenceSessionContext,
+  RewriteOptions,
+  RewriteRequestOptions,
+  RewriteRequest,
+  RewriteResult,
+  UseRewriteOptions,
+} from "./hooks/useRewrite";
