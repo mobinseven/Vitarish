@@ -23,10 +23,10 @@ public sealed class AppointmentPatientAgentActionCommitter(IPatientAppointmentAg
             AppointmentCommitStatus.Committed or AppointmentCommitStatus.AlreadyCommitted =>
                 PatientAgentActionCommitResult.Completed(JsonSerializer.Serialize(result)),
             AppointmentCommitStatus.NotFound => PatientAgentActionCommitResult.Failed("owning_proposal_not_found", "The appointment proposal was not found."),
-            AppointmentCommitStatus.Stale => PatientAgentActionCommitResult.Failed("stale_owning_proposal", "The appointment proposal is stale.", true),
+            AppointmentCommitStatus.Stale => PatientAgentActionCommitResult.Failed("stale_owning_proposal", "The appointment proposal is stale."),
             AppointmentCommitStatus.Expired => PatientAgentActionCommitResult.Failed("owning_proposal_expired", "The appointment proposal expired."),
             AppointmentCommitStatus.Forbidden => PatientAgentActionCommitResult.Failed("owning_workflow_forbidden", "The appointment cannot be confirmed in this scope."),
-            _ => PatientAgentActionCommitResult.Failed("appointment_commit_failed", result.Message ?? "The appointment could not be created.", true)
+            _ => PatientAgentActionCommitResult.Failed("appointment_commit_failed", result.Message ?? "The appointment could not be created.")
         };
     }
 }
@@ -75,7 +75,7 @@ public sealed class ClinicalEventPatientAgentActionCommitter(ConfirmClinicalEven
             ClinicalEventCommitResultStatus.Completed or ClinicalEventCommitResultStatus.AlreadyConfirmed =>
                 PatientAgentActionCommitResult.Completed(JsonSerializer.Serialize(result)),
             ClinicalEventCommitResultStatus.NotFound => PatientAgentActionCommitResult.Failed("owning_proposal_not_found", "The clinical-event proposal was not found."),
-            ClinicalEventCommitResultStatus.StaleState => PatientAgentActionCommitResult.Failed("stale_owning_proposal", "The patient procedure changed.", true),
+            ClinicalEventCommitResultStatus.StaleState => PatientAgentActionCommitResult.Failed("stale_owning_proposal", "The patient procedure changed."),
             ClinicalEventCommitResultStatus.Expired => PatientAgentActionCommitResult.Failed("owning_proposal_expired", "The clinical-event proposal expired."),
             ClinicalEventCommitResultStatus.ProcedureUnavailable => PatientAgentActionCommitResult.Failed("procedure_unavailable", "The patient procedure is unavailable.", true),
             ClinicalEventCommitResultStatus.ConfirmationInProgress => PatientAgentActionCommitResult.Failed("confirmation_in_progress", "Clinical-event confirmation is already in progress.", true),

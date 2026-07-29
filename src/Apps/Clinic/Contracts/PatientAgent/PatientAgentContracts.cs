@@ -17,7 +17,7 @@ public sealed record PatientAgentActionResponse(
     string Id,
     string Capability,
     string ActionType,
-    PatientAgentActionResponseStatus Status,
+    PatientAgentActionStatus Status,
     JsonElement Arguments,
     string Summary);
 
@@ -67,11 +67,4 @@ public enum PatientAgentMessageResponseKind
     InformationalToolResult,
     MissingInformationRequest,
     Failure
-}
-
-[JsonConverter(typeof(JsonStringEnumConverter<PatientAgentActionResponseStatus>))]
-public enum PatientAgentActionResponseStatus
-{
-    Proposed,
-    Completed
 }

@@ -30,14 +30,7 @@ public sealed record PatientAgentAction(
     string? RejectionReason = null,
     PatientAgentActionFailure? Failure = null,
     string? CompletionPayload = null,
-    string Summary = "")
-{
-    [Obsolete("Use ActionId.")]
-    public string Id => ActionId.ToString("D");
-
-    [Obsolete("Use ReviewPayload.")]
-    public string ArgumentsJson => ReviewPayload;
-}
+    string Summary = "");
 
 public sealed record PatientAgentActionFailure(
     string Code,

@@ -3,6 +3,7 @@ using FluentAssertions;
 using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Capabilities;
 using Vitarish.Clinic.Application.PatientAgent.Policies;
+using Vitarish.Clinic.Application.PatientAgent.Actions;
 using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Appointments;
 using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Prescriptions;
 using Vitarish.Clinic.Contracts.PatientAgent;
@@ -206,8 +207,8 @@ public sealed class PatientWorkspaceAgentTests
             new RunPatientAgent(Context(), new PatientAgentInput("Prepare it")), CancellationToken.None);
 
         PatientAgentAction action = result.Actions.Should().ContainSingle().Subject;
-        action.Id.Should().Be(proposalId.ToString("D"));
-        action.ArgumentsJson.Should().Contain(proposalId.ToString()).And.NotContain("model-proposal");
+        action.ActionId.Should().Be(proposalId);
+        action.ReviewPayload.Should().Contain(proposalId.ToString()).And.NotContain("model-proposal");
         result.AgentRunId.Should().Be(runner.Context!.ExecutionId);
         result.ConversationId.Should().Be("conversation-1");
     }
@@ -227,7 +228,7 @@ public sealed class PatientWorkspaceAgentTests
             [new Capability("Prescriptions", new HashSet<string>(), [prepare], ["create_prescription"])]).Handle(
             new RunPatientAgent(Context(), new PatientAgentInput("Prepare it")), CancellationToken.None);
 
-        result.Actions.Should().ContainSingle().Which.ArgumentsJson.Should().Contain(reviewId.ToString());
+        result.Actions.Should().ContainSingle().Which.ReviewPayload.Should().Contain(reviewId.ToString());
     }
 
     [Fact]
@@ -258,7 +259,9 @@ public sealed class PatientWorkspaceAgentTests
             Registry(capabilities),
             new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy()),
             new PatientAgentInstructionComposer(),
-            new PatientWorkspaceAgentOptions("test-model")));
+            new PatientWorkspaceAgentOptions("test-model")),
+            new RecordingActionStore(),
+            TimeProvider.System);
 
     private static PatientWorkspaceAgentDefinitionFactory Factory(params IPatientAgentCapability[] capabilities) =>
         new(Registry(capabilities), new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy()), new PatientAgentInstructionComposer(), new PatientWorkspaceAgentOptions("test-model"));
@@ -315,6 +318,17 @@ public sealed class PatientWorkspaceAgentTests
                 return new("Prescriptions", "create_prescription", review.GetProperty("reviewId").GetGuid(), review.GetRawText(), null);
             return null;
         }
+    }
+
+    private sealed class RecordingActionStore : IPatientAgentActionStore
+    {
+        public Task SaveAsync(PatientAgentAction action, CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task<PatientAgentAction?> GetAsync(Guid actionId, CancellationToken cancellationToken) => Task.FromResult<PatientAgentAction?>(null);
+        public Task<bool> TryBeginConfirmationAsync(Guid actionId, bool retryFailed, CancellationToken cancellationToken) => Task.FromResult(false);
+        public Task<bool> TryRejectAsync(Guid actionId, DateTimeOffset rejectedAt, string? reason, CancellationToken cancellationToken) => Task.FromResult(false);
+        public Task<bool> CompleteAsync(Guid actionId, DateTimeOffset confirmedAt, string confirmedByUserId, string completionPayload, CancellationToken cancellationToken) => Task.FromResult(false);
+        public Task<bool> FailAsync(Guid actionId, PatientAgentActionFailure failure, CancellationToken cancellationToken) => Task.FromResult(false);
+        public Task<bool> ExpireAsync(Guid actionId, CancellationToken cancellationToken) => Task.FromResult(false);
     }
 
     private static AgentExecutionContext Execution(PatientAgentContext context) => new(

@@ -5,6 +5,7 @@ namespace Vitarish.Clinic.Application.PatientAgent.Actions;
 public enum PatientAgentActionOutcome
 {
     Succeeded,
+    ValidationFailure,
     NotFound,
     ScopeMismatch,
     PermissionDenied,
@@ -118,12 +119,15 @@ public sealed class RejectPatientAgentActionHandler(IPatientAgentActionStore sto
 {
     public async Task<PatientAgentActionResult> Handle(RejectPatientAgentAction request, CancellationToken cancellationToken)
     {
+        if (request.Reason?.Length > 1_000)
+            return new(PatientAgentActionOutcome.ValidationFailure);
         PatientAgentAction? action = await store.GetAsync(request.ActionId, cancellationToken);
         PatientAgentActionOutcome? failure = ConfirmPatientAgentActionHandler.ScopeFailure(action, request.Context);
         if (failure.HasValue) return new(failure.Value);
         if (action!.Status != PatientAgentActionStatus.Proposed)
             return new(PatientAgentActionOutcome.Conflict, action);
-        bool rejected = await store.TryRejectAsync(action.ActionId, timeProvider.GetUtcNow(), request.Reason, cancellationToken);
+        string? reason = string.IsNullOrWhiteSpace(request.Reason) ? null : request.Reason.Trim();
+        bool rejected = await store.TryRejectAsync(action.ActionId, timeProvider.GetUtcNow(), reason, cancellationToken);
         return rejected
             ? new(PatientAgentActionOutcome.Succeeded, await store.GetAsync(action.ActionId, cancellationToken))
             : new(PatientAgentActionOutcome.Conflict, await store.GetAsync(action.ActionId, cancellationToken));

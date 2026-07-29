@@ -8,8 +8,8 @@ namespace Vitarish.Clinic.Application.PatientAgent;
 public sealed class RunPatientAgentHandler(
     IAgentRunner agentRunner,
     PatientWorkspaceAgentDefinitionFactory definitionFactory,
-    IPatientAgentActionStore? actionStore = null,
-    TimeProvider? timeProvider = null)
+    IPatientAgentActionStore actionStore,
+    TimeProvider timeProvider)
     : IRequestHandler<RunPatientAgent, PatientAgentResult>
 {
     public async Task<PatientAgentResult> Handle(RunPatientAgent request, CancellationToken cancellationToken)
@@ -35,13 +35,10 @@ public sealed class RunPatientAgentHandler(
 
         try
         {
-            PatientAgentResult result = Parse(output, workspace, request.Context, (timeProvider ?? TimeProvider.System).GetUtcNow());
-            if (actionStore is not null)
+            PatientAgentResult result = Parse(output, workspace, request.Context, timeProvider.GetUtcNow());
+            foreach (PatientAgentAction action in result.Actions)
             {
-                foreach (PatientAgentAction action in result.Actions)
-                {
-                    await actionStore.SaveAsync(action, cancellationToken);
-                }
+                await actionStore.SaveAsync(action, cancellationToken);
             }
             return result;
         }

@@ -88,7 +88,8 @@ public static class ClinicApiEndpointMapping
         [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
     {
         if (patientId == Guid.Empty || actionId == Guid.Empty || request is null ||
-            !Guid.TryParse(request.ActionId, out Guid bodyActionId) || bodyActionId != actionId)
+            !Guid.TryParse(request.ActionId, out Guid bodyActionId) || bodyActionId != actionId ||
+            request.Reason?.Length > 1_000)
             return InvalidActionRequest();
         PatientAgentContext context = await contextFactory.CreateAsync(patientId, null, ct);
         PatientAgentActionResult result = await sender.Send(new RejectPatientAgentAction(actionId, context, request.Reason), ct);
@@ -100,6 +101,7 @@ public static class ClinicApiEndpointMapping
         result.Outcome switch
         {
             PatientAgentActionOutcome.Succeeded when result.Action is not null => success(result.Action),
+            PatientAgentActionOutcome.ValidationFailure => InvalidActionRequest(),
             PatientAgentActionOutcome.NotFound => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent action was not found.")),
             PatientAgentActionOutcome.ScopeMismatch => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent action was not found.")),
             PatientAgentActionOutcome.PermissionDenied => Results.Json(new ClinicError(ClinicErrorCode.Forbidden, "The action is not permitted."), statusCode: StatusCodes.Status403Forbidden),
@@ -150,7 +152,7 @@ public static class ClinicApiEndpointMapping
                 action.ActionId.ToString("D"),
                 action.Capability,
                 action.ActionType,
-                (PatientAgentActionResponseStatus)(int)action.Status,
+                ToContract(action.Status),
                 System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(action.ReviewPayload),
                 action.Summary)).ToArray()));
     }
