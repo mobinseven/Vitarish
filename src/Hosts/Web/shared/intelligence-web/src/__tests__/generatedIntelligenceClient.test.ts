@@ -3,14 +3,10 @@ import {
   getIntelligenceGetLiveTranscriptionCapabilitiesQueryKey,
 } from "../api/generated/intelligence/intelligence";
 import {
-  getIntelligenceRewriteMutationOptions,
-  getIntelligenceStreamRewriteMutationOptions,
-  intelligenceRewrite,
-  intelligenceStreamRewrite,
-  useIntelligenceRewrite,
-  useIntelligenceStreamRewrite,
+  rewrite,
+  useRewrite,
 } from "../index";
-import type { RewriteRequest } from "../index";
+import type { RewriteRequest, RewriteResult } from "../index";
 
 describe("generated Intelligence client", () => {
   it("keeps the live transcription capability route stable", () => {
@@ -19,15 +15,13 @@ describe("generated Intelligence client", () => {
     ]);
   });
 
-  it("exports the rewrite mutation surface from the shared package", () => {
+  it("exports the feature-owned rewrite surface from the shared package", () => {
     const request: RewriteRequest = { prompt: "Make this clearer." };
+    const result: RewriteResult = { text: "This is clearer." };
 
     expect(request.prompt).toBe("Make this clearer.");
-    expect(typeof intelligenceRewrite).toBe("function");
-    expect(typeof getIntelligenceRewriteMutationOptions).toBe("function");
-    expect(typeof useIntelligenceRewrite).toBe("function");
-    expect(typeof intelligenceStreamRewrite).toBe("function");
-    expect(typeof getIntelligenceStreamRewriteMutationOptions).toBe("function");
-    expect(typeof useIntelligenceStreamRewrite).toBe("function");
+    expect(result.text).toBe("This is clearer.");
+    expect(typeof rewrite).toBe("function");
+    expect(typeof useRewrite).toBe("function");
   });
 });

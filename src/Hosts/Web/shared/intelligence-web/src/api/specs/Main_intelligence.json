@@ -315,7 +315,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewriteResult"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
@@ -982,6 +989,27 @@
             ]
           }
         }
+      },
+      "RewriteResult": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "context": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/IntelligenceSessionContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "text"
+        ]
       }
     }
   },

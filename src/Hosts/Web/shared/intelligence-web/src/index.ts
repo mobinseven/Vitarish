@@ -12,25 +12,12 @@ export type {
 } from "./api/intelligence/liveTranscriptionClient";
 export { LiveDictation } from "./components/LiveDictation";
 export type { LiveDictationProps } from "./components/LiveDictation";
-export {
-  getIntelligenceRewriteMutationOptions,
-  getIntelligenceStreamRewriteMutationOptions,
-  intelligenceRewrite,
-  intelligenceStreamRewrite,
-  useIntelligenceRewrite,
-  useIntelligenceStreamRewrite,
-} from "./api/generated/intelligence/intelligence";
-export type {
-  IntelligenceRewriteMutationBody,
-  IntelligenceRewriteMutationError,
-  IntelligenceRewriteMutationResult,
-  IntelligenceStreamRewriteMutationBody,
-  IntelligenceStreamRewriteMutationError,
-  IntelligenceStreamRewriteMutationResult,
-} from "./api/generated/intelligence/intelligence";
+export { rewrite, useRewrite } from "./hooks/useRewrite";
 export type {
   IntelligenceSessionContext,
-  ProblemDetails,
   RewriteOptions,
+  RewriteRequestOptions,
   RewriteRequest,
-} from "./api/generated/intelligence/model";
+  RewriteResult,
+  UseRewriteOptions,
+} from "./hooks/useRewrite";
