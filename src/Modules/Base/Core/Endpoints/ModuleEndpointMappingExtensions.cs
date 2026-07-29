@@ -27,7 +27,8 @@ public static class ModuleEndpointMappingExtensions
     {
         _ = builder.ApplyModuleOpenApiConvention(convention);
 
-        if (convention.Profile is not ModuleEndpointProfile.AnonymousWebhook)
+        if (convention.Profile is not ModuleEndpointProfile.AnonymousWebhook
+            and not ModuleEndpointProfile.AnonymousJson)
         {
             _ = builder.WithMetadata(new ModuleEndpointAntiforgeryMetadata());
         }

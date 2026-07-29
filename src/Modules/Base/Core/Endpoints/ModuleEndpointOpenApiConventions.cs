@@ -5,6 +5,7 @@ namespace Vitarish.Modules.Base.Core.Endpoints;
 public enum ModuleEndpointProfile
 {
     ProtectedJson,
+    AnonymousJson,
     AnonymousWebhook,
     MultipartUpload,
     BinaryDownload,
@@ -48,7 +49,8 @@ public static class ModuleEndpointOpenApiConventions
 
         if (convention.IncludeStandardErrors)
         {
-            if (convention.Profile is not ModuleEndpointProfile.AnonymousWebhook)
+            if (convention.Profile is not ModuleEndpointProfile.AnonymousWebhook
+                and not ModuleEndpointProfile.AnonymousJson)
             {
                 _ = builder.Produces(StatusCodes.Status401Unauthorized);
                 _ = builder.Produces(StatusCodes.Status403Forbidden);
@@ -62,6 +64,10 @@ public static class ModuleEndpointOpenApiConventions
 
         switch (convention.Profile)
         {
+            case ModuleEndpointProfile.AnonymousJson:
+                ArgumentException.ThrowIfNullOrWhiteSpace(convention.AnonymousJustification);
+                _ = builder.WithMetadata(new AnonymousModuleEndpointMetadata(convention.AnonymousJustification));
+                break;
             case ModuleEndpointProfile.AnonymousWebhook:
                 ArgumentException.ThrowIfNullOrWhiteSpace(convention.AnonymousJustification);
                 _ = builder.WithMetadata(new AnonymousModuleEndpointMetadata(convention.AnonymousJustification));

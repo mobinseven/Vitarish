@@ -90,6 +90,7 @@ The private-practice React workflow features are owned by Web workspace packages
 | `account` | `src/Hosts/Web/shared/account-web` | `@vitarish/account-web` |
 | `auth` | `src/Hosts/Web/shared/auth-web` | `@vitarish/auth-web` |
 | `clinic` | `src/Hosts/Web/shared/clinic-web` | `@vitarish/clinic-web` |
+| Communications module clients and reusable UI | `src/Hosts/Web/shared/communications-web` | `@vitarish/communications-web` |
 | `journey` | `src/Hosts/Web/shared/journey-web` | `@vitarish/journey-web` |
 | `sea` | `src/Hosts/Web/shared/sea-web` | `@vitarish/sea-web` |
 
@@ -161,6 +162,10 @@ src/Hosts/
         src/
           index.ts
       clinic-web/
+        package.json
+        src/
+          index.ts
+      communications-web/
         package.json
         src/
           index.ts

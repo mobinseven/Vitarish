@@ -12,7 +12,7 @@
     "dev:knowledge-qa-demo": "npm run dev --workspace @vitarish/knowledge-qa-demo",
     "dev:vitarish-landing": "npm run dev --workspace @vitarish/vitarish-landing",
     "build": "npm run build --workspaces --if-present",
-    "build:private-practice-owner": "npm run build --workspace @vitarish/private-practice-owner",
+    "build:private-practice-owner": "npm run generate:api --workspace @vitarish/clinic-web && npm run build --workspace @vitarish/private-practice-owner",
     "build:patients": "npm run build --workspace @vitarish/patients",
     "build:knowledge-qa-demo": "npm run build --workspace @vitarish/knowledge-qa-demo",
     "build:vitarish-landing": "npm run build --workspace @vitarish/vitarish-landing",

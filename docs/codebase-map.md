@@ -80,8 +80,9 @@ Use module names as the feature map. For each module, the conventional locations
 | Medical/prescriptions | `src/Hosts/Main/Pages/Prescriptions`, `Pages/Support/Prescriptions` | `src/Modules/Medical/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Medical.Tests` | `docs/platform/modules/medical` |
 | Knowledge/QA | `src/Hosts/Main/Pages/Knowledge`, `src/Hosts/Web/shared/knowledge-web`, app knowledge routes | `src/Modules/Knowledge/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Knowledge.Tests`, package tests | `docs/platform/modules/knowledge` |
 | Intelligence | `src/Hosts/Web/shared/intelligence-web` owns Intelligence OpenAPI generation, browser realtime dictation, and generic localized primitives | `src/Modules/Intelligence/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Intelligence.Tests`, package tests | `docs/platform/modules/intelligence` when present |
+| Communications | `src/Hosts/Web/shared/communications-web` owns Communications OpenAPI generation and reusable localized communication UI | `src/Modules/Communications/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Communications.Tests`, package tests | `docs/platform/modules/communications` when present |
 | Search | platform search UI | `src/Modules/Search/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Search.Tests` | `docs/platform/modules/search` |
-| Files, Contents, Communications, Commerce, Links, Feed, Requests, Social, Financial | Matching host/app pages when present | `src/Modules/<Name>/Application` | same | `Domain` | `Infrastructure` | Add/use `tests/Modules/<Name>.Tests` when present | `docs/platform/modules/<name>` when present |
+| Files, Contents, Commerce, Links, Feed, Requests, Social, Financial | Matching host/app pages when present | `src/Modules/<Name>/Application` | same | `Domain` | `Infrastructure` | Add/use `tests/Modules/<Name>.Tests` when present | `docs/platform/modules/<name>` when present |
 
 ## 5. Runtime map
 
