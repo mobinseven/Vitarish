@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Options;
 using Vitarish.Communications.Api;
+using System.Threading.RateLimiting;
 using Vitarish.Communications.Infrastructure.Data;
 using Vitarish.Communications.Infrastructure.DependencyInjection;
 using Vitarish.Communications.Infrastructure.Serializers;
@@ -40,6 +42,19 @@ public class CommunicationModule : Modules.Base.Core.Module, ICommunicationsModu
     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         RegisterOptions(builder.Services, builder.Configuration, OptionsSectionPath);
+        _ = builder.Services.AddRateLimiter(options =>
+            options.AddPolicy(
+                ContactInquiryRateLimitPolicies.PublicInquiry,
+                context => RateLimitPartition.GetSlidingWindowLimiter(
+                    context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),
+                    _ => new SlidingWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromMinutes(10),
+                        PermitLimit = 5,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0,
+                        SegmentsPerWindow = 10
+                    })));
         _ = builder.Services.AddSingleton<ICommunicationsModule, CommunicationModule>();
         _ = builder.Services.AddTransient<IMessagesService, MessagesService>();
         _ = builder.Services.AddTransient<ISmsProvider, SmsDotIrProvider>();
