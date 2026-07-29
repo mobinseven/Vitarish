@@ -12,9 +12,24 @@ describe("createContentsClient", () => {
     fetchMock.mockResolvedValue([]);
     const client = createContentsClient();
     await client.list();
-    await client.create({ type: "Article", status: "Draft", slug: "welcome", canonicalPath: "/welcome", title: "Welcome", excerpt: "", body: [], locale: "en" });
-    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/contents/items", { signal: undefined });
-    expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/contents/items", expect.objectContaining({ method: "POST" }));
+    await client.create({
+      type: "Article",
+      status: "Draft",
+      slug: "welcome",
+      canonicalPath: "/welcome",
+      title: "Welcome",
+      excerpt: "",
+      body: [],
+      locale: "en",
+    });
+    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/contents/items", {
+      signal: undefined,
+    });
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/contents/items",
+      expect.objectContaining({ method: "POST" }),
+    );
   });
 
   it("encodes identifiers for item workflows", async () => {
@@ -22,7 +37,15 @@ describe("createContentsClient", () => {
     const client = createContentsClient();
     await client.archive("item/id");
     await client.revisions("item/id");
-    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/contents/items/item%2Fid/archive", { method: "POST" });
-    expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/contents/items/item%2Fid/revisions", { signal: undefined });
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/contents/items/item%2Fid/archive",
+      { method: "POST" },
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/contents/items/item%2Fid/revisions",
+      { signal: undefined },
+    );
   });
 });

@@ -4,6 +4,10 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Moq" />
   </ItemGroup>
-  <ItemGroup><ProjectReference Include="..\..\..\src\Modules\Contents\Contracts\Contents.Contracts.csproj" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Modules\Contents\Application\Contents.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Contents\Contracts\Contents.Contracts.csproj" />
+  </ItemGroup>
 </Project>
