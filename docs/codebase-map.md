@@ -18,27 +18,27 @@ Update this file only when repository navigation changes. Keep it folder-level a
 - **Purpose:** Vitarish is a modular healthcare/business platform with tenant-aware web applications, module APIs, shared contracts, infrastructure adapters, and documentation for journeys, architecture decisions, tests, and runbooks.
 - **System type:** A .NET modular backend/Blazor host plus a Next.js React web workspace. The backend owns module composition, identity, persistence, OpenAPI generation, Hangfire jobs, and server-rendered Razor pages. The web workspace owns modern React applications, feature packages, generic UI packages, API transport, and localization composition.
 - **Main technologies:** .NET/ASP.NET Core, Razor Components/Blazor Server, EF Core, PostgreSQL/Npgsql, Duende IdentityServer, Hangfire, Finbuckle.MultiTenant, Redis integration, MediatR, FluentValidation, Next.js, React, TypeScript, HeroUI, TanStack Query, Orval, Vitest, Docker Compose, and GitHub Actions.
-- **Inside this repo:** Backend modules under `src/Modules`, app aggregators under `src/Apps`, runnable hosts under `src/Hosts`, identity/libraries under `src/Identity` and `src/Libraries`, React web apps/packages under `src/Hosts/Web`, tests under `tests`, architecture/development/product docs under `docs`, validation scripts under `tools` and `src/Hosts/Web/scripts`, and agent operating rules under `AGENTS.md` plus `.agents/skills`.
+- **Inside this repo:** Backend modules under `src/Modules`, app aggregators under `src/Apps`, runnable hosts under `src/Hosts`, identity/libraries under `src/Identity` and `src/Libraries`, React web apps/packages under `src/Hosts/Web`, tests under `tests`, architecture/development/product docs under `docs`, validation scripts under `tools` and `src/Hosts/Web/scripts`, and agent operating rules in the root and area-scoped `AGENTS.md` files plus `.agents/skills`.
 - **External systems:** Production databases, Redis, object/file storage providers, mail/SMS/communication gateways, FIDO/passkey authenticators, Tamin/prescription providers, OpenAI/Ollama/AI providers, Elasticsearch/search infrastructure, Google Speech, deployment infrastructure, secrets stores, and live tenant/user data are external.
 
 ## 3. Top-level folder map
 
 | Path | Contents | Edit guidance |
 | --- | --- | --- |
-| `.agents/skills` | Canonical project skills for Codex/agents. | Edit only for skill-governance work; keep bridge skills in sync. |
+| `.agents/skills` | Canonical project skills for Codex/agents. | Edit only for skill-governance work; follow `.agents/AGENTS.md` and keep bridge skills in sync. |
 | `.claude/skills` | Claude bridge skills pointing back to `.agents/skills`. | Do not make canonical policy here. |
 | `.github` | Issue templates and CI workflows. | High-care DevOps area. |
 | `docs` | Architecture decisions, module/app docs, runbooks, indexes, this map. | Safe for documentation changes; update scoped docs near behavior changes. |
 | `scripts` | Repository scripts. | High-care; check callers before changing. |
-| `src/Apps` | App composition/aggregator projects and app-level contracts/clients/core/interface packages. | Add app-specific composition here when a module is exposed through an app. |
+| `src/Apps` | App composition/aggregator projects and app-level contracts/clients/core/interface packages. | Follow its `AGENTS.md`; add app-specific composition here when a module is exposed through an app. |
 | `src/Build` | Build-related source. | High-care; affects multiple projects. |
 | `src/Hosts/Main` | ASP.NET Core host, Blazor/Razor pages, auth, OpenAPI generation, Dockerfile, host settings. | High-risk runtime/composition root; avoid business rules in pages/host. |
-| `src/Hosts/Web` | npm workspace for Next.js apps and shared React packages, including generic UI, feature packages, Web API transport, and localization composition. | UI-safe when following web boundary rules; generated API output is not manual. |
+| `src/Hosts/Web` | npm workspace for Next.js apps and shared React packages, including generic UI, feature packages, Web API transport, and localization composition. | Follow its `AGENTS.md`; generated API output is not manual. |
 | `src/Identity` | Identity client/application/domain/infrastructure/hosting code. | Security-sensitive; requires careful review. |
 | `src/Libraries` | Shared server/client/contracts/generators such as Audit and Entities. | High reuse; avoid app-specific behavior. |
-| `src/Modules` | Business modules with Domain/Application/Infrastructure/Api/Contracts/Client/Interface/Module slices. | Normal location for module behavior; preserve boundaries. |
-| `tests` | .NET xUnit tests by module. | Safe for tests; copy module test conventions. |
-| `tools` | Architecture/testing validators. | High-care; CI and policy enforcement may depend on these. |
+| `src/Modules` | Business modules with Domain/Application/Infrastructure/Api/Contracts/Client/Interface/Module slices. | Follow its `AGENTS.md`; preserve slice boundaries. |
+| `tests` | .NET xUnit tests by module. | Follow its `AGENTS.md` and the routing of the production boundary under test. |
+| `tools` | Architecture/testing validators. | Follow its `AGENTS.md`; CI and policy enforcement may depend on these. |
 
 ## 4. Project/module layout
 
@@ -141,7 +141,7 @@ Fragile or high-care areas:
 ## 9. Documentation map
 
 - **Architecture:** `docs/architecture/decisions/_index.md`, `docs/architecture/conventions`, and `docs/architecture/validation`.
-- **Agent/rules:** `AGENTS.md` and `.agents/skills/*/SKILL.md`.
+- **Agent/rules:** root `AGENTS.md` for repository-wide policy, the nearest area-scoped `AGENTS.md` for boundary-skill routing, and `.agents/skills/*/SKILL.md` for procedures.
 - **Repository documentation index:** `docs/README.md`.
 - **Platform/module behavior:** `docs/platform/README.md` and `docs/platform/modules/<module>`.
 - **App-specific journeys:** `docs/apps/<app>`.
