@@ -4,6 +4,28 @@ export { DashboardPage } from "./components/dashboard/DashboardPage";
 export { CheckInPage } from "./components/check-in/CheckInPage";
 export { PatientListPage } from "./components/patients/list/PatientListPage";
 export { PatientOverviewPage } from "./components/patients/overview/PatientOverviewPage";
+export {
+  PatientAgentPanel,
+  PatientAgentHeader,
+  PatientAgentComposer,
+  PatientAgentMessageList,
+  PatientAgentMessage,
+  PatientAgentActivity,
+  PatientAgentErrorState,
+  PatientAgentActionList,
+  PatientAgentActionReview,
+  PatientAgentActionStatus,
+  AppointmentActionCard,
+  PrescriptionActionCard,
+  ClinicalEventActionCard,
+} from "./features/patient-agent/PatientAgentPanel";
+export {
+  usePatientAgent,
+  usePatientAgentConversation,
+  usePatientAgentAction,
+  useConfirmPatientAgentAction,
+  useRejectPatientAgentAction,
+} from "./features/patient-agent/hooks";
 export { PatientPrescriptionSubmissionSheet } from "./components/patients/prescriptions/PatientPrescriptionSubmissionSheet";
 export { PatientCreatePage } from "./components/patients/create/PatientCreatePage";
 export { PatientEditPage } from "./components/patients/edit/PatientEditPage";

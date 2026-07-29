@@ -19,6 +19,7 @@ import { PatientReservationsPanel } from "./PatientReservationsPanel";
 import { PatientOverviewHeader } from "./PatientOverviewHeader";
 import { PatientProfileCard } from "./PatientProfileCard";
 import { PatientPrescriptionSubmissionSheet } from "../prescriptions/PatientPrescriptionSubmissionSheet";
+import { PatientAgentPanel } from "../../../features/patient-agent/PatientAgentPanel";
 
 export interface PatientOverviewPageProps {
   patientId: string;
@@ -61,6 +62,14 @@ export function PatientOverviewPage({
       aria-label={t("clinic.patient.overview.title")}
     >
       <PatientOverviewHeader patient={patient} />
+      <Widget>
+        <Widget.Content>
+          <PatientAgentPanel
+            patientId={patientId}
+            patientName={[patient.firstName, patient.lastName].filter(Boolean).join(" ") || patient.name || t("clinic.patients.unnamedPatient")}
+          />
+        </Widget.Content>
+      </Widget>
       <Card variant="transparent">
         <Card.Content>
           <div className="flex flex-wrap gap-3">
