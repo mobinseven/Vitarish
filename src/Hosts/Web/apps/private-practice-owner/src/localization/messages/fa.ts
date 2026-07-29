@@ -786,6 +786,7 @@ export const faMessages = {
     noResults: "نتیجه‌ای یافت نشد",
     navigate: "حرکت",
     select: "انتخاب",
+    escape: "Esc",
     groups: {
       navigation: "ناوبری",
       quickActions: "عملیات سریع",

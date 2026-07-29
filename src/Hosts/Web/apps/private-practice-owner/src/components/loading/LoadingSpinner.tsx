@@ -8,8 +8,7 @@ export function LoadingSpinner({ size = 128, className }: { size?: number; class
       viewBox="0 0 320 320"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      role="img"
-      aria-label="Loading"
+      aria-hidden="true"
     >
       <defs>
         <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#FFE3C8"/><stop offset="100%" stopColor="#FFB3CE"/></linearGradient>
