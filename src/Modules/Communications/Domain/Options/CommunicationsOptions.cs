@@ -20,4 +20,5 @@ public record NotificationOptions
 {
     public string StartupSmsRecipient { get; set; } = string.Empty;
     public string HealthFailureSmsRecipient { get; set; } = string.Empty;
+    public string ContactEmailRecipient { get; set; } = string.Empty;
 }

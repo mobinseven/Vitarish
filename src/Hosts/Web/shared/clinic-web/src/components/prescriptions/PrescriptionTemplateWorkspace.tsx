@@ -236,7 +236,7 @@ export function PrescriptionTemplateWorkspace() {
   }
 
   return (
-    <main
+    <div
       className="mx-auto flex h-full min-h-0 w-full max-w-[1200px] flex-col gap-5 px-4 py-6"
       dir={direction}
     >
@@ -450,6 +450,6 @@ export function PrescriptionTemplateWorkspace() {
           </div>
         </section>
       </div>
-    </main>
+    </div>
   );
 }

@@ -5,6 +5,59 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/communications/contact-inquiries": {
+      "post": {
+        "tags": [
+          "Communications"
+        ],
+        "operationId": "CommunicationsSubmitContactInquiry",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitContactInquiryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/communications/messages/email": {
       "post": {
         "tags": [
@@ -1045,6 +1098,33 @@
             "type": "string"
           },
           "body": {
+            "type": "string"
+          }
+        }
+      },
+      "SubmitContactInquiryRequest": {
+        "required": [
+          "name",
+          "email",
+          "goal",
+          "need",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "goal": {
+            "type": "string"
+          },
+          "need": {
+            "type": "string"
+          },
+          "message": {
             "type": "string"
           }
         }

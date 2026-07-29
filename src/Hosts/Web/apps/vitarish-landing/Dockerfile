@@ -25,6 +25,8 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG NEXT_PUBLIC_API_BASE_URL=https://localhost:7272
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN --mount=type=cache,id=vitarish-landing-next-cache,target=/app/apps/vitarish-landing/.next/cache npm run build:vitarish-landing
 

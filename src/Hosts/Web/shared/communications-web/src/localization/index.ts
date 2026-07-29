@@ -1,0 +1,1 @@
+export { communicationsMessageCatalogs } from "./catalogs";
