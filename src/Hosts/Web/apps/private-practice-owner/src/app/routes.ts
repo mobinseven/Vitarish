@@ -38,6 +38,12 @@ export const Routes = {
     QA: "/knowledge/qa",
   },
 
+  Contents: {
+    Index: "/contents",
+    New: "/contents/new",
+    Edit: (contentId: string) => `/contents/${contentId}` as const,
+  },
+
   /** Workspace routes */
   Workspaces: {
     Select: "/workspaces/select",

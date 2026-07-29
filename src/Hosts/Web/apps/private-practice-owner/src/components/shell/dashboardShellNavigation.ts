@@ -23,6 +23,13 @@ const knowledgeFeatureItem = {
   ] as const satisfies readonly DashboardShellItem[],
 } as const satisfies DashboardShellItem;
 
+const contentsFeatureItem = {
+  href: Routes.Contents.Index,
+  icon: "file-pen",
+  labelKey: "contents.title",
+  exactMatch: true,
+} as const satisfies DashboardShellItem;
+
 export const dashboardFooterItems = [
   { href: Routes.Logout, icon: "arrow-right-from-bracket", labelKey: "appShell.userMenu.signOut", exactMatch: true },
 ] as const satisfies readonly DashboardShellItem[];
@@ -42,21 +49,21 @@ const clinicUserItems = [
 
 const homeGroup: DashboardShellNavGroup = {
   labelKey: "appShell.navigation.mainGroup",
-  items: [homeItem, ...clinicOwnerItems, knowledgeFeatureItem] as const satisfies readonly DashboardShellItem[],
+  items: [homeItem, ...clinicOwnerItems, contentsFeatureItem, knowledgeFeatureItem] as const satisfies readonly DashboardShellItem[],
 };
 
 export const homeDashboardNavGroups = [homeGroup] as const satisfies readonly DashboardShellNavGroup[];
 
 const appFeatureGroup: DashboardShellNavGroup = {
   labelKey: "appShell.navigation.mainGroup",
-  items: [homeItem, ...clinicOwnerItems, knowledgeFeatureItem] as const satisfies readonly DashboardShellItem[],
+  items: [homeItem, ...clinicOwnerItems, contentsFeatureItem, knowledgeFeatureItem] as const satisfies readonly DashboardShellItem[],
 };
 
 export const mainDashboardNavGroups = [appFeatureGroup] as const satisfies readonly DashboardShellNavGroup[];
 
 const clinicOwnerGroup: DashboardShellNavGroup = {
   labelKey: "appShell.navigation.mainGroup",
-  items: [homeItem, ...clinicOwnerItems, knowledgeFeatureItem] as const satisfies readonly DashboardShellItem[],
+  items: [homeItem, ...clinicOwnerItems, contentsFeatureItem, knowledgeFeatureItem] as const satisfies readonly DashboardShellItem[],
 };
 
 export const clinicOwnerDashboardNavGroups = [clinicOwnerGroup] as const satisfies readonly DashboardShellNavGroup[];
