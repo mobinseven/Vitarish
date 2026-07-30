@@ -17,6 +17,7 @@ import {
 
 vi.mock("../api/generated/clinic/clinic", () => ({
   clinicRunPatientAgent: vi.fn(),
+  clinicDeletePatientAgentConversation: vi.fn(),
   clinicGetPatientAgentAction: vi.fn(),
   clinicConfirmPatientAgentAction: vi.fn(),
   clinicRejectPatientAgentAction: vi.fn(),
@@ -53,12 +54,12 @@ describe("patient-agent generated-client hooks", () => {
         actions: [],
       });
     const { result } = renderHook(
-      () => usePatientAgentConversation("patient-from-route"),
+      () => usePatientAgentConversation("patient-from-route", true),
       { wrapper: createWrapper() },
     );
 
-    const first = await act(() => result.current.submit("First request", null));
-    await act(() => result.current.submit("Continue", first.conversationId));
+    await act(() => result.current.submit("First request"));
+    await act(() => result.current.submit("Continue"));
 
     expect(clinicRunPatientAgent).toHaveBeenNthCalledWith(
       1,

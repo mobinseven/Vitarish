@@ -24,6 +24,7 @@ public sealed class AgentRuntimeHttpRunnerTests
     public async Task RunAsync_SendsSignedRequestAndMapsRemoteToolExecutions()
     {
         JsonElement structuredOutput = JsonDocument.Parse("{\"answer\":42}").RootElement.Clone();
+        const string completeHistory = "[{\"role\":\"assistant\",\"content\":\"finished\"}]";
         AgentRuntimeRunResponse response = new(
             true,
             "finished",
@@ -31,13 +32,14 @@ public sealed class AgentRuntimeHttpRunnerTests
             new(10, 3),
             2,
             1,
-            [new("echo", "call-1", "tool-output")]);
+            [new("echo", "call-1", "tool-output")],
+            History: completeHistory);
         RecordingHandler handler = new(response);
         AgentRuntimeHttpRunner runner = CreateRunner(handler);
 
         AgentRunResult result = await runner.RunAsync(
             Definition,
-            Input,
+            Input with { History = "[{\"role\":\"user\",\"content\":\"prior\"}]" },
             [new RecordingTool()],
             Context,
             Limits);
@@ -46,8 +48,10 @@ public sealed class AgentRuntimeHttpRunnerTests
         result.Output.Should().Be("finished");
         result.StructuredOutput!.Value.GetProperty("answer").GetInt32().Should().Be(42);
         result.ToolExecutions.Should().ContainSingle().Which.ToolName.Should().Be("echo");
+        result.History.Should().Be(completeHistory);
         handler.Authorization.Should().Be("Bearer test-secret");
         handler.Request!.CallbackCredential.Should().Be("credential");
+        handler.Request.Input.History.Should().Be("[{\"role\":\"user\",\"content\":\"prior\"}]");
         handler.Request.Context.ExecutionId.Should().Be(Context.ExecutionId);
         handler.Request.Context.Metadata!["patientId"].Should().Be("patient-1");
         handler.Request.Limits.Should().Be(Limits);

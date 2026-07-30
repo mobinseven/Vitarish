@@ -24,7 +24,6 @@ export {
   ClinicalEventActionCard,
 } from "./features/patient-agent/ActionCards";
 export {
-  usePatientAgent,
   usePatientAgentConversation,
   usePatientAgentAction,
   useConfirmPatientAgentAction,

@@ -12,7 +12,7 @@ public sealed record AgentRunResult(
     int ToolCalls,
     AgentRunError? Error = null)
 {
-    public string? ResponseId { get; init; }
+    public string? History { get; init; }
     public IReadOnlyList<AgentToolExecution> ToolExecutions { get; init; } = [];
 }
 

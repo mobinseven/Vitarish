@@ -19,7 +19,7 @@ public sealed record AgentRuntimeRunResponse(
     int Iterations,
     int ToolCalls,
     IReadOnlyList<AgentToolExecution> ToolExecutions,
-    string? ResponseId = null,
+    string? History = null,
     AgentRunError? Error = null);
 
 public interface IAgentRuntimeCredentialService

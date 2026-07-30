@@ -72,7 +72,7 @@ public sealed class AgentRuntimeHttpRunner(
                 result.ToolCalls,
                 result.Error)
             {
-                ResponseId = result.ResponseId,
+                History = result.History,
                 ToolExecutions = result.ToolExecutions ?? []
             };
         }

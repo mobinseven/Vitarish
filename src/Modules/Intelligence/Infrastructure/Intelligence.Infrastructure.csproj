@@ -1,11 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
+		<PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" />
 		<PackageReference Include="Google.Cloud.Speech.V2" />
 		<PackageReference Include="OllamaSharp.ModelContextProtocol" />
 		<PackageReference Include="OpenAI" />
 	</ItemGroup>
 	<ItemGroup>
-				<ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+		<ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
+		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 <ProjectReference Include="..\Application\Intelligence.Application.csproj" />
 	</ItemGroup>
 	<ItemGroup>

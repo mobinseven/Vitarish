@@ -56,6 +56,7 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModulePut(ClinicApiRoutes.PatientUpdate, UpdatePatientAsync, "ClinicUpdatePatient", typeof(PatientViewDto))
             .RequireAuthorization(SeaManagePolicy);
         _ = group.MapModulePost(ClinicApiRoutes.PatientAgent, RunPatientAgentAsync, "ClinicRunPatientAgent", typeof(RunPatientAgentResponse));
+        _ = group.MapModuleDelete(ClinicApiRoutes.PatientAgentConversation, DeletePatientAgentConversationAsync, "ClinicDeletePatientAgentConversation");
         _ = group.MapModuleGet(ClinicApiRoutes.PatientAgentAction, GetPatientAgentActionAsync, "ClinicGetPatientAgentAction", typeof(PatientAgentActionDetailsResponse));
         _ = group.MapModulePost(ClinicApiRoutes.ConfirmPatientAgentAction, ConfirmPatientAgentActionAsync, "ClinicConfirmPatientAgentAction", typeof(ConfirmPatientAgentActionResponse));
         _ = group.MapModulePost(ClinicApiRoutes.RejectPatientAgentAction, RejectPatientAgentActionAsync, "ClinicRejectPatientAgentAction", typeof(RejectPatientAgentActionResponse));
@@ -237,12 +238,16 @@ public static class ClinicApiEndpointMapping
             return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "Patient id and message are required."));
         }
 
-        PatientAgentContext context = await contextFactory.CreateAsync(patientId, request.ConversationId, ct) with { PreviousResponseId = request.PreviousResponseId };
+        PatientAgentContext context = await contextFactory.CreateAsync(patientId, request.ConversationId, ct);
         PatientAgentResult result = await sender.Send(new RunPatientAgent(context, new PatientAgentInput(request.Message)), ct);
+        if (result.Outcome == PatientAgentRunOutcome.NotFound)
+            return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent conversation was not found."));
+        if (result.Outcome == PatientAgentRunOutcome.Busy)
+            return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
         return Results.Ok(new RunPatientAgentResponse(
             result.AgentRunId,
             result.ConversationId,
-            result.PreviousResponseId,
+            null,
             result.Messages.Select(message => new PatientAgentMessageResponse(
                 (PatientAgentMessageResponseKind)(int)message.Kind,
                 message.Content)).ToArray(),
@@ -253,6 +258,33 @@ public static class ClinicApiEndpointMapping
                 ToContract(action.Status),
                 System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(action.ReviewPayload),
                 action.Summary)).ToArray()));
+    }
+
+    private static async Task<IResult> DeletePatientAgentConversationAsync(
+        Guid patientId,
+        Guid conversationId,
+        [FromServices] IPatientAgentContextFactory contextFactory,
+        ISender sender,
+        CancellationToken ct)
+    {
+        if (patientId == Guid.Empty || conversationId == Guid.Empty)
+            return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent conversation was not found."));
+
+        PatientAgentContext context = await contextFactory.CreateAsync(patientId, conversationId.ToString("N"), ct);
+        AgentConversationOutcome outcome = await sender.Send(new DeleteAgentConversation(
+            conversationId,
+            new AgentConversationScope(
+                context.PracticeId,
+                context.AuthenticatedUserId,
+                "clinic.patient",
+                "patient",
+                context.PatientId.ToString("D"))), ct);
+        return outcome switch
+        {
+            AgentConversationOutcome.Succeeded => Results.NoContent(),
+            AgentConversationOutcome.Busy => Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active.")),
+            _ => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent conversation was not found."))
+        };
     }
 
     private static async Task<IResult> StartVisitPrescriptionDraftAsync(

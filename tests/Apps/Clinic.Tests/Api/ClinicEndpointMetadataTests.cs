@@ -38,6 +38,26 @@ public sealed class ClinicEndpointMetadataTests
     }
 
     [Fact]
+    public void Patient_agent_conversation_delete_keeps_its_contract_and_requires_authentication()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton(Mock.Of<ISender>());
+        using WebApplication app = builder.Build();
+        _ = app.MapClinicApi();
+
+        Endpoint endpoint = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName
+                == "ClinicDeletePatientAgentConversation");
+
+        endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()!.HttpMethods.Should().ContainSingle().Which.Should().Be("DELETE");
+        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Should().NotBeEmpty();
+        endpoint.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()!.Route.Should()
+            .Contain("/patients/{patientId:guid}/agent/{conversationId:guid}");
+    }
+
+    [Fact]
     public void Find_or_create_keeps_its_operation_id_and_requires_sea_manage_authorization()
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
