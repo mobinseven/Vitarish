@@ -41,6 +41,7 @@ public sealed class HttpPatientAgentContextFactory(IHttpContextAccessor httpCont
             .ToHashSet(StringComparer.Ordinal);
 
         string locale = ResolveLocale(http.Request.Headers.AcceptLanguage);
+        bool isNewConversation = string.IsNullOrWhiteSpace(conversationId);
         return Task.FromResult(new PatientAgentContext(
             practiceId,
             routePatientId,
@@ -49,8 +50,9 @@ public sealed class HttpPatientAgentContextFactory(IHttpContextAccessor httpCont
             user.FindFirstValue(ClaimTypes.Role) ?? string.Empty,
             locale,
             ResolveTimeZone(http.Request.Headers["X-Time-Zone"].FirstOrDefault()),
-            string.IsNullOrWhiteSpace(conversationId) ? Guid.NewGuid().ToString("N") : conversationId.Trim(),
-            Calendar: ResolveCalendar(http.Request.Headers["X-Calendar"].FirstOrDefault(), locale)));
+            isNewConversation ? Guid.CreateVersion7().ToString("N") : conversationId!.Trim(),
+            Calendar: ResolveCalendar(http.Request.Headers["X-Calendar"].FirstOrDefault(), locale),
+            IsNewConversation: isNewConversation));
     }
 
     private static string ResolveLocale(string? acceptLanguage)

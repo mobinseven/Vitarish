@@ -1,4 +1,4 @@
-import { Agent, OpenAIProvider, Runner, tool, type Model, type ModelProvider } from "@openai/agents";
+import { Agent, OpenAIProvider, Runner, protocol, tool, type AgentInputItem, type Model, type ModelProvider } from "@openai/agents";
 import { NextRequest } from "next/server";
 
 interface AgentDefinition {
@@ -20,7 +20,7 @@ interface AgentExecutionContext {
 
 interface AgentRuntimeRequest {
   definition: AgentDefinition;
-  input: { userInput: string; previousResponseId?: string | null };
+  input: { userInput: string; history?: string | null };
   tools: AgentToolDefinition[];
   context: AgentExecutionContext;
   limits: {
@@ -31,6 +31,28 @@ interface AgentRuntimeRequest {
   };
   callbackUrl: string;
   callbackCredential: string;
+}
+
+const maximumHistoryBytes = 1024 * 1024;
+
+export function parseHistory(history: string | null | undefined): AgentInputItem[] {
+  if (!history) return [];
+  if (Buffer.byteLength(history, "utf8") > maximumHistoryBytes)
+    throw new Error("InvalidHistory");
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(history);
+  } catch {
+    throw new Error("InvalidHistory");
+  }
+  if (!Array.isArray(parsed)) throw new Error("InvalidHistory");
+  const items: AgentInputItem[] = [];
+  for (const item of parsed) {
+    const validated = protocol.ModelItem.safeParse(item);
+    if (!validated.success) throw new Error("InvalidHistory");
+    items.push(validated.data);
+  }
+  return items;
 }
 
 interface ToolExecution {
@@ -237,6 +259,7 @@ export async function POST(request: NextRequest) {
   });
 
   try {
+    const priorHistory = parseHistory(input.input.history);
     const outputType = input.definition.result
       ? {
           type: "json_schema" as const,
@@ -261,13 +284,18 @@ export async function POST(request: NextRequest) {
       tracingDisabled: true,
       traceIncludeSensitiveData: false,
     });
-    const result = await runner.run(agent, input.input.userInput, {
+    const result = await runner.run(agent, [
+      ...priorHistory,
+      { role: "user", content: input.input.userInput },
+    ] as never, {
       context: input.context,
       maxTurns: input.limits.maxIterations,
       signal: runSignal,
-      previousResponseId: input.input.previousResponseId ?? undefined,
     });
     const usage = result.runContext.usage;
+    const history = JSON.stringify(result.history);
+    if (Buffer.byteLength(history, "utf8") > maximumHistoryBytes)
+      throw new Error("InvalidHistory");
     return Response.json({
       isSuccess: true,
       output: typeof result.finalOutput === "string" ? result.finalOutput : JSON.stringify(result.finalOutput),
@@ -276,21 +304,20 @@ export async function POST(request: NextRequest) {
       iterations: result.rawResponses?.length ?? 1,
       toolCalls: toolCallsUsed,
       toolExecutions: executions,
-      responseId: result.lastResponseId,
+      responseId: undefined,
+      history,
     });
   } catch (error) {
-    const detail = error instanceof Error ? error : new Error(String(error));
     const code = error instanceof AgentRuntimeLimitError
       ? error.code
+      : error instanceof Error && error.message === "InvalidHistory"
+        ? "InvalidHistory"
       : timeoutController.signal.aborted
         ? "Timeout"
         : "ProviderFailure";
     console.error("Clinic agent runtime run failed", {
       executionId: input.context.executionId,
       code,
-      errorName: detail.name,
-      errorMessage: detail.message,
-      cause: detail.cause instanceof Error ? `${detail.cause.name}: ${detail.cause.message}` : String(detail.cause ?? ""),
       toolCalls: toolCallsUsed,
       toolNames: executions.map((execution) => execution.toolName),
     });
@@ -304,14 +331,16 @@ export async function POST(request: NextRequest) {
       toolExecutions: executions,
       responseId: undefined,
       error: {
-        code: code === "ToolCallLimitExceeded" ? 5 : code === "TokenLimitExceeded" ? 6 : code === "Timeout" ? 7 : 10,
+        code: code === "ToolCallLimitExceeded" ? 5 : code === "TokenLimitExceeded" ? 6 : code === "Timeout" ? 7 : code === "InvalidHistory" ? 11 : 10,
         message: code === "ToolCallLimitExceeded"
           ? "The agent tool-call limit was exceeded."
           : code === "TokenLimitExceeded"
             ? "The agent token limit was exceeded."
           : code === "Timeout"
             ? "The agent execution timed out."
-            : "The agent runtime failed.",
+            : code === "InvalidHistory"
+              ? "The agent history is invalid."
+              : "The agent runtime failed.",
       },
     });
   } finally {

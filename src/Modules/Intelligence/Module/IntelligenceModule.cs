@@ -13,6 +13,9 @@ using Vitarish.Intelligence.Infrastructure.DependencyInjection;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 using Vitarish.Intelligence.Infrastructure.Services.Google;
 using Vitarish.Intelligence.Infrastructure.Services.Agents;
+using Vitarish.Intelligence.Infrastructure.Data;
+using Vitarish.Entities.Server.Extensions;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Intelligence.Module;
 
@@ -24,10 +27,10 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
     /// <inheritdoc />
     public override string Name => "Intelligence";
 
-    public override Task Initialize(WebApplication app)
+    public override async Task Initialize(WebApplication app)
     {
+        _ = await app.MigrateDatabaseAsync<IntelligenceDbContext>();
         _ = app.MapIntelligenceApi();
-        return Task.CompletedTask;
     }
 
     public override void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath)
@@ -61,6 +64,10 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
         Action<DbContextOptionsBuilder>? configureDbContext)
     {
         RegisterOptions(builder.Services, builder.Configuration, OptionsSectionPath);
+        _ = builder.Services.AddTransientMultiTenantDbContext<IntelligenceDbContext>((_, options) => configureDbContext?.Invoke(options));
+        _ = builder.Services.AddTransient<IAgentConversationStore, EfAgentConversationStore>();
+        _ = builder.Services.AddMediatR(configuration =>
+            configuration.RegisterServicesFromAssembly(typeof(RunAgentConversationHandler).Assembly));
         _ = builder.Services.AddSingleton<IIntelligenceModule, IntelligenceModule>();
         _ = builder.Services.AddSingleton<ModelRegistry>();
         _ = builder.Services.AddTransient<IResponder, ProviderDispatchingResponder>();

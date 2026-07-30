@@ -10,5 +10,5 @@ public sealed record PatientAgentContext(
     string TimeZone,
     string ConversationId,
     string? PatientNationalId = null,
-    string? PreviousResponseId = null,
-    string Calendar = "gregory");
+    string Calendar = "gregory",
+    bool IsNewConversation = false);

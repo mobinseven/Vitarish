@@ -1,4 +1,5 @@
 using System.Text.Json;
+using MediatR;
 using FluentAssertions;
 using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Capabilities;
@@ -210,7 +211,7 @@ public sealed class PatientWorkspaceAgentTests
         action.ActionId.Should().Be(proposalId);
         action.ReviewPayload.Should().Contain(proposalId.ToString()).And.NotContain("model-proposal");
         result.AgentRunId.Should().Be(runner.Context!.ExecutionId);
-        result.ConversationId.Should().Be("conversation-1");
+        result.ConversationId.Should().Be("018f47c2a6b770008000000000000001");
     }
 
     [Fact]
@@ -255,13 +256,57 @@ public sealed class PatientWorkspaceAgentTests
     }
 
     private static RunPatientAgentHandler Handler(IAgentRunner runner, IEnumerable<IPatientAgentCapability> capabilities) =>
-        new(runner, new PatientWorkspaceAgentDefinitionFactory(
+        new(new ConversationSender(runner), new PatientWorkspaceAgentDefinitionFactory(
             Registry(capabilities),
             new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy(), []),
             new PatientAgentInstructionComposer(),
             new PatientWorkspaceAgentOptions("test-model")),
             new RecordingActionStore(),
             TimeProvider.System);
+
+    private sealed class ConversationSender(IAgentRunner runner) : ISender
+    {
+        public async Task<TResponse> Send<TResponse>(
+            IRequest<TResponse> request,
+            CancellationToken cancellationToken = default)
+        {
+            if (request is not RunAgentConversation conversation)
+                throw new InvalidOperationException($"Unexpected request {request.GetType().Name}.");
+            AgentRunResult result = await runner.RunAsync(
+                conversation.Definition,
+                conversation.Input,
+                conversation.Tools,
+                conversation.ExecutionContext,
+                conversation.Limits,
+                cancellationToken);
+            Guid conversationId = conversation.ConversationId ?? Guid.CreateVersion7();
+            AgentConversationOutcome outcome = result.IsSuccess && conversation.BeforeCommit is not null
+                ? await conversation.BeforeCommit(conversationId, result with { History = result.History ?? "[]" }, cancellationToken)
+                : result.IsSuccess ? AgentConversationOutcome.Succeeded : AgentConversationOutcome.ProviderFailure;
+            object response = new RunAgentConversationResult(
+                outcome,
+                conversationId,
+                result);
+            return (TResponse)response;
+        }
+
+        public Task<object?> Send(object request, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default)
+            where TRequest : IRequest =>
+            throw new NotSupportedException();
+
+        public IAsyncEnumerable<TResponse> CreateStream<TResponse>(
+            IStreamRequest<TResponse> request,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public IAsyncEnumerable<object?> CreateStream(
+            object request,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+    }
 
     private static PatientWorkspaceAgentDefinitionFactory Factory(params IPatientAgentCapability[] capabilities) =>
         new(Registry(capabilities), new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy(), []), new PatientAgentInstructionComposer(), new PatientWorkspaceAgentOptions("test-model"));
@@ -277,7 +322,7 @@ public sealed class PatientWorkspaceAgentTests
         string role = "Clinician",
         string locale = "en-US",
         string timeZone = "UTC") =>
-        new("practice-1", patientId ?? Guid.NewGuid(), "user-1", permissions ?? new HashSet<string>(), role, locale, timeZone, "conversation-1");
+        new("practice-1", patientId ?? Guid.NewGuid(), "user-1", permissions ?? new HashSet<string>(), role, locale, timeZone, "018f47c2a6b770008000000000000001");
 
     private static AgentRunResult Result(string json) =>
         new(true, null, JsonDocument.Parse(json).RootElement.Clone(), new AgentRunUsage(1, 1), TimeSpan.Zero, 1, 0);

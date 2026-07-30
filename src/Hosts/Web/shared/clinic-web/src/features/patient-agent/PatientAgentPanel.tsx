@@ -177,9 +177,7 @@ export function PatientAgentPanel({
   onOpenChange: (isOpen: boolean) => void;
 }) {
   const { t, locale } = useLocalizedText();
-  const conversation = usePatientAgentConversation(patientId);
-  const [conversationId, setConversationId] = useState<string | null>(null);
-  const [previousResponseId, setPreviousResponseId] = useState<string | null>(null);
+  const conversation = usePatientAgentConversation(patientId, isOpen);
   const [messages, setMessages] = useState<PatientAgentChatMessage[]>([]);
   const [actionIds, setActionIds] = useState<string[]>([]);
   const [lastMessage, setLastMessage] = useState("");
@@ -188,8 +186,6 @@ export function PatientAgentPanel({
 
   useEffect(() => {
     activePatient.current = patientId;
-    setConversationId(null);
-    setPreviousResponseId(null);
     setMessages([]);
     setActionIds([]);
     conversation.reset();
@@ -197,28 +193,29 @@ export function PatientAgentPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patientId]);
 
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (isOpen && !wasOpen.current) {
+      setMessages([]);
+      setActionIds([]);
+      setLastMessage("");
+    }
+    wasOpen.current = isOpen;
+  }, [isOpen]);
+
   useEffect(() => {
     if (messages.length || actionIds.length) focusTarget.current?.focus();
   }, [messages.length, actionIds.length]);
 
-  const submit = async (message: string, showUserMessage = true) => {
-    const submittedPatient = patientId;
-    setLastMessage(message);
-    if (showUserMessage)
-      setMessages((current) => [
-        ...current,
-        { kind: "UserMessage", content: message },
-      ]);
-    const result = await conversation.submit(message, conversationId, previousResponseId);
-    if (activePatient.current !== submittedPatient) return;
+  const appendResult = (
+    result: Awaited<ReturnType<typeof conversation.submit>>,
+    submittedPatient: string,
+  ) => {
+    if (!result || activePatient.current !== submittedPatient) return;
     const hasFailure = result.messages.some(({ kind }) => kind === "Failure");
     const responseMessages = hasFailure
       ? result.messages.filter(({ kind }) => kind === "Failure")
       : result.messages;
-    setConversationId(result.conversationId);
-    setPreviousResponseId(
-      hasFailure ? previousResponseId : result.previousResponseId ?? null,
-    );
     setMessages((current) => [...current, ...responseMessages]);
     setActionIds((current) => [
       ...current,
@@ -226,6 +223,20 @@ export function PatientAgentPanel({
         .map((action) => action.id)
         .filter((id) => !current.includes(id)),
     ]);
+  };
+
+  const submit = async (message: string) => {
+    const submittedPatient = patientId;
+    setLastMessage(message);
+    setMessages((current) => [
+      ...current,
+      { kind: "UserMessage", content: message },
+    ]);
+    appendResult(await conversation.submit(message), submittedPatient);
+  };
+
+  const retry = async () => {
+    appendResult(await conversation.retry(), patientId);
   };
 
   return (
@@ -255,7 +266,7 @@ export function PatientAgentPanel({
                     messages={messages}
                     onRetry={
                       lastMessage
-                        ? () => void submit(lastMessage, false)
+                        ? () => void retry()
                         : undefined
                     }
                   >
@@ -277,7 +288,7 @@ export function PatientAgentPanel({
                       <PatientAgentErrorState
                         onRetry={
                           lastMessage
-                            ? () => void submit(lastMessage, false)
+                            ? () => void retry()
                             : undefined
                         }
                       />

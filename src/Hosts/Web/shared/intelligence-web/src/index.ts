@@ -21,3 +21,9 @@ export type {
   RewriteResult,
   UseRewriteOptions,
 } from "./hooks/useRewrite";
+export { useConversationController } from "./hooks/useConversationController";
+export type {
+  ConversationController,
+  ConversationRunResult,
+  UseConversationControllerOptions,
+} from "./hooks/useConversationController";
