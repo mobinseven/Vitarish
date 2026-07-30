@@ -22,7 +22,7 @@ public sealed class RunPatientAgentHandler(
 
         AgentRunResult run = await agentRunner.RunAsync(
             workspace.Definition,
-            new AgentInput(request.Input.Message),
+            new AgentInput(request.Input.Message, request.Context.PreviousResponseId),
             workspace.Tools,
             workspace.ExecutionContext,
             workspace.Limits,
@@ -35,7 +35,15 @@ public sealed class RunPatientAgentHandler(
 
         try
         {
-            PatientAgentResult result = Parse(output, workspace, request.Context, timeProvider.GetUtcNow());
+            if (run.ToolExecutions.Count > 0)
+            {
+                workspace.ExecutionCollector.RecordRemote(
+                    run.ToolExecutions,
+                    workspace.Tools,
+                    workspace.ToolCapabilities ?? new Dictionary<string, string>(StringComparer.Ordinal),
+                    workspace.ExecutionContext);
+            }
+            PatientAgentResult result = Parse(output, workspace, request.Context, timeProvider.GetUtcNow(), run.ResponseId);
             foreach (PatientAgentAction action in result.Actions)
             {
                 await actionStore.SaveAsync(action, cancellationToken);
@@ -52,7 +60,8 @@ public sealed class RunPatientAgentHandler(
         JsonElement output,
         PatientWorkspaceAgentDefinition workspace,
         PatientAgentContext context,
-        DateTimeOffset preparedAt)
+        DateTimeOffset preparedAt,
+        string? responseId)
     {
         List<PatientAgentMessage> messages = [];
         foreach (JsonElement item in output.GetProperty("messages").EnumerateArray())
@@ -99,6 +108,6 @@ public sealed class RunPatientAgentHandler(
                 prepared.Expiration ?? preparedAt.AddMinutes(30),
                 Summary: values is { Count: > 0 } ? values.Dequeue() : string.Empty));
         }
-        return new PatientAgentResult(workspace.ExecutionContext.ExecutionId, context.ConversationId, messages, actions);
+        return new PatientAgentResult(workspace.ExecutionContext.ExecutionId, context.ConversationId, responseId, messages, actions);
     }
 }

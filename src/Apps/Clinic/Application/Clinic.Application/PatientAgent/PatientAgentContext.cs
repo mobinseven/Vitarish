@@ -9,4 +9,6 @@ public sealed record PatientAgentContext(
     string Locale,
     string TimeZone,
     string ConversationId,
-    string? PatientNationalId = null);
+    string? PatientNationalId = null,
+    string? PreviousResponseId = null,
+    string Calendar = "gregory");

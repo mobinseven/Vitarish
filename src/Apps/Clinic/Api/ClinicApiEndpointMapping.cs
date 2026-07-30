@@ -3,18 +3,24 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
+using System.Text;
 using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Commands.Visits;
 using Vitarish.Clinic.Application.Queries.Patients;
 using Vitarish.Clinic.Application.Results;
 using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Actions;
+using Vitarish.Clinic.Application.PatientAgent.Capabilities;
 using Vitarish.Clinic.Contracts.Errors;
 using Vitarish.Clinic.Contracts.PatientAgent;
 using Vitarish.Clinic.Contracts.Responses;
 using Vitarish.Clinic.Contracts.Routes;
 using Vitarish.Clinic.Domain.Models;
+using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Modules.Base.Core.Endpoints;
+using Vitarish.Requests.Application.Abstractions;
 using ContractEducation = Vitarish.Clinic.Contracts.Enums.Education;
 using ContractGender = Vitarish.Clinic.Contracts.Enums.Gender;
 using ContractPatientSortBy = Vitarish.Clinic.Contracts.Enums.PatientSortBy;
@@ -35,6 +41,9 @@ public static class ClinicApiEndpointMapping
     public static IEndpointRouteBuilder MapClinicApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(ClinicApiRoutes.Base);
+        RouteGroupBuilder internalGroup = endpoints.MapAnonymousModuleGroup(
+            ClinicApiRoutes.Base,
+            "The internal agent tool endpoint is reachable only from the configured server-side Agents SDK runtime and authenticates every request with a signed execution credential.");
 
         _ = group.MapModuleGet(ClinicApiRoutes.Health, () => Results.Ok(), "ClinicGetHealth");
         _ = group.MapModulePost(ClinicApiRoutes.Patients, ListPatientsAsync, "ClinicListPatients", typeof(PatientViewDto[]));
@@ -50,6 +59,20 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModuleGet(ClinicApiRoutes.PatientAgentAction, GetPatientAgentActionAsync, "ClinicGetPatientAgentAction", typeof(PatientAgentActionDetailsResponse));
         _ = group.MapModulePost(ClinicApiRoutes.ConfirmPatientAgentAction, ConfirmPatientAgentActionAsync, "ClinicConfirmPatientAgentAction", typeof(ConfirmPatientAgentActionResponse));
         _ = group.MapModulePost(ClinicApiRoutes.RejectPatientAgentAction, RejectPatientAgentActionAsync, "ClinicRejectPatientAgentAction", typeof(RejectPatientAgentActionResponse));
+        _ = internalGroup.MapModulePost(
+                "/internal/agent/tools/execute",
+                ExecutePatientAgentToolAsync,
+                "ClinicExecuteInternalPatientAgentTool",
+                typeof(ExecutePatientAgentToolResponse),
+                profile: ModuleEndpointProfile.AnonymousJson,
+                anonymousJustification: "The endpoint is an internal callback from the server-side Agents SDK runtime and validates a signed, short-lived execution credential.")
+            .ExcludeFromOpenApiWithJustification("Internal agent runtime callback; not a public module API.");
+        _ = internalGroup.MapModuleGet(
+                "/internal/agent/health",
+                AgentRuntimeHealthAsync,
+                "ClinicGetInternalAgentHealth",
+                typeof(object))
+            .ExcludeFromOpenApiWithJustification("Internal agent runtime connectivity probe; not a public module API.");
         _ = group.MapModulePost(
                 ClinicApiRoutes.StartVisitPrescriptionDraft,
                 StartVisitPrescriptionDraftAsync,
@@ -58,6 +81,79 @@ public static class ClinicApiEndpointMapping
             .RequireAuthorization(SeaManagePolicy);
 
         return endpoints;
+    }
+
+    private static IResult AgentRuntimeHealthAsync(
+        HttpRequest request,
+        [FromServices] IOptions<Vitarish.Intelligence.Domain.Options.AgentRuntimeOptions> options)
+    {
+        string? authorization = request.Headers.Authorization.FirstOrDefault();
+        string expected = $"Bearer {options.Value.SharedSecret}";
+        bool valid = !string.IsNullOrWhiteSpace(options.Value.SharedSecret) &&
+            CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(authorization ?? string.Empty), Encoding.UTF8.GetBytes(expected));
+        return valid ? Results.Ok(new { status = "ok", component = "clinic-agent-callback" }) : Results.Unauthorized();
+    }
+
+    private static async Task<IResult> ExecutePatientAgentToolAsync(
+        ExecutePatientAgentToolRequest request,
+        HttpRequest httpRequest,
+        [FromServices] IAgentRuntimeCredentialService credentialService,
+        [FromServices] PatientAgentCapabilityRegistry capabilityRegistry,
+        [FromServices] PatientAgentToolDispatcher toolDispatcher,
+        [FromServices] IRequestContextWriter requestContextWriter,
+        CancellationToken ct)
+    {
+        string? credential = httpRequest.Headers["X-Vitarish-Agent-Credential"].FirstOrDefault();
+        if (request is null) return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent tool request is required."));
+        if (request.Metadata is null)
+            return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent execution metadata is required."));
+        AgentExecutionContext executionContext = new(request.ExecutionId, request.Metadata);
+        if (!credentialService.Validate(credential ?? string.Empty, executionContext))
+            return Results.Unauthorized();
+
+        PatientAgentContext context;
+        try { context = FromExecutionContext(executionContext); }
+        catch (Exception) { return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent execution context is invalid.")); }
+
+        requestContextWriter.SetContext(
+            authority: "vitarish-agent-runtime",
+            clientId: "agent-runtime",
+            ownerId: context.AuthenticatedUserId,
+            tenantId: context.PracticeId,
+            userId: context.AuthenticatedUserId,
+            requestId: context.ConversationId,
+            additionalInfo: "Signed patient-agent tool callback.");
+
+        IAgentTool? tool = toolDispatcher.CreateTools(
+                context,
+                executionContext,
+                capabilityRegistry.GetAvailable(context))
+            .FirstOrDefault(candidate => string.Equals(candidate.Definition.Name, request.ToolName, StringComparison.Ordinal));
+        if (tool is null) return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "The requested patient-agent tool is not available."));
+
+        AgentToolResult result = await tool.ExecuteAsync(
+            new AgentToolCall(request.ToolCallId, request.ToolName, request.ArgumentsJson),
+            executionContext,
+            ct);
+        return Results.Ok(new ExecutePatientAgentToolResponse(result.CallId, result.Output, result.IsError));
+    }
+
+    private static PatientAgentContext FromExecutionContext(AgentExecutionContext context)
+    {
+        IReadOnlyDictionary<string, string> metadata = context.Metadata
+            ?? throw new InvalidOperationException("Agent execution metadata is required.");
+        string Required(string name) => metadata.TryGetValue(name, out string? value) && !string.IsNullOrWhiteSpace(value)
+            ? value : throw new InvalidOperationException($"Agent execution metadata is missing {name}.");
+        return new(
+            Required("practiceId"),
+            Guid.Parse(Required("patientId")),
+            Required("authenticatedUserId"),
+            System.Text.Json.JsonSerializer.Deserialize<HashSet<string>>(Required("permissions")) ?? [],
+            Required("role"),
+            Required("locale"),
+            Required("timeZone"),
+            Required("conversationId"),
+            metadata.TryGetValue("patientNationalId", out string? nationalId) ? nationalId : null);
     }
 
     private static async Task<IResult> GetPatientAgentActionAsync(
@@ -140,11 +236,12 @@ public static class ClinicApiEndpointMapping
             return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "Patient id and message are required."));
         }
 
-        PatientAgentContext context = await contextFactory.CreateAsync(patientId, request.ConversationId, ct);
+        PatientAgentContext context = await contextFactory.CreateAsync(patientId, request.ConversationId, ct) with { PreviousResponseId = request.PreviousResponseId };
         PatientAgentResult result = await sender.Send(new RunPatientAgent(context, new PatientAgentInput(request.Message)), ct);
         return Results.Ok(new RunPatientAgentResponse(
             result.AgentRunId,
             result.ConversationId,
+            result.PreviousResponseId,
             result.Messages.Select(message => new PatientAgentMessageResponse(
                 (PatientAgentMessageResponseKind)(int)message.Kind,
                 message.Content)).ToArray(),

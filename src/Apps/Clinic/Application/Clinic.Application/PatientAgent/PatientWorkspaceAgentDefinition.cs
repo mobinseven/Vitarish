@@ -8,7 +8,8 @@ public sealed record PatientWorkspaceAgentDefinition(
     IReadOnlyDictionary<string, IReadOnlySet<string>> EnabledActions,
     PatientAgentExecutionCollector ExecutionCollector,
     AgentExecutionContext ExecutionContext,
-    AgentExecutionLimits Limits)
+    AgentExecutionLimits Limits,
+    IReadOnlyDictionary<string, string>? ToolCapabilities = null)
 {
     public const string ResultSchema = """
         {

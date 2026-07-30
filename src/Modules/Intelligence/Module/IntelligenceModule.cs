@@ -12,7 +12,7 @@ using Vitarish.Intelligence.Api;
 using Vitarish.Intelligence.Infrastructure.DependencyInjection;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 using Vitarish.Intelligence.Infrastructure.Services.Google;
-using Vitarish.Intelligence.Infrastructure.Services.OpenAi.Agents;
+using Vitarish.Intelligence.Infrastructure.Services.Agents;
 
 namespace Vitarish.Intelligence.Module;
 
@@ -36,6 +36,8 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
             .BindConfiguration(sectionPath)
             .ValidateDataAnnotations()
             .ValidateOnStart();
+        _ = services.AddOptions<AgentRuntimeOptions>()
+            .BindConfiguration($"{sectionPath}:AgentRuntime");
 
         _ = services.AddOptions<LiveTranscriptionSettings>()
             .BindConfiguration($"{sectionPath}:LiveTranscription")
@@ -63,10 +65,14 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
         _ = builder.Services.AddSingleton<ModelRegistry>();
         _ = builder.Services.AddTransient<IResponder, ProviderDispatchingResponder>();
         _ = builder.Services.AddSingleton<IAgentToolDispatcher, RegisteredAgentToolDispatcher>();
-        _ = builder.Services.AddSingleton<OpenAiToolSchemaMapper>();
-        _ = builder.Services.AddSingleton<OpenAiAgentRequestMapper>();
-        _ = builder.Services.AddSingleton<OpenAiAgentResponseMapper>();
-        _ = builder.Services.AddTransient<IAgentRunner, OpenAiAgentRunner>();
+        _ = builder.Services.AddSingleton<IIntelligenceAgentTool, CalendarDateConversionTool>();
+        _ = builder.Services.AddSingleton<IAgentRuntimeCredentialService, HmacAgentRuntimeCredentialService>();
+        _ = builder.Services.AddHttpClient<IAgentRunner, AgentRuntimeHttpRunner>((serviceProvider, client) =>
+        {
+            AgentRuntimeOptions options = serviceProvider.GetRequiredService<IOptions<AgentRuntimeOptions>>().Value;
+            client.BaseAddress = new Uri(options.BaseUrl, UriKind.Absolute);
+            client.Timeout = TimeSpan.FromMinutes(3);
+        });
         _ = builder.Services.AddSingleton<ITranscriber, ProviderDispatchingTranscriber>();
         _ = builder.Services.AddSingleton(sp =>
             sp.GetRequiredService<IOptions<LiveTranscriptionSettings>>().Value);

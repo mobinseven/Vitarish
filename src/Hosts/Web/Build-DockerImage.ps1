@@ -34,10 +34,6 @@ if (-not (Get-Command docker -CommandType Application -ErrorAction SilentlyConti
     throw 'Docker CLI was not found. Install Docker and ensure docker is available on PATH.'
 }
 
-if ([string]::IsNullOrWhiteSpace($env:HEROUI_AUTH_TOKEN)) {
-    throw 'HEROUI_AUTH_TOKEN must be set in the current environment because the app Dockerfiles require it as a BuildKit secret.'
-}
-
 $selectedApp = $null
 
 if ($AppName) {
@@ -71,6 +67,11 @@ if (-not (Test-Path -LiteralPath $dockerfile -PathType Leaf)) {
     throw "App '$($selectedApp.Name)' does not have a Dockerfile at '$dockerfile'."
 }
 
+$requiresHeroUiToken = Select-String -LiteralPath $dockerfile -Pattern 'HEROUI_AUTH_TOKEN' -Quiet
+if ($requiresHeroUiToken -and [string]::IsNullOrWhiteSpace($env:HEROUI_AUTH_TOKEN)) {
+    throw 'HEROUI_AUTH_TOKEN must be set in the current environment because the selected app Dockerfile requires it as a BuildKit secret.'
+}
+
 if (-not $ImageTag) {
     $defaultImageTag = "vitarish/$($selectedApp.Name):latest"
     $ImageTag = Read-Host "Image tag [$defaultImageTag]"
@@ -79,7 +80,7 @@ if (-not $ImageTag) {
     }
 }
 
-if (-not $ApiBaseUrl) {
+if (-not $ApiBaseUrl -and $selectedApp.Name -ne 'agent-runtime') {
     $defaultApiBaseUrl = 'https://localhost:7272'
     $ApiBaseUrl = Read-Host "NEXT_PUBLIC_API_BASE_URL [$defaultApiBaseUrl]"
     if ([string]::IsNullOrWhiteSpace($ApiBaseUrl)) {
@@ -87,13 +88,23 @@ if (-not $ApiBaseUrl) {
     }
 }
 
+$dockerBuildArguments = @(
+    '--file', $dockerfile,
+    '--tag', $ImageTag
+)
+
+if (-not [string]::IsNullOrWhiteSpace($ApiBaseUrl)) {
+    $dockerBuildArguments += @('--build-arg', "NEXT_PUBLIC_API_BASE_URL=$ApiBaseUrl")
+}
+
+if ($requiresHeroUiToken) {
+    $dockerBuildArguments += @('--secret', 'id=HEROUI_AUTH_TOKEN,env=HEROUI_AUTH_TOKEN')
+}
+
+$dockerBuildArguments += $webRoot
+
 Write-Host "Building '$ImageTag' from app '$($selectedApp.Name)'..."
-& docker build `
-    --file $dockerfile `
-    --tag $ImageTag `
-    --build-arg "NEXT_PUBLIC_API_BASE_URL=$ApiBaseUrl" `
-    --secret 'id=HEROUI_AUTH_TOKEN,env=HEROUI_AUTH_TOKEN' `
-    $webRoot
+& docker build @dockerBuildArguments
 
 if ($LASTEXITCODE -ne 0) {
     throw "Docker build failed with exit code $LASTEXITCODE."

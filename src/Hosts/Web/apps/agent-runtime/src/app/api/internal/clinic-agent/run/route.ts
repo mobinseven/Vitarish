@@ -1,0 +1,283 @@
+import { Agent, run, tool } from "@openai/agents";
+import { NextRequest } from "next/server";
+
+interface AgentDefinition {
+  model: string;
+  instructions: string;
+  result?: { name: string; jsonSchema: string; strict: boolean } | null;
+}
+
+interface AgentToolDefinition {
+  name: string;
+  description: string;
+  parametersJsonSchema: string;
+}
+
+interface AgentExecutionContext {
+  executionId: string;
+  metadata?: Record<string, string> | null;
+}
+
+interface AgentRuntimeRequest {
+  definition: AgentDefinition;
+  input: { userInput: string; previousResponseId?: string | null };
+  tools: AgentToolDefinition[];
+  context: AgentExecutionContext;
+  limits: {
+    maxIterations: number;
+    maxToolCalls: number;
+    maxTokens: number;
+    effectiveTimeout: string;
+  };
+  callbackUrl: string;
+  callbackCredential: string;
+}
+
+interface ToolExecution {
+  toolName: string;
+  toolCallId: string;
+  output: string;
+  isError: boolean;
+}
+
+class AgentRuntimeLimitError extends Error {
+  constructor(readonly code: "ToolCallLimitExceeded" | "Timeout") {
+    super(code);
+  }
+}
+
+function timeSpanToMilliseconds(value: string): number {
+  const match = /^(\d+):(\d{2}):(\d{2})(?:\.(\d{1,7}))?$/.exec(value);
+  if (!match) throw new Error("The agent timeout is invalid.");
+  const fraction = Number(`0.${match[4] ?? "0"}`);
+  return (((Number(match[1]) * 60 + Number(match[2])) * 60 + Number(match[3])) + fraction) * 1000;
+}
+
+function isAuthorized(request: NextRequest): boolean {
+  const expected = process.env.AGENT_RUNTIME_SHARED_SECRET;
+  return Boolean(expected) && request.headers.get("authorization") === `Bearer ${expected}`;
+}
+
+function toolCallId(details: unknown): string {
+  const call = (details as { toolCall?: { callId?: string; id?: string } } | undefined)?.toolCall;
+  return call?.callId ?? call?.id ?? crypto.randomUUID();
+}
+
+function callbackLocation(value: string): string {
+  try {
+    const url = new URL(value);
+    return `${url.protocol}//${url.host}${url.pathname}`;
+  } catch {
+    return "invalid-callback-url";
+  }
+}
+
+function presentationInstructions(metadata?: Record<string, string> | null): string {
+  const locale = metadata?.locale;
+  const calendar = metadata?.calendar;
+  const timeZone = metadata?.timeZone;
+  if (!locale || !calendar || !timeZone) return "";
+  return [
+    `Present all user-facing responses naturally in locale ${locale}.`,
+    `Interpret and display dates and times in timezone ${timeZone} using calendar ${calendar}, unless the user explicitly requests another timezone or calendar.`,
+    "Do not expose UTC values, ISO timestamps, timezone identifiers, enum names, internal IDs, or other machine-oriented values unless the user explicitly requests them.",
+  ].join("\n");
+}
+
+export async function POST(request: NextRequest) {
+  if (!isAuthorized(request)) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  let input: AgentRuntimeRequest;
+  try {
+    input = (await request.json()) as AgentRuntimeRequest;
+  } catch {
+    return Response.json({ error: "Invalid JSON request." }, { status: 400 });
+  }
+
+  if (!input?.definition?.model || !input.definition.instructions || !input.input?.userInput ||
+      !input.context?.executionId || !input.callbackUrl || !input.callbackCredential ||
+      !Array.isArray(input.tools) || input.limits?.maxIterations < 1 ||
+      input.limits?.maxToolCalls < 1 || input.limits?.maxTokens < 1) {
+    return Response.json({ error: "The agent runtime request is invalid." }, { status: 400 });
+  }
+
+  let timeoutMs: number;
+  try {
+    timeoutMs = timeSpanToMilliseconds(input.limits.effectiveTimeout);
+    for (const definition of input.tools) JSON.parse(definition.parametersJsonSchema);
+    if (input.definition.result) {
+      const resultSchema = JSON.parse(input.definition.result.jsonSchema);
+      if (!resultSchema || typeof resultSchema !== "object" || Array.isArray(resultSchema)) {
+        throw new Error("The result schema must be a JSON object schema.");
+      }
+    }
+    if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new Error("The agent timeout is invalid.");
+  } catch {
+    return Response.json({ error: "The agent runtime request contains invalid limits or tool schemas." }, { status: 400 });
+  }
+
+  const executions: ToolExecution[] = [];
+  const timeoutController = new AbortController();
+  const timeout = setTimeout(() => timeoutController.abort(), timeoutMs);
+  const runSignal = AbortSignal.any([request.signal, timeoutController.signal]);
+  const tools = input.tools.map((definition) => {
+    const schema: unknown = JSON.parse(definition.parametersJsonSchema);
+
+    return tool({
+      name: definition.name,
+      description: definition.description,
+      parameters: schema as never,
+      strict: true,
+      timeoutMs: 120_000,
+      execute: async (argumentsValue: unknown, _context: unknown, details: unknown) => {
+        const callId = toolCallId(details);
+        if (executions.length >= input.limits.maxToolCalls) {
+          throw new AgentRuntimeLimitError("ToolCallLimitExceeded");
+        }
+        const location = callbackLocation(input.callbackUrl);
+        console.info("Calling clinic agent tool callback", {
+          executionId: input.context.executionId,
+          toolName: definition.name,
+          callback: location,
+        });
+        let response: Response;
+        try {
+          response = await fetch(input.callbackUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Vitarish-Agent-Credential": input.callbackCredential,
+            },
+            body: JSON.stringify({
+              toolCallId: callId,
+              toolName: definition.name,
+              argumentsJson: JSON.stringify(argumentsValue),
+              executionId: input.context.executionId,
+              metadata: input.context.metadata ?? {},
+            }),
+            signal: AbortSignal.any([runSignal, AbortSignal.timeout(120_000)]),
+          });
+        } catch (error) {
+          const detail = error instanceof Error ? error : new Error(String(error));
+          console.error("Clinic agent tool callback fetch failed", {
+            executionId: input.context.executionId,
+            toolName: definition.name,
+            callback: location,
+            errorName: detail.name,
+            errorMessage: detail.message,
+            cause: detail.cause instanceof Error ? `${detail.cause.name}: ${detail.cause.message}` : String(detail.cause ?? ""),
+          });
+          throw error;
+        }
+
+        if (!response.ok) {
+          const message = `Clinic tool ${definition.name} returned HTTP ${response.status}.`;
+          console.error("Clinic agent tool callback returned failure", {
+            executionId: input.context.executionId,
+            toolName: definition.name,
+            callback: location,
+            status: response.status,
+          });
+          executions.push({ toolName: definition.name, toolCallId: callId, output: message, isError: true });
+          return message;
+        }
+
+        const result = (await response.json()) as { callId: string; output: string; isError: boolean };
+        executions.push({
+          toolName: definition.name,
+          toolCallId: result.callId,
+          output: result.output,
+          isError: result.isError,
+        });
+        console.info("Clinic agent tool callback succeeded", {
+          executionId: input.context.executionId,
+          toolName: definition.name,
+          status: response.status,
+          isToolError: result.isError,
+        });
+        return result.output;
+      },
+    });
+  });
+
+  console.info("Received clinic agent tools", {
+    executionId: input.context.executionId,
+    toolCount: tools.length,
+    toolNames: input.tools.map((definition) => definition.name).sort(),
+  });
+
+  try {
+    const outputType = input.definition.result
+      ? {
+          type: "json_schema" as const,
+          name: input.definition.result.name,
+          strict: input.definition.result.strict,
+          schema: JSON.parse(input.definition.result.jsonSchema) as never,
+        }
+      : undefined;
+    const globalPresentationInstructions = presentationInstructions(input.context.metadata);
+    const agent = new Agent({
+      name: "Vitarish patient workspace agent",
+      model: input.definition.model,
+      instructions: globalPresentationInstructions
+        ? `${input.definition.instructions}\n${globalPresentationInstructions}`
+        : input.definition.instructions,
+      tools,
+      modelSettings: { maxTokens: input.limits.maxTokens },
+      outputType,
+    });
+    const result = await run(agent, input.input.userInput, {
+      context: input.context,
+      maxTurns: input.limits.maxIterations,
+      signal: runSignal,
+      previousResponseId: input.input.previousResponseId ?? undefined,
+    });
+    const usage = result.runContext.usage;
+    return Response.json({
+      isSuccess: true,
+      output: typeof result.finalOutput === "string" ? result.finalOutput : JSON.stringify(result.finalOutput),
+      structuredOutput: result.finalOutput,
+      usage: { inputTokens: usage?.inputTokens ?? 0, outputTokens: usage?.outputTokens ?? 0 },
+      iterations: result.rawResponses?.length ?? 1,
+      toolCalls: executions.length,
+      toolExecutions: executions,
+      responseId: result.lastResponseId,
+    });
+  } catch (error) {
+    const detail = error instanceof Error ? error : new Error(String(error));
+    const code = error instanceof AgentRuntimeLimitError
+      ? error.code
+      : timeoutController.signal.aborted
+        ? "Timeout"
+        : "ProviderFailure";
+    console.error("Clinic agent runtime run failed", {
+      executionId: input.context.executionId,
+      code,
+      errorName: detail.name,
+      errorMessage: detail.message,
+      cause: detail.cause instanceof Error ? `${detail.cause.name}: ${detail.cause.message}` : String(detail.cause ?? ""),
+      toolCalls: executions.length,
+      toolNames: executions.map((execution) => execution.toolName),
+    });
+    return Response.json({
+      isSuccess: false,
+      output: null,
+      structuredOutput: null,
+      usage: { inputTokens: 0, outputTokens: 0 },
+      iterations: 0,
+      toolCalls: executions.length,
+      toolExecutions: executions,
+      responseId: undefined,
+      error: {
+        code: code === "ToolCallLimitExceeded" ? 6 : code === "Timeout" ? 7 : 10,
+        message: code === "ToolCallLimitExceeded"
+          ? "The agent tool-call limit was exceeded."
+          : code === "Timeout"
+            ? "The agent execution timed out."
+            : "The agent runtime failed.",
+      },
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}

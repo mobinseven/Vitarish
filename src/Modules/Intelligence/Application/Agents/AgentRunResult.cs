@@ -10,7 +10,17 @@ public sealed record AgentRunResult(
     TimeSpan ProviderLatency,
     int Iterations,
     int ToolCalls,
-    AgentRunError? Error = null);
+    AgentRunError? Error = null)
+{
+    public string? ResponseId { get; init; }
+    public IReadOnlyList<AgentToolExecution> ToolExecutions { get; init; } = [];
+}
+
+public sealed record AgentToolExecution(
+    string ToolName,
+    string ToolCallId,
+    string Output,
+    bool IsError = false);
 
 public sealed record AgentRunUsage(int InputTokens, int OutputTokens)
 {

@@ -23,6 +23,7 @@ public sealed class HttpPatientAgentContextFactoryTests
         ], "test"));
         http.Request.Headers.AcceptLanguage = "en-US,en;q=0.8";
         http.Request.Headers["X-Time-Zone"] = "America/Toronto";
+        http.Request.Headers["X-Calendar"] = "persian";
         HttpContextAccessor accessor = new() { HttpContext = http };
 
         PatientAgentContext context = await new HttpPatientAgentContextFactory(accessor)
@@ -35,6 +36,7 @@ public sealed class HttpPatientAgentContextFactoryTests
         context.Role.Should().Be("Clinician");
         context.Locale.Should().Be("en-US");
         context.TimeZone.Should().Be("America/Toronto");
+        context.Calendar.Should().Be("persian");
         context.ConversationId.Should().Be("conversation-1");
     }
 
@@ -45,6 +47,8 @@ public sealed class HttpPatientAgentContextFactoryTests
         http.User = new ClaimsPrincipal(new ClaimsIdentity(
         [new Claim("sub", "clinician-1"), new Claim("tenant", "practice-1")], "test"));
         http.Request.Headers.AcceptLanguage = "not-a-locale";
+        http.Request.Headers["X-Time-Zone"] = "not-a-time-zone";
+        http.Request.Headers["X-Calendar"] = "not-a-calendar";
         HttpContextAccessor accessor = new() { HttpContext = http };
 
         PatientAgentContext context = await new HttpPatientAgentContextFactory(accessor)
@@ -52,6 +56,7 @@ public sealed class HttpPatientAgentContextFactoryTests
 
         context.Locale.Should().Be("fa-IR");
         context.TimeZone.Should().Be("Asia/Tehran");
+        context.Calendar.Should().Be("persian");
         context.ConversationId.Should().NotBeNullOrWhiteSpace();
     }
 }

@@ -4,8 +4,12 @@ using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Application.PatientAgent.Capabilities;
 
-public sealed class PatientAgentToolDispatcher(PatientAgentApprovalPolicy approvalPolicy)
+public sealed class PatientAgentToolDispatcher(
+    PatientAgentApprovalPolicy approvalPolicy,
+    IEnumerable<IIntelligenceAgentTool> intelligenceTools)
 {
+    private readonly IReadOnlyCollection<IIntelligenceAgentTool> _intelligenceTools = [.. intelligenceTools];
+
     public IReadOnlyCollection<IAgentTool> CreateTools(
         PatientAgentContext context,
         AgentExecutionContext executionContext,
@@ -18,6 +22,7 @@ public sealed class PatientAgentToolDispatcher(PatientAgentApprovalPolicy approv
         IReadOnlyCollection<IPatientAgentCapability> capabilities,
         PatientAgentExecutionCollector collector) =>
         capabilities.SelectMany(capability => capability.Tools.Select(tool => (capability.Name, Tool: tool)))
+            .Concat(_intelligenceTools.Select(tool => (Name: "Intelligence", Tool: (IAgentTool)tool)))
             .Select(item => (IAgentTool)new GuardedTool(item.Tool, item.Name, context, executionContext.ExecutionId, approvalPolicy, collector))
             .ToArray();
 

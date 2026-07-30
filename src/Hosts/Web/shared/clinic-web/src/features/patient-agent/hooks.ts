@@ -22,8 +22,8 @@ const patientAgentActionKey = (patientId: string, actionId: string) =>
 
 export function usePatientAgent() {
   return useMutation({
-    mutationFn: ({ patientId, message, conversationId }: { patientId: string; message: string; conversationId: string | null }) =>
-      clinicRunPatientAgent(patientId, { message, conversationId }),
+    mutationFn: ({ patientId, message, conversationId, previousResponseId }: { patientId: string; message: string; conversationId: string | null; previousResponseId: string | null }) =>
+      clinicRunPatientAgent(patientId, { message, conversationId, previousResponseId }),
   });
 }
 
@@ -31,8 +31,8 @@ export function usePatientAgentConversation(patientId: string) {
   const run = usePatientAgent();
   return {
     ...run,
-    submit: (message: string, conversationId: string | null) =>
-      run.mutateAsync({ patientId, message, conversationId }),
+    submit: (message: string, conversationId: string | null, previousResponseId: string | null = null) =>
+      run.mutateAsync({ patientId, message, conversationId, previousResponseId }),
   };
 }
 

@@ -86,6 +86,22 @@ describe("patient agent review", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Expired");
   });
 
+  it("renders agent failures as an error message with a retry action", () => {
+    const retry = vi.fn();
+    render(
+      <PatientAgentMessage
+        message={{ kind: "Failure", content: "provider detail" }}
+        onRetry={retry}
+      />,
+      { wrapper: wrapper() },
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent("The patient agent request could not be completed.");
+    expect(screen.queryByText("provider detail")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Retry request" }));
+    expect(retry).toHaveBeenCalledOnce();
+  });
+
   it("shows material appointment, prescription, and clinical-event review data", () => {
     render(
       <>

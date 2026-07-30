@@ -59,7 +59,7 @@ if ($AppName) {
     $selectedApp = $apps[$selectedIndex - 1]
 }
 
-if (-not $ApiBaseUrl) {
+if (-not $ApiBaseUrl -and $selectedApp.Name -ne 'agent-runtime') {
     $defaultApiBaseUrl = 'https://localhost:7272'
     $ApiBaseUrl = Read-Host "NEXT_PUBLIC_API_BASE_URL [$defaultApiBaseUrl]"
     if ([string]::IsNullOrWhiteSpace($ApiBaseUrl)) {
@@ -67,7 +67,24 @@ if (-not $ApiBaseUrl) {
     }
 }
 
-$env:NEXT_PUBLIC_API_BASE_URL = $ApiBaseUrl
+if (-not [string]::IsNullOrWhiteSpace($ApiBaseUrl)) {
+    $env:NEXT_PUBLIC_API_BASE_URL = $ApiBaseUrl
+}
+
+if ($selectedApp.Name -eq 'agent-runtime') {
+    if ([string]::IsNullOrWhiteSpace($env:AGENT_RUNTIME_SHARED_SECRET) -and
+        -not [string]::IsNullOrWhiteSpace($env:VITARISH_AGENT_RUNTIME_SECRET)) {
+        $env:AGENT_RUNTIME_SHARED_SECRET = $env:VITARISH_AGENT_RUNTIME_SECRET
+    }
+
+    if ([string]::IsNullOrWhiteSpace($env:OPENAI_API_KEY)) {
+        throw 'OPENAI_API_KEY must be set in the current environment when running agent-runtime.'
+    }
+
+    if ([string]::IsNullOrWhiteSpace($env:AGENT_RUNTIME_SHARED_SECRET)) {
+        throw 'AGENT_RUNTIME_SHARED_SECRET or VITARISH_AGENT_RUNTIME_SECRET must be set in the current environment when running agent-runtime.'
+    }
+}
 
 Write-Host "Starting '$($selectedApp.Name)' in development mode..."
 Write-Host "App directory: $($selectedApp.FullName)"

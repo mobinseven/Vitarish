@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+import { getLocalTimeZone } from "@internationalized/date";
 import { Button, Input, Label, TextField } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
 import {
@@ -680,6 +681,7 @@ function ShiftsSection({
     startTime: string;
     endTime: string;
     totalSeats: number;
+    timeZone: string;
     serviceProviderId?: string;
     serviceId?: string;
   }) => void;
@@ -705,6 +707,7 @@ function ShiftsSection({
       startTime: string;
       endTime: string;
       totalSeats: number;
+      timeZone: string;
       serviceProviderId?: string;
       serviceId?: string;
     }) => {
@@ -925,6 +928,7 @@ function ShiftEditor({
     startTime: string;
     endTime: string;
     totalSeats: number;
+    timeZone: string;
     serviceProviderId?: string;
     serviceId?: string;
   }) => void;
@@ -937,6 +941,7 @@ function ShiftEditor({
   const [totalSeats, setTotalSeats] = useState(10);
   const [serviceProviderId, setServiceProviderId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
+  const timeZone = getLocalTimeZone();
 
   const dayNameKeys = [
     "clinic.weekdays.sunday",
@@ -958,6 +963,7 @@ function ShiftEditor({
           startTime,
           endTime,
           totalSeats,
+          timeZone,
           serviceProviderId: serviceProviderId || undefined,
           serviceId: serviceId || undefined,
         });
