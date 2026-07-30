@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --port 3003",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@openai/agents": "latest",
