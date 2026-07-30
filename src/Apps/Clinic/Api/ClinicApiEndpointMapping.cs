@@ -55,6 +55,7 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModuleGet(ClinicApiRoutes.PatientDetails, GetPatientDetailsAsync, "ClinicGetPatientDetails", typeof(PatientViewDto));
         _ = group.MapModulePut(ClinicApiRoutes.PatientUpdate, UpdatePatientAsync, "ClinicUpdatePatient", typeof(PatientViewDto))
             .RequireAuthorization(SeaManagePolicy);
+        // Compatibility window: new callers must use IntelligenceApiRoutes.AgentConversation.
         _ = group.MapModulePost(ClinicApiRoutes.PatientAgent, RunPatientAgentAsync, "ClinicRunPatientAgent", typeof(RunPatientAgentResponse));
         _ = group.MapModuleDelete(ClinicApiRoutes.PatientAgentConversation, DeletePatientAgentConversationAsync, "ClinicDeletePatientAgentConversation");
         _ = group.MapModuleGet(ClinicApiRoutes.PatientAgentAction, GetPatientAgentActionAsync, "ClinicGetPatientAgentAction", typeof(PatientAgentActionDetailsResponse));

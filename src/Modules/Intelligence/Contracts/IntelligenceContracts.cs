@@ -1,6 +1,8 @@
+using System.Text.Json;
+
 namespace Vitarish.Intelligence.Contracts;
 
-public enum IntelligenceErrorCode { ValidationFailure, Unauthorized, Forbidden, UnsupportedMediaType, FileUnavailable, TooLargePayload, ProviderUnavailable, ProviderTimeout, PartialStreamFailure, MalformedChunk, Cancellation, DeserializationFailure, UnexpectedFailure }
+public enum IntelligenceErrorCode { ValidationFailure, Unauthorized, Forbidden, UnsupportedMediaType, FileUnavailable, TooLargePayload, ProviderUnavailable, ProviderTimeout, PartialStreamFailure, MalformedChunk, Cancellation, DeserializationFailure, UnexpectedFailure, NotFound, Conflict, InvalidHistory }
 public enum ResponderInputType { Text, Image, File, McpToolCallApproval }
 public enum ResponderOutputType { Text, McpToolCall, McpListTools, McpApprovalRequest, Message, Reasoning, Completion, Json, FileReference }
 public enum StreamChunkKind { Started, Progress, Delta, Completed, Failed, Canceled }
@@ -31,6 +33,17 @@ public sealed record ResponderOutput(ResponderOutputType Type = ResponderOutputT
 
 public sealed record ResponderRequest(IReadOnlyList<ResponderInput> Inputs, ResponderOptions? Options = null, IntelligenceSessionContext? Context = null);
 public sealed record ResponderResult(IReadOnlyList<ResponderOutput> Outputs, IntelligenceSessionContext? Context = null);
+public sealed record RunAgentConversationRequest(
+    string AgentKey,
+    string SubjectKind,
+    string SubjectId,
+    string Message,
+    string? ConversationId = null,
+    string? PreviousResponseId = null);
+public sealed record RunAgentConversationResponse(
+    string AgentRunId,
+    string ConversationId,
+    JsonElement Result);
 public sealed record RewriteRequest(string Prompt, RewriteOptions? Options = null, IntelligenceSessionContext? Context = null);
 public sealed record RewriteResult(string Text, IntelligenceSessionContext? Context = null);
 public sealed record TranscriptionRequest(IntelligenceFileReference AudioFile, TranscriberOptions? Options = null, IntelligenceSessionContext? Context = null);

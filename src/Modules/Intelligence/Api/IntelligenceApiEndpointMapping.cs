@@ -2,7 +2,9 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Mvc;
 using Vitarish.Intelligence.Application.Abstractions;
+using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Intelligence.Contracts;
 using Vitarish.Modules.Base.Core.Endpoints;
 using D = Vitarish.Intelligence.Domain.Models;
@@ -23,7 +25,31 @@ public static class IntelligenceApiEndpointMapping
         _ = group.MapRealtimeTranscription();
         _ = group.MapModulePost(IntelligenceApiRoutes.Rewrite, RewriteAsync, "IntelligenceRewrite", typeof(RewriteResult));
         _ = group.MapModulePost(IntelligenceApiRoutes.RewriteStream, StreamRewriteAsync, "IntelligenceStreamRewrite", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
+        _ = group.MapModulePost(IntelligenceApiRoutes.AgentConversation, RunAgentConversationAsync, "IntelligenceRunAgentConversation", typeof(RunAgentConversationResponse));
         return endpoints;
+    }
+
+    private static async Task<IResult> RunAgentConversationAsync(
+        RunAgentConversationRequest request,
+        [FromServices] IAgentConversationEndpoint endpoint,
+        CancellationToken ct)
+    {
+        if (request is null || string.IsNullOrWhiteSpace(request.AgentKey) ||
+            string.IsNullOrWhiteSpace(request.SubjectKind) || string.IsNullOrWhiteSpace(request.SubjectId) ||
+            string.IsNullOrWhiteSpace(request.Message))
+            return Results.BadRequest(new IntelligenceError(IntelligenceErrorCode.ValidationFailure, "Agent, subject, and message are required."));
+
+        AgentConversationEndpointResult result = await endpoint.RunAsync(
+            new(request.AgentKey, request.SubjectKind, request.SubjectId, request.Message, request.ConversationId, request.PreviousResponseId), ct);
+        return result.Outcome switch
+        {
+            AgentConversationOutcome.Succeeded when result.AgentRunId is not null && result.ConversationId.HasValue && result.Result.HasValue =>
+                Results.Ok(new RunAgentConversationResponse(result.AgentRunId, result.ConversationId.Value.ToString("N"), result.Result.Value)),
+            AgentConversationOutcome.NotFound => Results.NotFound(new IntelligenceError(IntelligenceErrorCode.NotFound, "The agent conversation was not found.")),
+            AgentConversationOutcome.Busy => Results.Conflict(new IntelligenceError(IntelligenceErrorCode.Conflict, "The conversation is active.")),
+            AgentConversationOutcome.InvalidHistory => Results.Conflict(new IntelligenceError(IntelligenceErrorCode.InvalidHistory, "The conversation history is invalid.")),
+            _ => Results.Json(new IntelligenceError(IntelligenceErrorCode.UnexpectedFailure, "The agent conversation failed."), statusCode: StatusCodes.Status502BadGateway)
+        };
     }
 
     private static async Task<IResult> RespondAsync(ResponderRequest request, IResponder responder, CancellationToken ct)

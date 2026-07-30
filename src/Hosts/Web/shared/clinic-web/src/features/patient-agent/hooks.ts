@@ -2,13 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { useConversationController } from "@vitarish/intelligence-web";
+import { intelligenceRunAgentConversation, useConversationController } from "@vitarish/intelligence-web";
 import {
   clinicConfirmPatientAgentAction,
   clinicDeletePatientAgentConversation,
   clinicGetPatientAgentAction,
   clinicRejectPatientAgentAction,
-  clinicRunPatientAgent,
 } from "../../api/generated/clinic/clinic";
 import type {
   PatientAgentActionDetailsResponse,
@@ -26,12 +25,16 @@ const patientAgentActionKey = (patientId: string, actionId: string) =>
 export function usePatientAgentConversation(patientId: string, isOpen: boolean) {
   const runTurn = useCallback(
     async (message: string, conversationId: string | null, signal: AbortSignal) => {
-      const result = await clinicRunPatientAgent(patientId, {
+      const response = await intelligenceRunAgentConversation({
+        agentKey: "clinic.patient",
+        subjectKind: "patient",
+        subjectId: patientId,
         message,
         conversationId,
         previousResponseId: null,
       }, undefined, signal);
-      return { conversationId: result.conversationId, result };
+      const result = response.result as unknown as RunPatientAgentResponse;
+      return { conversationId: response.conversationId, result };
     },
     [patientId],
   );

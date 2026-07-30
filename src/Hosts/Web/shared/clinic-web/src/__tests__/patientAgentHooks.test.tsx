@@ -6,8 +6,8 @@ import {
   clinicConfirmPatientAgentAction,
   clinicGetPatientAgentAction,
   clinicRejectPatientAgentAction,
-  clinicRunPatientAgent,
 } from "../api/generated/clinic/clinic";
+import { intelligenceRunAgentConversation } from "@vitarish/intelligence-web";
 import {
   useConfirmPatientAgentAction,
   usePatientAgentAction,
@@ -16,11 +16,15 @@ import {
 } from "../features/patient-agent/hooks";
 
 vi.mock("../api/generated/clinic/clinic", () => ({
-  clinicRunPatientAgent: vi.fn(),
   clinicDeletePatientAgentConversation: vi.fn(),
   clinicGetPatientAgentAction: vi.fn(),
   clinicConfirmPatientAgentAction: vi.fn(),
   clinicRejectPatientAgentAction: vi.fn(),
+}));
+
+vi.mock("@vitarish/intelligence-web", async () => ({
+  ...(await vi.importActual<typeof import("@vitarish/intelligence-web")>("@vitarish/intelligence-web")),
+  intelligenceRunAgentConversation: vi.fn(),
 }));
 
 function createWrapper() {
@@ -38,20 +42,16 @@ describe("patient-agent generated-client hooks", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("fixes the patient scope and continues the returned conversation", async () => {
-    vi.mocked(clinicRunPatientAgent)
+    vi.mocked(intelligenceRunAgentConversation)
       .mockResolvedValueOnce({
         agentRunId: "run-1",
         conversationId: "conversation-1",
-        previousResponseId: null,
-        messages: [],
-        actions: [],
+        result: { messages: [], actions: [] },
       })
       .mockResolvedValueOnce({
         agentRunId: "run-2",
         conversationId: "conversation-1",
-        previousResponseId: null,
-        messages: [],
-        actions: [],
+        result: { messages: [], actions: [] },
       });
     const { result } = renderHook(
       () => usePatientAgentConversation("patient-from-route", true),
@@ -61,10 +61,12 @@ describe("patient-agent generated-client hooks", () => {
     await act(() => result.current.submit("First request"));
     await act(() => result.current.submit("Continue"));
 
-    expect(clinicRunPatientAgent).toHaveBeenNthCalledWith(
+    expect(intelligenceRunAgentConversation).toHaveBeenNthCalledWith(
       1,
-      "patient-from-route",
       {
+        agentKey: "clinic.patient",
+        subjectKind: "patient",
+        subjectId: "patient-from-route",
         message: "First request",
         conversationId: null,
         previousResponseId: null,
@@ -72,10 +74,12 @@ describe("patient-agent generated-client hooks", () => {
       undefined,
       expect.any(AbortSignal),
     );
-    expect(clinicRunPatientAgent).toHaveBeenNthCalledWith(
+    expect(intelligenceRunAgentConversation).toHaveBeenNthCalledWith(
       2,
-      "patient-from-route",
       {
+        agentKey: "clinic.patient",
+        subjectKind: "patient",
+        subjectId: "patient-from-route",
         message: "Continue",
         conversationId: "conversation-1",
         previousResponseId: null,

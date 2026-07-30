@@ -11,4 +11,5 @@ public static class IntelligenceApiRoutes
     public const string LiveTranscriptionCapabilities = LiveTranscription + "/capabilities";
     public const string Rewrite = "/rewrite";
     public const string RewriteStream = "/rewrite/stream";
+    public const string AgentConversation = "/agent-conversations";
 }
