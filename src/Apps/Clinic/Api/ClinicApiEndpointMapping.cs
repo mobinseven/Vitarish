@@ -248,6 +248,7 @@ public static class ClinicApiEndpointMapping
         return Results.Ok(new RunPatientAgentResponse(
             result.AgentRunId,
             result.ConversationId,
+            null,
             result.Messages.Select(message => new PatientAgentMessageResponse(
                 (PatientAgentMessageResponseKind)(int)message.Kind,
                 message.Content)).ToArray(),

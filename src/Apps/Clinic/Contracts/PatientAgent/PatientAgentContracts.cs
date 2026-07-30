@@ -8,6 +8,7 @@ public sealed record RunPatientAgentRequest(string Message, string? Conversation
 public sealed record RunPatientAgentResponse(
     string AgentRunId,
     string ConversationId,
+    string? PreviousResponseId,
     IReadOnlyList<PatientAgentMessageResponse> Messages,
     IReadOnlyList<PatientAgentActionResponse> Actions);
 
