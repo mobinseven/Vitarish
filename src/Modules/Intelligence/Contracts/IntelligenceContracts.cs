@@ -25,7 +25,7 @@ public sealed record ResponderInput(ResponderInputType Type = ResponderInputType
     public static ResponderInput McpToolCallApprovalInput(string approvalId) => new(ResponderInputType.McpToolCallApproval, ApprovalId: approvalId);
 }
 public sealed record ResponderToolDefinition { public required string Type { get; init; } public string? ServerLabel { get; init; } public string? ServerUrl { get; init; } public string? ServerToken { get; init; } public IReadOnlyList<string> AllowedTools { get; init; } = []; public ResponderToolApprovalRequirement RequireApproval { get; init; } = ResponderToolApprovalRequirement.Never; }
-public sealed record ResponderOptions : ProviderSafeOptions { public string? Instructions { get; init; } public ResponseTextFormat TextFormat { get; init; } = ResponseTextFormat.Text; public string? JsonSchema { get; init; } public string? PreviousResponseId { get; init; } public string? Model { get; init; } public IReadOnlyList<ResponderToolDefinition> Tools { get; init; } = []; }
+public sealed record ResponderOptions : ProviderSafeOptions { public string? Instructions { get; init; } public ResponseTextFormat TextFormat { get; init; } = ResponseTextFormat.Text; public string? JsonSchema { get; init; } public string? Model { get; init; } public IReadOnlyList<ResponderToolDefinition> Tools { get; init; } = []; }
 public sealed record TranscriberOptions : ProviderSafeOptions { public string? Language { get; init; } public string ContentType { get; init; } = "audio/webm"; }
 public sealed record RewriteOptions : ProviderSafeOptions { public string? Instructions { get; init; } }
 public sealed record McpToolDescription(string Name, string? Description);
@@ -38,8 +38,7 @@ public sealed record RunAgentConversationRequest(
     string SubjectKind,
     string SubjectId,
     string Message,
-    string? ConversationId = null,
-    string? PreviousResponseId = null);
+    string? ConversationId = null);
 public sealed record RunAgentConversationResponse(
     string AgentRunId,
     string ConversationId,

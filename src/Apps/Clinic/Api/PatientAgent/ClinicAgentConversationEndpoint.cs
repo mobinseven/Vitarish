@@ -35,7 +35,6 @@ public sealed class ClinicAgentConversationEndpoint(
         RunPatientAgentResponse response = new(
             result.AgentRunId,
             result.ConversationId,
-            null,
             result.Messages.Select(message => new PatientAgentMessageResponse(
                 (PatientAgentMessageResponseKind)(int)message.Kind,
                 message.Content)).ToArray(),

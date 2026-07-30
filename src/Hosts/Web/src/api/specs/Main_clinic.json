@@ -1993,12 +1993,6 @@
               "null",
               "string"
             ]
-          },
-          "previousResponseId": {
-            "type": [
-              "null",
-              "string"
-            ]
           }
         }
       },
@@ -2006,7 +2000,6 @@
         "required": [
           "agentRunId",
           "conversationId",
-          "previousResponseId",
           "messages",
           "actions"
         ],
@@ -2017,12 +2010,6 @@
           },
           "conversationId": {
             "type": "string"
-          },
-          "previousResponseId": {
-            "type": [
-              "null",
-              "string"
-            ]
           },
           "messages": {
             "type": "array",

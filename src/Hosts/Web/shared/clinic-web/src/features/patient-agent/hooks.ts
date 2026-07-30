@@ -31,7 +31,6 @@ export function usePatientAgentConversation(patientId: string, isOpen: boolean) 
         subjectId: patientId,
         message,
         conversationId,
-        previousResponseId: null,
       }, undefined, signal);
       const result = response.result as unknown as RunPatientAgentResponse;
       return { conversationId: response.conversationId, result };

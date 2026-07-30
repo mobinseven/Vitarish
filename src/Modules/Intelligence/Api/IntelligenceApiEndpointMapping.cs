@@ -40,7 +40,7 @@ public static class IntelligenceApiEndpointMapping
             return Results.BadRequest(new IntelligenceError(IntelligenceErrorCode.ValidationFailure, "Agent, subject, and message are required."));
 
         AgentConversationEndpointResult result = await endpoint.RunAsync(
-            new(request.AgentKey, request.SubjectKind, request.SubjectId, request.Message, request.ConversationId, request.PreviousResponseId), ct);
+            new(request.AgentKey, request.SubjectKind, request.SubjectId, request.Message, request.ConversationId), ct);
         return result.Outcome switch
         {
             AgentConversationOutcome.Succeeded when result.AgentRunId is not null && result.ConversationId.HasValue && result.Result.HasValue =>

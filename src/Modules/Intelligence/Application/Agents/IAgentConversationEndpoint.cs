@@ -7,8 +7,7 @@ public sealed record AgentConversationEndpointRequest(
     string SubjectKind,
     string SubjectId,
     string Message,
-    string? ConversationId,
-    string? PreviousResponseId);
+    string? ConversationId);
 
 public sealed record AgentConversationEndpointResult(
     AgentConversationOutcome Outcome,

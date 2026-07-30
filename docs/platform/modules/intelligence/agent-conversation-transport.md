@@ -4,7 +4,7 @@ The authoritative public execution contract is:
 
 `POST /api/modules/intelligence/agent-conversations`
 
-The request identifies an agent (`agentKey`), an opaque subject scope (`subjectKind` and `subjectId`), the user message, and an optional opaque conversation ID. `previousResponseId` remains an ignored compatibility field and is always absent from the response. The response contains the run ID, conversation ID, and an agent-owned opaque structured result. Feature providers own the result schema and patient authorization; the Intelligence transport does not inspect or persist that payload.
+The request identifies an agent (`agentKey`), an opaque subject scope (`subjectKind` and `subjectId`), the user message, and an optional opaque conversation ID. Continuation uses only that conversation ID and the encrypted server-side history. The response contains the run ID, conversation ID, and an agent-owned opaque structured result. Feature providers own the result schema and patient authorization; the Intelligence transport does not inspect or persist that payload.
 
 The Clinic patient-agent provider uses `agentKey=clinic.patient` and `subjectKind=patient`. It preserves Clinic authorization, tool execution, structured parsing, action proposal persistence, and action confirmation APIs. Scope mismatches are mapped to the same not-found response as the compatibility Clinic route.
 

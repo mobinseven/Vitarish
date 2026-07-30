@@ -764,12 +764,6 @@
               "string"
             ]
           },
-          "previousResponseId": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
           "model": {
             "type": [
               "null",
@@ -1019,12 +1013,6 @@
             "type": "string"
           },
           "conversationId": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "previousResponseId": {
             "type": [
               "null",
               "string"

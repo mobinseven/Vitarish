@@ -91,11 +91,6 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
             creation.Instructions = options.Instructions;
         }
 
-        if (!string.IsNullOrWhiteSpace(options.PreviousResponseId))
-        {
-            creation.PreviousResponseId = options.PreviousResponseId;
-        }
-
         creation.TextOptions = new ResponseTextOptions
         {
             TextFormat = options.TextFormat switch
