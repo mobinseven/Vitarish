@@ -41,12 +41,14 @@ describe("patient-agent generated-client hooks", () => {
       .mockResolvedValueOnce({
         agentRunId: "run-1",
         conversationId: "conversation-1",
+        previousResponseId: null,
         messages: [],
         actions: [],
       })
       .mockResolvedValueOnce({
         agentRunId: "run-2",
         conversationId: "conversation-1",
+        previousResponseId: null,
         messages: [],
         actions: [],
       });
@@ -61,12 +63,20 @@ describe("patient-agent generated-client hooks", () => {
     expect(clinicRunPatientAgent).toHaveBeenNthCalledWith(
       1,
       "patient-from-route",
-      { message: "First request", conversationId: null },
+      {
+        message: "First request",
+        conversationId: null,
+        previousResponseId: null,
+      },
     );
     expect(clinicRunPatientAgent).toHaveBeenNthCalledWith(
       2,
       "patient-from-route",
-      { message: "Continue", conversationId: "conversation-1" },
+      {
+        message: "Continue",
+        conversationId: "conversation-1",
+        previousResponseId: null,
+      },
     );
   });
 
