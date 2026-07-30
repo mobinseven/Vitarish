@@ -12,6 +12,8 @@ public sealed class ClinicAgentConversationEndpoint(
     IPatientAgentContextFactory contextFactory,
     ISender sender) : IAgentConversationEndpoint
 {
+    private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
+
     public async Task<AgentConversationEndpointResult> RunAsync(
         AgentConversationEndpointRequest request,
         CancellationToken cancellationToken)
@@ -40,8 +42,10 @@ public sealed class ClinicAgentConversationEndpoint(
             result.Actions.Select(action => new PatientAgentActionResponse(
                 action.ActionId.ToString("D"), action.Capability, action.ActionType,
                 (ContractActionStatus)(int)action.Status,
-                JsonSerializer.Deserialize<JsonElement>(action.ReviewPayload), action.Summary)).ToArray());
-        return new(AgentConversationOutcome.Succeeded, result.AgentRunId, conversationId, JsonSerializer.SerializeToElement(response));
+                string.IsNullOrWhiteSpace(action.ReviewPayload)
+                    ? default
+                    : JsonSerializer.Deserialize<JsonElement>(action.ReviewPayload), action.Summary)).ToArray());
+        return new(AgentConversationOutcome.Succeeded, result.AgentRunId, conversationId, JsonSerializer.SerializeToElement(response, WebJson));
     }
 
     private static Guid? ParseConversationId(string value) => Guid.TryParse(value, out Guid id) ? id : null;

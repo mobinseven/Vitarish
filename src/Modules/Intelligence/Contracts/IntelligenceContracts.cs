@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace Vitarish.Intelligence.Contracts;
 
-public enum IntelligenceErrorCode { ValidationFailure, Unauthorized, Forbidden, NotFound, Conflict, InvalidHistory, UnsupportedMediaType, FileUnavailable, TooLargePayload, ProviderUnavailable, ProviderTimeout, PartialStreamFailure, MalformedChunk, Cancellation, DeserializationFailure, UnexpectedFailure }
+public enum IntelligenceErrorCode { ValidationFailure, Unauthorized, Forbidden, UnsupportedMediaType, FileUnavailable, TooLargePayload, ProviderUnavailable, ProviderTimeout, PartialStreamFailure, MalformedChunk, Cancellation, DeserializationFailure, UnexpectedFailure, NotFound, Conflict, InvalidHistory }
 public enum ResponderInputType { Text, Image, File, McpToolCallApproval }
 public enum ResponderOutputType { Text, McpToolCall, McpListTools, McpApprovalRequest, Message, Reasoning, Completion, Json, FileReference }
 public enum StreamChunkKind { Started, Progress, Delta, Completed, Failed, Canceled }
