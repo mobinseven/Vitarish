@@ -93,7 +93,7 @@ public static class ClinicApiEndpointMapping
         string expected = $"Bearer {options.Value.SharedSecret}";
         bool valid = !string.IsNullOrWhiteSpace(options.Value.SharedSecret) &&
             CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(authorization ?? string.Empty), Encoding.UTF8.GetBytes(expected));
-        return valid ? Results.Ok(new { status = "ok", component = "clinic-agent-callback" }) : Results.Unauthorized();
+        return valid ? Results.Ok(new { status = "ok", component = "intelligence-agent-runtime" }) : Results.Unauthorized();
     }
 
     private static async Task<IResult> ExecutePatientAgentToolAsync(

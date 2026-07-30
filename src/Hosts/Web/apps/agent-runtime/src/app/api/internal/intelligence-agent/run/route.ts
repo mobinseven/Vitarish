@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
         }
         toolCallsUsed += 1;
         const location = callbackLocation(input.callbackUrl);
-        console.info("Calling clinic agent tool callback", {
+        console.info("Calling supplied agent tool callback", {
           executionId: input.context.executionId,
           toolName: definition.name,
           callback: location,
@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
           });
         } catch (error) {
           const detail = error instanceof Error ? error : new Error(String(error));
-          console.error("Clinic agent tool callback fetch failed", {
+          console.error("Supplied agent tool callback fetch failed", {
             executionId: input.context.executionId,
             toolName: definition.name,
             callback: location,
@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
 
         if (!response.ok) {
           const message = `Clinic tool ${definition.name} returned HTTP ${response.status}.`;
-          console.error("Clinic agent tool callback returned failure", {
+          console.error("Supplied agent tool callback returned failure", {
             executionId: input.context.executionId,
             toolName: definition.name,
             callback: location,
@@ -241,7 +241,7 @@ export async function POST(request: NextRequest) {
           output: result.output,
           isError: result.isError,
         });
-        console.info("Clinic agent tool callback succeeded", {
+        console.info("Supplied agent tool callback succeeded", {
           executionId: input.context.executionId,
           toolName: definition.name,
           status: response.status,
@@ -252,7 +252,7 @@ export async function POST(request: NextRequest) {
     });
   });
 
-  console.info("Received clinic agent tools", {
+  console.info("Received supplied agent tools", {
     executionId: input.context.executionId,
     toolCount: tools.length,
     toolNames: input.tools.map((definition) => definition.name).sort(),
@@ -304,7 +304,6 @@ export async function POST(request: NextRequest) {
       iterations: result.rawResponses?.length ?? 1,
       toolCalls: toolCallsUsed,
       toolExecutions: executions,
-      responseId: undefined,
       history,
     });
   } catch (error) {
@@ -315,7 +314,7 @@ export async function POST(request: NextRequest) {
       : timeoutController.signal.aborted
         ? "Timeout"
         : "ProviderFailure";
-    console.error("Clinic agent runtime run failed", {
+    console.error("Intelligence agent runtime run failed", {
       executionId: input.context.executionId,
       code,
       toolCalls: toolCallsUsed,
@@ -329,7 +328,6 @@ export async function POST(request: NextRequest) {
       iterations: 0,
       toolCalls: executions.length,
       toolExecutions: executions,
-      responseId: undefined,
       error: {
         code: code === "ToolCallLimitExceeded" ? 5 : code === "TokenLimitExceeded" ? 6 : code === "Timeout" ? 7 : code === "InvalidHistory" ? 11 : 10,
         message: code === "ToolCallLimitExceeded"

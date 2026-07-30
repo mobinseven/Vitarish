@@ -38,7 +38,7 @@ public sealed class AgentRuntimeHttpRunner(
             credentialService.Create(context, TimeSpan.FromMinutes(5)));
 
         logger.LogInformation(
-            "Forwarding patient agent request {ExecutionId} with {ToolCount} tools: {ToolNames}.",
+            "Forwarding agent runtime request {ExecutionId} with {ToolCount} supplied tools: {ToolNames}.",
             context.ExecutionId,
             request.Tools.Count,
             string.Join(", ", request.Tools.Select(tool => tool.Name).OrderBy(name => name, StringComparer.Ordinal)));
@@ -46,7 +46,7 @@ public sealed class AgentRuntimeHttpRunner(
         try
         {
             Stopwatch latency = Stopwatch.StartNew();
-            using HttpRequestMessage httpRequest = new(HttpMethod.Post, "/api/internal/clinic-agent/run")
+            using HttpRequestMessage httpRequest = new(HttpMethod.Post, "/api/internal/intelligence-agent/run")
             {
                 Content = JsonContent.Create(request)
             };
