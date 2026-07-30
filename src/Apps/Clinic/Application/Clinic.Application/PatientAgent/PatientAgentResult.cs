@@ -7,6 +7,6 @@ public sealed record PatientAgentResult(
     IReadOnlyList<PatientAgentMessage> Messages,
     IReadOnlyList<PatientAgentAction> Actions)
 {
-    public static PatientAgentResult Failure(string agentRunId, string conversationId, string message) =>
-        new(agentRunId, conversationId, null, [new PatientAgentMessage(PatientAgentMessageKind.Failure, message)], []);
+    public static PatientAgentResult Failure(string agentRunId, string conversationId, string? previousResponseId, string message) =>
+        new(agentRunId, conversationId, previousResponseId, [new PatientAgentMessage(PatientAgentMessageKind.Failure, message)], []);
 }

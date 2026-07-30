@@ -1,4 +1,4 @@
-import { Agent, run, tool } from "@openai/agents";
+import { Agent, OpenAIProvider, Runner, tool, type Model, type ModelProvider } from "@openai/agents";
 import { NextRequest } from "next/server";
 
 interface AgentDefinition {
@@ -41,9 +41,36 @@ interface ToolExecution {
 }
 
 class AgentRuntimeLimitError extends Error {
-  constructor(readonly code: "ToolCallLimitExceeded" | "Timeout") {
+  constructor(readonly code: "ToolCallLimitExceeded" | "TokenLimitExceeded" | "Timeout") {
     super(code);
   }
+}
+
+function budgetedModelProvider(maxTokens: number, usedTokens: { value: number }): ModelProvider {
+  const provider = new OpenAIProvider();
+  return {
+    getModel: (modelName?: string) => {
+      const model = provider.getModel(modelName);
+      if (model instanceof Promise) {
+        return model.then((resolved) => budgetedModel(resolved, maxTokens, usedTokens));
+      }
+      return budgetedModel(model, maxTokens, usedTokens);
+    },
+  };
+}
+
+function budgetedModel(model: Model, maxTokens: number, usedTokens: { value: number }): Model {
+  return {
+    getResponse: async (request) => {
+      if (usedTokens.value >= maxTokens) throw new AgentRuntimeLimitError("TokenLimitExceeded");
+      const response = await model.getResponse(request);
+      usedTokens.value += response.usage.totalTokens;
+      if (usedTokens.value > maxTokens) throw new AgentRuntimeLimitError("TokenLimitExceeded");
+      return response;
+    },
+    getStreamedResponse: (request) => model.getStreamedResponse(request),
+    getRetryAdvice: model.getRetryAdvice?.bind(model),
+  };
 }
 
 function timeSpanToMilliseconds(value: string): number {
@@ -117,6 +144,8 @@ export async function POST(request: NextRequest) {
   }
 
   const executions: ToolExecution[] = [];
+  let toolCallsUsed = 0;
+  const usedTokens = { value: 0 };
   const timeoutController = new AbortController();
   const timeout = setTimeout(() => timeoutController.abort(), timeoutMs);
   const runSignal = AbortSignal.any([request.signal, timeoutController.signal]);
@@ -131,9 +160,10 @@ export async function POST(request: NextRequest) {
       timeoutMs: 120_000,
       execute: async (argumentsValue: unknown, _context: unknown, details: unknown) => {
         const callId = toolCallId(details);
-        if (executions.length >= input.limits.maxToolCalls) {
+        if (toolCallsUsed >= input.limits.maxToolCalls) {
           throw new AgentRuntimeLimitError("ToolCallLimitExceeded");
         }
+        toolCallsUsed += 1;
         const location = callbackLocation(input.callbackUrl);
         console.info("Calling clinic agent tool callback", {
           executionId: input.context.executionId,
@@ -226,7 +256,12 @@ export async function POST(request: NextRequest) {
       modelSettings: { maxTokens: input.limits.maxTokens },
       outputType,
     });
-    const result = await run(agent, input.input.userInput, {
+    const runner = new Runner({
+      modelProvider: budgetedModelProvider(input.limits.maxTokens, usedTokens),
+      tracingDisabled: true,
+      traceIncludeSensitiveData: false,
+    });
+    const result = await runner.run(agent, input.input.userInput, {
       context: input.context,
       maxTurns: input.limits.maxIterations,
       signal: runSignal,
@@ -239,7 +274,7 @@ export async function POST(request: NextRequest) {
       structuredOutput: result.finalOutput,
       usage: { inputTokens: usage?.inputTokens ?? 0, outputTokens: usage?.outputTokens ?? 0 },
       iterations: result.rawResponses?.length ?? 1,
-      toolCalls: executions.length,
+      toolCalls: toolCallsUsed,
       toolExecutions: executions,
       responseId: result.lastResponseId,
     });
@@ -256,7 +291,7 @@ export async function POST(request: NextRequest) {
       errorName: detail.name,
       errorMessage: detail.message,
       cause: detail.cause instanceof Error ? `${detail.cause.name}: ${detail.cause.message}` : String(detail.cause ?? ""),
-      toolCalls: executions.length,
+      toolCalls: toolCallsUsed,
       toolNames: executions.map((execution) => execution.toolName),
     });
     return Response.json({
@@ -269,9 +304,11 @@ export async function POST(request: NextRequest) {
       toolExecutions: executions,
       responseId: undefined,
       error: {
-        code: code === "ToolCallLimitExceeded" ? 6 : code === "Timeout" ? 7 : 10,
+        code: code === "ToolCallLimitExceeded" ? 5 : code === "TokenLimitExceeded" ? 6 : code === "Timeout" ? 7 : 10,
         message: code === "ToolCallLimitExceeded"
           ? "The agent tool-call limit was exceeded."
+          : code === "TokenLimitExceeded"
+            ? "The agent token limit was exceeded."
           : code === "Timeout"
             ? "The agent execution timed out."
             : "The agent runtime failed.",

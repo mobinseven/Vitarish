@@ -153,7 +153,8 @@ public static class ClinicApiEndpointMapping
             Required("locale"),
             Required("timeZone"),
             Required("conversationId"),
-            metadata.TryGetValue("patientNationalId", out string? nationalId) ? nationalId : null);
+            metadata.TryGetValue("patientNationalId", out string? nationalId) ? nationalId : null,
+            Calendar: metadata.TryGetValue("calendar", out string? calendar) ? calendar : "gregory");
     }
 
     private static async Task<IResult> GetPatientAgentActionAsync(

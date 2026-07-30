@@ -216,7 +216,9 @@ export function PatientAgentPanel({
       ? result.messages.filter(({ kind }) => kind === "Failure")
       : result.messages;
     setConversationId(result.conversationId);
-    setPreviousResponseId(result.previousResponseId ?? null);
+    setPreviousResponseId(
+      hasFailure ? previousResponseId : result.previousResponseId ?? null,
+    );
     setMessages((current) => [...current, ...responseMessages]);
     setActionIds((current) => [
       ...current,

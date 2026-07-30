@@ -17,7 +17,7 @@ public sealed class RunPatientAgentHandler(
         PatientWorkspaceAgentDefinition workspace = definitionFactory.Create(request.Context);
         if (string.IsNullOrWhiteSpace(request.Input.Message))
         {
-            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, "A message is required.");
+            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, request.Context.PreviousResponseId, "A message is required.");
         }
 
         AgentRunResult run = await agentRunner.RunAsync(
@@ -30,7 +30,7 @@ public sealed class RunPatientAgentHandler(
 
         if (!run.IsSuccess || run.StructuredOutput is not JsonElement output)
         {
-            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, run.Error?.Message ?? "The patient agent did not return a valid result.");
+            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, request.Context.PreviousResponseId, run.Error?.Message ?? "The patient agent did not return a valid result.");
         }
 
         try
@@ -52,7 +52,7 @@ public sealed class RunPatientAgentHandler(
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException or KeyNotFoundException)
         {
-            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, "The patient agent returned an invalid structured result.");
+            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, request.Context.PreviousResponseId, "The patient agent returned an invalid structured result.");
         }
     }
 
