@@ -137,6 +137,27 @@ public sealed class EfAgentConversationStore(
         return owned ? AgentConversationOutcome.Busy : AgentConversationOutcome.NotFound;
     }
 
+    public Task<int> DeleteForOwnerAsync(AgentConversationOwnerScope owner, CancellationToken cancellationToken) =>
+        DeleteWhereAsync(query =>
+            (owner.TenantId == null || query.TenantId == owner.TenantId) &&
+            (owner.CreatingUserId == null || query.CreatingUserId == owner.CreatingUserId) &&
+            (owner.SubjectKind == null || query.SubjectKind == owner.SubjectKind) &&
+            (owner.SubjectId == null || query.SubjectId == owner.SubjectId), cancellationToken);
+
+    public Task<int> DeleteExpiredAsync(DateTimeOffset cutoff, CancellationToken cancellationToken) =>
+        DeleteWhereAsync(query => query.UpdatedAt < cutoff, cancellationToken);
+
+    private Task<int> DeleteWhereAsync(
+        System.Linq.Expressions.Expression<Func<AgentConversationEntity, bool>> predicate,
+        CancellationToken cancellationToken)
+    {
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        return dbContext.AgentConversations
+            .Where(predicate)
+            .Where(conversation => conversation.ActiveLeaseId == null || conversation.ActiveLeaseExpiresAt <= now)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+
     private IQueryable<AgentConversationEntity> Owned(AgentConversationScope scope) =>
         dbContext.AgentConversations.Where(conversation =>
             conversation.TenantId == scope.TenantId &&

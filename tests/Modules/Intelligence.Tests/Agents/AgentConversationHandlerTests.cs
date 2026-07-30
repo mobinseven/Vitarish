@@ -217,5 +217,13 @@ public sealed class AgentConversationHandlerTests
             DeletedScope = scope;
             return Task.FromResult(DeleteOutcome);
         }
+
+        public Task<int> DeleteForOwnerAsync(
+            AgentConversationOwnerScope owner,
+            CancellationToken cancellationToken) => Task.FromResult(0);
+
+        public Task<int> DeleteExpiredAsync(
+            DateTimeOffset cutoff,
+            CancellationToken cancellationToken) => Task.FromResult(0);
     }
 }

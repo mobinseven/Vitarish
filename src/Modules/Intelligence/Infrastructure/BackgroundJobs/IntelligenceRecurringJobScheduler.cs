@@ -7,7 +7,11 @@ namespace Vitarish.Intelligence.Infrastructure.BackgroundJobs;
 /// </summary>
 public sealed class IntelligenceRecurringJobScheduler(HangfireIntelligenceJobManager intelligenceJobManager) : IRecurringJobScheduler
 {
-    public void ScheduleJobs() => intelligenceJobManager.ScheduleProcessing();
+    public void ScheduleJobs()
+    {
+        intelligenceJobManager.ScheduleProcessing();
+        intelligenceJobManager.ScheduleConversationCleanup();
+    }
 
     public void TriggerStartupJobs()
     {

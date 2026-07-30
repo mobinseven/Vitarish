@@ -9,6 +9,7 @@ public static class IntelligenceBackgroundJobExtensions
     public static IServiceCollection AddIntelligenceBackgroundJobs(this IServiceCollection services)
     {
         _ = services.AddTransient<IntelligenceProcessor>();
+        _ = services.AddTransient<AgentConversationRetentionCleanup>();
         _ = services.AddSingleton<HangfireIntelligenceJobManager>();
         _ = services.AddSingleton<IRecurringJobScheduler, IntelligenceRecurringJobScheduler>();
         return services;
