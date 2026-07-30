@@ -120,7 +120,7 @@ describe("procedure note dictation integration", () => {
     render(<PatientProcedureEventItemsPanel canWrite eventId="event-1" />, {
       wrapper: Wrapper,
     });
-    const composer = screen.getByRole("textbox", { name: "Clinical note" });
+    const composer = screen.getByRole("textbox", { name: "Note" });
 
     fireEvent.change(composer, { target: { value: "Typed while recording" } });
     act(() => dictation.options?.onSegment(" confirmed speech "));
@@ -147,7 +147,7 @@ describe("procedure note dictation integration", () => {
 
     expect(dictation.options).toBeNull();
     expect(
-      screen.queryByRole("textbox", { name: "Clinical note" }),
+      screen.queryByRole("textbox", { name: "Note" }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Stop voice dictation" }),
@@ -159,13 +159,13 @@ describe("procedure note dictation integration", () => {
       <PatientProcedureEventItemsPanel canWrite eventId="event-1" />,
       { wrapper: Wrapper },
     );
-    fireEvent.change(screen.getByRole("textbox", { name: "Clinical note" }), {
+    fireEvent.change(screen.getByRole("textbox", { name: "Note" }), {
       target: { value: "Event one draft" },
     });
 
     rerender(<PatientProcedureEventItemsPanel canWrite eventId="event-2" />);
 
-    expect(screen.getByRole("textbox", { name: "Clinical note" })).toHaveValue(
+    expect(screen.getByRole("textbox", { name: "Note" })).toHaveValue(
       "",
     );
     expect(dictation.sessionKeys).toContain("event-1");

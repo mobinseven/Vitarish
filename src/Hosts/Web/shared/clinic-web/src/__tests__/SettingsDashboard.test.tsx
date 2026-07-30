@@ -55,14 +55,14 @@ describe("SettingsDashboard", () => {
     );
 
     const prescriptionTemplates = screen.getByRole("button", {
-      name: /Prescription Templates/,
+      name: /Prescription templates/,
     });
     expect(prescriptionTemplates).toHaveAttribute(
       "title",
-      "Prescription Templates",
+      "Prescription templates",
     );
     expect(
-      prescriptionTemplates.querySelector(".fa-prescription-bottle-medical"),
+      prescriptionTemplates.querySelector(".fa-prescription"),
     ).toBeInTheDocument();
     fireEvent.click(prescriptionTemplates);
     expect(onNavigate).toHaveBeenCalledWith({

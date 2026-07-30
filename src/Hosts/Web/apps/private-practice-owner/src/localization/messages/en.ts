@@ -796,6 +796,7 @@ export const enMessages = {
     noResults: "No results found",
     navigate: "Navigate",
     select: "Select",
+    escape: "Esc",
     groups: {
       navigation: "Navigation",
       quickActions: "Quick Actions",

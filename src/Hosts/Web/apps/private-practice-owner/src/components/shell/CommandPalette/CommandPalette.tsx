@@ -42,7 +42,7 @@ export function CommandPalette() {
                 <Command.InputGroup.ClearButton />
                 <Command.InputGroup.Suffix>
                   <Kbd className="text-xs">
-                    <Kbd.Content>Esc</Kbd.Content>
+                    <Kbd.Content>{t("commandPalette.escape")}</Kbd.Content>
                   </Kbd>
                 </Command.InputGroup.Suffix>
               </Command.InputGroup>

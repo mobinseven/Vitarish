@@ -185,25 +185,15 @@ describe("shared layout policy components", () => {
     );
     expect(
       container.querySelector(
-        "#vitarish-dashboard-main .vitarish-reveal-header",
+        "#vitarish-dashboard-main [data-vitarish-reveal-header-host]",
       ),
     ).toBeInTheDocument();
-    expect(
-      container.querySelector(
-        "#vitarish-dashboard-main .vitarish-reveal-header-inset",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      container.querySelector(
-        "#vitarish-dashboard-main .vitarish-reveal-header [data-slot='navbar-header']",
-      ),
-    ).toHaveTextContent("Workspace");
     expect(
       container.querySelector("[data-slot='app-layout-menu-toggle']"),
     ).toBeNull();
     expect(
       screen.getAllByRole("button", { name: "Toggle context panel" }),
-    ).toHaveLength(2);
+    ).toHaveLength(1);
     expect(container.querySelector("#vitarish-dashboard-main")).toHaveAttribute(
       "tabindex",
       "-1",

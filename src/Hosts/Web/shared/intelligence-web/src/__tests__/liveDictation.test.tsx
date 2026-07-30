@@ -43,6 +43,14 @@ function Harness({ value }: { value: LiveDictationController }) {
   );
 }
 
+function getDictationButton(name: string) {
+  const button = screen
+    .getAllByRole("button", { name })
+    .find((element) => element.tagName === "BUTTON");
+  if (!button) throw new Error(`Expected dictation button: ${name}`);
+  return button;
+}
+
 describe("LiveDictation", () => {
   it("gates the action while availability is loading", () => {
     render(<Harness value={controller({ capabilitiesLoading: true })} />, {
@@ -50,8 +58,8 @@ describe("LiveDictation", () => {
     });
 
     expect(
-      screen.getByRole("button", { name: "Start voice dictation" }),
-    ).toBeDisabled();
+      getDictationButton("Start voice dictation"),
+    ).toHaveAttribute("aria-disabled", "true");
     expect(screen.getByRole("status")).toHaveTextContent(
       "Checking voice dictation availability",
     );
@@ -62,7 +70,7 @@ describe("LiveDictation", () => {
     render(<Harness value={value} />, { wrapper: Wrapper });
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Start voice dictation" }),
+      getDictationButton("Start voice dictation"),
     );
     const languages = screen.getByRole("group", { name: "Dictation language" });
     expect(languages).toHaveAttribute("aria-hidden", "false");
@@ -101,7 +109,7 @@ describe("LiveDictation", () => {
     );
 
     expect(
-      screen.getByRole("button", { name: "Voice dictation unavailable" }),
+      getDictationButton("Voice dictation unavailable"),
     ).toBeDisabled();
     expect(screen.getByRole("status")).toHaveTextContent(
       "Voice dictation is currently unavailable.",

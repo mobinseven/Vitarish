@@ -118,6 +118,7 @@ export const clinicFaMessages = {
         delete: "حذف",
         checkIn: "پذیرش",
         prescription: "ایجاد نسخه",
+        agent: "پرسش از دستیار",
       },
       search: {
         label: "جستجوی بیماران",
