@@ -12,6 +12,11 @@ export type {
 } from "./api/intelligence/liveTranscriptionClient";
 export { LiveDictation } from "./components/LiveDictation";
 export type { LiveDictationProps } from "./components/LiveDictation";
+export { intelligenceRunAgentConversation } from "./api/generated/intelligence/intelligence";
+export type {
+  RunAgentConversationRequest,
+  RunAgentConversationResponse,
+} from "./api/generated/intelligence/model";
 export { rewrite, useRewrite } from "./hooks/useRewrite";
 export type {
   IntelligenceSessionContext,
