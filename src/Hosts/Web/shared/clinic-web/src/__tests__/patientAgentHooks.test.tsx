@@ -69,6 +69,8 @@ describe("patient-agent generated-client hooks", () => {
         conversationId: null,
         previousResponseId: null,
       },
+      undefined,
+      expect.any(AbortSignal),
     );
     expect(clinicRunPatientAgent).toHaveBeenNthCalledWith(
       2,
@@ -78,6 +80,8 @@ describe("patient-agent generated-client hooks", () => {
         conversationId: "conversation-1",
         previousResponseId: null,
       },
+      undefined,
+      expect.any(AbortSignal),
     );
   });
 
