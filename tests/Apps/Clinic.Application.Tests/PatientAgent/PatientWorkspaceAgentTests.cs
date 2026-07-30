@@ -279,9 +279,13 @@ public sealed class PatientWorkspaceAgentTests
                 conversation.ExecutionContext,
                 conversation.Limits,
                 cancellationToken);
+            Guid conversationId = conversation.ConversationId ?? Guid.CreateVersion7();
+            AgentConversationOutcome outcome = result.IsSuccess && conversation.BeforeCommit is not null
+                ? await conversation.BeforeCommit(conversationId, result with { History = result.History ?? "[]" }, cancellationToken)
+                : result.IsSuccess ? AgentConversationOutcome.Succeeded : AgentConversationOutcome.ProviderFailure;
             object response = new RunAgentConversationResult(
-                result.IsSuccess ? AgentConversationOutcome.Succeeded : AgentConversationOutcome.ProviderFailure,
-                conversation.ConversationId ?? Guid.CreateVersion7(),
+                outcome,
+                conversationId,
                 result);
             return (TResponse)response;
         }

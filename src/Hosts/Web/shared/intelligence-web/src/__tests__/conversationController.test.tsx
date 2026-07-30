@@ -21,13 +21,13 @@ describe("useConversationController", () => {
     await act(() => result.current.submit("first"));
     await act(() => result.current.retry());
 
-    expect(run).toHaveBeenNthCalledWith(1, "first", null);
-    expect(run).toHaveBeenNthCalledWith(2, "first", "conversation-1");
+    expect(run.mock.calls[0].slice(0, 2)).toEqual(["first", null]);
+    expect(run.mock.calls[1].slice(0, 2)).toEqual(["first", "conversation-1"]);
     expect(result.current).not.toHaveProperty("conversationId");
 
     rerender({ ownerKey: "patient-2" });
     await act(() => result.current.submit("other patient"));
-    expect(run).toHaveBeenLastCalledWith("other patient", null);
+    expect(run.mock.calls.at(-1)?.slice(0, 2)).toEqual(["other patient", null]);
   });
 
   it("silently starts fresh when a legacy conversation is not found", async () => {
@@ -47,7 +47,7 @@ describe("useConversationController", () => {
     await act(() => result.current.submit("first"));
     await act(() => result.current.submit("second"));
 
-    expect(run).toHaveBeenLastCalledWith("second", null);
+    expect(run.mock.calls.at(-1)?.slice(0, 2)).toEqual(["second", null]);
     expect(result.current.isError).toBe(false);
   });
 
@@ -68,7 +68,7 @@ describe("useConversationController", () => {
     await act(() => result.current.submit("fresh"));
 
     expect(deleteConversation).toHaveBeenCalledWith("conversation-1");
-    expect(run).toHaveBeenLastCalledWith("fresh", null);
+    expect(run.mock.calls.at(-1)?.slice(0, 2)).toEqual(["fresh", null]);
   });
 
   it("rejects a pending result after the sheet closes", async () => {

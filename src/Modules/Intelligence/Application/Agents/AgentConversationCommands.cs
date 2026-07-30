@@ -9,7 +9,8 @@ public sealed record RunAgentConversation(
     AgentInput Input,
     IReadOnlyCollection<IAgentTool> Tools,
     AgentExecutionContext ExecutionContext,
-    AgentExecutionLimits Limits)
+    AgentExecutionLimits Limits,
+    Func<Guid, AgentRunResult, CancellationToken, Task<AgentConversationOutcome>>? BeforeCommit = null)
     : IRequest<RunAgentConversationResult>;
 
 public sealed record RunAgentConversationResult(
@@ -63,6 +64,13 @@ public sealed class RunAgentConversationHandler(
                     run);
             if (string.IsNullOrWhiteSpace(run.History))
                 return new(AgentConversationOutcome.InvalidHistory, lease.ConversationId, run);
+
+            if (request.BeforeCommit is not null)
+            {
+                AgentConversationOutcome validation = await request.BeforeCommit(lease.ConversationId, run, cancellationToken);
+                if (validation != AgentConversationOutcome.Succeeded)
+                    return new(validation, lease.ConversationId, run);
+            }
 
             AgentConversationOutcome replaced = await store.ReplaceHistoryAsync(
                 lease,

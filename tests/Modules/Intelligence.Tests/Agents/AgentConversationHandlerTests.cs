@@ -106,6 +106,31 @@ public sealed class AgentConversationHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ValidatesApplicationResultBeforeReplacingHistory()
+    {
+        FakeStore store = new();
+        FakeRunner runner = new(new AgentRunResult(true, "answer", null, new(0, 0), TimeSpan.Zero, 1, 0)
+        {
+            History = "[]"
+        });
+        store.CallbackObserved = false;
+
+        RunAgentConversationResult result = await new RunAgentConversationHandler(store, runner)
+            .Handle(Request(store.ConversationId) with
+            {
+                BeforeCommit = (_, _, _) =>
+                {
+                    store.CallbackObserved = true;
+                    return Task.FromResult(AgentConversationOutcome.Succeeded);
+                }
+            }, default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.Succeeded);
+        store.CallbackObserved.Should().BeTrue();
+        store.ReplaceSawCallback.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task Delete_UsesOwnedStoreBoundary()
     {
         FakeStore store = new() { DeleteOutcome = AgentConversationOutcome.NotFound };
@@ -154,6 +179,8 @@ public sealed class AgentConversationHandlerTests
         public string? ReplacedHistory { get; private set; }
         public bool Released { get; private set; }
         public AgentConversationScope? DeletedScope { get; private set; }
+        public bool CallbackObserved { get; set; }
+        public bool ReplaceSawCallback { get; private set; }
 
         public Task<AgentConversationStoreResult> AcquireAsync(
             Guid? conversationId,
@@ -172,6 +199,7 @@ public sealed class AgentConversationHandlerTests
             CancellationToken cancellationToken)
         {
             ReplacedHistory = history;
+            ReplaceSawCallback = CallbackObserved;
             return Task.FromResult(ReplaceOutcome);
         }
 

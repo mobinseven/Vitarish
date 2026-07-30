@@ -25,6 +25,7 @@ public sealed class RunPatientAgentHandler(
             : Guid.TryParse(request.Context.ConversationId, out Guid parsedConversationId)
                 ? parsedConversationId
                 : Guid.Empty;
+        PatientAgentResult? parsedResult = null;
         RunAgentConversationResult conversation = await sender.Send(new RunAgentConversation(
             existingConversationId,
             new AgentConversationScope(
@@ -37,7 +38,36 @@ public sealed class RunPatientAgentHandler(
             new AgentInput(request.Input.Message),
             workspace.Tools,
             workspace.ExecutionContext,
-            workspace.Limits), cancellationToken);
+            workspace.Limits,
+            async (conversationId, run, callbackCancellationToken) =>
+            {
+                try
+                {
+                    if (run.StructuredOutput is not JsonElement output)
+                        return AgentConversationOutcome.InvalidHistory;
+                    if (run.ToolExecutions.Count > 0)
+                    {
+                        workspace.ExecutionCollector.RecordRemote(
+                            run.ToolExecutions,
+                            workspace.Tools,
+                            workspace.ToolCapabilities ?? new Dictionary<string, string>(StringComparer.Ordinal),
+                            workspace.ExecutionContext);
+                    }
+                    PatientAgentContext persistedContext = request.Context with
+                    {
+                        ConversationId = conversationId.ToString("N"),
+                        IsNewConversation = false
+                    };
+                    parsedResult = Parse(output, workspace, persistedContext, timeProvider.GetUtcNow());
+                    foreach (PatientAgentAction action in parsedResult.Actions)
+                        await actionStore.SaveAsync(action, callbackCancellationToken);
+                    return AgentConversationOutcome.Succeeded;
+                }
+                catch (Exception exception) when (exception is JsonException or InvalidOperationException or KeyNotFoundException)
+                {
+                    return AgentConversationOutcome.InvalidHistory;
+                }
+            }), cancellationToken);
         AgentRunResult? run = conversation.Run;
 
         if (conversation.Outcome != AgentConversationOutcome.Succeeded ||
@@ -60,32 +90,12 @@ public sealed class RunPatientAgentHandler(
             };
         }
 
-        try
-        {
-            if (run.ToolExecutions.Count > 0)
-            {
-                workspace.ExecutionCollector.RecordRemote(
-                    run.ToolExecutions,
-                    workspace.Tools,
-                    workspace.ToolCapabilities ?? new Dictionary<string, string>(StringComparer.Ordinal),
-                    workspace.ExecutionContext);
-            }
-            PatientAgentContext persistedContext = request.Context with
-            {
-                ConversationId = conversation.ConversationId!.Value.ToString("N"),
-                IsNewConversation = false
-            };
-            PatientAgentResult result = Parse(output, workspace, persistedContext, timeProvider.GetUtcNow());
-            foreach (PatientAgentAction action in result.Actions)
-            {
-                await actionStore.SaveAsync(action, cancellationToken);
-            }
-            return result;
-        }
-        catch (Exception exception) when (exception is JsonException or InvalidOperationException or KeyNotFoundException)
-        {
+        if (conversation.Outcome != AgentConversationOutcome.Succeeded || parsedResult is null)
             return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, "The patient agent returned an invalid structured result.");
-        }
+        return parsedResult with
+        {
+            ConversationId = conversation.ConversationId!.Value.ToString("N")
+        };
     }
 
     private static PatientAgentResult Parse(

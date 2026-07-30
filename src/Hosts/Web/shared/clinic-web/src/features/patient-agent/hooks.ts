@@ -25,12 +25,12 @@ const patientAgentActionKey = (patientId: string, actionId: string) =>
 
 export function usePatientAgentConversation(patientId: string, isOpen: boolean) {
   const runTurn = useCallback(
-    async (message: string, conversationId: string | null) => {
+    async (message: string, conversationId: string | null, signal: AbortSignal) => {
       const result = await clinicRunPatientAgent(patientId, {
         message,
         conversationId,
         previousResponseId: null,
-      });
+      }, undefined, signal);
       return { conversationId: result.conversationId, result };
     },
     [patientId],
