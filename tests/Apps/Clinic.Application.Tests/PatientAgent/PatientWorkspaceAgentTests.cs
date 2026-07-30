@@ -132,7 +132,7 @@ public sealed class PatientWorkspaceAgentTests
         TestTool handler = new("appointments_list");
         PatientAgentContext trusted = Context();
         AgentExecutionContext execution = Execution(trusted);
-        IAgentTool guarded = new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy())
+        IAgentTool guarded = new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy(), [])
             .CreateTools(trusted, execution, [new Capability("appointments", new HashSet<string>(), [handler], [])]).Single();
 
         Func<Task> unknown = () => guarded.ExecuteAsync(new AgentToolCall("call-1", "other", "{}"), execution);
@@ -149,7 +149,7 @@ public sealed class PatientWorkspaceAgentTests
         TestTool handler = new("appointments_list", """{"type":"object","additionalProperties":false,"required":["range"],"properties":{"range":{"type":"string","enum":["future"]}}}""");
         PatientAgentContext trusted = Context();
         AgentExecutionContext execution = Execution(trusted);
-        IAgentTool guarded = new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy())
+        IAgentTool guarded = new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy(), [])
             .CreateTools(trusted, execution, [new Capability("appointments", new HashSet<string>(), [handler], [])]).Single();
 
         Func<Task> invalid = () => guarded.ExecuteAsync(new AgentToolCall("call-1", "appointments_list", "{}"), execution);
@@ -257,14 +257,14 @@ public sealed class PatientWorkspaceAgentTests
     private static RunPatientAgentHandler Handler(IAgentRunner runner, IEnumerable<IPatientAgentCapability> capabilities) =>
         new(runner, new PatientWorkspaceAgentDefinitionFactory(
             Registry(capabilities),
-            new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy()),
+            new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy(), []),
             new PatientAgentInstructionComposer(),
             new PatientWorkspaceAgentOptions("test-model")),
             new RecordingActionStore(),
             TimeProvider.System);
 
     private static PatientWorkspaceAgentDefinitionFactory Factory(params IPatientAgentCapability[] capabilities) =>
-        new(Registry(capabilities), new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy()), new PatientAgentInstructionComposer(), new PatientWorkspaceAgentOptions("test-model"));
+        new(Registry(capabilities), new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy(), []), new PatientAgentInstructionComposer(), new PatientWorkspaceAgentOptions("test-model"));
 
     private static PatientAgentCapabilityRegistry Registry(
         IEnumerable<IPatientAgentCapability> capabilities,

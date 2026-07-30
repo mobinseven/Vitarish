@@ -49,4 +49,34 @@ public sealed class PatientAgentExecutionCollector
             _executions.Add(new(call.Name, call.Id, context.ExecutionId, prepared));
         }
     }
+
+    public void RecordRemote(
+        IReadOnlyCollection<AgentToolExecution> executions,
+        IReadOnlyCollection<IAgentTool> tools,
+        IReadOnlyDictionary<string, string> toolCapabilities,
+        AgentExecutionContext context)
+    {
+        Dictionary<string, IPatientAgentPreparationTool> preparationTools = tools
+            .OfType<IPatientAgentPreparationTool>()
+            .ToDictionary(tool => tool.Definition.Name, StringComparer.Ordinal);
+
+        foreach (AgentToolExecution execution in executions)
+        {
+            if (execution.IsError ||
+                !preparationTools.TryGetValue(execution.ToolName, out IPatientAgentPreparationTool? tool))
+                continue;
+
+            PatientAgentPreparedAction? prepared = tool.GetPreparedAction(
+                new AgentToolResult(execution.ToolCallId, execution.Output, execution.IsError));
+            if (prepared is null) continue;
+            if (!toolCapabilities.TryGetValue(execution.ToolName, out string? capability) ||
+                !string.Equals(prepared.Capability, capability, StringComparison.Ordinal))
+                throw new InvalidOperationException("The prepared action capability does not match its registered capability.");
+
+            lock (_sync)
+            {
+                _executions.Add(new(execution.ToolName, execution.ToolCallId, context.ExecutionId, prepared));
+            }
+        }
+    }
 }

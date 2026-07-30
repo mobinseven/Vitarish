@@ -43,6 +43,10 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<CheckAppointmentAvailabilityTool>();
             _ = services.AddTransient<PrepareAppointmentTool>();
             _ = services.AddTransient<ConfirmAppointmentTool>();
+            _ = services.AddTransient<PatientAppointmentQueryService>();
+            _ = services.AddTransient<GetNextPatientAppointmentTool>();
+            _ = services.AddTransient<ListPatientAppointmentsTool>();
+            _ = services.AddTransient<CountPatientAppointmentsTool>();
             _ = services.AddTransient<IPatientAgentCapability, AppointmentAgentCapability>();
             _ = services.AddTransient<SearchPrescriptionTemplatesTool>();
             _ = services.AddTransient<GetPrescriptionTemplateRequirementsTool>();

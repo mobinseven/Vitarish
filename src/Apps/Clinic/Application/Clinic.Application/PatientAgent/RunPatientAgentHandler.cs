@@ -17,12 +17,12 @@ public sealed class RunPatientAgentHandler(
         PatientWorkspaceAgentDefinition workspace = definitionFactory.Create(request.Context);
         if (string.IsNullOrWhiteSpace(request.Input.Message))
         {
-            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, "A message is required.");
+            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, request.Context.PreviousResponseId, "A message is required.");
         }
 
         AgentRunResult run = await agentRunner.RunAsync(
             workspace.Definition,
-            new AgentInput(request.Input.Message),
+            new AgentInput(request.Input.Message, request.Context.PreviousResponseId),
             workspace.Tools,
             workspace.ExecutionContext,
             workspace.Limits,
@@ -30,12 +30,20 @@ public sealed class RunPatientAgentHandler(
 
         if (!run.IsSuccess || run.StructuredOutput is not JsonElement output)
         {
-            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, run.Error?.Message ?? "The patient agent did not return a valid result.");
+            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, request.Context.PreviousResponseId, run.Error?.Message ?? "The patient agent did not return a valid result.");
         }
 
         try
         {
-            PatientAgentResult result = Parse(output, workspace, request.Context, timeProvider.GetUtcNow());
+            if (run.ToolExecutions.Count > 0)
+            {
+                workspace.ExecutionCollector.RecordRemote(
+                    run.ToolExecutions,
+                    workspace.Tools,
+                    workspace.ToolCapabilities ?? new Dictionary<string, string>(StringComparer.Ordinal),
+                    workspace.ExecutionContext);
+            }
+            PatientAgentResult result = Parse(output, workspace, request.Context, timeProvider.GetUtcNow(), run.ResponseId);
             foreach (PatientAgentAction action in result.Actions)
             {
                 await actionStore.SaveAsync(action, cancellationToken);
@@ -44,7 +52,7 @@ public sealed class RunPatientAgentHandler(
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException or KeyNotFoundException)
         {
-            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, "The patient agent returned an invalid structured result.");
+            return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, request.Context.PreviousResponseId, "The patient agent returned an invalid structured result.");
         }
     }
 
@@ -52,7 +60,8 @@ public sealed class RunPatientAgentHandler(
         JsonElement output,
         PatientWorkspaceAgentDefinition workspace,
         PatientAgentContext context,
-        DateTimeOffset preparedAt)
+        DateTimeOffset preparedAt,
+        string? responseId)
     {
         List<PatientAgentMessage> messages = [];
         foreach (JsonElement item in output.GetProperty("messages").EnumerateArray())
@@ -99,6 +108,6 @@ public sealed class RunPatientAgentHandler(
                 prepared.Expiration ?? preparedAt.AddMinutes(30),
                 Summary: values is { Count: > 0 } ? values.Dequeue() : string.Empty));
         }
-        return new PatientAgentResult(workspace.ExecutionContext.ExecutionId, context.ConversationId, messages, actions);
+        return new PatientAgentResult(workspace.ExecutionContext.ExecutionId, context.ConversationId, responseId, messages, actions);
     }
 }

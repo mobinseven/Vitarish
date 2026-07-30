@@ -22,14 +22,10 @@ internal class ShiftBookableDateQueryService(
             return [];
         }
 
-        Task<IReadOnlyList<ShiftBookingPolicy>> policiesTask = LoadPoliciesAsync([shiftId], cancellationToken);
-        Task<IReadOnlyList<ShiftReservation>> existingTask = reservationViewRepository.GetAsync([shiftId], dateFrom, dateTo, cancellationToken);
+        IReadOnlyList<ShiftBookingPolicy> policies = await LoadPoliciesAsync([shiftId], cancellationToken);
+        IReadOnlyList<ShiftReservation> existing = await reservationViewRepository.GetAsync([shiftId], dateFrom, dateTo, cancellationToken);
 
-        await Task.WhenAll(policiesTask, existingTask);
-
-        IReadOnlyList<ShiftBookingPolicy> policies = await policiesTask;
-
-        Dictionary<DateOnly, ShiftReservation> existingByDate = (await existingTask)
+        Dictionary<DateOnly, ShiftReservation> existingByDate = existing
             .ToDictionary(sr => sr.Date);
 
         DateTime now = DateTime.UtcNow;
@@ -70,15 +66,11 @@ internal class ShiftBookableDateQueryService(
         DateTime now = DateTime.UtcNow;
         IReadOnlyList<Guid> shiftIds = [.. shifts.Select(s => s.Id)];
 
-        Task<IReadOnlyList<ShiftBookingPolicy>> policiesTask = LoadPoliciesAsync(shiftIds, cancellationToken);
-        Task<IReadOnlyList<ShiftReservation>> reservationsTask = reservationViewRepository.GetAsync(shiftIds, dateFrom, dateTo, cancellationToken);
-
-        await Task.WhenAll(policiesTask, reservationsTask);
-
-        IReadOnlyList<ShiftBookingPolicy> allPolicies = await policiesTask;
+        IReadOnlyList<ShiftBookingPolicy> allPolicies = await LoadPoliciesAsync(shiftIds, cancellationToken);
+        IReadOnlyList<ShiftReservation> reservations = await reservationViewRepository.GetAsync(shiftIds, dateFrom, dateTo, cancellationToken);
 
         Dictionary<Guid, Dictionary<DateOnly, ShiftReservation>> reservationsByShift =
-            (await reservationsTask)
+            reservations
             .GroupBy(sr => sr.ShiftId)
             .ToDictionary(g => g.Key, g => g.ToDictionary(sr => sr.Date));
 

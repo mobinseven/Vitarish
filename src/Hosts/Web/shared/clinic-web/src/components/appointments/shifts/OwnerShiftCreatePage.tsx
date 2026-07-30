@@ -1,4 +1,5 @@
 "use client";
+import { getLocalTimeZone } from "@internationalized/date";
 import type { NavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization/index";
 import { ShiftEditor } from "./ShiftEditor";
@@ -24,7 +25,7 @@ export function OwnerShiftCreatePage({
           startTime: "09:00",
           endTime: "10:00",
           totalSeats: 10,
-          timeZone: "UTC",
+          timeZone: getLocalTimeZone(),
         }}
         isPending={mutation.isPending}
         failure={

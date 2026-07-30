@@ -13,6 +13,10 @@ public sealed class HttpPatientAgentContextFactory(IHttpContextAccessor httpCont
     private const string TenantClaimType = "tenant";
     private const string DefaultLocale = "fa-IR";
     private const string DefaultTimeZone = "Asia/Tehran";
+    private const string DefaultPersianCalendar = "persian";
+    private const string DefaultCalendar = "gregory";
+    private static readonly IReadOnlySet<string> SupportedCalendars =
+        new HashSet<string>(StringComparer.Ordinal) { DefaultCalendar, DefaultPersianCalendar };
 
     public Task<PatientAgentContext> CreateAsync(
         Guid routePatientId,
@@ -36,15 +40,17 @@ public sealed class HttpPatientAgentContextFactory(IHttpContextAccessor httpCont
             .Where(static value => !string.IsNullOrWhiteSpace(value))
             .ToHashSet(StringComparer.Ordinal);
 
+        string locale = ResolveLocale(http.Request.Headers.AcceptLanguage);
         return Task.FromResult(new PatientAgentContext(
             practiceId,
             routePatientId,
             authenticatedUserId,
             permissions,
             user.FindFirstValue(ClaimTypes.Role) ?? string.Empty,
-            ResolveLocale(http.Request.Headers.AcceptLanguage),
-            http.Request.Headers["X-Time-Zone"].FirstOrDefault() ?? DefaultTimeZone,
-            string.IsNullOrWhiteSpace(conversationId) ? Guid.NewGuid().ToString("N") : conversationId.Trim()));
+            locale,
+            ResolveTimeZone(http.Request.Headers["X-Time-Zone"].FirstOrDefault()),
+            string.IsNullOrWhiteSpace(conversationId) ? Guid.NewGuid().ToString("N") : conversationId.Trim(),
+            Calendar: ResolveCalendar(http.Request.Headers["X-Calendar"].FirstOrDefault(), locale)));
     }
 
     private static string ResolveLocale(string? acceptLanguage)
@@ -63,5 +69,27 @@ public sealed class HttpPatientAgentContextFactory(IHttpContextAccessor httpCont
         {
             return DefaultLocale;
         }
+    }
+
+    private static string ResolveTimeZone(string? candidate)
+    {
+        if (string.IsNullOrWhiteSpace(candidate)) return DefaultTimeZone;
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById(candidate.Trim()).Id;
+        }
+        catch (Exception exception) when (exception is TimeZoneNotFoundException or InvalidTimeZoneException)
+        {
+            return DefaultTimeZone;
+        }
+    }
+
+    private static string ResolveCalendar(string? candidate, string locale)
+    {
+        string? normalized = candidate?.Trim().ToLowerInvariant();
+        if (normalized is not null && SupportedCalendars.Contains(normalized)) return normalized;
+        return locale.StartsWith("fa", StringComparison.OrdinalIgnoreCase)
+            ? DefaultPersianCalendar
+            : DefaultCalendar;
     }
 }

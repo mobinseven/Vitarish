@@ -13,9 +13,26 @@ services:
     depends_on:
       - main
 
+  agent-runtime:
+    build:
+      context: ./Web
+      dockerfile: apps/agent-runtime/Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      AGENT_RUNTIME_SHARED_SECRET: ${VITARISH_AGENT_RUNTIME_SECRET}
+      AGENT_RUNTIME_CLINIC_HEALTH_URL: http://main:8080/api/modules/clinic/internal/agent/health
+    depends_on:
+      - main
+
   main:
     build:
       context: ../..
       dockerfile: src/Hosts/Main/Dockerfile
     ports:
       - "5000:8080"
+    environment:
+      Vitarish__Intelligence__AgentRuntime__BaseUrl: http://agent-runtime:3003
+      Vitarish__Intelligence__AgentRuntime__ToolCallbackUrl: http://main:8080/api/modules/clinic/internal/agent/tools/execute
+      Vitarish__Intelligence__AgentRuntime__SharedSecret: ${VITARISH_AGENT_RUNTIME_SECRET}

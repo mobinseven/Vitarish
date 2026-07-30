@@ -3,6 +3,7 @@ using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Actions;
 using Vitarish.Clinic.Contracts.PatientAgent;
 using Xunit;
+using PatientAgentActionStatus = Vitarish.Clinic.Application.PatientAgent.PatientAgentActionStatus;
 
 namespace Vitarish.Clinic.Application.Tests.PatientAgent;
 
