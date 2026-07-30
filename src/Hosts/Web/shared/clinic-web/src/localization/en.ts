@@ -118,6 +118,7 @@ export const clinicEnMessages = {
         delete: "Delete",
         checkIn: "Check in",
         prescription: "Create prescription",
+        agent: "Ask assistant",
       },
       search: {
         label: "Search patients",

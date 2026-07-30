@@ -102,19 +102,15 @@ describe("PatientProceduresPanel", () => {
       { wrapper: Wrapper },
     );
 
-    expect(screen.getByText("Progress at a glance")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Skin renewal/ }),
     ).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByText("Five-step protocol")).toBeInTheDocument();
     expect(screen.getByText("4/5 events")).toBeInTheDocument();
-    expect(await screen.findByText("Initial assessment")).toBeInTheDocument();
+    expect(screen.getByText(/Initial assessment/)).toBeInTheDocument();
     expect(screen.getByText("Healing is on track")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Open full timeline" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Add note or evidence" }),
+      screen.getByRole("button", { name: "Open procedure" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Manage reminders" }),

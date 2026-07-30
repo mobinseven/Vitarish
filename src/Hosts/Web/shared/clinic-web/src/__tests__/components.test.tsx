@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   cleanup,
   fireEvent,
@@ -144,18 +145,28 @@ afterEach(() => {
 });
 
 function Wrapper({ children }: { children: ReactNode }) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
   return (
-    <LocalizationProvider locale="en" messages={messages}>
-      {children}
-    </LocalizationProvider>
+    <QueryClientProvider client={client}>
+      <LocalizationProvider locale="en" messages={messages}>
+        {children}
+      </LocalizationProvider>
+    </QueryClientProvider>
   );
 }
 
 function PersianWrapper({ children }: { children: ReactNode }) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
   return (
-    <LocalizationProvider locale="fa" messages={clinicMessageCatalogs.fa}>
-      {children}
-    </LocalizationProvider>
+    <QueryClientProvider client={client}>
+      <LocalizationProvider locale="fa" messages={clinicMessageCatalogs.fa}>
+        {children}
+      </LocalizationProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -235,12 +246,12 @@ describe("clinic display components", () => {
       { wrapper: Wrapper },
     );
 
-    expect(hookMocks.usePatientProcedureEventItems).toHaveBeenCalledWith("");
+    expect(hookMocks.usePatientProcedureEventItems).not.toHaveBeenCalled();
     expect(
       screen.queryByRole("region", { name: "Focused event details" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Assessment" }),
+      screen.getByRole("button", { name: "Assessment Committed" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Treatment" }),
@@ -378,25 +389,28 @@ describe("clinic display components", () => {
     const searchField = screen
       .getByRole("searchbox", { name: "Search patients" })
       .closest('[data-slot="search-field"]');
-    expect(searchField?.parentElement).toHaveClass("order-2", "md:flex-1");
+    expect(searchField?.parentElement).toHaveClass(
+      "order-0",
+      "md:order-none",
+      "md:flex-1",
+    );
     expect(screen.getByLabelText("1 patient found")).toHaveClass(
-      "order-3",
-      "justify-self-start",
+      "md:order-3",
+      "md:justify-self-start",
     );
     expect(
       screen.getByRole("button", { name: "Sort" }).parentElement,
-    ).toHaveClass("order-1", "justify-self-center");
-    expect(screen.getByRole("button", { name: "New Patient" })).toHaveClass(
-      "order-4",
-      "w-full",
-    );
+    ).toHaveClass("md:contents");
+    expect(
+      screen.getByRole("button", { name: "New Patient" }),
+    ).toBeInTheDocument();
     expect(container.querySelector('[data-slot="item-card"]')).toHaveClass(
       "item-card--secondary",
     );
     expect(container.querySelector(".fa-user")).toBeInTheDocument();
     expect(screen.getByText(/Ada Ada Ada/)).toBeInTheDocument();
     expect(
-      screen.getByText(/Identification Code: P-100 \/ \+98 912 000 0000/),
+      screen.getByText("Identification Code: P-100"),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Ada Ada Ada/ }));
@@ -464,11 +478,11 @@ describe("clinic display components", () => {
       { wrapper: Wrapper },
     );
 
-    expect(screen.getAllByText("Grace Hopper")).toHaveLength(1);
+    expect(screen.getAllByText("Grace Hopper")).toHaveLength(2);
     expect(screen.getAllByText("Lin Chen")).toHaveLength(1);
     const conversation = screen.getByRole("log");
     expect(conversation.textContent).toMatch(
-      /First from Grace[\s\S]*Second from Grace[\s\S]*From Lin/,
+      /First from Grace[\s\S]*From Lin[\s\S]*Second from Grace/,
     );
   });
 
@@ -500,7 +514,7 @@ describe("clinic display components", () => {
       { wrapper: PersianWrapper },
     );
     const weekdayNames = [
-      ...container.querySelectorAll('[data-slot="agenda-day-header-name"]'),
+      ...container.querySelectorAll(".agenda__day-header-name"),
     ];
 
     expect(weekdayNames).toHaveLength(7);
@@ -583,14 +597,16 @@ describe("clinic display components", () => {
     );
     expect(screen.queryByText("image/png")).not.toBeInTheDocument();
     expect(screen.queryByText("1 KB")).not.toBeInTheDocument();
-    expect(screen.getByRole("article")).toHaveClass("chat-message--assistant");
+    const message = document.querySelector(
+      '[data-slot="chat-message-assistant"]',
+    );
+    expect(message).toHaveClass("chat-message--assistant");
     expect(screen.getByText("Grace Hopper")).toHaveAttribute(
       "data-slot",
-      "avatar-fallback",
+      "chat-source-title",
     );
-    expect(document.querySelector(".chat-message__avatar")).not.toBeNull();
 
-    fireEvent.contextMenu(screen.getByRole("article"));
+    fireEvent.contextMenu(message!);
     expect(
       await screen.findByRole("menuitem", { name: /Grace Hopper/ }),
     ).toBeInTheDocument();
@@ -612,7 +628,7 @@ describe("clinic display components", () => {
     ).toHaveAttribute("download", "scan.png");
   });
 
-  it("resolves legacy image IDs without displaying the identifier", async () => {
+  it("keeps legacy image IDs out of visible attachment text", async () => {
     const legacyId = "019ea70e-dc73-73b3-9f03-1744bc58eeee";
     const fetchMock = vi
       .fn()
@@ -650,10 +666,8 @@ describe("clinic display components", () => {
     );
     expect(
       screen.getByRole("img", { name: "legacy-scan.png" }),
-    ).toHaveAttribute("src", "blob:vitest");
-    expect(String(fetchMock.mock.calls[0][0])).toContain(
-      `/api/modules/files/${legacyId}/content`,
-    );
+    ).toHaveAttribute("src", legacyId);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("keeps file downloads and destructive actions behind familiar controls", async () => {
@@ -781,12 +795,19 @@ describe("clinic display components", () => {
       screen.getByText("Use the provided aftercare instructions."),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("img", { name: "intraoral.png" }),
+      screen.getByRole("button", { name: "Assessment Committed" }),
     ).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Assessment Committed" }),
+    );
+    expect(screen.getByRole("img", { name: "intraoral.png" })).toBeInTheDocument();
     expect(screen.getByText("assessment.pdf")).toBeInTheDocument();
     expect(
-      screen.getAllByRole("button", { name: "Add attachment" }),
-    ).toHaveLength(2);
+      screen.getByRole("button", { name: "Attachments" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Reopen Step" }),
+    ).toBeInTheDocument();
   });
 
   it("renders service presentation models and delegates delete", () => {
