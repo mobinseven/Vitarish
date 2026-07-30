@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Vitarish.Clinic.Contracts.PatientAgent;
 
-public sealed record RunPatientAgentRequest(string Message, string? ConversationId = null, string? PreviousResponseId = null);
+public sealed record RunPatientAgentRequest(string Message, string? ConversationId = null);
 
 public sealed record RunPatientAgentResponse(
     string AgentRunId,

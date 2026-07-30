@@ -13,9 +13,6 @@ public sealed record ResponderOptions
     [JsonPropertyName("json_schema")]
     public ResponderJsonSchema? JsonSchema { get; init; }
 
-    [JsonPropertyName("previous_response_id")]
-    public string? PreviousResponseId { get; init; }
-
     [JsonPropertyName("model")]
     public string? Model { get; init; }
 

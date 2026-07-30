@@ -1993,12 +1993,6 @@
               "null",
               "string"
             ]
-          },
-          "previousResponseId": {
-            "type": [
-              "null",
-              "string"
-            ]
           }
         }
       },
