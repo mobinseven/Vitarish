@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseHistory } from "./route";
 
-describe("clinic agent history", () => {
+describe("agent runtime history", () => {
   it("accepts supported SDK history items", () => {
     const history = JSON.stringify([
       { role: "user", content: "hello" },
