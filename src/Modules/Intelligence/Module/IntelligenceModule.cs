@@ -41,6 +41,11 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
             .ValidateOnStart();
         _ = services.AddOptions<AgentRuntimeOptions>()
             .BindConfiguration($"{sectionPath}:AgentRuntime");
+        _ = services.AddOptions<AgentConversationRetentionOptions>()
+            .BindConfiguration($"{sectionPath}:AgentConversationRetention")
+            .Validate(options => options.RetentionDays > 0 && options.CleanupIntervalHours > 0,
+                "Agent conversation retention settings must be positive.")
+            .ValidateOnStart();
 
         _ = services.AddOptions<LiveTranscriptionSettings>()
             .BindConfiguration($"{sectionPath}:LiveTranscription")
@@ -65,7 +70,8 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
     {
         RegisterOptions(builder.Services, builder.Configuration, OptionsSectionPath);
         _ = builder.Services.AddTransientMultiTenantDbContext<IntelligenceDbContext>((_, options) => configureDbContext?.Invoke(options));
-        _ = builder.Services.AddTransient<IAgentConversationStore, EfAgentConversationStore>();
+        _ = builder.Services.AddTransient<EfAgentConversationStore>();
+        _ = builder.Services.AddTransient<IAgentConversationStore>(sp => sp.GetRequiredService<EfAgentConversationStore>());
         _ = builder.Services.AddMediatR(configuration =>
             configuration.RegisterServicesFromAssembly(typeof(RunAgentConversationHandler).Assembly));
         _ = builder.Services.AddSingleton<IIntelligenceModule, IntelligenceModule>();

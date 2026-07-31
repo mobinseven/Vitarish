@@ -7,6 +7,16 @@ public sealed record AgentConversationScope(
     string SubjectKind,
     string SubjectId);
 
+public sealed record AgentConversationOwnerScope(
+    string? TenantId = null,
+    string? CreatingUserId = null,
+    string? SubjectKind = null,
+    string? SubjectId = null);
+
+public sealed record AgentConversationOwnerDeletionResult(
+    AgentConversationOutcome Outcome,
+    int DeletedCount);
+
 public enum AgentConversationOutcome
 {
     Succeeded,
@@ -47,5 +57,13 @@ public interface IAgentConversationStore
     Task<AgentConversationOutcome> DeleteAsync(
         Guid conversationId,
         AgentConversationScope scope,
+        CancellationToken cancellationToken);
+
+    Task<AgentConversationOwnerDeletionResult> DeleteForOwnerAsync(
+        AgentConversationOwnerScope owner,
+        CancellationToken cancellationToken);
+
+    Task<int> DeleteExpiredAsync(
+        DateTimeOffset cutoff,
         CancellationToken cancellationToken);
 }

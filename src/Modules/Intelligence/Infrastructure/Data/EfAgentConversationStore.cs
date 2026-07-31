@@ -137,6 +137,51 @@ public sealed class EfAgentConversationStore(
         return owned ? AgentConversationOutcome.Busy : AgentConversationOutcome.NotFound;
     }
 
+    public async Task<AgentConversationOwnerDeletionResult> DeleteForOwnerAsync(
+        AgentConversationOwnerScope owner,
+        CancellationToken cancellationToken)
+    {
+        ValidateOwner(owner);
+        System.Linq.Expressions.Expression<Func<AgentConversationEntity, bool>> predicate = query =>
+            (string.IsNullOrEmpty(owner.TenantId) || query.TenantId == owner.TenantId) &&
+            (string.IsNullOrEmpty(owner.CreatingUserId) || query.CreatingUserId == owner.CreatingUserId) &&
+            (string.IsNullOrEmpty(owner.SubjectKind) || query.SubjectKind == owner.SubjectKind) &&
+            (string.IsNullOrEmpty(owner.SubjectId) || query.SubjectId == owner.SubjectId);
+
+        bool hasLiveLease = await dbContext.AgentConversations.IgnoreQueryFilters()
+            .Where(predicate)
+            .AnyAsync(query => query.ActiveLeaseId != null && query.ActiveLeaseExpiresAt > timeProvider.GetUtcNow(), cancellationToken);
+        if (hasLiveLease)
+            return new(AgentConversationOutcome.Busy, 0);
+
+        int deleted = await DeleteWhereAsync(predicate, cancellationToken);
+        return new(AgentConversationOutcome.Succeeded, deleted);
+    }
+
+    public Task<int> DeleteExpiredAsync(DateTimeOffset cutoff, CancellationToken cancellationToken) =>
+        DeleteWhereAsync(query => query.UpdatedAt < cutoff, cancellationToken);
+
+    private Task<int> DeleteWhereAsync(
+        System.Linq.Expressions.Expression<Func<AgentConversationEntity, bool>> predicate,
+        CancellationToken cancellationToken)
+    {
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        return dbContext.AgentConversations
+            .IgnoreQueryFilters()
+            .Where(predicate)
+            .Where(conversation => conversation.ActiveLeaseId == null || conversation.ActiveLeaseExpiresAt <= now)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+
+    private static void ValidateOwner(AgentConversationOwnerScope owner)
+    {
+        if (string.IsNullOrWhiteSpace(owner.TenantId) &&
+            string.IsNullOrWhiteSpace(owner.CreatingUserId) &&
+            string.IsNullOrWhiteSpace(owner.SubjectKind) &&
+            string.IsNullOrWhiteSpace(owner.SubjectId))
+            throw new ArgumentException("At least one non-empty owner scope filter must be provided.", nameof(owner));
+    }
+
     private IQueryable<AgentConversationEntity> Owned(AgentConversationScope scope) =>
         dbContext.AgentConversations.Where(conversation =>
             conversation.TenantId == scope.TenantId &&
