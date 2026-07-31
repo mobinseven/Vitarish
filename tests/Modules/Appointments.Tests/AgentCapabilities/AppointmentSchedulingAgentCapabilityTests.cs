@@ -241,6 +241,23 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
     }
 
     [Fact]
+    public async Task Invalid_timezone_is_reported_by_the_shift_manager_at_execution()
+    {
+        Mock<IAccessControlledShiftManager> shifts = new();
+        shifts.Setup(x => x.AddAsync(It.IsAny<ShiftWriteDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<ShiftReadDto>.Failure(EntityError.Validation("Invalid timezone.")));
+        AppointmentSchedulingAgentCapability sut = Create(shifts: shifts.Object);
+
+        AgentSchedulingResult<AgentSchedulingProposal> prepared = await sut.PrepareCreateShiftAsync(
+            Context(), ValidShift() with { TimeZone = "not-a-time-zone" }, default);
+        AgentSchedulingResult executed = await sut.ExecutePreparedAsync(Context(), AgentSchedulingOperation.CreateShift, default);
+
+        prepared.Status.Should().Be(AgentSchedulingStatus.Prepared);
+        executed.Status.Should().Be(AgentSchedulingStatus.Failed);
+        shifts.Verify(x => x.AddAsync(It.Is<ShiftWriteDto>(write => write.TimeZone == "not-a-time-zone"), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task Invalid_context_is_rejected_before_manager_access()
     {
         Mock<IAccessControlledReservationManager> reservations = new();

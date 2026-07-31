@@ -424,24 +424,11 @@ public sealed class AppointmentSchedulingAgentCapability(
 
     private static bool ValidShiftInput(AgentShiftInput request, bool requireId)
     {
-        if (request is null || requireId && request.Id == Guid.Empty || request.StartTime >= request.EndTime || request.TotalSeats <= 0 || string.IsNullOrWhiteSpace(request.TimeZone))
-        {
-            return false;
-        }
-
-        try
-        {
-            _ = TimeZoneInfo.FindSystemTimeZoneById(request.TimeZone);
-            return true;
-        }
-        catch (TimeZoneNotFoundException)
-        {
-            return false;
-        }
-        catch (InvalidTimeZoneException)
-        {
-            return false;
-        }
+        return request is not null &&
+            (!requireId || request.Id != Guid.Empty) &&
+            request.StartTime < request.EndTime &&
+            request.TotalSeats > 0 &&
+            !string.IsNullOrWhiteSpace(request.TimeZone);
     }
 
     private static bool ValidDateRange(DateOnly? dateFrom, DateOnly? dateTo)
