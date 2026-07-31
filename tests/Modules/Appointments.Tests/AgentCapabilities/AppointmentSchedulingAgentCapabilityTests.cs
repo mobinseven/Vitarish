@@ -67,7 +67,7 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
         Mock<IShiftBookableDateQueryService> bookableSlots = new();
         DateOnly date = new(2026, 8, 3);
         bookableSlots.Setup(x => x.GetBookableSlotsAsync(
-                It.Is<ShiftDescriptorDto>(descriptor => descriptor.Id == Guid.Empty),
+                It.Is<ShiftDescriptorDto>(descriptor => descriptor.Id is null),
                 It.Is<ShiftDateRangeQuery>(range => range.DateFrom == date && range.DateTo == date),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
