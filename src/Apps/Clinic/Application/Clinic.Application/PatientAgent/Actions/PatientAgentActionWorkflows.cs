@@ -1,4 +1,6 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
+using Vitarish.Clinic.Application.PatientAgent.Operations;
 
 namespace Vitarish.Clinic.Application.PatientAgent.Actions;
 
@@ -22,7 +24,8 @@ public sealed record ConfirmPatientAgentAction(Guid ActionId, PatientAgentContex
 public sealed class ConfirmPatientAgentActionHandler(
     IPatientAgentActionStore store,
     IPatientAgentActionCommitterRegistry committers,
-    TimeProvider timeProvider) : IRequestHandler<ConfirmPatientAgentAction, PatientAgentActionResult>
+    TimeProvider timeProvider,
+    ILogger<ConfirmPatientAgentActionHandler>? logger = null) : IRequestHandler<ConfirmPatientAgentAction, PatientAgentActionResult>
 {
     public async Task<PatientAgentActionResult> Handle(ConfirmPatientAgentAction request, CancellationToken cancellationToken)
     {
@@ -77,9 +80,14 @@ public sealed class ConfirmPatientAgentActionHandler(
             action.ActionId, timeProvider.GetUtcNow(), request.Context.AuthenticatedUserId,
             result.CompletionPayload ?? "{}", cancellationToken);
         PatientAgentAction? final = await store.GetAsync(action.ActionId, cancellationToken);
-        return completed || final?.Status == PatientAgentActionStatus.Completed
+        PatientAgentActionResult outcome = completed || final?.Status == PatientAgentActionStatus.Completed
             ? new(PatientAgentActionOutcome.Succeeded, final)
             : new(PatientAgentActionOutcome.Conflict, final);
+        if (final is not null && logger is not null)
+        {
+            PatientAgentTelemetry.ActionCompleted(logger, final.ActionType, outcome.Outcome.ToString(), final.AgentRunId, final.ActionId);
+        }
+        return outcome;
     }
 
     private async Task<PatientAgentActionResult> SaveFailure(
@@ -88,27 +96,38 @@ public sealed class ConfirmPatientAgentActionHandler(
         CancellationToken cancellationToken)
     {
         _ = await store.FailAsync(action.ActionId, failure, cancellationToken);
-        return new(PatientAgentActionOutcome.Failed, await store.GetAsync(action.ActionId, cancellationToken));
+        PatientAgentAction? latest = await store.GetAsync(action.ActionId, cancellationToken);
+        if (latest is not null && logger is not null)
+        {
+            PatientAgentTelemetry.ActionCompleted(logger, latest.ActionType, PatientAgentActionOutcome.Failed.ToString(), latest.AgentRunId, latest.ActionId);
+        }
+        return new(PatientAgentActionOutcome.Failed, latest);
     }
 
     internal static PatientAgentActionOutcome? ScopeFailure(PatientAgentAction? action, PatientAgentContext context)
     {
         if (action is null) return PatientAgentActionOutcome.NotFound;
-        if (action.PatientId != context.PatientId || !string.Equals(action.PracticeId, context.PracticeId, StringComparison.Ordinal))
+        if (!string.Equals(action.SubjectKind, context.SubjectKind, StringComparison.Ordinal) ||
+            action.PatientId != context.PatientId || !string.Equals(action.PracticeId, context.PracticeId, StringComparison.Ordinal))
             return PatientAgentActionOutcome.ScopeMismatch;
         if (!string.Equals(action.RequestedByUserId, context.AuthenticatedUserId, StringComparison.Ordinal) ||
-            !HasPermission(action.ActionType, context.Permissions))
+            !HasPermission(action, context))
             return PatientAgentActionOutcome.PermissionDenied;
         return null;
     }
 
-    private static bool HasPermission(string actionType, IReadOnlySet<string> permissions) => actionType switch
+    private static bool HasPermission(PatientAgentAction action, PatientAgentContext context)
     {
-        "create_appointment" => permissions.Contains("Appointments.Create"),
-        "create_prescription" => permissions.Contains("Prescriptions.Create"),
-        "add_clinical_event" => permissions.Contains("ClinicalEvents.Create"),
-        _ => false
-    };
+        if (action.SubjectKind == "practice")
+            return PatientAgentOperationsScope.IsAuthorizedRole(context.Role);
+        return action.ActionType switch
+        {
+            "create_appointment" => context.Permissions.Contains("Appointments.Create"),
+            "create_prescription" => context.Permissions.Contains("Prescriptions.Create"),
+            "add_clinical_event" => context.Permissions.Contains("ClinicalEvents.Create"),
+            _ => false
+        };
+    }
 }
 
 public sealed record RejectPatientAgentAction(Guid ActionId, PatientAgentContext Context, string? Reason)
@@ -124,6 +143,11 @@ public sealed class RejectPatientAgentActionHandler(IPatientAgentActionStore sto
         PatientAgentAction? action = await store.GetAsync(request.ActionId, cancellationToken);
         PatientAgentActionOutcome? failure = ConfirmPatientAgentActionHandler.ScopeFailure(action, request.Context);
         if (failure.HasValue) return new(failure.Value);
+        if (action!.ExpiresAt <= timeProvider.GetUtcNow())
+        {
+            _ = await store.ExpireAsync(action.ActionId, cancellationToken);
+            return new(PatientAgentActionOutcome.Expired, await store.GetAsync(action.ActionId, cancellationToken));
+        }
         if (action!.Status != PatientAgentActionStatus.Proposed)
             return new(PatientAgentActionOutcome.Conflict, action);
         string? reason = string.IsNullOrWhiteSpace(request.Reason) ? null : request.Reason.Trim();

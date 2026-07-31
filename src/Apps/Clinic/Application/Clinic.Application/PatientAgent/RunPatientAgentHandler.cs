@@ -26,14 +26,16 @@ public sealed class RunPatientAgentHandler(
                 ? parsedConversationId
                 : Guid.Empty;
         PatientAgentResult? parsedResult = null;
+        string agentKey = request.Context.SubjectKind == "practice" ? "clinic.operations" : "clinic.patient";
+        string subjectId = request.Context.SubjectKind == "practice" ? request.Context.PracticeId : request.Context.PatientId.ToString("D");
         RunAgentConversationResult conversation = await sender.Send(new RunAgentConversation(
             existingConversationId,
             new AgentConversationScope(
                 request.Context.PracticeId,
                 request.Context.AuthenticatedUserId,
-                "clinic.patient",
-                "patient",
-                request.Context.PatientId.ToString("D")),
+                agentKey,
+                request.Context.SubjectKind,
+                subjectId),
             workspace.Definition,
             new AgentInput(request.Input.Message),
             workspace.Tools,
@@ -147,7 +149,10 @@ public sealed class RunPatientAgentHandler(
                 prepared.Capability, prepared.ActionType, prepared.OwningId, prepared.ReviewDataJson,
                 PatientAgentActionStatus.Proposed, preparedAt,
                 prepared.Expiration ?? preparedAt.AddMinutes(30),
-                Summary: values is { Count: > 0 } ? values.Dequeue() : string.Empty));
+                Summary: values is { Count: > 0 } ? values.Dequeue() : string.Empty,
+                SubjectKind: context.SubjectKind,
+                ToolCallId: execution.ToolCallId,
+                ToolName: execution.ToolName));
         }
         return new PatientAgentResult(workspace.ExecutionContext.ExecutionId, context.ConversationId, messages, actions);
     }

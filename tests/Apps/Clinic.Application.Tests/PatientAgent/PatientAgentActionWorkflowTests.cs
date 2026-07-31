@@ -1,4 +1,6 @@
 using FluentAssertions;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Actions;
 using Vitarish.Clinic.Contracts.PatientAgent;
@@ -86,6 +88,45 @@ public sealed class PatientAgentActionWorkflowTests
     }
 
     [Fact]
+    public void Stored_actions_without_operations_scope_fields_remain_patient_scoped()
+    {
+        JsonObject legacy = JsonSerializer.SerializeToNode(Action("create_appointment"))!.AsObject();
+        _ = legacy.Remove(nameof(PatientAgentAction.SubjectKind));
+        _ = legacy.Remove(nameof(PatientAgentAction.ToolCallId));
+        _ = legacy.Remove(nameof(PatientAgentAction.ToolName));
+
+        PatientAgentAction restored = legacy.Deserialize<PatientAgentAction>()!;
+
+        restored.SubjectKind.Should().Be("patient");
+        restored.ToolCallId.Should().BeNull();
+        restored.ToolName.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Practice_action_requires_the_same_owner_and_practice_on_confirmation()
+    {
+        PatientAgentAction action = Action("book_appointment") with
+        {
+            PatientId = Guid.Empty,
+            SubjectKind = "practice"
+        };
+        InMemoryActionStore store = new(action);
+        StubCommitter committer = new("book_appointment", PatientAgentActionCommitResult.Completed("{}"));
+
+        PatientAgentActionResult nonOwner = await Handler(store, committer).Handle(
+            new(action.ActionId, Context(patientId: Guid.Empty, role: "Clinician")), CancellationToken.None);
+        PatientAgentActionResult wrongPractice = await Handler(store, committer).Handle(
+            new(action.ActionId, Context(patientId: Guid.Empty, practiceId: "other-practice", role: "TenantOwner")), CancellationToken.None);
+        PatientAgentActionResult owner = await Handler(store, committer).Handle(
+            new(action.ActionId, Context(patientId: Guid.Empty, role: "TenantOwner")), CancellationToken.None);
+
+        nonOwner.Outcome.Should().Be(PatientAgentActionOutcome.PermissionDenied);
+        wrongPractice.Outcome.Should().Be(PatientAgentActionOutcome.ScopeMismatch);
+        owner.Outcome.Should().Be(PatientAgentActionOutcome.Succeeded);
+        committer.InvocationCount.Should().Be(1);
+    }
+
+    [Fact]
     public async Task Unknown_action_is_not_found()
     {
         InMemoryActionStore store = new(Action("create_appointment"));
@@ -104,6 +145,19 @@ public sealed class PatientAgentActionWorkflowTests
         result.Outcome.Should().Be(PatientAgentActionOutcome.Expired);
         result.Action!.Status.Should().Be(PatientAgentActionStatus.Expired);
         committer.InvocationCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Expired_action_cannot_be_rejected_as_if_it_were_still_reviewable()
+    {
+        InMemoryActionStore store = new(Action("create_appointment") with { ExpiresAt = Now });
+        RejectPatientAgentActionHandler handler = new(store, new FixedTimeProvider(Now));
+
+        PatientAgentActionResult result = await handler.Handle(
+            new(store.Action.ActionId, Context(permissions: new HashSet<string> { "Appointments.Create" }), null), CancellationToken.None);
+
+        result.Outcome.Should().Be(PatientAgentActionOutcome.Expired);
+        result.Action!.Status.Should().Be(PatientAgentActionStatus.Expired);
     }
 
     [Fact]
@@ -160,9 +214,10 @@ public sealed class PatientAgentActionWorkflowTests
         Guid? patientId = null,
         string practiceId = "practice-1",
         string userId = "user-1",
-        IReadOnlySet<string>? permissions = null) =>
+        IReadOnlySet<string>? permissions = null,
+        string role = "Clinician") =>
         new(practiceId, patientId ?? DefaultPatientId, userId, permissions ?? new HashSet<string>(),
-            "Clinician", "en-US", "UTC", "conversation-1");
+            role, "en-US", "UTC", "conversation-1", SubjectKind: patientId == Guid.Empty ? "practice" : "patient");
 
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
     {

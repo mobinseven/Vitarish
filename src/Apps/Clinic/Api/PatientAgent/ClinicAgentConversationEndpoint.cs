@@ -18,12 +18,29 @@ public sealed class ClinicAgentConversationEndpoint(
         AgentConversationEndpointRequest request,
         CancellationToken cancellationToken)
     {
-        if (!string.Equals(request.AgentKey, "clinic.patient", StringComparison.Ordinal) ||
-            !string.Equals(request.SubjectKind, "patient", StringComparison.Ordinal) ||
-            !Guid.TryParse(request.SubjectId, out Guid patientId) || patientId == Guid.Empty)
+        bool patient = string.Equals(request.AgentKey, "clinic.patient", StringComparison.Ordinal) && string.Equals(request.SubjectKind, "patient", StringComparison.Ordinal);
+        bool operations = string.Equals(request.AgentKey, "clinic.operations", StringComparison.Ordinal) && string.Equals(request.SubjectKind, "practice", StringComparison.Ordinal);
+        if (!patient && !operations)
             return new(AgentConversationOutcome.NotFound);
 
-        PatientAgentContext context = await contextFactory.CreateAsync(patientId, request.ConversationId, cancellationToken);
+        PatientAgentContext context;
+        if (patient)
+        {
+            if (!Guid.TryParse(request.SubjectId, out Guid patientId) || patientId == Guid.Empty) return new(AgentConversationOutcome.NotFound);
+            context = await contextFactory.CreateAsync(patientId, request.ConversationId, cancellationToken);
+        }
+        else
+        {
+            try
+            {
+                context = await contextFactory.CreateOperationsAsync(request.ConversationId, cancellationToken);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new(AgentConversationOutcome.NotFound);
+            }
+            if (!string.Equals(context.PracticeId, request.SubjectId, StringComparison.Ordinal)) return new(AgentConversationOutcome.NotFound);
+        }
         PatientAgentResult result = await sender.Send(new RunPatientAgent(context, new PatientAgentInput(request.Message)), cancellationToken);
         if (result.Outcome is PatientAgentRunOutcome.NotFound)
             return new(AgentConversationOutcome.NotFound, result.AgentRunId, ParseConversationId(result.ConversationId));

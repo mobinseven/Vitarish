@@ -11,7 +11,7 @@ public abstract class PatientAgentCapability(
     public abstract IReadOnlySet<string> RequiredPermissions { get; }
     public IReadOnlyCollection<IAgentTool> Tools { get; } = tools;
     public IReadOnlyCollection<string> ActionTypes { get; } = actionTypes ?? [];
-    public virtual bool IsAvailable(PatientAgentContext context) => true;
+    public virtual bool IsAvailable(PatientAgentContext context) => context.SubjectKind == "patient";
     public virtual string GetInstructions() => Description;
 }
 

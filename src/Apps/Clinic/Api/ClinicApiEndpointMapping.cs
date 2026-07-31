@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
+using System.Security.Claims;
 using System.Text;
 using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Commands.Visits;
@@ -13,6 +14,7 @@ using Vitarish.Clinic.Application.Results;
 using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Actions;
 using Vitarish.Clinic.Application.PatientAgent.Capabilities;
+using Vitarish.Clinic.Application.PatientAgent.Operations;
 using Vitarish.Clinic.Contracts.Errors;
 using Vitarish.Clinic.Contracts.PatientAgent;
 using Vitarish.Clinic.Contracts.Responses;
@@ -61,6 +63,10 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModuleGet(ClinicApiRoutes.PatientAgentAction, GetPatientAgentActionAsync, "ClinicGetPatientAgentAction", typeof(PatientAgentActionDetailsResponse));
         _ = group.MapModulePost(ClinicApiRoutes.ConfirmPatientAgentAction, ConfirmPatientAgentActionAsync, "ClinicConfirmPatientAgentAction", typeof(ConfirmPatientAgentActionResponse));
         _ = group.MapModulePost(ClinicApiRoutes.RejectPatientAgentAction, RejectPatientAgentActionAsync, "ClinicRejectPatientAgentAction", typeof(RejectPatientAgentActionResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.OperationsAgent, RunOperationsAgentAsync, "ClinicRunOperationsAgent", typeof(RunPatientAgentResponse));
+        _ = group.MapModuleGet(ClinicApiRoutes.AgentAction, GetOperationsAgentActionAsync, "ClinicGetAgentAction", typeof(PatientAgentActionDetailsResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.ConfirmAgentAction, ConfirmOperationsAgentActionAsync, "ClinicConfirmAgentAction", typeof(ConfirmPatientAgentActionResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.RejectAgentAction, RejectOperationsAgentActionAsync, "ClinicRejectAgentAction", typeof(RejectPatientAgentActionResponse));
         _ = internalGroup.MapModulePost(
                 "/internal/agent/tools/execute",
                 ExecutePatientAgentToolAsync,
@@ -102,6 +108,7 @@ public static class ClinicApiEndpointMapping
         [FromServices] IAgentRuntimeCredentialService credentialService,
         [FromServices] PatientAgentCapabilityRegistry capabilityRegistry,
         [FromServices] PatientAgentToolDispatcher toolDispatcher,
+        [FromServices] IPatientAgentOperationsAccessVerifier operationsAccessVerifier,
         [FromServices] IRequestContextWriter requestContextWriter,
         CancellationToken ct)
     {
@@ -116,6 +123,21 @@ public static class ClinicApiEndpointMapping
         PatientAgentContext context;
         try { context = FromExecutionContext(executionContext); }
         catch (Exception) { return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent execution context is invalid.")); }
+
+        if (context.SubjectKind == "practice")
+        {
+            string? currentRole = await operationsAccessVerifier.RevalidateAsync(
+                context.PracticeId,
+                context.AuthenticatedUserId,
+                ct);
+            if (!PatientAgentOperationsScope.IsAuthorizedRole(currentRole))
+            {
+                return ForbiddenAgentAction();
+            }
+
+            context = context with { Role = currentRole! };
+            httpRequest.HttpContext.User = CreateOperationsRuntimePrincipal(context);
+        }
 
         requestContextWriter.SetContext(
             authority: "vitarish-agent-runtime",
@@ -133,11 +155,26 @@ public static class ClinicApiEndpointMapping
             .FirstOrDefault(candidate => string.Equals(candidate.Definition.Name, request.ToolName, StringComparison.Ordinal));
         if (tool is null) return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "The requested patient-agent tool is not available."));
 
-        AgentToolResult result = await tool.ExecuteAsync(
-            new AgentToolCall(request.ToolCallId, request.ToolName, request.ArgumentsJson),
-            executionContext,
-            ct);
-        return Results.Ok(new ExecutePatientAgentToolResponse(result.CallId, result.Output, result.IsError));
+        try
+        {
+            AgentToolResult result = await tool.ExecuteAsync(
+                new AgentToolCall(request.ToolCallId, request.ToolName, request.ArgumentsJson),
+                executionContext,
+                ct);
+            return Results.Ok(new ExecutePatientAgentToolResponse(result.CallId, result.Output, result.IsError));
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Json(new ClinicError(ClinicErrorCode.Forbidden, "The requested agent tool is not permitted."), statusCode: StatusCodes.Status403Forbidden);
+        }
+        catch (Exception exception) when (exception is System.Text.Json.JsonException or FormatException or ArgumentException or InvalidOperationException)
+        {
+            return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent tool arguments are invalid."));
+        }
     }
 
     private static PatientAgentContext FromExecutionContext(AgentExecutionContext context)
@@ -146,17 +183,38 @@ public static class ClinicApiEndpointMapping
             ?? throw new InvalidOperationException("Agent execution metadata is required.");
         string Required(string name) => metadata.TryGetValue(name, out string? value) && !string.IsNullOrWhiteSpace(value)
             ? value : throw new InvalidOperationException($"Agent execution metadata is missing {name}.");
+        string subjectKind = metadata.TryGetValue("subjectKind", out string? suppliedSubjectKind) ? suppliedSubjectKind : "patient";
+        Guid patientId = Guid.Parse(Required("patientId"));
+        string role = Required("role");
+        if (subjectKind is not ("patient" or "practice") ||
+            subjectKind == "patient" && patientId == Guid.Empty ||
+            subjectKind == "practice" && (patientId != Guid.Empty || !PatientAgentOperationsScope.IsAuthorizedRole(role)))
+        {
+            throw new InvalidOperationException("Agent execution subject scope is invalid.");
+        }
         return new(
             Required("practiceId"),
-            Guid.Parse(Required("patientId")),
+            patientId,
             Required("authenticatedUserId"),
             System.Text.Json.JsonSerializer.Deserialize<HashSet<string>>(Required("permissions")) ?? [],
-            Required("role"),
+            role,
             Required("locale"),
             Required("timeZone"),
             Required("conversationId"),
             metadata.TryGetValue("patientNationalId", out string? nationalId) ? nationalId : null,
-            Calendar: metadata.TryGetValue("calendar", out string? calendar) ? calendar : "gregory");
+            Calendar: metadata.TryGetValue("calendar", out string? calendar) ? calendar : "gregory",
+            SubjectKind: subjectKind);
+    }
+
+    private static ClaimsPrincipal CreateOperationsRuntimePrincipal(PatientAgentContext context)
+    {
+        string role = string.Equals(context.Role, PatientAgentOperationsScope.PlatformAdminRole, StringComparison.Ordinal)
+            ? PatientAgentOperationsScope.PlatformAdminRole
+            : $"{context.PracticeId}:{PatientAgentOperationsScope.TenantOwnerRole}";
+        ClaimsIdentity identity = new("vitarish-agent-runtime");
+        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, context.AuthenticatedUserId));
+        identity.AddClaim(new Claim(ClaimTypes.Role, role));
+        return new ClaimsPrincipal(identity);
     }
 
     private static async Task<IResult> GetPatientAgentActionAsync(
@@ -167,6 +225,49 @@ public static class ClinicApiEndpointMapping
         PatientAgentContext context = await contextFactory.CreateAsync(patientId, null, ct);
         PatientAgentActionResult result = await sender.Send(new GetPatientAgentAction(actionId, context), ct);
         return MapActionResult(result, action => Results.Ok(ToDetails(action)));
+    }
+
+    private static async Task<IResult> GetOperationsAgentActionAsync(Guid actionId, [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
+    {
+        if (actionId == Guid.Empty) return InvalidActionRequest();
+        PatientAgentContext context;
+        try { context = await contextFactory.CreateOperationsAsync(null, ct); }
+        catch (UnauthorizedAccessException) { return ForbiddenAgentAction(); }
+        PatientAgentActionResult result = await sender.Send(new GetPatientAgentAction(actionId, context), ct);
+        return MapActionResult(result, action => Results.Ok(ToDetails(action)));
+    }
+
+    private static async Task<IResult> ConfirmOperationsAgentActionAsync(Guid actionId, [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
+    {
+        if (actionId == Guid.Empty) return InvalidActionRequest();
+        PatientAgentContext context;
+        try { context = await contextFactory.CreateOperationsAsync(null, ct); }
+        catch (UnauthorizedAccessException) { return ForbiddenAgentAction(); }
+        PatientAgentActionResult result = await sender.Send(new ConfirmPatientAgentAction(actionId, context), ct);
+        return MapActionResult(result, action => Results.Ok(new ConfirmPatientAgentActionResponse(action.ActionId, ToContract(action.Status), Json(action.CompletionPayload), ToFailure(action.Failure))));
+    }
+
+    private static async Task<IResult> RejectOperationsAgentActionAsync(Guid actionId, RejectPatientAgentActionRequest request, [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
+    {
+        if (actionId == Guid.Empty || request is null || !Guid.TryParse(request.ActionId, out Guid bodyId) || bodyId != actionId || request.Reason?.Length > 1_000) return InvalidActionRequest();
+        PatientAgentContext context;
+        try { context = await contextFactory.CreateOperationsAsync(null, ct); }
+        catch (UnauthorizedAccessException) { return ForbiddenAgentAction(); }
+        PatientAgentActionResult result = await sender.Send(new RejectPatientAgentAction(actionId, context, request.Reason), ct);
+        return MapActionResult(result, action => Results.Ok(new RejectPatientAgentActionResponse(action.ActionId, ToContract(action.Status))));
+    }
+
+    private static async Task<IResult> RunOperationsAgentAsync(RunPatientAgentRequest request, [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
+    {
+        if (request is null || string.IsNullOrWhiteSpace(request.Message)) return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "A message is required."));
+        PatientAgentContext context;
+        try { context = await contextFactory.CreateOperationsAsync(request.ConversationId, ct); }
+        catch (UnauthorizedAccessException) { return ForbiddenAgentAction(); }
+        PatientAgentResult result = await sender.Send(new RunPatientAgent(context, new PatientAgentInput(request.Message)), ct);
+        if (result.Outcome == PatientAgentRunOutcome.NotFound) return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."));
+        if (result.Outcome == PatientAgentRunOutcome.Busy) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
+        if (result.Outcome != PatientAgentRunOutcome.Succeeded) return Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The operations agent failed."), statusCode: StatusCodes.Status502BadGateway);
+        return Results.Ok(new RunPatientAgentResponse(result.AgentRunId, result.ConversationId, null, result.Messages.Select(message => new PatientAgentMessageResponse((PatientAgentMessageResponseKind)(int)message.Kind, message.Content)).ToArray(), result.Actions.Select(action => new PatientAgentActionResponse(action.ActionId.ToString("D"), action.Capability, action.ActionType, ToContract(action.Status), Json(action.ReviewPayload)!.Value, action.Summary)).ToArray()));
     }
 
     private static async Task<IResult> ConfirmPatientAgentActionAsync(
@@ -225,7 +326,10 @@ public static class ClinicApiEndpointMapping
         ? null : System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(value);
 
     private static IResult InvalidActionRequest() => Results.BadRequest(
-        new ClinicError(ClinicErrorCode.ValidationFailure, "Route patient id and matching action id are required."));
+        new ClinicError(ClinicErrorCode.ValidationFailure, "A valid action identifier is required."));
+
+    private static IResult ForbiddenAgentAction() => Results.Json(
+        new ClinicError(ClinicErrorCode.Forbidden, "The operations agent is not permitted."), statusCode: StatusCodes.Status403Forbidden);
 
     private static async Task<IResult> RunPatientAgentAsync(
         Guid patientId,

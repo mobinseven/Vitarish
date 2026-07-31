@@ -16,6 +16,10 @@ using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.ClinicalEvents;
 using Vitarish.Clinic.Application.PatientAgent.Actions;
 using Vitarish.Clinic.Infrastructure.PatientAgent.Actions;
 using Vitarish.Clinic.Infrastructure.PatientAgent;
+using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Operations;
+using Vitarish.Clinic.Infrastructure.PatientAgent.Operations;
+using Vitarish.Clinic.Application.PatientAgent.Operations;
+using Vitarish.Appointments.Application.AgentCapabilities;
 
 namespace Vitarish.Clinic.Infrastructure.Extensions
 {
@@ -62,6 +66,33 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<GetPatientProcedureContextTool>();
             _ = services.AddTransient<PrepareClinicalEventTool>();
             _ = services.AddTransient<IPatientAgentCapability, ClinicalEventAgentCapability>();
+            _ = services.AddTransient<IPatientAgentPatientSearch, ClinicPatientAgentSearch>();
+            _ = services.AddTransient<IPatientAgentOperationsAccessVerifier, UserPatientAgentOperationsAccessVerifier>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, SearchPatientsTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, ListOperationsAppointmentsTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, ListOperationsShiftsTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, CountOperationsAppointmentsTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, GetOperationsAppointmentTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, GetOperationsAvailabilityTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, GetOperationsShiftTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, GetOperationsOccurrencesTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, ResolveOperationsServicesTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, ResolveOperationsServiceTypesTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, ResolveOperationsProvidersTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, ConfirmOperationTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, PresentOperationTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, CompleteOperationTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, ActivateShiftTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, PauseShiftTool>();
+            foreach (string toolName in new[] { "prepare_book_appointment", "prepare_reschedule_appointment", "prepare_cancel_appointment", "prepare_reject_appointment", "prepare_create_shift", "prepare_edit_shift", "prepare_close_shift", "prepare_cancel_shift", "prepare_archive_shift" })
+            {
+                string capturedName = toolName;
+                _ = services.AddTransient<IClinicOperationsAgentTool>(provider =>
+                    new PrepareScheduleActionTool(
+                        provider.GetRequiredService<IAppointmentSchedulingAgentCapability>(),
+                        provider.GetRequiredService<IPatientAgentPatientSearch>(), capturedName));
+            }
+            _ = services.AddTransient<IPatientAgentCapability, OperationsAgentCapability>();
             _ = services.AddTransient<PatientAgentCapabilityRegistry>();
             _ = services.AddTransient<PatientAgentToolDispatcher>();
             _ = services.AddTransient<PatientAgentInstructionComposer>();
@@ -70,6 +101,7 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<IPatientAgentActionCommitter, AppointmentPatientAgentActionCommitter>();
             _ = services.AddTransient<IPatientAgentActionCommitter, PrescriptionPatientAgentActionCommitter>();
             _ = services.AddTransient<IPatientAgentActionCommitter, ClinicalEventPatientAgentActionCommitter>();
+            _ = services.AddTransient<IPatientAgentActionCommitter, OperationsPatientAgentActionCommitter>();
             _ = services.AddTransient<IPatientAgentActionCommitterRegistry, PatientAgentActionCommitterRegistry>();
 
             return services;

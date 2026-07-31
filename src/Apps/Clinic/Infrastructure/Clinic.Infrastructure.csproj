@@ -20,6 +20,7 @@
 		<ProjectReference Include="..\..\..\Modules\Sea\Application\Sea.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Appointments\Application\Appointments.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Medical\Application\Medical.Application.csproj" />
+		<ProjectReference Include="..\..\..\Modules\Users\Application\Users.Application.csproj" />
 	</ItemGroup>
 
 </Project>

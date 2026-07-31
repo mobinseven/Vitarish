@@ -57,6 +57,47 @@ public sealed class ClinicEndpointMetadataTests
             .Contain("/patients/{patientId:guid}/agent/{conversationId:guid}");
     }
 
+    [Theory]
+    [InlineData("ClinicGetAgentAction", "GET", "/agent/actions/{actionId:guid}")]
+    [InlineData("ClinicConfirmAgentAction", "POST", "/agent/actions/{actionId:guid}/confirm")]
+    [InlineData("ClinicRejectAgentAction", "POST", "/agent/actions/{actionId:guid}/reject")]
+    public void Canonical_agent_action_endpoints_are_protected_and_keep_their_routes(
+        string operationId,
+        string method,
+        string route)
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton(Mock.Of<ISender>());
+        using WebApplication app = builder.Build();
+        _ = app.MapClinicApi();
+
+        Endpoint endpoint = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName == operationId);
+
+        endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()!.HttpMethods.Should().ContainSingle().Which.Should().Be(method);
+        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Should().NotBeEmpty();
+        endpoint.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()!.Route.Should().Contain(route);
+    }
+
+    [Fact]
+    public void Canonical_agent_action_confirmation_uses_only_the_route_action_id()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton(Mock.Of<ISender>());
+        using WebApplication app = builder.Build();
+        _ = app.MapClinicApi();
+
+        Endpoint endpoint = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName
+                == "ClinicConfirmAgentAction");
+
+        endpoint.Metadata.GetMetadata<IAcceptsMetadata>().Should().BeNull();
+    }
+
     [Fact]
     public void Find_or_create_keeps_its_operation_id_and_requires_sea_manage_authorization()
     {
