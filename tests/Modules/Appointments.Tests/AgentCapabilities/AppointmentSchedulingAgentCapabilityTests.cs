@@ -2,6 +2,8 @@ using FluentAssertions;
 using Moq;
 using Vitarish.Appointments.Application.Abstractions;
 using Vitarish.Appointments.Application.AgentCapabilities;
+using Vitarish.Appointments.Domain.Dto;
+using Vitarish.Appointments.Domain.Models;
 using Vitarish.Modules.Base.Core.Platform.Idempotency;
 using Vitarish.Entities.Contracts.Models;
 
@@ -59,14 +61,123 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
         shifts.Verify(x => x.CloseShiftAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    private static AppointmentSchedulingAgentCapability Create(IAccessControlledReservationManager reservations, IAccessControlledShiftManager? shifts = null) =>
+    [Fact]
+    public async Task Availability_without_shift_filter_queries_all_shifts()
+    {
+        Mock<IShiftBookableDateQueryService> bookableSlots = new();
+        DateOnly date = new(2026, 8, 3);
+        bookableSlots.Setup(x => x.GetBookableSlotsAsync(
+                It.Is<ShiftDescriptorDto>(descriptor => descriptor.Id == Guid.Empty),
+                It.Is<ShiftDateRangeQuery>(range => range.DateFrom == date && range.DateTo == date),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+        AppointmentSchedulingAgentCapability sut = Create(bookableSlots: bookableSlots.Object);
+
+        AgentSchedulingResult<IReadOnlyList<BookableShiftSlot>> result = await sut.GetAvailabilityAsync(
+            Context(), new AgentAvailabilityRequest(date, date), default);
+
+        result.Status.Should().Be(AgentSchedulingStatus.Succeeded);
+        bookableSlots.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Read_queries_delegate_to_access_controlled_appointments_and_shifts()
+    {
+        Mock<IAccessControlledReservationManager> reservations = new();
+        Mock<IAccessControlledShiftManager> shifts = new();
+        ReservationReadDto appointment = new() { Id = Guid.NewGuid(), Status = ReservationStatus.Confirmed };
+        ShiftReadDto shift = new() { Id = Guid.NewGuid(), Status = ShiftStatus.Active };
+        reservations.Setup(x => x.GetListAsync(It.IsAny<ReservationDescriptorDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<IReadOnlyList<ReservationReadDto>>.Success([appointment]));
+        reservations.Setup(x => x.CountAsync(It.IsAny<ReservationDescriptorDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<int>.Success(1));
+        shifts.Setup(x => x.GetListAsync(It.IsAny<ShiftDescriptorDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<IReadOnlyList<ShiftReadDto>>.Success([shift]));
+        AppointmentSchedulingAgentCapability sut = Create(reservations.Object, shifts.Object);
+
+        AgentSchedulingResult<IReadOnlyList<ReservationReadDto>> appointments = await sut.ListAppointmentsAsync(
+            Context(), new(Status: ReservationStatus.Confirmed, Take: 10), default);
+        AgentSchedulingResult<int> count = await sut.CountAppointmentsAsync(Context(), new(), default);
+        AgentSchedulingResult<IReadOnlyList<ShiftReadDto>> listedShifts = await sut.ListShiftsAsync(
+            Context(), new(Status: ShiftStatus.Active, Take: 10), default);
+
+        appointments.Value.Should().ContainSingle().Which.Id.Should().Be(appointment.Id);
+        count.Value.Should().Be(1);
+        listedShifts.Value.Should().ContainSingle().Which.Id.Should().Be(shift.Id);
+    }
+
+    [Fact]
+    public async Task Invalid_read_range_is_rejected_before_dependency_access()
+    {
+        Mock<IShiftBookableDateQueryService> bookableSlots = new();
+        AppointmentSchedulingAgentCapability sut = Create(bookableSlots: bookableSlots.Object);
+        DateOnly from = new(2026, 1, 1);
+        DateOnly to = from.AddDays(367);
+
+        AgentSchedulingResult<IReadOnlyList<BookableShiftSlot>> result = await sut.GetAvailabilityAsync(
+            Context(), new AgentAvailabilityRequest(from, to), default);
+
+        result.Status.Should().Be(AgentSchedulingStatus.ValidationFailure);
+        bookableSlots.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Detail_occurrence_and_reference_queries_return_their_scoped_results()
+    {
+        Mock<IAccessControlledReservationManager> reservations = new();
+        Mock<IAccessControlledShiftManager> shifts = new();
+        Mock<IShiftBookableDateQueryService> bookableSlots = new();
+        Mock<IServiceManager> services = new();
+        Mock<IServiceProviderManager> providers = new();
+        Mock<IServiceTypeManager> serviceTypes = new();
+        Guid appointmentId = Guid.NewGuid();
+        Guid shiftId = Guid.NewGuid();
+        DateOnly date = new(2026, 8, 3);
+        reservations.Setup(x => x.GetAsync(appointmentId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<ReservationReadDto>.Success(new() { Id = appointmentId }));
+        shifts.Setup(x => x.GetAsync(shiftId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<ShiftReadDto>.Success(new() { Id = shiftId }));
+        bookableSlots.Setup(x => x.GetBookableDatesAsync(shiftId, It.IsAny<ShiftDateRangeQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+        services.Setup(x => x.GetListAsync(It.IsAny<ServiceDescriptorDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<IReadOnlyList<ServiceReadDto>>.Success([]));
+        providers.Setup(x => x.GetListAsync(It.IsAny<ServiceProviderDescriptorDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<IReadOnlyList<ServiceProviderReadDto>>.Success([]));
+        serviceTypes.Setup(x => x.GetListAsync(It.IsAny<ServiceTypeDescriptorDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<IReadOnlyList<ServiceTypeReadDto>>.Success([]));
+        AppointmentSchedulingAgentCapability sut = Create(
+            reservations.Object, shifts.Object, bookableSlots.Object, services.Object, providers.Object, serviceTypes.Object);
+
+        AgentSchedulingResult<ReservationReadDto> appointment = await sut.GetAppointmentAsync(Context(), appointmentId, default);
+        AgentSchedulingResult<ShiftReadDto> shift = await sut.GetShiftAsync(Context(), shiftId, default);
+        AgentSchedulingResult<IReadOnlyList<ShiftReservationReadDto>> occurrences = await sut.GetShiftOccurrencesAsync(
+            Context(), new(shiftId, date, date), default);
+        AgentSchedulingResult<IReadOnlyList<ServiceReadDto>> resolvedServices = await sut.ResolveServicesAsync(Context(), null, default);
+        AgentSchedulingResult<IReadOnlyList<ServiceProviderReadDto>> resolvedProviders = await sut.ResolveProvidersAsync(Context(), default);
+        AgentSchedulingResult<IReadOnlyList<ServiceTypeReadDto>> resolvedTypes = await sut.ResolveServiceTypesAsync(Context(), default);
+
+        appointment.Value!.Id.Should().Be(appointmentId);
+        shift.Value!.Id.Should().Be(shiftId);
+        occurrences.Value.Should().BeEmpty();
+        resolvedServices.Value.Should().BeEmpty();
+        resolvedProviders.Value.Should().BeEmpty();
+        resolvedTypes.Value.Should().BeEmpty();
+    }
+
+    private static AppointmentSchedulingAgentCapability Create(
+        IAccessControlledReservationManager? reservations = null,
+        IAccessControlledShiftManager? shifts = null,
+        IShiftBookableDateQueryService? bookableSlots = null,
+        IServiceManager? services = null,
+        IServiceProviderManager? providers = null,
+        IServiceTypeManager? serviceTypes = null) =>
         new(
-            reservations,
+            reservations ?? new Mock<IAccessControlledReservationManager>().Object,
             shifts ?? new Mock<IAccessControlledShiftManager>().Object,
-            new Mock<IShiftBookableDateQueryService>().Object,
-            new Mock<IServiceManager>().Object,
-            new Mock<IServiceProviderManager>().Object,
-            new Mock<IServiceTypeManager>().Object,
+            bookableSlots ?? new Mock<IShiftBookableDateQueryService>().Object,
+            services ?? new Mock<IServiceManager>().Object,
+            providers ?? new Mock<IServiceProviderManager>().Object,
+            serviceTypes ?? new Mock<IServiceTypeManager>().Object,
             new ContextScope(),
             new ReceiptStore<AgentSchedulingProposal>(),
             new ReceiptStore<AgentSchedulingReceipt>(),
