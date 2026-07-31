@@ -15,9 +15,12 @@ public enum AppointmentProposalResultStatus { Prepared, Unavailable, MissingInfo
 public sealed record AppointmentProposalResult(
     AppointmentProposalResultStatus Status, AppointmentProposal? Proposal = null, string? Message = null);
 
-public enum AppointmentCommitStatus { Committed, AlreadyCommitted, Expired, Stale, NotFound, Forbidden, Failed }
+public enum AppointmentCommitStatus { Committed, AlreadyCommitted, InProgress, UnknownOutcome, Expired, Stale, NotFound, Forbidden, Failed }
 public sealed record AppointmentCommitResult(
     AppointmentCommitStatus Status, Guid? AppointmentId = null, AppointmentSlot? Slot = null, string? Message = null);
+
+public enum AppointmentCommitReceiptStatus { InProgress, Committed, Failed, UnknownOutcome }
+public sealed record AppointmentCommitReceipt(AppointmentCommitReceiptStatus Status, Guid? AppointmentId = null);
 
 public sealed record PatientAppointmentRequest(
     Guid PatientId, string PracticeId, string RequestedLocalDateTime, int? DurationMinutes,
@@ -26,10 +29,11 @@ public sealed record PatientAppointmentRequest(
 
 public interface IPatientAppointmentWorkflowStore
 {
-    Task<AppointmentProposal?> GetProposalAsync(Guid id, CancellationToken cancellationToken);
+    Task<AppointmentProposal?> GetProposalAsync(Guid id, string practiceId, CancellationToken cancellationToken);
     Task SaveProposalAsync(AppointmentProposal proposal, CancellationToken cancellationToken);
-    Task<Guid?> GetCommittedAppointmentIdAsync(Guid proposalId, CancellationToken cancellationToken);
-    Task SaveCommittedAppointmentIdAsync(Guid proposalId, Guid appointmentId, CancellationToken cancellationToken);
+    Task<AppointmentCommitReceipt?> GetCommitReceiptAsync(Guid proposalId, string practiceId, CancellationToken cancellationToken);
+    Task<bool> TryClaimCommitAsync(Guid proposalId, string practiceId, CancellationToken cancellationToken);
+    Task<bool> CompleteCommitAsync(Guid proposalId, string practiceId, AppointmentCommitReceipt receipt, CancellationToken cancellationToken);
 }
 
 public interface IPatientAppointmentAvailability
@@ -95,24 +99,86 @@ public sealed class ConfirmPatientAppointmentProposal(
     public async Task<AppointmentCommitResult> ExecuteAsync(
         Guid proposalId, Guid patientId, string practiceId, CancellationToken cancellationToken)
     {
-        Guid? committed = await store.GetCommittedAppointmentIdAsync(proposalId, cancellationToken);
-        AppointmentProposal? proposal = await store.GetProposalAsync(proposalId, cancellationToken);
+        AppointmentProposal? proposal = await store.GetProposalAsync(proposalId, practiceId, cancellationToken);
         if (proposal is null) return new(AppointmentCommitStatus.NotFound, Message: "Appointment proposal was not found.");
         if (proposal.PatientId != patientId || !string.Equals(proposal.PracticeId, practiceId, StringComparison.Ordinal))
             return new(AppointmentCommitStatus.Forbidden, Message: "Appointment proposal is outside the current patient scope.");
-        if (committed.HasValue) return new(AppointmentCommitStatus.AlreadyCommitted, committed, proposal.Slot);
+
+        AppointmentCommitReceipt? receipt = await store.GetCommitReceiptAsync(proposalId, practiceId, cancellationToken);
+        if (receipt?.Status == AppointmentCommitReceiptStatus.Committed)
+            return new(AppointmentCommitStatus.AlreadyCommitted, receipt.AppointmentId, proposal.Slot);
+        if (receipt?.Status == AppointmentCommitReceiptStatus.Failed)
+            return new(AppointmentCommitStatus.Failed, Slot: proposal.Slot, Message: "Appointment booking was not completed.");
+        if (receipt?.Status == AppointmentCommitReceiptStatus.UnknownOutcome)
+            return new(AppointmentCommitStatus.UnknownOutcome, Slot: proposal.Slot, Message: "Appointment booking outcome could not be established.");
+        if (receipt?.Status == AppointmentCommitReceiptStatus.InProgress)
+            return new(AppointmentCommitStatus.InProgress, Slot: proposal.Slot, Message: "Appointment booking is already in progress.");
         if (proposal.ExpiresAt <= timeProvider.GetUtcNow())
             return new(AppointmentCommitStatus.Expired, Slot: proposal.Slot, Message: "Appointment proposal has expired.");
         if (!await availability.IsAvailableAsync(proposal.Slot, cancellationToken))
             return new(AppointmentCommitStatus.Stale, Slot: proposal.Slot, Message: "The proposed slot is no longer available.");
 
-        EntityResult<Guid> result = await sender.Send(new CreateReservationCommand(
-            proposal.Slot.ShiftId, proposal.Slot.Date, patientId.ToString("D"),
-            EstimatedSessionLength: proposal.Slot.Duration), cancellationToken);
-        if (result.IsFailure || result.Value == Guid.Empty)
-            return new(AppointmentCommitStatus.Failed, Slot: proposal.Slot, Message: "Appointment booking was not completed.");
+        if (!await store.TryClaimCommitAsync(proposalId, practiceId, cancellationToken))
+            return new(AppointmentCommitStatus.InProgress, Slot: proposal.Slot, Message: "Appointment booking is already in progress.");
 
-        await store.SaveCommittedAppointmentIdAsync(proposalId, result.Value, cancellationToken);
-        return new(AppointmentCommitStatus.Committed, result.Value, proposal.Slot);
+        EntityResult<Guid> result;
+        try
+        {
+            result = await sender.Send(new CreateReservationCommand(
+                proposal.Slot.ShiftId, proposal.Slot.Date, patientId.ToString("D"),
+                EstimatedSessionLength: proposal.Slot.Duration), cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch
+        {
+            return await CompleteAndVerifyAsync(proposalId, practiceId, proposal.Slot,
+                new(AppointmentCommitReceiptStatus.UnknownOutcome),
+                new(AppointmentCommitStatus.UnknownOutcome, Slot: proposal.Slot,
+                    Message: "Appointment booking outcome could not be established."),
+                cancellationToken);
+        }
+        if (result.IsFailure || result.Value == Guid.Empty)
+        {
+            AppointmentCommitReceipt terminal = new(AppointmentCommitReceiptStatus.Failed);
+            return await CompleteAndVerifyAsync(proposalId, practiceId, proposal.Slot, terminal,
+                new(AppointmentCommitStatus.Failed, Slot: proposal.Slot, Message: "Appointment booking was not completed."),
+                cancellationToken);
+        }
+
+        AppointmentCommitReceipt committed = new(AppointmentCommitReceiptStatus.Committed, result.Value);
+        return await CompleteAndVerifyAsync(proposalId, practiceId, proposal.Slot, committed,
+            new(AppointmentCommitStatus.Committed, result.Value, proposal.Slot), cancellationToken);
+    }
+
+    private async Task<AppointmentCommitResult> CompleteAndVerifyAsync(
+        Guid proposalId,
+        string practiceId,
+        AppointmentSlot slot,
+        AppointmentCommitReceipt terminal,
+        AppointmentCommitResult completed,
+        CancellationToken cancellationToken)
+    {
+        _ = await store.CompleteCommitAsync(proposalId, practiceId, terminal, cancellationToken);
+        AppointmentCommitReceipt? persisted = await store.GetCommitReceiptAsync(proposalId, practiceId, cancellationToken);
+        return persisted == terminal
+            ? completed
+            : await PersistUnknownOutcomeAsync(proposalId, practiceId, slot, cancellationToken);
+    }
+
+    private async Task<AppointmentCommitResult> PersistUnknownOutcomeAsync(
+        Guid proposalId,
+        string practiceId,
+        AppointmentSlot slot,
+        CancellationToken cancellationToken)
+    {
+        AppointmentCommitReceipt unknown = new(AppointmentCommitReceiptStatus.UnknownOutcome);
+        _ = await store.CompleteCommitAsync(proposalId, practiceId, unknown, cancellationToken);
+        AppointmentCommitReceipt? persisted = await store.GetCommitReceiptAsync(proposalId, practiceId, cancellationToken);
+        return persisted?.Status == AppointmentCommitReceiptStatus.UnknownOutcome
+            ? new(AppointmentCommitStatus.UnknownOutcome, Slot: slot, Message: "Appointment booking outcome could not be established.")
+            : new(AppointmentCommitStatus.UnknownOutcome, Slot: slot, Message: "Appointment booking outcome could not be recorded durably.");
     }
 }
