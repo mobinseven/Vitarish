@@ -6,8 +6,14 @@ using Vitarish.Appointments.Application.Abstractions;
 using Vitarish.Appointments.Domain.Dto;
 using Vitarish.Appointments.Domain.Models;
 using Vitarish.Modules.Base.Core.Platform.Idempotency;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Appointments.Infrastructure.AgentCapabilities;
+
+public sealed class AgentSchedulingContextScope(IRequestContext requestContext) : IAgentSchedulingContextScope
+{
+    public bool IsAllowed(string practiceId) => string.Equals(requestContext.TenantId, practiceId, StringComparison.Ordinal);
+}
 
 public sealed class PatientAppointmentWorkflowStore(
     IOperationReceiptStore<AppointmentProposal> proposals,

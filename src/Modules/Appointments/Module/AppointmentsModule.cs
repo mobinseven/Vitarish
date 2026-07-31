@@ -34,6 +34,8 @@ public class AppointmentsModule : Modules.Base.Core.Module, IAppointmentsModule
         _ = builder.Services.AddTransient<PreparePatientAppointment>();
         _ = builder.Services.AddTransient<ConfirmPatientAppointmentProposal>();
         _ = builder.Services.AddTransient<IPatientAppointmentAgentCapability, PatientAppointmentAgentCapability>();
+        _ = builder.Services.AddTransient<IAppointmentSchedulingAgentCapability, AppointmentSchedulingAgentCapability>();
+        _ = builder.Services.AddTransient<IAgentSchedulingContextScope, AgentSchedulingContextScope>();
 
         _ = builder.Services.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppointmentsJsonSerializerContext.Default));
