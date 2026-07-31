@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Vitarish.Clinic.Application.PatientAgent;
+using Vitarish.Clinic.Application.PatientAgent.Operations;
 using Vitarish.Modules.Base.Core.Identity;
 
 namespace Vitarish.Clinic.Infrastructure.PatientAgent;
@@ -55,6 +56,50 @@ public sealed class HttpPatientAgentContextFactory(IHttpContextAccessor httpCont
             IsNewConversation: isNewConversation));
     }
 
+    public Task<PatientAgentContext> CreateOperationsAsync(string? conversationId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        HttpContext http = httpContextAccessor.HttpContext
+            ?? throw new InvalidOperationException("An operations-agent request requires an HTTP context.");
+        ClaimsPrincipal user = http.User;
+        string practiceId = user.FindFirstValue(TenantClaimType)
+            ?? throw new UnauthorizedAccessException("The authenticated request has no practice scope.");
+        AuthenticatedUserIdResolution userIdResolution = AuthenticatedUserIdResolver.Resolve(user);
+        string authenticatedUserId = userIdResolution is AuthenticatedUserIdResolution.Success resolved
+            ? resolved.UserId.Value
+            : throw new UnauthorizedAccessException("The authenticated request has no user identity.");
+        IReadOnlySet<string> permissions = user.FindAll(AccessClaimType)
+            .Select(claim => claim.Value)
+            .Where(static value => !string.IsNullOrWhiteSpace(value))
+            .ToHashSet(StringComparer.Ordinal);
+        string role = ResolveOperationsRole(user, practiceId);
+        if (!PatientAgentOperationsScope.IsAuthorizedRole(role))
+        {
+            throw new UnauthorizedAccessException("The operations agent requires a practice-owner role.");
+        }
+        string locale = ResolveLocale(http.Request.Headers.AcceptLanguage);
+        bool isNewConversation = string.IsNullOrWhiteSpace(conversationId);
+        return Task.FromResult(new PatientAgentContext(
+            practiceId, Guid.Empty, authenticatedUserId, permissions,
+            role,
+            locale, ResolveTimeZone(http.Request.Headers["X-Time-Zone"].FirstOrDefault()),
+            isNewConversation ? Guid.CreateVersion7().ToString("N") : conversationId!.Trim(),
+            Calendar: ResolveCalendar(http.Request.Headers["X-Calendar"].FirstOrDefault(), locale),
+            IsNewConversation: isNewConversation, SubjectKind: "practice"));
+    }
+
+    private static string ResolveOperationsRole(ClaimsPrincipal user, string practiceId)
+    {
+        if (user.IsInRole(PatientAgentOperationsScope.PlatformAdminRole))
+        {
+            return PatientAgentOperationsScope.PlatformAdminRole;
+        }
+
+        return user.IsInRole($"{practiceId}:{PatientAgentOperationsScope.TenantOwnerRole}")
+            ? PatientAgentOperationsScope.TenantOwnerRole
+            : string.Empty;
+    }
+
     private static string ResolveLocale(string? acceptLanguage)
     {
         string? candidate = acceptLanguage?
@@ -65,7 +110,10 @@ public sealed class HttpPatientAgentContextFactory(IHttpContextAccessor httpCont
 
         try
         {
-            return CultureInfo.GetCultureInfo(candidate).Name;
+            CultureInfo culture = CultureInfo.GetCultureInfo(candidate);
+            return string.Equals(culture.Name, candidate, StringComparison.OrdinalIgnoreCase)
+                ? culture.Name
+                : DefaultLocale;
         }
         catch (CultureNotFoundException)
         {

@@ -30,7 +30,10 @@ public sealed record PatientAgentAction(
     string? RejectionReason = null,
     PatientAgentActionFailure? Failure = null,
     string? CompletionPayload = null,
-    string Summary = "");
+    string Summary = "",
+    string SubjectKind = "patient",
+    string? ToolCallId = null,
+    string? ToolName = null);
 
 public sealed record PatientAgentActionFailure(
     string Code,

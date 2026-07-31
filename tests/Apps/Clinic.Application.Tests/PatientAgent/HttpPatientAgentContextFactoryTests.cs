@@ -2,7 +2,11 @@ using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Vitarish.Clinic.Application.PatientAgent;
+using Vitarish.Clinic.Application.PatientAgent.Operations;
 using Vitarish.Clinic.Infrastructure.PatientAgent;
+using Vitarish.Clinic.Infrastructure.PatientAgent.Operations;
+using Vitarish.Users.Application.Abstractions;
+using Moq;
 using Xunit;
 
 namespace Vitarish.Clinic.Application.Tests.PatientAgent;
@@ -58,5 +62,46 @@ public sealed class HttpPatientAgentContextFactoryTests
         context.TimeZone.Should().Be("Asia/Tehran");
         context.Calendar.Should().Be("persian");
         context.ConversationId.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task CreateOperationsAsync_derives_the_practice_subject_and_requires_an_owner_role()
+    {
+        DefaultHttpContext ownerHttp = new();
+        ownerHttp.User = new ClaimsPrincipal(new ClaimsIdentity(
+        [new Claim("sub", "owner-1"), new Claim("tenant", "practice-1"), new Claim(ClaimTypes.Role, "practice-1:TenantOwner")], "test"));
+
+        PatientAgentContext owner = await new HttpPatientAgentContextFactory(new HttpContextAccessor { HttpContext = ownerHttp })
+            .CreateOperationsAsync(" conversation-1 ");
+
+        owner.SubjectKind.Should().Be("practice");
+        owner.PatientId.Should().Be(Guid.Empty);
+        owner.PracticeId.Should().Be("practice-1");
+        owner.ConversationId.Should().Be("conversation-1");
+        owner.Role.Should().Be(PatientAgentOperationsScope.TenantOwnerRole);
+
+        DefaultHttpContext clinicianHttp = new();
+        clinicianHttp.User = new ClaimsPrincipal(new ClaimsIdentity(
+        [new Claim("sub", "clinician-1"), new Claim("tenant", "practice-1"), new Claim(ClaimTypes.Role, "TenantOwner")], "test"));
+        Func<Task> createForClinician = () => new HttpPatientAgentContextFactory(new HttpContextAccessor { HttpContext = clinicianHttp })
+            .CreateOperationsAsync(null);
+
+        await createForClinician.Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+
+    [Fact]
+    public async Task Operations_access_verifier_rechecks_the_current_user_role_for_the_practice()
+    {
+        Mock<IUsersService> users = new(MockBehavior.Strict);
+        users.Setup(service => service.CheckUserRoleAsync("owner-1", PatientAgentOperationsScope.PlatformAdminRole, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        users.Setup(service => service.CheckUserRoleAsync("owner-1", "practice-1:TenantOwner", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        string? role = await new UserPatientAgentOperationsAccessVerifier(users.Object)
+            .RevalidateAsync("practice-1", "owner-1", CancellationToken.None);
+
+        role.Should().Be(PatientAgentOperationsScope.TenantOwnerRole);
+        users.VerifyAll();
     }
 }

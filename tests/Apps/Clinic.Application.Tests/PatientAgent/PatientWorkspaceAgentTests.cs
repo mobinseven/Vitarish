@@ -128,6 +128,54 @@ public sealed class PatientWorkspaceAgentTests
     }
 
     [Fact]
+    public void Patient_capabilities_are_not_reused_by_the_practice_agent()
+    {
+        PatientAgentCapabilityRegistry registry = Registry([new PatientOnlyCapability(new TestTool("patient_only"))]);
+        PatientAgentContext practice = new("practice-1", Guid.Empty, "owner-1", new HashSet<string>(),
+            "TenantOwner", "en-US", "UTC", "conversation-1", SubjectKind: "practice");
+
+        registry.GetAvailable(practice).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Practice_agent_instructions_distinguish_direct_transitions_from_reviewable_mutations()
+    {
+        PatientAgentContext practice = new("practice-1", Guid.Empty, "owner-1", new HashSet<string>(),
+            "TenantOwner", "en-US", "UTC", "conversation-1", SubjectKind: "practice");
+
+        string instructions = new PatientAgentInstructionComposer().Compose(practice, [], DateTimeOffset.UtcNow);
+
+        instructions.Should().Contain("explicitly named direct scheduling transitions")
+            .And.Contain("every other mutation requires confirmation");
+    }
+
+    [Fact]
+    public async Task Practice_tool_dispatch_requires_a_correlated_practice_owner_scope()
+    {
+        TestTool handler = new("operations_list");
+        PatientAgentContext trusted = new("practice-1", Guid.Empty, "owner-1", new HashSet<string>(),
+            "TenantOwner", "en-US", "UTC", "conversation-1", SubjectKind: "practice");
+        AgentExecutionContext execution = new("run-1", new Dictionary<string, string>
+        {
+            ["practiceId"] = trusted.PracticeId,
+            ["patientId"] = Guid.Empty.ToString("D"),
+            ["authenticatedUserId"] = trusted.AuthenticatedUserId,
+            ["subjectKind"] = "practice"
+        });
+        IAgentTool guarded = new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy(), [])
+            .CreateTools(trusted, execution, [new Capability("Operations", new HashSet<string>(), [handler], [])]).Single();
+
+        AgentToolResult result = await guarded.ExecuteAsync(new AgentToolCall("call-1", "operations_list", "{}"), execution);
+        Func<Task> wrongSubject = () => guarded.ExecuteAsync(
+            new AgentToolCall("call-2", "operations_list", "{}"),
+            execution with { Metadata = new Dictionary<string, string>(execution.Metadata!) { ["subjectKind"] = "patient" } });
+
+        result.CallId.Should().Be("call-1");
+        await wrongSubject.Should().ThrowAsync<InvalidOperationException>().WithMessage("*not correlated*");
+        handler.ExecutionCount.Should().Be(1);
+    }
+
+    [Fact]
     public async Task Tool_dispatch_rejects_unknown_name_and_uncorrelated_run()
     {
         TestTool handler = new("appointments_list");
@@ -337,6 +385,13 @@ public sealed class PatientWorkspaceAgentTests
         public IReadOnlyCollection<IAgentTool> Tools => ContextTools;
         public string GetInstructions() => $"Use {Name} tools only for this patient.";
         public bool IsAvailable(PatientAgentContext context) => true;
+    }
+
+    private sealed class PatientOnlyCapability(TestTool tool) : PatientAgentCapability([tool])
+    {
+        public override string Name => "patient";
+        public override string Description => "Patient-only test capability.";
+        public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>();
     }
 
     private sealed class TestTool(string name, string schema = "{\"type\":\"object\",\"additionalProperties\":false}", string output = "{}") : IPatientAgentPreparationTool

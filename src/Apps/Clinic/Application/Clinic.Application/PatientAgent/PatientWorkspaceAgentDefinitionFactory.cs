@@ -21,7 +21,7 @@ public sealed class PatientWorkspaceAgentDefinitionFactory(
             throw new InvalidOperationException("A configured patient workspace agent model is required.");
         }
 
-        if (context.PatientId == Guid.Empty)
+        if (context.SubjectKind == "patient" && context.PatientId == Guid.Empty)
         {
             throw new ArgumentException("A route-sourced patient id is required.", nameof(context));
         }
@@ -52,6 +52,7 @@ public sealed class PatientWorkspaceAgentDefinitionFactory(
             ["currentLocal"] = currentLocal.ToString("O"),
             ["conversationId"] = context.ConversationId
         };
+        metadata["subjectKind"] = context.SubjectKind;
         if (!string.IsNullOrWhiteSpace(context.PatientNationalId))
         {
             metadata["patientNationalId"] = context.PatientNationalId;

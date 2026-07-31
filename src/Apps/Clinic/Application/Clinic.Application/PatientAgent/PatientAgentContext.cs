@@ -11,4 +11,5 @@ public sealed record PatientAgentContext(
     string ConversationId,
     string? PatientNationalId = null,
     string Calendar = "gregory",
-    bool IsNewConversation = false);
+    bool IsNewConversation = false,
+    string SubjectKind = "patient");

@@ -7,4 +7,8 @@ public interface IPatientAgentContextFactory
         Guid routePatientId,
         string? conversationId,
         CancellationToken cancellationToken = default);
+
+    Task<PatientAgentContext> CreateOperationsAsync(
+        string? conversationId,
+        CancellationToken cancellationToken = default);
 }

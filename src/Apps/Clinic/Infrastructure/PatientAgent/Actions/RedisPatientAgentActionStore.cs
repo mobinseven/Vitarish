@@ -14,7 +14,7 @@ public sealed class RedisPatientAgentActionStore(IConnectionMultiplexer redis) :
         ArgumentNullException.ThrowIfNull(action);
         cancellationToken.ThrowIfCancellationRequested();
         bool saved = await _database.StringSetAsync(
-            Key(action.ActionId), JsonSerializer.Serialize(action), action.ExpiresAt - DateTimeOffset.UtcNow + TimeSpan.FromDays(1), When.NotExists);
+            Key(action.ActionId), JsonSerializer.Serialize(action, PatientAgentActionJsonSerializerContext.Default.PatientAgentAction), action.ExpiresAt - DateTimeOffset.UtcNow + TimeSpan.FromDays(1), When.NotExists);
         if (!saved) throw new InvalidOperationException("A patient-agent action with the same id already exists.");
     }
 
@@ -22,7 +22,7 @@ public sealed class RedisPatientAgentActionStore(IConnectionMultiplexer redis) :
     {
         cancellationToken.ThrowIfCancellationRequested();
         RedisValue value = await _database.StringGetAsync(Key(actionId));
-        return value.IsNullOrEmpty ? null : JsonSerializer.Deserialize<PatientAgentAction>((string)value!);
+        return value.IsNullOrEmpty ? null : JsonSerializer.Deserialize((string)value!, PatientAgentActionJsonSerializerContext.Default.PatientAgentAction);
     }
 
     public Task<bool> TryBeginConfirmationAsync(Guid actionId, bool retryFailed, CancellationToken cancellationToken) =>

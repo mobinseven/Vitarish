@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using Vitarish.Clinic.Application.PatientAgent.Operations;
 using Vitarish.Clinic.Application.PatientAgent.Policies;
 using Vitarish.Intelligence.Application.Agents;
 
@@ -6,7 +8,8 @@ namespace Vitarish.Clinic.Application.PatientAgent.Capabilities;
 
 public sealed class PatientAgentToolDispatcher(
     PatientAgentApprovalPolicy approvalPolicy,
-    IEnumerable<IIntelligenceAgentTool> intelligenceTools)
+    IEnumerable<IIntelligenceAgentTool> intelligenceTools,
+    ILogger<PatientAgentToolDispatcher>? logger = null)
 {
     private readonly IReadOnlyCollection<IIntelligenceAgentTool> _intelligenceTools = [.. intelligenceTools];
 
@@ -23,7 +26,7 @@ public sealed class PatientAgentToolDispatcher(
         PatientAgentExecutionCollector collector) =>
         capabilities.SelectMany(capability => capability.Tools.Select(tool => (capability.Name, Tool: tool)))
             .Concat(_intelligenceTools.Select(tool => (Name: "Intelligence", Tool: (IAgentTool)tool)))
-            .Select(item => (IAgentTool)new GuardedTool(item.Tool, item.Name, context, executionContext.ExecutionId, approvalPolicy, collector))
+            .Select(item => (IAgentTool)new GuardedTool(item.Tool, item.Name, context, executionContext.ExecutionId, approvalPolicy, collector, logger))
             .ToArray();
 
     private sealed class GuardedTool(
@@ -32,7 +35,8 @@ public sealed class PatientAgentToolDispatcher(
         PatientAgentContext trustedContext,
         string agentRunId,
         PatientAgentApprovalPolicy approvalPolicy,
-        PatientAgentExecutionCollector collector) : IAgentTool
+        PatientAgentExecutionCollector collector,
+        ILogger? logger) : IAgentTool
     {
         public AgentToolDefinition Definition => handler.Definition;
 
@@ -51,15 +55,41 @@ public sealed class PatientAgentToolDispatcher(
                 throw new InvalidOperationException("The patient agent tool invocation is not correlated with the current run.");
             }
 
+            if (trustedContext.SubjectKind == "practice" &&
+                !PatientAgentOperationsScope.IsAuthorizedRole(trustedContext.Role))
+            {
+                throw new UnauthorizedAccessException("The operations agent requires a current practice-owner scope.");
+            }
+
             if (approvalPolicy.RequiresApproval(call.Name))
             {
                 throw new InvalidOperationException("The patient agent tool requires approval before invocation.");
             }
 
             ValidateArguments(call.ArgumentsJson, Definition.ParametersJsonSchema);
-            AgentToolResult result = await handler.ExecuteAsync(call, context, cancellationToken);
-            collector.Record(capability, handler, call, context, result);
-            return result;
+            try
+            {
+                AgentToolResult result = await handler.ExecuteAsync(call, context, cancellationToken);
+                collector.Record(capability, handler, call, context, result);
+                if (logger is not null)
+                {
+                    PatientAgentTelemetry.ToolCompleted(logger, call.Name, capability,
+                        result.IsError ? "error" : "succeeded", context.ExecutionId, call.Id);
+                }
+                return result;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch
+            {
+                if (logger is not null)
+                {
+                    PatientAgentTelemetry.ToolFailed(logger, call.Name, capability, context.ExecutionId, call.Id);
+                }
+                throw;
+            }
         }
 
         private static bool IsCorrelated(AgentExecutionContext execution, PatientAgentContext trusted, string expectedRunId) =>
@@ -67,6 +97,9 @@ public sealed class PatientAgentToolDispatcher(
             execution.Metadata is not null &&
             execution.Metadata.TryGetValue("practiceId", out string? practiceId) && practiceId == trusted.PracticeId &&
             execution.Metadata.TryGetValue("patientId", out string? patientId) && patientId == trusted.PatientId.ToString("D") &&
+            (!execution.Metadata.TryGetValue("subjectKind", out string? subjectKind)
+                ? trusted.SubjectKind == "patient"
+                : subjectKind == trusted.SubjectKind) &&
             execution.Metadata.TryGetValue("authenticatedUserId", out string? userId) && userId == trusted.AuthenticatedUserId;
 
         private static void ValidateArguments(string argumentsJson, string schemaJson)

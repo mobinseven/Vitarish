@@ -14,6 +14,7 @@ public interface IPatientAgentActionStore
 public interface IPatientAgentActionCommitter
 {
     string ActionType { get; }
+    IReadOnlySet<string> ActionTypes => new HashSet<string>(StringComparer.Ordinal) { ActionType };
     Task<PatientAgentActionCommitResult> CommitAsync(
         PatientAgentAction action,
         PatientAgentContext context,
@@ -38,9 +39,9 @@ public sealed record PatientAgentActionCommitResult(
 public sealed class PatientAgentActionCommitterRegistry(IEnumerable<IPatientAgentActionCommitter> committers)
     : IPatientAgentActionCommitterRegistry
 {
-    private readonly IReadOnlyDictionary<string, IPatientAgentActionCommitter> _committers = committers.ToDictionary(
-        item => item.ActionType,
-        StringComparer.Ordinal);
+    private readonly IReadOnlyDictionary<string, IPatientAgentActionCommitter> _committers = committers
+        .SelectMany(item => item.ActionTypes.Select(actionType => (actionType, item)))
+        .ToDictionary(item => item.actionType, item => item.item, StringComparer.Ordinal);
 
     public IPatientAgentActionCommitter? Resolve(string actionType) =>
         _committers.GetValueOrDefault(actionType);
