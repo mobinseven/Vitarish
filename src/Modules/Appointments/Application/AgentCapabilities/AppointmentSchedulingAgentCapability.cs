@@ -142,10 +142,11 @@ public sealed class AppointmentSchedulingAgentCapability(
     TimeProvider timeProvider) : IAppointmentSchedulingAgentCapability
 {
     private static readonly TimeSpan ProposalLifetime = TimeSpan.FromMinutes(10);
+    private const int MaximumReadRangeDays = 366;
 
     public async Task<AgentSchedulingResult<IReadOnlyList<ReservationReadDto>>> ListAppointmentsAsync(AgentSchedulingContext context, AgentAppointmentListRequest request, CancellationToken cancellationToken)
     {
-        if (!ValidContext(context) || request.Skip < 0 || request.Take is <= 0 or > 500)
+        if (!ValidContext(context) || !ValidAppointmentPage(request))
             return new(AgentSchedulingStatus.ValidationFailure, Message: "A valid context and bounded appointment page are required.");
         EntityResult<IReadOnlyList<ReservationReadDto>> result = await reservations.GetListAsync(new()
         {
@@ -157,7 +158,7 @@ public sealed class AppointmentSchedulingAgentCapability(
 
     public async Task<AgentSchedulingResult<int>> CountAppointmentsAsync(AgentSchedulingContext context, AgentAppointmentListRequest request, CancellationToken cancellationToken)
     {
-        if (!ValidContext(context)) return new(AgentSchedulingStatus.ValidationFailure, Message: "A valid context is required.");
+        if (!ValidContext(context) || !ValidDateRange(request.DateFrom, request.DateTo)) return new(AgentSchedulingStatus.ValidationFailure, Message: "A valid context and date range are required.");
         return Map(await reservations.CountAsync(new() { Status = request.Status, ShiftId = request.ShiftId, DateFrom = request.DateFrom, DateTo = request.DateTo, ReservingPartyId = request.ReservingPartyId }, cancellationToken));
     }
 
@@ -166,8 +167,8 @@ public sealed class AppointmentSchedulingAgentCapability(
 
     public async Task<AgentSchedulingResult<IReadOnlyList<BookableShiftSlot>>> GetAvailabilityAsync(AgentSchedulingContext context, AgentAvailabilityRequest request, CancellationToken cancellationToken)
     {
-        if (!ValidContext(context) || request.DateFrom > request.DateTo) return new(AgentSchedulingStatus.ValidationFailure, Message: "A valid date range is required.");
-        return new(AgentSchedulingStatus.Succeeded, await bookableSlots.GetBookableSlotsAsync(new() { Id = request.ShiftId }, new() { DateFrom = request.DateFrom, DateTo = request.DateTo }, cancellationToken));
+        if (!ValidContext(context) || !ValidDateRange(request.DateFrom, request.DateTo)) return new(AgentSchedulingStatus.ValidationFailure, Message: "A valid date range is required.");
+        return new(AgentSchedulingStatus.Succeeded, await bookableSlots.GetBookableSlotsAsync(ToShiftDescriptor(request.ShiftId), new() { DateFrom = request.DateFrom, DateTo = request.DateTo }, cancellationToken));
     }
 
     public async Task<AgentSchedulingResult<IReadOnlyList<ShiftReadDto>>> ListShiftsAsync(AgentSchedulingContext context, AgentShiftListRequest request, CancellationToken cancellationToken)
@@ -180,7 +181,7 @@ public sealed class AppointmentSchedulingAgentCapability(
         !ValidContext(context) || shiftId == Guid.Empty ? new(AgentSchedulingStatus.ValidationFailure, Message: "A valid context and shift ID are required.") : Map(await shifts.GetAsync(shiftId, cancellationToken));
 
     public async Task<AgentSchedulingResult<IReadOnlyList<ShiftReservationReadDto>>> GetShiftOccurrencesAsync(AgentSchedulingContext context, AgentOccurrenceRequest request, CancellationToken cancellationToken) =>
-        !ValidContext(context) || request.ShiftId == Guid.Empty || request.DateFrom > request.DateTo ? new(AgentSchedulingStatus.ValidationFailure, Message: "A valid shift and date range are required.") : new(AgentSchedulingStatus.Succeeded, await bookableSlots.GetBookableDatesAsync(request.ShiftId, new() { DateFrom = request.DateFrom, DateTo = request.DateTo }, cancellationToken));
+        !ValidContext(context) || request.ShiftId == Guid.Empty || !ValidDateRange(request.DateFrom, request.DateTo) ? new(AgentSchedulingStatus.ValidationFailure, Message: "A valid shift and date range are required.") : new(AgentSchedulingStatus.Succeeded, await bookableSlots.GetBookableDatesAsync(request.ShiftId, new() { DateFrom = request.DateFrom, DateTo = request.DateTo }, cancellationToken));
 
     public async Task<AgentSchedulingResult<IReadOnlyList<ServiceReadDto>>> ResolveServicesAsync(AgentSchedulingContext context, Guid? serviceTypeId, CancellationToken cancellationToken) =>
         !ValidContext(context) ? new(AgentSchedulingStatus.ValidationFailure, Message: "A valid context is required.") : Map(await services.GetListAsync(new() { ServiceTypeId = serviceTypeId, Skip = 0, Take = 500 }, cancellationToken));
@@ -362,6 +363,28 @@ public sealed class AppointmentSchedulingAgentCapability(
 
     private bool ValidContext(AgentSchedulingContext context) =>
         !string.IsNullOrWhiteSpace(context.PracticeId) && !string.IsNullOrWhiteSpace(context.AgentRunId) && !string.IsNullOrWhiteSpace(context.ToolCallId) && !string.IsNullOrWhiteSpace(context.ToolName) && contextScope.IsAllowed(context.PracticeId);
+
+    private static bool ValidAppointmentPage(AgentAppointmentListRequest request) =>
+        request.Skip >= 0 && request.Take is > 0 and <= 500 && ValidDateRange(request.DateFrom, request.DateTo);
+
+    private static bool ValidDateRange(DateOnly? dateFrom, DateOnly? dateTo)
+    {
+        if (dateFrom is null && dateTo is null)
+        {
+            return true;
+        }
+
+        if (dateFrom is null || dateTo is null || dateFrom > dateTo)
+        {
+            return false;
+        }
+
+        return dateTo.Value.DayNumber - dateFrom.Value.DayNumber <= MaximumReadRangeDays;
+    }
+
+    private static ShiftDescriptorDto ToShiftDescriptor(Guid? shiftId) => shiftId is { } id
+        ? new() { Id = id }
+        : new();
 
     private static OperationReceiptKey Key(string scope, AgentSchedulingContext context, AgentSchedulingOperation operation, Guid? entityId = null) =>
         new($"appointments.agent.{scope}.{operation}.{entityId:D}", context.PracticeId, $"{context.AgentRunId}:{context.ToolCallId}:{context.ToolName}");
