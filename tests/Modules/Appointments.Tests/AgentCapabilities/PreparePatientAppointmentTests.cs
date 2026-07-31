@@ -100,6 +100,28 @@ public sealed class PreparePatientAppointmentTests
         sender.Verify(x => x.Send(It.IsAny<CreateReservationCommand>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Fact]
+    public async Task Confirm_persists_unknown_outcome_when_booking_throws_and_does_not_replay()
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        Store store = new();
+        AppointmentProposal proposal = new(Guid.NewGuid(), Guid.NewGuid(), "practice", Slot(), null, now, now.AddMinutes(5));
+        await store.SaveProposalAsync(proposal, default);
+        Mock<ISender> sender = new();
+        sender.Setup(x => x.Send(It.IsAny<CreateReservationCommand>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("booking dependency unavailable"));
+        ConfirmPatientAppointmentProposal sut = new(store, new Availability(proposal.Slot), sender.Object, new FixedTimeProvider(now));
+
+        AppointmentCommitResult first = await sut.ExecuteAsync(proposal.Id, proposal.PatientId, proposal.PracticeId, default);
+        AppointmentCommitResult replay = await sut.ExecuteAsync(proposal.Id, proposal.PatientId, proposal.PracticeId, default);
+
+        first.Status.Should().Be(AppointmentCommitStatus.UnknownOutcome);
+        replay.Status.Should().Be(AppointmentCommitStatus.UnknownOutcome);
+        sender.Verify(x => x.Send(It.IsAny<CreateReservationCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+        (await store.GetCommitReceiptAsync(proposal.Id, proposal.PracticeId, default))!.Status
+            .Should().Be(AppointmentCommitReceiptStatus.UnknownOutcome);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

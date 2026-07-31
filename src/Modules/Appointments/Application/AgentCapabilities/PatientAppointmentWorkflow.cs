@@ -19,7 +19,7 @@ public enum AppointmentCommitStatus { Committed, AlreadyCommitted, InProgress, U
 public sealed record AppointmentCommitResult(
     AppointmentCommitStatus Status, Guid? AppointmentId = null, AppointmentSlot? Slot = null, string? Message = null);
 
-public enum AppointmentCommitReceiptStatus { InProgress, Committed, Failed }
+public enum AppointmentCommitReceiptStatus { InProgress, Committed, Failed, UnknownOutcome }
 public sealed record AppointmentCommitReceipt(AppointmentCommitReceiptStatus Status, Guid? AppointmentId = null);
 
 public sealed record PatientAppointmentRequest(
@@ -109,6 +109,8 @@ public sealed class ConfirmPatientAppointmentProposal(
             return new(AppointmentCommitStatus.AlreadyCommitted, receipt.AppointmentId, proposal.Slot);
         if (receipt?.Status == AppointmentCommitReceiptStatus.Failed)
             return new(AppointmentCommitStatus.Failed, Slot: proposal.Slot, Message: "Appointment booking was not completed.");
+        if (receipt?.Status == AppointmentCommitReceiptStatus.UnknownOutcome)
+            return new(AppointmentCommitStatus.UnknownOutcome, Slot: proposal.Slot, Message: "Appointment booking outcome could not be established.");
         if (receipt?.Status == AppointmentCommitReceiptStatus.InProgress)
             return new(AppointmentCommitStatus.InProgress, Slot: proposal.Slot, Message: "Appointment booking is already in progress.");
         if (proposal.ExpiresAt <= timeProvider.GetUtcNow())
@@ -119,9 +121,25 @@ public sealed class ConfirmPatientAppointmentProposal(
         if (!await store.TryClaimCommitAsync(proposalId, practiceId, cancellationToken))
             return new(AppointmentCommitStatus.InProgress, Slot: proposal.Slot, Message: "Appointment booking is already in progress.");
 
-        EntityResult<Guid> result = await sender.Send(new CreateReservationCommand(
-            proposal.Slot.ShiftId, proposal.Slot.Date, patientId.ToString("D"),
-            EstimatedSessionLength: proposal.Slot.Duration), cancellationToken);
+        EntityResult<Guid> result;
+        try
+        {
+            result = await sender.Send(new CreateReservationCommand(
+                proposal.Slot.ShiftId, proposal.Slot.Date, patientId.ToString("D"),
+                EstimatedSessionLength: proposal.Slot.Duration), cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch
+        {
+            return await CompleteAndVerifyAsync(proposalId, practiceId, proposal.Slot,
+                new(AppointmentCommitReceiptStatus.UnknownOutcome),
+                new(AppointmentCommitStatus.UnknownOutcome, Slot: proposal.Slot,
+                    Message: "Appointment booking outcome could not be established."),
+                cancellationToken);
+        }
         if (result.IsFailure || result.Value == Guid.Empty)
         {
             AppointmentCommitReceipt terminal = new(AppointmentCommitReceiptStatus.Failed);
@@ -147,7 +165,20 @@ public sealed class ConfirmPatientAppointmentProposal(
         AppointmentCommitReceipt? persisted = await store.GetCommitReceiptAsync(proposalId, practiceId, cancellationToken);
         return persisted == terminal
             ? completed
-            : new(AppointmentCommitStatus.UnknownOutcome, Slot: slot,
-                Message: "Appointment booking outcome could not be recorded durably.");
+            : await PersistUnknownOutcomeAsync(proposalId, practiceId, slot, cancellationToken);
+    }
+
+    private async Task<AppointmentCommitResult> PersistUnknownOutcomeAsync(
+        Guid proposalId,
+        string practiceId,
+        AppointmentSlot slot,
+        CancellationToken cancellationToken)
+    {
+        AppointmentCommitReceipt unknown = new(AppointmentCommitReceiptStatus.UnknownOutcome);
+        _ = await store.CompleteCommitAsync(proposalId, practiceId, unknown, cancellationToken);
+        AppointmentCommitReceipt? persisted = await store.GetCommitReceiptAsync(proposalId, practiceId, cancellationToken);
+        return persisted?.Status == AppointmentCommitReceiptStatus.UnknownOutcome
+            ? new(AppointmentCommitStatus.UnknownOutcome, Slot: slot, Message: "Appointment booking outcome could not be established.")
+            : new(AppointmentCommitStatus.UnknownOutcome, Slot: slot, Message: "Appointment booking outcome could not be recorded durably.");
     }
 }
