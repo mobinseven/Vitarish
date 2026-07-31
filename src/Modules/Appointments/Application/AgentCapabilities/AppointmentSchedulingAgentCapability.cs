@@ -198,9 +198,13 @@ public sealed class AppointmentSchedulingAgentCapability(
     public Task<AgentSchedulingResult> ActivateShiftAsync(AgentSchedulingContext context, Guid shiftId, CancellationToken cancellationToken) => DirectAsync(context, AgentSchedulingOperation.ActivateShift, shiftId, () => shifts.ActivateShiftAsync(shiftId, cancellationToken), cancellationToken);
     public Task<AgentSchedulingResult> PauseShiftAsync(AgentSchedulingContext context, Guid shiftId, CancellationToken cancellationToken) => DirectAsync(context, AgentSchedulingOperation.PauseShift, shiftId, () => shifts.PauseShiftAsync(shiftId, cancellationToken), cancellationToken);
 
-    public Task<AgentSchedulingResult<AgentSchedulingProposal>> PrepareBookAppointmentAsync(AgentSchedulingContext context, AgentAppointmentInput request, CancellationToken cancellationToken) => PrepareAsync(context, AgentSchedulingOperation.BookAppointment, new() { Appointment = request }, cancellationToken);
+    public Task<AgentSchedulingResult<AgentSchedulingProposal>> PrepareBookAppointmentAsync(AgentSchedulingContext context, AgentAppointmentInput request, CancellationToken cancellationToken) =>
+        !ValidAppointmentInput(request)
+            ? Task.FromResult(new AgentSchedulingResult<AgentSchedulingProposal>(AgentSchedulingStatus.ValidationFailure, Message: "A valid shift, date, and reserving party are required."))
+            : PrepareAsync(context, AgentSchedulingOperation.BookAppointment, new() { Appointment = request }, cancellationToken);
     public async Task<AgentSchedulingResult<AgentSchedulingProposal>> PrepareRescheduleAppointmentAsync(AgentSchedulingContext context, AgentRescheduleInput request, CancellationToken cancellationToken)
     {
+        if (!ValidRescheduleInput(request)) return new(AgentSchedulingStatus.ValidationFailure, Message: "A valid reservation, target shift, and target date are required.");
         AgentSchedulingResult<ReservationReadDto> current = await GetAppointmentAsync(context, request.ReservationId, cancellationToken);
         return current.Value is null ? new(current.Status, Message: current.Message) : await PrepareAsync(context, AgentSchedulingOperation.RescheduleAppointment, new() { Reschedule = request, EntityId = request.ReservationId, ExpectedAppointmentStatus = current.Value.Status }, cancellationToken);
     }
@@ -246,43 +250,55 @@ public sealed class AppointmentSchedulingAgentCapability(
         if (!await receipts.TryClaimAsync(Key("outcome", context, operation), new(AgentSchedulingReceiptStatus.InProgress), ProposalLifetime, cancellationToken)) return new(AgentSchedulingStatus.InProgress, proposal.Id, Message: "Scheduling operation is already in progress.");
 
         AgentSchedulingResult result;
-        switch (operation)
+        try
         {
-            case AgentSchedulingOperation.BookAppointment when proposal.Appointment is not null:
-                EntityResult<ReservationReadDto> booking = await reservations.ReserveAsync(proposal.Appointment.ShiftId, proposal.Appointment.Date, proposal.Appointment.ReservingPartyId, proposal.Appointment.EstimatedSessionLength, cancellationToken);
-                result = await FinishAsync(context, operation, proposal.Id, booking.IsFailure ? Failure(booking.Errors) : new(AgentSchedulingStatus.Succeeded, proposal.Id, booking.Value?.Id), cancellationToken);
-                break;
-            case AgentSchedulingOperation.RescheduleAppointment when proposal.Reschedule is not null:
-                result = await FinishAsync(context, operation, proposal.Id, await ToResult(await reservations.MoveReservationAsync(proposal.Reschedule.ReservationId, proposal.Reschedule.TargetShiftId, proposal.Reschedule.TargetDate, cancellationToken), proposal.Id), cancellationToken);
-                break;
-            case AgentSchedulingOperation.CancelAppointment:
-                result = await FinishAsync(context, operation, proposal.Id, await ToResult(await reservations.CancelReservationAsync(proposal.EntityId!.Value, cancellationToken), proposal.Id), cancellationToken);
-                break;
-            case AgentSchedulingOperation.RejectAppointment:
-                result = await FinishAsync(context, operation, proposal.Id, await ToResult(await reservations.RejectReservationAsync(proposal.EntityId!.Value, cancellationToken), proposal.Id), cancellationToken);
-                break;
-            case AgentSchedulingOperation.CreateShift when proposal.Shift is not null:
-                EntityResult<ShiftReadDto> created = await shifts.AddAsync(ToWrite(proposal.Shift, ShiftStatus.Draft), cancellationToken);
-                result = await FinishAsync(context, operation, proposal.Id, created.IsFailure ? Failure(created.Errors, proposal.Id) : new(AgentSchedulingStatus.Succeeded, proposal.Id, created.Value?.Id), cancellationToken);
-                break;
-            case AgentSchedulingOperation.EditShift when proposal.Shift is not null:
-                EntityResult<ShiftReadDto> currentShift = await shifts.GetAsync(proposal.EntityId!.Value, cancellationToken);
-                if (currentShift.IsFailure || currentShift.Value is null) return new(MapStatus(currentShift.Errors), proposal.Id, Message: currentShift.Errors.FirstOrDefault()?.Message);
-                EntityResult<ShiftReadDto> edited = await shifts.UpdateAsync(ToWrite(proposal.Shift, currentShift.Value.Status), cancellationToken);
-                result = await FinishAsync(context, operation, proposal.Id, edited.IsFailure ? Failure(edited.Errors, proposal.Id) : new(AgentSchedulingStatus.Succeeded, proposal.Id, edited.Value?.Id), cancellationToken);
-                break;
-            case AgentSchedulingOperation.CloseShift:
-                result = await FinishAsync(context, operation, proposal.Id, await ToResult(await shifts.CloseShiftAsync(proposal.EntityId!.Value, cancellationToken), proposal.Id), cancellationToken);
-                break;
-            case AgentSchedulingOperation.CancelShift:
-                result = await FinishAsync(context, operation, proposal.Id, await ToResult(await shifts.CancelShiftAsync(proposal.EntityId!.Value, cancellationToken), proposal.Id), cancellationToken);
-                break;
-            case AgentSchedulingOperation.ArchiveShift:
-                result = await FinishAsync(context, operation, proposal.Id, await ToResult(await shifts.ArchiveShiftAsync(proposal.EntityId!.Value, cancellationToken), proposal.Id), cancellationToken);
-                break;
-            default: return new(AgentSchedulingStatus.ValidationFailure, proposal.Id, Message: "Prepared operation payload is invalid.");
+            switch (operation)
+            {
+                case AgentSchedulingOperation.BookAppointment when proposal.Appointment is not null:
+                    EntityResult<ReservationReadDto> booking = await reservations.ReserveAsync(proposal.Appointment.ShiftId, proposal.Appointment.Date, proposal.Appointment.ReservingPartyId, proposal.Appointment.EstimatedSessionLength, cancellationToken);
+                    result = booking.IsFailure ? Failure(booking.Errors) : new(AgentSchedulingStatus.Succeeded, proposal.Id, booking.Value?.Id);
+                    break;
+                case AgentSchedulingOperation.RescheduleAppointment when proposal.Reschedule is not null:
+                    result = await ToResult(await reservations.MoveReservationAsync(proposal.Reschedule.ReservationId, proposal.Reschedule.TargetShiftId, proposal.Reschedule.TargetDate, cancellationToken), proposal.Id);
+                    break;
+                case AgentSchedulingOperation.CancelAppointment:
+                    result = await ToResult(await reservations.CancelReservationAsync(proposal.EntityId!.Value, cancellationToken), proposal.Id);
+                    break;
+                case AgentSchedulingOperation.RejectAppointment:
+                    result = await ToResult(await reservations.RejectReservationAsync(proposal.EntityId!.Value, cancellationToken), proposal.Id);
+                    break;
+                case AgentSchedulingOperation.CreateShift when proposal.Shift is not null:
+                    EntityResult<ShiftReadDto> created = await shifts.AddAsync(ToWrite(proposal.Shift, ShiftStatus.Draft), cancellationToken);
+                    result = created.IsFailure ? Failure(created.Errors, proposal.Id) : new(AgentSchedulingStatus.Succeeded, proposal.Id, created.Value?.Id);
+                    break;
+                case AgentSchedulingOperation.EditShift when proposal.Shift is not null:
+                    EntityResult<ShiftReadDto> currentShift = await shifts.GetAsync(proposal.EntityId!.Value, cancellationToken);
+                    if (currentShift.IsFailure || currentShift.Value is null) return new(MapStatus(currentShift.Errors), proposal.Id, Message: currentShift.Errors.FirstOrDefault()?.Message);
+                    EntityResult<ShiftReadDto> edited = await shifts.UpdateAsync(ToWrite(proposal.Shift, currentShift.Value.Status), cancellationToken);
+                    result = edited.IsFailure ? Failure(edited.Errors, proposal.Id) : new(AgentSchedulingStatus.Succeeded, proposal.Id, edited.Value?.Id);
+                    break;
+                case AgentSchedulingOperation.CloseShift:
+                    result = await ToResult(await shifts.CloseShiftAsync(proposal.EntityId!.Value, cancellationToken), proposal.Id);
+                    break;
+                case AgentSchedulingOperation.CancelShift:
+                    result = await ToResult(await shifts.CancelShiftAsync(proposal.EntityId!.Value, cancellationToken), proposal.Id);
+                    break;
+                case AgentSchedulingOperation.ArchiveShift:
+                    result = await ToResult(await shifts.ArchiveShiftAsync(proposal.EntityId!.Value, cancellationToken), proposal.Id);
+                    break;
+                default: return new(AgentSchedulingStatus.ValidationFailure, proposal.Id, Message: "Prepared operation payload is invalid.");
+            }
         }
-        return result;
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch
+        {
+            return await FinishAsync(context, operation, proposal.Id,
+                new(AgentSchedulingStatus.UnknownOutcome, proposal.Id, Message: "Scheduling operation outcome could not be established."), CancellationToken.None);
+        }
+        return await FinishAsync(context, operation, proposal.Id, result, CancellationToken.None);
     }
 
     private async Task<AgentSchedulingResult<AgentSchedulingProposal>> PrepareAsync(AgentSchedulingContext context, AgentSchedulingOperation operation, AgentSchedulingProposal payload, CancellationToken cancellationToken)
@@ -306,18 +322,40 @@ public sealed class AppointmentSchedulingAgentCapability(
         if (existing?.Value.Status == AgentSchedulingReceiptStatus.InProgress) return new(AgentSchedulingStatus.InProgress, entityId, Message: "Scheduling operation is already in progress.");
         if (existing?.Value.Status == AgentSchedulingReceiptStatus.UnknownOutcome) return new(AgentSchedulingStatus.UnknownOutcome, entityId, Message: existing.Value.Message);
         if (!await receipts.TryClaimAsync(Key("direct", context, operation, entityId), new(AgentSchedulingReceiptStatus.InProgress, entityId), ProposalLifetime, cancellationToken)) return new(AgentSchedulingStatus.InProgress, entityId);
-        return await FinishDirectAsync(context, operation, entityId, await ToResult(await action(), entityId), cancellationToken);
+        AgentSchedulingResult mutationResult;
+        try
+        {
+            mutationResult = await ToResult(await action(), entityId);
+        }
+        catch
+        {
+            return await FinishDirectAsync(context, operation, entityId,
+                new(AgentSchedulingStatus.UnknownOutcome, entityId, Message: "Scheduling operation outcome could not be established."), CancellationToken.None);
+        }
+        return await FinishDirectAsync(context, operation, entityId, mutationResult, CancellationToken.None);
     }
 
     private async Task<AgentSchedulingResult> FinishAsync(AgentSchedulingContext context, AgentSchedulingOperation operation, Guid operationId, AgentSchedulingResult result, CancellationToken cancellationToken, Guid? receiptEntityId = null)
     {
-        AgentSchedulingReceipt terminal = new(result.Status == AgentSchedulingStatus.Succeeded ? AgentSchedulingReceiptStatus.Succeeded : AgentSchedulingReceiptStatus.Failed, receiptEntityId ?? result.EntityId, result.Message);
+        AgentSchedulingReceiptStatus status = result.Status switch
+        {
+            AgentSchedulingStatus.Succeeded => AgentSchedulingReceiptStatus.Succeeded,
+            AgentSchedulingStatus.UnknownOutcome => AgentSchedulingReceiptStatus.UnknownOutcome,
+            _ => AgentSchedulingReceiptStatus.Failed
+        };
+        AgentSchedulingReceipt terminal = new(status, receiptEntityId ?? result.EntityId, result.Message);
         return await PersistTerminalAsync(Key("outcome", context, operation), operationId, terminal, result, cancellationToken);
     }
 
     private async Task<AgentSchedulingResult> FinishDirectAsync(AgentSchedulingContext context, AgentSchedulingOperation operation, Guid entityId, AgentSchedulingResult result, CancellationToken cancellationToken)
     {
-        AgentSchedulingReceipt terminal = new(result.Status == AgentSchedulingStatus.Succeeded ? AgentSchedulingReceiptStatus.Succeeded : AgentSchedulingReceiptStatus.Failed, entityId, result.Message);
+        AgentSchedulingReceiptStatus status = result.Status switch
+        {
+            AgentSchedulingStatus.Succeeded => AgentSchedulingReceiptStatus.Succeeded,
+            AgentSchedulingStatus.UnknownOutcome => AgentSchedulingReceiptStatus.UnknownOutcome,
+            _ => AgentSchedulingReceiptStatus.Failed
+        };
+        AgentSchedulingReceipt terminal = new(status, entityId, result.Message);
         return await PersistTerminalAsync(Key("direct", context, operation, entityId), entityId, terminal, result, cancellationToken);
     }
 
@@ -329,6 +367,13 @@ public sealed class AppointmentSchedulingAgentCapability(
         CancellationToken cancellationToken)
     {
         OperationReceipt<AgentSchedulingReceipt>? current = await receipts.GetAsync(key, cancellationToken);
+        if (current?.Value.Status is AgentSchedulingReceiptStatus.Succeeded or AgentSchedulingReceiptStatus.Failed or AgentSchedulingReceiptStatus.UnknownOutcome)
+        {
+            return current.Value.Status == terminal.Status && current.Value.EntityId == terminal.EntityId
+                ? result
+                : new(AgentSchedulingStatus.UnknownOutcome, operationId, Message: "Scheduling operation outcome could not be established.");
+        }
+
         if (current is not null && await receipts.TryUpdateAsync(key, current.Revision, terminal, ProposalLifetime, cancellationToken))
         {
             current = await receipts.GetAsync(key, cancellationToken);
@@ -366,6 +411,12 @@ public sealed class AppointmentSchedulingAgentCapability(
 
     private static bool ValidAppointmentPage(AgentAppointmentListRequest request) =>
         request.Skip >= 0 && request.Take is > 0 and <= 500 && ValidDateRange(request.DateFrom, request.DateTo);
+
+    private static bool ValidAppointmentInput(AgentAppointmentInput request) =>
+        request is not null && request.ShiftId != Guid.Empty && request.Date != default && !string.IsNullOrWhiteSpace(request.ReservingPartyId);
+
+    private static bool ValidRescheduleInput(AgentRescheduleInput request) =>
+        request is not null && request.ReservationId != Guid.Empty && request.TargetShiftId != Guid.Empty && request.TargetDate != default;
 
     private static bool ValidDateRange(DateOnly? dateFrom, DateOnly? dateTo)
     {
