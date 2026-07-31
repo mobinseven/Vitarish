@@ -49,6 +49,96 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
     }
 
     [Fact]
+    public async Task Direct_appointment_transition_allowlist_uses_distinct_idempotency_operations()
+    {
+        Mock<IAccessControlledReservationManager> reservations = new();
+        reservations.Setup(x => x.ConfirmReservationAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(EntityResult.Success());
+        reservations.Setup(x => x.PresentReservationAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(EntityResult.Success());
+        reservations.Setup(x => x.CompleteReservationAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(EntityResult.Success());
+        AppointmentSchedulingAgentCapability sut = Create(reservations.Object);
+        Guid appointmentId = Guid.NewGuid();
+
+        (await sut.ConfirmAppointmentAsync(Context(), appointmentId, default)).Status.Should().Be(AgentSchedulingStatus.Succeeded);
+        (await sut.PresentAppointmentAsync(Context(), appointmentId, default)).Status.Should().Be(AgentSchedulingStatus.Succeeded);
+        (await sut.CompleteAppointmentAsync(Context(), appointmentId, default)).Status.Should().Be(AgentSchedulingStatus.Succeeded);
+
+        reservations.Verify(x => x.ConfirmReservationAsync(appointmentId, It.IsAny<CancellationToken>()), Times.Once);
+        reservations.Verify(x => x.PresentReservationAsync(appointmentId, It.IsAny<CancellationToken>()), Times.Once);
+        reservations.Verify(x => x.CompleteReservationAsync(appointmentId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Prepared_booking_executes_once_and_replays_receipt_without_rebooking()
+    {
+        Mock<IAccessControlledReservationManager> reservations = new();
+        Guid appointmentId = Guid.NewGuid();
+        reservations.Setup(x => x.ReserveAsync(It.IsAny<Guid>(), It.IsAny<DateOnly>(), It.IsAny<string?>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<ReservationReadDto>.Success(new() { Id = appointmentId }));
+        AppointmentSchedulingAgentCapability sut = Create(reservations.Object);
+        AgentAppointmentInput input = new(Guid.NewGuid(), new(2026, 8, 12), "patient");
+
+        AgentSchedulingResult<AgentSchedulingProposal> prepared = await sut.PrepareBookAppointmentAsync(Context(), input, default);
+        AgentSchedulingResult first = await sut.ExecutePreparedAsync(Context(), AgentSchedulingOperation.BookAppointment, default);
+        AgentSchedulingResult replay = await sut.ExecutePreparedAsync(Context(), AgentSchedulingOperation.BookAppointment, default);
+
+        prepared.Status.Should().Be(AgentSchedulingStatus.Prepared);
+        first.Status.Should().Be(AgentSchedulingStatus.Succeeded);
+        replay.Status.Should().Be(AgentSchedulingStatus.AlreadyApplied);
+        reservations.Verify(x => x.ReserveAsync(input.ShiftId, input.Date, input.ReservingPartyId, input.EstimatedSessionLength, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Prepared_reschedule_rejects_stale_authoritative_appointment_state()
+    {
+        Mock<IAccessControlledReservationManager> reservations = new();
+        Guid appointmentId = Guid.NewGuid();
+        ReservationReadDto confirmed = new() { Id = appointmentId, Status = ReservationStatus.Confirmed };
+        ReservationReadDto cancelled = confirmed with { Status = ReservationStatus.Cancelled };
+        reservations.SetupSequence(x => x.GetAsync(appointmentId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<ReservationReadDto>.Success(confirmed))
+            .ReturnsAsync(EntityResult<ReservationReadDto>.Success(cancelled));
+        AppointmentSchedulingAgentCapability sut = Create(reservations.Object);
+
+        AgentSchedulingResult<AgentSchedulingProposal> prepared = await sut.PrepareRescheduleAppointmentAsync(
+            Context(), new(appointmentId, Guid.NewGuid(), new(2026, 8, 19)), default);
+        AgentSchedulingResult executed = await sut.ExecutePreparedAsync(Context(), AgentSchedulingOperation.RescheduleAppointment, default);
+
+        prepared.Status.Should().Be(AgentSchedulingStatus.Prepared);
+        executed.Status.Should().Be(AgentSchedulingStatus.Conflict);
+        reservations.Verify(x => x.MoveReservationAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Invalid_prepared_booking_is_rejected_before_receipt_claim()
+    {
+        Mock<IAccessControlledReservationManager> reservations = new();
+        AppointmentSchedulingAgentCapability sut = Create(reservations.Object);
+
+        AgentSchedulingResult<AgentSchedulingProposal> result = await sut.PrepareBookAppointmentAsync(
+            Context(), new(Guid.Empty, default, "patient"), default);
+
+        result.Status.Should().Be(AgentSchedulingStatus.ValidationFailure);
+        reservations.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Direct_transition_exception_is_unknown_and_is_not_replayed()
+    {
+        Mock<IAccessControlledReservationManager> reservations = new();
+        reservations.Setup(x => x.ConfirmReservationAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("booking dependency unavailable"));
+        AppointmentSchedulingAgentCapability sut = Create(reservations.Object);
+        Guid appointmentId = Guid.NewGuid();
+
+        AgentSchedulingResult first = await sut.ConfirmAppointmentAsync(Context(), appointmentId, default);
+        AgentSchedulingResult replay = await sut.ConfirmAppointmentAsync(Context(), appointmentId, default);
+
+        first.Status.Should().Be(AgentSchedulingStatus.UnknownOutcome);
+        replay.Status.Should().Be(AgentSchedulingStatus.UnknownOutcome);
+        reservations.Verify(x => x.ConfirmReservationAsync(appointmentId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task Invalid_context_is_rejected_before_manager_access()
     {
         Mock<IAccessControlledReservationManager> reservations = new();
