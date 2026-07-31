@@ -15,7 +15,7 @@ public enum AppointmentProposalResultStatus { Prepared, Unavailable, MissingInfo
 public sealed record AppointmentProposalResult(
     AppointmentProposalResultStatus Status, AppointmentProposal? Proposal = null, string? Message = null);
 
-public enum AppointmentCommitStatus { Committed, AlreadyCommitted, InProgress, Expired, Stale, NotFound, Forbidden, Failed }
+public enum AppointmentCommitStatus { Committed, AlreadyCommitted, InProgress, UnknownOutcome, Expired, Stale, NotFound, Forbidden, Failed }
 public sealed record AppointmentCommitResult(
     AppointmentCommitStatus Status, Guid? AppointmentId = null, AppointmentSlot? Slot = null, string? Message = null);
 
@@ -124,13 +124,30 @@ public sealed class ConfirmPatientAppointmentProposal(
             EstimatedSessionLength: proposal.Slot.Duration), cancellationToken);
         if (result.IsFailure || result.Value == Guid.Empty)
         {
-            _ = await store.CompleteCommitAsync(proposalId, practiceId,
-                new(AppointmentCommitReceiptStatus.Failed), cancellationToken);
-            return new(AppointmentCommitStatus.Failed, Slot: proposal.Slot, Message: "Appointment booking was not completed.");
+            AppointmentCommitReceipt terminal = new(AppointmentCommitReceiptStatus.Failed);
+            return await CompleteAndVerifyAsync(proposalId, practiceId, proposal.Slot, terminal,
+                new(AppointmentCommitStatus.Failed, Slot: proposal.Slot, Message: "Appointment booking was not completed."),
+                cancellationToken);
         }
 
-        _ = await store.CompleteCommitAsync(proposalId, practiceId,
-            new(AppointmentCommitReceiptStatus.Committed, result.Value), cancellationToken);
-        return new(AppointmentCommitStatus.Committed, result.Value, proposal.Slot);
+        AppointmentCommitReceipt committed = new(AppointmentCommitReceiptStatus.Committed, result.Value);
+        return await CompleteAndVerifyAsync(proposalId, practiceId, proposal.Slot, committed,
+            new(AppointmentCommitStatus.Committed, result.Value, proposal.Slot), cancellationToken);
+    }
+
+    private async Task<AppointmentCommitResult> CompleteAndVerifyAsync(
+        Guid proposalId,
+        string practiceId,
+        AppointmentSlot slot,
+        AppointmentCommitReceipt terminal,
+        AppointmentCommitResult completed,
+        CancellationToken cancellationToken)
+    {
+        _ = await store.CompleteCommitAsync(proposalId, practiceId, terminal, cancellationToken);
+        AppointmentCommitReceipt? persisted = await store.GetCommitReceiptAsync(proposalId, practiceId, cancellationToken);
+        return persisted == terminal
+            ? completed
+            : new(AppointmentCommitStatus.UnknownOutcome, Slot: slot,
+                Message: "Appointment booking outcome could not be recorded durably.");
     }
 }

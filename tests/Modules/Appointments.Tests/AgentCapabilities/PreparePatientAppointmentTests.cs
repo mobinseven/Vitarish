@@ -100,6 +100,26 @@ public sealed class PreparePatientAppointmentTests
         sender.Verify(x => x.Send(It.IsAny<CreateReservationCommand>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Confirm_reports_unknown_outcome_when_terminal_receipt_is_not_durable(bool bookingSucceeds)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        Store store = new(completeSucceeds: false);
+        AppointmentProposal proposal = new(Guid.NewGuid(), Guid.NewGuid(), "practice", Slot(), null, now, now.AddMinutes(5));
+        await store.SaveProposalAsync(proposal, default);
+        Mock<ISender> sender = new();
+        sender.Setup(x => x.Send(It.IsAny<CreateReservationCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(bookingSucceeds ? EntityResult<Guid>.Success(Guid.NewGuid()) : EntityResult<Guid>.Failure(EntityError.Conflict("Booking failed.")));
+
+        AppointmentCommitResult result = await new ConfirmPatientAppointmentProposal(
+            store, new Availability(proposal.Slot), sender.Object, new FixedTimeProvider(now))
+            .ExecuteAsync(proposal.Id, proposal.PatientId, proposal.PracticeId, default);
+
+        result.Status.Should().Be(AppointmentCommitStatus.UnknownOutcome);
+    }
+
     private static PreparePatientAppointment Create(IPatientAppointmentAvailability availability, Store store) =>
         new(new CheckPatientAppointmentAvailability(availability), store, TimeProvider.System);
     private static PatientAppointmentRequest Request(string local = "2026-08-12T09:00", int? duration = 30, string? service = "Consultation") =>
@@ -118,7 +138,7 @@ public sealed class PreparePatientAppointmentTests
         public Task<AppointmentSlot?> FindAvailableSlotAsync(PatientAppointmentRequest request, CancellationToken cancellationToken) => Task.FromResult(slot);
         public Task<bool> IsAvailableAsync(AppointmentSlot candidate, CancellationToken cancellationToken) => Task.FromResult(slot is not null);
     }
-    private sealed class Store : IPatientAppointmentWorkflowStore
+    private sealed class Store(bool completeSucceeds = true) : IPatientAppointmentWorkflowStore
     {
         private readonly Dictionary<Guid, AppointmentProposal> proposals = [];
         private readonly Dictionary<Guid, AppointmentCommitReceipt> committed = [];
@@ -126,7 +146,12 @@ public sealed class PreparePatientAppointmentTests
         public Task SaveProposalAsync(AppointmentProposal proposal, CancellationToken cancellationToken) { proposals.Add(proposal.Id, proposal); return Task.CompletedTask; }
         public Task<AppointmentCommitReceipt?> GetCommitReceiptAsync(Guid proposalId, string practiceId, CancellationToken cancellationToken) => Task.FromResult(committed.GetValueOrDefault(proposalId));
         public Task<bool> TryClaimCommitAsync(Guid proposalId, string practiceId, CancellationToken cancellationToken) => Task.FromResult(committed.TryAdd(proposalId, new(AppointmentCommitReceiptStatus.InProgress)));
-        public Task<bool> CompleteCommitAsync(Guid proposalId, string practiceId, AppointmentCommitReceipt receipt, CancellationToken cancellationToken) { committed[proposalId] = receipt; return Task.FromResult(true); }
+        public Task<bool> CompleteCommitAsync(Guid proposalId, string practiceId, AppointmentCommitReceipt receipt, CancellationToken cancellationToken)
+        {
+            if (!completeSucceeds) return Task.FromResult(false);
+            committed[proposalId] = receipt;
+            return Task.FromResult(true);
+        }
         public void SetCommit(Guid proposalId, AppointmentCommitReceipt receipt) => committed[proposalId] = receipt;
     }
     private sealed class FixedTimeProvider(DateTimeOffset value) : TimeProvider

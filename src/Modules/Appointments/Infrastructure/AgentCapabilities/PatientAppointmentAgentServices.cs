@@ -36,7 +36,7 @@ public sealed class PatientAppointmentWorkflowStore(
     {
         OperationReceipt<AppointmentCommitReceipt>? current = await commits.GetAsync(
             Key("commit", practiceId, proposalId), cancellationToken);
-        return current is not null && await commits.TryUpdateAsync(
+        return current?.Value.Status == AppointmentCommitReceiptStatus.InProgress && await commits.TryUpdateAsync(
             Key("commit", practiceId, proposalId), current.Revision, receipt, ProposalLifetime, cancellationToken);
     }
 

@@ -12,6 +12,7 @@
     <ProjectReference Include="..\..\..\src\Modules\Appointments\Contracts\Appointments.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Appointments\Client\Appointments.Client.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Appointments\Application\Appointments.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Appointments\Infrastructure\Appointments.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
