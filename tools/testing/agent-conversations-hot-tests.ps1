@@ -8,13 +8,15 @@ $ErrorActionPreference = "Stop"
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\.."))
 $composeFile = Join-Path $repoRoot "src\Hosts\docker-compose.main.yml"
 $testProject = Join-Path $repoRoot "tests\Modules\Intelligence.Tests\Intelligence.Tests.csproj"
+$locationEntered = $false
 
 if ([string]::IsNullOrWhiteSpace($env:REDIS_PASSWORD)) {
     throw "REDIS_PASSWORD must be supplied; the harness never invents or prints credentials."
 }
 
-Push-Location $repoRoot
 try {
+    Push-Location $repoRoot
+    $locationEntered = $true
     docker compose -f $composeFile up -d postgres redis
     if ($LASTEXITCODE -ne 0) { throw "PostgreSQL/Redis startup failed." }
 
@@ -35,5 +37,5 @@ finally {
     if (-not $KeepServices) {
         docker compose -f $composeFile stop postgres redis | Out-Null
     }
-    Pop-Location
+    if ($locationEntered) { Pop-Location }
 }
