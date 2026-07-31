@@ -7,6 +7,7 @@ import {
   PromptInput,
   Sheet,
 } from "@heroui-pro/react";
+import { Button, Modal, Tooltip } from "@heroui/react";
 import { FaIcon } from "@vitarish/web-ui";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocalizedText } from "../../localization";
@@ -23,11 +24,19 @@ export {
   PatientAgentErrorState,
 } from "./PatientAgentStates";
 
-export function PatientAgentHeader({ patientName }: { patientName: string }) {
+export function PatientAgentHeader({ patientName, onReset }: { patientName: string; onReset: () => void }) {
   const { t } = useLocalizedText();
   return (
     <>
-      <Sheet.Heading>{t("clinic.patientAgent.title")}</Sheet.Heading>
+      <div className="flex items-center justify-between gap-3">
+        <Sheet.Heading>{t("clinic.patientAgent.title")}</Sheet.Heading>
+        <Tooltip>
+          <Button isIconOnly variant="tertiary" aria-label={t("clinic.patientAgent.actions.reset")} onPress={onReset}>
+            <FaIcon icon="rotate-left" aria-hidden="true" />
+          </Button>
+          <Tooltip.Content>{t("clinic.patientAgent.actions.reset")}</Tooltip.Content>
+        </Tooltip>
+      </div>
       <p className="text-sm text-muted">
         {t("clinic.patientAgent.patient", { patient: patientName })}
       </p>
@@ -181,6 +190,8 @@ export function PatientAgentPanel({
   const [messages, setMessages] = useState<PatientAgentChatMessage[]>([]);
   const [actionIds, setActionIds] = useState<string[]>([]);
   const [lastMessage, setLastMessage] = useState("");
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetError, setResetError] = useState(false);
   const focusTarget = useRef<HTMLDivElement>(null);
   const activePatient = useRef(patientId);
 
@@ -239,6 +250,19 @@ export function PatientAgentPanel({
     appendResult(await conversation.retry(), patientId);
   };
 
+  const resetConversation = async () => {
+    setResetError(false);
+    try {
+      await conversation.deleteCurrent();
+      setMessages([]);
+      setActionIds([]);
+      setLastMessage("");
+      setConfirmReset(false);
+    } catch {
+      setResetError(true);
+    }
+  };
+
   return (
     <Sheet isOpen={isOpen} placement="bottom" onOpenChange={onOpenChange}>
       <Sheet.Backdrop>
@@ -246,7 +270,7 @@ export function PatientAgentPanel({
           <Sheet.Dialog className="flex h-[88vh] flex-col">
             <Sheet.Handle />
             <Sheet.Header>
-              <PatientAgentHeader patientName={patientName} />
+              <PatientAgentHeader patientName={patientName} onReset={() => setConfirmReset(true)} />
               <Sheet.CloseTrigger aria-label={t("common.actions.close")}>
                 <FaIcon icon="xmark" aria-hidden="true" />
               </Sheet.CloseTrigger>
@@ -310,6 +334,18 @@ export function PatientAgentPanel({
           </Sheet.Dialog>
         </Sheet.Content>
       </Sheet.Backdrop>
+      <Modal isOpen={confirmReset} onOpenChange={setConfirmReset}>
+        <Modal.Backdrop>
+          <Modal.Container placement="center"><Modal.Dialog>
+            <Modal.Header><Modal.Heading>{t("clinic.patientAgent.actions.resetTitle")}</Modal.Heading></Modal.Header>
+            <Modal.Body><p>{t("clinic.patientAgent.actions.resetDescription")}</p>{resetError ? <p role="alert" className="text-danger">{t("clinic.patientAgent.actions.resetError")}</p> : null}</Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onPress={() => setConfirmReset(false)}>{t("common.actions.cancel")}</Button>
+              <Button variant="danger" onPress={() => void resetConversation()}>{t("common.actions.delete")}</Button>
+            </Modal.Footer>
+          </Modal.Dialog></Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
     </Sheet>
   );
 }
