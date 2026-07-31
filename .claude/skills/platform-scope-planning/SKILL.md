@@ -7,6 +7,6 @@ description: Routes to the canonical Vitarish scope planning skill. Use for prod
 
 This is a Claude discovery bridge.
 
-Read `.agents/skills/README.md`, then read and follow `.agents/skills/platform-scope-planning/SKILL.md`.
+Read `.agents/skills/README.md`, then read and follow `.agents/skills/platform-change-planning/SKILL.md`.
 
 Do not treat this bridge as the source of truth.

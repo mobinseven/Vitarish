@@ -17,6 +17,12 @@ Do not load React, Web-route, or Web-layout skills for module-only work.
 slice. Generated clients and DTOs must be changed through their authoritative
 source and generator.
 
+## Native AOT readiness
+
+- **[MUST]** Apply the root Native AOT readiness rule. Keep EF Core, provider
+  types, proxies, tracking state, and `IQueryable<T>` inside persistence
+  infrastructure; never expose them through Domain/Application contracts.
+
 ## Scoped persistence concurrency
 
 - **[MUST]** Never run concurrent operations against the same scoped EF Core

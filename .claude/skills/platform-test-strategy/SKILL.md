@@ -7,6 +7,6 @@ description: Routes to the canonical Vitarish test strategy skill. Use for requi
 
 This is a Claude discovery bridge.
 
-Read `.agents/skills/README.md`, then read and follow `.agents/skills/platform-test-strategy/SKILL.md`.
+Read `.agents/skills/README.md`, then read and follow `.agents/skills/platform-test-validation/SKILL.md`.
 
 Do not treat this bridge as the source of truth.

@@ -1,6 +1,6 @@
 ---
 name: apply-web-layout-policy
-description: Owns Web planning, implementation, diagnosis, and review of route shells, DashboardFrame, AppLayout, main landmarks, sidebar, aside, outer scrolling, viewport sizing, public chrome, gutters, centered states, and immersive workspaces. Do not use for feature-internal grids.
+description: Owns Web route shells, main/scroll ownership, viewport sizing, public chrome, centered states, and immersive workspaces. Skip feature-internal grids.
 ---
 
 # Apply Web Layout Policy

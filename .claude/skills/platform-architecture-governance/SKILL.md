@@ -7,6 +7,6 @@ description: Routes to the canonical Vitarish architecture governance skill. Use
 
 This is a Claude discovery bridge.
 
-Read `.agents/skills/README.md`, then read and follow `.agents/skills/platform-architecture-governance/SKILL.md`.
+Read `.agents/skills/README.md`, then read and follow `.agents/skills/platform-artifact-architecture/SKILL.md`.
 
 Do not treat this bridge as the source of truth.

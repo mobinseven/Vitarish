@@ -3,7 +3,6 @@ using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Capabilities;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Medical.Application.AgentCapabilities.Prescriptions;
-using Vitarish.Medical.Interface.AgentCapabilities.Prescriptions;
 
 namespace Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Prescriptions;
 

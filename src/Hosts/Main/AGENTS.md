@@ -11,6 +11,12 @@ use-case behavior here to avoid changing its owner.
 | Host-owned remote provider adapter | `platform-external-integration` |
 | Composition boundaries, project references, placement, or ADR need | `platform-artifact-architecture` |
 
-Do not load `platform-backend-use-case` for host wiring, and do not load React,
-Web-route, or Web-layout skills for Razor/Blazor host work. Move business
-behavior to its owning App, Module, or Identity Application/Domain slice.
+Do not load `platform-backend-use-case`, React, Web-route, or Web-layout skills
+for backend host wiring. Move business behavior to its owning App, Module, or
+Identity Application/Domain slice.
+
+## Native AOT readiness
+
+- **[MUST]** Apply the root Native AOT readiness rule. Keep host composition,
+  endpoint mapping, dependency registration, configuration, and JSON metadata
+  explicit or generated.

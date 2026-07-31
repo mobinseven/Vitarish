@@ -10,7 +10,6 @@ using Vitarish.Entities.Server.Extensions;
 using Vitarish.Modules.Base.Core;
 using Vitarish.Appointments.Application.AgentCapabilities;
 using Vitarish.Appointments.Infrastructure.AgentCapabilities;
-using Vitarish.Appointments.Interface.AgentCapabilities;
 
 namespace Vitarish.Appointments.Module;
 

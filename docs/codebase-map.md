@@ -3,159 +3,316 @@
 Status: Active  
 Owner: Platform Architecture  
 Scope: Repository navigation  
-Last reviewed: 2026-07-18
+Last reviewed: 2026-07-31
 
-## 1. Purpose and scope
+## 1. Purpose
 
-Read this file first when asked to locate, add, or move code in this repo; do not treat it as a source of behavior or policy rules.
+Use this map to find the current owner and location of code, generated
+artifacts, tests, commands, and supporting documentation. It is not a source of
+business behavior or architecture policy. Those rules belong to code,
+`AGENTS.md`, ADRs, module documentation, and runbooks.
 
-This map is a short navigation guide for contributors and agents. It answers where major code, documentation, generated artifacts, runtime pieces, and maintenance rules live. It is not the source of truth for architecture policy, business behavior, product scope, or operational procedures; use the owning code, `AGENTS.md`, ADRs, module docs, and runbooks for those details.
+Update this file when repository navigation changes. Keep detailed behavior and
+design rationale in their authoritative documents.
 
-Update this file only when repository navigation changes. Keep it folder-level and link/pointer oriented.
+## 2. Current architecture at a glance
 
-## 2. Repository overview
+Vitarish consists of:
 
-- **Purpose:** Vitarish is a modular healthcare/business platform with tenant-aware web applications, module APIs, shared contracts, infrastructure adapters, and documentation for journeys, architecture decisions, tests, and runbooks.
-- **System type:** A .NET modular backend/Blazor host plus a Next.js React web workspace. The backend owns module composition, identity, persistence, OpenAPI generation, Hangfire jobs, and server-rendered Razor pages. The web workspace owns modern React applications, feature packages, generic UI packages, API transport, and localization composition.
-- **Main technologies:** .NET/ASP.NET Core, Razor Components/Blazor Server, EF Core, PostgreSQL/Npgsql, Duende IdentityServer, Hangfire, Finbuckle.MultiTenant, Redis integration, MediatR, FluentValidation, Next.js, React, TypeScript, HeroUI, TanStack Query, Orval, Vitest, Docker Compose, and GitHub Actions.
-- **Inside this repo:** Backend modules under `src/Modules`, app aggregators under `src/Apps`, runnable hosts under `src/Hosts`, identity/libraries under `src/Identity` and `src/Libraries`, React web apps/packages under `src/Hosts/Web`, tests under `tests`, architecture/development/product docs under `docs`, validation scripts under `tools` and `src/Hosts/Web/scripts`, and agent operating rules in the root and area-scoped `AGENTS.md` files plus `.agents/skills`.
-- **External systems:** Production databases, Redis, object/file storage providers, mail/SMS/communication gateways, FIDO/passkey authenticators, Tamin/prescription providers, OpenAI/Ollama/AI providers, Elasticsearch/search infrastructure, Google Speech, deployment infrastructure, secrets stores, and live tenant/user data are external.
+- a modular .NET backend under `src/Modules`, `src/Apps`, `src/Identity`, and
+  `src/Libraries`;
+- one backend-only ASP.NET Core composition host at `src/Hosts/Main`;
+- a React/Next.js Web workspace at `src/Hosts/Web`;
+- a server-only Node agent runtime at
+  `src/Hosts/Web/apps/agent-runtime`;
+- .NET and Web tests under `tests` and package-local test folders;
+- architecture and test validators under `tools` and
+  `src/Hosts/Web/scripts`.
 
-## 3. Top-level folder map
+React Web is the production UI surface.
 
-| Path | Contents | Edit guidance |
+`src/Hosts/Main` is a backend service. It owns process composition, API
+exposure, authentication/authorization integration, IdentityServer, Hangfire,
+OpenAPI generation, Redis-backed host concerns, and module initialization. It
+does not own product pages or business rules.
+
+The main technology families are ASP.NET Core Minimal APIs, EF Core with
+PostgreSQL/Npgsql, Duende IdentityServer, Hangfire, Finbuckle.MultiTenant,
+Redis, MediatR, FluentValidation, Next.js, React, TypeScript, HeroUI,
+TanStack Query, Orval, Vitest, Playwright, Docker Compose, and GitHub Actions.
+
+## 3. Top-level map
+
+| Path | Current responsibility | Guidance |
 | --- | --- | --- |
-| `.agents/skills` | Canonical project skills for Codex/agents. | Edit only for skill-governance work; follow `.agents/AGENTS.md` and keep bridge skills in sync. |
-| `.claude/skills` | Claude bridge skills pointing back to `.agents/skills`. | Do not make canonical policy here. |
-| `.github` | Issue templates and CI workflows. | High-care DevOps area. |
-| `docs` | Architecture decisions, module/app docs, runbooks, indexes, this map. | Safe for documentation changes; update scoped docs near behavior changes. |
-| `scripts` | Repository scripts. | High-care; check callers before changing. |
-| `src/Apps` | App composition/aggregator projects and app-level contracts/clients/core/interface packages. | Follow its `AGENTS.md`; add app-specific composition here when a module is exposed through an app. |
-| `src/Build` | Build-related source. | High-care; affects multiple projects. |
-| `src/Hosts/Main` | ASP.NET Core host, Blazor/Razor pages, auth, OpenAPI generation, Dockerfile, host settings. | High-risk runtime/composition root; avoid business rules in pages/host. |
-| `src/Hosts/Web` | npm workspace for Next.js apps and shared React packages, including generic UI, feature packages, Web API transport, and localization composition. | Follow its `AGENTS.md`; generated API output is not manual. |
-| `src/Identity` | Identity client/application/domain/infrastructure/hosting code. | Security-sensitive; requires careful review. |
-| `src/Libraries` | Shared server/client/contracts/generators such as Audit and Entities. | High reuse; avoid app-specific behavior. |
-| `src/Modules` | Business modules with Domain/Application/Infrastructure/Api/Contracts/Client/Interface/Module slices. | Follow its `AGENTS.md`; preserve slice boundaries. |
-| `tests` | .NET xUnit tests by module. | Follow its `AGENTS.md` and the routing of the production boundary under test. |
-| `tools` | Architecture/testing validators. | Follow its `AGENTS.md`; CI and policy enforcement may depend on these. |
+| `.agents/skills` | Canonical project skills. | Follow `.agents/AGENTS.md`; keep skills procedural and scoped. |
+| `.claude/skills` | Discovery bridges to canonical skills. | Do not place canonical rules here. |
+| `.github` | CI workflows and repository automation. | Check workflow callers before editing. |
+| `docs` | ADRs, conventions, app/module documentation, runbooks, indexes, and this map. | Follow `docs/AGENTS.md`. |
+| `src/Apps` | .NET app aggregators and app-owned backend slices. Current roots are `Aggregator`, `Base`, and `Clinic`. | Follow `src/Apps/AGENTS.md`; keep module business rules in modules. |
+| `src/Build` | Shared MSBuild configuration and module build profiles. | High-impact shared build surface. |
+| `src/Hosts/Main` | Backend ASP.NET Core composition/runtime host. | Follow its `AGENTS.md`; no product UI or use-case behavior. |
+| `src/Hosts/Web` | npm workspace containing React apps, feature packages, Web infrastructure, and the agent runtime. | Follow its `AGENTS.md`; never edit generated API output manually. |
+| `src/Identity` | Identity Domain/Application/Infrastructure/Hosting/Client code. | Security-sensitive; follow its `AGENTS.md`. |
+| `src/Libraries` | Shared .NET libraries and generators, including Audit and Entities. | Keep app- and module-specific behavior out. |
+| `src/Modules` | Modular backend capabilities. | Follow `src/Modules/AGENTS.md` and preserve inward dependency direction. |
+| `tests/Apps` | App-level .NET tests. | Test app-owned behavior and composition boundaries. |
+| `tests/Modules` | Module-level .NET tests. | Test the layer that owns the behavior. |
+| `tools/architecture` | Repository architecture and documentation validators. | Follow `tools/AGENTS.md`. |
+| `tools/testing` | Cross-cutting hot-test and test-synchronization tools. | Follow `tools/AGENTS.md`. |
+| `Vitarish.slnx` | Current .NET solution entry point. | Use for full-solution validation. |
 
-## 4. Project/module layout
+Build output and local tooling folders such as `bin`, `obj`, `.next`,
+`node_modules`, `.vs`, and `artifacts` are not source locations.
 
-Most business modules follow this slice layout:
+## 4. .NET backend layout
 
-| Slice | Responsibility |
+Business modules commonly use these slices. Not every module needs every
+slice.
+
+| Slice | Owner and responsibility |
 | --- | --- |
-| `Domain` | Business entities, value objects, policies, and rules. No infrastructure, UI, transport, persistence, clocks, filesystem, network, or vendors. |
-| `Application` | Commands, queries, orchestration, validation, ports, and use-case-owned mapping. Depends on domain and abstractions. |
-| `Infrastructure` | EF Core `DbContext`, entity configurations, migrations, repositories/adapters, provider clients, and external service implementations. |
-| `Api` | HTTP endpoints/routes and OpenAPI metadata. Thin transport layer only; no business rules. |
-| `Contracts` | Serialization-only request/response DTOs and API contract shapes. |
-| `Client` | Generated or hand-authored API client boundary, query keys/hooks where applicable. Do not import backend internals. |
-| `Interface` | Module-to-host/frontend boundary packages and composition-facing services. |
-| `Module` | Backend module registration, initialization, and composition. |
+| `Domain` | Business state, invariants, entities, value objects, and pure policies. |
+| `Application` | Commands, queries, workflows, validation coordination, and application-owned ports. |
+| `Contracts` | Serialization-safe public transport shapes and route values. |
+| `Api` | Minimal API endpoint registration and transport-to-application mapping. |
+| `Infrastructure` | EF Core persistence, migrations, provider adapters, caches, files, background jobs, and concrete options. |
+| `Module` | Explicit module registration and composition exposed to hosts. |
+| `Client` | .NET HTTP client boundary for current .NET consumers. |
 
-Ownership and dependency rules:
+Dependency direction:
 
-- UI code lives in `src/Hosts/Web/apps/*/src/app` and shared React packages under `src/Hosts/Web/shared/*`. React Web app route files compose package surfaces; workflow feature implementation belongs in `src/Hosts/Web/shared/<feature>-web` under ADR-0008. App-local workflow folders are forbidden; `home` and `landing` remain app-owned route/shell composition unless reusable workflow behavior is extracted.
-- Business logic lives in `src/Modules/<Module>/Domain`; orchestration lives in `Application`.
-- Database and external infrastructure live in `src/Modules/<Module>/Infrastructure`, `src/Libraries/*/*.Server`, identity infrastructure, or truly host-owned infrastructure.
-- Shared contracts/DTOs live in `src/Modules/<Module>/Contracts`, `src/Apps/*/Interface`, and generated TypeScript clients derived from OpenAPI.
-- Allowed direction is host/composition toward modules/interfaces; Api/Infrastructure inward to Application/Domain/Contracts; Application to Domain and ports/contracts; Domain to no platform-specific implementation; React apps to generated clients, feature APIs, and shared UI packages.
-- Forbidden direction: Domain/Application must not import UI, EF Core, ASP.NET transport, vendor SDKs, filesystem/network/clock implementations, or frontend clients. React/Client/Interface artifacts must not import backend Api/Application/Domain/Infrastructure/server-only packages.
+- Domain is independent of Application and all outward implementations.
+- Application depends on Domain and Application-owned abstractions.
+- API and Infrastructure adapt inward-facing contracts.
+- composition roots depend on the projects they wire.
+- Contracts remain independent of Domain, Application, persistence, UI, and
+  vendor models.
+- Client projects do not import server internals.
 
-### Feature/module map
+EF Core belongs in persistence infrastructure and migration tooling. It must
+not leak through Domain/Application contracts as `DbContext`, `IQueryable<T>`,
+entities, proxies, tracking state, or provider types.
 
-Use module names as the feature map. For each module, the conventional locations are:
+For statically analyzable composition, dependency selection, generated
+serialization, trimming, and Native AOT readiness, follow
+[ADR-0010](architecture/decisions/0010-prefer-statically-analyzable-native-aot-compatible-design.md)
+and its
+[engineering standard](architecture/conventions/adr-0010-static-analyzability-native-aot.md).
+Native AOT is a readiness constraint, not a requirement to publish the current
+production host as Native AOT.
 
-| Feature/module | UI | Commands/writes | Queries/reads | Domain | Persistence | Tests | Docs |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Authentication | React routes and `src/Hosts/Web/shared/auth-web` | `src/Modules/Authentication/Application` | same | `src/Modules/Authentication/Domain` | `Infrastructure` and `src/Identity` | `tests/Modules/Authentication.Tests`, package tests | `docs/platform/modules/authentication` |
-| Journey/onboarding | React routes and `src/Hosts/Web/shared/journey-web` | `src/Modules/Journey/Application` | same | `src/Modules/Journey/Domain` | `Infrastructure` | `tests/Modules/Journey.Tests`, package tests | `docs/platform/modules/base/journeys` and app journeys |
-| Platform/admin/tenants | `src/Hosts/Main/Pages/Platform`, React owner/admin areas | `src/Modules/Platform/Application` | same | `src/Modules/Platform/Domain` | `Infrastructure` | `tests/Modules/Platform.Tests` | `docs/platform/modules/platform` |
-| Parties/tenants/owners | `src/Hosts/Main/Pages/Parties` | `src/Modules/Parties/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Parties.Tests` | `docs/platform/modules/parties` |
-| Users | Account/profile routes and `src/Hosts/Web/shared/account-web` | `src/Modules/Users/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Users.Tests`, package tests | `docs/platform/modules/users` |
-| Appointments | `src/Hosts/Main/Pages/Appointments`, clinic appointment pages | `src/Modules/Appointments/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Appointments.Tests` | `docs/platform/modules/appointments`, `docs/apps/clinic-owner/journeys` |
-| Sea/clinic workflows | React routes with `src/Hosts/Web/shared/sea-web` and `src/Hosts/Web/shared/clinic-web` | `src/Modules/Sea/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Sea.Tests`, package tests | `docs/platform/modules/sea` |
-| Medical/prescriptions | `src/Hosts/Main/Pages/Prescriptions`, `Pages/Support/Prescriptions` | `src/Modules/Medical/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Medical.Tests` | `docs/platform/modules/medical` |
-| Knowledge/QA | `src/Hosts/Main/Pages/Knowledge`, `src/Hosts/Web/shared/knowledge-web`, app knowledge routes | `src/Modules/Knowledge/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Knowledge.Tests`, package tests | `docs/platform/modules/knowledge` |
-| Intelligence | `src/Hosts/Web/shared/intelligence-web` owns Intelligence OpenAPI generation, browser realtime dictation, and generic localized primitives; `src/Hosts/Web/apps/agent-runtime` owns the server-only OpenAI Agents SDK loop | `src/Modules/Intelligence/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Intelligence.Tests`, package tests | `docs/platform/modules/intelligence` when present; [ADR-0011](architecture/decisions/0011-server-side-agents-sdk-runtime.md) |
-| Communications | `src/Hosts/Web/shared/communications-web` owns Communications OpenAPI generation and reusable localized communication UI | `src/Modules/Communications/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Communications.Tests`, package tests | `docs/platform/modules/communications` when present |
-| Search | platform search UI | `src/Modules/Search/Application` | same | `Domain` | `Infrastructure` | `tests/Modules/Search.Tests` | `docs/platform/modules/search` |
-| Files, Contents, Commerce, Links, Feed, Requests, Social, Financial | Matching host/app pages when present | `src/Modules/<Name>/Application` | same | `Domain` | `Infrastructure` | Add/use `tests/Modules/<Name>.Tests` when present | `docs/platform/modules/<name>` when present |
+## 5. React Web layout
 
-## 5. Runtime map
+Run npm workspace commands from `src/Hosts/Web`.
 
-- **Running services:** `src/Hosts/Main` is the ASP.NET Core backend/Blazor host. `src/Hosts/Web/apps/private-practice-owner`, `src/Hosts/Web/apps/patients`, and `src/Hosts/Web/apps/knowledge-qa-demo` are Next.js apps; `src/Hosts/Web/apps/agent-runtime` is the server-only OpenAI Agents SDK runtime. Docker Compose runs `web` on port 3000, `main` on port 5000 mapped to container port 8080, and the agent runtime on port 3003.
-- **Communication:** React apps call backend APIs using generated Orval clients from OpenAPI specs. Blazor pages/components call server-side module services directly through DI. The backend exposes API endpoints, Razor pages/components, IdentityServer, Hangfire dashboard, and development OpenAPI at `/openapi/{documentName}.json`.
-- **Datastores/services:** PostgreSQL via EF Core/Npgsql is the primary database. Redis is configured for data protection/distributed caching where enabled. Hangfire uses PostgreSQL. External integrations include communication providers, file/object storage, search/Elasticsearch, AI/speech providers, passkey authenticators, and medical/prescription providers.
-- **Authentication:** Host-owned identity is configured in `src/Hosts/Main` with Duende IdentityServer, ASP.NET authentication/authorization, session/cookie/antiforgery policy, and module endpoint security. React auth behavior belongs in app auth components/hooks and calls backend auth endpoints.
-- **Frontend/backend/worker/API/infrastructure:** Next.js and Blazor/Razor are frontend surfaces; module `Api` projects are backend HTTP surfaces; Hangfire jobs and scheduled jobs are worker runtime; `Infrastructure` projects own persistence/external adapters; Docker/GitHub Actions are infrastructure/deployment support.
+### Apps
 
-## 6. Common change guide
+| Path | Responsibility |
+| --- | --- |
+| `apps/private-practice-owner` | Private-practice owner application. |
+| `apps/patients` | Patient-facing application. |
+| `apps/knowledge-qa-demo` | Knowledge QA demonstration application. |
+| `apps/vitarish-landing` | Public landing application. |
+| `apps/agent-runtime` | Server-only OpenAI Agents SDK runtime; not a browser UI. |
 
-- **New page:** Blazor: `src/Hosts/Main/Pages/<Area>` plus route constants in `src/Hosts/Main/Common/Routes` if needed. Next: `src/Hosts/Web/apps/<app>/src/app/<route>/page.tsx` imports page/surface components from the owning feature package and wires app navigation/shell files.
-- **Web route layout:** `src/Hosts/Web/shared/web-ui` owns outer geometry, layout primitives, and the `DashboardFrame` adapter. Use `apply-web-layout-policy` to select the shell, main owner, primary scroller, and width before composing a route.
-- **New component:** Workflow feature-specific React components live in `src/Hosts/Web/shared/<feature>-web`; app route/shell components stay in the owning app; generic presentation primitives live in `src/Hosts/Web/shared/web-ui`. App-local workflow feature folders are forbidden. Do not create design-system wrappers unless needed now.
-- **New domain entity:** `src/Modules/<Module>/Domain`; add persistence mapping in Infrastructure only if it must be stored.
-- **New command:** `src/Modules/<Module>/Application` under existing command/write convention; expose through Api only when needed.
-- **New query:** `src/Modules/<Module>/Application` under existing query/read convention; keep it side-effect free.
-- **Validation:** Domain invariants in Domain; use-case/input validation in Application; transport shape validation in Api; UI form validation in owning UI feature. Do not duplicate rules.
-- **Database migration:** Generate EF Core migrations in `src/Modules/<Module>/Infrastructure/Migrations/<DbName>` or the owning server library/host migration assembly.
-- **Translations/localization:** React locale/provider/formatting belongs in the core Web localization package; workflow feature messages belong to the owning `src/Hosts/Web/shared/<feature>-web` namespace; app-owned route/shell copy such as `home` and `landing` stays with the app route composition. Blazor/.NET localization lives under the owning host/module resources if present. Follow ADR-0007.
-- **Tests:** .NET tests in `tests/Modules/<Module>.Tests`; React tests under app/shared package `src/__tests__`; architecture checks under `tools/architecture` or existing npm validators.
-- **Pattern to copy:** Copy the nearest same-module/same-layer artifact first. For API-to-React work, follow `docs/runbooks/openapi-to-react-client.md` and ADR-0003/0005 conventions.
+### Shared packages
 
-## 7. Generated code and fragile areas
+| Path | Responsibility |
+| --- | --- |
+| `shared/account-web` | Reusable account/profile Web feature surface. |
+| `shared/auth-web` | Authentication Web feature and generated API boundary. |
+| `shared/clinic-web` | Clinic/private-practice feature surface and generated clinic API boundary. |
+| `shared/communications-web` | Communications feature and generated API boundary. |
+| `shared/contents-web` | Content feature surface. |
+| `shared/intelligence-web` | Intelligence feature, generated API boundary, and browser realtime/dictation behavior. |
+| `shared/journey-web` | Journey/onboarding feature and generated API boundary. |
+| `shared/knowledge-web` | Knowledge feature surface. |
+| `shared/platform-web` | Platform administration feature surface. |
+| `shared/sea-web` | SEA feature and generated API boundary. |
+| `shared/web-api-client` | Shared browser transport: base URL, credentials, tenant header, CSRF, cancellation, and transport errors. |
+| `shared/web-localization` | Locale state, providers, formatting, and feature namespace registration. |
+| `shared/web-ui` | Generic Web presentation, layout primitives, and design tokens. |
 
-Generated or derived artifacts:
+App `src/app/**/page.tsx` files own route entry points and compose exported
+feature surfaces. Reusable workflow UI, hooks, generated clients, and
+feature-local localization belong in the owning `shared/<feature>-web`
+package. App-owned route shells, home/landing composition, and app navigation
+stay in the app.
 
-- `src/Hosts/Web/shared/*/src/api/generated` for package-owned generated TypeScript clients after ADR-0008 migration. Existing `src/Hosts/Web/apps/*/src/api/generated` output is legacy app-bound generated code until its owning feature package is extracted.
-- OpenAPI specs under `src/Hosts/Web/shared/*/src/api/specs` after ADR-0008 migration. Existing `src/Hosts/Web/apps/*/src/api/specs` specs are legacy app-bound sources until migrated.
-- EF migration designer files and model snapshots under `src/**/Migrations`.
-- `tsconfig.tsbuildinfo`, build output (`bin`, `obj`, `.next`, `node_modules`) when present.
+Use raw HeroUI/HeroUI Pro primitives by default. Add generic Web presentation
+to `shared/web-ui` only when it satisfies the promotion rules in
+[ADR-0008](architecture/decisions/0008-standardize-app-experience-boundaries.md).
 
-Fragile or high-care areas:
+## 6. Capability map
 
-- `AGENTS.md`, architecture ADRs/conventions/validators, identity/auth/security, host startup and middleware, module registration/composition, database migrations/snapshots, generated API boundaries, CI, package lock/version files, Docker/deployment config, and secrets/templates.
-- API boundary drift between OpenAPI, generated clients, feature wrappers, and React routes; duplicated `apiFetch` behavior outside the Web transport package; ADR-0003 interface violations; module feature flags in `Main.csproj`; auth/cookie/session/antiforgery ordering; tenant resolution; EF migrations/snapshots; date/time UTC persistence; localization/date input rules; Docker port/base URL mismatches; npm workspace dependency/lockfile drift.
-- Do not edit generated clients by hand; regenerate from OpenAPI. Do not put business rules in endpoints, UI, migrations, DTOs, localization resources, or SQL. Keep command/write operations separate from query/read operations.
+| Capability | Backend owner | Web owner when present | Tests | Documentation |
+| --- | --- | --- | --- | --- |
+| Authentication | `src/Modules/Authentication`, `src/Identity` | `shared/auth-web` | `tests/Modules/Authentication.Tests` | `docs/platform/modules/authentication` |
+| Journey/onboarding | `src/Modules/Journey` | `shared/journey-web` | `tests/Modules/Journey.Tests` | `docs/platform/modules/base/journeys` |
+| Clinic/private practice | `src/Apps/Clinic`, relevant modules | `apps/private-practice-owner`, `shared/clinic-web` | `tests/Apps/Clinic.*` and owning module tests | `docs/apps/private-practice-general` and module docs |
+| Patient experience | relevant modules and `src/Apps/Clinic` | `apps/patients`, feature packages | owning app/module tests | current app journeys under `docs/apps` |
+| Platform/tenants | `src/Modules/Platform`, `Parties`, `Users` | `shared/platform-web`, owner app routes | matching `tests/Modules/*.Tests` | matching `docs/platform/modules/*` |
+| Appointments | `src/Modules/Appointments` | clinic feature/routes | `tests/Modules/Appointments.Tests` | `docs/platform/modules/appointments` |
+| SEA | `src/Modules/Sea` | `shared/sea-web`, `shared/clinic-web` | `tests/Modules/Sea.Tests` | `docs/platform/modules/sea` |
+| Medical/prescriptions | `src/Modules/Medical` | clinic feature/routes | `tests/Modules/Medical.Tests` | `docs/platform/modules/medical` |
+| Knowledge | `src/Modules/Knowledge` | `shared/knowledge-web`, `apps/knowledge-qa-demo` | `tests/Modules/Knowledge.Tests` and package tests | `docs/platform/modules/knowledge` |
+| Intelligence | `src/Modules/Intelligence` | `shared/intelligence-web`; server runtime in `apps/agent-runtime` | `tests/Modules/Intelligence.Tests` and package tests | `docs/platform/modules/intelligence` |
+| Communications | `src/Modules/Communications` | `shared/communications-web` | package and owning module tests | `docs/platform/modules/communications` |
+| Contents | `src/Modules/Contents` | `shared/contents-web` | `tests/Modules/Contents.Tests` | `docs/platform/modules/contents` when present |
+| Files | `src/Modules/Files` | owning feature routes/packages | `tests/Modules/Files.Tests` | `docs/platform/modules/files` |
+| Search | `src/Modules/Search` | owning feature routes/packages | `tests/Modules/Search.Tests` | `docs/platform/modules/search` |
+| Other modules | matching `src/Modules/<Name>` | owning app/feature package when implemented | matching test project when present | matching module docs when present |
 
-## 8. Build/test/run pointers
+## 7. Runtime and data flow
 
-- **Backend run:** `dotnet run --project src/Hosts/Main/Main.csproj`.
-- **Backend build:** `dotnet build src/Hosts/Main/Main.csproj` or build the specific module/test project touched.
-- **Backend tests:** `dotnet test tests/Modules/<Module>.Tests/<Module>.Tests.csproj` for changed module tests.
-  
-- **Web install:** from `src/Hosts/Web`, run `npm install` when dependencies are missing or package files changed.
-- **Web dev:** from `src/Hosts/Web`, use `npm run dev:private-practice-owner`, `npm run dev:patients`, or `npm run dev:knowledge-qa-demo`.
-- **Web build/typecheck/test:** from `src/Hosts/Web`, use `npm run build`, `npm run typecheck`, `npm run test`, and targeted workspace scripts.
-- **Web API generation:** package or app scripts run `generate:api` before dev/build; after OpenAPI changes, regenerate in the owning feature package when migrated, or in the legacy app workspace until migration is complete.
-- **Web layout policy lint:** from `src/Hosts/Web`, run `npm run lint:layout` and `npm run test:layout-lint`.
-- **Web layout visual tests:** from `src/Hosts/Web`, run `npm run test:layout:visual` for committed Linux-Chromium baselines. Both production apps and the deterministic local fixture service are started automatically.
-- **Web layout baseline update:** from `src/Hosts/Web`, run `npm run test:layout:update-linux`; this uses the pinned Playwright Linux container and is never an automatic CI update.
+- `src/Hosts/Main` exposes module Minimal APIs, authentication/authorization,
+  IdentityServer, Hangfire, and development OpenAPI documents at
+  `/openapi/{documentName}.json`.
+- React feature packages call backend APIs through generated Orval clients and
+  `shared/web-api-client`.
+- Main writes generated OpenAPI documents to
+  `src/Hosts/Web/src/api/specs` during configured builds.
+- Feature-owned OpenAPI inputs and generated TypeScript output live under
+  `src/Hosts/Web/shared/<feature>-web/src/api/specs` and
+  `src/Hosts/Web/shared/<feature>-web/src/api/generated` where present.
+- `apps/agent-runtime` communicates with Main through the configured internal
+  Intelligence endpoints and shared-secret boundary.
+- PostgreSQL/Npgsql is the primary persistence stack. Hangfire uses PostgreSQL.
+  Redis supports host caching, data protection, and identity-related runtime
+  concerns where configured.
+- External adapters include communication, object/file storage,
+  search/Elasticsearch, AI/speech, passkey, and medical/prescription providers.
 
-- **Docker/dev containers:** `docker compose -f src/Hosts/docker-compose.web.yml up --build` runs web plus main.
+`src/Hosts/docker-compose.web.yml` describes `web` on port 3000, `main` on
+host port 5000/container port 8080, and `agent-runtime` on port 3003. Inspect
+the compose build paths before relying on it; the repository currently has no
+`src/Hosts/Web/Dockerfile`.
 
-- **Before committing:** Run the narrowest deterministic checks for changed files, plus required architecture/API/UI validators. For documentation-only changes, at minimum inspect the Markdown and verify git diff.
+## 8. Common change guide
 
-## 9. Documentation map
+- **New Web route:** add
+  `src/Hosts/Web/apps/<app>/src/app/<route>/page.tsx`, then update the owning
+  route constants/navigation/intent registries and run the route audit.
+- **New Web workflow UI:** use
+  `src/Hosts/Web/shared/<feature>-web`; keep the app route thin.
+- **New generic Web primitive:** prefer HeroUI/HeroUI Pro directly; use
+  `shared/web-ui` only for genuinely generic presentation.
+- **New domain behavior:** use `src/Modules/<Module>/Domain`.
+- **New command/query/workflow:** use the owning module or app `Application`
+  slice. Queries must remain side-effect free.
+- **New HTTP endpoint:** change Contracts/Application/API at their owners,
+  keep endpoints thin, update authoritative OpenAPI metadata, then regenerate
+  clients.
+- **New external provider:** implement an Infrastructure adapter for an
+  Application-owned port and register it at composition.
+- **Database change:** update the owning persisted model/configuration and
+  generate the migration under the owning Infrastructure migration tree.
+- **Localization:** generic locale/formatting belongs in
+  `shared/web-localization`; feature messages belong in the feature package;
+  app route/shell copy stays in the app.
+- **Tests:** use `tests/Modules/<Module>.Tests`,
+  `tests/Apps/<App>.Tests`, or package-local Web tests according to the
+  behavior owner.
 
-- **Architecture:** `docs/architecture/decisions/_index.md`, `docs/architecture/conventions`, and `docs/architecture/validation`.
-- **Agent/rules:** root `AGENTS.md` for repository-wide policy, the nearest area-scoped `AGENTS.md` for boundary-skill routing, and `.agents/skills/*/SKILL.md` for procedures.
-- **Repository documentation index:** `docs/README.md`.
-- **Platform/module behavior:** `docs/platform/README.md` and `docs/platform/modules/<module>`.
-- **App-specific journeys:** `docs/apps/<app>`.
-- **Host runbooks/tasks:** `docs/hosts/<host>`.
-- **Cross-cutting runbooks:** `docs/runbooks`.
-- **Journey/test indexes:** `docs/indexes`.
-- **Development workflow notes:** `docs/development`.
-- **Durable lessons:** [`docs/memory.md`](memory.md) records practical repo-specific lessons that do not belong in ADRs, runbooks, or module docs.
+For API-to-React work, follow
+[`docs/runbooks/openapi-to-react-client.md`](runbooks/openapi-to-react-client.md).
+For route changes, use `web-route-change-audit`. For outer route layout and
+scroll ownership, use `apply-web-layout-policy`.
 
-## 10. Maintenance rules
+## 9. Generated and high-care areas
 
-- Update this map when top-level folders change; a host/app/module/package is added, removed, or renamed; generated-code locations move; build/test/run commands change; ownership/review boundaries change; external systems/config conventions change; or risky areas/validators change.
-- Never include secrets, live tenant/user data, private credentials, long design rationale, volatile implementation minutiae, speculative roadmap, or duplicate business rules.
-- This map answers “where is it and what owns it?” Architecture docs answer “what rule/decision governs it and why?”
-- This map is stable navigation. Durable agent lessons belong in a memory file or scoped docs if the repo adopts one.
-- Keep it short: prefer folder-level pointers, tables, and links to owning docs. If a section needs detailed behavior, move that detail to the owning module/app/runbook/ADR and link it here.
+Generated or derived artifacts include:
+
+- `src/Hosts/Web/src/api/specs/Main*.json`;
+- feature package `src/api/generated` trees;
+- feature package `src/api/specs` copies derived from authoritative OpenAPI;
+- EF migration designer files and model snapshots;
+- compiler/framework output such as `bin`, `obj`, `.next`, and
+  `tsconfig.tsbuildinfo`.
+
+Never repair generated clients, DTOs, hooks, query keys, mocks, migration
+designer output, or snapshots manually. Change the authoritative input and run
+the canonical generator.
+
+High-care areas include:
+
+- root and scoped `AGENTS.md`, `.agents/skills`, ADRs, and architecture
+  validators;
+- `src/Build/ModuleBuildProfiles.props` and `src/Hosts/Main/Main.csproj`;
+- Main startup, middleware order, auth, tenant resolution, data protection,
+  Hangfire, and OpenAPI composition;
+- persistence models, migrations, concurrency, and UTC time handling;
+- generated API boundaries, package locks, Docker/configuration templates, CI,
+  and secrets;
+- Web transport ownership, CSRF/antiforgery behavior, localization, app/feature
+  import boundaries, and route/layout registries;
+- Native AOT/trimming compatibility, dynamic runtime dependencies, and warning
+  suppressions governed by ADR-0010.
+
+## 10. Build, test, and run pointers
+
+### .NET
+
+```powershell
+dotnet run --project src/Hosts/Main/Main.csproj
+dotnet build src/Hosts/Main/Main.csproj -p:ModuleBuildProfile=All
+dotnet build Vitarish.slnx
+dotnet test tests/Modules/<Module>.Tests/<Module>.Tests.csproj
+```
+
+Focused `ModuleBuildProfile` builds are inner-loop checks only. Read
+[`docs/development/focused-builds.md`](development/focused-builds.md) for the
+profile source of truth and required merge-level validation.
+
+### Web
+
+From `src/Hosts/Web`:
+
+```powershell
+npm install
+npm run dev:private-practice-owner
+npm run dev:patients
+npm run dev:knowledge-qa-demo
+npm run dev:vitarish-landing
+npm run dev:agent-runtime
+npm run build
+npm run typecheck
+npm run test
+npm run validate:api-boundary
+npm run validate:localization
+npm run validate:web-ui-boundary
+npm run validate:app-boundaries
+npm run lint:layout
+npm run test:layout-lint
+```
+
+Use the owning package's `generate:api` script after an OpenAPI change. Do not
+assume every workspace exposes every root script; inspect its `package.json`.
+
+For documentation-only changes, verify paths/links, scan for stale names, and
+run `git diff --check`. Builds are not required unless the documentation change
+also modifies executable or generated behavior.
+
+## 11. Documentation pointers
+
+- Repository operating contract: [`AGENTS.md`](../AGENTS.md)
+- Architecture boundaries: [`docs/architecture.md`](architecture.md)
+- Architecture decisions: [`docs/architecture/decisions/_index.md`](architecture/decisions/_index.md)
+- Documentation index: [`docs/README.md`](README.md)
+- Platform/module docs: [`docs/platform`](platform)
+- App experience docs: [`docs/apps`](apps)
+- Host docs and runbooks: [`docs/hosts`](hosts)
+- Cross-cutting runbooks: [`docs/runbooks`](runbooks)
+- Journey and test indexes: [`docs/indexes`](indexes)
+- Durable repository lessons: [`docs/memory.md`](memory.md)
+
+## 12. Maintenance rules
+
+- Keep this document current with real folder names, runtime roles, generated
+  paths, and canonical commands.
+- Do not duplicate business rules, security policy, provider contracts, or
+  implementation detail owned elsewhere.
+- Record only current repository locations and responsibilities.
+- Prefer folder-level pointers and links. Move detailed procedures to runbooks
+  or skills and detailed rationale to ADRs.

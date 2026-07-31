@@ -1,6 +1,6 @@
 ---
 name: apply-web-layout-policy
-description: Owns Web route shells, viewport geometry, main and outer scroll ownership, shared widths/gutters, and app chrome. Skip feature-internal layout.
+description: Owns Web route shells, main/scroll ownership, viewport sizing, public chrome, centered states, and immersive workspaces. Skip feature-internal grids.
 ---
 
 # Apply Web Layout Policy

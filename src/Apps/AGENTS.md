@@ -14,3 +14,9 @@ not the React Web workspace.
 
 Do not load React, Web-route, or Web-layout skills unless the change also
 touches `src/Hosts/Web`. Keep app composition free of module business rules.
+
+## Native AOT readiness
+
+- **[MUST]** Apply the root Native AOT readiness rule. Keep app aggregation
+  explicit or generated; isolate incompatible infrastructure and dynamic
+  behavior behind its owned boundary.

@@ -1,11 +1,9 @@
 using System.Text.Json;
 using Vitarish.Appointments.Application.AgentCapabilities;
-using Vitarish.Appointments.Interface.AgentCapabilities;
 using Vitarish.Clinic.Application.ClinicalEvents;
 using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Actions;
 using Vitarish.Medical.Application.AgentCapabilities.Prescriptions;
-using Vitarish.Medical.Interface.AgentCapabilities.Prescriptions;
 
 namespace Vitarish.Clinic.Infrastructure.PatientAgent.Actions;
 

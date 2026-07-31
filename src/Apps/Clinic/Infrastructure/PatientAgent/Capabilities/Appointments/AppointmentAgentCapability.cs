@@ -4,7 +4,6 @@ using Vitarish.Appointments.Domain.Dto;
 using Vitarish.Appointments.Domain.Enums;
 using Vitarish.Entities.Contracts.Models;
 using Vitarish.Appointments.Application.AgentCapabilities;
-using Vitarish.Appointments.Interface.AgentCapabilities;
 using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Capabilities;
 using Vitarish.Intelligence.Application.Agents;

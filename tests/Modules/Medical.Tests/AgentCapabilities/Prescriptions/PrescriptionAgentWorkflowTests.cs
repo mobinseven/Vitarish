@@ -4,7 +4,7 @@ using FluentAssertions;
 using Vitarish.Medical.Application.AgentCapabilities.Prescriptions;
 using Vitarish.Medical.Application.Queries.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
-using Vitarish.Medical.Interface.AgentCapabilities.Prescriptions;
+using Vitarish.Medical.Infrastructure.AgentCapabilities.Prescriptions;
 
 namespace Vitarish.Medical.Tests.AgentCapabilities.Prescriptions;
 

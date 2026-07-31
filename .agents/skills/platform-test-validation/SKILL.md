@@ -15,8 +15,9 @@ description: Selects and reports the smallest sufficient deterministic tests, va
 6. Use hot scenarios only for behavior dependent on browsers/codecs/permissions, real providers/networks, database/index engines, deployment wiring, clocks, or concurrency.
 7. Record exact commands as passed, failed, not run, or environment-blocked.
 8. Never weaken assertions, tests, analyzers, or validators for a pass.
+9. Run applicable ADR-required validators and report required checks that are absent.
 
-For cross-stack realtime changes, cover application lifecycle/limits, adapter failures, protocol/auth/origin/payload handling, React permissions/state/edit preservation/cleanup/localization, and unavoidable real runtime scenarios.
+For cross-stack realtime changes, cover lifecycle, limits, adapter failures, protocol security/payloads, React state/cleanup/localization, and unavoidable runtime scenarios.
 
 ## Stop
 

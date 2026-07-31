@@ -1,6 +1,4 @@
-using Vitarish.Appointments.Application.AgentCapabilities;
-
-namespace Vitarish.Appointments.Interface.AgentCapabilities;
+namespace Vitarish.Appointments.Application.AgentCapabilities;
 
 public interface IPatientAppointmentAgentCapability
 {
