@@ -30,6 +30,25 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
     }
 
     [Fact]
+    public async Task Terminal_receipt_failure_is_persisted_as_unknown_and_is_not_replayed()
+    {
+        Mock<IAccessControlledReservationManager> reservations = new();
+        reservations.Setup(x => x.ConfirmReservationAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult.Success());
+        ReceiptStore<AgentSchedulingReceipt> receipts = new() { FailNextUpdate = true };
+        AppointmentSchedulingAgentCapability sut = Create(reservations.Object, receiptStore: receipts);
+        Guid appointmentId = Guid.NewGuid();
+
+        AgentSchedulingResult first = await sut.ConfirmAppointmentAsync(Context(), appointmentId, default);
+        AgentSchedulingResult second = await sut.ConfirmAppointmentAsync(Context(), appointmentId, default);
+
+        first.Status.Should().Be(AgentSchedulingStatus.UnknownOutcome);
+        second.Status.Should().Be(AgentSchedulingStatus.UnknownOutcome);
+        reservations.Verify(x => x.ConfirmReservationAsync(appointmentId, It.IsAny<CancellationToken>()), Times.Once);
+        receipts.Values.Should().ContainSingle().Which.Value.Status.Should().Be(AgentSchedulingReceiptStatus.UnknownOutcome);
+    }
+
+    [Fact]
     public async Task Invalid_context_is_rejected_before_manager_access()
     {
         Mock<IAccessControlledReservationManager> reservations = new();
@@ -170,7 +189,8 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
         IShiftBookableDateQueryService? bookableSlots = null,
         IServiceManager? services = null,
         IServiceProviderManager? providers = null,
-        IServiceTypeManager? serviceTypes = null) =>
+        IServiceTypeManager? serviceTypes = null,
+        ReceiptStore<AgentSchedulingReceipt>? receiptStore = null) =>
         new(
             reservations ?? new Mock<IAccessControlledReservationManager>().Object,
             shifts ?? new Mock<IAccessControlledShiftManager>().Object,
@@ -180,7 +200,7 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
             serviceTypes ?? new Mock<IServiceTypeManager>().Object,
             new ContextScope(),
             new ReceiptStore<AgentSchedulingProposal>(),
-            new ReceiptStore<AgentSchedulingReceipt>(),
+            receiptStore ?? new ReceiptStore<AgentSchedulingReceipt>(),
             TimeProvider.System);
 
     private static AgentSchedulingContext Context() => new("practice", "agent-run", "tool-call", "confirm");
@@ -193,6 +213,8 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
     private sealed class ReceiptStore<T> : IOperationReceiptStore<T>
     {
         private readonly Dictionary<OperationReceiptKey, OperationReceipt<T>> receipts = [];
+        public bool FailNextUpdate { get; set; }
+        public IReadOnlyCollection<OperationReceipt<T>> Values => receipts.Values;
 
         public Task<OperationReceipt<T>?> GetAsync(OperationReceiptKey key, CancellationToken cancellationToken) =>
             Task.FromResult(receipts.GetValueOrDefault(key));
@@ -202,6 +224,12 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
 
         public Task<bool> TryUpdateAsync(OperationReceiptKey key, long expectedRevision, T value, TimeSpan lifetime, CancellationToken cancellationToken)
         {
+            if (FailNextUpdate)
+            {
+                FailNextUpdate = false;
+                return Task.FromResult(false);
+            }
+
             if (!receipts.TryGetValue(key, out OperationReceipt<T>? current) || current.Revision != expectedRevision)
                 return Task.FromResult(false);
             receipts[key] = new(expectedRevision + 1, value);
