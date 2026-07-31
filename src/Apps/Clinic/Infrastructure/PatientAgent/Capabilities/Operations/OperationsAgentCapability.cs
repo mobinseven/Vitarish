@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Vitarish.Appointments.Application.AgentCapabilities;
 using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Capabilities;
@@ -35,23 +36,30 @@ public abstract class OperationsTool(IAppointmentSchedulingAgentCapability sched
     protected static string Required(AgentExecutionContext context, string key) =>
         context.Metadata is not null && context.Metadata.TryGetValue(key, out string? value) && !string.IsNullOrWhiteSpace(value)
             ? value : throw new InvalidOperationException($"The operations scope is missing {key}.");
-    protected static AgentToolResult Result(AgentToolCall call, object? value) => new(call.Id, JsonSerializer.Serialize(value));
+    protected static AgentToolResult Result<T>(AgentToolCall call, T value)
+    {
+        JsonTypeInfo<T> typeInfo = (JsonTypeInfo<T>?)OperationsAgentToolJsonSerializerContext.Default.GetTypeInfo(typeof(T))
+            ?? throw new InvalidOperationException($"No source-generated JSON metadata is registered for {typeof(T).Name}.");
+        return new(call.Id, JsonSerializer.Serialize(value, typeInfo));
+    }
 
-    protected static object WithoutPatientIdentity(
+    protected static AgentToolResult ResultWithoutPatientIdentity(
+        AgentToolCall call,
         AgentSchedulingResult<IReadOnlyList<Vitarish.Appointments.Domain.Dto.ReservationReadDto>> result) =>
-        new OperationsAgentToolResponse<IReadOnlyList<OperationsAppointmentRead>>(
+        Result(call, new OperationsAgentToolResponse<IReadOnlyList<OperationsAppointmentRead>>(
             result.Status.ToString(),
             result.Value?.Select(OperationsAppointmentRead.From).ToArray(),
             result.OperationId,
-            result.Message);
+            result.Message));
 
-    protected static object WithoutPatientIdentity(
+    protected static AgentToolResult ResultWithoutPatientIdentity(
+        AgentToolCall call,
         AgentSchedulingResult<Vitarish.Appointments.Domain.Dto.ReservationReadDto> result) =>
-        new OperationsAgentToolResponse<OperationsAppointmentRead>(
+        Result(call, new OperationsAgentToolResponse<OperationsAppointmentRead>(
             result.Status.ToString(),
             result.Value is null ? null : OperationsAppointmentRead.From(result.Value),
             result.OperationId,
-            result.Message);
+            result.Message));
     protected static Guid Guid(JsonElement args, string name) => args.GetProperty(name).GetGuid();
     protected static DateOnly Date(JsonElement args, string name) => DateOnly.Parse(args.GetProperty(name).GetString()!);
     protected static DateOnly? OptionalDate(JsonElement args, string name) => args.TryGetProperty(name, out JsonElement value) ? DateOnly.Parse(value.GetString()!) : null;
@@ -85,7 +93,7 @@ public sealed class ListOperationsAppointmentsTool(IAppointmentSchedulingAgentCa
 {
     public override AgentToolDefinition Definition { get; } = new("list_operations_appointments", "List appointments in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"dateFrom\":{\"type\":\"string\"},\"dateTo\":{\"type\":\"string\"},\"take\":{\"type\":\"integer\"}},\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
-    { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a = doc.RootElement; AgentSchedulingContext s = Scope(call, context); return Result(call, WithoutPatientIdentity(await Scheduling.ListAppointmentsAsync(s, new(DateFrom: OptionalDate(a,"dateFrom"), DateTo: OptionalDate(a,"dateTo"), Take: a.TryGetProperty("take", out JsonElement take) ? take.GetInt32() : 50), cancellationToken))); }
+    { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a = doc.RootElement; AgentSchedulingContext s = Scope(call, context); return ResultWithoutPatientIdentity(call, await Scheduling.ListAppointmentsAsync(s, new(DateFrom: OptionalDate(a,"dateFrom"), DateTo: OptionalDate(a,"dateTo"), Take: a.TryGetProperty("take", out JsonElement take) ? take.GetInt32() : 50), cancellationToken)); }
 }
 
 public sealed class ListOperationsShiftsTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
@@ -106,7 +114,7 @@ public sealed class GetOperationsAppointmentTool(IAppointmentSchedulingAgentCapa
 {
     public override AgentToolDefinition Definition { get; } = new("get_operations_appointment", "Get one appointment in the authenticated practice.", "{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}},\"required\":[\"id\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
-    { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); return Result(call, WithoutPatientIdentity(await Scheduling.GetAppointmentAsync(Scope(call,context), Guid(doc.RootElement,"id"), cancellationToken))); }
+    { using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); return ResultWithoutPatientIdentity(call, await Scheduling.GetAppointmentAsync(Scope(call,context), Guid(doc.RootElement,"id"), cancellationToken)); }
 }
 
 public sealed class GetOperationsAvailabilityTool(IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
