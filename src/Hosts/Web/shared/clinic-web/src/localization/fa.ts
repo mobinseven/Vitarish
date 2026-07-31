@@ -179,7 +179,7 @@ export const clinicFaMessages = {
       messages: { label: "گفت‌وگوی دستیار بیمار", assistant: "دستیار", information: "اطلاعات", missing: "اطلاعات بیشتری لازم است", failure: "خطا" },
       status: { proposed: "پیشنهادشده", confirming: "در حال تأیید", completed: "تکمیل‌شده", rejected: "ردشده", expired: "منقضی‌شده", failed: "ناموفق" },
       completionId: "شناسه تکمیل: {id}",
-      actions: { confirmAppointment: "تأیید نوبت", confirmPrescription: "تأیید نسخه", confirmClinicalEvent: "تأیید رویداد بالینی", reject: "رد" },
+      actions: { confirmAppointment: "تأیید نوبت", confirmPrescription: "تأیید نسخه", confirmClinicalEvent: "تأیید رویداد بالینی", reject: "رد", reset: "شروع گفت‌وگوی جدید", resetTitle: "گفت‌وگوی جدید شروع شود؟", resetDescription: "گفت‌وگوی فعلی و سابقه آن حذف می‌شود.", resetError: "گفت‌وگو بازنشانی نشد. دوباره تلاش کنید." },
       fields: { date: "تاریخ", startTime: "زمان شروع", duration: "مدت", appointmentType: "نوع نوبت", service: "خدمت", practitioner: "درمانگر", description: "توضیحات", warnings: "هشدارها", expiration: "انقضا", template: "الگو", templateVersion: "نسخه الگو", coverage: "پوشش بیمه", medication: "دارو یا مورد درخواستی", dose: "دوز", frequency: "دفعات", route: "روش مصرف", instructions: "دستورها", procedure: "رویه", visitNumber: "شماره جلسه یا ویزیت", eventType: "نوع رویداد", completionStatus: "وضعیت تکمیل", performedAt: "تاریخ و زمان انجام", observations: "مشاهدات ثبت‌شده توسط پزشک", diagnosis: "تشخیص ثبت‌شده توسط پزشک", plan: "برنامه یا پیگیری", narrative: "شرح", attachments: "پیوست‌ها" },
     },
     dashboard: {

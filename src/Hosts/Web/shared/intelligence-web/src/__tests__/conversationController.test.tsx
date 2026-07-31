@@ -71,6 +71,25 @@ describe("useConversationController", () => {
     expect(run.mock.calls.at(-1)?.slice(0, 2)).toEqual(["fresh", null]);
   });
 
+  it("preserves the current conversation when deletion fails", async () => {
+    const deleteConversation = vi.fn().mockRejectedValue({ status: 409 });
+    const run = vi.fn().mockResolvedValue({ conversationId: "conversation-1", result: "first" });
+    const { result } = renderHook(() => useConversationController({
+      ownerKey: "patient-1",
+      isOpen: true,
+      run,
+      deleteConversation,
+    }));
+
+    await act(() => result.current.submit("first"));
+    let deletion: Promise<void>;
+    act(() => { deletion = result.current.deleteCurrent(); });
+    await expect(deletion!).rejects.toEqual({ status: 409 });
+    await act(() => result.current.retry());
+
+    expect(run.mock.calls.at(-1)?.slice(0, 2)).toEqual(["first", "conversation-1"]);
+  });
+
   it("rejects a pending result after the sheet closes", async () => {
     let resolveRun!: (value: { conversationId: string; result: string }) => void;
     const run = vi.fn(() => new Promise<{ conversationId: string; result: string }>((resolve) => {
