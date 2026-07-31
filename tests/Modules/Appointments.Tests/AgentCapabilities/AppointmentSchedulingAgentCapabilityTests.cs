@@ -146,13 +146,36 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
             .ThrowsAsync(new OperationCanceledException());
         AppointmentSchedulingAgentCapability sut = Create(reservations.Object);
         Guid appointmentId = Guid.NewGuid();
+        using CancellationTokenSource cancellation = new();
+        cancellation.Cancel();
 
-        AgentSchedulingResult first = await sut.ConfirmAppointmentAsync(Context(), appointmentId, default);
+        AgentSchedulingResult first = await sut.ConfirmAppointmentAsync(Context(), appointmentId, cancellation.Token);
         AgentSchedulingResult replay = await sut.ConfirmAppointmentAsync(Context(), appointmentId, default);
 
         first.Status.Should().Be(AgentSchedulingStatus.UnknownOutcome);
         replay.Status.Should().Be(AgentSchedulingStatus.UnknownOutcome);
         reservations.Verify(x => x.ConfirmReservationAsync(appointmentId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Prepared_operation_cancellation_is_unknown_and_is_not_replayed()
+    {
+        Mock<IAccessControlledReservationManager> reservations = new();
+        reservations.Setup(x => x.ReserveAsync(It.IsAny<Guid>(), It.IsAny<DateOnly>(), It.IsAny<string?>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+        AppointmentSchedulingAgentCapability sut = Create(reservations.Object);
+        AgentAppointmentInput input = new(Guid.NewGuid(), new(2026, 8, 12), "patient");
+        using CancellationTokenSource cancellation = new();
+        cancellation.Cancel();
+
+        AgentSchedulingResult<AgentSchedulingProposal> prepared = await sut.PrepareBookAppointmentAsync(Context(), input, default);
+        AgentSchedulingResult first = await sut.ExecutePreparedAsync(Context(), AgentSchedulingOperation.BookAppointment, cancellation.Token);
+        AgentSchedulingResult replay = await sut.ExecutePreparedAsync(Context(), AgentSchedulingOperation.BookAppointment, default);
+
+        prepared.Status.Should().Be(AgentSchedulingStatus.Prepared);
+        first.Status.Should().Be(AgentSchedulingStatus.UnknownOutcome);
+        replay.Status.Should().Be(AgentSchedulingStatus.UnknownOutcome);
+        reservations.Verify(x => x.ReserveAsync(input.ShiftId, input.Date, input.ReservingPartyId, input.EstimatedSessionLength, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

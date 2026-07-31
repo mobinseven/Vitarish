@@ -293,10 +293,6 @@ public sealed class AppointmentSchedulingAgentCapability(
                 default: return new(AgentSchedulingStatus.ValidationFailure, proposal.Id, Message: "Prepared operation payload is invalid.");
             }
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
         catch
         {
             return await FinishAsync(context, operation, proposal.Id,
