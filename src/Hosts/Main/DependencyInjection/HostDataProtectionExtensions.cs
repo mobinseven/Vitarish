@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using HostDataProtectionOptions = Vitarish.Main.Infrastructure.Options.DataProtectionOptions;
 
 namespace Vitarish.Main.DependencyInjection;
 
@@ -13,11 +14,15 @@ public static class HostDataProtectionExtensions
     {
         string domain = configuration[$"{ConfigSection}:Authority"] ?? throw new Exception($"{ConfigSection}:Authority not set");
         string pfxPassword = configuration[$"{ConfigSection}:DataProtectionPassword"] ?? throw new Exception($"{ConfigSection}:DataProtectionPassword not set");
+        HostDataProtectionOptions options = configuration.GetSection($"{ConfigSection}:DataProtection").Get<HostDataProtectionOptions>()
+            ?? throw new Exception($"{ConfigSection}:DataProtection not set");
+        if (string.IsNullOrWhiteSpace(options.KeyRingRedisKey) || string.IsNullOrWhiteSpace(options.CertificateRedisKey))
+            throw new Exception($"{ConfigSection}:DataProtection key names must be configured");
         ConnectionMultiplexer redis = await ConnectionMultiplexer.ConnectAsync(configuration.GetRedisConnectionString());
-        X509Certificate2 cert = await GetOrCreateFromRedisAsync(redis, domain, pfxPassword);
+        X509Certificate2 cert = await GetOrCreateFromRedisAsync(redis, domain, pfxPassword, options.CertificateRedisKey);
         _ = services
             .AddDataProtection()
-            .PersistKeysToStackExchangeRedis(redis, "DataProtectionKeys")
+            .PersistKeysToStackExchangeRedis(redis, options.KeyRingRedisKey)
             .ProtectKeysWithCertificate(cert)
             .SetApplicationName(domain);
     }
