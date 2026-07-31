@@ -139,6 +139,37 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
     }
 
     [Fact]
+    public async Task Direct_transition_cancellation_is_unknown_and_is_not_replayed()
+    {
+        Mock<IAccessControlledReservationManager> reservations = new();
+        reservations.Setup(x => x.ConfirmReservationAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new OperationCanceledException());
+        AppointmentSchedulingAgentCapability sut = Create(reservations.Object);
+        Guid appointmentId = Guid.NewGuid();
+
+        AgentSchedulingResult first = await sut.ConfirmAppointmentAsync(Context(), appointmentId, default);
+        AgentSchedulingResult replay = await sut.ConfirmAppointmentAsync(Context(), appointmentId, default);
+
+        first.Status.Should().Be(AgentSchedulingStatus.UnknownOutcome);
+        replay.Status.Should().Be(AgentSchedulingStatus.UnknownOutcome);
+        reservations.Verify(x => x.ConfirmReservationAsync(appointmentId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Null_prepared_payloads_return_validation_failure()
+    {
+        Mock<IAccessControlledReservationManager> reservations = new();
+        AppointmentSchedulingAgentCapability sut = Create(reservations.Object);
+
+        AgentSchedulingResult<AgentSchedulingProposal> booking = await sut.PrepareBookAppointmentAsync(Context(), null!, default);
+        AgentSchedulingResult<AgentSchedulingProposal> reschedule = await sut.PrepareRescheduleAppointmentAsync(Context(), null!, default);
+
+        booking.Status.Should().Be(AgentSchedulingStatus.ValidationFailure);
+        reschedule.Status.Should().Be(AgentSchedulingStatus.ValidationFailure);
+        reservations.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task Invalid_context_is_rejected_before_manager_access()
     {
         Mock<IAccessControlledReservationManager> reservations = new();
