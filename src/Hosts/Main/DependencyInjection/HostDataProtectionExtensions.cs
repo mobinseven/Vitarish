@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using HostDataProtectionOptions = Vitarish.Main.Infrastructure.Options.DataProtectionOptions;
 
 namespace Vitarish.Main.DependencyInjection;
 
@@ -13,13 +14,40 @@ public static class HostDataProtectionExtensions
     {
         string domain = configuration[$"{ConfigSection}:Authority"] ?? throw new Exception($"{ConfigSection}:Authority not set");
         string pfxPassword = configuration[$"{ConfigSection}:DataProtectionPassword"] ?? throw new Exception($"{ConfigSection}:DataProtectionPassword not set");
+        HostDataProtectionOptions options = configuration.GetSection($"{ConfigSection}:DataProtection").Get<HostDataProtectionOptions>()
+            ?? throw new Exception($"{ConfigSection}:DataProtection not set");
+        if (string.IsNullOrWhiteSpace(options.KeyRingRedisKey) || string.IsNullOrWhiteSpace(options.CertificateRedisKey))
+            throw new Exception($"{ConfigSection}:DataProtection key names must be configured");
         ConnectionMultiplexer redis = await ConnectionMultiplexer.ConnectAsync(configuration.GetRedisConnectionString());
-        X509Certificate2 cert = await GetOrCreateFromRedisAsync(redis, domain, pfxPassword);
-        _ = services
+        string certificateKey = options.CertificateRedisKey.Replace("{domain}", domain, StringComparison.Ordinal);
+        X509Certificate2 cert = await GetOrCreateFromRedisAsync(redis, domain, pfxPassword, certificateKey);
+        IDataProtectionBuilder dataProtection = services
             .AddDataProtection()
-            .PersistKeysToStackExchangeRedis(redis, "DataProtectionKeys")
+            .PersistKeysToStackExchangeRedis(redis, options.KeyRingRedisKey)
             .ProtectKeysWithCertificate(cert)
             .SetApplicationName(domain);
+        X509Certificate2[] previousCertificates = await LoadCertificatesAsync(redis,
+            options.PreviousCertificateRedisKeys.Select(key => key.Replace("{domain}", domain, StringComparison.Ordinal)), pfxPassword);
+        if (previousCertificates.Length > 0)
+            _ = dataProtection.UnprotectKeysWithAnyCertificate(previousCertificates);
+    }
+
+    private static async Task<X509Certificate2[]> LoadCertificatesAsync(
+        IConnectionMultiplexer redis,
+        IEnumerable<string> keys,
+        string password)
+    {
+        IDatabase db = redis.GetDatabase();
+        List<X509Certificate2> certificates = [];
+        foreach (string key in keys.Where(key => !string.IsNullOrWhiteSpace(key)))
+        {
+            RedisValue stored = await db.StringGetAsync(key);
+            if (!stored.HasValue)
+                throw new InvalidOperationException($"Configured Data Protection certificate key '{key}' was not found.");
+            certificates.Add(X509CertificateLoader.LoadPkcs12((byte[])stored!, password,
+                X509KeyStorageFlags.EphemeralKeySet | X509KeyStorageFlags.Exportable));
+        }
+        return [.. certificates];
     }
 
     public static Task AddHostDataProtection(this WebApplicationBuilder builder) => AddHostDataProtection(builder.Services, builder.Configuration);
