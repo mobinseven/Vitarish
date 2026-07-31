@@ -211,9 +211,13 @@ public sealed class AppointmentSchedulingAgentCapability(
 
     public async Task<AgentSchedulingResult<AgentSchedulingProposal>> PrepareCancelAppointmentAsync(AgentSchedulingContext context, Guid appointmentId, CancellationToken cancellationToken) => await PrepareAppointmentStatusAsync(context, AgentSchedulingOperation.CancelAppointment, appointmentId, cancellationToken);
     public async Task<AgentSchedulingResult<AgentSchedulingProposal>> PrepareRejectAppointmentAsync(AgentSchedulingContext context, Guid appointmentId, CancellationToken cancellationToken) => await PrepareAppointmentStatusAsync(context, AgentSchedulingOperation.RejectAppointment, appointmentId, cancellationToken);
-    public Task<AgentSchedulingResult<AgentSchedulingProposal>> PrepareCreateShiftAsync(AgentSchedulingContext context, AgentShiftInput request, CancellationToken cancellationToken) => PrepareAsync(context, AgentSchedulingOperation.CreateShift, new() { Shift = request }, cancellationToken);
+    public Task<AgentSchedulingResult<AgentSchedulingProposal>> PrepareCreateShiftAsync(AgentSchedulingContext context, AgentShiftInput request, CancellationToken cancellationToken) =>
+        !ValidShiftInput(request, requireId: false)
+            ? Task.FromResult(new AgentSchedulingResult<AgentSchedulingProposal>(AgentSchedulingStatus.ValidationFailure, Message: "A valid shift schedule, timezone, and positive capacity are required."))
+            : PrepareAsync(context, AgentSchedulingOperation.CreateShift, new() { Shift = request }, cancellationToken);
     public async Task<AgentSchedulingResult<AgentSchedulingProposal>> PrepareEditShiftAsync(AgentSchedulingContext context, AgentShiftInput request, CancellationToken cancellationToken)
     {
+        if (!ValidShiftInput(request, requireId: true)) return new(AgentSchedulingStatus.ValidationFailure, Message: "A valid shift ID, schedule, timezone, and positive capacity are required.");
         AgentSchedulingResult<ShiftReadDto> current = await GetShiftAsync(context, request.Id, cancellationToken);
         return current.Value is null ? new(current.Status, Message: current.Message) : await PrepareAsync(context, AgentSchedulingOperation.EditShift, new() { Shift = request, EntityId = request.Id, ExpectedShiftStatus = current.Value.Status }, cancellationToken);
     }
@@ -417,6 +421,28 @@ public sealed class AppointmentSchedulingAgentCapability(
 
     private static bool ValidRescheduleInput(AgentRescheduleInput request) =>
         request is not null && request.ReservationId != Guid.Empty && request.TargetShiftId != Guid.Empty && request.TargetDate != default;
+
+    private static bool ValidShiftInput(AgentShiftInput request, bool requireId)
+    {
+        if (request is null || requireId && request.Id == Guid.Empty || request.StartTime >= request.EndTime || request.TotalSeats <= 0 || string.IsNullOrWhiteSpace(request.TimeZone))
+        {
+            return false;
+        }
+
+        try
+        {
+            _ = TimeZoneInfo.FindSystemTimeZoneById(request.TimeZone);
+            return true;
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return false;
+        }
+        catch (InvalidTimeZoneException)
+        {
+            return false;
+        }
+    }
 
     private static bool ValidDateRange(DateOnly? dateFrom, DateOnly? dateTo)
     {

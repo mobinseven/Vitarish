@@ -170,6 +170,77 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
     }
 
     [Fact]
+    public async Task Direct_shift_transition_allowlist_is_idempotent()
+    {
+        Mock<IAccessControlledShiftManager> shifts = new();
+        shifts.Setup(x => x.ActivateShiftAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(EntityResult.Success());
+        shifts.Setup(x => x.PauseShiftAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(EntityResult.Success());
+        AppointmentSchedulingAgentCapability sut = Create(shifts: shifts.Object);
+        Guid shiftId = Guid.NewGuid();
+
+        (await sut.ActivateShiftAsync(Context(), shiftId, default)).Status.Should().Be(AgentSchedulingStatus.Succeeded);
+        (await sut.ActivateShiftAsync(Context(), shiftId, default)).Status.Should().Be(AgentSchedulingStatus.AlreadyApplied);
+        (await sut.PauseShiftAsync(Context(), shiftId, default)).Status.Should().Be(AgentSchedulingStatus.Succeeded);
+        (await sut.PauseShiftAsync(Context(), shiftId, default)).Status.Should().Be(AgentSchedulingStatus.AlreadyApplied);
+
+        shifts.Verify(x => x.ActivateShiftAsync(shiftId, It.IsAny<CancellationToken>()), Times.Once);
+        shifts.Verify(x => x.PauseShiftAsync(shiftId, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Prepared_shift_creation_is_draft_and_replays_without_creating_twice()
+    {
+        Mock<IAccessControlledShiftManager> shifts = new();
+        Guid shiftId = Guid.NewGuid();
+        shifts.Setup(x => x.AddAsync(It.IsAny<ShiftWriteDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<ShiftReadDto>.Success(new() { Id = shiftId, Status = ShiftStatus.Draft }));
+        AppointmentSchedulingAgentCapability sut = Create(shifts: shifts.Object);
+        AgentShiftInput input = ValidShift();
+
+        AgentSchedulingResult<AgentSchedulingProposal> prepared = await sut.PrepareCreateShiftAsync(Context(), input, default);
+        AgentSchedulingResult first = await sut.ExecutePreparedAsync(Context(), AgentSchedulingOperation.CreateShift, default);
+        AgentSchedulingResult replay = await sut.ExecutePreparedAsync(Context(), AgentSchedulingOperation.CreateShift, default);
+
+        prepared.Status.Should().Be(AgentSchedulingStatus.Prepared);
+        first.Status.Should().Be(AgentSchedulingStatus.Succeeded);
+        replay.Status.Should().Be(AgentSchedulingStatus.AlreadyApplied);
+        shifts.Verify(x => x.AddAsync(It.Is<ShiftWriteDto>(write => write.Status == ShiftStatus.Draft && write.TotalSeats == input.TotalSeats), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Prepared_shift_edit_rejects_stale_authoritative_state()
+    {
+        Mock<IAccessControlledShiftManager> shifts = new();
+        Guid shiftId = Guid.NewGuid();
+        ShiftReadDto draft = new() { Id = shiftId, Status = ShiftStatus.Draft };
+        ShiftReadDto active = draft with { Status = ShiftStatus.Active };
+        shifts.SetupSequence(x => x.GetAsync(shiftId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<ShiftReadDto>.Success(draft))
+            .ReturnsAsync(EntityResult<ShiftReadDto>.Success(active));
+        AppointmentSchedulingAgentCapability sut = Create(shifts: shifts.Object);
+
+        AgentSchedulingResult<AgentSchedulingProposal> prepared = await sut.PrepareEditShiftAsync(Context(), ValidShift(shiftId), default);
+        AgentSchedulingResult executed = await sut.ExecutePreparedAsync(Context(), AgentSchedulingOperation.EditShift, default);
+
+        prepared.Status.Should().Be(AgentSchedulingStatus.Prepared);
+        executed.Status.Should().Be(AgentSchedulingStatus.Conflict);
+        shifts.Verify(x => x.UpdateAsync(It.IsAny<ShiftWriteDto>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Invalid_shift_schedule_is_rejected_before_preparation()
+    {
+        Mock<IAccessControlledShiftManager> shifts = new();
+        AppointmentSchedulingAgentCapability sut = Create(shifts: shifts.Object);
+
+        AgentSchedulingResult<AgentSchedulingProposal> result = await sut.PrepareCreateShiftAsync(
+            Context(), ValidShift() with { TotalSeats = 0, TimeZone = "not-a-time-zone" }, default);
+
+        result.Status.Should().Be(AgentSchedulingStatus.ValidationFailure);
+        shifts.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task Invalid_context_is_rejected_before_manager_access()
     {
         Mock<IAccessControlledReservationManager> reservations = new();
@@ -325,6 +396,15 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
             TimeProvider.System);
 
     private static AgentSchedulingContext Context() => new("practice", "agent-run", "tool-call", "confirm");
+
+    private static AgentShiftInput ValidShift(Guid id = default) => new(
+        ShiftVisibility.Public,
+        DayOfWeek.Monday,
+        new TimeOnly(9, 0),
+        new TimeOnly(17, 0),
+        "Europe/London",
+        4,
+        Id: id);
 
     private sealed class ContextScope : IAgentSchedulingContextScope
     {
