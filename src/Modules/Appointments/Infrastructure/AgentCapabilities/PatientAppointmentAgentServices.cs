@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Appointments.Application.AgentCapabilities;
 using Vitarish.Appointments.Domain.Enums;
@@ -6,17 +5,43 @@ using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Appointments.Application.Abstractions;
 using Vitarish.Appointments.Domain.Dto;
 using Vitarish.Appointments.Domain.Models;
+using Vitarish.Modules.Base.Core.Platform.Idempotency;
 
 namespace Vitarish.Appointments.Infrastructure.AgentCapabilities;
 
-public sealed class PatientAppointmentWorkflowStore : IPatientAppointmentWorkflowStore
+public sealed class PatientAppointmentWorkflowStore(
+    IOperationReceiptStore<AppointmentProposal> proposals,
+    IOperationReceiptStore<AppointmentCommitReceipt> commits) : IPatientAppointmentWorkflowStore
 {
-    private readonly ConcurrentDictionary<Guid, AppointmentProposal> _proposals = new();
-    private readonly ConcurrentDictionary<Guid, Guid> _committed = new();
-    public Task<AppointmentProposal?> GetProposalAsync(Guid id, CancellationToken cancellationToken) => Task.FromResult(_proposals.GetValueOrDefault(id));
-    public Task SaveProposalAsync(AppointmentProposal proposal, CancellationToken cancellationToken) { if (!_proposals.TryAdd(proposal.Id, proposal)) throw new InvalidOperationException("Appointment proposal already exists."); return Task.CompletedTask; }
-    public Task<Guid?> GetCommittedAppointmentIdAsync(Guid proposalId, CancellationToken cancellationToken) => Task.FromResult(_committed.TryGetValue(proposalId, out Guid id) ? (Guid?)id : null);
-    public Task SaveCommittedAppointmentIdAsync(Guid proposalId, Guid appointmentId, CancellationToken cancellationToken) { _ = _committed.TryAdd(proposalId, appointmentId); return Task.CompletedTask; }
+    private static readonly TimeSpan ProposalLifetime = TimeSpan.FromMinutes(10);
+
+    public async Task<AppointmentProposal?> GetProposalAsync(Guid id, string practiceId, CancellationToken cancellationToken) =>
+        (await proposals.GetAsync(Key("proposal", practiceId, id), cancellationToken))?.Value;
+
+    public async Task SaveProposalAsync(AppointmentProposal proposal, CancellationToken cancellationToken)
+    {
+        if (!await proposals.TryClaimAsync(Key("proposal", proposal.PracticeId, proposal.Id), proposal,
+            ProposalLifetime, cancellationToken))
+            throw new InvalidOperationException("Appointment proposal already exists.");
+    }
+
+    public async Task<AppointmentCommitReceipt?> GetCommitReceiptAsync(Guid proposalId, string practiceId, CancellationToken cancellationToken) =>
+        (await commits.GetAsync(Key("commit", practiceId, proposalId), cancellationToken))?.Value;
+
+    public Task<bool> TryClaimCommitAsync(Guid proposalId, string practiceId, CancellationToken cancellationToken) =>
+        commits.TryClaimAsync(Key("commit", practiceId, proposalId),
+            new(AppointmentCommitReceiptStatus.InProgress), ProposalLifetime, cancellationToken);
+
+    public async Task<bool> CompleteCommitAsync(Guid proposalId, string practiceId, AppointmentCommitReceipt receipt, CancellationToken cancellationToken)
+    {
+        OperationReceipt<AppointmentCommitReceipt>? current = await commits.GetAsync(
+            Key("commit", practiceId, proposalId), cancellationToken);
+        return current is not null && await commits.TryUpdateAsync(
+            Key("commit", practiceId, proposalId), current.Revision, receipt, ProposalLifetime, cancellationToken);
+    }
+
+    private static OperationReceiptKey Key(string operation, string practiceId, Guid id) =>
+        new($"appointments.patient-workflow.{operation}", practiceId, id.ToString("D"));
 }
 
 public sealed class PatientAppointmentAvailability(

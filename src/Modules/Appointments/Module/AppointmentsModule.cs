@@ -28,7 +28,7 @@ public class AppointmentsModule : Modules.Base.Core.Module, IAppointmentsModule
 
         _ = builder.Services.AddAppointmentsInfrastructure();
         _ = builder.Services.AddSingleton(TimeProvider.System);
-        _ = builder.Services.AddSingleton<IPatientAppointmentWorkflowStore, PatientAppointmentWorkflowStore>();
+        _ = builder.Services.AddTransient<IPatientAppointmentWorkflowStore, PatientAppointmentWorkflowStore>();
         _ = builder.Services.AddTransient<IPatientAppointmentAvailability, PatientAppointmentAvailability>();
         _ = builder.Services.AddTransient<CheckPatientAppointmentAvailability>();
         _ = builder.Services.AddTransient<PreparePatientAppointment>();

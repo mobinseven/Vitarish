@@ -20,7 +20,7 @@ public sealed class PreparePatientAppointmentTests
 
         result.Status.Should().Be(AppointmentProposalResultStatus.Prepared);
         result.Proposal!.Slot.Should().Be(slot);
-        (await store.GetProposalAsync(result.Proposal.Id, default)).Should().Be(result.Proposal);
+        (await store.GetProposalAsync(result.Proposal.Id, result.Proposal.PracticeId, default)).Should().Be(result.Proposal);
     }
 
     [Theory]
@@ -82,6 +82,24 @@ public sealed class PreparePatientAppointmentTests
         sender.Verify(x => x.Send(It.IsAny<CreateReservationCommand>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task Confirm_does_not_retry_an_in_progress_commit()
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        Store store = new();
+        AppointmentProposal proposal = new(Guid.NewGuid(), Guid.NewGuid(), "practice", Slot(), null, now, now.AddMinutes(5));
+        await store.SaveProposalAsync(proposal, default);
+        store.SetCommit(proposal.Id, new(AppointmentCommitReceiptStatus.InProgress));
+        Mock<ISender> sender = Sender(Guid.NewGuid());
+
+        AppointmentCommitResult result = await new ConfirmPatientAppointmentProposal(
+            store, new Availability(proposal.Slot), sender.Object, new FixedTimeProvider(now))
+            .ExecuteAsync(proposal.Id, proposal.PatientId, proposal.PracticeId, default);
+
+        result.Status.Should().Be(AppointmentCommitStatus.InProgress);
+        sender.Verify(x => x.Send(It.IsAny<CreateReservationCommand>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     private static PreparePatientAppointment Create(IPatientAppointmentAvailability availability, Store store) =>
         new(new CheckPatientAppointmentAvailability(availability), store, TimeProvider.System);
     private static PatientAppointmentRequest Request(string local = "2026-08-12T09:00", int? duration = 30, string? service = "Consultation") =>
@@ -103,11 +121,13 @@ public sealed class PreparePatientAppointmentTests
     private sealed class Store : IPatientAppointmentWorkflowStore
     {
         private readonly Dictionary<Guid, AppointmentProposal> proposals = [];
-        private readonly Dictionary<Guid, Guid> committed = [];
-        public Task<AppointmentProposal?> GetProposalAsync(Guid id, CancellationToken cancellationToken) => Task.FromResult(proposals.GetValueOrDefault(id));
+        private readonly Dictionary<Guid, AppointmentCommitReceipt> committed = [];
+        public Task<AppointmentProposal?> GetProposalAsync(Guid id, string practiceId, CancellationToken cancellationToken) => Task.FromResult(proposals.GetValueOrDefault(id));
         public Task SaveProposalAsync(AppointmentProposal proposal, CancellationToken cancellationToken) { proposals.Add(proposal.Id, proposal); return Task.CompletedTask; }
-        public Task<Guid?> GetCommittedAppointmentIdAsync(Guid proposalId, CancellationToken cancellationToken) => Task.FromResult(committed.TryGetValue(proposalId, out Guid id) ? (Guid?)id : null);
-        public Task SaveCommittedAppointmentIdAsync(Guid proposalId, Guid appointmentId, CancellationToken cancellationToken) { committed.TryAdd(proposalId, appointmentId); return Task.CompletedTask; }
+        public Task<AppointmentCommitReceipt?> GetCommitReceiptAsync(Guid proposalId, string practiceId, CancellationToken cancellationToken) => Task.FromResult(committed.GetValueOrDefault(proposalId));
+        public Task<bool> TryClaimCommitAsync(Guid proposalId, string practiceId, CancellationToken cancellationToken) => Task.FromResult(committed.TryAdd(proposalId, new(AppointmentCommitReceiptStatus.InProgress)));
+        public Task<bool> CompleteCommitAsync(Guid proposalId, string practiceId, AppointmentCommitReceipt receipt, CancellationToken cancellationToken) { committed[proposalId] = receipt; return Task.FromResult(true); }
+        public void SetCommit(Guid proposalId, AppointmentCommitReceipt receipt) => committed[proposalId] = receipt;
     }
     private sealed class FixedTimeProvider(DateTimeOffset value) : TimeProvider
     {
