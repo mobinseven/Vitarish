@@ -241,6 +241,7 @@ public sealed class AppointmentSchedulingAgentCapability(
         if (existing?.Value.Status == AgentSchedulingReceiptStatus.Succeeded) return new(AgentSchedulingStatus.AlreadyApplied, proposal.Id, existing.Value.EntityId, existing.Value.Message);
         if (existing?.Value.Status == AgentSchedulingReceiptStatus.Failed) return new(AgentSchedulingStatus.Failed, proposal.Id, existing.Value.EntityId, existing.Value.Message);
         if (existing?.Value.Status == AgentSchedulingReceiptStatus.InProgress) return new(AgentSchedulingStatus.InProgress, proposal.Id, Message: "Scheduling operation is already in progress.");
+        if (existing?.Value.Status == AgentSchedulingReceiptStatus.UnknownOutcome) return new(AgentSchedulingStatus.UnknownOutcome, proposal.Id, Message: existing.Value.Message);
         if (!await receipts.TryClaimAsync(Key("outcome", context, operation), new(AgentSchedulingReceiptStatus.InProgress), ProposalLifetime, cancellationToken)) return new(AgentSchedulingStatus.InProgress, proposal.Id, Message: "Scheduling operation is already in progress.");
 
         AgentSchedulingResult result;
@@ -302,6 +303,7 @@ public sealed class AppointmentSchedulingAgentCapability(
         if (existing?.Value.Status == AgentSchedulingReceiptStatus.Succeeded) return new(AgentSchedulingStatus.AlreadyApplied, entityId, existing.Value.EntityId);
         if (existing?.Value.Status == AgentSchedulingReceiptStatus.Failed) return new(AgentSchedulingStatus.Failed, entityId, existing.Value.EntityId, existing.Value.Message);
         if (existing?.Value.Status == AgentSchedulingReceiptStatus.InProgress) return new(AgentSchedulingStatus.InProgress, entityId, Message: "Scheduling operation is already in progress.");
+        if (existing?.Value.Status == AgentSchedulingReceiptStatus.UnknownOutcome) return new(AgentSchedulingStatus.UnknownOutcome, entityId, Message: existing.Value.Message);
         if (!await receipts.TryClaimAsync(Key("direct", context, operation, entityId), new(AgentSchedulingReceiptStatus.InProgress, entityId), ProposalLifetime, cancellationToken)) return new(AgentSchedulingStatus.InProgress, entityId);
         return await FinishDirectAsync(context, operation, entityId, await ToResult(await action(), entityId), cancellationToken);
     }
@@ -309,17 +311,53 @@ public sealed class AppointmentSchedulingAgentCapability(
     private async Task<AgentSchedulingResult> FinishAsync(AgentSchedulingContext context, AgentSchedulingOperation operation, Guid operationId, AgentSchedulingResult result, CancellationToken cancellationToken, Guid? receiptEntityId = null)
     {
         AgentSchedulingReceipt terminal = new(result.Status == AgentSchedulingStatus.Succeeded ? AgentSchedulingReceiptStatus.Succeeded : AgentSchedulingReceiptStatus.Failed, receiptEntityId ?? result.EntityId, result.Message);
-        _ = await receipts.TryUpdateAsync(Key("outcome", context, operation), 0, terminal, ProposalLifetime, cancellationToken);
-        OperationReceipt<AgentSchedulingReceipt>? persisted = await receipts.GetAsync(Key("outcome", context, operation), cancellationToken);
-        return persisted?.Value == terminal ? result : new(AgentSchedulingStatus.UnknownOutcome, operationId, Message: "Scheduling operation outcome could not be recorded durably.");
+        return await PersistTerminalAsync(Key("outcome", context, operation), operationId, terminal, result, cancellationToken);
     }
 
     private async Task<AgentSchedulingResult> FinishDirectAsync(AgentSchedulingContext context, AgentSchedulingOperation operation, Guid entityId, AgentSchedulingResult result, CancellationToken cancellationToken)
     {
         AgentSchedulingReceipt terminal = new(result.Status == AgentSchedulingStatus.Succeeded ? AgentSchedulingReceiptStatus.Succeeded : AgentSchedulingReceiptStatus.Failed, entityId, result.Message);
-        _ = await receipts.TryUpdateAsync(Key("direct", context, operation, entityId), 0, terminal, ProposalLifetime, cancellationToken);
-        OperationReceipt<AgentSchedulingReceipt>? persisted = await receipts.GetAsync(Key("direct", context, operation, entityId), cancellationToken);
-        return persisted?.Value == terminal ? result : new(AgentSchedulingStatus.UnknownOutcome, entityId, Message: "Scheduling operation outcome could not be recorded durably.");
+        return await PersistTerminalAsync(Key("direct", context, operation, entityId), entityId, terminal, result, cancellationToken);
+    }
+
+    private async Task<AgentSchedulingResult> PersistTerminalAsync(
+        OperationReceiptKey key,
+        Guid operationId,
+        AgentSchedulingReceipt terminal,
+        AgentSchedulingResult result,
+        CancellationToken cancellationToken)
+    {
+        OperationReceipt<AgentSchedulingReceipt>? current = await receipts.GetAsync(key, cancellationToken);
+        if (current is not null && await receipts.TryUpdateAsync(key, current.Revision, terminal, ProposalLifetime, cancellationToken))
+        {
+            current = await receipts.GetAsync(key, cancellationToken);
+            if (current?.Value == terminal)
+            {
+                return result;
+            }
+        }
+        else
+        {
+            current = await receipts.GetAsync(key, cancellationToken);
+            if (current?.Value == terminal)
+            {
+                return result;
+            }
+        }
+
+        const string message = "Scheduling operation outcome could not be recorded durably.";
+        if (current?.Value.Status == AgentSchedulingReceiptStatus.InProgress)
+        {
+            AgentSchedulingReceipt unknown = new(AgentSchedulingReceiptStatus.UnknownOutcome, Message: message);
+            _ = await receipts.TryUpdateAsync(key, current.Revision, unknown, ProposalLifetime, cancellationToken);
+            OperationReceipt<AgentSchedulingReceipt>? persistedUnknown = await receipts.GetAsync(key, cancellationToken);
+            if (persistedUnknown?.Value.Status == AgentSchedulingReceiptStatus.UnknownOutcome)
+            {
+                return new(AgentSchedulingStatus.UnknownOutcome, operationId, Message: persistedUnknown.Value.Message ?? message);
+            }
+        }
+
+        return new(AgentSchedulingStatus.UnknownOutcome, operationId, Message: message);
     }
 
     private bool ValidContext(AgentSchedulingContext context) =>
