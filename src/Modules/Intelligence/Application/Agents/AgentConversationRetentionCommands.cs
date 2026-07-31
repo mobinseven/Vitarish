@@ -3,12 +3,12 @@ using MediatR;
 namespace Vitarish.Intelligence.Application.Agents;
 
 public sealed record DeleteAgentConversationsForOwner(AgentConversationOwnerScope Owner)
-    : IRequest<int>;
+    : IRequest<AgentConversationOwnerDeletionResult>;
 
 public sealed class DeleteAgentConversationsForOwnerHandler(IAgentConversationStore store)
-    : IRequestHandler<DeleteAgentConversationsForOwner, int>
+    : IRequestHandler<DeleteAgentConversationsForOwner, AgentConversationOwnerDeletionResult>
 {
-    public Task<int> Handle(DeleteAgentConversationsForOwner request, CancellationToken cancellationToken)
+    public Task<AgentConversationOwnerDeletionResult> Handle(DeleteAgentConversationsForOwner request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Owner.TenantId) &&
             string.IsNullOrWhiteSpace(request.Owner.CreatingUserId) &&

@@ -218,9 +218,9 @@ public sealed class AgentConversationHandlerTests
             return Task.FromResult(DeleteOutcome);
         }
 
-        public Task<int> DeleteForOwnerAsync(
+        public Task<AgentConversationOwnerDeletionResult> DeleteForOwnerAsync(
             AgentConversationOwnerScope owner,
-            CancellationToken cancellationToken) => Task.FromResult(0);
+            CancellationToken cancellationToken) => Task.FromResult(new AgentConversationOwnerDeletionResult(AgentConversationOutcome.Succeeded, 0));
 
         public Task<int> DeleteExpiredAsync(
             DateTimeOffset cutoff,

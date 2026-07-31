@@ -13,6 +13,10 @@ public sealed record AgentConversationOwnerScope(
     string? SubjectKind = null,
     string? SubjectId = null);
 
+public sealed record AgentConversationOwnerDeletionResult(
+    AgentConversationOutcome Outcome,
+    int DeletedCount);
+
 public enum AgentConversationOutcome
 {
     Succeeded,
@@ -55,7 +59,7 @@ public interface IAgentConversationStore
         AgentConversationScope scope,
         CancellationToken cancellationToken);
 
-    Task<int> DeleteForOwnerAsync(
+    Task<AgentConversationOwnerDeletionResult> DeleteForOwnerAsync(
         AgentConversationOwnerScope owner,
         CancellationToken cancellationToken);
 
