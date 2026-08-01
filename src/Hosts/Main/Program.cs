@@ -15,6 +15,8 @@ using Vitarish.Platform.Module.DependencyInjection;
 using Vitarish.Modules.Base.Core;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Apps.Aggregator.Core;
+using Vitarish.Landing.Application;
+using Microsoft.Extensions.Options;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +47,9 @@ await builder.RegisterModules(configurePostgres);
 _ = builder.Services.AddFeedInfrastructure();
 
 builder.AddApplicationOptions();
+_ = builder.Services.AddOptions<LandingPlatformOptions>()
+    .Configure<IOptions<ApplicationOptions>>((landing, platform) =>
+        landing.LandingUrl = platform.Value.LandingUrl);
 
 
 await builder.AddHostIdentityServer(configurePostgres);

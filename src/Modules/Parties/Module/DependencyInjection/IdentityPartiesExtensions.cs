@@ -32,6 +32,7 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddTransient<TenantIndicatorService>();
 
         _ = builder.Services.AddTransient<ITenantResolver, TenantResolver>();
+        _ = builder.Services.AddTransient<IAppTenantProvisioner, EfAppTenantProvisioner>();
         _ = builder.Services.AddTransient<IPartiesService, PartiesService>();
         _ = builder.Services.AddTransient<IBackgroundTenantSource, PartiesBackgroundTenantSource>();
         _ = builder.Services.AddSingleton<ILookupClient>(sp =>

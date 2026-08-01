@@ -41,6 +41,9 @@
       <Build Solution="Debug|x86" Project="false" />
     </Project>
   </Folder>
+  <Folder Name="/tests/Apps/Landing.Application.Tests/">
+    <Project Path="tests/Apps/Landing.Application.Tests/Landing.Application.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/Apps/Clinic.Application.Tests/">
     <Project Path="tests/Apps/Clinic.Application.Tests/Clinic.Application.Tests.csproj" />
   </Folder>

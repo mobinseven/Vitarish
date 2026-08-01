@@ -29,6 +29,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Apps\Aggregator\Core\Apps.Aggregator.Core.csproj" />
+		<ProjectReference Include="..\..\Apps\Landing\Application\Landing.Application.csproj" />
 		<ProjectReference Include="..\..\Apps\Base\Client\Apps.Base.Client.csproj" />
 		<ProjectReference Include="..\..\Libraries\Audit\Audit.Server\Audit.Server.csproj" />
 		<ProjectReference Include="..\..\Modules\Authentication\Module\Authentication.Module.csproj" />

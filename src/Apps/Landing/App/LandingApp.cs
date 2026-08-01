@@ -9,6 +9,8 @@ using Vitarish.Apps.Base.Core;
 using Vitarish.Landing.Api;
 using Vitarish.Landing.Application;
 using Vitarish.Intelligence.Domain.Options;
+using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Domain.Models;
 
 namespace Vitarish.Landing.App;
 
@@ -17,6 +19,11 @@ public sealed class LandingApp : Vitarish.Apps.Base.Core.App
     public override string Name => "Landing";
     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
+        _ = builder.Services.AddOptions<LandingPlatformOptions>()
+            .Validate(options => Uri.TryCreate(options.LandingUrl, UriKind.Absolute, out Uri? uri) &&
+                (uri.Scheme == Uri.UriSchemeHttps || uri.IsLoopback),
+                "A valid HTTPS LandingUrl is required.")
+            .ValidateOnStart();
         _ = builder.Services.AddMediatR(configuration => configuration.RegisterServicesFromAssembly(typeof(RunLandingConversationHandler).Assembly));
         _ = builder.Services.AddOptions<LandingConversationAgentOptions>()
             .Configure<IOptions<AiOptions>>((landing, intelligence) => landing.Model = intelligence.Value.DefaultResponseModel)
@@ -25,5 +32,20 @@ public sealed class LandingApp : Vitarish.Apps.Base.Core.App
         _ = builder.Services.AddRateLimiter(options => options.AddPolicy(LandingRateLimitPolicies.PublicConversation, context => RateLimitPartition.GetSlidingWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new SlidingWindowRateLimiterOptions { Window = TimeSpan.FromMinutes(1), PermitLimit = 10, SegmentsPerWindow = 6, QueueLimit = 0, QueueProcessingOrder = QueueProcessingOrder.OldestFirst })));
         return Task.CompletedTask;
     }
-    public override Task Initialize(WebApplication app) { _ = app.MapLandingApi(); return Task.CompletedTask; }
+    public override async Task Initialize(WebApplication app)
+    {
+        await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
+        LandingPlatformOptions options = scope.ServiceProvider
+            .GetRequiredService<IOptions<LandingPlatformOptions>>().Value;
+        IAppTenantProvisioner provisioner = scope.ServiceProvider.GetRequiredService<IAppTenantProvisioner>();
+        Uri landingUrl = new(options.LandingUrl, UriKind.Absolute);
+        await provisioner.EnsureAsync(new EnsureAppTenantRequest(
+            LandingTenant.OwnerId,
+            LandingTenant.TenantId,
+            LandingTenant.PrimaryIndicatorId,
+            LandingTenant.AppId,
+            LandingTenant.Name,
+            landingUrl.Host), CancellationToken.None);
+        _ = app.MapLandingApi();
+    }
 }

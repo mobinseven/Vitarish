@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using MediatR;
+using Finbuckle.MultiTenant;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
@@ -37,9 +38,12 @@ public static class LandingApiEndpointMapping
     private static async Task<IResult> SubmitAsync(SubmitLandingMessageRequest request, HttpContext context, IDataProtectionProvider protection, ISender sender, CancellationToken ct)
     {
         if (!Valid(request.OwnerKey, request.Message) || (request.ConversationId is not null && !Guid.TryParse(request.ConversationId, out _))) return Invalid();
+        if (context.GetTenantId() is not string tenantId ||
+            !string.Equals(tenantId, LandingTenant.TenantId.ToString(), StringComparison.Ordinal))
+            return Results.NotFound();
         string session = GetOrCreateSession(context, protection);
         Guid? conversationId = request.ConversationId is null ? null : Guid.Parse(request.ConversationId);
-        LandingConversationResult result = await sender.Send(new RunLandingConversation(session, request.OwnerKey, request.Message.Trim(), conversationId), ct);
+        LandingConversationResult result = await sender.Send(new RunLandingConversation(tenantId, session, request.OwnerKey, request.Message.Trim(), conversationId), ct);
         return result.Outcome switch
         {
             AgentConversationOutcome.Succeeded when result.ConversationId.HasValue && !string.IsNullOrWhiteSpace(result.Message) => Results.Ok(new LandingConversationResponse(result.ConversationId.Value.ToString("N"), result.Message)),
@@ -52,8 +56,9 @@ public static class LandingApiEndpointMapping
     private static async Task<IResult> DeleteAsync(Guid conversationId, string ownerKey, HttpContext context, IDataProtectionProvider protection, ISender sender, CancellationToken ct)
     {
         string? session = ReadSession(context, protection);
-        if (session is null || conversationId == Guid.Empty || !OwnerKeys.Contains(ownerKey)) return Results.NotFound();
-        AgentConversationOutcome result = await sender.Send(new DeleteLandingConversation(session, ownerKey, conversationId), ct);
+        if (context.GetTenantId() is not string tenantId ||
+            !string.Equals(tenantId, LandingTenant.TenantId.ToString(), StringComparison.Ordinal) || session is null || conversationId == Guid.Empty || !OwnerKeys.Contains(ownerKey)) return Results.NotFound();
+        AgentConversationOutcome result = await sender.Send(new DeleteLandingConversation(tenantId, session, ownerKey, conversationId), ct);
         return result switch { AgentConversationOutcome.Succeeded => Results.NoContent(), AgentConversationOutcome.Busy => Results.Conflict(new LandingError("busy", "The conversation is already processing a message.")), _ => Results.NotFound() };
     }
 
