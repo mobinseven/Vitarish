@@ -1,1 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup><ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /><PackageReference Include="Finbuckle.MultiTenant.AspNetCore" /></ItemGroup><ItemGroup><ProjectReference Include="..\Contracts\Landing.Contracts.csproj" /><ProjectReference Include="..\Application\Landing.Application.csproj" /><ProjectReference Include="..\..\..\Modules\Base\Core\Modules.Base.Core.csproj" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Finbuckle.MultiTenant.AspNetCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Contracts\Landing.Contracts.csproj" />
+    <ProjectReference Include="..\Application\Landing.Application.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Base\Core\Modules.Base.Core.csproj" />
+  </ItemGroup>
+</Project>

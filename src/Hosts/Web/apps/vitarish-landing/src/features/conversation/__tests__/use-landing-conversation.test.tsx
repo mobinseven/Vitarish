@@ -3,7 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useConversationController } from "@vitarish/intelligence-web";
 import { useLandingConversation } from "../use-landing-conversation";
 
-vi.mock("@vitarish/intelligence-web", () => ({ useConversationController: vi.fn() }));
+vi.mock("@vitarish/intelligence-web", () => ({
+  useConversationController: vi.fn(),
+}));
 
 const controller = {
   isPending: false,
