@@ -17,7 +17,14 @@ public sealed record PatientAgentSearchCandidate(
     string MaskedIdentification,
     string MaskedPhone);
 
-public sealed record PatientAgentCandidateReference(Guid PatientId, string PracticeId, string UserId, string AgentRunId);
+public sealed record PatientAgentCandidateReference(
+    Guid PatientId,
+    string PracticeId,
+    string UserId,
+    string AgentRunId,
+    string DisplayName,
+    string MaskedIdentification,
+    string MaskedPhone);
 
 public interface IPatientAgentPatientSearch
 {

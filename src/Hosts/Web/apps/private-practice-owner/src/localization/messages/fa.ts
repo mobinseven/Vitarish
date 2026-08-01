@@ -510,6 +510,7 @@ export const faMessages = {
     },
   },
   appShell: {
+    operationsAssistant: "باز کردن دستیار عملیات کلینیک",
     brand: "ویتاریش",
     navigation: {
       up: "بالا",

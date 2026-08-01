@@ -12,7 +12,7 @@ import { FaIcon } from "@vitarish/web-ui";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocalizedText } from "../../localization";
 import type { PatientAgentMessageResult } from "./hooks";
-import { usePatientAgentConversation } from "./hooks";
+import { useClinicAgentConversationSurface, usePatientAgentConversation } from "./hooks";
 import { PatientAgentActionList } from "./PatientAgentActions";
 import {
   PatientAgentActivity,
@@ -47,9 +47,11 @@ export function PatientAgentHeader({ patientName, onReset }: { patientName: stri
 export function PatientAgentComposer({
   disabled,
   onSubmit,
+  scope = "patient",
 }: {
   disabled: boolean;
   onSubmit: (message: string) => Promise<void>;
+  scope?: "patient" | "operations";
 }) {
   const { t } = useLocalizedText();
   const [message, setMessage] = useState("");
@@ -73,14 +75,14 @@ export function PatientAgentComposer({
       <PromptInput.Shell>
         <PromptInput.Content>
           <PromptInput.TextArea
-            aria-label={t("clinic.patientAgent.composer.label")}
-            placeholder={t("clinic.patientAgent.composer.placeholder")}
+            aria-label={scope === "operations" ? t("clinic.operationsAgent.composer.label") : t("clinic.patientAgent.composer.label")}
+            placeholder={scope === "operations" ? t("clinic.operationsAgent.composer.placeholder") : t("clinic.patientAgent.composer.placeholder")}
           />
         </PromptInput.Content>
         <PromptInput.Toolbar>
           <PromptInput.ToolbarEnd>
             <PromptInput.Send
-              aria-label={t("clinic.patientAgent.composer.send")}
+              aria-label={scope === "operations" ? t("clinic.operationsAgent.composer.send") : t("clinic.patientAgent.composer.send")}
             />
           </PromptInput.ToolbarEnd>
         </PromptInput.Toolbar>
@@ -95,9 +97,11 @@ type PatientAgentChatMessage =
 export function PatientAgentMessage({
   message,
   onRetry,
+  scope = "patient",
 }: {
   message: PatientAgentChatMessage;
   onRetry?: () => void;
+  scope?: "patient" | "operations";
 }) {
   const { t } = useLocalizedText();
   if (message.kind === "UserMessage")
@@ -112,7 +116,7 @@ export function PatientAgentMessage({
     );
 
   if (message.kind === "Failure") {
-    return <PatientAgentErrorState onRetry={onRetry} />;
+    return <PatientAgentErrorState onRetry={onRetry} scope={scope} />;
   }
 
   const labels = {
@@ -124,14 +128,14 @@ export function PatientAgentMessage({
   return (
     <ChatMessage.Assistant data-kind={message.kind}>
       <ChatMessage.Avatar
-        alt={t("clinic.patientAgent.title")}
+        alt={scope === "operations" ? t("clinic.operationsAgent.title") : t("clinic.patientAgent.title")}
         fallback="AI"
         show
       />
       <ChatMessage.Body>
         <ChatMessage.Content>
           <p className="mb-1 text-xs font-semibold text-muted">
-            {t(`clinic.patientAgent.messages.${labels[message.kind]}`)}
+            {scope === "operations" ? t(`clinic.operationsAgent.messages.${labels[message.kind]}`) : t(`clinic.patientAgent.messages.${labels[message.kind]}`)}
           </p>
           <p className="whitespace-pre-wrap">{message.content}</p>
         </ChatMessage.Content>
@@ -144,16 +148,18 @@ export function PatientAgentMessageList({
   messages,
   onRetry,
   children,
+  scope = "patient",
 }: {
   messages: PatientAgentChatMessage[];
   onRetry?: () => void;
   children?: ReactNode;
+  scope?: "patient" | "operations";
 }) {
   const { t } = useLocalizedText();
   return (
     <ChatConversation
       className="min-h-0 flex-1"
-      aria-label={t("clinic.patientAgent.messages.label")}
+      aria-label={scope === "operations" ? t("clinic.operationsAgent.messages.label") : t("clinic.patientAgent.messages.label")}
     >
       <ChatConversation.Content className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-5">
         {messages.map((message, index) => (
@@ -161,14 +167,15 @@ export function PatientAgentMessageList({
             key={`${message.kind}-${index}`}
             message={message}
             onRetry={message.kind === "Failure" ? onRetry : undefined}
+            scope={scope}
           />
         ))}
         {children}
         <ChatConversation.ScrollAnchor />
       </ChatConversation.Content>
       <ChatConversation.ScrollButton
-        aria-label={t("clinic.patientAgent.messages.label")}
-        tooltip={t("clinic.patientAgent.messages.label")}
+        aria-label={scope === "operations" ? t("clinic.operationsAgent.messages.label") : t("clinic.patientAgent.messages.label")}
+        tooltip={scope === "operations" ? t("clinic.operationsAgent.messages.label") : t("clinic.patientAgent.messages.label")}
       />
     </ChatConversation>
   );
@@ -187,76 +194,19 @@ export function PatientAgentPanel({
 }) {
   const { t, locale } = useLocalizedText();
   const conversation = usePatientAgentConversation(patientId, isOpen);
-  const [messages, setMessages] = useState<PatientAgentChatMessage[]>([]);
-  const [actionIds, setActionIds] = useState<string[]>([]);
-  const [lastMessage, setLastMessage] = useState("");
+  const surface = useClinicAgentConversationSurface(conversation, `${patientId}:${isOpen ? "open" : "closed"}`);
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetError, setResetError] = useState(false);
   const focusTarget = useRef<HTMLDivElement>(null);
-  const activePatient = useRef(patientId);
 
   useEffect(() => {
-    activePatient.current = patientId;
-    setMessages([]);
-    setActionIds([]);
-    conversation.reset();
-    // The mutation result is deliberately discarded whenever the trusted route patient changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [patientId]);
-
-  const wasOpen = useRef(false);
-  useEffect(() => {
-    if (isOpen && !wasOpen.current) {
-      setMessages([]);
-      setActionIds([]);
-      setLastMessage("");
-    }
-    wasOpen.current = isOpen;
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (messages.length || actionIds.length) focusTarget.current?.focus();
-  }, [messages.length, actionIds.length]);
-
-  const appendResult = (
-    result: Awaited<ReturnType<typeof conversation.submit>>,
-    submittedPatient: string,
-  ) => {
-    if (!result || activePatient.current !== submittedPatient) return;
-    const hasFailure = result.messages.some(({ kind }) => kind === "Failure");
-    const responseMessages = hasFailure
-      ? result.messages.filter(({ kind }) => kind === "Failure")
-      : result.messages;
-    setMessages((current) => [...current, ...responseMessages]);
-    setActionIds((current) => [
-      ...current,
-      ...(hasFailure ? [] : result.actions)
-        .map((action) => action.id)
-        .filter((id) => !current.includes(id)),
-    ]);
-  };
-
-  const submit = async (message: string) => {
-    const submittedPatient = patientId;
-    setLastMessage(message);
-    setMessages((current) => [
-      ...current,
-      { kind: "UserMessage", content: message },
-    ]);
-    appendResult(await conversation.submit(message), submittedPatient);
-  };
-
-  const retry = async () => {
-    appendResult(await conversation.retry(), patientId);
-  };
+    if (surface.messages.length || surface.actionIds.length) focusTarget.current?.focus();
+  }, [surface.messages.length, surface.actionIds.length]);
 
   const resetConversation = async () => {
     setResetError(false);
     try {
-      await conversation.deleteCurrent();
-      setMessages([]);
-      setActionIds([]);
-      setLastMessage("");
+      await surface.deleteCurrent();
       setConfirmReset(false);
     } catch {
       setResetError(true);
@@ -287,10 +237,10 @@ export function PatientAgentPanel({
                   className="flex min-h-0 flex-1 flex-col outline-none"
                 >
                   <PatientAgentMessageList
-                    messages={messages}
+                    messages={surface.messages}
                     onRetry={
-                      lastMessage
-                        ? () => void retry()
+                      surface.lastMessage
+                        ? () => void surface.retry()
                         : undefined
                     }
                   >
@@ -311,15 +261,15 @@ export function PatientAgentPanel({
                     {conversation.isError ? (
                       <PatientAgentErrorState
                         onRetry={
-                          lastMessage
-                            ? () => void retry()
+                          surface.lastMessage
+                            ? () => void surface.retry()
                             : undefined
                         }
                       />
                     ) : null}
                     <PatientAgentActionList
                       patientId={patientId}
-                      actionIds={actionIds}
+                      actionIds={surface.actionIds}
                     />
                   </PatientAgentMessageList>
                 </div>
@@ -328,7 +278,7 @@ export function PatientAgentPanel({
             <Sheet.Footer>
               <PatientAgentComposer
                 disabled={conversation.isPending}
-                onSubmit={submit}
+                onSubmit={surface.submit}
               />
             </Sheet.Footer>
           </Sheet.Dialog>

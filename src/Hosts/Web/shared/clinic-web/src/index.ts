@@ -13,7 +13,10 @@ export {
   PatientAgentActivity,
   PatientAgentErrorState,
 } from "./features/patient-agent/PatientAgentPanel";
+export { OperationsAgentAside } from "./features/patient-agent/OperationsAgentAside";
 export {
+  OperationsAgentActionList,
+  OperationsAgentActionReview,
   PatientAgentActionList,
   PatientAgentActionReview,
   PatientAgentActionStatus,
@@ -22,8 +25,13 @@ export {
   AppointmentActionCard,
   PrescriptionActionCard,
   ClinicalEventActionCard,
+  OperationsActionCard,
 } from "./features/patient-agent/ActionCards";
 export {
+  useConfirmOperationsAgentAction,
+  useOperationsAgentAction,
+  useOperationsAgentConversation,
+  useRejectOperationsAgentAction,
   usePatientAgentConversation,
   usePatientAgentAction,
   useConfirmPatientAgentAction,

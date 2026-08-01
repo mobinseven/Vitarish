@@ -35,7 +35,7 @@ public sealed class OperationsAgentCapabilityTests
                 proposalId));
         Mock<IPatientAgentPatientSearch> search = new(MockBehavior.Strict);
         search.Setup(service => service.ResolveAsync("practice-1", "owner-1", "run-1", "opaque-candidate", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new PatientAgentCandidateReference(patientId, "practice-1", "owner-1", "run-1"));
+            .ReturnsAsync(new PatientAgentCandidateReference(patientId, "practice-1", "owner-1", "run-1", "Masked patient", "1******9", "0******1"));
         PrepareScheduleActionTool tool = new(scheduling.Object, search.Object, "prepare_book_appointment");
         AgentExecutionContext context = new("run-1", new Dictionary<string, string>
         {

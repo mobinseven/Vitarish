@@ -4,19 +4,31 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   clinicConfirmPatientAgentAction,
+  clinicConfirmAgentAction,
+  clinicDeleteOperationsAgentConversation,
+  clinicGetAgentAction,
   clinicGetPatientAgentAction,
+  clinicRejectAgentAction,
   clinicRejectPatientAgentAction,
 } from "../api/generated/clinic/clinic";
 import { intelligenceRunAgentConversation } from "@vitarish/intelligence-web";
 import {
   useConfirmPatientAgentAction,
+  useConfirmOperationsAgentAction,
+  useOperationsAgentAction,
+  useOperationsAgentConversation,
   usePatientAgentAction,
   usePatientAgentConversation,
+  useRejectOperationsAgentAction,
   useRejectPatientAgentAction,
 } from "../features/patient-agent/hooks";
 
 vi.mock("../api/generated/clinic/clinic", () => ({
   clinicDeletePatientAgentConversation: vi.fn(),
+  clinicDeleteOperationsAgentConversation: vi.fn(),
+  clinicGetAgentAction: vi.fn(),
+  clinicConfirmAgentAction: vi.fn(),
+  clinicRejectAgentAction: vi.fn(),
   clinicGetPatientAgentAction: vi.fn(),
   clinicConfirmPatientAgentAction: vi.fn(),
   clinicRejectPatientAgentAction: vi.fn(),
@@ -108,7 +120,90 @@ describe("patient-agent generated-client hooks", () => {
     expect(clinicGetPatientAgentAction).toHaveBeenCalledWith(
       "patient-1",
       "action-1",
+      undefined,
+      expect.any(AbortSignal),
     );
+  });
+
+  it("keeps the operations conversation in its practice scope", async () => {
+    vi.mocked(intelligenceRunAgentConversation).mockResolvedValue({
+      agentRunId: "run-operations",
+      conversationId: "conversation-operations",
+      result: { messages: [], actions: [] },
+    });
+    vi.mocked(clinicDeleteOperationsAgentConversation).mockResolvedValue();
+    const { result } = renderHook(
+      () => useOperationsAgentConversation(true),
+      { wrapper: createWrapper() },
+    );
+
+    await act(() => result.current.submit("Show today's schedule"));
+    await act(() => result.current.deleteCurrent());
+
+    expect(intelligenceRunAgentConversation).toHaveBeenCalledWith(
+      {
+        agentKey: "clinic.operations",
+        subjectKind: "practice",
+        subjectId: "practice",
+        message: "Show today's schedule",
+        conversationId: null,
+      },
+      undefined,
+      expect.any(AbortSignal),
+    );
+    expect(clinicDeleteOperationsAgentConversation).toHaveBeenCalledTimes(1);
+    expect(clinicDeleteOperationsAgentConversation).toHaveBeenCalledWith(
+      "conversation-operations",
+    );
+  });
+
+  it("uses operations action endpoints independently of patient actions", async () => {
+    vi.mocked(clinicGetAgentAction).mockResolvedValue({
+      actionId: "operation-1",
+      agentRunId: "run-1",
+      conversationId: "conversation-1",
+      capability: "Operations",
+      actionType: "create_shift",
+      status: "Proposed",
+      reviewPayload: {},
+      expiresAt: "2026-08-01T12:00:00Z",
+      completionPayload: null,
+      failure: null,
+    });
+    vi.mocked(clinicConfirmAgentAction).mockResolvedValue({
+      actionId: "operation-1",
+      status: "Completed",
+      completionPayload: {},
+      failure: null,
+    });
+    vi.mocked(clinicRejectAgentAction).mockResolvedValue({
+      actionId: "operation-2",
+      status: "Rejected",
+    });
+    const wrapper = createWrapper();
+    const action = renderHook(() => useOperationsAgentAction("operation-1"), {
+      wrapper,
+    });
+    await vi.waitFor(() => expect(action.result.current.isSuccess).toBe(true));
+    const confirm = renderHook(() => useConfirmOperationsAgentAction(), {
+      wrapper,
+    });
+    const reject = renderHook(() => useRejectOperationsAgentAction(), {
+      wrapper,
+    });
+
+    await act(() => confirm.result.current.mutateAsync("operation-1"));
+    await act(() => reject.result.current.mutateAsync("operation-2"));
+
+    expect(clinicGetAgentAction).toHaveBeenCalledWith(
+      "operation-1",
+      undefined,
+      expect.any(AbortSignal),
+    );
+    expect(clinicConfirmAgentAction).toHaveBeenCalledWith("operation-1");
+    expect(clinicRejectAgentAction).toHaveBeenCalledWith("operation-2", {
+      actionId: "operation-2",
+    });
   });
 
   it("sends only the backend action identifier to confirm and reject", async () => {

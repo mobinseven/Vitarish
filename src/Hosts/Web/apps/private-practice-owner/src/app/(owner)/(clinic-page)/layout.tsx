@@ -13,6 +13,7 @@ export default function ClinicPageLayout({
 }) {
   return (
     <DashboardShell
+      clinicOperationsAssistant
       footerItems={dashboardFooterItems}
       navGroups={clinicOwnerDashboardNavGroups}
     >
