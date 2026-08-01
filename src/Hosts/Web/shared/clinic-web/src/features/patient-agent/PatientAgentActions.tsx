@@ -7,13 +7,17 @@ import { useLocalizedText } from "../../localization";
 import {
   AppointmentActionCard,
   ClinicalEventActionCard,
+  OperationsActionCard,
   PrescriptionActionCard,
 } from "./ActionCards";
 import { asRecord, asText } from "./actionPayload";
 import type { PatientAgentAction } from "./hooks";
 import {
   useConfirmPatientAgentAction,
+  useConfirmOperationsAgentAction,
+  useOperationsAgentAction,
   usePatientAgentAction,
+  useRejectOperationsAgentAction,
   useRejectPatientAgentAction,
 } from "./hooks";
 import {
@@ -190,4 +194,52 @@ export function PatientAgentActionList({
       ))}
     </div>
   );
+}
+
+export function OperationsAgentActionReview({ action }: { action: PatientAgentAction }) {
+  const { t } = useLocalizedText();
+  const confirm = useConfirmOperationsAgentAction();
+  const reject = useRejectOperationsAgentAction();
+  const [requestError, setRequestError] = useState(false);
+  const pending = confirm.isPending || reject.isPending;
+  const payload = asRecord(action.reviewPayload);
+  const completion = asRecord(action.completionPayload);
+  const completionId = asText(completion.entityId) ?? asText(completion.operationId);
+  const update = async (kind: "confirm" | "reject") => {
+    setRequestError(false);
+    try {
+      await (kind === "confirm" ? confirm.mutateAsync(action.actionId) : reject.mutateAsync(action.actionId));
+    } catch {
+      setRequestError(true);
+    }
+  };
+  return (
+    <Card>
+      <Card.Header className="flex justify-between gap-3">
+        <Card.Title>{t("clinic.operationsAgent.reviewTitle")}</Card.Title>
+        <PatientAgentActionStatus status={pending ? "Confirming" : action.status} completionId={completionId} failure={action.failure?.message} />
+      </Card.Header>
+      <Card.Content className="space-y-4">
+        <OperationsActionCard payload={payload} expiresAt={action.expiresAt} />
+        {requestError ? <p role="alert" className="text-sm text-danger">{t("clinic.operationsAgent.actionError")}</p> : null}
+        {action.status === "Proposed" ? (
+          <div className="flex flex-wrap gap-2">
+            <Tooltip><Button variant="primary" isDisabled={pending} onPress={() => void update("confirm")}><FaIcon icon="check" aria-hidden="true" />{t("clinic.operationsAgent.confirm")}</Button><Tooltip.Content>{t("clinic.operationsAgent.confirm")}</Tooltip.Content></Tooltip>
+            <Tooltip><Button variant="outline" isDisabled={pending} onPress={() => void update("reject")}><FaIcon icon="xmark" aria-hidden="true" />{t("clinic.operationsAgent.reject")}</Button><Tooltip.Content>{t("clinic.operationsAgent.reject")}</Tooltip.Content></Tooltip>
+          </div>
+        ) : null}
+      </Card.Content>
+    </Card>
+  );
+}
+
+function OperationsAgentActionLoader({ actionId }: { actionId: string }) {
+  const action = useOperationsAgentAction(actionId);
+  if (action.isLoading) return <PatientAgentActivity />;
+  if (action.error || !action.data) return <PatientAgentErrorState onRetry={() => void action.refetch()} />;
+  return <OperationsAgentActionReview action={action.data} />;
+}
+
+export function OperationsAgentActionList({ actionIds }: { actionIds: string[] }) {
+  return <div className="flex flex-col gap-3">{actionIds.map((actionId) => <OperationsAgentActionLoader key={actionId} actionId={actionId} />)}</div>;
 }

@@ -64,6 +64,7 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModulePost(ClinicApiRoutes.ConfirmPatientAgentAction, ConfirmPatientAgentActionAsync, "ClinicConfirmPatientAgentAction", typeof(ConfirmPatientAgentActionResponse));
         _ = group.MapModulePost(ClinicApiRoutes.RejectPatientAgentAction, RejectPatientAgentActionAsync, "ClinicRejectPatientAgentAction", typeof(RejectPatientAgentActionResponse));
         _ = group.MapModulePost(ClinicApiRoutes.OperationsAgent, RunOperationsAgentAsync, "ClinicRunOperationsAgent", typeof(RunPatientAgentResponse));
+        _ = group.MapModuleDelete(ClinicApiRoutes.OperationsAgentConversation, DeleteOperationsAgentConversationAsync, "ClinicDeleteOperationsAgentConversation");
         _ = group.MapModuleGet(ClinicApiRoutes.AgentAction, GetOperationsAgentActionAsync, "ClinicGetAgentAction", typeof(PatientAgentActionDetailsResponse));
         _ = group.MapModulePost(ClinicApiRoutes.ConfirmAgentAction, ConfirmOperationsAgentActionAsync, "ClinicConfirmAgentAction", typeof(ConfirmPatientAgentActionResponse));
         _ = group.MapModulePost(ClinicApiRoutes.RejectAgentAction, RejectOperationsAgentActionAsync, "ClinicRejectAgentAction", typeof(RejectPatientAgentActionResponse));
@@ -363,6 +364,35 @@ public static class ClinicApiEndpointMapping
                 ToContract(action.Status),
                 System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(action.ReviewPayload),
                 action.Summary)).ToArray()));
+    }
+
+    private static async Task<IResult> DeleteOperationsAgentConversationAsync(
+        Guid conversationId,
+        [FromServices] IPatientAgentContextFactory contextFactory,
+        ISender sender,
+        CancellationToken ct)
+    {
+        if (conversationId == Guid.Empty)
+            return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."));
+
+        PatientAgentContext context;
+        try { context = await contextFactory.CreateOperationsAsync(conversationId.ToString("N"), ct); }
+        catch (UnauthorizedAccessException) { return ForbiddenAgentAction(); }
+
+        AgentConversationOutcome outcome = await sender.Send(new DeleteAgentConversation(
+            conversationId,
+            new AgentConversationScope(
+                context.PracticeId,
+                context.AuthenticatedUserId,
+                "clinic.operations",
+                "practice",
+                "practice")), ct);
+        return outcome switch
+        {
+            AgentConversationOutcome.Succeeded => Results.NoContent(),
+            AgentConversationOutcome.Busy => Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active.")),
+            _ => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."))
+        };
     }
 
     private static async Task<IResult> DeletePatientAgentConversationAsync(

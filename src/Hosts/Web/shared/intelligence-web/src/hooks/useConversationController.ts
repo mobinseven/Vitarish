@@ -104,6 +104,7 @@ export function useConversationController<TResult>({
       return;
     }
     await deleteConversation(current);
+    conversationId.current = null;
     reset();
   }, [deleteConversation, reset]);
 

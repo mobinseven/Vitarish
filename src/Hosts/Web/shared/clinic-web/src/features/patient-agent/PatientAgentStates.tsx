@@ -14,12 +14,15 @@ export function PatientAgentActivity() {
   );
 }
 
-export function PatientAgentErrorState({ onRetry }: { onRetry?: () => void }) {
+export function PatientAgentErrorState({ onRetry, scope = "patient" }: { onRetry?: () => void; scope?: "patient" | "operations" }) {
   const { t } = useLocalizedText();
+  const title = scope === "operations" ? t("clinic.operationsAgent.title") : t("clinic.patientAgent.title");
+  const error = scope === "operations" ? t("clinic.operationsAgent.error") : t("clinic.patientAgent.error");
+  const retry = scope === "operations" ? t("clinic.operationsAgent.retry") : t("clinic.patientAgent.retry");
   return (
     <ChatMessage.Assistant data-kind="Failure">
       <ChatMessage.Avatar
-        alt={t("clinic.patientAgent.title")}
+        alt={title}
         fallback="AI"
         show
       />
@@ -27,14 +30,14 @@ export function PatientAgentErrorState({ onRetry }: { onRetry?: () => void }) {
         <ChatMessage.Content>
           <p role="alert" className="text-danger">
             <FaIcon icon="circle-exclamation" className="me-2" aria-hidden="true" />
-            {t("clinic.patientAgent.error")}
+            {error}
           </p>
         </ChatMessage.Content>
         {onRetry ? (
           <ChatMessageActions>
             <ChatMessageActions.Regenerate
-              aria-label={t("clinic.patientAgent.retry")}
-              tooltip={t("clinic.patientAgent.retry")}
+              aria-label={retry}
+              tooltip={retry}
               onPress={onRetry}
             />
           </ChatMessageActions>

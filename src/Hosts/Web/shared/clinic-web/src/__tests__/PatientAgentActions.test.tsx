@@ -7,12 +7,17 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { PatientAgentActionReview } from "../features/patient-agent/PatientAgentActions";
+import {
+  OperationsAgentActionReview,
+  PatientAgentActionReview,
+} from "../features/patient-agent/PatientAgentActions";
 import type { PatientAgentAction } from "../features/patient-agent/hooks";
 import { LocalizationProvider, clinicMessageCatalogs } from "../localization";
 
 const confirm = vi.fn();
 const reject = vi.fn();
+const confirmOperation = vi.fn();
+const rejectOperation = vi.fn();
 vi.mock("../features/patient-agent/hooks", () => ({
   useConfirmPatientAgentAction: () => ({
     mutateAsync: confirm,
@@ -23,6 +28,15 @@ vi.mock("../features/patient-agent/hooks", () => ({
     isPending: false,
   }),
   usePatientAgentAction: vi.fn(),
+  useConfirmOperationsAgentAction: () => ({
+    mutateAsync: confirmOperation,
+    isPending: false,
+  }),
+  useRejectOperationsAgentAction: () => ({
+    mutateAsync: rejectOperation,
+    isPending: false,
+  }),
+  useOperationsAgentAction: vi.fn(),
 }));
 vi.mock("@vitarish/web-ui", () => ({
   FaIcon: ({ icon }: { icon: string }) => (
@@ -70,6 +84,52 @@ describe("patient-agent independent actions", () => {
   beforeEach(() => {
     confirm.mockReset();
     reject.mockReset();
+    confirmOperation.mockReset();
+    rejectOperation.mockReset();
+  });
+
+  it("renders and decides an operations proposal from authoritative review data", async () => {
+    confirmOperation.mockResolvedValue({
+      actionId: "shift-1",
+      status: "Completed",
+    });
+    render(
+      <OperationsAgentActionReview
+        action={{
+          actionId: "shift-1",
+          agentRunId: "run-operations",
+          conversationId: "conversation-operations",
+          capability: "Operations",
+          actionType: "create_shift",
+          status: "Proposed",
+          reviewPayload: {
+            actionType: "create_shift",
+            shift: {
+              serviceName: "General consultation",
+              serviceProviderName: "Dr Test",
+              startTime: "09:00",
+              endTime: "10:00",
+              timeZone: "Asia/Tehran",
+            },
+          },
+          expiresAt: "2026-08-01T12:00:00Z",
+          completionPayload: null,
+          failure: null,
+        }}
+      />,
+      { wrapper: Wrapper },
+    );
+
+    expect(screen.getByText("Create shift")).toBeInTheDocument();
+    expect(screen.getByText("General consultation")).toBeInTheDocument();
+    expect(screen.getByText("Dr Test")).toBeInTheDocument();
+    expect(screen.getByText("09:00–10:00")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Confirm action" }));
+
+    await waitFor(() =>
+      expect(confirmOperation).toHaveBeenCalledWith("shift-1"),
+    );
+    expect(confirm).not.toHaveBeenCalled();
   });
   afterEach(cleanup);
 

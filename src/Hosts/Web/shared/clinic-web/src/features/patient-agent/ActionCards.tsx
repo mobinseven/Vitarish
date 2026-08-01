@@ -234,3 +234,46 @@ export function ClinicalEventActionCard({
     </dl>
   );
 }
+
+export function OperationsActionCard({ payload, expiresAt }: ActionCardProps) {
+  const { t, locale } = useLocalizedText();
+  const patient = asRecord(payload.patient);
+  const appointment = asRecord(payload.appointment);
+  const reschedule = asRecord(payload.reschedule);
+  const shift = asRecord(payload.shift);
+  const date = asText(appointment.date) ?? asText(reschedule.targetDate);
+  const startTime = asText(shift.startTime);
+  const endTime = asText(shift.endTime);
+  const actionType = asText(payload.actionType);
+  const actionLabels = {
+    book_appointment: t("clinic.operationsAgent.actions.bookAppointment"),
+    reschedule_appointment: t("clinic.operationsAgent.actions.rescheduleAppointment"),
+    cancel_appointment: t("clinic.operationsAgent.actions.cancelAppointment"),
+    reject_appointment: t("clinic.operationsAgent.actions.rejectAppointment"),
+    create_shift: t("clinic.operationsAgent.actions.createShift"),
+    edit_shift: t("clinic.operationsAgent.actions.editShift"),
+    close_shift: t("clinic.operationsAgent.actions.closeShift"),
+    cancel_shift: t("clinic.operationsAgent.actions.cancelShift"),
+    archive_shift: t("clinic.operationsAgent.actions.archiveShift"),
+  } as const;
+  const currentState = asText(payload.expectedAppointmentStatus) ?? asText(payload.expectedShiftStatus);
+  const stateLabels = {
+    Pending: t("clinic.operationsAgent.states.pending"), Confirmed: t("clinic.operationsAgent.states.confirmed"), Cancelled: t("clinic.operationsAgent.states.cancelled"), Rejected: t("clinic.operationsAgent.states.rejected"), Expired: t("clinic.operationsAgent.states.expired"), Waitlisted: t("clinic.operationsAgent.states.waitlisted"), Present: t("clinic.operationsAgent.states.present"), Completed: t("clinic.operationsAgent.states.completed"), Draft: t("clinic.operationsAgent.states.draft"), Active: t("clinic.operationsAgent.states.active"), Paused: t("clinic.operationsAgent.states.paused"), Closed: t("clinic.operationsAgent.states.closed"), Archived: t("clinic.operationsAgent.states.archived"),
+  } as const;
+
+  return (
+    <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <ReviewField label={t("clinic.operationsAgent.fields.patient")} value={asText(patient.displayName)} />
+      <ReviewField label={t("clinic.operationsAgent.fields.maskedIdentification")} value={asText(patient.maskedIdentification)} />
+      <ReviewField label={t("clinic.operationsAgent.fields.maskedPhone")} value={asText(patient.maskedPhone)} />
+      <ReviewField label={t("clinic.operationsAgent.fields.date")} value={date ? formatDate(date, locale) : null} />
+      <ReviewField label={t("clinic.operationsAgent.fields.time")} value={startTime && endTime ? `${startTime}–${endTime}` : startTime} />
+      <ReviewField label={t("clinic.operationsAgent.fields.currentState")} value={currentState && currentState in stateLabels ? stateLabels[currentState as keyof typeof stateLabels] : currentState} />
+      <ReviewField label={t("clinic.operationsAgent.fields.proposedState")} value={actionType && actionType in actionLabels ? actionLabels[actionType as keyof typeof actionLabels] : actionType} />
+      <ReviewField label={t("clinic.operationsAgent.fields.service")} value={asText(shift.serviceName) ?? asText(shift.serviceId)} />
+      <ReviewField label={t("clinic.operationsAgent.fields.provider")} value={asText(shift.serviceProviderName) ?? asText(shift.serviceProviderId)} />
+      <ReviewField label={t("clinic.operationsAgent.fields.timeZone")} value={asText(shift.timeZone)} />
+      <ReviewField label={t("clinic.operationsAgent.fields.expiration")} value={formatDateTime(expiresAt, locale)} />
+    </dl>
+  );
+}
