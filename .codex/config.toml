@@ -12,6 +12,9 @@ approval_mode = "approve"
 [mcp_servers.heroui-pro.tools.list_components]
 approval_mode = "approve"
 
+[mcp_servers.heroui-pro.tools.get_docs]
+approval_mode = "approve"
+
 [mcp_servers.heroui-react]
 command = "npx"
 args = ["-y", "@heroui/react-mcp@latest"]

@@ -39,8 +39,7 @@ Do not duplicate those documents here.
 - **Generated output [MUST]:** Never edit generated clients, DTOs, hooks, keys, mocks, or equivalent output. Change the source and run the canonical generator.
 - **Retries [MUST]:** The initiating boundary owns retry policy. Retried mutations require idempotency. Do not stack retries without explicit reason.
 - **Quality [MUST]:** Do not weaken assertions, tests, analyzers, validators, or diagnostics to obtain a pass.
-- **.NET Native AOT readiness [MUST]:** Backend changes follow [ADR-0010](docs/architecture/decisions/0010-prefer-statically-analyzable-native-aot-compatible-design.md) and its [engineering standard](docs/architecture/conventions/adr-0010-static-analyzability-native-aot.md). Prefer generated or explicit behavior over runtime discovery; isolate unavoidable dynamism and the documented EF Core persistence exception. Evaluate runtime dependencies, treat warnings as actionable, and report missing required validation. Readiness does not require publishing the current production host with Native AOT and never overrides correctness, security, or maintainability.
-- **Observability [SHOULD]:** Important failures produce structured, actionable, redacted telemetry.
+
 
 ## Scope and minimum change
 

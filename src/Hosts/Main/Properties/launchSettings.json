@@ -1,11 +1,13 @@
 {
   "profiles": {
     "Main": {
-      "commandName": "Project",
+      "commandName": "Executable",
+      "executablePath": "dotnet",
+      "workingDirectory": "$(ProjectDir)",
+      "commandLineArgs": "run --configuration Release --no-launch-profile --urls https://localhost:7272",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "https://localhost:7272"
+      }
     }
   }
 }
