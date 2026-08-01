@@ -13,6 +13,7 @@ export default function ClinicWorkspaceLayout({
 }) {
   return (
     <DashboardShell
+      clinicOperationsAssistant
       contentMode="workspace"
       footerItems={dashboardFooterItems}
       navGroups={clinicOwnerDashboardNavGroups}

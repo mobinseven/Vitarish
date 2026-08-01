@@ -194,9 +194,12 @@ public sealed class PrepareScheduleActionTool : OperationsTool, IPatientAgentPre
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a = doc.RootElement; AgentSchedulingContext s = Scope(call,context); AgentSchedulingResult<AgentSchedulingProposal> result;
+        PatientAgentCandidateReference? patient = _actionType == "book_appointment"
+            ? await ResolveCandidate(a, context, cancellationToken)
+            : null;
         result = _actionType switch
         {
-            "book_appointment" => await Scheduling.PrepareBookAppointmentAsync(s, new(Guid(a,"shiftId"), Date(a,"date"), (await ResolveCandidate(a,context,cancellationToken)).PatientId.ToString("D")), cancellationToken),
+            "book_appointment" => await Scheduling.PrepareBookAppointmentAsync(s, new(Guid(a,"shiftId"), Date(a,"date"), patient!.PatientId.ToString("D")), cancellationToken),
             "reschedule_appointment" => await Scheduling.PrepareRescheduleAppointmentAsync(s, new(Guid(a,"reservationId"),Guid(a,"targetShiftId"),Date(a,"targetDate")), cancellationToken),
             "cancel_appointment" => await Scheduling.PrepareCancelAppointmentAsync(s, Guid(a,"id"), cancellationToken),
             "reject_appointment" => await Scheduling.PrepareRejectAppointmentAsync(s, Guid(a,"id"), cancellationToken),
@@ -210,7 +213,7 @@ public sealed class PrepareScheduleActionTool : OperationsTool, IPatientAgentPre
         return new AgentToolResult(
             call.Id,
             JsonSerializer.Serialize(
-                ToAgentResult(result),
+                ToAgentResult(result, patient),
                 OperationsAgentToolJsonSerializerContext.Default.OperationsPreparedActionResult));
     }
     private async Task<PatientAgentCandidateReference> ResolveCandidate(JsonElement args, AgentExecutionContext context, CancellationToken ct)
@@ -236,20 +239,21 @@ public sealed class PrepareScheduleActionTool : OperationsTool, IPatientAgentPre
             : null;
     }
 
-    private OperationsPreparedActionResult ToAgentResult(AgentSchedulingResult<AgentSchedulingProposal> result)
+    private OperationsPreparedActionResult ToAgentResult(AgentSchedulingResult<AgentSchedulingProposal> result, PatientAgentCandidateReference? patient)
     {
         AgentSchedulingProposal? proposal = result.Value;
         return new(
             result.Status.ToString(),
             proposal?.Id,
-            proposal is null ? null : ToReview(proposal),
+            proposal is null ? null : ToReview(proposal, patient),
             proposal?.ExpiresAt,
             result.Message);
     }
 
-    private OperationsActionReview ToReview(AgentSchedulingProposal proposal) => new(
+    private OperationsActionReview ToReview(AgentSchedulingProposal proposal, PatientAgentCandidateReference? patient) => new(
         _actionType,
         proposal.Id,
+        patient is null ? null : new OperationsPatientReview(patient.DisplayName, patient.MaskedIdentification, patient.MaskedPhone),
         proposal.Appointment is { } appointment
             ? new OperationsAppointmentReview(appointment.ShiftId, appointment.Date, appointment.EstimatedSessionLength)
             : null,
@@ -315,6 +319,7 @@ internal sealed record OperationsPreparedActionResult(
 internal sealed record OperationsActionReview(
     string ActionType,
     Guid ActionId,
+    OperationsPatientReview? Patient,
     OperationsAppointmentReview? Appointment,
     OperationsRescheduleReview? Reschedule,
     OperationsShiftReview? Shift,
@@ -322,6 +327,8 @@ internal sealed record OperationsActionReview(
     string? ExpectedAppointmentStatus,
     string? ExpectedShiftStatus,
     DateTimeOffset ExpiresAt);
+
+internal sealed record OperationsPatientReview(string DisplayName, string MaskedIdentification, string MaskedPhone);
 
 internal sealed record OperationsAppointmentReview(
     Guid ShiftId,

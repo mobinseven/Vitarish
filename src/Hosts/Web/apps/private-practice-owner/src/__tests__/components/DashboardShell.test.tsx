@@ -16,6 +16,7 @@ import {
 } from "@/components/shell/dashboardShellNavigation";
 
 const routerPush = vi.hoisted(() => vi.fn());
+const tenantAccess = vi.hoisted(() => ({ value: true }));
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/patients/example",
@@ -50,6 +51,15 @@ vi.mock("@vitarish/auth-web", () => ({
     logout: vi.fn(),
     isLoading: false,
   }),
+  useTenantAuthorization: () => ({
+    hasAccess: tenantAccess.value,
+  }),
+}));
+
+vi.mock("@vitarish/clinic-web", () => ({
+  OperationsAgentAside: ({ isOpen }: { isOpen: boolean }) => (
+    <div data-testid="operations-agent" data-open={String(isOpen)} />
+  ),
 }));
 
 vi.mock("@/localization", () => ({
@@ -67,6 +77,7 @@ vi.mock("@/localization", () => ({
         "appShell.navigation.staffGroup": "Staff",
         "appShell.actions.notifications": "Notifications",
         "appShell.actions.invite": "Invite",
+        "appShell.operationsAssistant": "Operations assistant",
         "appShell.theme.light": "Light mode",
         "appShell.theme.dark": "Dark mode",
         "appShell.theme.system": "System preference",
@@ -252,6 +263,37 @@ describe("Dashboard Shell Components", () => {
       fireEvent.click(screen.getByRole("button", { name: "Up" }));
 
       expect(routerPush).toHaveBeenCalledWith("/patients");
+    });
+
+    it("composes the operations assistant only for an authorized clinic owner", () => {
+      tenantAccess.value = true;
+      const { rerender } = render(
+        <DashboardShell
+          clinicOperationsAssistant
+          footerItems={shellFooterItems}
+          navGroups={shellNavGroups}
+        >
+          <div>Clinic content</div>
+        </DashboardShell>,
+      );
+
+      expect(screen.getAllByTestId("operations-agent").length).toBeGreaterThan(
+        0,
+      );
+
+      tenantAccess.value = false;
+      rerender(
+        <DashboardShell
+          clinicOperationsAssistant
+          footerItems={shellFooterItems}
+          navGroups={shellNavGroups}
+        >
+          <div>Clinic content</div>
+        </DashboardShell>,
+      );
+
+      expect(screen.queryByTestId("operations-agent")).not.toBeInTheDocument();
+      tenantAccess.value = true;
     });
   });
 

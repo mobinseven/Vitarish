@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   DashboardFrame,
   type DashboardContentMode,
@@ -13,6 +13,8 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@vitarish/auth-web";
+import { useTenantAuthorization } from "@vitarish/auth-web";
+import { OperationsAgentAside } from "@vitarish/clinic-web";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { BreadcrumbUpButton } from "./BreadcrumbUpButton";
 import { CommandPalette } from "./CommandPalette/CommandPalette";
@@ -37,6 +39,7 @@ export interface DashboardShellProps {
   navGroups: readonly DashboardShellNavGroup[];
   footerItems?: readonly DashboardShellItem[];
   mobileNavigation?: DashboardMobileNavigation;
+  clinicOperationsAssistant?: boolean;
 }
 
 export function DashboardShell({
@@ -44,12 +47,17 @@ export function DashboardShell({
   contentMode = "page",
   footerItems = [],
   mobileNavigation = "sidebar",
+  clinicOperationsAssistant = false,
   navGroups,
 }: DashboardShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { displayProfile, isAuthenticated, isLoading } = useAuthSession();
   const { t } = useLocalizedText();
+  const { hasAccess: canUseOperationsAssistant } = useTenantAuthorization("owner");
+  const [operationsAssistantOpen, setOperationsAssistantOpen] = useState(false);
+  const showOperationsAssistant = clinicOperationsAssistant && canUseOperationsAssistant;
+  const operationsAssistant = showOperationsAssistant ? <OperationsAgentAside isOpen={operationsAssistantOpen} /> : undefined;
 
   const navigate = useCallback((href: string) => router.push(href), [router]);
 
@@ -96,15 +104,21 @@ export function DashboardShell({
 
   return (
     <DashboardFrame
+      aside={operationsAssistant}
+      asideMobile={showOperationsAssistant ? "sheet" : "hidden"}
+      asideOpen={operationsAssistantOpen}
+      asideToggleLabel={showOperationsAssistant ? t("appShell.operationsAssistant") : undefined}
       contentMode={contentMode}
       currentPath={pathname}
       footerItems={footerNavigationItems}
       footerLabel={t("appShell.userMenu.signOut")}
       identity={sidebarIdentity}
       mobileNavigation={mobileNavigation}
+      mobileAside={operationsAssistant}
       navigate={navigate}
       navigationGroups={navigationGroups}
       navigationLabel={t("appShell.navigation.dashboardMenu")}
+      onAsideOpenChange={setOperationsAssistantOpen}
       skipLinkLabel={t("appShell.navigation.skipToContent")}
       title={null}
       toolbar={

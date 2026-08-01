@@ -520,6 +520,7 @@ export const enMessages = {
     },
   },
   appShell: {
+    operationsAssistant: "Open clinic operations assistant",
     brand: "Vitarish",
     navigation: {
       up: "Up",

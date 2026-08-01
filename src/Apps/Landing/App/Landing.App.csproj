@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Api\Landing.Api.csproj" />
+    <ProjectReference Include="..\Application\Landing.Application.csproj" />
+    <ProjectReference Include="..\..\Base\Core\Apps.Base.Core.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Intelligence\Domain\Intelligence.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Parties\Application\Parties.Application.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Parties\Domain\Parties.Domain.csproj" />
+  </ItemGroup>
+</Project>

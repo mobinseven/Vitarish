@@ -45,9 +45,9 @@ internal sealed class ClinicPatientAgentSearch(
             if (payload is not { } candidate || candidate.ExpiresAt <= timeProvider.GetUtcNow() || candidate.PatientId == Guid.Empty ||
                 candidate.PracticeId != practiceId || candidate.UserId != userId || candidate.AgentRunId != agentRunId)
                 return null;
-            bool stillInScope = await dbContext.PatientViews.AsNoTracking().AnyAsync(patient =>
+            Clinic.Domain.Models.PatientView? patient = await dbContext.PatientViews.AsNoTracking().FirstOrDefaultAsync(patient =>
                 patient.Id == candidate.PatientId && patient.TenantId == practiceId && patient.DeletedAt == null, cancellationToken);
-            return stillInScope ? new PatientAgentCandidateReference(candidate.PatientId, candidate.PracticeId, candidate.UserId, candidate.AgentRunId) : null;
+            return patient is null ? null : new PatientAgentCandidateReference(candidate.PatientId, candidate.PracticeId, candidate.UserId, candidate.AgentRunId, patient.Name, Mask(patient.IdentificationCode), Mask(patient.Phone));
         }
         catch (Exception exception) when (exception is CryptographicException or JsonException or FormatException)
         {
