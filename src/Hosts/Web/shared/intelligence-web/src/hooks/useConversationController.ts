@@ -55,15 +55,9 @@ export function useConversationController<TResult>({
     reset();
   }, [ownerKey, reset]);
 
-  const unmountTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (unmountTimer.current) clearTimeout(unmountTimer.current);
-    return () => {
-      unmountTimer.current = setTimeout(() => {
-        activeRequest.current?.abort();
-        instance.current += 1;
-      }, 0);
-    };
+  useEffect(() => () => {
+    activeRequest.current?.abort();
+    instance.current += 1;
   }, []);
 
   useEffect(() => {
@@ -72,6 +66,8 @@ export function useConversationController<TResult>({
   }, [isOpen, reset]);
 
   const execute = useCallback(async (message: string) => {
+    if (activeRequest.current) return undefined;
+
     const submittedInstance = instance.current;
     const currentConversationId = conversationId.current;
     const controller = new AbortController();
@@ -115,6 +111,7 @@ export function useConversationController<TResult>({
       return;
     }
     await deleteConversation(current);
+    conversationId.current = null;
     reset();
   }, [deleteConversation, reset]);
 

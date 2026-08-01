@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Landing.Application;
@@ -20,7 +21,15 @@ public static class LandingApiEndpointMapping
     public static IEndpointRouteBuilder MapLandingApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapAnonymousModuleGroup(LandingApiRoutes.Base, AnonymousJustification);
-        _ = group.MapModulePost(LandingApiRoutes.Conversations, SubmitAsync, "LandingSubmitConversation", typeof(LandingConversationResponse), profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: AnonymousJustification).RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
+        _ = group.MapModulePost(
+                LandingApiRoutes.Conversations,
+                SubmitAsync,
+                "LandingSubmitConversation",
+                typeof(LandingConversationResponse),
+                profile: ModuleEndpointProfile.AnonymousJson,
+                anonymousJustification: AnonymousJustification)
+            .WithMetadata(new RequestSizeLimitAttribute(4_096))
+            .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
         _ = group.MapModuleDelete(LandingApiRoutes.ConversationById, DeleteAsync, "LandingDeleteConversation", profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: AnonymousJustification).RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
         return endpoints;
     }

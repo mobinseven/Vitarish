@@ -67,6 +67,7 @@ describe("useConversationController", () => {
     await act(() => result.current.deleteCurrent());
     await act(() => result.current.submit("fresh"));
 
+    expect(deleteConversation).toHaveBeenCalledTimes(1);
     expect(deleteConversation).toHaveBeenCalledWith("conversation-1");
     expect(run.mock.calls.at(-1)?.slice(0, 2)).toEqual(["fresh", null]);
   });
@@ -118,6 +119,32 @@ describe("useConversationController", () => {
     expect(await submitted).toBeUndefined();
     expect(result.current.isPending).toBe(false);
     expect(result.current.isError).toBe(false);
+  });
+
+  it("ignores a concurrent submission while a request is pending", async () => {
+    let resolveRun!: (value: { conversationId: string; result: string }) => void;
+    const run = vi.fn(() => new Promise<{ conversationId: string; result: string }>((resolve) => {
+      resolveRun = resolve;
+    }));
+    const deleteConversation = vi.fn();
+    const { result } = renderHook(() => useConversationController({
+      ownerKey: "page:home", isOpen: true, run, deleteConversation,
+    }));
+
+    let first!: Promise<string | undefined>;
+    let second!: Promise<string | undefined>;
+    act(() => {
+      first = result.current.submit("first");
+      second = result.current.submit("second");
+    });
+    await expect(second).resolves.toBeUndefined();
+    expect(run).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveRun({ conversationId: "conversation-1", result: "answer" });
+      await first;
+    });
+    expect(await first).toBe("answer");
   });
 
   it("aborts pending work when the owner unmounts", async () => {
