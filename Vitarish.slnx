@@ -17,6 +17,12 @@
     <Project Path="src/Apps/Base/Client/Apps.Base.Client.csproj" Id="56282896-c373-4bc3-aeed-596039fcea46" />
     <Project Path="src/Apps/Base/Core/Apps.Base.Core.csproj" Id="1136d23e-ae07-4608-a56c-ff10bd8d41f3" />
   </Folder>
+  <Folder Name="/src/Apps/Landing/">
+    <Project Path="src/Apps/Landing/Contracts/Landing.Contracts.csproj" />
+    <Project Path="src/Apps/Landing/Application/Landing.Application.csproj" />
+    <Project Path="src/Apps/Landing/Api/Landing.Api.csproj" />
+    <Project Path="src/Apps/Landing/App/Landing.App.csproj" />
+  </Folder>
   <Folder Name="/src/Apps/Clinic/">
     <Project Path="src/Apps/Clinic/Api/Clinic.Api.csproj" />
     <Project Path="src/Apps/Clinic/App/Clinic.App.csproj" />

@@ -9,7 +9,7 @@ export const enMessages = {
     newChat: "New conversation", about: "About us", portfolio: "Portfolio", contact: "Contact us", focusThread: "Today’s focus", ideaThread: "Shape a useful idea", library: "Library", explore: "Explore",
     chatTitle: "Make room for what matters.", intro: "Ask Vitarish to shape an idea, clarify a decision, or find the useful next step.",
     promptLabel: "Message Vitarish", placeholder: "Ask anything useful…", send: "Send message", ready: "Ready", thinking: "Thinking",
-    thinkingBody: "Finding the clearest next step…", context: "Conversation context", contextBody: "A focused space for turning rough thoughts into clear, useful action.",
+    thinkingBody: "Finding the clearest next step…", error: "The assistant could not respond. Try again.", retry: "Retry", reset: "Reset", retryTooltip: "Retry the last message", resetTooltip: "Delete and reset this conversation", context: "Conversation context", contextBody: "A focused space for turning rough thoughts into clear, useful action.",
     contextStatus: "Local demonstration", privateWorkspace: "Private workspace", disclaimer: "Vitarish AI can make mistakes. Check important information.",
     skip: "Skip to conversation", language: "فارسی", languageTooltip: "Switch language to Persian",
     suggestionTitle: "What do you want to work on?", suggestionDescription: "Start with your own question or choose a useful direction.",

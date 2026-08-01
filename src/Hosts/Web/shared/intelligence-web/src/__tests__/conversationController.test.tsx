@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { useConversationController } from "../hooks/useConversationController";
 
@@ -119,4 +119,21 @@ describe("useConversationController", () => {
     expect(result.current.isPending).toBe(false);
     expect(result.current.isError).toBe(false);
   });
+
+  it("aborts pending work when the owner unmounts", async () => {
+    let capturedSignal: AbortSignal | undefined;
+    const run = vi.fn((_message: string, _conversationId: string | null, signal: AbortSignal) => {
+      capturedSignal = signal;
+      return new Promise<{ conversationId: string; result: string }>(() => undefined);
+    });
+    const deleteConversation = vi.fn();
+    const { result, unmount } = renderHook(() => useConversationController({
+      ownerKey: "page:about", isOpen: true, run, deleteConversation,
+    }), { reactStrictMode: false });
+    act(() => { void result.current.submit("pending"); });
+    expect(capturedSignal?.aborted).toBe(false);
+    unmount();
+    await waitFor(() => expect(capturedSignal?.aborted).toBe(true));
+  });
+
 });

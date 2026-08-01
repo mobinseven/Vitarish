@@ -55,6 +55,17 @@ export function useConversationController<TResult>({
     reset();
   }, [ownerKey, reset]);
 
+  const unmountTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (unmountTimer.current) clearTimeout(unmountTimer.current);
+    return () => {
+      unmountTimer.current = setTimeout(() => {
+        activeRequest.current?.abort();
+        instance.current += 1;
+      }, 0);
+    };
+  }, []);
+
   useEffect(() => {
     if (isOpen !== wasOpen.current) reset();
     wasOpen.current = isOpen;

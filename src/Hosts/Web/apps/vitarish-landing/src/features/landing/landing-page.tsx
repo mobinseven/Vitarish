@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, Card, Chip } from "@heroui/react";
+import { useMemo, useState } from "react";
+import { Button, Card, Chip, Tooltip } from "@heroui/react";
 import { PromptSuggestion, Timeline } from "@heroui-pro/react";
 import { usePathname, useRouter } from "next/navigation";
 import { ContactForm, submitContactInquiry } from "@vitarish/communications-web";
@@ -15,8 +15,9 @@ import {
   ImmersiveRegion,
 } from "@vitarish/web-ui";
 import { useLocalizedText } from "@vitarish/web-localization";
+import { useLandingConversation } from "../conversation/use-landing-conversation";
+import type { LandingConversationOwner } from "../conversation/landing-conversation";
 
-type Message = { id: number; kind: "question" | "answer"; text: string };
 type LandingCopy = {
   context: string;
   ready: string;
@@ -43,21 +44,11 @@ export function LandingPage() {
       { icon: "list-check", text: translate("landing.suggestion2") },
       { icon: "pen-to-square", text: translate("landing.suggestion3") },
     ],
-    reply: translate("landing.reply"), focusQuestion: translate("landing.focusQuestion"), focusAnswer: translate("landing.focusAnswer"), ideaQuestion: translate("landing.ideaQuestion"), ideaAnswer: translate("landing.ideaAnswer"),
+    error: translate("landing.error"), retry: translate("landing.retry"), reset: translate("landing.reset"), retryTooltip: translate("landing.retryTooltip"), resetTooltip: translate("landing.resetTooltip"),
   };
   const currentPath = pathname === "/" ? "/" : pathname;
   const [value, setValue] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isPending, setIsPending] = useState(false);
-  const nextMessageId = useRef(1);
-  const replyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(
-    () => () => {
-      if (replyTimer.current) clearTimeout(replyTimer.current);
-    },
-    [],
-  );
+  const conversation = useLandingConversation("home");
 
   const navigationGroups = useMemo(
     () => [
@@ -80,44 +71,16 @@ export function LandingPage() {
     [t],
   );
 
-  function cancelPendingReply() {
-    if (replyTimer.current) clearTimeout(replyTimer.current);
-    replyTimer.current = null;
-    setIsPending(false);
-  }
-
   function openPath(path: string) {
-    cancelPendingReply();
+    conversation.reset();
     router.push(path);
     setValue("");
-
-    setMessages([]);
   }
 
-  function submit(text: string) {
-    const trimmed = text.trim();
-    if (!trimmed || isPending) return;
-
-    router.push("/");
-    setMessages((current) => [
-      ...current,
-      { id: nextMessageId.current++, kind: "question", text: trimmed },
-    ]);
+  async function submit(text: string) {
+    if (!text.trim() || conversation.isPending) return;
     setValue("");
-    setIsPending(true);
-
-    replyTimer.current = setTimeout(() => {
-      setMessages((current) => [
-        ...current,
-        {
-          id: nextMessageId.current++,
-          kind: "answer",
-          text: t.reply,
-        },
-      ]);
-      setIsPending(false);
-      replyTimer.current = null;
-    }, 650);
+    await conversation.submit(text);
   }
 
   return (
@@ -150,7 +113,7 @@ export function LandingPage() {
         >
           {guidedPaths.includes(currentPath as (typeof guidedPaths)[number]) ? (
             <GuidedPage direction={direction} path={currentPath} t={translate} />
-          ) : messages.length === 0 ? (
+          ) : conversation.messages.length === 0 ? (
             <PromptSuggestion>
               <PromptSuggestion.Header>
                 <div className="mb-5 flex justify-center">
@@ -177,7 +140,7 @@ export function LandingPage() {
               </PromptSuggestion.Group>
             </PromptSuggestion>
           ) : (
-            messages.map((message) =>
+            conversation.messages.map((message) =>
               message.kind === "question" ? (
                 <ChatMessage key={message.id} kind="question">
                   {message.text}
@@ -195,7 +158,7 @@ export function LandingPage() {
               ),
             )
           )}
-          {isPending ? (
+          {conversation.isPending ? (
             <ChatLoadingMessage
               avatarAlt={t.app}
               avatarFallback="V"
@@ -208,12 +171,13 @@ export function LandingPage() {
 
         {guidedPaths.includes(currentPath as (typeof guidedPaths)[number]) ? null : <div className="shrink-0 bg-gradient-to-t from-background via-background to-transparent px-4 pb-4 pt-3 sm:px-6 sm:pb-6">
           <div className="mx-auto w-full max-w-[714px]">
+            {conversation.isError || conversation.messages.length > 0 ? <div className="mb-2 flex justify-end gap-2">{conversation.isError ? <Tooltip><Button aria-label={t.retry} size="sm" variant="ghost" onPress={() => void conversation.retry()}><FaIcon aria-hidden="true" icon="rotate-right" />{t.retry}</Button><Tooltip.Content>{t.retryTooltip}</Tooltip.Content></Tooltip> : null}<Tooltip><Button aria-label={t.reset} size="sm" variant="ghost" onPress={conversation.reset}><FaIcon aria-hidden="true" icon="trash-can" />{t.reset}</Button><Tooltip.Content>{t.resetTooltip}</Tooltip.Content></Tooltip></div> : null}
             <ChatPromptInput
               direction={direction}
               footer={<span className="text-center text-xs text-muted">{t.disclaimer}</span>}
               helperIcon={<FaIcon aria-hidden="true" icon="sparkles" />}
-              helperText={isPending ? t.thinking : t.ready}
-              isPending={isPending}
+              helperText={conversation.isPending ? t.thinking : conversation.isError ? t.error : t.ready}
+              isPending={conversation.isPending}
               label={t.promptLabel}
               placeholder={t.placeholder}
               submitLabel={t.send}
@@ -239,9 +203,9 @@ function GuidedPage({ direction, path, t }: { direction: "ltr" | "rtl"; path: st
 
 function PageConversation({ direction, page, t }: { direction: "ltr" | "rtl"; page: string; t: (key: string) => string }) {
   const [value, setValue] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
-  const ask = (question: string) => { if (!question.trim()) return; setMessages((current) => [...current, { id: Date.now(), kind: "question", text: question }, { id: Date.now() + 1, kind: "answer", text: t(`landing.pages.${page}.faqAnswer`) }]); setValue(""); };
-  return <Card className="mt-10" variant="secondary"><Card.Header><Card.Title>{t("landing.pages.faq.title")}</Card.Title><Card.Description>{t("landing.pages.faq.description")}</Card.Description></Card.Header><Card.Content><ChatConversation className="max-h-64 overflow-y-auto" innerClassName="flex flex-col gap-3">{messages.length === 0 ? <PromptSuggestion><PromptSuggestion.Group description={t("landing.pages.faq.description")} label={t("landing.pages.faq.questions")}><PromptSuggestion.Items>{[0,1].map((index) => { const question = t(`landing.pages.${page}.faq${index}`); return <PromptSuggestion.Item key={index} aria-label={question} onPress={() => ask(question)}>{question}</PromptSuggestion.Item>; })}</PromptSuggestion.Items></PromptSuggestion.Group></PromptSuggestion> : messages.map((message) => message.kind === "question" ? <ChatMessage key={message.id} kind="question">{message.text}</ChatMessage> : <ChatMessage key={message.id} avatarAlt={t("landing.app")} avatarFallback="V" kind="answer" title={t("landing.app")}>{message.text}</ChatMessage>)}</ChatConversation></Card.Content><Card.Footer><ChatPromptInput direction={direction} label={t("landing.pages.faq.label")} placeholder={t("landing.pages.faq.placeholder")} submitLabel={t("landing.pages.faq.send")} value={value} onChange={setValue} onSubmit={ask} /></Card.Footer></Card>;
+  const conversation = useLandingConversation(page as LandingConversationOwner);
+  const ask = async (question: string) => { if (!question.trim() || conversation.isPending) return; setValue(""); await conversation.submit(question); };
+  return <Card className="mt-10" variant="secondary"><Card.Header><Card.Title>{t("landing.pages.faq.title")}</Card.Title><Card.Description>{t("landing.pages.faq.description")}</Card.Description></Card.Header><Card.Content><ChatConversation className="max-h-64 overflow-y-auto" innerClassName="flex flex-col gap-3">{conversation.messages.length === 0 ? <PromptSuggestion><PromptSuggestion.Group description={t("landing.pages.faq.description")} label={t("landing.pages.faq.questions")}><PromptSuggestion.Items>{[0,1].map((index) => { const question = t(`landing.pages.${page}.faq${index}`); return <PromptSuggestion.Item key={index} aria-label={question} onPress={() => void ask(question)}>{question}</PromptSuggestion.Item>; })}</PromptSuggestion.Items></PromptSuggestion.Group></PromptSuggestion> : conversation.messages.map((message) => message.kind === "question" ? <ChatMessage key={message.id} kind="question">{message.text}</ChatMessage> : <ChatMessage key={message.id} avatarAlt={t("landing.app")} avatarFallback="V" kind="answer" title={t("landing.app")}>{message.text}</ChatMessage>)}{conversation.isPending ? <ChatLoadingMessage avatarAlt={t("landing.app")} avatarFallback="V" loadingLabel={t("landing.thinking")} message={t("landing.thinkingBody")} title={t("landing.thinking")} /> : null}</ChatConversation></Card.Content><Card.Footer className="flex-col gap-2"><div className="flex w-full justify-end gap-2">{conversation.isError ? <Tooltip><Button aria-label={t("landing.retry")} size="sm" variant="ghost" onPress={() => void conversation.retry()}><FaIcon aria-hidden="true" icon="rotate-right" />{t("landing.retry")}</Button><Tooltip.Content>{t("landing.retryTooltip")}</Tooltip.Content></Tooltip> : null}<Tooltip><Button aria-label={t("landing.reset")} size="sm" variant="ghost" onPress={conversation.reset}><FaIcon aria-hidden="true" icon="trash-can" />{t("landing.reset")}</Button><Tooltip.Content>{t("landing.resetTooltip")}</Tooltip.Content></Tooltip></div><ChatPromptInput direction={direction} helperText={conversation.isError ? t("landing.error") : undefined} isPending={conversation.isPending} label={t("landing.pages.faq.label")} placeholder={t("landing.pages.faq.placeholder")} submitLabel={t("landing.pages.faq.send")} value={value} onChange={setValue} onSubmit={(question) => void ask(question)} /></Card.Footer></Card>;
 }
 
 function ConversationContext({
