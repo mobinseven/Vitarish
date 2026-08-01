@@ -6,11 +6,13 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Moq" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Modules\Parties\Contracts\Parties.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Parties\Client\Parties.Client.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Parties\Infrastructure\Parties.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -10,7 +10,11 @@ export interface ConversationRunResult<TResult> {
 export interface UseConversationControllerOptions<TResult> {
   ownerKey: string;
   isOpen: boolean;
-  run: (message: string, conversationId: string | null, signal: AbortSignal) => Promise<ConversationRunResult<TResult>>;
+  run: (
+    message: string,
+    conversationId: string | null,
+    signal: AbortSignal,
+  ) => Promise<ConversationRunResult<TResult>>;
   deleteConversation: (conversationId: string) => Promise<void>;
   isNotFound?: (error: unknown) => boolean;
 }
@@ -55,45 +59,67 @@ export function useConversationController<TResult>({
     reset();
   }, [ownerKey, reset]);
 
+  useEffect(
+    () => () => {
+      activeRequest.current?.abort();
+      instance.current += 1;
+    },
+    [],
+  );
+
   useEffect(() => {
     if (isOpen !== wasOpen.current) reset();
     wasOpen.current = isOpen;
   }, [isOpen, reset]);
 
-  const execute = useCallback(async (message: string) => {
-    const submittedInstance = instance.current;
-    const currentConversationId = conversationId.current;
-    const controller = new AbortController();
-    activeRequest.current = controller;
-    lastMessage.current = message;
-    setPending(true);
-    setError(false);
-    try {
-      let runResult: ConversationRunResult<TResult>;
+  const execute = useCallback(
+    async (message: string) => {
+      if (activeRequest.current) return undefined;
+
+      const submittedInstance = instance.current;
+      const currentConversationId = conversationId.current;
+      const controller = new AbortController();
+      activeRequest.current = controller;
+      lastMessage.current = message;
+      setPending(true);
+      setError(false);
       try {
-        runResult = await run(message, currentConversationId, controller.signal);
-      } catch (error) {
-        if (!currentConversationId || !isNotFound(error)) throw error;
-        conversationId.current = null;
-        runResult = await run(message, null, controller.signal);
-      }
-      if (instance.current !== submittedInstance) {
-        void deleteConversation(runResult.conversationId).catch(() => undefined);
+        let runResult: ConversationRunResult<TResult>;
+        try {
+          runResult = await run(
+            message,
+            currentConversationId,
+            controller.signal,
+          );
+        } catch (error) {
+          if (!currentConversationId || !isNotFound(error)) throw error;
+          conversationId.current = null;
+          runResult = await run(message, null, controller.signal);
+        }
+        if (instance.current !== submittedInstance) {
+          void deleteConversation(runResult.conversationId).catch(
+            () => undefined,
+          );
+          return undefined;
+        }
+        conversationId.current = runResult.conversationId;
+        return runResult.result;
+      } catch {
+        if (instance.current === submittedInstance) setError(true);
         return undefined;
+      } finally {
+        if (instance.current === submittedInstance) setPending(false);
+        if (activeRequest.current === controller) activeRequest.current = null;
       }
-      conversationId.current = runResult.conversationId;
-      return runResult.result;
-    } catch {
-      if (instance.current === submittedInstance) setError(true);
-      return undefined;
-    } finally {
-      if (instance.current === submittedInstance) setPending(false);
-      if (activeRequest.current === controller) activeRequest.current = null;
-    }
-  }, [isNotFound, run]);
+    },
+    [isNotFound, run],
+  );
 
   const retry = useCallback(
-    () => lastMessage.current ? execute(lastMessage.current) : Promise.resolve(undefined),
+    () =>
+      lastMessage.current
+        ? execute(lastMessage.current)
+        : Promise.resolve(undefined),
     [execute],
   );
 
