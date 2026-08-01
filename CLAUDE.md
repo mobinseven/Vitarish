@@ -127,38 +127,18 @@ Project skills live under `.agents/skills/`. Claude bridge skills under `.claude
 
 | Situation | Skill |
 | --- | --- |
-| Product intent, workflow, roadmap, task derivation, PR slicing, ambiguous scope | `platform-scope-planning` |
 | Classification, placement, dependencies, ADR impact, architecture audit | `platform-architecture-governance` |
 | OpenAPI metadata, generated clients, API-to-React boundary | `platform-api-client-boundary` |
 | React, HeroUI, forms, tables, dialogs, localization, accessibility | `platform-react-ui-boundary` |
-| Test selection, regression protection, validation commands, hot scenarios | `platform-test-strategy` |
-| Focused implementation, review feedback, delivery, handoff | `platform-delivery-loop` |
-| Simplification, deletion, native replacement, over-engineering review | `platform-simplification-audit` |
-| Skill creation, consolidation, routing, bridges, policy harmony | `platform-skill-governance` |
 
-Typical chains, using only applicable steps:
+Use only applicable boundary skills:
 
 ```text
-New feature: Scope Planning -> Architecture Governance -> Test Strategy -> Delivery Loop
-OpenAPI to React: Architecture Governance -> API Client Boundary -> React UI Boundary -> Test Strategy -> Delivery Loop
-React UI: React UI Boundary -> Test Strategy -> Delivery Loop
-Architecture-sensitive change: Architecture Governance -> Test Strategy -> Delivery Loop
-Simplification: Simplification Audit -> Architecture Governance when boundaries change
-Skill maintenance: Skill Governance -> Architecture Governance when repository policy changes
-```
-
-Planning-only feature work:
-
-```text
-Scope Planning -> Architecture Governance -> Test Strategy -> STOP
-
-Approved feature implementation:
-Revalidate Plan -> applicable boundary skills -> Test Strategy -> Delivery Loop
-
-End-to-end request:
-Scope Planning -> Architecture Governance -> Test Strategy
---- implementation boundary ---
-applicable boundary skills -> Delivery Loop
+New feature: Architecture Governance when boundaries change
+OpenAPI to React: Architecture Governance -> API Client Boundary -> React UI Boundary
+React UI: React UI Boundary
+Architecture-sensitive change: Architecture Governance
+Skill maintenance follows `.agents/AGENTS.md`; use Architecture Governance when repository policy changes.
 ```
 
 ## Completion criteria

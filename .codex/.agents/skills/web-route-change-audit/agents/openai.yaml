@@ -1,4 +1,0 @@
-interface:
-  display_name: "Web Route Change Audit"
-  short_description: "Synchronize Web route change surfaces"
-  default_prompt: "Use $web-route-change-audit to update a Vitarish Web route or feature entry point."

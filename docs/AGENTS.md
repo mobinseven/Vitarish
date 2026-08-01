@@ -3,8 +3,8 @@
 Documentation does not automatically activate the skill for every boundary it
 mentions. Load a boundary skill only when the document creates or changes a
 decision owned by that boundary. Load `platform-artifact-architecture` for
-architecture, placement, dependency, or ADR decisions, and
-`platform-skill-governance` for skill or agent-routing documentation.
+architecture, placement, dependency, or ADR decisions. Skill or agent-routing
+documentation follows `.agents/AGENTS.md`.
 
 For prose-only corrections, navigation updates, or faithful documentation of an
 already-authoritative implementation, use no boundary skill. Keep behavior in

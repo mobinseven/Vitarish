@@ -87,23 +87,8 @@ Names must express a specific responsibility; `Manager`, `Helper`, `Util`, `Comm
 Skills live in `.agents/skills/`. Load only those owning current decisions. The
 nearest scoped `AGENTS.md` owns boundary-skill routing for its subtree; do not
 load a backend, Web, transport, persistence, integration, or trust skill merely
-because it exists in the repository-wide catalog.
-
-| Trigger | Skill |
-| --- | --- |
-| Plan scope, assumptions, slices, acceptance | `platform-change-planning` |
-| Authorized implementation or final handoff | `platform-delivery-loop` |
-| Web route shells, viewport, main/scroll ownership | `apply-web-layout-policy` |
-| Tests, validators, builds, generators, hot scenarios | `platform-test-validation` |
-| Requested simplification or notable new layers | `platform-simplification-audit` |
-| Skill-system maintenance | `platform-skill-governance` |
-
-Planning uses `platform-change-planning`; implementation uses
-`platform-delivery-loop`. Add only boundary skills allowed by every scoped
-`AGENTS.md` covering the changed artifact. Use `platform-test-validation` after
-boundaries are known. Planning-only work stops before edits unless
-implementation is explicitly authorized. See `.agents/skills/README.md` only
-for mode and layout-routing edge cases.
+because it exists in the repository-wide catalog. Planning-only work stops
+before edits unless implementation is explicitly authorized.
 
 ## Durable knowledge
 

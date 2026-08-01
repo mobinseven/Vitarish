@@ -1,9 +1,6 @@
 # .NET test agent routing
 
-Load `platform-test-validation` for test selection, test changes, fixtures,
-validators, builds, generators, or runtime hot scenarios.
-
-Also load the boundary skill that owns the behavior under test (for example,
+Load the boundary skill that owns the behavior under test (for example,
 backend use case, data evolution, transport contract, external integration, or
 trust boundary). Do not load all production skills simply because a test is
 under `tests`, and do not use test-only changes to redefine production

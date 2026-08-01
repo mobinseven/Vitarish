@@ -1,0 +1,4 @@
+interface:
+  display_name: "Platform Route Change Audit"
+  short_description: "Synchronize route changes across Web hosts"
+  default_prompt: "Use $platform-route-change-audit to synchronize a platform Web route or feature entry point across affected hosts and shared packages."

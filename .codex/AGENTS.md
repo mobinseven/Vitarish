@@ -87,8 +87,6 @@ Skills live in `.codex/.agents/skills/`. Load only those owning current decision
 
 | Trigger | Skill |
 | --- | --- |
-| Plan scope, assumptions, slices, acceptance | `platform-change-planning` |
-| Authorized implementation or final handoff | `platform-delivery-loop` |
 | Artifact ownership, placement, dependencies, ADR | `platform-artifact-architecture` |
 | Domain/Application behavior and ports | `platform-backend-use-case` |
 | Persisted data and migrations | `platform-data-evolution` |
@@ -96,12 +94,8 @@ Skills live in `.codex/.agents/skills/`. Load only those owning current decision
 | HTTP/OpenAPI/WebSocket/SSE contracts | `platform-transport-contract` |
 | Auth, ownership, privacy, untrusted input | `platform-trust-boundary` |
 | React, browser APIs, localization, accessibility | `platform-react-feature` |
-| Route shells, viewport, main/scroll ownership | `apply-web-layout-policy` |
-| Tests, validators, builds, generators, hot scenarios | `platform-test-validation` |
-| Requested simplification or notable new layers | `platform-simplification-audit` |
-| Skill-system maintenance | `platform-skill-governance` |
 
-Planning uses `platform-change-planning`; implementation uses `platform-delivery-loop`. Add only touched boundary skills. Use `platform-test-validation` after boundaries are known. Planning-only work stops before edits unless implementation is explicitly authorized. See `.codex/.agents/skills/README.md` only for mode and layout-routing edge cases.
+Add only touched boundary skills. Planning-only work stops before edits unless implementation is explicitly authorized.
 
 ## Durable knowledge
 
