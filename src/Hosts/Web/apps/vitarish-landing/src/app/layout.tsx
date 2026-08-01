@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Vazirmatn } from "next/font/google";
-import { I18nAppLayout } from "@vitarish/web-localization";
+import { I18nAppLayout, resolveI18nAppLocale } from "@vitarish/web-localization";
+import { AppProviders } from "../components/providers/AppProviders";
 import { getMessages } from "../localization";
 import "./globals.css";
 
@@ -11,11 +12,19 @@ const vazirmatn = Vazirmatn({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Vitarish — The glory of purpose",
-  description: "Purpose-oriented AI services for people and small businesses.",
-  icons: { icon: "/512.webp", apple: "/512.webp" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const headerStore = await headers();
+  const { locale } = resolveI18nAppLocale({
+    cookieHeader: headerStore.get("cookie"),
+    acceptLanguageHeader: headerStore.get("accept-language"),
+  });
+  const messages = getMessages(locale) as { metadata: { root: { title: string; description: string } } };
+  return {
+    title: messages.metadata.root.title,
+    description: messages.metadata.root.description,
+    icons: { icon: "/512.webp", apple: "/512.webp" },
+  };
+}
 export default async function RootLayout({
   children,
 }: {
@@ -27,6 +36,8 @@ export default async function RootLayout({
     <>
       <head>
         <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@100..900&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <I18nAppLayout
         cookieHeader={headerStore.get("cookie")}
@@ -35,7 +46,7 @@ export default async function RootLayout({
         htmlClassName={vazirmatn.variable}
         bodyClassName="bg-background text-foreground"
       >
-        {children}
+        <AppProviders>{children}</AppProviders>
       </I18nAppLayout>
     </>
   );

@@ -1,0 +1,28 @@
+export const enMessages = {
+  metadata: { root: { title: "Vitarish — The glory of purpose", description: "Purpose-oriented AI services for people and small businesses." } },
+  appShell: {
+    culture: { label: "Language" },
+    theme: { light: "Light mode", dark: "Dark mode", system: "System theme" },
+  },
+  landing: {
+    app: "Vitarish AI", subtitle: "Purposeful intelligence", workspace: "Workspace", recent: "Recent",
+    newChat: "New conversation", about: "About us", portfolio: "Portfolio", contact: "Contact us", focusThread: "Today’s focus", ideaThread: "Shape a useful idea", library: "Library", explore: "Explore",
+    chatTitle: "Make room for what matters.", intro: "Ask Vitarish to shape an idea, clarify a decision, or find the useful next step.",
+    promptLabel: "Message Vitarish", placeholder: "Ask anything useful…", send: "Send message", ready: "Ready", thinking: "Thinking",
+    thinkingBody: "Finding the clearest next step…", context: "Conversation context", contextBody: "A focused space for turning rough thoughts into clear, useful action.",
+    contextStatus: "Local demonstration", privateWorkspace: "Private workspace", disclaimer: "Vitarish AI can make mistakes. Check important information.",
+    skip: "Skip to conversation", language: "فارسی", languageTooltip: "Switch language to Persian",
+    suggestionTitle: "What do you want to work on?", suggestionDescription: "Start with your own question or choose a useful direction.",
+    suggestion0: "Help me decide what deserves my attention today", suggestion1: "Turn a rough idea into a practical plan", suggestion2: "Clarify the next step in a difficult project", suggestion3: "Rewrite a thought so it is clear and concise",
+    suggestions: [
+      { icon: "compass", text: "Help me decide what deserves my attention today" },
+      { icon: "lightbulb", text: "Turn a rough idea into a practical plan" },
+      { icon: "list-check", text: "Clarify the next step in a difficult project" },
+      { icon: "pen-to-square", text: "Rewrite a thought so it is clear and concise" },
+    ],
+    reply: "Let’s make that concrete. Start with the outcome you want, then name the constraint making it difficult. From there, we can choose one useful next step.",
+    focusQuestion: "What should I focus on today?", focusAnswer: "Choose the task that meaningfully changes tomorrow, can be advanced today, and is currently blocked by a decision only you can make.",
+    ideaQuestion: "Help me shape an idea into something useful.", ideaAnswer: "Describe who it helps, the frustrating moment it improves, and the smallest result that would prove the idea is worth continuing.",
+    pages: { faq: { title: "Continue the conversation", description: "Start with a common question or ask your own.", questions: "Common questions", label: "Your question", placeholder: "Ask about this page…", send: "Ask" }, about: { eyebrow: "Vitarish", title: "Purpose is practical.", description: "We make focused intelligence that clears room for meaningful work.", about0: { title: "Start with the person", description: "Useful technology begins with the person carrying the work." }, about1: { title: "Keep the next step visible", description: "Clarity matters more than more features." }, about2: { title: "Build with care", description: "Trust, privacy, and restraint are part of the product." }, faq0: "What does purpose-oriented intelligence mean?", faq1: "How do you approach privacy?", faqAnswer: "Vitarish is designed to make one useful next step easier to see. Share what you are working through and we can continue from there." }, portfolio: { eyebrow: "Selected work", title: "Useful work, made visible.", description: "A small collection of product directions shaped around real work.", portfolio0: { title: "Private practice", description: "Calmer clinical operations for the people doing the care." }, portfolio1: { title: "Purposeful intelligence", description: "A conversation that helps turn rough thought into action." }, portfolio2: { title: "Connected tools", description: "Small, focused surfaces that respect the work already underway." }, faq0: "Which kind of work do you focus on?", faq1: "Can Vitarish support a small team?", faqAnswer: "These examples show the direction of our work: focused tools that respect the people and work already in motion. Tell us about yours to explore the fit." }, explore: { eyebrow: "Explore", title: "Find your useful next place.", description: "A growing set of focused Vitarish experiences.", explore0: { title: "Think clearly", description: "Use Vitarish AI to clarify a decision or shape a plan." }, explore1: { title: "Work with care", description: "Purpose-built tools for practices and small businesses." }, explore2: { title: "Stay connected", description: "Start a conversation when you are ready to build." }, faq0: "Where should I begin?", faq1: "Which Vitarish experience fits my work?", faqAnswer: "Start with the decision or piece of work that feels most important right now. We can use that context to find the most useful Vitarish experience." }, contact: { title: "Let’s make something useful.", description: "Tell us what you are trying to move forward.", faq0: "What should I include in my message?", faq1: "How can I discuss a possible collaboration?", faqAnswer: "Tell us what you are trying to move forward, who it serves, and the point where you need clarity. The contact form is the best way to continue a specific conversation." } },
+  },
+} as const;
