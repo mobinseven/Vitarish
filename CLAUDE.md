@@ -127,18 +127,14 @@ Project skills live under `.agents/skills/`. Claude bridge skills under `.claude
 
 | Situation | Skill |
 | --- | --- |
-| Classification, placement, dependencies, ADR impact, architecture audit | `platform-architecture-governance` |
-| OpenAPI metadata, generated clients, API-to-React boundary | `platform-api-client-boundary` |
-| React, HeroUI, forms, tables, dialogs, localization, accessibility | `platform-react-ui-boundary` |
+| Platform Web shells, viewport, or outer scrolling | `platform-web-layout-policy` |
 
 Use only applicable boundary skills:
 
 ```text
-New feature: Architecture Governance when boundaries change
-OpenAPI to React: Architecture Governance -> API Client Boundary -> React UI Boundary
-React UI: React UI Boundary
-Architecture-sensitive change: Architecture Governance
-Skill maintenance follows `.agents/AGENTS.md`; use Architecture Governance when repository policy changes.
+Web route topology: Route Change Audit
+Platform Web shells: Web Layout Policy
+Skill maintenance follows `.agents/AGENTS.md`.
 ```
 
 ## Completion criteria

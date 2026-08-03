@@ -1,7 +1,7 @@
 # Web agent routing
 
-This is the React/Next.js workspace. Load `platform-react-feature` for React,
-browser APIs, localized UI, accessibility, or feature async lifecycle.
+This is the React/Next.js workspace. The repository and scoped `AGENTS.md`
+instructions own React feature, transport, trust, and placement guidance.
 
 Add skills only for the decision actually touched:
 
@@ -9,13 +9,10 @@ Add skills only for the decision actually touched:
 | --- | --- |
 | Route topology, feature entry points, navigation, or intent contracts | `platform-route-change-audit` |
 | Route/page shells, main landmark, viewport geometry, outer scrolling, shared gutters, sidebar, or aside | `platform-web-layout-policy` |
-| HTTP/OpenAPI/generated-client source, DTOs, or realtime wire behavior | `platform-transport-contract` |
-| Authentication, authorization, privacy, browser trust, or untrusted input | `platform-trust-boundary` |
-| Feature/package placement, dependency direction, or ADR need | `platform-artifact-architecture` |
 
-Do not load backend-use-case, data-evolution, or external-integration skills for
-Web-only work. A backend change made alongside Web work follows that backend
-subtree's `AGENTS.md` too. Never edit generated API output manually.
+For Web-only work, add no other skill. A backend change made alongside Web work
+follows that backend subtree's `AGENTS.md` too. Never edit generated API output
+manually.
 
 ## Localization convention
 

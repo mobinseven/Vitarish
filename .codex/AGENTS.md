@@ -87,15 +87,12 @@ Skills live in `.codex/.agents/skills/`. Load only those owning current decision
 
 | Trigger | Skill |
 | --- | --- |
-| Artifact ownership, placement, dependencies, ADR | `platform-artifact-architecture` |
-| Domain/Application behavior and ports | `platform-backend-use-case` |
-| Persisted data and migrations | `platform-data-evolution` |
-| Vendor/provider adapters | `platform-external-integration` |
-| HTTP/OpenAPI/WebSocket/SSE contracts | `platform-transport-contract` |
-| Auth, ownership, privacy, untrusted input | `platform-trust-boundary` |
-| React, browser APIs, localization, accessibility | `platform-react-feature` |
+| Web route topology, navigation, or intent contracts | `platform-route-change-audit` |
+| Platform Web shells, viewport, or outer scrolling | `platform-web-layout-policy` |
 
-Add only touched boundary skills. Planning-only work stops before edits unless implementation is explicitly authorized.
+All other boundary guidance belongs to the repository and scoped `AGENTS.md`
+instructions. Planning-only work stops before edits unless implementation is
+explicitly authorized.
 
 ## Durable knowledge
 
