@@ -7,6 +7,8 @@ namespace Vitarish.Parties.Application.Abstractions;
 /// </summary>
 public interface IPartiesService
 {
+    Task<LandingHostBinding> GetLandingHostBindingAsync(string hostname, CancellationToken ct = default);
+    Task<LandingHostBindingChange?> SetLandingHostBindingAsync(string hostname, Guid tenantId, CancellationToken ct = default);
     /// <summary>
     /// Retrieves all tenants for the current user from the cross-schema view.
     /// Uses the current user context (app.user_id) set via RequestContextInterceptor.

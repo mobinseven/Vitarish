@@ -1,5 +1,6 @@
 namespace Vitarish.Platform.Contracts.Theming;
 
+[Obsolete("Platform theme contracts are obsolete and are no longer exposed by platform-admin.")]
 public static class PlatformThemeDefaults
 {
     public const string FallbackPrimary = "#2563EB";

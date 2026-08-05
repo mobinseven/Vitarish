@@ -7,6 +7,7 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": { "generate:api": "orval --config src/api/client/orval.config.ts" },
   "dependencies": {
     "@heroui-pro/react": "^1.0.0-beta.7",
     "@heroui/react": "^3.2.2",

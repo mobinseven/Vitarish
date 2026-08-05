@@ -3,6 +3,7 @@ using Vitarish.Platform.Domain.Models;
 
 namespace Vitarish.Platform.Application.Validation;
 
+[Obsolete("Platform theme administration is obsolete and is no longer exposed by platform-admin.")]
 public static class ThemeWriteValidator
 {
     public const string NameRequired = "Theme name is required.";

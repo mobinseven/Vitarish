@@ -18,7 +18,7 @@ public static class CurrentSessionEndpoints
             TenantAccess access = TenantAccessEvaluator.Evaluate(httpContext.User, httpContext.GetTenantId());
             var accessDto = new TenantAccessDto(access.CanAccessTenantOwner, access.CanAccessTenantUser);
             return result is AuthenticationResult<Vitarish.Authentication.Application.Abstractions.AuthenticationUserDescriptor?>.Success s
-                ? Results.Ok(new AuthenticationSessionDto(s.Value is not null, s.Value is null ? null : new CurrentAuthenticationUserDto(s.Value.UserId, s.Value.DisplayName, s.Value.GivenName, s.Value.FamilyName, s.Value.Email, s.Value.PhoneNumber), accessDto))
+                ? Results.Ok(new AuthenticationSessionDto(s.Value is not null, s.Value is null ? null : new CurrentAuthenticationUserDto(s.Value.UserId, s.Value.DisplayName, s.Value.GivenName, s.Value.FamilyName, s.Value.Email, s.Value.PhoneNumber), accessDto, httpContext.User.IsInRole("PlatformAdmin")))
                 : Results.Unauthorized();
         })
         .WithName("Authentication_Session_Get")

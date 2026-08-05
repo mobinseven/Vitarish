@@ -1,12 +1,15 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Vitarish.Entities.Contracts.Models;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain;
+using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Descriptors;
 using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Parties.Domain.Models;
 using Vitarish.Parties.Infrastructure.Data;
+using Vitarish.Parties.Infrastructure.Extensions;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
@@ -18,8 +21,44 @@ public sealed class PartiesService(
     TenantsService tenantService, 
     TenantIndicatorService tenantIndicatorService, 
     ISender sender,
-    PartiesDbContext dbContext) : IPartiesService
+    PartiesDbContext dbContext,
+    IMemoryCache cache) : IPartiesService
 {
+    public async Task<LandingHostBinding> GetLandingHostBindingAsync(string hostname, CancellationToken ct = default)
+    {
+        string normalized = HostnameNormalizer.Canonical(hostname);
+        Guid? tenantId = await dbContext.TenantIndicators.AsNoTracking()
+            .Where(indicator => indicator.Method == Vitarish.Parties.Domain.Enums.IndicatorMethod.Hostname)
+            .Where(indicator => indicator.Value == normalized && indicator.Status == Vitarish.Parties.Domain.Enums.IndicatorStatus.Active)
+            .Select(indicator => (Guid?)indicator.TenantId)
+            .FirstOrDefaultAsync(ct);
+        return new LandingHostBinding(normalized, tenantId);
+    }
+
+    public async Task<LandingHostBindingChange?> SetLandingHostBindingAsync(string hostname, Guid tenantId, CancellationToken ct = default)
+    {
+        string normalized = HostnameNormalizer.Canonical(hostname);
+        if (!await dbContext.Tenants.AnyAsync(item => item.Id == tenantId, ct)) return null;
+        await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        TenantIndicator? indicator = await dbContext.TenantIndicators.SingleOrDefaultAsync(item => item.Method == Domain.Enums.IndicatorMethod.Hostname && item.Value == normalized, ct);
+        Guid? previous = indicator?.TenantId;
+        if (indicator is null)
+        {
+            bool targetHasPrimary = await dbContext.TenantIndicators.AnyAsync(item => item.TenantId == tenantId && item.IsPrimary, ct);
+            indicator = new TenantIndicator { Id = Guid.NewGuid(), TenantId = tenantId, Method = Domain.Enums.IndicatorMethod.Hostname, Value = normalized, Status = Domain.Enums.IndicatorStatus.Active, IsPrimary = !targetHasPrimary };
+            dbContext.TenantIndicators.Add(indicator);
+        }
+        else if (indicator.TenantId != tenantId)
+        {
+            bool targetHasPrimary = await dbContext.TenantIndicators.AnyAsync(item => item.TenantId == tenantId && item.IsPrimary && item.Id != indicator.Id, ct);
+            indicator.TenantId = tenantId; indicator.Status = Domain.Enums.IndicatorStatus.Active; indicator.IsPrimary = !targetHasPrimary;
+        }
+        else indicator.Status = Domain.Enums.IndicatorStatus.Active;
+        await dbContext.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
+        cache.Remove($"cachedTenant-resolver::{normalized}");
+        return new LandingHostBindingChange(normalized, previous, tenantId, previous != tenantId);
+    }
     public async Task<IEnumerable<UserTenant>> GetUserTenantsAsync(CancellationToken ct = default)
     {
         // Query the cross-schema view that retrieves tenants for the current user

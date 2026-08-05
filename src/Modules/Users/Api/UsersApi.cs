@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Users.Application.Abstractions;
@@ -24,8 +27,13 @@ public static class UsersApi
         _ = users.MapModuleGet(UsersApiRoutes.CheckRole, CheckRoleAsync, "UsersCheckRole", typeof(UserRoleCheckResponse));
         _ = users.MapModulePost(UsersApiRoutes.CreateWithPhone, CreateWithPhoneAsync, "UsersCreateWithPhone", typeof(UserSummaryResponse));
         _ = users.MapModulePost(UsersApiRoutes.CreateWithEmail, CreateWithEmailAsync, "UsersCreateWithEmail", typeof(UserSummaryResponse));
+        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithPhone, CreateWithPhoneAsync, "UsersAdministrationCreateWithPhone", typeof(UserSummaryResponse)).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithEmail, CreateWithEmailAsync, "UsersAdministrationCreateWithEmail", typeof(UserSummaryResponse)).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
         _ = users.MapModulePut(UsersApiRoutes.SetEmail, SetEmailAsync, "UsersSetEmail", typeof(UsersCommandResponse));
         _ = users.MapModulePost(UsersApiRoutes.AddRole, AddRoleAsync, "UsersAddRole", typeof(UsersCommandResponse));
+        _ = users.MapModuleGet($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRoles}", ListTenantRolesAsync, "UsersAdministrationListTenantRoles", typeof(TenantRoleMembershipResponse[])).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = users.MapModulePut($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRole}", GrantTenantRoleAsync, "UsersAdministrationGrantTenantRole", typeof(UsersCommandResponse)).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = users.MapModuleDelete($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRole}", RevokeTenantRoleAsync, "UsersAdministrationRevokeTenantRole", typeof(UsersCommandResponse)).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
         users.MapProfileEndpoints();
         users.MapWebAuthnEndpoints();
         users.MapPatEndpoints();
@@ -40,6 +48,53 @@ public static class UsersApi
     private static async Task<IResult> CreateWithEmailAsync(CreateUserWithEmailRequest r, IUsersService service, CancellationToken ct) => await service.CreateUserWithEmailAsync(new CreateUserWithEmailCommand(r.Email, r.FirstName, r.LastName, r.IdentificationCode, r.DateOfBirth, r.BirthCountryCode, r.BirthCity), ct) is { } user ? Results.Ok(ToSummary(user)) : Results.Conflict();
     private static async Task<IResult> SetEmailAsync(string userId, SetUserEmailRequest r, IUsersService service, CancellationToken ct) => ToCommandResult(await service.SetUserEmailAsync(userId, r.Email, ct));
     private static async Task<IResult> AddRoleAsync(string userId, AddUserToRoleRequest r, IUsersService service, CancellationToken ct) { User? user = await service.GetUserAsync(userId, ct); if (user is null) { return Results.NotFound(); } try { await service.AddToRoleAsync(user, r.RoleName, ct); return Results.Ok(UsersCommandResponse.Success()); } catch (InvalidOperationException ex) { return Results.Conflict(UsersCommandResponse.Failed([new UsersCommandError("RoleAssignmentFailed", ex.Message)])); } }
+    private static async Task<IResult> ListTenantRolesAsync(string userId, IUsersService service, CancellationToken ct)
+    {
+        User? user = await service.GetUserAsync(userId, ct);
+        if (user is null) return Results.NotFound();
+        IList<string> roles = await service.GetRolesAsync(user, ct);
+        return Results.Ok(roles.Select(ParseTenantRole).Where(item => item is not null).Select(item => item!).ToArray());
+    }
+
+    private static Task<IResult> GrantTenantRoleAsync(string userId, Guid tenantId, string roleSuffix, [FromBody] ChangeTenantRoleRequest request, IUsersService service, ITenantExistence tenants, CancellationToken ct) =>
+        ChangeTenantRoleAsync(userId, tenantId, roleSuffix, request, service, tenants, grant: true, ct);
+
+    private static Task<IResult> RevokeTenantRoleAsync(string userId, Guid tenantId, string roleSuffix, [FromBody] ChangeTenantRoleRequest request, IUsersService service, ITenantExistence tenants, CancellationToken ct) =>
+        ChangeTenantRoleAsync(userId, tenantId, roleSuffix, request, service, tenants, grant: false, ct);
+
+    private static async Task<IResult> ChangeTenantRoleAsync(string userId, Guid tenantId, string roleSuffix, ChangeTenantRoleRequest request, IUsersService service, ITenantExistence tenants, bool grant, CancellationToken ct)
+    {
+        if (tenantId == Guid.Empty || !IsAllowedTenantRole(roleSuffix) || !string.Equals(request.RoleSuffix, roleSuffix, StringComparison.Ordinal))
+            return Results.BadRequest(UsersCommandResponse.Failed([new UsersCommandError("InvalidTenantRole", "The tenant role is not valid.")]));
+        if (!await tenants.ExistsAsync(tenantId, ct)) return Results.NotFound();
+        User? user = await service.GetUserAsync(userId, ct);
+        if (user is null) return Results.NotFound();
+        string roleName = $"{tenantId}:{roleSuffix}";
+        try
+        {
+            bool assigned = await service.IsInRoleAsync(user, roleName, ct);
+            if (assigned == grant) return Results.Ok(UsersCommandResponse.Success());
+            if (grant) await service.AddToRoleAsync(user, roleName, ct);
+            else await service.RemoveFromRoleAsync(user, roleName, ct);
+            return Results.Ok(UsersCommandResponse.Success());
+        }
+        catch (InvalidOperationException)
+        {
+            return Results.Conflict(UsersCommandResponse.Failed([new UsersCommandError("RoleAssignmentFailed", "The tenant role could not be changed.")]));
+        }
+    }
+
+    private static TenantRoleMembershipResponse? ParseTenantRole(string role)
+    {
+        string[] parts = role.Split(':', 2, StringSplitOptions.TrimEntries);
+        return parts.Length == 2 && Guid.TryParse(parts[0], out Guid tenantId) && IsAllowedTenantRole(parts[1])
+            ? new TenantRoleMembershipResponse(tenantId, parts[1], true)
+            : null;
+    }
+
+    private static bool IsAllowedTenantRole(string roleSuffix) =>
+        string.Equals(roleSuffix, "TenantOwner", StringComparison.Ordinal) ||
+        string.Equals(roleSuffix, "TenantUser", StringComparison.Ordinal);
     private static IResult ToCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : Results.BadRequest(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray()));
     private static UserSummaryResponse ToSummary(User user) => new(user.Id, user.UserName, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.IdentificationCode, user.DateOfBirth, user.BirthCountryCode, user.BirthCity, user.FullName);
 }

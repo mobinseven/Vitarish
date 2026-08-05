@@ -31,6 +31,23 @@ if (-not (Get-Command npm -CommandType Application -ErrorAction SilentlyContinue
     throw 'npm was not found. Install Node.js and ensure npm is available on PATH.'
 }
 
+if (-not (Get-Command dotnet -CommandType Application -ErrorAction SilentlyContinue)) {
+    throw 'dotnet was not found. Install the .NET SDK and ensure dotnet is available on PATH.'
+}
+
+$devCertificatePath = Join-Path $env:TEMP 'vitarish-dev-cert.pem'
+& dotnet dev-certs https --export-path $devCertificatePath --format Pem --no-password
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $devCertificatePath -PathType Leaf)) {
+    throw "The .NET HTTPS development certificate could not be exported to '$devCertificatePath'."
+}
+
+$env:NODE_EXTRA_CA_CERTS = $devCertificatePath
+$env:NODE_USE_SYSTEM_CA = '1'
+$nodeOptions = [Environment]::GetEnvironmentVariable('NODE_OPTIONS', 'Process')
+if ($nodeOptions -notmatch '(^|\s)--use-system-ca(\s|$)') {
+    $env:NODE_OPTIONS = (($nodeOptions, '--use-system-ca' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }) -join ' ')
+}
+
 $selectedApp = $null
 
 if ($AppName) {
