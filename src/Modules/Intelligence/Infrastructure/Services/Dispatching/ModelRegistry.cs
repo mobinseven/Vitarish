@@ -33,6 +33,7 @@ public sealed class ModelRegistry(IOptionsMonitor<AiOptions> aiOptions)
         new() { Id = "gemini-2.5-flash", DisplayName = "Gemini 2.5 Flash", Provider = "Google" },
         new() { Id = "gemini-2.5-flash-lite", DisplayName = "Gemini 2.5 Flash Lite", Provider = "Google" },
         // OpenAI models
+        new() { Id = "gpt-5.6-luna", DisplayName = "GPT-5.6 Luna", Provider = "OpenAI" },
         new() { Id = "gpt-5-2025-08-07", DisplayName = "GPT-5", Provider = "OpenAI" },
         new() { Id = "gpt-5-mini-2025-08-07", DisplayName = "GPT-5 Mini", Provider = "OpenAI" },
         new() { Id = "gpt-5-nano-2025-08-07", DisplayName = "GPT-5 Nano", Provider = "OpenAI" },

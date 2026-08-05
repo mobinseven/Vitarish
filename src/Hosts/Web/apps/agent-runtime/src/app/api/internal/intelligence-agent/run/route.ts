@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 interface AgentDefinition {
   model: string;
   instructions: string;
+  reasoningLevel?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
   result?: { name: string; jsonSchema: string; strict: boolean } | null;
 }
 
@@ -34,6 +35,7 @@ interface AgentRuntimeRequest {
 }
 
 const maximumHistoryBytes = 1024 * 1024;
+const reasoningLevels = new Set(["none", "minimal", "low", "medium", "high", "xhigh", "max"]);
 
 export function parseHistory(history: string | null | undefined): AgentInputItem[] {
   if (!history) return [];
@@ -121,18 +123,6 @@ function callbackLocation(value: string): string {
   }
 }
 
-function presentationInstructions(metadata?: Record<string, string> | null): string {
-  const locale = metadata?.locale;
-  const calendar = metadata?.calendar;
-  const timeZone = metadata?.timeZone;
-  if (!locale || !calendar || !timeZone) return "";
-  return [
-    `Present all user-facing responses naturally in locale ${locale}.`,
-    `Interpret and display dates and times in timezone ${timeZone} using calendar ${calendar}, unless the user explicitly requests another timezone or calendar.`,
-    "Do not expose UTC values, ISO timestamps, timezone identifiers, enum names, internal IDs, or other machine-oriented values unless the user explicitly requests them.",
-  ].join("\n");
-}
-
 export async function POST(request: NextRequest) {
   if (!isAuthorized(request)) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -153,6 +143,9 @@ export async function POST(request: NextRequest) {
   let timeoutMs: number;
   try {
     timeoutMs = timeSpanToMilliseconds(input.limits.effectiveTimeout);
+    if (input.definition.reasoningLevel && !reasoningLevels.has(input.definition.reasoningLevel)) {
+      throw new Error("The reasoning level is invalid.");
+    }
     for (const definition of input.tools) JSON.parse(definition.parametersJsonSchema);
     if (input.definition.result) {
       const resultSchema = JSON.parse(input.definition.result.jsonSchema);
@@ -268,15 +261,17 @@ export async function POST(request: NextRequest) {
           schema: JSON.parse(input.definition.result.jsonSchema) as never,
         }
       : undefined;
-    const globalPresentationInstructions = presentationInstructions(input.context.metadata);
     const agent = new Agent({
       name: "Vitarish patient workspace agent",
       model: input.definition.model,
-      instructions: globalPresentationInstructions
-        ? `${input.definition.instructions}\n${globalPresentationInstructions}`
-        : input.definition.instructions,
+      instructions: input.definition.instructions,
       tools,
-      modelSettings: { maxTokens: input.limits.maxTokens },
+      modelSettings: {
+        maxTokens: input.limits.maxTokens,
+        reasoning: input.definition.reasoningLevel
+          ? { effort: input.definition.reasoningLevel }
+          : undefined,
+      },
       outputType,
     });
     const runner = new Runner({

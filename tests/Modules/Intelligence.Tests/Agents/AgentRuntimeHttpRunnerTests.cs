@@ -55,6 +55,7 @@ public sealed class AgentRuntimeHttpRunnerTests
         handler.Request.Context.ExecutionId.Should().Be(Context.ExecutionId);
         handler.Request.Context.Metadata!["patientId"].Should().Be("patient-1");
         handler.Request.Limits.Should().Be(Limits);
+        handler.Request.Definition.ReasoningLevel.Should().Be(AgentReasoningLevel.Low);
     }
 
     [Fact]

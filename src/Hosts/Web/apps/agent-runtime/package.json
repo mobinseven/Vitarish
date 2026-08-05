@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3003",
+    "dev": "node --use-system-ca ../../node_modules/next/dist/bin/next dev --port 3003",
     "build": "next build",
-    "start": "next start --port 3003",
+    "start": "node --use-system-ca ../../node_modules/next/dist/bin/next start --port 3003",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },

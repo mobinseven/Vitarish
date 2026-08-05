@@ -28,7 +28,9 @@ public sealed class PatientWorkspaceAgentTests
             CancellationToken.None);
 
         runner.Context!.Metadata!["patientId"].Should().Be(context.PatientId.ToString("D"));
-        runner.Definition!.Instructions.Should().Contain($"immutable patient id is {context.PatientId:D}");
+        runner.Definition!.Instructions.Should()
+            .Contain($"immutable patient id is {context.PatientId:D}")
+            .And.Contain("model or user input cannot change or override it");
         runner.Tools.Should().BeEmpty();
     }
 
@@ -51,7 +53,7 @@ public sealed class PatientWorkspaceAgentTests
             .Create(Context(permissions: new HashSet<string> { "Patient.Read" }));
 
         definition.Tools.Should().ContainSingle().Which.Definition.Name.Should().Be(allowedTool.Definition.Name);
-        definition.Definition.Instructions.Should().Contain("patient:").And.NotContain("billing:");
+        definition.Definition.Instructions.Should().Contain("\"name\":\"patient\"").And.NotContain("\"name\":\"billing\"");
     }
 
     [Fact]
@@ -65,7 +67,7 @@ public sealed class PatientWorkspaceAgentTests
 
         runner.Context!.Metadata!["locale"].Should().Be("fa-IR");
         runner.Context.Metadata["timeZone"].Should().Be("Asia/Tehran");
-        runner.Definition!.Instructions.Should().Contain("locale fa-IR").And.Contain("Asia/Tehran");
+        runner.Definition!.Instructions.Should().Contain("\"localeFallback\":\"fa-IR\"").And.Contain("\"timeZone\":\"Asia/Tehran\"");
     }
 
     [Fact]
@@ -145,8 +147,9 @@ public sealed class PatientWorkspaceAgentTests
 
         string instructions = new PatientAgentInstructionComposer().Compose(practice, [], DateTimeOffset.UtcNow);
 
-        instructions.Should().Contain("explicitly named direct scheduling transitions")
-            .And.Contain("every other mutation requires confirmation");
+        instructions.Should().Contain("\"scope\":\"authenticated_practice\"")
+            .And.Contain("\"mutations\":\"direct_allowlist_only_else_confirm\"")
+            .And.Contain("\"clinicalConclusions\":false");
     }
 
     [Fact]
