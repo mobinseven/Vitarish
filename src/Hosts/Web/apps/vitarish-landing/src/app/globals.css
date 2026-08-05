@@ -91,6 +91,10 @@
   --text-9xl--line-height: 1.2;
 }
 
+html[dir="rtl"] {
+  --font-sans: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
+}
+
 .dark,
 [data-theme="dark"] {
   color-scheme: dark;

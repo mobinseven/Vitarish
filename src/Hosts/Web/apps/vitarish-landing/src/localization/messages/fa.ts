@@ -7,8 +7,9 @@ export const faMessages = {
     },
   },
   appShell: {
+    settings: { label: "تنظیمات" },
     culture: { label: "زبان" },
-    theme: { light: "حالت روشن", dark: "حالت تاریک", system: "حالت سیستم" },
+    theme: {  label: "رنگ و رو", light: "حالت روشن", dark: "حالت تاریک", system: "حالت سیستم" },
   },
   landing: {
     app: "هوش مصنوعی ویتاریش",

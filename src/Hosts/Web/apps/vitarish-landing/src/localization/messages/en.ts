@@ -7,8 +7,9 @@ export const enMessages = {
     },
   },
   appShell: {
+    settings: { label: "Settings" },
     culture: { label: "Language" },
-    theme: { light: "Light mode", dark: "Dark mode", system: "System theme" },
+    theme: { label: "Theme", light: "Light mode", dark: "Dark mode", system: "System theme" },
   },
   landing: {
     app: "Vitarish AI",
