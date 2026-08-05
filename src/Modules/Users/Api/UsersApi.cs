@@ -56,15 +56,15 @@ public static class UsersApi
         return Results.Ok(roles.Select(ParseTenantRole).Where(item => item is not null).Select(item => item!).ToArray());
     }
 
-    private static Task<IResult> GrantTenantRoleAsync(string userId, Guid tenantId, string roleSuffix, [FromBody] ChangeTenantRoleRequest request, IUsersService service, ITenantExistence tenants, CancellationToken ct) =>
+    private static Task<IResult> GrantTenantRoleAsync(string userId, Guid tenantId, string roleSuffix, [FromBody] ChangeTenantRoleRequest? request, IUsersService service, ITenantExistence tenants, CancellationToken ct) =>
         ChangeTenantRoleAsync(userId, tenantId, roleSuffix, request, service, tenants, grant: true, ct);
 
-    private static Task<IResult> RevokeTenantRoleAsync(string userId, Guid tenantId, string roleSuffix, [FromBody] ChangeTenantRoleRequest request, IUsersService service, ITenantExistence tenants, CancellationToken ct) =>
+    private static Task<IResult> RevokeTenantRoleAsync(string userId, Guid tenantId, string roleSuffix, [FromBody] ChangeTenantRoleRequest? request, IUsersService service, ITenantExistence tenants, CancellationToken ct) =>
         ChangeTenantRoleAsync(userId, tenantId, roleSuffix, request, service, tenants, grant: false, ct);
 
-    private static async Task<IResult> ChangeTenantRoleAsync(string userId, Guid tenantId, string roleSuffix, ChangeTenantRoleRequest request, IUsersService service, ITenantExistence tenants, bool grant, CancellationToken ct)
+    private static async Task<IResult> ChangeTenantRoleAsync(string userId, Guid tenantId, string roleSuffix, ChangeTenantRoleRequest? request, IUsersService service, ITenantExistence tenants, bool grant, CancellationToken ct)
     {
-        if (tenantId == Guid.Empty || !IsAllowedTenantRole(roleSuffix) || !string.Equals(request.RoleSuffix, roleSuffix, StringComparison.Ordinal))
+        if (request is null || tenantId == Guid.Empty || !IsAllowedTenantRole(roleSuffix) || !string.Equals(request.RoleSuffix, roleSuffix, StringComparison.Ordinal))
             return Results.BadRequest(UsersCommandResponse.Failed([new UsersCommandError("InvalidTenantRole", "The tenant role is not valid.")]));
         if (!await tenants.ExistsAsync(tenantId, ct)) return Results.NotFound();
         User? user = await service.GetUserAsync(userId, ct);

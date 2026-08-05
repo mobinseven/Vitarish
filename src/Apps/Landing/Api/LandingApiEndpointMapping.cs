@@ -28,14 +28,14 @@ public static class LandingApiEndpointMapping
         RouteGroupBuilder group = endpoints.MapAnonymousModuleGroup(LandingApiRoutes.Base, AnonymousJustification);
         _ = group.MapModulePost(
                 LandingApiRoutes.Conversations,
-                (SubmitLandingMessageRequest request, HttpContext context, IDataProtectionProvider protection, ISender sender, CancellationToken ct) => SubmitAsync(request, context, protection, sender, ct),
+                (SubmitLandingMessageRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct) => SubmitAsync(request, context, options, parties, protection, sender, ct),
                 "LandingSubmitConversation",
                 typeof(LandingConversationResponse),
                 profile: ModuleEndpointProfile.AnonymousJson,
                 anonymousJustification: AnonymousJustification)
             .WithMetadata(new RequestSizeLimitAttribute(4_096))
             .RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
-        _ = group.MapModuleDelete(LandingApiRoutes.ConversationById, (Guid conversationId, string ownerKey, HttpContext context, IDataProtectionProvider protection, ISender sender, CancellationToken ct) => DeleteAsync(conversationId, ownerKey, context, protection, sender, ct), "LandingDeleteConversation", profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: AnonymousJustification).RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
+        _ = group.MapModuleDelete(LandingApiRoutes.ConversationById, (Guid conversationId, string ownerKey, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct) => DeleteAsync(conversationId, ownerKey, context, options, parties, protection, sender, ct), "LandingDeleteConversation", profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: AnonymousJustification).RequireRateLimiting(LandingRateLimitPolicies.PublicConversation);
         RouteGroupBuilder administration = endpoints.MapProtectedModuleGroup($"{LandingApiRoutes.Base}{LandingApiRoutes.Administration}");
         administration.WithGroupName("Landing").WithTags("Landing");
         administration.RequireAuthorization(new AuthorizeAttribute { Policy = "PlatformAdmin" });
@@ -54,14 +54,15 @@ public static class LandingApiEndpointMapping
         return endpoints;
     }
 
-    private static async Task<IResult> SubmitAsync(SubmitLandingMessageRequest request, HttpContext context, IDataProtectionProvider protection, ISender sender, CancellationToken ct)
+    private static async Task<IResult> SubmitAsync(SubmitLandingMessageRequest request, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct)
     {
         if (!Valid(request.OwnerKey, request.Message) || (request.ConversationId is not null && !Guid.TryParse(request.ConversationId, out _))) return Invalid();
-        if (context.GetTenantId() is not string requestTenantId || !Guid.TryParse(requestTenantId, out _))
+        Guid? requestTenantId = await ResolveBoundTenantAsync(context, options, parties, ct);
+        if (requestTenantId is null)
             return Results.NotFound();
         string session = GetOrCreateSession(context, protection);
         Guid? conversationId = request.ConversationId is null ? null : Guid.Parse(request.ConversationId);
-        LandingConversationResult result = await sender.Send(new RunLandingConversation(requestTenantId, session, request.OwnerKey, request.Message.Trim(), conversationId), ct);
+        LandingConversationResult result = await sender.Send(new RunLandingConversation(requestTenantId.Value.ToString("D"), session, request.OwnerKey, request.Message.Trim(), conversationId), ct);
         return result.Outcome switch
         {
             AgentConversationOutcome.Succeeded when result.ConversationId.HasValue && !string.IsNullOrWhiteSpace(result.Message) => Results.Ok(new LandingConversationResponse(result.ConversationId.Value.ToString("N"), result.Message)),
@@ -71,12 +72,23 @@ public static class LandingApiEndpointMapping
         };
     }
 
-    private static async Task<IResult> DeleteAsync(Guid conversationId, string ownerKey, HttpContext context, IDataProtectionProvider protection, ISender sender, CancellationToken ct)
+    private static async Task<IResult> DeleteAsync(Guid conversationId, string ownerKey, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct)
     {
         string? session = ReadSession(context, protection);
-        if (context.GetTenantId() is not string requestTenantId || !Guid.TryParse(requestTenantId, out _) || session is null || conversationId == Guid.Empty || !OwnerKeys.Contains(ownerKey)) return Results.NotFound();
-        AgentConversationOutcome result = await sender.Send(new DeleteLandingConversation(requestTenantId, session, ownerKey, conversationId), ct);
+        Guid? requestTenantId = await ResolveBoundTenantAsync(context, options, parties, ct);
+        if (requestTenantId is null || session is null || conversationId == Guid.Empty || !OwnerKeys.Contains(ownerKey)) return Results.NotFound();
+        AgentConversationOutcome result = await sender.Send(new DeleteLandingConversation(requestTenantId.Value.ToString("D"), session, ownerKey, conversationId), ct);
         return result switch { AgentConversationOutcome.Succeeded => Results.NoContent(), AgentConversationOutcome.Busy => Results.Conflict(new LandingError("busy", "The conversation is already processing a message.")), _ => Results.NotFound() };
+    }
+
+    private static async Task<Guid?> ResolveBoundTenantAsync(HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, CancellationToken ct)
+    {
+        if (context.GetTenantId() is not string requestTenantValue || !Guid.TryParse(requestTenantValue, out Guid requestTenantId) || requestTenantId == Guid.Empty)
+            return null;
+        if (!Uri.TryCreate(options.Value.LandingUrl, UriKind.Absolute, out Uri? landingUrl))
+            return null;
+        LandingHostBinding binding = await parties.GetLandingHostBindingAsync(landingUrl.Host, ct);
+        return binding.TenantId == requestTenantId ? requestTenantId : null;
     }
 
     private static bool Valid(string ownerKey, string message) => OwnerKeys.Contains(ownerKey) && !string.IsNullOrWhiteSpace(message) && message.Trim().Length <= 2_000;
