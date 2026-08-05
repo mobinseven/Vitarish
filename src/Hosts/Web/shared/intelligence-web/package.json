@@ -14,7 +14,7 @@
     "generate:api": "orval --config src/api/client/orval.config.ts"
   },
   "dependencies": {
-    "@heroui-pro/react": "^1.0.0-beta.7",
+    "@heroui-pro/react": "^1.0.0-beta.8",
     "@heroui/react": "^3.2.2",
     "@tanstack/react-query": "^5.101.2",
     "@vitarish/web-api-client": "0.1.0",

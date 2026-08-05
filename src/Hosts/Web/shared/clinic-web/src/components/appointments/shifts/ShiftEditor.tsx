@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { Button, Input, Label, TextField } from "@heroui/react";
-import { NativeSelect, NumberStepper } from "@heroui-pro/react";
+import { NativeSelect } from "@heroui-pro/react";
+import { NumberStepper } from "@heroui-pro/react/number-stepper";
 import { useLocalizedText, type MessageKey } from "../../../localization/index";
 
 const dayKeys = [

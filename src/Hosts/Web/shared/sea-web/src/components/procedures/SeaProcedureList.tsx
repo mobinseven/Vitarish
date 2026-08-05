@@ -4,10 +4,10 @@ import { useCallback } from "react";
 import {
   DataGrid,
   type DataGridColumn,
-  KPI,
-  KPIGroup,
   Widget,
 } from "@heroui-pro/react";
+import { KPI } from "@heroui-pro/react/kpi";
+import { KPIGroup } from "@heroui-pro/react/kpi-group";
 import type { SeaNavigationIntent } from "../../navigation";
 import { SeaLoadingState, SeaEmptyState } from "../state/SeaStateSurface";
 import { useSeaProcedures } from "../../hooks/procedures/useSeaProcedures";

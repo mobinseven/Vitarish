@@ -1,6 +1,8 @@
 "use client";
 
-import { Widget, KPI, KPIGroup } from "@heroui-pro/react";
+import { Widget } from "@heroui-pro/react";
+import { KPI } from "@heroui-pro/react/kpi";
+import { KPIGroup } from "@heroui-pro/react/kpi-group";
 import { SeaLoadingState, SeaEmptyState } from "../state/SeaStateSurface";
 import { useSeaStatistics } from "../../hooks/statistics/useSeaStatistics";
 import { useLocalizedText } from "../../localization";

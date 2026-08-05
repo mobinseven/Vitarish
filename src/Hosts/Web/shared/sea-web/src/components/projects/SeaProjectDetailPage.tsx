@@ -3,7 +3,9 @@ import { DetailGrid, type DetailGridItem } from "@vitarish/web-ui";
 
 import { useState } from "react";
 import { Button } from "@heroui/react";
-import { Widget, KPI, KPIGroup } from "@heroui-pro/react";
+import { Widget } from "@heroui-pro/react";
+import { KPI } from "@heroui-pro/react/kpi";
+import { KPIGroup } from "@heroui-pro/react/kpi-group";
 import type { SeaNavigationIntent } from "../../navigation";
 import { SeaLoadingState, SeaErrorState } from "../state/SeaStateSurface";
 import { useSeaProjectDetail } from "../../hooks/projects/useSeaProjectDetail";

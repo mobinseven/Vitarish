@@ -4,9 +4,9 @@ import { useCallback } from "react";
 import {
   DataGrid,
   type DataGridColumn,
-  KPI,
-  KPIGroup,
 } from "@heroui-pro/react";
+import { KPI } from "@heroui-pro/react/kpi";
+import { KPIGroup } from "@heroui-pro/react/kpi-group";
 import type { SeaNavigationIntent } from "../../navigation";
 import {
   SeaLoadingState,
