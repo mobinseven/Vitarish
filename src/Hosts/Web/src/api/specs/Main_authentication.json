@@ -1068,7 +1068,8 @@
         "required": [
           "isAuthenticated",
           "user",
-          "tenantAccess"
+          "tenantAccess",
+          "canAccessPlatformAdmin"
         ],
         "type": "object",
         "properties": {
@@ -1087,6 +1088,9 @@
           },
           "tenantAccess": {
             "$ref": "#/components/schemas/TenantAccessDto"
+          },
+          "canAccessPlatformAdmin": {
+            "type": "boolean"
           }
         }
       },

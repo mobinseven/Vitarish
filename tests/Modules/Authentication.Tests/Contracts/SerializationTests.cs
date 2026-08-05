@@ -52,7 +52,7 @@ public class SerializationTests
     public void SessionDto_round_trip_with_user()
     {
         var user = new CurrentAuthenticationUserDto("user-1", "John Smith", "John", "Smith", "john@test.com", "+1234567890");
-        var original = new AuthenticationSessionDto(true, user);
+        var original = new AuthenticationSessionDto(true, user, new TenantAccessDto(false, false), true);
 
         var json = JsonSerializer.Serialize(original, JsonOptions);
         var deserialized = JsonSerializer.Deserialize<AuthenticationSessionDto>(json, JsonOptions);
@@ -64,12 +64,13 @@ public class SerializationTests
         deserialized.User.DisplayName.Should().Be("John Smith");
         deserialized.User.GivenName.Should().Be("John");
         deserialized.User.FamilyName.Should().Be("Smith");
+        deserialized.CanAccessPlatformAdmin.Should().BeTrue();
     }
 
     [Fact]
     public void SessionDto_round_trip_without_user()
     {
-        var original = new AuthenticationSessionDto(false, null);
+        var original = new AuthenticationSessionDto(false, null, new TenantAccessDto(false, false), false);
 
         var json = JsonSerializer.Serialize(original, JsonOptions);
         var deserialized = JsonSerializer.Deserialize<AuthenticationSessionDto>(json, JsonOptions);

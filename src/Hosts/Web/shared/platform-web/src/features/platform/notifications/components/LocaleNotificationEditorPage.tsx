@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState, useEffect } from "react";
-import { Button, Textarea, TextField } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import {
   useLocaleNotificationDetail,
@@ -10,6 +10,14 @@ import {
   type LocaleNotificationRecordRequest,
 } from "../hooks/useLocaleNotifications";
 import { useLocalizedText } from "@vitarish/web-localization";
+
+type LegacyFieldProps = { label: string; value: string; onValueChange: (value: string) => void; errorMessage?: string; isInvalid?: boolean };
+function TextField({ label, value, onValueChange, errorMessage, isInvalid }: LegacyFieldProps) {
+  return <label className="block"><span>{label}</span><input className="block w-full rounded border px-3 py-2" value={value} onChange={(event) => onValueChange(event.target.value)} aria-invalid={isInvalid} />{errorMessage && <span className="text-danger">{errorMessage}</span>}</label>;
+}
+function Textarea({ label, value, onValueChange, errorMessage, isInvalid }: LegacyFieldProps) {
+  return <label className="block"><span>{label}</span><textarea className="block min-h-24 w-full rounded border px-3 py-2" value={value} onChange={(event) => onValueChange(event.target.value)} aria-invalid={isInvalid} />{errorMessage && <span className="text-danger">{errorMessage}</span>}</label>;
+}
 
 interface LocaleNotificationEditorPageProps {
   normalizedLocale: string;
@@ -250,7 +258,7 @@ export function LocaleNotificationEditorPage({
         >
           {t("common.actions.save")}
         </Button>
-        <Button variant="flat" onPress={() => router.push(basePath)}>
+        <Button variant="outline" onPress={() => router.push(basePath)}>
           {t("common.actions.cancel")}
         </Button>
       </div>

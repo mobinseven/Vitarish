@@ -1,6 +1,9 @@
 import { defineConfig } from "orval";
 
-const specsDir = "../specs";
+// Main host OpenAPI generation writes module documents to the Web host's
+// canonical specs directory. Keep auth-web generation on that source rather
+// than maintaining a second stale copy.
+const specsDir = "../../../../../src/api/specs";
 
 export default defineConfig({
   authentication: {

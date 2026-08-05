@@ -5,6 +5,7 @@ export type { UserDisplayProfile } from "./session/userDisplayProfile";
 // Hooks
 export { useAuthSession } from "./hooks/useAuthSession";
 export { useTenantAuthorization } from "./hooks/useTenantAuthorization";
+export { usePlatformAuthorization } from "./hooks/usePlatformAuthorization";
 export type { TenantRole } from "./hooks/useTenantAuthorization";
 export { useOtpCodeCapture } from "./hooks/useOtpCodeCapture";
 export { useOtpExpiry } from "./hooks/useOtpExpiry";
@@ -55,10 +56,21 @@ export {
   useUsersCompleteWebAuthnRegister,
   useUsersDeleteWebAuthnCredential,
   usersSearchUsers,
+  useUsersSearchUsers,
+  useUsersCreateWithEmail,
+  useUsersCreateWithPhone,
+  useUsersAdministrationCreateWithEmail,
+  useUsersAdministrationCreateWithPhone,
+  useUsersAdministrationListTenantRoles,
+  useUsersAdministrationGrantTenantRole,
+  useUsersAdministrationRevokeTenantRole,
+  getUsersAdministrationListTenantRolesQueryKey,
   getUsersGetProfileQueryKey,
   getUsersGetCultureQueryKey,
   getUsersListWebAuthnCredentialsQueryKey,
 } from "./api/generated/users/users";
+
+export type { ChangeTenantRoleRequest, TenantRoleMembershipResponse } from "./api/generated/users/model";
 
 // Components
 export { AuthMethodSelector } from "./components/AuthMethodSelector";

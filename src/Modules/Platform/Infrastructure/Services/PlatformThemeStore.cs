@@ -9,6 +9,7 @@ using Vitarish.Platform.Infrastructure.Data;
 
 namespace Vitarish.Platform.Infrastructure.Services;
 
+[Obsolete("Platform theme administration is obsolete and is no longer exposed by platform-admin.")]
 public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider timeProvider) : IPlatformThemeQuery, IPlatformThemeCommand
 {
     private const int ThemeSelectionId = 1;

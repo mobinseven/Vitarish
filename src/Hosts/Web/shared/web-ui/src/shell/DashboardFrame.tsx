@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Avatar, Button, Chip } from "@heroui/react";
+import { Avatar, Button, Chip, Dropdown, Label } from "@heroui/react";
 import { AppLayout } from "@heroui-pro/react/app-layout";
 import { Navbar } from "@heroui-pro/react/navbar";
 import { Sidebar } from "@heroui-pro/react/sidebar";
@@ -381,93 +381,63 @@ function DashboardFrameSidebarContents({
         </Sidebar.Group>
       </Sidebar.Content>
       <Sidebar.Footer>
-        <Sidebar.Menu aria-label={footerLabel ?? navigationLabel}>
-          <Sidebar.MenuItem
-            id="culture-switcher"
-            textValue={t("appShell.culture.label")}
-          >
-            <Sidebar.MenuIcon>
-              <FaIcon
-                icon="globe"
-                aria-hidden="true"
-                className="size-4 shrink-0"
+        <Dropdown>
+          <Dropdown.Trigger aria-label={t("appShell.settings.label")}>
+            <FaIcon icon="gear" aria-hidden="true" className="size-4" />
+          </Dropdown.Trigger>
+          <Dropdown.Popover>
+            <Dropdown.Menu>
+              <Dropdown.SubmenuTrigger>
+                <Dropdown.Item id="culture-options" textValue={t("appShell.culture.label")}>
+                  <FaIcon icon="earth-africa" aria-hidden="true" className="size-4" />
+                  <Label>{t("appShell.culture.label")}</Label>
+                </Dropdown.Item>
+                <Dropdown.Popover>
+                  <Dropdown.Menu>
+                    {supportedLocales.map((loc) => (
+                      <Dropdown.Item key={loc} id={`culture-${loc}`} textValue={localeLabels[loc]} onAction={() => handleLocaleChange(loc)}>
+                        <Label>{localeLabels[loc]}</Label>
+                        {loc === locale ? <FaIcon icon="check" aria-hidden="true" className="size-4" /> : null}
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown.Popover>
+              </Dropdown.SubmenuTrigger>
+              {themeMounted ? (
+                <Dropdown.SubmenuTrigger>
+                  <Dropdown.Item id="theme-options" textValue={t(`appShell.theme.${currentTheme}`)}>
+                          <FaIcon icon="palette" aria-hidden="true" className="size-4" />
+                    <Label>{t(`appShell.theme.${currentTheme}`)}</Label>
+                  </Dropdown.Item>
+                  <Dropdown.Popover>
+                    <Dropdown.Menu>
+                      {themeModes.map((mode) => (
+                        <Dropdown.Item key={mode} id={`theme-${mode}`} textValue={t(`appShell.theme.${mode}`)} onAction={() => setTheme(mode)}>
+                          <FaIcon icon={themeIcons[mode]} aria-hidden="true" className="size-4" />
+                          <Label>{t(`appShell.theme.${mode}`)}</Label>
+                          {mode === currentTheme ?
+                          <FaIcon icon="check" aria-hidden="true" className="size-4" /> : null}
+                        </Dropdown.Item>
+                      ))}
+                    </Dropdown.Menu>
+                  </Dropdown.Popover>
+                </Dropdown.SubmenuTrigger>
+              ) : null}
+            </Dropdown.Menu>
+          </Dropdown.Popover>
+        </Dropdown>
+        {footerItems.length > 0 ? (
+          <Sidebar.Menu aria-label={footerLabel ?? navigationLabel}>
+            {footerItems.map((item) => (
+              <DashboardFrameSidebarNavItem
+                key={item.href}
+                currentPath={currentPath}
+                idPrefix={idPrefix}
+                item={item}
               />
-            </Sidebar.MenuIcon>
-            <Sidebar.MenuLabel>{t("appShell.culture.label")}</Sidebar.MenuLabel>
-            <Sidebar.MenuTrigger aria-label={t("appShell.culture.label")}>
-              <Sidebar.MenuIndicator aria-hidden="true" />
-            </Sidebar.MenuTrigger>
-            <Sidebar.Submenu>
-              {supportedLocales.map((loc) => (
-                <Sidebar.MenuItem
-                  key={loc}
-                  id={`culture-${loc}`}
-                  isCurrent={loc === locale}
-                  textValue={localeLabels[loc]}
-                  onAction={() => handleLocaleChange(loc)}
-                >
-                  <Sidebar.MenuLabel>{localeLabels[loc]}</Sidebar.MenuLabel>
-                </Sidebar.MenuItem>
-              ))}
-            </Sidebar.Submenu>
-          </Sidebar.MenuItem>
-          {themeMounted ? (
-            <Sidebar.MenuItem
-              id="theme-switcher"
-              textValue={t(`appShell.theme.${currentTheme}`)}
-            >
-              <Sidebar.MenuIcon>
-                <FaIcon
-                  icon={themeIcons[currentTheme]}
-                  aria-hidden="true"
-                  className="size-4 shrink-0"
-                />
-              </Sidebar.MenuIcon>
-              <Sidebar.MenuLabel>
-                {t(`appShell.theme.${currentTheme}`)}
-              </Sidebar.MenuLabel>
-              <Sidebar.MenuTrigger
-                aria-label={t(`appShell.theme.${currentTheme}`)}
-              >
-                <Sidebar.MenuIndicator aria-hidden="true" />
-              </Sidebar.MenuTrigger>
-              <Sidebar.Submenu>
-                {themeModes.map((mode) => (
-                  <Sidebar.MenuItem
-                    key={mode}
-                    id={`theme-${mode}`}
-                    isCurrent={mode === currentTheme}
-                    textValue={t(`appShell.theme.${mode}`)}
-                    onAction={() => setTheme(mode)}
-                  >
-                    <Sidebar.MenuIcon>
-                      <FaIcon
-                        icon={themeIcons[mode]}
-                        aria-hidden="true"
-                        className="size-4 shrink-0"
-                      />
-                    </Sidebar.MenuIcon>
-                    <Sidebar.MenuLabel>
-                      {t(`appShell.theme.${mode}`)}
-                    </Sidebar.MenuLabel>
-                  </Sidebar.MenuItem>
-                ))}
-              </Sidebar.Submenu>
-            </Sidebar.MenuItem>
-          ) : (
-            <div aria-hidden="true" className="h-9 w-9" />
-          )}
-          {footerItems.length > 0
-            ? footerItems.map((item) => (
-                <DashboardFrameSidebarNavItem
-                  key={item.href}
-                  currentPath={currentPath}
-                  idPrefix={idPrefix}
-                  item={item}
-                />
-              ))
-            : null}
-        </Sidebar.Menu>
+            ))}
+          </Sidebar.Menu>
+        ) : null}
       </Sidebar.Footer>
     </>
   );

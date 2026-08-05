@@ -1,6 +1,6 @@
 import { defineConfig } from "orval";
 
-const specsDir = "../specs";
+const specsDir = "../../../../../src/api/specs";
 
 export default defineConfig({
   platform: {
@@ -18,5 +18,13 @@ export default defineConfig({
         },
       },
     },
+  },
+  parties: {
+    input: { target: `${specsDir}/Main_parties.json` },
+    output: { target: "../generated/parties/parties.ts", schemas: "../generated/parties/model", client: "react-query", override: { mutator: { path: "./apiFetch.ts", name: "apiFetch" } } },
+  },
+  landing: {
+    input: { target: `${specsDir}/Main_landing.json` },
+    output: { target: "../generated/landing/landing.ts", schemas: "../generated/landing/model", client: "react-query", override: { mutator: { path: "./apiFetch.ts", name: "apiFetch" } } },
   },
 });

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Modules.Base.Core.Endpoints;
@@ -36,6 +38,19 @@ public static class PartiesApiEndpointMapping
         _ = group.MapModulePut(PartiesApiRoutes.TenantIndicatorById, UpdateTenantIndicatorAsync, "PartiesUpdateTenantIndicator");
         _ = group.MapModuleDelete(PartiesApiRoutes.TenantIndicatorById, DeleteTenantIndicatorAsync, "PartiesDeleteTenantIndicator");
         _ = group.MapModulePost(PartiesApiRoutes.SetupTenant, SetupTenantAsync, "PartiesSetupTenant");
+        _ = group.MapModuleGet($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationOwners}", GetOwnersAsync, "PartiesAdministrationGetOwners").Produces<IEnumerable<C.OwnerReadDto>>(StatusCodes.Status200OK).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = group.MapModuleGet($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationOwnerById}", GetOwnerAsync, "PartiesAdministrationGetOwner").Produces<C.OwnerReadDto>(StatusCodes.Status200OK).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = group.MapModulePost($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationOwners}", CreateOwnerAsync, "PartiesAdministrationCreateOwner").WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = group.MapModulePut($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationOwnerById}", UpdateOwnerAsync, "PartiesAdministrationUpdateOwner").WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = group.MapModuleGet($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationTenants}", GetTenantsAsync, "PartiesAdministrationGetTenants").Produces<IEnumerable<C.TenantReadDto>>(StatusCodes.Status200OK).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = group.MapModuleGet($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationTenantById}", GetTenantAsync, "PartiesAdministrationGetTenant").Produces<C.TenantReadDto>(StatusCodes.Status200OK).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = group.MapModuleGet($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationTenantsByOwner}", GetTenantsByOwnerAsync, "PartiesAdministrationGetTenantsByOwner").WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = group.MapModulePost($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationTenants}", CreateTenantAsync, "PartiesAdministrationCreateTenant").WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = group.MapModulePut($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationTenantById}", UpdateAdministrationTenantAsync, "PartiesAdministrationUpdateTenant").WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = group.MapModuleGet($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationTenantIndicatorsByTenant}", GetTenantIndicatorsByTenantAsync, "PartiesAdministrationGetTenantIndicators").Produces<IEnumerable<C.TenantIndicatorReadDto>>(StatusCodes.Status200OK).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = group.MapModuleGet($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationTenantIndicatorById}", GetTenantIndicatorAsync, "PartiesAdministrationGetTenantIndicator").Produces<C.TenantIndicatorReadDto>(StatusCodes.Status200OK).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = group.MapModulePost($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.TenantIndicators}", CreateAdministrationTenantIndicatorAsync, "PartiesAdministrationCreateTenantIndicator").WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = group.MapModulePut($"{PartiesApiRoutes.Administration}{PartiesApiRoutes.AdministrationTenantIndicatorById}", UpdateAdministrationTenantIndicatorAsync, "PartiesAdministrationUpdateTenantIndicator").WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
         return endpoints;
     }
 
@@ -82,6 +97,13 @@ public static class PartiesApiEndpointMapping
         D.TenantReadDto? tenant = await service.UpdateTenantAsync(ToDomain(request), cancellationToken);
         return tenant is null ? NotFound("Tenant was not found.") : Results.Ok(ToContract(tenant));
     }
+    private static async Task<IResult> UpdateAdministrationTenantAsync(Guid tenantId, C.TenantWriteDto request, IPartiesService service, CancellationToken cancellationToken)
+    {
+        D.TenantReadDto? existing = await service.GetTenantAsync(tenantId, cancellationToken);
+        if (existing is null) return NotFound("Tenant was not found.");
+        if (request.OwnerId != existing.OwnerId) return BadRequest("Tenant ownership cannot be changed through platform administration.");
+        return await UpdateTenantAsync(tenantId, request, service, cancellationToken);
+    }
     private static async Task<IResult> DeleteTenantAsync(Guid tenantId, IPartiesService service, CancellationToken cancellationToken)
     {
         await service.DeleteTenantAsync(tenantId, cancellationToken);
@@ -91,11 +113,24 @@ public static class PartiesApiEndpointMapping
         await service.GetTenantIndicatorAsync(tenantIndicatorId, cancellationToken) is { } indicator ? Results.Ok(ToContract(indicator)) : NotFound("Tenant indicator was not found.");
     private static async Task<IResult> GetTenantIndicatorsByTenantAsync(Guid tenantId, IPartiesService service, CancellationToken cancellationToken) =>
         Results.Ok((await service.GetTenantIndicatorsByTenantAsync(tenantId, cancellationToken)).Select(ToContract));
+    private static async Task<IResult> CreateAdministrationTenantIndicatorAsync(C.TenantIndicatorWriteDto request, IPartiesService service, IConfiguration configuration, CancellationToken cancellationToken)
+    {
+        if (IsConfiguredLandingHostname(request.Value, request.Method, configuration)) return BadRequest("The configured Landing hostname can only be changed through the Landing binding workflow.");
+        return await CreateTenantIndicatorAsync(request, service, cancellationToken);
+    }
     private static async Task<IResult> CreateTenantIndicatorAsync(C.TenantIndicatorWriteDto request, IPartiesService service, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Value)) return BadRequest("Tenant indicator value is required.");
         D.TenantIndicatorReadDto? indicator = await service.CreateTenantIndicatorAsync(ToDomain(request), cancellationToken);
         return indicator is null ? Conflict("Tenant indicator could not be created.") : Results.Ok(ToContract(indicator));
+    }
+    private static async Task<IResult> UpdateAdministrationTenantIndicatorAsync(Guid tenantIndicatorId, C.TenantIndicatorWriteDto request, IPartiesService service, IConfiguration configuration, CancellationToken cancellationToken)
+    {
+        D.TenantIndicatorReadDto? existing = await service.GetTenantIndicatorAsync(tenantIndicatorId, cancellationToken);
+        if (existing is not null && existing.TenantId != request.TenantId) return BadRequest("Tenant indicator ownership cannot be changed through platform administration.");
+        if (existing is not null && IsConfiguredLandingHostname(existing.Value, (C.IndicatorMethod)existing.Method, configuration)) return BadRequest("The configured Landing hostname can only be changed through the Landing binding workflow.");
+        if (IsConfiguredLandingHostname(request.Value, request.Method, configuration)) return BadRequest("The configured Landing hostname can only be changed through the Landing binding workflow.");
+        return await UpdateTenantIndicatorAsync(tenantIndicatorId, request, service, cancellationToken);
     }
     private static async Task<IResult> UpdateTenantIndicatorAsync(Guid tenantIndicatorId, C.TenantIndicatorWriteDto request, IPartiesService service, CancellationToken cancellationToken)
     {
@@ -103,6 +138,14 @@ public static class PartiesApiEndpointMapping
         if (string.IsNullOrWhiteSpace(request.Value)) return BadRequest("Tenant indicator value is required.");
         D.TenantIndicatorReadDto? indicator = await service.UpdateTenantIndicatorAsync(ToDomain(request), cancellationToken);
         return indicator is null ? NotFound("Tenant indicator was not found.") : Results.Ok(ToContract(indicator));
+    }
+
+    private static bool IsConfiguredLandingHostname(string value, C.IndicatorMethod method, IConfiguration configuration)
+    {
+        if (method != C.IndicatorMethod.Hostname) return false;
+        string? configured = configuration["Vitarish:LandingUrl"];
+        return Uri.TryCreate(configured, UriKind.Absolute, out Uri? uri) &&
+            string.Equals(uri.Host.TrimEnd('.'), value.Trim().TrimEnd('.'), StringComparison.OrdinalIgnoreCase);
     }
     private static async Task<IResult> DeleteTenantIndicatorAsync(Guid tenantIndicatorId, IPartiesService service, CancellationToken cancellationToken)
     {

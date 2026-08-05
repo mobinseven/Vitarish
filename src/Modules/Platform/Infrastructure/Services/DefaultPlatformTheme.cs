@@ -3,6 +3,7 @@ using Vitarish.Platform.Domain.Models;
 
 namespace Vitarish.Platform.Infrastructure.Services;
 
+[Obsolete("Platform theme bootstrap is obsolete; retain existing data for compatibility only.")]
 public static class DefaultPlatformTheme
 {
     public static readonly Guid Id = Guid.Parse("3af03f4e-e53a-4f63-97cc-820c5ea52d85");

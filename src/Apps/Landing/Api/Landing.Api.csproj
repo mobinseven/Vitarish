@@ -12,5 +12,6 @@
     <ProjectReference Include="..\Contracts\Landing.Contracts.csproj" />
     <ProjectReference Include="..\Application\Landing.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\Base\Core\Modules.Base.Core.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Parties\Application\Parties.Application.csproj" />
   </ItemGroup>
 </Project>

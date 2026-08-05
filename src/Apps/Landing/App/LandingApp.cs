@@ -38,14 +38,17 @@ public sealed class LandingApp : Vitarish.Apps.Base.Core.App
         LandingPlatformOptions options = scope.ServiceProvider
             .GetRequiredService<IOptions<LandingPlatformOptions>>().Value;
         IAppTenantProvisioner provisioner = scope.ServiceProvider.GetRequiredService<IAppTenantProvisioner>();
+        IPartiesService parties = scope.ServiceProvider.GetRequiredService<IPartiesService>();
         Uri landingUrl = new(options.LandingUrl, UriKind.Absolute);
-        await provisioner.EnsureAsync(new EnsureAppTenantRequest(
-            LandingTenant.OwnerId,
-            LandingTenant.TenantId,
-            LandingTenant.PrimaryIndicatorId,
-            LandingTenant.AppId,
-            LandingTenant.Name,
-            landingUrl.Host), CancellationToken.None);
+        LandingHostBinding binding = await parties.GetLandingHostBindingAsync(landingUrl.Host, CancellationToken.None);
+        if (binding.TenantId is null)
+        {
+            _ = await provisioner.EnsureAsync(new EnsureAppTenantRequest(
+                LandingTenant.OwnerName,
+                LandingTenant.AppId,
+                LandingTenant.Name,
+                landingUrl.Host), CancellationToken.None);
+        }
         _ = app.MapLandingApi();
     }
 }

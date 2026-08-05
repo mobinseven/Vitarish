@@ -168,7 +168,13 @@ await app.InitializeApps();
 
 app.MapHangfireDashboard();
 
-app.ScheduleJobs();
+// OpenAPI extraction executes the host to discover endpoint metadata. Recurring
+// job registration is an operational side effect and is not required for that
+// discovery; suppress it only when the extractor explicitly opts in.
+if (!string.Equals(Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"), "true", StringComparison.OrdinalIgnoreCase))
+{
+    app.ScheduleJobs();
+}
 
 
 app.Run();

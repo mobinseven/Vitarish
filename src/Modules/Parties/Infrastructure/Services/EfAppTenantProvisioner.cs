@@ -10,14 +10,13 @@ namespace Vitarish.Parties.Infrastructure.Services;
 
 public sealed class EfAppTenantProvisioner(PartiesDbContext dbContext) : IAppTenantProvisioner
 {
-    public async Task EnsureAsync(EnsureAppTenantRequest request, CancellationToken cancellationToken = default)
+    public async Task<Guid> EnsureAsync(EnsureAppTenantRequest request, CancellationToken cancellationToken = default)
     {
         for (int attempt = 0; ; attempt++)
         {
             try
             {
-                await EnsureOnceAsync(request, cancellationToken);
-                return;
+                return await EnsureOnceAsync(request, cancellationToken);
             }
             catch (DbUpdateException) when (attempt == 0)
             {
@@ -26,31 +25,28 @@ public sealed class EfAppTenantProvisioner(PartiesDbContext dbContext) : IAppTen
         }
     }
 
-    private async Task EnsureOnceAsync(EnsureAppTenantRequest request, CancellationToken cancellationToken)
+    private async Task<Guid> EnsureOnceAsync(EnsureAppTenantRequest request, CancellationToken cancellationToken)
     {
         string hostname = HostnameNormalizer.Canonical(request.Hostname);
         TenantIndicator? claimedIndicator = await dbContext.TenantIndicators
             .AsNoTracking()
             .SingleOrDefaultAsync(indicator => indicator.Value == hostname, cancellationToken);
-        if (claimedIndicator is not null && claimedIndicator.TenantId != request.TenantId)
-            throw new InvalidOperationException("The configured app hostname belongs to another tenant.");
 
         Owner? owner = await dbContext.Owners
-            .SingleOrDefaultAsync(item => item.Id == request.OwnerId, cancellationToken);
+            .SingleOrDefaultAsync(item => item.Name == request.OwnerName, cancellationToken);
         if (owner is null)
         {
-            owner = new Owner { Id = request.OwnerId, Name = request.Name };
+            owner = new Owner { Name = request.OwnerName };
             dbContext.Owners.Add(owner);
         }
 
         Tenant? tenant = await dbContext.Tenants
             .Include(item => item.Indicators)
-            .SingleOrDefaultAsync(item => item.Id == request.TenantId, cancellationToken);
+            .SingleOrDefaultAsync(item => item.AppId == request.AppId, cancellationToken);
         if (tenant is null)
         {
             tenant = new Tenant
             {
-                Id = request.TenantId,
                 OwnerId = owner.Id,
                 Name = request.Name,
                 AppId = request.AppId
@@ -62,12 +58,14 @@ public sealed class EfAppTenantProvisioner(PartiesDbContext dbContext) : IAppTen
             throw new InvalidOperationException("The reserved app tenant identifier belongs to another app.");
         }
 
+        if (claimedIndicator is not null && claimedIndicator.TenantId != tenant.Id)
+            throw new InvalidOperationException("The configured app hostname belongs to another tenant.");
+
         TenantIndicator? primary = tenant.Indicators.SingleOrDefault(indicator => indicator.IsPrimary);
         if (primary is null)
         {
             tenant.Indicators.Add(new TenantIndicator
             {
-                Id = request.PrimaryIndicatorId,
                 TenantId = tenant.Id,
                 Method = IndicatorMethod.Hostname,
                 Value = hostname,
@@ -83,5 +81,6 @@ public sealed class EfAppTenantProvisioner(PartiesDbContext dbContext) : IAppTen
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+        return tenant.Id;
     }
 }

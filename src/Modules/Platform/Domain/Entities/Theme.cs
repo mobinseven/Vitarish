@@ -2,6 +2,7 @@ using Vitarish.Platform.Domain.Models;
 
 namespace Vitarish.Platform.Domain.Entities;
 
+[Obsolete("Platform theme persistence is obsolete; retain existing data for compatibility only.")]
 public sealed class Theme
 {
     public Guid Id { get; set; }

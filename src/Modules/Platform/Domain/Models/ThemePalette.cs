@@ -1,5 +1,6 @@
 namespace Vitarish.Platform.Domain.Models;
 
+[Obsolete("Platform theme persistence is obsolete; retain existing data for compatibility only.")]
 public sealed class ThemePalette
 {
     public const string FallbackPrimary = "#2563EB";
