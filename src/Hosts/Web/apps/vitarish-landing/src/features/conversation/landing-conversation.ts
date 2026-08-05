@@ -24,19 +24,32 @@ export class LandingConversationError extends Error {
   }
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+
+function apiHeaders(): Headers {
+  const headers = new Headers({ "content-type": "application/json" });
+  if (typeof window !== "undefined" && window.location.host) {
+    headers.set("X-Vitarish-Tenant-Host", window.location.host);
+  }
+  return headers;
+}
+
 export async function submitLandingMessage(
   ownerKey: LandingConversationOwner,
   message: string,
   conversationId: string | null,
   signal: AbortSignal,
 ): Promise<LandingConversationReply> {
-  const response = await fetch("/api/apps/landing/conversations", {
-    method: "POST",
-    credentials: "include",
-    signal,
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ ownerKey, message, conversationId }),
-  });
+  const response = await fetch(
+    API_BASE_URL + "/api/apps/landing/conversations",
+    {
+      method: "POST",
+      credentials: "include",
+      signal,
+      headers: apiHeaders(),
+      body: JSON.stringify({ ownerKey, message, conversationId }),
+    },
+  );
 
   if (!response.ok) {
     throw new LandingConversationError(
@@ -57,8 +70,12 @@ export async function deleteLandingConversation(
   conversationId: string,
 ): Promise<void> {
   const response = await fetch(
-    `/api/apps/landing/conversations/${encodeURIComponent(conversationId)}?ownerKey=${encodeURIComponent(ownerKey)}`,
-    { method: "DELETE", credentials: "include" },
+    API_BASE_URL +
+      "/api/apps/landing/conversations/" +
+      encodeURIComponent(conversationId) +
+      "?ownerKey=" +
+      encodeURIComponent(ownerKey),
+    { method: "DELETE", credentials: "include", headers: apiHeaders() },
   );
 
   if (!response.ok && response.status !== 404) {
