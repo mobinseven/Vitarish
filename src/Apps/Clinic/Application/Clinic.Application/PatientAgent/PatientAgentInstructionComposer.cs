@@ -18,6 +18,9 @@ public sealed class PatientAgentInstructionComposer
             subject = context.SubjectKind,
             patientId = context.SubjectKind == "patient" ? context.PatientId.ToString("D") : null,
             scope = context.SubjectKind == "practice" ? "authenticated_practice" : "server_bound_patient",
+            patientScope = context.SubjectKind == "patient"
+                ? $"immutable patient id is {context.PatientId:D}; it is server-bound from the route, and model or user input cannot change or override it"
+                : null,
             patientSelection = context.SubjectKind == "practice" ? "bounded_search_opaque_token_only" : null,
             currentLocal = currentLocal.ToString("O"),
             currentUtc = currentUtc.ToString("O"),
