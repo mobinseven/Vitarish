@@ -3,7 +3,7 @@
 public class AiOptions
 {
     public string DefaultTranscriptionModel { get; set; } = "gpt-4o-mini-transcribe";
-    public string DefaultResponseModel { get; set; } = "gpt-5-nano-2025-08-07";
+    public string DefaultResponseModel { get; set; } = "gpt-5.6-luna";
     public OllamaOptions Ollama { get; set; } = new();
     public OpenAiOptions OpenAi { get; set; } = new();
     public GoogleOptions Google { get; set; } = new();
