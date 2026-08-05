@@ -382,44 +382,8 @@ function DashboardFrameSidebarContents({
       </Sidebar.Content>
       <Sidebar.Footer>
         <Dropdown>
-          <Dropdown.Trigger>
-            <Sidebar.Menu aria-label={footerLabel ?? navigationLabel}>
-              <Sidebar.MenuItem
-                id="settings-menu"
-                textValue={t("appShell.settings.label")}
-              >
-                <Sidebar.MenuIcon>
-                  <FaIcon icon="gear" aria-hidden="true" className="size-4" />
-                </Sidebar.MenuIcon>
-                <Sidebar.MenuLabel>
-                  {t("appShell.settings.label")}
-                </Sidebar.MenuLabel>
-                <Sidebar.MenuActions>
-                  <Sidebar.MenuAction
-                    aria-label={t("appShell.settings.label")}
-                  >
-                    <Button
-                      isIconOnly
-                      variant="ghost"
-                      size="sm"
-                      aria-label={t("appShell.settings.label")}
-                    >
-                      <FaIcon icon="gear" aria-hidden="true" className="size-4" />
-                    </Button>
-                  </Sidebar.MenuAction>
-                </Sidebar.MenuActions>
-              </Sidebar.MenuItem>
-              {footerItems.length > 0
-                ? footerItems.map((item) => (
-                  <DashboardFrameSidebarNavItem
-                    key={item.href}
-                    currentPath={currentPath}
-                    idPrefix={idPrefix}
-                    item={item}
-                  />
-                ))
-                : null}
-            </Sidebar.Menu>
+          <Dropdown.Trigger aria-label={t("appShell.settings.label")}>
+            <FaIcon icon="gear" aria-hidden="true" className="size-4" />
           </Dropdown.Trigger>
           <Dropdown.Popover>
             <Dropdown.Menu>
@@ -462,6 +426,18 @@ function DashboardFrameSidebarContents({
             </Dropdown.Menu>
           </Dropdown.Popover>
         </Dropdown>
+        {footerItems.length > 0 ? (
+          <Sidebar.Menu aria-label={footerLabel ?? navigationLabel}>
+            {footerItems.map((item) => (
+              <DashboardFrameSidebarNavItem
+                key={item.href}
+                currentPath={currentPath}
+                idPrefix={idPrefix}
+                item={item}
+              />
+            ))}
+          </Sidebar.Menu>
+        ) : null}
       </Sidebar.Footer>
     </>
   );

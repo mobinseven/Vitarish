@@ -82,6 +82,7 @@ vi.mock("@/localization", () => ({
         "appShell.theme.dark": "Dark mode",
         "appShell.theme.system": "System preference",
         "appShell.culture.label": "Language",
+        "appShell.settings.label": "Settings",
         "appShell.userMenu.logIn": "Log In",
         "appShell.userMenu.account": "Account",
         "appShell.userMenu.signOut": "Log Out",
@@ -117,6 +118,7 @@ vi.mock("@vitarish/web-localization", () => ({
     t: (key: string) =>
       ({
         "appShell.culture.label": "Language",
+        "appShell.settings.label": "Settings",
         "appShell.theme.light": "Switch to light mode",
         "appShell.theme.dark": "Switch to dark mode",
         "appShell.theme.system": "Switch to system mode",
@@ -242,11 +244,12 @@ describe("Dashboard Shell Components", () => {
       );
 
       expect(screen.getAllByText("Home").length).toBeGreaterThan(0);
+      expect(screen.getByRole("button", { name: "Up" })).toBeInTheDocument();
+      fireEvent.click(screen.getAllByRole("button", { name: "Settings" })[0]);
       expect(screen.getAllByText("Language").length).toBeGreaterThan(0);
       expect(
         screen.getAllByText("Switch to light mode").length,
       ).toBeGreaterThan(0);
-      expect(screen.getByRole("button", { name: "Up" })).toBeInTheDocument();
       expect(screen.getByText("Dashboard content")).toBeInTheDocument();
     });
 
