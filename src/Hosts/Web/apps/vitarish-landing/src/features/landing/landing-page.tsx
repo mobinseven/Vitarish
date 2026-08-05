@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  ChatConversation,
   DashboardFrame,
   ImmersiveRegion,
 } from "@vitarish/web-ui";
@@ -64,7 +63,7 @@ export function LandingPage() {
 
   return (
     <DashboardFrame
-      // aside={<ConversationContext copy={t} />}
+      aside={<ConversationContext copy={t} />}
       asideMobile="sheet"
       contentMode="workspace"
       currentPath={currentPath}
@@ -76,7 +75,7 @@ export function LandingPage() {
         label: t.app,
         subtitle: t.subtitle,
       }}
-      // mobileAside={<ConversationContext copy={t} />}
+      mobileAside={<ConversationContext copy={t} />}
       mobileNavigation="sidebar"
       navigate={openPath}
       navigationGroups={navigationGroups}
@@ -87,16 +86,13 @@ export function LandingPage() {
     >
       <ImmersiveRegion className="flex min-h-0 flex-1 flex-col bg-background">
         {isGuidedPage ? (
-          <ChatConversation
-            className="min-h-0 flex-1"
-            innerClassName="mx-auto flex w-full max-w-[714px] flex-col gap-8 px-4 pb-8 pt-8 sm:px-6"
-          >
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <GuidedPage
               direction={direction}
               path={currentPath}
               t={translate}
             />
-          </ChatConversation>
+          </div>
         ) : (
           <LandingConversationView
             copy={t}
