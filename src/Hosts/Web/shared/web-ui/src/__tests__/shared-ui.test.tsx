@@ -178,6 +178,7 @@ describe("@vitarish/web-ui presentation components", () => {
         label="Question"
         placeholder="Ask a question"
         submitLabel="Send question"
+        toolbarStart={<span>Attach context</span>}
         value="Can I reuse this?"
         onChange={vi.fn()}
         onSubmit={vi.fn()}
@@ -185,6 +186,7 @@ describe("@vitarish/web-ui presentation components", () => {
     );
 
     expect(screen.getByLabelText("Question")).toHaveValue("Can I reuse this?");
+    expect(screen.getByText("Attach context")).toBeInTheDocument();
     expect(screen.getByText("All sources")).toBeInTheDocument();
     expect(screen.getByText("Answers may cite sources.")).toBeInTheDocument();
   });
