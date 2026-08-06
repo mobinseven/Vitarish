@@ -16,6 +16,7 @@ export interface ChatPromptInputProps {
   onSubmit: (value: string) => void;
   placeholder: string;
   submitLabel: string;
+  toolbarStart?: ReactNode;
   value: string;
 }
 
@@ -31,6 +32,7 @@ export function ChatPromptInput({
   onSubmit,
   placeholder,
   submitLabel,
+  toolbarStart,
   value,
 }: ChatPromptInputProps) {
   const canSend = value.trim().length > 0;
@@ -61,6 +63,7 @@ export function ChatPromptInput({
         </PromptInput.Content>
         <PromptInput.Toolbar>
           <PromptInput.ToolbarStart>
+            {toolbarStart}
             {helperText && (
               <span className="flex min-w-0 items-center gap-2 text-xs text-muted">
                 {helperIcon}

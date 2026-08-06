@@ -63,6 +63,22 @@ export { IconButton } from "./shell/IconButton";
 export type { IconButtonProps } from "./shell/IconButton";
 export {FaIcon} from "./icons/FaIcon";
 export type {FaIconProps} from "./icons/FaIcon";
+export {
+  FeatureCarousel,
+  FeatureItemCard,
+  FeatureItemGroup,
+  HeroHeader,
+  MarketingActionLink,
+  MarketingFinalCta,
+  MarketingFooter,
+  MarketingHeader,
+  MarketingHero,
+  MarketingSection,
+  MarketingSectionHeading,
+  PricingCard,
+  PricingGrid,
+} from "./marketing";
+export type { MarketingAction, MarketingLink } from "./marketing";
 export { EmptyStateSurface, ErrorStateSurface, LoadingStateSurface } from "./state/StateSurface";
 export type { LoadingStateSurfaceProps, MessageStateSurfaceProps } from "./state/StateSurface";
 export { DetailGrid } from "./state/DetailGrid";
