@@ -1,10 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, type Key } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { Button, Label, ListBox, Popover, Select, Tabs } from "@heroui/react";
+import {
+  appendConfirmedTranscript,
+  LiveDictation,
+  useLiveDictation,
+} from "@vitarish/intelligence-web";
 import {
   DashboardFrame,
   ImmersiveRegion,
+  ChatPromptInput,
+  FaIcon,
 } from "@vitarish/web-ui";
 import { useLandingConversation } from "../conversation/use-landing-conversation";
 import { ConversationContext } from "./conversation-context";
@@ -61,6 +69,10 @@ export function LandingPage() {
     await conversation.submit(text);
   }
 
+  if (currentPath === "/" && conversation.messages.length === 0) {
+    return <LandingInitialHome copy={t} direction={direction} submit={submit} />;
+  }
+
   return (
     <DashboardFrame
       aside={<ConversationContext copy={t} />}
@@ -111,5 +123,241 @@ export function LandingPage() {
         )}
       </ImmersiveRegion>
     </DashboardFrame>
+  );
+}
+
+type LandingMode = "chat" | "work";
+
+type LandingModel = {
+  id: string;
+  label: string;
+};
+
+function LandingInitialHome({
+  copy,
+  direction,
+  submit,
+}: {
+  copy: ReturnType<typeof useLandingCopy>["t"];
+  direction: "ltr" | "rtl";
+  submit: (text: string) => Promise<void>;
+}) {
+  const [value, setValue] = useState("");
+  const [mode, setMode] = useState<LandingMode>("work");
+  const [selectedModel, setSelectedModel] = useState("balanced");
+  const preferredLanguage = direction === "rtl" ? "fa-IR" : "en-US";
+  const dictation = useLiveDictation({
+    enabled: true,
+    onSegment: (segment) => {
+      setValue((current) => appendConfirmedTranscript(current, segment));
+    },
+    preferredLanguage,
+    sessionKey: "landing-home",
+  });
+  const models = useMemo<LandingModel[]>(
+    () => [
+      { id: "fast", label: copy.modelFast },
+      { id: "balanced", label: copy.modelBalanced },
+      { id: "reasoning", label: copy.modelReasoning },
+    ],
+    [copy.modelBalanced, copy.modelFast, copy.modelReasoning],
+  );
+  const selectedModelLabel = models.find((item) => item.id === selectedModel)?.label ?? copy.modelBalanced;
+  const quickStarts = copy.suggestions.slice(0, 3);
+
+  return (
+    <main className="landing-work-home" aria-label={copy.workspace} dir={direction}>
+      <aside className="landing-work-rail" aria-label={copy.workspace}>
+        <a className="landing-rail-mark" href="/" aria-label={copy.app}>
+          <img src="/512.webp" alt="" />
+        </a>
+        <nav className="landing-rail-nav" aria-label={copy.workspace}>
+          <a href="/" aria-label={copy.newChat} title={copy.newChat}><i className="fa-light fa-pen-to-square" aria-hidden="true" /></a>
+          <a href="/explore" aria-label={copy.explore} title={copy.explore}><i className="fa-light fa-magnifying-glass" aria-hidden="true" /></a>
+          <a href="/portfolio" aria-label={copy.portfolio} title={copy.portfolio}><i className="fa-light fa-thumbtack" aria-hidden="true" /></a>
+          <a href="/contact" aria-label={copy.contact} title={copy.contact}><i className="fa-light fa-message" aria-hidden="true" /></a>
+        </nav>
+        <span className="landing-rail-avatar" role="img" aria-label={copy.app}>V</span>
+      </aside>
+
+      <section className="landing-work-stage">
+        <Tabs
+          className="landing-mode-switch"
+          selectedKey={mode}
+          onSelectionChange={(key: Key) => setMode(String(key) as LandingMode)}
+        >
+          <Tabs.ListContainer>
+            <Tabs.List aria-label={copy.modeLabel}>
+              <Tabs.Tab id="chat">
+                {copy.chatMode}
+                <Tabs.Indicator />
+              </Tabs.Tab>
+              <Tabs.Tab id="work">
+                {copy.workMode}
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs.ListContainer>
+        </Tabs>
+
+        <div className="landing-work-center">
+          <h1>{mode === "work" ? copy.workHomeTitle : copy.chatHomeTitle}</h1>
+          <ChatPromptInput
+            actions={
+              <>
+                <ModelSelector
+                  copy={copy}
+                  models={models}
+                  selectedModel={selectedModel}
+                  selectedModelLabel={selectedModelLabel}
+                  onChange={setSelectedModel}
+                />
+                <LiveDictation controller={dictation} />
+              </>
+            }
+            direction={direction}
+            label={copy.promptLabel}
+            placeholder={mode === "work" ? copy.workHomePlaceholder : copy.chatHomePlaceholder}
+            submitLabel={copy.send}
+            value={value}
+            onChange={setValue}
+            onSubmit={async (text) => {
+              setValue("");
+              await submit(text);
+            }}
+            toolbarStart={
+              <PluginPicker
+                copy={copy}
+                iconOnly
+              />
+            }
+          />
+          <div className="landing-work-links">
+            <EmptyResourcePopover
+              icon="folder"
+              label={copy.chooseProject}
+              title={copy.projectsEmpty}
+              description={copy.projectsEmptyDescription}
+            />
+            <PluginPicker copy={copy} />
+          </div>
+          <div className="landing-quick-starts">
+            {quickStarts.map((item) => (
+              <Button
+                key={item.text}
+                className="landing-quick-start"
+                size="sm"
+                variant="ghost"
+                onPress={() => void submit(item.text)}
+              >
+                <FaIcon aria-hidden="true" icon={item.icon} />
+                <span>{item.text}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function ModelSelector({
+  copy,
+  models,
+  selectedModel,
+  selectedModelLabel,
+  onChange,
+}: {
+  copy: ReturnType<typeof useLandingCopy>["t"];
+  models: LandingModel[];
+  selectedModel: string;
+  selectedModelLabel: string;
+  onChange: (model: string) => void;
+}) {
+  return (
+    <Select
+      aria-label={copy.modelSelector}
+      className="landing-model-select"
+      value={selectedModel}
+      variant="secondary"
+      onChange={(key) => onChange(String(key))}
+    >
+      <Label className="sr-only">{copy.modelSelector}</Label>
+      <Select.Trigger>
+        <Select.Value>{selectedModelLabel}</Select.Value>
+        <Select.Indicator />
+      </Select.Trigger>
+      <Select.Popover>
+        <ListBox>
+          {models.map((model) => (
+            <ListBox.Item key={model.id} id={model.id} textValue={model.label}>
+              {model.label}
+              <ListBox.ItemIndicator />
+            </ListBox.Item>
+          ))}
+        </ListBox>
+      </Select.Popover>
+    </Select>
+  );
+}
+
+function PluginPicker({
+  copy,
+  iconOnly = false,
+}: {
+  copy: ReturnType<typeof useLandingCopy>["t"];
+  iconOnly?: boolean;
+}) {
+  return (
+    <Popover>
+      <Button
+        aria-label={copy.plugins}
+        className={iconOnly ? "landing-prompt-plugin" : "landing-work-link"}
+        isIconOnly={iconOnly}
+        size="sm"
+        variant="ghost"
+      >
+        <FaIcon aria-hidden="true" icon={iconOnly ? "plus" : "puzzle-piece"} />
+        {iconOnly ? null : copy.plugins}
+      </Button>
+      <Popover.Content className="landing-empty-popover">
+        <Popover.Dialog>
+          <Popover.Heading>{copy.pluginsEmpty}</Popover.Heading>
+          <p>{copy.pluginsEmptyDescription}</p>
+        </Popover.Dialog>
+      </Popover.Content>
+    </Popover>
+  );
+}
+
+function EmptyResourcePopover({
+  description,
+  icon,
+  label,
+  title,
+}: {
+  description: string;
+  icon: string;
+  label: string;
+  title: string;
+}) {
+  return (
+    <Popover>
+      <Button
+        aria-label={label}
+        className="landing-work-link"
+        size="sm"
+        variant="ghost"
+      >
+        <FaIcon aria-hidden="true" icon={icon} />
+        {label}
+      </Button>
+      <Popover.Content className="landing-empty-popover">
+        <Popover.Dialog>
+          <Popover.Heading>{title}</Popover.Heading>
+          <p>{description}</p>
+        </Popover.Dialog>
+      </Popover.Content>
+    </Popover>
   );
 }

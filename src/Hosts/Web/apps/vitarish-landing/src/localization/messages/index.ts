@@ -1,11 +1,20 @@
 import { communicationsMessageCatalogs } from "@vitarish/communications-web/localization";
+import { intelligenceMessageCatalogs } from "@vitarish/intelligence-web/localization";
 import { defaultLocale, type SupportedLocale } from "@vitarish/web-localization";
 import { enMessages } from "./en";
 import { faMessages } from "./fa";
 
 export const catalogs = {
-  en: { ...enMessages, ...communicationsMessageCatalogs.en },
-  fa: { ...faMessages, ...communicationsMessageCatalogs.fa },
+  en: {
+    ...enMessages,
+    ...communicationsMessageCatalogs.en,
+    ...intelligenceMessageCatalogs.en,
+  },
+  fa: {
+    ...faMessages,
+    ...communicationsMessageCatalogs.fa,
+    ...intelligenceMessageCatalogs.fa,
+  },
 } as const;
 
 export type MessageCatalog = Record<string, unknown>;

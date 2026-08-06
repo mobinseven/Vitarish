@@ -10,6 +10,7 @@
     "test": "vitest run --environment jsdom"
   },
   "dependencies": {
+    "@tanstack/react-query": "5.101.2",
     "@heroui-pro/react": "^1.0.0-beta.8",
     "@heroui/react": "^3.2.2",
     "@heroui/styles": "^3.2.1",
