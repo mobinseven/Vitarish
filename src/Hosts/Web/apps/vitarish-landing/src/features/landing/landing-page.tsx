@@ -1,10 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, type Key } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { Button, Popover, Tabs, Tooltip } from "@heroui/react";
+import {
+  appendConfirmedTranscript,
+  LiveDictation,
+  useLiveDictation,
+} from "@vitarish/intelligence-web";
 import {
   DashboardFrame,
   ImmersiveRegion,
+  ChatPromptInput,
+  FaIcon,
 } from "@vitarish/web-ui";
 import { useLandingConversation } from "../conversation/use-landing-conversation";
 import { ConversationContext } from "./conversation-context";
@@ -61,6 +69,10 @@ export function LandingPage() {
     await conversation.submit(text);
   }
 
+  if (currentPath === "/" && conversation.messages.length === 0) {
+    return <LandingInitialHome copy={t} direction={direction} submit={submit} />;
+  }
+
   return (
     <DashboardFrame
       aside={<ConversationContext copy={t} />}
@@ -111,5 +123,183 @@ export function LandingPage() {
         )}
       </ImmersiveRegion>
     </DashboardFrame>
+  );
+}
+
+type LandingMode = "chat" | "work";
+
+function LandingInitialHome({
+  copy,
+  direction,
+  submit,
+}: {
+  copy: ReturnType<typeof useLandingCopy>["t"];
+  direction: "ltr" | "rtl";
+  submit: (text: string) => Promise<void>;
+}) {
+  const [value, setValue] = useState("");
+  const [mode, setMode] = useState<LandingMode>("work");
+  const preferredLanguage = direction === "rtl" ? "fa-IR" : "en-US";
+  const dictation = useLiveDictation({
+    enabled: true,
+    onSegment: (segment) => {
+      setValue((current) => appendConfirmedTranscript(current, segment));
+    },
+    preferredLanguage,
+    sessionKey: "landing-home",
+  });
+  const quickStarts = copy.suggestions.slice(0, 3);
+
+  return (
+    <main id="vitarish-landing-main" className="landing-work-home" aria-label={copy.workspace} dir={direction}>
+      <a className="vitarish-skip-link" href="#vitarish-landing-main">{copy.skip}</a>
+      <aside className="landing-work-rail" aria-label={copy.workspace}>
+        <a className="landing-rail-mark" href="/" aria-label={copy.app}>
+          <img src="/512.webp" alt="" />
+        </a>
+        <nav className="landing-rail-nav" aria-label={copy.workspace}>
+          <a href="/" aria-label={copy.newChat} title={copy.newChat}><i className="fa-light fa-pen-to-square" aria-hidden="true" /></a>
+          <a href="/explore" aria-label={copy.explore} title={copy.explore}><i className="fa-light fa-magnifying-glass" aria-hidden="true" /></a>
+          <a href="/portfolio" aria-label={copy.portfolio} title={copy.portfolio}><i className="fa-light fa-thumbtack" aria-hidden="true" /></a>
+          <a href="/contact" aria-label={copy.contact} title={copy.contact}><i className="fa-light fa-message" aria-hidden="true" /></a>
+        </nav>
+        <span className="landing-rail-avatar" role="img" aria-label={copy.app}>V</span>
+      </aside>
+
+      <section className="landing-work-stage">
+        <Tabs
+          className="landing-mode-switch"
+          selectedKey={mode}
+          onSelectionChange={(key: Key) => setMode(String(key) as LandingMode)}
+        >
+          <Tabs.ListContainer>
+            <Tabs.List aria-label={copy.modeLabel}>
+              <Tabs.Tab id="chat">
+                {copy.chatMode}
+                <Tabs.Indicator />
+              </Tabs.Tab>
+              <Tabs.Tab id="work">
+                {copy.workMode}
+                <Tabs.Indicator />
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs.ListContainer>
+        </Tabs>
+
+        <div className="landing-work-center">
+          <h1>{mode === "work" ? copy.workHomeTitle : copy.chatHomeTitle}</h1>
+          <ChatPromptInput
+            actions={
+              <>
+                <LiveDictation controller={dictation} />
+              </>
+            }
+            direction={direction}
+            label={copy.promptLabel}
+            placeholder={mode === "work" ? copy.workHomePlaceholder : copy.chatHomePlaceholder}
+            submitLabel={copy.send}
+            value={value}
+            onChange={setValue}
+            onSubmit={async (text) => {
+              setValue("");
+              await submit(text);
+            }}
+            toolbarStart={
+              <PluginPicker
+                copy={copy}
+                iconOnly
+              />
+            }
+          />
+          <div className="landing-work-links">
+            <EmptyResourcePopover
+              icon="folder"
+              label={copy.chooseProject}
+              title={copy.projectsEmpty}
+              description={copy.projectsEmptyDescription}
+            />
+            <PluginPicker copy={copy} />
+          </div>
+          <div className="landing-quick-starts">
+            {quickStarts.map((item) => (
+              <Button
+                key={item.text}
+                className="landing-quick-start"
+                size="sm"
+                variant="ghost"
+                onPress={() => void submit(item.text)}
+              >
+                <FaIcon aria-hidden="true" icon={item.icon} />
+                <span>{item.text}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function PluginPicker({
+  copy,
+  iconOnly = false,
+}: {
+  copy: ReturnType<typeof useLandingCopy>["t"];
+  iconOnly?: boolean;
+}) {
+  return (
+    <Popover>
+      <Tooltip>
+        <Button
+          aria-label={copy.plugins}
+          className={iconOnly ? "landing-prompt-plugin" : "landing-work-link"}
+          isIconOnly={iconOnly}
+          size="sm"
+          variant="ghost"
+        >
+          <FaIcon aria-hidden="true" icon={iconOnly ? "plus" : "puzzle-piece"} />
+          {iconOnly ? null : copy.plugins}
+        </Button>
+        <Tooltip.Content>{copy.plugins}</Tooltip.Content>
+      </Tooltip>
+      <Popover.Content className="landing-empty-popover">
+        <Popover.Dialog>
+          <Popover.Heading>{copy.pluginsEmpty}</Popover.Heading>
+          <p>{copy.pluginsEmptyDescription}</p>
+        </Popover.Dialog>
+      </Popover.Content>
+    </Popover>
+  );
+}
+
+function EmptyResourcePopover({
+  description,
+  icon,
+  label,
+  title,
+}: {
+  description: string;
+  icon: string;
+  label: string;
+  title: string;
+}) {
+  return (
+    <Popover>
+      <Button
+        aria-label={label}
+        className="landing-work-link"
+        size="sm"
+        variant="ghost"
+      >
+        <FaIcon aria-hidden="true" icon={icon} />
+        {label}
+      </Button>
+      <Popover.Content className="landing-empty-popover">
+        <Popover.Dialog>
+          <Popover.Heading>{title}</Popover.Heading>
+          <p>{description}</p>
+        </Popover.Dialog>
+      </Popover.Content>
+    </Popover>
   );
 }
