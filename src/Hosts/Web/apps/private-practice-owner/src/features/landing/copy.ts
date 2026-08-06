@@ -1,3 +1,10 @@
+import { useLocalizedText } from "@/localization";
+
+export function useLandingCopy() {
+  const { t } = useLocalizedText();
+  return (key: string) => t(`practiceLanding.${key}`);
+}
+
 export const landingCopy = {
   navLabel: "Primary navigation",
   footerLabel: "Footer navigation",
