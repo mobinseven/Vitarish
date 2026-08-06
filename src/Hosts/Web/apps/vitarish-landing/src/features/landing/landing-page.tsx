@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type Key } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Button, Label, ListBox, Popover, Select, Tabs } from "@heroui/react";
+import { Button, Popover, Tabs, Tooltip } from "@heroui/react";
 import {
   appendConfirmedTranscript,
   LiveDictation,
@@ -128,11 +128,6 @@ export function LandingPage() {
 
 type LandingMode = "chat" | "work";
 
-type LandingModel = {
-  id: string;
-  label: string;
-};
-
 function LandingInitialHome({
   copy,
   direction,
@@ -144,7 +139,6 @@ function LandingInitialHome({
 }) {
   const [value, setValue] = useState("");
   const [mode, setMode] = useState<LandingMode>("work");
-  const [selectedModel, setSelectedModel] = useState("balanced");
   const preferredLanguage = direction === "rtl" ? "fa-IR" : "en-US";
   const dictation = useLiveDictation({
     enabled: true,
@@ -154,19 +148,11 @@ function LandingInitialHome({
     preferredLanguage,
     sessionKey: "landing-home",
   });
-  const models = useMemo<LandingModel[]>(
-    () => [
-      { id: "fast", label: copy.modelFast },
-      { id: "balanced", label: copy.modelBalanced },
-      { id: "reasoning", label: copy.modelReasoning },
-    ],
-    [copy.modelBalanced, copy.modelFast, copy.modelReasoning],
-  );
-  const selectedModelLabel = models.find((item) => item.id === selectedModel)?.label ?? copy.modelBalanced;
   const quickStarts = copy.suggestions.slice(0, 3);
 
   return (
-    <main className="landing-work-home" aria-label={copy.workspace} dir={direction}>
+    <main id="vitarish-landing-main" className="landing-work-home" aria-label={copy.workspace} dir={direction}>
+      <a className="vitarish-skip-link" href="#vitarish-landing-main">{copy.skip}</a>
       <aside className="landing-work-rail" aria-label={copy.workspace}>
         <a className="landing-rail-mark" href="/" aria-label={copy.app}>
           <img src="/512.webp" alt="" />
@@ -205,13 +191,6 @@ function LandingInitialHome({
           <ChatPromptInput
             actions={
               <>
-                <ModelSelector
-                  copy={copy}
-                  models={models}
-                  selectedModel={selectedModel}
-                  selectedModelLabel={selectedModelLabel}
-                  onChange={setSelectedModel}
-                />
                 <LiveDictation controller={dictation} />
               </>
             }
@@ -261,46 +240,6 @@ function LandingInitialHome({
   );
 }
 
-function ModelSelector({
-  copy,
-  models,
-  selectedModel,
-  selectedModelLabel,
-  onChange,
-}: {
-  copy: ReturnType<typeof useLandingCopy>["t"];
-  models: LandingModel[];
-  selectedModel: string;
-  selectedModelLabel: string;
-  onChange: (model: string) => void;
-}) {
-  return (
-    <Select
-      aria-label={copy.modelSelector}
-      className="landing-model-select"
-      value={selectedModel}
-      variant="secondary"
-      onChange={(key) => onChange(String(key))}
-    >
-      <Label className="sr-only">{copy.modelSelector}</Label>
-      <Select.Trigger>
-        <Select.Value>{selectedModelLabel}</Select.Value>
-        <Select.Indicator />
-      </Select.Trigger>
-      <Select.Popover>
-        <ListBox>
-          {models.map((model) => (
-            <ListBox.Item key={model.id} id={model.id} textValue={model.label}>
-              {model.label}
-              <ListBox.ItemIndicator />
-            </ListBox.Item>
-          ))}
-        </ListBox>
-      </Select.Popover>
-    </Select>
-  );
-}
-
 function PluginPicker({
   copy,
   iconOnly = false,
@@ -310,16 +249,19 @@ function PluginPicker({
 }) {
   return (
     <Popover>
-      <Button
-        aria-label={copy.plugins}
-        className={iconOnly ? "landing-prompt-plugin" : "landing-work-link"}
-        isIconOnly={iconOnly}
-        size="sm"
-        variant="ghost"
-      >
-        <FaIcon aria-hidden="true" icon={iconOnly ? "plus" : "puzzle-piece"} />
-        {iconOnly ? null : copy.plugins}
-      </Button>
+      <Tooltip>
+        <Button
+          aria-label={copy.plugins}
+          className={iconOnly ? "landing-prompt-plugin" : "landing-work-link"}
+          isIconOnly={iconOnly}
+          size="sm"
+          variant="ghost"
+        >
+          <FaIcon aria-hidden="true" icon={iconOnly ? "plus" : "puzzle-piece"} />
+          {iconOnly ? null : copy.plugins}
+        </Button>
+        <Tooltip.Content>{copy.plugins}</Tooltip.Content>
+      </Tooltip>
       <Popover.Content className="landing-empty-popover">
         <Popover.Dialog>
           <Popover.Heading>{copy.pluginsEmpty}</Popover.Heading>
