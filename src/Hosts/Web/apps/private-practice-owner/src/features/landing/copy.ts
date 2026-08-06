@@ -1,0 +1,34 @@
+import { useLocalizedText } from "@/localization";
+
+export function useLandingCopy() {
+  const { t } = useLocalizedText();
+  return (key: string) => t(`practiceLanding.${key}`);
+}
+
+export const landingCopy = {
+  navLabel: "Primary navigation",
+  footerLabel: "Footer navigation",
+  eyebrow: "For private-practice owners",
+  title: "Keep every patient and practice detail in view.",
+  description: "Vitarish is an AI-native operating workspace for patient context, progress, appointments, providers, and the everyday work that keeps care moving.",
+  today: "Today at the practice",
+  live: "Live workspace",
+  progress: "Patient progress",
+  appointments: "Appointments",
+  providers: "Across 4 providers",
+  next: "Next meaningful action",
+  review: "Review the latest routine update before the afternoon shift.",
+  activeRoutines: "24 active routines",
+  needsReview: "Needs review · 3",
+  todayAppointments: "18 today",
+  capabilitiesEyebrow: "One operating view",
+  capabilitiesTitle: "Built around the work your team already does.",
+  capabilitiesDescription: "Bring the patient story and practice operations together without adding another maze of tools.",
+  workflowEyebrow: "A calmer workflow",
+  workflowTitle: "From incoming detail to a clear next step.",
+  aiEyebrow: "Responsible AI",
+  aiTitle: "Guidance that supports judgment, not replaces it.",
+  aiDescription: "Vitarish helps teams find context and decide what to do next. Your practice stays accountable for clinical decisions, documentation, and patient care.",
+  ctaTitle: "Make the practice easier to keep current.",
+  ctaDescription: "Start with the workspace your team can use today.",
+} as const;
