@@ -1,5 +1,5 @@
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
-import { Button, Card, Link } from "@heroui/react";
+import { Button, Card, Link, Tooltip } from "@heroui/react";
 import { ItemCard, ItemCardGroup, Navbar } from "@heroui-pro/react";
 import { Carousel as HeroCarousel } from "@heroui-pro/react/carousel";
 import { PageContainer } from "./layout";
@@ -15,6 +15,8 @@ export type MarketingAction = {
   onPress?: () => void;
   isDisabled?: boolean;
   isPending?: boolean;
+  tooltip?: ReactNode;
+  icon?: ReactNode;
 };
 
 const actionClasses = (tone: MarketingAction["tone"]) => cx(
@@ -33,30 +35,38 @@ export function MarketingActionLink({
   const tone = action.tone ?? "primary";
   const classes = cx(actionClasses(tone), fullWidth && "w-full", className);
 
+  const content = <><span>{action.label}</span>{action.icon ?? <i aria-hidden="true" className="fa-light fa-arrow-right ms-2" />}</>;
+
   if (action.href) {
     return (
-      <Link
-        href={action.href}
-        target={action.external ? "_blank" : undefined}
-        rel={action.external ? "noreferrer" : undefined}
-        aria-disabled={action.isDisabled || undefined}
-        className={classes}
-        onPress={action.onPress}
-      >
-        {action.label}
-      </Link>
+      <Tooltip>
+        <Link
+          href={action.isDisabled ? undefined : action.href}
+          target={action.external ? "_blank" : undefined}
+          rel={action.external ? "noreferrer" : undefined}
+          aria-disabled={action.isDisabled || undefined}
+          className={classes}
+          onPress={action.isDisabled ? undefined : action.onPress}
+        >
+          {content}
+        </Link>
+        <Tooltip.Content>{action.tooltip ?? action.label}</Tooltip.Content>
+      </Tooltip>
     );
   }
 
   return (
-    <Button
-      className={classes}
-      isDisabled={action.isDisabled}
-      isPending={action.isPending}
-      onPress={action.onPress}
-    >
-      {action.label}
-    </Button>
+    <Tooltip>
+      <Button
+        className={classes}
+        isDisabled={action.isDisabled}
+        isPending={action.isPending}
+        onPress={action.onPress}
+      >
+        {content}
+      </Button>
+      <Tooltip.Content>{action.tooltip ?? action.label}</Tooltip.Content>
+    </Tooltip>
   );
 }
 
@@ -81,7 +91,7 @@ export function MarketingHeader({
           <Navbar.Spacer />
           <Navbar.Content className="hidden gap-5 lg:flex">
             {navigation.map((item) => (
-              <Navbar.Item key={item.href} href={item.href}>{item.label}</Navbar.Item>
+              <Navbar.Item key={item.href} href={item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noreferrer" : undefined}>{item.label}</Navbar.Item>
             ))}
           </Navbar.Content>
           <Navbar.Spacer />
@@ -99,7 +109,7 @@ export function MarketingHeader({
       </Navbar.Header>
       <Navbar.Menu>
         {navigation.map((item) => (
-          <Navbar.MenuItem key={item.href} href={item.href}>{item.label}</Navbar.MenuItem>
+          <Navbar.MenuItem key={item.href} href={item.href} target={item.external ? "_blank" : undefined} rel={item.external ? "noreferrer" : undefined}>{item.label}</Navbar.MenuItem>
         ))}
         {actions.map((action, index) => (
           <Navbar.MenuItem key={`${action.href ?? "action"}-${index}`}>
@@ -219,7 +229,8 @@ export function MarketingSectionHeading({ eyebrow, title, description, className
   );
 }
 
-export const FeatureItemCard = Object.assign(ItemCard, {
+function FeatureItemCardRoot(props: ComponentProps<typeof ItemCard>) { return <ItemCard {...props} />; }
+export const FeatureItemCard = Object.assign(FeatureItemCardRoot, {
   Root: ItemCard.Root,
   Icon: ItemCard.Icon,
   Content: ItemCard.Content,
@@ -228,7 +239,8 @@ export const FeatureItemCard = Object.assign(ItemCard, {
   Action: ItemCard.Action,
 });
 
-export const FeatureItemGroup = Object.assign(ItemCardGroup, {
+function FeatureItemGroupRoot(props: ComponentProps<typeof ItemCardGroup>) { return <ItemCardGroup {...props} />; }
+export const FeatureItemGroup = Object.assign(FeatureItemGroupRoot, {
   Root: ItemCardGroup.Root,
   Header: ItemCardGroup.Header,
   Title: ItemCardGroup.Title,
@@ -313,5 +325,5 @@ export function MarketingFinalCta({ title, description, actions = [], className 
 }
 
 export function MarketingFooter({ brand, description, links = [], navigationLabel }: { brand: ReactNode; description?: ReactNode; links?: MarketingLink[]; navigationLabel?: string }) {
-  return <footer className="border-t border-default py-10"><PageContainer className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><div>{brand}</div>{description && <p className="mt-2 max-w-md text-sm text-muted">{description}</p>}</div><nav aria-label={navigationLabel} className="flex flex-wrap gap-4">{links.map((link) => <Link key={link.href} href={link.href} target={link.external ? "_blank" : undefined} rel={link.external ? "noreferrer" : undefined} className="text-sm text-muted">{link.label}</Link>)}</nav></PageContainer></footer>;
+  return <div className="border-t border-default py-10"><PageContainer className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><div>{brand}</div>{description && <p className="mt-2 max-w-md text-sm text-muted">{description}</p>}</div><nav aria-label={navigationLabel} className="flex flex-wrap gap-4">{links.map((link) => <Link key={link.href} href={link.href} target={link.external ? "_blank" : undefined} rel={link.external ? "noreferrer" : undefined} className="text-sm text-muted">{link.label}</Link>)}</nav></PageContainer></div>;
 }
