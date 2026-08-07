@@ -18,7 +18,7 @@ namespace Vitarish.Communications.Infrastructure.Migrations.CommunicationsDb
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("Communications")
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -44,6 +44,12 @@ namespace Vitarish.Communications.Infrastructure.Migrations.CommunicationsDb
                     b.Property<int>("Kind")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ProviderMessageId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ProviderSubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Recipient")
                         .IsRequired()
                         .HasColumnType("text");
@@ -60,8 +66,19 @@ namespace Vitarish.Communications.Infrastructure.Migrations.CommunicationsDb
                     b.Property<Guid>("SourceId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("SourceKind")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Subject")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TemplatePurpose")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TemplateVariablesJson")
                         .HasColumnType("text");
 
                     b.Property<string>("TenantId")
@@ -84,6 +101,73 @@ namespace Vitarish.Communications.Infrastructure.Migrations.CommunicationsDb
                     b.ToTable("Reminders", "Communications");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
+
+            modelBuilder.Entity("Vitarish.Communications.Domain.Entities.ReminderDeliveryAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AttemptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Failure")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ProviderMessageId")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ReminderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReminderId", "AttemptedAt");
+
+                    b.ToTable("ReminderDeliveryAttempts", "Communications");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
+
+            modelBuilder.Entity("Vitarish.Communications.Domain.Entities.ReminderDeliveryAttempt", b =>
+                {
+                    b.HasOne("Vitarish.Communications.Domain.Entities.Reminder", "Reminder")
+                        .WithMany()
+                        .HasForeignKey("ReminderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reminder");
                 });
 #pragma warning restore 612, 618
         }

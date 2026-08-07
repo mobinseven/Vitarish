@@ -8,6 +8,24 @@ public class Reminder : Entity
         set => SetField(ref field, value, nameof(SourceId));
     }
 
+    public string SourceKind
+    {
+        get;
+        set => SetField(ref field, value, nameof(SourceKind));
+    } = "manual";
+
+    public string TemplatePurpose
+    {
+        get;
+        set => SetField(ref field, value, nameof(TemplatePurpose));
+    } = string.Empty;
+
+    public string? TemplateVariablesJson
+    {
+        get;
+        set => SetField(ref field, value, nameof(TemplateVariablesJson));
+    }
+
     public ReminderKind Kind
     {
         get;
@@ -52,7 +70,25 @@ public class Reminder : Entity
 
     public bool IsSent => SentAt != null;
 
+    public string? ProviderMessageId
+    {
+        get;
+        private set => SetField(ref field, value, nameof(ProviderMessageId));
+    }
+
+    public DateTime? ProviderSubmittedAt
+    {
+        get;
+        private set => SetField(ref field, value, nameof(ProviderSubmittedAt));
+    }
+
     public void MarkSent(DateTime sentAt) => SentAt = sentAt;
+
+    public void RecordProviderSubmission(string providerMessageId, DateTime submittedAt)
+    {
+        ProviderMessageId = providerMessageId;
+        ProviderSubmittedAt = submittedAt;
+    }
 
     public void SetKind(ReminderKind kind) => Kind = kind;
 }

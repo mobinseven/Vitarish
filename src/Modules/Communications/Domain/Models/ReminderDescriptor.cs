@@ -4,6 +4,7 @@ namespace Vitarish.Communications.Domain.Models;
 public record ReminderDescriptor : EntityDescriptor
 {
     public Guid? SourceId { get; init; }
+    public string? SourceKind { get; init; }
     public ReminderKind? Kind { get; init; }
     public string? RecipientUserId { get; init; }
     public DateTime? RemindFrom { get; init; }

@@ -64,7 +64,7 @@ public class MessagesService(IOptionsMonitor<ProvidersOptions> providersOptions,
     public Task SendSmsReminder(string receipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default) =>
         smsProvider.SendReminder(receipient, project, procedure, evnt, tenant, cancellationToken);
 
-    public Task SendTemplatedSms(string recipient, string templateId, IReadOnlyDictionary<string, string> parameters, CancellationToken cancellationToken = default) =>
+    public Task<SmsSendResult> SendTemplatedSms(string recipient, string templateId, IReadOnlyDictionary<string, string> parameters, CancellationToken cancellationToken = default) =>
         smsProvider.SendTemplatedSms(recipient, templateId, parameters, cancellationToken);
 
     public Task<SmsDeliveryState> GetSmsDeliveryStateAsync(long messageId, CancellationToken cancellationToken = default) =>

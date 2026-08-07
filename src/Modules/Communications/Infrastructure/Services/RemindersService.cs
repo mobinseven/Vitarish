@@ -1,7 +1,7 @@
 namespace Vitarish.Communications.Infrastructure.Services;
 
 [RegisterTransient]
-internal class RemindersService(IMediator mediator) : EntityService<Reminder, ReminderDescriptor, ReminderReadDto, ReminderWriteDto, ReminderDescriptorDto>
+internal class RemindersService(IMediator mediator, CommunicationsDbContext db) : EntityService<Reminder, ReminderDescriptor, ReminderReadDto, ReminderWriteDto, ReminderDescriptorDto>
     (
         mediator,
         reminder => reminder.ToRead(),
@@ -16,12 +16,18 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
         string subject,
         string textBody,
         DateTime remindAt,
+        string sourceKind,
+        string templatePurpose,
+        string? templateVariablesJson,
         CancellationToken cancellationToken)
     {
         List<Reminder> reminders = [
             .. recipients.Select(r => new Reminder
             {
                 SourceId = sourceId,
+                SourceKind = sourceKind,
+                TemplatePurpose = templatePurpose,
+                TemplateVariablesJson = templateVariablesJson,
                 Kind = r.Kind,
                 RecipientUserId = r.RecipientUserId,
                 Recipient = r.Recipient,
@@ -44,6 +50,9 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
         string subject,
         string textBody,
         DateTime remindAt,
+        string? sourceKind,
+        string? templatePurpose,
+        string? templateVariablesJson,
         CancellationToken cancellationToken)
     {
         Reminder? reminder = (await GetEntityAsync(
@@ -61,6 +70,9 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
         reminder.Subject = subject;
         reminder.TextBody = textBody;
         reminder.RemindAt = remindAt;
+        if (!string.IsNullOrWhiteSpace(sourceKind)) reminder.SourceKind = sourceKind;
+        if (!string.IsNullOrWhiteSpace(templatePurpose)) reminder.TemplatePurpose = templatePurpose;
+        reminder.TemplateVariablesJson = templateVariablesJson;
 
         Reminder updated = (await UpdateEntityAsync(reminder, cancellationToken))
             .EnsureValue("Update reminder");
@@ -76,4 +88,30 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
                 cancellationToken)).EnsureValue("Get due reminders");
 
     public async Task MarkSentAsync(Guid id, DateTime sentAt, CancellationToken cancellationToken) => await Mediator.Send(new MarkReminderSentCommand(id, sentAt), cancellationToken);
+
+    public async Task RecordProviderSubmissionAsync(Guid id, string providerMessageId, DateTime submittedAt, CancellationToken cancellationToken)
+    {
+        Reminder? reminder = (await GetEntityAsync(id, cancellationToken)).GetValueOrDefault();
+        if (reminder is null) throw new InvalidOperationException("Reminder was not found.");
+        reminder.RecordProviderSubmission(providerMessageId, submittedAt);
+        _ = await UpdateEntityAsync(reminder, cancellationToken);
+    }
+
+    public async Task RecordDeliveryAttemptAsync(Guid id, ReminderKind kind, DateTime attemptedAt, bool succeeded, string? providerMessageId, string? failure, CancellationToken cancellationToken)
+    {
+        Reminder? reminder = await db.Reminders.SingleOrDefaultAsync(reminder => reminder.Id == id, cancellationToken);
+        if (reminder is null) throw new InvalidOperationException("Reminder was not found.");
+        if (succeeded && !string.IsNullOrWhiteSpace(providerMessageId))
+            reminder.RecordProviderSubmission(providerMessageId, attemptedAt);
+        _ = await db.ReminderDeliveryAttempts.AddAsync(new ReminderDeliveryAttempt
+        {
+            ReminderId = id,
+            Kind = kind,
+            AttemptedAt = attemptedAt,
+            Succeeded = succeeded,
+            ProviderMessageId = providerMessageId,
+            Failure = failure is null ? null : failure.Length <= 1000 ? failure : failure[..1000]
+        }, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+    }
 }
