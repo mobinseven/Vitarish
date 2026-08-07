@@ -14,6 +14,7 @@ public sealed record ImportMedicalCodeItemRequest(string Code, string DisplayNam
 public sealed record GetImportBatchRequest(Guid ImportBatchId);
 public sealed record GetPrescriptionRequest { public required Guid PrescriptionId { get; init; } }
 public sealed record ListPatientPrescriptionsRequest(Guid? PatientId = null, Guid? EncounterId = null, Guid? ClinicId = null, MedicalPrescriptionStatus? StatusFilter = null, string? ProviderKeyFilter = null, DateTime? FromDate = null, DateTime? ToDate = null, int Skip = 0, int Take = 20);
+public sealed record GetPatientPrescriptionDashboardRequest(Guid PatientId, Guid? ClinicId = null, int AttentionTake = 8);
 public sealed record CreatePrescriptionDraftRequest(Guid PatientId, string? PatientNationalId, Guid DoctorId, Guid ClinicId);
 public sealed record UpdatePrescriptionDraftRequest(Guid PrescriptionId, string? PatientNationalId);
 public sealed record AddPrescriptionItemRequest { public Guid PrescriptionId { get; init; } public MedicalPrescriptionItemCategory Category { get; init; } public string? ReferenceCode { get; init; } public string? DisplayName { get; init; } public string? DosageJson { get; init; } public int Quantity { get; init; } public int? DurationDays { get; init; } }

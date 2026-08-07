@@ -61,6 +61,7 @@ public static class MedicalApiEndpointMapping
         _ = group.MapModulePost(MedicalApiRoutes.RetireDrug, RetireDrugAsync, "MedicalRetireDrug");
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionById, GetPrescriptionAsync, "MedicalGetPrescription", typeof(PrescriptionDto));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionHistory, ListPatientPrescriptionsAsync, "MedicalListPatientPrescriptions", typeof(IReadOnlyList<PrescriptionSummaryDto>));
+        _ = group.MapModulePost(MedicalApiRoutes.PrescriptionDashboard, GetPatientPrescriptionDashboardAsync, "MedicalGetPatientPrescriptionDashboard", typeof(PatientPrescriptionDashboardDto));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionDrafts, CreatePrescriptionDraftAsync, "MedicalCreatePrescriptionDraft", typeof(MedicalCommandResult));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionDrafts + "/update", UpdatePrescriptionDraftAsync, "MedicalUpdatePrescriptionDraft", typeof(MedicalCommandResult));
         _ = group.MapModulePost(MedicalApiRoutes.PrescriptionItems, AddPrescriptionItemAsync, "MedicalAddPrescriptionItem", typeof(MedicalCommandResult));
@@ -183,6 +184,12 @@ public static class MedicalApiEndpointMapping
 
     private static async Task<IResult> GetPrescriptionAsync(Guid prescriptionId, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetPrescriptionQuery { PrescriptionId = prescriptionId }, ct));
     private static async Task<IResult> ListPatientPrescriptionsAsync(ListPatientPrescriptionsRequest request, IMediator mediator, CancellationToken ct) => Ok(await mediator.Send(new AQ.GetPrescriptionHistoryQuery { PatientId = request.PatientId, EncounterId = request.EncounterId, ClinicId = request.ClinicId, StatusFilter = request.StatusFilter is null ? null : (DEP.PrescriptionStatus)request.StatusFilter, ProviderKeyFilter = request.ProviderKeyFilter, FromDate = request.FromDate, ToDate = request.ToDate, Skip = request.Skip, Take = request.Take }, ct));
+    private static async Task<IResult> GetPatientPrescriptionDashboardAsync(GetPatientPrescriptionDashboardRequest request, IMediator mediator, CancellationToken ct)
+    {
+        if (request.PatientId == Guid.Empty || request.AttentionTake is < 1 or > 50) return Results.BadRequest();
+        AQ.PatientPrescriptionDashboardDto result = await mediator.Send(new AQ.GetPatientPrescriptionDashboardQuery { PatientId = request.PatientId, ClinicId = request.ClinicId, AttentionTake = request.AttentionTake }, ct);
+        return Ok(new PatientPrescriptionDashboardDto { TotalCount = result.TotalCount, AttentionCount = result.AttentionCount, AttentionQueue = result.AttentionQueue.Select(item => new PrescriptionSummaryDto { Id = item.Id, EncounterId = item.EncounterId, Status = (MedicalPrescriptionStatus)item.Status, SelectedProviderKey = item.SelectedProviderKey, ItemCount = item.ItemCount, CreatedAt = item.CreatedAt, SubmittedAt = item.SubmittedAt, TrackingCode = item.TrackingCode, ItemDisplayNames = item.ItemDisplayNames }).ToList() });
+    }
     private static async Task<IResult> CreatePrescriptionDraftAsync(CreatePrescriptionDraftRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.CreateDraftCommand { PatientId = request.PatientId, PatientNationalId = request.PatientNationalId, DoctorId = request.DoctorId, ClinicId = request.ClinicId }, ct));
     private static Task<IResult> UpdatePrescriptionDraftAsync(UpdatePrescriptionDraftRequest request, CancellationToken ct) => Task.FromResult<IResult>(Ok(new MedicalCommandResult(request.PrescriptionId)));
     private static async Task<IResult> AddPrescriptionItemAsync(Guid prescriptionId, AddPrescriptionItemRequest request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new AP.AddItemCommand { PrescriptionId = prescriptionId, Category = (DEP.PrescriptionItemCategory)request.Category, ReferenceCode = request.ReferenceCode, DisplayName = request.DisplayName, DosageJson = request.DosageJson, Quantity = request.Quantity, DurationDays = request.DurationDays }, ct));

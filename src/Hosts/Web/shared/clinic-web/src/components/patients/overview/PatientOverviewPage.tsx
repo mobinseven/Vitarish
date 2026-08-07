@@ -23,6 +23,8 @@ import { PatientOverviewHeader } from "./PatientOverviewHeader";
 import { PatientProfileCard } from "./PatientProfileCard";
 import { PatientPrescriptionSubmissionSheet } from "../prescriptions/PatientPrescriptionSubmissionSheet";
 import { PatientAgentPanel } from "../../../features/patient-agent/PatientAgentPanel";
+import { PatientPrescriptionDashboard, patientPrescriptionHistoryQueryKey } from "../prescriptions/PatientPrescriptionDashboard";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface PatientOverviewPageProps {
   patientId: string;
@@ -38,6 +40,7 @@ export function PatientOverviewPage({
   const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
   const [hasVisits, setHasVisits] = useState(false);
   const [isNewVisitOpen, setIsNewVisitOpen] = useState(false);
+  const queryClient = useQueryClient();
   const { data: patient, isLoading, error } = usePatientDetail(patientId);
   const { visitsProcedure } = useEnsurePatientVisitsProcedure(
     patientId,
@@ -162,6 +165,7 @@ export function PatientOverviewPage({
           </div>
         </Card.Content>
       </Card>
+      <div className="hidden md:block"><PatientPrescriptionDashboard patientId={patientId} onNewPrescription={() => setIsPrescriptionOpen(true)} /></div>
       <div className="hidden" aria-hidden="true">
         <PatientVisitsPanel
           patientId={patientId}
@@ -221,12 +225,13 @@ export function PatientOverviewPage({
       </div>
       <Widget className="md:hidden">
         <Widget.Content>
-          <Tabs defaultSelectedKey="procedures" className="w-full">
+          <Tabs defaultSelectedKey="prescriptions" className="w-full">
             <Tabs.ListContainer className="flex justify-center border-b border-border px-1">
               <Tabs.List
                 aria-label={t("clinic.patient.overview.title")}
                 className="w-full justify-between sm:w-auto sm:justify-center"
               >
+                <Tabs.Tab id="prescriptions" className="min-h-12 px-3 text-base sm:px-5"><FaIcon icon="prescription-bottle-medical" aria-hidden="true" className="mr-2" />{t("clinic.prescriptionFeed.title")}<Tabs.Indicator /></Tabs.Tab>
                 <Tabs.Tab
                   id="procedures"
                   className="min-h-12 px-3 text-base sm:px-5"
@@ -257,6 +262,7 @@ export function PatientOverviewPage({
                 </Tabs.Tab>
               </Tabs.List>
             </Tabs.ListContainer>
+            <Tabs.Panel id="prescriptions" className="pt-4"><PatientPrescriptionDashboard patientId={patientId} onNewPrescription={() => setIsPrescriptionOpen(true)} /></Tabs.Panel>
             <Tabs.Panel id="procedures" className="pt-4">
               {hasVisits ? (
                 <div className="mb-4">
@@ -295,6 +301,7 @@ export function PatientOverviewPage({
         isOpen={isPrescriptionOpen}
         onOpenChange={setIsPrescriptionOpen}
         onCreated={(eventId) => {
+          void queryClient.invalidateQueries({ queryKey: patientPrescriptionHistoryQueryKey(patientId) });
           if (!visitsProcedure) return;
           setIsPrescriptionOpen(false);
           onNavigate({

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Application.Queries.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
+using Vitarish.Medical.Domain.Enums.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
@@ -135,6 +136,21 @@ public sealed class GetPrescriptionHistoryHandler(PrescriptionDbContext dbContex
                     .ToList()
             })
             .ToListAsync(cancellationToken);
+    }
+}
+
+public sealed class GetPatientPrescriptionDashboardHandler(PrescriptionDbContext dbContext)
+    : IRequestHandler<GetPatientPrescriptionDashboardQuery, PatientPrescriptionDashboardDto>
+{
+    public async Task<PatientPrescriptionDashboardDto> Handle(GetPatientPrescriptionDashboardQuery request, CancellationToken cancellationToken)
+    {
+        var query = dbContext.Prescriptions.AsNoTracking().Where(p => p.PatientId == request.PatientId);
+        if (request.ClinicId.HasValue) query = query.Where(p => p.ClinicId == request.ClinicId.Value);
+        var terminal = new[] { PrescriptionStatus.AcceptedByProvider, PrescriptionStatus.Cancelled, PrescriptionStatus.PaperFallback, PrescriptionStatus.ManuallyReconciled };
+        var total = await query.CountAsync(cancellationToken);
+        var attention = await query.Where(p => !terminal.Contains(p.Status)).OrderByDescending(p => p.CreatedAt).Take(request.AttentionTake).Select(p => new PrescriptionSummaryDto { Id = p.Id, EncounterId = p.EncounterId, Status = p.Status, SelectedProviderKey = p.SelectedProviderKey, ItemCount = p.Items.Count, CreatedAt = p.CreatedAt, SubmittedAt = p.SubmittedAt, ItemDisplayNames = p.Items.OrderBy(i => i.SortOrder).Where(i => i.DisplayName != null).Select(i => i.DisplayName!).Take(3).ToList() }).ToListAsync(cancellationToken);
+        var attentionCount = await query.CountAsync(p => !terminal.Contains(p.Status), cancellationToken);
+        return new PatientPrescriptionDashboardDto { TotalCount = total, AttentionCount = attentionCount, AttentionQueue = attention };
     }
 }
 
