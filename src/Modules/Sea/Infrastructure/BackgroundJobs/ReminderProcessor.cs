@@ -95,19 +95,25 @@ public class ReminderProcessor(
             return;
         }
 
-        try
+        if (reminder.DeliveryAcceptedAt is not null)
         {
-        if (!string.IsNullOrWhiteSpace(reminder.TemplatePurpose))
-        {
-            await ProcessAgentTemplateReminderAsync(tenantContext, reminder, now, cancellationToken);
+            await tenantContext.RemindersService.MarkSentAsync(reminder.Id, reminder.DeliveryAcceptedAt.Value, cancellationToken);
             return;
         }
 
+        try
+        {
         // Pre-rendered reminders (e.g. from session reminder policies) carry fully rendered
         // subject and body so they can be sent directly without looking up the Sea source entity.
         if (!string.IsNullOrWhiteSpace(reminder.TextBody))
         {
             await SendPreRenderedReminderAsync(tenantContext, reminder, now, cancellationToken);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(reminder.TemplatePurpose))
+        {
+            await ProcessAgentTemplateReminderAsync(tenantContext, reminder, now, cancellationToken);
             return;
         }
 
@@ -238,6 +244,7 @@ public class ReminderProcessor(
         ResolvedNotificationTemplate template = await tenantContext.TemplateResolver.ResolveAsync(locale, purpose, cancellationToken)
             ?? throw new InvalidOperationException($"No notification template resolved for reminder {reminder.Id}.");
         string Replace(string value) => variables.Aggregate(value, (current, pair) => current.Replace("{" + pair.Key + "}", pair.Value, StringComparison.Ordinal));
+        string ReplaceHtml(string value) => variables.Aggregate(value, (current, pair) => current.Replace("{" + pair.Key + "}", System.Net.WebUtility.HtmlEncode(pair.Value), StringComparison.Ordinal));
         string? providerMessageId = null;
 
         switch (reminder.Kind)
@@ -248,7 +255,7 @@ public class ReminderProcessor(
                     Recipient = reminder.Recipient,
                     Subject = Replace(template.EmailSubject),
                     Body = Replace(template.EmailTextBody),
-                    HtmlBody = Replace(template.EmailHtmlBody ?? $"<p>{System.Net.WebUtility.HtmlEncode(template.EmailTextBody)}</p>"),
+                    HtmlBody = template.EmailHtmlBody is null ? $"<p>{System.Net.WebUtility.HtmlEncode(Replace(template.EmailTextBody))}</p>" : ReplaceHtml(template.EmailHtmlBody),
                     Sender = null
                 }, cancellationToken);
                 break;

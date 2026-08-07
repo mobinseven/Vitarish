@@ -82,13 +82,22 @@ public class Reminder : Entity
         private set => SetField(ref field, value, nameof(ProviderSubmittedAt));
     }
 
+    public DateTime? DeliveryAcceptedAt
+    {
+        get;
+        private set => SetField(ref field, value, nameof(DeliveryAcceptedAt));
+    }
+
     public void MarkSent(DateTime sentAt) => SentAt = sentAt;
 
     public void RecordProviderSubmission(string providerMessageId, DateTime submittedAt)
     {
         ProviderMessageId = providerMessageId;
         ProviderSubmittedAt = submittedAt;
+        DeliveryAcceptedAt = submittedAt;
     }
+
+    public void RecordDeliveryAcceptance(DateTime acceptedAt) => DeliveryAcceptedAt = acceptedAt;
 
     public void SetKind(ReminderKind kind) => Kind = kind;
 }

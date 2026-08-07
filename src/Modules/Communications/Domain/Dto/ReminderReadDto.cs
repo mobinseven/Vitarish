@@ -46,6 +46,9 @@ public record ReminderReadDto : EntityReadDto
     [JsonPropertyName("providerSubmittedAt")]
     public DateTime? ProviderSubmittedAt { get; set; }
 
+    [JsonPropertyName("deliveryAcceptedAt")]
+    public DateTime? DeliveryAcceptedAt { get; set; }
+
     [JsonPropertyName("url")]
     public string Url => $"/reminders/{Id}";
 }

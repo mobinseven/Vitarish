@@ -103,6 +103,8 @@ internal class RemindersService(IMediator mediator, CommunicationsDbContext db) 
         if (reminder is null) throw new InvalidOperationException("Reminder was not found.");
         if (succeeded && !string.IsNullOrWhiteSpace(providerMessageId))
             reminder.RecordProviderSubmission(providerMessageId, attemptedAt);
+        else if (succeeded)
+            reminder.RecordDeliveryAcceptance(attemptedAt);
         _ = await db.ReminderDeliveryAttempts.AddAsync(new ReminderDeliveryAttempt
         {
             ReminderId = id,

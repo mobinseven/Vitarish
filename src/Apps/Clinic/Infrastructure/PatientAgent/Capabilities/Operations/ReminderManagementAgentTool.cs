@@ -50,8 +50,11 @@ public sealed class ReminderManagementAgentTool(IRemindersService reminders, IMe
     {
         using JsonDocument document = JsonDocument.Parse(result.Output);
         JsonElement root = document.RootElement;
-        return root.GetProperty("status").GetString() == "prepared" && root.GetProperty("actionId").TryGetGuid(out Guid id)
-            ? new("Operations", "reminder_manage", id, root.GetProperty("arguments").GetString()!, root.GetProperty("expiresAt").GetDateTimeOffset()) : null;
+        return root.TryGetProperty("status", out JsonElement status) && status.ValueKind == JsonValueKind.String && status.GetString() == "prepared" &&
+            root.TryGetProperty("actionId", out JsonElement actionId) && actionId.TryGetGuid(out Guid id) &&
+            root.TryGetProperty("arguments", out JsonElement arguments) && arguments.ValueKind == JsonValueKind.String &&
+            root.TryGetProperty("expiresAt", out JsonElement expiresAt) && expiresAt.TryGetDateTimeOffset(out DateTimeOffset expiry)
+            ? new("Operations", "reminder_manage", id, arguments.GetString()!, expiry) : null;
     }
 
     private async Task<object> Create(JsonElement payload, CancellationToken ct)
@@ -99,6 +102,6 @@ public sealed class ReminderManagementAgentTool(IRemindersService reminders, IMe
         }
         if (!string.IsNullOrWhiteSpace(value.Recipient) && !Regex.IsMatch(value.Recipient, value.Kind == ReminderKind.Email ? @"^[^@\s]+@[^@\s]+\.[^@\s]+$" : @"^\+?[1-9]\d{7,14}$")) throw new JsonException("recipient has an invalid email or phone format.");
     }
-    private static Guid Id(JsonElement payload) => payload.TryGetProperty("id", out JsonElement value) && value.TryGetGuid(out Guid id) ? id : throw new JsonException("id must be a valid GUID.");
+    private static Guid Id(JsonElement payload) => (payload.TryGetProperty("id", out JsonElement value) || payload.TryGetProperty("sourceId", out value)) && value.TryGetGuid(out Guid id) ? id : throw new JsonException("id or sourceId must be a valid GUID.");
     private static string RequiredString(JsonElement payload, string name) => payload.TryGetProperty(name, out JsonElement value) && value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(value.GetString()) ? value.GetString()! : throw new JsonException($"{name} is required.");
 }
