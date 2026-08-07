@@ -11,7 +11,7 @@ namespace Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Operations;
 public sealed class OperationsAgentCapability(IEnumerable<IClinicOperationsAgentTool> tools)
     : PatientAgentCapability([.. tools], [
         "book_appointment", "reschedule_appointment", "cancel_appointment", "reject_appointment",
-        "create_shift", "edit_shift", "close_shift", "cancel_shift", "archive_shift"])
+        "create_shift", "edit_shift", "close_shift", "cancel_shift", "archive_shift", "appointment_manage"])
 {
     public override string Name => "Operations";
     public override string Description => "Search patients and inspect or safely operate the authenticated practice schedule.";
