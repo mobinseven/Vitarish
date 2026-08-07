@@ -26,7 +26,7 @@ public sealed class AppointmentAdministrationPatientAgentActionCommitter(Appoint
                 }),
                 cancellationToken);
             return result.IsError
-                ? PatientAgentActionCommitResult.Failed("appointment_mutation_failed", "The appointment operation could not be completed.", true)
+                ? PatientAgentActionCommitResult.Failed("appointment_mutation_failed", "The appointment operation could not be completed.")
                 : PatientAgentActionCommitResult.Completed(result.Output);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -39,7 +39,7 @@ public sealed class AppointmentAdministrationPatientAgentActionCommitter(Appoint
         }
         catch (Exception ex)
         {
-            return PatientAgentActionCommitResult.Failed("appointment_mutation_failed", ex.Message, true);
+            return PatientAgentActionCommitResult.Failed("appointment_mutation_failed", ex.Message);
         }
     }
 }

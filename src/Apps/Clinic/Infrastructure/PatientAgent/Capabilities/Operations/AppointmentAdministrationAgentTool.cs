@@ -20,6 +20,7 @@ public sealed class AppointmentAdministrationAgentTool(
     IShiftBookableDateQueryService bookableDates,
     ITemporaryHoldManager holds) : IClinicOperationsAgentTool, IPatientAgentPreparationTool
 {
+    private static readonly JsonSerializerOptions PayloadJsonOptions = new(JsonSerializerDefaults.Web);
     private static readonly HashSet<string> Mutations = [
         "create_reservation", "update_reservation", "delete_reservation", "confirm_reservation", "present_reservation",
         "complete_reservation", "cancel_reservation", "reject_reservation", "expire_reservation", "move_reservation",
@@ -115,7 +116,7 @@ public sealed class AppointmentAdministrationAgentTool(
             "release_hold" => await holds.ReleaseHoldAsync(Id(payload), cancellationToken),
             _ => throw new JsonException($"Unsupported appointment operation: {operation}.")
         };
-        return new(call.Id, JsonSerializer.Serialize(result));
+        return Result(call, result);
     }
 
     public PatientAgentPreparedAction? GetPreparedAction(AgentToolResult result)
@@ -132,9 +133,21 @@ public sealed class AppointmentAdministrationAgentTool(
 
     private async Task<object> CreateHold(JsonElement payload, CancellationToken ct)
     {
-        TimeSpan duration = payload.TryGetProperty("durationMinutes", out JsonElement minutes) ? TimeSpan.FromMinutes(minutes.GetInt32()) : TimeSpan.FromMinutes(15);
+        TimeSpan duration = payload.ValueKind == JsonValueKind.Object && payload.TryGetProperty("durationMinutes", out JsonElement minutes) && minutes.ValueKind == JsonValueKind.Number && minutes.TryGetInt32(out int durationMinutes)
+            ? TimeSpan.FromMinutes(durationMinutes)
+            : TimeSpan.FromMinutes(15);
         EntityResult<Guid> result = await holds.CreateHoldAsync(Id(payload), Date(payload, "date"), OptionalString(payload, "reservingPartyId"), duration, ct);
-        return result.Value;
+        return result;
+    }
+
+    private static AgentToolResult Result(AgentToolCall call, object value)
+    {
+        string output = JsonSerializer.Serialize(value);
+        using JsonDocument document = JsonDocument.Parse(output);
+        bool isFailure = document.RootElement.ValueKind == JsonValueKind.Object &&
+            document.RootElement.TryGetProperty("IsSuccess", out JsonElement isSuccess) &&
+            isSuccess.ValueKind == JsonValueKind.False;
+        return new(call.Id, output, isFailure);
     }
 
     private static async Task<object> Get<TRead, TWrite, TDescriptor>(IEntityService<TRead, TWrite, TDescriptor> service, Guid id, CancellationToken ct)
@@ -149,7 +162,7 @@ public sealed class AppointmentAdministrationAgentTool(
     private static async Task<object> Update<TRead, TWrite, TDescriptor>(IEntityService<TRead, TWrite, TDescriptor> service, TWrite value, CancellationToken ct)
         where TRead : EntityReadDto where TWrite : EntityWriteDto where TDescriptor : EntityDescriptorDto => (await service.UpdateAsync(value, ct)).Value ?? throw new InvalidOperationException("Appointment resource could not be updated.");
     private static async Task<object> Remove<TRead, TWrite, TDescriptor>(IEntityService<TRead, TWrite, TDescriptor> service, Guid id, CancellationToken ct) where TRead : EntityReadDto where TWrite : EntityWriteDto where TDescriptor : EntityDescriptorDto => await service.RemoveAsync(id, ct);
-    private static T Read<T>(JsonElement value) => value.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null ? Activator.CreateInstance<T>() : JsonSerializer.Deserialize<T>(value.GetRawText()) ?? throw new JsonException("payload is invalid.");
+    private static T Read<T>(JsonElement value) => value.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null ? Activator.CreateInstance<T>() : JsonSerializer.Deserialize<T>(value.GetRawText(), PayloadJsonOptions) ?? throw new JsonException("payload is invalid.");
     private static Guid Id(JsonElement payload) => GuidValue(payload, "id");
     private static Guid GuidValue(JsonElement payload, string name) => payload.ValueKind == JsonValueKind.Object && payload.TryGetProperty(name, out JsonElement value) && value.TryGetGuid(out Guid id) ? id : throw new JsonException($"{name} must be a valid GUID.");
     private static DateOnly Date(JsonElement payload, string name) => payload.ValueKind == JsonValueKind.Object && payload.TryGetProperty(name, out JsonElement value) && value.ValueKind == JsonValueKind.String && DateOnly.TryParse(value.GetString(), out DateOnly date) ? date : throw new JsonException($"{name} must be a valid date.");
