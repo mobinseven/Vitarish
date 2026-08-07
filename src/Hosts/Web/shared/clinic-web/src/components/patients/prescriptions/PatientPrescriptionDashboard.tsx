@@ -33,7 +33,7 @@ export function PatientPrescriptionDashboard({ patientId, onNewPrescription }: {
           <div>
             <p className="text-xs uppercase tracking-wider text-muted">{t("clinic.prescriptionFeed.title")}</p>
             <h2 className="text-xl font-semibold">{dashboard.data?.totalCount ?? 0} {t("clinic.prescriptionFeed.title")}</h2>
-            <p className="text-sm text-muted">{dashboard.data?.attentionCount ?? dashboard.data?.attentionQueue?.length ?? 0} {t("clinic.prescriptionFeed.unavailable")}</p>
+            <p className="text-sm text-muted">{dashboard.data?.attentionCount ?? dashboard.data?.attentionQueue?.length ?? 0} {t("clinic.prescriptionFeed.attentionTitle")}</p>
           </div>
           <Button variant="primary" onPress={onNewPrescription}><FaIcon icon="prescription-bottle-medical" aria-hidden="true" />{t("clinic.patient.quickActions.prescription")}</Button>
         </div>
