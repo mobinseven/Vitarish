@@ -131,9 +131,9 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     http.get(/\/api\/modules\/users\/search(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      return HttpResponse.json(activeScenario === "empty" ? [] : [{ userId: "mock-user", fullName: "Mock User", userName: "mock.user" }]);
+      return HttpResponse.json(activeScenario === "empty" ? [] : [{ id: "mock-user", userId: "mock-user", fullName: "Mock User", userName: "mock.user" }]);
     }),
-    http.all(/\/api\/modules\/(?:parties\/administration|users\/administration)\/.+/, async () => {
+    http.post(/\/api\/modules\/(?:parties\/administration|users\/administration)\/.+/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
       return HttpResponse.json({ succeeded: true, id: "mock-entity" });

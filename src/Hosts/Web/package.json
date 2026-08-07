@@ -42,11 +42,11 @@
   },
   "msw": {
     "workerDirectory": [
-      "apps\\private-practice-owner\\public",
-      "apps\\patients\\public",
-      "apps\\platform-admin\\public",
-      "apps\\knowledge-qa-demo\\public",
-      "apps\\vitarish-landing\\public"
+      "apps/private-practice-owner/public",
+      "apps/patients/public",
+      "apps/platform-admin/public",
+      "apps/knowledge-qa-demo/public",
+      "apps/vitarish-landing/public"
     ]
   }
 }

@@ -22,6 +22,7 @@ export function MockApiBootstrap({
   useEffect(() => {
     if (!mockApiEnabled) return;
     let active = true;
+    let workerInstance: { stop: () => void } | null = null;
 
     void import("msw/browser")
       .then(async ({ setupWorker }) => {
@@ -29,11 +30,13 @@ export function MockApiBootstrap({
           ...createDefaultMockHandlers(resolveMockScenario(requestedScenario)),
           ...handlers,
         );
+        workerInstance = worker;
         await worker.start({
           onUnhandledRequest: "error",
           serviceWorker: { url: "/mockServiceWorker.js" },
         });
         if (active) setStatus("ready");
+        else worker.stop();
       })
       .catch((error: unknown) => {
         console.error("Unable to start Vitarish Web mock API.", error);
@@ -42,6 +45,7 @@ export function MockApiBootstrap({
 
     return () => {
       active = false;
+      workerInstance?.stop();
     };
   }, [handlers]);
 
