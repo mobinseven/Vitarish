@@ -139,7 +139,7 @@ public class SmsDotIrProvider : ISmsProvider
         }
     }
 
-    public async Task SendTemplatedSms(string recipient, string templateId, IReadOnlyDictionary<string, string> parameters, CancellationToken cancellationToken = default)
+    public async Task<SmsSendResult> SendTemplatedSms(string recipient, string templateId, IReadOnlyDictionary<string, string> parameters, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(recipient))
         {
@@ -170,6 +170,26 @@ public class SmsDotIrProvider : ISmsProvider
             string content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             throw new HttpRequestException($"SmsDotIr SendTemplatedSms failed: {response.StatusCode} - {content}");
         }
+
+        SmsDotIrSendResult result = await response.Content
+            .ReadFromJsonAsync<SmsDotIrSendResult>(cancellationToken: cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new InvalidOperationException("SmsDotIr templated send response did not include a payload.");
+        SmsDotIrSendResultData data = result.Data
+            ?? throw new InvalidOperationException("SmsDotIr templated send response did not include data payload.");
+        if (result.PrimaryMessageId <= 0)
+        {
+            throw new InvalidOperationException("SmsDotIr templated send response did not include a positive message identifier.");
+        }
+
+        return new SmsSendResult(
+            result.PrimaryMessageId.ToString(CultureInfo.InvariantCulture),
+            recipient,
+            data.Cost,
+            data.PackId,
+            SubmittedAt: null,
+            RelatedMessageIds: data.MessageIds?.Select(id => id.ToString(CultureInfo.InvariantCulture)).ToArray(),
+            Metadata: BuildSendMetadata(result));
     }
 
     public async Task<SmsDeliveryState> GetSmsDeliveryStateAsync(long messageId, CancellationToken cancellationToken = default)

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Dto;
 using Vitarish.Communications.Domain.Enums;
@@ -94,11 +95,25 @@ public class ReminderProcessor(
             return;
         }
 
+        if (reminder.DeliveryAcceptedAt is not null)
+        {
+            await tenantContext.RemindersService.MarkSentAsync(reminder.Id, reminder.DeliveryAcceptedAt.Value, cancellationToken);
+            return;
+        }
+
+        try
+        {
         // Pre-rendered reminders (e.g. from session reminder policies) carry fully rendered
         // subject and body so they can be sent directly without looking up the Sea source entity.
         if (!string.IsNullOrWhiteSpace(reminder.TextBody))
         {
             await SendPreRenderedReminderAsync(tenantContext, reminder, now, cancellationToken);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(reminder.TemplatePurpose))
+        {
+            await ProcessAgentTemplateReminderAsync(tenantContext, reminder, now, cancellationToken);
             return;
         }
 
@@ -139,6 +154,7 @@ public class ReminderProcessor(
             NotificationPurpose.SeaReminder,
             cancellationToken);
 
+        string? providerMessageId = null;
         switch (reminder.Kind)
         {
             case ReminderKind.Email:
@@ -187,14 +203,71 @@ public class ReminderProcessor(
                     ["TENANT"] = tenant.Name
                 };
 
-                await tenantContext.MessagesService.SendTemplatedSms(
+                SmsSendResult sent = await tenantContext.MessagesService.SendTemplatedSms(
                     reminder.Recipient,
                     resolvedTemplate.SmsTemplateId,
                     smsParameters,
                     cancellationToken);
+                providerMessageId = sent.MessageId;
                 break;
         }
 
+        await tenantContext.RemindersService.RecordDeliveryAttemptAsync(reminder.Id, reminder.Kind, now, true, providerMessageId, null, cancellationToken);
+        await tenantContext.RemindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            await tenantContext.RemindersService.RecordDeliveryAttemptAsync(reminder.Id, reminder.Kind, now, false, null, ex.Message, cancellationToken);
+            _logger.LogWarning(ex, "Reminder {ReminderId} delivery failed; it remains pending for retry.", reminder.Id);
+        }
+    }
+
+    private async Task ProcessAgentTemplateReminderAsync(
+        TenantReminderContext tenantContext,
+        ReminderReadDto reminder,
+        DateTime now,
+        CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse(reminder.TemplatePurpose, true, out NotificationPurpose purpose) || purpose is NotificationPurpose.VerificationCode)
+            throw new InvalidOperationException($"Notification template purpose '{reminder.TemplatePurpose}' is not approved for reminders.");
+
+        Dictionary<string, string> variables = string.IsNullOrWhiteSpace(reminder.TemplateVariablesJson)
+            ? []
+            : JsonSerializer.Deserialize<Dictionary<string, string>>(reminder.TemplateVariablesJson) ?? throw new InvalidOperationException("Reminder template variables are invalid.");
+        string? locale = reminder.RecipientUserId is not null
+            ? await GetUserLocaleAsync(tenantContext, reminder.RecipientUserId, cancellationToken)
+            : null;
+        ResolvedNotificationTemplate template = await tenantContext.TemplateResolver.ResolveAsync(locale, purpose, cancellationToken)
+            ?? throw new InvalidOperationException($"No notification template resolved for reminder {reminder.Id}.");
+        string Replace(string value) => variables.Aggregate(value, (current, pair) => current.Replace("{" + pair.Key + "}", pair.Value, StringComparison.Ordinal));
+        string ReplaceHtml(string value) => variables.Aggregate(value, (current, pair) => current.Replace("{" + pair.Key + "}", System.Net.WebUtility.HtmlEncode(pair.Value), StringComparison.Ordinal));
+        string? providerMessageId = null;
+
+        switch (reminder.Kind)
+        {
+            case ReminderKind.Email when template.EmailSubject is not null && template.EmailTextBody is not null:
+                await tenantContext.MessagesService.SendEmail(new Message
+                {
+                    Recipient = reminder.Recipient,
+                    Subject = Replace(template.EmailSubject),
+                    Body = Replace(template.EmailTextBody),
+                    HtmlBody = template.EmailHtmlBody is null ? $"<p>{System.Net.WebUtility.HtmlEncode(Replace(template.EmailTextBody))}</p>" : ReplaceHtml(template.EmailHtmlBody),
+                    Sender = null
+                }, cancellationToken);
+                break;
+            case ReminderKind.Sms when template.SmsTemplateId is not null:
+                SmsSendResult sms = await tenantContext.MessagesService.SendTemplatedSms(reminder.Recipient, template.SmsTemplateId, variables, cancellationToken);
+                providerMessageId = sms.MessageId;
+                break;
+            default:
+                throw new InvalidOperationException($"The selected notification template does not support {reminder.Kind} reminders.");
+        }
+
+        await tenantContext.RemindersService.RecordDeliveryAttemptAsync(reminder.Id, reminder.Kind, now, true, providerMessageId, null, cancellationToken);
         await tenantContext.RemindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
     }
 
@@ -204,28 +277,28 @@ public class ReminderProcessor(
         DateTime now,
         CancellationToken cancellationToken)
     {
-        switch (reminder.Kind)
+        try
         {
-            case ReminderKind.Email:
-                await tenantContext.MessagesService.SendEmail(new Message
-                {
-                    Recipient = reminder.Recipient,
-                    Subject = reminder.Subject,
-                    Body = reminder.TextBody,
-                    HtmlBody = $"<p>{System.Net.WebUtility.HtmlEncode(reminder.TextBody).Replace("\n", "<br>", StringComparison.Ordinal)}</p>",
-                    Sender = null
-                }, cancellationToken);
-                break;
-            case ReminderKind.Sms:
-                _ = await tenantContext.MessagesService.SendSms(new Message
-                {
-                    Recipient = reminder.Recipient,
-                    Body = reminder.TextBody
-                }, cancellationToken);
-                break;
+            string? providerMessageId = null;
+            switch (reminder.Kind)
+            {
+                case ReminderKind.Email:
+                    await tenantContext.MessagesService.SendEmail(new Message { Recipient = reminder.Recipient, Subject = reminder.Subject, Body = reminder.TextBody, HtmlBody = $"<p>{System.Net.WebUtility.HtmlEncode(reminder.TextBody).Replace("\n", "<br>", StringComparison.Ordinal)}</p>", Sender = null }, cancellationToken);
+                    break;
+                case ReminderKind.Sms:
+                    SmsSendResult sent = await tenantContext.MessagesService.SendSms(new Message { Recipient = reminder.Recipient, Body = reminder.TextBody }, cancellationToken);
+                    providerMessageId = sent.MessageId;
+                    break;
+            }
+            await tenantContext.RemindersService.RecordDeliveryAttemptAsync(reminder.Id, reminder.Kind, now, true, providerMessageId, null, cancellationToken);
+            await tenantContext.RemindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
         }
-
-        await tenantContext.RemindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            await tenantContext.RemindersService.RecordDeliveryAttemptAsync(reminder.Id, reminder.Kind, now, false, null, ex.Message, cancellationToken);
+            _logger.LogWarning(ex, "Pre-rendered reminder {ReminderId} delivery failed; it remains pending for retry.", reminder.Id);
+        }
     }
     private async Task<string?> GetUserLocaleAsync(TenantReminderContext tenantContext, string userId, CancellationToken cancellationToken)
     {

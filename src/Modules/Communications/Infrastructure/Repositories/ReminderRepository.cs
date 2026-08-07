@@ -18,6 +18,11 @@ internal class ReminderRepository(
             query = query.Where(r => r.SourceId == descriptor.SourceId);
         }
 
+        if (!string.IsNullOrWhiteSpace(descriptor.SourceKind))
+        {
+            query = query.Where(r => r.SourceKind == descriptor.SourceKind);
+        }
+
         if (descriptor.Kind is not null)
         {
             query = query.Where(r => r.Kind == descriptor.Kind);

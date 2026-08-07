@@ -7,6 +7,9 @@ public record ReminderDescriptorDto : EntityDescriptorDto
     [JsonPropertyName("sourceId")]
     public Guid? SourceId { get; init; }
 
+    [JsonPropertyName("sourceKind")]
+    public string? SourceKind { get; init; }
+
     [JsonPropertyName("kind")]
     public ReminderKind? Kind { get; init; }
 

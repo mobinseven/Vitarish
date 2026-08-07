@@ -31,6 +31,7 @@ public class CommunicationsDbContext : DbContext, IMultiTenantDbContext
     public TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
 
     public DbSet<Reminder> Reminders => Set<Reminder>();
+    public DbSet<ReminderDeliveryAttempt> ReminderDeliveryAttempts => Set<ReminderDeliveryAttempt>();
 
     public CommunicationsDbContext(
         DbContextOptions<CommunicationsDbContext> options,
@@ -69,6 +70,9 @@ public class CommunicationsDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.ConfigureMultiTenant();
 
         ConfigureTenantEntity<Reminder>(modelBuilder);
+        ConfigureTenantEntity<ReminderDeliveryAttempt>(modelBuilder);
+        _ = modelBuilder.Entity<ReminderDeliveryAttempt>().HasOne(a => a.Reminder).WithMany().HasForeignKey(a => a.ReminderId).OnDelete(DeleteBehavior.Cascade);
+        _ = modelBuilder.Entity<ReminderDeliveryAttempt>().HasIndex(a => new { a.ReminderId, a.AttemptedAt });
     }
 
     private static void ConfigureTenantEntity<TEntity>(ModelBuilder modelBuilder)

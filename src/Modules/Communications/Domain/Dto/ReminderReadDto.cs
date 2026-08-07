@@ -7,6 +7,15 @@ public record ReminderReadDto : EntityReadDto
     [JsonPropertyName("sourceId")]
     public Guid SourceId { get; set; }
 
+    [JsonPropertyName("sourceKind")]
+    public string SourceKind { get; set; } = "manual";
+
+    [JsonPropertyName("templatePurpose")]
+    public string TemplatePurpose { get; set; } = string.Empty;
+
+    [JsonPropertyName("templateVariablesJson")]
+    public string? TemplateVariablesJson { get; set; }
+
     [JsonPropertyName("kind")]
     public ReminderKind Kind { get; set; }
 
@@ -30,6 +39,15 @@ public record ReminderReadDto : EntityReadDto
 
     [JsonPropertyName("isSent")]
     public bool IsSent { get; set; }
+
+    [JsonPropertyName("providerMessageId")]
+    public string? ProviderMessageId { get; set; }
+
+    [JsonPropertyName("providerSubmittedAt")]
+    public DateTime? ProviderSubmittedAt { get; set; }
+
+    [JsonPropertyName("deliveryAcceptedAt")]
+    public DateTime? DeliveryAcceptedAt { get; set; }
 
     [JsonPropertyName("url")]
     public string Url => $"/reminders/{Id}";

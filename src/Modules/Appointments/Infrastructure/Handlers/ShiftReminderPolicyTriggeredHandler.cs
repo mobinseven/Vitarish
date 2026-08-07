@@ -93,6 +93,9 @@ internal class ShiftReminderPolicyTriggeredHandler(
                     subject,
                     body,
                     remindAt,
+                    "appointment",
+                    NotificationPurpose.AppointmentReminder.ToString(),
+                    null,
                     cancellationToken);
             }
             else
@@ -110,6 +113,9 @@ internal class ShiftReminderPolicyTriggeredHandler(
                     string.Empty,
                     string.Empty,
                     remindAt,
+                    "appointment",
+                    NotificationPurpose.AppointmentReminder.ToString(),
+                    null,
                     cancellationToken);
             }
         }

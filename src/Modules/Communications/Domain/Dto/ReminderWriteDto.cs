@@ -11,4 +11,7 @@ public record ReminderWriteDto(
     [property: JsonPropertyName("textBody")] string TextBody,
     [property: JsonPropertyName("remindAt")] DateTime RemindAt,
     [property: JsonPropertyName("sentAt")] DateTime? SentAt,
-    [property: JsonPropertyName("isSent")] bool IsSent) : EntityWriteDto;
+    [property: JsonPropertyName("isSent")] bool IsSent,
+    [property: JsonPropertyName("sourceKind")] string SourceKind = "manual",
+    [property: JsonPropertyName("templatePurpose")] string TemplatePurpose = "",
+    [property: JsonPropertyName("templateVariablesJson")] string? TemplateVariablesJson = null) : EntityWriteDto;
