@@ -1,10 +1,11 @@
 import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDefaultMockHandlers, resolveMockScenario } from "./mockHandlers";
 
 const server = setupServer(...createDefaultMockHandlers("ready"));
 
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeEach(() => server.resetHandlers(...createDefaultMockHandlers("ready")));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
@@ -41,6 +42,23 @@ describe("mock preview handlers", () => {
     await expect(count.json()).resolves.toBe(1);
   });
 
+  it("keeps Knowledge answers deterministic but workflow-aware", async () => {
+    const first = await fetch("https://mock.example.test/api/modules/knowledge/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "First question" }) });
+    const second = await fetch("https://mock.example.test/api/modules/knowledge/ask", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Second question" }) });
+    await expect(first.json()).resolves.toMatchObject({ answer: expect.stringContaining("mock answer 1") });
+    await expect(second.json()).resolves.toMatchObject({ answer: expect.stringContaining("mock answer 2") });
+  });
+
+  it("persists a patient workflow mutation for later reads", async () => {
+    const created = await fetch("https://mock.example.test/api/modules/clinic/patients/find-or-create", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ firstName: "Grace", lastName: "Hopper" }),
+    });
+    expect(created.status).toBe(201);
+    const patient = await created.json() as { id: string; name: string };
+    const list = await fetch("https://mock.example.test/api/modules/clinic/patients", { method: "POST", body: "{}" });
+    await expect(list.json()).resolves.toEqual(expect.arrayContaining([expect.objectContaining({ id: patient.id, name: "Grace Hopper" })]));
+  });
+
   it("returns platform administration rows for operator screens", async () => {
     const [owners, tenants, users] = await Promise.all([
       fetch("https://mock.example.test/api/modules/parties/administration/owners"),
@@ -65,6 +83,15 @@ describe("mock preview handlers", () => {
     await expect(roles.json()).resolves.toMatchObject([{ tenantId: "mock-tenant", roleSuffix: "Owner" }]);
   });
 
+  it("persists an owner create workflow for later reads", async () => {
+    const created = await fetch("https://mock.example.test/api/modules/parties/administration/owners", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "mock-owner-new", name: "New Practice" }),
+    });
+    expect(created.status).toBe(201);
+    const owners = await fetch("https://mock.example.test/api/modules/parties/administration/owners");
+    await expect(owners.json()).resolves.toEqual(expect.arrayContaining([expect.objectContaining({ id: "mock-owner-new", name: "New Practice" })]));
+  });
+
   it("supports the public landing conversation HTTP contract", async () => {
     const response = await fetch("https://mock.example.test/api/apps/landing/conversations", {
       method: "POST",
@@ -72,10 +99,16 @@ describe("mock preview handlers", () => {
       body: JSON.stringify({ ownerKey: "home", message: "How does this work?", conversationId: null }),
     });
 
-    await expect(response.json()).resolves.toMatchObject({
-      conversationId: "mock-landing-conversation",
-      message: "Mock guidance for: How does this work?",
-    });
+    await expect(response.json()).resolves.toMatchObject({ message: "Mock guidance for: How does this work?" });
+  });
+
+  it("keeps landing conversation identity across messages and deletes it on reset", async () => {
+    const first = await fetch("https://mock.example.test/api/apps/landing/conversations", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ownerKey: "home", message: "First", conversationId: null }) });
+    const firstBody = await first.json() as { conversationId: string };
+    const second = await fetch("https://mock.example.test/api/apps/landing/conversations", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ownerKey: "home", message: "Second", conversationId: firstBody.conversationId }) });
+    await expect(second.json()).resolves.toMatchObject({ conversationId: firstBody.conversationId });
+    const reset = await fetch(`https://mock.example.test/api/apps/landing/conversations/${firstBody.conversationId}`, { method: "DELETE" });
+    expect(reset.status).toBe(204);
   });
 
   it("returns appointment fixtures through the handwritten Clinic client shape", async () => {
@@ -86,6 +119,22 @@ describe("mock preview handlers", () => {
     });
 
     await expect(response.json()).resolves.toMatchObject([{ id: "mock-service", name: "Initial consultation" }]);
+  });
+
+  it("persists an appointment resource create for later list reads", async () => {
+    const created = await fetch("https://mock.example.test/api/modules/appointments/services/create", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "mock-service-new", name: "Follow-up" }),
+    });
+    expect(created.status).toBe(201);
+    const services = await fetch("https://mock.example.test/api/modules/appointments/services", { method: "POST", body: "{}" });
+    await expect(services.json()).resolves.toEqual(expect.arrayContaining([expect.objectContaining({ id: "mock-service-new", name: "Follow-up" })]));
+  });
+
+  it("rejects malformed patient commands without changing the seed", async () => {
+    const invalid = await fetch("https://mock.example.test/api/modules/clinic/patients/find-or-create", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ firstName: "Only" }) });
+    expect(invalid.status).toBe(400);
+    const count = await fetch("https://mock.example.test/api/modules/clinic/patients/count", { method: "POST", body: "{}" });
+    await expect(count.json()).resolves.toBe(1);
   });
 
   it("returns deterministic Intelligence capabilities and agent results", async () => {

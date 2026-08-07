@@ -18,6 +18,9 @@ npm run dev:mock:private-practice-owner -- --scenario loading
 
 Supported scenarios are `ready` (default), `empty`, `loading`, and `error`.
 The scenario is fixed for the dev-server process so refreshes stay reproducible.
+Workflow mutations are held in memory by the mock worker and are shared by tabs
+on the same app origin. Restart the corresponding `dev:mock:*` command to reset
+the seed state.
 
 Mock mode starts an MSW browser worker only when
 `NEXT_PUBLIC_VITARISH_MOCK_API=1`. It intercepts browser HTTP requests below the
@@ -51,9 +54,9 @@ Currently covered representative traffic:
 | --- | --- |
 | Authentication and app entry | session, antiforgery, current journey |
 | Knowledge | workspace and ask |
-| Clinic | patient list and patient count |
-| Appointments | reservations, shifts, services, service types, providers, command outcomes |
-| Platform administration | owners, tenants, owner/tenant detail, owner tenants, tenant indicators, user search/memberships, command outcomes |
+| Clinic | patient list/count, patient find-or-create, patient update |
+| Appointments | reservations, shifts, services, service types, providers, create outcomes reflected in later lists |
+| Platform administration | owners, tenants, owner/tenant detail, owner tenants, tenant indicators, user search/memberships, owner/tenant/role create outcomes |
 | Intelligence | live transcription capabilities, responder/transcription/rewrite results, agent conversation start |
 | Public landing | conversation submit and reset |
 

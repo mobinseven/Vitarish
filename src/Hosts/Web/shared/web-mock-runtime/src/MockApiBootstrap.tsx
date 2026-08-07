@@ -32,7 +32,15 @@ export function MockApiBootstrap({
         );
         workerInstance = worker;
         await worker.start({
-          onUnhandledRequest: "error",
+          onUnhandledRequest: (request, print) => {
+            // Next.js App Router emits same-origin RSC/navigation requests that
+            // must reach the dev server. Keep the strict failure boundary for
+            // application API calls so a mock cannot silently use a live API.
+            const pathname = new URL(request.url).pathname;
+            if (pathname.startsWith("/api/")) {
+              print.error();
+            }
+          },
           serviceWorker: { url: "/mockServiceWorker.js" },
         });
         if (active) setStatus("ready");

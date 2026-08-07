@@ -1,4 +1,5 @@
 import { HttpResponse, http, type RequestHandler } from "msw";
+import { createMockStore } from "./mockStore";
 
 export type MockScenario = "ready" | "empty" | "loading" | "error";
 export type MockHandlerFactory = (scenario: MockScenario) => readonly RequestHandler[];
@@ -18,6 +19,9 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     { status: 503, code: "MockUnavailable", title: "Mock service unavailable" },
     { status: 503 },
   );
+  const store = createMockStore(activeScenario === "empty" ? "empty" : "ready");
+  const badRequest = (detail: string) => HttpResponse.json({ status: 400, code: "InvalidRequest", title: "Invalid mock request", detail }, { status: 400 });
+  const notFound = (detail: string) => HttpResponse.json({ status: 404, code: "NotFound", title: "Mock entity not found", detail }, { status: 404 });
 
   return [
     http.get(/\/api\/modules\/authentication\/antiforgery(?:\?|$)/, async () => {
@@ -59,11 +63,14 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
         }],
       });
     }),
-    http.post(/\/api\/modules\/knowledge\/ask(?:\?|$)/, async () => {
+    http.post(/\/api\/modules\/knowledge\/ask(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
+      const body = await request.json().catch(() => null) as { question?: unknown; query?: unknown } | null;
+      const question = typeof body?.question === "string" ? body.question : typeof body?.query === "string" ? body.query : "your question";
+      store.knowledgeAsks.push(question);
       return HttpResponse.json({
-        answer: "This deterministic mock answer is for reviewing the knowledge interface without a live provider.",
+        answer: `Deterministic mock answer ${store.knowledgeAsks.length}: this is grounded guidance for “${question}”.`,
         isAnswered: true,
         citations: [{ chunkId: "mock-chunk-1", sourceId: "mock-source-1", documentId: "mock-document-1", title: "Mock guidance", quote: "Deterministic mock evidence." }],
         retrievedContext: [{ chunkId: "mock-chunk-1", sourceId: "mock-source-1", documentId: "mock-document-1", title: "Mock guidance", text: "Deterministic mock evidence for interface review.", score: 0.94 }],
@@ -72,117 +79,169 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     http.post(/\/api\/modules\/clinic\/patients(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      return HttpResponse.json(activeScenario === "empty" ? [] : [
-        {
-          id: "mock-patient-ada",
-          tenantId: "mock-tenant",
-          name: "Ada Lovelace",
-          firstName: "Ada",
-          lastName: "Lovelace",
-          identificationCode: "mock-ada-001",
-          phone: "+10000000001",
-          email: "ada@example.test",
-          dateOfBirth: "1990-12-10",
-          createdAt: "2026-01-01T00:00:00.000Z",
-          isDeleted: false,
-        },
-      ]);
+      return HttpResponse.json(store.patients.filter((patient) => !patient.isDeleted));
     }),
     http.post(/\/api\/modules\/clinic\/patients\/count(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      return HttpResponse.json(activeScenario === "empty" ? 0 : 1);
+      return HttpResponse.json(store.patients.filter((patient) => !patient.isDeleted).length);
+    }),
+    http.get(/\/api\/modules\/clinic\/patients\/[^/]+(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const id = new URL(request.url).pathname.split("/").at(-1);
+      const patient = store.patients.find((item) => item.id === id && !item.isDeleted);
+      return patient ? HttpResponse.json(patient) : notFound("Patient does not exist in the mock store.");
+    }),
+    http.post(/\/api\/modules\/clinic\/patients\/find-or-create(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const body = await request.json().catch(() => null) as Record<string, unknown> | null;
+      const firstName = typeof body?.firstName === "string" ? body.firstName.trim() : "";
+      const lastName = typeof body?.lastName === "string" ? body.lastName.trim() : "";
+      if (!firstName || !lastName) return badRequest("firstName and lastName are required");
+      const patient = { id: store.nextId("mock-patient"), tenantId: "mock-tenant", name: `${firstName} ${lastName}`, firstName, lastName, identificationCode: `mock-${store.nextId("code")}`, createdAt: "2026-01-02T00:00:00.000Z", isDeleted: false };
+      store.patients.push(patient);
+      return HttpResponse.json(patient, { status: 201 });
+    }),
+    http.put(/\/api\/modules\/clinic\/patients\/[^/]+(?:\?|$)/, async ({ request, params }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const patient = store.patients.find((item) => item.id === String(params[0]));
+      if (!patient) return notFound("Patient does not exist in the mock store.");
+      const body = await request.json().catch(() => null) as Record<string, unknown> | null;
+      if (typeof body?.firstName === "string") patient.firstName = body.firstName;
+      if (typeof body?.lastName === "string") patient.lastName = body.lastName;
+      patient.name = `${patient.firstName} ${patient.lastName}`;
+      return HttpResponse.json(patient);
     }),
     http.get(/\/api\/modules\/parties\/administration\/owners(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      return HttpResponse.json(activeScenario === "empty" ? [] : [{ id: "mock-owner", name: "Mock Practice", description: "Deterministic mock owner." }]);
+      return HttpResponse.json(store.owners);
     }),
     http.get(/\/api\/modules\/parties\/administration\/tenants(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      return HttpResponse.json(activeScenario === "empty" ? [] : [{ id: "mock-tenant", name: "Mock Tenant", appId: "private-practice-owner", ownerId: "mock-owner" }]);
+      return HttpResponse.json(store.tenants);
     }),
     http.get(/\/api\/modules\/parties\/administration\/owners\/[^/]+(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      return HttpResponse.json({ id: "mock-owner", name: "Mock Practice", description: "Deterministic mock owner." });
+      const owner = store.owners.find((item) => item.id === "mock-owner");
+      return owner ? HttpResponse.json(owner) : notFound("Owner does not exist in the mock store.");
     }),
     http.get(/\/api\/modules\/parties\/administration\/tenants\/[^/]+(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      return HttpResponse.json({ id: "mock-tenant", name: "Mock Tenant", appId: "private-practice-owner", ownerId: "mock-owner" });
+      const tenant = store.tenants.find((item) => item.id === "mock-tenant");
+      return tenant ? HttpResponse.json(tenant) : notFound("Tenant does not exist in the mock store.");
     }),
     http.get(/\/api\/modules\/parties\/administration\/owners\/[^/]+\/tenants(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      return HttpResponse.json(activeScenario === "empty" ? [] : [{ id: "mock-tenant", name: "Mock Tenant", appId: "private-practice-owner", ownerId: "mock-owner" }]);
+      return HttpResponse.json(store.tenants);
     }),
     http.get(/\/api\/modules\/parties\/administration\/tenants\/[^/]+\/indicators(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      return HttpResponse.json(activeScenario === "empty" ? [] : [{ id: "mock-indicator", tenantId: "mock-tenant", value: "mock.localhost", method: 1, status: 3, isPrimary: true }]);
+      return HttpResponse.json(store.indicators);
     }),
     http.get(/\/api\/modules\/users\/administration\/[^/]+\/tenant-roles(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      return HttpResponse.json(activeScenario === "empty" ? [] : [{ tenantId: "mock-tenant", roleSuffix: "Owner" }]);
+      return HttpResponse.json(store.memberships.filter((membership) => membership.userId === "mock-user").map(({ userId: _userId, ...membership }) => membership));
     }),
     http.get(/\/api\/modules\/users\/search(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      return HttpResponse.json(activeScenario === "empty" ? [] : [{ id: "mock-user", userId: "mock-user", fullName: "Mock User", userName: "mock.user" }]);
+      return HttpResponse.json(store.users);
     }),
-    http.post(/\/api\/modules\/(?:parties\/administration|users\/administration)\/.+/, async () => {
+    http.all(/\/api\/modules\/(?:parties\/administration|users\/administration)\/.+/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      return HttpResponse.json({ succeeded: true, id: "mock-entity" });
+      if (request.method === "GET") return HttpResponse.json([]);
+      const body = await request.json().catch(() => null) as Record<string, unknown> | null;
+      const path = new URL(request.url).pathname;
+      if (path.endsWith("/owners") && request.method === "POST") {
+        const owner = { id: typeof body?.id === "string" ? body.id : store.nextId("mock-owner"), name: typeof body?.name === "string" ? body.name : "Mock Owner", description: typeof body?.description === "string" ? body.description : "" };
+        store.owners.push(owner);
+        return HttpResponse.json(owner, { status: 201 });
+      }
+      if (path.endsWith("/tenants") && request.method === "POST") {
+        const tenant = { id: typeof body?.id === "string" ? body.id : store.nextId("mock-tenant"), name: typeof body?.name === "string" ? body.name : "Mock Tenant", appId: typeof body?.appId === "string" ? body.appId : "private-practice-owner", ownerId: typeof body?.ownerId === "string" ? body.ownerId : "mock-owner" };
+        store.tenants.push(tenant);
+        return HttpResponse.json(tenant, { status: 201 });
+      }
+      if (path.includes("/tenant-roles") && request.method === "POST") {
+        const membership = { userId: path.split("/").at(-2) ?? "mock-user", tenantId: typeof body?.tenantId === "string" ? body.tenantId : "mock-tenant", roleSuffix: typeof body?.roleSuffix === "string" ? body.roleSuffix : "TenantUser" };
+        store.memberships.push(membership);
+        return HttpResponse.json(membership, { status: 201 });
+      }
+      return HttpResponse.json({ succeeded: true, id: typeof body?.id === "string" ? body.id : "mock-entity" });
     }),
     http.post(/\/api\/apps\/landing\/conversations(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
       let message = "";
+      let body: { message?: unknown; ownerKey?: unknown; conversationId?: unknown };
       try {
-        const body = await request.json() as { message?: unknown };
+        body = await request.json() as { message?: unknown; ownerKey?: unknown; conversationId?: unknown };
         message = typeof body.message === "string" ? body.message.trim() : "";
       } catch {
         return HttpResponse.json({ status: 400, code: "InvalidRequest", title: "Invalid mock request" }, { status: 400 });
       }
-      return HttpResponse.json({
-        conversationId: "mock-landing-conversation",
-        message: message
-          ? `Mock guidance for: ${message}`
-          : "This deterministic mock reply is ready for interface review.",
-      });
+      const ownerKey = typeof body?.ownerKey === "string" ? body.ownerKey : "home";
+      const requestedId = typeof body?.conversationId === "string" ? body.conversationId : null;
+      const existing = requestedId ? store.conversations.find((item) => item.id === requestedId) : undefined;
+      const conversation = existing ?? (() => {
+        const created = { id: store.nextId("mock-conversation"), ownerKey, messages: [] as Array<{ role: "user" | "assistant"; text: string }> };
+        store.conversations.push(created);
+        return created;
+      })();
+      const reply = message ? `Mock guidance for: ${message}` : "This deterministic mock reply is ready for interface review.";
+      conversation.messages.push({ role: "user", text: message }, { role: "assistant", text: reply });
+      return HttpResponse.json({ conversationId: conversation.id, message: reply });
     }),
-    http.delete(/\/api\/apps\/landing\/conversations\/[^/]+(?:\?|$)/, async () => {
+    http.delete(/\/api\/apps\/landing\/conversations\/[^/]+(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
+      const id = new URL(request.url).pathname.split("/").at(-1);
+      const index = store.conversations.findIndex((item) => item.id === id);
+      if (index < 0) return notFound("Conversation does not exist in the mock store.");
+      store.conversations.splice(index, 1);
       return new HttpResponse(null, { status: 204 });
     }),
     http.post(/\/api\/modules\/appointments\/(reservations|shifts|service-types|services|service-providers)(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
       const path = new URL(request.url).pathname;
-      if (activeScenario === "empty") return HttpResponse.json([]);
-      if (path.endsWith("/reservations")) {
-        return HttpResponse.json([{ id: "mock-reservation", createdAt: "2026-01-01T00:00:00.000Z", isDeleted: false, status: 1, shiftId: "mock-shift", date: "2026-08-11", isHold: false }]);
-      }
-      if (path.endsWith("/shifts")) {
-        return HttpResponse.json([{ id: "mock-shift", createdAt: "2026-01-01T00:00:00.000Z", isDeleted: false, status: 1, visibility: 1, dayOfWeek: 2, startTime: "10:30", endTime: "11:00", timeZone: "UTC", totalSeats: 1, serviceProviderId: "mock-provider", serviceId: "mock-service" }]);
-      }
-      if (path.endsWith("/service-types")) {
-        return HttpResponse.json([{ id: "mock-service-type", createdAt: "2026-01-01T00:00:00.000Z", isDeleted: false, name: "Consultation", description: "Mock consultation" }]);
-      }
-      if (path.endsWith("/services")) {
-        return HttpResponse.json([{ id: "mock-service", createdAt: "2026-01-01T00:00:00.000Z", isDeleted: false, name: "Initial consultation", description: "Mock service", serviceTypeId: "mock-service-type", serviceTypeName: "Consultation" }]);
-      }
-      return HttpResponse.json([{ id: "mock-provider", createdAt: "2026-01-01T00:00:00.000Z", isDeleted: false, name: "Mock clinician", description: "Mock provider", linkedUserIds: ["mock-user"] }]);
+      const resource = Object.keys(store.appointments).find((key) => path.endsWith(`/${key}`)) as keyof typeof store.appointments | undefined;
+      return HttpResponse.json(resource ? store.appointments[resource] : []);
     }),
-    http.all(/\/api\/modules\/appointments\/.*(?:\/create|\/status)?(?:\?|$)/, async () => {
+    http.all(/\/api\/modules\/appointments\/.*(?:\/create|\/status)?(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
+      if (request.method === "POST" || request.method === "PUT" || request.method === "PATCH") {
+        const path = new URL(request.url).pathname;
+        const resource = Object.keys(store.appointments).find((key) => path.includes(`/appointments/${key}`)) as keyof typeof store.appointments | undefined;
+        const body = await request.json().catch(() => null) as Record<string, unknown> | null;
+        if (resource && path.endsWith("/create")) {
+          const created = { ...(body ?? {}), id: typeof body?.id === "string" ? body.id : store.nextId("mock-appointment"), createdAt: "2026-01-02T00:00:00.000Z" };
+          store.appointments[resource].push(created);
+          return HttpResponse.json(created, { status: 201 });
+        }
+      }
       return HttpResponse.json({ succeeded: true, entityId: "mock-appointment-entity" });
+    }),
+    http.all(/\/api\/modules\/sea\/.+/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      if (request.method !== "GET") {
+        const body = await request.json().catch(() => null) as Record<string, unknown> | null;
+        return HttpResponse.json({ ...(body ?? {}), id: typeof body?.id === "string" ? body.id : "mock-sea-entity" }, { status: 201 });
+      }
+      return HttpResponse.json([]);
     }),
     http.get(/\/api\/modules\/intelligence\/transcription\/live\/capabilities(?:\?|$)/, async () => {
       await withDelay();
