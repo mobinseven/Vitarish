@@ -13,6 +13,11 @@
     "dev:knowledge-qa-demo": "npm run dev --workspace @vitarish/knowledge-qa-demo",
     "dev:vitarish-landing": "npm run dev --workspace @vitarish/vitarish-landing",
     "dev:agent-runtime": "npm run dev --workspace @vitarish/agent-runtime",
+    "dev:mock:private-practice-owner": "node scripts/mock-app-server.mjs @vitarish/private-practice-owner",
+    "dev:mock:patients": "node scripts/mock-app-server.mjs @vitarish/patients",
+    "dev:mock:platform-admin": "node scripts/mock-app-server.mjs @vitarish/platform-admin",
+    "dev:mock:knowledge-qa-demo": "node scripts/mock-app-server.mjs @vitarish/knowledge-qa-demo",
+    "dev:mock:vitarish-landing": "node scripts/mock-app-server.mjs @vitarish/vitarish-landing",
     "build": "npm run build --workspaces --if-present",
     "build:private-practice-owner": "npm run generate:api --workspace @vitarish/clinic-web && npm run build --workspace @vitarish/private-practice-owner",
     "build:platform-admin": "npm run build --workspace @vitarish/platform-admin",
@@ -34,5 +39,14 @@
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"
+  },
+  "msw": {
+    "workerDirectory": [
+      "apps\\private-practice-owner\\public",
+      "apps\\patients\\public",
+      "apps\\platform-admin\\public",
+      "apps\\knowledge-qa-demo\\public",
+      "apps\\vitarish-landing\\public"
+    ]
   }
 }
