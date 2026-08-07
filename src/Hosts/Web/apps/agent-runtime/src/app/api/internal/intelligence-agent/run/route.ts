@@ -1,5 +1,6 @@
-import { Agent, OpenAIProvider, Runner, protocol, tool, type AgentInputItem, type Model, type ModelProvider } from "@openai/agents";
+import { Agent, OpenAIProvider, Runner, tool, type Model, type ModelProvider } from "@openai/agents";
 import { NextRequest } from "next/server";
+import { parseHistory } from "./history";
 
 interface AgentDefinition {
   model: string;
@@ -34,28 +35,7 @@ interface AgentRuntimeRequest {
   callbackCredential: string;
 }
 
-const maximumHistoryBytes = 1024 * 1024;
 const reasoningLevels = new Set(["none", "minimal", "low", "medium", "high", "xhigh", "max"]);
-
-export function parseHistory(history: string | null | undefined): AgentInputItem[] {
-  if (!history) return [];
-  if (Buffer.byteLength(history, "utf8") > maximumHistoryBytes)
-    throw new Error("InvalidHistory");
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(history);
-  } catch {
-    throw new Error("InvalidHistory");
-  }
-  if (!Array.isArray(parsed)) throw new Error("InvalidHistory");
-  const items: AgentInputItem[] = [];
-  for (const item of parsed) {
-    const validated = protocol.ModelItem.safeParse(item);
-    if (!validated.success) throw new Error("InvalidHistory");
-    items.push(validated.data);
-  }
-  return items;
-}
 
 interface ToolExecution {
   toolName: string;
@@ -289,7 +269,7 @@ export async function POST(request: NextRequest) {
     });
     const usage = result.runContext.usage;
     const history = JSON.stringify(result.history);
-    if (Buffer.byteLength(history, "utf8") > maximumHistoryBytes)
+    if (Buffer.byteLength(history, "utf8") > 1024 * 1024)
       throw new Error("InvalidHistory");
     return Response.json({
       isSuccess: true,

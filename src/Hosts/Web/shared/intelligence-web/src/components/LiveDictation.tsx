@@ -101,19 +101,19 @@ export function LiveDictation({ controller }: LiveDictationProps) {
         </Tooltip.Trigger>
         <Tooltip.Content offset={6} placement="top">
           <Tooltip.Arrow />
-          {tooltipText}
+          {statusMessage ? statusMessage : tooltipText}
         </Tooltip.Content>
+        {statusMessage ? (
+          <p
+            role={
+              hasFailure && controller.status === "failed" ? "alert" : "status"
+            }
+            className="sr-only"
+          >
+            {statusMessage}
+          </p>
+        ) : null}
       </Tooltip>
-      {statusMessage ? (
-        <p
-          role={
-            hasFailure && controller.status === "failed" ? "alert" : "status"
-          }
-          className="sr-only"
-        >
-          {statusMessage}
-        </p>
-      ) : null}
     </>
   );
 }
