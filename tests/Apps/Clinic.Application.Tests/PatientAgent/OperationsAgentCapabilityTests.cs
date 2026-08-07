@@ -1,9 +1,11 @@
 using FluentAssertions;
 using Moq;
 using Vitarish.Appointments.Application.AgentCapabilities;
+using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Operations;
 using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Operations;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Sea.Application.Abstractions;
 using Xunit;
 
 namespace Vitarish.Clinic.Application.Tests.PatientAgent;
@@ -54,5 +56,29 @@ public sealed class OperationsAgentCapabilityTests
         action.OwningId.Should().Be(proposalId);
         scheduling.VerifyAll();
         search.VerifyAll();
+    }
+
+    [Fact]
+    public void Sea_management_is_available_only_for_practice_operations_scope()
+    {
+        SeaManagementTool tool = new(
+            new Mock<IProjectsService>().Object,
+            new Mock<IProceduresService>().Object,
+            new Mock<IEventsService>().Object,
+            new Mock<IAttachmentsService>().Object,
+            new Mock<IReceiptsService>().Object,
+            new Mock<IRolesService>().Object,
+            new Mock<IUserRolesService>().Object,
+            new Mock<IEventRolesService>().Object,
+            new Mock<IDatabaseStatisticsService>().Object);
+        SeaManagementAgentCapability capability = new(tool);
+        PatientAgentContext practice = new(
+            "practice-1", Guid.Empty, "owner-1", new HashSet<string>(StringComparer.Ordinal),
+            PatientAgentOperationsScope.TenantOwnerRole,
+            "en-US", "UTC", "conversation-1", SubjectKind: "practice");
+        PatientAgentContext patient = practice with { PatientId = Guid.NewGuid(), SubjectKind = "patient" };
+
+        capability.IsAvailable(practice).Should().BeTrue();
+        capability.IsAvailable(patient).Should().BeFalse();
     }
 }
