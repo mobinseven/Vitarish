@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseHistory } from "./route";
+import { parseHistory } from "./history";
 
 describe("agent runtime history", () => {
   it("accepts supported SDK history items", () => {
