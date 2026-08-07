@@ -20,6 +20,8 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     { status: 503 },
   );
   const store = createMockStore(activeScenario === "empty" ? "empty" : "ready");
+  let taminCredentialId = "mock-tamin-credential";
+  let taminAuthorized = false;
   const badRequest = (detail: string) => HttpResponse.json({ status: 400, code: "InvalidRequest", title: "Invalid mock request", detail }, { status: 400 });
   const notFound = (detail: string) => HttpResponse.json({ status: 404, code: "NotFound", title: "Mock entity not found", detail }, { status: 404 });
 
@@ -263,6 +265,118 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       }
       return HttpResponse.json([]);
     }),
+    http.post(/\/api\/modules\/medical\/providers\/available(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json(activeScenario === "empty" ? [] : [{ providerKey: "Tamin" }]);
+    }),
+    http.get(/\/api\/modules\/medical\/credentials\/setup-context(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ doctorId: "mock-doctor", clinicId: "mock-clinic" });
+    }),
+    http.post(/\/api\/modules\/medical\/credentials\/setup-grid(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      if (activeScenario === "empty") return HttpResponse.json([]);
+      return HttpResponse.json([{
+        credentialId: taminCredentialId,
+        doctorId: "mock-doctor",
+        doctorName: "Dr. Ada Lovelace",
+        clinicId: "mock-clinic",
+        providerKey: "TAMIN",
+        providerDoctorIdentifier: "ADA-001",
+        providerUsername: "0012345678",
+        providerClinicIdentifier: "CLINIC-001",
+        expiresAt: "2026-12-31T00:00:00.000Z",
+        daysUntilExpiry: 146,
+        isExpiringSoon: false,
+        lastTestedAt: taminAuthorized ? "2026-08-07T10:00:00.000Z" : null,
+        status: taminAuthorized ? 1 : 0,
+      }]);
+    }),
+    http.post(/\/api\/modules\/medical\/credentials(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const body = await request.json().catch(() => null) as Record<string, unknown> | null;
+      if (!body || body.providerKey !== "TAMIN") return badRequest("TAMIN provider configuration is required.");
+      taminCredentialId = typeof body.credentialId === "string" && body.credentialId ? body.credentialId : taminCredentialId;
+      return HttpResponse.json({ accepted: true, isSuccess: true, entityId: taminCredentialId });
+    }),
+    http.post(/\/api\/modules\/medical\/credentials\/authorization\/begin(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const body = await request.json().catch(() => null) as { credentialId?: unknown } | null;
+      if (body?.credentialId !== taminCredentialId) return badRequest("Unknown credential.");
+      return HttpResponse.json({ isSuccess: true, authorizationUri: `https://tamin.mock.local/authorize?code=mock-code&state=mock-state&credentialId=${encodeURIComponent(taminCredentialId)}` });
+    }),
+    http.post(/\/api\/modules\/medical\/credentials\/authorization\/complete(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const body = await request.json().catch(() => null) as { credentialId?: unknown; authorizationCode?: unknown; state?: unknown } | null;
+      if (body?.credentialId !== taminCredentialId || body.authorizationCode !== "mock-code" || body.state !== "mock-state") return badRequest("Authorization callback is invalid.");
+      taminAuthorized = true;
+      return HttpResponse.json({ accepted: true, isSuccess: true, entityId: taminCredentialId });
+    }),
+    http.post(/\/api\/modules\/medical\/credentials\/test(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const body = await request.json().catch(() => null) as { credentialId?: unknown } | null;
+      if (body?.credentialId !== taminCredentialId) return badRequest("Unknown credential.");
+      taminAuthorized = true;
+      return HttpResponse.json({ accepted: true, isSuccess: true, entityId: taminCredentialId, value: "Credential token validated" });
+    }),
+    http.post(/\/api\/modules\/clinic\/visits\/prescription-drafts\/start(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ eventId: "mock-prescription-event", prescriptionId: "mock-prescription" }, { status: 201 });
+    }),
+    http.post(/\/api\/modules\/medical\/prescriptions\/reference-codes\/search(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json(activeScenario === "empty" ? [] : [{ providerKey: "Tamin", codeSystem: "Tamin", prescriptionCategory: 0, referenceCode: "AMOX-500", displayName: "Amoxicillin 500 mg", providerCategory: "Medication", metadata: {} }]);
+    }),
+    http.post(/\/api\/modules\/medical\/prescription-templates\/list(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json(activeScenario === "empty" ? [] : [{ id: "mock-template", name: "Routine acute visit" }]);
+    }),
+    http.post(/\/api\/modules\/medical\/prescriptions\/[^/]+\/items(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ accepted: true, isSuccess: true, entityId: "mock-prescription-item" }, { status: 201 });
+    }),
+    http.post(/\/api\/modules\/medical\/prescriptions\/[^/]+\/validation(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ isValid: true, errors: [], warnings: [] });
+    }),
+    http.post(/\/api\/modules\/medical\/prescriptions\/[^/]+\/submission(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ accepted: true, isSuccess: true, entityId: "mock-prescription" });
+    }),
+    http.get(/\/api\/modules\/clinic\/patients\/[^/]+\/agent\/actions\/[^/]+(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({
+        actionId: "mock-agent-action",
+        agentRunId: "mock-agent-run",
+        conversationId: "mock-agent-conversation",
+        capability: "Appointment scheduling",
+        actionType: "create_appointment",
+        status: "Proposed",
+        reviewPayload: { slot: { date: "2026-08-12", startTime: "10:30", durationMinutes: 30, service: "Initial consultation", practitioner: "Dr. Ada Lovelace" }, appointmentType: "Consultation", description: "Follow-up appointment proposed by the patient assistant.", availabilityWarnings: [] },
+        expiresAt: "2026-08-12T09:30:00.000Z",
+        completionPayload: {},
+        failure: null,
+      });
+    }),
+    http.post(/\/api\/modules\/clinic\/patients\/[^/]+\/agent\/actions\/[^/]+\/(confirm|reject)(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ actionId: "mock-agent-action", status: request.url.endsWith("/confirm") ? "Completed" : "Rejected", completionPayload: request.url.endsWith("/confirm") ? { appointmentId: "mock-reservation" } : {}, failure: null });
+    }),
     http.get(/\/api\/modules\/intelligence\/transcription\/live\/capabilities(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
@@ -283,13 +397,21 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
         citations: [],
       });
     }),
-    http.post(/\/api\/modules\/intelligence\/agent-conversations(?:\?|$)/, async () => {
+    http.post(/\/api\/modules\/intelligence\/agent-conversations(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
+      const body = await request.json().catch(() => null) as { agentKey?: unknown } | null;
+      const isClinic = body?.agentKey === "clinic.patient";
       return HttpResponse.json({
         agentRunId: "mock-agent-run",
         conversationId: "mock-agent-conversation",
-        result: { text: "Deterministic mock agent result." },
+        result: isClinic ? {
+          agentRunId: "mock-agent-run",
+          conversationId: "mock-agent-conversation",
+          previousResponseId: null,
+          messages: [{ kind: "AssistantMessage", content: "I found a suitable appointment slot. Review the proposed action before confirming it." }],
+          actions: [{ id: "mock-agent-action", capability: "Appointment scheduling", actionType: "create_appointment", status: "Proposed", arguments: {}, summary: "Book a 30-minute consultation with Dr. Ada Lovelace." }],
+        } : { text: "Deterministic mock agent result." },
       });
     }),
   ];

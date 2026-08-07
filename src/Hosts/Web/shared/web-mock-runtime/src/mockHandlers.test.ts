@@ -139,6 +139,41 @@ describe("mock preview handlers", () => {
     await expect(response.json()).resolves.toMatchObject([{ id: "mock-service", name: "Initial consultation" }]);
   });
 
+  it("supports the deterministic Tamin credential authorization lifecycle", async () => {
+    const context = await fetch("https://mock.example.test/api/modules/medical/credentials/setup-context");
+    await expect(context.json()).resolves.toEqual({ doctorId: "mock-doctor", clinicId: "mock-clinic" });
+
+    const configured = await fetch("https://mock.example.test/api/modules/medical/credentials", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ providerKey: "TAMIN", credentialId: null }),
+    });
+    const configuredBody = await configured.json() as { entityId: string };
+    expect(configuredBody.entityId).toBe("mock-tamin-credential");
+
+    const begin = await fetch("https://mock.example.test/api/modules/medical/credentials/authorization/begin", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ credentialId: configuredBody.entityId }),
+    });
+    await expect(begin.json()).resolves.toMatchObject({ isSuccess: true, authorizationUri: expect.stringContaining("mock-code") });
+
+    const complete = await fetch("https://mock.example.test/api/modules/medical/credentials/authorization/complete", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ credentialId: configuredBody.entityId, authorizationCode: "mock-code", state: "mock-state" }),
+    });
+    await expect(complete.json()).resolves.toMatchObject({ accepted: true, entityId: configuredBody.entityId });
+
+    const tested = await fetch("https://mock.example.test/api/modules/medical/credentials/test", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ credentialId: configuredBody.entityId }),
+    });
+    await expect(tested.json()).resolves.toMatchObject({ accepted: true, value: "Credential token validated" });
+
+    const grid = await fetch("https://mock.example.test/api/modules/medical/credentials/setup-grid", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clinicId: "mock-clinic", providerKey: "TAMIN" }),
+    });
+    await expect(grid.json()).resolves.toMatchObject([{ status: 1, providerKey: "TAMIN" }]);
+  });
+
   it("persists an appointment resource create for later list reads", async () => {
     const created = await fetch("https://mock.example.test/api/modules/appointments/services/create", {
       method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ service: { id: "mock-service-new", name: "Follow-up" } }),
