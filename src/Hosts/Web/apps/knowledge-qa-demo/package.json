@@ -20,6 +20,7 @@
     "@vitarish/knowledge-web": "0.1.0",
     "@vitarish/web-api-client": "0.1.0",
     "@vitarish/web-localization": "0.1.0",
+    "@vitarish/web-mock-runtime": "0.1.0",
     "@vitarish/web-ui": "0.1.0",
     "marked": "^18.0.5",
     "motion": "^12.12.0",

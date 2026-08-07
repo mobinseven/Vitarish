@@ -3,6 +3,7 @@
 import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
+import { MockApiBootstrap } from "@vitarish/web-mock-runtime";
 
 const themeModes = ["light", "dark"] as const;
 
@@ -17,7 +18,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <MockApiBootstrap><QueryClientProvider client={queryClient}>
       <ThemeProvider
         attribute="data-theme"
         defaultTheme="system"
@@ -27,6 +28,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
       >
         {children}
       </ThemeProvider>
-    </QueryClientProvider>
+    </QueryClientProvider></MockApiBootstrap>
   );
 }
