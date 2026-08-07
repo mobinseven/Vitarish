@@ -84,7 +84,9 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<IClinicOperationsAgentTool, CompleteOperationTool>();
             _ = services.AddTransient<IClinicOperationsAgentTool, ActivateShiftTool>();
             _ = services.AddTransient<IClinicOperationsAgentTool, PauseShiftTool>();
+            _ = services.AddTransient<IClinicOperationsAgentTool, AppointmentAdministrationAgentTool>();
             _ = services.AddTransient<SeaManagementTool>();
+            _ = services.AddTransient<AppointmentAdministrationAgentTool>();
             _ = services.AddTransient<IPatientAgentCapability, SeaManagementAgentCapability>();
             foreach (string toolName in new[] { "prepare_book_appointment", "prepare_reschedule_appointment", "prepare_cancel_appointment", "prepare_reject_appointment", "prepare_create_shift", "prepare_edit_shift", "prepare_close_shift", "prepare_cancel_shift", "prepare_archive_shift" })
             {
@@ -105,6 +107,7 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<IPatientAgentActionCommitter, ClinicalEventPatientAgentActionCommitter>();
             _ = services.AddTransient<IPatientAgentActionCommitter, OperationsPatientAgentActionCommitter>();
             _ = services.AddTransient<IPatientAgentActionCommitter, SeaManagementPatientAgentActionCommitter>();
+            _ = services.AddTransient<IPatientAgentActionCommitter, AppointmentAdministrationPatientAgentActionCommitter>();
             _ = services.AddTransient<IPatientAgentActionCommitterRegistry, PatientAgentActionCommitterRegistry>();
 
             return services;

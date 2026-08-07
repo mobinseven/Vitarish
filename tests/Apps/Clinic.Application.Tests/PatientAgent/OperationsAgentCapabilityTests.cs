@@ -1,10 +1,12 @@
 using FluentAssertions;
 using Moq;
+using Vitarish.Appointments.Application.Abstractions;
 using Vitarish.Appointments.Application.AgentCapabilities;
 using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Operations;
 using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Operations;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Entities.Contracts.Models;
 using Vitarish.Sea.Application.Abstractions;
 using Xunit;
 
@@ -80,5 +82,36 @@ public sealed class OperationsAgentCapabilityTests
 
         capability.IsAvailable(practice).Should().BeTrue();
         capability.IsAvailable(patient).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Appointment_administration_requires_trusted_confirmation_metadata()
+    {
+        Guid reservationId = Guid.Parse("44444444-4444-4444-4444-444444444444");
+        Mock<IAccessControlledReservationManager> reservations = new(MockBehavior.Strict);
+        reservations.Setup(x => x.ConfirmReservationAsync(reservationId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult.Success());
+        AppointmentAdministrationAgentTool tool = new(
+            reservations.Object,
+            new Mock<IAccessControlledShiftManager>().Object,
+            new Mock<IServiceManager>().Object,
+            new Mock<IServiceTypeManager>().Object,
+            new Mock<IServiceProviderManager>().Object,
+            new Mock<IShiftBookingPolicyManager>().Object,
+            new Mock<IShiftReminderPolicyManager>().Object,
+            new Mock<IShiftBookableDateQueryService>().Object,
+            new Mock<ITemporaryHoldManager>().Object);
+        AgentToolCall call = new("call-1", "appointment_manage", $$"""{"operation":"confirm_reservation","payload":{"id":"{{reservationId:D}}"},"commit":true}""");
+
+        AgentToolResult untrusted = await tool.ExecuteAsync(call, new AgentExecutionContext("run-1"));
+        untrusted.Output.Should().Contain("prepared");
+        reservations.Verify(x => x.ConfirmReservationAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+
+        AgentToolResult trusted = await tool.ExecuteAsync(call, new AgentExecutionContext("run-1", new Dictionary<string, string>
+        {
+            ["confirmedAction"] = "true"
+        }));
+        trusted.Output.Should().Contain("true");
+        reservations.Verify(x => x.ConfirmReservationAsync(reservationId, It.IsAny<CancellationToken>()), Times.Once);
     }
 }
