@@ -114,6 +114,11 @@ public static class HostDataProtectionExtensions
         SubjectAlternativeNameBuilder san = new();
         san.AddDnsName(dnsName);
         request.CertificateExtensions.Add(san.Build());
-        return request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-5), DateTimeOffset.UtcNow.AddYears(yearsValid));
+        using X509Certificate2 created = request.CreateSelfSigned(
+            DateTimeOffset.UtcNow.AddMinutes(-5), DateTimeOffset.UtcNow.AddYears(yearsValid));
+        byte[] pfx = created.Export(X509ContentType.Pfx, password);
+        return X509CertificateLoader.LoadPkcs12(
+            pfx, password,
+            X509KeyStorageFlags.EphemeralKeySet | X509KeyStorageFlags.Exportable);
     }
 }

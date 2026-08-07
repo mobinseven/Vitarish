@@ -7,6 +7,7 @@ using Vitarish.Clinic.Api.PatientAgent;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Clinic.Infrastructure.Extensions;
 using Vitarish.Entities.Server.Extensions;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Clinic.App;
 
@@ -26,7 +27,10 @@ public class ClinicApp : Vitarish.Apps.Base.Core.App
 
     public override Task Initialize(WebApplication app)
     {
-        _ = app.InitializeViews();
+        if (!DatabaseMigrationExtensions.IsOpenApiGeneration())
+        {
+            _ = app.InitializeViews();
+        }
         _ = app.MapClinicApi();
         return Task.CompletedTask;
     }

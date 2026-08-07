@@ -19,10 +19,8 @@ using Vitarish.Landing.Application;
 using Microsoft.Extensions.Options;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-bool openApiGeneration = string.Equals(
-    Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"),
-    "true",
-    StringComparison.OrdinalIgnoreCase);
+bool openApiGeneration = DatabaseMigrationExtensions.IsOpenApiGeneration() ||
+    builder.Environment.EnvironmentName.Equals("OpenApiGeneration", StringComparison.OrdinalIgnoreCase);
 
 void configurePostgres(DbContextOptionsBuilder options)
 {
@@ -175,14 +173,17 @@ if (app.Environment.IsDevelopment())
 }
 
 await app.InitializeModules();
-await app.InitializeApps();
+if (!DatabaseMigrationExtensions.IsOpenApiGeneration())
+{
+    await app.InitializeApps();
+}
 
 app.MapHangfireDashboard();
 
 // OpenAPI extraction executes the host to discover endpoint metadata. Recurring
 // job registration is an operational side effect and is not required for that
 // discovery; suppress it only when the extractor explicitly opts in.
-if (!string.Equals(Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"), "true", StringComparison.OrdinalIgnoreCase))
+if (!openApiGeneration)
 {
     app.ScheduleJobs();
 }
