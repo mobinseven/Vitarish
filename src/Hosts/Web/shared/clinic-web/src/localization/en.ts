@@ -818,6 +818,10 @@ export const clinicEnMessages = {
       loadFailed:
         "Prescriptions could not be loaded. Notes and attachments are still available.",
       retry: "Retry loading prescriptions",
+      allProviders: "All providers",
+      allStatuses: "All statuses",
+      loadMore: "Load more",
+      attentionTitle: "Needs workflow attention",
       categories: {
         drug: "Medication",
         lab: "Laboratory",

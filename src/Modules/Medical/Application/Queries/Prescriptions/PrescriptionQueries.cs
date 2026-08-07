@@ -22,6 +22,8 @@ public sealed record GetPrescriptionHistoryQuery : IRequest<IReadOnlyList<Prescr
     public int Skip { get; init; }
     public int Take { get; init; } = 20;
 }
+public sealed record GetPatientPrescriptionDashboardQuery : IRequest<PatientPrescriptionDashboardDto> { public required Guid PatientId { get; init; } public Guid? ClinicId { get; init; } public int AttentionTake { get; init; } = 8; }
+public sealed record PatientPrescriptionDashboardDto { public int TotalCount { get; init; } public int AttentionCount { get; init; } public IReadOnlyList<PrescriptionSummaryDto> AttentionQueue { get; init; } = []; }
 
 /// <summary>Checks patient eligibility with the selected provider.</summary>
 public sealed record GetEligibilityQuery : IRequest<EligibilityResultDto>

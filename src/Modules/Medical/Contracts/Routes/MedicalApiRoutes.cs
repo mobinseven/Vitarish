@@ -59,6 +59,7 @@ public static class MedicalApiRoutes
     public const string PrescriptionById = "/prescriptions/{prescriptionId:guid}";
     public const string PrescriptionDrafts = "/prescriptions/drafts";
     public const string PrescriptionHistory = "/prescriptions/history";
+    public const string PrescriptionDashboard = "/prescriptions/dashboard";
     public const string PrescriptionItems = "/prescriptions/{prescriptionId:guid}/items";
     public const string PrescriptionItemById = "/prescriptions/{prescriptionId:guid}/items/{itemId:guid}";
     public const string PrescriptionProviderSelection = "/prescriptions/{prescriptionId:guid}/provider";

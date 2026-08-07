@@ -811,6 +811,10 @@ export const clinicFaMessages = {
       loadFailed:
         "نسخه‌ها بارگذاری نشدند. یادداشت‌ها و پیوست‌ها همچنان در دسترس‌اند.",
       retry: "تلاش دوباره برای بارگذاری نسخه‌ها",
+      allProviders: "همه ارائه‌دهندگان",
+      allStatuses: "همه وضعیت‌ها",
+      loadMore: "بارگذاری بیشتر",
+      attentionTitle: "نیازمند پیگیری فرایند",
       categories: {
         drug: "دارو",
         lab: "آزمایش",
