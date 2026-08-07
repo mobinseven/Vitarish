@@ -24,7 +24,13 @@ public sealed class UsersModule : Modules.Base.Core.Module
     public override async Task Initialize(WebApplication app)
     {
         _ = await app.MigrateDatabaseAsync<UsersDbContext>();
-        await app.InitializeUsers();
+        if (!string.Equals(
+                Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"),
+                "true",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            await app.InitializeUsers();
+        }
         _ = app.MapUsersApi();
     }
 }

@@ -19,6 +19,8 @@ using Vitarish.Landing.Application;
 using Microsoft.Extensions.Options;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+bool openApiGeneration = DatabaseMigrationExtensions.IsOpenApiGeneration() ||
+    builder.Environment.EnvironmentName.Equals("OpenApiGeneration", StringComparison.OrdinalIgnoreCase);
 
 void configurePostgres(DbContextOptionsBuilder options)
 {
@@ -52,7 +54,7 @@ _ = builder.Services.AddOptions<LandingPlatformOptions>()
         landing.LandingUrl = platform.Value.LandingUrl);
 
 
-await builder.AddHostIdentityServer(configurePostgres);
+await builder.AddHostIdentityServer(configurePostgres, openApiGeneration);
 
 builder.AddHostAuthentication();
 builder.AddHostAuthorization();
@@ -60,11 +62,17 @@ builder.AddHostHangfire(builder.Configuration.GetConnectionString("Db")!);
 builder.AddHostPipeline();
 builder.AddHostCors();
 
-await builder.AddHostDataProtection();
+if (openApiGeneration)
+    builder.Services.AddOpenApiDataProtection(builder.Configuration);
+else
+    await builder.AddHostDataProtection();
 
 _ = builder.Services.AddMemoryCache();
 _ = builder.Services.AddHttpContextAccessor();
-builder.AddRedisCaching();
+if (openApiGeneration)
+    _ = builder.Services.AddDistributedMemoryCache();
+else
+    builder.AddRedisCaching();
 _ = builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(2);  // Align with WebAuthn timeout (60s) + buffer
@@ -120,7 +128,8 @@ builder.Services.AddScoped<IEntityTimeService, UtcEntityTimeService>();
 
 WebApplication app = builder.Build();
 
-_ = await app.MigrateDatabaseAsync<AuditDbContext>();
+if (!openApiGeneration)
+    _ = await app.MigrateDatabaseAsync<AuditDbContext>();
 
 CookiePolicyOptions cookiePolicyOptions = new()
 {
@@ -164,14 +173,17 @@ if (app.Environment.IsDevelopment())
 }
 
 await app.InitializeModules();
-await app.InitializeApps();
+if (!DatabaseMigrationExtensions.IsOpenApiGeneration())
+{
+    await app.InitializeApps();
+}
 
 app.MapHangfireDashboard();
 
 // OpenAPI extraction executes the host to discover endpoint metadata. Recurring
 // job registration is an operational side effect and is not required for that
 // discovery; suppress it only when the extractor explicitly opts in.
-if (!string.Equals(Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"), "true", StringComparison.OrdinalIgnoreCase))
+if (!openApiGeneration)
 {
     app.ScheduleJobs();
 }

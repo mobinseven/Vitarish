@@ -32,6 +32,16 @@ public static class HostDataProtectionExtensions
             _ = dataProtection.UnprotectKeysWithAnyCertificate(previousCertificates);
     }
 
+    public static void AddOpenApiDataProtection(this IServiceCollection services, IConfiguration configuration)
+    {
+        string domain = configuration[$"{ConfigSection}:Authority"] ?? throw new Exception($"{ConfigSection}:Authority not set");
+        string pfxPassword = configuration[$"{ConfigSection}:DataProtectionPassword"] ?? throw new Exception($"{ConfigSection}:DataProtectionPassword not set");
+        X509Certificate2 certificate = CreateOpenApiCertificate(domain, pfxPassword);
+        _ = services.AddDataProtection()
+            .ProtectKeysWithCertificate(certificate)
+            .SetApplicationName(domain);
+    }
+
     private static async Task<X509Certificate2[]> LoadCertificatesAsync(
         IConnectionMultiplexer redis,
         IEnumerable<string> keys,
@@ -72,24 +82,7 @@ public static class HostDataProtectionExtensions
                 X509KeyStorageFlags.EphemeralKeySet | X509KeyStorageFlags.Exportable);
         }
 
-        using RSA rsa = RSA.Create(keySize);
-        X500DistinguishedName dn = new($"CN={dnsName}");
-
-        CertificateRequest req = new(
-            dn, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-
-        req.CertificateExtensions.Add(
-            new X509KeyUsageExtension(
-                X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
-        req.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(req.PublicKey, false));
-
-        SubjectAlternativeNameBuilder san = new();
-        san.AddDnsName(dnsName);
-        req.CertificateExtensions.Add(san.Build());
-
-        DateTimeOffset notBefore = DateTimeOffset.UtcNow.AddMinutes(-5);
-        DateTimeOffset notAfter = DateTimeOffset.UtcNow.AddYears(yearsValid);
-        using X509Certificate2 created = req.CreateSelfSigned(notBefore, notAfter);
+        using X509Certificate2 created = CreateOpenApiCertificate(dnsName, pfxPassword, keySize, yearsValid);
 
         byte[] pfx = created.Export(X509ContentType.Pfx, pfxPassword);
         _ = await db.StringSetAsync(redisKey, pfx);
@@ -100,6 +93,32 @@ public static class HostDataProtectionExtensions
 
         return X509CertificateLoader.LoadPkcs12(
             pfx, pfxPassword,
+            X509KeyStorageFlags.EphemeralKeySet | X509KeyStorageFlags.Exportable);
+    }
+
+    public static X509Certificate2 CreateOpenApiCertificate(
+        string dnsName,
+        string password,
+        int keySize = 2048,
+        int yearsValid = 1)
+    {
+        using RSA rsa = RSA.Create(keySize);
+        CertificateRequest request = new(
+            new X500DistinguishedName($"CN={dnsName}"),
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+        request.CertificateExtensions.Add(new X509KeyUsageExtension(
+            X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
+        request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
+        SubjectAlternativeNameBuilder san = new();
+        san.AddDnsName(dnsName);
+        request.CertificateExtensions.Add(san.Build());
+        using X509Certificate2 created = request.CreateSelfSigned(
+            DateTimeOffset.UtcNow.AddMinutes(-5), DateTimeOffset.UtcNow.AddYears(yearsValid));
+        byte[] pfx = created.Export(X509ContentType.Pfx, password);
+        return X509CertificateLoader.LoadPkcs12(
+            pfx, password,
             X509KeyStorageFlags.EphemeralKeySet | X509KeyStorageFlags.Exportable);
     }
 }

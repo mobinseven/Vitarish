@@ -30,6 +30,7 @@ public class CommerceModule : Modules.Base.Core.Module, ICommerceModule
     {
         _ = app.MapCommerceApi();
         _ = await app.MigrateDatabaseAsync<CommerceDbContext>();
-        await app.InitializeViews();
+        if (!string.Equals(Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"), "true", StringComparison.OrdinalIgnoreCase))
+            await app.InitializeViews();
     }
 }
