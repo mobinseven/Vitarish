@@ -18,9 +18,9 @@ npm run dev:mock:private-practice-owner -- --scenario loading
 
 Supported scenarios are `ready` (default), `empty`, `loading`, and `error`.
 The scenario is fixed for the dev-server process so refreshes stay reproducible.
-Workflow mutations are held in memory by the mock worker and are shared by tabs
-on the same app origin. Restart the corresponding `dev:mock:*` command to reset
-the seed state.
+Workflow mutations are held in memory by the mock page's MSW worker. A page
+reload or a new tab starts from the scenario seed; restart the corresponding
+`dev:mock:*` command when you need to reset the dev server as well.
 
 Mock mode starts an MSW browser worker only when
 `NEXT_PUBLIC_VITARISH_MOCK_API=1`. It intercepts browser HTTP requests below the

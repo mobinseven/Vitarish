@@ -58,11 +58,11 @@ export function MockApiBootstrap({
   }, [handlers]);
 
   if (status === "starting") {
-    return <div role="status">Starting deterministic mock API…</div>;
+    return <div role="status">{"Starting deterministic mock API…"}</div>;
   }
 
   if (status === "failed") {
-    return <div role="alert">Unable to start the deterministic mock API. Check the browser console.</div>;
+    return <div role="alert">{"Unable to start the deterministic mock API. Check the browser console."}</div>;
   }
 
   return <>{children}</>;

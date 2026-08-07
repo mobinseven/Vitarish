@@ -59,6 +59,14 @@ describe("mock preview handlers", () => {
     await expect(list.json()).resolves.toEqual(expect.arrayContaining([expect.objectContaining({ id: patient.id, name: "Grace Hopper" })]));
   });
 
+  it("updates a patient by its URL identifier", async () => {
+    const response = await fetch("https://mock.example.test/api/modules/clinic/patients/mock-patient-ada", {
+      method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ firstName: "Ada", lastName: "Byron" }),
+    });
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ id: "mock-patient-ada", name: "Ada Byron" });
+  });
+
   it("returns platform administration rows for operator screens", async () => {
     const [owners, tenants, users] = await Promise.all([
       fetch("https://mock.example.test/api/modules/parties/administration/owners"),
@@ -92,6 +100,16 @@ describe("mock preview handlers", () => {
     await expect(owners.json()).resolves.toEqual(expect.arrayContaining([expect.objectContaining({ id: "mock-owner-new", name: "New Practice" })]));
   });
 
+  it("applies role grants and revokes using the generated client methods", async () => {
+    const path = "https://mock.example.test/api/modules/users/administration/mock-user/tenant-roles/mock-tenant/TenantUser";
+    const grant = await fetch(path, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ roleSuffix: "TenantUser" }) });
+    expect(grant.status).toBe(201);
+    const roles = await fetch("https://mock.example.test/api/modules/users/administration/mock-user/tenant-roles");
+    await expect(roles.json()).resolves.toEqual(expect.arrayContaining([expect.objectContaining({ roleSuffix: "TenantUser" })]));
+    const revoke = await fetch(path, { method: "DELETE" });
+    expect(revoke.status).toBe(204);
+  });
+
   it("supports the public landing conversation HTTP contract", async () => {
     const response = await fetch("https://mock.example.test/api/apps/landing/conversations", {
       method: "POST",
@@ -123,9 +141,10 @@ describe("mock preview handlers", () => {
 
   it("persists an appointment resource create for later list reads", async () => {
     const created = await fetch("https://mock.example.test/api/modules/appointments/services/create", {
-      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "mock-service-new", name: "Follow-up" }),
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ service: { id: "mock-service-new", name: "Follow-up" } }),
     });
     expect(created.status).toBe(201);
+    await expect(created.json()).resolves.toMatchObject({ succeeded: true, entityId: "mock-service-new" });
     const services = await fetch("https://mock.example.test/api/modules/appointments/services", { method: "POST", body: "{}" });
     await expect(services.json()).resolves.toEqual(expect.arrayContaining([expect.objectContaining({ id: "mock-service-new", name: "Follow-up" })]));
   });

@@ -104,10 +104,11 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       store.patients.push(patient);
       return HttpResponse.json(patient, { status: 201 });
     }),
-    http.put(/\/api\/modules\/clinic\/patients\/[^/]+(?:\?|$)/, async ({ request, params }) => {
+    http.put(/\/api\/modules\/clinic\/patients\/[^/]+(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      const patient = store.patients.find((item) => item.id === String(params[0]));
+      const id = new URL(request.url).pathname.split("/").at(-1);
+      const patient = store.patients.find((item) => item.id === id);
       if (!patient) return notFound("Patient does not exist in the mock store.");
       const body = await request.json().catch(() => null) as Record<string, unknown> | null;
       if (typeof body?.firstName === "string") patient.firstName = body.firstName;
@@ -125,16 +126,18 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       if (activeScenario === "error") return unavailable();
       return HttpResponse.json(store.tenants);
     }),
-    http.get(/\/api\/modules\/parties\/administration\/owners\/[^/]+(?:\?|$)/, async () => {
+    http.get(/\/api\/modules\/parties\/administration\/owners\/[^/]+(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      const owner = store.owners.find((item) => item.id === "mock-owner");
+      const id = new URL(request.url).pathname.split("/").at(-1);
+      const owner = store.owners.find((item) => item.id === id);
       return owner ? HttpResponse.json(owner) : notFound("Owner does not exist in the mock store.");
     }),
-    http.get(/\/api\/modules\/parties\/administration\/tenants\/[^/]+(?:\?|$)/, async () => {
+    http.get(/\/api\/modules\/parties\/administration\/tenants\/[^/]+(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
-      const tenant = store.tenants.find((item) => item.id === "mock-tenant");
+      const id = new URL(request.url).pathname.split("/").at(-1);
+      const tenant = store.tenants.find((item) => item.id === id);
       return tenant ? HttpResponse.json(tenant) : notFound("Tenant does not exist in the mock store.");
     }),
     http.get(/\/api\/modules\/parties\/administration\/owners\/[^/]+\/tenants(?:\?|$)/, async () => {
@@ -173,10 +176,25 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
         store.tenants.push(tenant);
         return HttpResponse.json(tenant, { status: 201 });
       }
-      if (path.includes("/tenant-roles") && request.method === "POST") {
-        const membership = { userId: path.split("/").at(-2) ?? "mock-user", tenantId: typeof body?.tenantId === "string" ? body.tenantId : "mock-tenant", roleSuffix: typeof body?.roleSuffix === "string" ? body.roleSuffix : "TenantUser" };
-        store.memberships.push(membership);
+      if (path.includes("/tenant-roles") && (request.method === "PUT" || request.method === "POST")) {
+        const parts = path.split("/");
+        const roleSuffix = parts.at(-1) ?? "TenantUser";
+        const tenantId = parts.at(-2) ?? "mock-tenant";
+        const userId = parts.at(-4) ?? "mock-user";
+        const membership = { userId, tenantId, roleSuffix };
+        const existing = store.memberships.findIndex((item) => item.userId === userId && item.tenantId === tenantId && item.roleSuffix === roleSuffix);
+        if (existing < 0) store.memberships.push(membership);
         return HttpResponse.json(membership, { status: 201 });
+      }
+      if (path.includes("/tenant-roles/") && request.method === "DELETE") {
+        const parts = path.split("/");
+        const roleSuffix = parts.at(-1) ?? "TenantUser";
+        const tenantId = parts.at(-2) ?? "mock-tenant";
+        const userId = parts.at(-4) ?? "mock-user";
+        const index = store.memberships.findIndex((item) => item.userId === userId && item.tenantId === tenantId && item.roleSuffix === roleSuffix);
+        if (index < 0) return notFound("Membership does not exist in the mock store.");
+        store.memberships.splice(index, 1);
+        return new HttpResponse(null, { status: 204 });
       }
       return HttpResponse.json({ succeeded: true, id: typeof body?.id === "string" ? body.id : "mock-entity" });
     }),
@@ -227,9 +245,11 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
         const resource = Object.keys(store.appointments).find((key) => path.includes(`/appointments/${key}`)) as keyof typeof store.appointments | undefined;
         const body = await request.json().catch(() => null) as Record<string, unknown> | null;
         if (resource && path.endsWith("/create")) {
-          const created = { ...(body ?? {}), id: typeof body?.id === "string" ? body.id : store.nextId("mock-appointment"), createdAt: "2026-01-02T00:00:00.000Z" };
+          const wrapperKey = resource === "service-providers" ? "serviceProvider" : resource === "service-types" ? "serviceType" : resource.slice(0, -1);
+          const source = body && typeof body[wrapperKey] === "object" && body[wrapperKey] !== null ? body[wrapperKey] as Record<string, unknown> : body ?? {};
+          const created = { ...source, id: typeof source.id === "string" ? source.id : store.nextId("mock-appointment"), createdAt: "2026-01-02T00:00:00.000Z" };
           store.appointments[resource].push(created);
-          return HttpResponse.json(created, { status: 201 });
+          return HttpResponse.json({ succeeded: true, entityId: created.id }, { status: 201 });
         }
       }
       return HttpResponse.json({ succeeded: true, entityId: "mock-appointment-entity" });
