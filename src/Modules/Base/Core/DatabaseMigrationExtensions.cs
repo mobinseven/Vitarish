@@ -10,6 +10,14 @@ public static class DatabaseMigrationExtensions
     public static async Task<WebApplication> MigrateDatabaseAsync<TContext>(this WebApplication app)
         where TContext : DbContext
     {
+        if (string.Equals(
+                Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"),
+                "true",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return app;
+        }
+
         using IServiceScope scope = app.Services.CreateScope();
         TContext db = scope.ServiceProvider.GetRequiredService<TContext>();
         ILogger<TContext> logger = scope.ServiceProvider.GetRequiredService<ILogger<TContext>>();

@@ -11,13 +11,21 @@ using Vitarish.Main.Infrastructure.Security;
 public static class HostIdentityServerExtensions
 {
     private const string ConfigSection = $"{nameof(Vitarish)}:Identity";
-    public static async Task AddHostIdentityServer(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> configureDb)
+    public static async Task AddHostIdentityServer(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> configureDb, bool openApiGeneration = false)
     {
         string domain = builder.Configuration[$"{ConfigSection}:Authority"] ?? throw new Exception($"{ConfigSection}:Authority not set");
         string pfxPassword = builder.Configuration[$"{ConfigSection}:DataProtectionPassword"] ?? throw new Exception($"{ConfigSection}:DataProtectionPassword not set");
-        string redisConfig = builder.Configuration.GetConnectionString("Redis") ?? throw new InvalidOperationException("Redis connection string not configured.");
-        ConnectionMultiplexer redis = await ConnectionMultiplexer.ConnectAsync(redisConfig);
-        X509Certificate2 cert = await HostDataProtectionExtensions.GetOrCreateFromRedisAsync(redis, domain, pfxPassword);
+        X509Certificate2 cert;
+        if (openApiGeneration)
+        {
+            cert = HostDataProtectionExtensions.CreateOpenApiCertificate(domain, pfxPassword);
+        }
+        else
+        {
+            string redisConfig = builder.Configuration.GetConnectionString("Redis") ?? throw new InvalidOperationException("Redis connection string not configured.");
+            ConnectionMultiplexer redis = await ConnectionMultiplexer.ConnectAsync(redisConfig);
+            cert = await HostDataProtectionExtensions.GetOrCreateFromRedisAsync(redis, domain, pfxPassword);
+        }
         _ = builder.Services
             .AddIdentityServer(options =>
             {

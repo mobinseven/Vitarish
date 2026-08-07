@@ -858,6 +858,12 @@
               "null",
               "boolean"
             ]
+          },
+          "sourceKind": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -893,6 +899,20 @@
           "remindAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "sourceKind": {
+            "type": "string",
+            "default": "manual"
+          },
+          "templatePurpose": {
+            "type": "string",
+            "default": ""
+          },
+          "templateVariablesJson": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -950,6 +970,24 @@
           "remindAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "sourceKind": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "templatePurpose": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "templateVariablesJson": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1011,6 +1049,20 @@
           },
           "isSent": {
             "type": "boolean"
+          },
+          "sourceKind": {
+            "type": "string",
+            "default": "manual"
+          },
+          "templatePurpose": {
+            "type": "string",
+            "default": ""
+          },
+          "templateVariablesJson": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
