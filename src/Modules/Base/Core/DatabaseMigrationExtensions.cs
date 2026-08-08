@@ -7,9 +7,19 @@ namespace Vitarish.Modules.Base.Core;
 
 public static class DatabaseMigrationExtensions
 {
+    public static bool IsOpenApiGeneration() =>
+        string.Equals(Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"), "true", StringComparison.OrdinalIgnoreCase) ||
+        Environment.CommandLine.Contains("dotnet-getdocument", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "OpenApiGeneration", StringComparison.OrdinalIgnoreCase);
+
     public static async Task<WebApplication> MigrateDatabaseAsync<TContext>(this WebApplication app)
         where TContext : DbContext
     {
+        if (IsOpenApiGeneration())
+        {
+            return app;
+        }
+
         using IServiceScope scope = app.Services.CreateScope();
         TContext db = scope.ServiceProvider.GetRequiredService<TContext>();
         ILogger<TContext> logger = scope.ServiceProvider.GetRequiredService<ILogger<TContext>>();

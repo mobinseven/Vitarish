@@ -34,6 +34,12 @@ public sealed class LandingApp : Vitarish.Apps.Base.Core.App
     }
     public override async Task Initialize(WebApplication app)
     {
+        if (string.Equals(Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            _ = app.MapLandingApi();
+            return;
+        }
+
         await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
         LandingPlatformOptions options = scope.ServiceProvider
             .GetRequiredService<IOptions<LandingPlatformOptions>>().Value;
