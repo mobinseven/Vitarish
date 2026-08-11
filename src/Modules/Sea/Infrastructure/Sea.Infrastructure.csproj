@@ -25,6 +25,8 @@
 		<ProjectReference Include="..\..\Parties\Application\Parties.Application.csproj" />
 		<ProjectReference Include="..\..\Search\Application\Search.Application.csproj" />
 		<ProjectReference Include="..\Application\Sea.Application.csproj" />
+		<ProjectReference Include="..\..\Intelligence\Application\Intelligence.Application.csproj" />
+		<ProjectReference Include="..\..\Users\Application\Users.Application.csproj" />
 		<ProjectReference Include="..\Domain\Sea.Domain.csproj" />
 	</ItemGroup>
 

@@ -1,15 +1,16 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Http;
+using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Sea.Application.Abstractions;
+using Vitarish.Sea.Application.Agents;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Sea.Api.Authorization;
 
 internal sealed class SeaProcedureAuthorizationHandler(
-    IEventsService eventsService,
-    SeaEventAuthorizationHandler eventAuthorizationHandler,
+    ISeaManagementAccessEvaluator access,
     IRequestContext requestContext,
     IHttpContextAccessor httpContextAccessor)
     : AuthorizationHandler<OperationAuthorizationRequirement, SeaProcedureResource>
@@ -24,28 +25,8 @@ internal sealed class SeaProcedureAuthorizationHandler(
             return;
         }
 
-        if (SeaPrincipalAccess.CanManage(context.User, requestContext.TenantId))
-        {
-            context.Succeed(requirement);
-            return;
-        }
-
-        IReadOnlyList<EventReadDto> events = (await eventsService.GetListAsync(
-            new EventDescriptorDto { ProcedureId = resource.ProcedureId },
-            httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None)).Value ?? [];
-        await eventAuthorizationHandler.PrimeEventRolesAsync(
-            events.Select(@event => @event.Id),
-            httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None);
-        foreach (EventReadDto @event in events)
-        {
-            if (await eventAuthorizationHandler.IsAuthorizedAsync(
-                context.User,
-                SeaAuthorizationOperations.Read,
-                new SeaEventResource(@event.Id)))
-            {
-                context.Succeed(requirement);
-                return;
-            }
-        }
+        AuthenticatedUserIdResolution user = AuthenticatedUserIdResolver.Resolve(context.User);
+        if (user is not AuthenticatedUserIdResolution.Success success || string.IsNullOrWhiteSpace(requestContext.TenantId)) return;
+        if (await access.CanReadProcedureAsync(new(requestContext.TenantId, success.UserId.Value), resource.ProcedureId, httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None)) context.Succeed(requirement);
     }
 }

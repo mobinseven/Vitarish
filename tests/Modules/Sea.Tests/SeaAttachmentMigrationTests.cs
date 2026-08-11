@@ -1,9 +1,14 @@
 using System.Reflection;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using Moq;
+using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.Migrations.SeaDb;
 
 namespace Vitarish.Sea.Tests;
@@ -11,28 +16,61 @@ namespace Vitarish.Sea.Tests;
 public sealed class SeaAttachmentMigrationTests
 {
     [Fact]
-    public void Migration_backfills_legacy_content_before_making_kind_required()
+    public void Historical_migration_remains_the_original_schema_change()
     {
         var migration = new SeaAttachmentKindAndFileName();
         IReadOnlyList<MigrationOperation> operations = InvokeOperations(migration, "Up");
-        List<MigrationOperation> ordered = [.. operations];
 
         AddColumnOperation fileName = operations.OfType<AddColumnOperation>().Single(operation => operation.Name == "FileName");
         AddColumnOperation kind = operations.OfType<AddColumnOperation>().Single(operation => operation.Name == "Kind");
-        string sql = operations.OfType<SqlOperation>().Single().Sql;
-        AlterColumnOperation requiredKind = operations.OfType<AlterColumnOperation>().Single(operation => operation.Name == "Kind");
 
         fileName.IsNullable.Should().BeTrue();
         fileName.MaxLength.Should().Be(255);
-        kind.IsNullable.Should().BeTrue();
-        sql.Should().Contain("^data:");
-        sql.Should().Contain("://");
-        sql.Should().Contain("[0-9a-f]{8}");
-        sql.Should().Contain("ELSE 0");
-        sql.Should().NotContain("ContentType");
-        requiredKind.IsNullable.Should().BeFalse();
-        ordered.IndexOf(kind).Should().BeLessThan(ordered.IndexOf(operations.OfType<SqlOperation>().Single()));
-        ordered.IndexOf(operations.OfType<SqlOperation>().Single()).Should().BeLessThan(ordered.IndexOf(requiredKind));
+        kind.IsNullable.Should().BeFalse();
+        kind.DefaultValue.Should().Be(0);
+        operations.Should().HaveCount(2);
+        operations.OfType<SqlOperation>().Should().BeEmpty();
+        operations.OfType<AlterColumnOperation>().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Forward_repair_normalizes_metadata_without_rewriting_content()
+    {
+        var migration = new SeaAttachmentLegacyMetadataRepair();
+        IReadOnlyList<MigrationOperation> operations = InvokeOperations(migration, "Up");
+        string sql = operations.OfType<SqlOperation>().Single().Sql;
+
+        operations.Should().ContainSingle(operation => operation is SqlOperation);
+        sql.Should().Contain("lower(coalesce(\"ContentType\", '')) LIKE 'text/%'");
+        sql.Should().Contain("CASE WHEN \"TargetKind\" = 0 THEN NULL ELSE \"CandidateFileName\" END");
+        sql.Should().Contain("char_length(\"FileName\") <= 255");
+        sql.Should().Contain("position(chr(92) in \"FileName\") = 0");
+        sql.Should().Contain("attachment-");
+        sql.Should().Contain("IS DISTINCT FROM");
+        sql.Should().NotContain("\"Content\" =");
+        sql.Should().NotContain("data:");
+
+        typeof(SeaAttachmentLegacyMetadataRepair).GetCustomAttribute<DbContextAttribute>()!.ContextType.Should().Be(typeof(Vitarish.Sea.Infrastructure.Data.SeaDbContext));
+        typeof(SeaAttachmentLegacyMetadataRepair).GetCustomAttribute<MigrationAttribute>()!.Id.Should().Be("20260811113000_SeaAttachmentLegacyMetadataRepair");
+    }
+
+    [Fact]
+    public void Forward_repair_does_not_reverse_ambiguous_legacy_metadata()
+    {
+        var migration = new SeaAttachmentLegacyMetadataRepair();
+
+        InvokeOperations(migration, "Down").Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Forward_repair_is_discoverable_without_a_model_snapshot_change()
+    {
+        DbContextOptions<SeaDbContext> options = new DbContextOptionsBuilder<SeaDbContext>()
+            .UseNpgsql("Host=localhost;Database=design-time;Username=postgres;Password=postgres")
+            .Options;
+        using var context = new SeaDbContext(options, [], Mock.Of<IRequestContext>(), new HttpContextAccessor());
+
+        context.GetService<IMigrationsAssembly>().Migrations.Keys.Should().Contain("20260811113000_SeaAttachmentLegacyMetadataRepair");
     }
 
     [Fact]

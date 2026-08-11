@@ -8,6 +8,7 @@ using Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Operations;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Entities.Contracts.Models;
 using Vitarish.Sea.Application.Abstractions;
+using Vitarish.Sea.Application.Agents;
 using Xunit;
 
 namespace Vitarish.Clinic.Application.Tests.PatientAgent;
@@ -63,16 +64,7 @@ public sealed class OperationsAgentCapabilityTests
     [Fact]
     public void Sea_management_is_available_only_for_practice_operations_scope()
     {
-        SeaManagementTool tool = new(
-            new Mock<IProjectsService>().Object,
-            new Mock<IProceduresService>().Object,
-            new Mock<IEventsService>().Object,
-            new Mock<IAttachmentsService>().Object,
-            new Mock<IReceiptsService>().Object,
-            new Mock<IRolesService>().Object,
-            new Mock<IUserRolesService>().Object,
-            new Mock<IEventRolesService>().Object,
-            new Mock<IDatabaseStatisticsService>().Object);
+        SeaManagementClinicToolAdapter tool = new(new Mock<ISeaManagementAgentTool>().Object);
         SeaManagementAgentCapability capability = new(tool);
         PatientAgentContext practice = new(
             "practice-1", Guid.Empty, "owner-1", new HashSet<string>(StringComparer.Ordinal),

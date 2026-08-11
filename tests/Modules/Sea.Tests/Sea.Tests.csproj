@@ -14,6 +14,9 @@
     <ProjectReference Include="..\..\..\src\Modules\Sea\Api\Sea.Api.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Sea\Domain\Sea.Domain.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Sea\Infrastructure\Sea.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Users\Application\Users.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Users\Domain\Users.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Intelligence\Application\Intelligence.Application.csproj" />
   </ItemGroup>
 
 </Project>

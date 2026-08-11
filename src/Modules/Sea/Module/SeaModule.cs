@@ -1,10 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Vitarish.Sea.Application.Abstractions;
+using Vitarish.Sea.Application.Agents;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.DependencyInjection;
 using Vitarish.Sea.Infrastructure.Services;
+using Vitarish.Sea.Infrastructure.Agents;
 using Vitarish.Sea.Api;
 using Vitarish.Sea.Api.Authorization;
 using Vitarish.Sea.Presentation.Serializers;
@@ -29,6 +31,8 @@ public class SeaModule : Modules.Base.Core.Module, ISeaModule
         _ = builder.Services.AddTransientMultiTenantDbContext<SeaDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddSeaInfrastructure();
+        _ = builder.Services.AddScoped<ISeaManagementAccessEvaluator, SeaManagementAccessEvaluator>();
+        _ = builder.Services.AddTransient<ISeaManagementAgentTool, SeaManagementAgentTool>();
         _ = builder.Services.AddSeaApiAuthorization();
 
         _ = builder.Services.ConfigureHttpJsonOptions(options =>

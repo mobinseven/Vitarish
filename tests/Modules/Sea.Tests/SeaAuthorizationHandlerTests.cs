@@ -7,6 +7,7 @@ using Vitarish.Entities.Contracts.Models;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Sea.Api.Authorization;
 using Vitarish.Sea.Application.Abstractions;
+using Vitarish.Sea.Application.Agents;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Enums;
 
@@ -83,13 +84,13 @@ public sealed class SeaAuthorizationHandlerTests
     {
         Guid attachmentId = Guid.NewGuid();
         Guid owningEventId = Guid.NewGuid();
-        SeaEventAuthorizationHandler eventHandler = CreateEventHandler(
+        ISeaManagementAccessEvaluator access = Access(
             [new UserRoleReadDto { RoleId = ReadRoleId, Type = RoleType.Read }],
             new Dictionary<Guid, (IReadOnlyList<Guid>, IReadOnlyList<Guid>)> { [owningEventId] = ([ReadRoleId], []) });
         var attachments = new Mock<IAttachmentsService>();
         attachments.Setup(service => service.GetAsync(attachmentId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<AttachmentReadDto>.Success(new AttachmentReadDto { Id = attachmentId, EventId = owningEventId }));
-        var handler = new SeaAttachmentAuthorizationHandler(attachments.Object, eventHandler, Accessor());
+        var handler = new SeaAttachmentAuthorizationHandler(attachments.Object, access, RequestContext("tenant-a").Object, Accessor());
 
         bool allowed = await AuthorizeAsync(handler, Principal(UserId.ToString()), SeaAuthorizationOperations.Read, new SeaAttachmentResource(attachmentId));
 
@@ -99,15 +100,11 @@ public sealed class SeaAuthorizationHandlerTests
     [Fact]
     public async Task Project_and_procedure_require_at_least_one_readable_contained_event()
     {
-        Guid eventId = Guid.NewGuid();
-        SeaEventAuthorizationHandler eventHandler = CreateEventHandler(
-            [new UserRoleReadDto { RoleId = ReadRoleId, Type = RoleType.Read }],
-            new Dictionary<Guid, (IReadOnlyList<Guid>, IReadOnlyList<Guid>)> { [eventId] = ([ReadRoleId], []) });
-        var events = new Mock<IEventsService>();
-        events.Setup(service => service.GetListAsync(It.IsAny<EventDescriptorDto>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(EntityResult<IReadOnlyList<EventReadDto>>.Success([new EventReadDto { Id = eventId }]));
-        var project = new SeaProjectAuthorizationHandler(events.Object, eventHandler, RequestContext("tenant-a").Object, Accessor());
-        var procedure = new SeaProcedureAuthorizationHandler(events.Object, eventHandler, RequestContext("tenant-a").Object, Accessor());
+        var access = new Mock<ISeaManagementAccessEvaluator>();
+        access.Setup(value => value.CanReadProjectAsync(It.IsAny<SeaManagementAgentSubject>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        access.Setup(value => value.CanReadProcedureAsync(It.IsAny<SeaManagementAgentSubject>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        var project = new SeaProjectAuthorizationHandler(access.Object, RequestContext("tenant-a").Object, Accessor());
+        var procedure = new SeaProcedureAuthorizationHandler(access.Object, RequestContext("tenant-a").Object, Accessor());
 
         (await AuthorizeAsync(project, Principal(UserId.ToString()), SeaAuthorizationOperations.Read, new SeaProjectResource(Guid.NewGuid()))).Should().BeTrue();
         (await AuthorizeAsync(procedure, Principal(UserId.ToString()), SeaAuthorizationOperations.Read, new SeaProcedureResource(Guid.NewGuid()))).Should().BeTrue();
@@ -121,7 +118,8 @@ public sealed class SeaAuthorizationHandlerTests
             .ReturnsAsync(EntityResult<AttachmentReadDto>.Failure(EntityError.NotFound("Not found")));
         var handler = new SeaAttachmentAuthorizationHandler(
             attachments.Object,
-            CreateEventHandler([], new Dictionary<Guid, (IReadOnlyList<Guid>, IReadOnlyList<Guid>)>()),
+            Access([], new Dictionary<Guid, (IReadOnlyList<Guid>, IReadOnlyList<Guid>)>()),
+            RequestContext("tenant-a").Object,
             Accessor());
 
         bool allowed = await AuthorizeAsync(handler, Principal(UserId.ToString()), SeaAuthorizationOperations.Read, new SeaAttachmentResource(Guid.NewGuid()));
@@ -144,11 +142,10 @@ public sealed class SeaAuthorizationHandlerTests
                 id => id == readableEventId
                     ? ((IReadOnlyList<Guid>)[ReadRoleId], (IReadOnlyList<Guid>)Array.Empty<Guid>())
                     : ((IReadOnlyList<Guid>)Array.Empty<Guid>(), (IReadOnlyList<Guid>)Array.Empty<Guid>())));
-        var handler = new SeaEventAuthorizationHandler(userRoles.Object, eventRoles.Object, RequestContext("tenant-a").Object, Accessor());
+        var handler = CreateEventHandler([new UserRoleReadDto { RoleId = ReadRoleId, Type = RoleType.Read }], new Dictionary<Guid, (IReadOnlyList<Guid>, IReadOnlyList<Guid>)> { [readableEventId] = ([ReadRoleId], []), [hiddenEventId] = ([], []) });
 
         (await AuthorizeAsync(handler, Principal(UserId.ToString()), SeaAuthorizationOperations.Read, new SeaEventResource(readableEventId))).Should().BeTrue();
         (await AuthorizeAsync(handler, Principal(UserId.ToString()), SeaAuthorizationOperations.Read, new SeaEventResource(hiddenEventId))).Should().BeFalse();
-        userRoles.Verify(service => service.GetListAsync(It.IsAny<UserRoleDescriptorDto>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -167,7 +164,7 @@ public sealed class SeaAuthorizationHandlerTests
                 id => id == eventA
                     ? ((IReadOnlyList<Guid>)[ReadRoleId], (IReadOnlyList<Guid>)Array.Empty<Guid>())
                     : ((IReadOnlyList<Guid>)Array.Empty<Guid>(), (IReadOnlyList<Guid>)Array.Empty<Guid>())));
-        var handler = new SeaEventAuthorizationHandler(userRoles.Object, eventRoles.Object, RequestContext("tenant-a").Object, Accessor());
+        var handler = CreateEventHandler([new UserRoleReadDto { RoleId = ReadRoleId, Type = RoleType.Read }], new Dictionary<Guid, (IReadOnlyList<Guid>, IReadOnlyList<Guid>)> { [eventA] = ([ReadRoleId], []), [eventB] = ([], []), [eventC] = ([], []) });
         ClaimsPrincipal principal = Principal(UserId.ToString());
 
         await handler.PrimeEventRolesAsync([eventA, eventB, eventC], CancellationToken.None);
@@ -175,25 +172,27 @@ public sealed class SeaAuthorizationHandlerTests
         (await handler.IsAuthorizedAsync(principal, SeaAuthorizationOperations.Read, new SeaEventResource(eventA))).Should().BeTrue();
         (await handler.IsAuthorizedAsync(principal, SeaAuthorizationOperations.Read, new SeaEventResource(eventB))).Should().BeFalse();
         (await handler.IsAuthorizedAsync(principal, SeaAuthorizationOperations.Read, new SeaEventResource(eventC))).Should().BeFalse();
-        eventRoles.Verify(service => service.GetIdsForEventsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()), Times.Once);
-        userRoles.Verify(service => service.GetListAsync(It.IsAny<UserRoleDescriptorDto>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private static SeaEventAuthorizationHandler CreateEventHandler(
         IReadOnlyList<UserRoleReadDto> userRoleValues,
         IReadOnlyDictionary<Guid, (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> eventRoleValues)
     {
-        var userRoles = new Mock<IUserRolesService>();
-        userRoles.Setup(service => service.GetListAsync(It.IsAny<UserRoleDescriptorDto>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(EntityResult<IReadOnlyList<UserRoleReadDto>>.Success(userRoleValues));
-        var eventRoles = new Mock<IEventRolesService>();
-        eventRoles.Setup(service => service.GetIdsForEventsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IEnumerable<Guid> ids, CancellationToken _) => ids.ToDictionary(
-                id => id,
-                id => eventRoleValues.TryGetValue(id, out var roles)
-                    ? roles
-                    : ((IReadOnlyList<Guid>)Array.Empty<Guid>(), (IReadOnlyList<Guid>)Array.Empty<Guid>())));
-        return new SeaEventAuthorizationHandler(userRoles.Object, eventRoles.Object, RequestContext("tenant-a").Object, Accessor());
+        return new SeaEventAuthorizationHandler(Access(userRoleValues, eventRoleValues), RequestContext("tenant-a").Object, Accessor());
+    }
+
+    private static ISeaManagementAccessEvaluator Access(
+        IReadOnlyList<UserRoleReadDto> assignments,
+        IReadOnlyDictionary<Guid, (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> eventRoles)
+    {
+        HashSet<Guid> read = [.. assignments.Where(role => role.Type == RoleType.Read).Select(role => role.RoleId)];
+        HashSet<Guid> write = [.. assignments.Where(role => role.Type == RoleType.Write).Select(role => role.RoleId)];
+        Mock<ISeaManagementAccessEvaluator> access = new();
+        access.Setup(value => value.CanReadEventAsync(It.IsAny<SeaManagementAgentSubject>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((SeaManagementAgentSubject _, Guid id, CancellationToken _) => eventRoles.TryGetValue(id, out var roles) && (roles.WriteRoleIds.Any(write.Contains) || roles.ReadRoleIds.Any(role => read.Contains(role) || write.Contains(role))));
+        access.Setup(value => value.CanWriteEventAsync(It.IsAny<SeaManagementAgentSubject>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((SeaManagementAgentSubject _, Guid id, CancellationToken _) => eventRoles.TryGetValue(id, out var roles) && roles.WriteRoleIds.Any(write.Contains));
+        return access.Object;
     }
 
     private static async Task<bool> AuthorizeAsync(

@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
-using System.Security.Claims;
 using System.Text;
 using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Commands.Visits;
@@ -15,6 +14,7 @@ using Vitarish.Clinic.Application.PatientAgent;
 using Vitarish.Clinic.Application.PatientAgent.Actions;
 using Vitarish.Clinic.Application.PatientAgent.Capabilities;
 using Vitarish.Clinic.Application.PatientAgent.Operations;
+using Vitarish.Clinic.Api.PatientAgent;
 using Vitarish.Clinic.Contracts.Errors;
 using Vitarish.Clinic.Contracts.PatientAgent;
 using Vitarish.Clinic.Contracts.Responses;
@@ -68,6 +68,8 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModuleGet(ClinicApiRoutes.AgentAction, GetOperationsAgentActionAsync, "ClinicGetAgentAction", typeof(PatientAgentActionDetailsResponse));
         _ = group.MapModulePost(ClinicApiRoutes.ConfirmAgentAction, ConfirmOperationsAgentActionAsync, "ClinicConfirmAgentAction", typeof(ConfirmPatientAgentActionResponse));
         _ = group.MapModulePost(ClinicApiRoutes.RejectAgentAction, RejectOperationsAgentActionAsync, "ClinicRejectAgentAction", typeof(RejectPatientAgentActionResponse));
+        // Compatibility alias: configured runtimes use IntelligenceApiRoutes.InternalAgentToolExecution;
+        // retain this route while older deployments still target the Clinic callback.
         _ = internalGroup.MapModulePost(
                 "/internal/agent/tools/execute",
                 ExecutePatientAgentToolAsync,
@@ -107,10 +109,7 @@ public static class ClinicApiEndpointMapping
         ExecutePatientAgentToolRequest request,
         HttpRequest httpRequest,
         [FromServices] IAgentRuntimeCredentialService credentialService,
-        [FromServices] PatientAgentCapabilityRegistry capabilityRegistry,
-        [FromServices] PatientAgentToolDispatcher toolDispatcher,
-        [FromServices] IPatientAgentOperationsAccessVerifier operationsAccessVerifier,
-        [FromServices] IRequestContextWriter requestContextWriter,
+        [FromServices] ClinicRuntimeToolEndpoint runtimeEndpoint,
         CancellationToken ct)
     {
         string? credential = httpRequest.Headers["X-Vitarish-Agent-Credential"].FirstOrDefault();
@@ -121,47 +120,10 @@ public static class ClinicApiEndpointMapping
         if (!credentialService.Validate(credential ?? string.Empty, executionContext))
             return Results.Unauthorized();
 
-        PatientAgentContext context;
-        try { context = FromExecutionContext(executionContext); }
-        catch (Exception) { return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent execution context is invalid.")); }
-
-        if (context.SubjectKind == "practice")
-        {
-            string? currentRole = await operationsAccessVerifier.RevalidateAsync(
-                context.PracticeId,
-                context.AuthenticatedUserId,
-                ct);
-            if (!PatientAgentOperationsScope.IsAuthorizedRole(currentRole))
-            {
-                return ForbiddenAgentAction();
-            }
-
-            context = context with { Role = currentRole! };
-            httpRequest.HttpContext.User = CreateOperationsRuntimePrincipal(context);
-        }
-
-        requestContextWriter.SetContext(
-            authority: "vitarish-agent-runtime",
-            clientId: "agent-runtime",
-            ownerId: context.AuthenticatedUserId,
-            tenantId: context.PracticeId,
-            userId: context.AuthenticatedUserId,
-            requestId: context.ConversationId,
-            additionalInfo: "Signed patient-agent tool callback.");
-
-        IAgentTool? tool = toolDispatcher.CreateTools(
-                context,
-                executionContext,
-                capabilityRegistry.GetAvailable(context))
-            .FirstOrDefault(candidate => string.Equals(candidate.Definition.Name, request.ToolName, StringComparison.Ordinal));
-        if (tool is null) return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "The requested patient-agent tool is not available."));
-
         try
         {
-            AgentToolResult result = await tool.ExecuteAsync(
-                new AgentToolCall(request.ToolCallId, request.ToolName, request.ArgumentsJson),
-                executionContext,
-                ct);
+            AgentToolResult result = await runtimeEndpoint.ExecuteAsync(
+                new(new AgentToolCall(request.ToolCallId, request.ToolName, request.ArgumentsJson), executionContext), ct);
             return Results.Ok(new ExecutePatientAgentToolResponse(result.CallId, result.Output, result.IsError));
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -172,50 +134,14 @@ public static class ClinicApiEndpointMapping
         {
             return Results.Json(new ClinicError(ClinicErrorCode.Forbidden, "The requested agent tool is not permitted."), statusCode: StatusCodes.Status403Forbidden);
         }
+        catch (KeyNotFoundException)
+        {
+            return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "The requested patient-agent tool is not available."));
+        }
         catch (Exception exception) when (exception is System.Text.Json.JsonException or FormatException or ArgumentException or InvalidOperationException)
         {
             return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent tool arguments are invalid."));
         }
-    }
-
-    private static PatientAgentContext FromExecutionContext(AgentExecutionContext context)
-    {
-        IReadOnlyDictionary<string, string> metadata = context.Metadata
-            ?? throw new InvalidOperationException("Agent execution metadata is required.");
-        string Required(string name) => metadata.TryGetValue(name, out string? value) && !string.IsNullOrWhiteSpace(value)
-            ? value : throw new InvalidOperationException($"Agent execution metadata is missing {name}.");
-        string subjectKind = metadata.TryGetValue("subjectKind", out string? suppliedSubjectKind) ? suppliedSubjectKind : "patient";
-        Guid patientId = Guid.Parse(Required("patientId"));
-        string role = Required("role");
-        if (subjectKind is not ("patient" or "practice") ||
-            subjectKind == "patient" && patientId == Guid.Empty ||
-            subjectKind == "practice" && (patientId != Guid.Empty || !PatientAgentOperationsScope.IsAuthorizedRole(role)))
-        {
-            throw new InvalidOperationException("Agent execution subject scope is invalid.");
-        }
-        return new(
-            Required("practiceId"),
-            patientId,
-            Required("authenticatedUserId"),
-            System.Text.Json.JsonSerializer.Deserialize<HashSet<string>>(Required("permissions")) ?? [],
-            role,
-            Required("locale"),
-            Required("timeZone"),
-            Required("conversationId"),
-            metadata.TryGetValue("patientNationalId", out string? nationalId) ? nationalId : null,
-            Calendar: metadata.TryGetValue("calendar", out string? calendar) ? calendar : "gregory",
-            SubjectKind: subjectKind);
-    }
-
-    private static ClaimsPrincipal CreateOperationsRuntimePrincipal(PatientAgentContext context)
-    {
-        string role = string.Equals(context.Role, PatientAgentOperationsScope.PlatformAdminRole, StringComparison.Ordinal)
-            ? PatientAgentOperationsScope.PlatformAdminRole
-            : $"{context.PracticeId}:{PatientAgentOperationsScope.TenantOwnerRole}";
-        ClaimsIdentity identity = new("vitarish-agent-runtime");
-        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, context.AuthenticatedUserId));
-        identity.AddClaim(new Claim(ClaimTypes.Role, role));
-        return new ClaimsPrincipal(identity);
     }
 
     private static async Task<IResult> GetPatientAgentActionAsync(

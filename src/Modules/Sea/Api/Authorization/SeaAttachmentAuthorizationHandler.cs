@@ -1,13 +1,17 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Http;
+using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Sea.Application.Abstractions;
+using Vitarish.Sea.Application.Agents;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Sea.Api.Authorization;
 
 internal sealed class SeaAttachmentAuthorizationHandler(
     IAttachmentsService attachmentsService,
-    SeaEventAuthorizationHandler eventAuthorizationHandler,
+    ISeaManagementAccessEvaluator access,
+    IRequestContext requestContext,
     IHttpContextAccessor httpContextAccessor)
     : AuthorizationHandler<OperationAuthorizationRequirement, SeaAttachmentResource>
 {
@@ -25,10 +29,11 @@ internal sealed class SeaAttachmentAuthorizationHandler(
             return;
         }
 
-        if (await eventAuthorizationHandler.IsAuthorizedAsync(
-            context.User, requirement, new SeaEventResource(attachment.EventId)))
-        {
-            context.Succeed(requirement);
-        }
+        AuthenticatedUserIdResolution user = AuthenticatedUserIdResolver.Resolve(context.User);
+        if (user is not AuthenticatedUserIdResolution.Success success || string.IsNullOrWhiteSpace(requestContext.TenantId)) return;
+        bool authorized = requirement.Name == SeaAuthorizationOperations.Read.Name
+            ? await access.CanReadEventAsync(new(requestContext.TenantId, success.UserId.Value), attachment.EventId, httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None)
+            : await access.CanWriteEventAsync(new(requestContext.TenantId, success.UserId.Value), attachment.EventId, httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None);
+        if (authorized) context.Succeed(requirement);
     }
 }

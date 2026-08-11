@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Intelligence\Application\Intelligence.Application.csproj" />
 		<PackageReference Include="MediatR" />
 	</ItemGroup>
 
