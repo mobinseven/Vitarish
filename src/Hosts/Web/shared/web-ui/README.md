@@ -127,5 +127,6 @@ Representative compositions:
 - Responsive layout policy: document, contained, centered, and immersive primitives plus `PageWidth`.
 - Feedback and state presentation: `StatusAlert`, `LoadingStateSurface`, `EmptyStateSurface`, `ErrorStateSurface`.
 - Chat presentation: `ChatEmptyState`, `ChatLoadingMessage`.
+- Agent workspace sidebar: `AgentWorkspaceSidebar` is a major shared dashboard contextual-aside pattern. It remains presentation-only and generic; apps own its copy, actions, data, localization, and routes.
 
 Apps keep route constants, localized copy, session/auth hooks, generated clients, React Query hooks, and workflow decisions in the app package. They pass ready-to-render labels, state, handlers, and navigation targets into these shared components.

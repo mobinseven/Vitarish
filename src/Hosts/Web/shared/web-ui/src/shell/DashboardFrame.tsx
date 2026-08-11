@@ -1,11 +1,18 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Avatar, Button, Chip, Dropdown, Label } from "@heroui/react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
+import { Avatar, Button, Chip, Dropdown, Label, Tooltip } from "@heroui/react";
 import { AppLayout } from "@heroui-pro/react/app-layout";
 import { Navbar } from "@heroui-pro/react/navbar";
 import { Sidebar } from "@heroui-pro/react/sidebar";
+import { useSidebar } from "@heroui-pro/react/sidebar";
 import { useTheme } from "next-themes";
 import {
   setLocaleCookie,
@@ -15,6 +22,9 @@ import {
 } from "@vitarish/web-localization";
 import { FaIcon } from "../icons/FaIcon";
 import { RevealHeader } from "../layout/RevealHeader";
+
+const useBeforePaintEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export interface DashboardNavigationItem {
   href: string;
@@ -59,6 +69,7 @@ export interface DashboardFrameProps {
   navigate: (href: string) => void;
   onAsideOpenChange?: (open: boolean) => void;
   skipLinkLabel: string;
+  sidebarSupplement?: ReactNode;
   title: ReactNode;
   footerLabel?: string;
   toolbar?: ReactNode;
@@ -83,10 +94,35 @@ export function DashboardFrame({
   navigate,
   onAsideOpenChange,
   skipLinkLabel,
+  sidebarSupplement,
   title,
   toolbar,
 }: DashboardFrameProps) {
   const { direction } = useLocalizedText();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarStateRestored, setSidebarStateRestored] = useState(false);
+
+  useBeforePaintEffect(() => {
+    try {
+      const savedState = window.localStorage.getItem("sidebar_state");
+      if (savedState === "true" || savedState === "false") {
+        setSidebarOpen(savedState === "true");
+      }
+    } catch {
+      // Storage can be unavailable or blocked; the in-memory state remains usable.
+    } finally {
+      setSidebarStateRestored(true);
+    }
+  }, []);
+
+  const handleSidebarOpenChange = useCallback((open: boolean) => {
+    setSidebarOpen(open);
+    try {
+      window.localStorage.setItem("sidebar_state", String(open));
+    } catch {
+      // Storage can be unavailable or blocked; keep the session-local toggle.
+    }
+  }, []);
 
   return (
     <>
@@ -100,6 +136,7 @@ export function DashboardFrame({
         data-content-mode={contentMode}
         data-direction={direction}
         data-mobile-navigation={mobileNavigation}
+        data-sidebar-state-restored={sidebarStateRestored ? "true" : "false"}
         data-vitarish-layout="dashboard-frame"
         data-vitarish-scroll-owner={
           contentMode === "page" ? "frame-main" : "workspace"
@@ -118,7 +155,9 @@ export function DashboardFrame({
           ) : undefined
         }
         onAsideOpenChange={onAsideOpenChange}
+        onSidebarOpenChange={handleSidebarOpenChange}
         scrollMode={contentMode === "page" ? "content" : "page"}
+        sidebarOpen={sidebarOpen}
         sidebarVariant="inset"
         sidebar={
           <DashboardFrameSidebar
@@ -130,6 +169,7 @@ export function DashboardFrame({
             navigationGroups={navigationGroups}
             navigationLabel={navigationLabel}
             onNavigate={navigate}
+            sidebarSupplement={sidebarSupplement}
           />
         }
         sidebarCollapsible="icon"
@@ -184,6 +224,8 @@ function DashboardFrameWorkspaceControls({
   mobileNavigation,
   toolbar,
 }: DashboardFrameWorkspaceControlsProps) {
+  const { t } = useLocalizedText();
+
   return (
     <div
       className="vitarish-dashboard-workspace-controls"
@@ -191,9 +233,14 @@ function DashboardFrameWorkspaceControls({
     >
       <div className="pointer-events-auto flex items-center gap-2">
         {mobileNavigation === "sidebar" ? (
-          <AppLayout.MenuToggle variant="secondary" />
+          <AppLayout.MenuToggle
+            aria-label={t("appShell.menu.open")}
+            tooltip={t("appShell.menu.open")}
+            variant="secondary"
+          >
+            <FaIcon icon="bars" aria-hidden="true" className="size-4" />
+          </AppLayout.MenuToggle>
         ) : null}
-        <Sidebar.Trigger variant="secondary" />
       </div>
       <div className="pointer-events-auto flex items-center gap-2">
         {toolbar}
@@ -224,14 +271,19 @@ function DashboardFrameNavbar({
   title,
   toolbar,
 }: DashboardFrameNavbarProps) {
-  const { direction } = useLocalizedText();
+  const { t } = useLocalizedText();
 
   return (
     <Navbar maxWidth="full" position="floating">
       <Navbar.Header>
-        {direction === "rtl" ? <Sidebar.Trigger /> : null}
-        {mobileNavigation === "sidebar" ? <AppLayout.MenuToggle /> : null}
-        {direction === "ltr" ? <Sidebar.Trigger /> : null}
+        {mobileNavigation === "sidebar" ? (
+          <AppLayout.MenuToggle
+            aria-label={t("appShell.menu.open")}
+            tooltip={t("appShell.menu.open")}
+          >
+            <FaIcon icon="bars" aria-hidden="true" className="size-4" />
+          </AppLayout.MenuToggle>
+        ) : null}
         {title}
         <Navbar.Spacer />
         {toolbar ? (
@@ -258,6 +310,7 @@ interface DashboardFrameSidebarProps {
   navigationGroups: readonly DashboardNavigationGroup[];
   navigationLabel: string;
   onNavigate: (href: string) => void;
+  sidebarSupplement?: ReactNode;
 }
 
 function DashboardFrameSidebar({
@@ -294,6 +347,7 @@ function DashboardFrameSidebarContents({
   navigationGroups,
   navigationLabel,
   onNavigate,
+  sidebarSupplement,
 }: DashboardFrameSidebarContentsProps) {
   const requiredExpandedKeys = useMemo(
     () => getCurrentExpandedItemIds(navigationGroups, currentPath, idPrefix),
@@ -308,8 +362,10 @@ function DashboardFrameSidebarContents({
   );
 
   const [themeMounted, setThemeMounted] = useState(false);
+  const [isSidebarTooltipOpen, setSidebarTooltipOpen] = useState(false);
   const { setTheme, theme } = useTheme();
-  const { locale, t } = useLocalizedText();
+  const { direction, locale, t } = useLocalizedText();
+  const { isMobile, isOpen, toggleSidebar } = useSidebar();
   const currentTheme: ThemeMode =
     theme === "system" ? "system" : theme === "dark" ? "dark" : "light";
 
@@ -333,27 +389,68 @@ function DashboardFrameSidebarContents({
   return (
     <>
       <Sidebar.Header>
-        <Button
-          fullWidth
-          variant="ghost"
-          onPress={() => onNavigate(identity.accountHref)}
-          aria-label={identity.accountLabel}
-          className="justify-start px-3 py-2 h-auto"
-        >
-          <Avatar className="size-9">
-            <Avatar.Fallback>
-              <FaIcon icon="user" />
-            </Avatar.Fallback>
-          </Avatar>
-          <div className="flex min-w-0 flex-col" data-sidebar="label">
-            <span className="text-foreground truncate text-sm font-medium leading-tight">
-              {identity.label}
-            </span>
-            <span className="text-muted truncate text-xs font-medium leading-tight">
-              {identity.subtitle}
-            </span>
-          </div>
-        </Button>
+        <div data-vitarish-layout="dashboard-sidebar-header-row">
+          <Button
+            fullWidth
+            variant="ghost"
+            onPress={() => onNavigate(identity.accountHref)}
+            aria-label={identity.accountLabel}
+            className="h-auto min-w-0 justify-start px-2 py-2"
+            data-vitarish-layout="dashboard-sidebar-identity"
+          >
+            <Avatar className="size-8 shrink-0">
+              <Avatar.Fallback>{identity.initials}</Avatar.Fallback>
+            </Avatar>
+            <div className="flex min-w-0 flex-col" data-sidebar="label">
+              <span className="text-foreground truncate text-sm font-medium leading-tight">
+                {identity.label}
+              </span>
+              <span className="text-muted truncate text-xs font-medium leading-tight">
+                {identity.subtitle}
+              </span>
+            </div>
+          </Button>
+          <Tooltip delay={0} isOpen={isSidebarTooltipOpen}>
+            <Button
+              isIconOnly
+              aria-label={
+                isMobile || isOpen
+                  ? t("appShell.menu.close")
+                  : t("appShell.menu.open")
+              }
+              className="shrink-0"
+              data-vitarish-layout="dashboard-sidebar-toggle"
+              size="sm"
+              variant="ghost"
+              onBlur={() => setSidebarTooltipOpen(false)}
+              onFocus={() => setSidebarTooltipOpen(true)}
+              onHoverEnd={() => setSidebarTooltipOpen(false)}
+              onHoverStart={() => setSidebarTooltipOpen(true)}
+              onPress={() => {
+                setSidebarTooltipOpen(false);
+                toggleSidebar();
+              }}
+            >
+              <FaIcon
+                icon={isMobile ? "xmark" : "sidebar-flip"}
+                aria-hidden="true"
+                className="size-4"
+                flip={
+                  !isMobile && direction === "rtl" ? "horizontal" : undefined
+                }
+              />
+            </Button>
+            <Tooltip.Content
+              placement={
+                isMobile ? "bottom" : direction === "rtl" ? "left" : "right"
+              }
+            >
+              {isMobile || isOpen
+                ? t("appShell.menu.close")
+                : t("appShell.menu.open")}
+            </Tooltip.Content>
+          </Tooltip>
+        </div>
       </Sidebar.Header>
       <Sidebar.Content>
         <Sidebar.Group>
@@ -379,6 +476,11 @@ function DashboardFrameSidebarContents({
             ))}
           </Sidebar.Menu>
         </Sidebar.Group>
+        {sidebarSupplement ? (
+          <Sidebar.Group data-vitarish-layout="dashboard-sidebar-supplement">
+            {sidebarSupplement}
+          </Sidebar.Group>
+        ) : null}
       </Sidebar.Content>
       <Sidebar.Footer>
         <Dropdown>

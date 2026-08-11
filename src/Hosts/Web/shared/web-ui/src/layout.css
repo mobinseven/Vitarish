@@ -145,6 +145,15 @@
   overflow: hidden;
 }
 
+/* Keep the server's safe expanded fallback from painting before client storage
+   has been resolved. Server and first client render share the same hidden state,
+   so this prevents both a hydration mismatch and an expanded-to-collapsed flash. */
+@media (scripting: enabled) {
+  [data-vitarish-layout="dashboard-frame"][data-sidebar-state-restored="false"] {
+    visibility: hidden;
+  }
+}
+
 [data-vitarish-layout="dashboard-frame"] .app-layout__body,
 [data-vitarish-layout="dashboard-frame"] .app-layout__main {
   min-block-size: 0;
@@ -205,6 +214,77 @@
 
 .vitarish-dashboard-sidebar-mobile {
   background-attachment: fixed;
+}
+
+[data-vitarish-layout="dashboard-sidebar-header-row"] {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  inline-size: 100%;
+  min-inline-size: 0;
+  position: relative;
+}
+
+[data-vitarish-layout="dashboard-sidebar-identity"] {
+  flex: 1 1 auto;
+}
+
+/* The collapsed rail has 36px of usable inline space after HeroUI's padding.
+   Keep the avatar centered in that slot and layer the open trigger over it so
+   the two controls never compete for width. */
+.sidebar.vitarish-dashboard-sidebar[data-collapsible="icon"][data-state="collapsed"]
+  .sidebar__header
+  > [data-vitarish-layout="dashboard-sidebar-header-row"] {
+  inline-size: 2.25rem;
+  min-inline-size: 2.25rem;
+}
+
+.sidebar.vitarish-dashboard-sidebar[data-collapsible="icon"][data-state="collapsed"]
+  [data-vitarish-layout="dashboard-sidebar-identity"] {
+  block-size: 2.25rem;
+  flex: none;
+  inline-size: 2.25rem;
+  min-inline-size: 2.25rem;
+  padding: 0;
+  transition: opacity 150ms ease;
+}
+
+.sidebar.vitarish-dashboard-sidebar[data-collapsible="icon"][data-state="collapsed"]
+  [data-vitarish-layout="dashboard-sidebar-toggle"] {
+  inset: 50% auto auto 50%;
+  opacity: 0;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  transition: opacity 150ms ease;
+  z-index: 1;
+}
+
+@media (hover: hover) {
+  .sidebar.vitarish-dashboard-sidebar[data-collapsible="icon"][data-state="collapsed"]
+    [data-vitarish-layout="dashboard-sidebar-header-row"]:hover
+    [data-vitarish-layout="dashboard-sidebar-identity"] {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .sidebar.vitarish-dashboard-sidebar[data-collapsible="icon"][data-state="collapsed"]
+    [data-vitarish-layout="dashboard-sidebar-header-row"]:hover
+    [data-vitarish-layout="dashboard-sidebar-toggle"] {
+    opacity: 1;
+  }
+}
+
+.sidebar.vitarish-dashboard-sidebar[data-collapsible="icon"][data-state="collapsed"]
+  [data-vitarish-layout="dashboard-sidebar-header-row"]:has(
+    [data-vitarish-layout="dashboard-sidebar-toggle"]:focus-visible
+  )
+  [data-vitarish-layout="dashboard-sidebar-identity"] {
+  opacity: 0;
+}
+
+.sidebar.vitarish-dashboard-sidebar[data-collapsible="icon"][data-state="collapsed"]
+  [data-vitarish-layout="dashboard-sidebar-toggle"]:focus-visible {
+  opacity: 1;
 }
 
 [data-vitarish-layout="dashboard-frame"][data-content-mode="page"] .vitarish-dashboard-content {

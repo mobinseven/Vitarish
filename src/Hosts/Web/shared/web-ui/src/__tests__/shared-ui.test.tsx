@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import {
   AuthMethodList,
@@ -189,6 +189,25 @@ describe("@vitarish/web-ui presentation components", () => {
     expect(screen.getByText("Attach context")).toBeInTheDocument();
     expect(screen.getByText("All sources")).toBeInTheDocument();
     expect(screen.getByText("Answers may cite sources.")).toBeInTheDocument();
+  });
+
+  it("does not submit the prompt through the keyboard while sending is disabled", () => {
+    const onSubmit = vi.fn();
+    render(
+      <ChatPromptInput
+        isSendDisabled
+        label="Question"
+        placeholder="Ask a question"
+        submitLabel="Send question"
+        value="Do not send this"
+        onChange={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    fireEvent.keyDown(screen.getAllByLabelText("Question").at(-1)!, { key: "Enter", code: "Enter" });
+
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it("owns page scrolling in its labeled, focusable main content region", () => {

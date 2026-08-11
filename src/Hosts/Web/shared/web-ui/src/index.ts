@@ -39,6 +39,8 @@ export { ChatCallout } from "./chat/ChatCallout";
 export type { ChatCalloutProps } from "./chat/ChatCallout";
 export { ChatConversation } from "./chat/ChatConversation";
 export type { ChatConversationProps } from "./chat/ChatConversation";
+export { AgentWorkspaceSidebar } from "./chat/AgentWorkspaceLayout";
+export type { AgentWorkspaceSidebarProps } from "./chat/AgentWorkspaceLayout";
 export { ChatMessage } from "./chat/ChatMessage";
 export type { ChatMessageProps } from "./chat/ChatMessage";
 export { ChatPromptInput } from "./chat/ChatPromptInput";

@@ -11,6 +11,7 @@ export interface ChatPromptInputProps {
   helperIcon?: ReactNode;
   helperText?: ReactNode;
   isPending?: boolean;
+  isSendDisabled?: boolean;
   label: string;
   onChange: (value: string) => void;
   onSubmit: (value: string) => void;
@@ -27,6 +28,7 @@ export function ChatPromptInput({
   helperIcon,
   helperText,
   isPending = false,
+  isSendDisabled = false,
   label,
   onChange,
   onSubmit,
@@ -42,11 +44,13 @@ export function ChatPromptInput({
       : undefined;
 
   const handleSubmit = () => {
+    if (isPending || isSendDisabled || !canSend) return;
     onSubmit(value);
   };
 
   return (
     <PromptInput
+      layout="compact"
       status={isPending ? "streaming" : "ready"}
       value={value}
       variant="primary"
@@ -75,7 +79,7 @@ export function ChatPromptInput({
             {actions}
             <PromptInput.Send
               aria-label={submitLabel}
-              isDisabled={isPending || !canSend}
+              isDisabled={isPending || isSendDisabled || !canSend}
             />
           </PromptInput.ToolbarEnd>
         </PromptInput.Toolbar>
