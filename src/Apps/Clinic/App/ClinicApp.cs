@@ -21,6 +21,8 @@ public class ClinicApp : Vitarish.Apps.Base.Core.App
         _ = builder.Services.AddClinicInfrastructure();
         _ = builder.Services.AddTransient<ClinicAgentConversationEndpoint>();
         _ = builder.Services.AddTransient<Vitarish.Intelligence.Application.Agents.IAgentConversationEndpoint>(sp => sp.GetRequiredService<ClinicAgentConversationEndpoint>());
+        _ = builder.Services.AddTransient<ClinicRuntimeToolEndpoint>();
+        _ = builder.Services.AddTransient<Vitarish.Intelligence.Application.Agents.IAgentRuntimeToolEndpoint>(sp => sp.GetRequiredService<ClinicRuntimeToolEndpoint>());
 
         return Task.CompletedTask;
     }

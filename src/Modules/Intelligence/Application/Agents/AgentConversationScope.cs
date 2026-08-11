@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Vitarish.Intelligence.Application.Agents;
 
 public sealed record AgentConversationScope(
@@ -16,6 +18,29 @@ public sealed record AgentConversationOwnerScope(
 public sealed record AgentConversationOwnerDeletionResult(
     AgentConversationOutcome Outcome,
     int DeletedCount);
+
+public sealed record AgentConversationPresentation(
+    string UserTurn,
+    string AssistantResponse,
+    IReadOnlyCollection<Guid> PreparedActionIds,
+    string? Title = null,
+    JsonElement? Parts = null);
+
+public sealed record AgentConversationSummary(
+    Guid Id,
+    string Title,
+    string? LatestTextPreview,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+public sealed record AgentConversationDisplay(
+    Guid Id,
+    string Title,
+    string? LatestTextPreview,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt,
+    string Transcript,
+    string? PresentationTranscript = null);
 
 public enum AgentConversationOutcome
 {
@@ -51,6 +76,27 @@ public interface IAgentConversationStore
         string history,
         string historyFormat,
         CancellationToken cancellationToken);
+
+    Task<AgentConversationOutcome> ReplaceHistoryAsync(
+        AgentConversationLease lease,
+        AgentConversationScope scope,
+        string history,
+        string historyFormat,
+        AgentConversationPresentation? presentation,
+        CancellationToken cancellationToken) => ReplaceHistoryAsync(lease, scope, history, historyFormat, cancellationToken);
+
+    Task<IReadOnlyList<AgentConversationSummary>> ListAsync(
+        AgentConversationScope scope,
+        DateTimeOffset? before,
+        int limit,
+        CancellationToken cancellationToken);
+
+    Task<AgentConversationDisplay?> GetDisplayAsync(
+        Guid conversationId,
+        AgentConversationScope scope,
+        CancellationToken cancellationToken);
+
+    Task<bool> RenameAsync(Guid conversationId, AgentConversationScope scope, string title, CancellationToken cancellationToken);
 
     Task ReleaseAsync(AgentConversationLease lease, CancellationToken cancellationToken);
 

@@ -20,7 +20,8 @@ public sealed record AgentToolExecution(
     string ToolName,
     string ToolCallId,
     string Output,
-    bool IsError = false);
+    bool IsError = false,
+    string? ArgumentsJson = null);
 
 public sealed record AgentRunUsage(int InputTokens, int OutputTokens)
 {

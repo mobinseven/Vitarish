@@ -53,6 +53,7 @@ public sealed class PatientWorkspaceAgentDefinitionFactory(
             ["conversationId"] = context.ConversationId
         };
         metadata["subjectKind"] = context.SubjectKind;
+        metadata["agentKey"] = context.SubjectKind == "practice" ? "clinic.operations" : "clinic.patient";
         if (!string.IsNullOrWhiteSpace(context.PatientNationalId))
         {
             metadata["patientNationalId"] = context.PatientNationalId;

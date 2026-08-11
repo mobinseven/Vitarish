@@ -12,4 +12,5 @@ public static class IntelligenceApiRoutes
     public const string Rewrite = "/rewrite";
     public const string RewriteStream = "/rewrite/stream";
     public const string AgentConversation = "/agent-conversations";
+    public const string InternalAgentToolExecution = "/internal/agent/tools/execute";
 }

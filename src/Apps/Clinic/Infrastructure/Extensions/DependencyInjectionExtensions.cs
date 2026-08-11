@@ -86,7 +86,7 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<IClinicOperationsAgentTool, PauseShiftTool>();
             _ = services.AddTransient<IClinicOperationsAgentTool, AppointmentAdministrationAgentTool>();
             _ = services.AddTransient<IClinicOperationsAgentTool, ReminderManagementAgentTool>();
-            _ = services.AddTransient<SeaManagementTool>();
+            _ = services.AddTransient<SeaManagementClinicToolAdapter>();
             _ = services.AddTransient<AppointmentAdministrationAgentTool>();
             _ = services.AddTransient<ReminderManagementAgentTool>();
             _ = services.AddSingleton<IReminderSourceRegistry, ReminderSourceRegistry>();

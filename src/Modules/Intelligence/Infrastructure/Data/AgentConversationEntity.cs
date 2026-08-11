@@ -9,6 +9,9 @@ public sealed class AgentConversationEntity
     public string SubjectKind { get; set; } = string.Empty;
     public string SubjectId { get; set; } = string.Empty;
     public string? ProtectedHistory { get; set; }
+    public string? ProtectedPresentationTranscript { get; set; }
+    public string? Title { get; set; }
+    public string? LatestTextPreview { get; set; }
     public string HistoryFormat { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }

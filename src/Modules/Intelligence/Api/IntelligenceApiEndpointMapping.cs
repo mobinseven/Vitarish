@@ -7,6 +7,7 @@ using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Intelligence.Contracts;
 using Vitarish.Modules.Base.Core.Endpoints;
+using Microsoft.Extensions.DependencyInjection;
 using D = Vitarish.Intelligence.Domain.Models;
 
 namespace Vitarish.Intelligence.Api;
@@ -26,18 +27,45 @@ public static class IntelligenceApiEndpointMapping
         _ = group.MapModulePost(IntelligenceApiRoutes.Rewrite, RewriteAsync, "IntelligenceRewrite", typeof(RewriteResult));
         _ = group.MapModulePost(IntelligenceApiRoutes.RewriteStream, StreamRewriteAsync, "IntelligenceStreamRewrite", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
         _ = group.MapModulePost(IntelligenceApiRoutes.AgentConversation, RunAgentConversationAsync, "IntelligenceRunAgentConversation", typeof(RunAgentConversationResponse));
+        RouteGroupBuilder internalGroup = endpoints.MapAnonymousModuleGroup(IntelligenceApiRoutes.Base, "Internal agent-runtime callbacks validate a short-lived signed credential before dispatch.");
+        _ = internalGroup.MapModulePost(IntelligenceApiRoutes.InternalAgentToolExecution, ExecuteAgentToolAsync, "IntelligenceExecuteInternalAgentTool", typeof(InternalAgentToolExecutionResponse), profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: "Internal agent runtime callback protected by a signed, short-lived execution credential.")
+            .ExcludeFromOpenApiWithJustification("Internal agent runtime callback; not a public module API.");
         return endpoints;
+    }
+
+    private static async Task<IResult> ExecuteAgentToolAsync(InternalAgentToolExecutionRequest request, HttpRequest httpRequest, [FromServices] IAgentRuntimeCredentialService credentials, [FromServices] IAgentRuntimeToolEndpointRegistry endpoints, CancellationToken ct)
+    {
+        if (request is null || request.Metadata is null || string.IsNullOrWhiteSpace(request.ExecutionId) || string.IsNullOrWhiteSpace(request.ToolName) || string.IsNullOrWhiteSpace(request.ToolCallId)) return Results.BadRequest();
+        AgentExecutionContext context = new(request.ExecutionId, request.Metadata);
+        string? credential = httpRequest.Headers["X-Vitarish-Agent-Credential"].FirstOrDefault();
+        if (!credentials.Validate(credential ?? string.Empty, context)) return Results.Unauthorized();
+        if (!request.Metadata.TryGetValue("agentKey", out string? agentKey) || string.IsNullOrWhiteSpace(agentKey)) return Results.BadRequest();
+        IAgentRuntimeToolEndpoint? endpoint = endpoints.Resolve(agentKey);
+        if (endpoint is null) return Results.NotFound();
+        try
+        {
+            AgentToolResult result = await endpoint.ExecuteAsync(new(new AgentToolCall(request.ToolCallId, request.ToolName, request.ArgumentsJson), context), ct);
+            return Results.Ok(new InternalAgentToolExecutionResponse(result.CallId, result.Output, result.IsError));
+        }
+        catch (KeyNotFoundException) { return Results.NotFound(); }
+        catch (UnauthorizedAccessException) { return Results.Forbid(); }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception exception) when (exception is JsonException or FormatException or ArgumentException or InvalidOperationException) { return Results.BadRequest(); }
     }
 
     private static async Task<IResult> RunAgentConversationAsync(
         RunAgentConversationRequest request,
-        [FromServices] IAgentConversationEndpoint endpoint,
+        [FromServices] IAgentConversationEndpointRegistry endpoints,
         CancellationToken ct)
     {
         if (request is null || string.IsNullOrWhiteSpace(request.AgentKey) ||
             string.IsNullOrWhiteSpace(request.SubjectKind) || string.IsNullOrWhiteSpace(request.SubjectId) ||
             string.IsNullOrWhiteSpace(request.Message))
             return Results.BadRequest(new IntelligenceError(IntelligenceErrorCode.ValidationFailure, "Agent, subject, and message are required."));
+
+        IAgentConversationEndpoint? endpoint = endpoints.Resolve(request.AgentKey, request.SubjectKind);
+        if (endpoint is null)
+            return Results.NotFound(new IntelligenceError(IntelligenceErrorCode.NotFound, "The agent conversation route was not found."));
 
         AgentConversationEndpointResult result = await endpoint.RunAsync(
             new(request.AgentKey, request.SubjectKind, request.SubjectId, request.Message, request.ConversationId), ct);
@@ -127,3 +155,6 @@ public static class IntelligenceApiEndpointMapping
     private static D.ResponderOptions ToDomain(ResponderOptions? options) => new() { Instructions = options?.Instructions, Model = options?.ModelId };
     private static ResponderOutput ToContract(D.ResponderOutput output) => new() { Type = output.Type == D.ResponderOutputType.Text ? ResponderOutputType.Text : ResponderOutputType.Json, Text = output.Text };
 }
+
+public sealed record InternalAgentToolExecutionRequest(string ToolCallId, string ToolName, string ArgumentsJson, string ExecutionId, IReadOnlyDictionary<string, string>? Metadata);
+public sealed record InternalAgentToolExecutionResponse(string CallId, string Output, bool IsError = false);

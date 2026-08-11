@@ -13,6 +13,8 @@ public sealed class ClinicAgentConversationEndpoint(
     ISender sender) : IAgentConversationEndpoint
 {
     private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
+    public IReadOnlyCollection<AgentConversationRoute> Routes { get; } =
+    [new("clinic.patient", "patient"), new("clinic.operations", "practice")];
 
     public async Task<AgentConversationEndpointResult> RunAsync(
         AgentConversationEndpointRequest request,

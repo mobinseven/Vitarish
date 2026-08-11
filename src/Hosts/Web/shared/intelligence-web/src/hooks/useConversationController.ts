@@ -17,6 +17,8 @@ export interface UseConversationControllerOptions<TResult> {
   ) => Promise<ConversationRunResult<TResult>>;
   deleteConversation: (conversationId: string) => Promise<void>;
   isNotFound?: (error: unknown) => boolean;
+  resetOnClose?: boolean;
+  onConversationIdChange?: (conversationId: string | null) => void;
 }
 
 export interface ConversationController<TResult> {
@@ -34,6 +36,8 @@ export function useConversationController<TResult>({
   run,
   deleteConversation,
   isNotFound = () => false,
+  resetOnClose = true,
+  onConversationIdChange,
 }: UseConversationControllerOptions<TResult>): ConversationController<TResult> {
   const conversationId = useRef<string | null>(null);
   const lastMessage = useRef<string | null>(null);
@@ -49,11 +53,12 @@ export function useConversationController<TResult>({
     const current = conversationId.current;
     instance.current += 1;
     conversationId.current = null;
+    onConversationIdChange?.(null);
     lastMessage.current = null;
     setPending(false);
     setError(false);
     if (current) void deleteConversation(current).catch(() => undefined);
-  }, [deleteConversation]);
+  }, [deleteConversation, onConversationIdChange]);
 
   useEffect(() => {
     reset();
@@ -68,9 +73,9 @@ export function useConversationController<TResult>({
   );
 
   useEffect(() => {
-    if (isOpen !== wasOpen.current) reset();
+    if (resetOnClose && isOpen !== wasOpen.current) reset();
     wasOpen.current = isOpen;
-  }, [isOpen, reset]);
+  }, [isOpen, reset, resetOnClose]);
 
   const execute = useCallback(
     async (message: string) => {
@@ -103,6 +108,7 @@ export function useConversationController<TResult>({
           return undefined;
         }
         conversationId.current = runResult.conversationId;
+        onConversationIdChange?.(runResult.conversationId);
         return runResult.result;
       } catch {
         if (instance.current === submittedInstance) setError(true);
@@ -112,7 +118,7 @@ export function useConversationController<TResult>({
         if (activeRequest.current === controller) activeRequest.current = null;
       }
     },
-    [isNotFound, run],
+    [isNotFound, onConversationIdChange, run],
   );
 
   const retry = useCallback(

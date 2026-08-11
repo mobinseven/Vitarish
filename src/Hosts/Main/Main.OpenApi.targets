@@ -1,0 +1,31 @@
+<Project>
+  <!-- The SDK invokes dotnet-getdocument in-process, so its host cannot reliably infer
+       generation mode from the command line. Keep the host's normal Redis-backed
+       composition intact and set the explicit switch only for document extraction. -->
+  <Target Name="GenerateOpenApiDocuments"
+          Inputs="$(TargetPath)"
+          Outputs="$(_OpenApiDocumentsCache)">
+    <Error Condition="'$(OpenApiGenerateDocuments)' != 'true'"
+           Text="OpenAPI document generation is disabled. Add '&lt;OpenApiGenerateDocuments>true&lt;/OpenApiGenerateDocuments>' to the project." />
+    <Error Condition="$(_IsMicrosoftNETCoreApp20OrOlder)"
+           Text="OpenAPI document generation is not supported when targeting netcoreapp2.0 or earlier. Disable the feature or move to a later target framework." />
+
+    <PropertyGroup>
+      <_VitarishOpenApiOutputPath>$([System.IO.Path]::GetFullPath('$(OpenApiDocumentsDirectory)').TrimEnd('\'))</_VitarishOpenApiOutputPath>
+      <_VitarishOpenApiCommand>dotnet "$(PkgMicrosoft_Extensions_ApiDescription_Server)\tools\dotnet-getdocument.dll" --assembly "$(TargetPath)"</_VitarishOpenApiCommand>
+      <_VitarishOpenApiCommand>$(_VitarishOpenApiCommand) --file-list "$(_OpenApiDocumentsCache)" --framework "$(TargetFrameworkMoniker)"</_VitarishOpenApiCommand>
+      <_VitarishOpenApiCommand>$(_VitarishOpenApiCommand) --output "$(_VitarishOpenApiOutputPath)" --project "$(MSBuildProjectName)"</_VitarishOpenApiCommand>
+      <_VitarishOpenApiCommand Condition="'$(ProjectAssetsFile)' != ''">$(_VitarishOpenApiCommand) --assets-file "$(ProjectAssetsFile)"</_VitarishOpenApiCommand>
+      <_VitarishOpenApiCommand Condition="'$(PlatformTarget)' != ''">$(_VitarishOpenApiCommand) --platform "$(PlatformTarget)"</_VitarishOpenApiCommand>
+      <_VitarishOpenApiCommand Condition="'$(PlatformTarget)' == '' AND '$(Platform)' != ''">$(_VitarishOpenApiCommand) --platform "$(Platform)"</_VitarishOpenApiCommand>
+      <_VitarishOpenApiCommand Condition="'$(RuntimeIdentifier)' != ''">$(_VitarishOpenApiCommand) --runtime "$(RuntimeIdentifier) --self-contained"</_VitarishOpenApiCommand>
+      <_VitarishOpenApiCommand>$(_VitarishOpenApiCommand) $(OpenApiGenerateDocumentsOptions)</_VitarishOpenApiCommand>
+    </PropertyGroup>
+
+    <Message Importance="high" Text="%0AGenerateOpenApiDocuments:" />
+    <Message Importance="high" Text="  $(_VitarishOpenApiCommand)" />
+    <Exec Command="$(_VitarishOpenApiCommand)"
+          EnvironmentVariables="VITARISH_OPENAPI_GENERATION=true"
+          LogStandardErrorAsError="true" />
+  </Target>
+</Project>

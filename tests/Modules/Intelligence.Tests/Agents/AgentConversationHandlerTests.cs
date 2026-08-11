@@ -131,6 +131,23 @@ public sealed class AgentConversationHandlerTests
     }
 
     [Fact]
+    public async Task Handle_passes_display_safe_presentation_to_the_atomic_store_replacement()
+    {
+        FakeStore store = new();
+        FakeRunner runner = new(new AgentRunResult(true, "answer", null, new(0, 0), TimeSpan.Zero, 1, 0)
+        {
+            History = "[]"
+        });
+        AgentConversationPresentation presentation = new("user turn", "display-safe answer", [Guid.CreateVersion7()]);
+
+        RunAgentConversationResult result = await new RunAgentConversationHandler(store, runner)
+            .Handle(Request(store.ConversationId) with { Presentation = (_, _) => presentation }, default);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.Succeeded);
+        store.ReplacedPresentation.Should().Be(presentation);
+    }
+
+    [Fact]
     public async Task Delete_UsesOwnedStoreBoundary()
     {
         FakeStore store = new() { DeleteOutcome = AgentConversationOutcome.NotFound };
@@ -181,6 +198,7 @@ public sealed class AgentConversationHandlerTests
         public AgentConversationScope? DeletedScope { get; private set; }
         public bool CallbackObserved { get; set; }
         public bool ReplaceSawCallback { get; private set; }
+        public AgentConversationPresentation? ReplacedPresentation { get; private set; }
 
         public Task<AgentConversationStoreResult> AcquireAsync(
             Guid? conversationId,
@@ -203,6 +221,20 @@ public sealed class AgentConversationHandlerTests
             return Task.FromResult(ReplaceOutcome);
         }
 
+        public Task<AgentConversationOutcome> ReplaceHistoryAsync(
+            AgentConversationLease lease,
+            AgentConversationScope scope,
+            string history,
+            string historyFormat,
+            AgentConversationPresentation? presentation,
+            CancellationToken cancellationToken)
+        {
+            ReplacedHistory = history;
+            ReplacedPresentation = presentation;
+            ReplaceSawCallback = CallbackObserved;
+            return Task.FromResult(ReplaceOutcome);
+        }
+
         public Task ReleaseAsync(AgentConversationLease lease, CancellationToken cancellationToken)
         {
             Released = true;
@@ -221,6 +253,23 @@ public sealed class AgentConversationHandlerTests
         public Task<AgentConversationOwnerDeletionResult> DeleteForOwnerAsync(
             AgentConversationOwnerScope owner,
             CancellationToken cancellationToken) => Task.FromResult(new AgentConversationOwnerDeletionResult(AgentConversationOutcome.Succeeded, 0));
+
+        public Task<IReadOnlyList<AgentConversationSummary>> ListAsync(
+            AgentConversationScope scope,
+            DateTimeOffset? before,
+            int limit,
+            CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<AgentConversationSummary>>([]);
+
+        public Task<AgentConversationDisplay?> GetDisplayAsync(
+            Guid conversationId,
+            AgentConversationScope scope,
+            CancellationToken cancellationToken) => Task.FromResult<AgentConversationDisplay?>(null);
+
+        public Task<bool> RenameAsync(
+            Guid conversationId,
+            AgentConversationScope scope,
+            string title,
+            CancellationToken cancellationToken) => Task.FromResult(false);
 
         public Task<int> DeleteExpiredAsync(
             DateTimeOffset cutoff,

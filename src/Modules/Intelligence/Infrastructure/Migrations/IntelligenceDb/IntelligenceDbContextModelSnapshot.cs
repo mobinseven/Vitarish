@@ -53,7 +53,14 @@ namespace Vitarish.Intelligence.Infrastructure.Migrations.IntelligenceDb
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
+                    b.Property<string>("LatestTextPreview")
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
                     b.Property<string>("ProtectedHistory")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProtectedPresentationTranscript")
                         .HasColumnType("text");
 
                     b.Property<long>("Revision")
@@ -74,6 +81,10 @@ namespace Vitarish.Intelligence.Infrastructure.Migrations.IntelligenceDb
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");

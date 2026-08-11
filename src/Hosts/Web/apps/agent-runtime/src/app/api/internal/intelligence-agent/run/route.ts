@@ -42,6 +42,7 @@ interface ToolExecution {
   toolCallId: string;
   output: string;
   isError: boolean;
+  argumentsJson: string;
 }
 
 class AgentRuntimeLimitError extends Error {
@@ -196,14 +197,14 @@ export async function POST(request: NextRequest) {
         }
 
         if (!response.ok) {
-          const message = `Clinic tool ${definition.name} returned HTTP ${response.status}.`;
+          const message = `Agent tool ${definition.name} returned HTTP ${response.status}.`;
           console.error("Supplied agent tool callback returned failure", {
             executionId: input.context.executionId,
             toolName: definition.name,
             callback: location,
             status: response.status,
           });
-          executions.push({ toolName: definition.name, toolCallId: callId, output: message, isError: true });
+          executions.push({ toolName: definition.name, toolCallId: callId, output: message, isError: true, argumentsJson: JSON.stringify(argumentsValue) });
           return message;
         }
 
@@ -213,6 +214,7 @@ export async function POST(request: NextRequest) {
           toolCallId: result.callId,
           output: result.output,
           isError: result.isError,
+          argumentsJson: JSON.stringify(argumentsValue),
         });
         console.info("Supplied agent tool callback succeeded", {
           executionId: input.context.executionId,

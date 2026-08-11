@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Intelligence.Application.Agents;
@@ -11,9 +12,13 @@ public sealed class EfAgentConversationStore(
     IDataProtectionProvider dataProtectionProvider,
     TimeProvider timeProvider) : IAgentConversationStore
 {
+    private static readonly JsonSerializerOptions PresentationJsonOptions = new(JsonSerializerDefaults.Web);
     public const int MaximumPlaintextBytes = 1024 * 1024;
     public const string ProtectorPurpose = "Vitarish.Intelligence.AgentConversationHistory.v1";
     private readonly IDataProtector _protector = dataProtectionProvider.CreateProtector(ProtectorPurpose);
+
+    public Task<AgentConversationOutcome> ReplaceHistoryAsync(AgentConversationLease lease, AgentConversationScope scope, string history, string historyFormat, CancellationToken cancellationToken) =>
+        ReplaceHistoryAsync(lease, scope, history, historyFormat, null, cancellationToken);
 
     public async Task<AgentConversationStoreResult> AcquireAsync(
         Guid? conversationId,
@@ -89,6 +94,7 @@ public sealed class EfAgentConversationStore(
         AgentConversationScope scope,
         string history,
         string historyFormat,
+        AgentConversationPresentation? presentation,
         CancellationToken cancellationToken)
     {
         if (!string.Equals(historyFormat, RunAgentConversationHandler.HistoryFormat, StringComparison.Ordinal))
@@ -97,19 +103,106 @@ public sealed class EfAgentConversationStore(
             return AgentConversationOutcome.HistoryLimitExceeded;
 
         string protectedHistory = _protector.Protect(history);
+        string? protectedPresentation = presentation is null
+            ? null
+            : _protector.Protect(AppendPresentation(lease.ConversationId, presentation));
+        if (protectedPresentation is not null && Encoding.UTF8.GetByteCount(_protector.Unprotect(protectedPresentation)) > MaximumPlaintextBytes)
+            return AgentConversationOutcome.HistoryLimitExceeded;
         DateTimeOffset now = timeProvider.GetUtcNow();
-        int updated = await Owned(scope)
-            .Where(conversation => conversation.Id == lease.ConversationId &&
-                conversation.ActiveLeaseId == lease.LeaseId &&
-                conversation.Revision == lease.Revision)
-            .ExecuteUpdateAsync(update => update
+        IQueryable<AgentConversationEntity> owned = Owned(scope).Where(conversation => conversation.Id == lease.ConversationId && conversation.ActiveLeaseId == lease.LeaseId && conversation.Revision == lease.Revision);
+        int updated;
+        if (presentation is null)
+        {
+            updated = await owned.ExecuteUpdateAsync(update => update
                 .SetProperty(conversation => conversation.ProtectedHistory, protectedHistory)
                 .SetProperty(conversation => conversation.HistoryFormat, historyFormat)
                 .SetProperty(conversation => conversation.UpdatedAt, now)
                 .SetProperty(conversation => conversation.Revision, lease.Revision + 1)
                 .SetProperty(conversation => conversation.ActiveLeaseId, (Guid?)null)
                 .SetProperty(conversation => conversation.ActiveLeaseExpiresAt, (DateTimeOffset?)null), cancellationToken);
+        }
+        else
+        {
+            string prompt = presentation.UserTurn.Trim();
+            string promptTitle = prompt[..Math.Min(80, prompt.Length)];
+            string assistantPreview = presentation.AssistantResponse.Trim()[..Math.Min(240, presentation.AssistantResponse.Trim().Length)];
+            updated = await owned.ExecuteUpdateAsync(update => update
+                .SetProperty(conversation => conversation.ProtectedHistory, protectedHistory)
+                .SetProperty(conversation => conversation.ProtectedPresentationTranscript, protectedPresentation)
+                .SetProperty(conversation => conversation.Title, presentation.Title is null ? promptTitle : presentation.Title.Trim())
+                .SetProperty(conversation => conversation.LatestTextPreview, assistantPreview)
+                .SetProperty(conversation => conversation.HistoryFormat, historyFormat)
+                .SetProperty(conversation => conversation.UpdatedAt, now)
+                .SetProperty(conversation => conversation.Revision, lease.Revision + 1)
+                .SetProperty(conversation => conversation.ActiveLeaseId, (Guid?)null)
+                .SetProperty(conversation => conversation.ActiveLeaseExpiresAt, (DateTimeOffset?)null), cancellationToken);
+        }
         return updated == 1 ? AgentConversationOutcome.Succeeded : AgentConversationOutcome.Busy;
+    }
+
+    private string AppendPresentation(Guid conversationId, AgentConversationPresentation presentation)
+    {
+        // The lease serializes turns for a conversation. Reading the previous protected
+        // presentation before the compare-and-set update keeps the display transcript
+        // additive while provider history remains private and separately protected.
+        AgentConversationEntity? entity = dbContext.AgentConversations
+            .AsNoTracking()
+            .SingleOrDefault(conversation => conversation.Id == conversationId);
+        List<PresentationTurn> turns = [];
+        if (entity?.ProtectedPresentationTranscript is { Length: > 0 } previous)
+        {
+            try
+            {
+                string json = _protector.Unprotect(previous);
+                try
+                {
+                    turns = JsonSerializer.Deserialize<List<PresentationTurn>>(json, PresentationJsonOptions) ?? [];
+                }
+                catch (JsonException)
+                {
+                    PresentationTurn? legacy = JsonSerializer.Deserialize<PresentationTurn>(json, PresentationJsonOptions);
+                    if (legacy is not null) turns.Add(legacy);
+                }
+            }
+            catch (JsonException) { }
+            catch (CryptographicException) { }
+        }
+        turns.Add(new(presentation.UserTurn, presentation.AssistantResponse, presentation.PreparedActionIds, presentation.Parts));
+        return JsonSerializer.Serialize(turns, PresentationJsonOptions);
+    }
+
+    private sealed record PresentationTurn(
+        string User,
+        string Assistant,
+        IReadOnlyCollection<Guid> PreparedActionIds,
+        JsonElement? Parts = null);
+
+    public async Task<IReadOnlyList<AgentConversationSummary>> ListAsync(AgentConversationScope scope, DateTimeOffset? before, int limit, CancellationToken cancellationToken)
+    {
+        limit = Math.Clamp(limit, 1, 100);
+        IQueryable<AgentConversationEntity> query = Owned(scope).AsNoTracking().OrderByDescending(x => x.UpdatedAt);
+        if (before is { } cursor) query = query.Where(x => x.UpdatedAt < cursor).OrderByDescending(x => x.UpdatedAt);
+        return await query.Take(limit).Select(x => new AgentConversationSummary(x.Id, x.Title ?? "New conversation", x.LatestTextPreview, x.CreatedAt, x.UpdatedAt)).ToListAsync(cancellationToken);
+    }
+
+    public async Task<AgentConversationDisplay?> GetDisplayAsync(Guid conversationId, AgentConversationScope scope, CancellationToken cancellationToken)
+    {
+        AgentConversationEntity? entity = await Owned(scope).AsNoTracking().SingleOrDefaultAsync(x => x.Id == conversationId, cancellationToken);
+        if (entity is null) return null;
+        string transcript = string.Empty;
+        if (entity.ProtectedPresentationTranscript is not null)
+        {
+            try { transcript = _protector.Unprotect(entity.ProtectedPresentationTranscript); }
+            catch (CryptographicException) { return null; }
+        }
+        return new(entity.Id, entity.Title ?? "New conversation", entity.LatestTextPreview, entity.CreatedAt, entity.UpdatedAt, transcript, transcript);
+    }
+
+    public async Task<bool> RenameAsync(Guid conversationId, AgentConversationScope scope, string title, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(title) || title.Trim().Length > 120) return false;
+        int updated = await Owned(scope).Where(x => x.Id == conversationId).ExecuteUpdateAsync(set => set.SetProperty(x => x.Title, title.Trim()).SetProperty(x => x.UpdatedAt, timeProvider.GetUtcNow()), cancellationToken);
+        return updated == 1;
     }
 
     public async Task ReleaseAsync(AgentConversationLease lease, CancellationToken cancellationToken)

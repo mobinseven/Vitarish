@@ -32,7 +32,7 @@ public sealed class AgentRuntimeHttpRunnerTests
             new(10, 3),
             2,
             1,
-            [new("echo", "call-1", "tool-output")],
+            [new("echo", "call-1", "tool-output", false, "{\"value\":42}")],
             History: completeHistory);
         RecordingHandler handler = new(response);
         AgentRuntimeHttpRunner runner = CreateRunner(handler);
@@ -48,6 +48,7 @@ public sealed class AgentRuntimeHttpRunnerTests
         result.Output.Should().Be("finished");
         result.StructuredOutput!.Value.GetProperty("answer").GetInt32().Should().Be(42);
         result.ToolExecutions.Should().ContainSingle().Which.ToolName.Should().Be("echo");
+        result.ToolExecutions.Single().ArgumentsJson.Should().Be("{\"value\":42}");
         result.History.Should().Be(completeHistory);
         handler.Authorization.Should().Be("Bearer test-secret");
         handler.Request!.CallbackCredential.Should().Be("credential");

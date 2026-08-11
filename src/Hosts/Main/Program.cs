@@ -173,10 +173,7 @@ if (app.Environment.IsDevelopment())
 }
 
 await app.InitializeModules();
-if (!DatabaseMigrationExtensions.IsOpenApiGeneration())
-{
-    await app.InitializeApps();
-}
+await app.InitializeApps();
 
 app.MapHangfireDashboard();
 

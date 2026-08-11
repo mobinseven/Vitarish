@@ -10,7 +10,8 @@ public sealed record RunAgentConversation(
     IReadOnlyCollection<IAgentTool> Tools,
     AgentExecutionContext ExecutionContext,
     AgentExecutionLimits Limits,
-    Func<Guid, AgentRunResult, CancellationToken, Task<AgentConversationOutcome>>? BeforeCommit = null)
+    Func<Guid, AgentRunResult, CancellationToken, Task<AgentConversationOutcome>>? BeforeCommit = null,
+    Func<Guid, AgentRunResult, AgentConversationPresentation?>? Presentation = null)
     : IRequest<RunAgentConversationResult>;
 
 public sealed record RunAgentConversationResult(
@@ -77,6 +78,7 @@ public sealed class RunAgentConversationHandler(
                 request.Scope,
                 run.History,
                 HistoryFormat,
+                request.Presentation?.Invoke(lease.ConversationId, run),
                 cancellationToken);
             return new(replaced, lease.ConversationId, run);
         }

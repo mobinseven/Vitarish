@@ -1,0 +1,4 @@
+<Project>
+  <Import Project="$(MSBuildProjectDirectory)\Main.OpenApi.targets"
+          Condition="'$(MSBuildProjectName)' == 'Main' AND Exists('$(MSBuildProjectDirectory)\Main.OpenApi.targets')" />
+</Project>

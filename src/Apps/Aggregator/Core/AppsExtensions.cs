@@ -1,5 +1,6 @@
 using Vitarish.Clinic.App;
 using Vitarish.Landing.App;
+using Vitarish.ProjectManagement.App;
 using Vitarish.Apps.Base.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ public static class AppsExtensions
     public static List<IApp> GetApps() =>
             [
                 Activator.CreateInstance<ClinicApp>(),
+                Activator.CreateInstance<ProjectManagementApp>(),
                 Activator.CreateInstance<LandingApp>(),
         ];
     public static async Task<WebApplicationBuilder> RegisterApps(

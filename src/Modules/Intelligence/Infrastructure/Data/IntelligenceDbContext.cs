@@ -70,6 +70,9 @@ public sealed class IntelligenceDbContext : DbContext, IMultiTenantDbContext
             entity.Property(conversation => conversation.SubjectKind).HasMaxLength(64).IsRequired();
             entity.Property(conversation => conversation.SubjectId).HasMaxLength(128).IsRequired();
             entity.Property(conversation => conversation.ProtectedHistory);
+            entity.Property(conversation => conversation.ProtectedPresentationTranscript);
+            entity.Property(conversation => conversation.Title).HasMaxLength(120);
+            entity.Property(conversation => conversation.LatestTextPreview).HasMaxLength(240);
             entity.Property(conversation => conversation.HistoryFormat).HasMaxLength(128).IsRequired();
             entity.Property(conversation => conversation.Revision).IsConcurrencyToken();
             entity.HasIndex(conversation => new

@@ -12,6 +12,8 @@ export type {
 } from "./api/intelligence/liveTranscriptionClient";
 export { LiveDictation } from "./components/LiveDictation";
 export type { LiveDictationProps } from "./components/LiveDictation";
+export { AgentConversationComposer } from "./components/AgentConversationComposer";
+export type { AgentConversationComposerProps } from "./components/AgentConversationComposer";
 export { intelligenceRunAgentConversation } from "./api/generated/intelligence/intelligence";
 export type {
   RunAgentConversationRequest,
