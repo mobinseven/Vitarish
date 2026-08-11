@@ -3,15 +3,10 @@
 import { useMemo, useState, type Key } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button, Popover, Tabs, Tooltip } from "@heroui/react";
-import {
-  appendConfirmedTranscript,
-  LiveDictation,
-  useLiveDictation,
-} from "@vitarish/intelligence-web";
+import { AgentConversationComposer } from "@vitarish/intelligence-web";
 import {
   DashboardFrame,
   ImmersiveRegion,
-  ChatPromptInput,
   FaIcon,
 } from "@vitarish/web-ui";
 import { useLandingConversation } from "../conversation/use-landing-conversation";
@@ -139,15 +134,6 @@ function LandingInitialHome({
 }) {
   const [value, setValue] = useState("");
   const [mode, setMode] = useState<LandingMode>("work");
-  const preferredLanguage = direction === "rtl" ? "fa-IR" : "en-US";
-  const dictation = useLiveDictation({
-    enabled: true,
-    onSegment: (segment) => {
-      setValue((current) => appendConfirmedTranscript(current, segment));
-    },
-    preferredLanguage,
-    sessionKey: "landing-home",
-  });
   const quickStarts = copy.suggestions.slice(0, 3);
 
   return (
@@ -188,16 +174,13 @@ function LandingInitialHome({
 
         <div className="landing-work-center">
           <h1>{mode === "work" ? copy.workHomeTitle : copy.chatHomeTitle}</h1>
-          <ChatPromptInput
-            actions={
-              <>
-                <LiveDictation controller={dictation} />
-              </>
-            }
+          <AgentConversationComposer
             direction={direction}
             label={copy.promptLabel}
             placeholder={mode === "work" ? copy.workHomePlaceholder : copy.chatHomePlaceholder}
             submitLabel={copy.send}
+            preferredLanguage={direction === "rtl" ? "fa-IR" : "en-US"}
+            sessionKey="landing-home"
             value={value}
             onChange={setValue}
             onSubmit={async (text) => {

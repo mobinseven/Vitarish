@@ -10,6 +10,7 @@ export const faMessages = {
     settings: { label: "تنظیمات" },
     culture: { label: "زبان" },
     theme: {  label: "رنگ و رو", light: "حالت روشن", dark: "حالت تاریک", system: "حالت سیستم" },
+    menu: { open: "باز کردن منو", close: "بستن منو" },
   },
   landing: {
     app: "هوش مصنوعی ویتاریش",

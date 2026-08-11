@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button, Tooltip } from "@heroui/react";
-import { ChatPromptInput, FaIcon } from "@vitarish/web-ui";
+import { AgentConversationComposer } from "@vitarish/intelligence-web";
+import { FaIcon } from "@vitarish/web-ui";
 import type { LandingCopy } from "./landing-copy";
 
 type ConversationState = {
@@ -57,7 +58,7 @@ export function LandingComposer({
             </Tooltip>
           </div>
         ) : null}
-        <ChatPromptInput
+        <AgentConversationComposer
           direction={direction}
           footer={
             <span className="text-center text-xs text-muted">
@@ -76,6 +77,8 @@ export function LandingComposer({
           label={copy.promptLabel}
           placeholder={copy.placeholder}
           submitLabel={copy.send}
+          preferredLanguage={direction === "rtl" ? "fa-IR" : "en-US"}
+          sessionKey="landing-composer"
           value={value}
           onChange={setValue}
           onSubmit={async (text) => {

@@ -9,9 +9,9 @@ import {
   ChatConversation,
   ChatLoadingMessage,
   ChatMessage,
-  ChatPromptInput,
   FaIcon,
 } from "@vitarish/web-ui";
+import { AgentConversationComposer } from "@vitarish/intelligence-web";
 import { useLandingConversation } from "../conversation/use-landing-conversation";
 import type { LandingConversationOwner } from "../conversation/landing-conversation";
 
@@ -216,13 +216,15 @@ function PageConversation({
             <Tooltip.Content>{t("landing.resetTooltip")}</Tooltip.Content>
           </Tooltip>
         </div>
-        <ChatPromptInput
+        <AgentConversationComposer
           direction={direction}
           helperText={conversation.isError ? t("landing.error") : undefined}
           isPending={conversation.isPending}
           label={t("landing.pages.faq.label")}
           placeholder={t("landing.pages.faq.placeholder")}
           submitLabel={t("landing.pages.faq.send")}
+          preferredLanguage={direction === "rtl" ? "fa-IR" : "en-US"}
+          sessionKey={`landing:${page}`}
           value={value}
           onChange={setValue}
           onSubmit={(question) => void ask(question)}

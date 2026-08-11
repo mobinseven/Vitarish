@@ -10,6 +10,7 @@ export const enMessages = {
     settings: { label: "Settings" },
     culture: { label: "Language" },
     theme: { label: "Theme", light: "Light mode", dark: "Dark mode", system: "System theme" },
+    menu: { open: "Open menu", close: "Close menu" },
   },
   landing: {
     app: "Vitarish AI",
