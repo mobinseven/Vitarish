@@ -49,7 +49,7 @@ TanStack Query, Orval, Vitest, Playwright, Docker Compose, and GitHub Actions.
 | `.claude/skills` | Discovery bridges to canonical skills. | Do not place canonical rules here. |
 | `.github` | CI workflows and repository automation. | Check workflow callers before editing. |
 | `docs` | ADRs, conventions, app/module documentation, runbooks, indexes, and this map. | Follow `docs/AGENTS.md`. |
-| `src/Apps` | .NET app aggregators and app-owned backend slices. Current roots are `Aggregator`, `Base`, and `Clinic`. | Follow `src/Apps/AGENTS.md`; keep module business rules in modules. |
+| `src/Apps` | .NET app aggregators and app-owned backend slices. Current roots are `Aggregator`, `Base`, `Clinic`, and `ProjectManagement`. | Follow `src/Apps/AGENTS.md`; keep module business rules in modules. |
 | `src/Build` | Shared MSBuild configuration and module build profiles. | High-impact shared build surface. |
 | `src/Hosts/Main` | Backend ASP.NET Core composition/runtime host. | Follow its `AGENTS.md`; no product UI or use-case behavior. |
 | `src/Hosts/Web` | npm workspace containing React apps, feature packages, Web infrastructure, and the agent runtime. | Follow its `AGENTS.md`; never edit generated API output manually. |
@@ -114,6 +114,7 @@ Run npm workspace commands from `src/Hosts/Web`.
 | `apps/patients` | Patient-facing application. |
 | `apps/knowledge-qa-demo` | Knowledge QA demonstration application. |
 | `apps/vitarish-landing` | Public landing application. |
+| `apps/vitarish-pm` | Dedicated tenant-scoped project-management application backed by SEA. |
 | `apps/agent-runtime` | Server-only OpenAI Agents SDK runtime; not a browser UI. |
 
 ### Shared packages
@@ -275,8 +276,10 @@ npm run dev:private-practice-owner
 npm run dev:patients
 npm run dev:knowledge-qa-demo
 npm run dev:vitarish-landing
+npm run dev:vitarish-pm
 npm run dev:agent-runtime
 npm run build
+npm run build:vitarish-pm
 npm run typecheck
 npm run test
 npm run validate:api-boundary

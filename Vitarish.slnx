@@ -41,11 +41,24 @@
       <Build Solution="Debug|x86" Project="false" />
     </Project>
   </Folder>
+  <Folder Name="/src/Apps/ProjectManagement/">
+    <Project Path="src/Apps/ProjectManagement/Contracts/ProjectManagement.Contracts.csproj" />
+    <Project Path="src/Apps/ProjectManagement/Application/ProjectManagement.Application.csproj" />
+    <Project Path="src/Apps/ProjectManagement/Api/ProjectManagement.Api.csproj" />
+    <Project Path="src/Apps/ProjectManagement/Infrastructure/ProjectManagement.Infrastructure.csproj" />
+    <Project Path="src/Apps/ProjectManagement/App/ProjectManagement.App.csproj" />
+  </Folder>
   <Folder Name="/tests/Apps/Landing.Application.Tests/">
     <Project Path="tests/Apps/Landing.Application.Tests/Landing.Application.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/Apps/Clinic.Application.Tests/">
     <Project Path="tests/Apps/Clinic.Application.Tests/Clinic.Application.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Apps/ProjectManagement.Application.Tests/">
+    <Project Path="tests/Apps/ProjectManagement.Application.Tests/ProjectManagement.Application.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Apps/ProjectManagement.Api.Tests/">
+    <Project Path="tests/Apps/ProjectManagement.Api.Tests/ProjectManagement.Api.Tests.csproj" />
   </Folder>
   <Folder Name="/src/Hosts/">
     <Project Path="src/Hosts/Main/Main.csproj" />

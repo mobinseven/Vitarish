@@ -1,0 +1,639 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Vitarish.Main | projectmanagement",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/apps/project-management/events/{eventId}/actions/{actionId}": {
+      "get": {
+        "tags": ["ProjectManagement"],
+        "operationId": "ProjectManagementGetEventAction",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "actionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectManagementActionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/apps/project-management/events/{eventId}/actions/{actionId}/confirm": {
+      "post": {
+        "tags": ["ProjectManagement"],
+        "operationId": "ProjectManagementConfirmEventAction",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "actionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectManagementActionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/apps/project-management/events/{eventId}/actions/{actionId}/reject": {
+      "post": {
+        "tags": ["ProjectManagement"],
+        "operationId": "ProjectManagementRejectEventAction",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "actionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectProjectManagementActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectManagementActionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/apps/project-management/events/{eventId}/conversations/{conversationId}": {
+      "delete": {
+        "tags": ["ProjectManagement"],
+        "operationId": "ProjectManagementDeleteEventConversation",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "conversationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["ProjectManagement"],
+        "operationId": "ProjectManagementGetEventConversation",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "conversationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectManagementThreadDisplay"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": ["null", "string"]
+          },
+          "title": {
+            "type": ["null", "string"]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": ["null", "integer", "string"],
+            "format": "int32"
+          },
+          "detail": {
+            "type": ["null", "string"]
+          },
+          "instance": {
+            "type": ["null", "string"]
+          }
+        }
+      },
+      "ProjectManagementActionResponse": {
+        "required": ["actionId", "status", "review"],
+        "type": "object",
+        "properties": {
+          "actionId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "review": {
+            "$ref": "#/components/schemas/ProjectManagementActionReview"
+          },
+          "completionPayload": {
+            "type": ["null", "string"]
+          },
+          "failureCode": {
+            "type": ["null", "string"]
+          },
+          "rejectionReason": {
+            "type": ["null", "string"]
+          }
+        }
+      },
+      "ProjectManagementActionReview": {
+        "required": [
+          "operation",
+          "eventId",
+          "attachmentId",
+          "proposedValuesJson"
+        ],
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "string"
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "attachmentId": {
+            "type": ["null", "string"]
+          },
+          "proposedValuesJson": {
+            "type": "string"
+          },
+          "changes": {
+            "type": ["null", "array"],
+            "items": {
+              "$ref": "#/components/schemas/ProjectManagementActionReviewChange"
+            }
+          },
+          "isDestructive": {
+            "type": "boolean",
+            "default": false
+          },
+          "warning": {
+            "type": ["null", "string"]
+          }
+        }
+      },
+      "ProjectManagementActionReviewChange": {
+        "required": ["field", "proposedValue"],
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "proposedValue": {
+            "type": ["null", "string"]
+          }
+        }
+      },
+      "ProjectManagementPresentationPart": {
+        "required": ["type"],
+        "type": "object",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/ProjectManagementPresentationPartProjectManagementTextPresentationPart"
+          },
+          {
+            "$ref": "#/components/schemas/ProjectManagementPresentationPartProjectManagementResourceCardPresentationPart"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "text": "#/components/schemas/ProjectManagementPresentationPartProjectManagementTextPresentationPart",
+            "resource-card": "#/components/schemas/ProjectManagementPresentationPartProjectManagementResourceCardPresentationPart"
+          }
+        }
+      },
+      "ProjectManagementPresentationPartProjectManagementResourceCardPresentationPart": {
+        "required": [
+          "family",
+          "operation",
+          "id",
+          "parentId",
+          "routeKind",
+          "routeCoordinates",
+          "capturedAt",
+          "fields",
+          "items"
+        ],
+        "properties": {
+          "type": {
+            "enum": ["resource-card"],
+            "type": "string"
+          },
+          "family": {
+            "type": "string"
+          },
+          "operation": {
+            "type": "string"
+          },
+          "id": {
+            "type": ["null", "string"]
+          },
+          "parentId": {
+            "type": ["null", "string"]
+          },
+          "routeKind": {
+            "type": "string"
+          },
+          "routeCoordinates": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fields": {
+            "type": "object"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "ProjectManagementPresentationPartProjectManagementTextPresentationPart": {
+        "required": ["text"],
+        "properties": {
+          "type": {
+            "enum": ["text"],
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "ProjectManagementThreadDisplay": {
+        "required": [
+          "id",
+          "title",
+          "latestTextPreview",
+          "createdAt",
+          "updatedAt",
+          "transcript"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "latestTextPreview": {
+            "type": ["null", "string"]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "transcript": {
+            "type": "string"
+          },
+          "turns": {
+            "type": ["null", "array"],
+            "items": {
+              "$ref": "#/components/schemas/ProjectManagementThreadTurn"
+            }
+          }
+        }
+      },
+      "ProjectManagementThreadTurn": {
+        "required": ["user", "assistant", "preparedActionIds", "parts"],
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string"
+          },
+          "assistant": {
+            "type": "string"
+          },
+          "preparedActionIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectManagementPresentationPart"
+            }
+          }
+        }
+      },
+      "RejectProjectManagementActionRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": ["null", "string"]
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "ProjectManagement"
+    }
+  ]
+}

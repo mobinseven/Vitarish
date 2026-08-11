@@ -1,0 +1,135 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@import "@heroui-pro/react/css";
+@import "@vitarish/web-ui/layout.css";
+
+@source "../../../../shared/sea-web/src/**/*.{ts,tsx}";
+@source "../../../../shared/web-ui/src/**/*.{ts,tsx}";
+
+:root {
+  --background: oklch(97% 0.012 250);
+}
+[data-theme="dark"] {
+  --background: oklch(18% 0.025 250);
+}
+html,
+body {
+  min-height: 100%;
+  background: var(--background);
+}
+/*
+ * HeroUI Pro Theme
+ * Add this to your globals.css after importing @heroui/styles
+ * @see https://heroui.com/docs/react/getting-started/theming
+ */
+
+/*
+ * Font: Hanken Grotesk
+ * Load this font in your app:
+ * <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@100..900&display=swap" rel="stylesheet" />
+ *
+ * Font: IBM Plex Mono
+ * Load this font in your app:
+ * <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+ */
+:root,
+.light,
+.default,
+[data-theme="light"],
+[data-theme="default"] {
+  /* Theme Colors */
+  --background: oklch(97.02% 0.002 127.02);
+  --muted: oklch(55.17% 0.004 127.02);
+  --scrollbar: oklch(87.1% 0.002 127.02);
+  --surface-secondary: oklch(95.24% 0.003 127.02);
+  --surface-tertiary: oklch(93.73% 0.003 127.02);
+  --default: oklch(94% 0.002 127.02);
+  --accent: oklch(73.96% 0.1907 127.02);
+  --accent-foreground: var(--eclipse);
+  --success: oklch(73.29% 0.1943 135.59);
+  --warning: oklch(78.19% 0.1591 57.11);
+  --danger: oklch(65.32% 0.2337 10.52);
+  --field-border: oklch(90% 0.002 127.02);
+  --border: oklch(90% 0.002 127.02);
+  --separator: oklch(92% 0.002 127.02);
+  --focus: oklch(92.8% 0.2201 125.01);
+
+  /* Border Radius */
+  --radius: 0.25rem;
+  --field-radius: 0.5rem;
+
+  /* Font */
+  --font-sans: var(--font-hanken-grotesk);
+
+  /* Letter Spacing */
+  --tracking-tighter: -0.01em;
+  --tracking-tight: 0.015em;
+  --tracking-normal: 0.04em;
+  --tracking-wide: 0.065em;
+  --tracking-wider: 0.09em;
+  --tracking-widest: 0.14em;
+
+  /* Misc */
+  --disabled-opacity: 0.25;
+  --skeleton-animation: pulse;
+
+  /* Font Sizes */
+  --text-xs: 0.9375rem;
+  --text-xs--line-height: calc(1.2 / 0.9375);
+  --text-sm: 1.0625rem;
+  --text-sm--line-height: calc(1.5 / 1.0625);
+  --text-base: 1.1875rem;
+  --text-base--line-height: calc(1.8 / 1.1875);
+  --text-lg: 1.375rem;
+  --text-lg--line-height: calc(2.1 / 1.375);
+  --text-xl: 1.5625rem;
+  --text-xl--line-height: calc(2.1 / 1.5625);
+  --text-2xl: 1.8125rem;
+  --text-2xl--line-height: calc(2.4 / 1.8125);
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: calc(2.7 / 2.25);
+  --text-4xl: 2.75rem;
+  --text-4xl--line-height: calc(3 / 2.75);
+  --text-5xl: 3.75rem;
+  --text-5xl--line-height: 1.2;
+  --text-6xl: 4.5rem;
+  --text-6xl--line-height: 1.2;
+  --text-7xl: 5.5rem;
+  --text-7xl--line-height: 1.2;
+  --text-8xl: 7.5rem;
+  --text-8xl--line-height: 1.2;
+  --text-9xl: 10rem;
+  --text-9xl--line-height: 1.2;
+}
+
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+  /* Theme Colors */
+  --background: oklch(12% 0.002 127.02);
+  --muted: oklch(70.5% 0.004 127.02);
+  --scrollbar: oklch(70.5% 0.002 127.02);
+  --surface: oklch(21.03% 0.004 127.02);
+  --surface-secondary: oklch(25.7% 0.003 127.02);
+  --surface-secondary-foreground: oklch(25.7% 0 127.02);
+  --surface-tertiary: oklch(27.21% 0.003 127.02);
+  --surface-tertiary-foreground: oklch(27.21% 0 127.02);
+  --overlay: oklch(21.03% 0.004 127.02);
+  --default: oklch(27.4% 0.002 127.02);
+  --accent: oklch(73.96% 0.1907 127.02);
+  --accent-foreground: var(--eclipse);
+  --success: oklch(73.29% 0.1943 135.59);
+  --warning: oklch(82.03% 0.1394 61.12);
+  --danger: oklch(59.4% 0.1975 9.41);
+  --field-background: oklch(21.03% 0.004 127.02);
+  --field-placeholder: oklch(70.5% 0 127.02);
+  --field-border: oklch(28% 0.002 127.02);
+  --segment: oklch(39.64% 0.002 127.02);
+  --border: oklch(28% 0.002 127.02);
+  --separator: oklch(25% 0.002 127.02);
+  --focus: oklch(92.8% 0.2201 125.01);
+}
+
+html[dir="rtl"] {
+  --font-sans: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
+}
