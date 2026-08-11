@@ -126,6 +126,10 @@ jobs:
         run: npm run build:private-practice-owner
       - name: Build Knowledge QA demo
         run: npm run build:knowledge-qa-demo
+      - name: Build Project Management app
+        run: npm run build:vitarish-pm
+      - name: Build Vitarish landing app
+        run: npm run build:vitarish-landing
 
   aggregate:
     name: Build & Typecheck

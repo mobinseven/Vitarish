@@ -4,11 +4,11 @@ import {
   ChatConversation,
   ChatLoader,
   ChatMessage,
-  PromptInput,
   Sheet,
 } from "@heroui-pro/react";
 import { Button, Modal, Tooltip } from "@heroui/react";
 import { FaIcon } from "@vitarish/web-ui";
+import { AgentConversationComposer } from "@vitarish/intelligence-web";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocalizedText } from "../../localization";
 import type { PatientAgentMessageResult } from "./hooks";
@@ -48,46 +48,36 @@ export function PatientAgentComposer({
   disabled,
   onSubmit,
   scope = "patient",
+  sessionKey,
 }: {
   disabled: boolean;
   onSubmit: (message: string) => Promise<void>;
   scope?: "patient" | "operations";
+  sessionKey?: string;
 }) {
-  const { t } = useLocalizedText();
+  const { locale, t } = useLocalizedText();
   const [message, setMessage] = useState("");
-  const submit = async () => {
-    const value = message.trim();
+  const submit = async (nextMessage = message) => {
+    const value = nextMessage.trim();
     if (!value || disabled) return;
     setMessage("");
     await onSubmit(value);
   };
 
   return (
-    <PromptInput
-      isDisabled={disabled}
-      status={disabled ? "submitted" : "ready"}
+    <AgentConversationComposer
+      direction={locale === "fa" ? "rtl" : "ltr"}
+      enabled={!disabled}
+      isPending={disabled}
+      label={scope === "operations" ? t("clinic.operationsAgent.composer.label") : t("clinic.patientAgent.composer.label")}
+      placeholder={scope === "operations" ? t("clinic.operationsAgent.composer.placeholder") : t("clinic.patientAgent.composer.placeholder")}
+      preferredLanguage={locale === "fa" ? "fa-IR" : "en-US"}
+      sessionKey={sessionKey ?? `clinic.${scope}`}
+      submitLabel={scope === "operations" ? t("clinic.operationsAgent.composer.send") : t("clinic.patientAgent.composer.send")}
       value={message}
-      onSubmit={() => void submit()}
-      onValueChange={setMessage}
-      className="w-full"
-      variant="secondary"
-    >
-      <PromptInput.Shell>
-        <PromptInput.Content>
-          <PromptInput.TextArea
-            aria-label={scope === "operations" ? t("clinic.operationsAgent.composer.label") : t("clinic.patientAgent.composer.label")}
-            placeholder={scope === "operations" ? t("clinic.operationsAgent.composer.placeholder") : t("clinic.patientAgent.composer.placeholder")}
-          />
-        </PromptInput.Content>
-        <PromptInput.Toolbar>
-          <PromptInput.ToolbarEnd>
-            <PromptInput.Send
-              aria-label={scope === "operations" ? t("clinic.operationsAgent.composer.send") : t("clinic.patientAgent.composer.send")}
-            />
-          </PromptInput.ToolbarEnd>
-        </PromptInput.Toolbar>
-      </PromptInput.Shell>
-    </PromptInput>
+      onChange={setMessage}
+      onSubmit={submit}
+    />
   );
 }
 
@@ -279,6 +269,7 @@ export function PatientAgentPanel({
               <PatientAgentComposer
                 disabled={conversation.isPending}
                 onSubmit={surface.submit}
+                sessionKey={`clinic.patient:${patientId}`}
               />
             </Sheet.Footer>
           </Sheet.Dialog>

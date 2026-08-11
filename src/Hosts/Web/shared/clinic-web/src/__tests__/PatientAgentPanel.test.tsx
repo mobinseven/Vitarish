@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   AppointmentActionCard,
   ClinicalEventActionCard,
@@ -20,6 +20,31 @@ vi.mock("@vitarish/web-ui", () => ({
     <span data-icon={icon} aria-hidden="true" />
   ),
 }));
+vi.mock("@vitarish/intelligence-web", async () => {
+  const actual = await vi.importActual<any>("@vitarish/intelligence-web");
+  return {
+    ...actual,
+    AgentConversationComposer: ({ value, onChange, onSubmit, label, placeholder }: any) => (
+      <>
+        <textarea
+          aria-label={label}
+          placeholder={placeholder}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              void onSubmit(value);
+            }
+          }}
+        />
+        <button aria-label="Dictate draft" onClick={() => onChange(`${value} dictated`)}>Dictate</button>
+      </>
+    ),
+  };
+});
+
+afterEach(cleanup);
 
 const common = {
   actions: { cancel: "Cancel", save: "Save", delete: "Delete" },
@@ -66,6 +91,18 @@ describe("patient agent review", () => {
     fireEvent.change(composer, { target: { value: "Book tomorrow" } });
     fireEvent.keyDown(composer, { key: "Enter" });
     expect(submit).toHaveBeenCalledWith("Book tomorrow");
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+  });
+
+  it("submits a dictated draft without adding a patient selector", async () => {
+    const submit = vi.fn().mockResolvedValue(undefined);
+    render(<PatientAgentComposer disabled={false} onSubmit={submit} />, {
+      wrapper: wrapper(),
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Dictate draft" }));
+    const composer = screen.getByLabelText("Message to the patient agent");
+    fireEvent.keyDown(composer, { key: "Enter" });
+    expect(submit).toHaveBeenCalledWith("dictated");
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 

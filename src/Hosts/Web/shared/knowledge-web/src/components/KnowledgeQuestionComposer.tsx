@@ -2,10 +2,10 @@
 
 import { PromptInput } from "@heroui-pro/react/prompt-input";
 import {
-  ChatPromptInput,
   FaIcon,
   type ChatTextDirection,
 } from "@vitarish/web-ui";
+import { AgentConversationComposer } from "@vitarish/intelligence-web";
 import { KnowledgeCorpusSelect } from "./KnowledgeCorpusSelect";
 import type { KnowledgeQaLabels, KnowledgeUserCorpus } from "../types";
 
@@ -41,11 +41,14 @@ export function KnowledgeQuestionComposer({
   value,
 }: KnowledgeQuestionComposerProps) {
   return (
-    <ChatPromptInput
+    <AgentConversationComposer
       value={value}
       label={labels.questionLabel}
       placeholder={labels.questionPlaceholder}
       isPending={isPending}
+      enabled={!isPending}
+      preferredLanguage={direction === "rtl" ? "fa-IR" : "en-US"}
+      sessionKey="knowledge.qa"
       submitLabel={labels.askAction}
       direction={direction}
       footer={labels.composerFooter}

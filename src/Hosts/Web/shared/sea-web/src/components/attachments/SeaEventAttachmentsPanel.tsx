@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Button, Label, TextArea, TextField } from "@heroui/react";
+import { Button, Label, TextArea, TextField, Tooltip } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
 import { SeaLoadingState, SeaEmptyState } from "../state/SeaStateSurface";
 import { useSeaEventAttachments } from "../../hooks/attachments/useSeaAttachments";
@@ -13,6 +13,7 @@ import {
 import { useLocalizedText } from "../../localization";
 import { toSeaFileAttachment } from "../../api/attachments/seaAttachmentFile";
 import type { SeaAttachmentReadDto } from "../../api/attachments/seaAttachmentsApi";
+import { FaIcon } from "@vitarish/web-ui";
 
 interface SeaEventAttachmentsPanelProps {
   eventId: string;
@@ -86,14 +87,12 @@ export function SeaEventAttachmentsPanel({
       <Widget.Header>
         <div className="flex items-center justify-between">
           <Widget.Title>{t("sea.attachments.title")}</Widget.Title>
-          <Button size="sm" variant="ghost" onPress={() => setIsAdding(true)}>
-            {t("sea.attachments.addText")}
-          </Button>
+          <Tooltip><Button size="sm" variant="secondary" onPress={() => setIsAdding(true)}><FaIcon icon="text" aria-hidden="true" />{t("sea.attachments.addText")}</Button><Tooltip.Content>{t("sea.attachments.addText")}</Tooltip.Content></Tooltip>
         </div>
       </Widget.Header>
       <Widget.Content className="flex flex-col gap-3">
         <div
-          className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border p-4 text-center"
+          className="flex min-h-32 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border p-4 text-center"
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => {
             event.preventDefault();
@@ -115,16 +114,16 @@ export function SeaEventAttachmentsPanel({
           <p className="text-xs text-muted">
             {t("sea.attachments.dropzoneDescription")}
           </p>
-          <Button
+          <Tooltip><Button
             size="sm"
-            variant="ghost"
+            variant="secondary"
             onPress={() => fileInputRef.current?.click()}
             isDisabled={createFileMutation.isPending}
-          >
+          ><FaIcon icon="paperclip" aria-hidden="true" />
             {createFileMutation.isPending
               ? t("common.states.saving")
               : t("sea.attachments.addFile")}
-          </Button>
+          </Button><Tooltip.Content>{t("sea.attachments.addFile")}</Tooltip.Content></Tooltip>
           {fileError && <p className="text-xs text-danger">{fileError}</p>}
         </div>
 
@@ -135,24 +134,24 @@ export function SeaEventAttachmentsPanel({
               <TextArea placeholder={t("sea.attachments.textPlaceholder")} />
             </TextField>
             <div className="flex justify-end gap-2">
-              <Button
+              <Tooltip><Button
                 size="sm"
                 variant="ghost"
                 onPress={() => {
                   setIsAdding(false);
                   setNewText("");
                 }}
-              >
+              ><FaIcon icon="xmark" aria-hidden="true" />
                 {t("common.actions.cancel")}
-              </Button>
-              <Button
+              </Button><Tooltip.Content>{t("common.actions.cancel")}</Tooltip.Content></Tooltip>
+              <Tooltip><Button
                 size="sm"
                 variant="primary"
                 onPress={handleAddText}
                 isDisabled={!newText.trim() || createTextMutation.isPending}
-              >
+              ><FaIcon icon="check" aria-hidden="true" />
                 {t("common.actions.save")}
-              </Button>
+              </Button><Tooltip.Content>{t("common.actions.save")}</Tooltip.Content></Tooltip>
             </div>
           </div>
         )}
@@ -179,24 +178,24 @@ export function SeaEventAttachmentsPanel({
               {t("sea.attachments.byteUnit")}
             </p>
             <div className="flex gap-2">
-              <Button
+              <Tooltip><Button
                 size="sm"
                 variant="ghost"
                 onPress={() => setDeleteTarget(null)}
                 isDisabled={deleteMutation.isPending}
-              >
+              ><FaIcon icon="xmark" aria-hidden="true" />
                 {t("common.actions.cancel")}
-              </Button>
-              <Button
+              </Button><Tooltip.Content>{t("common.actions.cancel")}</Tooltip.Content></Tooltip>
+              <Tooltip><Button
                 size="sm"
                 variant="danger"
                 onPress={handleDeleteAttachment}
                 isDisabled={deleteMutation.isPending}
-              >
+              ><FaIcon icon="trash" aria-hidden="true" />
                 {deleteMutation.isPending
                   ? t("common.states.saving")
                   : t("common.actions.delete")}
-              </Button>
+              </Button><Tooltip.Content>{t("common.actions.delete")}</Tooltip.Content></Tooltip>
             </div>
           </div>
         )}
@@ -220,7 +219,7 @@ function AttachmentItem({
   const fileHref = isTextAttachment ? null : attachment.content;
 
   return (
-    <div className="flex items-start justify-between rounded-lg border border-border p-3">
+    <div className="flex items-start justify-between gap-3 rounded-lg bg-surface-secondary/70 p-3">
       <div className="min-w-0 flex-1">
         {isTextAttachment ? (
           <p className="text-sm whitespace-pre-wrap">{attachment.content}</p>
@@ -239,14 +238,14 @@ function AttachmentItem({
           {t("sea.attachments.byteUnit")}
         </p>
       </div>
-      <Button
+      <Tooltip><Button
         size="sm"
-        variant="ghost"
+        variant="danger-soft"
         onPress={onDelete}
         isDisabled={isDeleting}
-      >
-        {t("common.actions.delete")}
-      </Button>
+        aria-label={t("common.actions.delete")}
+        isIconOnly
+      ><FaIcon icon="trash" aria-hidden="true" /></Button><Tooltip.Content>{t("common.actions.delete")}</Tooltip.Content></Tooltip>
     </div>
   );
 }

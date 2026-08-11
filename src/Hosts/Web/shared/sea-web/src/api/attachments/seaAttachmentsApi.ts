@@ -21,6 +21,7 @@ export type { SeaAttachmentReadDto };
 
 export interface SeaAttachmentWriteDto {
   eventId: string;
+  id?: string;
   content: string;
   contentType: string;
   contentThumbnail?: string;

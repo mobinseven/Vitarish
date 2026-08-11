@@ -27,8 +27,8 @@ export function MockApiBootstrap({
     void import("msw/browser")
       .then(async ({ setupWorker }) => {
         const worker = setupWorker(
-          ...createDefaultMockHandlers(resolveMockScenario(requestedScenario)),
           ...handlers,
+          ...createDefaultMockHandlers(resolveMockScenario(requestedScenario)),
         );
         workerInstance = worker;
         await worker.start({

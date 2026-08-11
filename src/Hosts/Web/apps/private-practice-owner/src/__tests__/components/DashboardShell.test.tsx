@@ -119,6 +119,8 @@ vi.mock("@vitarish/web-localization", () => ({
       ({
         "appShell.culture.label": "Language",
         "appShell.settings.label": "Settings",
+        "appShell.menu.open": "Open menu",
+        "appShell.menu.close": "Close menu",
         "appShell.theme.light": "Switch to light mode",
         "appShell.theme.dark": "Switch to dark mode",
         "appShell.theme.system": "Switch to system mode",
@@ -150,6 +152,11 @@ vi.mock("@heroui-pro/react/sidebar", () => {
   MenuItem.displayName = "Sidebar.MenuItem";
 
   return {
+    useSidebar: () => ({
+      isMobile: false,
+      isOpen: true,
+      toggleSidebar: vi.fn(),
+    }),
     Sidebar: Object.assign(
       ({ children, ...props }) => <aside {...props}>{children}</aside>,
       {

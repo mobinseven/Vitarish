@@ -38,7 +38,7 @@ export function OperationsAgentAside({ isOpen }: { isOpen: boolean }) {
           <OperationsAgentActionList actionIds={surface.actionIds} />
         </PatientAgentMessageList>
       </div>
-      <footer className="shrink-0 border-t border-border p-3"><PatientAgentComposer scope="operations" disabled={conversation.isPending} onSubmit={surface.submit} /></footer>
+      <footer className="shrink-0 border-t border-border p-3"><PatientAgentComposer scope="operations" disabled={conversation.isPending} onSubmit={surface.submit} sessionKey="clinic.operations" /></footer>
       <Modal isOpen={confirmReset} onOpenChange={setConfirmReset}><Modal.Backdrop><Modal.Container placement="center"><Modal.Dialog><Modal.Header><Modal.Heading>{t("clinic.operationsAgent.resetTitle")}</Modal.Heading></Modal.Header><Modal.Body><p>{t("clinic.operationsAgent.resetDescription")}</p>{resetError ? <p role="alert" className="text-danger">{t("clinic.operationsAgent.resetError")}</p> : null}</Modal.Body><Modal.Footer><Button variant="secondary" onPress={() => setConfirmReset(false)}><FaIcon icon="xmark" aria-hidden="true" />{t("common.actions.cancel")}</Button><Button variant="danger" onPress={() => void reset()}><FaIcon icon="trash" aria-hidden="true" />{t("common.actions.delete")}</Button></Modal.Footer></Modal.Dialog></Modal.Container></Modal.Backdrop></Modal>
     </section>
   );

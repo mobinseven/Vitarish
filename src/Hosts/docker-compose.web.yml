@@ -13,6 +13,20 @@ services:
     depends_on:
       - main
 
+  project-management:
+    build:
+      context: ./Web
+      dockerfile: apps/vitarish-pm/Dockerfile
+      args:
+        - NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+      secrets:
+        - source: heroui_auth_token
+          target: HEROUI_AUTH_TOKEN
+    ports:
+      - "3004:3004"
+    depends_on:
+      - main
+
   agent-runtime:
     build:
       context: ./Web
@@ -34,5 +48,11 @@ services:
       - "5000:8080"
     environment:
       Vitarish__Intelligence__AgentRuntime__BaseUrl: http://agent-runtime:3003
-      Vitarish__Intelligence__AgentRuntime__ToolCallbackUrl: http://main:8080/api/modules/clinic/internal/agent/tools/execute
+      Vitarish__Intelligence__AgentRuntime__ToolCallbackUrl: http://main:8080/api/modules/intelligence/internal/agent/tools/execute
       Vitarish__Intelligence__AgentRuntime__SharedSecret: ${VITARISH_AGENT_RUNTIME_SECRET}
+      Cors__AllowedOrigins__0: http://localhost:3000
+      Cors__AllowedOrigins__1: http://localhost:3004
+
+secrets:
+  heroui_auth_token:
+    environment: HEROUI_AUTH_TOKEN

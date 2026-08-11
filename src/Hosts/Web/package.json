@@ -9,6 +9,7 @@
   "scripts": {
     "dev:private-practice-owner": "npm run dev --workspace @vitarish/private-practice-owner",
     "dev:platform-admin": "npm run dev --workspace @vitarish/platform-admin",
+    "dev:vitarish-pm": "npm run dev --workspace @vitarish/vitarish-pm",
     "dev:patients": "npm run dev --workspace @vitarish/patients",
     "dev:knowledge-qa-demo": "npm run dev --workspace @vitarish/knowledge-qa-demo",
     "dev:vitarish-landing": "npm run dev --workspace @vitarish/vitarish-landing",
@@ -21,6 +22,7 @@
     "build": "npm run build --workspaces --if-present",
     "build:private-practice-owner": "npm run generate:api --workspace @vitarish/clinic-web && npm run build --workspace @vitarish/private-practice-owner",
     "build:platform-admin": "npm run build --workspace @vitarish/platform-admin",
+    "build:vitarish-pm": "npm run build --workspace @vitarish/vitarish-pm",
     "build:patients": "npm run build --workspace @vitarish/patients",
     "build:knowledge-qa-demo": "npm run build --workspace @vitarish/knowledge-qa-demo",
     "build:vitarish-landing": "npm run build --workspace @vitarish/vitarish-landing",
@@ -45,6 +47,7 @@
       "apps/private-practice-owner/public",
       "apps/patients/public",
       "apps/platform-admin/public",
+      "apps/vitarish-pm/public",
       "apps/knowledge-qa-demo/public",
       "apps/vitarish-landing/public"
     ]

@@ -16,4 +16,10 @@ describe("Knowledge QA demo localization catalog", () => {
     expect(messages.auth.login.title).toBe("Log in to Knowledge QA");
     expect(messages.auth.guard.loading).toBe("Checking your session...");
   });
+
+  it("provides the shared dictation labels used by the question composer", () => {
+    const messages = getMessages(defaultLocale);
+
+    expect(messages.intelligence.dictation.actions.start).toBe("Start voice dictation");
+  });
 });
