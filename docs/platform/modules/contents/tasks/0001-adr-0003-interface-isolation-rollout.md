@@ -22,13 +22,15 @@ This plan completes the module Interface isolation rollout for this module and p
 - External provider clients remain excluded only when explicitly documented and outside internal module API transport.
 
 ## Validation commands
-- `python3 tools/architecture/validate_module_api_boundaries.py`
+- `python3 tools/architecture/validate_openapi_endpoint_coverage.py`
+- `python3 tools/architecture/validate_internal_module_clients.py`
+- Review changed project references against `docs/architecture.md`.
 
 ## Done criteria
 - The Interface project has no backend project references and no backend namespace usage.
 - The Client uses HTTP, contract DTOs, cancellation tokens, and explicit failure handling.
 - The API maps protected contract routes to Application commands/queries without business rules.
-- Static ADR-003 and ADR-004 validators pass with zero violations.
+- Applicable endpoint and internal-client transport validators pass with zero violations; project references conform to `docs/architecture.md`.
 
 ## Contents-specific requirements
 - Keep asset/file binary ownership with the Files module; Contents contracts carry metadata and IDs only.

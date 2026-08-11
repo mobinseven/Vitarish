@@ -234,30 +234,31 @@ Do not bypass the client with raw UI route construction for migrated workflows. 
 
 ## Static boundary enforcement conventions
 
-Protected module API boundary checks are enforced by `tools/architecture/validate_module_api_boundaries.py`.
-
-
 ### Forbidden Interface artifacts
 
 Interface project reintroduction is forbidden unless a future accepted ADR supersedes ADR-0009.
 
-### Local command
+### Current enforcement
 
-Run:
+There is no repository-wide static validator for the complete ADR-0003 project
+dependency matrix. The retired validator did not prove that matrix, and its CI
+workflow no longer exists. Enforce the boundary by reviewing changed project
+references against `docs/architecture.md`, verifying that no production
+Interface project is reintroduced, and running the affected module tests and
+merge-level backend build.
+
+For adjacent transport boundaries, run:
 
 ```bash
-python3 tools/architecture/validate_module_api_boundaries.py
+python3 tools/architecture/validate_openapi_endpoint_coverage.py
+python3 tools/architecture/validate_internal_module_clients.py
 ```
-
-### CI/build validation integration point
-
-CI runs the same validator in `.github/workflows/architecture-validation.yml`. Local and CI interpretation should match: report-only violations remain visible, and fail-fast violations fail validation.
 
 ### Enforcement policy
 
-- New modules should start fail-fast.
-- Migrated modules must remain fail-fast.
-- Non-migrated modules may remain report-only only until their migration stage.
+- New and changed module artifacts must conform to the current layer matrix.
+- Migrated modules must not reintroduce retired Interface projects or forbidden
+  dependencies.
 - Exceptions require architecture approval and a removal condition.
 
 ## Intentionally deferred or rejected items

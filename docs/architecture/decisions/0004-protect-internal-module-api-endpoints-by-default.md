@@ -58,6 +58,13 @@ Static validation must fail internal module API mappings that call `MapGroup`, `
 
 Static validation must fail internal module clients that inject raw `HttpClient` without using the approved authenticated module API client transport abstraction, and direct DI registrations that bypass the shared module-client registration helper. External provider clients are excluded.
 
+Current validation entry points are:
+
+- `tools/architecture/validate_openapi_endpoint_coverage.py` for protected or
+  explicitly justified anonymous endpoint mapping;
+- `tools/architecture/validate_internal_module_clients.py` for authenticated
+  internal module client transport and registration.
+
 ## Notes
 
 This ADR records an internal platform security convention. It does not introduce business authorization rules; authorization policy evaluation remains owned by the host identity/authorization layer and application use cases continue to own business decisions.

@@ -58,7 +58,6 @@ Run:
 
 ```bash
 python3 tools/architecture/validate_openapi_endpoint_coverage.py
-python3 tools/architecture/validate_module_api_boundaries.py
 ```
 
 The OpenAPI coverage validator reports the file, line, violation kind, endpoint expression, and remediation.
