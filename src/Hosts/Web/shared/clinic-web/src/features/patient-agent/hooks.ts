@@ -18,6 +18,7 @@ import {
   clinicDeleteOperationsAgentConversation,
 } from "../../api/generated/clinic/clinic";
 import type {
+  PatientAgentCandidateResponse,
   PatientAgentActionDetailsResponse,
   PatientAgentActionResponse,
   PatientAgentMessageResponse,
@@ -29,6 +30,12 @@ export type PatientAgentMessageResult = PatientAgentMessageResponse;
 export type ClinicAgentChatMessage =
   | PatientAgentMessageResult
   | { kind: "UserMessage"; content: string };
+
+type CandidatePresentation = {
+  candidates: PatientAgentCandidateResponse[];
+  runId: string;
+  message: string;
+};
 
 const patientAgentActionKey = (patientId: string, actionId: string) =>
   ["clinic", "patient-agent", patientId, "actions", actionId] as const;
@@ -113,18 +120,22 @@ export function useClinicAgentConversationSurface(
   const [messages, setMessages] = useState<ClinicAgentChatMessage[]>([]);
   const [actionIds, setActionIds] = useState<string[]>([]);
   const [lastMessage, setLastMessage] = useState("");
+  const [candidatePresentation, setCandidatePresentation] = useState<CandidatePresentation | null>(null);
   const activeScope = useRef(scopeKey);
+  const requestSequence = useRef(0);
 
   useEffect(() => {
     activeScope.current = scopeKey;
+    requestSequence.current += 1;
     setMessages([]);
     setActionIds([]);
     setLastMessage("");
+    setCandidatePresentation(null);
   }, [scopeKey]);
 
   const appendResult = useCallback(
-    (result: RunPatientAgentResponse | undefined, submittedScope: string) => {
-      if (!result || activeScope.current !== submittedScope) return;
+    (result: RunPatientAgentResponse | undefined, submittedScope: string, submittedMessage: string, requestId: number) => {
+      if (!result || activeScope.current !== submittedScope || requestSequence.current !== requestId) return;
       const hasFailure = result.messages.some(({ kind }) => kind === "Failure");
       setMessages((current) => [
         ...current,
@@ -139,6 +150,9 @@ export function useClinicAgentConversationSurface(
             .map(({ id }) => id)
             .filter((id) => !current.includes(id)),
         ]);
+        setCandidatePresentation(result.candidates?.length
+          ? { candidates: result.candidates, runId: result.agentRunId, message: submittedMessage }
+          : null);
       }
     },
     [],
@@ -147,29 +161,47 @@ export function useClinicAgentConversationSurface(
   const submit = useCallback(
     async (message: string) => {
       const submittedScope = activeScope.current;
+      const requestId = requestSequence.current + 1;
+      requestSequence.current = requestId;
+      setCandidatePresentation(null);
       setLastMessage(message);
       setMessages((current) => [
         ...current,
         { kind: "UserMessage", content: message },
       ]);
-      appendResult(await conversation.submit(message), submittedScope);
+      appendResult(await conversation.submit(message), submittedScope, message, requestId);
     },
     [appendResult, conversation],
   );
 
-  const retry = useCallback(
-    async () =>
-      appendResult(await conversation.retry(), activeScope.current),
-    [appendResult, conversation],
-  );
+  const retry = useCallback(async () => {
+    const submittedScope = activeScope.current;
+    const message = lastMessage;
+    const requestId = requestSequence.current + 1;
+    requestSequence.current = requestId;
+    setCandidatePresentation(null);
+    appendResult(await conversation.retry(), submittedScope, message, requestId);
+  }, [appendResult, conversation, lastMessage]);
   const deleteCurrent = useCallback(async () => {
+    requestSequence.current += 1;
     await conversation.deleteCurrent();
     setMessages([]);
     setActionIds([]);
     setLastMessage("");
+    setCandidatePresentation(null);
   }, [conversation]);
 
-  return { messages, actionIds, lastMessage, submit, retry, deleteCurrent };
+  return {
+    messages,
+    actionIds,
+    lastMessage,
+    candidates: candidatePresentation?.candidates ?? [],
+    candidateRunId: candidatePresentation?.runId ?? null,
+    candidateMessage: candidatePresentation?.message ?? null,
+    submit,
+    retry,
+    deleteCurrent,
+  };
 }
 
 export function usePatientAgentAction(patientId: string, actionId: string) {

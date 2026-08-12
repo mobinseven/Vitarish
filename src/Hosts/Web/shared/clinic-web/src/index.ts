@@ -14,6 +14,7 @@ export {
   PatientAgentErrorState,
 } from "./features/patient-agent/PatientAgentPanel";
 export { OperationsAgentAside } from "./features/patient-agent/OperationsAgentAside";
+export { ClinicAgentAside, type ClinicAgentScope } from "./features/patient-agent/ClinicAgentAside";
 export {
   OperationsAgentActionList,
   OperationsAgentActionReview,

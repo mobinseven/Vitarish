@@ -57,7 +57,7 @@ vi.mock("@vitarish/auth-web", () => ({
 }));
 
 vi.mock("@vitarish/clinic-web", () => ({
-  OperationsAgentAside: ({ isOpen }: { isOpen: boolean }) => (
+  ClinicAgentAside: ({ isOpen }: { isOpen: boolean }) => (
     <div data-testid="operations-agent" data-open={String(isOpen)} />
   ),
 }));

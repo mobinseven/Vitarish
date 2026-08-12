@@ -201,6 +201,7 @@ export const clinicFaMessages = {
       fields: { patient: "بیمار", maskedIdentification: "شناسه پوشانده‌شده", maskedPhone: "تلفن پوشانده‌شده", date: "تاریخ", time: "زمان", currentState: "وضعیت فعلی", proposedState: "عملیات پیشنهادی", service: "خدمت", provider: "ارائه‌دهنده", timeZone: "منطقه زمانی", expiration: "پایان مهلت بازبینی" },
       states: { pending: "در انتظار", confirmed: "تأییدشده", cancelled: "لغوشده", rejected: "ردشده", expired: "منقضی", waitlisted: "فهرست انتظار", present: "حاضر", completed: "تکمیل‌شده", draft: "پیش‌نویس", active: "فعال", paused: "متوقف", closed: "بسته", archived: "بایگانی‌شده" },
       actions: { bookAppointment: "رزرو نوبت", rescheduleAppointment: "تغییر زمان نوبت", cancelAppointment: "لغو نوبت", rejectAppointment: "رد نوبت", createShift: "ایجاد شیفت", editShift: "ویرایش شیفت", closeShift: "بستن شیفت", cancelShift: "لغو شیفت", archiveShift: "بایگانی شیفت" },
+      candidates: { label: "نتایج جستجوی بیمار", select: "انتخاب بیمار", expired: "این نتیجه منقضی شده است. برای ادامه دوباره جستجو کنید." },
     },
     dashboard: {
       title: "داشبورد کلینیک",

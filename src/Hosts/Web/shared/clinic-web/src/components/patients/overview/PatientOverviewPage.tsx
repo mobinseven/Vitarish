@@ -22,7 +22,6 @@ import { PatientReservationsPanel } from "./PatientReservationsPanel";
 import { PatientOverviewHeader } from "./PatientOverviewHeader";
 import { PatientProfileCard } from "./PatientProfileCard";
 import { PatientPrescriptionSubmissionSheet } from "../prescriptions/PatientPrescriptionSubmissionSheet";
-import { PatientAgentPanel } from "../../../features/patient-agent/PatientAgentPanel";
 import { PatientPrescriptionDashboard, patientPrescriptionHistoryQueryKey } from "../prescriptions/PatientPrescriptionDashboard";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -36,7 +35,6 @@ export function PatientOverviewPage({
   onNavigate,
 }: PatientOverviewPageProps) {
   const { t } = useLocalizedText();
-  const [isPatientAgentOpen, setIsPatientAgentOpen] = useState(false);
   const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
   const [hasVisits, setHasVisits] = useState(false);
   const [isNewVisitOpen, setIsNewVisitOpen] = useState(false);
@@ -99,28 +97,8 @@ export function PatientOverviewPage({
                 <FaIcon icon="calendar-plus" aria-hidden="true" />
                 {t("clinic.patient.quickActions.newVisit")}
               </Button>
-              <Button
-                variant="outline"
-                onPress={() => setIsPatientAgentOpen(true)}
-              >
-                <FaIcon icon="wand-magic-sparkles" aria-hidden="true" />
-                {t("clinic.patient.quickActions.agent")}
-              </Button>
             </div>
             <div className="flex gap-3 md:hidden">
-              <Tooltip>
-                <Button
-                  isIconOnly
-                  aria-label={t("clinic.patient.quickActions.agent")}
-                  variant="outline"
-                  onPress={() => setIsPatientAgentOpen(true)}
-                >
-                  <FaIcon icon="wand-magic-sparkles" aria-hidden="true" />
-                </Button>
-                <Tooltip.Content>
-                  {t("clinic.patient.quickActions.agent")}
-                </Tooltip.Content>
-              </Tooltip>
               <Tooltip>
                 <Button
                   isIconOnly
@@ -311,17 +289,6 @@ export function PatientOverviewPage({
             eventId,
           });
         }}
-      />
-      <PatientAgentPanel
-        key={patientId}
-        patientId={patientId}
-        patientName={
-          [patient.firstName, patient.lastName].filter(Boolean).join(" ") ||
-          patient.name ||
-          t("clinic.patients.unnamedPatient")
-        }
-        isOpen={isPatientAgentOpen}
-        onOpenChange={setIsPatientAgentOpen}
       />
       {visitsProcedure ? (
         <PatientVisitEventDialog

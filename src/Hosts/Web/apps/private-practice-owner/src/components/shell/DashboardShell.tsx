@@ -14,7 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
 import { useAuthSession } from "@vitarish/auth-web";
 import { useTenantAuthorization } from "@vitarish/auth-web";
-import { OperationsAgentAside } from "@vitarish/clinic-web";
+import { ClinicAgentAside, type ClinicAgentScope } from "@vitarish/clinic-web";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { BreadcrumbUpButton } from "./BreadcrumbUpButton";
 import { CommandPalette } from "./CommandPalette/CommandPalette";
@@ -57,7 +57,8 @@ export function DashboardShell({
   const { hasAccess: canUseOperationsAssistant } = useTenantAuthorization("owner");
   const [operationsAssistantOpen, setOperationsAssistantOpen] = useState(false);
   const showOperationsAssistant = clinicOperationsAssistant && canUseOperationsAssistant;
-  const operationsAssistant = showOperationsAssistant ? <OperationsAgentAside isOpen={operationsAssistantOpen} /> : undefined;
+  const clinicAgentScope = useMemo(() => resolveClinicAgentScope(pathname), [pathname]);
+  const operationsAssistant = showOperationsAssistant ? <ClinicAgentAside isOpen={operationsAssistantOpen} scope={clinicAgentScope} onNavigateToPatient={(patientId) => router.push(Routes.Clinic.Patients.Detail(patientId))} /> : undefined;
 
   const navigate = useCallback((href: string) => router.push(href), [router]);
 
@@ -131,6 +132,11 @@ export function DashboardShell({
       {children}
     </DashboardFrame>
   );
+}
+
+function resolveClinicAgentScope(pathname: string): ClinicAgentScope {
+  const match = /^\/patients\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\/|$)/i.exec(pathname);
+  return match ? { kind: "patient", patientId: match[1] } : { kind: "practice" };
 }
 
 function toNavigationGroup(

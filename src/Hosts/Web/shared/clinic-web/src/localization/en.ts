@@ -201,6 +201,7 @@ export const clinicEnMessages = {
       fields: { patient: "Patient", maskedIdentification: "Masked identification", maskedPhone: "Masked phone", date: "Date", time: "Time", currentState: "Current state", proposedState: "Proposed action", service: "Service", provider: "Provider", timeZone: "Time zone", expiration: "Review expires" },
       states: { pending: "Pending", confirmed: "Confirmed", cancelled: "Cancelled", rejected: "Rejected", expired: "Expired", waitlisted: "Waitlisted", present: "Present", completed: "Completed", draft: "Draft", active: "Active", paused: "Paused", closed: "Closed", archived: "Archived" },
       actions: { bookAppointment: "Book appointment", rescheduleAppointment: "Reschedule appointment", cancelAppointment: "Cancel appointment", rejectAppointment: "Reject appointment", createShift: "Create shift", editShift: "Edit shift", closeShift: "Close shift", cancelShift: "Cancel shift", archiveShift: "Archive shift" },
+      candidates: { label: "Patient search results", select: "Select patient", expired: "That patient result expired. Search again to continue." },
     },
     dashboard: {
       title: "Clinic Dashboard",
