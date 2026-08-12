@@ -1,18 +1,7 @@
-# Web agent routing
+# Web host routing
 
-This is the React/Next.js workspace. The repository and scoped `AGENTS.md`
-instructions own React feature, transport, trust, and placement guidance.
-
-Add skills only for the decision actually touched:
-
-| Touched decision | Load |
-| --- | --- |
-| Route topology, feature entry points, navigation, or intent contracts | `platform-route-change-audit` |
-| Route/page shells, main landmark, viewport geometry, outer scrolling, shared gutters, sidebar, or aside | `platform-web-layout-policy` |
-
-For Web-only work, add no other skill. A backend change made alongside Web work
-follows that backend subtree's `AGENTS.md` too. Never edit generated API output
-manually.
+- Route topology, feature entry points, navigation, and intent contracts: update every applicable route tree, registry, mapper, journey default, localization key, test, and generated transport source; never edit generated API output manually.
+- Route/page shells, main landmark, viewport geometry, outer scrolling, shared gutters, sidebar, and aside: classify the surface and reuse the matching `@vitarish/web-ui` capability; feature-internal grids and intentional workspace-pane scrolling remain local.
 
 ## Localization convention
 

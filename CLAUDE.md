@@ -123,19 +123,7 @@ Do not hide business rules or state mutation in extension methods. Do not place 
 
 ## Skills
 
-Project skills live under `.agents/skills/`. Claude bridge skills under `.claude/skills/` must point to the canonical project skills. Open only the task-matched `SKILL.md`; do not load every skill.
-
-| Situation | Skill |
-| --- | --- |
-| Platform Web shells, viewport, or outer scrolling | `platform-web-layout-policy` |
-
-Use only applicable boundary skills:
-
-```text
-Web route topology: Route Change Audit
-Platform Web shells: Web Layout Policy
-Skill maintenance follows `.agents/AGENTS.md`.
-```
+Project skills live under `.agents/skills/`. Claude bridge skills under `.claude/skills/` must point to canonical project skills. Open only task-matched skills; platform Web route and layout rules live in `src/Hosts/Web/AGENTS.md`.
 
 ## Completion criteria
 

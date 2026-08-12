@@ -1,8 +1,8 @@
 # Module operating contract
 
 Applies to business modules under this directory. The repository and scoped
-`AGENTS.md` instructions own backend boundary guidance. Do not load React,
-Web-route, or Web-layout skills for module-only work.
+`AGENTS.md` instructions own backend boundary guidance. React and Web-host
+routing rules do not apply to module-only work.
 
 The root Cohesion, Narrow knowledge, Cohesive edits, and Current requirements
 rules are **[MUST]** rules in this subtree, specialized below. Apply them to

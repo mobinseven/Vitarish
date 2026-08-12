@@ -32,8 +32,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Validate Web layout skill routing
-        run: python ../../../tools/architecture/validate_web_layout_skill.py
       - name: Setup Node
         uses: actions/setup-node@v4
         with:

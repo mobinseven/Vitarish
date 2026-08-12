@@ -218,8 +218,8 @@ the compose build paths before relying on it; the repository currently has no
 
 For API-to-React work, follow
 [`docs/runbooks/openapi-to-react-client.md`](runbooks/openapi-to-react-client.md).
-For route changes, use `platform-route-change-audit`. For outer route layout and
-scroll ownership, use `platform-web-layout-policy`.
+For route topology, outer route layout, and scroll ownership, follow the scoped
+[`src/Hosts/Web/AGENTS.md`](../src/Hosts/Web/AGENTS.md) rules.
 
 ## 9. Generated and high-care areas
 

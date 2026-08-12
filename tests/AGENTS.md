@@ -7,5 +7,5 @@ under `tests`, and do not use test-only changes to redefine production
 behavior. Tests for `tests/Modules` follow `src/Modules/AGENTS.md`; tests for
 `tests/Apps` follow `src/Apps/AGENTS.md` conceptually.
 
-Do not load React, Web-route, or Web-layout skills for these .NET tests. Web
-package tests remain governed by `src/Hosts/Web/AGENTS.md`.
+Do not apply React or Web-host routing rules to these .NET tests. Web package
+tests remain governed by `src/Hosts/Web/AGENTS.md`.
