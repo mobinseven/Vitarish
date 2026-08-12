@@ -47,10 +47,11 @@ internal static class OpenApiEndpointCheck
         {
             string path = file.RelativePath;
             if (path.StartsWith("src/Interfaces/", StringComparison.OrdinalIgnoreCase) ||
-                path.Contains("/Api/", StringComparison.OrdinalIgnoreCase) ||
-                path.Contains("/Module/Endpoints/", StringComparison.OrdinalIgnoreCase) ||
-                (path.Contains("/Infrastructure/Extensions/", StringComparison.OrdinalIgnoreCase) &&
-                 Path.GetFileName(path).Contains("Endpoint", StringComparison.OrdinalIgnoreCase)))
+                (path.StartsWith("src/Modules/", StringComparison.OrdinalIgnoreCase) &&
+                 (path.Contains("/Api/", StringComparison.OrdinalIgnoreCase) ||
+                  path.Contains("/Module/Endpoints/", StringComparison.OrdinalIgnoreCase) ||
+                  (path.Contains("/Infrastructure/Extensions/", StringComparison.OrdinalIgnoreCase) &&
+                   Path.GetFileName(path).Contains("Endpoint", StringComparison.OrdinalIgnoreCase)))))
             {
                 selected.Add(path);
             }
@@ -129,7 +130,25 @@ internal static class OpenApiEndpointCheck
             return true;
         }
 
-        return false;
+        string? assignedVariable = AssignedVariableName(invocation);
+        return assignedVariable is not null && excludedGroups.Contains(assignedVariable);
+    }
+
+    private static string? AssignedVariableName(InvocationExpressionSyntax invocation)
+    {
+        if (invocation.Parent is EqualsValueClauseSyntax initializer &&
+            initializer.Parent is VariableDeclaratorSyntax declarator)
+        {
+            return declarator.Identifier.ValueText;
+        }
+
+        if (invocation.Parent is AssignmentExpressionSyntax assignment &&
+            assignment.Left is IdentifierNameSyntax identifier)
+        {
+            return identifier.Identifier.ValueText;
+        }
+
+        return null;
     }
 
     private static IEnumerable<ArchitectureViolation> ScanModuleCall(
