@@ -51,6 +51,37 @@ internal static class SelfTests
         SourceIndex invalidIndex = SourceIndex.FromSources(
             ("src/Modules/Foo/Api/FooApi.cs", "namespace Foo.Api; static class FooApi { static void Map(object group) => group.MapGet(\"/items\", () => 1); }"));
         Require(OpenApiEndpointCheck.Run(invalidIndex).Any(violation => violation.Kind == "RawEndpointMapping"), "raw endpoint was not detected");
+
+        SourceIndex appIndex = SourceIndex.FromSources(
+            ("src/Apps/Clinic/Api/ClinicApi.cs", "namespace Clinic.Api; static class ClinicApi { static void Map(object group) => group.MapGet(\"/items\", () => 1); }"));
+        Require(OpenApiEndpointCheck.Run(appIndex).Count == 0, "app API endpoint was incorrectly included in module OpenAPI validation");
+
+        SourceIndex excludedAssignedGroupIndex = SourceIndex.FromSources(
+            ("src/Modules/Users/Infrastructure/Extensions/WebAuthnEndpointRouteBuilderExtensions.cs", """
+                namespace Users.Infrastructure;
+                static class WebAuthnEndpoints
+                {
+                    static void Map(object endpoints)
+                    {
+                        object webauthnGroup = endpoints.MapGroup("/api/webauthn");
+                        webauthnGroup.ExcludeFromOpenApiWithJustification("infrastructure-owned");
+                    }
+                }
+                """));
+        Require(OpenApiEndpointCheck.Run(excludedAssignedGroupIndex).Count == 0, "assigned excluded route group produced a violation");
+
+        SourceIndex unexcludedAssignedGroupIndex = SourceIndex.FromSources(
+            ("src/Modules/Users/Infrastructure/Extensions/WebAuthnEndpointRouteBuilderExtensions.cs", """
+                namespace Users.Infrastructure;
+                static class WebAuthnEndpoints
+                {
+                    static void Map(object endpoints)
+                    {
+                        object webauthnGroup = endpoints.MapGroup("/api/webauthn");
+                    }
+                }
+                """));
+        Require(OpenApiEndpointCheck.Run(unexcludedAssignedGroupIndex).Any(violation => violation.Kind == "RawEndpointMapping"), "unexcluded assigned route group was not detected");
         Console.WriteLine("OpenAPI endpoint Roslyn self-test passed");
     }
 
