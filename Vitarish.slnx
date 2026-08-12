@@ -158,6 +158,7 @@
   <Folder Name="/src/Modules/Intelligence/">
     <Project Path="src/Modules/Intelligence/Api/Intelligence.Api.csproj" />
     <Project Path="src/Modules/Intelligence/Application/Intelligence.Application.csproj" />
+    <Project Path="src/Modules/Intelligence/Agents/Intelligence.Agents.csproj" />
     <Project Path="src/Modules/Intelligence/Client/Intelligence.Client.csproj" />
     <Project Path="src/Modules/Intelligence/Contracts/Intelligence.Contracts.csproj" />
     <Project Path="src/Modules/Intelligence/Domain/Intelligence.Domain.csproj" />

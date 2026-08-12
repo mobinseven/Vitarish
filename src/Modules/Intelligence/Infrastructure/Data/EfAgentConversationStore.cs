@@ -12,6 +12,22 @@ public sealed class EfAgentConversationStore(
     IDataProtectionProvider dataProtectionProvider,
     TimeProvider timeProvider) : IAgentConversationStore
 {
+    public async Task<AgentConversationStoreResult> AcquireAsync(
+        Guid? conversationId,
+        AgentConversationScope scope,
+        TimeSpan leaseDuration,
+        string compatibilityKey,
+        CancellationToken cancellationToken)
+    {
+        if (conversationId is { } id)
+        {
+            AgentConversationEntity? existing = await Owned(scope).AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+            if (existing is null) return new(AgentConversationOutcome.NotFound);
+            if (existing.ProfileCompatibilityKey is null || !string.Equals(existing.ProfileCompatibilityKey, compatibilityKey, StringComparison.Ordinal))
+                return new(AgentConversationOutcome.ProfileChanged);
+        }
+        return await AcquireCoreAsync(conversationId, scope, leaseDuration, compatibilityKey, cancellationToken);
+    }
     private static readonly JsonSerializerOptions PresentationJsonOptions = new(JsonSerializerDefaults.Web);
     public const int MaximumPlaintextBytes = 1024 * 1024;
     public const string ProtectorPurpose = "Vitarish.Intelligence.AgentConversationHistory.v1";
@@ -20,10 +36,18 @@ public sealed class EfAgentConversationStore(
     public Task<AgentConversationOutcome> ReplaceHistoryAsync(AgentConversationLease lease, AgentConversationScope scope, string history, string historyFormat, CancellationToken cancellationToken) =>
         ReplaceHistoryAsync(lease, scope, history, historyFormat, null, cancellationToken);
 
-    public async Task<AgentConversationStoreResult> AcquireAsync(
+    public Task<AgentConversationStoreResult> AcquireAsync(
         Guid? conversationId,
         AgentConversationScope scope,
         TimeSpan leaseDuration,
+        CancellationToken cancellationToken) =>
+        AcquireCoreAsync(conversationId, scope, leaseDuration, null, cancellationToken);
+
+    private async Task<AgentConversationStoreResult> AcquireCoreAsync(
+        Guid? conversationId,
+        AgentConversationScope scope,
+        TimeSpan leaseDuration,
+        string? compatibilityKey,
         CancellationToken cancellationToken)
     {
         DateTimeOffset now = timeProvider.GetUtcNow();
@@ -40,6 +64,7 @@ public sealed class EfAgentConversationStore(
                 SubjectKind = scope.SubjectKind,
                 SubjectId = scope.SubjectId,
                 HistoryFormat = RunAgentConversationHandler.HistoryFormat,
+                ProfileCompatibilityKey = compatibilityKey,
                 CreatedAt = now,
                 UpdatedAt = now,
                 Revision = 0,

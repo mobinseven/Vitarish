@@ -11,7 +11,8 @@ public sealed record RunAgentConversation(
     AgentExecutionContext ExecutionContext,
     AgentExecutionLimits Limits,
     Func<Guid, AgentRunResult, CancellationToken, Task<AgentConversationOutcome>>? BeforeCommit = null,
-    Func<Guid, AgentRunResult, AgentConversationPresentation?>? Presentation = null)
+    Func<Guid, AgentRunResult, AgentConversationPresentation?>? Presentation = null,
+    string? ProfileCompatibilityKey = null)
     : IRequest<RunAgentConversationResult>;
 
 public sealed record RunAgentConversationResult(
@@ -37,11 +38,9 @@ public sealed class RunAgentConversationHandler(
         CancellationToken cancellationToken)
     {
         TimeSpan runtimeTimeout = request.Limits.EffectiveTimeout;
-        AgentConversationStoreResult acquired = await store.AcquireAsync(
-            request.ConversationId,
-            request.Scope,
-            runtimeTimeout + LeaseSafetyMargin,
-            cancellationToken);
+        AgentConversationStoreResult acquired = request.ProfileCompatibilityKey is { Length: > 0 } key
+            ? await store.AcquireAsync(request.ConversationId, request.Scope, runtimeTimeout + LeaseSafetyMargin, key, cancellationToken)
+            : await store.AcquireAsync(request.ConversationId, request.Scope, runtimeTimeout + LeaseSafetyMargin, cancellationToken);
         if (acquired.Outcome != AgentConversationOutcome.Succeeded || acquired.Lease is null)
             return new(acquired.Outcome);
 

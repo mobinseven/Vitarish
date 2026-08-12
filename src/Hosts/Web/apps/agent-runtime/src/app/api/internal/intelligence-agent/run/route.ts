@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { parseHistory } from "./history";
 
 interface AgentDefinition {
+  name?: string | null;
   model: string;
   instructions: string;
   reasoningLevel?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
@@ -244,7 +245,7 @@ export async function POST(request: NextRequest) {
         }
       : undefined;
     const agent = new Agent({
-      name: "Vitarish patient workspace agent",
+      name: input.definition.name ?? "Vitarish patient workspace agent",
       model: input.definition.model,
       instructions: input.definition.instructions,
       tools,

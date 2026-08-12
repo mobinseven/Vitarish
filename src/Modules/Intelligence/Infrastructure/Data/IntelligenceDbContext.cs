@@ -74,6 +74,7 @@ public sealed class IntelligenceDbContext : DbContext, IMultiTenantDbContext
             entity.Property(conversation => conversation.Title).HasMaxLength(120);
             entity.Property(conversation => conversation.LatestTextPreview).HasMaxLength(240);
             entity.Property(conversation => conversation.HistoryFormat).HasMaxLength(128).IsRequired();
+            entity.Property(conversation => conversation.ProfileCompatibilityKey).HasMaxLength(64);
             entity.Property(conversation => conversation.Revision).IsConcurrencyToken();
             entity.HasIndex(conversation => new
             {

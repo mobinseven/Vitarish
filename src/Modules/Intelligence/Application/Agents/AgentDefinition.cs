@@ -7,7 +7,8 @@ public sealed record AgentDefinition(
     string Instructions,
     AgentResultDefinition? Result = null,
     [property: JsonConverter(typeof(JsonStringEnumConverter))]
-    AgentReasoningLevel ReasoningLevel = AgentReasoningLevel.Low);
+    AgentReasoningLevel ReasoningLevel = AgentReasoningLevel.Low,
+    string? Name = null);
 
 public enum AgentReasoningLevel
 {

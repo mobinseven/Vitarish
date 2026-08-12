@@ -13,6 +13,7 @@ public sealed class AgentConversationEntity
     public string? Title { get; set; }
     public string? LatestTextPreview { get; set; }
     public string HistoryFormat { get; set; } = string.Empty;
+    public string? ProfileCompatibilityKey { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public long Revision { get; set; }

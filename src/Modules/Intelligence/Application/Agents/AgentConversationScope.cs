@@ -49,7 +49,8 @@ public enum AgentConversationOutcome
     Busy,
     HistoryLimitExceeded,
     ProviderFailure,
-    InvalidHistory
+    InvalidHistory,
+    ProfileChanged
 }
 
 public sealed record AgentConversationLease(
@@ -69,6 +70,14 @@ public interface IAgentConversationStore
         AgentConversationScope scope,
         TimeSpan leaseDuration,
         CancellationToken cancellationToken);
+
+    Task<AgentConversationStoreResult> AcquireAsync(
+        Guid? conversationId,
+        AgentConversationScope scope,
+        TimeSpan leaseDuration,
+        string compatibilityKey,
+        CancellationToken cancellationToken) =>
+        AcquireAsync(conversationId, scope, leaseDuration, cancellationToken);
 
     Task<AgentConversationOutcome> ReplaceHistoryAsync(
         AgentConversationLease lease,

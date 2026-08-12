@@ -76,6 +76,7 @@ public static class IntelligenceApiEndpointMapping
             AgentConversationOutcome.NotFound => Results.NotFound(new IntelligenceError(IntelligenceErrorCode.NotFound, "The agent conversation was not found.")),
             AgentConversationOutcome.Busy => Results.Conflict(new IntelligenceError(IntelligenceErrorCode.Conflict, "The conversation is active.")),
             AgentConversationOutcome.InvalidHistory => Results.Conflict(new IntelligenceError(IntelligenceErrorCode.InvalidHistory, "The conversation history is invalid.")),
+            AgentConversationOutcome.ProfileChanged => Results.Conflict(new IntelligenceError(IntelligenceErrorCode.Conflict, "The agent profile changed; start a new conversation.")),
             _ => Results.Json(new IntelligenceError(IntelligenceErrorCode.UnexpectedFailure, "The agent conversation failed."), statusCode: StatusCodes.Status502BadGateway)
         };
     }

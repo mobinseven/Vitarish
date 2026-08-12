@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\..\src\Modules\Intelligence\Contracts\Intelligence.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Intelligence\Client\Intelligence.Client.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Intelligence\Application\Intelligence.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Intelligence\Agents\Intelligence.Agents.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Intelligence\Infrastructure\Intelligence.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Intelligence\Api\Intelligence.Api.csproj" />
   </ItemGroup>

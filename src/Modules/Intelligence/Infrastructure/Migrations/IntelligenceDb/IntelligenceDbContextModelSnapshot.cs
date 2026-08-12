@@ -57,6 +57,10 @@ namespace Vitarish.Intelligence.Infrastructure.Migrations.IntelligenceDb
                         .HasMaxLength(240)
                         .HasColumnType("character varying(240)");
 
+                    b.Property<string>("ProfileCompatibilityKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("ProtectedHistory")
                         .HasColumnType("text");
 
