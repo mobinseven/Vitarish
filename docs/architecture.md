@@ -113,6 +113,7 @@ Do not duplicate business-rule assertions in UI, API, persistence, or generated-
 - Architecture decisions index: [`docs/architecture/decisions/_index.md`](architecture/decisions/_index.md)
 - ADR template: [`docs/architecture/decisions/_template.md`](architecture/decisions/_template.md)
 - Interface/API/client boundary ADR: [`docs/architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md`](architecture/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md)
+- Module-owned Agents and guarded composition: [`docs/architecture/decisions/0012-module-owned-agents-with-guarded-composition.md`](architecture/decisions/0012-module-owned-agents-with-guarded-composition.md)
 - ADR-0003 implementation conventions: [`docs/architecture/conventions/adr-0003-implementation-conventions.md`](architecture/conventions/adr-0003-implementation-conventions.md)
 - ADR-0003 validation: [`docs/architecture/validation/adr-0003-interface-boundary-validation.md`](architecture/validation/adr-0003-interface-boundary-validation.md)
 - OpenAPI endpoint conventions: [`docs/architecture/conventions/openapi-endpoint-conventions.md`](architecture/conventions/openapi-endpoint-conventions.md)

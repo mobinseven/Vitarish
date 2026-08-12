@@ -25,6 +25,7 @@ internal static class Program
             "app-experience" => AppExperienceBoundaryCheck.Run(root),
             "internal-module-clients" => InternalModuleClientCheck.Run(index),
             "openapi-endpoints" => OpenApiEndpointCheck.Run(index),
+            "agents" => AgentArchitectureCheck.Run(root),
             _ => throw new ArgumentException($"Unknown architecture check '{command}'.")
         };
 
@@ -33,6 +34,7 @@ internal static class Program
             "app-experience" => "ADR-0008 app experience validation",
             "internal-module-clients" => "Internal module client boundary validation",
             "openapi-endpoints" => "OpenAPI endpoint coverage validation",
+            "agents" => "Module-owned Agents architecture validation",
             _ => "Architecture validation"
         };
 
@@ -53,6 +55,7 @@ internal static class Program
         violations.AddRange(AppExperienceBoundaryCheck.Run(index.Root));
         violations.AddRange(InternalModuleClientCheck.Run(index));
         violations.AddRange(OpenApiEndpointCheck.Run(index));
+        violations.AddRange(AgentArchitectureCheck.Run(index.Root));
         return violations;
     }
 

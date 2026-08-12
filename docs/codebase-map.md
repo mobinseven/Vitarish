@@ -145,6 +145,8 @@ Use raw HeroUI/HeroUI Pro primitives by default. Add generic Web presentation
 to `shared/web-ui` only when it satisfies the promotion rules in
 [ADR-0008](architecture/decisions/0008-standardize-app-experience-boundaries.md).
 
+`src/Modules/Intelligence/Agents` contains the provider-neutral profile, capability-pack, composition, manifest, and compatibility framework defined by ADR-0012. It references Intelligence Application only; module and app Agents projects are optional and must be explicit.
+
 ## 6. Capability map
 
 | Capability | Backend owner | Web owner when present | Tests | Documentation |

@@ -22,6 +22,7 @@ This index is the authoritative navigation point for global ADRs. Scoped platfor
 | [0009](0009-decommission-blazor-interfaces.md) | Decommission Blazor/Razor Component UI and Interface Projects | Accepted | 2026-07-10 |
 | [0010](0010-prefer-statically-analyzable-native-aot-compatible-design.md) | Prefer Statically Analyzable and Native AOT-Compatible Design for the .NET Backend | Accepted | 2026-07-11 |
 | [0011](0011-server-side-agents-sdk-runtime.md) | Run Clinic agents through a server-side OpenAI Agents SDK runtime | Accepted | 2026-07-29 |
+| [0012](0012-module-owned-agents-with-guarded-composition.md) | Module-owned agents with guarded composition | Accepted | 2026-08-12 |
 
 ## Related global architecture documents
 

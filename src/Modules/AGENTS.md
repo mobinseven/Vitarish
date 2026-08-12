@@ -58,6 +58,12 @@ unrelated legacy violations without expanding the change into cleanup.
 
 ## Validation
 
+- **[MUST] Agents ownership** — An optional `<Module>.Agents` project may reference
+  only its own Application, `Intelligence.Agents`, and approved serialization-safe
+  shared libraries. It must not own authorization, tenant/subject binding,
+  approvals, mutation policy, persistence, infrastructure, provider SDKs, or
+  discovery. Cross-module composition belongs in an app-owned Agents project.
+
 - **[MUST]** For changed module endpoints, run
   `dotnet run --project tools/architecture -- openapi-endpoints`.
 - **[MUST]** For changed module Client code or its registration, run
