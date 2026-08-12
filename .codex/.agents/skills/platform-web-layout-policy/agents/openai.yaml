@@ -1,4 +1,0 @@
-interface:
-  display_name: "Platform Web Layout Policy"
-  short_description: "Apply shared layout policy across Web hosts"
-  default_prompt: "Use $platform-web-layout-policy to classify this Web surface and apply the platform-wide responsive layout policy."
