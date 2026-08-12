@@ -22,8 +22,8 @@ This plan completes the module Interface isolation rollout for this module and p
 - External provider clients remain excluded only when explicitly documented and outside internal module API transport.
 
 ## Validation commands
-- `python3 tools/architecture/validate_openapi_endpoint_coverage.py`
-- `python3 tools/architecture/validate_internal_module_clients.py`
+- `dotnet run --project tools/architecture -- openapi-endpoints`
+- `dotnet run --project tools/architecture -- internal-module-clients`
 - Review changed project references against `docs/architecture.md`.
 
 ## Done criteria

@@ -57,7 +57,7 @@ Do not call `ExcludeFromDescription()` directly. Non-module UI, infrastructure, 
 Run:
 
 ```bash
-python3 tools/architecture/validate_openapi_endpoint_coverage.py
+dotnet run --project tools/architecture -- openapi-endpoints
 ```
 
 The OpenAPI coverage validator reports the file, line, violation kind, endpoint expression, and remediation.

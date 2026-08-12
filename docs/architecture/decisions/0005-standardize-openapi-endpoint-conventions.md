@@ -101,7 +101,7 @@ Static validation must fail when a module API endpoint:
 
 The validation entry points are:
 
-- `tools/architecture/validate_openapi_endpoint_coverage.py`
+- `dotnet run --project tools/architecture -- openapi-endpoints`
 - architecture tests covering approved endpoint helper usage
 - host OpenAPI smoke or integration tests when host dependencies can run in test-safe configuration
 

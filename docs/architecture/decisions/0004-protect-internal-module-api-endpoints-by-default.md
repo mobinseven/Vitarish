@@ -60,9 +60,9 @@ Static validation must fail internal module clients that inject raw `HttpClient`
 
 Current validation entry points are:
 
-- `tools/architecture/validate_openapi_endpoint_coverage.py` for protected or
+- `dotnet run --project tools/architecture -- openapi-endpoints` for protected or
   explicitly justified anonymous endpoint mapping;
-- `tools/architecture/validate_internal_module_clients.py` for authenticated
+- `dotnet run --project tools/architecture -- internal-module-clients` for authenticated
   internal module client transport and registration.
 
 ## Notes

@@ -250,8 +250,8 @@ merge-level backend build.
 For adjacent transport boundaries, run:
 
 ```bash
-python3 tools/architecture/validate_openapi_endpoint_coverage.py
-python3 tools/architecture/validate_internal_module_clients.py
+dotnet run --project tools/architecture -- openapi-endpoints
+dotnet run --project tools/architecture -- internal-module-clients
 ```
 
 ### Enforcement policy

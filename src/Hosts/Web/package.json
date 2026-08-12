@@ -37,7 +37,7 @@
     "test:layout-lint": "node --test scripts/layout-policy.test.mjs",
     "validate:web-ui-boundary": "node scripts/validate-web-ui-boundary.mjs",
     "validate:app-boundaries": "node scripts/validate-web-app-boundaries.mjs",
-    "validate:docs:app-boundaries": "python ../../../tools/architecture/validate_app_experience_boundaries.py"
+    "validate:docs:app-boundaries": "dotnet run --project ../../../tools/architecture -- app-experience"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

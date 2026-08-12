@@ -59,9 +59,9 @@ unrelated legacy violations without expanding the change into cleanup.
 ## Validation
 
 - **[MUST]** For changed module endpoints, run
-  `python3 tools/architecture/validate_openapi_endpoint_coverage.py`.
+  `dotnet run --project tools/architecture -- openapi-endpoints`.
 - **[MUST]** For changed module Client code or its registration, run
-  `python3 tools/architecture/validate_internal_module_clients.py`.
+  `dotnet run --project tools/architecture -- internal-module-clients`.
 - **[MUST]** For project or layer-boundary changes, inspect the changed project
   references against `docs/architecture.md`; no current static validator proves
   the complete module dependency matrix. Run the focused module tests and the

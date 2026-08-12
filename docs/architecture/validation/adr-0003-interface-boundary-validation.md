@@ -22,8 +22,8 @@ For project or layer-boundary changes:
 Adjacent endpoint and internal-client transport checks remain automated:
 
 ```bash
-python3 tools/architecture/validate_openapi_endpoint_coverage.py
-python3 tools/architecture/validate_internal_module_clients.py
+dotnet run --project tools/architecture -- openapi-endpoints
+dotnet run --project tools/architecture -- internal-module-clients
 ```
 
 These scripts do not prove the complete ADR-0003 dependency matrix and must not
