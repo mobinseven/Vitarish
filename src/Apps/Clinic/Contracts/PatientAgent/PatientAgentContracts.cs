@@ -10,7 +10,20 @@ public sealed record RunPatientAgentResponse(
     string ConversationId,
     string? PreviousResponseId,
     IReadOnlyList<PatientAgentMessageResponse> Messages,
-    IReadOnlyList<PatientAgentActionResponse> Actions);
+    IReadOnlyList<PatientAgentActionResponse> Actions,
+    IReadOnlyList<PatientAgentCandidateResponse>? Candidates = null,
+    bool HasMoreCandidates = false);
+
+public sealed record PatientAgentCandidateResponse(
+    string CandidateToken,
+    string DisplayName,
+    DateOnly? DateOfBirth,
+    string MaskedIdentification,
+    string MaskedPhone);
+
+public sealed record ResolvePatientAgentCandidateRequest(string AgentRunId, string CandidateToken);
+
+public sealed record ResolvePatientAgentCandidateResponse(Guid PatientId);
 
 public sealed record PatientAgentMessageResponse(PatientAgentMessageResponseKind Kind, string Content);
 

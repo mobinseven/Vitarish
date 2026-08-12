@@ -29,7 +29,14 @@ public sealed class ClinicAgentConversationEndpoint(
         if (patient)
         {
             if (!Guid.TryParse(request.SubjectId, out Guid patientId) || patientId == Guid.Empty) return new(AgentConversationOutcome.NotFound);
-            context = await contextFactory.CreateAsync(patientId, request.ConversationId, cancellationToken);
+            try
+            {
+                context = await contextFactory.CreateAsync(patientId, request.ConversationId, cancellationToken);
+            }
+            catch (KeyNotFoundException)
+            {
+                return new(AgentConversationOutcome.NotFound);
+            }
         }
         else
         {
@@ -63,7 +70,11 @@ public sealed class ClinicAgentConversationEndpoint(
                 (ContractActionStatus)(int)action.Status,
                 string.IsNullOrWhiteSpace(action.ReviewPayload)
                     ? default
-                    : JsonSerializer.Deserialize<JsonElement>(action.ReviewPayload), action.Summary)).ToArray());
+                    : JsonSerializer.Deserialize<JsonElement>(action.ReviewPayload), action.Summary)).ToArray(),
+            result.Candidates?.Select(candidate => new PatientAgentCandidateResponse(
+                candidate.CandidateToken, candidate.DisplayName, candidate.DateOfBirth,
+                candidate.MaskedIdentification, candidate.MaskedPhone)).ToArray(),
+            result.HasMoreCandidates);
         return new(AgentConversationOutcome.Succeeded, result.AgentRunId, conversationId, JsonSerializer.SerializeToElement(response, WebJson));
     }
 

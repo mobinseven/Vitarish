@@ -18,19 +18,26 @@ internal sealed class ClinicPatientAgentSearch(
     private static readonly TimeSpan Lifetime = TimeSpan.FromMinutes(10);
     private readonly IDataProtector _protector = protectionProvider.CreateProtector(Purpose);
 
-    public async Task<IReadOnlyList<PatientAgentSearchCandidate>> SearchAsync(string practiceId, string userId, string agentRunId, string search, CancellationToken cancellationToken)
+    public async Task<PatientAgentSearchResult> SearchAsync(string practiceId, string userId, string agentRunId, string search, DateOnly? birthDate, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(practiceId) || string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(agentRunId) || string.IsNullOrWhiteSpace(search) || search.Length > 100)
-            return [];
-        IQueryable<Clinic.Domain.Models.PatientView> query = queryShape.ApplyFilters(dbContext.PatientViews.AsNoTracking(), practiceId, search.Trim(), false);
-        var patients = await queryShape.ApplySort(query, Clinic.Domain.Enums.PatientSortBy.Name, false).Take(5).ToListAsync(cancellationToken);
-        return patients.Select(patient =>
+            return new([], false);
+        string term = search.Trim();
+        IQueryable<Clinic.Domain.Models.PatientView> query = queryShape.ApplyFilters(dbContext.PatientViews.AsNoTracking(), practiceId, term, false);
+        if (birthDate is { } date)
+        {
+            DateTime start = date.ToDateTime(TimeOnly.MinValue);
+            query = query.Where(patient => patient.DateOfBirth >= start && patient.DateOfBirth < start.AddDays(1));
+        }
+        var patients = await query.OrderByDescending(patient => patient.Name == term || patient.IdentificationCode == term || patient.Phone == term || patient.Email == term).ThenBy(patient => patient.Name).Take(6).ToListAsync(cancellationToken);
+        bool hasMore = patients.Count > 5;
+        return new(patients.Take(5).Select(patient =>
         {
             string token = _protector.Protect(JsonSerializer.Serialize(
                 new PatientAgentCandidatePayload(patient.Id, practiceId, userId, agentRunId, timeProvider.GetUtcNow().Add(Lifetime)),
                 ClinicPatientAgentJsonSerializerContext.Default.PatientAgentCandidatePayload));
             return new PatientAgentSearchCandidate(token, patient.Name, patient.DateOfBirth is { } dob ? DateOnly.FromDateTime(dob) : null, Mask(patient.IdentificationCode), Mask(patient.Phone));
-        }).ToArray();
+        }).ToArray(), hasMore);
     }
 
     public async Task<PatientAgentCandidateReference?> ResolveAsync(string practiceId, string userId, string agentRunId, string candidateToken, CancellationToken cancellationToken)
@@ -46,7 +53,7 @@ internal sealed class ClinicPatientAgentSearch(
                 candidate.PracticeId != practiceId || candidate.UserId != userId || candidate.AgentRunId != agentRunId)
                 return null;
             Clinic.Domain.Models.PatientView? patient = await dbContext.PatientViews.AsNoTracking().FirstOrDefaultAsync(patient =>
-                patient.Id == candidate.PatientId && patient.TenantId == practiceId && patient.DeletedAt == null, cancellationToken);
+                patient.Id == candidate.PatientId && patient.TenantId == practiceId && patient.DeletedAt == null && !patient.Template, cancellationToken);
             return patient is null ? null : new PatientAgentCandidateReference(candidate.PatientId, candidate.PracticeId, candidate.UserId, candidate.AgentRunId, patient.Name, Mask(patient.IdentificationCode), Mask(patient.Phone));
         }
         catch (Exception exception) when (exception is CryptographicException or JsonException or FormatException)

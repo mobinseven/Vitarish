@@ -30,7 +30,7 @@ public sealed class HttpPatientAgentContextFactoryTests
         http.Request.Headers["X-Calendar"] = "persian";
         HttpContextAccessor accessor = new() { HttpContext = http };
 
-        PatientAgentContext context = await new HttpPatientAgentContextFactory(accessor)
+        PatientAgentContext context = await Factory(accessor)
             .CreateAsync(Guid.Parse("d2719f9f-c9c8-4e9d-a7ca-a4d205b93e80"), "  conversation-1  ");
 
         context.PracticeId.Should().Be("practice-1");
@@ -55,7 +55,7 @@ public sealed class HttpPatientAgentContextFactoryTests
         http.Request.Headers["X-Calendar"] = "not-a-calendar";
         HttpContextAccessor accessor = new() { HttpContext = http };
 
-        PatientAgentContext context = await new HttpPatientAgentContextFactory(accessor)
+        PatientAgentContext context = await Factory(accessor)
             .CreateAsync(Guid.NewGuid(), null);
 
         context.Locale.Should().Be("fa-IR");
@@ -71,7 +71,7 @@ public sealed class HttpPatientAgentContextFactoryTests
         ownerHttp.User = new ClaimsPrincipal(new ClaimsIdentity(
         [new Claim("sub", "owner-1"), new Claim("tenant", "practice-1"), new Claim(ClaimTypes.Role, "practice-1:TenantOwner")], "test"));
 
-        PatientAgentContext owner = await new HttpPatientAgentContextFactory(new HttpContextAccessor { HttpContext = ownerHttp })
+        PatientAgentContext owner = await Factory(new HttpContextAccessor { HttpContext = ownerHttp })
             .CreateOperationsAsync(" conversation-1 ");
 
         owner.SubjectKind.Should().Be("practice");
@@ -83,7 +83,7 @@ public sealed class HttpPatientAgentContextFactoryTests
         DefaultHttpContext clinicianHttp = new();
         clinicianHttp.User = new ClaimsPrincipal(new ClaimsIdentity(
         [new Claim("sub", "clinician-1"), new Claim("tenant", "practice-1"), new Claim(ClaimTypes.Role, "TenantOwner")], "test"));
-        Func<Task> createForClinician = () => new HttpPatientAgentContextFactory(new HttpContextAccessor { HttpContext = clinicianHttp })
+        Func<Task> createForClinician = () => Factory(new HttpContextAccessor { HttpContext = clinicianHttp })
             .CreateOperationsAsync(null);
 
         await createForClinician.Should().ThrowAsync<UnauthorizedAccessException>();
@@ -103,5 +103,26 @@ public sealed class HttpPatientAgentContextFactoryTests
 
         role.Should().Be(PatientAgentOperationsScope.TenantOwnerRole);
         users.VerifyAll();
+    }
+
+    [Fact]
+    public async Task CreateAsync_rejects_a_route_patient_that_is_not_available_in_the_authenticated_practice()
+    {
+        DefaultHttpContext http = new();
+        http.User = new ClaimsPrincipal(new ClaimsIdentity(
+        [new Claim("sub", "clinician-1"), new Claim("tenant", "practice-1")], "test"));
+
+        Func<Task> create = () => Factory(new HttpContextAccessor { HttpContext = http }, patientAvailable: false)
+            .CreateAsync(Guid.NewGuid(), null);
+
+        await create.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    private static HttpPatientAgentContextFactory Factory(IHttpContextAccessor accessor, bool patientAvailable = true)
+    {
+        Mock<IPatientAgentRoutePatientResolver> resolver = new(MockBehavior.Strict);
+        resolver.Setup(item => item.IsAvailableAsync(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(patientAvailable);
+        return new(accessor, resolver.Object);
     }
 }

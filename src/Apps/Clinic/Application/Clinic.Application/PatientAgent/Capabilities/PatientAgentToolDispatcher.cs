@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Vitarish.Clinic.Application.PatientAgent.Operations;
 using Vitarish.Clinic.Application.PatientAgent.Policies;
@@ -67,6 +68,7 @@ public sealed class PatientAgentToolDispatcher(
             }
 
             ValidateArguments(call.ArgumentsJson, Definition.ParametersJsonSchema);
+            Stopwatch stopwatch = Stopwatch.StartNew();
             try
             {
                 AgentToolResult result = await handler.ExecuteAsync(call, context, cancellationToken);
@@ -74,7 +76,7 @@ public sealed class PatientAgentToolDispatcher(
                 if (logger is not null)
                 {
                     PatientAgentTelemetry.ToolCompleted(logger, call.Name, capability,
-                        result.IsError ? "error" : "succeeded", context.ExecutionId, call.Id);
+                        result.IsError ? "error" : "succeeded", stopwatch.ElapsedMilliseconds, context.ExecutionId, call.Id);
                 }
                 return result;
             }
@@ -86,7 +88,7 @@ public sealed class PatientAgentToolDispatcher(
             {
                 if (logger is not null)
                 {
-                    PatientAgentTelemetry.ToolFailed(logger, call.Name, capability, context.ExecutionId, call.Id);
+                    PatientAgentTelemetry.ToolFailed(logger, call.Name, capability, stopwatch.ElapsedMilliseconds, context.ExecutionId, call.Id);
                 }
                 throw;
             }

@@ -7,23 +7,25 @@ internal static partial class PatientAgentTelemetry
     [LoggerMessage(
         EventId = 73701,
         Level = LogLevel.Information,
-        Message = "Clinic agent tool {ToolName} in capability {Capability} completed with {Outcome}; run {AgentRunId}, call {ToolCallId}.")]
+        Message = "Clinic agent tool {ToolName} in capability {Capability} completed with {Outcome} in {ElapsedMilliseconds}ms; run {AgentRunId}, call {ToolCallId}.")]
     internal static partial void ToolCompleted(
         ILogger logger,
         string toolName,
         string capability,
         string outcome,
+        long elapsedMilliseconds,
         string agentRunId,
         string toolCallId);
 
     [LoggerMessage(
         EventId = 73702,
         Level = LogLevel.Warning,
-        Message = "Clinic agent tool {ToolName} in capability {Capability} failed; run {AgentRunId}, call {ToolCallId}.")]
+        Message = "Clinic agent tool {ToolName} in capability {Capability} failed in {ElapsedMilliseconds}ms; run {AgentRunId}, call {ToolCallId}.")]
     internal static partial void ToolFailed(
         ILogger logger,
         string toolName,
         string capability,
+        long elapsedMilliseconds,
         string agentRunId,
         string toolCallId);
 

@@ -2,6 +2,7 @@ using System.Text.Json;
 using MediatR;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Clinic.Application.PatientAgent.Actions;
+using Vitarish.Clinic.Application.PatientAgent.Operations;
 
 namespace Vitarish.Clinic.Application.PatientAgent;
 
@@ -60,7 +61,7 @@ public sealed class RunPatientAgentHandler(
                         ConversationId = conversationId.ToString("N"),
                         IsNewConversation = false
                     };
-                    parsedResult = Parse(output, workspace, persistedContext, timeProvider.GetUtcNow());
+                    parsedResult = Parse(output, workspace, persistedContext, timeProvider.GetUtcNow(), run.ToolExecutions);
                     foreach (PatientAgentAction action in parsedResult.Actions)
                         await actionStore.SaveAsync(action, callbackCancellationToken);
                     return AgentConversationOutcome.Succeeded;
@@ -104,7 +105,8 @@ public sealed class RunPatientAgentHandler(
         JsonElement output,
         PatientWorkspaceAgentDefinition workspace,
         PatientAgentContext context,
-        DateTimeOffset preparedAt)
+        DateTimeOffset preparedAt,
+        IReadOnlyList<AgentToolExecution> toolExecutions)
     {
         List<PatientAgentMessage> messages = [];
         foreach (JsonElement item in output.GetProperty("messages").EnumerateArray())
@@ -154,6 +156,26 @@ public sealed class RunPatientAgentHandler(
                 ToolCallId: execution.ToolCallId,
                 ToolName: execution.ToolName));
         }
-        return new PatientAgentResult(workspace.ExecutionContext.ExecutionId, context.ConversationId, messages, actions);
+        PatientAgentSearchResult? search = context.SubjectKind == "practice"
+            ? ParseSearchResult(toolExecutions)
+            : null;
+        return new PatientAgentResult(
+            workspace.ExecutionContext.ExecutionId, context.ConversationId, messages, actions,
+            search?.Candidates, search?.HasMore ?? false);
+    }
+
+    private static PatientAgentSearchResult? ParseSearchResult(IReadOnlyList<AgentToolExecution> toolExecutions)
+    {
+        AgentToolExecution? execution = toolExecutions.LastOrDefault(item =>
+            !item.IsError && string.Equals(item.ToolName, "search_patients", StringComparison.Ordinal));
+        if (execution is null) return null;
+        try
+        {
+            return JsonSerializer.Deserialize(execution.Output, PatientAgentJsonSerializerContext.Default.PatientAgentSearchResult);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 }

@@ -17,6 +17,10 @@ public sealed record PatientAgentSearchCandidate(
     string MaskedIdentification,
     string MaskedPhone);
 
+public sealed record PatientAgentSearchResult(
+    IReadOnlyList<PatientAgentSearchCandidate> Candidates,
+    bool HasMore);
+
 public sealed record PatientAgentCandidateReference(
     Guid PatientId,
     string PracticeId,
@@ -28,8 +32,8 @@ public sealed record PatientAgentCandidateReference(
 
 public interface IPatientAgentPatientSearch
 {
-    Task<IReadOnlyList<PatientAgentSearchCandidate>> SearchAsync(
-        string practiceId, string userId, string agentRunId, string search, CancellationToken cancellationToken);
+    Task<PatientAgentSearchResult> SearchAsync(
+        string practiceId, string userId, string agentRunId, string search, DateOnly? birthDate, CancellationToken cancellationToken);
 
     Task<PatientAgentCandidateReference?> ResolveAsync(
         string practiceId, string userId, string agentRunId, string candidateToken, CancellationToken cancellationToken);

@@ -8,7 +8,9 @@ using Vitarish.Modules.Base.Core.Identity;
 namespace Vitarish.Clinic.Infrastructure.PatientAgent;
 
 /// <summary>Builds the patient-agent scope from the authenticated HTTP request.</summary>
-public sealed class HttpPatientAgentContextFactory(IHttpContextAccessor httpContextAccessor) : IPatientAgentContextFactory
+public sealed class HttpPatientAgentContextFactory(
+    IHttpContextAccessor httpContextAccessor,
+    IPatientAgentRoutePatientResolver routePatientResolver) : IPatientAgentContextFactory
 {
     private const string AccessClaimType = "access";
     private const string TenantClaimType = "tenant";
@@ -19,7 +21,7 @@ public sealed class HttpPatientAgentContextFactory(IHttpContextAccessor httpCont
     private static readonly IReadOnlySet<string> SupportedCalendars =
         new HashSet<string>(StringComparer.Ordinal) { DefaultCalendar, DefaultPersianCalendar };
 
-    public Task<PatientAgentContext> CreateAsync(
+    public async Task<PatientAgentContext> CreateAsync(
         Guid routePatientId,
         string? conversationId,
         CancellationToken cancellationToken = default)
@@ -36,6 +38,12 @@ public sealed class HttpPatientAgentContextFactory(IHttpContextAccessor httpCont
             ? resolved.UserId.Value
             : throw new UnauthorizedAccessException("The authenticated request has no user identity.");
 
+        bool patientExists = await routePatientResolver.IsAvailableAsync(practiceId, routePatientId, cancellationToken);
+        if (!patientExists)
+        {
+            throw new KeyNotFoundException("The route-bound patient is unavailable.");
+        }
+
         IReadOnlySet<string> permissions = user.FindAll(AccessClaimType)
             .Select(claim => claim.Value)
             .Where(static value => !string.IsNullOrWhiteSpace(value))
@@ -43,7 +51,7 @@ public sealed class HttpPatientAgentContextFactory(IHttpContextAccessor httpCont
 
         string locale = ResolveLocale(http.Request.Headers.AcceptLanguage);
         bool isNewConversation = string.IsNullOrWhiteSpace(conversationId);
-        return Task.FromResult(new PatientAgentContext(
+        return new PatientAgentContext(
             practiceId,
             routePatientId,
             authenticatedUserId,
@@ -53,7 +61,7 @@ public sealed class HttpPatientAgentContextFactory(IHttpContextAccessor httpCont
             ResolveTimeZone(http.Request.Headers["X-Time-Zone"].FirstOrDefault()),
             isNewConversation ? Guid.CreateVersion7().ToString("N") : conversationId!.Trim(),
             Calendar: ResolveCalendar(http.Request.Headers["X-Calendar"].FirstOrDefault(), locale),
-            IsNewConversation: isNewConversation));
+            IsNewConversation: isNewConversation);
     }
 
     public Task<PatientAgentContext> CreateOperationsAsync(string? conversationId, CancellationToken cancellationToken = default)

@@ -37,7 +37,9 @@ public sealed class PatientAgentInstructionComposer
             },
             mutations = context.SubjectKind == "practice" ? "direct_allowlist_only_else_confirm" : "prepare_only_never_commit",
             clinicalConclusions = false,
-            missingData = "ask_do_not_guess",
+            patientFacts = "use_a_fresh_authoritative_tool_read_for_each_patient_fact; select_only_relevant_tools; never_dump_an_unrequested_record",
+            missingData = "ask_do_not_guess; dependency_unavailable_or_partial_is_not_absent_data",
+            statusAnswers = "for_generic_status_lead_with_the_most_material_recorded_facts_and_dates; for_specific_questions_answer_directly",
             actionOutput = "one_distinct_action_per_request",
             machineValues = "do_not_expose_unless_requested",
             capabilities = capabilities.OrderBy(item => item.Name, StringComparer.Ordinal).Select(capability => new

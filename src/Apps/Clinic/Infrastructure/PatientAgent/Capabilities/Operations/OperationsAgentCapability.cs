@@ -79,13 +79,14 @@ public abstract class OperationsTool(IAppointmentSchedulingAgentCapability sched
 
 public sealed class SearchPatientsTool(IPatientAgentPatientSearch search, IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
-    public override AgentToolDefinition Definition { get; } = new("search_patients", "Search up to five patients in the authenticated practice. Returns opaque candidate tokens.", "{\"type\":\"object\",\"properties\":{\"search\":{\"type\":\"string\",\"maxLength\":100}},\"required\":[\"search\"],\"additionalProperties\":false}");
+    public override AgentToolDefinition Definition { get; } = new("search_patients", "Search up to five patients in the authenticated practice. Returns opaque candidate tokens; an optional birth date disambiguates results.", "{\"type\":\"object\",\"properties\":{\"search\":{\"type\":\"string\",\"maxLength\":100},\"birthDate\":{\"type\":\"string\",\"format\":\"date\"}},\"required\":[\"search\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson);
         string query = doc.RootElement.GetProperty("search").GetString() ?? string.Empty;
         if (query.Length > 100) throw new JsonException("Search is too long.");
-        return Result(call, await search.SearchAsync(Required(context, "practiceId"), Required(context, "authenticatedUserId"), context.ExecutionId, query, cancellationToken));
+        DateOnly? birthDate = doc.RootElement.TryGetProperty("birthDate", out JsonElement value) && DateOnly.TryParse(value.GetString(), out DateOnly parsed) ? parsed : null;
+        return Result(call, await search.SearchAsync(Required(context, "practiceId"), Required(context, "authenticatedUserId"), context.ExecutionId, query, birthDate, cancellationToken));
     }
 }
 

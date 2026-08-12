@@ -64,6 +64,7 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModulePost(ClinicApiRoutes.ConfirmPatientAgentAction, ConfirmPatientAgentActionAsync, "ClinicConfirmPatientAgentAction", typeof(ConfirmPatientAgentActionResponse));
         _ = group.MapModulePost(ClinicApiRoutes.RejectPatientAgentAction, RejectPatientAgentActionAsync, "ClinicRejectPatientAgentAction", typeof(RejectPatientAgentActionResponse));
         _ = group.MapModulePost(ClinicApiRoutes.OperationsAgent, RunOperationsAgentAsync, "ClinicRunOperationsAgent", typeof(RunPatientAgentResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.ResolvePatientAgentCandidate, ResolvePatientAgentCandidateAsync, "ClinicResolvePatientAgentCandidate", typeof(ResolvePatientAgentCandidateResponse));
         _ = group.MapModuleDelete(ClinicApiRoutes.OperationsAgentConversation, DeleteOperationsAgentConversationAsync, "ClinicDeleteOperationsAgentConversation");
         _ = group.MapModuleGet(ClinicApiRoutes.AgentAction, GetOperationsAgentActionAsync, "ClinicGetAgentAction", typeof(PatientAgentActionDetailsResponse));
         _ = group.MapModulePost(ClinicApiRoutes.ConfirmAgentAction, ConfirmOperationsAgentActionAsync, "ClinicConfirmAgentAction", typeof(ConfirmPatientAgentActionResponse));
@@ -149,7 +150,9 @@ public static class ClinicApiEndpointMapping
         ISender sender, CancellationToken ct)
     {
         if (patientId == Guid.Empty || actionId == Guid.Empty) return InvalidActionRequest();
-        PatientAgentContext context = await contextFactory.CreateAsync(patientId, null, ct);
+        PatientAgentContext context;
+        try { context = await contextFactory.CreateAsync(patientId, null, ct); }
+        catch (KeyNotFoundException) { return NotFoundPatientAgent(); }
         PatientAgentActionResult result = await sender.Send(new GetPatientAgentAction(actionId, context), ct);
         return MapActionResult(result, action => Results.Ok(ToDetails(action)));
     }
@@ -194,7 +197,27 @@ public static class ClinicApiEndpointMapping
         if (result.Outcome == PatientAgentRunOutcome.NotFound) return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."));
         if (result.Outcome == PatientAgentRunOutcome.Busy) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
         if (result.Outcome != PatientAgentRunOutcome.Succeeded) return Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The operations agent failed."), statusCode: StatusCodes.Status502BadGateway);
-        return Results.Ok(new RunPatientAgentResponse(result.AgentRunId, result.ConversationId, null, result.Messages.Select(message => new PatientAgentMessageResponse((PatientAgentMessageResponseKind)(int)message.Kind, message.Content)).ToArray(), result.Actions.Select(action => new PatientAgentActionResponse(action.ActionId.ToString("D"), action.Capability, action.ActionType, ToContract(action.Status), Json(action.ReviewPayload)!.Value, action.Summary)).ToArray()));
+        return Results.Ok(ToRunResponse(result));
+    }
+
+    private static async Task<IResult> ResolvePatientAgentCandidateAsync(
+        ResolvePatientAgentCandidateRequest request,
+        [FromServices] IPatientAgentContextFactory contextFactory,
+        [FromServices] IPatientAgentPatientSearch search,
+        CancellationToken ct)
+    {
+        if (request is null || string.IsNullOrWhiteSpace(request.AgentRunId) || string.IsNullOrWhiteSpace(request.CandidateToken))
+            return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "A candidate token and agent run are required."));
+
+        PatientAgentContext context;
+        try { context = await contextFactory.CreateOperationsAsync(null, ct); }
+        catch (UnauthorizedAccessException) { return ForbiddenAgentAction(); }
+
+        PatientAgentCandidateReference? candidate = await search.ResolveAsync(
+            context.PracticeId, context.AuthenticatedUserId, request.AgentRunId, request.CandidateToken, ct);
+        return candidate is null
+            ? Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "The patient candidate is invalid or expired."))
+            : Results.Ok(new ResolvePatientAgentCandidateResponse(candidate.PatientId));
     }
 
     private static async Task<IResult> ConfirmPatientAgentActionAsync(
@@ -204,7 +227,9 @@ public static class ClinicApiEndpointMapping
         if (patientId == Guid.Empty || actionId == Guid.Empty || request is null ||
             !Guid.TryParse(request.ActionId, out Guid bodyActionId) || bodyActionId != actionId)
             return InvalidActionRequest();
-        PatientAgentContext context = await contextFactory.CreateAsync(patientId, null, ct);
+        PatientAgentContext context;
+        try { context = await contextFactory.CreateAsync(patientId, null, ct); }
+        catch (KeyNotFoundException) { return NotFoundPatientAgent(); }
         PatientAgentActionResult result = await sender.Send(new ConfirmPatientAgentAction(actionId, context), ct);
         return MapActionResult(result, action => Results.Ok(new ConfirmPatientAgentActionResponse(
             action.ActionId, ToContract(action.Status), Json(action.CompletionPayload), ToFailure(action.Failure))));
@@ -218,7 +243,9 @@ public static class ClinicApiEndpointMapping
             !Guid.TryParse(request.ActionId, out Guid bodyActionId) || bodyActionId != actionId ||
             request.Reason?.Length > 1_000)
             return InvalidActionRequest();
-        PatientAgentContext context = await contextFactory.CreateAsync(patientId, null, ct);
+        PatientAgentContext context;
+        try { context = await contextFactory.CreateAsync(patientId, null, ct); }
+        catch (KeyNotFoundException) { return NotFoundPatientAgent(); }
         PatientAgentActionResult result = await sender.Send(new RejectPatientAgentAction(actionId, context, request.Reason), ct);
         return MapActionResult(result, action => Results.Ok(new RejectPatientAgentActionResponse(
             action.ActionId, ToContract(action.Status))));
@@ -258,6 +285,23 @@ public static class ClinicApiEndpointMapping
     private static IResult ForbiddenAgentAction() => Results.Json(
         new ClinicError(ClinicErrorCode.Forbidden, "The operations agent is not permitted."), statusCode: StatusCodes.Status403Forbidden);
 
+    private static IResult NotFoundPatientAgent() => Results.NotFound(
+        new ClinicError(ClinicErrorCode.NotFound, "The route-bound patient is unavailable."));
+
+    private static RunPatientAgentResponse ToRunResponse(PatientAgentResult result) => new(
+        result.AgentRunId,
+        result.ConversationId,
+        null,
+        result.Messages.Select(message => new PatientAgentMessageResponse(
+            (PatientAgentMessageResponseKind)(int)message.Kind, message.Content)).ToArray(),
+        result.Actions.Select(action => new PatientAgentActionResponse(
+            action.ActionId.ToString("D"), action.Capability, action.ActionType,
+            ToContract(action.Status), Json(action.ReviewPayload)!.Value, action.Summary)).ToArray(),
+        result.Candidates?.Select(candidate => new PatientAgentCandidateResponse(
+            candidate.CandidateToken, candidate.DisplayName, candidate.DateOfBirth,
+            candidate.MaskedIdentification, candidate.MaskedPhone)).ToArray(),
+        result.HasMoreCandidates);
+
     private static async Task<IResult> RunPatientAgentAsync(
         Guid patientId,
         RunPatientAgentRequest request,
@@ -270,26 +314,15 @@ public static class ClinicApiEndpointMapping
             return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "Patient id and message are required."));
         }
 
-        PatientAgentContext context = await contextFactory.CreateAsync(patientId, request.ConversationId, ct);
+        PatientAgentContext context;
+        try { context = await contextFactory.CreateAsync(patientId, request.ConversationId, ct); }
+        catch (KeyNotFoundException) { return NotFoundPatientAgent(); }
         PatientAgentResult result = await sender.Send(new RunPatientAgent(context, new PatientAgentInput(request.Message)), ct);
         if (result.Outcome == PatientAgentRunOutcome.NotFound)
             return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent conversation was not found."));
         if (result.Outcome == PatientAgentRunOutcome.Busy)
             return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
-        return Results.Ok(new RunPatientAgentResponse(
-            result.AgentRunId,
-            result.ConversationId,
-            null,
-            result.Messages.Select(message => new PatientAgentMessageResponse(
-                (PatientAgentMessageResponseKind)(int)message.Kind,
-                message.Content)).ToArray(),
-            result.Actions.Select(action => new PatientAgentActionResponse(
-                action.ActionId.ToString("D"),
-                action.Capability,
-                action.ActionType,
-                ToContract(action.Status),
-                System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(action.ReviewPayload),
-                action.Summary)).ToArray()));
+        return Results.Ok(ToRunResponse(result));
     }
 
     private static async Task<IResult> DeleteOperationsAgentConversationAsync(
@@ -331,7 +364,9 @@ public static class ClinicApiEndpointMapping
         if (patientId == Guid.Empty || conversationId == Guid.Empty)
             return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent conversation was not found."));
 
-        PatientAgentContext context = await contextFactory.CreateAsync(patientId, conversationId.ToString("N"), ct);
+        PatientAgentContext context;
+        try { context = await contextFactory.CreateAsync(patientId, conversationId.ToString("N"), ct); }
+        catch (KeyNotFoundException) { return NotFoundPatientAgent(); }
         AgentConversationOutcome outcome = await sender.Send(new DeleteAgentConversation(
             conversationId,
             new AgentConversationScope(

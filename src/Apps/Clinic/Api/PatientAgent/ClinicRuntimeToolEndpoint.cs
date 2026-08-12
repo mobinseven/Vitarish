@@ -13,6 +13,7 @@ public sealed class ClinicRuntimeToolEndpoint(
     PatientAgentCapabilityRegistry capabilityRegistry,
     PatientAgentToolDispatcher toolDispatcher,
     IPatientAgentOperationsAccessVerifier operationsAccessVerifier,
+    IPatientAgentRoutePatientResolver routePatientResolver,
     IRequestContextWriter requestContextWriter,
     IHttpContextAccessor httpContextAccessor) : IAgentRuntimeToolEndpoint
 {
@@ -21,6 +22,10 @@ public sealed class ClinicRuntimeToolEndpoint(
     public async Task<AgentToolResult> ExecuteAsync(AgentRuntimeToolEndpointRequest request, CancellationToken ct)
     {
         PatientAgentContext context = FromExecutionContext(request.ExecutionContext);
+        if (context.SubjectKind == "patient" && !await routePatientResolver.IsAvailableAsync(context.PracticeId, context.PatientId, ct))
+        {
+            throw new KeyNotFoundException();
+        }
         if (context.SubjectKind == "practice")
         {
             string? role = await operationsAccessVerifier.RevalidateAsync(context.PracticeId, context.AuthenticatedUserId, ct);

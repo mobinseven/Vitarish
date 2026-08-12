@@ -4,7 +4,9 @@ public sealed record PatientAgentResult(
     string AgentRunId,
     string ConversationId,
     IReadOnlyList<PatientAgentMessage> Messages,
-    IReadOnlyList<PatientAgentAction> Actions)
+    IReadOnlyList<PatientAgentAction> Actions,
+    IReadOnlyList<Operations.PatientAgentSearchCandidate>? Candidates = null,
+    bool HasMoreCandidates = false)
 {
     public PatientAgentRunOutcome Outcome { get; init; } = PatientAgentRunOutcome.Succeeded;
 

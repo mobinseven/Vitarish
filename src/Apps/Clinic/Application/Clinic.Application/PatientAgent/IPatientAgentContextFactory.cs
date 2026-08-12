@@ -12,3 +12,8 @@ public interface IPatientAgentContextFactory
         string? conversationId,
         CancellationToken cancellationToken = default);
 }
+
+public interface IPatientAgentRoutePatientResolver
+{
+    Task<bool> IsAvailableAsync(string practiceId, Guid patientId, CancellationToken cancellationToken);
+}

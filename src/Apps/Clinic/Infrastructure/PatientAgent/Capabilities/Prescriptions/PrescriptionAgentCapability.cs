@@ -7,17 +7,28 @@ using Vitarish.Medical.Application.AgentCapabilities.Prescriptions;
 namespace Vitarish.Clinic.Infrastructure.PatientAgent.Capabilities.Prescriptions;
 
 public sealed class PrescriptionAgentCapability(
-    SearchPrescriptionTemplatesTool search,
-    GetPrescriptionTemplateRequirementsTool requirements,
-    PreparePrescriptionTool prepare) : PatientAgentCapability([search, requirements, prepare], ["create_prescription"])
+    PreparePrescriptionTool prepare) : PatientAgentCapability([prepare], ["create_prescription"])
 {
     public override string Name => "Prescriptions";
     public override string Description => "Prepare a Medical-owned prescription draft from a clinician-selected template and insurance coverage for later explicit confirmation.";
     public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>(StringComparer.Ordinal) { "Prescriptions.Read", "Prescriptions.Create" };
     public override string GetInstructions() =>
         "Never diagnose or choose/infer medication, dosage, frequency, route, duration, instructions, coverage, contraindications, or eligibility. " +
-        "Search the named template, obtain requirements, and ask the clinician for every missing material field. Coverage must be explicitly named. " +
-        "Prepare and show the entire returned draft; do not submit it.";
+        "Ask the clinician for every missing material field. Coverage must be explicitly named. Prepare and show the entire returned draft; do not submit it.";
+}
+
+public sealed class PrescriptionReadAgentCapability(
+    SearchPrescriptionTemplatesTool search,
+    GetPrescriptionTemplateRequirementsTool requirements,
+    ListPatientPrescriptionHistoryTool history,
+    GetPatientPrescriptionTool prescription,
+    GetPatientPrescriptionAttentionTool attention) : PatientAgentCapability([search, requirements, history, prescription, attention])
+{
+    public override string Name => "PrescriptionReads";
+    public override string Description => "Read authoritative prescription template details without creating a prescription.";
+    public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>(StringComparer.Ordinal) { "Prescriptions.Read" };
+    public override string GetInstructions() =>
+        "Use only for factual template and requirement questions; do not infer clinical treatment.";
 }
 
 public abstract class PrescriptionTool(IPrescriptionAgentCapability capability) : IPrescriptionsPatientAgentTool
