@@ -10,7 +10,7 @@ public sealed class ClinicalEventArchitectureTests
     {
         string project = File.ReadAllText(
             RepositoryPath(
-                "src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj"));
+                "src/Apps/Clinic/Application/Clinic.Application.csproj"));
 
         project.Should().NotContain("Modules\\Sea")
             .And.NotContain("Modules/Sea")

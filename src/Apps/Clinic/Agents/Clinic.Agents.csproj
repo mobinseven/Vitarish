@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Application\Clinic.Application\Clinic.Application.csproj" />
+    <ProjectReference Include="..\Application\Clinic.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\Intelligence\Agents\Intelligence.Agents.csproj" />
   </ItemGroup>
 </Project>

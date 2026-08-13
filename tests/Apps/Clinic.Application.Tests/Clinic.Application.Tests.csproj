@@ -7,7 +7,7 @@
     <PackageReference Include="Moq" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj" />
+    <ProjectReference Include="../../../src/Apps/Clinic/Application/Clinic.Application.csproj" />
     <ProjectReference Include="../../../src/Apps/Clinic/Contracts/Clinic.Contracts.csproj" />
     <ProjectReference Include="../../../src/Apps/Clinic/Infrastructure/Clinic.Infrastructure.csproj" />
     <ProjectReference Include="../../../src/Apps/Clinic/Agents/Clinic.Agents.csproj" />

@@ -16,7 +16,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
-		<ProjectReference Include="..\Application\Clinic.Application\Clinic.Application.csproj" />
+		<ProjectReference Include="..\Application\Clinic.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Sea\Application\Sea.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Appointments\Application\Appointments.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Medical\Application\Medical.Application.csproj" />
