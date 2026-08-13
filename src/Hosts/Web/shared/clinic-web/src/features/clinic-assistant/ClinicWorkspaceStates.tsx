@@ -4,21 +4,21 @@ import { ChatMessage, ChatMessageActions } from "@heroui-pro/react";
 import { FaIcon } from "@vitarish/web-ui";
 import { useLocalizedText } from "../../localization";
 
-export function PatientAgentActivity() {
+export function ClinicWorkspaceActivity() {
   const { t } = useLocalizedText();
   return (
     <p role="status" className="text-sm text-muted">
       <FaIcon icon="spinner" className="me-2" aria-hidden="true" />
-      {t("clinic.patientAgent.running")}
+      {t("clinic.clinicAssistant.running")}
     </p>
   );
 }
 
-export function PatientAgentErrorState({ onRetry, scope = "patient" }: { onRetry?: () => void; scope?: "patient" | "operations" }) {
+export function ClinicWorkspaceErrorState({ onRetry, scope = "patient" }: { onRetry?: () => void; scope?: "patient" | "operations" }) {
   const { t } = useLocalizedText();
-  const title = scope === "operations" ? t("clinic.operationsAgent.title") : t("clinic.patientAgent.title");
-  const error = scope === "operations" ? t("clinic.operationsAgent.error") : t("clinic.patientAgent.error");
-  const retry = scope === "operations" ? t("clinic.operationsAgent.retry") : t("clinic.patientAgent.retry");
+  const title = scope === "operations" ? t("clinic.operationsAssistant.title") : t("clinic.clinicAssistant.title");
+  const error = scope === "operations" ? t("clinic.operationsAssistant.error") : t("clinic.clinicAssistant.error");
+  const retry = scope === "operations" ? t("clinic.operationsAssistant.retry") : t("clinic.clinicAssistant.retry");
   return (
     <ChatMessage.Assistant data-kind="Failure">
       <ChatMessage.Avatar

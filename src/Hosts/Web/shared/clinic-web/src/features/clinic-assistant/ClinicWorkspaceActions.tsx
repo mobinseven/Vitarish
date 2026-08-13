@@ -11,26 +11,26 @@ import {
   PrescriptionActionCard,
 } from "./ActionCards";
 import { asRecord, asText } from "./actionPayload";
-import type { PatientAgentAction } from "./hooks";
+import type { ClinicWorkspaceAction } from "./hooks";
 import {
-  useConfirmPatientAgentAction,
-  useConfirmOperationsAgentAction,
-  useOperationsAgentAction,
-  usePatientAgentAction,
-  useRejectOperationsAgentAction,
-  useRejectPatientAgentAction,
+  useConfirmClinicWorkspaceAction,
+  useConfirmOperationsAssistantAction,
+  useOperationsAssistantAction,
+  useClinicWorkspaceAction,
+  useRejectOperationsAssistantAction,
+  useRejectClinicWorkspaceAction,
 } from "./hooks";
 import {
-  PatientAgentActivity,
-  PatientAgentErrorState,
-} from "./PatientAgentStates";
+  ClinicWorkspaceActivity,
+  ClinicWorkspaceErrorState,
+} from "./ClinicWorkspaceStates";
 
-export function PatientAgentActionStatus({
+export function ClinicWorkspaceActionStatus({
   status,
   completionId,
   failure,
 }: {
-  status: PatientAgentAction["status"];
+  status: ClinicWorkspaceAction["status"];
   completionId?: string | null;
   failure?: string | null;
 }) {
@@ -44,10 +44,10 @@ export function PatientAgentActionStatus({
   return (
     <div role="status" aria-live="polite" className="text-sm font-medium">
       <FaIcon icon={icon} className="me-2" aria-hidden="true" />
-      {t(`clinic.patientAgent.status.${status.toLowerCase()}`)}
+      {t(`clinic.clinicAssistant.status.${status.toLowerCase()}`)}
       {completionId ? (
         <span className="ms-2 font-normal">
-          {t("clinic.patientAgent.completionId", { id: completionId })}
+          {t("clinic.clinicAssistant.completionId", { id: completionId })}
         </span>
       ) : null}
       {failure ? (
@@ -57,16 +57,16 @@ export function PatientAgentActionStatus({
   );
 }
 
-export function PatientAgentActionReview({
+export function ClinicWorkspaceActionReview({
   action,
   patientId,
 }: {
-  action: PatientAgentAction;
+  action: ClinicWorkspaceAction;
   patientId: string;
 }) {
   const { t } = useLocalizedText();
-  const confirm = useConfirmPatientAgentAction(patientId);
-  const reject = useRejectPatientAgentAction(patientId);
+  const confirm = useConfirmClinicWorkspaceAction(patientId);
+  const reject = useRejectClinicWorkspaceAction(patientId);
   const [requestError, setRequestError] = useState(false);
   const pending = confirm.isPending || reject.isPending;
   const payload = asRecord(action.reviewPayload);
@@ -80,11 +80,11 @@ export function PatientAgentActionReview({
   const isPrescription = action.actionType === "create_prescription";
   const isClinicalEvent = action.actionType === "add_clinical_event";
   const confirmLabel = isAppointment
-    ? t("clinic.patientAgent.actions.confirmAppointment")
+    ? t("clinic.clinicAssistant.actions.confirmAppointment")
     : isPrescription
-      ? t("clinic.patientAgent.actions.confirmPrescription")
+      ? t("clinic.clinicAssistant.actions.confirmPrescription")
       : isClinicalEvent
-        ? t("clinic.patientAgent.actions.confirmClinicalEvent")
+        ? t("clinic.clinicAssistant.actions.confirmClinicalEvent")
         : null;
   const review = isAppointment ? (
     <AppointmentActionCard payload={payload} expiresAt={action.expiresAt} />
@@ -110,7 +110,7 @@ export function PatientAgentActionReview({
     <Card>
       <Card.Header className="flex justify-between gap-3">
         <Card.Title>{action.capability}</Card.Title>
-        <PatientAgentActionStatus
+        <ClinicWorkspaceActionStatus
           status={pending ? "Confirming" : action.status}
           completionId={completionId}
           failure={action.failure?.message}
@@ -119,12 +119,12 @@ export function PatientAgentActionReview({
       <Card.Content className="space-y-4">
         {review ?? (
           <p role="alert" className="text-sm text-danger">
-            {t("clinic.patientAgent.actionUnavailable")}
+            {t("clinic.clinicAssistant.actionUnavailable")}
           </p>
         )}
         {requestError ? (
           <p role="alert" className="text-sm text-danger">
-            {t("clinic.patientAgent.actionError")}
+            {t("clinic.clinicAssistant.actionError")}
           </p>
         ) : null}
         {action.status === "Proposed" && confirmLabel ? (
@@ -147,10 +147,10 @@ export function PatientAgentActionReview({
                 onPress={() => void update("reject")}
               >
                 <FaIcon icon="xmark" aria-hidden="true" />
-                {t("clinic.patientAgent.actions.reject")}
+                {t("clinic.clinicAssistant.actions.reject")}
               </Button>
               <Tooltip.Content>
-                {t("clinic.patientAgent.actions.reject")}
+                {t("clinic.clinicAssistant.actions.reject")}
               </Tooltip.Content>
             </Tooltip>
           </div>
@@ -160,23 +160,23 @@ export function PatientAgentActionReview({
   );
 }
 
-function PatientAgentActionLoader({
+function ClinicWorkspaceActionLoader({
   patientId,
   actionId,
 }: {
   patientId: string;
   actionId: string;
 }) {
-  const action = usePatientAgentAction(patientId, actionId);
-  if (action.isLoading) return <PatientAgentActivity />;
+  const action = useClinicWorkspaceAction(patientId, actionId);
+  if (action.isLoading) return <ClinicWorkspaceActivity />;
   if (action.error || !action.data)
-    return <PatientAgentErrorState onRetry={() => void action.refetch()} />;
+    return <ClinicWorkspaceErrorState onRetry={() => void action.refetch()} />;
   return (
-    <PatientAgentActionReview patientId={patientId} action={action.data} />
+    <ClinicWorkspaceActionReview patientId={patientId} action={action.data} />
   );
 }
 
-export function PatientAgentActionList({
+export function ClinicWorkspaceActionList({
   patientId,
   actionIds,
 }: {
@@ -186,7 +186,7 @@ export function PatientAgentActionList({
   return (
     <div className="flex flex-col gap-3">
       {actionIds.map((actionId) => (
-        <PatientAgentActionLoader
+        <ClinicWorkspaceActionLoader
           key={actionId}
           patientId={patientId}
           actionId={actionId}
@@ -196,10 +196,10 @@ export function PatientAgentActionList({
   );
 }
 
-export function OperationsAgentActionReview({ action }: { action: PatientAgentAction }) {
+export function OperationsAssistantActionReview({ action }: { action: ClinicWorkspaceAction }) {
   const { t } = useLocalizedText();
-  const confirm = useConfirmOperationsAgentAction();
-  const reject = useRejectOperationsAgentAction();
+  const confirm = useConfirmOperationsAssistantAction();
+  const reject = useRejectOperationsAssistantAction();
   const [requestError, setRequestError] = useState(false);
   const pending = confirm.isPending || reject.isPending;
   const payload = asRecord(action.reviewPayload);
@@ -216,16 +216,16 @@ export function OperationsAgentActionReview({ action }: { action: PatientAgentAc
   return (
     <Card>
       <Card.Header className="flex justify-between gap-3">
-        <Card.Title>{t("clinic.operationsAgent.reviewTitle")}</Card.Title>
-        <PatientAgentActionStatus status={pending ? "Confirming" : action.status} completionId={completionId} failure={action.failure?.message} />
+        <Card.Title>{t("clinic.operationsAssistant.reviewTitle")}</Card.Title>
+        <ClinicWorkspaceActionStatus status={pending ? "Confirming" : action.status} completionId={completionId} failure={action.failure?.message} />
       </Card.Header>
       <Card.Content className="space-y-4">
         <OperationsActionCard payload={payload} expiresAt={action.expiresAt} />
-        {requestError ? <p role="alert" className="text-sm text-danger">{t("clinic.operationsAgent.actionError")}</p> : null}
+        {requestError ? <p role="alert" className="text-sm text-danger">{t("clinic.operationsAssistant.actionError")}</p> : null}
         {action.status === "Proposed" ? (
           <div className="flex flex-wrap gap-2">
-            <Tooltip><Button variant="primary" isDisabled={pending} onPress={() => void update("confirm")}><FaIcon icon="check" aria-hidden="true" />{t("clinic.operationsAgent.confirm")}</Button><Tooltip.Content>{t("clinic.operationsAgent.confirm")}</Tooltip.Content></Tooltip>
-            <Tooltip><Button variant="outline" isDisabled={pending} onPress={() => void update("reject")}><FaIcon icon="xmark" aria-hidden="true" />{t("clinic.operationsAgent.reject")}</Button><Tooltip.Content>{t("clinic.operationsAgent.reject")}</Tooltip.Content></Tooltip>
+            <Tooltip><Button variant="primary" isDisabled={pending} onPress={() => void update("confirm")}><FaIcon icon="check" aria-hidden="true" />{t("clinic.operationsAssistant.confirm")}</Button><Tooltip.Content>{t("clinic.operationsAssistant.confirm")}</Tooltip.Content></Tooltip>
+            <Tooltip><Button variant="outline" isDisabled={pending} onPress={() => void update("reject")}><FaIcon icon="xmark" aria-hidden="true" />{t("clinic.operationsAssistant.reject")}</Button><Tooltip.Content>{t("clinic.operationsAssistant.reject")}</Tooltip.Content></Tooltip>
           </div>
         ) : null}
       </Card.Content>
@@ -233,13 +233,13 @@ export function OperationsAgentActionReview({ action }: { action: PatientAgentAc
   );
 }
 
-function OperationsAgentActionLoader({ actionId }: { actionId: string }) {
-  const action = useOperationsAgentAction(actionId);
-  if (action.isLoading) return <PatientAgentActivity />;
-  if (action.error || !action.data) return <PatientAgentErrorState onRetry={() => void action.refetch()} />;
-  return <OperationsAgentActionReview action={action.data} />;
+function OperationsAssistantActionLoader({ actionId }: { actionId: string }) {
+  const action = useOperationsAssistantAction(actionId);
+  if (action.isLoading) return <ClinicWorkspaceActivity />;
+  if (action.error || !action.data) return <ClinicWorkspaceErrorState onRetry={() => void action.refetch()} />;
+  return <OperationsAssistantActionReview action={action.data} />;
 }
 
-export function OperationsAgentActionList({ actionIds }: { actionIds: string[] }) {
-  return <div className="flex flex-col gap-3">{actionIds.map((actionId) => <OperationsAgentActionLoader key={actionId} actionId={actionId} />)}</div>;
+export function OperationsAssistantActionList({ actionIds }: { actionIds: string[] }) {
+  return <div className="flex flex-col gap-3">{actionIds.map((actionId) => <OperationsAssistantActionLoader key={actionId} actionId={actionId} />)}</div>;
 }

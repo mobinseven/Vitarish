@@ -57,7 +57,7 @@ vi.mock("@vitarish/auth-web", () => ({
 }));
 
 vi.mock("@vitarish/clinic-web", () => ({
-  ClinicAgentAside: ({ isOpen }: { isOpen: boolean }) => (
+  ClinicAssistantAside: ({ isOpen }: { isOpen: boolean }) => (
     <div data-testid="operations-agent" data-open={String(isOpen)} />
   ),
 }));
@@ -96,7 +96,7 @@ vi.mock("@/localization", () => ({
         "account.navigation.password": "Password",
         "account.navigation.passkeys": "Passkeys",
         "account.navigation.language": "Language",
-        "clinic.patients.title": "Patients",
+        "clinic.assistant.patients.title": "Patients",
         "knowledge.qa.title": "Knowledge Q&A",
         "home.welcomeBack": "Welcome back",
       };

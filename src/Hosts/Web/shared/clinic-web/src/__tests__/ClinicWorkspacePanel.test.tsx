@@ -6,13 +6,13 @@ import {
   AppointmentActionCard,
   ClinicalEventActionCard,
   PrescriptionActionCard,
-} from "../features/patient-agent/ActionCards";
-import { PatientAgentActionStatus } from "../features/patient-agent/PatientAgentActions";
+} from "../features/clinic-assistant/ActionCards";
+import { ClinicWorkspaceActionStatus } from "../features/clinic-assistant/ClinicWorkspaceActions";
 import {
-  PatientAgentComposer,
-  PatientAgentMessage,
-  PatientAgentPanel,
-} from "../features/patient-agent/PatientAgentPanel";
+  ClinicWorkspaceComposer,
+  ClinicWorkspaceMessage,
+  ClinicWorkspacePanel,
+} from "../features/clinic-assistant/ClinicWorkspacePanel";
 import { LocalizationProvider, clinicMessageCatalogs } from "../localization";
 
 vi.mock("@vitarish/web-ui", () => ({
@@ -81,13 +81,13 @@ function panelWrapper(locale: "en" | "fa") {
   };
 }
 
-describe("patient agent review", () => {
+describe("clinic assistant review", () => {
   it("submits from the keyboard without exposing a patient selector", async () => {
     const submit = vi.fn().mockResolvedValue(undefined);
-    render(<PatientAgentComposer disabled={false} onSubmit={submit} />, {
+    render(<ClinicWorkspaceComposer disabled={false} onSubmit={submit} />, {
       wrapper: wrapper(),
     });
-    const composer = screen.getByLabelText("Message to the patient agent");
+    const composer = screen.getByLabelText("Message to the clinic assistant");
     fireEvent.change(composer, { target: { value: "Book tomorrow" } });
     fireEvent.keyDown(composer, { key: "Enter" });
     expect(submit).toHaveBeenCalledWith("Book tomorrow");
@@ -96,11 +96,11 @@ describe("patient agent review", () => {
 
   it("submits a dictated draft without adding a patient selector", async () => {
     const submit = vi.fn().mockResolvedValue(undefined);
-    render(<PatientAgentComposer disabled={false} onSubmit={submit} />, {
+    render(<ClinicWorkspaceComposer disabled={false} onSubmit={submit} />, {
       wrapper: wrapper(),
     });
     fireEvent.click(screen.getByRole("button", { name: "Dictate draft" }));
-    const composer = screen.getByLabelText("Message to the patient agent");
+    const composer = screen.getByLabelText("Message to the clinic assistant");
     fireEvent.keyDown(composer, { key: "Enter" });
     expect(submit).toHaveBeenCalledWith("dictated");
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
@@ -109,13 +109,13 @@ describe("patient agent review", () => {
   it("renders missing-information responses and accessible action status", () => {
     render(
       <>
-        <PatientAgentMessage
+        <ClinicWorkspaceMessage
           message={{
             kind: "MissingInformationRequest",
             content: "Which service?",
           }}
         />
-        <PatientAgentActionStatus status="Expired" />
+        <ClinicWorkspaceActionStatus status="Expired" />
       </>,
       { wrapper: wrapper() },
     );
@@ -126,14 +126,14 @@ describe("patient agent review", () => {
   it("renders agent failures as an error message with a retry action", () => {
     const retry = vi.fn();
     render(
-      <PatientAgentMessage
+      <ClinicWorkspaceMessage
         message={{ kind: "Failure", content: "provider detail" }}
         onRetry={retry}
       />,
       { wrapper: wrapper() },
     );
 
-    expect(screen.getByRole("alert")).toHaveTextContent("The patient agent request could not be completed.");
+    expect(screen.getByRole("alert")).toHaveTextContent("The clinic assistant request could not be completed.");
     expect(screen.queryByText("provider detail")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Retry request" }));
     expect(retry).toHaveBeenCalledOnce();
@@ -202,7 +202,7 @@ describe("patient agent review", () => {
 
   it("renders Persian copy in an RTL localization context", () => {
     render(
-      <PatientAgentPanel
+      <ClinicWorkspacePanel
         patientId="patient-1"
         patientName="مریم احمدی"
         isOpen

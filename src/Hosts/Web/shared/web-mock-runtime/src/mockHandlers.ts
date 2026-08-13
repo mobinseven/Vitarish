@@ -356,7 +356,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       if (activeScenario === "error") return unavailable();
       return HttpResponse.json({ accepted: true, isSuccess: true, entityId: "mock-prescription" });
     }),
-    http.get(/\/api\/modules\/clinic\/patients\/[^/]+\/agent\/actions\/[^/]+(?:\?|$)/, async () => {
+    http.get(/\/api\/modules\/clinic\/(?:patients\/[^/]+\/assistant|assistant)\/actions\/[^/]+(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
       return HttpResponse.json({
@@ -372,7 +372,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
         failure: null,
       });
     }),
-    http.post(/\/api\/modules\/clinic\/patients\/[^/]+\/agent\/actions\/[^/]+\/(confirm|reject)(?:\?|$)/, async ({ request }) => {
+    http.post(/\/api\/modules\/clinic\/(?:patients\/[^/]+\/assistant|assistant)\/actions\/[^/]+\/(confirm|reject)(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
       return HttpResponse.json({ actionId: "mock-agent-action", status: request.url.endsWith("/confirm") ? "Completed" : "Rejected", completionPayload: request.url.endsWith("/confirm") ? { appointmentId: "mock-reservation" } : {}, failure: null });
@@ -401,7 +401,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       await withDelay();
       if (activeScenario === "error") return unavailable();
       const body = await request.json().catch(() => null) as { agentKey?: unknown } | null;
-      const isClinic = body?.agentKey === "clinic.patient";
+      const isClinic = body?.agentKey === "clinic.assistant.patient";
       return HttpResponse.json({
         agentRunId: "mock-agent-run",
         conversationId: "mock-agent-conversation",

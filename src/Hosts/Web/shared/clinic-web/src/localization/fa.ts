@@ -167,7 +167,7 @@ export const clinicFaMessages = {
       },
       agent: "دستیار بیمار",
     },
-    patientAgent: {
+    clinicAssistant: {
       title: "دستیار فضای کاری بیمار",
       patient: "در حال کار برای {patient}",
       running: "دستیار بیمار در حال پردازش است…",
@@ -182,7 +182,7 @@ export const clinicFaMessages = {
       actions: { confirmAppointment: "تأیید نوبت", confirmPrescription: "تأیید نسخه", confirmClinicalEvent: "تأیید رویداد بالینی", reject: "رد", reset: "شروع گفت‌وگوی جدید", resetTitle: "گفت‌وگوی جدید شروع شود؟", resetDescription: "گفت‌وگوی فعلی و سابقه آن حذف می‌شود.", resetError: "گفت‌وگو بازنشانی نشد. دوباره تلاش کنید." },
       fields: { date: "تاریخ", startTime: "زمان شروع", duration: "مدت", appointmentType: "نوع نوبت", service: "خدمت", practitioner: "درمانگر", description: "توضیحات", warnings: "هشدارها", expiration: "انقضا", template: "الگو", templateVersion: "نسخه الگو", coverage: "پوشش بیمه", medication: "دارو یا مورد درخواستی", dose: "دوز", frequency: "دفعات", route: "روش مصرف", instructions: "دستورها", procedure: "رویه", visitNumber: "شماره جلسه یا ویزیت", eventType: "نوع رویداد", completionStatus: "وضعیت تکمیل", performedAt: "تاریخ و زمان انجام", observations: "مشاهدات ثبت‌شده توسط پزشک", diagnosis: "تشخیص ثبت‌شده توسط پزشک", plan: "برنامه یا پیگیری", narrative: "شرح", attachments: "پیوست‌ها" },
     },
-    operationsAgent: {
+    operationsAssistant: {
       title: "دستیار عملیات کلینیک",
       description: "عملیات نوبت‌دهی این درمانگاه را بررسی و مدیریت کنید.",
       reset: "شروع گفتگوی جدید عملیات",

@@ -12,11 +12,11 @@ import {
   asRecord,
   asText,
   parseRecord,
-  type PatientAgentReviewPayload,
+  type ClinicWorkspaceReviewPayload,
 } from "./actionPayload";
 
 interface ActionCardProps {
-  payload: PatientAgentReviewPayload;
+  payload: ClinicWorkspaceReviewPayload;
   expiresAt: string;
 }
 
@@ -60,15 +60,15 @@ export function AppointmentActionCard({ payload, expiresAt }: ActionCardProps) {
   return (
     <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <ReviewField
-        label={t("clinic.patientAgent.fields.date")}
+        label={t("clinic.clinicAssistant.fields.date")}
         value={date ? formatDate(date, locale) : null}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.startTime")}
+        label={t("clinic.clinicAssistant.fields.startTime")}
         value={asText(slot.startTime)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.duration")}
+        label={t("clinic.clinicAssistant.fields.duration")}
         value={
           duration == null
             ? asText(slot.duration)
@@ -76,27 +76,27 @@ export function AppointmentActionCard({ payload, expiresAt }: ActionCardProps) {
         }
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.appointmentType")}
+        label={t("clinic.clinicAssistant.fields.appointmentType")}
         value={asText(payload.appointmentType)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.service")}
+        label={t("clinic.clinicAssistant.fields.service")}
         value={asText(slot.service) ?? asText(payload.service)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.practitioner")}
+        label={t("clinic.clinicAssistant.fields.practitioner")}
         value={asText(slot.practitioner) ?? asText(payload.practitioner)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.description")}
+        label={t("clinic.clinicAssistant.fields.description")}
         value={asText(payload.description)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.warnings")}
+        label={t("clinic.clinicAssistant.fields.warnings")}
         value={asList(payload.availabilityWarnings)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.expiration")}
+        label={t("clinic.clinicAssistant.fields.expiration")}
         value={formatDateTime(expiresAt, locale)}
       />
     </dl>
@@ -113,23 +113,23 @@ export function PrescriptionActionCard({
     <div className="space-y-3">
       <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <ReviewField
-          label={t("clinic.patientAgent.fields.template")}
+          label={t("clinic.clinicAssistant.fields.template")}
           value={asText(payload.templateName) ?? asText(payload.templateId)}
         />
         <ReviewField
-          label={t("clinic.patientAgent.fields.templateVersion")}
+          label={t("clinic.clinicAssistant.fields.templateVersion")}
           value={asText(payload.templateVersion)}
         />
         <ReviewField
-          label={t("clinic.patientAgent.fields.coverage")}
+          label={t("clinic.clinicAssistant.fields.coverage")}
           value={asText(payload.insuranceCoverage)}
         />
         <ReviewField
-          label={t("clinic.patientAgent.fields.warnings")}
+          label={t("clinic.clinicAssistant.fields.warnings")}
           value={asList(payload.warnings)}
         />
         <ReviewField
-          label={t("clinic.patientAgent.fields.expiration")}
+          label={t("clinic.clinicAssistant.fields.expiration")}
           value={formatDateTime(expiresAt, locale)}
         />
       </dl>
@@ -141,27 +141,27 @@ export function PrescriptionActionCard({
             className="grid grid-cols-1 gap-2 rounded-lg border border-border p-3 sm:grid-cols-2"
           >
             <ReviewField
-              label={t("clinic.patientAgent.fields.medication")}
+              label={t("clinic.clinicAssistant.fields.medication")}
               value={asText(item.displayName) ?? asText(item.referenceCode)}
             />
             <ReviewField
-              label={t("clinic.patientAgent.fields.dose")}
+              label={t("clinic.clinicAssistant.fields.dose")}
               value={asText(item.dose) ?? asText(dosage.dose)}
             />
             <ReviewField
-              label={t("clinic.patientAgent.fields.frequency")}
+              label={t("clinic.clinicAssistant.fields.frequency")}
               value={asText(item.frequency) ?? asText(dosage.frequency)}
             />
             <ReviewField
-              label={t("clinic.patientAgent.fields.route")}
+              label={t("clinic.clinicAssistant.fields.route")}
               value={asText(item.route) ?? asText(dosage.route)}
             />
             <ReviewField
-              label={t("clinic.patientAgent.fields.duration")}
+              label={t("clinic.clinicAssistant.fields.duration")}
               value={asNumber(item.durationDays)}
             />
             <ReviewField
-              label={t("clinic.patientAgent.fields.instructions")}
+              label={t("clinic.clinicAssistant.fields.instructions")}
               value={asText(item.instructions) ?? asText(dosage.instructions)}
             />
           </dl>
@@ -181,54 +181,54 @@ export function ClinicalEventActionCard({
   return (
     <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <ReviewField
-        label={t("clinic.patientAgent.fields.procedure")}
+        label={t("clinic.clinicAssistant.fields.procedure")}
         value={asText(payload.procedureName) ?? asText(content.procedureId)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.visitNumber")}
+        label={t("clinic.clinicAssistant.fields.visitNumber")}
         value={asNumber(content.visitNumber)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.eventType")}
+        label={t("clinic.clinicAssistant.fields.eventType")}
         value={asText(content.eventType)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.completionStatus")}
+        label={t("clinic.clinicAssistant.fields.completionStatus")}
         value={asText(content.completionStatus)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.performedAt")}
+        label={t("clinic.clinicAssistant.fields.performedAt")}
         value={performedAt ? formatDateTime(performedAt, locale) : null}
       />
       <ReviewField
         clinicianAuthored
-        label={t("clinic.patientAgent.fields.observations")}
+        label={t("clinic.clinicAssistant.fields.observations")}
         value={asText(content.observations)}
       />
       <ReviewField
         clinicianAuthored
-        label={t("clinic.patientAgent.fields.diagnosis")}
+        label={t("clinic.clinicAssistant.fields.diagnosis")}
         value={asText(content.diagnosis)}
       />
       <ReviewField
         clinicianAuthored
-        label={t("clinic.patientAgent.fields.plan")}
+        label={t("clinic.clinicAssistant.fields.plan")}
         value={asText(content.planOrFollowUp)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.narrative")}
+        label={t("clinic.clinicAssistant.fields.narrative")}
         value={asText(content.narrativeNote)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.attachments")}
+        label={t("clinic.clinicAssistant.fields.attachments")}
         value={asList(content.attachmentReferences)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.warnings")}
+        label={t("clinic.clinicAssistant.fields.warnings")}
         value={asList(payload.warnings)}
       />
       <ReviewField
-        label={t("clinic.patientAgent.fields.expiration")}
+        label={t("clinic.clinicAssistant.fields.expiration")}
         value={formatDateTime(expiresAt, locale)}
       />
     </dl>
@@ -246,34 +246,34 @@ export function OperationsActionCard({ payload, expiresAt }: ActionCardProps) {
   const endTime = asText(shift.endTime);
   const actionType = asText(payload.actionType);
   const actionLabels = {
-    book_appointment: t("clinic.operationsAgent.actions.bookAppointment"),
-    reschedule_appointment: t("clinic.operationsAgent.actions.rescheduleAppointment"),
-    cancel_appointment: t("clinic.operationsAgent.actions.cancelAppointment"),
-    reject_appointment: t("clinic.operationsAgent.actions.rejectAppointment"),
-    create_shift: t("clinic.operationsAgent.actions.createShift"),
-    edit_shift: t("clinic.operationsAgent.actions.editShift"),
-    close_shift: t("clinic.operationsAgent.actions.closeShift"),
-    cancel_shift: t("clinic.operationsAgent.actions.cancelShift"),
-    archive_shift: t("clinic.operationsAgent.actions.archiveShift"),
+    book_appointment: t("clinic.operationsAssistant.actions.bookAppointment"),
+    reschedule_appointment: t("clinic.operationsAssistant.actions.rescheduleAppointment"),
+    cancel_appointment: t("clinic.operationsAssistant.actions.cancelAppointment"),
+    reject_appointment: t("clinic.operationsAssistant.actions.rejectAppointment"),
+    create_shift: t("clinic.operationsAssistant.actions.createShift"),
+    edit_shift: t("clinic.operationsAssistant.actions.editShift"),
+    close_shift: t("clinic.operationsAssistant.actions.closeShift"),
+    cancel_shift: t("clinic.operationsAssistant.actions.cancelShift"),
+    archive_shift: t("clinic.operationsAssistant.actions.archiveShift"),
   } as const;
   const currentState = asText(payload.expectedAppointmentStatus) ?? asText(payload.expectedShiftStatus);
   const stateLabels = {
-    Pending: t("clinic.operationsAgent.states.pending"), Confirmed: t("clinic.operationsAgent.states.confirmed"), Cancelled: t("clinic.operationsAgent.states.cancelled"), Rejected: t("clinic.operationsAgent.states.rejected"), Expired: t("clinic.operationsAgent.states.expired"), Waitlisted: t("clinic.operationsAgent.states.waitlisted"), Present: t("clinic.operationsAgent.states.present"), Completed: t("clinic.operationsAgent.states.completed"), Draft: t("clinic.operationsAgent.states.draft"), Active: t("clinic.operationsAgent.states.active"), Paused: t("clinic.operationsAgent.states.paused"), Closed: t("clinic.operationsAgent.states.closed"), Archived: t("clinic.operationsAgent.states.archived"),
+    Pending: t("clinic.operationsAssistant.states.pending"), Confirmed: t("clinic.operationsAssistant.states.confirmed"), Cancelled: t("clinic.operationsAssistant.states.cancelled"), Rejected: t("clinic.operationsAssistant.states.rejected"), Expired: t("clinic.operationsAssistant.states.expired"), Waitlisted: t("clinic.operationsAssistant.states.waitlisted"), Present: t("clinic.operationsAssistant.states.present"), Completed: t("clinic.operationsAssistant.states.completed"), Draft: t("clinic.operationsAssistant.states.draft"), Active: t("clinic.operationsAssistant.states.active"), Paused: t("clinic.operationsAssistant.states.paused"), Closed: t("clinic.operationsAssistant.states.closed"), Archived: t("clinic.operationsAssistant.states.archived"),
   } as const;
 
   return (
     <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <ReviewField label={t("clinic.operationsAgent.fields.patient")} value={asText(patient.displayName)} />
-      <ReviewField label={t("clinic.operationsAgent.fields.maskedIdentification")} value={asText(patient.maskedIdentification)} />
-      <ReviewField label={t("clinic.operationsAgent.fields.maskedPhone")} value={asText(patient.maskedPhone)} />
-      <ReviewField label={t("clinic.operationsAgent.fields.date")} value={date ? formatDate(date, locale) : null} />
-      <ReviewField label={t("clinic.operationsAgent.fields.time")} value={startTime && endTime ? `${startTime}–${endTime}` : startTime} />
-      <ReviewField label={t("clinic.operationsAgent.fields.currentState")} value={currentState && currentState in stateLabels ? stateLabels[currentState as keyof typeof stateLabels] : currentState} />
-      <ReviewField label={t("clinic.operationsAgent.fields.proposedState")} value={actionType && actionType in actionLabels ? actionLabels[actionType as keyof typeof actionLabels] : actionType} />
-      <ReviewField label={t("clinic.operationsAgent.fields.service")} value={asText(shift.serviceName) ?? asText(shift.serviceId)} />
-      <ReviewField label={t("clinic.operationsAgent.fields.provider")} value={asText(shift.serviceProviderName) ?? asText(shift.serviceProviderId)} />
-      <ReviewField label={t("clinic.operationsAgent.fields.timeZone")} value={asText(shift.timeZone)} />
-      <ReviewField label={t("clinic.operationsAgent.fields.expiration")} value={formatDateTime(expiresAt, locale)} />
+      <ReviewField label={t("clinic.operationsAssistant.fields.patient")} value={asText(patient.displayName)} />
+      <ReviewField label={t("clinic.operationsAssistant.fields.maskedIdentification")} value={asText(patient.maskedIdentification)} />
+      <ReviewField label={t("clinic.operationsAssistant.fields.maskedPhone")} value={asText(patient.maskedPhone)} />
+      <ReviewField label={t("clinic.operationsAssistant.fields.date")} value={date ? formatDate(date, locale) : null} />
+      <ReviewField label={t("clinic.operationsAssistant.fields.time")} value={startTime && endTime ? `${startTime}–${endTime}` : startTime} />
+      <ReviewField label={t("clinic.operationsAssistant.fields.currentState")} value={currentState && currentState in stateLabels ? stateLabels[currentState as keyof typeof stateLabels] : currentState} />
+      <ReviewField label={t("clinic.operationsAssistant.fields.proposedState")} value={actionType && actionType in actionLabels ? actionLabels[actionType as keyof typeof actionLabels] : actionType} />
+      <ReviewField label={t("clinic.operationsAssistant.fields.service")} value={asText(shift.serviceName) ?? asText(shift.serviceId)} />
+      <ReviewField label={t("clinic.operationsAssistant.fields.provider")} value={asText(shift.serviceProviderName) ?? asText(shift.serviceProviderId)} />
+      <ReviewField label={t("clinic.operationsAssistant.fields.timeZone")} value={asText(shift.timeZone)} />
+      <ReviewField label={t("clinic.operationsAssistant.fields.expiration")} value={formatDateTime(expiresAt, locale)} />
     </dl>
   );
 }

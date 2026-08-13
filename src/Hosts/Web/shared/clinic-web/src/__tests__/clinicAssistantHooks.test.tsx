@@ -3,35 +3,35 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  clinicConfirmPatientAgentAction,
-  clinicConfirmAgentAction,
-  clinicDeleteOperationsAgentConversation,
-  clinicGetAgentAction,
-  clinicGetPatientAgentAction,
-  clinicRejectAgentAction,
-  clinicRejectPatientAgentAction,
+  clinicConfirmPatientAssistantAction,
+  clinicConfirmAssistantAction,
+  clinicDeleteOperationsAssistantConversation,
+  clinicGetAssistantAction,
+  clinicGetPatientAssistantAction,
+  clinicRejectAssistantAction,
+  clinicRejectPatientAssistantAction,
 } from "../api/generated/clinic/clinic";
 import { intelligenceRunAgentConversation } from "@vitarish/intelligence-web";
 import {
-  useConfirmPatientAgentAction,
-  useConfirmOperationsAgentAction,
-  useOperationsAgentAction,
-  useOperationsAgentConversation,
-  usePatientAgentAction,
-  usePatientAgentConversation,
-  useRejectOperationsAgentAction,
-  useRejectPatientAgentAction,
-} from "../features/patient-agent/hooks";
+  useConfirmClinicWorkspaceAction,
+  useConfirmOperationsAssistantAction,
+  useOperationsAssistantAction,
+  useOperationsAssistantConversation,
+  useClinicWorkspaceAction,
+  useClinicWorkspaceConversation,
+  useRejectOperationsAssistantAction,
+  useRejectClinicWorkspaceAction,
+} from "../features/clinic-assistant/hooks";
 
 vi.mock("../api/generated/clinic/clinic", () => ({
-  clinicDeletePatientAgentConversation: vi.fn(),
-  clinicDeleteOperationsAgentConversation: vi.fn(),
-  clinicGetAgentAction: vi.fn(),
-  clinicConfirmAgentAction: vi.fn(),
-  clinicRejectAgentAction: vi.fn(),
-  clinicGetPatientAgentAction: vi.fn(),
-  clinicConfirmPatientAgentAction: vi.fn(),
-  clinicRejectPatientAgentAction: vi.fn(),
+  clinicDeletePatientAssistantConversation: vi.fn(),
+  clinicDeleteOperationsAssistantConversation: vi.fn(),
+  clinicGetAssistantAction: vi.fn(),
+  clinicConfirmAssistantAction: vi.fn(),
+  clinicRejectAssistantAction: vi.fn(),
+  clinicGetPatientAssistantAction: vi.fn(),
+  clinicConfirmPatientAssistantAction: vi.fn(),
+  clinicRejectPatientAssistantAction: vi.fn(),
 }));
 
 vi.mock("@vitarish/intelligence-web", async () => ({
@@ -50,7 +50,7 @@ function createWrapper() {
   };
 }
 
-describe("patient-agent generated-client hooks", () => {
+describe("clinic-assistant generated-client hooks", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("fixes the patient scope and continues the returned conversation", async () => {
@@ -66,7 +66,7 @@ describe("patient-agent generated-client hooks", () => {
         result: { messages: [], actions: [] },
       });
     const { result } = renderHook(
-      () => usePatientAgentConversation("patient-from-route", true),
+      () => useClinicWorkspaceConversation("patient-from-route", true),
       { wrapper: createWrapper() },
     );
 
@@ -76,7 +76,7 @@ describe("patient-agent generated-client hooks", () => {
     expect(intelligenceRunAgentConversation).toHaveBeenNthCalledWith(
       1,
       {
-        agentKey: "clinic.patient",
+        agentKey: "clinic.assistant.patient",
         subjectKind: "patient",
         subjectId: "patient-from-route",
         message: "First request",
@@ -88,7 +88,7 @@ describe("patient-agent generated-client hooks", () => {
     expect(intelligenceRunAgentConversation).toHaveBeenNthCalledWith(
       2,
       {
-        agentKey: "clinic.patient",
+        agentKey: "clinic.assistant.patient",
         subjectKind: "patient",
         subjectId: "patient-from-route",
         message: "Continue",
@@ -100,7 +100,7 @@ describe("patient-agent generated-client hooks", () => {
   });
 
   it("retrieves backend-owned action review data", async () => {
-    vi.mocked(clinicGetPatientAgentAction).mockResolvedValue({
+    vi.mocked(clinicGetPatientAssistantAction).mockResolvedValue({
       actionId: "action-1",
       agentRunId: "run-1",
       conversationId: "conversation-1",
@@ -113,11 +113,11 @@ describe("patient-agent generated-client hooks", () => {
       failure: null,
     });
     const { result } = renderHook(
-      () => usePatientAgentAction("patient-1", "action-1"),
+      () => useClinicWorkspaceAction("patient-1", "action-1"),
       { wrapper: createWrapper() },
     );
     await vi.waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(clinicGetPatientAgentAction).toHaveBeenCalledWith(
+    expect(clinicGetPatientAssistantAction).toHaveBeenCalledWith(
       "patient-1",
       "action-1",
       undefined,
@@ -131,9 +131,9 @@ describe("patient-agent generated-client hooks", () => {
       conversationId: "conversation-operations",
       result: { messages: [], actions: [] },
     });
-    vi.mocked(clinicDeleteOperationsAgentConversation).mockResolvedValue();
+    vi.mocked(clinicDeleteOperationsAssistantConversation).mockResolvedValue();
     const { result } = renderHook(
-      () => useOperationsAgentConversation(true),
+      () => useOperationsAssistantConversation(true),
       { wrapper: createWrapper() },
     );
 
@@ -142,7 +142,7 @@ describe("patient-agent generated-client hooks", () => {
 
     expect(intelligenceRunAgentConversation).toHaveBeenCalledWith(
       {
-        agentKey: "clinic.operations",
+        agentKey: "clinic.assistant.operations",
         subjectKind: "practice",
         subjectId: "practice",
         message: "Show today's schedule",
@@ -151,14 +151,14 @@ describe("patient-agent generated-client hooks", () => {
       undefined,
       expect.any(AbortSignal),
     );
-    expect(clinicDeleteOperationsAgentConversation).toHaveBeenCalledTimes(1);
-    expect(clinicDeleteOperationsAgentConversation).toHaveBeenCalledWith(
+    expect(clinicDeleteOperationsAssistantConversation).toHaveBeenCalledTimes(1);
+    expect(clinicDeleteOperationsAssistantConversation).toHaveBeenCalledWith(
       "conversation-operations",
     );
   });
 
   it("uses operations action endpoints independently of patient actions", async () => {
-    vi.mocked(clinicGetAgentAction).mockResolvedValue({
+    vi.mocked(clinicGetAssistantAction).mockResolvedValue({
       actionId: "operation-1",
       agentRunId: "run-1",
       conversationId: "conversation-1",
@@ -170,71 +170,71 @@ describe("patient-agent generated-client hooks", () => {
       completionPayload: null,
       failure: null,
     });
-    vi.mocked(clinicConfirmAgentAction).mockResolvedValue({
+    vi.mocked(clinicConfirmAssistantAction).mockResolvedValue({
       actionId: "operation-1",
       status: "Completed",
       completionPayload: {},
       failure: null,
     });
-    vi.mocked(clinicRejectAgentAction).mockResolvedValue({
+    vi.mocked(clinicRejectAssistantAction).mockResolvedValue({
       actionId: "operation-2",
       status: "Rejected",
     });
     const wrapper = createWrapper();
-    const action = renderHook(() => useOperationsAgentAction("operation-1"), {
+    const action = renderHook(() => useOperationsAssistantAction("operation-1"), {
       wrapper,
     });
     await vi.waitFor(() => expect(action.result.current.isSuccess).toBe(true));
-    const confirm = renderHook(() => useConfirmOperationsAgentAction(), {
+    const confirm = renderHook(() => useConfirmOperationsAssistantAction(), {
       wrapper,
     });
-    const reject = renderHook(() => useRejectOperationsAgentAction(), {
+    const reject = renderHook(() => useRejectOperationsAssistantAction(), {
       wrapper,
     });
 
     await act(() => confirm.result.current.mutateAsync("operation-1"));
     await act(() => reject.result.current.mutateAsync("operation-2"));
 
-    expect(clinicGetAgentAction).toHaveBeenCalledWith(
+    expect(clinicGetAssistantAction).toHaveBeenCalledWith(
       "operation-1",
       undefined,
       expect.any(AbortSignal),
     );
-    expect(clinicConfirmAgentAction).toHaveBeenCalledWith("operation-1");
-    expect(clinicRejectAgentAction).toHaveBeenCalledWith("operation-2", {
+    expect(clinicConfirmAssistantAction).toHaveBeenCalledWith("operation-1");
+    expect(clinicRejectAssistantAction).toHaveBeenCalledWith("operation-2", {
       actionId: "operation-2",
     });
   });
 
   it("sends only the backend action identifier to confirm and reject", async () => {
-    vi.mocked(clinicConfirmPatientAgentAction).mockResolvedValue({
+    vi.mocked(clinicConfirmPatientAssistantAction).mockResolvedValue({
       actionId: "action-1",
       status: "Completed",
       completionPayload: {},
       failure: null,
     });
-    vi.mocked(clinicRejectPatientAgentAction).mockResolvedValue({
+    vi.mocked(clinicRejectPatientAssistantAction).mockResolvedValue({
       actionId: "action-2",
       status: "Rejected",
     });
     const wrapper = createWrapper();
     const confirm = renderHook(
-      () => useConfirmPatientAgentAction("patient-1"),
+      () => useConfirmClinicWorkspaceAction("patient-1"),
       { wrapper },
     );
-    const reject = renderHook(() => useRejectPatientAgentAction("patient-1"), {
+    const reject = renderHook(() => useRejectClinicWorkspaceAction("patient-1"), {
       wrapper,
     });
 
     await act(() => confirm.result.current.mutateAsync("action-1"));
     await act(() => reject.result.current.mutateAsync("action-2"));
 
-    expect(clinicConfirmPatientAgentAction).toHaveBeenCalledWith(
+    expect(clinicConfirmPatientAssistantAction).toHaveBeenCalledWith(
       "patient-1",
       "action-1",
       { actionId: "action-1" },
     );
-    expect(clinicRejectPatientAgentAction).toHaveBeenCalledWith(
+    expect(clinicRejectPatientAssistantAction).toHaveBeenCalledWith(
       "patient-1",
       "action-2",
       { actionId: "action-2" },

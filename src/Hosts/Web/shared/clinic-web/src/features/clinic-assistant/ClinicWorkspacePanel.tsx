@@ -11,40 +11,40 @@ import { FaIcon } from "@vitarish/web-ui";
 import { AgentConversationComposer } from "@vitarish/intelligence-web";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocalizedText } from "../../localization";
-import type { PatientAgentMessageResult } from "./hooks";
-import { useClinicAgentConversationSurface, usePatientAgentConversation } from "./hooks";
-import { PatientAgentActionList } from "./PatientAgentActions";
+import type { ClinicWorkspaceMessageResult } from "./hooks";
+import { useClinicAssistantConversationSurface, useClinicWorkspaceConversation } from "./hooks";
+import { ClinicWorkspaceActionList } from "./ClinicWorkspaceActions";
 import {
-  PatientAgentActivity,
-  PatientAgentErrorState,
-} from "./PatientAgentStates";
+  ClinicWorkspaceActivity,
+  ClinicWorkspaceErrorState,
+} from "./ClinicWorkspaceStates";
 
 export {
-  PatientAgentActivity,
-  PatientAgentErrorState,
-} from "./PatientAgentStates";
+  ClinicWorkspaceActivity,
+  ClinicWorkspaceErrorState,
+} from "./ClinicWorkspaceStates";
 
-export function PatientAgentHeader({ patientName, onReset }: { patientName: string; onReset: () => void }) {
+export function ClinicWorkspaceHeader({ patientName, onReset }: { patientName: string; onReset: () => void }) {
   const { t } = useLocalizedText();
   return (
     <>
       <div className="flex items-center justify-between gap-3">
-        <Sheet.Heading>{t("clinic.patientAgent.title")}</Sheet.Heading>
+        <Sheet.Heading>{t("clinic.clinicAssistant.title")}</Sheet.Heading>
         <Tooltip>
-          <Button isIconOnly variant="tertiary" aria-label={t("clinic.patientAgent.actions.reset")} onPress={onReset}>
+          <Button isIconOnly variant="tertiary" aria-label={t("clinic.clinicAssistant.actions.reset")} onPress={onReset}>
             <FaIcon icon="rotate-left" aria-hidden="true" />
           </Button>
-          <Tooltip.Content>{t("clinic.patientAgent.actions.reset")}</Tooltip.Content>
+          <Tooltip.Content>{t("clinic.clinicAssistant.actions.reset")}</Tooltip.Content>
         </Tooltip>
       </div>
       <p className="text-sm text-muted">
-        {t("clinic.patientAgent.patient", { patient: patientName })}
+        {t("clinic.clinicAssistant.patient", { patient: patientName })}
       </p>
     </>
   );
 }
 
-export function PatientAgentComposer({
+export function ClinicWorkspaceComposer({
   disabled,
   onSubmit,
   scope = "patient",
@@ -69,11 +69,11 @@ export function PatientAgentComposer({
       direction={locale === "fa" ? "rtl" : "ltr"}
       enabled={!disabled}
       isPending={disabled}
-      label={scope === "operations" ? t("clinic.operationsAgent.composer.label") : t("clinic.patientAgent.composer.label")}
-      placeholder={scope === "operations" ? t("clinic.operationsAgent.composer.placeholder") : t("clinic.patientAgent.composer.placeholder")}
+      label={scope === "operations" ? t("clinic.operationsAssistant.composer.label") : t("clinic.clinicAssistant.composer.label")}
+      placeholder={scope === "operations" ? t("clinic.operationsAssistant.composer.placeholder") : t("clinic.clinicAssistant.composer.placeholder")}
       preferredLanguage={locale === "fa" ? "fa-IR" : "en-US"}
       sessionKey={sessionKey ?? `clinic.${scope}`}
-      submitLabel={scope === "operations" ? t("clinic.operationsAgent.composer.send") : t("clinic.patientAgent.composer.send")}
+      submitLabel={scope === "operations" ? t("clinic.operationsAssistant.composer.send") : t("clinic.clinicAssistant.composer.send")}
       value={message}
       onChange={setMessage}
       onSubmit={submit}
@@ -81,15 +81,15 @@ export function PatientAgentComposer({
   );
 }
 
-type PatientAgentChatMessage =
-  PatientAgentMessageResult | { kind: "UserMessage"; content: string };
+type ClinicWorkspaceChatMessage =
+  ClinicWorkspaceMessageResult | { kind: "UserMessage"; content: string };
 
-export function PatientAgentMessage({
+export function ClinicWorkspaceMessage({
   message,
   onRetry,
   scope = "patient",
 }: {
-  message: PatientAgentChatMessage;
+  message: ClinicWorkspaceChatMessage;
   onRetry?: () => void;
   scope?: "patient" | "operations";
 }) {
@@ -106,7 +106,7 @@ export function PatientAgentMessage({
     );
 
   if (message.kind === "Failure") {
-    return <PatientAgentErrorState onRetry={onRetry} scope={scope} />;
+    return <ClinicWorkspaceErrorState onRetry={onRetry} scope={scope} />;
   }
 
   const labels = {
@@ -118,14 +118,14 @@ export function PatientAgentMessage({
   return (
     <ChatMessage.Assistant data-kind={message.kind}>
       <ChatMessage.Avatar
-        alt={scope === "operations" ? t("clinic.operationsAgent.title") : t("clinic.patientAgent.title")}
+        alt={scope === "operations" ? t("clinic.operationsAssistant.title") : t("clinic.clinicAssistant.title")}
         fallback="AI"
         show
       />
       <ChatMessage.Body>
         <ChatMessage.Content>
           <p className="mb-1 text-xs font-semibold text-muted">
-            {scope === "operations" ? t(`clinic.operationsAgent.messages.${labels[message.kind]}`) : t(`clinic.patientAgent.messages.${labels[message.kind]}`)}
+            {scope === "operations" ? t(`clinic.operationsAssistant.messages.${labels[message.kind]}`) : t(`clinic.clinicAssistant.messages.${labels[message.kind]}`)}
           </p>
           <p className="whitespace-pre-wrap">{message.content}</p>
         </ChatMessage.Content>
@@ -134,13 +134,13 @@ export function PatientAgentMessage({
   );
 }
 
-export function PatientAgentMessageList({
+export function ClinicWorkspaceMessageList({
   messages,
   onRetry,
   children,
   scope = "patient",
 }: {
-  messages: PatientAgentChatMessage[];
+  messages: ClinicWorkspaceChatMessage[];
   onRetry?: () => void;
   children?: ReactNode;
   scope?: "patient" | "operations";
@@ -149,11 +149,11 @@ export function PatientAgentMessageList({
   return (
     <ChatConversation
       className="min-h-0 flex-1"
-      aria-label={scope === "operations" ? t("clinic.operationsAgent.messages.label") : t("clinic.patientAgent.messages.label")}
+      aria-label={scope === "operations" ? t("clinic.operationsAssistant.messages.label") : t("clinic.clinicAssistant.messages.label")}
     >
       <ChatConversation.Content className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-5">
         {messages.map((message, index) => (
-          <PatientAgentMessage
+          <ClinicWorkspaceMessage
             key={`${message.kind}-${index}`}
             message={message}
             onRetry={message.kind === "Failure" ? onRetry : undefined}
@@ -164,14 +164,14 @@ export function PatientAgentMessageList({
         <ChatConversation.ScrollAnchor />
       </ChatConversation.Content>
       <ChatConversation.ScrollButton
-        aria-label={scope === "operations" ? t("clinic.operationsAgent.messages.label") : t("clinic.patientAgent.messages.label")}
-        tooltip={scope === "operations" ? t("clinic.operationsAgent.messages.label") : t("clinic.patientAgent.messages.label")}
+        aria-label={scope === "operations" ? t("clinic.operationsAssistant.messages.label") : t("clinic.clinicAssistant.messages.label")}
+        tooltip={scope === "operations" ? t("clinic.operationsAssistant.messages.label") : t("clinic.clinicAssistant.messages.label")}
       />
     </ChatConversation>
   );
 }
 
-export function PatientAgentPanel({
+export function ClinicWorkspacePanel({
   patientId,
   patientName,
   isOpen,
@@ -183,8 +183,8 @@ export function PatientAgentPanel({
   onOpenChange: (isOpen: boolean) => void;
 }) {
   const { t, locale } = useLocalizedText();
-  const conversation = usePatientAgentConversation(patientId, isOpen);
-  const surface = useClinicAgentConversationSurface(conversation, `${patientId}:${isOpen ? "open" : "closed"}`);
+  const conversation = useClinicWorkspaceConversation(patientId, isOpen);
+  const surface = useClinicAssistantConversationSurface(conversation, `${patientId}:${isOpen ? "open" : "closed"}`);
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetError, setResetError] = useState(false);
   const focusTarget = useRef<HTMLDivElement>(null);
@@ -210,7 +210,7 @@ export function PatientAgentPanel({
           <Sheet.Dialog className="flex h-[88vh] flex-col">
             <Sheet.Handle />
             <Sheet.Header>
-              <PatientAgentHeader patientName={patientName} onReset={() => setConfirmReset(true)} />
+              <ClinicWorkspaceHeader patientName={patientName} onReset={() => setConfirmReset(true)} />
               <Sheet.CloseTrigger aria-label={t("common.actions.close")}>
                 <FaIcon icon="xmark" aria-hidden="true" />
               </Sheet.CloseTrigger>
@@ -219,14 +219,14 @@ export function PatientAgentPanel({
               <section
                 dir={locale === "fa" ? "rtl" : "ltr"}
                 className="flex min-h-0 flex-1 flex-col"
-                aria-label={t("clinic.patientAgent.title")}
+                aria-label={t("clinic.clinicAssistant.title")}
               >
                 <div
                   ref={focusTarget}
                   tabIndex={-1}
                   className="flex min-h-0 flex-1 flex-col outline-none"
                 >
-                  <PatientAgentMessageList
+                  <ClinicWorkspaceMessageList
                     messages={surface.messages}
                     onRetry={
                       surface.lastMessage
@@ -237,19 +237,19 @@ export function PatientAgentPanel({
                     {conversation.isPending ? (
                       <ChatMessage.Assistant>
                         <ChatMessage.Avatar
-                          alt={t("clinic.patientAgent.title")}
+                          alt={t("clinic.clinicAssistant.title")}
                           fallback="AI"
                           show
                         />
                         <ChatMessage.Body>
                           <ChatLoader.Dots
-                            label={t("clinic.patientAgent.running")}
+                            label={t("clinic.clinicAssistant.running")}
                           />
                         </ChatMessage.Body>
                       </ChatMessage.Assistant>
                     ) : null}
                     {conversation.isError ? (
-                      <PatientAgentErrorState
+                      <ClinicWorkspaceErrorState
                         onRetry={
                           surface.lastMessage
                             ? () => void surface.retry()
@@ -257,19 +257,19 @@ export function PatientAgentPanel({
                         }
                       />
                     ) : null}
-                    <PatientAgentActionList
+                    <ClinicWorkspaceActionList
                       patientId={patientId}
                       actionIds={surface.actionIds}
                     />
-                  </PatientAgentMessageList>
+                  </ClinicWorkspaceMessageList>
                 </div>
               </section>
             </Sheet.Body>
             <Sheet.Footer>
-              <PatientAgentComposer
+              <ClinicWorkspaceComposer
                 disabled={conversation.isPending}
                 onSubmit={surface.submit}
-                sessionKey={`clinic.patient:${patientId}`}
+                sessionKey={`clinic.assistant.patient:${patientId}`}
               />
             </Sheet.Footer>
           </Sheet.Dialog>
@@ -278,8 +278,8 @@ export function PatientAgentPanel({
       <Modal isOpen={confirmReset} onOpenChange={setConfirmReset}>
         <Modal.Backdrop>
           <Modal.Container placement="center"><Modal.Dialog>
-            <Modal.Header><Modal.Heading>{t("clinic.patientAgent.actions.resetTitle")}</Modal.Heading></Modal.Header>
-            <Modal.Body><p>{t("clinic.patientAgent.actions.resetDescription")}</p>{resetError ? <p role="alert" className="text-danger">{t("clinic.patientAgent.actions.resetError")}</p> : null}</Modal.Body>
+            <Modal.Header><Modal.Heading>{t("clinic.clinicAssistant.actions.resetTitle")}</Modal.Heading></Modal.Header>
+            <Modal.Body><p>{t("clinic.clinicAssistant.actions.resetDescription")}</p>{resetError ? <p role="alert" className="text-danger">{t("clinic.clinicAssistant.actions.resetError")}</p> : null}</Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onPress={() => setConfirmReset(false)}>{t("common.actions.cancel")}</Button>
               <Button variant="danger" onPress={() => void resetConversation()}>{t("common.actions.delete")}</Button>

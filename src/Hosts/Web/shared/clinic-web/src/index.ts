@@ -5,39 +5,39 @@ export { CheckInPage } from "./components/check-in/CheckInPage";
 export { PatientListPage } from "./components/patients/list/PatientListPage";
 export { PatientOverviewPage } from "./components/patients/overview/PatientOverviewPage";
 export {
-  PatientAgentPanel,
-  PatientAgentHeader,
-  PatientAgentComposer,
-  PatientAgentMessageList,
-  PatientAgentMessage,
-  PatientAgentActivity,
-  PatientAgentErrorState,
-} from "./features/patient-agent/PatientAgentPanel";
-export { OperationsAgentAside } from "./features/patient-agent/OperationsAgentAside";
-export { ClinicAgentAside, type ClinicAgentScope } from "./features/patient-agent/ClinicAgentAside";
+  ClinicWorkspacePanel,
+  ClinicWorkspaceHeader,
+  ClinicWorkspaceComposer,
+  ClinicWorkspaceMessageList,
+  ClinicWorkspaceMessage,
+  ClinicWorkspaceActivity,
+  ClinicWorkspaceErrorState,
+} from "./features/clinic-assistant/ClinicWorkspacePanel";
+export { OperationsAssistantAside } from "./features/clinic-assistant/OperationsAssistantAside";
+export { ClinicAssistantAside, type ClinicAssistantScope } from "./features/clinic-assistant/ClinicAssistantAside";
 export {
-  OperationsAgentActionList,
-  OperationsAgentActionReview,
-  PatientAgentActionList,
-  PatientAgentActionReview,
-  PatientAgentActionStatus,
-} from "./features/patient-agent/PatientAgentActions";
+  OperationsAssistantActionList,
+  OperationsAssistantActionReview,
+  ClinicWorkspaceActionList,
+  ClinicWorkspaceActionReview,
+  ClinicWorkspaceActionStatus,
+} from "./features/clinic-assistant/ClinicWorkspaceActions";
 export {
   AppointmentActionCard,
   PrescriptionActionCard,
   ClinicalEventActionCard,
   OperationsActionCard,
-} from "./features/patient-agent/ActionCards";
+} from "./features/clinic-assistant/ActionCards";
 export {
-  useConfirmOperationsAgentAction,
-  useOperationsAgentAction,
-  useOperationsAgentConversation,
-  useRejectOperationsAgentAction,
-  usePatientAgentConversation,
-  usePatientAgentAction,
-  useConfirmPatientAgentAction,
-  useRejectPatientAgentAction,
-} from "./features/patient-agent/hooks";
+  useConfirmOperationsAssistantAction,
+  useOperationsAssistantAction,
+  useOperationsAssistantConversation,
+  useRejectOperationsAssistantAction,
+  useClinicWorkspaceConversation,
+  useClinicWorkspaceAction,
+  useConfirmClinicWorkspaceAction,
+  useRejectClinicWorkspaceAction,
+} from "./features/clinic-assistant/hooks";
 export { PatientPrescriptionSubmissionSheet } from "./components/patients/prescriptions/PatientPrescriptionSubmissionSheet";
 export { PatientCreatePage } from "./components/patients/create/PatientCreatePage";
 export { PatientEditPage } from "./components/patients/edit/PatientEditPage";

@@ -537,6 +537,83 @@
         }
       }
     },
+    "/api/modules/clinic/patients/{patientId}/assistant": {
+      "post": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicRunPatientAssistant",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunClinicAssistantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunClinicAssistantResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/clinic/patients/{patientId}/agent": {
       "post": {
         "tags": [
@@ -558,7 +635,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RunPatientAgentRequest"
+                "$ref": "#/components/schemas/RunClinicAssistantRequest"
               }
             }
           },
@@ -570,10 +647,79 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RunPatientAgentResponse"
+                  "$ref": "#/components/schemas/RunClinicAssistantResponse"
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/patients/{patientId}/assistant/{conversationId}": {
+      "delete": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicDeletePatientAssistantConversation",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "conversationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
           },
           "401": {
             "description": "Unauthorized"
@@ -683,6 +829,82 @@
         }
       }
     },
+    "/api/modules/clinic/patients/{patientId}/assistant/actions/{actionId}": {
+      "get": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicGetPatientAssistantAction",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "actionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClinicAssistantActionDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/clinic/patients/{patientId}/agent/actions/{actionId}": {
       "get": {
         "tags": [
@@ -715,7 +937,93 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PatientAgentActionDetailsResponse"
+                  "$ref": "#/components/schemas/ClinicAssistantActionDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/patients/{patientId}/assistant/actions/{actionId}/confirm": {
+      "post": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicConfirmPatientAssistantAction",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "actionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmClinicAssistantActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmClinicAssistantActionResponse"
                 }
               }
             }
@@ -789,7 +1097,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmPatientAgentActionRequest"
+                "$ref": "#/components/schemas/ConfirmClinicAssistantActionRequest"
               }
             }
           },
@@ -801,7 +1109,93 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ConfirmPatientAgentActionResponse"
+                  "$ref": "#/components/schemas/ConfirmClinicAssistantActionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/patients/{patientId}/assistant/actions/{actionId}/reject": {
+      "post": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicRejectPatientAssistantAction",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "actionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectClinicAssistantActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejectClinicAssistantActionResponse"
                 }
               }
             }
@@ -875,7 +1269,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RejectPatientAgentActionRequest"
+                "$ref": "#/components/schemas/RejectClinicAssistantActionRequest"
               }
             }
           },
@@ -887,7 +1281,73 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RejectPatientAgentActionResponse"
+                  "$ref": "#/components/schemas/RejectClinicAssistantActionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/assistant/operations": {
+      "post": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicRunOperationsAssistant",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunClinicAssistantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunClinicAssistantResponse"
                 }
               }
             }
@@ -941,7 +1401,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RunPatientAgentRequest"
+                "$ref": "#/components/schemas/RunClinicAssistantRequest"
               }
             }
           },
@@ -953,7 +1413,73 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RunPatientAgentResponse"
+                  "$ref": "#/components/schemas/RunClinicAssistantResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/assistant/patient-candidates/resolve": {
+      "post": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicResolveClinicAssistantCandidate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveClinicAssistantCandidateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolveClinicAssistantCandidateResponse"
                 }
               }
             }
@@ -1007,7 +1533,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ResolvePatientAgentCandidateRequest"
+                "$ref": "#/components/schemas/ResolveClinicAssistantCandidateRequest"
               }
             }
           },
@@ -1019,10 +1545,70 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResolvePatientAgentCandidateResponse"
+                  "$ref": "#/components/schemas/ResolveClinicAssistantCandidateResponse"
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/assistant/operations/{conversationId}": {
+      "delete": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicDeleteOperationsAssistantConversation",
+        "parameters": [
+          {
+            "name": "conversationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
           },
           "401": {
             "description": "Unauthorized"
@@ -1123,6 +1709,217 @@
         }
       }
     },
+    "/api/modules/clinic/assistant/actions/{actionId}": {
+      "get": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicGetAssistantAction",
+        "parameters": [
+          {
+            "name": "actionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClinicAssistantActionDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/assistant/actions/{actionId}/confirm": {
+      "post": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicConfirmAssistantAction",
+        "parameters": [
+          {
+            "name": "actionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmClinicAssistantActionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/assistant/actions/{actionId}/reject": {
+      "post": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicRejectAssistantAction",
+        "parameters": [
+          {
+            "name": "actionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectClinicAssistantActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejectClinicAssistantActionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/clinic/agent/actions/{actionId}": {
       "get": {
         "tags": [
@@ -1146,7 +1943,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PatientAgentActionDetailsResponse"
+                  "$ref": "#/components/schemas/ClinicAssistantActionDetailsResponse"
                 }
               }
             }
@@ -1213,7 +2010,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ConfirmPatientAgentActionResponse"
+                  "$ref": "#/components/schemas/ConfirmClinicAssistantActionResponse"
                 }
               }
             }
@@ -1278,7 +2075,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RejectPatientAgentActionRequest"
+                "$ref": "#/components/schemas/RejectClinicAssistantActionRequest"
               }
             }
           },
@@ -1290,7 +2087,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RejectPatientAgentActionResponse"
+                  "$ref": "#/components/schemas/RejectClinicAssistantActionResponse"
                 }
               }
             }
@@ -1403,77 +2200,7 @@
   },
   "components": {
     "schemas": {
-      "ConfirmPatientAgentActionRequest": {
-        "required": [
-          "actionId"
-        ],
-        "type": "object",
-        "properties": {
-          "actionId": {
-            "type": "string"
-          }
-        }
-      },
-      "ConfirmPatientAgentActionResponse": {
-        "required": [
-          "actionId",
-          "status",
-          "completionPayload",
-          "failure"
-        ],
-        "type": "object",
-        "properties": {
-          "actionId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "status": {
-            "$ref": "#/components/schemas/PatientAgentActionStatus"
-          },
-          "completionPayload": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/JsonElement"
-              }
-            ]
-          },
-          "failure": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/PatientAgentActionFailureResponse"
-              }
-            ]
-          }
-        }
-      },
-      "Education": {
-        "enum": [
-          "Unspecified",
-          "NoFormalEducation",
-          "PrimarySchool",
-          "HighSchool",
-          "AssociateDegree",
-          "BachelorDegree",
-          "MasterDegree",
-          "Doctorate",
-          "Professional"
-        ]
-      },
-      "Gender": {
-        "enum": [
-          "Unspecified",
-          "Female",
-          "Male"
-        ]
-      },
-      "JsonElement": { },
-      "PatientAgentActionDetailsResponse": {
+      "ClinicAssistantActionDetailsResponse": {
         "required": [
           "actionId",
           "agentRunId",
@@ -1505,7 +2232,7 @@
             "type": "string"
           },
           "status": {
-            "$ref": "#/components/schemas/PatientAgentActionStatus"
+            "$ref": "#/components/schemas/ClinicAssistantActionStatus"
           },
           "reviewPayload": {
             "$ref": "#/components/schemas/JsonElement"
@@ -1530,13 +2257,13 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/PatientAgentActionFailureResponse"
+                "$ref": "#/components/schemas/ClinicAssistantActionFailureResponse"
               }
             ]
           }
         }
       },
-      "PatientAgentActionFailureResponse": {
+      "ClinicAssistantActionFailureResponse": {
         "required": [
           "code",
           "message",
@@ -1555,7 +2282,7 @@
           }
         }
       },
-      "PatientAgentActionResponse": {
+      "ClinicAssistantActionResponse": {
         "required": [
           "id",
           "capability",
@@ -1576,7 +2303,7 @@
             "type": "string"
           },
           "status": {
-            "$ref": "#/components/schemas/PatientAgentActionStatus"
+            "$ref": "#/components/schemas/ClinicAssistantActionStatus"
           },
           "arguments": {
             "$ref": "#/components/schemas/JsonElement"
@@ -1586,7 +2313,7 @@
           }
         }
       },
-      "PatientAgentActionStatus": {
+      "ClinicAssistantActionStatus": {
         "enum": [
           "Proposed",
           "Confirming",
@@ -1596,7 +2323,7 @@
           "Failed"
         ]
       },
-      "PatientAgentCandidateResponse": {
+      "ClinicAssistantCandidateResponse": {
         "required": [
           "candidateToken",
           "displayName",
@@ -1627,7 +2354,7 @@
           }
         }
       },
-      "PatientAgentMessageResponse": {
+      "ClinicAssistantMessageResponse": {
         "required": [
           "kind",
           "content"
@@ -1635,14 +2362,14 @@
         "type": "object",
         "properties": {
           "kind": {
-            "$ref": "#/components/schemas/PatientAgentMessageResponseKind"
+            "$ref": "#/components/schemas/ClinicAssistantMessageResponseKind"
           },
           "content": {
             "type": "string"
           }
         }
       },
-      "PatientAgentMessageResponseKind": {
+      "ClinicAssistantMessageResponseKind": {
         "enum": [
           "AssistantMessage",
           "InformationalToolResult",
@@ -1650,6 +2377,76 @@
           "Failure"
         ]
       },
+      "ConfirmClinicAssistantActionRequest": {
+        "required": [
+          "actionId"
+        ],
+        "type": "object",
+        "properties": {
+          "actionId": {
+            "type": "string"
+          }
+        }
+      },
+      "ConfirmClinicAssistantActionResponse": {
+        "required": [
+          "actionId",
+          "status",
+          "completionPayload",
+          "failure"
+        ],
+        "type": "object",
+        "properties": {
+          "actionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ClinicAssistantActionStatus"
+          },
+          "completionPayload": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JsonElement"
+              }
+            ]
+          },
+          "failure": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ClinicAssistantActionFailureResponse"
+              }
+            ]
+          }
+        }
+      },
+      "Education": {
+        "enum": [
+          "Unspecified",
+          "NoFormalEducation",
+          "PrimarySchool",
+          "HighSchool",
+          "AssociateDegree",
+          "BachelorDegree",
+          "MasterDegree",
+          "Doctorate",
+          "Professional"
+        ]
+      },
+      "Gender": {
+        "enum": [
+          "Unspecified",
+          "Female",
+          "Male"
+        ]
+      },
+      "JsonElement": { },
       "PatientCountRequest": {
         "type": "object",
         "properties": {
@@ -2380,7 +3177,7 @@
           null
         ]
       },
-      "RejectPatientAgentActionRequest": {
+      "RejectClinicAssistantActionRequest": {
         "required": [
           "actionId"
         ],
@@ -2397,7 +3194,7 @@
           }
         }
       },
-      "RejectPatientAgentActionResponse": {
+      "RejectClinicAssistantActionResponse": {
         "required": [
           "actionId",
           "status"
@@ -2409,11 +3206,11 @@
             "format": "uuid"
           },
           "status": {
-            "$ref": "#/components/schemas/PatientAgentActionStatus"
+            "$ref": "#/components/schemas/ClinicAssistantActionStatus"
           }
         }
       },
-      "ResolvePatientAgentCandidateRequest": {
+      "ResolveClinicAssistantCandidateRequest": {
         "required": [
           "agentRunId",
           "candidateToken"
@@ -2428,7 +3225,7 @@
           }
         }
       },
-      "ResolvePatientAgentCandidateResponse": {
+      "ResolveClinicAssistantCandidateResponse": {
         "required": [
           "patientId"
         ],
@@ -2440,7 +3237,7 @@
           }
         }
       },
-      "RunPatientAgentRequest": {
+      "RunClinicAssistantRequest": {
         "required": [
           "message"
         ],
@@ -2457,7 +3254,7 @@
           }
         }
       },
-      "RunPatientAgentResponse": {
+      "RunClinicAssistantResponse": {
         "required": [
           "agentRunId",
           "conversationId",
@@ -2482,13 +3279,13 @@
           "messages": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/PatientAgentMessageResponse"
+              "$ref": "#/components/schemas/ClinicAssistantMessageResponse"
             }
           },
           "actions": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/PatientAgentActionResponse"
+              "$ref": "#/components/schemas/ClinicAssistantActionResponse"
             }
           },
           "candidates": {
@@ -2497,7 +3294,7 @@
               "array"
             ],
             "items": {
-              "$ref": "#/components/schemas/PatientAgentCandidateResponse"
+              "$ref": "#/components/schemas/ClinicAssistantCandidateResponse"
             }
           },
           "hasMoreCandidates": {

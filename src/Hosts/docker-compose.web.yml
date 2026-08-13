@@ -36,7 +36,7 @@ services:
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       AGENT_RUNTIME_SHARED_SECRET: ${VITARISH_AGENT_RUNTIME_SECRET}
-      AGENT_RUNTIME_INTELLIGENCE_HEALTH_URL: http://main:8080/api/modules/clinic/internal/agent/health
+      AGENT_RUNTIME_INTELLIGENCE_HEALTH_URL: http://main:8080/api/modules/clinic/internal/assistant/health
     depends_on:
       - main
 

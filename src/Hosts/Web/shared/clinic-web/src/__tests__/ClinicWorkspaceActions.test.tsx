@@ -8,35 +8,35 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  OperationsAgentActionReview,
-  PatientAgentActionReview,
-} from "../features/patient-agent/PatientAgentActions";
-import type { PatientAgentAction } from "../features/patient-agent/hooks";
+  OperationsAssistantActionReview,
+  ClinicWorkspaceActionReview,
+} from "../features/clinic-assistant/ClinicWorkspaceActions";
+import type { ClinicWorkspaceAction } from "../features/clinic-assistant/hooks";
 import { LocalizationProvider, clinicMessageCatalogs } from "../localization";
 
 const confirm = vi.fn();
 const reject = vi.fn();
 const confirmOperation = vi.fn();
 const rejectOperation = vi.fn();
-vi.mock("../features/patient-agent/hooks", () => ({
-  useConfirmPatientAgentAction: () => ({
+vi.mock("../features/clinic-assistant/hooks", () => ({
+  useConfirmClinicWorkspaceAction: () => ({
     mutateAsync: confirm,
     isPending: false,
   }),
-  useRejectPatientAgentAction: () => ({
+  useRejectClinicWorkspaceAction: () => ({
     mutateAsync: reject,
     isPending: false,
   }),
-  usePatientAgentAction: vi.fn(),
-  useConfirmOperationsAgentAction: () => ({
+  useClinicWorkspaceAction: vi.fn(),
+  useConfirmOperationsAssistantAction: () => ({
     mutateAsync: confirmOperation,
     isPending: false,
   }),
-  useRejectOperationsAgentAction: () => ({
+  useRejectOperationsAssistantAction: () => ({
     mutateAsync: rejectOperation,
     isPending: false,
   }),
-  useOperationsAgentAction: vi.fn(),
+  useOperationsAssistantAction: vi.fn(),
 }));
 vi.mock("@vitarish/web-ui", () => ({
   FaIcon: ({ icon }: { icon: string }) => (
@@ -63,7 +63,7 @@ function action(
   actionId: string,
   capability: string,
   actionType: string,
-): PatientAgentAction {
+): ClinicWorkspaceAction {
   return {
     actionId,
     agentRunId: "run-1",
@@ -80,7 +80,7 @@ function action(
   };
 }
 
-describe("patient-agent independent actions", () => {
+describe("clinic-assistant independent actions", () => {
   beforeEach(() => {
     confirm.mockReset();
     reject.mockReset();
@@ -94,7 +94,7 @@ describe("patient-agent independent actions", () => {
       status: "Completed",
     });
     render(
-      <OperationsAgentActionReview
+      <OperationsAssistantActionReview
         action={{
           actionId: "shift-1",
           agentRunId: "run-operations",
@@ -136,7 +136,7 @@ describe("patient-agent independent actions", () => {
   it("keeps a proposal actionable when confirmation transport fails", async () => {
     confirm.mockRejectedValue(new Error("offline"));
     render(
-      <PatientAgentActionReview
+      <ClinicWorkspaceActionReview
         patientId="patient-1"
         action={action("appointment-1", "Appointments", "create_appointment")}
       />,
@@ -165,11 +165,11 @@ describe("patient-agent independent actions", () => {
     });
     render(
       <div>
-        <PatientAgentActionReview
+        <ClinicWorkspaceActionReview
           patientId="patient-1"
           action={action("appointment-1", "Appointments", "create_appointment")}
         />
-        <PatientAgentActionReview
+        <ClinicWorkspaceActionReview
           patientId="patient-1"
           action={action(
             "prescription-1",
@@ -202,8 +202,8 @@ describe("patient-agent independent actions", () => {
     };
     render(
       <div>
-        <PatientAgentActionReview patientId="patient-1" action={completed} />
-        <PatientAgentActionReview patientId="patient-1" action={expired} />
+        <ClinicWorkspaceActionReview patientId="patient-1" action={completed} />
+        <ClinicWorkspaceActionReview patientId="patient-1" action={expired} />
       </div>,
       { wrapper: Wrapper },
     );

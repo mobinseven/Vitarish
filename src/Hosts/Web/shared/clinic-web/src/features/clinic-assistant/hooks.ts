@@ -8,58 +8,58 @@ import {
   type ConversationController,
 } from "@vitarish/intelligence-web";
 import {
-  clinicConfirmAgentAction,
-  clinicConfirmPatientAgentAction,
-  clinicDeletePatientAgentConversation,
-  clinicGetAgentAction,
-  clinicGetPatientAgentAction,
-  clinicRejectAgentAction,
-  clinicRejectPatientAgentAction,
-  clinicDeleteOperationsAgentConversation,
+  clinicConfirmAssistantAction,
+  clinicConfirmPatientAssistantAction,
+  clinicDeletePatientAssistantConversation,
+  clinicGetAssistantAction,
+  clinicGetPatientAssistantAction,
+  clinicRejectAssistantAction,
+  clinicRejectPatientAssistantAction,
+  clinicDeleteOperationsAssistantConversation,
 } from "../../api/generated/clinic/clinic";
 import type {
-  PatientAgentCandidateResponse,
-  PatientAgentActionDetailsResponse,
-  PatientAgentActionResponse,
-  PatientAgentMessageResponse,
-  RunPatientAgentResponse,
+  ClinicAssistantCandidateResponse,
+  ClinicAssistantActionDetailsResponse,
+  ClinicAssistantActionResponse,
+  ClinicAssistantMessageResponse,
+  RunClinicAssistantResponse,
 } from "../../api/generated/clinic/model";
 
-export type PatientAgentAction = PatientAgentActionDetailsResponse;
-export type PatientAgentMessageResult = PatientAgentMessageResponse;
-export type ClinicAgentChatMessage =
-  | PatientAgentMessageResult
+export type ClinicWorkspaceAction = ClinicAssistantActionDetailsResponse;
+export type ClinicWorkspaceMessageResult = ClinicAssistantMessageResponse;
+export type ClinicAssistantChatMessage =
+  | ClinicWorkspaceMessageResult
   | { kind: "UserMessage"; content: string };
 
 type CandidatePresentation = {
-  candidates: PatientAgentCandidateResponse[];
+  candidates: ClinicAssistantCandidateResponse[];
   runId: string;
   message: string;
 };
 
-const patientAgentActionKey = (patientId: string, actionId: string) =>
-  ["clinic", "patient-agent", patientId, "actions", actionId] as const;
-const operationsAgentActionKey = (actionId: string) =>
+const clinicAssistantActionKey = (patientId: string, actionId: string) =>
+  ["clinic", "clinic-assistant", patientId, "actions", actionId] as const;
+const operationsAssistantActionKey = (actionId: string) =>
   ["clinic", "operations-agent", "actions", actionId] as const;
 
-export function usePatientAgentConversation(patientId: string, isOpen: boolean) {
+export function useClinicWorkspaceConversation(patientId: string, isOpen: boolean) {
   const runTurn = useCallback(
     async (message: string, conversationId: string | null, signal: AbortSignal) => {
       const response = await intelligenceRunAgentConversation({
-        agentKey: "clinic.patient",
+        agentKey: "clinic.assistant.patient",
         subjectKind: "patient",
         subjectId: patientId,
         message,
         conversationId,
       }, undefined, signal);
-      const result = response.result as unknown as RunPatientAgentResponse;
+      const result = response.result as unknown as RunClinicAssistantResponse;
       return { conversationId: response.conversationId, result };
     },
     [patientId],
   );
   const deleteConversation = useCallback(
     (conversationId: string) =>
-      clinicDeletePatientAgentConversation(patientId, conversationId),
+      clinicDeletePatientAssistantConversation(patientId, conversationId),
     [patientId],
   );
   return useConversationController({
@@ -75,7 +75,7 @@ export function usePatientAgentConversation(patientId: string, isOpen: boolean) 
   });
 }
 
-export function useOperationsAgentConversation(isOpen: boolean) {
+export function useOperationsAssistantConversation(isOpen: boolean) {
   const runTurn = useCallback(
     async (
       message: string,
@@ -84,7 +84,7 @@ export function useOperationsAgentConversation(isOpen: boolean) {
     ) => {
       const response = await intelligenceRunAgentConversation(
         {
-          agentKey: "clinic.operations",
+          agentKey: "clinic.assistant.operations",
           subjectKind: "practice",
           subjectId: "practice",
           message,
@@ -95,16 +95,16 @@ export function useOperationsAgentConversation(isOpen: boolean) {
       );
       return {
         conversationId: response.conversationId,
-        result: response.result as unknown as RunPatientAgentResponse,
+        result: response.result as unknown as RunClinicAssistantResponse,
       };
     },
     [],
   );
   return useConversationController({
-    ownerKey: "clinic.operations",
+    ownerKey: "clinic.assistant.operations",
     isOpen,
     run: runTurn,
-    deleteConversation: clinicDeleteOperationsAgentConversation,
+    deleteConversation: clinicDeleteOperationsAssistantConversation,
     isNotFound: (error) =>
       typeof error === "object" &&
       error !== null &&
@@ -113,11 +113,11 @@ export function useOperationsAgentConversation(isOpen: boolean) {
   });
 }
 
-export function useClinicAgentConversationSurface(
-  conversation: ConversationController<RunPatientAgentResponse>,
+export function useClinicAssistantConversationSurface(
+  conversation: ConversationController<RunClinicAssistantResponse>,
   scopeKey: string,
 ) {
-  const [messages, setMessages] = useState<ClinicAgentChatMessage[]>([]);
+  const [messages, setMessages] = useState<ClinicAssistantChatMessage[]>([]);
   const [actionIds, setActionIds] = useState<string[]>([]);
   const [lastMessage, setLastMessage] = useState("");
   const [candidatePresentation, setCandidatePresentation] = useState<CandidatePresentation | null>(null);
@@ -134,7 +134,7 @@ export function useClinicAgentConversationSurface(
   }, [scopeKey]);
 
   const appendResult = useCallback(
-    (result: RunPatientAgentResponse | undefined, submittedScope: string, submittedMessage: string, requestId: number) => {
+    (result: RunClinicAssistantResponse | undefined, submittedScope: string, submittedMessage: string, requestId: number) => {
       if (!result || activeScope.current !== submittedScope || requestSequence.current !== requestId) return;
       const hasFailure = result.messages.some(({ kind }) => kind === "Failure");
       setMessages((current) => [
@@ -204,60 +204,60 @@ export function useClinicAgentConversationSurface(
   };
 }
 
-export function usePatientAgentAction(patientId: string, actionId: string) {
+export function useClinicWorkspaceAction(patientId: string, actionId: string) {
   return useQuery({
-    queryKey: patientAgentActionKey(patientId, actionId),
-    queryFn: ({ signal }) => clinicGetPatientAgentAction(patientId, actionId, undefined, signal),
+    queryKey: clinicAssistantActionKey(patientId, actionId),
+    queryFn: ({ signal }) => clinicGetPatientAssistantAction(patientId, actionId, undefined, signal),
     enabled: Boolean(patientId && actionId),
     staleTime: 0,
   });
 }
 
-export function useOperationsAgentAction(actionId: string) {
+export function useOperationsAssistantAction(actionId: string) {
   return useQuery({
-    queryKey: operationsAgentActionKey(actionId),
-    queryFn: ({ signal }) => clinicGetAgentAction(actionId, undefined, signal),
+    queryKey: operationsAssistantActionKey(actionId),
+    queryFn: ({ signal }) => clinicGetAssistantAction(actionId, undefined, signal),
     enabled: Boolean(actionId),
     staleTime: 0,
   });
 }
 
-export function useConfirmPatientAgentAction(patientId: string) {
+export function useConfirmClinicWorkspaceAction(patientId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (actionId: string) =>
-      clinicConfirmPatientAgentAction(patientId, actionId, { actionId }),
+      clinicConfirmPatientAssistantAction(patientId, actionId, { actionId }),
     onSettled: (_data, _error, actionId) =>
-      queryClient.invalidateQueries({ queryKey: patientAgentActionKey(patientId, actionId) }),
+      queryClient.invalidateQueries({ queryKey: clinicAssistantActionKey(patientId, actionId) }),
   });
 }
 
-export function useRejectPatientAgentAction(patientId: string) {
+export function useRejectClinicWorkspaceAction(patientId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (actionId: string) =>
-      clinicRejectPatientAgentAction(patientId, actionId, { actionId }),
+      clinicRejectPatientAssistantAction(patientId, actionId, { actionId }),
     onSettled: (_data, _error, actionId) =>
-      queryClient.invalidateQueries({ queryKey: patientAgentActionKey(patientId, actionId) }),
+      queryClient.invalidateQueries({ queryKey: clinicAssistantActionKey(patientId, actionId) }),
   });
 }
 
-export function useConfirmOperationsAgentAction() {
+export function useConfirmOperationsAssistantAction() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (actionId: string) => clinicConfirmAgentAction(actionId),
+    mutationFn: (actionId: string) => clinicConfirmAssistantAction(actionId),
     onSettled: (_data, _error, actionId) =>
-      queryClient.invalidateQueries({ queryKey: operationsAgentActionKey(actionId) }),
+      queryClient.invalidateQueries({ queryKey: operationsAssistantActionKey(actionId) }),
   });
 }
 
-export function useRejectOperationsAgentAction() {
+export function useRejectOperationsAssistantAction() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (actionId: string) => clinicRejectAgentAction(actionId, { actionId }),
+    mutationFn: (actionId: string) => clinicRejectAssistantAction(actionId, { actionId }),
     onSettled: (_data, _error, actionId) =>
-      queryClient.invalidateQueries({ queryKey: operationsAgentActionKey(actionId) }),
+      queryClient.invalidateQueries({ queryKey: operationsAssistantActionKey(actionId) }),
   });
 }
 
-export type { PatientAgentActionResponse, RunPatientAgentResponse };
+export type { ClinicAssistantActionResponse, RunClinicAssistantResponse };
