@@ -14,9 +14,9 @@ namespace Clinic.Tests.Api;
 public sealed class ClinicEndpointMetadataTests
 {
     [Theory]
-    [InlineData("ClinicGetPatientAgentAction", "GET")]
-    [InlineData("ClinicConfirmPatientAgentAction", "POST")]
-    [InlineData("ClinicRejectPatientAgentAction", "POST")]
+    [InlineData("ClinicGetPatientAssistantAction", "GET")]
+    [InlineData("ClinicConfirmPatientAssistantAction", "POST")]
+    [InlineData("ClinicRejectPatientAssistantAction", "POST")]
     public void Patient_agent_action_endpoints_keep_operation_ids_and_require_authentication(
         string operationId,
         string method)
@@ -34,7 +34,7 @@ public sealed class ClinicEndpointMetadataTests
         endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()!.HttpMethods.Should().ContainSingle().Which.Should().Be(method);
         endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Should().NotBeEmpty();
         endpoint.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()!.Route.Should()
-            .Contain("/patients/{patientId:guid}/agent/actions/{actionId:guid}");
+            .Contain("/patients/{patientId:guid}/assistant/actions/{actionId:guid}");
     }
 
     [Fact]
@@ -49,18 +49,18 @@ public sealed class ClinicEndpointMetadataTests
         Endpoint endpoint = ((IEndpointRouteBuilder)app).DataSources
             .SelectMany(source => source.Endpoints)
             .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName
-                == "ClinicDeletePatientAgentConversation");
+                == "ClinicDeletePatientAssistantConversation");
 
         endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()!.HttpMethods.Should().ContainSingle().Which.Should().Be("DELETE");
         endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Should().NotBeEmpty();
         endpoint.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()!.Route.Should()
-            .Contain("/patients/{patientId:guid}/agent/{conversationId:guid}");
+            .Contain("/patients/{patientId:guid}/assistant/{conversationId:guid}");
     }
 
     [Theory]
-    [InlineData("ClinicGetAgentAction", "GET", "/agent/actions/{actionId:guid}")]
-    [InlineData("ClinicConfirmAgentAction", "POST", "/agent/actions/{actionId:guid}/confirm")]
-    [InlineData("ClinicRejectAgentAction", "POST", "/agent/actions/{actionId:guid}/reject")]
+    [InlineData("ClinicGetAssistantAction", "GET", "/assistant/actions/{actionId:guid}")]
+    [InlineData("ClinicConfirmAssistantAction", "POST", "/assistant/actions/{actionId:guid}/confirm")]
+    [InlineData("ClinicRejectAssistantAction", "POST", "/assistant/actions/{actionId:guid}/reject")]
     public void Canonical_agent_action_endpoints_are_protected_and_keep_their_routes(
         string operationId,
         string method,
@@ -93,7 +93,7 @@ public sealed class ClinicEndpointMetadataTests
         Endpoint endpoint = ((IEndpointRouteBuilder)app).DataSources
             .SelectMany(source => source.Endpoints)
             .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName
-                == "ClinicConfirmAgentAction");
+                == "ClinicConfirmAssistantAction");
 
         endpoint.Metadata.GetMetadata<IAcceptsMetadata>().Should().BeNull();
     }
@@ -110,11 +110,11 @@ public sealed class ClinicEndpointMetadataTests
         Endpoint endpoint = ((IEndpointRouteBuilder)app).DataSources
             .SelectMany(source => source.Endpoints)
             .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName
-                == "ClinicResolvePatientAgentCandidate");
+                == "ClinicResolveClinicAssistantCandidate");
 
         endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()!.HttpMethods.Should().ContainSingle().Which.Should().Be("POST");
         endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Should().NotBeEmpty();
-        endpoint.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()!.Route.Should().Contain("/agent/patient-candidates/resolve");
+        endpoint.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()!.Route.Should().Contain("/assistant/patient-candidates/resolve");
         endpoint.Metadata.GetMetadata<IAcceptsMetadata>().Should().NotBeNull();
     }
 

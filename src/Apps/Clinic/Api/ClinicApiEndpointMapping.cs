@@ -10,13 +10,13 @@ using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Commands.Visits;
 using Vitarish.Clinic.Application.Queries.Patients;
 using Vitarish.Clinic.Application.Results;
-using Vitarish.Clinic.Application.PatientAgent;
-using Vitarish.Clinic.Application.PatientAgent.Actions;
-using Vitarish.Clinic.Application.PatientAgent.Capabilities;
-using Vitarish.Clinic.Application.PatientAgent.Operations;
-using Vitarish.Clinic.Api.PatientAgent;
+using Vitarish.Clinic.Application.ClinicWorkspace;
+using Vitarish.Clinic.Application.ClinicWorkspace.Actions;
+using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.ClinicWorkspace.Operations;
+using Vitarish.Clinic.Api.ClinicAssistant;
 using Vitarish.Clinic.Contracts.Errors;
-using Vitarish.Clinic.Contracts.PatientAgent;
+using Vitarish.Clinic.Contracts.ClinicAssistant;
 using Vitarish.Clinic.Contracts.Responses;
 using Vitarish.Clinic.Contracts.Routes;
 using Vitarish.Clinic.Domain.Models;
@@ -57,34 +57,56 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModuleGet(ClinicApiRoutes.PatientDetails, GetPatientDetailsAsync, "ClinicGetPatientDetails", typeof(PatientViewDto));
         _ = group.MapModulePut(ClinicApiRoutes.PatientUpdate, UpdatePatientAsync, "ClinicUpdatePatient", typeof(PatientViewDto))
             .RequireAuthorization(SeaManagePolicy);
-        // Compatibility window: new callers must use IntelligenceApiRoutes.AgentConversation.
-        _ = group.MapModulePost(ClinicApiRoutes.PatientAgent, RunPatientAgentAsync, "ClinicRunPatientAgent", typeof(RunPatientAgentResponse));
-        _ = group.MapModuleDelete(ClinicApiRoutes.PatientAgentConversation, DeletePatientAgentConversationAsync, "ClinicDeletePatientAgentConversation");
-        _ = group.MapModuleGet(ClinicApiRoutes.PatientAgentAction, GetPatientAgentActionAsync, "ClinicGetPatientAgentAction", typeof(PatientAgentActionDetailsResponse));
-        _ = group.MapModulePost(ClinicApiRoutes.ConfirmPatientAgentAction, ConfirmPatientAgentActionAsync, "ClinicConfirmPatientAgentAction", typeof(ConfirmPatientAgentActionResponse));
-        _ = group.MapModulePost(ClinicApiRoutes.RejectPatientAgentAction, RejectPatientAgentActionAsync, "ClinicRejectPatientAgentAction", typeof(RejectPatientAgentActionResponse));
-        _ = group.MapModulePost(ClinicApiRoutes.OperationsAgent, RunOperationsAgentAsync, "ClinicRunOperationsAgent", typeof(RunPatientAgentResponse));
-        _ = group.MapModulePost(ClinicApiRoutes.ResolvePatientAgentCandidate, ResolvePatientAgentCandidateAsync, "ClinicResolvePatientAgentCandidate", typeof(ResolvePatientAgentCandidateResponse));
-        _ = group.MapModuleDelete(ClinicApiRoutes.OperationsAgentConversation, DeleteOperationsAgentConversationAsync, "ClinicDeleteOperationsAgentConversation");
-        _ = group.MapModuleGet(ClinicApiRoutes.AgentAction, GetOperationsAgentActionAsync, "ClinicGetAgentAction", typeof(PatientAgentActionDetailsResponse));
-        _ = group.MapModulePost(ClinicApiRoutes.ConfirmAgentAction, ConfirmOperationsAgentActionAsync, "ClinicConfirmAgentAction", typeof(ConfirmPatientAgentActionResponse));
-        _ = group.MapModulePost(ClinicApiRoutes.RejectAgentAction, RejectOperationsAgentActionAsync, "ClinicRejectAgentAction", typeof(RejectPatientAgentActionResponse));
-        // Compatibility alias: configured runtimes use IntelligenceApiRoutes.InternalAgentToolExecution;
-        // retain this route while older deployments still target the Clinic callback.
+        _ = group.MapModulePost(ClinicApiRoutes.PatientAssistant, RunCanonicalPatientAssistantAsync, "ClinicRunPatientAssistant", typeof(RunClinicAssistantResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.LegacyPatientAgent, RunLegacyPatientAgentAsync, "ClinicRunPatientAgent", typeof(RunClinicAssistantResponse));
+        _ = group.MapModuleDelete(ClinicApiRoutes.PatientAssistantConversation, DeleteCanonicalPatientAssistantConversationAsync, "ClinicDeletePatientAssistantConversation");
+        _ = group.MapModuleDelete(ClinicApiRoutes.LegacyPatientAgent + "/{conversationId:guid}", DeleteLegacyPatientAgentConversationAsync, "ClinicDeletePatientAgentConversation");
+        _ = group.MapModuleGet(ClinicApiRoutes.PatientAssistantAction, GetPatientAssistantActionAsync, "ClinicGetPatientAssistantAction", typeof(ClinicAssistantActionDetailsResponse));
+        _ = group.MapModuleGet(ClinicApiRoutes.LegacyPatientAgentAction, GetPatientAssistantActionAsync, "ClinicGetPatientAgentAction", typeof(ClinicAssistantActionDetailsResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.ConfirmPatientAssistantAction, ConfirmPatientAssistantActionAsync, "ClinicConfirmPatientAssistantAction", typeof(ConfirmClinicAssistantActionResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.ConfirmLegacyPatientAgentAction, ConfirmPatientAssistantActionAsync, "ClinicConfirmPatientAgentAction", typeof(ConfirmClinicAssistantActionResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.RejectPatientAssistantAction, RejectPatientAssistantActionAsync, "ClinicRejectPatientAssistantAction", typeof(RejectClinicAssistantActionResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.RejectLegacyPatientAgentAction, RejectPatientAssistantActionAsync, "ClinicRejectPatientAgentAction", typeof(RejectClinicAssistantActionResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.OperationsAssistant, RunCanonicalOperationsAssistantAsync, "ClinicRunOperationsAssistant", typeof(RunClinicAssistantResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.LegacyOperationsAgent, RunLegacyOperationsAgentAsync, "ClinicRunOperationsAgent", typeof(RunClinicAssistantResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.ResolveClinicAssistantCandidate, ResolveClinicAssistantCandidateAsync, "ClinicResolveClinicAssistantCandidate", typeof(ResolveClinicAssistantCandidateResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.LegacyResolvePatientAgentCandidate, ResolveClinicAssistantCandidateAsync, "ClinicResolvePatientAgentCandidate", typeof(ResolveClinicAssistantCandidateResponse));
+        _ = group.MapModuleDelete(ClinicApiRoutes.OperationsAssistantConversation, DeleteCanonicalOperationsAssistantConversationAsync, "ClinicDeleteOperationsAssistantConversation");
+        _ = group.MapModuleDelete(ClinicApiRoutes.LegacyOperationsAgent + "/{conversationId:guid}", DeleteLegacyOperationsAgentConversationAsync, "ClinicDeleteOperationsAgentConversation");
+        _ = group.MapModuleGet(ClinicApiRoutes.AssistantAction, GetOperationsAssistantActionAsync, "ClinicGetAssistantAction", typeof(ClinicAssistantActionDetailsResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.ConfirmAssistantAction, ConfirmOperationsAssistantActionAsync, "ClinicConfirmAssistantAction", typeof(ConfirmClinicAssistantActionResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.RejectAssistantAction, RejectOperationsAssistantActionAsync, "ClinicRejectAssistantAction", typeof(RejectClinicAssistantActionResponse));
+        _ = group.MapModuleGet(ClinicApiRoutes.LegacyAgentActions, GetOperationsAssistantActionAsync, "ClinicGetAgentAction", typeof(ClinicAssistantActionDetailsResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.LegacyAgentActions + "/confirm", ConfirmOperationsAssistantActionAsync, "ClinicConfirmAgentAction", typeof(ConfirmClinicAssistantActionResponse));
+        _ = group.MapModulePost(ClinicApiRoutes.LegacyAgentActions + "/reject", RejectOperationsAssistantActionAsync, "ClinicRejectAgentAction", typeof(RejectClinicAssistantActionResponse));
         _ = internalGroup.MapModulePost(
-                "/internal/agent/tools/execute",
-                ExecutePatientAgentToolAsync,
-                "ClinicExecuteInternalPatientAgentTool",
-                typeof(ExecutePatientAgentToolResponse),
+                ClinicApiRoutes.InternalAssistantTools,
+                ExecuteClinicAssistantToolAsync,
+                "ClinicExecuteInternalAssistantTool",
+                typeof(ExecuteClinicAssistantToolResponse),
                 profile: ModuleEndpointProfile.AnonymousJson,
                 anonymousJustification: "The endpoint is an internal callback from the server-side Agents SDK runtime and validates a signed, short-lived execution credential.")
             .ExcludeFromOpenApiWithJustification("Internal agent runtime callback; not a public module API.");
+        _ = internalGroup.MapModulePost(
+                ClinicApiRoutes.LegacyInternalAgentTools,
+                ExecuteClinicAssistantToolAsync,
+                "ClinicExecuteInternalAgentTool",
+                typeof(ExecuteClinicAssistantToolResponse),
+                profile: ModuleEndpointProfile.AnonymousJson,
+                anonymousJustification: "Legacy internal agent callback retained during the assistant route migration.")
+            .ExcludeFromOpenApiWithJustification("Legacy internal agent runtime callback retained during the assistant route migration.");
         _ = internalGroup.MapModuleGet(
-                "/internal/agent/health",
+                ClinicApiRoutes.InternalAssistantHealth,
+                AgentRuntimeHealthAsync,
+                "ClinicGetInternalAssistantHealth",
+                typeof(object))
+            .ExcludeFromOpenApiWithJustification("Internal agent runtime connectivity probe; not a public module API.");
+        _ = internalGroup.MapModuleGet(
+                ClinicApiRoutes.LegacyInternalAgentHealth,
                 AgentRuntimeHealthAsync,
                 "ClinicGetInternalAgentHealth",
                 typeof(object))
-            .ExcludeFromOpenApiWithJustification("Internal agent runtime connectivity probe; not a public module API.");
+            .ExcludeFromOpenApiWithJustification("Legacy internal agent runtime connectivity probe retained during the assistant route migration.");
         _ = group.MapModulePost(
                 ClinicApiRoutes.StartVisitPrescriptionDraft,
                 StartVisitPrescriptionDraftAsync,
@@ -106,8 +128,8 @@ public static class ClinicApiEndpointMapping
         return valid ? Results.Ok(new { status = "ok", component = "intelligence-agent-runtime" }) : Results.Unauthorized();
     }
 
-    private static async Task<IResult> ExecutePatientAgentToolAsync(
-        ExecutePatientAgentToolRequest request,
+    private static async Task<IResult> ExecuteClinicAssistantToolAsync(
+        ExecuteClinicAssistantToolRequest request,
         HttpRequest httpRequest,
         [FromServices] IAgentRuntimeCredentialService credentialService,
         [FromServices] ClinicRuntimeToolEndpoint runtimeEndpoint,
@@ -125,7 +147,7 @@ public static class ClinicApiEndpointMapping
         {
             AgentToolResult result = await runtimeEndpoint.ExecuteAsync(
                 new(new AgentToolCall(request.ToolCallId, request.ToolName, request.ArgumentsJson), executionContext), ct);
-            return Results.Ok(new ExecutePatientAgentToolResponse(result.CallId, result.Output, result.IsError));
+            return Results.Ok(new ExecuteClinicAssistantToolResponse(result.CallId, result.Output, result.IsError));
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -137,7 +159,7 @@ public static class ClinicApiEndpointMapping
         }
         catch (KeyNotFoundException)
         {
-            return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "The requested patient-agent tool is not available."));
+            return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "The requested clinic-assistant tool is not available."));
         }
         catch (Exception exception) when (exception is System.Text.Json.JsonException or FormatException or ArgumentException or InvalidOperationException)
         {
@@ -145,136 +167,147 @@ public static class ClinicApiEndpointMapping
         }
     }
 
-    private static async Task<IResult> GetPatientAgentActionAsync(
-        Guid patientId, Guid actionId, [FromServices] IPatientAgentContextFactory contextFactory,
+    private static async Task<IResult> GetPatientAssistantActionAsync(
+        Guid patientId, Guid actionId, [FromServices] IClinicWorkspaceContextFactory contextFactory,
         ISender sender, CancellationToken ct)
     {
         if (patientId == Guid.Empty || actionId == Guid.Empty) return InvalidActionRequest();
-        PatientAgentContext context;
+        ClinicWorkspaceContext context;
         try { context = await contextFactory.CreateAsync(patientId, null, ct); }
-        catch (KeyNotFoundException) { return NotFoundPatientAgent(); }
-        PatientAgentActionResult result = await sender.Send(new GetPatientAgentAction(actionId, context), ct);
+        catch (KeyNotFoundException) { return NotFoundClinicAssistant(); }
+        ClinicWorkspaceActionResult result = await sender.Send(new GetClinicWorkspaceAction(actionId, context), ct);
         return MapActionResult(result, action => Results.Ok(ToDetails(action)));
     }
 
-    private static async Task<IResult> GetOperationsAgentActionAsync(Guid actionId, [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
+    private static async Task<IResult> GetOperationsAssistantActionAsync(Guid actionId, [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
     {
         if (actionId == Guid.Empty) return InvalidActionRequest();
-        PatientAgentContext context;
+        ClinicWorkspaceContext context;
         try { context = await contextFactory.CreateOperationsAsync(null, ct); }
-        catch (UnauthorizedAccessException) { return ForbiddenAgentAction(); }
-        PatientAgentActionResult result = await sender.Send(new GetPatientAgentAction(actionId, context), ct);
+        catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
+        ClinicWorkspaceActionResult result = await sender.Send(new GetClinicWorkspaceAction(actionId, context), ct);
         return MapActionResult(result, action => Results.Ok(ToDetails(action)));
     }
 
-    private static async Task<IResult> ConfirmOperationsAgentActionAsync(Guid actionId, [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
+    private static async Task<IResult> ConfirmOperationsAssistantActionAsync(Guid actionId, [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
     {
         if (actionId == Guid.Empty) return InvalidActionRequest();
-        PatientAgentContext context;
+        ClinicWorkspaceContext context;
         try { context = await contextFactory.CreateOperationsAsync(null, ct); }
-        catch (UnauthorizedAccessException) { return ForbiddenAgentAction(); }
-        PatientAgentActionResult result = await sender.Send(new ConfirmPatientAgentAction(actionId, context), ct);
-        return MapActionResult(result, action => Results.Ok(new ConfirmPatientAgentActionResponse(action.ActionId, ToContract(action.Status), Json(action.CompletionPayload), ToFailure(action.Failure))));
+        catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
+        ClinicWorkspaceActionResult result = await sender.Send(new ConfirmClinicWorkspaceAction(actionId, context), ct);
+        return MapActionResult(result, action => Results.Ok(new ConfirmClinicAssistantActionResponse(action.ActionId, ToContract(action.Status), Json(action.CompletionPayload), ToFailure(action.Failure))));
     }
 
-    private static async Task<IResult> RejectOperationsAgentActionAsync(Guid actionId, RejectPatientAgentActionRequest request, [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
+    private static async Task<IResult> RejectOperationsAssistantActionAsync(Guid actionId, RejectClinicAssistantActionRequest request, [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
     {
         if (actionId == Guid.Empty || request is null || !Guid.TryParse(request.ActionId, out Guid bodyId) || bodyId != actionId || request.Reason?.Length > 1_000) return InvalidActionRequest();
-        PatientAgentContext context;
+        ClinicWorkspaceContext context;
         try { context = await contextFactory.CreateOperationsAsync(null, ct); }
-        catch (UnauthorizedAccessException) { return ForbiddenAgentAction(); }
-        PatientAgentActionResult result = await sender.Send(new RejectPatientAgentAction(actionId, context, request.Reason), ct);
-        return MapActionResult(result, action => Results.Ok(new RejectPatientAgentActionResponse(action.ActionId, ToContract(action.Status))));
+        catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
+        ClinicWorkspaceActionResult result = await sender.Send(new RejectClinicWorkspaceAction(actionId, context, request.Reason), ct);
+        return MapActionResult(result, action => Results.Ok(new RejectClinicAssistantActionResponse(action.ActionId, ToContract(action.Status))));
     }
 
-    private static async Task<IResult> RunOperationsAgentAsync(RunPatientAgentRequest request, [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
+    private static async Task<IResult> RunCanonicalOperationsAssistantAsync(RunClinicAssistantRequest request, [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
+        => await RunOperationsAssistantAsync(request, contextFactory, sender, ct, agentKey: null);
+
+    private static async Task<IResult> RunLegacyOperationsAgentAsync(RunClinicAssistantRequest request, [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
+        => await RunOperationsAssistantAsync(request, contextFactory, sender, ct, "clinic.operations");
+
+    private static async Task<IResult> RunOperationsAssistantAsync(
+        RunClinicAssistantRequest request,
+        IClinicWorkspaceContextFactory contextFactory,
+        ISender sender,
+        CancellationToken ct,
+        string? agentKey)
     {
         if (request is null || string.IsNullOrWhiteSpace(request.Message)) return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "A message is required."));
-        PatientAgentContext context;
-        try { context = await contextFactory.CreateOperationsAsync(request.ConversationId, ct); }
-        catch (UnauthorizedAccessException) { return ForbiddenAgentAction(); }
-        PatientAgentResult result = await sender.Send(new RunPatientAgent(context, new PatientAgentInput(request.Message)), ct);
-        if (result.Outcome == PatientAgentRunOutcome.NotFound) return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."));
-        if (result.Outcome == PatientAgentRunOutcome.Busy) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
-        if (result.Outcome == PatientAgentRunOutcome.ProfileChanged) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The agent profile changed; start a new conversation."));
-        if (result.Outcome != PatientAgentRunOutcome.Succeeded) return Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The operations agent failed."), statusCode: StatusCodes.Status502BadGateway);
+        ClinicWorkspaceContext context;
+        try { context = await contextFactory.CreateOperationsAsync(request.ConversationId, ct, agentKey); }
+        catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
+        ClinicWorkspaceResult result = await sender.Send(new RunClinicWorkspace(context, new ClinicWorkspaceInput(request.Message)), ct);
+        if (result.Outcome == ClinicWorkspaceRunOutcome.NotFound) return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."));
+        if (result.Outcome == ClinicWorkspaceRunOutcome.Busy) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
+        if (result.Outcome == ClinicWorkspaceRunOutcome.ProfileChanged) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The agent profile changed; start a new conversation."));
+        if (result.Outcome != ClinicWorkspaceRunOutcome.Succeeded) return Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The operations agent failed."), statusCode: StatusCodes.Status502BadGateway);
         return Results.Ok(ToRunResponse(result));
     }
 
-    private static async Task<IResult> ResolvePatientAgentCandidateAsync(
-        ResolvePatientAgentCandidateRequest request,
-        [FromServices] IPatientAgentContextFactory contextFactory,
-        [FromServices] IPatientAgentPatientSearch search,
+    private static async Task<IResult> ResolveClinicAssistantCandidateAsync(
+        ResolveClinicAssistantCandidateRequest request,
+        [FromServices] IClinicWorkspaceContextFactory contextFactory,
+        [FromServices] IClinicWorkspacePatientSearch search,
         CancellationToken ct)
     {
         if (request is null || string.IsNullOrWhiteSpace(request.AgentRunId) || string.IsNullOrWhiteSpace(request.CandidateToken))
             return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "A candidate token and agent run are required."));
 
-        PatientAgentContext context;
+        ClinicWorkspaceContext context;
         try { context = await contextFactory.CreateOperationsAsync(null, ct); }
-        catch (UnauthorizedAccessException) { return ForbiddenAgentAction(); }
+        catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
 
-        PatientAgentCandidateReference? candidate = await search.ResolveAsync(
+        ClinicWorkspaceCandidateReference? candidate = await search.ResolveAsync(
             context.PracticeId, context.AuthenticatedUserId, request.AgentRunId, request.CandidateToken, ct);
         return candidate is null
             ? Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "The patient candidate is invalid or expired."))
-            : Results.Ok(new ResolvePatientAgentCandidateResponse(candidate.PatientId));
+            : Results.Ok(new ResolveClinicAssistantCandidateResponse(candidate.PatientId));
     }
 
-    private static async Task<IResult> ConfirmPatientAgentActionAsync(
-        Guid patientId, Guid actionId, ConfirmPatientAgentActionRequest request,
-        [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
+    private static async Task<IResult> ConfirmPatientAssistantActionAsync(
+        Guid patientId, Guid actionId, ConfirmClinicAssistantActionRequest request,
+        [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
     {
         if (patientId == Guid.Empty || actionId == Guid.Empty || request is null ||
             !Guid.TryParse(request.ActionId, out Guid bodyActionId) || bodyActionId != actionId)
             return InvalidActionRequest();
-        PatientAgentContext context;
+        ClinicWorkspaceContext context;
         try { context = await contextFactory.CreateAsync(patientId, null, ct); }
-        catch (KeyNotFoundException) { return NotFoundPatientAgent(); }
-        PatientAgentActionResult result = await sender.Send(new ConfirmPatientAgentAction(actionId, context), ct);
-        return MapActionResult(result, action => Results.Ok(new ConfirmPatientAgentActionResponse(
+        catch (KeyNotFoundException) { return NotFoundClinicAssistant(); }
+        ClinicWorkspaceActionResult result = await sender.Send(new ConfirmClinicWorkspaceAction(actionId, context), ct);
+        return MapActionResult(result, action => Results.Ok(new ConfirmClinicAssistantActionResponse(
             action.ActionId, ToContract(action.Status), Json(action.CompletionPayload), ToFailure(action.Failure))));
     }
 
-    private static async Task<IResult> RejectPatientAgentActionAsync(
-        Guid patientId, Guid actionId, RejectPatientAgentActionRequest request,
-        [FromServices] IPatientAgentContextFactory contextFactory, ISender sender, CancellationToken ct)
+    private static async Task<IResult> RejectPatientAssistantActionAsync(
+        Guid patientId, Guid actionId, RejectClinicAssistantActionRequest request,
+        [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
     {
         if (patientId == Guid.Empty || actionId == Guid.Empty || request is null ||
             !Guid.TryParse(request.ActionId, out Guid bodyActionId) || bodyActionId != actionId ||
             request.Reason?.Length > 1_000)
             return InvalidActionRequest();
-        PatientAgentContext context;
+        ClinicWorkspaceContext context;
         try { context = await contextFactory.CreateAsync(patientId, null, ct); }
-        catch (KeyNotFoundException) { return NotFoundPatientAgent(); }
-        PatientAgentActionResult result = await sender.Send(new RejectPatientAgentAction(actionId, context, request.Reason), ct);
-        return MapActionResult(result, action => Results.Ok(new RejectPatientAgentActionResponse(
+        catch (KeyNotFoundException) { return NotFoundClinicAssistant(); }
+        ClinicWorkspaceActionResult result = await sender.Send(new RejectClinicWorkspaceAction(actionId, context, request.Reason), ct);
+        return MapActionResult(result, action => Results.Ok(new RejectClinicAssistantActionResponse(
             action.ActionId, ToContract(action.Status))));
     }
 
-    private static IResult MapActionResult(PatientAgentActionResult result, Func<PatientAgentAction, IResult> success) =>
+    private static IResult MapActionResult(ClinicWorkspaceActionResult result, Func<ClinicWorkspaceAction, IResult> success) =>
         result.Outcome switch
         {
-            PatientAgentActionOutcome.Succeeded when result.Action is not null => success(result.Action),
-            PatientAgentActionOutcome.ValidationFailure => InvalidActionRequest(),
-            PatientAgentActionOutcome.NotFound => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent action was not found.")),
-            PatientAgentActionOutcome.ScopeMismatch => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent action was not found.")),
-            PatientAgentActionOutcome.PermissionDenied => Results.Json(new ClinicError(ClinicErrorCode.Forbidden, "The action is not permitted."), statusCode: StatusCodes.Status403Forbidden),
-            PatientAgentActionOutcome.Expired => Results.Conflict(ToDetails(result.Action!)),
-            PatientAgentActionOutcome.Conflict => Results.Conflict(result.Action is null ? new ClinicError(ClinicErrorCode.Conflict, "The action cannot be changed.") : ToDetails(result.Action)),
-            PatientAgentActionOutcome.Failed => Results.Json(ToDetails(result.Action!), statusCode: StatusCodes.Status422UnprocessableEntity),
+            ClinicWorkspaceActionOutcome.Succeeded when result.Action is not null => success(result.Action),
+            ClinicWorkspaceActionOutcome.ValidationFailure => InvalidActionRequest(),
+            ClinicWorkspaceActionOutcome.NotFound => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Clinic assistant action was not found.")),
+            ClinicWorkspaceActionOutcome.ScopeMismatch => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Clinic assistant action was not found.")),
+            ClinicWorkspaceActionOutcome.PermissionDenied => Results.Json(new ClinicError(ClinicErrorCode.Forbidden, "The action is not permitted."), statusCode: StatusCodes.Status403Forbidden),
+            ClinicWorkspaceActionOutcome.Expired => Results.Conflict(ToDetails(result.Action!)),
+            ClinicWorkspaceActionOutcome.Conflict => Results.Conflict(result.Action is null ? new ClinicError(ClinicErrorCode.Conflict, "The action cannot be changed.") : ToDetails(result.Action)),
+            ClinicWorkspaceActionOutcome.Failed => Results.Json(ToDetails(result.Action!), statusCode: StatusCodes.Status422UnprocessableEntity),
             _ => Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The action operation failed."), statusCode: StatusCodes.Status500InternalServerError)
         };
 
-    private static PatientAgentActionDetailsResponse ToDetails(PatientAgentAction action) => new(
+    private static ClinicAssistantActionDetailsResponse ToDetails(ClinicWorkspaceAction action) => new(
         action.ActionId, action.AgentRunId, action.ConversationId, action.Capability, action.ActionType,
         ToContract(action.Status), Json(action.ReviewPayload)!.Value, action.ExpiresAt,
         Json(action.CompletionPayload), ToFailure(action.Failure));
 
-    private static Contracts.PatientAgent.PatientAgentActionStatus ToContract(Application.PatientAgent.PatientAgentActionStatus status) =>
-        (Contracts.PatientAgent.PatientAgentActionStatus)(int)status;
+    private static Contracts.ClinicAssistant.ClinicAssistantActionStatus ToContract(Application.ClinicWorkspace.ClinicWorkspaceActionStatus status) =>
+        (Contracts.ClinicAssistant.ClinicAssistantActionStatus)(int)status;
 
-    private static PatientAgentActionFailureResponse? ToFailure(PatientAgentActionFailure? failure) =>
+    private static ClinicAssistantActionFailureResponse? ToFailure(ClinicWorkspaceActionFailure? failure) =>
         failure is null ? null : new(failure.Code, failure.Message, failure.Retryable);
 
     private static System.Text.Json.JsonElement? Json(string? value) => string.IsNullOrWhiteSpace(value)
@@ -283,72 +316,104 @@ public static class ClinicApiEndpointMapping
     private static IResult InvalidActionRequest() => Results.BadRequest(
         new ClinicError(ClinicErrorCode.ValidationFailure, "A valid action identifier is required."));
 
-    private static IResult ForbiddenAgentAction() => Results.Json(
+    private static IResult ForbiddenAssistantAction() => Results.Json(
         new ClinicError(ClinicErrorCode.Forbidden, "The operations agent is not permitted."), statusCode: StatusCodes.Status403Forbidden);
 
-    private static IResult NotFoundPatientAgent() => Results.NotFound(
+    private static IResult NotFoundClinicAssistant() => Results.NotFound(
         new ClinicError(ClinicErrorCode.NotFound, "The route-bound patient is unavailable."));
 
-    private static RunPatientAgentResponse ToRunResponse(PatientAgentResult result) => new(
+    private static RunClinicAssistantResponse ToRunResponse(ClinicWorkspaceResult result) => new(
         result.AgentRunId,
         result.ConversationId,
         null,
-        result.Messages.Select(message => new PatientAgentMessageResponse(
-            (PatientAgentMessageResponseKind)(int)message.Kind, message.Content)).ToArray(),
-        result.Actions.Select(action => new PatientAgentActionResponse(
+        result.Messages.Select(message => new ClinicAssistantMessageResponse(
+            (ClinicAssistantMessageResponseKind)(int)message.Kind, message.Content)).ToArray(),
+        result.Actions.Select(action => new ClinicAssistantActionResponse(
             action.ActionId.ToString("D"), action.Capability, action.ActionType,
             ToContract(action.Status), Json(action.ReviewPayload)!.Value, action.Summary)).ToArray(),
-        result.Candidates?.Select(candidate => new PatientAgentCandidateResponse(
+        result.Candidates?.Select(candidate => new ClinicAssistantCandidateResponse(
             candidate.CandidateToken, candidate.DisplayName, candidate.DateOfBirth,
             candidate.MaskedIdentification, candidate.MaskedPhone)).ToArray(),
         result.HasMoreCandidates);
 
-    private static async Task<IResult> RunPatientAgentAsync(
+    private static async Task<IResult> RunCanonicalPatientAssistantAsync(
         Guid patientId,
-        RunPatientAgentRequest request,
-        [FromServices] IPatientAgentContextFactory contextFactory,
+        RunClinicAssistantRequest request,
+        [FromServices] IClinicWorkspaceContextFactory contextFactory,
         ISender sender,
         CancellationToken ct)
+        => await RunClinicAssistantAsync(patientId, request, contextFactory, sender, ct, agentKey: null);
+
+    private static async Task<IResult> RunLegacyPatientAgentAsync(
+        Guid patientId,
+        RunClinicAssistantRequest request,
+        [FromServices] IClinicWorkspaceContextFactory contextFactory,
+        ISender sender,
+        CancellationToken ct)
+        => await RunClinicAssistantAsync(patientId, request, contextFactory, sender, ct, "clinic.patient");
+
+    private static async Task<IResult> RunClinicAssistantAsync(
+        Guid patientId,
+        RunClinicAssistantRequest request,
+        IClinicWorkspaceContextFactory contextFactory,
+        ISender sender,
+        CancellationToken ct,
+        string? agentKey)
     {
         if (patientId == Guid.Empty || request is null || string.IsNullOrWhiteSpace(request.Message))
         {
             return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "Patient id and message are required."));
         }
 
-        PatientAgentContext context;
-        try { context = await contextFactory.CreateAsync(patientId, request.ConversationId, ct); }
-        catch (KeyNotFoundException) { return NotFoundPatientAgent(); }
-        PatientAgentResult result = await sender.Send(new RunPatientAgent(context, new PatientAgentInput(request.Message)), ct);
-        if (result.Outcome == PatientAgentRunOutcome.NotFound)
-            return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent conversation was not found."));
-        if (result.Outcome == PatientAgentRunOutcome.Busy)
+        ClinicWorkspaceContext context;
+        try { context = await contextFactory.CreateAsync(patientId, request.ConversationId, ct, agentKey); }
+        catch (KeyNotFoundException) { return NotFoundClinicAssistant(); }
+        ClinicWorkspaceResult result = await sender.Send(new RunClinicWorkspace(context, new ClinicWorkspaceInput(request.Message)), ct);
+        if (result.Outcome == ClinicWorkspaceRunOutcome.NotFound)
+            return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Clinic assistant conversation was not found."));
+        if (result.Outcome == ClinicWorkspaceRunOutcome.Busy)
             return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
-        if (result.Outcome == PatientAgentRunOutcome.ProfileChanged)
+        if (result.Outcome == ClinicWorkspaceRunOutcome.ProfileChanged)
             return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The agent profile changed; start a new conversation."));
         return Results.Ok(ToRunResponse(result));
     }
 
-    private static async Task<IResult> DeleteOperationsAgentConversationAsync(
+    private static async Task<IResult> DeleteCanonicalOperationsAssistantConversationAsync(
         Guid conversationId,
-        [FromServices] IPatientAgentContextFactory contextFactory,
+        [FromServices] IClinicWorkspaceContextFactory contextFactory,
         ISender sender,
         CancellationToken ct)
+        => await DeleteOperationsAssistantConversationAsync(conversationId, contextFactory, sender, ct, agentKey: null);
+
+    private static async Task<IResult> DeleteLegacyOperationsAgentConversationAsync(
+        Guid conversationId,
+        [FromServices] IClinicWorkspaceContextFactory contextFactory,
+        ISender sender,
+        CancellationToken ct)
+        => await DeleteOperationsAssistantConversationAsync(conversationId, contextFactory, sender, ct, "clinic.operations");
+
+    private static async Task<IResult> DeleteOperationsAssistantConversationAsync(
+        Guid conversationId,
+        IClinicWorkspaceContextFactory contextFactory,
+        ISender sender,
+        CancellationToken ct,
+        string? agentKey)
     {
         if (conversationId == Guid.Empty)
             return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."));
 
-        PatientAgentContext context;
-        try { context = await contextFactory.CreateOperationsAsync(conversationId.ToString("N"), ct); }
-        catch (UnauthorizedAccessException) { return ForbiddenAgentAction(); }
+        ClinicWorkspaceContext context;
+        try { context = await contextFactory.CreateOperationsAsync(conversationId.ToString("N"), ct, agentKey); }
+        catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
 
         AgentConversationOutcome outcome = await sender.Send(new DeleteAgentConversation(
             conversationId,
             new AgentConversationScope(
                 context.PracticeId,
                 context.AuthenticatedUserId,
-                "clinic.operations",
+                agentKey ?? "clinic.assistant.operations",
                 "practice",
-                "practice")), ct);
+                agentKey is null ? context.PracticeId : "practice")), ct);
         return outcome switch
         {
             AgentConversationOutcome.Succeeded => Results.NoContent(),
@@ -357,32 +422,49 @@ public static class ClinicApiEndpointMapping
         };
     }
 
-    private static async Task<IResult> DeletePatientAgentConversationAsync(
+    private static async Task<IResult> DeleteCanonicalPatientAssistantConversationAsync(
         Guid patientId,
         Guid conversationId,
-        [FromServices] IPatientAgentContextFactory contextFactory,
+        [FromServices] IClinicWorkspaceContextFactory contextFactory,
         ISender sender,
         CancellationToken ct)
+        => await DeletePatientAssistantConversationAsync(patientId, conversationId, contextFactory, sender, ct, agentKey: null);
+
+    private static async Task<IResult> DeleteLegacyPatientAgentConversationAsync(
+        Guid patientId,
+        Guid conversationId,
+        [FromServices] IClinicWorkspaceContextFactory contextFactory,
+        ISender sender,
+        CancellationToken ct)
+        => await DeletePatientAssistantConversationAsync(patientId, conversationId, contextFactory, sender, ct, "clinic.patient");
+
+    private static async Task<IResult> DeletePatientAssistantConversationAsync(
+        Guid patientId,
+        Guid conversationId,
+        IClinicWorkspaceContextFactory contextFactory,
+        ISender sender,
+        CancellationToken ct,
+        string? agentKey)
     {
         if (patientId == Guid.Empty || conversationId == Guid.Empty)
-            return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent conversation was not found."));
+            return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Clinic assistant conversation was not found."));
 
-        PatientAgentContext context;
-        try { context = await contextFactory.CreateAsync(patientId, conversationId.ToString("N"), ct); }
-        catch (KeyNotFoundException) { return NotFoundPatientAgent(); }
+        ClinicWorkspaceContext context;
+        try { context = await contextFactory.CreateAsync(patientId, conversationId.ToString("N"), ct, agentKey); }
+        catch (KeyNotFoundException) { return NotFoundClinicAssistant(); }
         AgentConversationOutcome outcome = await sender.Send(new DeleteAgentConversation(
             conversationId,
             new AgentConversationScope(
                 context.PracticeId,
                 context.AuthenticatedUserId,
-                "clinic.patient",
+                agentKey ?? "clinic.assistant.patient",
                 "patient",
                 context.PatientId.ToString("D"))), ct);
         return outcome switch
         {
             AgentConversationOutcome.Succeeded => Results.NoContent(),
             AgentConversationOutcome.Busy => Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active.")),
-            _ => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent conversation was not found."))
+            _ => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Clinic assistant conversation was not found."))
         };
     }
 

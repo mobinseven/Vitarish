@@ -9,5 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Apps\Clinic\Application\Clinic.Application\Clinic.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Apps\Clinic\Api\Clinic.Api.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Intelligence\Application\Intelligence.Application.csproj" />
   </ItemGroup>
 </Project>
