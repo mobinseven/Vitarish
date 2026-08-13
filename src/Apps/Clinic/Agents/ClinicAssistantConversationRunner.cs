@@ -1,9 +1,9 @@
 using System.Text.Json;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Actions;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Actions;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
@@ -12,26 +12,26 @@ public sealed class ClinicAssistantConversationRunner(
     ClinicAssistantManifestComposer manifestComposer,
     ClinicAssistantResultParser resultParser,
     ISender sender,
-    IClinicWorkspaceActionStore actionStore,
-    ClinicWorkspaceCapabilityRegistry capabilityRegistry,
+    IAssistantActionStore actionStore,
+    AssistantCapabilityRegistry capabilityRegistry,
     TimeProvider timeProvider,
     ILogger<ClinicAssistantConversationRunner>? logger = null)
 {
-    public async Task<ClinicWorkspaceResult> RunAsync(
-        ClinicWorkspaceContext context,
-        ClinicWorkspaceInput input,
+    public async Task<AssistantResult> RunAsync(
+        AssistantContext context,
+        AssistantInput input,
         CancellationToken cancellationToken = default)
     {
         ClinicAssistantManifest manifest = manifestComposer.Compose(context);
         if (string.IsNullOrWhiteSpace(input.Message))
-            return ClinicWorkspaceResult.Failure(manifest.ExecutionContext.ExecutionId, context.ConversationId, "A message is required.");
+            return AssistantResult.Failure(manifest.ExecutionContext.ExecutionId, context.ConversationId, "A message is required.");
 
         Guid? existingConversationId = context.IsNewConversation
             ? null
             : Guid.TryParse(context.ConversationId, out Guid parsedConversationId)
                 ? parsedConversationId
                 : Guid.Empty;
-        ClinicWorkspaceResult? parsedResult = null;
+        AssistantResult? parsedResult = null;
         RunAgentConversationResult conversation = await sender.Send(new RunAgentConversation(
             existingConversationId,
             new AgentConversationScope(
@@ -56,7 +56,7 @@ public sealed class ClinicAssistantConversationRunner(
                         manifest.Tools,
                         manifest.ToolCapabilities,
                         manifest.ExecutionContext);
-                    ClinicWorkspaceContext persistedContext = context with
+                    AssistantContext persistedContext = context with
                     {
                         ConversationId = conversationId.ToString("N"),
                         IsNewConversation = false
@@ -64,7 +64,7 @@ public sealed class ClinicAssistantConversationRunner(
                     parsedResult = resultParser.Parse(output, manifest, persistedContext, run.ToolExecutions);
                     if (parsedResult.PreparedActions.Count > 0)
                     {
-                        IReadOnlyList<ClinicWorkspaceAction> actions = await PersistActionsAsync(
+                        IReadOnlyList<AssistantAction> actions = await PersistActionsAsync(
                             parsedResult,
                             persistedContext,
                             callbackCancellationToken);
@@ -100,7 +100,7 @@ public sealed class ClinicAssistantConversationRunner(
                     logger,
                     manifest.ExecutionContext.ExecutionId,
                     conversation.ConversationId?.ToString("N") ?? context.ConversationId);
-            ClinicWorkspaceResult failure = ClinicWorkspaceResult.Failure(
+            AssistantResult failure = AssistantResult.Failure(
                 manifest.ExecutionContext.ExecutionId,
                 conversation.ConversationId?.ToString("N") ?? context.ConversationId,
                 runResult?.Error?.Message ?? "The clinic assistant did not return a valid result.");
@@ -108,36 +108,36 @@ public sealed class ClinicAssistantConversationRunner(
             {
                 Outcome = conversation.Outcome switch
                 {
-                    AgentConversationOutcome.NotFound => ClinicWorkspaceRunOutcome.NotFound,
-                    AgentConversationOutcome.Busy => ClinicWorkspaceRunOutcome.Busy,
-                    AgentConversationOutcome.ProfileChanged => ClinicWorkspaceRunOutcome.ProfileChanged,
-                    AgentConversationOutcome.InvalidHistory or AgentConversationOutcome.HistoryLimitExceeded => ClinicWorkspaceRunOutcome.InvalidHistory,
-                    _ => ClinicWorkspaceRunOutcome.Failed
+                    AgentConversationOutcome.NotFound => AssistantRunOutcome.NotFound,
+                    AgentConversationOutcome.Busy => AssistantRunOutcome.Busy,
+                    AgentConversationOutcome.ProfileChanged => AssistantRunOutcome.ProfileChanged,
+                    AgentConversationOutcome.InvalidHistory or AgentConversationOutcome.HistoryLimitExceeded => AssistantRunOutcome.InvalidHistory,
+                    _ => AssistantRunOutcome.Failed
                 }
             };
         }
 
         return parsedResult is null
-            ? ClinicWorkspaceResult.Failure(manifest.ExecutionContext.ExecutionId, context.ConversationId, "The clinic assistant returned an invalid structured result.")
+            ? AssistantResult.Failure(manifest.ExecutionContext.ExecutionId, context.ConversationId, "The clinic assistant returned an invalid structured result.")
             : parsedResult with { ConversationId = conversation.ConversationId!.Value.ToString("N") };
     }
 
-    private async Task<IReadOnlyList<ClinicWorkspaceAction>> PersistActionsAsync(
-        ClinicWorkspaceResult result,
-        ClinicWorkspaceContext context,
+    private async Task<IReadOnlyList<AssistantAction>> PersistActionsAsync(
+        AssistantResult result,
+        AssistantContext context,
         CancellationToken cancellationToken)
     {
         DateTimeOffset preparedAt = timeProvider.GetUtcNow();
-        List<ClinicWorkspaceAction> actions = [];
-        foreach (ClinicWorkspacePreparedAction prepared in result.PreparedActions)
+        List<AssistantAction> actions = [];
+        foreach (AssistantPreparedAction prepared in result.PreparedActions)
         {
-            ClinicWorkspaceActionPolicy? policy = capabilityRegistry.ResolveAction(prepared.ActionType);
+            AssistantActionPolicy? policy = capabilityRegistry.ResolveAction(prepared.ActionType);
             if (policy is null || !policy.RequiresConfirmation || prepared.ToolName is null ||
                 capabilityRegistry.ResolveTool(prepared.ToolName) is not { } toolPolicy ||
                 !string.Equals(toolPolicy.ActionType, policy.ActionType, StringComparison.Ordinal))
                 throw new InvalidOperationException("The prepared action does not have a valid Clinic action policy.");
 
-            ClinicWorkspaceAction action = new(
+            AssistantAction action = new(
                 prepared.OwningId,
                 prepared.AgentRunId ?? result.AgentRunId,
                 result.ConversationId,
@@ -148,7 +148,7 @@ public sealed class ClinicAssistantConversationRunner(
                 prepared.ActionType,
                 prepared.OwningId,
                 prepared.ReviewDataJson,
-                ClinicWorkspaceActionStatus.Proposed,
+                AssistantActionStatus.Proposed,
                 preparedAt,
                 prepared.Expiration ?? preparedAt.Add(policy.DefaultProposalLifetime ?? TimeSpan.FromMinutes(30)),
                 Summary: prepared.Summary,
@@ -164,10 +164,10 @@ public sealed class ClinicAssistantConversationRunner(
         return actions;
     }
 
-    private static string AgentKey(ClinicWorkspaceContext context) =>
+    private static string AgentKey(AssistantContext context) =>
         ClinicAssistantExecutionContextFactory.AgentKey(context);
 
-    private static string SubjectId(ClinicWorkspaceContext context) =>
+    private static string SubjectId(AssistantContext context) =>
         ClinicAssistantExecutionContextFactory.SubjectId(context);
 
 }

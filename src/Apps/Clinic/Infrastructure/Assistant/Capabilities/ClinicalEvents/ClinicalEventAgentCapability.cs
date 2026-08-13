@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Vitarish.Clinic.Application.ClinicalEvents;
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Clinic.Application.Queries.Patients;
 using Vitarish.Clinic.Domain.Models;
 using MediatR;
@@ -13,7 +13,7 @@ public sealed class ClinicPatientReadAgentCapability(
     GetPatientFactualOverviewTool overview,
     GetPatientProfileTool profile,
     GetPatientRecordedClinicalFactsTool clinicalFacts)
-    : ClinicWorkspaceCapability([overview, profile, clinicalFacts])
+    : AssistantCapability([overview, profile, clinicalFacts])
 {
     public override string Name => "ClinicPatientReads";
     public override string Description => "Read the current patient's Clinic-owned profile and recorded clinical facts.";
@@ -33,7 +33,7 @@ public sealed class GetPatientFactualOverviewTool(ISender sender) : ClinicPatien
     }
 }
 
-public abstract class ClinicPatientReadTool(ISender sender) : IClinicalEventsClinicWorkspaceTool
+public abstract class ClinicPatientReadTool(ISender sender) : IClinicalEventsAssistantTool
 {
     protected async Task<PatientView?> PatientAsync(AgentExecutionContext context, CancellationToken cancellationToken)
     {
@@ -73,8 +73,8 @@ public sealed class GetPatientRecordedClinicalFactsTool(ISender sender) : Clinic
 public sealed class ClinicalEventAgentCapability(
     GetPatientProcedureContextTool context,
     PrepareClinicalEventTool prepare)
-    : ClinicWorkspaceCapability([context, prepare], [
-        ClinicWorkspaceActionPolicies.Prepare("add_clinical_event", "clinical-events", ["ClinicalEvents.Create"], toolNames: ["prepare_clinical_event"])
+    : AssistantCapability([context, prepare], [
+        AssistantActionPolicies.Prepare("add_clinical_event", "clinical-events", ["ClinicalEvents.Create"], toolNames: ["prepare_clinical_event"])
     ])
 {
     public override string Name => "ClinicalEvents";
@@ -88,7 +88,7 @@ public sealed class ClinicalEventAgentCapability(
         "Ask for missing clinical information, show the complete proposal for review, and never confirm it during the model run.";
 }
 
-public abstract class ClinicalEventTool : IClinicalEventsClinicWorkspaceTool
+public abstract class ClinicalEventTool : IClinicalEventsAssistantTool
 {
     public abstract AgentToolDefinition Definition { get; }
     public abstract Task<AgentToolResult> ExecuteAsync(
@@ -144,7 +144,7 @@ public sealed class GetPatientProcedureContextTool(GetPatientProcedureContext us
 }
 
 public sealed class PrepareClinicalEventTool(PrepareClinicalEvent useCase)
-    : ClinicalEventTool, IClinicWorkspacePreparationTool
+    : ClinicalEventTool, IAssistantPreparationTool
 {
     private const string Schema = """
         {"type":"object","properties":{"procedureId":{"type":"string"},"visitNumber":{"type":"integer","minimum":1},"eventType":{"type":"string"},"completionStatus":{"type":"string"},"performedAt":{"type":"string"},"observations":{"type":"string"},"diagnosis":{"type":"string"},"diagnosisExplicitlyAssertedByClinician":{"type":"boolean"},"planOrFollowUp":{"type":"string"},"attachmentReferences":{"type":"array","items":{"type":"string"}},"narrativeNote":{"type":"string"}},"required":["procedureId","visitNumber","eventType","completionStatus","performedAt","diagnosisExplicitlyAssertedByClinician"],"additionalProperties":false}
@@ -185,7 +185,7 @@ public sealed class PrepareClinicalEventTool(PrepareClinicalEvent useCase)
             await useCase.ExecuteAsync(new(Scope(context), content), cancellationToken));
     }
 
-    public ClinicWorkspacePreparedAction? GetPreparedAction(AgentToolResult result)
+    public AssistantPreparedAction? GetPreparedAction(AgentToolResult result)
     {
         ClinicalEventProposalResult? preparation =
             JsonSerializer.Deserialize<ClinicalEventProposalResult>(result.Output);

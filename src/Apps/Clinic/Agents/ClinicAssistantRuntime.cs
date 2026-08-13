@@ -1,12 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Clinic.Application.ClinicWorkspace;
+using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Intelligence.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
 public sealed class ClinicAssistantRuntime(
     ClinicAssistantConversationRunner conversationRunner,
-    ClinicAssistantToolResolver toolResolver) : IClinicWorkspaceRuntime, IClinicWorkspaceGuardedToolResolver
+    ClinicAssistantToolResolver toolResolver) : IAssistantRuntime, IAssistantGuardedToolResolver
 {
     public const string ResultSchema = """
         {
@@ -20,14 +20,14 @@ public sealed class ClinicAssistantRuntime(
         }
         """;
 
-    public Task<ClinicWorkspaceResult> RunAsync(
-        ClinicWorkspaceContext context,
-        ClinicWorkspaceInput input,
+    public Task<AssistantResult> RunAsync(
+        AssistantContext context,
+        AssistantInput input,
         CancellationToken cancellationToken = default) =>
         conversationRunner.RunAsync(context, input, cancellationToken);
 
-    public Task<ClinicWorkspaceToolResult> ResolveAsync(
-        ClinicWorkspaceToolResolutionRequest request,
+    public Task<AssistantToolResult> ResolveAsync(
+        AssistantToolResolutionRequest request,
         CancellationToken cancellationToken = default) =>
         toolResolver.ResolveAsync(request, cancellationToken);
 }
@@ -54,8 +54,8 @@ public static class ClinicAssistantCompositionServiceCollectionExtensions
         _ = services.AddTransient<ClinicAssistantConversationRunner>();
         _ = services.AddTransient<ClinicAssistantToolResolver>();
         _ = services.AddTransient<ClinicAssistantRuntime>();
-        _ = services.AddTransient<IClinicWorkspaceRuntime>(sp => sp.GetRequiredService<ClinicAssistantRuntime>());
-        _ = services.AddTransient<IClinicWorkspaceGuardedToolResolver>(sp => sp.GetRequiredService<ClinicAssistantRuntime>());
+        _ = services.AddTransient<IAssistantRuntime>(sp => sp.GetRequiredService<ClinicAssistantRuntime>());
+        _ = services.AddTransient<IAssistantGuardedToolResolver>(sp => sp.GetRequiredService<ClinicAssistantRuntime>());
         return services;
     }
 }

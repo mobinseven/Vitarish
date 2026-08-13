@@ -13,14 +13,14 @@ import {
 } from "../api/generated/clinic/clinic";
 import { intelligenceRunAgentConversation } from "@vitarish/intelligence-web";
 import {
-  useConfirmClinicWorkspaceAction,
+  useConfirmAssistantAction,
   useConfirmOperationsAssistantAction,
   useOperationsAssistantAction,
   useOperationsAssistantConversation,
-  useClinicWorkspaceAction,
-  useClinicWorkspaceConversation,
+  useAssistantAction,
+  useAssistantConversation,
   useRejectOperationsAssistantAction,
-  useRejectClinicWorkspaceAction,
+  useRejectAssistantAction,
 } from "../features/clinic-assistant/hooks";
 
 vi.mock("../api/generated/clinic/clinic", () => ({
@@ -66,7 +66,7 @@ describe("clinic-assistant generated-client hooks", () => {
         result: { messages: [], actions: [] },
       });
     const { result } = renderHook(
-      () => useClinicWorkspaceConversation("patient-from-route", true),
+      () => useAssistantConversation("patient-from-route", true),
       { wrapper: createWrapper() },
     );
 
@@ -113,7 +113,7 @@ describe("clinic-assistant generated-client hooks", () => {
       failure: null,
     });
     const { result } = renderHook(
-      () => useClinicWorkspaceAction("patient-1", "action-1"),
+      () => useAssistantAction("patient-1", "action-1"),
       { wrapper: createWrapper() },
     );
     await vi.waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -219,10 +219,10 @@ describe("clinic-assistant generated-client hooks", () => {
     });
     const wrapper = createWrapper();
     const confirm = renderHook(
-      () => useConfirmClinicWorkspaceAction("patient-1"),
+      () => useConfirmAssistantAction("patient-1"),
       { wrapper },
     );
-    const reject = renderHook(() => useRejectClinicWorkspaceAction("patient-1"), {
+    const reject = renderHook(() => useRejectAssistantAction("patient-1"), {
       wrapper,
     });
 

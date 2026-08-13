@@ -25,10 +25,10 @@ import type {
   RunClinicAssistantResponse,
 } from "../../api/generated/clinic/model";
 
-export type ClinicWorkspaceAction = ClinicAssistantActionDetailsResponse;
-export type ClinicWorkspaceMessageResult = ClinicAssistantMessageResponse;
+export type AssistantAction = ClinicAssistantActionDetailsResponse;
+export type AssistantMessageResult = ClinicAssistantMessageResponse;
 export type ClinicAssistantChatMessage =
-  | ClinicWorkspaceMessageResult
+  | AssistantMessageResult
   | { kind: "UserMessage"; content: string };
 
 type CandidatePresentation = {
@@ -42,7 +42,7 @@ const clinicAssistantActionKey = (patientId: string, actionId: string) =>
 const operationsAssistantActionKey = (actionId: string) =>
   ["clinic", "operations-agent", "actions", actionId] as const;
 
-export function useClinicWorkspaceConversation(patientId: string, isOpen: boolean) {
+export function useAssistantConversation(patientId: string, isOpen: boolean) {
   const runTurn = useCallback(
     async (message: string, conversationId: string | null, signal: AbortSignal) => {
       const response = await intelligenceRunAgentConversation({
@@ -204,7 +204,7 @@ export function useClinicAssistantConversationSurface(
   };
 }
 
-export function useClinicWorkspaceAction(patientId: string, actionId: string) {
+export function useAssistantAction(patientId: string, actionId: string) {
   return useQuery({
     queryKey: clinicAssistantActionKey(patientId, actionId),
     queryFn: ({ signal }) => clinicGetPatientAssistantAction(patientId, actionId, undefined, signal),
@@ -222,7 +222,7 @@ export function useOperationsAssistantAction(actionId: string) {
   });
 }
 
-export function useConfirmClinicWorkspaceAction(patientId: string) {
+export function useConfirmAssistantAction(patientId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (actionId: string) =>
@@ -232,7 +232,7 @@ export function useConfirmClinicWorkspaceAction(patientId: string) {
   });
 }
 
-export function useRejectClinicWorkspaceAction(patientId: string) {
+export function useRejectAssistantAction(patientId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (actionId: string) =>

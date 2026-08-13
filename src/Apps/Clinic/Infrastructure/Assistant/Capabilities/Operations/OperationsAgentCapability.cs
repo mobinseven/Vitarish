@@ -1,39 +1,39 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Vitarish.Appointments.Application.AgentCapabilities;
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
-using Vitarish.Clinic.Application.ClinicWorkspace.Operations;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
+using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Operations;
 
 public sealed class OperationsAgentCapability(IEnumerable<IClinicOperationsAgentTool> tools)
-    : ClinicWorkspaceCapability([.. tools], [
-        ClinicWorkspaceActionPolicies.Prepare("book_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_book_appointment"]),
-        ClinicWorkspaceActionPolicies.Prepare("reschedule_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_reschedule_appointment"]),
-        ClinicWorkspaceActionPolicies.Prepare("cancel_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_cancel_appointment"]),
-        ClinicWorkspaceActionPolicies.Prepare("reject_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_reject_appointment"]),
-        ClinicWorkspaceActionPolicies.Prepare("create_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_create_shift"]),
-        ClinicWorkspaceActionPolicies.Prepare("edit_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_edit_shift"]),
-        ClinicWorkspaceActionPolicies.Prepare("close_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_close_shift"]),
-        ClinicWorkspaceActionPolicies.Prepare("cancel_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_cancel_shift"]),
-        ClinicWorkspaceActionPolicies.Prepare("archive_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_archive_shift"]),
-        ClinicWorkspaceActionPolicies.Prepare("appointment_manage", "appointment-management", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["appointment_manage"]),
-        ClinicWorkspaceActionPolicies.Prepare("reminder_manage", "reminder-management", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["reminder_manage"]),
-        ClinicWorkspaceActionPolicies.Direct("confirm_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["operations_confirm_appointment"]),
-        ClinicWorkspaceActionPolicies.Direct("present_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["operations_present_appointment"]),
-        ClinicWorkspaceActionPolicies.Direct("complete_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["operations_complete_appointment"]),
-        ClinicWorkspaceActionPolicies.Direct("activate_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["operations_activate_shift"]),
-        ClinicWorkspaceActionPolicies.Direct("pause_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["operations_pause_shift"])
+    : AssistantCapability([.. tools], [
+        AssistantActionPolicies.Prepare("book_appointment", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["prepare_book_appointment"]),
+        AssistantActionPolicies.Prepare("reschedule_appointment", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["prepare_reschedule_appointment"]),
+        AssistantActionPolicies.Prepare("cancel_appointment", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["prepare_cancel_appointment"]),
+        AssistantActionPolicies.Prepare("reject_appointment", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["prepare_reject_appointment"]),
+        AssistantActionPolicies.Prepare("create_shift", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["prepare_create_shift"]),
+        AssistantActionPolicies.Prepare("edit_shift", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["prepare_edit_shift"]),
+        AssistantActionPolicies.Prepare("close_shift", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["prepare_close_shift"]),
+        AssistantActionPolicies.Prepare("cancel_shift", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["prepare_cancel_shift"]),
+        AssistantActionPolicies.Prepare("archive_shift", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["prepare_archive_shift"]),
+        AssistantActionPolicies.Prepare("appointment_manage", "appointment-management", [], [AssistantOperationsScope.TenantOwnerRole], ["appointment_manage"]),
+        AssistantActionPolicies.Prepare("reminder_manage", "reminder-management", [], [AssistantOperationsScope.TenantOwnerRole], ["reminder_manage"]),
+        AssistantActionPolicies.Direct("confirm_appointment", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["operations_confirm_appointment"]),
+        AssistantActionPolicies.Direct("present_appointment", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["operations_present_appointment"]),
+        AssistantActionPolicies.Direct("complete_appointment", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["operations_complete_appointment"]),
+        AssistantActionPolicies.Direct("activate_shift", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["operations_activate_shift"]),
+        AssistantActionPolicies.Direct("pause_shift", "appointments.operations", [], [AssistantOperationsScope.TenantOwnerRole], ["operations_pause_shift"])
     ])
 {
     public override string Name => "Operations";
     public override string Description => "Search patients and inspect or safely operate the authenticated practice schedule.";
     public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>(StringComparer.Ordinal);
-    public override bool IsAvailable(ClinicWorkspaceContext context) =>
+    public override bool IsAvailable(AssistantContext context) =>
         context.SubjectKind == "practice" &&
-        ClinicWorkspaceOperationsScope.IsAuthorizedRole(context.Role);
+        AssistantOperationsScope.IsAuthorizedRole(context.Role);
     public override string GetInstructions() =>
         "Use patient search before patient appointment operations. Direct transitions are limited to confirm, present, complete, activate, and pause. " +
         "All other schedule mutations create immutable proposals for explicit review; never claim a proposal was executed during the run.";
@@ -92,7 +92,7 @@ public abstract class OperationsTool(IAppointmentSchedulingAgentCapability sched
         requireId ? Guid(args, "shiftId") : default);
 }
 
-public sealed class SearchPatientsTool(IClinicWorkspacePatientSearch search, IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
+public sealed class SearchPatientsTool(IAssistantPatientSearch search, IAppointmentSchedulingAgentCapability scheduling) : OperationsTool(scheduling)
 {
     public override AgentToolDefinition Definition { get; } = new("search_patients", "Search up to five patients in the authenticated practice. Returns opaque candidate tokens; an optional birth date disambiguates results.", "{\"type\":\"object\",\"properties\":{\"search\":{\"type\":\"string\",\"maxLength\":100},\"birthDate\":{\"type\":\"string\",\"format\":\"date\"}},\"required\":[\"search\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
@@ -183,7 +183,7 @@ public sealed class CompleteOperationTool(IAppointmentSchedulingAgentCapability 
 public sealed class ActivateShiftTool(IAppointmentSchedulingAgentCapability s) : DirectScheduleTool(s) { public override AgentToolDefinition Definition { get; } = new("operations_activate_shift", "Activate a shift directly.", "{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}},\"required\":[\"id\"],\"additionalProperties\":false}"); protected override Task<AgentSchedulingResult> Execute(AgentSchedulingContext c, Guid id, CancellationToken ct)=>Scheduling.ActivateShiftAsync(c,id,ct); }
 public sealed class PauseShiftTool(IAppointmentSchedulingAgentCapability s) : DirectScheduleTool(s) { public override AgentToolDefinition Definition { get; } = new("operations_pause_shift", "Pause a shift directly.", "{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}},\"required\":[\"id\"],\"additionalProperties\":false}"); protected override Task<AgentSchedulingResult> Execute(AgentSchedulingContext c, Guid id, CancellationToken ct)=>Scheduling.PauseShiftAsync(c,id,ct); }
 
-public sealed class PrepareScheduleActionTool : OperationsTool, IClinicWorkspacePreparationTool
+public sealed class PrepareScheduleActionTool : OperationsTool, IAssistantPreparationTool
 {
     private static readonly IReadOnlyDictionary<string, string> Names = new Dictionary<string, string>(StringComparer.Ordinal)
     {
@@ -191,8 +191,8 @@ public sealed class PrepareScheduleActionTool : OperationsTool, IClinicWorkspace
     };
     public override AgentToolDefinition Definition { get; }
     private readonly string _actionType;
-    private readonly IClinicWorkspacePatientSearch _search;
-    public PrepareScheduleActionTool(IAppointmentSchedulingAgentCapability scheduling, IClinicWorkspacePatientSearch search, string toolName) : base(scheduling)
+    private readonly IAssistantPatientSearch _search;
+    public PrepareScheduleActionTool(IAppointmentSchedulingAgentCapability scheduling, IAssistantPatientSearch search, string toolName) : base(scheduling)
     {
         _search = search;
         _actionType = Names[toolName];
@@ -210,7 +210,7 @@ public sealed class PrepareScheduleActionTool : OperationsTool, IClinicWorkspace
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         using JsonDocument doc = JsonDocument.Parse(call.ArgumentsJson); JsonElement a = doc.RootElement; AgentSchedulingContext s = Scope(call,context); AgentSchedulingResult<AgentSchedulingProposal> result;
-        ClinicWorkspaceCandidateReference? patient = _actionType == "book_appointment"
+        AssistantCandidateReference? patient = _actionType == "book_appointment"
             ? await ResolveCandidate(a, context, cancellationToken)
             : null;
         result = _actionType switch
@@ -232,9 +232,9 @@ public sealed class PrepareScheduleActionTool : OperationsTool, IClinicWorkspace
                 ToAgentResult(result, patient),
                 OperationsAgentToolJsonSerializerContext.Default.OperationsPreparedActionResult));
     }
-    private async Task<ClinicWorkspaceCandidateReference> ResolveCandidate(JsonElement args, AgentExecutionContext context, CancellationToken ct)
+    private async Task<AssistantCandidateReference> ResolveCandidate(JsonElement args, AgentExecutionContext context, CancellationToken ct)
     { if (!args.TryGetProperty("candidateToken", out _)) throw new JsonException("An opaque candidate token is required."); return await _search.ResolveAsync(Required(context,"practiceId"),Required(context,"authenticatedUserId"),context.ExecutionId,Candidate(args),ct) ?? throw new JsonException("The patient candidate is invalid or expired."); }
-    public ClinicWorkspacePreparedAction? GetPreparedAction(AgentToolResult result)
+    public AssistantPreparedAction? GetPreparedAction(AgentToolResult result)
     {
         OperationsPreparedActionResult? prepared = JsonSerializer.Deserialize(
             result.Output,
@@ -255,7 +255,7 @@ public sealed class PrepareScheduleActionTool : OperationsTool, IClinicWorkspace
             : null;
     }
 
-    private OperationsPreparedActionResult ToAgentResult(AgentSchedulingResult<AgentSchedulingProposal> result, ClinicWorkspaceCandidateReference? patient)
+    private OperationsPreparedActionResult ToAgentResult(AgentSchedulingResult<AgentSchedulingProposal> result, AssistantCandidateReference? patient)
     {
         AgentSchedulingProposal? proposal = result.Value;
         return new(
@@ -266,7 +266,7 @@ public sealed class PrepareScheduleActionTool : OperationsTool, IClinicWorkspace
             result.Message);
     }
 
-    private OperationsActionReview ToReview(AgentSchedulingProposal proposal, ClinicWorkspaceCandidateReference? patient) => new(
+    private OperationsActionReview ToReview(AgentSchedulingProposal proposal, AssistantCandidateReference? patient) => new(
         _actionType,
         proposal.Id,
         patient is null ? null : new OperationsPatientReview(patient.DisplayName, patient.MaskedIdentification, patient.MaskedPhone),

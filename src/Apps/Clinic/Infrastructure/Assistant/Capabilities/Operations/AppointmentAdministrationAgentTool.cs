@@ -2,7 +2,7 @@ using System.Text.Json;
 using Vitarish.Appointments.Application.Abstractions;
 using Vitarish.Appointments.Domain.Dto;
 using Vitarish.Appointments.Domain.Models;
-using Vitarish.Clinic.Application.ClinicWorkspace;
+using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Entities.Contracts.Models;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Intelligence.Application.Agents;
@@ -18,7 +18,7 @@ public sealed class AppointmentAdministrationAgentTool(
     IShiftBookingPolicyManager bookingPolicies,
     IShiftReminderPolicyManager reminderPolicies,
     IShiftBookableDateQueryService bookableDates,
-    ITemporaryHoldManager holds) : IClinicOperationsAgentTool, IClinicWorkspacePreparationTool
+    ITemporaryHoldManager holds) : IClinicOperationsAgentTool, IAssistantPreparationTool
 {
     private static readonly JsonSerializerOptions PayloadJsonOptions = new(JsonSerializerDefaults.Web);
     private static readonly HashSet<string> Mutations = [
@@ -119,7 +119,7 @@ public sealed class AppointmentAdministrationAgentTool(
         return Result(call, result);
     }
 
-    public ClinicWorkspacePreparedAction? GetPreparedAction(AgentToolResult result)
+    public AssistantPreparedAction? GetPreparedAction(AgentToolResult result)
     {
         using JsonDocument document = JsonDocument.Parse(result.Output);
         JsonElement root = document.RootElement;

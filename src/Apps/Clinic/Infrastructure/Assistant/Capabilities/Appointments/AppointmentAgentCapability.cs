@@ -4,17 +4,17 @@ using Vitarish.Appointments.Domain.Dto;
 using Vitarish.Appointments.Domain.Enums;
 using Vitarish.Entities.Contracts.Models;
 using Vitarish.Appointments.Application.AgentCapabilities;
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
-using Vitarish.Clinic.Application.ClinicWorkspace.Operations;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
+using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Appointments;
 
 public sealed class AppointmentAgentCapability(
     CheckAppointmentAvailabilityTool check,
-    PrepareAppointmentTool prepare) : ClinicWorkspaceCapability([check, prepare], [
-        ClinicWorkspaceActionPolicies.Prepare("create_appointment", "appointments", ["Appointments.Create"], toolNames: ["prepare_appointment"], retryClassification: ClinicWorkspaceActionRetryClassification.Retryable)
+    PrepareAppointmentTool prepare) : AssistantCapability([check, prepare], [
+        AssistantActionPolicies.Prepare("create_appointment", "appointments", ["Appointments.Create"], toolNames: ["prepare_appointment"], retryClassification: AssistantActionRetryClassification.Retryable)
     ])
 {
     public override string Name => "Appointments";
@@ -28,7 +28,7 @@ public sealed class AppointmentAgentCapability(
 public sealed class AppointmentReadAgentCapability(
     GetNextPatientAppointmentTool next,
     ListPatientAppointmentsTool list,
-    CountPatientAppointmentsTool count) : ClinicWorkspaceCapability([next, list, count])
+    CountPatientAppointmentsTool count) : AssistantCapability([next, list, count])
 {
     public override string Name => "AppointmentReads";
     public override string Description => "Read the current patient's upcoming and past appointment state.";
@@ -36,10 +36,10 @@ public sealed class AppointmentReadAgentCapability(
         new HashSet<string>(StringComparer.Ordinal) { "Appointments.Read" };
     public override string GetInstructions() =>
         "Use these tools for factual appointment questions. Do not infer unavailable schedule details.";
-    public override bool IsAvailable(ClinicWorkspaceContext context) => context.SubjectKind is "patient" or "practice";
+    public override bool IsAvailable(AssistantContext context) => context.SubjectKind is "patient" or "practice";
 }
 
-public sealed class PatientAppointmentQueryService(IReservationManager reservations, IShiftManager shifts, IClinicWorkspacePatientSearch patientSearch)
+public sealed class PatientAppointmentQueryService(IReservationManager reservations, IShiftManager shifts, IAssistantPatientSearch patientSearch)
 {
     private static readonly HashSet<ReservationStatus> Excluded = [ReservationStatus.Cancelled, ReservationStatus.Rejected, ReservationStatus.Expired];
 
@@ -74,7 +74,7 @@ public sealed class PatientAppointmentQueryService(IReservationManager reservati
         }
         else if (subjectKind == "practice" && Guid.TryParse(routePatientId, out Guid empty) && empty == Guid.Empty && !string.IsNullOrWhiteSpace(candidateToken))
         {
-            ClinicWorkspaceCandidateReference? candidate = await patientSearch.ResolveAsync(context.Metadata["practiceId"], context.Metadata["authenticatedUserId"], context.ExecutionId, candidateToken, cancellationToken);
+            AssistantCandidateReference? candidate = await patientSearch.ResolveAsync(context.Metadata["practiceId"], context.Metadata["authenticatedUserId"], context.ExecutionId, candidateToken, cancellationToken);
             if (candidate is null) throw new KeyNotFoundException("The patient candidate expired or is no longer available.");
             patientId = candidate.PatientId.ToString("D");
         }
@@ -152,7 +152,7 @@ public sealed record PatientAppointmentSummary(
     string? TimeZone, string Status, Guid ShiftId, bool ScheduleAvailable, DateTime SourceUpdatedAt);
 public sealed record PatientAppointmentQueryResult(IReadOnlyList<PatientAppointmentSummary> Appointments, bool HasMore);
 
-public abstract class AppointmentQueryTool(PatientAppointmentQueryService queries) : IAppointmentsClinicWorkspaceTool
+public abstract class AppointmentQueryTool(PatientAppointmentQueryService queries) : IAppointmentsAssistantTool
 {
     protected PatientAppointmentQueryService Queries { get; } = queries;
     public abstract AgentToolDefinition Definition { get; }
@@ -203,7 +203,7 @@ public sealed class CountPatientAppointmentsTool(PatientAppointmentQueryService 
     }
 }
 
-public abstract class AppointmentTool(IPatientAppointmentAgentCapability capability) : IAppointmentsClinicWorkspaceTool
+public abstract class AppointmentTool(IPatientAppointmentAgentCapability capability) : IAppointmentsAssistantTool
 {
     protected IPatientAppointmentAgentCapability Capability { get; } = capability;
     public abstract AgentToolDefinition Definition { get; }
@@ -249,7 +249,7 @@ public sealed class CheckAppointmentAvailabilityTool(IPatientAppointmentAgentCap
     }
 }
 
-public sealed class PrepareAppointmentTool(IPatientAppointmentAgentCapability capability) : AppointmentTool(capability), IClinicWorkspacePreparationTool
+public sealed class PrepareAppointmentTool(IPatientAppointmentAgentCapability capability) : AppointmentTool(capability), IAssistantPreparationTool
 {
     public override AgentToolDefinition Definition { get; } = new("prepare_appointment", "Prepare an immutable appointment proposal for explicit review; this does not book.", RequestSchema);
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
@@ -258,7 +258,7 @@ public sealed class PrepareAppointmentTool(IPatientAppointmentAgentCapability ca
         return Result(call, await Capability.PrepareAsync(Request(args.RootElement, context), cancellationToken));
     }
 
-    public ClinicWorkspacePreparedAction? GetPreparedAction(AgentToolResult result)
+    public AssistantPreparedAction? GetPreparedAction(AgentToolResult result)
     {
         AppointmentProposalResult? preparation = JsonSerializer.Deserialize<AppointmentProposalResult>(result.Output);
         return preparation is { Status: AppointmentProposalResultStatus.Prepared, Proposal: { } proposal }

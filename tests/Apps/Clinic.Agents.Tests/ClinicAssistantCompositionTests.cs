@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Vitarish.Clinic.Agents;
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Intelligence.Agents;
 using Vitarish.Intelligence.Application.Agents;
 using Xunit;
@@ -57,8 +57,8 @@ public sealed class ClinicAssistantCompositionTests
     }
 
     private static ComposedAgentManifest<ClinicAssistantCompositionContext> Compose(
-        ClinicWorkspaceContext context,
-        IReadOnlyCollection<IClinicWorkspaceCapability> capabilities,
+        AssistantContext context,
+        IReadOnlyCollection<IAssistantCapability> capabilities,
         bool allow = true)
     {
         ClinicAssistantCompositionContext composition = new(context, capabilities, [], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
@@ -70,13 +70,13 @@ public sealed class ClinicAssistantCompositionTests
     }
 
     private static IEnumerable<IAgentCapabilityPack<ClinicAssistantCompositionContext>> Packs(
-        IReadOnlyCollection<IClinicWorkspaceCapability> capabilities) =>
+        IReadOnlyCollection<IAssistantCapability> capabilities) =>
         ClinicAssistantCapabilityKeys.Patient
             .Concat(ClinicAssistantCapabilityKeys.OperationsProfile)
             .Distinct(StringComparer.Ordinal)
             .Select(key => (IAgentCapabilityPack<ClinicAssistantCompositionContext>)new ClinicAssistantCapabilityPack(key));
 
-    private static ClinicWorkspaceContext Context(string subjectKind = "patient", Guid? patientId = null) => new(
+    private static AssistantContext Context(string subjectKind = "patient", Guid? patientId = null) => new(
         "practice-1",
         patientId ?? (subjectKind == "practice" ? Guid.Empty : Guid.Parse("11111111-1111-1111-1111-111111111111")),
         "user-1",
@@ -87,14 +87,14 @@ public sealed class ClinicAssistantCompositionTests
         "conversation-1",
         SubjectKind: subjectKind);
 
-    private sealed record TestCapability(string Name, IReadOnlyCollection<IAgentTool> Tools) : IClinicWorkspaceCapability
+    private sealed record TestCapability(string Name, IReadOnlyCollection<IAgentTool> Tools) : IAssistantCapability
     {
         public string Description => $"{Name} test capability";
         public IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>();
-        public IReadOnlyCollection<ClinicWorkspaceActionPolicy> ActionPolicies { get; } = [];
+        public IReadOnlyCollection<AssistantActionPolicy> ActionPolicies { get; } = [];
         public IReadOnlyCollection<string> ActionTypes => [];
         public string GetInstructions() => $"Use {Name}.";
-        public bool IsAvailable(ClinicWorkspaceContext context) => true;
+        public bool IsAvailable(AssistantContext context) => true;
     }
 
     private sealed class TestTool(string name) : IAgentTool

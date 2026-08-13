@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Intelligence.Agents;
 using Vitarish.Intelligence.Application.Agents;
 
@@ -9,15 +9,15 @@ namespace Vitarish.Clinic.Agents;
 
 public sealed class ClinicAssistantManifestComposer(
     AgentProfileComposer<ClinicAssistantCompositionContext> profileComposer,
-    ClinicWorkspaceCapabilityRegistry capabilityRegistry,
-    ClinicWorkspaceToolDispatcher toolDispatcher,
+    AssistantCapabilityRegistry capabilityRegistry,
+    AssistantToolDispatcher toolDispatcher,
     ClinicAssistantOptions options,
     IEnumerable<IIntelligenceAgentTool> intelligenceTools,
     ClinicAssistantExecutionContextFactory executionContextFactory,
     ILogger<ClinicAssistantManifestComposer>? logger = null)
 {
     internal ClinicAssistantManifest Compose(
-        ClinicWorkspaceContext context,
+        AssistantContext context,
         AgentExecutionContext? suppliedExecutionContext = null)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -28,17 +28,17 @@ public sealed class ClinicAssistantManifestComposer(
         if (context.SubjectKind is not ("patient" or "practice"))
             throw new ArgumentException("The Clinic assistant subject kind is invalid.", nameof(context));
 
-        ClinicWorkspaceContext trustedContext = suppliedExecutionContext is null
+        AssistantContext trustedContext = suppliedExecutionContext is null
             ? context
             : executionContextFactory.ValidateAndRebuild(context, suppliedExecutionContext);
         AgentExecutionContext executionContext = suppliedExecutionContext ?? executionContextFactory.Create(context);
 
-        IReadOnlyCollection<IClinicWorkspaceCapability> available = capabilityRegistry.GetAvailable(trustedContext);
+        IReadOnlyCollection<IAssistantCapability> available = capabilityRegistry.GetAvailable(trustedContext);
         IReadOnlyCollection<IIntelligenceAgentTool> intelligence = intelligenceTools.ToArray();
         IReadOnlyCollection<string> profileKeys = trustedContext.SubjectKind == "practice"
             ? ClinicAssistantCapabilityKeys.OperationsProfile
             : ClinicAssistantCapabilityKeys.Patient;
-        IReadOnlyCollection<IClinicWorkspaceCapability> profileCapabilities = available
+        IReadOnlyCollection<IAssistantCapability> profileCapabilities = available
             .Where(capability => profileKeys.Contains(capability.Name, StringComparer.Ordinal))
             .ToArray();
         ClinicAssistantCompositionContext composition = new(trustedContext, available, intelligence, executionContextFactory.CurrentUtc);
@@ -84,7 +84,7 @@ public sealed class ClinicAssistantManifestComposer(
 
     private static bool IsExposed(
         string key,
-        IReadOnlyCollection<IClinicWorkspaceCapability> available,
+        IReadOnlyCollection<IAssistantCapability> available,
         IReadOnlyCollection<IIntelligenceAgentTool> intelligence) =>
         key == ClinicAssistantCapabilityKeys.Intelligence
             ? intelligence.Count > 0

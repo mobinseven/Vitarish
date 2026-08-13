@@ -1,12 +1,12 @@
-using Vitarish.Clinic.Application.ClinicWorkspace;
+using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
 public sealed class ClinicAssistantToolResolver(ClinicAssistantManifestComposer manifestComposer)
 {
-    public async Task<ClinicWorkspaceToolResult> ResolveAsync(
-        ClinicWorkspaceToolResolutionRequest request,
+    public async Task<AssistantToolResult> ResolveAsync(
+        AssistantToolResolutionRequest request,
         CancellationToken cancellationToken = default)
     {
         if (!string.Equals(request.ExecutionEnvelope.ExecutionId, request.ExecutionId, StringComparison.Ordinal) ||

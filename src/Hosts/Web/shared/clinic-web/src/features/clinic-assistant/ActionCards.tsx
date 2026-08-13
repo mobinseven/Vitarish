@@ -12,11 +12,11 @@ import {
   asRecord,
   asText,
   parseRecord,
-  type ClinicWorkspaceReviewPayload,
+  type AssistantReviewPayload,
 } from "./actionPayload";
 
 interface ActionCardProps {
-  payload: ClinicWorkspaceReviewPayload;
+  payload: AssistantReviewPayload;
   expiresAt: string;
 }
 

@@ -1,6 +1,6 @@
 using Vitarish.Intelligence.Agents;
 using Vitarish.Intelligence.Application.Agents;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 
 namespace Vitarish.Clinic.Agents;
 
@@ -35,12 +35,12 @@ public sealed class ClinicAssistantCapabilityPack(string key) : IAgentCapability
 
     public AgentCapabilityContribution CreateContribution(ClinicAssistantCompositionContext context)
     {
-        Vitarish.Clinic.Application.ClinicWorkspace.Capabilities.IClinicWorkspaceCapability? capability =
+        Vitarish.Clinic.Application.Assistant.Capabilities.IAssistantCapability? capability =
             context.AvailableCapabilities.SingleOrDefault(item => string.Equals(item.Name, Key, StringComparison.Ordinal));
         if (capability is null)
             return new([], [], []);
 
-        ClinicWorkspaceActionPolicy? PolicyFor(string toolName) => capability.ActionPolicies
+        AssistantActionPolicy? PolicyFor(string toolName) => capability.ActionPolicies
             .SingleOrDefault(policy => policy.ToolNames.Contains(toolName));
         bool IsExposed(IAgentTool tool) => PolicyFor(tool.Definition.Name) is not { } policy || policy.Authorizes(context.Context);
         IReadOnlyCollection<IAgentTool> tools = capability.Tools.Where(IsExposed).ToArray();

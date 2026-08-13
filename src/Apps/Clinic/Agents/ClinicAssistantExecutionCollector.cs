@@ -1,4 +1,4 @@
-using Vitarish.Clinic.Application.ClinicWorkspace;
+using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
@@ -7,7 +7,7 @@ internal sealed record ClinicAssistantToolExecution(
     string ToolName,
     string ToolCallId,
     string AgentRunId,
-    ClinicWorkspacePreparedAction PreparedAction);
+    AssistantPreparedAction PreparedAction);
 
 internal sealed class ClinicAssistantExecutionCollector
 {
@@ -25,17 +25,17 @@ internal sealed class ClinicAssistantExecutionCollector
         IReadOnlyDictionary<string, string> toolCapabilities,
         AgentExecutionContext context)
     {
-        Dictionary<string, IClinicWorkspacePreparationTool> preparationTools = tools
-            .OfType<IClinicWorkspacePreparationTool>()
+        Dictionary<string, IAssistantPreparationTool> preparationTools = tools
+            .OfType<IAssistantPreparationTool>()
             .ToDictionary(tool => tool.Definition.Name, StringComparer.Ordinal);
 
         foreach (AgentToolExecution execution in executions)
         {
             if (execution.IsError ||
-                !preparationTools.TryGetValue(execution.ToolName, out IClinicWorkspacePreparationTool? tool))
+                !preparationTools.TryGetValue(execution.ToolName, out IAssistantPreparationTool? tool))
                 continue;
 
-            ClinicWorkspacePreparedAction? prepared = tool.GetPreparedAction(
+            AssistantPreparedAction? prepared = tool.GetPreparedAction(
                 new AgentToolResult(execution.ToolCallId, execution.Output, execution.IsError));
             if (prepared is null) continue;
             if (!toolCapabilities.TryGetValue(execution.ToolName, out string? capability) ||

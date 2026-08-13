@@ -8,9 +8,9 @@ import { useEffect, useState } from "react";
 import { clinicResolveClinicAssistantCandidate } from "../../api/generated/clinic/clinic";
 import { usePatientDetail } from "../../hooks/patients/usePatientDetail";
 import { useLocalizedText } from "../../localization";
-import { OperationsAssistantActionList, ClinicWorkspaceActionList } from "./ClinicWorkspaceActions";
-import { ClinicWorkspaceComposer, ClinicWorkspaceErrorState, ClinicWorkspaceMessageList } from "./ClinicWorkspacePanel";
-import { useClinicAssistantConversationSurface, useOperationsAssistantConversation, useClinicWorkspaceConversation } from "./hooks";
+import { OperationsAssistantActionList, AssistantActionList } from "./AssistantActions";
+import { AssistantComposer, AssistantErrorState, AssistantMessageList } from "./AssistantPanel";
+import { useClinicAssistantConversationSurface, useOperationsAssistantConversation, useAssistantConversation } from "./hooks";
 
 export type ClinicAssistantScope = { kind: "practice" } | { kind: "patient"; patientId: string };
 
@@ -26,7 +26,7 @@ export function ClinicAssistantAside({
   const { locale, t } = useLocalizedText();
   const patientId = scope.kind === "patient" ? scope.patientId : "";
   const patientDetail = usePatientDetail(patientId);
-  const patientConversation = useClinicWorkspaceConversation(patientId, isOpen && scope.kind === "patient");
+  const patientConversation = useAssistantConversation(patientId, isOpen && scope.kind === "patient");
   const operationsConversation = useOperationsAssistantConversation(isOpen && scope.kind === "practice");
   const conversation = scope.kind === "patient" ? patientConversation : operationsConversation;
   const surface = useClinicAssistantConversationSurface(conversation, scope.kind === "patient" ? `patient:${patientId}` : "practice");
@@ -86,9 +86,9 @@ export function ClinicAssistantAside({
         <Tooltip><Button isIconOnly variant="tertiary" aria-label={patient ? t("clinic.clinicAssistant.actions.reset") : t("clinic.operationsAssistant.reset")} onPress={() => { setResetError(false); setConfirmReset(true); }}><FaIcon icon="rotate-left" aria-hidden="true" /></Button><Tooltip.Content>{patient ? t("clinic.clinicAssistant.actions.reset") : t("clinic.operationsAssistant.reset")}</Tooltip.Content></Tooltip>
       </header>
       <div className="flex min-h-0 flex-1 flex-col">
-        <ClinicWorkspaceMessageList scope={patient ? "patient" : "operations"} messages={surface.messages} onRetry={surface.lastMessage ? () => void surface.retry() : undefined}>
+        <AssistantMessageList scope={patient ? "patient" : "operations"} messages={surface.messages} onRetry={surface.lastMessage ? () => void surface.retry() : undefined}>
           {conversation.isPending ? <ChatMessage.Assistant><ChatMessage.Avatar show alt={title} fallback="AI" /><ChatMessage.Body><ChatLoader.Dots label={patient ? t("clinic.clinicAssistant.running") : t("clinic.operationsAssistant.running")} /></ChatMessage.Body></ChatMessage.Assistant> : null}
-          {conversation.isError ? <ClinicWorkspaceErrorState scope={patient ? "patient" : "operations"} onRetry={surface.lastMessage ? () => void surface.retry() : undefined} /> : null}
+          {conversation.isError ? <AssistantErrorState scope={patient ? "patient" : "operations"} onRetry={surface.lastMessage ? () => void surface.retry() : undefined} /> : null}
           {!patient && surface.candidates.length ? <div className="space-y-2 px-4" role="region" aria-label={t("clinic.operationsAssistant.candidates.label")}>
             {surface.candidates.map((candidate) => <ItemCard key={candidate.candidateToken} variant="secondary">
               <ItemCard.Icon><FaIcon icon="user" aria-hidden="true" /></ItemCard.Icon>
@@ -97,10 +97,10 @@ export function ClinicAssistantAside({
             </ItemCard>)}
             {selectionError ? <p role="alert" className="text-sm text-danger">{t("clinic.operationsAssistant.candidates.expired")}</p> : null}
           </div> : null}
-          {patient ? <ClinicWorkspaceActionList patientId={patientId} actionIds={surface.actionIds} /> : <OperationsAssistantActionList actionIds={surface.actionIds} />}
-        </ClinicWorkspaceMessageList>
+          {patient ? <AssistantActionList patientId={patientId} actionIds={surface.actionIds} /> : <OperationsAssistantActionList actionIds={surface.actionIds} />}
+        </AssistantMessageList>
       </div>
-      <footer className="shrink-0 border-t border-border p-3"><ClinicWorkspaceComposer scope={patient ? "patient" : "operations"} disabled={conversation.isPending} onSubmit={surface.submit} sessionKey={patient ? `clinic.assistant.patient:${patientId}` : "clinic.assistant.operations"} /></footer>
+      <footer className="shrink-0 border-t border-border p-3"><AssistantComposer scope={patient ? "patient" : "operations"} disabled={conversation.isPending} onSubmit={surface.submit} sessionKey={patient ? `clinic.assistant.patient:${patientId}` : "clinic.assistant.operations"} /></footer>
       <Modal isOpen={confirmReset} onOpenChange={setConfirmReset}><Modal.Backdrop><Modal.Container placement="center"><Modal.Dialog><Modal.Header><Modal.Heading>{patient ? t("clinic.clinicAssistant.actions.resetTitle") : t("clinic.operationsAssistant.resetTitle")}</Modal.Heading></Modal.Header><Modal.Body><p>{patient ? t("clinic.clinicAssistant.actions.resetDescription") : t("clinic.operationsAssistant.resetDescription")}</p>{resetError ? <p role="alert" className="text-sm text-danger">{patient ? t("clinic.clinicAssistant.actions.resetError") : t("clinic.operationsAssistant.resetError")}</p> : null}</Modal.Body><Modal.Footer><Button variant="secondary" onPress={() => setConfirmReset(false)}><FaIcon icon="xmark" aria-hidden="true" />{t("common.actions.cancel")}</Button><Button variant="danger" onPress={() => void reset()}><FaIcon icon="trash" aria-hidden="true" />{t("common.actions.delete")}</Button></Modal.Footer></Modal.Dialog></Modal.Container></Modal.Backdrop></Modal>
     </section>
   );

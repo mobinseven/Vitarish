@@ -6,7 +6,7 @@ import {
 } from "@/components/shell/dashboardShellNavigation";
 import { ImmersiveRegion, PageContainer } from "@vitarish/web-ui/layout";
 
-export default function ClinicWorkspaceLayout({
+export default function AssistantLayout({
   children,
 }: {
   children: React.ReactNode;

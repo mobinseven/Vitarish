@@ -1,10 +1,10 @@
 using System.Text.Json;
 using FluentAssertions;
 using MediatR;
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Actions;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
-using Vitarish.Clinic.Application.ClinicWorkspace.Policies;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Actions;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
+using Vitarish.Clinic.Application.Assistant.Policies;
 using Vitarish.Intelligence.Agents;
 using Vitarish.Intelligence.Application.Agents;
 using Xunit;
@@ -18,7 +18,7 @@ public sealed class ClinicAssistantSecurityRegressionTests
     [Fact]
     public void Patient_scope_is_server_bound_even_when_user_input_requests_another_patient()
     {
-        ClinicWorkspaceContext context = PatientContext();
+        AssistantContext context = PatientContext();
         ClinicAssistantCompositionContext composition = new(context, [], [], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
         AgentProfileComposer<ClinicAssistantCompositionContext> composer = Composer([]);
         ComposedAgentManifest<ClinicAssistantCompositionContext> manifest = composer.Compose(
@@ -36,10 +36,10 @@ public sealed class ClinicAssistantSecurityRegressionTests
     {
         TestCapability readable = new("Readable", ["Patient.Read"], [new TestTool("read_patient")]);
         TestCapability billing = new("Billing", ["Billing.Read"], [new TestTool("read_billing")]);
-        ClinicWorkspaceCapabilityRegistry registry = new(
+        AssistantCapabilityRegistry registry = new(
             [readable, billing],
-            new ClinicWorkspaceAuthorizationPolicy(),
-            new ClinicWorkspaceToolAvailabilityPolicy(),
+            new AssistantAuthorizationPolicy(),
+            new AssistantToolAvailabilityPolicy(),
             []);
 
         registry.GetAvailable(PatientContext(new HashSet<string> { "Patient.Read" }))
@@ -50,7 +50,7 @@ public sealed class ClinicAssistantSecurityRegressionTests
     [Fact]
     public void PlatformAdmin_bypasses_action_permissions_consistently_with_capabilities()
     {
-        ClinicWorkspaceActionPolicy policy = ClinicWorkspaceActionPolicies.Direct(
+        AssistantActionPolicy policy = AssistantActionPolicies.Direct(
             "read_sensitive_workspace", "operations", ["Workspace.Sensitive.Read"]);
 
         policy.Authorizes(PatientContext(role: "PlatformAdmin")).Should().BeTrue();
@@ -65,9 +65,9 @@ public sealed class ClinicAssistantSecurityRegressionTests
             ["Appointments.Read"],
             [preparation],
             ActionPoliciesOverride:
-            [ClinicWorkspaceActionPolicies.Prepare(
+            [AssistantActionPolicies.Prepare(
                 "create_appointment", "appointments", ["Appointments.Create"], toolNames: [preparation.Definition.Name])]);
-        ClinicWorkspaceContext context = PatientContext(new HashSet<string> { "Appointments.Read" });
+        AssistantContext context = PatientContext(new HashSet<string> { "Appointments.Read" });
         ClinicAssistantCompositionContext composition = new(context, [capability], [], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
 
         AgentCapabilityContribution contribution = new ClinicAssistantCapabilityPack("Appointments").CreateContribution(composition);
@@ -77,12 +77,12 @@ public sealed class ClinicAssistantSecurityRegressionTests
         ClinicAssistantPolicyInstructions.Create(composition, dynamicTime: false)
             .Should().NotContain("create_appointment");
 
-        ClinicWorkspaceCapabilityRegistry registry = new(
+        AssistantCapabilityRegistry registry = new(
             [capability],
-            new ClinicWorkspaceAuthorizationPolicy(),
-            new ClinicWorkspaceToolAvailabilityPolicy(),
+            new AssistantAuthorizationPolicy(),
+            new AssistantToolAvailabilityPolicy(),
             [new TestCommitter("create_appointment", "appointments")]);
-        IAgentTool guarded = new ClinicWorkspaceToolDispatcher(registry, [])
+        IAgentTool guarded = new AssistantToolDispatcher(registry, [])
             .CreateGuardedTools(context, Execution(context, "run-1"), [preparation], new Dictionary<string, string> { [preparation.Definition.Name] = capability.Name })
             .Single();
 
@@ -94,10 +94,10 @@ public sealed class ClinicAssistantSecurityRegressionTests
     [Fact]
     public async Task Patient_tool_dispatch_rejects_a_callback_for_another_patient()
     {
-        ClinicWorkspaceContext context = PatientContext();
+        AssistantContext context = PatientContext();
         AgentExecutionContext trustedExecution = Execution(context, "run-1");
         TestTool handler = new("patient_read");
-        IAgentTool guarded = new ClinicWorkspaceToolDispatcher(TestRegistry(), [])
+        IAgentTool guarded = new AssistantToolDispatcher(TestRegistry(), [])
             .CreateGuardedTools(
                 context,
                 trustedExecution,
@@ -123,12 +123,12 @@ public sealed class ClinicAssistantSecurityRegressionTests
     [Fact]
     public async Task Tool_dispatch_validates_declared_schema_before_execution()
     {
-        ClinicWorkspaceContext context = PatientContext();
+        AssistantContext context = PatientContext();
         AgentExecutionContext execution = Execution(context, "run-1");
         TestTool handler = new(
             "appointments_list",
             """{"type":"object","additionalProperties":false,"required":["range"],"properties":{"range":{"type":"string"}}}""");
-        IAgentTool guarded = new ClinicWorkspaceToolDispatcher(TestRegistry(), [])
+        IAgentTool guarded = new AssistantToolDispatcher(TestRegistry(), [])
             .CreateGuardedTools(
                 context, execution, [handler],
                 new Dictionary<string, string> { [handler.Definition.Name] = "Appointments" })
@@ -143,7 +143,7 @@ public sealed class ClinicAssistantSecurityRegressionTests
     [Fact]
     public async Task Direct_execution_requires_an_explicit_direct_allowlist_policy()
     {
-        ClinicWorkspaceContext context = new(
+        AssistantContext context = new(
             "practice-1", Guid.Empty, "user-1", new HashSet<string>(), "TenantOwner", "en-US", "UTC", "conversation-1",
             SubjectKind: "practice");
         AgentExecutionContext execution = Execution(context, "run-1");
@@ -153,14 +153,14 @@ public sealed class ClinicAssistantSecurityRegressionTests
             [],
             [handler],
             ActionPoliciesOverride:
-            [ClinicWorkspaceActionPolicies.Direct(
+            [AssistantActionPolicies.Direct(
                 "activate_shift", "operations", [], ["TenantOwner"], [handler.Definition.Name])]);
-        ClinicWorkspaceCapabilityRegistry registry = new(
+        AssistantCapabilityRegistry registry = new(
             [capability],
-            new ClinicWorkspaceAuthorizationPolicy(),
-            new ClinicWorkspaceToolAvailabilityPolicy(),
+            new AssistantAuthorizationPolicy(),
+            new AssistantToolAvailabilityPolicy(),
             []);
-        IAgentTool guarded = new ClinicWorkspaceToolDispatcher(registry, [])
+        IAgentTool guarded = new AssistantToolDispatcher(registry, [])
             .CreateGuardedTools(
                 context,
                 execution,
@@ -181,10 +181,10 @@ public sealed class ClinicAssistantSecurityRegressionTests
         TestPreparationTool handler = new(Guid.NewGuid());
         TestCapability capability = new("Appointments", [], [handler], ["create_appointment"]);
 
-        FluentActions.Invoking(() => new ClinicWorkspaceCapabilityRegistry(
+        FluentActions.Invoking(() => new AssistantCapabilityRegistry(
                 [capability],
-                new ClinicWorkspaceAuthorizationPolicy(),
-                new ClinicWorkspaceToolAvailabilityPolicy(),
+                new AssistantAuthorizationPolicy(),
+                new AssistantToolAvailabilityPolicy(),
                 []))
             .Should().Throw<InvalidOperationException>()
             .WithMessage("*has no committer*");
@@ -193,17 +193,17 @@ public sealed class ClinicAssistantSecurityRegressionTests
     [Fact]
     public async Task Prepared_action_rejects_a_non_preparation_handler()
     {
-        ClinicWorkspaceContext context = PatientContext();
+        AssistantContext context = PatientContext();
         AgentExecutionContext execution = Execution(context, "run-1");
         TestPreparationTool registeredHandler = new(Guid.NewGuid());
         TestTool handler = new("prepare_appointment");
         TestCapability capability = new("Appointments", [], [registeredHandler], ["create_appointment"]);
-        ClinicWorkspaceCapabilityRegistry registry = new(
+        AssistantCapabilityRegistry registry = new(
             [capability],
-            new ClinicWorkspaceAuthorizationPolicy(),
-            new ClinicWorkspaceToolAvailabilityPolicy(),
+            new AssistantAuthorizationPolicy(),
+            new AssistantToolAvailabilityPolicy(),
             [new TestCommitter("create_appointment", "Appointments")]);
-        IAgentTool guarded = new ClinicWorkspaceToolDispatcher(registry, [])
+        IAgentTool guarded = new AssistantToolDispatcher(registry, [])
             .CreateGuardedTools(
                 context,
                 execution,
@@ -225,10 +225,10 @@ public sealed class ClinicAssistantSecurityRegressionTests
         TestTool handler = new("prepare_appointment");
         TestCapability capability = new("Appointments", [], [handler], ["create_appointment"]);
 
-        FluentActions.Invoking(() => new ClinicWorkspaceCapabilityRegistry(
+        FluentActions.Invoking(() => new AssistantCapabilityRegistry(
                 [capability],
-                new ClinicWorkspaceAuthorizationPolicy(),
-                new ClinicWorkspaceToolAvailabilityPolicy(),
+                new AssistantAuthorizationPolicy(),
+                new AssistantToolAvailabilityPolicy(),
                 [new TestCommitter("create_appointment", "Appointments")]))
             .Should().Throw<InvalidOperationException>()
             .WithMessage("*must reference a preparation tool*");
@@ -244,8 +244,8 @@ public sealed class ClinicAssistantSecurityRegressionTests
         RecordingSender sender = new();
         ClinicAssistantRuntime runtime = Runtime(sender, actionStore, [capability]);
 
-        ClinicWorkspaceResult result = await runtime.RunAsync(
-            PatientContext(), new ClinicWorkspaceInput("prepare an appointment"), CancellationToken.None);
+        AssistantResult result = await runtime.RunAsync(
+            PatientContext(), new AssistantInput("prepare an appointment"), CancellationToken.None);
 
         result.Actions.Should().ContainSingle().Which.ActionId.Should().Be(proposalId);
         actionStore.Saved.Should().ContainSingle().Which.ActionId.Should().Be(proposalId);
@@ -262,15 +262,15 @@ public sealed class ClinicAssistantSecurityRegressionTests
             actionStore,
             [new TestCapability("Appointments", [], [new TestPreparationTool(Guid.NewGuid())], ["create_appointment"])]);
 
-        ClinicWorkspaceResult result = await runtime.RunAsync(
-            PatientContext(), new ClinicWorkspaceInput("create it"), CancellationToken.None);
+        AssistantResult result = await runtime.RunAsync(
+            PatientContext(), new AssistantInput("create it"), CancellationToken.None);
 
         result.Actions.Should().BeEmpty();
         actionStore.Saved.Should().BeEmpty();
     }
 
     private static AgentProfileComposer<ClinicAssistantCompositionContext> Composer(
-        IReadOnlyCollection<IClinicWorkspaceCapability> capabilities) =>
+        IReadOnlyCollection<IAssistantCapability> capabilities) =>
         new(new AgentCapabilityCatalog<ClinicAssistantCompositionContext>(
             ClinicAssistantCapabilityKeys.Patient
                 .Concat(capabilities.Select(capability => capability.Name))
@@ -280,13 +280,13 @@ public sealed class ClinicAssistantSecurityRegressionTests
     private static ClinicAssistantRuntime Runtime(
         RecordingSender sender,
         RecordingActionStore actionStore,
-        IReadOnlyCollection<IClinicWorkspaceCapability> capabilities) =>
+        IReadOnlyCollection<IAssistantCapability> capabilities) =>
         CreateRuntime(
             Composer(capabilities),
-            new ClinicWorkspaceCapabilityRegistry(
+            new AssistantCapabilityRegistry(
                 capabilities,
-                new ClinicWorkspaceAuthorizationPolicy(),
-                new ClinicWorkspaceToolAvailabilityPolicy(),
+                new AssistantAuthorizationPolicy(),
+                new AssistantToolAvailabilityPolicy(),
                 capabilities
                     .SelectMany(capability => capability.ActionPolicies)
                     .Select(policy => new TestCommitter(policy.ActionType, policy.OwningWorkflow))
@@ -296,15 +296,15 @@ public sealed class ClinicAssistantSecurityRegressionTests
 
     private static ClinicAssistantRuntime CreateRuntime(
         AgentProfileComposer<ClinicAssistantCompositionContext> composer,
-        ClinicWorkspaceCapabilityRegistry registry,
+        AssistantCapabilityRegistry registry,
         ISender sender,
-        IClinicWorkspaceActionStore actionStore)
+        IAssistantActionStore actionStore)
     {
         FixedTimeProvider time = new(DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
         ClinicAssistantManifestComposer manifestComposer = new(
             composer,
             registry,
-            new ClinicWorkspaceToolDispatcher(registry, []),
+            new AssistantToolDispatcher(registry, []),
             new ClinicAssistantOptions("test-model"),
             [],
             new ClinicAssistantExecutionContextFactory(time));
@@ -319,17 +319,17 @@ public sealed class ClinicAssistantSecurityRegressionTests
             new ClinicAssistantToolResolver(manifestComposer));
     }
 
-    private static ClinicWorkspaceContext PatientContext(IReadOnlySet<string>? permissions = null, string role = "Clinician") => new(
+    private static AssistantContext PatientContext(IReadOnlySet<string>? permissions = null, string role = "Clinician") => new(
         "practice-1", PatientId, "user-1", permissions ?? new HashSet<string>(),
         role, "en-US", "UTC", "conversation-1");
 
-    private static ClinicWorkspaceCapabilityRegistry TestRegistry() => new(
+    private static AssistantCapabilityRegistry TestRegistry() => new(
         [],
-        new ClinicWorkspaceAuthorizationPolicy(),
-        new ClinicWorkspaceToolAvailabilityPolicy(),
+        new AssistantAuthorizationPolicy(),
+        new AssistantToolAvailabilityPolicy(),
         []);
 
-    private static AgentExecutionContext Execution(ClinicWorkspaceContext context, string runId) =>
+    private static AgentExecutionContext Execution(AssistantContext context, string runId) =>
         new(runId, new Dictionary<string, string>
         {
             ["practiceId"] = context.PracticeId,
@@ -343,19 +343,19 @@ public sealed class ClinicAssistantSecurityRegressionTests
         IReadOnlyCollection<string> Permissions,
         IReadOnlyCollection<IAgentTool> Tools,
         IReadOnlyCollection<string>? Actions = null,
-        IReadOnlyCollection<ClinicWorkspaceActionPolicy>? ActionPoliciesOverride = null) : IClinicWorkspaceCapability
+        IReadOnlyCollection<AssistantActionPolicy>? ActionPoliciesOverride = null) : IAssistantCapability
     {
         public string Description => $"{Name} test capability";
         public string GetInstructions() => $"Use {Name}.";
         public IReadOnlySet<string> RequiredPermissions { get; } = Permissions.ToHashSet(StringComparer.Ordinal);
-        public IReadOnlyCollection<ClinicWorkspaceActionPolicy> ActionPolicies { get; } = ActionPoliciesOverride ??
-            (Actions ?? []).Select(action => ClinicWorkspaceActionPolicies.Prepare(
+        public IReadOnlyCollection<AssistantActionPolicy> ActionPolicies { get; } = ActionPoliciesOverride ??
+            (Actions ?? []).Select(action => AssistantActionPolicies.Prepare(
                 action,
                 Name,
                 Permissions,
                 toolNames: Tools.Select(tool => tool.Definition.Name))).ToArray();
         public IReadOnlyCollection<string> ActionTypes => ActionPolicies.Select(policy => policy.ActionType).ToArray();
-        public bool IsAvailable(ClinicWorkspaceContext context) => true;
+        public bool IsAvailable(AssistantContext context) => true;
     }
 
     private class TestTool(
@@ -375,21 +375,21 @@ public sealed class ClinicAssistantSecurityRegressionTests
         }
     }
 
-    private sealed class TestCommitter(string actionType, string workflowKey) : IClinicWorkspaceActionCommitter
+    private sealed class TestCommitter(string actionType, string workflowKey) : IAssistantActionCommitter
     {
         public string ActionType => actionType;
         public string WorkflowKey => workflowKey;
 
-        public Task<ClinicWorkspaceActionCommitResult> CommitAsync(
-            ClinicWorkspaceAction action,
-            ClinicWorkspaceContext context,
+        public Task<AssistantActionCommitResult> CommitAsync(
+            AssistantAction action,
+            AssistantContext context,
             CancellationToken cancellationToken) =>
-            Task.FromResult(ClinicWorkspaceActionCommitResult.Completed("{}"));
+            Task.FromResult(AssistantActionCommitResult.Completed("{}"));
     }
 
-    private sealed class TestPreparationTool(Guid proposalId) : TestTool("prepare_appointment"), IClinicWorkspacePreparationTool
+    private sealed class TestPreparationTool(Guid proposalId) : TestTool("prepare_appointment"), IAssistantPreparationTool
     {
-        public ClinicWorkspacePreparedAction? GetPreparedAction(AgentToolResult result) =>
+        public AssistantPreparedAction? GetPreparedAction(AgentToolResult result) =>
             result.IsError ? null : new(
                 "Appointments", "create_appointment", proposalId, "{\"proposal\":true}",
                 DateTimeOffset.Parse("2030-01-01T11:00:00Z"));
@@ -427,22 +427,22 @@ public sealed class ClinicAssistantSecurityRegressionTests
         public IAsyncEnumerable<object?> CreateStream(object request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
-    private sealed class RecordingActionStore : IClinicWorkspaceActionStore
+    private sealed class RecordingActionStore : IAssistantActionStore
     {
-        public List<ClinicWorkspaceAction> Saved { get; } = [];
+        public List<AssistantAction> Saved { get; } = [];
 
-        public Task SaveAsync(ClinicWorkspaceAction action, CancellationToken cancellationToken)
+        public Task SaveAsync(AssistantAction action, CancellationToken cancellationToken)
         {
             Saved.Add(action);
             return Task.CompletedTask;
         }
 
-        public Task<ClinicWorkspaceAction?> GetAsync(Guid actionId, CancellationToken cancellationToken) =>
+        public Task<AssistantAction?> GetAsync(Guid actionId, CancellationToken cancellationToken) =>
             Task.FromResult(Saved.SingleOrDefault(action => action.ActionId == actionId));
         public Task<bool> TryBeginConfirmationAsync(Guid actionId, bool retryFailed, CancellationToken cancellationToken) => Task.FromResult(false);
         public Task<bool> TryRejectAsync(Guid actionId, DateTimeOffset rejectedAt, string? reason, CancellationToken cancellationToken) => Task.FromResult(false);
         public Task<bool> CompleteAsync(Guid actionId, DateTimeOffset confirmedAt, string confirmedByUserId, string completionPayload, CancellationToken cancellationToken) => Task.FromResult(false);
-        public Task<bool> FailAsync(Guid actionId, ClinicWorkspaceActionFailure failure, CancellationToken cancellationToken) => Task.FromResult(false);
+        public Task<bool> FailAsync(Guid actionId, AssistantActionFailure failure, CancellationToken cancellationToken) => Task.FromResult(false);
         public Task<bool> ExpireAsync(Guid actionId, CancellationToken cancellationToken) => Task.FromResult(false);
     }
 

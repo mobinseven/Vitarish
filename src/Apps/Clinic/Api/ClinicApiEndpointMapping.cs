@@ -11,10 +11,10 @@ using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Commands.Visits;
 using Vitarish.Clinic.Application.Queries.Patients;
 using Vitarish.Clinic.Application.Results;
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Actions;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
-using Vitarish.Clinic.Application.ClinicWorkspace.Operations;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Actions;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
+using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Clinic.Api.ClinicAssistant;
 using Vitarish.Clinic.Contracts.Errors;
 using Vitarish.Clinic.Contracts.ClinicAssistant;
@@ -185,87 +185,87 @@ public static class ClinicApiEndpointMapping
     }
 
     private static async Task<IResult> GetPatientAssistantActionAsync(
-        Guid patientId, Guid actionId, [FromServices] IClinicWorkspaceContextFactory contextFactory,
+        Guid patientId, Guid actionId, [FromServices] IAssistantContextFactory contextFactory,
         ISender sender, CancellationToken ct)
     {
         if (patientId == Guid.Empty || actionId == Guid.Empty) return InvalidActionRequest();
-        ClinicWorkspaceContext context;
+        AssistantContext context;
         try { context = await contextFactory.CreateAsync(patientId, null, ct); }
         catch (KeyNotFoundException) { return NotFoundClinicAssistant(); }
-        ClinicWorkspaceActionResult result = await sender.Send(new GetClinicWorkspaceAction(actionId, context), ct);
+        AssistantActionResult result = await sender.Send(new GetAssistantAction(actionId, context), ct);
         return MapActionResult(result, action => Results.Ok(ToDetails(action)));
     }
 
-    private static async Task<IResult> GetOperationsAssistantActionAsync(Guid actionId, [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
+    private static async Task<IResult> GetOperationsAssistantActionAsync(Guid actionId, [FromServices] IAssistantContextFactory contextFactory, ISender sender, CancellationToken ct)
     {
         if (actionId == Guid.Empty) return InvalidActionRequest();
-        ClinicWorkspaceContext context;
+        AssistantContext context;
         try { context = await contextFactory.CreateOperationsAsync(null, ct); }
         catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
-        ClinicWorkspaceActionResult result = await sender.Send(new GetClinicWorkspaceAction(actionId, context), ct);
+        AssistantActionResult result = await sender.Send(new GetAssistantAction(actionId, context), ct);
         return MapActionResult(result, action => Results.Ok(ToDetails(action)));
     }
 
-    private static async Task<IResult> ConfirmOperationsAssistantActionAsync(Guid actionId, [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
+    private static async Task<IResult> ConfirmOperationsAssistantActionAsync(Guid actionId, [FromServices] IAssistantContextFactory contextFactory, ISender sender, CancellationToken ct)
     {
         if (actionId == Guid.Empty) return InvalidActionRequest();
-        ClinicWorkspaceContext context;
+        AssistantContext context;
         try { context = await contextFactory.CreateOperationsAsync(null, ct); }
         catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
-        ClinicWorkspaceActionResult result = await sender.Send(new ConfirmClinicWorkspaceAction(actionId, context), ct);
+        AssistantActionResult result = await sender.Send(new ConfirmAssistantAction(actionId, context), ct);
         return MapActionResult(result, action => Results.Ok(new ConfirmClinicAssistantActionResponse(action.ActionId, ToContract(action.Status), Json(action.CompletionPayload), ToFailure(action.Failure))));
     }
 
-    private static async Task<IResult> RejectOperationsAssistantActionAsync(Guid actionId, RejectClinicAssistantActionRequest request, [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
+    private static async Task<IResult> RejectOperationsAssistantActionAsync(Guid actionId, RejectClinicAssistantActionRequest request, [FromServices] IAssistantContextFactory contextFactory, ISender sender, CancellationToken ct)
     {
         if (actionId == Guid.Empty || request is null || !Guid.TryParse(request.ActionId, out Guid bodyId) || bodyId != actionId || request.Reason?.Length > 1_000) return InvalidActionRequest();
-        ClinicWorkspaceContext context;
+        AssistantContext context;
         try { context = await contextFactory.CreateOperationsAsync(null, ct); }
         catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
-        ClinicWorkspaceActionResult result = await sender.Send(new RejectClinicWorkspaceAction(actionId, context, request.Reason), ct);
+        AssistantActionResult result = await sender.Send(new RejectAssistantAction(actionId, context, request.Reason), ct);
         return MapActionResult(result, action => Results.Ok(new RejectClinicAssistantActionResponse(action.ActionId, ToContract(action.Status))));
     }
 
-    private static async Task<IResult> RunCanonicalOperationsAssistantAsync(RunClinicAssistantRequest request, [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
+    private static async Task<IResult> RunCanonicalOperationsAssistantAsync(RunClinicAssistantRequest request, [FromServices] IAssistantContextFactory contextFactory, ISender sender, CancellationToken ct)
         => await RunOperationsAssistantAsync(request, contextFactory, sender, ct, agentKey: null);
 
-    private static async Task<IResult> RunLegacyOperationsAgentAsync(RunClinicAssistantRequest request, [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
+    private static async Task<IResult> RunLegacyOperationsAgentAsync(RunClinicAssistantRequest request, [FromServices] IAssistantContextFactory contextFactory, ISender sender, CancellationToken ct)
         => await RunOperationsAssistantAsync(request, contextFactory, sender, ct, "clinic.operations");
 
     private static async Task<IResult> RunOperationsAssistantAsync(
         RunClinicAssistantRequest request,
-        IClinicWorkspaceContextFactory contextFactory,
+        IAssistantContextFactory contextFactory,
         ISender sender,
         CancellationToken ct,
         string? agentKey)
     {
         if (request is null || string.IsNullOrWhiteSpace(request.Message)) return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "A message is required."));
-        ClinicWorkspaceContext context;
+        AssistantContext context;
         try { context = await contextFactory.CreateOperationsAsync(request.ConversationId, ct, agentKey); }
         catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
-        ClinicWorkspaceResult result = await sender.Send(new RunClinicWorkspace(context, new ClinicWorkspaceInput(request.Message)), ct);
-        if (result.Outcome == ClinicWorkspaceRunOutcome.NotFound) return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."));
-        if (result.Outcome == ClinicWorkspaceRunOutcome.Busy) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
-        if (result.Outcome == ClinicWorkspaceRunOutcome.ProfileChanged) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The agent profile changed; start a new conversation."));
-        if (result.Outcome == ClinicWorkspaceRunOutcome.InvalidHistory) return Results.Conflict(new ClinicError(ClinicErrorCode.InvalidHistory, "The conversation history is invalid."));
-        if (result.Outcome != ClinicWorkspaceRunOutcome.Succeeded) return Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The operations agent failed."), statusCode: StatusCodes.Status502BadGateway);
+        AssistantResult result = await sender.Send(new RunAssistant(context, new AssistantInput(request.Message)), ct);
+        if (result.Outcome == AssistantRunOutcome.NotFound) return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."));
+        if (result.Outcome == AssistantRunOutcome.Busy) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
+        if (result.Outcome == AssistantRunOutcome.ProfileChanged) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The agent profile changed; start a new conversation."));
+        if (result.Outcome == AssistantRunOutcome.InvalidHistory) return Results.Conflict(new ClinicError(ClinicErrorCode.InvalidHistory, "The conversation history is invalid."));
+        if (result.Outcome != AssistantRunOutcome.Succeeded) return Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The operations agent failed."), statusCode: StatusCodes.Status502BadGateway);
         return Results.Ok(ToRunResponse(result));
     }
 
     private static async Task<IResult> ResolveClinicAssistantCandidateAsync(
         ResolveClinicAssistantCandidateRequest request,
-        [FromServices] IClinicWorkspaceContextFactory contextFactory,
-        [FromServices] IClinicWorkspacePatientSearch search,
+        [FromServices] IAssistantContextFactory contextFactory,
+        [FromServices] IAssistantPatientSearch search,
         CancellationToken ct)
     {
         if (request is null || string.IsNullOrWhiteSpace(request.AgentRunId) || string.IsNullOrWhiteSpace(request.CandidateToken))
             return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "A candidate token and agent run are required."));
 
-        ClinicWorkspaceContext context;
+        AssistantContext context;
         try { context = await contextFactory.CreateOperationsAsync(null, ct); }
         catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
 
-        ClinicWorkspaceCandidateReference? candidate = await search.ResolveAsync(
+        AssistantCandidateReference? candidate = await search.ResolveAsync(
             context.PracticeId, context.AuthenticatedUserId, request.AgentRunId, request.CandidateToken, ct);
         return candidate is null
             ? Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "The patient candidate is invalid or expired."))
@@ -274,58 +274,58 @@ public static class ClinicApiEndpointMapping
 
     private static async Task<IResult> ConfirmPatientAssistantActionAsync(
         Guid patientId, Guid actionId, ConfirmClinicAssistantActionRequest request,
-        [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
+        [FromServices] IAssistantContextFactory contextFactory, ISender sender, CancellationToken ct)
     {
         if (patientId == Guid.Empty || actionId == Guid.Empty || request is null ||
             !Guid.TryParse(request.ActionId, out Guid bodyActionId) || bodyActionId != actionId)
             return InvalidActionRequest();
-        ClinicWorkspaceContext context;
+        AssistantContext context;
         try { context = await contextFactory.CreateAsync(patientId, null, ct); }
         catch (KeyNotFoundException) { return NotFoundClinicAssistant(); }
-        ClinicWorkspaceActionResult result = await sender.Send(new ConfirmClinicWorkspaceAction(actionId, context), ct);
+        AssistantActionResult result = await sender.Send(new ConfirmAssistantAction(actionId, context), ct);
         return MapActionResult(result, action => Results.Ok(new ConfirmClinicAssistantActionResponse(
             action.ActionId, ToContract(action.Status), Json(action.CompletionPayload), ToFailure(action.Failure))));
     }
 
     private static async Task<IResult> RejectPatientAssistantActionAsync(
         Guid patientId, Guid actionId, RejectClinicAssistantActionRequest request,
-        [FromServices] IClinicWorkspaceContextFactory contextFactory, ISender sender, CancellationToken ct)
+        [FromServices] IAssistantContextFactory contextFactory, ISender sender, CancellationToken ct)
     {
         if (patientId == Guid.Empty || actionId == Guid.Empty || request is null ||
             !Guid.TryParse(request.ActionId, out Guid bodyActionId) || bodyActionId != actionId ||
             request.Reason?.Length > 1_000)
             return InvalidActionRequest();
-        ClinicWorkspaceContext context;
+        AssistantContext context;
         try { context = await contextFactory.CreateAsync(patientId, null, ct); }
         catch (KeyNotFoundException) { return NotFoundClinicAssistant(); }
-        ClinicWorkspaceActionResult result = await sender.Send(new RejectClinicWorkspaceAction(actionId, context, request.Reason), ct);
+        AssistantActionResult result = await sender.Send(new RejectAssistantAction(actionId, context, request.Reason), ct);
         return MapActionResult(result, action => Results.Ok(new RejectClinicAssistantActionResponse(
             action.ActionId, ToContract(action.Status))));
     }
 
-    private static IResult MapActionResult(ClinicWorkspaceActionResult result, Func<ClinicWorkspaceAction, IResult> success) =>
+    private static IResult MapActionResult(AssistantActionResult result, Func<AssistantAction, IResult> success) =>
         result.Outcome switch
         {
-            ClinicWorkspaceActionOutcome.Succeeded when result.Action is not null => success(result.Action),
-            ClinicWorkspaceActionOutcome.ValidationFailure => InvalidActionRequest(),
-            ClinicWorkspaceActionOutcome.NotFound => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Clinic assistant action was not found.")),
-            ClinicWorkspaceActionOutcome.ScopeMismatch => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Clinic assistant action was not found.")),
-            ClinicWorkspaceActionOutcome.PermissionDenied => Results.Json(new ClinicError(ClinicErrorCode.Forbidden, "The action is not permitted."), statusCode: StatusCodes.Status403Forbidden),
-            ClinicWorkspaceActionOutcome.Expired => Results.Conflict(ToDetails(result.Action!)),
-            ClinicWorkspaceActionOutcome.Conflict => Results.Conflict(result.Action is null ? new ClinicError(ClinicErrorCode.Conflict, "The action cannot be changed.") : ToDetails(result.Action)),
-            ClinicWorkspaceActionOutcome.Failed => Results.Json(ToDetails(result.Action!), statusCode: StatusCodes.Status422UnprocessableEntity),
+            AssistantActionOutcome.Succeeded when result.Action is not null => success(result.Action),
+            AssistantActionOutcome.ValidationFailure => InvalidActionRequest(),
+            AssistantActionOutcome.NotFound => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Clinic assistant action was not found.")),
+            AssistantActionOutcome.ScopeMismatch => Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Clinic assistant action was not found.")),
+            AssistantActionOutcome.PermissionDenied => Results.Json(new ClinicError(ClinicErrorCode.Forbidden, "The action is not permitted."), statusCode: StatusCodes.Status403Forbidden),
+            AssistantActionOutcome.Expired => Results.Conflict(ToDetails(result.Action!)),
+            AssistantActionOutcome.Conflict => Results.Conflict(result.Action is null ? new ClinicError(ClinicErrorCode.Conflict, "The action cannot be changed.") : ToDetails(result.Action)),
+            AssistantActionOutcome.Failed => Results.Json(ToDetails(result.Action!), statusCode: StatusCodes.Status422UnprocessableEntity),
             _ => Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The action operation failed."), statusCode: StatusCodes.Status500InternalServerError)
         };
 
-    private static ClinicAssistantActionDetailsResponse ToDetails(ClinicWorkspaceAction action) => new(
+    private static ClinicAssistantActionDetailsResponse ToDetails(AssistantAction action) => new(
         action.ActionId, action.AgentRunId, action.ConversationId, action.Capability, action.ActionType,
         ToContract(action.Status), Json(action.ReviewPayload)!.Value, action.ExpiresAt,
         Json(action.CompletionPayload), ToFailure(action.Failure));
 
-    private static Contracts.ClinicAssistant.ClinicAssistantActionStatus ToContract(Application.ClinicWorkspace.ClinicWorkspaceActionStatus status) =>
+    private static Contracts.ClinicAssistant.ClinicAssistantActionStatus ToContract(Application.Assistant.AssistantActionStatus status) =>
         (Contracts.ClinicAssistant.ClinicAssistantActionStatus)(int)status;
 
-    private static ClinicAssistantActionFailureResponse? ToFailure(ClinicWorkspaceActionFailure? failure) =>
+    private static ClinicAssistantActionFailureResponse? ToFailure(AssistantActionFailure? failure) =>
         failure is null ? null : new(failure.Code, failure.Message, failure.Retryable);
 
     private static System.Text.Json.JsonElement? Json(string? value) => string.IsNullOrWhiteSpace(value)
@@ -340,7 +340,7 @@ public static class ClinicApiEndpointMapping
     private static IResult NotFoundClinicAssistant() => Results.NotFound(
         new ClinicError(ClinicErrorCode.NotFound, "The route-bound patient is unavailable."));
 
-    private static RunClinicAssistantResponse ToRunResponse(ClinicWorkspaceResult result) => new(
+    private static RunClinicAssistantResponse ToRunResponse(AssistantResult result) => new(
         result.AgentRunId,
         result.ConversationId,
         null,
@@ -357,7 +357,7 @@ public static class ClinicApiEndpointMapping
     private static async Task<IResult> RunCanonicalPatientAssistantAsync(
         Guid patientId,
         RunClinicAssistantRequest request,
-        [FromServices] IClinicWorkspaceContextFactory contextFactory,
+        [FromServices] IAssistantContextFactory contextFactory,
         ISender sender,
         CancellationToken ct)
         => await RunClinicAssistantAsync(patientId, request, contextFactory, sender, ct, agentKey: null);
@@ -365,7 +365,7 @@ public static class ClinicApiEndpointMapping
     private static async Task<IResult> RunLegacyPatientAgentAsync(
         Guid patientId,
         RunClinicAssistantRequest request,
-        [FromServices] IClinicWorkspaceContextFactory contextFactory,
+        [FromServices] IAssistantContextFactory contextFactory,
         ISender sender,
         CancellationToken ct)
         => await RunClinicAssistantAsync(patientId, request, contextFactory, sender, ct, "clinic.patient");
@@ -373,7 +373,7 @@ public static class ClinicApiEndpointMapping
     private static async Task<IResult> RunClinicAssistantAsync(
         Guid patientId,
         RunClinicAssistantRequest request,
-        IClinicWorkspaceContextFactory contextFactory,
+        IAssistantContextFactory contextFactory,
         ISender sender,
         CancellationToken ct,
         string? agentKey)
@@ -383,40 +383,40 @@ public static class ClinicApiEndpointMapping
             return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "Patient id and message are required."));
         }
 
-        ClinicWorkspaceContext context;
+        AssistantContext context;
         try { context = await contextFactory.CreateAsync(patientId, request.ConversationId, ct, agentKey); }
         catch (KeyNotFoundException) { return NotFoundClinicAssistant(); }
-        ClinicWorkspaceResult result = await sender.Send(new RunClinicWorkspace(context, new ClinicWorkspaceInput(request.Message)), ct);
-        if (result.Outcome == ClinicWorkspaceRunOutcome.NotFound)
+        AssistantResult result = await sender.Send(new RunAssistant(context, new AssistantInput(request.Message)), ct);
+        if (result.Outcome == AssistantRunOutcome.NotFound)
             return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Clinic assistant conversation was not found."));
-        if (result.Outcome == ClinicWorkspaceRunOutcome.Busy)
+        if (result.Outcome == AssistantRunOutcome.Busy)
             return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
-        if (result.Outcome == ClinicWorkspaceRunOutcome.ProfileChanged)
+        if (result.Outcome == AssistantRunOutcome.ProfileChanged)
             return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The agent profile changed; start a new conversation."));
-        if (result.Outcome == ClinicWorkspaceRunOutcome.InvalidHistory)
+        if (result.Outcome == AssistantRunOutcome.InvalidHistory)
             return Results.Conflict(new ClinicError(ClinicErrorCode.InvalidHistory, "The conversation history is invalid."));
-        if (result.Outcome != ClinicWorkspaceRunOutcome.Succeeded)
+        if (result.Outcome != AssistantRunOutcome.Succeeded)
             return Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The clinic assistant failed."), statusCode: StatusCodes.Status502BadGateway);
         return Results.Ok(ToRunResponse(result));
     }
 
     private static async Task<IResult> DeleteCanonicalOperationsAssistantConversationAsync(
         Guid conversationId,
-        [FromServices] IClinicWorkspaceContextFactory contextFactory,
+        [FromServices] IAssistantContextFactory contextFactory,
         ISender sender,
         CancellationToken ct)
         => await DeleteOperationsAssistantConversationAsync(conversationId, contextFactory, sender, ct, agentKey: null);
 
     private static async Task<IResult> DeleteLegacyOperationsAgentConversationAsync(
         Guid conversationId,
-        [FromServices] IClinicWorkspaceContextFactory contextFactory,
+        [FromServices] IAssistantContextFactory contextFactory,
         ISender sender,
         CancellationToken ct)
         => await DeleteOperationsAssistantConversationAsync(conversationId, contextFactory, sender, ct, "clinic.operations");
 
     private static async Task<IResult> DeleteOperationsAssistantConversationAsync(
         Guid conversationId,
-        IClinicWorkspaceContextFactory contextFactory,
+        IAssistantContextFactory contextFactory,
         ISender sender,
         CancellationToken ct,
         string? agentKey)
@@ -424,7 +424,7 @@ public static class ClinicApiEndpointMapping
         if (conversationId == Guid.Empty)
             return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."));
 
-        ClinicWorkspaceContext context;
+        AssistantContext context;
         try { context = await contextFactory.CreateOperationsAsync(conversationId.ToString("N"), ct, agentKey); }
         catch (UnauthorizedAccessException) { return ForbiddenAssistantAction(); }
 
@@ -447,7 +447,7 @@ public static class ClinicApiEndpointMapping
     private static async Task<IResult> DeleteCanonicalPatientAssistantConversationAsync(
         Guid patientId,
         Guid conversationId,
-        [FromServices] IClinicWorkspaceContextFactory contextFactory,
+        [FromServices] IAssistantContextFactory contextFactory,
         ISender sender,
         CancellationToken ct)
         => await DeletePatientAssistantConversationAsync(patientId, conversationId, contextFactory, sender, ct, agentKey: null);
@@ -455,7 +455,7 @@ public static class ClinicApiEndpointMapping
     private static async Task<IResult> DeleteLegacyPatientAgentConversationAsync(
         Guid patientId,
         Guid conversationId,
-        [FromServices] IClinicWorkspaceContextFactory contextFactory,
+        [FromServices] IAssistantContextFactory contextFactory,
         ISender sender,
         CancellationToken ct)
         => await DeletePatientAssistantConversationAsync(patientId, conversationId, contextFactory, sender, ct, "clinic.patient");
@@ -463,7 +463,7 @@ public static class ClinicApiEndpointMapping
     private static async Task<IResult> DeletePatientAssistantConversationAsync(
         Guid patientId,
         Guid conversationId,
-        IClinicWorkspaceContextFactory contextFactory,
+        IAssistantContextFactory contextFactory,
         ISender sender,
         CancellationToken ct,
         string? agentKey)
@@ -471,7 +471,7 @@ public static class ClinicApiEndpointMapping
         if (patientId == Guid.Empty || conversationId == Guid.Empty)
             return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Clinic assistant conversation was not found."));
 
-        ClinicWorkspaceContext context;
+        AssistantContext context;
         try { context = await contextFactory.CreateAsync(patientId, conversationId.ToString("N"), ct, agentKey); }
         catch (KeyNotFoundException) { return NotFoundClinicAssistant(); }
         AgentConversationOutcome outcome = await sender.Send(new DeleteAgentConversation(

@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Vitarish.Clinic.Application.ClinicWorkspace;
+using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
@@ -8,7 +8,7 @@ public sealed class ClinicAssistantExecutionContextFactory(TimeProvider timeProv
 {
     public DateTimeOffset CurrentUtc => timeProvider.GetUtcNow();
 
-    public AgentExecutionContext Create(ClinicWorkspaceContext context)
+    public AgentExecutionContext Create(AssistantContext context)
     {
         DateTimeOffset currentUtc = timeProvider.GetUtcNow();
         TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(context.TimeZone);
@@ -35,7 +35,7 @@ public sealed class ClinicAssistantExecutionContextFactory(TimeProvider timeProv
         return new(Guid.NewGuid().ToString("N"), metadata);
     }
 
-    public ClinicWorkspaceContext ValidateAndRebuild(ClinicWorkspaceContext expected, AgentExecutionContext supplied)
+    public AssistantContext ValidateAndRebuild(AssistantContext expected, AgentExecutionContext supplied)
     {
         if (string.IsNullOrWhiteSpace(supplied.ExecutionId) || supplied.Envelope is not { } envelope ||
             !string.Equals(envelope.ExecutionId, supplied.ExecutionId, StringComparison.Ordinal))
@@ -77,11 +77,11 @@ public sealed class ClinicAssistantExecutionContextFactory(TimeProvider timeProv
         };
     }
 
-    public static string AgentKey(ClinicWorkspaceContext context) =>
+    public static string AgentKey(AssistantContext context) =>
         string.IsNullOrWhiteSpace(context.AgentKey)
             ? context.SubjectKind == "practice" ? "clinic.assistant.operations" : "clinic.assistant.patient"
             : context.AgentKey;
 
-    public static string SubjectId(ClinicWorkspaceContext context) =>
+    public static string SubjectId(AssistantContext context) =>
         context.SubjectKind == "practice" ? context.PracticeId : context.PatientId.ToString("D");
 }

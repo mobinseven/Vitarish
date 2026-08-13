@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Intelligence.Agents;
 using Vitarish.Intelligence.Application.Agents;
 
@@ -52,10 +52,10 @@ internal abstract class ClinicAssistantProfile(
     protected abstract string DisplayName { get; }
     protected abstract string ProfileLayerKey { get; }
 
-    private static string SubjectId(ClinicWorkspaceContext context) =>
+    private static string SubjectId(AssistantContext context) =>
         context.SubjectKind == "practice" ? context.PracticeId : context.PatientId.ToString("D");
 
-    private static string FormatActionPolicy(ClinicWorkspaceActionPolicy item) => string.Join("|",
+    private static string FormatActionPolicy(AssistantActionPolicy item) => string.Join("|",
         item.ActionType,
         item.OwningWorkflow,
         item.ExecutionMode,
@@ -66,7 +66,7 @@ internal abstract class ClinicAssistantProfile(
         string.Join(",", item.RequiredRoles.OrderBy(value => value, StringComparer.Ordinal)),
         string.Join(",", item.ToolNames.OrderBy(value => value, StringComparer.Ordinal)));
 
-    private static string FormatActionPolicies(IEnumerable<ClinicWorkspaceActionPolicy> policies)
+    private static string FormatActionPolicies(IEnumerable<AssistantActionPolicy> policies)
     {
         string value = string.Join("\n", policies
             .OrderBy(item => item.ActionType, StringComparer.Ordinal)
@@ -99,7 +99,7 @@ internal static class ClinicAssistantPolicyInstructions
 {
     public static string Create(ClinicAssistantCompositionContext composition, bool dynamicTime)
     {
-        ClinicWorkspaceContext context = composition.Context;
+        AssistantContext context = composition.Context;
         TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(context.TimeZone);
         DateTimeOffset currentUtc = dynamicTime ? composition.CurrentUtc : DateTimeOffset.UnixEpoch;
         DateTimeOffset currentLocal = TimeZoneInfo.ConvertTime(currentUtc, timeZone);

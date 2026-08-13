@@ -3,12 +3,12 @@ using System.Text.RegularExpressions;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Dto;
 using Vitarish.Communications.Domain.Enums;
-using Vitarish.Clinic.Application.ClinicWorkspace;
+using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Operations;
 
-public sealed class ReminderManagementAgentTool(IRemindersService reminders, IMessagesService messages, IReminderSourceRegistry sourceRegistry) : IClinicOperationsAgentTool, IClinicWorkspacePreparationTool
+public sealed class ReminderManagementAgentTool(IRemindersService reminders, IMessagesService messages, IReminderSourceRegistry sourceRegistry) : IClinicOperationsAgentTool, IAssistantPreparationTool
 {
     private static readonly HashSet<string> Mutations = ["create_reminder", "update_reminder", "delete_reminder"];
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
@@ -46,7 +46,7 @@ public sealed class ReminderManagementAgentTool(IRemindersService reminders, IMe
         return new(call.Id, JsonSerializer.Serialize(result, JsonOptions));
     }
 
-    public ClinicWorkspacePreparedAction? GetPreparedAction(AgentToolResult result)
+    public AssistantPreparedAction? GetPreparedAction(AgentToolResult result)
     {
         using JsonDocument document = JsonDocument.Parse(result.Output);
         JsonElement root = document.RootElement;

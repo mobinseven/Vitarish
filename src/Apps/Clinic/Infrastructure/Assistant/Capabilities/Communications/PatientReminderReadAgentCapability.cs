@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Appointments.Application.Abstractions;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Dto;
@@ -9,7 +9,7 @@ using Vitarish.Sea.Application.Abstractions;
 namespace Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Communications;
 
 public sealed class PatientReminderReadAgentCapability(ListPatientReminderStatusTool reminders)
-    : ClinicWorkspaceCapability([reminders])
+    : AssistantCapability([reminders])
 {
     public override string Name => "PatientReminderReads";
     public override string Description => "Read source-validated reminder delivery status for the current patient.";

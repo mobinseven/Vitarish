@@ -5,23 +5,23 @@ export { CheckInPage } from "./components/check-in/CheckInPage";
 export { PatientListPage } from "./components/patients/list/PatientListPage";
 export { PatientOverviewPage } from "./components/patients/overview/PatientOverviewPage";
 export {
-  ClinicWorkspacePanel,
-  ClinicWorkspaceHeader,
-  ClinicWorkspaceComposer,
-  ClinicWorkspaceMessageList,
-  ClinicWorkspaceMessage,
-  ClinicWorkspaceActivity,
-  ClinicWorkspaceErrorState,
-} from "./features/clinic-assistant/ClinicWorkspacePanel";
+  AssistantPanel,
+  AssistantHeader,
+  AssistantComposer,
+  AssistantMessageList,
+  AssistantMessage,
+  AssistantActivity,
+  AssistantErrorState,
+} from "./features/clinic-assistant/AssistantPanel";
 export { OperationsAssistantAside } from "./features/clinic-assistant/OperationsAssistantAside";
 export { ClinicAssistantAside, type ClinicAssistantScope } from "./features/clinic-assistant/ClinicAssistantAside";
 export {
   OperationsAssistantActionList,
   OperationsAssistantActionReview,
-  ClinicWorkspaceActionList,
-  ClinicWorkspaceActionReview,
-  ClinicWorkspaceActionStatus,
-} from "./features/clinic-assistant/ClinicWorkspaceActions";
+  AssistantActionList,
+  AssistantActionReview,
+  AssistantActionStatus,
+} from "./features/clinic-assistant/AssistantActions";
 export {
   AppointmentActionCard,
   PrescriptionActionCard,
@@ -33,10 +33,10 @@ export {
   useOperationsAssistantAction,
   useOperationsAssistantConversation,
   useRejectOperationsAssistantAction,
-  useClinicWorkspaceConversation,
-  useClinicWorkspaceAction,
-  useConfirmClinicWorkspaceAction,
-  useRejectClinicWorkspaceAction,
+  useAssistantConversation,
+  useAssistantAction,
+  useConfirmAssistantAction,
+  useRejectAssistantAction,
 } from "./features/clinic-assistant/hooks";
 export { PatientPrescriptionSubmissionSheet } from "./components/patients/prescriptions/PatientPrescriptionSubmissionSheet";
 export { PatientCreatePage } from "./components/patients/create/PatientCreatePage";

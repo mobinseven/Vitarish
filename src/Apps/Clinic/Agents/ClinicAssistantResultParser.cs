@@ -1,17 +1,17 @@
 using System.Text.Json;
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
-using Vitarish.Clinic.Application.ClinicWorkspace.Operations;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
+using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
-public sealed class ClinicAssistantResultParser(ClinicWorkspaceCapabilityRegistry capabilityRegistry)
+public sealed class ClinicAssistantResultParser(AssistantCapabilityRegistry capabilityRegistry)
 {
-    internal ClinicWorkspaceResult Parse(
+    internal AssistantResult Parse(
         JsonElement output,
         ClinicAssistantManifest manifest,
-        ClinicWorkspaceContext context,
+        AssistantContext context,
         IReadOnlyList<AgentToolExecution> toolExecutions)
     {
         if (output.ValueKind != JsonValueKind.Object ||
@@ -20,15 +20,15 @@ public sealed class ClinicAssistantResultParser(ClinicWorkspaceCapabilityRegistr
             messagesValue.ValueKind != JsonValueKind.Array || actionsValue.ValueKind != JsonValueKind.Array)
             throw new JsonException("The clinic assistant result shape is invalid.");
 
-        List<ClinicWorkspaceMessage> messages = [];
+        List<AssistantMessage> messages = [];
         foreach (JsonElement item in messagesValue.EnumerateArray())
         {
-            ClinicWorkspaceMessageKind kind = item.GetProperty("kind").GetString() switch
+            AssistantMessageKind kind = item.GetProperty("kind").GetString() switch
             {
-                "assistantMessage" => ClinicWorkspaceMessageKind.AssistantMessage,
-                "informationalToolResult" => ClinicWorkspaceMessageKind.InformationalToolResult,
-                "missingInformationRequest" => ClinicWorkspaceMessageKind.MissingInformationRequest,
-                "failure" => ClinicWorkspaceMessageKind.Failure,
+                "assistantMessage" => AssistantMessageKind.AssistantMessage,
+                "informationalToolResult" => AssistantMessageKind.InformationalToolResult,
+                "missingInformationRequest" => AssistantMessageKind.MissingInformationRequest,
+                "failure" => AssistantMessageKind.Failure,
                 _ => throw new JsonException("Unknown clinic assistant message kind.")
             };
             messages.Add(new(kind, item.GetProperty("content").GetString() ?? string.Empty));
@@ -39,7 +39,7 @@ public sealed class ClinicAssistantResultParser(ClinicWorkspaceCapabilityRegistr
         {
             string capability = item.GetProperty("capability").GetString() ?? string.Empty;
             string actionType = item.GetProperty("actionType").GetString() ?? string.Empty;
-            ClinicWorkspaceActionPolicy? policy = capabilityRegistry.ResolveAction(actionType);
+            AssistantActionPolicy? policy = capabilityRegistry.ResolveAction(actionType);
             if (!manifest.EnabledActions.TryGetValue(capability, out IReadOnlySet<string>? actionTypes) ||
                 !actionTypes.Contains(actionType) || policy is null)
                 throw new JsonException("The clinic assistant returned an action that is not enabled.");
@@ -48,11 +48,11 @@ public sealed class ClinicAssistantResultParser(ClinicWorkspaceCapabilityRegistr
             values.Enqueue(item.GetProperty("summary").GetString() ?? string.Empty);
         }
 
-        List<ClinicWorkspacePreparedAction> preparedActions = [];
+        List<AssistantPreparedAction> preparedActions = [];
         foreach (ClinicAssistantToolExecution execution in manifest.ExecutionCollector.Executions)
         {
-            ClinicWorkspacePreparedAction prepared = execution.PreparedAction;
-            ClinicWorkspaceActionPolicy? policy = capabilityRegistry.ResolveAction(prepared.ActionType);
+            AssistantPreparedAction prepared = execution.PreparedAction;
+            AssistantActionPolicy? policy = capabilityRegistry.ResolveAction(prepared.ActionType);
             if (policy is null || !policy.RequiresConfirmation ||
                 !manifest.EnabledActions.TryGetValue(prepared.Capability, out IReadOnlySet<string>? registered) ||
                 !registered.Contains(prepared.ActionType))
@@ -67,7 +67,7 @@ public sealed class ClinicAssistantResultParser(ClinicWorkspaceCapabilityRegistr
             });
         }
 
-        ClinicWorkspaceSearchResult? search = context.SubjectKind == "practice" ? ParseSearchResult(toolExecutions) : null;
+        AssistantSearchResult? search = context.SubjectKind == "practice" ? ParseSearchResult(toolExecutions) : null;
         return new(manifest.ExecutionContext.ExecutionId, context.ConversationId, messages, [])
         {
             PreparedActions = preparedActions,
@@ -76,11 +76,11 @@ public sealed class ClinicAssistantResultParser(ClinicWorkspaceCapabilityRegistr
         };
     }
 
-    private static ClinicWorkspaceSearchResult? ParseSearchResult(IReadOnlyList<AgentToolExecution> toolExecutions)
+    private static AssistantSearchResult? ParseSearchResult(IReadOnlyList<AgentToolExecution> toolExecutions)
     {
         AgentToolExecution? execution = toolExecutions.LastOrDefault(item => !item.IsError && string.Equals(item.ToolName, "search_patients", StringComparison.Ordinal));
         if (execution is null) return null;
-        try { return JsonSerializer.Deserialize(execution.Output, ClinicWorkspaceJsonSerializerContext.Default.ClinicWorkspaceSearchResult); }
+        try { return JsonSerializer.Deserialize(execution.Output, AssistantJsonSerializerContext.Default.AssistantSearchResult); }
         catch (JsonException) { return null; }
     }
 }

@@ -1,6 +1,6 @@
 using System.Text.Json;
 using MediatR;
-using Vitarish.Clinic.Application.ClinicWorkspace;
+using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Contracts.ClinicAssistant;
 using Vitarish.Intelligence.Application.Agents;
 using ContractActionStatus = Vitarish.Clinic.Contracts.ClinicAssistant.ClinicAssistantActionStatus;
@@ -9,7 +9,7 @@ namespace Vitarish.Clinic.Api.ClinicAssistant;
 
 /// <summary>Adapts the Intelligence-owned conversation transport to Clinic's patient workflow.</summary>
 public sealed class ClinicAssistantConversationEndpoint(
-    IClinicWorkspaceContextFactory contextFactory,
+    IAssistantContextFactory contextFactory,
     ISender sender) : IAgentConversationEndpoint
 {
     private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
@@ -30,7 +30,7 @@ public sealed class ClinicAssistantConversationEndpoint(
         if (!patient && !operations)
             return new(AgentConversationOutcome.NotFound);
 
-        ClinicWorkspaceContext context;
+        AssistantContext context;
         if (patient)
         {
             if (!Guid.TryParse(request.SubjectId, out Guid patientId) || patientId == Guid.Empty) return new(AgentConversationOutcome.NotFound);
@@ -60,16 +60,16 @@ public sealed class ClinicAssistantConversationEndpoint(
                 return new(AgentConversationOutcome.NotFound);
         }
         context = context with { AgentKey = request.AgentKey };
-        ClinicWorkspaceResult result = await sender.Send(new RunClinicWorkspace(context, new ClinicWorkspaceInput(request.Message)), cancellationToken);
-        if (result.Outcome is ClinicWorkspaceRunOutcome.NotFound)
+        AssistantResult result = await sender.Send(new RunAssistant(context, new AssistantInput(request.Message)), cancellationToken);
+        if (result.Outcome is AssistantRunOutcome.NotFound)
             return new(AgentConversationOutcome.NotFound, result.AgentRunId, ParseConversationId(result.ConversationId));
-        if (result.Outcome is ClinicWorkspaceRunOutcome.Busy)
+        if (result.Outcome is AssistantRunOutcome.Busy)
             return new(AgentConversationOutcome.Busy, result.AgentRunId, ParseConversationId(result.ConversationId));
-        if (result.Outcome is ClinicWorkspaceRunOutcome.ProfileChanged)
+        if (result.Outcome is AssistantRunOutcome.ProfileChanged)
             return new(AgentConversationOutcome.ProfileChanged, result.AgentRunId, ParseConversationId(result.ConversationId));
-        if (result.Outcome is ClinicWorkspaceRunOutcome.InvalidHistory)
+        if (result.Outcome is AssistantRunOutcome.InvalidHistory)
             return new(AgentConversationOutcome.InvalidHistory, result.AgentRunId, ParseConversationId(result.ConversationId));
-        if (result.Outcome is not ClinicWorkspaceRunOutcome.Succeeded || !Guid.TryParse(result.ConversationId, out Guid conversationId))
+        if (result.Outcome is not AssistantRunOutcome.Succeeded || !Guid.TryParse(result.ConversationId, out Guid conversationId))
             return new(AgentConversationOutcome.ProviderFailure, result.AgentRunId, ParseConversationId(result.ConversationId));
 
         RunClinicAssistantResponse response = new(

@@ -1,14 +1,14 @@
 using System.Text.Json;
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Medical.Application.AgentCapabilities.Prescriptions;
 
 namespace Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Prescriptions;
 
 public sealed class PrescriptionAgentCapability(
-    PreparePrescriptionTool prepare) : ClinicWorkspaceCapability([prepare], [
-        ClinicWorkspaceActionPolicies.Prepare("create_prescription", "prescriptions", ["Prescriptions.Create"], toolNames: ["prepare_prescription"])
+    PreparePrescriptionTool prepare) : AssistantCapability([prepare], [
+        AssistantActionPolicies.Prepare("create_prescription", "prescriptions", ["Prescriptions.Create"], toolNames: ["prepare_prescription"])
     ])
 {
     public override string Name => "Prescriptions";
@@ -24,7 +24,7 @@ public sealed class PrescriptionReadAgentCapability(
     GetPrescriptionTemplateRequirementsTool requirements,
     ListPatientPrescriptionHistoryTool history,
     GetPatientPrescriptionTool prescription,
-    GetPatientPrescriptionAttentionTool attention) : ClinicWorkspaceCapability([search, requirements, history, prescription, attention])
+    GetPatientPrescriptionAttentionTool attention) : AssistantCapability([search, requirements, history, prescription, attention])
 {
     public override string Name => "PrescriptionReads";
     public override string Description => "Read authoritative prescription template details without creating a prescription.";
@@ -33,7 +33,7 @@ public sealed class PrescriptionReadAgentCapability(
         "Use only for factual template and requirement questions; do not infer clinical treatment.";
 }
 
-public abstract class PrescriptionTool(IPrescriptionAgentCapability capability) : IPrescriptionsClinicWorkspaceTool
+public abstract class PrescriptionTool(IPrescriptionAgentCapability capability) : IPrescriptionsAssistantTool
 {
     protected IPrescriptionAgentCapability Capability { get; } = capability;
     public abstract AgentToolDefinition Definition { get; }
@@ -68,7 +68,7 @@ public sealed class GetPrescriptionTemplateRequirementsTool(IPrescriptionAgentCa
     { using JsonDocument args = JsonDocument.Parse(call.ArgumentsJson); return Result(call, await Capability.GetRequirementsAsync(args.RootElement.GetProperty("templateId").GetGuid(), RequiredMetadata(context, "practiceId"), cancellationToken)); }
 }
 
-public sealed class PreparePrescriptionTool(IPrescriptionAgentCapability capability) : PrescriptionTool(capability), IClinicWorkspacePreparationTool
+public sealed class PreparePrescriptionTool(IPrescriptionAgentCapability capability) : PrescriptionTool(capability), IAssistantPreparationTool
 {
     public override AgentToolDefinition Definition { get; } = new("prepare_prescription", "Create a Medical-owned draft for complete review; this does not submit it.", "{\"type\":\"object\",\"properties\":{\"templateId\":{\"type\":\"string\"},\"templateVersion\":{\"type\":\"string\"},\"insuranceCoverage\":{\"type\":\"string\"}},\"required\":[\"templateId\",\"templateVersion\",\"insuranceCoverage\"],\"additionalProperties\":false}");
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
@@ -78,7 +78,7 @@ public sealed class PreparePrescriptionTool(IPrescriptionAgentCapability capabil
         return Result(call, await Capability.PrepareAsync(args.RootElement.GetProperty("templateId").GetGuid(), args.RootElement.GetProperty("insuranceCoverage").GetString(), scope, provenance, cancellationToken));
     }
 
-    public ClinicWorkspacePreparedAction? GetPreparedAction(AgentToolResult result)
+    public AssistantPreparedAction? GetPreparedAction(AgentToolResult result)
     {
         PrescriptionDraftPreparationResult? preparation = JsonSerializer.Deserialize<PrescriptionDraftPreparationResult>(result.Output);
         return preparation is { Status: PrescriptionDraftPreparationStatus.Prepared, Review: { } review }

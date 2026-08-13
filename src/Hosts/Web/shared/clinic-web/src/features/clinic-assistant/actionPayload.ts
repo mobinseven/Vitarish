@@ -1,8 +1,8 @@
-export type ClinicWorkspaceReviewPayload = Record<string, unknown>;
+export type AssistantReviewPayload = Record<string, unknown>;
 
-export function asRecord(value: unknown): ClinicWorkspaceReviewPayload {
+export function asRecord(value: unknown): AssistantReviewPayload {
   return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as ClinicWorkspaceReviewPayload)
+    ? (value as AssistantReviewPayload)
     : {};
 }
 
@@ -18,7 +18,7 @@ export function asList(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
-export function parseRecord(value: unknown): ClinicWorkspaceReviewPayload {
+export function parseRecord(value: unknown): AssistantReviewPayload {
   if (typeof value !== "string") return asRecord(value);
   try {
     return asRecord(JSON.parse(value));

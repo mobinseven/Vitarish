@@ -1,12 +1,12 @@
 using System.Text.Json;
 using MediatR;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Medical.Application.Queries.Prescriptions;
 
 namespace Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Prescriptions;
 
-public abstract class PatientPrescriptionReadTool(ISender sender) : IPrescriptionsClinicWorkspaceTool
+public abstract class PatientPrescriptionReadTool(ISender sender) : IPrescriptionsAssistantTool
 {
     protected ISender Sender { get; } = sender;
 

@@ -1,11 +1,11 @@
 using System.Text.Json.Serialization;
 using Vitarish.Appointments.Application.AgentCapabilities;
 using Vitarish.Appointments.Domain.Dto;
-using Vitarish.Clinic.Application.ClinicWorkspace.Operations;
+using Vitarish.Clinic.Application.Assistant.Operations;
 
 namespace Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Operations;
 
-[JsonSerializable(typeof(IReadOnlyList<ClinicWorkspaceSearchCandidate>))]
+[JsonSerializable(typeof(IReadOnlyList<AssistantSearchCandidate>))]
 [JsonSerializable(typeof(OperationsAgentToolResponse<IReadOnlyList<OperationsAppointmentRead>>))]
 [JsonSerializable(typeof(OperationsAgentToolResponse<OperationsAppointmentRead>))]
 [JsonSerializable(typeof(AgentSchedulingResult))]

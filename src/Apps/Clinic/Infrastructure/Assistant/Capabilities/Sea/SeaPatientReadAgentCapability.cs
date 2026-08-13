@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Intelligence.Application.Agents;
@@ -12,7 +12,7 @@ public sealed class SeaPatientReadAgentCapability(
     ListPatientProcedureEventsTool events,
     GetPatientProcedureEventTool detail,
     ListPatientEventAttachmentMetadataTool attachments)
-    : ClinicWorkspaceCapability([procedures, events, detail, attachments])
+    : AssistantCapability([procedures, events, detail, attachments])
 {
     public override string Name => "SeaPatientReads";
     public override string Description => "Read the current patient's SEA-owned procedure progress, events, and attachment metadata.";

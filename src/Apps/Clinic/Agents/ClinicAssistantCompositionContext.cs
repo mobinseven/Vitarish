@@ -1,11 +1,11 @@
-using Vitarish.Clinic.Application.ClinicWorkspace;
-using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
 public sealed record ClinicAssistantCompositionContext(
-    ClinicWorkspaceContext Context,
-    IReadOnlyCollection<IClinicWorkspaceCapability> AvailableCapabilities,
+    AssistantContext Context,
+    IReadOnlyCollection<IAssistantCapability> AvailableCapabilities,
     IReadOnlyCollection<IIntelligenceAgentTool> IntelligenceTools,
     DateTimeOffset CurrentUtc);
