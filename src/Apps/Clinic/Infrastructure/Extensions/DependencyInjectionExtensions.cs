@@ -123,8 +123,6 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<IPatientAgentCapability, OperationsAgentCapability>();
             _ = services.AddTransient<PatientAgentCapabilityRegistry>();
             _ = services.AddTransient<PatientAgentToolDispatcher>();
-            _ = services.AddTransient<PatientAgentInstructionComposer>();
-            _ = services.AddTransient<PatientWorkspaceAgentDefinitionFactory>();
             _ = services.AddSingleton<IPatientAgentActionStore, RedisPatientAgentActionStore>();
             _ = services.AddTransient<IPatientAgentActionCommitter, AppointmentPatientAgentActionCommitter>();
             _ = services.AddTransient<IPatientAgentActionCommitter, PrescriptionPatientAgentActionCommitter>();

@@ -26,6 +26,7 @@
   <Folder Name="/src/Apps/Clinic/">
     <Project Path="src/Apps/Clinic/Api/Clinic.Api.csproj" />
     <Project Path="src/Apps/Clinic/App/Clinic.App.csproj" />
+    <Project Path="src/Apps/Clinic/Agents/Clinic.Agents.csproj" />
     <Project Path="src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj" Id="4d5da5d0-ac72-4086-95e9-1f4cbf4a29f2">
       <Build Solution="Debug|x64" Project="false" />
       <Build Solution="Debug|x86" Project="false" />

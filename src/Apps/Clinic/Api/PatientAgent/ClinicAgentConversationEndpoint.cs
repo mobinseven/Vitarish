@@ -55,6 +55,8 @@ public sealed class ClinicAgentConversationEndpoint(
             return new(AgentConversationOutcome.NotFound, result.AgentRunId, ParseConversationId(result.ConversationId));
         if (result.Outcome is PatientAgentRunOutcome.Busy)
             return new(AgentConversationOutcome.Busy, result.AgentRunId, ParseConversationId(result.ConversationId));
+        if (result.Outcome is PatientAgentRunOutcome.ProfileChanged)
+            return new(AgentConversationOutcome.ProfileChanged, result.AgentRunId, ParseConversationId(result.ConversationId));
         if (result.Outcome is not PatientAgentRunOutcome.Succeeded || !Guid.TryParse(result.ConversationId, out Guid conversationId))
             return new(AgentConversationOutcome.ProviderFailure, result.AgentRunId, ParseConversationId(result.ConversationId));
 

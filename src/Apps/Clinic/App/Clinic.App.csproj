@@ -10,6 +10,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Api\Clinic.Api.csproj" />
 		<ProjectReference Include="..\Infrastructure\Clinic.Infrastructure.csproj" />
+		<ProjectReference Include="..\Agents\Clinic.Agents.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 		<ProjectReference Include="..\..\Base\Core\Apps.Base.Core.csproj" />
 	</ItemGroup>

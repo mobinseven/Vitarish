@@ -6,6 +6,7 @@ using Vitarish.Clinic.Api;
 using Vitarish.Clinic.Api.PatientAgent;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Clinic.Infrastructure.Extensions;
+using Vitarish.Clinic.Agents;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Modules.Base.Core;
 
@@ -19,6 +20,7 @@ public class ClinicApp : Vitarish.Apps.Base.Core.App
     {
         _ = builder.Services.AddTransientMultiTenantDbContext<ClinicDbContext>((_, options) => configureDbContext?.Invoke(options));
         _ = builder.Services.AddClinicInfrastructure();
+        _ = builder.Services.AddClinicAgentComposition();
         _ = builder.Services.AddTransient<ClinicAgentConversationEndpoint>();
         _ = builder.Services.AddTransient<Vitarish.Intelligence.Application.Agents.IAgentConversationEndpoint>(sp => sp.GetRequiredService<ClinicAgentConversationEndpoint>());
         _ = builder.Services.AddTransient<ClinicRuntimeToolEndpoint>();

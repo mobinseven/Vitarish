@@ -22,5 +22,6 @@ public enum PatientAgentRunOutcome
     Succeeded,
     NotFound,
     Busy,
+    ProfileChanged,
     Failed
 }

@@ -9,7 +9,8 @@ public sealed record PatientWorkspaceAgentDefinition(
     PatientAgentExecutionCollector ExecutionCollector,
     AgentExecutionContext ExecutionContext,
     AgentExecutionLimits Limits,
-    IReadOnlyDictionary<string, string>? ToolCapabilities = null)
+    IReadOnlyDictionary<string, string>? ToolCapabilities = null,
+    string CompatibilityKey = "")
 {
     public const string ResultSchema = """
         {

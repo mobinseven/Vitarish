@@ -61,7 +61,7 @@ public sealed class AgentProfileComposer<TContext>(AgentCapabilityCatalog<TConte
 
         string flattenedInstructions = string.Join("\n\n", instructions.OrderBy(x => x.Order).ThenBy(x => x.Key, StringComparer.Ordinal).Select(x => x.Text));
         AgentDefinition definition = new(resolved.Model, flattenedInstructions, resolved.Result, resolved.ReasoningLevel, resolved.DisplayName);
-        string compatibilityKey = AgentManifestCompatibility.Calculate(resolved, definition, tools, capabilityRevisions, exposureRevisions);
+        string compatibilityKey = AgentManifestCompatibility.Calculate(resolved, definition, tools, capabilityRevisions, exposureRevisions, instructions);
         return new(definition, resolved.Limits, tools, toolCapabilities, actions, resolved.Layers, capabilityRevisions, exposureRevisions, compatibilityKey);
     }
 }
@@ -70,7 +70,8 @@ public static class AgentManifestCompatibility
 {
     public static string Calculate<TContext>(ResolvedAgentProfile<TContext> profile, AgentDefinition definition,
         IEnumerable<IAgentTool> tools, IReadOnlyDictionary<string, int> capabilityRevisions,
-        IReadOnlyDictionary<string, string> exposureRevisions)
+        IReadOnlyDictionary<string, string> exposureRevisions,
+        IEnumerable<InstructionSection>? effectiveInstructions = null)
     {
         JsonObject manifest = new()
         {
@@ -83,8 +84,9 @@ public static class AgentManifestCompatibility
                 ["strict"] = profile.Result.Strict,
                 ["schema"] = CanonicalSchema(profile.Result.JsonSchema)
             },
-            ["instructions"] = definition.Instructions,
+            ["instructions"] = string.Join("\n\n", (effectiveInstructions ?? profile.Instructions).OrderBy(x => x.Order).ThenBy(x => x.Key, StringComparer.Ordinal).Select(x => x.CompatibilityText ?? x.Text)),
             ["layers"] = new JsonArray(profile.Layers.Select(x => (JsonNode?)new JsonObject { ["key"] = x.Key, ["revision"] = x.Revision }).ToArray()),
+            ["compatibilityMaterials"] = new JsonObject(profile.CompatibilityMaterials.OrderBy(x => x.Key, StringComparer.Ordinal).ToDictionary(x => x.Key, x => (JsonNode?)x.Value, StringComparer.Ordinal)),
             ["capabilities"] = new JsonArray(capabilityRevisions.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => (JsonNode?)new JsonObject { ["key"] = x.Key, ["revision"] = x.Value, ["exposure"] = exposureRevisions[x.Key] }).ToArray()),
             ["tools"] = new JsonArray(tools.OrderBy(x => x.Definition.Name, StringComparer.Ordinal).Select(x => (JsonNode?)new JsonObject { ["name"] = x.Definition.Name, ["description"] = x.Definition.Description, ["schema"] = CanonicalSchema(x.Definition.ParametersJsonSchema) }).ToArray())
         };

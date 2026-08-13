@@ -196,6 +196,7 @@ public static class ClinicApiEndpointMapping
         PatientAgentResult result = await sender.Send(new RunPatientAgent(context, new PatientAgentInput(request.Message)), ct);
         if (result.Outcome == PatientAgentRunOutcome.NotFound) return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."));
         if (result.Outcome == PatientAgentRunOutcome.Busy) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
+        if (result.Outcome == PatientAgentRunOutcome.ProfileChanged) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The agent profile changed; start a new conversation."));
         if (result.Outcome != PatientAgentRunOutcome.Succeeded) return Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The operations agent failed."), statusCode: StatusCodes.Status502BadGateway);
         return Results.Ok(ToRunResponse(result));
     }
@@ -322,6 +323,8 @@ public static class ClinicApiEndpointMapping
             return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Patient-agent conversation was not found."));
         if (result.Outcome == PatientAgentRunOutcome.Busy)
             return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
+        if (result.Outcome == PatientAgentRunOutcome.ProfileChanged)
+            return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The agent profile changed; start a new conversation."));
         return Results.Ok(ToRunResponse(result));
     }
 

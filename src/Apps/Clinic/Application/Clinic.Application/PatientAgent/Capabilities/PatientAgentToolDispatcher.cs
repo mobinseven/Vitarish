@@ -25,9 +25,37 @@ public sealed class PatientAgentToolDispatcher(
         AgentExecutionContext executionContext,
         IReadOnlyCollection<IPatientAgentCapability> capabilities,
         PatientAgentExecutionCollector collector) =>
-        capabilities.SelectMany(capability => capability.Tools.Select(tool => (capability.Name, Tool: tool)))
-            .Concat(_intelligenceTools.Select(tool => (Name: "Intelligence", Tool: (IAgentTool)tool)))
-            .Select(item => (IAgentTool)new GuardedTool(item.Tool, item.Name, context, executionContext.ExecutionId, approvalPolicy, collector, logger))
+        CreateGuardedTools(
+            context,
+            executionContext,
+            capabilities.SelectMany(capability => capability.Tools.Select(tool => (capability.Name, Tool: tool)))
+                .Concat(_intelligenceTools.Select(tool => (Name: "Intelligence", Tool: (IAgentTool)tool)))
+                .ToArray(),
+            collector);
+
+    public IReadOnlyCollection<IAgentTool> CreateGuardedTools(
+        PatientAgentContext context,
+        AgentExecutionContext executionContext,
+        IReadOnlyCollection<IAgentTool> tools,
+        IReadOnlyDictionary<string, string> toolCapabilities,
+        PatientAgentExecutionCollector collector) =>
+        CreateGuardedTools(
+            context,
+            executionContext,
+            tools.Select(tool =>
+            {
+                if (!toolCapabilities.TryGetValue(tool.Definition.Name, out string? capability))
+                    throw new InvalidOperationException($"The patient agent tool '{tool.Definition.Name}' has no registered capability.");
+                return (capability, tool);
+            }).ToArray(),
+            collector);
+
+    private IReadOnlyCollection<IAgentTool> CreateGuardedTools(
+        PatientAgentContext context,
+        AgentExecutionContext executionContext,
+        IReadOnlyCollection<(string Capability, IAgentTool Tool)> tools,
+        PatientAgentExecutionCollector collector) =>
+        tools.Select(item => (IAgentTool)new GuardedTool(item.Tool, item.Capability, context, executionContext.ExecutionId, approvalPolicy, collector, logger))
             .ToArray();
 
     private sealed class GuardedTool(
@@ -37,9 +65,12 @@ public sealed class PatientAgentToolDispatcher(
         string agentRunId,
         PatientAgentApprovalPolicy approvalPolicy,
         PatientAgentExecutionCollector collector,
-        ILogger? logger) : IAgentTool
+        ILogger? logger) : IAgentTool, IPatientAgentPreparationTool
     {
         public AgentToolDefinition Definition => handler.Definition;
+
+        public PatientAgentPreparedAction? GetPreparedAction(AgentToolResult result) =>
+            (handler as IPatientAgentPreparationTool)?.GetPreparedAction(result);
 
         public async Task<AgentToolResult> ExecuteAsync(
             AgentToolCall call,

@@ -8,14 +8,14 @@ namespace Vitarish.Clinic.Application.PatientAgent;
 
 public sealed class RunPatientAgentHandler(
     ISender sender,
-    PatientWorkspaceAgentDefinitionFactory definitionFactory,
+    IPatientWorkspaceAgentComposer composer,
     IPatientAgentActionStore actionStore,
     TimeProvider timeProvider)
     : IRequestHandler<RunPatientAgent, PatientAgentResult>
 {
     public async Task<PatientAgentResult> Handle(RunPatientAgent request, CancellationToken cancellationToken)
     {
-        PatientWorkspaceAgentDefinition workspace = definitionFactory.Create(request.Context);
+        PatientWorkspaceAgentDefinition workspace = composer.Compose(request.Context);
         if (string.IsNullOrWhiteSpace(request.Input.Message))
         {
             return PatientAgentResult.Failure(workspace.ExecutionContext.ExecutionId, request.Context.ConversationId, "A message is required.");
@@ -70,7 +70,8 @@ public sealed class RunPatientAgentHandler(
                 {
                     return AgentConversationOutcome.InvalidHistory;
                 }
-            }), cancellationToken);
+            },
+            ProfileCompatibilityKey: workspace.CompatibilityKey), cancellationToken);
         AgentRunResult? run = conversation.Run;
 
         if (conversation.Outcome != AgentConversationOutcome.Succeeded ||
@@ -88,6 +89,7 @@ public sealed class RunPatientAgentHandler(
                 {
                     AgentConversationOutcome.NotFound => PatientAgentRunOutcome.NotFound,
                     AgentConversationOutcome.Busy => PatientAgentRunOutcome.Busy,
+                    AgentConversationOutcome.ProfileChanged => PatientAgentRunOutcome.ProfileChanged,
                     _ => PatientAgentRunOutcome.Failed
                 }
             };

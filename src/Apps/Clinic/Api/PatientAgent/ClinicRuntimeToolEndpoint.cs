@@ -10,8 +10,7 @@ using Vitarish.Requests.Application.Abstractions;
 namespace Vitarish.Clinic.Api.PatientAgent;
 
 public sealed class ClinicRuntimeToolEndpoint(
-    PatientAgentCapabilityRegistry capabilityRegistry,
-    PatientAgentToolDispatcher toolDispatcher,
+    IPatientWorkspaceAgentComposer composer,
     IPatientAgentOperationsAccessVerifier operationsAccessVerifier,
     IPatientAgentRoutePatientResolver routePatientResolver,
     IRequestContextWriter requestContextWriter,
@@ -50,7 +49,7 @@ public sealed class ClinicRuntimeToolEndpoint(
             traceId: request.ExecutionContext.ExecutionId,
             requestId: request.ToolCall.Id,
             additionalInfo: "Signed patient-agent tool callback.");
-        IAgentTool? tool = toolDispatcher.CreateTools(context, request.ExecutionContext, capabilityRegistry.GetAvailable(context))
+        IAgentTool? tool = composer.Compose(context, request.ExecutionContext).Tools
             .FirstOrDefault(candidate => string.Equals(candidate.Definition.Name, request.ToolCall.Name, StringComparison.Ordinal));
         if (tool is null)
         {

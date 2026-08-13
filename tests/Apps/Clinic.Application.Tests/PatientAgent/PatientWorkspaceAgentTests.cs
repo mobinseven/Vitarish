@@ -50,7 +50,7 @@ public sealed class PatientWorkspaceAgentTests
         PatientWorkspaceAgentDefinition definition = Factory(
             new Capability("patient", new HashSet<string> { "Patient.Read" }, [allowedTool], ["updatePatient"]),
             new Capability("billing", new HashSet<string> { "Billing.Read" }, [deniedTool], ["prepareInvoice"]))
-            .Create(Context(permissions: new HashSet<string> { "Patient.Read" }));
+            .Compose(Context(permissions: new HashSet<string> { "Patient.Read" }));
 
         definition.Tools.Should().ContainSingle().Which.Definition.Name.Should().Be(allowedTool.Definition.Name);
         definition.Definition.Instructions.Should().Contain("\"name\":\"patient\"").And.NotContain("\"name\":\"billing\"");
@@ -95,7 +95,7 @@ public sealed class PatientWorkspaceAgentTests
     public void Tool_schema_cannot_make_patient_id_model_selectable()
     {
         TestTool tool = new("unsafe", "{\"type\":\"object\",\"properties\":{\"patientId\":{\"type\":\"string\"}}}");
-        Action create = () => Factory(new Capability("patient", new HashSet<string>(), [tool], [])).Create(Context());
+        Action create = () => Factory(new Capability("patient", new HashSet<string>(), [tool], [])).Compose(Context());
 
         create.Should().Throw<InvalidOperationException>().WithMessage("*cannot accept patientId*");
     }
@@ -145,7 +145,7 @@ public sealed class PatientWorkspaceAgentTests
         PatientAgentContext practice = new("practice-1", Guid.Empty, "owner-1", new HashSet<string>(),
             "TenantOwner", "en-US", "UTC", "conversation-1", SubjectKind: "practice");
 
-        string instructions = new PatientAgentInstructionComposer().Compose(practice, [], DateTimeOffset.UtcNow);
+        string instructions = TestInstructions(practice, []);
 
         instructions.Should().Contain("\"scope\":\"authenticated_practice\"")
             .And.Contain("\"mutations\":\"direct_allowlist_only_else_confirm\"")
@@ -218,11 +218,11 @@ public sealed class PatientWorkspaceAgentTests
     [Fact]
     public void Each_agent_definition_has_a_unique_run_correlation_id()
     {
-        PatientWorkspaceAgentDefinitionFactory factory = Factory();
+        IPatientWorkspaceAgentComposer factory = Factory();
         PatientAgentContext context = Context();
 
-        PatientWorkspaceAgentDefinition first = factory.Create(context);
-        PatientWorkspaceAgentDefinition second = factory.Create(context);
+        PatientWorkspaceAgentDefinition first = factory.Compose(context);
+        PatientWorkspaceAgentDefinition second = factory.Compose(context);
 
         first.ExecutionContext.ExecutionId.Should().NotBe(context.ConversationId);
         second.ExecutionContext.ExecutionId.Should().NotBe(first.ExecutionContext.ExecutionId);
@@ -306,23 +306,35 @@ public sealed class PatientWorkspaceAgentTests
         result.Actions.Should().BeEmpty();
     }
 
-    private static RunPatientAgentHandler Handler(IAgentRunner runner, IEnumerable<IPatientAgentCapability> capabilities) =>
-        new(new ConversationSender(runner), new PatientWorkspaceAgentDefinitionFactory(
-            Registry(capabilities),
-            new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy(), []),
-            new PatientAgentInstructionComposer(),
-            new PatientWorkspaceAgentOptions("test-model")),
+    [Fact]
+    public async Task Handler_forwards_the_composed_compatibility_key_and_profile_change()
+    {
+        CapturingRunner runner = new(Result("""{"messages":[],"actions":[]}"""));
+        ConversationSender sender = new(runner) { ForcedOutcome = AgentConversationOutcome.ProfileChanged };
+        PatientAgentResult result = await Handler(runner, [], sender).Handle(
+            new RunPatientAgent(Context(), new PatientAgentInput("Continue")), CancellationToken.None);
+
+        sender.CompatibilityKey.Should().Be("test-key");
+        result.Outcome.Should().Be(PatientAgentRunOutcome.ProfileChanged);
+    }
+
+    private static RunPatientAgentHandler Handler(IAgentRunner runner, IEnumerable<IPatientAgentCapability> capabilities, ConversationSender? sender = null) =>
+        new(sender ?? new ConversationSender(runner), Factory(capabilities.ToArray()),
             new RecordingActionStore(),
             TimeProvider.System);
 
     private sealed class ConversationSender(IAgentRunner runner) : ISender
     {
+        public string? CompatibilityKey { get; private set; }
+        public AgentConversationOutcome? ForcedOutcome { get; init; }
+
         public async Task<TResponse> Send<TResponse>(
             IRequest<TResponse> request,
             CancellationToken cancellationToken = default)
         {
             if (request is not RunAgentConversation conversation)
                 throw new InvalidOperationException($"Unexpected request {request.GetType().Name}.");
+            CompatibilityKey = conversation.ProfileCompatibilityKey;
             AgentRunResult result = await runner.RunAsync(
                 conversation.Definition,
                 conversation.Input,
@@ -331,9 +343,9 @@ public sealed class PatientWorkspaceAgentTests
                 conversation.Limits,
                 cancellationToken);
             Guid conversationId = conversation.ConversationId ?? Guid.CreateVersion7();
-            AgentConversationOutcome outcome = result.IsSuccess && conversation.BeforeCommit is not null
+            AgentConversationOutcome outcome = ForcedOutcome ?? (result.IsSuccess && conversation.BeforeCommit is not null
                 ? await conversation.BeforeCommit(conversationId, result with { History = result.History ?? "[]" }, cancellationToken)
-                : result.IsSuccess ? AgentConversationOutcome.Succeeded : AgentConversationOutcome.ProviderFailure;
+                : result.IsSuccess ? AgentConversationOutcome.Succeeded : AgentConversationOutcome.ProviderFailure);
             object response = new RunAgentConversationResult(
                 outcome,
                 conversationId,
@@ -359,8 +371,32 @@ public sealed class PatientWorkspaceAgentTests
             throw new NotSupportedException();
     }
 
-    private static PatientWorkspaceAgentDefinitionFactory Factory(params IPatientAgentCapability[] capabilities) =>
-        new(Registry(capabilities), new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy(), []), new PatientAgentInstructionComposer(), new PatientWorkspaceAgentOptions("test-model"));
+    private static IPatientWorkspaceAgentComposer Factory(params IPatientAgentCapability[] capabilities) =>
+        new TestComposer(Registry(capabilities), new PatientAgentToolDispatcher(new PatientAgentApprovalPolicy(), []), new PatientWorkspaceAgentOptions("test-model"));
+
+    private static string TestInstructions(PatientAgentContext context, IReadOnlyCollection<IPatientAgentCapability> capabilities) =>
+        "Agent policy (JSON):\n" + JsonSerializer.Serialize(new
+        {
+            subject = context.SubjectKind,
+            patientId = context.SubjectKind == "patient" ? context.PatientId.ToString("D") : null,
+            scope = context.SubjectKind == "practice" ? "authenticated_practice" : "server_bound_patient",
+            patientScope = context.SubjectKind == "patient"
+                ? $"immutable patient id is {context.PatientId:D}; it is server-bound from the route, and model or user input cannot change or override it"
+                : null,
+            currentLocal = DateTimeOffset.UtcNow.ToString("O"),
+            currentUtc = DateTimeOffset.UtcNow.ToString("O"),
+            localeFallback = context.Locale,
+            timeZone = context.TimeZone,
+            mutations = context.SubjectKind == "practice" ? "direct_allowlist_only_else_confirm" : "prepare_only_never_commit",
+            clinicalConclusions = false,
+            capabilities = capabilities.OrderBy(item => item.Name, StringComparer.Ordinal).Select(capability => new
+            {
+                name = capability.Name,
+                description = capability.Description,
+                instructions = capability.GetInstructions(),
+                actions = capability.ActionTypes.OrderBy(action => action, StringComparer.Ordinal).ToArray()
+            })
+        });
 
     private static PatientAgentCapabilityRegistry Registry(
         IEnumerable<IPatientAgentCapability> capabilities,
@@ -476,6 +512,46 @@ public sealed class PatientWorkspaceAgentTests
             IAgentTool tool = tools.Single(x => x.Definition.Name == toolName);
             _ = await tool.ExecuteAsync(new AgentToolCall("server-observed-call", toolName, "{}"), context, cancellationToken);
             return result;
+        }
+    }
+
+    private sealed class TestComposer(
+        PatientAgentCapabilityRegistry registry,
+        PatientAgentToolDispatcher dispatcher,
+        PatientWorkspaceAgentOptions options) : IPatientWorkspaceAgentComposer
+    {
+        public PatientWorkspaceAgentDefinition Compose(PatientAgentContext context, AgentExecutionContext? executionContext = null)
+        {
+            IReadOnlyCollection<IPatientAgentCapability> available = registry.GetAvailable(context);
+            AgentExecutionContext execution = executionContext ?? new(
+                Guid.NewGuid().ToString("N"),
+                new Dictionary<string, string>
+                {
+                    ["practiceId"] = context.PracticeId,
+                    ["patientId"] = context.PatientId.ToString("D"),
+                    ["authenticatedUserId"] = context.AuthenticatedUserId,
+                    ["locale"] = context.Locale,
+                    ["timeZone"] = context.TimeZone,
+                    ["conversationId"] = context.ConversationId
+                });
+            PatientAgentExecutionCollector collector = new();
+            IReadOnlyCollection<IAgentTool> tools = dispatcher.CreateTools(context, execution, available, collector);
+            Dictionary<string, IReadOnlySet<string>> actions = available.ToDictionary(
+                capability => capability.Name,
+                capability => (IReadOnlySet<string>)capability.ActionTypes.ToHashSet(StringComparer.Ordinal),
+                StringComparer.Ordinal);
+            Dictionary<string, string> toolCapabilities = available
+                .SelectMany(capability => capability.Tools.Select(tool => (ToolName: tool.Definition.Name, CapabilityName: capability.Name)))
+                .ToDictionary(item => item.ToolName, item => item.CapabilityName, StringComparer.Ordinal);
+            return new(
+                new AgentDefinition(options.Model, TestInstructions(context, available), new AgentResultDefinition("patient_workspace_result", PatientWorkspaceAgentDefinition.ResultSchema)),
+                tools,
+                actions,
+                collector,
+                execution,
+                new AgentExecutionLimits(),
+                toolCapabilities,
+                "test-key");
         }
     }
 }
