@@ -16,7 +16,7 @@ Versioned conversations persist an optional lowercase SHA-256 compatibility key.
 
 ## Consequences and boundaries
 
-This is an explicit, time-boxed framework exception. No production agent is migrated by this decision. If no production agent adopts it within the next two agent features or one major release, remove or redesign the framework. Clinic and Project Management workflows, approval tiers, public routes, generated clients, provider selection, dynamic plugins, and persistence ownership are unchanged.
+This is an explicit, time-boxed framework exception. Clinic now consumes the framework through its explicit `src/Apps/Clinic/Agents` project; the migration relocates only profiles, capability packs, and composition, while application-owned agent commands, policies, ports, approval tiers, public routes, generated clients, provider selection, dynamic plugins, and persistence ownership remain in their existing boundaries. If no additional production agent adopts the framework within the next two agent features or one major release, remove or redesign the framework.
 
 Architecture validation checks Agents project references, forbidden packages/topology, and dynamic discovery. The project is included in the solution and default build graph, but individual modules do not receive empty Agents projects.
 

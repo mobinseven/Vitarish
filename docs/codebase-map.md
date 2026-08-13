@@ -145,7 +145,7 @@ Use raw HeroUI/HeroUI Pro primitives by default. Add generic Web presentation
 to `shared/web-ui` only when it satisfies the promotion rules in
 [ADR-0008](architecture/decisions/0008-standardize-app-experience-boundaries.md).
 
-`src/Modules/Intelligence/Agents` contains the provider-neutral profile, capability-pack, composition, manifest, and compatibility framework defined by ADR-0012. It references Intelligence Application only; module and app Agents projects are optional and must be explicit.
+`src/Modules/Intelligence/Agents` contains the provider-neutral profile, capability-pack, composition, manifest, and compatibility framework defined by ADR-0012. Explicit app-owned profile, pack, and composition artifacts live under paths such as `src/Apps/Clinic/Agents`; they may reference their owning Application and Intelligence.Agents, while API and Infrastructure continue to consume application-owned agent contracts through Clinic.Application.
 
 ## 6. Capability map
 
