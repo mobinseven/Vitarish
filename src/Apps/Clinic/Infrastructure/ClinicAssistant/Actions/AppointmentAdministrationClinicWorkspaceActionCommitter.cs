@@ -10,6 +10,7 @@ namespace Vitarish.Clinic.Infrastructure.ClinicWorkspace.Actions;
 public sealed class AppointmentAdministrationClinicWorkspaceActionCommitter(AppointmentAdministrationAgentTool tool) : IClinicWorkspaceActionCommitter
 {
     public string ActionType => "appointment_manage";
+    public string WorkflowKey => "appointment-management";
 
     public async Task<ClinicWorkspaceActionCommitResult> CommitAsync(ClinicWorkspaceAction action, ClinicWorkspaceContext context, CancellationToken cancellationToken)
     {

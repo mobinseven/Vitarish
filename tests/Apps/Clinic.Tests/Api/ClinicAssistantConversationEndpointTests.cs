@@ -49,6 +49,24 @@ public sealed class ClinicAssistantConversationEndpointTests
     }
 
     [Fact]
+    public async Task Invalid_history_is_preserved_as_an_explicit_outcome()
+    {
+        ClinicWorkspaceContext context = OperationsContext();
+        Mock<IClinicWorkspaceContextFactory> factory = new(MockBehavior.Strict);
+        factory.Setup(item => item.CreateOperationsAsync(null, It.IsAny<CancellationToken>(), null))
+            .ReturnsAsync(context);
+        Mock<ISender> sender = new(MockBehavior.Strict);
+        sender.Setup(item => item.Send(It.IsAny<RunClinicWorkspace>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Success(context) with { Outcome = ClinicWorkspaceRunOutcome.InvalidHistory });
+
+        AgentConversationEndpointResult result = await new ClinicAssistantConversationEndpoint(factory.Object, sender.Object)
+            .RunAsync(new(
+                "clinic.assistant.operations", "practice", "practice", "continue", null), CancellationToken.None);
+
+        result.Outcome.Should().Be(AgentConversationOutcome.InvalidHistory);
+    }
+
+    [Fact]
     public void Legacy_and_canonical_agent_routes_are_registered_together()
     {
         Mock<IClinicWorkspaceContextFactory> factory = new();

@@ -43,7 +43,6 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<PatientViewStatsLoader>();
             _ = services.AddSingleton<ClinicWorkspaceAuthorizationPolicy>();
             _ = services.AddSingleton<ClinicWorkspaceToolAvailabilityPolicy>();
-            _ = services.AddSingleton<ClinicWorkspaceApprovalPolicy>();
             _ = services.AddTransient<CheckAppointmentAvailabilityTool>();
             _ = services.AddTransient<PrepareAppointmentTool>();
             _ = services.AddTransient<ConfirmAppointmentTool>();

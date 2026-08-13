@@ -14,6 +14,7 @@ public interface IClinicWorkspaceActionStore
 public interface IClinicWorkspaceActionCommitter
 {
     string ActionType { get; }
+    string WorkflowKey => ActionType;
     IReadOnlySet<string> ActionTypes => new HashSet<string>(StringComparer.Ordinal) { ActionType };
     Task<ClinicWorkspaceActionCommitResult> CommitAsync(
         ClinicWorkspaceAction action,

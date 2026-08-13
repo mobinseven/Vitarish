@@ -2,13 +2,12 @@ using System.Text.Json;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Vitarish.Clinic.Application.ClinicWorkspace.Operations;
-using Vitarish.Clinic.Application.ClinicWorkspace.Policies;
 using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
 
 public sealed class ClinicWorkspaceToolDispatcher(
-    ClinicWorkspaceApprovalPolicy approvalPolicy,
+    ClinicWorkspaceCapabilityRegistry capabilityRegistry,
     IEnumerable<IIntelligenceAgentTool> intelligenceTools,
     ILogger<ClinicWorkspaceToolDispatcher>? logger = null)
 {
@@ -20,6 +19,7 @@ public sealed class ClinicWorkspaceToolDispatcher(
         IReadOnlyCollection<IClinicWorkspaceCapability> capabilities)
     {
         IReadOnlyCollection<IAgentTool> tools = capabilities.SelectMany(capability => capability.Tools)
+            .Where(tool => capabilityRegistry.ResolveTool(tool.Definition.Name) is not { } policy || policy.Authorizes(context))
             .Concat(_intelligenceTools.Cast<IAgentTool>())
             .ToArray();
         IReadOnlyDictionary<string, string> toolCapabilities = capabilities
@@ -48,7 +48,7 @@ public sealed class ClinicWorkspaceToolDispatcher(
         ClinicWorkspaceContext context,
         AgentExecutionContext executionContext,
         IReadOnlyCollection<(string Capability, IAgentTool Tool)> tools) =>
-        tools.Select(item => (IAgentTool)new GuardedTool(item.Tool, item.Capability, context, executionContext.ExecutionId, approvalPolicy, logger))
+        tools.Select(item => (IAgentTool)new GuardedTool(item.Tool, item.Capability, context, executionContext.ExecutionId, capabilityRegistry, logger))
             .ToArray();
 
     private sealed class GuardedTool(
@@ -56,7 +56,7 @@ public sealed class ClinicWorkspaceToolDispatcher(
         string capability,
         ClinicWorkspaceContext trustedContext,
         string agentRunId,
-        ClinicWorkspaceApprovalPolicy approvalPolicy,
+        ClinicWorkspaceCapabilityRegistry capabilityRegistry,
         ILogger? logger) : IAgentTool, IClinicWorkspacePreparationTool
     {
         public AgentToolDefinition Definition => handler.Definition;
@@ -71,26 +71,51 @@ public sealed class ClinicWorkspaceToolDispatcher(
         {
             if (!string.Equals(call.Name, Definition.Name, StringComparison.Ordinal))
             {
+                if (logger is not null) ClinicWorkspaceTelemetry.ToolRejected(logger, call.Name, capability, "tool_name_mismatch", context.ExecutionId, call.Id);
                 throw new InvalidOperationException("The requested clinic assistant tool is not registered.");
             }
 
             if (!IsCorrelated(context, trustedContext, agentRunId))
             {
+                if (logger is not null) ClinicWorkspaceTelemetry.ToolRejected(logger, call.Name, capability, "execution_scope_mismatch", context.ExecutionId, call.Id);
                 throw new InvalidOperationException("The clinic assistant tool invocation is not correlated with the current run.");
             }
 
             if (trustedContext.SubjectKind == "practice" &&
                 !ClinicWorkspaceOperationsScope.IsAuthorizedRole(trustedContext.Role))
             {
+                if (logger is not null) ClinicWorkspaceTelemetry.ToolRejected(logger, call.Name, capability, "operations_scope_denied", context.ExecutionId, call.Id);
                 throw new UnauthorizedAccessException("The operations agent requires a current practice-owner scope.");
             }
 
-            if (approvalPolicy.RequiresApproval(call.Name))
+            ClinicWorkspaceActionPolicy? actionPolicy = capabilityRegistry.ResolveTool(call.Name);
+            if (actionPolicy is not null && !actionPolicy.Authorizes(trustedContext))
             {
-                throw new InvalidOperationException("The clinic assistant tool requires approval before invocation.");
+                if (logger is not null) ClinicWorkspaceTelemetry.ToolRejected(logger, call.Name, capability, "action_unauthorized", context.ExecutionId, call.Id);
+                throw new UnauthorizedAccessException("The clinic assistant action is not authorized for the current scope.");
+            }
+            if (actionPolicy is { ExecutionMode: ClinicWorkspaceActionExecutionMode.PrepareAndConfirm } &&
+                handler is not IClinicWorkspacePreparationTool)
+            {
+                if (logger is not null) ClinicWorkspaceTelemetry.ToolRejected(logger, call.Name, capability, "action_requires_preparation", context.ExecutionId, call.Id);
+                throw new InvalidOperationException("The clinic assistant action must be prepared before confirmation.");
+            }
+            if (actionPolicy is { ExecutionMode: not ClinicWorkspaceActionExecutionMode.DirectAllowlisted } &&
+                handler is not IClinicWorkspacePreparationTool)
+            {
+                if (logger is not null) ClinicWorkspaceTelemetry.ToolRejected(logger, call.Name, capability, "action_not_allowlisted", context.ExecutionId, call.Id);
+                throw new InvalidOperationException("The clinic assistant action is not directly executable.");
             }
 
-            ValidateArguments(call.ArgumentsJson, Definition.ParametersJsonSchema);
+            try
+            {
+                ValidateArguments(call.ArgumentsJson, Definition.ParametersJsonSchema);
+            }
+            catch
+            {
+                if (logger is not null) ClinicWorkspaceTelemetry.ToolRejected(logger, call.Name, capability, "arguments_invalid", context.ExecutionId, call.Id);
+                throw;
+            }
             Stopwatch stopwatch = Stopwatch.StartNew();
             try
             {

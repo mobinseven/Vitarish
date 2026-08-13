@@ -24,5 +24,6 @@ public enum ClinicWorkspaceRunOutcome
     NotFound,
     Busy,
     ProfileChanged,
+    InvalidHistory,
     Failed
 }

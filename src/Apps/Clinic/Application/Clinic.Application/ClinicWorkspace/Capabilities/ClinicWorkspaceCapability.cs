@@ -4,13 +4,13 @@ namespace Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
 
 public abstract class ClinicWorkspaceCapability(
     IReadOnlyCollection<IAgentTool> tools,
-    IReadOnlyCollection<string>? actionTypes = null) : IClinicWorkspaceCapability
+    IReadOnlyCollection<ClinicWorkspaceActionPolicy>? actionPolicies = null) : IClinicWorkspaceCapability
 {
     public abstract string Name { get; }
     public abstract string Description { get; }
     public abstract IReadOnlySet<string> RequiredPermissions { get; }
     public IReadOnlyCollection<IAgentTool> Tools { get; } = tools;
-    public IReadOnlyCollection<string> ActionTypes { get; } = actionTypes ?? [];
+    public IReadOnlyCollection<ClinicWorkspaceActionPolicy> ActionPolicies { get; } = actionPolicies ?? [];
     public virtual bool IsAvailable(ClinicWorkspaceContext context) => context.SubjectKind == "patient";
     public virtual string GetInstructions() => Description;
 }
@@ -21,7 +21,8 @@ public interface IClinicalEventsClinicWorkspaceTool : IAgentTool;
 
 public sealed class AppointmentsClinicWorkspaceCapability(
     IEnumerable<IAppointmentsClinicWorkspaceTool> tools,
-    IReadOnlyCollection<string>? actionTypes = null) : ClinicWorkspaceCapability([.. tools], actionTypes ?? ["create_appointment"])
+    IReadOnlyCollection<ClinicWorkspaceActionPolicy>? actionPolicies = null) : ClinicWorkspaceCapability(
+        [.. tools], actionPolicies ?? [ClinicWorkspaceActionPolicies.Prepare("create_appointment", "appointments", ["Appointments.Create"], toolNames: ["prepare_appointment"], retryClassification: ClinicWorkspaceActionRetryClassification.Retryable)])
 {
     public override string Name => "Appointments";
     public override string Description => "Review and prepare patient appointment operations.";
@@ -30,7 +31,8 @@ public sealed class AppointmentsClinicWorkspaceCapability(
 
 public sealed class PrescriptionsClinicWorkspaceCapability(
     IEnumerable<IPrescriptionsClinicWorkspaceTool> tools,
-    IReadOnlyCollection<string>? actionTypes = null) : ClinicWorkspaceCapability([.. tools], actionTypes ?? ["create_prescription"])
+    IReadOnlyCollection<ClinicWorkspaceActionPolicy>? actionPolicies = null) : ClinicWorkspaceCapability(
+        [.. tools], actionPolicies ?? [ClinicWorkspaceActionPolicies.Prepare("create_prescription", "prescriptions", ["Prescriptions.Create"], toolNames: ["prepare_prescription"])])
 {
     public override string Name => "Prescriptions";
     public override string Description => "Review and prepare patient prescription operations.";

@@ -33,7 +33,8 @@ public sealed record ClinicWorkspaceAction(
     string Summary = "",
     string SubjectKind = "patient",
     string? ToolCallId = null,
-    string? ToolName = null);
+    string? ToolName = null,
+    int ActionPolicyRevision = 0);
 
 public sealed record ClinicWorkspaceActionFailure(
     string Code,

@@ -67,6 +67,8 @@ public sealed class ClinicAssistantConversationEndpoint(
             return new(AgentConversationOutcome.Busy, result.AgentRunId, ParseConversationId(result.ConversationId));
         if (result.Outcome is ClinicWorkspaceRunOutcome.ProfileChanged)
             return new(AgentConversationOutcome.ProfileChanged, result.AgentRunId, ParseConversationId(result.ConversationId));
+        if (result.Outcome is ClinicWorkspaceRunOutcome.InvalidHistory)
+            return new(AgentConversationOutcome.InvalidHistory, result.AgentRunId, ParseConversationId(result.ConversationId));
         if (result.Outcome is not ClinicWorkspaceRunOutcome.Succeeded || !Guid.TryParse(result.ConversationId, out Guid conversationId))
             return new(AgentConversationOutcome.ProviderFailure, result.AgentRunId, ParseConversationId(result.ConversationId));
 

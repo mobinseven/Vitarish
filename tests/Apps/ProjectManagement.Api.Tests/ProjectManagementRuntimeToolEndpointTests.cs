@@ -124,9 +124,44 @@ public sealed class ProjectManagementRuntimeToolEndpointTests
         requestContextWriter.VerifyNoOtherCalls();
     }
 
-    private static AgentRuntimeToolEndpointRequest Request(Guid tenantId) => new(
-        new AgentToolCall("call", "sea_manage", "{}"),
-        new AgentExecutionContext("execution", new Dictionary<string, string> { ["tenantId"] = tenantId.ToString("D"), ["authenticatedUserId"] = Guid.NewGuid().ToString("D"), ["agentKey"] = "project-management.event", ["subjectKind"] = "event", ["subjectId"] = Guid.NewGuid().ToString("D") }));
+    private static AgentRuntimeToolEndpointRequest Request(Guid tenantId)
+    {
+        string userId = Guid.NewGuid().ToString("D");
+        string eventId = Guid.NewGuid().ToString("D");
+        AgentExecutionContext context = new("execution", new Dictionary<string, string>
+        {
+            ["tenantId"] = tenantId.ToString("D"),
+            ["authenticatedUserId"] = userId,
+            ["agentKey"] = "project-management.event",
+            ["subjectKind"] = "event",
+            ["subjectId"] = eventId
+        });
+        return new(
+            new AgentToolCall("call", "sea_manage", "{}"),
+            context,
+            new AgentRuntimeExecutionEnvelope(
+                AgentRuntimeExecutionEnvelope.CurrentVersion,
+                context.ExecutionId,
+                "project-management.event",
+                tenantId.ToString("D"),
+                tenantId.ToString("D"),
+                "event",
+                eventId,
+                userId,
+                "conversation",
+                "call",
+                "sea_manage",
+                AgentRuntimeExecutionEnvelope.CurrentCredentialVersion,
+                DateTimeOffset.UtcNow.AddMinutes(5),
+                "correlation",
+                "TenantUser",
+                "en-US",
+                "UTC",
+                "gregory",
+                DateTimeOffset.UtcNow.ToString("O"),
+                DateTimeOffset.UtcNow.ToString("O"),
+                []));
+    }
 
     private static Mock<ISeaManagementAccessEvaluator> Access(bool allowed = true) { Mock<ISeaManagementAccessEvaluator> access = new(); access.Setup(value => value.CanReadEventAsync(It.IsAny<SeaManagementAgentSubject>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(allowed); return access; }
     private static Mock<IRequestContextWriter> Writer() => new();

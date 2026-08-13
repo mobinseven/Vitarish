@@ -91,6 +91,7 @@ public sealed class ClinicAssistantCompositionTests
     {
         public string Description => $"{Name} test capability";
         public IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>();
+        public IReadOnlyCollection<ClinicWorkspaceActionPolicy> ActionPolicies { get; } = [];
         public IReadOnlyCollection<string> ActionTypes => [];
         public string GetInstructions() => $"Use {Name}.";
         public bool IsAvailable(ClinicWorkspaceContext context) => true;

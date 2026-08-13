@@ -10,6 +10,7 @@ namespace Vitarish.Clinic.Infrastructure.ClinicWorkspace.Actions;
 public sealed class SeaManagementClinicWorkspaceActionCommitter(ISeaManagementAgentTool tool) : IClinicWorkspaceActionCommitter
 {
     public string ActionType => "sea_manage";
+    public string WorkflowKey => "sea-management";
 
     public async Task<ClinicWorkspaceActionCommitResult> CommitAsync(ClinicWorkspaceAction action, ClinicWorkspaceContext context, CancellationToken cancellationToken)
     {

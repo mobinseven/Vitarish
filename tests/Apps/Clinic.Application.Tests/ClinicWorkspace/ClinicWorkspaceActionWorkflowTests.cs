@@ -3,7 +3,10 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Vitarish.Clinic.Application.ClinicWorkspace;
 using Vitarish.Clinic.Application.ClinicWorkspace.Actions;
+using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
+using Vitarish.Clinic.Application.ClinicWorkspace.Policies;
 using Vitarish.Clinic.Contracts.ClinicAssistant;
+using Vitarish.Intelligence.Application.Agents;
 using Xunit;
 using ClinicWorkspaceActionStatus = Vitarish.Clinic.Application.ClinicWorkspace.ClinicWorkspaceActionStatus;
 
@@ -45,7 +48,7 @@ public sealed class ClinicWorkspaceActionWorkflowTests
     {
         InMemoryActionStore store = new(Action("create_appointment"));
         StubCommitter committer = new("create_appointment", ClinicWorkspaceActionCommitResult.Completed("{}"));
-        RejectClinicWorkspaceActionHandler reject = new(store, new FixedTimeProvider(Now));
+        RejectClinicWorkspaceActionHandler reject = new(store, RegistryFor(committer), new FixedTimeProvider(Now));
 
         ClinicWorkspaceActionResult result = await reject.Handle(
             new(store.Action.ActionId, Context(permissions: new HashSet<string> { "Appointments.Create" }), "  not requested  "), CancellationToken.None);
@@ -85,6 +88,21 @@ public sealed class ClinicWorkspaceActionWorkflowTests
         ClinicWorkspaceActionResult result = await Handler(store, new StubCommitter("create_prescription")).Handle(
             new(store.Action.ActionId, Context()), CancellationToken.None);
         result.Outcome.Should().Be(ClinicWorkspaceActionOutcome.PermissionDenied);
+    }
+
+    [Fact]
+    public async Task Confirmation_rejects_an_action_created_under_an_old_policy_revision()
+    {
+        InMemoryActionStore store = new(Action("create_appointment") with { ActionPolicyRevision = 2 });
+        StubCommitter committer = new("create_appointment");
+
+        ClinicWorkspaceActionResult result = await Handler(store, committer).Handle(
+            new(store.Action.ActionId, Context(permissions: new HashSet<string> { "Appointments.Create" })), CancellationToken.None);
+
+        result.Outcome.Should().Be(ClinicWorkspaceActionOutcome.Failed);
+        result.Action!.Failure.Should().Be(new ClinicWorkspaceActionFailure(
+            "stale_action_policy", "The action policy changed; the action must be proposed again.", false));
+        committer.InvocationCount.Should().Be(0);
     }
 
     [Fact]
@@ -151,7 +169,8 @@ public sealed class ClinicWorkspaceActionWorkflowTests
     public async Task Expired_action_cannot_be_rejected_as_if_it_were_still_reviewable()
     {
         InMemoryActionStore store = new(Action("create_appointment") with { ExpiresAt = Now });
-        RejectClinicWorkspaceActionHandler handler = new(store, new FixedTimeProvider(Now));
+        StubCommitter committer = new("create_appointment");
+        RejectClinicWorkspaceActionHandler handler = new(store, RegistryFor(committer), new FixedTimeProvider(Now));
 
         ClinicWorkspaceActionResult result = await handler.Handle(
             new(store.Action.ActionId, Context(permissions: new HashSet<string> { "Appointments.Create" }), null), CancellationToken.None);
@@ -203,7 +222,55 @@ public sealed class ClinicWorkspaceActionWorkflowTests
     }
 
     private static ConfirmClinicWorkspaceActionHandler Handler(InMemoryActionStore store, params StubCommitter[] committers) =>
-        new(store, new ClinicWorkspaceActionCommitterRegistry(committers), new FixedTimeProvider(Now));
+        new(store, new ClinicWorkspaceActionCommitterRegistry(committers), RegistryFor(committers), new FixedTimeProvider(Now));
+
+    private static ClinicWorkspaceCapabilityRegistry RegistryFor(params StubCommitter[] committers) =>
+        new(
+            [new TestCapability(committers
+                .SelectMany(committer => ((IClinicWorkspaceActionCommitter)committer).ActionTypes)
+                .Select(actionType => ClinicWorkspaceActionPolicies.Prepare(
+                    actionType,
+                    actionType,
+                    actionType switch
+                    {
+                        "create_appointment" => ["Appointments.Create"],
+                        "create_prescription" => ["Prescriptions.Create"],
+                        "add_clinical_event" => ["ClinicalEvents.Create"],
+                        _ => []
+                    },
+                    requiredRoles: actionType.StartsWith("book_", StringComparison.Ordinal) ? ["TenantOwner"] : [],
+                    toolNames: [$"prepare_{actionType}"],
+                    retryClassification: ClinicWorkspaceActionRetryClassification.Retryable))
+                .ToArray())],
+            new ClinicWorkspaceAuthorizationPolicy(),
+            new ClinicWorkspaceToolAvailabilityPolicy(),
+            committers);
+
+    private sealed record TestCapability(IReadOnlyCollection<ClinicWorkspaceActionPolicy> ActionPolicies)
+        : IClinicWorkspaceCapability
+    {
+        public string Name => "Test";
+        public string Description => "Test capability";
+        public string GetInstructions() => Description;
+        public IReadOnlySet<string> RequiredPermissions => new HashSet<string>();
+        public IReadOnlyCollection<IAgentTool> Tools { get; } = ActionPolicies
+            .SelectMany(policy => policy.ToolNames.Select(toolName => (IAgentTool)new TestTool(toolName)))
+            .ToArray();
+        public bool IsAvailable(ClinicWorkspaceContext context) => true;
+    }
+
+    private sealed class TestTool(string name) : IAgentTool, IClinicWorkspacePreparationTool
+    {
+        public AgentToolDefinition Definition { get; } = new(name, name, "{\"type\":\"object\"}");
+
+        public Task<AgentToolResult> ExecuteAsync(
+            AgentToolCall call,
+            AgentExecutionContext context,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(new AgentToolResult(call.Id, "{}"));
+
+        public ClinicWorkspacePreparedAction? GetPreparedAction(AgentToolResult result) => null;
+    }
 
     private static ClinicWorkspaceAction Action(string actionType) => new(
         Guid.NewGuid(), "run-1", "conversation-1", DefaultPatientId, "practice-1", "user-1",

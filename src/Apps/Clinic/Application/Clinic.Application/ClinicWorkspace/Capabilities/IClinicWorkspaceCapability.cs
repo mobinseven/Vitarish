@@ -9,6 +9,7 @@ public interface IClinicWorkspaceCapability
     string GetInstructions();
     IReadOnlySet<string> RequiredPermissions { get; }
     IReadOnlyCollection<IAgentTool> Tools { get; }
-    IReadOnlyCollection<string> ActionTypes { get; }
+    IReadOnlyCollection<ClinicWorkspaceActionPolicy> ActionPolicies { get; }
+    IReadOnlyCollection<string> ActionTypes => ActionPolicies.Select(policy => policy.ActionType).ToArray();
     bool IsAvailable(ClinicWorkspaceContext context);
 }

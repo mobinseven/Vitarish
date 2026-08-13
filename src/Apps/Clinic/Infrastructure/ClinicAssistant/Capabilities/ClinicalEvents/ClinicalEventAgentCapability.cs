@@ -73,7 +73,9 @@ public sealed class GetPatientRecordedClinicalFactsTool(ISender sender) : Clinic
 public sealed class ClinicalEventAgentCapability(
     GetPatientProcedureContextTool context,
     PrepareClinicalEventTool prepare)
-    : ClinicWorkspaceCapability([context, prepare], ["add_clinical_event"])
+    : ClinicWorkspaceCapability([context, prepare], [
+        ClinicWorkspaceActionPolicies.Prepare("add_clinical_event", "clinical-events", ["ClinicalEvents.Create"], toolNames: ["prepare_clinical_event"])
+    ])
 {
     public override string Name => "ClinicalEvents";
     public override string Description =>

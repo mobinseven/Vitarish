@@ -1,5 +1,6 @@
 using Vitarish.Intelligence.Agents;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
 
 namespace Vitarish.Clinic.Agents;
 
@@ -36,9 +37,18 @@ public sealed class ClinicAssistantCapabilityPack(string key) : IAgentCapability
     {
         Vitarish.Clinic.Application.ClinicWorkspace.Capabilities.IClinicWorkspaceCapability? capability =
             context.AvailableCapabilities.SingleOrDefault(item => string.Equals(item.Name, Key, StringComparison.Ordinal));
-        return capability is null
-            ? new([], [], [])
-            : new([], capability.Tools.ToArray(), capability.ActionTypes.ToArray());
+        if (capability is null)
+            return new([], [], []);
+
+        ClinicWorkspaceActionPolicy? PolicyFor(string toolName) => capability.ActionPolicies
+            .SingleOrDefault(policy => policy.ToolNames.Contains(toolName));
+        bool IsExposed(IAgentTool tool) => PolicyFor(tool.Definition.Name) is not { } policy || policy.Authorizes(context.Context);
+        IReadOnlyCollection<IAgentTool> tools = capability.Tools.Where(IsExposed).ToArray();
+        IReadOnlyCollection<string> actions = capability.ActionPolicies
+            .Where(policy => policy.Authorizes(context.Context))
+            .Select(policy => policy.ActionType)
+            .ToArray();
+        return new([], tools.ToArray(), actions.ToArray());
     }
 }
 

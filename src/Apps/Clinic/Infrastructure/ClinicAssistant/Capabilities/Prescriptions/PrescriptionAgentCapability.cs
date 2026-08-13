@@ -7,7 +7,9 @@ using Vitarish.Medical.Application.AgentCapabilities.Prescriptions;
 namespace Vitarish.Clinic.Infrastructure.ClinicWorkspace.Capabilities.Prescriptions;
 
 public sealed class PrescriptionAgentCapability(
-    PreparePrescriptionTool prepare) : ClinicWorkspaceCapability([prepare], ["create_prescription"])
+    PreparePrescriptionTool prepare) : ClinicWorkspaceCapability([prepare], [
+        ClinicWorkspaceActionPolicies.Prepare("create_prescription", "prescriptions", ["Prescriptions.Create"], toolNames: ["prepare_prescription"])
+    ])
 {
     public override string Name => "Prescriptions";
     public override string Description => "Prepare a Medical-owned prescription draft from a clinician-selected template and insurance coverage for later explicit confirmation.";

@@ -10,6 +10,7 @@ namespace Vitarish.Clinic.Infrastructure.ClinicWorkspace.Actions;
 public sealed class ReminderManagementClinicWorkspaceActionCommitter(ReminderManagementAgentTool tool) : IClinicWorkspaceActionCommitter
 {
     public string ActionType => "reminder_manage";
+    public string WorkflowKey => "reminder-management";
     public async Task<ClinicWorkspaceActionCommitResult> CommitAsync(ClinicWorkspaceAction action, ClinicWorkspaceContext context, CancellationToken cancellationToken)
     {
         try

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 using Vitarish.Clinic.Application.Commands.Patients;
@@ -132,21 +133,34 @@ public static class ClinicApiEndpointMapping
         ExecuteClinicAssistantToolRequest request,
         HttpRequest httpRequest,
         [FromServices] IAgentRuntimeCredentialService credentialService,
+        [FromServices] IAgentRuntimeReplayGuard replayGuard,
         [FromServices] ClinicRuntimeToolEndpoint runtimeEndpoint,
+        [FromServices] ILoggerFactory loggerFactory,
         CancellationToken ct)
     {
+        ILogger logger = loggerFactory.CreateLogger("Vitarish.Clinic.AgentRuntimeCallback");
         string? credential = httpRequest.Headers["X-Vitarish-Agent-Credential"].FirstOrDefault();
-        if (request is null) return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent tool request is required."));
-        if (request.Metadata is null)
-            return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent execution metadata is required."));
-        AgentExecutionContext executionContext = new(request.ExecutionId, request.Metadata);
-        if (!credentialService.Validate(credential ?? string.Empty, executionContext))
+        if (request is null || request.ExecutionEnvelope is null || string.IsNullOrWhiteSpace(request.ArgumentsJson))
+        {
+            ClinicAssistantCallbackTelemetry.CallbackRejected(logger, "invalid_request", request?.ExecutionEnvelope?.ExecutionId ?? "", request?.ExecutionEnvelope?.AgentKey ?? "");
+            return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent tool request is invalid."));
+        }
+        if (!credentialService.ValidateCallback(credential ?? string.Empty, request.ExecutionEnvelope))
+        {
+            ClinicAssistantCallbackTelemetry.CallbackRejected(logger, "credential_or_envelope", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
             return Results.Unauthorized();
+        }
+        if (!await replayGuard.TryClaimAsync(request.ExecutionEnvelope, ct))
+        {
+            ClinicAssistantCallbackTelemetry.CallbackRejected(logger, "replay_or_expired", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
+            return Results.Conflict();
+        }
 
         try
         {
+            AgentExecutionContext executionContext = request.ExecutionEnvelope.ToExecutionContext();
             AgentToolResult result = await runtimeEndpoint.ExecuteAsync(
-                new(new AgentToolCall(request.ToolCallId, request.ToolName, request.ArgumentsJson), executionContext), ct);
+                new(new AgentToolCall(request.ExecutionEnvelope.ToolCallId, request.ExecutionEnvelope.ToolName, request.ArgumentsJson), executionContext, request.ExecutionEnvelope), ct);
             return Results.Ok(new ExecuteClinicAssistantToolResponse(result.CallId, result.Output, result.IsError));
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -155,14 +169,17 @@ public static class ClinicApiEndpointMapping
         }
         catch (UnauthorizedAccessException)
         {
+            ClinicAssistantCallbackTelemetry.CallbackRejected(logger, "scope_or_authorization", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
             return Results.Json(new ClinicError(ClinicErrorCode.Forbidden, "The requested agent tool is not permitted."), statusCode: StatusCodes.Status403Forbidden);
         }
         catch (KeyNotFoundException)
         {
+            ClinicAssistantCallbackTelemetry.CallbackRejected(logger, "tool_not_found", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
             return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "The requested clinic-assistant tool is not available."));
         }
         catch (Exception exception) when (exception is System.Text.Json.JsonException or FormatException or ArgumentException or InvalidOperationException)
         {
+            ClinicAssistantCallbackTelemetry.CallbackRejected(logger, "validation", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
             return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent tool arguments are invalid."));
         }
     }
@@ -230,6 +247,7 @@ public static class ClinicApiEndpointMapping
         if (result.Outcome == ClinicWorkspaceRunOutcome.NotFound) return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "Operations-agent conversation was not found."));
         if (result.Outcome == ClinicWorkspaceRunOutcome.Busy) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
         if (result.Outcome == ClinicWorkspaceRunOutcome.ProfileChanged) return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The agent profile changed; start a new conversation."));
+        if (result.Outcome == ClinicWorkspaceRunOutcome.InvalidHistory) return Results.Conflict(new ClinicError(ClinicErrorCode.InvalidHistory, "The conversation history is invalid."));
         if (result.Outcome != ClinicWorkspaceRunOutcome.Succeeded) return Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The operations agent failed."), statusCode: StatusCodes.Status502BadGateway);
         return Results.Ok(ToRunResponse(result));
     }
@@ -375,6 +393,10 @@ public static class ClinicApiEndpointMapping
             return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The conversation is active."));
         if (result.Outcome == ClinicWorkspaceRunOutcome.ProfileChanged)
             return Results.Conflict(new ClinicError(ClinicErrorCode.Conflict, "The agent profile changed; start a new conversation."));
+        if (result.Outcome == ClinicWorkspaceRunOutcome.InvalidHistory)
+            return Results.Conflict(new ClinicError(ClinicErrorCode.InvalidHistory, "The conversation history is invalid."));
+        if (result.Outcome != ClinicWorkspaceRunOutcome.Succeeded)
+            return Results.Json(new ClinicError(ClinicErrorCode.UnexpectedFailure, "The clinic assistant failed."), statusCode: StatusCodes.Status502BadGateway);
         return Results.Ok(ToRunResponse(result));
     }
 
@@ -747,3 +769,7 @@ public static class ClinicApiEndpointMapping
             LastUpdate = stats.LastUpdate
         };
 }
+
+internal sealed record ExecuteClinicAssistantToolRequest(
+    AgentRuntimeExecutionEnvelope ExecutionEnvelope,
+    string ArgumentsJson);

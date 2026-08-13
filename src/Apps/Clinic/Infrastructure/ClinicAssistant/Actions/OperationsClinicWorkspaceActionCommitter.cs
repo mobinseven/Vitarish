@@ -21,6 +21,7 @@ public sealed class OperationsClinicWorkspaceActionCommitter(IAppointmentSchedul
         ["archive_shift"] = AgentSchedulingOperation.ArchiveShift
     };
     public string ActionType => "operations";
+    public string WorkflowKey => "appointments.operations";
     public IReadOnlySet<string> ActionTypes { get; } = Operations.Keys.ToHashSet(StringComparer.Ordinal);
     public async Task<ClinicWorkspaceActionCommitResult> CommitAsync(ClinicWorkspaceAction action, ClinicWorkspaceContext context, CancellationToken cancellationToken)
     {

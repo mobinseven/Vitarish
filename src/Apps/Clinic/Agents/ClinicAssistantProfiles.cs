@@ -34,6 +34,9 @@ internal abstract class ClinicAssistantProfile(
             policy.AddCompatibilityMaterial("locale", context.Context.Locale);
             policy.AddCompatibilityMaterial("timeZone", context.Context.TimeZone);
             policy.AddCompatibilityMaterial("calendar", context.Context.Calendar);
+            policy.AddCompatibilityMaterial(
+                "actionPolicies",
+                FormatActionPolicies(profileComposition.AvailableCapabilities.SelectMany(capability => capability.ActionPolicies)));
         });
         builder.ApplyLayer(ProfileLayerKey, 1, profile =>
         {
@@ -51,6 +54,25 @@ internal abstract class ClinicAssistantProfile(
 
     private static string SubjectId(ClinicWorkspaceContext context) =>
         context.SubjectKind == "practice" ? context.PracticeId : context.PatientId.ToString("D");
+
+    private static string FormatActionPolicy(ClinicWorkspaceActionPolicy item) => string.Join("|",
+        item.ActionType,
+        item.OwningWorkflow,
+        item.ExecutionMode,
+        item.Revision,
+        item.RetryClassification,
+        item.DefaultProposalLifetime?.Ticks.ToString() ?? "",
+        string.Join(",", item.RequiredPermissions.OrderBy(value => value, StringComparer.Ordinal)),
+        string.Join(",", item.RequiredRoles.OrderBy(value => value, StringComparer.Ordinal)),
+        string.Join(",", item.ToolNames.OrderBy(value => value, StringComparer.Ordinal)));
+
+    private static string FormatActionPolicies(IEnumerable<ClinicWorkspaceActionPolicy> policies)
+    {
+        string value = string.Join("\n", policies
+            .OrderBy(item => item.ActionType, StringComparer.Ordinal)
+            .Select(FormatActionPolicy));
+        return string.IsNullOrEmpty(value) ? "none" : value;
+    }
 }
 
 internal sealed class ClinicPatientAssistantProfile(
@@ -116,7 +138,11 @@ internal static class ClinicAssistantPolicyInstructions
                 name = capability.Name,
                 description = capability.Description,
                 instructions = capability.GetInstructions(),
-                actions = capability.ActionTypes.OrderBy(action => action, StringComparer.Ordinal).ToArray()
+                actions = capability.ActionPolicies
+                    .Where(policy => policy.Authorizes(context))
+                    .Select(policy => policy.ActionType)
+                    .OrderBy(action => action, StringComparer.Ordinal)
+                    .ToArray()
             })
         });
         return "Agent policy (JSON):\n" + policy;

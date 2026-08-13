@@ -10,8 +10,23 @@ namespace Vitarish.Clinic.Infrastructure.ClinicWorkspace.Capabilities.Operations
 
 public sealed class OperationsAgentCapability(IEnumerable<IClinicOperationsAgentTool> tools)
     : ClinicWorkspaceCapability([.. tools], [
-        "book_appointment", "reschedule_appointment", "cancel_appointment", "reject_appointment",
-        "create_shift", "edit_shift", "close_shift", "cancel_shift", "archive_shift", "appointment_manage", "reminder_manage"])
+        ClinicWorkspaceActionPolicies.Prepare("book_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_book_appointment"]),
+        ClinicWorkspaceActionPolicies.Prepare("reschedule_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_reschedule_appointment"]),
+        ClinicWorkspaceActionPolicies.Prepare("cancel_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_cancel_appointment"]),
+        ClinicWorkspaceActionPolicies.Prepare("reject_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_reject_appointment"]),
+        ClinicWorkspaceActionPolicies.Prepare("create_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_create_shift"]),
+        ClinicWorkspaceActionPolicies.Prepare("edit_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_edit_shift"]),
+        ClinicWorkspaceActionPolicies.Prepare("close_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_close_shift"]),
+        ClinicWorkspaceActionPolicies.Prepare("cancel_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_cancel_shift"]),
+        ClinicWorkspaceActionPolicies.Prepare("archive_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["prepare_archive_shift"]),
+        ClinicWorkspaceActionPolicies.Prepare("appointment_manage", "appointment-management", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["appointment_manage"]),
+        ClinicWorkspaceActionPolicies.Prepare("reminder_manage", "reminder-management", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["reminder_manage"]),
+        ClinicWorkspaceActionPolicies.Direct("confirm_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["operations_confirm_appointment"]),
+        ClinicWorkspaceActionPolicies.Direct("present_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["operations_present_appointment"]),
+        ClinicWorkspaceActionPolicies.Direct("complete_appointment", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["operations_complete_appointment"]),
+        ClinicWorkspaceActionPolicies.Direct("activate_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["operations_activate_shift"]),
+        ClinicWorkspaceActionPolicies.Direct("pause_shift", "appointments.operations", [], [ClinicWorkspaceOperationsScope.TenantOwnerRole], ["operations_pause_shift"])
+    ])
 {
     public override string Name => "Operations";
     public override string Description => "Search patients and inspect or safely operate the authenticated practice schedule.";

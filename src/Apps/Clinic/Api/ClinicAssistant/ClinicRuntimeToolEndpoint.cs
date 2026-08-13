@@ -21,6 +21,10 @@ public sealed class ClinicRuntimeToolEndpoint(
     public async Task<AgentToolResult> ExecuteAsync(AgentRuntimeToolEndpointRequest request, CancellationToken ct)
     {
         ClinicWorkspaceContext context = FromExecutionContext(request.ExecutionContext);
+        if (!string.Equals(request.Envelope.AgentKey, request.ExecutionContext.Metadata!["agentKey"], StringComparison.Ordinal) ||
+            !string.Equals(request.Envelope.SubjectKind, context.SubjectKind, StringComparison.Ordinal) ||
+            !string.Equals(request.Envelope.SubjectId, context.SubjectKind == "practice" ? context.PracticeId : context.PatientId.ToString("D"), StringComparison.Ordinal))
+            throw new InvalidOperationException("The callback envelope does not match the Clinic execution scope.");
         if (context.SubjectKind == "patient")
         {
             if (!await routePatientResolver.IsAvailableAsync(context.PracticeId, context.PatientId, ct))
@@ -61,7 +65,8 @@ public sealed class ClinicRuntimeToolEndpoint(
                 request.ExecutionContext.Metadata ?? throw new InvalidOperationException("Agent execution metadata is required."),
                 request.ToolCall.Id,
                 request.ToolCall.Name,
-                request.ToolCall.ArgumentsJson),
+                request.ToolCall.ArgumentsJson,
+                request.Envelope),
             ct);
         return new(result.CallId, result.Output, result.IsError);
     }
@@ -78,7 +83,7 @@ public sealed class ClinicRuntimeToolEndpoint(
             throw new InvalidOperationException("Agent execution subject scope is invalid.");
         }
 
-        return new(Required("practiceId"), patientId, Required("authenticatedUserId"), JsonSerializer.Deserialize<HashSet<string>>(Required("permissions")) ?? [], role, Required("locale"), Required("timeZone"), Required("conversationId"), metadata.TryGetValue("patientNationalId", out string? nationalId) ? nationalId : null, Calendar: metadata.TryGetValue("calendar", out string? calendar) ? calendar : "gregory", SubjectKind: subjectKind);
+        return new(Required("practiceId"), patientId, Required("authenticatedUserId"), JsonSerializer.Deserialize<HashSet<string>>(Required("permissions")) ?? [], role, Required("locale"), Required("timeZone"), Required("conversationId"), metadata.TryGetValue("patientNationalId", out string? nationalId) ? nationalId : null, Calendar: metadata.TryGetValue("calendar", out string? calendar) ? calendar : "gregory", SubjectKind: subjectKind, AgentKey: Required("agentKey"));
     }
 
     private static ClaimsPrincipal CreateOperationsRuntimePrincipal(ClinicWorkspaceContext context)

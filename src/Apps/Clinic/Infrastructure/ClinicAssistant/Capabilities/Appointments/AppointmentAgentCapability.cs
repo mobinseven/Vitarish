@@ -13,7 +13,9 @@ namespace Vitarish.Clinic.Infrastructure.ClinicWorkspace.Capabilities.Appointmen
 
 public sealed class AppointmentAgentCapability(
     CheckAppointmentAvailabilityTool check,
-    PrepareAppointmentTool prepare) : ClinicWorkspaceCapability([check, prepare], ["create_appointment"])
+    PrepareAppointmentTool prepare) : ClinicWorkspaceCapability([check, prepare], [
+        ClinicWorkspaceActionPolicies.Prepare("create_appointment", "appointments", ["Appointments.Create"], toolNames: ["prepare_appointment"], retryClassification: ClinicWorkspaceActionRetryClassification.Retryable)
+    ])
 {
     public override string Name => "Appointments";
     public override string Description => "Check appointment availability and prepare an exact proposal for later explicit confirmation.";

@@ -11,6 +11,7 @@ public sealed class AppointmentClinicWorkspaceActionCommitter(IPatientAppointmen
     : IClinicWorkspaceActionCommitter
 {
     public string ActionType => "create_appointment";
+    public string WorkflowKey => "appointments";
 
     public async Task<ClinicWorkspaceActionCommitResult> CommitAsync(ClinicWorkspaceAction action, ClinicWorkspaceContext context, CancellationToken cancellationToken)
     {
@@ -33,6 +34,7 @@ public sealed class PrescriptionClinicWorkspaceActionCommitter(IPrescriptionAgen
     : IClinicWorkspaceActionCommitter
 {
     public string ActionType => "create_prescription";
+    public string WorkflowKey => "prescriptions";
 
     public async Task<ClinicWorkspaceActionCommitResult> CommitAsync(ClinicWorkspaceAction action, ClinicWorkspaceContext context, CancellationToken cancellationToken)
     {
@@ -61,6 +63,7 @@ public sealed class ClinicalEventClinicWorkspaceActionCommitter(ConfirmClinicalE
     : IClinicWorkspaceActionCommitter
 {
     public string ActionType => "add_clinical_event";
+    public string WorkflowKey => "clinical-events";
 
     public async Task<ClinicWorkspaceActionCommitResult> CommitAsync(ClinicWorkspaceAction action, ClinicWorkspaceContext context, CancellationToken cancellationToken)
     {

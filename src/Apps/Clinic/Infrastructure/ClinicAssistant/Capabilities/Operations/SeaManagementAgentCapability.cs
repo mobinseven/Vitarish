@@ -8,7 +8,10 @@ using Vitarish.Sea.Application.Agents;
 namespace Vitarish.Clinic.Infrastructure.ClinicWorkspace.Capabilities.Operations;
 
 /// <summary>Clinic composition adapter for the SEA-owned management capability.</summary>
-public sealed class SeaManagementAgentCapability(SeaManagementClinicToolAdapter tool) : ClinicWorkspaceCapability([tool], ["sea_manage"])
+public sealed class SeaManagementAgentCapability(SeaManagementClinicToolAdapter tool) : ClinicWorkspaceCapability([tool], [
+    ClinicWorkspaceActionPolicies.Prepare("sea_manage", "sea-management", [],
+        requiredRoles: [ClinicWorkspaceOperationsScope.TenantOwnerRole], toolNames: ["sea_manage"])
+])
 {
     public override string Name => "SeaManagement";
     public override string Description => "Operate the authenticated practice's SEA projects, procedures, events, attachments, receipts, roles, and statistics.";

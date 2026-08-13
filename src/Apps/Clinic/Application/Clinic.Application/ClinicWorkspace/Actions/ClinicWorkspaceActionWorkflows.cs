@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Vitarish.Clinic.Application.ClinicWorkspace.Capabilities;
 using Vitarish.Clinic.Application.ClinicWorkspace.Operations;
 
 namespace Vitarish.Clinic.Application.ClinicWorkspace.Actions;
@@ -24,13 +25,14 @@ public sealed record ConfirmClinicWorkspaceAction(Guid ActionId, ClinicWorkspace
 public sealed class ConfirmClinicWorkspaceActionHandler(
     IClinicWorkspaceActionStore store,
     IClinicWorkspaceActionCommitterRegistry committers,
+    ClinicWorkspaceCapabilityRegistry capabilityRegistry,
     TimeProvider timeProvider,
     ILogger<ConfirmClinicWorkspaceActionHandler>? logger = null) : IRequestHandler<ConfirmClinicWorkspaceAction, ClinicWorkspaceActionResult>
 {
     public async Task<ClinicWorkspaceActionResult> Handle(ConfirmClinicWorkspaceAction request, CancellationToken cancellationToken)
     {
         ClinicWorkspaceAction? action = await store.GetAsync(request.ActionId, cancellationToken);
-        ClinicWorkspaceActionOutcome? scopeFailure = ScopeFailure(action, request.Context);
+        ClinicWorkspaceActionOutcome? scopeFailure = ScopeFailure(action, request.Context, capabilityRegistry);
         if (scopeFailure.HasValue) return new(scopeFailure.Value);
         if (action is null) return new(ClinicWorkspaceActionOutcome.NotFound);
 
@@ -44,14 +46,28 @@ public sealed class ConfirmClinicWorkspaceActionHandler(
             return new(ClinicWorkspaceActionOutcome.Expired, await store.GetAsync(action.ActionId, cancellationToken));
         }
 
+        ClinicWorkspaceActionPolicy? policy = capabilityRegistry.ResolveAction(action.ActionType);
+        if (policy is null)
+            return await SaveFailure(action, new("undeclared_action", "The action policy is no longer available.", false), cancellationToken);
+        if (action.ActionPolicyRevision > 0 && action.ActionPolicyRevision != policy.Revision)
+            return await SaveFailure(action, new("stale_action_policy", "The action policy changed; the action must be proposed again.", false), cancellationToken);
+        if (!policy.Authorizes(request.Context))
+            return new(ClinicWorkspaceActionOutcome.PermissionDenied, action);
+
         IClinicWorkspaceActionCommitter? committer = committers.Resolve(action.ActionType);
         if (committer is null)
             return await SaveFailure(action, new("unsupported_action", "The action type cannot be confirmed.", false), cancellationToken);
 
-        bool retryFailed = action.Status == ClinicWorkspaceActionStatus.Failed && action.Failure?.Retryable == true;
+        bool retryFailed = action.Status == ClinicWorkspaceActionStatus.Failed &&
+            action.Failure?.Retryable == true &&
+            policy.RetryClassification is ClinicWorkspaceActionRetryClassification.Retryable or ClinicWorkspaceActionRetryClassification.Idempotent;
+        if (retryFailed && logger is not null)
+            ClinicWorkspaceTelemetry.ActionRetry(logger, action.ActionType, policy.RetryClassification.ToString(), action.ActionId);
         if (!await store.TryBeginConfirmationAsync(action.ActionId, retryFailed, cancellationToken))
         {
             ClinicWorkspaceAction? latest = await store.GetAsync(action.ActionId, cancellationToken);
+            if (logger is not null)
+                ClinicWorkspaceTelemetry.ActionConfirmationClaimed(logger, action.ActionType, "conflict", action.ActionId);
             return latest?.Status == ClinicWorkspaceActionStatus.Completed
                 ? new(ClinicWorkspaceActionOutcome.Succeeded, latest)
                 : new(ClinicWorkspaceActionOutcome.Conflict, latest);
@@ -74,7 +90,17 @@ public sealed class ConfirmClinicWorkspaceActionHandler(
         }
 
         if (!result.Succeeded)
-            return await SaveFailure(action, result.Failure ?? new("commit_failed", "The action could not be completed.", false), cancellationToken);
+        {
+            ClinicWorkspaceActionFailure failure = result.Failure ?? new("commit_failed", "The action could not be completed.", false);
+            if (policy.RetryClassification == ClinicWorkspaceActionRetryClassification.NeverRetry)
+                failure = failure with { Retryable = false };
+            if (logger is not null)
+                ClinicWorkspaceTelemetry.ActionFailed(logger, action.ActionType, action.ActionId, failure.Retryable);
+            return await SaveFailure(action, failure, cancellationToken);
+        }
+
+        if (logger is not null)
+            ClinicWorkspaceTelemetry.ActionConfirmationClaimed(logger, action.ActionType, "claimed", action.ActionId);
 
         bool completed = await store.CompleteAsync(
             action.ActionId, timeProvider.GetUtcNow(), request.Context.AuthenticatedUserId,
@@ -104,36 +130,28 @@ public sealed class ConfirmClinicWorkspaceActionHandler(
         return new(ClinicWorkspaceActionOutcome.Failed, latest);
     }
 
-    internal static ClinicWorkspaceActionOutcome? ScopeFailure(ClinicWorkspaceAction? action, ClinicWorkspaceContext context)
+    internal static ClinicWorkspaceActionOutcome? ScopeFailure(
+        ClinicWorkspaceAction? action,
+        ClinicWorkspaceContext context,
+        ClinicWorkspaceCapabilityRegistry capabilityRegistry)
     {
         if (action is null) return ClinicWorkspaceActionOutcome.NotFound;
         if (!string.Equals(action.SubjectKind, context.SubjectKind, StringComparison.Ordinal) ||
             action.PatientId != context.PatientId || !string.Equals(action.PracticeId, context.PracticeId, StringComparison.Ordinal))
             return ClinicWorkspaceActionOutcome.ScopeMismatch;
+        ClinicWorkspaceActionPolicy? policy = capabilityRegistry.ResolveAction(action.ActionType);
         if (!string.Equals(action.RequestedByUserId, context.AuthenticatedUserId, StringComparison.Ordinal) ||
-            !HasPermission(action, context))
+            policy is null ||
+            !policy.Authorizes(context))
             return ClinicWorkspaceActionOutcome.PermissionDenied;
         return null;
-    }
-
-    private static bool HasPermission(ClinicWorkspaceAction action, ClinicWorkspaceContext context)
-    {
-        if (action.SubjectKind == "practice")
-            return ClinicWorkspaceOperationsScope.IsAuthorizedRole(context.Role);
-        return action.ActionType switch
-        {
-            "create_appointment" => context.Permissions.Contains("Appointments.Create"),
-            "create_prescription" => context.Permissions.Contains("Prescriptions.Create"),
-            "add_clinical_event" => context.Permissions.Contains("ClinicalEvents.Create"),
-            _ => false
-        };
     }
 }
 
 public sealed record RejectClinicWorkspaceAction(Guid ActionId, ClinicWorkspaceContext Context, string? Reason)
     : IRequest<ClinicWorkspaceActionResult>;
 
-public sealed class RejectClinicWorkspaceActionHandler(IClinicWorkspaceActionStore store, TimeProvider timeProvider)
+public sealed class RejectClinicWorkspaceActionHandler(IClinicWorkspaceActionStore store, ClinicWorkspaceCapabilityRegistry capabilityRegistry, TimeProvider timeProvider)
     : IRequestHandler<RejectClinicWorkspaceAction, ClinicWorkspaceActionResult>
 {
     public async Task<ClinicWorkspaceActionResult> Handle(RejectClinicWorkspaceAction request, CancellationToken cancellationToken)
@@ -141,7 +159,7 @@ public sealed class RejectClinicWorkspaceActionHandler(IClinicWorkspaceActionSto
         if (request.Reason?.Length > 1_000)
             return new(ClinicWorkspaceActionOutcome.ValidationFailure);
         ClinicWorkspaceAction? action = await store.GetAsync(request.ActionId, cancellationToken);
-        ClinicWorkspaceActionOutcome? failure = ConfirmClinicWorkspaceActionHandler.ScopeFailure(action, request.Context);
+        ClinicWorkspaceActionOutcome? failure = ConfirmClinicWorkspaceActionHandler.ScopeFailure(action, request.Context, capabilityRegistry);
         if (failure.HasValue) return new(failure.Value);
         if (action!.ExpiresAt <= timeProvider.GetUtcNow())
         {
@@ -161,13 +179,13 @@ public sealed class RejectClinicWorkspaceActionHandler(IClinicWorkspaceActionSto
 public sealed record GetClinicWorkspaceAction(Guid ActionId, ClinicWorkspaceContext Context)
     : IRequest<ClinicWorkspaceActionResult>;
 
-public sealed class GetClinicWorkspaceActionHandler(IClinicWorkspaceActionStore store)
+public sealed class GetClinicWorkspaceActionHandler(IClinicWorkspaceActionStore store, ClinicWorkspaceCapabilityRegistry capabilityRegistry)
     : IRequestHandler<GetClinicWorkspaceAction, ClinicWorkspaceActionResult>
 {
     public async Task<ClinicWorkspaceActionResult> Handle(GetClinicWorkspaceAction request, CancellationToken cancellationToken)
     {
         ClinicWorkspaceAction? action = await store.GetAsync(request.ActionId, cancellationToken);
-        ClinicWorkspaceActionOutcome? failure = ConfirmClinicWorkspaceActionHandler.ScopeFailure(action, request.Context);
+        ClinicWorkspaceActionOutcome? failure = ConfirmClinicWorkspaceActionHandler.ScopeFailure(action, request.Context, capabilityRegistry);
         return failure.HasValue ? new(failure.Value) : new(ClinicWorkspaceActionOutcome.Succeeded, action);
     }
 }

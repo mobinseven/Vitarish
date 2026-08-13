@@ -25,7 +25,8 @@ public sealed record ClinicWorkspaceToolResolutionRequest(
     IReadOnlyDictionary<string, string> ExecutionMetadata,
     string ToolCallId,
     string ToolName,
-    string ArgumentsJson);
+    string ArgumentsJson,
+    AgentRuntimeExecutionEnvelope ExecutionEnvelope);
 
 public sealed record ClinicWorkspaceToolResult(
     string CallId,
