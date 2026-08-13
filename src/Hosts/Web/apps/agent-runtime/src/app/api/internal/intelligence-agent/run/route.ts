@@ -16,16 +16,37 @@ interface AgentToolDefinition {
   parametersJsonSchema: string;
 }
 
-interface AgentExecutionContext {
+interface AgentRuntimeExecutionEnvelope {
+  version: number;
   executionId: string;
-  metadata?: Record<string, string> | null;
+  agentKey: string;
+  tenantId: string;
+  practiceId: string;
+  subjectKind: "patient" | "practice" | "event" | "landing-page";
+  subjectId: string;
+  authenticatedUserId: string;
+  conversationId: string;
+  toolCallId: string;
+  toolName: string;
+  credentialVersion: number;
+  expiresAt: string;
+  correlationId: string;
+  role: string;
+  locale: string;
+  timeZone: string;
+  calendar: string;
+  currentUtc: string;
+  currentLocal: string;
+  permissions: string[];
+  patientNationalId?: string | null;
+  callbackSignature?: string | null;
 }
 
 interface AgentRuntimeRequest {
   definition: AgentDefinition;
   input: { userInput: string; history?: string | null };
   tools: AgentToolDefinition[];
-  context: AgentExecutionContext;
+  executionEnvelope: AgentRuntimeExecutionEnvelope;
   limits: {
     maxIterations: number;
     maxToolCalls: number;
@@ -37,6 +58,53 @@ interface AgentRuntimeRequest {
 }
 
 const reasoningLevels = new Set(["none", "minimal", "low", "medium", "high", "xhigh", "max"]);
+const envelopeVersion = 1;
+const credentialVersion = 1;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isText(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function isGuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function isValidExecutionEnvelope(value: unknown): value is AgentRuntimeExecutionEnvelope {
+  if (!isRecord(value) || value.version !== envelopeVersion || value.credentialVersion !== credentialVersion) return false;
+  const envelope = value as Partial<AgentRuntimeExecutionEnvelope>;
+  const required = [
+    envelope.executionId,
+    envelope.agentKey,
+    envelope.tenantId,
+    envelope.practiceId,
+    envelope.subjectKind,
+    envelope.subjectId,
+    envelope.authenticatedUserId,
+    envelope.conversationId,
+    envelope.correlationId,
+    envelope.role,
+    envelope.locale,
+    envelope.timeZone,
+    envelope.calendar,
+    envelope.currentUtc,
+    envelope.currentLocal,
+    envelope.expiresAt,
+  ];
+  if (!required.every(isText) || !Array.isArray(envelope.permissions) || !envelope.permissions.every(isText)) return false;
+  const typedEnvelope = envelope as AgentRuntimeExecutionEnvelope;
+  const expiresAt = Date.parse(typedEnvelope.expiresAt);
+  if (!Number.isFinite(expiresAt) || expiresAt <= Date.now() || expiresAt > Date.now() + 15 * 60 * 1000) return false;
+  if (!Number.isFinite(Date.parse(typedEnvelope.currentUtc)) || !Number.isFinite(Date.parse(typedEnvelope.currentLocal))) return false;
+  if (!["patient", "practice", "event", "landing-page"].includes(typedEnvelope.subjectKind)) return false;
+  if (typedEnvelope.subjectKind === "patient" && !isGuid(typedEnvelope.subjectId)) return false;
+  if (typedEnvelope.subjectKind === "event" && !isGuid(typedEnvelope.subjectId)) return false;
+  if (typedEnvelope.subjectKind === "practice" && (typedEnvelope.subjectId !== typedEnvelope.practiceId || typedEnvelope.tenantId !== typedEnvelope.practiceId)) return false;
+  return true;
+}
 
 interface ToolExecution {
   toolName: string;
@@ -105,6 +173,47 @@ function callbackLocation(value: string): string {
   }
 }
 
+function canonicalEnvelope(envelope: AgentRuntimeExecutionEnvelope): string {
+  return [
+    envelope.version.toString(),
+    envelope.executionId,
+    envelope.agentKey,
+    envelope.tenantId,
+    envelope.practiceId,
+    envelope.subjectKind,
+    envelope.subjectId,
+    envelope.authenticatedUserId,
+    envelope.conversationId,
+    envelope.toolCallId,
+    envelope.toolName,
+    envelope.credentialVersion.toString(),
+    new Date(envelope.expiresAt).getTime().toString(),
+    envelope.correlationId,
+    envelope.role,
+    envelope.locale,
+    envelope.timeZone,
+    envelope.calendar,
+    envelope.currentUtc,
+    envelope.currentLocal,
+    JSON.stringify([...envelope.permissions].sort()),
+    envelope.patientNationalId ?? "",
+  ].join("\n");
+}
+
+async function signCallbackEnvelope(credential: string, envelope: AgentRuntimeExecutionEnvelope): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(credential),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(canonicalEnvelope(envelope))));
+  let binary = "";
+  for (const byte of signature) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+}
+
 export async function POST(request: NextRequest) {
   if (!isAuthorized(request)) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -116,7 +225,8 @@ export async function POST(request: NextRequest) {
   }
 
   if (!input?.definition?.model || !input.definition.instructions || !input.input?.userInput ||
-      !input.context?.executionId || !input.callbackUrl || !input.callbackCredential ||
+      !isValidExecutionEnvelope(input.executionEnvelope) ||
+      !input.callbackUrl || !input.callbackCredential ||
       !Array.isArray(input.tools) || input.limits?.maxIterations < 1 ||
       input.limits?.maxToolCalls < 1 || input.limits?.maxTokens < 1) {
     return Response.json({ error: "The agent runtime request is invalid." }, { status: 400 });
@@ -163,12 +273,19 @@ export async function POST(request: NextRequest) {
         toolCallsUsed += 1;
         const location = callbackLocation(input.callbackUrl);
         console.info("Calling supplied agent tool callback", {
-          executionId: input.context.executionId,
+          executionId: input.executionEnvelope.executionId,
           toolName: definition.name,
           callback: location,
         });
         let response: Response;
         try {
+          const callbackEnvelope: AgentRuntimeExecutionEnvelope = {
+            ...input.executionEnvelope,
+            toolCallId: callId,
+            toolName: definition.name,
+            callbackSignature: null,
+          };
+          callbackEnvelope.callbackSignature = await signCallbackEnvelope(input.callbackCredential, callbackEnvelope);
           response = await fetch(input.callbackUrl, {
             method: "POST",
             headers: {
@@ -176,23 +293,18 @@ export async function POST(request: NextRequest) {
               "X-Vitarish-Agent-Credential": input.callbackCredential,
             },
             body: JSON.stringify({
-              toolCallId: callId,
-              toolName: definition.name,
+              executionEnvelope: callbackEnvelope,
               argumentsJson: JSON.stringify(argumentsValue),
-              executionId: input.context.executionId,
-              metadata: input.context.metadata ?? {},
             }),
             signal: AbortSignal.any([runSignal, AbortSignal.timeout(120_000)]),
           });
         } catch (error) {
           const detail = error instanceof Error ? error : new Error(String(error));
           console.error("Supplied agent tool callback fetch failed", {
-            executionId: input.context.executionId,
+            executionId: input.executionEnvelope.executionId,
             toolName: definition.name,
             callback: location,
             errorName: detail.name,
-            errorMessage: detail.message,
-            cause: detail.cause instanceof Error ? `${detail.cause.name}: ${detail.cause.message}` : String(detail.cause ?? ""),
           });
           throw error;
         }
@@ -200,7 +312,7 @@ export async function POST(request: NextRequest) {
         if (!response.ok) {
           const message = `Agent tool ${definition.name} returned HTTP ${response.status}.`;
           console.error("Supplied agent tool callback returned failure", {
-            executionId: input.context.executionId,
+            executionId: input.executionEnvelope.executionId,
             toolName: definition.name,
             callback: location,
             status: response.status,
@@ -218,7 +330,7 @@ export async function POST(request: NextRequest) {
           argumentsJson: JSON.stringify(argumentsValue),
         });
         console.info("Supplied agent tool callback succeeded", {
-          executionId: input.context.executionId,
+          executionId: input.executionEnvelope.executionId,
           toolName: definition.name,
           status: response.status,
           isToolError: result.isError,
@@ -229,7 +341,7 @@ export async function POST(request: NextRequest) {
   });
 
   console.info("Received supplied agent tools", {
-    executionId: input.context.executionId,
+    executionId: input.executionEnvelope.executionId,
     toolCount: tools.length,
     toolNames: input.tools.map((definition) => definition.name).sort(),
   });
@@ -266,7 +378,7 @@ export async function POST(request: NextRequest) {
       ...priorHistory,
       { role: "user", content: input.input.userInput },
     ] as never, {
-      context: input.context,
+      context: input.executionEnvelope,
       maxTurns: input.limits.maxIterations,
       signal: runSignal,
     });
@@ -293,7 +405,7 @@ export async function POST(request: NextRequest) {
         ? "Timeout"
         : "ProviderFailure";
     console.error("Intelligence agent runtime run failed", {
-      executionId: input.context.executionId,
+      executionId: input.executionEnvelope.executionId,
       code,
       toolCalls: toolCallsUsed,
       toolNames: executions.map((execution) => execution.toolName),

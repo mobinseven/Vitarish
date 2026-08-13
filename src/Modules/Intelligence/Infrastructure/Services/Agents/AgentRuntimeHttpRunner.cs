@@ -28,14 +28,17 @@ public sealed class AgentRuntimeHttpRunner(
             string.IsNullOrWhiteSpace(options.Value.SharedSecret))
             return Failure(AgentRunErrorCode.ProviderUnavailable, "The agent runtime is not configured.");
 
+        AgentRuntimeExecutionEnvelope envelope = AgentRuntimeExecutionEnvelope.FromContext(
+            context,
+            DateTimeOffset.UtcNow.AddMinutes(5));
         AgentRuntimeRunRequest request = new(
             definition,
             input,
             tools.Select(tool => tool.Definition).ToArray(),
-            context,
+            envelope,
             limits,
             options.Value.ToolCallbackUrl,
-            credentialService.Create(context, TimeSpan.FromMinutes(5)));
+            credentialService.Create(envelope));
 
         logger.LogInformation(
             "Forwarding agent runtime request {ExecutionId} with {ToolCount} supplied tools: {ToolNames}.",

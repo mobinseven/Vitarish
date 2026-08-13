@@ -8,6 +8,7 @@ using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Intelligence.Contracts;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using D = Vitarish.Intelligence.Domain.Models;
 
 namespace Vitarish.Intelligence.Api;
@@ -33,18 +34,40 @@ public static class IntelligenceApiEndpointMapping
         return endpoints;
     }
 
-    private static async Task<IResult> ExecuteAgentToolAsync(InternalAgentToolExecutionRequest request, HttpRequest httpRequest, [FromServices] IAgentRuntimeCredentialService credentials, [FromServices] IAgentRuntimeToolEndpointRegistry endpoints, CancellationToken ct)
+    private static async Task<IResult> ExecuteAgentToolAsync(
+        InternalAgentToolExecutionRequest request,
+        HttpRequest httpRequest,
+        [FromServices] IAgentRuntimeCredentialService credentials,
+        [FromServices] IAgentRuntimeReplayGuard replayGuard,
+        [FromServices] IAgentRuntimeToolEndpointRegistry endpoints,
+        [FromServices] ILoggerFactory loggerFactory,
+        CancellationToken ct)
     {
-        if (request is null || request.Metadata is null || string.IsNullOrWhiteSpace(request.ExecutionId) || string.IsNullOrWhiteSpace(request.ToolName) || string.IsNullOrWhiteSpace(request.ToolCallId)) return Results.BadRequest();
-        AgentExecutionContext context = new(request.ExecutionId, request.Metadata);
+        ILogger logger = loggerFactory.CreateLogger("Vitarish.Intelligence.AgentRuntimeCallback");
+        if (request is null || request.ExecutionEnvelope is null || string.IsNullOrWhiteSpace(request.ArgumentsJson))
+        {
+            IntelligenceAgentRuntimeTelemetry.CallbackRejected(logger, "invalid_request", request?.ExecutionEnvelope?.ExecutionId ?? "", request?.ExecutionEnvelope?.AgentKey ?? "");
+            return Results.BadRequest();
+        }
+        AgentRuntimeExecutionEnvelope envelope = ToApplicationEnvelope(request.ExecutionEnvelope);
         string? credential = httpRequest.Headers["X-Vitarish-Agent-Credential"].FirstOrDefault();
-        if (!credentials.Validate(credential ?? string.Empty, context)) return Results.Unauthorized();
-        if (!request.Metadata.TryGetValue("agentKey", out string? agentKey) || string.IsNullOrWhiteSpace(agentKey)) return Results.BadRequest();
-        IAgentRuntimeToolEndpoint? endpoint = endpoints.Resolve(agentKey);
+        if (!credentials.ValidateCallback(credential ?? string.Empty, envelope))
+        {
+            IntelligenceAgentRuntimeTelemetry.CallbackRejected(logger, "credential_or_envelope", envelope.ExecutionId, envelope.AgentKey);
+            return Results.Unauthorized();
+        }
+        if (!await replayGuard.TryClaimAsync(envelope, ct))
+        {
+            IntelligenceAgentRuntimeTelemetry.CallbackRejected(logger, "replay_or_expired", envelope.ExecutionId, envelope.AgentKey);
+            return Results.Conflict();
+        }
+        IAgentRuntimeToolEndpoint? endpoint = endpoints.Resolve(envelope.AgentKey);
         if (endpoint is null) return Results.NotFound();
         try
         {
-            AgentToolResult result = await endpoint.ExecuteAsync(new(new AgentToolCall(request.ToolCallId, request.ToolName, request.ArgumentsJson), context), ct);
+            AgentExecutionContext context = envelope.ToExecutionContext();
+            AgentToolResult result = await endpoint.ExecuteAsync(
+                new(new AgentToolCall(envelope.ToolCallId, envelope.ToolName, request.ArgumentsJson), context, envelope), ct);
             return Results.Ok(new InternalAgentToolExecutionResponse(result.CallId, result.Output, result.IsError));
         }
         catch (KeyNotFoundException) { return Results.NotFound(); }
@@ -155,7 +178,11 @@ public static class IntelligenceApiEndpointMapping
     private static D.ResponderInput ToDomain(ResponderInput input) => input.Type switch { ResponderInputType.Image => D.ResponderInput.ImageInput(input.ImageUrl ?? string.Empty, (D.ResponderInputImageDetail)(int)(input.Detail ?? ResponderInputImageDetail.Auto)), ResponderInputType.File => D.ResponderInput.FileInput(input.File?.FileId ?? string.Empty, input.File?.TemporaryUploadReference ?? string.Empty, input.File?.FileName ?? string.Empty), _ => D.ResponderInput.TextInput(input.Text ?? string.Empty) };
     private static D.ResponderOptions ToDomain(ResponderOptions? options) => new() { Instructions = options?.Instructions, Model = options?.ModelId };
     private static ResponderOutput ToContract(D.ResponderOutput output) => new() { Type = output.Type == D.ResponderOutputType.Text ? ResponderOutputType.Text : ResponderOutputType.Json, Text = output.Text };
+    private static AgentRuntimeExecutionEnvelope ToApplicationEnvelope(AgentRuntimeExecutionEnvelopeContract contract) => new(
+        contract.Version, contract.ExecutionId, contract.AgentKey, contract.TenantId, contract.PracticeId,
+        contract.SubjectKind, contract.SubjectId, contract.AuthenticatedUserId, contract.ConversationId,
+        contract.ToolCallId, contract.ToolName, contract.CredentialVersion, contract.ExpiresAt,
+        contract.CorrelationId, contract.Role, contract.Locale, contract.TimeZone, contract.Calendar,
+        contract.CurrentUtc, contract.CurrentLocal, contract.Permissions, contract.PatientNationalId,
+        contract.CallbackSignature);
 }
-
-public sealed record InternalAgentToolExecutionRequest(string ToolCallId, string ToolName, string ArgumentsJson, string ExecutionId, IReadOnlyDictionary<string, string>? Metadata);
-public sealed record InternalAgentToolExecutionResponse(string CallId, string Output, bool IsError = false);

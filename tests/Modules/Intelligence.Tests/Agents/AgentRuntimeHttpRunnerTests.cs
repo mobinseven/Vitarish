@@ -16,7 +16,22 @@ public sealed class AgentRuntimeHttpRunnerTests
     private static readonly AgentInput Input = new("Do the task.");
     private static readonly AgentExecutionContext Context = new("execution-1", new Dictionary<string, string>
     {
-        ["patientId"] = "patient-1"
+        ["tenantId"] = "practice-1",
+        ["practiceId"] = "practice-1",
+        ["patientId"] = "11111111-1111-1111-1111-111111111111",
+        ["subjectKind"] = "patient",
+        ["subjectId"] = "11111111-1111-1111-1111-111111111111",
+        ["authenticatedUserId"] = "user-1",
+        ["conversationId"] = "conversation-1",
+        ["agentKey"] = "clinic.assistant.patient",
+        ["permissions"] = "[\"Patient.Read\"]",
+        ["role"] = "Clinician",
+        ["locale"] = "en-US",
+        ["timeZone"] = "UTC",
+        ["calendar"] = "gregory",
+        ["currentUtc"] = "2026-07-29T12:00:00.0000000+00:00",
+        ["currentLocal"] = "2026-07-29T12:00:00.0000000+00:00",
+        ["correlationId"] = "execution-1"
     });
     private static readonly AgentExecutionLimits Limits = new(4, 4, 1_000, TimeSpan.FromSeconds(5));
 
@@ -53,8 +68,8 @@ public sealed class AgentRuntimeHttpRunnerTests
         handler.Authorization.Should().Be("Bearer test-secret");
         handler.Request!.CallbackCredential.Should().Be("credential");
         handler.Request.Input.History.Should().Be("[{\"role\":\"user\",\"content\":\"prior\"}]");
-        handler.Request.Context.ExecutionId.Should().Be(Context.ExecutionId);
-        handler.Request.Context.Metadata!["patientId"].Should().Be("patient-1");
+        handler.Request.ExecutionEnvelope.ExecutionId.Should().Be(Context.ExecutionId);
+        handler.Request.ExecutionEnvelope.SubjectId.Should().Be("11111111-1111-1111-1111-111111111111");
         handler.Request.Limits.Should().Be(Limits);
         handler.Request.Definition.ReasoningLevel.Should().Be(AgentReasoningLevel.Low);
     }
@@ -85,8 +100,9 @@ public sealed class AgentRuntimeHttpRunnerTests
 
     private sealed class TestCredentialService : IAgentRuntimeCredentialService
     {
-        public string Create(AgentExecutionContext context, TimeSpan lifetime) => "credential";
-        public bool Validate(string credential, AgentExecutionContext context) => credential == "credential";
+        public string Create(AgentRuntimeExecutionEnvelope envelope) => "credential";
+        public bool Validate(string credential, AgentRuntimeExecutionEnvelope envelope) => credential == "credential";
+        public bool ValidateCallback(string credential, AgentRuntimeExecutionEnvelope envelope) => credential == "credential";
     }
 
     private sealed class RecordingHandler(AgentRuntimeRunResponse response, HttpStatusCode statusCode = HttpStatusCode.OK)

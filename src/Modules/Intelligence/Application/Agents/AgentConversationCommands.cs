@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Vitarish.Intelligence.Application.Agents;
 
@@ -27,7 +28,9 @@ public sealed record DeleteAgentConversation(
 
 public sealed class RunAgentConversationHandler(
     IAgentConversationStore store,
-    IAgentRunner runner)
+    IAgentRunner runner,
+    TimeProvider? timeProvider = null,
+    ILogger<RunAgentConversationHandler>? logger = null)
     : IRequestHandler<RunAgentConversation, RunAgentConversationResult>
 {
     public const string HistoryFormat = "openai-agents-js-history/v1";
@@ -41,19 +44,44 @@ public sealed class RunAgentConversationHandler(
         AgentConversationStoreResult acquired = request.ProfileCompatibilityKey is { Length: > 0 } key
             ? await store.AcquireAsync(request.ConversationId, request.Scope, runtimeTimeout + LeaseSafetyMargin, key, cancellationToken)
             : await store.AcquireAsync(request.ConversationId, request.Scope, runtimeTimeout + LeaseSafetyMargin, cancellationToken);
+        if (logger is not null)
+        {
+            AgentConversationTelemetry.LeaseOutcome(
+                logger,
+                acquired.Outcome.ToString(),
+                request.Scope.AgentKey,
+                request.Scope.SubjectKind,
+                request.ConversationId?.ToString("N") ?? "new");
+            if (acquired.Outcome == AgentConversationOutcome.ProfileChanged)
+                AgentConversationTelemetry.ProfileConflict(
+                    logger,
+                    request.ExecutionContext.ExecutionId,
+                    request.Scope.AgentKey,
+                    request.ConversationId?.ToString("N") ?? "new");
+        }
         if (acquired.Outcome != AgentConversationOutcome.Succeeded || acquired.Lease is null)
             return new(acquired.Outcome);
 
         AgentConversationLease lease = acquired.Lease;
         try
         {
+            AgentExecutionContext executionContext = PrepareExecutionContext(
+                request.ExecutionContext,
+                request.Scope,
+                lease.ConversationId,
+                (timeProvider ?? TimeProvider.System).GetUtcNow());
             AgentRunResult run = await runner.RunAsync(
                 request.Definition,
                 request.Input with { History = lease.History },
                 request.Tools,
-                request.ExecutionContext,
+                executionContext,
                 request.Limits,
                 cancellationToken);
+            if (logger is not null)
+                AgentConversationTelemetry.ProviderOutcome(
+                    logger,
+                    run.IsSuccess ? "succeeded" : run.Error?.Code.ToString() ?? "failed",
+                    executionContext.ExecutionId);
 
             if (!run.IsSuccess)
                 return new(
@@ -79,12 +107,47 @@ public sealed class RunAgentConversationHandler(
                 HistoryFormat,
                 request.Presentation?.Invoke(lease.ConversationId, run),
                 cancellationToken);
+            if (logger is not null && replaced == AgentConversationOutcome.ProfileChanged)
+                AgentConversationTelemetry.ProfileConflict(
+                    logger,
+                    executionContext.ExecutionId,
+                    request.Scope.AgentKey,
+                    lease.ConversationId.ToString("N"));
             return new(replaced, lease.ConversationId, run);
         }
         finally
         {
             await store.ReleaseAsync(lease, CancellationToken.None);
         }
+    }
+
+    private static AgentExecutionContext PrepareExecutionContext(
+        AgentExecutionContext supplied,
+        AgentConversationScope scope,
+        Guid conversationId,
+        DateTimeOffset now)
+    {
+        Dictionary<string, string> metadata = supplied.Metadata is null
+            ? new(StringComparer.Ordinal)
+            : new(supplied.Metadata, StringComparer.Ordinal);
+
+        metadata["tenantId"] = scope.TenantId;
+        metadata["practiceId"] = scope.TenantId;
+        metadata["subjectKind"] = scope.SubjectKind;
+        metadata["subjectId"] = scope.SubjectId;
+        metadata["agentKey"] = scope.AgentKey;
+        metadata["authenticatedUserId"] = scope.CreatingUserId;
+        metadata["patientId"] = scope.SubjectKind == "patient" ? scope.SubjectId : Guid.Empty.ToString("D");
+        metadata["conversationId"] = conversationId.ToString("N");
+        metadata.TryAdd("permissions", "[]");
+        metadata.TryAdd("role", "runtime");
+        metadata.TryAdd("locale", "en-US");
+        metadata.TryAdd("timeZone", "UTC");
+        metadata.TryAdd("calendar", "gregory");
+        metadata.TryAdd("currentUtc", now.ToString("O"));
+        metadata.TryAdd("currentLocal", now.ToString("O"));
+        metadata.TryAdd("correlationId", supplied.ExecutionId);
+        return supplied with { Metadata = metadata, Envelope = null };
     }
 }
 

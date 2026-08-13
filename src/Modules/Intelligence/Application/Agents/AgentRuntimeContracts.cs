@@ -6,7 +6,7 @@ public sealed record AgentRuntimeRunRequest(
     AgentDefinition Definition,
     AgentInput Input,
     IReadOnlyCollection<AgentToolDefinition> Tools,
-    AgentExecutionContext Context,
+    AgentRuntimeExecutionEnvelope ExecutionEnvelope,
     AgentExecutionLimits Limits,
     string CallbackUrl,
     string CallbackCredential);
@@ -24,6 +24,7 @@ public sealed record AgentRuntimeRunResponse(
 
 public interface IAgentRuntimeCredentialService
 {
-    string Create(AgentExecutionContext context, TimeSpan lifetime);
-    bool Validate(string credential, AgentExecutionContext context);
+    string Create(AgentRuntimeExecutionEnvelope envelope);
+    bool Validate(string credential, AgentRuntimeExecutionEnvelope envelope);
+    bool ValidateCallback(string credential, AgentRuntimeExecutionEnvelope envelope);
 }

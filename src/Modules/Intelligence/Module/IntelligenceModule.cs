@@ -82,6 +82,7 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
         _ = builder.Services.AddScoped<IAgentRuntimeToolEndpointRegistry, AgentRuntimeToolEndpointRegistry>();
         _ = builder.Services.AddSingleton<IIntelligenceAgentTool, CalendarDateConversionTool>();
         _ = builder.Services.AddSingleton<IAgentRuntimeCredentialService, HmacAgentRuntimeCredentialService>();
+        _ = builder.Services.AddSingleton<IAgentRuntimeReplayGuard, AgentRuntimeReplayGuard>();
         _ = builder.Services.AddHttpClient<IAgentRunner, AgentRuntimeHttpRunner>((serviceProvider, client) =>
         {
             AgentRuntimeOptions options = serviceProvider.GetRequiredService<IOptions<AgentRuntimeOptions>>().Value;

@@ -63,7 +63,10 @@ public sealed class AgentConversationEndpointRegistry : IAgentConversationEndpoi
         _endpoints.FirstOrDefault(pair => pair.Route.Matches(agentKey, subjectKind)).Endpoint;
 }
 
-public sealed record AgentRuntimeToolEndpointRequest(AgentToolCall ToolCall, AgentExecutionContext ExecutionContext);
+public sealed record AgentRuntimeToolEndpointRequest(
+    AgentToolCall ToolCall,
+    AgentExecutionContext ExecutionContext,
+    AgentRuntimeExecutionEnvelope Envelope);
 
 /// <summary>App-owned executor for signed remote tool calls associated with an agent key.</summary>
 public interface IAgentRuntimeToolEndpoint
