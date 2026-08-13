@@ -8,13 +8,13 @@ using Xunit;
 
 namespace Vitarish.Clinic.Agents.Tests;
 
-public sealed class ClinicAssistantCompositionTests
+public sealed class AssistantCompositionTests
 {
     [Fact]
     public void Patient_and_operations_profiles_use_the_new_durable_keys()
     {
-        ComposedAgentManifest<ClinicAssistantCompositionContext> patient = Compose(Context(), [new TestCapability("Appointments", [new TestTool("patient_tool")])]);
-        ComposedAgentManifest<ClinicAssistantCompositionContext> operations = Compose(
+        ComposedAgentManifest<AssistantCompositionContext> patient = Compose(Context(), [new TestCapability("Appointments", [new TestTool("patient_tool")])]);
+        ComposedAgentManifest<AssistantCompositionContext> operations = Compose(
             Context(subjectKind: "practice", patientId: Guid.Empty),
             [new TestCapability("Operations", [new TestTool("operations_tool")])]);
 
@@ -32,8 +32,8 @@ public sealed class ClinicAssistantCompositionTests
     public void Denied_capabilities_are_not_exposed_and_change_the_compatibility_key()
     {
         TestCapability capability = new("Appointments", [new TestTool("appointments")]);
-        ComposedAgentManifest<ClinicAssistantCompositionContext> allowed = Compose(Context(), [capability], allow: true);
-        ComposedAgentManifest<ClinicAssistantCompositionContext> denied = Compose(Context(), [capability], allow: false);
+        ComposedAgentManifest<AssistantCompositionContext> allowed = Compose(Context(), [capability], allow: true);
+        ComposedAgentManifest<AssistantCompositionContext> denied = Compose(Context(), [capability], allow: false);
 
         allowed.Tools.Should().ContainSingle();
         denied.Tools.Should().BeEmpty();
@@ -44,11 +44,11 @@ public sealed class ClinicAssistantCompositionTests
     public void Dynamic_time_is_excluded_from_compatibility_material()
     {
         MutableTimeProvider clock = new(DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
-        ClinicAssistantCompositionContext context = new(Context(), [], [], clock.GetUtcNow());
-        AgentProfileComposer<ClinicAssistantCompositionContext> composer = new(new AgentCapabilityCatalog<ClinicAssistantCompositionContext>(Packs([])));
-        ComposedAgentManifest<ClinicAssistantCompositionContext> first = composer.Compose(new ClinicPatientAssistantProfile(context, new("test-model")), context, _ => new(true, "enabled"));
+        AssistantCompositionContext context = new(Context(), [], [], clock.GetUtcNow());
+        AgentProfileComposer<AssistantCompositionContext> composer = new(new AgentCapabilityCatalog<AssistantCompositionContext>(Packs([])));
+        ComposedAgentManifest<AssistantCompositionContext> first = composer.Compose(new ClinicPatientAssistantProfile(context, new("test-model")), context, _ => new(true, "enabled"));
         clock.UtcNow = clock.UtcNow.AddHours(4);
-        ComposedAgentManifest<ClinicAssistantCompositionContext> later = composer.Compose(
+        ComposedAgentManifest<AssistantCompositionContext> later = composer.Compose(
             new ClinicPatientAssistantProfile(context with { CurrentUtc = clock.GetUtcNow() }, new("test-model")),
             context with { CurrentUtc = clock.GetUtcNow() },
             _ => new(true, "enabled"));
@@ -56,25 +56,25 @@ public sealed class ClinicAssistantCompositionTests
         first.CompatibilityKey.Should().Be(later.CompatibilityKey);
     }
 
-    private static ComposedAgentManifest<ClinicAssistantCompositionContext> Compose(
+    private static ComposedAgentManifest<AssistantCompositionContext> Compose(
         AssistantContext context,
         IReadOnlyCollection<IAssistantCapability> capabilities,
         bool allow = true)
     {
-        ClinicAssistantCompositionContext composition = new(context, capabilities, [], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
-        AgentProfileComposer<ClinicAssistantCompositionContext> composer = new(new AgentCapabilityCatalog<ClinicAssistantCompositionContext>(Packs(capabilities)));
-        AgentProfile<ClinicAssistantCompositionContext> profile = context.SubjectKind == "practice"
+        AssistantCompositionContext composition = new(context, capabilities, [], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
+        AgentProfileComposer<AssistantCompositionContext> composer = new(new AgentCapabilityCatalog<AssistantCompositionContext>(Packs(capabilities)));
+        AgentProfile<AssistantCompositionContext> profile = context.SubjectKind == "practice"
             ? new ClinicOperationsAssistantProfile(composition, new("test-model"))
             : new ClinicPatientAssistantProfile(composition, new("test-model"));
         return composer.Compose(profile, composition, _ => allow ? new(true, "enabled") : AgentExposureDecision.Denied("denied"));
     }
 
-    private static IEnumerable<IAgentCapabilityPack<ClinicAssistantCompositionContext>> Packs(
+    private static IEnumerable<IAgentCapabilityPack<AssistantCompositionContext>> Packs(
         IReadOnlyCollection<IAssistantCapability> capabilities) =>
-        ClinicAssistantCapabilityKeys.Patient
-            .Concat(ClinicAssistantCapabilityKeys.OperationsProfile)
+        AssistantCapabilityKeys.Patient
+            .Concat(AssistantCapabilityKeys.OperationsProfile)
             .Distinct(StringComparer.Ordinal)
-            .Select(key => (IAgentCapabilityPack<ClinicAssistantCompositionContext>)new ClinicAssistantCapabilityPack(key));
+            .Select(key => (IAgentCapabilityPack<AssistantCompositionContext>)new AssistantCapabilityPack(key));
 
     private static AssistantContext Context(string subjectKind = "patient", Guid? patientId = null) => new(
         "practice-1",

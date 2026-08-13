@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Vitarish.Clinic.Agents;
 
-internal static partial class ClinicAssistantTelemetry
+internal static partial class AssistantTelemetry
 {
     [LoggerMessage(EventId = 73800, Level = LogLevel.Information,
         Message = "Clinic assistant capability {CapabilityKey} was {Decision}; reason {Reason}.")]

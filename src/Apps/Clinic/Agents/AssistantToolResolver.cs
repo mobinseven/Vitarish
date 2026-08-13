@@ -3,7 +3,7 @@ using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
-public sealed class ClinicAssistantToolResolver(ClinicAssistantManifestComposer manifestComposer)
+public sealed class AssistantToolResolver(AssistantManifestComposer manifestComposer)
 {
     public async Task<AssistantToolResult> ResolveAsync(
         AssistantToolResolutionRequest request,
@@ -18,7 +18,7 @@ public sealed class ClinicAssistantToolResolver(ClinicAssistantManifestComposer 
         {
             Envelope = request.ExecutionEnvelope
         };
-        ClinicAssistantManifest manifest = manifestComposer.Compose(request.Context, execution);
+        AssistantManifest manifest = manifestComposer.Compose(request.Context, execution);
         IAgentTool? tool = manifest.Tools.FirstOrDefault(candidate =>
             string.Equals(candidate.Definition.Name, request.ToolName, StringComparison.Ordinal));
         if (tool is null)

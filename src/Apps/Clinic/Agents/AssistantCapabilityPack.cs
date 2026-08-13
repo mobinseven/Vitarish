@@ -4,7 +4,7 @@ using Vitarish.Clinic.Application.Assistant.Capabilities;
 
 namespace Vitarish.Clinic.Agents;
 
-public static class ClinicAssistantCapabilityKeys
+public static class AssistantCapabilityKeys
 {
     public const string Intelligence = "Intelligence";
     public const string Appointments = "Appointments";
@@ -25,7 +25,7 @@ public static class ClinicAssistantCapabilityKeys
     public static readonly string[] OperationsProfile = [Operations, SeaManagement, Intelligence];
 }
 
-public sealed class ClinicAssistantCapabilityPack(string key) : IAgentCapabilityPack<ClinicAssistantCompositionContext>
+public sealed class AssistantCapabilityPack(string key) : IAgentCapabilityPack<AssistantCompositionContext>
 {
     public string Key { get; } = string.IsNullOrWhiteSpace(key)
         ? throw new ArgumentException("A Clinic capability key is required.", nameof(key))
@@ -33,7 +33,7 @@ public sealed class ClinicAssistantCapabilityPack(string key) : IAgentCapability
 
     public int BehaviorRevision => 1;
 
-    public AgentCapabilityContribution CreateContribution(ClinicAssistantCompositionContext context)
+    public AgentCapabilityContribution CreateContribution(AssistantCompositionContext context)
     {
         Vitarish.Clinic.Application.Assistant.Capabilities.IAssistantCapability? capability =
             context.AvailableCapabilities.SingleOrDefault(item => string.Equals(item.Name, Key, StringComparison.Ordinal));
@@ -52,11 +52,11 @@ public sealed class ClinicAssistantCapabilityPack(string key) : IAgentCapability
     }
 }
 
-public sealed class ClinicIntelligenceCapabilityPack : IAgentCapabilityPack<ClinicAssistantCompositionContext>
+public sealed class ClinicIntelligenceCapabilityPack : IAgentCapabilityPack<AssistantCompositionContext>
 {
-    public string Key => ClinicAssistantCapabilityKeys.Intelligence;
+    public string Key => AssistantCapabilityKeys.Intelligence;
     public int BehaviorRevision => 1;
 
-    public AgentCapabilityContribution CreateContribution(ClinicAssistantCompositionContext context) =>
+    public AgentCapabilityContribution CreateContribution(AssistantCompositionContext context) =>
         new([], context.IntelligenceTools.Cast<IAgentTool>().ToArray(), []);
 }

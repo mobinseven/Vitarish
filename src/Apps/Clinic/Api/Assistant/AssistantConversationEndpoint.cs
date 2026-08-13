@@ -5,10 +5,10 @@ using Vitarish.Clinic.Contracts.ClinicAssistant;
 using Vitarish.Intelligence.Application.Agents;
 using ContractActionStatus = Vitarish.Clinic.Contracts.ClinicAssistant.ClinicAssistantActionStatus;
 
-namespace Vitarish.Clinic.Api.ClinicAssistant;
+namespace Vitarish.Clinic.Api.Assistant;
 
 /// <summary>Adapts the Intelligence-owned conversation transport to Clinic's patient workflow.</summary>
-public sealed class ClinicAssistantConversationEndpoint(
+public sealed class AssistantConversationEndpoint(
     IAssistantContextFactory contextFactory,
     ISender sender) : IAgentConversationEndpoint
 {

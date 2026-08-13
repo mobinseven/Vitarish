@@ -3,18 +3,18 @@ using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
-internal sealed record ClinicAssistantToolExecution(
+internal sealed record AssistantToolExecution(
     string ToolName,
     string ToolCallId,
     string AgentRunId,
     AssistantPreparedAction PreparedAction);
 
-internal sealed class ClinicAssistantExecutionCollector
+internal sealed class AssistantExecutionCollector
 {
-    private readonly List<ClinicAssistantToolExecution> _executions = [];
+    private readonly List<AssistantToolExecution> _executions = [];
     private readonly object _sync = new();
 
-    public IReadOnlyList<ClinicAssistantToolExecution> Executions
+    public IReadOnlyList<AssistantToolExecution> Executions
     {
         get { lock (_sync) return [.. _executions]; }
     }

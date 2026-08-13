@@ -7,16 +7,16 @@ using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
-public sealed class ClinicAssistantManifestComposer(
-    AgentProfileComposer<ClinicAssistantCompositionContext> profileComposer,
+public sealed class AssistantManifestComposer(
+    AgentProfileComposer<AssistantCompositionContext> profileComposer,
     AssistantCapabilityRegistry capabilityRegistry,
     AssistantToolDispatcher toolDispatcher,
-    ClinicAssistantOptions options,
+    AssistantOptions options,
     IEnumerable<IIntelligenceAgentTool> intelligenceTools,
-    ClinicAssistantExecutionContextFactory executionContextFactory,
-    ILogger<ClinicAssistantManifestComposer>? logger = null)
+    AssistantExecutionContextFactory executionContextFactory,
+    ILogger<AssistantManifestComposer>? logger = null)
 {
-    internal ClinicAssistantManifest Compose(
+    internal AssistantManifest Compose(
         AssistantContext context,
         AgentExecutionContext? suppliedExecutionContext = null)
     {
@@ -36,16 +36,16 @@ public sealed class ClinicAssistantManifestComposer(
         IReadOnlyCollection<IAssistantCapability> available = capabilityRegistry.GetAvailable(trustedContext);
         IReadOnlyCollection<IIntelligenceAgentTool> intelligence = intelligenceTools.ToArray();
         IReadOnlyCollection<string> profileKeys = trustedContext.SubjectKind == "practice"
-            ? ClinicAssistantCapabilityKeys.OperationsProfile
-            : ClinicAssistantCapabilityKeys.Patient;
+            ? AssistantCapabilityKeys.OperationsProfile
+            : AssistantCapabilityKeys.Patient;
         IReadOnlyCollection<IAssistantCapability> profileCapabilities = available
             .Where(capability => profileKeys.Contains(capability.Name, StringComparer.Ordinal))
             .ToArray();
-        ClinicAssistantCompositionContext composition = new(trustedContext, available, intelligence, executionContextFactory.CurrentUtc);
-        AgentProfile<ClinicAssistantCompositionContext> profile = trustedContext.SubjectKind == "practice"
+        AssistantCompositionContext composition = new(trustedContext, available, intelligence, executionContextFactory.CurrentUtc);
+        AgentProfile<AssistantCompositionContext> profile = trustedContext.SubjectKind == "practice"
             ? new ClinicOperationsAssistantProfile(composition, options)
             : new ClinicPatientAssistantProfile(composition, options);
-        ComposedAgentManifest<ClinicAssistantCompositionContext> manifest = profileComposer.Compose(
+        ComposedAgentManifest<AssistantCompositionContext> manifest = profileComposer.Compose(
             profile,
             composition,
             key => IsExposed(key, available, intelligence)
@@ -56,7 +56,7 @@ public sealed class ClinicAssistantManifestComposer(
             foreach (string key in profileKeys)
             {
                 bool enabled = IsExposed(key, available, intelligence);
-                ClinicAssistantTelemetry.CapabilityDecision(
+                AssistantTelemetry.CapabilityDecision(
                     logger,
                     key,
                     enabled ? "enabled" : "denied",
@@ -86,16 +86,16 @@ public sealed class ClinicAssistantManifestComposer(
         string key,
         IReadOnlyCollection<IAssistantCapability> available,
         IReadOnlyCollection<IIntelligenceAgentTool> intelligence) =>
-        key == ClinicAssistantCapabilityKeys.Intelligence
+        key == AssistantCapabilityKeys.Intelligence
             ? intelligence.Count > 0
             : available.Any(capability => string.Equals(capability.Name, key, StringComparison.Ordinal));
 }
 
-internal sealed record ClinicAssistantManifest(
+internal sealed record AssistantManifest(
     AgentDefinition Definition,
     IReadOnlyCollection<IAgentTool> Tools,
     IReadOnlyDictionary<string, IReadOnlySet<string>> EnabledActions,
-    ClinicAssistantExecutionCollector ExecutionCollector,
+    AssistantExecutionCollector ExecutionCollector,
     AgentExecutionContext ExecutionContext,
     AgentExecutionLimits Limits,
     IReadOnlyDictionary<string, string> ToolCapabilities,

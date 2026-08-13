@@ -4,7 +4,7 @@ using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
-public sealed record ClinicAssistantCompositionContext(
+public sealed record AssistantCompositionContext(
     AssistantContext Context,
     IReadOnlyCollection<IAssistantCapability> AvailableCapabilities,
     IReadOnlyCollection<IIntelligenceAgentTool> IntelligenceTools,

@@ -6,11 +6,11 @@ using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
-public sealed class ClinicAssistantResultParser(AssistantCapabilityRegistry capabilityRegistry)
+public sealed class AssistantResultParser(AssistantCapabilityRegistry capabilityRegistry)
 {
     internal AssistantResult Parse(
         JsonElement output,
-        ClinicAssistantManifest manifest,
+        AssistantManifest manifest,
         AssistantContext context,
         IReadOnlyList<AgentToolExecution> toolExecutions)
     {
@@ -49,7 +49,7 @@ public sealed class ClinicAssistantResultParser(AssistantCapabilityRegistry capa
         }
 
         List<AssistantPreparedAction> preparedActions = [];
-        foreach (ClinicAssistantToolExecution execution in manifest.ExecutionCollector.Executions)
+        foreach (AssistantToolExecution execution in manifest.ExecutionCollector.Executions)
         {
             AssistantPreparedAction prepared = execution.PreparedAction;
             AssistantActionPolicy? policy = capabilityRegistry.ResolveAction(prepared.ActionType);

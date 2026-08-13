@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Vitarish.Apps.Base.Core;
 using Microsoft.AspNetCore.Builder;
 using Vitarish.Clinic.Api;
-using Vitarish.Clinic.Api.ClinicAssistant;
+using Vitarish.Clinic.Api.Assistant;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Clinic.Infrastructure.Extensions;
 using Vitarish.Clinic.Agents;
@@ -21,12 +21,12 @@ public class ClinicApp : Vitarish.Apps.Base.Core.App
     {
         _ = builder.Services.AddTransientMultiTenantDbContext<ClinicDbContext>((_, options) => configureDbContext?.Invoke(options));
         _ = builder.Services.AddClinicInfrastructure();
-        _ = builder.Services.AddSingleton(new ClinicAssistantOptions(
+        _ = builder.Services.AddSingleton(new AssistantOptions(
             builder.Configuration["Vitarish:Intelligence:DefaultResponseModel"]
             ?? throw new InvalidOperationException("Vitarish:Intelligence:DefaultResponseModel must be configured.")));
-        _ = builder.Services.AddClinicAssistantComposition();
-        _ = builder.Services.AddTransient<ClinicAssistantConversationEndpoint>();
-        _ = builder.Services.AddTransient<Vitarish.Intelligence.Application.Agents.IAgentConversationEndpoint>(sp => sp.GetRequiredService<ClinicAssistantConversationEndpoint>());
+        _ = builder.Services.AddAssistantComposition();
+        _ = builder.Services.AddTransient<AssistantConversationEndpoint>();
+        _ = builder.Services.AddTransient<Vitarish.Intelligence.Application.Agents.IAgentConversationEndpoint>(sp => sp.GetRequiredService<AssistantConversationEndpoint>());
         _ = builder.Services.AddTransient<ClinicRuntimeToolEndpoint>();
         _ = builder.Services.AddTransient<Vitarish.Intelligence.Application.Agents.IAgentRuntimeToolEndpoint>(sp => sp.GetRequiredService<ClinicRuntimeToolEndpoint>());
 

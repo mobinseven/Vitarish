@@ -6,7 +6,7 @@ using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Requests.Application.Abstractions;
 
-namespace Vitarish.Clinic.Api.ClinicAssistant;
+namespace Vitarish.Clinic.Api.Assistant;
 
 public sealed class ClinicRuntimeToolEndpoint(
     IAssistantGuardedToolResolver toolResolver,

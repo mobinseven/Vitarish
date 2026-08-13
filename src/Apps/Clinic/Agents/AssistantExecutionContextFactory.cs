@@ -4,7 +4,7 @@ using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
-public sealed class ClinicAssistantExecutionContextFactory(TimeProvider timeProvider)
+public sealed class AssistantExecutionContextFactory(TimeProvider timeProvider)
 {
     public DateTimeOffset CurrentUtc => timeProvider.GetUtcNow();
 

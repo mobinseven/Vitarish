@@ -1,14 +1,14 @@
 using FluentAssertions;
 using MediatR;
 using Moq;
-using Vitarish.Clinic.Api.ClinicAssistant;
+using Vitarish.Clinic.Api.Assistant;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Intelligence.Application.Agents;
 using Xunit;
 
 namespace Clinic.Tests.Api;
 
-public sealed class ClinicAssistantConversationEndpointTests
+public sealed class AssistantConversationEndpointTests
 {
     [Fact]
     public async Task Operations_sentinel_subject_is_bound_to_the_authenticated_practice_context()
@@ -21,7 +21,7 @@ public sealed class ClinicAssistantConversationEndpointTests
         sender.Setup(item => item.Send(It.IsAny<RunAssistant>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Success(context));
 
-        AgentConversationEndpointResult result = await new ClinicAssistantConversationEndpoint(factory.Object, sender.Object)
+        AgentConversationEndpointResult result = await new AssistantConversationEndpoint(factory.Object, sender.Object)
             .RunAsync(new(
                 "clinic.assistant.operations", "practice", "practice", "list appointments", null), CancellationToken.None);
 
@@ -40,7 +40,7 @@ public sealed class ClinicAssistantConversationEndpointTests
             .ReturnsAsync(context);
         Mock<ISender> sender = new(MockBehavior.Strict);
 
-        AgentConversationEndpointResult result = await new ClinicAssistantConversationEndpoint(factory.Object, sender.Object)
+        AgentConversationEndpointResult result = await new AssistantConversationEndpoint(factory.Object, sender.Object)
             .RunAsync(new(
                 "clinic.assistant.operations", "practice", "other-practice", "list appointments", null), CancellationToken.None);
 
@@ -59,7 +59,7 @@ public sealed class ClinicAssistantConversationEndpointTests
         sender.Setup(item => item.Send(It.IsAny<RunAssistant>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Success(context) with { Outcome = AssistantRunOutcome.InvalidHistory });
 
-        AgentConversationEndpointResult result = await new ClinicAssistantConversationEndpoint(factory.Object, sender.Object)
+        AgentConversationEndpointResult result = await new AssistantConversationEndpoint(factory.Object, sender.Object)
             .RunAsync(new(
                 "clinic.assistant.operations", "practice", "practice", "continue", null), CancellationToken.None);
 
@@ -71,7 +71,7 @@ public sealed class ClinicAssistantConversationEndpointTests
     {
         Mock<IAssistantContextFactory> factory = new();
         Mock<ISender> sender = new();
-        ClinicAssistantConversationEndpoint endpoint = new(factory.Object, sender.Object);
+        AssistantConversationEndpoint endpoint = new(factory.Object, sender.Object);
 
         endpoint.Routes.Should().Contain(route => route.AgentKey == "clinic.patient" && route.SubjectKind == "patient");
         endpoint.Routes.Should().Contain(route => route.AgentKey == "clinic.operations" && route.SubjectKind == "practice");

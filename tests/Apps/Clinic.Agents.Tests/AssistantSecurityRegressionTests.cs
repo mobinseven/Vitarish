@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Vitarish.Clinic.Agents.Tests;
 
-public sealed class ClinicAssistantSecurityRegressionTests
+public sealed class AssistantSecurityRegressionTests
 {
     private static readonly Guid PatientId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
@@ -19,9 +19,9 @@ public sealed class ClinicAssistantSecurityRegressionTests
     public void Patient_scope_is_server_bound_even_when_user_input_requests_another_patient()
     {
         AssistantContext context = PatientContext();
-        ClinicAssistantCompositionContext composition = new(context, [], [], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
-        AgentProfileComposer<ClinicAssistantCompositionContext> composer = Composer([]);
-        ComposedAgentManifest<ClinicAssistantCompositionContext> manifest = composer.Compose(
+        AssistantCompositionContext composition = new(context, [], [], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
+        AgentProfileComposer<AssistantCompositionContext> composer = Composer([]);
+        ComposedAgentManifest<AssistantCompositionContext> manifest = composer.Compose(
             new ClinicPatientAssistantProfile(composition, new("test-model")), composition,
             _ => new AgentExposureDecision(true, "enabled"));
 
@@ -68,13 +68,13 @@ public sealed class ClinicAssistantSecurityRegressionTests
             [AssistantActionPolicies.Prepare(
                 "create_appointment", "appointments", ["Appointments.Create"], toolNames: [preparation.Definition.Name])]);
         AssistantContext context = PatientContext(new HashSet<string> { "Appointments.Read" });
-        ClinicAssistantCompositionContext composition = new(context, [capability], [], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
+        AssistantCompositionContext composition = new(context, [capability], [], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
 
-        AgentCapabilityContribution contribution = new ClinicAssistantCapabilityPack("Appointments").CreateContribution(composition);
+        AgentCapabilityContribution contribution = new AssistantCapabilityPack("Appointments").CreateContribution(composition);
 
         contribution.Tools.Should().BeEmpty();
         contribution.ActionTypes.Should().BeEmpty();
-        ClinicAssistantPolicyInstructions.Create(composition, dynamicTime: false)
+        AssistantPolicyInstructions.Create(composition, dynamicTime: false)
             .Should().NotContain("create_appointment");
 
         AssistantCapabilityRegistry registry = new(
@@ -242,7 +242,7 @@ public sealed class ClinicAssistantSecurityRegressionTests
         TestCapability capability = new("Appointments", [], [preparationTool], ["create_appointment"]);
         RecordingActionStore actionStore = new();
         RecordingSender sender = new();
-        ClinicAssistantRuntime runtime = Runtime(sender, actionStore, [capability]);
+        AssistantRuntime runtime = Runtime(sender, actionStore, [capability]);
 
         AssistantResult result = await runtime.RunAsync(
             PatientContext(), new AssistantInput("prepare an appointment"), CancellationToken.None);
@@ -257,7 +257,7 @@ public sealed class ClinicAssistantSecurityRegressionTests
     {
         RecordingActionStore actionStore = new();
         RecordingSender sender = new(includeToolExecution: false);
-        ClinicAssistantRuntime runtime = Runtime(
+        AssistantRuntime runtime = Runtime(
             sender,
             actionStore,
             [new TestCapability("Appointments", [], [new TestPreparationTool(Guid.NewGuid())], ["create_appointment"])]);
@@ -269,15 +269,15 @@ public sealed class ClinicAssistantSecurityRegressionTests
         actionStore.Saved.Should().BeEmpty();
     }
 
-    private static AgentProfileComposer<ClinicAssistantCompositionContext> Composer(
+    private static AgentProfileComposer<AssistantCompositionContext> Composer(
         IReadOnlyCollection<IAssistantCapability> capabilities) =>
-        new(new AgentCapabilityCatalog<ClinicAssistantCompositionContext>(
-            ClinicAssistantCapabilityKeys.Patient
+        new(new AgentCapabilityCatalog<AssistantCompositionContext>(
+            AssistantCapabilityKeys.Patient
                 .Concat(capabilities.Select(capability => capability.Name))
                 .Distinct(StringComparer.Ordinal)
-                .Select(key => (IAgentCapabilityPack<ClinicAssistantCompositionContext>)new ClinicAssistantCapabilityPack(key))));
+                .Select(key => (IAgentCapabilityPack<AssistantCompositionContext>)new AssistantCapabilityPack(key))));
 
-    private static ClinicAssistantRuntime Runtime(
+    private static AssistantRuntime Runtime(
         RecordingSender sender,
         RecordingActionStore actionStore,
         IReadOnlyCollection<IAssistantCapability> capabilities) =>
@@ -294,29 +294,29 @@ public sealed class ClinicAssistantSecurityRegressionTests
             sender,
             actionStore);
 
-    private static ClinicAssistantRuntime CreateRuntime(
-        AgentProfileComposer<ClinicAssistantCompositionContext> composer,
+    private static AssistantRuntime CreateRuntime(
+        AgentProfileComposer<AssistantCompositionContext> composer,
         AssistantCapabilityRegistry registry,
         ISender sender,
         IAssistantActionStore actionStore)
     {
         FixedTimeProvider time = new(DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
-        ClinicAssistantManifestComposer manifestComposer = new(
+        AssistantManifestComposer manifestComposer = new(
             composer,
             registry,
             new AssistantToolDispatcher(registry, []),
-            new ClinicAssistantOptions("test-model"),
+            new AssistantOptions("test-model"),
             [],
-            new ClinicAssistantExecutionContextFactory(time));
+            new AssistantExecutionContextFactory(time));
         return new(
-            new ClinicAssistantConversationRunner(
+            new AssistantConversationRunner(
                 manifestComposer,
-                new ClinicAssistantResultParser(registry),
+                new AssistantResultParser(registry),
                 sender,
                 actionStore,
                 registry,
                 time),
-            new ClinicAssistantToolResolver(manifestComposer));
+            new AssistantToolResolver(manifestComposer));
     }
 
     private static AssistantContext PatientContext(IReadOnlySet<string>? permissions = null, string role = "Clinician") => new(

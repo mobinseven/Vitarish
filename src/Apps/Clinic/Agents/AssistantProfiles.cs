@@ -6,16 +6,16 @@ using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
-internal abstract class ClinicAssistantProfile(
-    ClinicAssistantCompositionContext context,
-    ClinicAssistantOptions options,
-    IReadOnlyList<string> capabilityKeys) : AgentProfile<ClinicAssistantCompositionContext>
+internal abstract class AssistantProfile(
+    AssistantCompositionContext context,
+    AssistantOptions options,
+    IReadOnlyList<string> capabilityKeys) : AgentProfile<AssistantCompositionContext>
 {
-    protected override void Configure(AgentProfileBuilder<ClinicAssistantCompositionContext> builder)
+    protected override void Configure(AgentProfileBuilder<AssistantCompositionContext> builder)
     {
         builder.ApplyLayer("clinic.policy", 1, policy =>
         {
-            ClinicAssistantCompositionContext profileComposition = context with
+            AssistantCompositionContext profileComposition = context with
             {
                 AvailableCapabilities = context.AvailableCapabilities
                     .Where(capability => capabilityKeys.Contains(capability.Name, StringComparer.Ordinal))
@@ -23,9 +23,9 @@ internal abstract class ClinicAssistantProfile(
             };
             policy.AddInstruction(
                 "clinic.policy",
-                ClinicAssistantPolicyInstructions.Create(profileComposition, dynamicTime: true),
+                AssistantPolicyInstructions.Create(profileComposition, dynamicTime: true),
                 0,
-                ClinicAssistantPolicyInstructions.Create(profileComposition, dynamicTime: false));
+                AssistantPolicyInstructions.Create(profileComposition, dynamicTime: false));
             policy.AddCompatibilityMaterial("practiceId", context.Context.PracticeId);
             policy.AddCompatibilityMaterial("subjectKind", context.Context.SubjectKind);
             policy.AddCompatibilityMaterial("subjectId", SubjectId(context.Context));
@@ -42,7 +42,7 @@ internal abstract class ClinicAssistantProfile(
         {
             profile.SetIdentity(AgentKey, DisplayName);
             profile.SetModel(options.Model);
-            profile.SetResult(new AgentResultDefinition("clinic_assistant_result", ClinicAssistantRuntime.ResultSchema));
+            profile.SetResult(new AgentResultDefinition("clinic_assistant_result", AssistantRuntime.ResultSchema));
             profile.SetLimits(new AgentExecutionLimits());
             foreach (string capabilityKey in capabilityKeys) profile.AddCapability(capabilityKey);
         });
@@ -76,9 +76,9 @@ internal abstract class ClinicAssistantProfile(
 }
 
 internal sealed class ClinicPatientAssistantProfile(
-    ClinicAssistantCompositionContext context,
-    ClinicAssistantOptions options)
-    : ClinicAssistantProfile(context, options, ClinicAssistantCapabilityKeys.Patient)
+    AssistantCompositionContext context,
+    AssistantOptions options)
+    : AssistantProfile(context, options, AssistantCapabilityKeys.Patient)
 {
     protected override string AgentKey => "clinic.assistant.patient";
     protected override string DisplayName => "Clinic patient workspace";
@@ -86,18 +86,18 @@ internal sealed class ClinicPatientAssistantProfile(
 }
 
 internal sealed class ClinicOperationsAssistantProfile(
-    ClinicAssistantCompositionContext context,
-    ClinicAssistantOptions options)
-    : ClinicAssistantProfile(context, options, ClinicAssistantCapabilityKeys.OperationsProfile)
+    AssistantCompositionContext context,
+    AssistantOptions options)
+    : AssistantProfile(context, options, AssistantCapabilityKeys.OperationsProfile)
 {
     protected override string AgentKey => "clinic.assistant.operations";
     protected override string DisplayName => "Clinic operations workspace";
     protected override string ProfileLayerKey => "clinic.assistant.operations";
 }
 
-internal static class ClinicAssistantPolicyInstructions
+internal static class AssistantPolicyInstructions
 {
-    public static string Create(ClinicAssistantCompositionContext composition, bool dynamicTime)
+    public static string Create(AssistantCompositionContext composition, bool dynamicTime)
     {
         AssistantContext context = composition.Context;
         TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(context.TimeZone);

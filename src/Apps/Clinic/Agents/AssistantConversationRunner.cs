@@ -8,21 +8,21 @@ using Vitarish.Intelligence.Application.Agents;
 
 namespace Vitarish.Clinic.Agents;
 
-public sealed class ClinicAssistantConversationRunner(
-    ClinicAssistantManifestComposer manifestComposer,
-    ClinicAssistantResultParser resultParser,
+public sealed class AssistantConversationRunner(
+    AssistantManifestComposer manifestComposer,
+    AssistantResultParser resultParser,
     ISender sender,
     IAssistantActionStore actionStore,
     AssistantCapabilityRegistry capabilityRegistry,
     TimeProvider timeProvider,
-    ILogger<ClinicAssistantConversationRunner>? logger = null)
+    ILogger<AssistantConversationRunner>? logger = null)
 {
     public async Task<AssistantResult> RunAsync(
         AssistantContext context,
         AssistantInput input,
         CancellationToken cancellationToken = default)
     {
-        ClinicAssistantManifest manifest = manifestComposer.Compose(context);
+        AssistantManifest manifest = manifestComposer.Compose(context);
         if (string.IsNullOrWhiteSpace(input.Message))
             return AssistantResult.Failure(manifest.ExecutionContext.ExecutionId, context.ConversationId, "A message is required.");
 
@@ -82,12 +82,12 @@ public sealed class ClinicAssistantConversationRunner(
 
         AgentRunResult? runResult = conversation.Run;
         if (logger is not null && runResult is not null && !runResult.IsSuccess)
-            ClinicAssistantTelemetry.ProviderCompleted(
+            AssistantTelemetry.ProviderCompleted(
                 logger,
                 runResult.Error?.Code.ToString() ?? "failed",
                 manifest.ExecutionContext.ExecutionId);
         if (logger is not null)
-            ClinicAssistantTelemetry.ConversationCompleted(
+            AssistantTelemetry.ConversationCompleted(
                 logger,
                 conversation.Outcome.ToString(),
                 manifest.ExecutionContext.ExecutionId,
@@ -96,7 +96,7 @@ public sealed class ClinicAssistantConversationRunner(
             runResult is null || !runResult.IsSuccess || runResult.StructuredOutput is not JsonElement)
         {
             if (logger is not null && conversation.Outcome == AgentConversationOutcome.ProfileChanged)
-                ClinicAssistantTelemetry.ProfileConflict(
+                AssistantTelemetry.ProfileConflict(
                     logger,
                     manifest.ExecutionContext.ExecutionId,
                     conversation.ConversationId?.ToString("N") ?? context.ConversationId);
@@ -158,16 +158,16 @@ public sealed class ClinicAssistantConversationRunner(
                 ActionPolicyRevision: policy.Revision);
             await actionStore.SaveAsync(action, cancellationToken);
             if (logger is not null)
-                ClinicAssistantTelemetry.PreparedActionCreated(logger, action.ActionType, action.ActionId, action.AgentRunId);
+                AssistantTelemetry.PreparedActionCreated(logger, action.ActionType, action.ActionId, action.AgentRunId);
             actions.Add(action);
         }
         return actions;
     }
 
     private static string AgentKey(AssistantContext context) =>
-        ClinicAssistantExecutionContextFactory.AgentKey(context);
+        AssistantExecutionContextFactory.AgentKey(context);
 
     private static string SubjectId(AssistantContext context) =>
-        ClinicAssistantExecutionContextFactory.SubjectId(context);
+        AssistantExecutionContextFactory.SubjectId(context);
 
 }

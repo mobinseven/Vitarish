@@ -15,7 +15,7 @@ using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Actions;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Clinic.Application.Assistant.Operations;
-using Vitarish.Clinic.Api.ClinicAssistant;
+using Vitarish.Clinic.Api.Assistant;
 using Vitarish.Clinic.Contracts.Errors;
 using Vitarish.Clinic.Contracts.ClinicAssistant;
 using Vitarish.Clinic.Contracts.Responses;
@@ -142,17 +142,17 @@ public static class ClinicApiEndpointMapping
         string? credential = httpRequest.Headers["X-Vitarish-Agent-Credential"].FirstOrDefault();
         if (request is null || request.ExecutionEnvelope is null || string.IsNullOrWhiteSpace(request.ArgumentsJson))
         {
-            ClinicAssistantCallbackTelemetry.CallbackRejected(logger, "invalid_request", request?.ExecutionEnvelope?.ExecutionId ?? "", request?.ExecutionEnvelope?.AgentKey ?? "");
+            AssistantCallbackTelemetry.CallbackRejected(logger, "invalid_request", request?.ExecutionEnvelope?.ExecutionId ?? "", request?.ExecutionEnvelope?.AgentKey ?? "");
             return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent tool request is invalid."));
         }
         if (!credentialService.ValidateCallback(credential ?? string.Empty, request.ExecutionEnvelope))
         {
-            ClinicAssistantCallbackTelemetry.CallbackRejected(logger, "credential_or_envelope", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
+            AssistantCallbackTelemetry.CallbackRejected(logger, "credential_or_envelope", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
             return Results.Unauthorized();
         }
         if (!await replayGuard.TryClaimAsync(request.ExecutionEnvelope, ct))
         {
-            ClinicAssistantCallbackTelemetry.CallbackRejected(logger, "replay_or_expired", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
+            AssistantCallbackTelemetry.CallbackRejected(logger, "replay_or_expired", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
             return Results.Conflict();
         }
 
@@ -169,17 +169,17 @@ public static class ClinicApiEndpointMapping
         }
         catch (UnauthorizedAccessException)
         {
-            ClinicAssistantCallbackTelemetry.CallbackRejected(logger, "scope_or_authorization", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
+            AssistantCallbackTelemetry.CallbackRejected(logger, "scope_or_authorization", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
             return Results.Json(new ClinicError(ClinicErrorCode.Forbidden, "The requested agent tool is not permitted."), statusCode: StatusCodes.Status403Forbidden);
         }
         catch (KeyNotFoundException)
         {
-            ClinicAssistantCallbackTelemetry.CallbackRejected(logger, "tool_not_found", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
+            AssistantCallbackTelemetry.CallbackRejected(logger, "tool_not_found", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
             return Results.NotFound(new ClinicError(ClinicErrorCode.NotFound, "The requested clinic-assistant tool is not available."));
         }
         catch (Exception exception) when (exception is System.Text.Json.JsonException or FormatException or ArgumentException or InvalidOperationException)
         {
-            ClinicAssistantCallbackTelemetry.CallbackRejected(logger, "validation", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
+            AssistantCallbackTelemetry.CallbackRejected(logger, "validation", request.ExecutionEnvelope.ExecutionId, request.ExecutionEnvelope.AgentKey);
             return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, "The agent tool arguments are invalid."));
         }
     }
