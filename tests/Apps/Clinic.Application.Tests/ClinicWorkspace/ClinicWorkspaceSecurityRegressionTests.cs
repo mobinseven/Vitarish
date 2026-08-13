@@ -1,11 +1,11 @@
 using System.Security.Claims;
 using FluentAssertions;
 using Moq;
-using Vitarish.Clinic.Infrastructure.ClinicWorkspace;
+using Vitarish.Clinic.Infrastructure.Assistant;
 using Vitarish.Clinic.Application.ClinicWorkspace;
 using Vitarish.Clinic.Application.ClinicWorkspace.Operations;
 using Vitarish.Clinic.Application.ClinicWorkspace.Actions;
-using Vitarish.Clinic.Infrastructure.ClinicWorkspace.Actions;
+using Vitarish.Clinic.Infrastructure.Assistant.Actions;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Sea.Application.Agents;
 using Vitarish.Users.Application.Abstractions;

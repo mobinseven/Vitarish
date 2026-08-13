@@ -4,7 +4,7 @@ using Vitarish.Appointments.Application.Abstractions;
 using Vitarish.Appointments.Application.AgentCapabilities;
 using Vitarish.Clinic.Application.ClinicWorkspace;
 using Vitarish.Clinic.Application.ClinicWorkspace.Operations;
-using Vitarish.Clinic.Infrastructure.ClinicWorkspace.Capabilities.Operations;
+using Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Operations;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Entities.Contracts.Models;
 using Vitarish.Sea.Application.Abstractions;
