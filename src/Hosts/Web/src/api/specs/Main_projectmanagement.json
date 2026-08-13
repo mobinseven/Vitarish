@@ -7,7 +7,9 @@
   "paths": {
     "/api/apps/project-management/events/{eventId}/actions/{actionId}": {
       "get": {
-        "tags": ["ProjectManagement"],
+        "tags": [
+          "ProjectManagement"
+        ],
         "operationId": "ProjectManagementGetEventAction",
         "parameters": [
           {
@@ -81,7 +83,9 @@
     },
     "/api/apps/project-management/events/{eventId}/actions/{actionId}/confirm": {
       "post": {
-        "tags": ["ProjectManagement"],
+        "tags": [
+          "ProjectManagement"
+        ],
         "operationId": "ProjectManagementConfirmEventAction",
         "parameters": [
           {
@@ -155,7 +159,9 @@
     },
     "/api/apps/project-management/events/{eventId}/actions/{actionId}/reject": {
       "post": {
-        "tags": ["ProjectManagement"],
+        "tags": [
+          "ProjectManagement"
+        ],
         "operationId": "ProjectManagementRejectEventAction",
         "parameters": [
           {
@@ -239,7 +245,9 @@
     },
     "/api/apps/project-management/events/{eventId}/conversations/{conversationId}": {
       "delete": {
-        "tags": ["ProjectManagement"],
+        "tags": [
+          "ProjectManagement"
+        ],
         "operationId": "ProjectManagementDeleteEventConversation",
         "parameters": [
           {
@@ -304,7 +312,9 @@
         }
       },
       "get": {
-        "tags": ["ProjectManagement"],
+        "tags": [
+          "ProjectManagement"
+        ],
         "operationId": "ProjectManagementGetEventConversation",
         "parameters": [
           {
@@ -383,26 +393,46 @@
         "type": "object",
         "properties": {
           "type": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "title": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "status": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": ["null", "integer", "string"],
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
             "format": "int32"
           },
           "detail": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "instance": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "ProjectManagementActionResponse": {
-        "required": ["actionId", "status", "review"],
+        "required": [
+          "actionId",
+          "status",
+          "review"
+        ],
         "type": "object",
         "properties": {
           "actionId": {
@@ -415,13 +445,22 @@
             "$ref": "#/components/schemas/ProjectManagementActionReview"
           },
           "completionPayload": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "failureCode": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "rejectionReason": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -441,13 +480,19 @@
             "type": "string"
           },
           "attachmentId": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "proposedValuesJson": {
             "type": "string"
           },
           "changes": {
-            "type": ["null", "array"],
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/ProjectManagementActionReviewChange"
             }
@@ -457,24 +502,35 @@
             "default": false
           },
           "warning": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "ProjectManagementActionReviewChange": {
-        "required": ["field", "proposedValue"],
+        "required": [
+          "field",
+          "proposedValue"
+        ],
         "type": "object",
         "properties": {
           "field": {
             "type": "string"
           },
           "proposedValue": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "ProjectManagementPresentationPart": {
-        "required": ["type"],
+        "required": [
+          "type"
+        ],
         "type": "object",
         "anyOf": [
           {
@@ -506,7 +562,9 @@
         ],
         "properties": {
           "type": {
-            "enum": ["resource-card"],
+            "enum": [
+              "resource-card"
+            ],
             "type": "string"
           },
           "family": {
@@ -516,10 +574,16 @@
             "type": "string"
           },
           "id": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "parentId": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "routeKind": {
             "type": "string"
@@ -546,10 +610,14 @@
         }
       },
       "ProjectManagementPresentationPartProjectManagementTextPresentationPart": {
-        "required": ["text"],
+        "required": [
+          "text"
+        ],
         "properties": {
           "type": {
-            "enum": ["text"],
+            "enum": [
+              "text"
+            ],
             "type": "string"
           },
           "text": {
@@ -575,7 +643,10 @@
             "type": "string"
           },
           "latestTextPreview": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "createdAt": {
             "type": "string",
@@ -589,7 +660,10 @@
             "type": "string"
           },
           "turns": {
-            "type": ["null", "array"],
+            "type": [
+              "null",
+              "array"
+            ],
             "items": {
               "$ref": "#/components/schemas/ProjectManagementThreadTurn"
             }
@@ -597,7 +671,12 @@
         }
       },
       "ProjectManagementThreadTurn": {
-        "required": ["user", "assistant", "preparedActionIds", "parts"],
+        "required": [
+          "user",
+          "assistant",
+          "preparedActionIds",
+          "parts"
+        ],
         "type": "object",
         "properties": {
           "user": {
@@ -625,7 +704,10 @@
         "type": "object",
         "properties": {
           "reason": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       }
