@@ -1,4 +1,4 @@
-namespace Vitarish.Clinic.Application.ClinicalEvents;
+namespace Vitarish.Clinic.Application.Events;
 
 public sealed record ClinicalEventScope(
     Guid PatientId,

@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Vitarish.Appointments.Application.AgentCapabilities;
-using Vitarish.Clinic.Application.ClinicalEvents;
+using Vitarish.Clinic.Application.Events;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Actions;
 using Vitarish.Medical.Application.AgentCapabilities.Prescriptions;

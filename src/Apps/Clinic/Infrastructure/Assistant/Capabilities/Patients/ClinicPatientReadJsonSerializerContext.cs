@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Vitarish.Clinic.Infrastructure.Assistant.Capabilities.ClinicalEvents;
+namespace Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Patients;
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(ClinicPatientOverviewResponse))]

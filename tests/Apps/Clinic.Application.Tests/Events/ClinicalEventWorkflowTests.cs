@@ -1,8 +1,8 @@
 using FluentAssertions;
-using Vitarish.Clinic.Application.ClinicalEvents;
+using Vitarish.Clinic.Application.Events;
 using Xunit;
 
-namespace Vitarish.Clinic.Application.Tests.ClinicalEvents;
+namespace Vitarish.Clinic.Application.Tests.Events;
 
 public sealed class ClinicalEventWorkflowTests
 {

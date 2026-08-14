@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace Vitarish.Clinic.Application.ClinicalEvents;
+namespace Vitarish.Clinic.Application.Events;
 
 public sealed class GetPatientProcedureContext(IClinicalEventProcedureBoundary boundary)
 {

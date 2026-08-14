@@ -1,10 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
-using Vitarish.Clinic.Application.ClinicalEvents;
+using Vitarish.Clinic.Application.Events;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
-namespace Vitarish.Clinic.Infrastructure.ClinicalEvents;
+namespace Vitarish.Clinic.Infrastructure.Events;
 
 public sealed class SeaClinicalEventProcedureBoundary(
     IProjectsService projects,

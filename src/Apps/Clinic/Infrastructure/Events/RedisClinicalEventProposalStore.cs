@@ -1,8 +1,8 @@
 using System.Text.Json;
 using StackExchange.Redis;
-using Vitarish.Clinic.Application.ClinicalEvents;
+using Vitarish.Clinic.Application.Events;
 
-namespace Vitarish.Clinic.Infrastructure.ClinicalEvents;
+namespace Vitarish.Clinic.Infrastructure.Events;
 
 public sealed class RedisClinicalEventProposalStore(IConnectionMultiplexer redis)
     : IClinicalEventProposalStore

@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Xunit;
 
-namespace Vitarish.Clinic.Application.Tests.ClinicalEvents;
+namespace Vitarish.Clinic.Application.Tests.Events;
 
 public sealed class ClinicalEventArchitectureTests
 {
