@@ -3,6 +3,16 @@
 - Route topology, feature entry points, navigation, and intent contracts: update every applicable route tree, registry, mapper, journey default, localization key, test, and generated transport source; never edit generated API output manually.
 - Route/page shells, main landmark, viewport geometry, outer scrolling, shared gutters, sidebar, and aside: classify the surface and reuse the matching `@vitarish/web-ui` capability; feature-internal grids and intentional workspace-pane scrolling remain local.
 
+## Named values
+
+- **[MUST]** Reuse the authoritative owner for route and intent values, API
+  operation IDs, localization keys, query/cache keys, feature flags, and action
+  IDs. Keep these values in the existing route, contract, localization, query
+  key, or feature-configuration mechanism; do not repeat magic strings across
+  route trees, mappers, hooks, components, tests, or app registration. Inline
+  framework syntax, CSS utility classes, and exact-value tests remain allowed
+  when they are not application contracts or business rules.
+
 ## Localization convention
 
 - **[MUST]** All localization keys used in components must be defined.

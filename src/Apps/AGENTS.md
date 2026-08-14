@@ -69,6 +69,12 @@ unrelated legacy violations without expanding the change into cleanup.
   observable state changes. App endpoints remain thin: bind and validate
   transport input, invoke the owning use case, and map its outcome to the
   contract response.
+- **[MUST] Named app values** — Keep app-owned routes, operation IDs,
+  authorization policy and claim names, event/message types, serialization
+  discriminators, configuration keys, and agent action or compatibility keys
+  at their authoritative owner. Reuse those values from Contracts or the
+  existing owning boundary across Api, Application, Client, and composition
+  code; do not create a second source by repeating literals in production code.
 
 ## Native AOT readiness
 

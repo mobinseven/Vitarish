@@ -28,6 +28,7 @@ Do not duplicate those documents here.
 6. **Explicit boundaries [MUST]** — Validate transport shape at Transport, use-case preconditions at Application, invariants at their owner, and external responses before trust. Define relevant cancellation, timeout, retry, duplicate-call, idempotency, concurrency, partial-failure, and dependency-unavailable behavior. Never swallow failures.
 7. **Cohesive edits [SHOULD]** — Reuse a natural extension point; otherwise edit the current owner. Do not invent handlers, strategies, plug-ins, layers, or wrappers solely to avoid changing stable code.
 8. **Current requirements [SHOULD]** — Avoid speculative layers, options, abstractions, and configuration. When solutions are equally correct, prefer the simpler and more reversible one.
+9. **Named values [MUST]** — Do not duplicate string literals that represent a route, operation ID, configuration key, authorization claim or policy, event/message type, serialization discriminator, localization key, feature flag, cache key, or other contract or business value. Define each value at its authoritative owner and reuse it through an existing typed constant, enum, options, contract, or resource mechanism. An inline literal is acceptable only when it is local, self-explanatory, non-contractual, and does not encode a rule or compatibility boundary; exact-value tests may use literals when the literal itself is what the test asserts. Do not create broad `Constants`, `Common`, or wrapper abstractions solely to hide a literal.
 
 ## Safeguards
 

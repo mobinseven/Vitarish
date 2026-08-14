@@ -35,6 +35,12 @@ unrelated legacy violations without expanding the change into cleanup.
 - **[MUST] Composition only** — `Module` and `Hosting` projects compose services,
   endpoints, and infrastructure. They must not own commands, queries, business
   rules, DTO definitions, endpoint bodies, or persistence behavior.
+- **[MUST] Named module values** — Keep module-owned routes, operation IDs,
+  authorization policy and claim names, event/message types, serialization
+  discriminators, configuration keys, and public compatibility keys at their
+  authoritative owner. Reuse those values across Domain, Application, Api,
+  Client, Infrastructure, and composition code; do not repeat contract or
+  business literals in production code or introduce a second source of truth.
 
 ## Native AOT readiness
 
