@@ -7,6 +7,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Agents\Search.Agents.csproj" />
     <ProjectReference Include="..\Infrastructure\Search.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Search.Application.csproj" />
     <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />

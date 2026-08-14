@@ -8,11 +8,8 @@ namespace Vitarish.Clinic.Application.Assistant.Capabilities;
 
 public sealed class AssistantToolDispatcher(
     AssistantCapabilityRegistry capabilityRegistry,
-    IEnumerable<IIntelligenceAgentTool> intelligenceTools,
     ILogger<AssistantToolDispatcher>? logger = null)
 {
-    private readonly IReadOnlyCollection<IIntelligenceAgentTool> _intelligenceTools = [.. intelligenceTools];
-
     public IReadOnlyCollection<IAgentTool> CreateTools(
         AssistantContext context,
         AgentExecutionContext executionContext,
@@ -20,11 +17,9 @@ public sealed class AssistantToolDispatcher(
     {
         IReadOnlyCollection<IAgentTool> tools = capabilities.SelectMany(capability => capability.Tools)
             .Where(tool => capabilityRegistry.ResolveTool(tool.Definition.Name) is not { } policy || policy.Authorizes(context))
-            .Concat(_intelligenceTools.Cast<IAgentTool>())
             .ToArray();
         IReadOnlyDictionary<string, string> toolCapabilities = capabilities
             .SelectMany(capability => capability.Tools.Select(tool => (ToolName: tool.Definition.Name, CapabilityName: capability.Name)))
-            .Concat(_intelligenceTools.Select(tool => (ToolName: tool.Definition.Name, CapabilityName: "Intelligence")))
             .ToDictionary(item => item.ToolName, item => item.CapabilityName, StringComparer.Ordinal);
         return CreateGuardedTools(context, executionContext, tools, toolCapabilities);
     }

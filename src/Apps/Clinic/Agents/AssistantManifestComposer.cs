@@ -12,7 +12,6 @@ public sealed class AssistantManifestComposer(
     AssistantCapabilityRegistry capabilityRegistry,
     AssistantToolDispatcher toolDispatcher,
     AssistantOptions options,
-    IEnumerable<IIntelligenceAgentTool> intelligenceTools,
     AssistantExecutionContextFactory executionContextFactory,
     ILogger<AssistantManifestComposer>? logger = null)
 {
@@ -34,28 +33,27 @@ public sealed class AssistantManifestComposer(
         AgentExecutionContext executionContext = suppliedExecutionContext ?? executionContextFactory.Create(context);
 
         IReadOnlyCollection<IAssistantCapability> available = capabilityRegistry.GetAvailable(trustedContext);
-        IReadOnlyCollection<IIntelligenceAgentTool> intelligence = intelligenceTools.ToArray();
         IReadOnlyCollection<string> profileKeys = trustedContext.SubjectKind == "practice"
             ? AssistantCapabilityKeys.OperationsProfile
             : AssistantCapabilityKeys.Patient;
         IReadOnlyCollection<IAssistantCapability> profileCapabilities = available
             .Where(capability => profileKeys.Contains(capability.Name, StringComparer.Ordinal))
             .ToArray();
-        AssistantCompositionContext composition = new(trustedContext, available, intelligence, executionContextFactory.CurrentUtc);
+        AssistantCompositionContext composition = new(trustedContext, available, executionContextFactory.CurrentUtc);
         AgentProfile<AssistantCompositionContext> profile = trustedContext.SubjectKind == "practice"
             ? new ClinicOperationsAssistantProfile(composition, options)
             : new ClinicPatientAssistantProfile(composition, options);
         ComposedAgentManifest<AssistantCompositionContext> manifest = profileComposer.Compose(
             profile,
             composition,
-            key => IsExposed(key, available, intelligence)
+            key => IsExposed(key, available)
                 ? new AgentExposureDecision(true, "enabled-v1")
                 : AgentExposureDecision.Denied("denied-v1"));
         if (logger is not null)
         {
             foreach (string key in profileKeys)
             {
-                bool enabled = IsExposed(key, available, intelligence);
+                bool enabled = IsExposed(key, available);
                 AssistantTelemetry.CapabilityDecision(
                     logger,
                     key,
@@ -84,11 +82,8 @@ public sealed class AssistantManifestComposer(
 
     private static bool IsExposed(
         string key,
-        IReadOnlyCollection<IAssistantCapability> available,
-        IReadOnlyCollection<IIntelligenceAgentTool> intelligence) =>
-        key == AssistantCapabilityKeys.Intelligence
-            ? intelligence.Count > 0
-            : available.Any(capability => string.Equals(capability.Name, key, StringComparison.Ordinal));
+        IReadOnlyCollection<IAssistantCapability> available) =>
+        available.Any(capability => string.Equals(capability.Name, key, StringComparison.Ordinal));
 }
 
 internal sealed record AssistantManifest(

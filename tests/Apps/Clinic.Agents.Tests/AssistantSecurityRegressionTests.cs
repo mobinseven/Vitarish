@@ -19,7 +19,7 @@ public sealed class AssistantSecurityRegressionTests
     public void Patient_scope_is_server_bound_even_when_user_input_requests_another_patient()
     {
         AssistantContext context = PatientContext();
-        AssistantCompositionContext composition = new(context, [], [], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
+        AssistantCompositionContext composition = new(context, [], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
         AgentProfileComposer<AssistantCompositionContext> composer = Composer([]);
         ComposedAgentManifest<AssistantCompositionContext> manifest = composer.Compose(
             new ClinicPatientAssistantProfile(composition, new("test-model")), composition,
@@ -68,7 +68,7 @@ public sealed class AssistantSecurityRegressionTests
             [AssistantActionPolicies.Prepare(
                 "create_appointment", "appointments", ["Appointments.Create"], toolNames: [preparation.Definition.Name])]);
         AssistantContext context = PatientContext(new HashSet<string> { "Appointments.Read" });
-        AssistantCompositionContext composition = new(context, [capability], [], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
+        AssistantCompositionContext composition = new(context, [capability], DateTimeOffset.Parse("2030-01-01T10:00:00Z"));
 
         AgentCapabilityContribution contribution = new AssistantCapabilityPack("Appointments").CreateContribution(composition);
 
@@ -82,7 +82,7 @@ public sealed class AssistantSecurityRegressionTests
             new AssistantAuthorizationPolicy(),
             new AssistantToolAvailabilityPolicy(),
             [new TestCommitter("create_appointment", "appointments")]);
-        IAgentTool guarded = new AssistantToolDispatcher(registry, [])
+        IAgentTool guarded = new AssistantToolDispatcher(registry)
             .CreateGuardedTools(context, Execution(context, "run-1"), [preparation], new Dictionary<string, string> { [preparation.Definition.Name] = capability.Name })
             .Single();
 
@@ -97,7 +97,7 @@ public sealed class AssistantSecurityRegressionTests
         AssistantContext context = PatientContext();
         AgentExecutionContext trustedExecution = Execution(context, "run-1");
         TestTool handler = new("patient_read");
-        IAgentTool guarded = new AssistantToolDispatcher(TestRegistry(), [])
+        IAgentTool guarded = new AssistantToolDispatcher(TestRegistry())
             .CreateGuardedTools(
                 context,
                 trustedExecution,
@@ -128,7 +128,7 @@ public sealed class AssistantSecurityRegressionTests
         TestTool handler = new(
             "appointments_list",
             """{"type":"object","additionalProperties":false,"required":["range"],"properties":{"range":{"type":"string"}}}""");
-        IAgentTool guarded = new AssistantToolDispatcher(TestRegistry(), [])
+        IAgentTool guarded = new AssistantToolDispatcher(TestRegistry())
             .CreateGuardedTools(
                 context, execution, [handler],
                 new Dictionary<string, string> { [handler.Definition.Name] = "Appointments" })
@@ -160,7 +160,7 @@ public sealed class AssistantSecurityRegressionTests
             new AssistantAuthorizationPolicy(),
             new AssistantToolAvailabilityPolicy(),
             []);
-        IAgentTool guarded = new AssistantToolDispatcher(registry, [])
+        IAgentTool guarded = new AssistantToolDispatcher(registry)
             .CreateGuardedTools(
                 context,
                 execution,
@@ -203,7 +203,7 @@ public sealed class AssistantSecurityRegressionTests
             new AssistantAuthorizationPolicy(),
             new AssistantToolAvailabilityPolicy(),
             [new TestCommitter("create_appointment", "Appointments")]);
-        IAgentTool guarded = new AssistantToolDispatcher(registry, [])
+        IAgentTool guarded = new AssistantToolDispatcher(registry)
             .CreateGuardedTools(
                 context,
                 execution,
@@ -304,9 +304,8 @@ public sealed class AssistantSecurityRegressionTests
         AssistantManifestComposer manifestComposer = new(
             composer,
             registry,
-            new AssistantToolDispatcher(registry, []),
+            new AssistantToolDispatcher(registry),
             new AssistantOptions("test-model"),
-            [],
             new AssistantExecutionContextFactory(time));
         return new(
             new AssistantConversationRunner(

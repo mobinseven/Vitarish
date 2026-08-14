@@ -7,5 +7,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\Clinic.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\Intelligence\Agents\Intelligence.Agents.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Search\Agents\Search.Agents.csproj" />
   </ItemGroup>
 </Project>

@@ -10,7 +10,8 @@ public static class AgentCompositionServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(packs);
         _ = services.AddSingleton(new AgentCapabilityCatalog<TContext>(packs));
-        _ = services.AddSingleton<AgentProfileComposer<TContext>>();
+        _ = services.AddScoped<IntelligenceAgentToolCatalog>();
+        _ = services.AddScoped<AgentProfileComposer<TContext>>();
         return services;
     }
 }

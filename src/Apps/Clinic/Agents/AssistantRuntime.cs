@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Capabilities;
 using Vitarish.Intelligence.Agents;
 
 namespace Vitarish.Clinic.Agents;
@@ -47,7 +48,8 @@ public static class AssistantCompositionServiceCollectionExtensions
             new AssistantCapabilityPack(AssistantCapabilityKeys.ClinicalEvents),
             new AssistantCapabilityPack(AssistantCapabilityKeys.SeaManagement),
             new AssistantCapabilityPack(AssistantCapabilityKeys.Operations),
-            new ClinicIntelligenceCapabilityPack());
+            new AssistantCapabilityPack(AssistantCapabilityKeys.Search));
+        _ = services.AddTransient<IAssistantCapability, SearchAssistantCapability>();
         _ = services.AddTransient<AssistantExecutionContextFactory>();
         _ = services.AddTransient<AssistantManifestComposer>();
         _ = services.AddTransient<AssistantResultParser>();

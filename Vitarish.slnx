@@ -239,6 +239,7 @@
     <Project Path="src/Modules/Sea/Module/Sea.Module.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Search/">
+    <Project Path="src/Modules/Search/Agents/Search.Agents.csproj" />
     <Project Path="src/Modules/Search/Api/Search.Api.csproj" />
     <Project Path="src/Modules/Search/Application/Search.Application.csproj" />
     <Project Path="src/Modules/Search/Client/Search.Client.csproj" />

@@ -5,12 +5,16 @@ namespace Vitarish.Intelligence.Application.Agents;
 
 public interface IIntelligenceAgentTool : IAgentTool;
 
-public sealed class CalendarDateConversionTool : IIntelligenceAgentTool
+public interface IUniversalIntelligenceAgentTool : IIntelligenceAgentTool;
+
+public sealed class CalendarDateConversionTool : IUniversalIntelligenceAgentTool
 {
+    public const string Name = "convert_calendar_date";
+
     private static readonly PersianCalendar PersianCalendar = new();
 
     public AgentToolDefinition Definition { get; } = new(
-        "convert_calendar_date",
+        Name,
         "Convert an exact date between Gregorian and Persian calendars. Always use this tool instead of calculating calendar conversions.",
         """
         {"type":"object","properties":{"date":{"type":"string","description":"Date in yyyy-MM-dd format using the source calendar."},"sourceCalendar":{"type":"string","enum":["gregorian","persian"]}},"required":["date","sourceCalendar"],"additionalProperties":false}

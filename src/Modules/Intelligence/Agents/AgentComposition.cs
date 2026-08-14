@@ -17,7 +17,9 @@ public sealed record ComposedAgentManifest<TContext>(
     IReadOnlyDictionary<string, string> ExposureRevisions,
     string CompatibilityKey);
 
-public sealed class AgentProfileComposer<TContext>(AgentCapabilityCatalog<TContext> catalog)
+public sealed class AgentProfileComposer<TContext>(
+    AgentCapabilityCatalog<TContext> catalog,
+    IntelligenceAgentToolCatalog? intelligenceToolCatalog = null)
 {
     public ComposedAgentManifest<TContext> Compose(
         AgentProfile<TContext> profile,
@@ -57,6 +59,16 @@ public sealed class AgentProfileComposer<TContext>(AgentCapabilityCatalog<TConte
                 if (actions.Contains(action, StringComparer.Ordinal)) throw new InvalidOperationException($"Action '{action}' was duplicated.");
                 actions.Add(action);
             }
+        }
+
+        IEnumerable<IAgentTool> genericTools = intelligenceToolCatalog?.Tools.Cast<IAgentTool>() ?? [];
+        foreach (IAgentTool tool in genericTools)
+        {
+            if (tools.Any(existing => existing.Definition.Name == tool.Definition.Name))
+                throw new InvalidOperationException($"Tool '{tool.Definition.Name}' was duplicated.");
+
+            tools.Add(tool);
+            toolCapabilities.Add(tool.Definition.Name, IntelligenceAgentToolCatalog.CapabilityKey);
         }
 
         string flattenedInstructions = string.Join("\n\n", instructions.OrderBy(x => x.Order).ThenBy(x => x.Key, StringComparer.Ordinal).Select(x => x.Text));

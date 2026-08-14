@@ -121,7 +121,7 @@ internal static class AssistantPolicyInstructions
             calendarFallback = context.Calendar,
             dateConversion = new
             {
-                tool = "convert_calendar_date",
+                tool = CalendarDateConversionTool.Name,
                 sourceCalendar = "infer_from_user_input",
                 outputField = "response_calendar.date",
                 required = true

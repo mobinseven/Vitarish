@@ -9,6 +9,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Modules\Search\Agents\Search.Agents.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Search\Application\Search.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Search\Contracts\Search.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Search\Client\Search.Client.csproj" />
   </ItemGroup>

@@ -1,12 +1,14 @@
 using Vitarish.Intelligence.Agents;
 using Vitarish.Intelligence.Application.Agents;
+using Vitarish.Clinic.Application.Assistant;
+using Vitarish.Clinic.Application.Assistant.Operations;
+using Vitarish.Search.Agents;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
 
 namespace Vitarish.Clinic.Agents;
 
 public static class AssistantCapabilityKeys
 {
-    public const string Intelligence = "Intelligence";
     public const string Appointments = "Appointments";
     public const string AppointmentReads = "AppointmentReads";
     public const string Prescriptions = "Prescriptions";
@@ -17,12 +19,13 @@ public static class AssistantCapabilityKeys
     public const string ClinicalEvents = "ClinicalEvents";
     public const string SeaManagement = "SeaManagement";
     public const string Operations = "Operations";
+    public const string Search = "Search";
 
     public static readonly string[] Patient =
     [Appointments, AppointmentReads, Prescriptions, PrescriptionReads, PatientReminderReads,
-        ClinicPatientReads, SeaPatientReads, ClinicalEvents, Intelligence];
+        ClinicPatientReads, SeaPatientReads, ClinicalEvents];
 
-    public static readonly string[] OperationsProfile = [Operations, SeaManagement, Intelligence];
+    public static readonly string[] OperationsProfile = [Operations, SeaManagement, Search];
 }
 
 public sealed class AssistantCapabilityPack(string key) : IAgentCapabilityPack<AssistantCompositionContext>
@@ -52,11 +55,11 @@ public sealed class AssistantCapabilityPack(string key) : IAgentCapabilityPack<A
     }
 }
 
-public sealed class ClinicIntelligenceCapabilityPack : IAgentCapabilityPack<AssistantCompositionContext>
+public sealed class SearchAssistantCapability(IEnumerable<ISearchAgentTool> tools) : AssistantCapability([.. tools])
 {
-    public string Key => AssistantCapabilityKeys.Intelligence;
-    public int BehaviorRevision => 1;
-
-    public AgentCapabilityContribution CreateContribution(AssistantCompositionContext context) =>
-        new([], context.IntelligenceTools.Cast<IAgentTool>().ToArray(), []);
+    public override string Name => AssistantCapabilityKeys.Search;
+    public override string Description => "Search the authenticated practice's approved indexes.";
+    public override IReadOnlySet<string> RequiredPermissions { get; } = new HashSet<string>(StringComparer.Ordinal);
+    public override bool IsAvailable(AssistantContext context) =>
+        context.SubjectKind == "practice" && AssistantOperationsScope.IsAuthorizedRole(context.Role);
 }

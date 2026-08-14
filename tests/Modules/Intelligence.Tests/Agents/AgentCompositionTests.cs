@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Intelligence.Agents;
 using Vitarish.Intelligence.Application.Agents;
 
@@ -63,6 +64,80 @@ public sealed class AgentCompositionTests
         first.Should().NotBe(second);
     }
 
+    [Fact]
+    public void Registered_generic_tools_are_added_without_a_capability_pack_in_deterministic_order()
+    {
+        IntelligenceAgentToolCatalog toolCatalog = new([new GenericTool("zeta"), new GenericTool("alpha")]);
+        AgentProfileComposer<string> composer = new(new AgentCapabilityCatalog<string>([]), toolCatalog);
+
+        ComposedAgentManifest<string> manifest = composer.Compose(new NoCapabilityProfile(), "context", _ => new(true, "enabled"));
+
+        manifest.Tools.Select(tool => tool.Definition.Name).Should().Equal("alpha", "zeta");
+        manifest.ToolCapabilities.Values.Should().OnlyContain(value => value == IntelligenceAgentToolCatalog.CapabilityKey);
+    }
+
+    [Fact]
+    public void Generic_tool_catalog_rejects_empty_and_duplicate_names()
+    {
+        FluentActions.Invoking(() => new IntelligenceAgentToolCatalog([new GenericTool(" ")]))
+            .Should().Throw<InvalidOperationException>()
+            .WithMessage("*non-empty*");
+
+        FluentActions.Invoking(() => new IntelligenceAgentToolCatalog([new GenericTool("duplicate"), new GenericTool("duplicate")]))
+            .Should().Throw<InvalidOperationException>()
+            .WithMessage("*registered more than once*");
+    }
+
+    [Fact]
+    public void Generic_tool_definition_changes_change_compatibility()
+    {
+        AgentProfileComposer<string> firstComposer = new(
+            new AgentCapabilityCatalog<string>([]),
+            new IntelligenceAgentToolCatalog([new GenericTool("search", "first")]));
+        AgentProfileComposer<string> secondComposer = new(
+            new AgentCapabilityCatalog<string>([]),
+            new IntelligenceAgentToolCatalog([new GenericTool("search", "changed")]));
+
+        string first = firstComposer.Compose(new NoCapabilityProfile(), "context", _ => new(true, "enabled")).CompatibilityKey;
+        string second = secondComposer.Compose(new NoCapabilityProfile(), "context", _ => new(true, "enabled")).CompatibilityKey;
+
+        first.Should().NotBe(second);
+    }
+
+    [Fact]
+    public void DI_registered_generic_tools_are_composed_by_scoped_composers()
+    {
+        ServiceCollection services = new();
+        _ = services.AddSingleton<IUniversalIntelligenceAgentTool>(new GenericTool("search"));
+        _ = services.AddAgentComposition<string>();
+        using ServiceProvider provider = services.BuildServiceProvider();
+        using IServiceScope firstScope = provider.CreateScope();
+        using IServiceScope secondScope = provider.CreateScope();
+
+        AgentProfileComposer<string> first = firstScope.ServiceProvider.GetRequiredService<AgentProfileComposer<string>>();
+        AgentProfileComposer<string> second = secondScope.ServiceProvider.GetRequiredService<AgentProfileComposer<string>>();
+
+        first.Should().NotBeSameAs(second);
+        first.Compose(new NoCapabilityProfile(), "context", _ => new(true, "enabled"))
+            .Tools.Select(tool => tool.Definition.Name).Should().Equal("search");
+    }
+
+    [Fact]
+    public void Non_universal_registered_tools_are_not_added_to_profiles()
+    {
+        ServiceCollection services = new();
+        _ = services.AddSingleton<IUniversalIntelligenceAgentTool>(new GenericTool("calendar"));
+        _ = services.AddSingleton<IIntelligenceAgentTool>(new NonUniversalTool("search"));
+        _ = services.AddAgentComposition<string>();
+        using ServiceProvider provider = services.BuildServiceProvider();
+        using IServiceScope scope = provider.CreateScope();
+
+        AgentProfileComposer<string> composer = scope.ServiceProvider.GetRequiredService<AgentProfileComposer<string>>();
+
+        composer.Compose(new NoCapabilityProfile(), "context", _ => new(true, "enabled"))
+            .Tools.Select(tool => tool.Definition.Name).Should().Equal("calendar");
+    }
+
     private sealed class DerivedProfile : BaseProfile
     {
         protected override void Configure(AgentProfileBuilder<string> builder)
@@ -104,6 +179,18 @@ public sealed class AgentCompositionTests
         }
     }
 
+    private sealed class NoCapabilityProfile : AgentProfile<string>
+    {
+        protected override void Configure(AgentProfileBuilder<string> builder)
+        {
+            builder.ApplyLayer("empty", 1, layer =>
+            {
+                layer.SetIdentity("fixture-agent", "Fixture Agent");
+                layer.SetModel("fixture-model");
+            });
+        }
+    }
+
     private sealed class Pack(string key, int revision, string toolName, string? instructionText = null) : IAgentCapabilityPack<string>
     {
         public string Key => key;
@@ -118,5 +205,19 @@ public sealed class AgentCompositionTests
         public AgentToolDefinition Definition => new(name, "fixture", "{\"type\":\"object\"}");
         public Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default) =>
             Task.FromResult(new AgentToolResult(call.Id, "{}", false));
+    }
+
+    private sealed class GenericTool(string name, string? description = null) : IUniversalIntelligenceAgentTool
+    {
+        public AgentToolDefinition Definition => new(name, description ?? "fixture", "{\"type\":\"object\"}");
+        public Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new AgentToolResult(call.Id, "{}"));
+    }
+
+    private sealed class NonUniversalTool(string name) : IIntelligenceAgentTool
+    {
+        public AgentToolDefinition Definition => new(name, name, "{\"type\":\"object\"}");
+        public Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new AgentToolResult(call.Id, "{}"));
     }
 }
