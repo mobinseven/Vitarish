@@ -25,7 +25,7 @@
   </PropertyGroup>
 
   <!-- Main host baseline modules are always enabled for all profiles to ensure the host compiles -->
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' != 'Evaluated'">
     <EnableRequestsModule>true</EnableRequestsModule>
     <EnableUsersModule>true</EnableUsersModule>
     <EnablePartiesModule>true</EnablePartiesModule>
@@ -74,9 +74,18 @@
     <EnableLinksModule>true</EnableLinksModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Custom'" />
+  <!-- The ISO/IEC 15408 evaluated build is intentionally fail-closed at
+       module aggregation; runtime composition applies the same allowlist. -->
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Evaluated'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+  </PropertyGroup>
 
   <Target Name="ValidateModuleBuildProfile" BeforeTargets="PrepareForBuild">
-    <Error Condition="'$(ModuleBuildProfile)' != 'All' And '$(ModuleBuildProfile)' != 'Custom' And '$(ModuleBuildProfile)' != 'Requests' And '$(ModuleBuildProfile)' != 'Users' And '$(ModuleBuildProfile)' != 'Parties' And '$(ModuleBuildProfile)' != 'Platform' And '$(ModuleBuildProfile)' != 'Medical' And '$(ModuleBuildProfile)' != 'Appointments' And '$(ModuleBuildProfile)' != 'Commerce' And '$(ModuleBuildProfile)' != 'Sea' And '$(ModuleBuildProfile)' != 'Communications' And '$(ModuleBuildProfile)' != 'Feed' And '$(ModuleBuildProfile)' != 'Files' And '$(ModuleBuildProfile)' != 'Financial' And '$(ModuleBuildProfile)' != 'Intelligence' And '$(ModuleBuildProfile)' != 'Knowledge' And '$(ModuleBuildProfile)' != 'Search' And '$(ModuleBuildProfile)' != 'Contents' And '$(ModuleBuildProfile)' != 'Social' And '$(ModuleBuildProfile)' != 'Links'"
+    <Error Condition="'$(ModuleBuildProfile)' != 'All' And '$(ModuleBuildProfile)' != 'Custom' And '$(ModuleBuildProfile)' != 'Evaluated' And '$(ModuleBuildProfile)' != 'Requests' And '$(ModuleBuildProfile)' != 'Users' And '$(ModuleBuildProfile)' != 'Parties' And '$(ModuleBuildProfile)' != 'Platform' And '$(ModuleBuildProfile)' != 'Medical' And '$(ModuleBuildProfile)' != 'Appointments' And '$(ModuleBuildProfile)' != 'Commerce' And '$(ModuleBuildProfile)' != 'Sea' And '$(ModuleBuildProfile)' != 'Communications' And '$(ModuleBuildProfile)' != 'Feed' And '$(ModuleBuildProfile)' != 'Files' And '$(ModuleBuildProfile)' != 'Financial' And '$(ModuleBuildProfile)' != 'Intelligence' And '$(ModuleBuildProfile)' != 'Knowledge' And '$(ModuleBuildProfile)' != 'Search' And '$(ModuleBuildProfile)' != 'Contents' And '$(ModuleBuildProfile)' != 'Social' And '$(ModuleBuildProfile)' != 'Links'"
            Text="Invalid ModuleBuildProfile '$(ModuleBuildProfile)'. Please choose a valid profile name (e.g., All, Custom, Users, Appointments, etc.)." />
   </Target>
 </Project>

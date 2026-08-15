@@ -6,13 +6,17 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Configuration;
 using Vitarish.Modules.Base.Core.Endpoints;
 
 namespace Vitarish.Apps.Aggregator.Core;
 
 public static class AppsExtensions
 {
-    public static List<IApp> GetApps() =>
+    public static List<IApp> GetApps(IConfiguration? configuration = null) =>
+            configuration?.GetValue<bool>("Vitarish:EvaluatedConfiguration:Enabled") == true
+            ? []
+            :
             [
                 Activator.CreateInstance<ClinicApp>(),
                 Activator.CreateInstance<ProjectManagementApp>(),
@@ -22,7 +26,7 @@ public static class AppsExtensions
         this WebApplicationBuilder builder,
         Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
-        List<IApp> apps = GetApps();
+        List<IApp> apps = GetApps(builder.Configuration);
 
         builder.Services.TryAddSingleton<IReadOnlyList<IApp>>(apps);
 

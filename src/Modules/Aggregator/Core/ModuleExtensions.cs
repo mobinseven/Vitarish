@@ -4,11 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyModel;
+using Microsoft.Extensions.Configuration;
 using Vitarish.Modules.Base.Core;
 using Vitarish.Modules.Base.Core.Endpoints;
 
 public static class ModulesExtensions
 {
+    private static readonly HashSet<string> EvaluatedModuleNames = ["Authentication", "Requests", "Users", "Parties", "Platform", "Feed"];
     private static readonly string[] ModuleAssemblyNames =
     [
         "Vitarish.Authentication.Module",
@@ -33,10 +35,11 @@ public static class ModulesExtensions
         "Vitarish.Journey.Module",
     ];
 
-    public static List<IModule> GetModules() =>
+    public static List<IModule> GetModules(IConfiguration? configuration = null) =>
         ModuleAssemblyNames
             .SelectMany(GetModuleTypes)
             .Select(moduleType => (IModule)Activator.CreateInstance(moduleType)!)
+            .Where(module => configuration?.GetValue<bool>("Vitarish:EvaluatedConfiguration:Enabled") != true || EvaluatedModuleNames.Contains(module.Name))
             .ToList();
 
     private static IEnumerable<Type> GetModuleTypes(string assemblyName)
@@ -70,7 +73,7 @@ public static class ModulesExtensions
         public async Task<WebApplicationBuilder> RegisterModules(
         Action<DbContextOptionsBuilder>? configureDbContext = null)
         {
-            List<IModule> Modules = GetModules();
+            List<IModule> Modules = GetModules(builder.Configuration);
 
             builder.Services.TryAddSingleton<IReadOnlyList<IModule>>(Modules);
 
