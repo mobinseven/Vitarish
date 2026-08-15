@@ -30,13 +30,12 @@ public sealed class SocialModule : Modules.Base.Core.Module, ISocialModule
     public override async Task Initialize(WebApplication app)
     {
         _ = await app.MigrateDatabaseAsync<SocialDbContext>();
-        bool enabled = app.Configuration.GetValue<bool>("Vitarish:Features:SocialIntegrations");
-        if (!enabled)
-        {
-            return;
-        }
+    }
 
-        _ = app.MapSocialApi();
-        _ = app.MapSocialWebhookEndpoints();
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+    {
+        _ = endpoints.MapSocialApi();
+        if (endpoints.ServiceProvider.GetRequiredService<IConfiguration>().GetValue<bool>("Vitarish:Features:SocialIntegrations"))
+            _ = endpoints.MapSocialWebhookEndpoints();
     }
 }

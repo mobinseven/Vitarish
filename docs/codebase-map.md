@@ -21,7 +21,9 @@ Vitarish consists of:
 
 - a modular .NET backend under `src/Modules`, `src/Apps`, `src/Identity`, and
   `src/Libraries`;
-- one backend-only ASP.NET Core composition host at `src/Hosts/Main`;
+- a reusable backend composition library at `src/Libraries/Hosting`;
+- a production-only ASP.NET Core host at `src/Hosts/Main`;
+- a non-publishable in-memory browser-test host at `src/Hosts/E2e`;
 - a React/Next.js Web workspace at `src/Hosts/Web`;
 - a server-only Node agent runtime at
   `src/Hosts/Web/apps/agent-runtime`;
@@ -31,10 +33,11 @@ Vitarish consists of:
 
 React Web is the production UI surface.
 
-`src/Hosts/Main` is a backend service. It owns process composition, API
-exposure, authentication/authorization integration, IdentityServer, Hangfire,
-OpenAPI generation, Redis-backed host concerns, and module initialization. It
-does not own product pages or business rules.
+`src/Libraries/Hosting` owns shared registration, middleware, and lifecycle
+composition. `src/Hosts/Main` owns production providers and operations:
+PostgreSQL, Redis, certificates, Hangfire, OpenAPI, migrations, and
+initialization. `src/Hosts/E2e` supplies isolated in-memory providers and
+deterministic fixtures for the two-host Playwright suite.
 
 The main technology families are ASP.NET Core Minimal APIs, EF Core with
 PostgreSQL/Npgsql, Duende IdentityServer, Hangfire, Finbuckle.MultiTenant,
@@ -51,7 +54,9 @@ TanStack Query, Orval, Vitest, Playwright, Docker Compose, and GitHub Actions.
 | `docs` | ADRs, conventions, app/module documentation, runbooks, indexes, and this map. | Follow `docs/AGENTS.md`. |
 | `src/Apps` | .NET app aggregators and app-owned backend slices. Current roots are `Aggregator`, `Base`, `Clinic`, and `ProjectManagement`. | Follow `src/Apps/AGENTS.md`; keep module business rules in modules. |
 | `src/Build` | Shared MSBuild configuration and module build profiles. | High-impact shared build surface. |
-| `src/Hosts/Main` | Backend ASP.NET Core composition/runtime host. | Follow its `AGENTS.md`; no product UI or use-case behavior. |
+| `src/Libraries/Hosting` | Shared backend registration and middleware composition used by executable hosts. | Keep provider and operational choices in executable hosts. |
+| `src/Hosts/Main` | Production ASP.NET Core runtime host. | Follow its `AGENTS.md`; no E2E branches or product UI. |
+| `src/Hosts/E2e` | Non-publishable in-memory host for real two-host browser tests. | No migrations, Hangfire, or test authentication bypass. |
 | `src/Hosts/Web` | npm workspace containing React apps, feature packages, Web infrastructure, and the agent runtime. | Follow its `AGENTS.md`; never edit generated API output manually. |
 | `src/Identity` | Identity Domain/Application/Infrastructure/Hosting/Client code. | Security-sensitive; follow its `AGENTS.md`. |
 | `src/Libraries` | Shared .NET libraries and generators, including Audit and Entities. | Keep app- and module-specific behavior out. |
@@ -259,6 +264,7 @@ High-care areas include:
 
 ```powershell
 dotnet run --project src/Hosts/Main/Main.csproj
+dotnet build src/Hosts/E2e/E2e.csproj --no-restore
 dotnet build src/Hosts/Main/Main.csproj -p:ModuleBuildProfile=All
 dotnet build Vitarish.slnx
 dotnet test tests/Modules/<Module>.Tests/<Module>.Tests.csproj

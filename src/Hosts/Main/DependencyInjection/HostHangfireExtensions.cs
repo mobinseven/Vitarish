@@ -15,8 +15,15 @@ public static class HostHangfireExtensions
     /// <summary>
     /// Adds Hangfire services and configures background job processing.
     /// </summary>
-    public static void AddHostHangfire(this WebApplicationBuilder builder, string connectionString)
+    public static void AddHostHangfire(this WebApplicationBuilder builder, string? connectionString, bool enabled = true)
     {
+        _ = builder.Services.AddSingleton<IExternalApiTransactionLogger, LoggingApiTransactionLogger>();
+
+        if (!enabled)
+        {
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             throw new InvalidOperationException("Connection string is not configured. Hangfire requires a valid PostgreSQL connection string.");
@@ -48,15 +55,18 @@ public static class HostHangfireExtensions
             options.ServerName = $"{Environment.MachineName}:{Guid.NewGuid()}";
         });
 
-        // Centralized platform services
-        _ = builder.Services.AddSingleton<IExternalApiTransactionLogger, LoggingApiTransactionLogger>();
     }
 
     /// <summary>
     /// Maps Hangfire dashboard endpoint if enabled via configuration.
     /// </summary>
-    public static void MapHangfireDashboard(this WebApplication app)
+    public static void MapHangfireDashboard(this WebApplication app, bool enabled = true)
     {
+        if (!enabled)
+        {
+            return;
+        }
+
         bool enableDashboard = app.Configuration.GetValue<bool>("Hangfire:EnableDashboard");
 
         if (enableDashboard)

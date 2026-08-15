@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Vitarish.Hosting</RootNamespace>
+    <AssemblyName>Vitarish.Hosting</AssemblyName>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Apps\Aggregator\Core\Apps.Aggregator.Core.csproj" />
+    <ProjectReference Include="..\..\Apps\Landing\Application\Landing.Application.csproj" />
+    <ProjectReference Include="..\Audit\Audit.Server\Audit.Server.csproj" />
+    <ProjectReference Include="..\..\Modules\Authentication\Module\Authentication.Module.csproj" />
+    <ProjectReference Include="..\..\Modules\Journey\Module\Journey.Module.csproj" />
+    <ProjectReference Include="..\..\Modules\Base\Infrastructure\Modules.Base.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Requests\Client\Requests.Client.csproj" />
+    <ProjectReference Include="..\..\Modules\Sea\Application\Sea.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Users\Domain\Users.Domain.csproj" />
+    <ProjectReference Include="..\..\Modules\Users\Infrastructure\Users.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Parties\Client\Parties.Client.csproj" />
+    <ProjectReference Include="..\..\Modules\Parties\Domain\Parties.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Duende.IdentityServer.AspNetIdentity" />
+    <PackageReference Include="Duende.IdentityServer.EntityFramework" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+  </ItemGroup>
+</Project>

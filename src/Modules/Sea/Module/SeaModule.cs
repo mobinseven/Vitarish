@@ -43,13 +43,8 @@ public class SeaModule : Modules.Base.Core.Module, ISeaModule
     public override async Task Initialize(WebApplication app)
     {
         _ = await app.MigrateDatabaseAsync<SeaDbContext>();
-        if (!string.Equals(
-                Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"),
-                "true",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            await app.InitializeViews();
-        }
-        app.MapSeaApi();
+        await app.InitializeViews();
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapSeaApi();
 }

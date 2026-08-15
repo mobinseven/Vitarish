@@ -41,6 +41,13 @@ Do not duplicate those documents here.
 - **Retries [MUST]:** The initiating boundary owns retry policy. Retried mutations require idempotency. Do not stack retries without explicit reason.
 - **Quality [MUST]:** Do not weaken assertions, tests, analyzers, validators, or diagnostics to obtain a pass.
 
+## Cross-boundary proof
+
+- **[MUST]** When a change crosses browser/API, authentication, tenant,
+  host-composition, persistence, or shared-transport boundaries, use the
+  applicable scoped `AGENTS.md` E2E feedback workflow before reporting
+  completion.
+
 
 ## Scope and minimum change
 
@@ -93,3 +100,7 @@ before edits unless implementation is explicitly authorized.
 ## Durable knowledge
 
 Write information to its owner: architecture decisions to ADRs or `docs/architecture.md`; navigation/commands to `docs/codebase-map.md`; repeatable procedures to skills/runbooks; actionable debt to the issue/debt tracker with owner and removal condition; rediscovery-prevention lessons and unfinished migration context to `docs/memory.md`. Do not turn memory into a project log.
+
+## Needless to say
+
+* Always clean up after yourself. When you abandon a folder, you are the one who must delete the folder. When a file (log, screenshot, etc.) is no longer needed, you the creator are the one who must delete it.

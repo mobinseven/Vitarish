@@ -33,6 +33,7 @@ public sealed class ContentsModule : Modules.Base.Core.Module, IContentsModule
     public override async Task Initialize(WebApplication app)
     {
         await app.MigrateDatabaseAsync<ContentsDbContext>();
-        _ = app.MapContentsApi();
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapContentsApi();
 }

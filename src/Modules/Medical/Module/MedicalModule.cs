@@ -36,6 +36,7 @@ public sealed class MedicalModule : Modules.Base.Core.Module, IMedicalModule
     {
         _ = await app.MigrateDatabaseAsync<MedicalDbContext>();
         _ = await app.MigrateDatabaseAsync<PrescriptionDbContext>();
-        _ = app.MapMedicalApi();
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapMedicalApi();
 }

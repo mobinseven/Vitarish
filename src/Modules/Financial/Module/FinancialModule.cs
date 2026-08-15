@@ -23,4 +23,6 @@ public sealed class FinancialModule : Modules.Base.Core.Module, IFinancialModule
     }
 
     public override Task Initialize(WebApplication app) => app.MigrateDatabaseAsync<FinancialDbContext>();
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) { }
 }

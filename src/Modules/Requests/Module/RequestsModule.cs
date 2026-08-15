@@ -21,7 +21,8 @@ public sealed class RequestsModule : Modules.Base.Core.Module
 
     public override Task Initialize(WebApplication app)
     {
-        _ = app.MapRequestsApi();
         return Task.CompletedTask;
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapRequestsApi();
 }

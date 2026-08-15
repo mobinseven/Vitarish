@@ -26,12 +26,12 @@
 		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
 		<PackageReference Include="StackExchange.Redis" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\..\Apps\Aggregator\Core\Apps.Aggregator.Core.csproj" />
 		<ProjectReference Include="..\..\Apps\Landing\Application\Landing.Application.csproj" />
 		<ProjectReference Include="..\..\Apps\Base\Client\Apps.Base.Client.csproj" />
 		<ProjectReference Include="..\..\Libraries\Audit\Audit.Server\Audit.Server.csproj" />
+		<ProjectReference Include="..\..\Libraries\Hosting\Hosting.csproj" />
 		<ProjectReference Include="..\..\Modules\Authentication\Module\Authentication.Module.csproj" />
 		<ProjectReference Include="..\..\Modules\Journey\Module\Journey.Module.csproj" />
 		<ProjectReference Include="..\..\Modules\Base\Infrastructure\Modules.Base.Infrastructure.csproj" />

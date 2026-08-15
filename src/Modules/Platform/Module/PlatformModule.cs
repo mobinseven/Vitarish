@@ -26,15 +26,6 @@ public sealed class PlatformModule : Modules.Base.Core.Module
     {
         _ = await app.MigrateDatabaseAsync<PlatformDbContext>();
 
-        if (string.Equals(
-                Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"),
-                "true",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            _ = app.MapPlatformApi();
-            return;
-        }
-
         using IServiceScope scope = app.Services.CreateScope();
         PlatformDbContext dbContext = scope.ServiceProvider.GetRequiredService<PlatformDbContext>();
         TimeProvider timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
@@ -61,8 +52,9 @@ public sealed class PlatformModule : Modules.Base.Core.Module
 
         _ = await dbContext.SaveChangesAsync();
 
-        _ = app.MapPlatformApi();
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapPlatformApi();
 
     private static async Task SeedLocaleNotificationRecordsAsync(PlatformDbContext dbContext)
     {

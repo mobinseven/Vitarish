@@ -25,13 +25,8 @@ public sealed class PartiesModule : Modules.Base.Core.Module
     public override async Task Initialize(WebApplication app)
     {
         _ = await app.MigrateDatabaseAsync<PartiesDbContext>();
-        if (!string.Equals(
-                Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"),
-                "true",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            await app.InitializeViews();
-        }
-        _ = app.MapPartiesApi();
+        await app.InitializeViews();
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapPartiesApi();
 }

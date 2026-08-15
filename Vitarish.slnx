@@ -55,6 +55,8 @@
   <Folder Name="/tests/Apps/Clinic.Application.Tests/">
     <Project Path="tests/Apps/Clinic.Application.Tests/Clinic.Application.Tests.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Apps/" />
   <Folder Name="/tests/Apps/Clinic.Agents.Tests/">
     <Project Path="tests/Apps/Clinic.Agents.Tests/Clinic.Agents.Tests.csproj" />
   </Folder>
@@ -65,6 +67,7 @@
     <Project Path="tests/Apps/ProjectManagement.Api.Tests/ProjectManagement.Api.Tests.csproj" />
   </Folder>
   <Folder Name="/src/Hosts/">
+    <Project Path="src/Hosts/E2e/E2e.csproj" />
     <Project Path="src/Hosts/Main/Main.csproj" />
   </Folder>
   <Folder Name="/src/Libraries/" />
@@ -78,6 +81,9 @@
     <Project Path="src/Libraries/Entities/Entities.Contracts/Entities.Contracts.csproj" />
     <Project Path="src/Libraries/Entities/Entities.Generators/Entities.Generators.csproj" />
     <Project Path="src/Libraries/Entities/Entities.Server/Entities.Server.csproj" />
+  </Folder>
+  <Folder Name="/src/Libraries/Hosting/">
+    <Project Path="src/Libraries/Hosting/Hosting.csproj" />
   </Folder>
   <Folder Name="/src/Modules/" />
   <Folder Name="/src/Modules/Aggregator/">

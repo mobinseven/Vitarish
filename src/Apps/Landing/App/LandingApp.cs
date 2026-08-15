@@ -11,6 +11,7 @@ using Vitarish.Landing.Application;
 using Vitarish.Intelligence.Domain.Options;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Models;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Landing.App;
 
@@ -34,12 +35,6 @@ public sealed class LandingApp : Vitarish.Apps.Base.Core.App
     }
     public override async Task Initialize(WebApplication app)
     {
-        if (string.Equals(Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"), "true", StringComparison.OrdinalIgnoreCase))
-        {
-            _ = app.MapLandingApi();
-            return;
-        }
-
         await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
         LandingPlatformOptions options = scope.ServiceProvider
             .GetRequiredService<IOptions<LandingPlatformOptions>>().Value;
@@ -55,6 +50,7 @@ public sealed class LandingApp : Vitarish.Apps.Base.Core.App
                 LandingTenant.Name,
                 landingUrl.Host), CancellationToken.None);
         }
-        _ = app.MapLandingApi();
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapLandingApi();
 }

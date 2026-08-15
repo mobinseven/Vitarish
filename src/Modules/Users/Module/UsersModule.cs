@@ -4,6 +4,7 @@ using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Module.DependencyInjection;
 using Vitarish.Users.Api;
 using Vitarish.Modules.Base.Core;
+using Vitarish.Users.Infrastructure.Extensions;
 
 namespace Vitarish.Users.Module;
 
@@ -24,13 +25,12 @@ public sealed class UsersModule : Modules.Base.Core.Module
     public override async Task Initialize(WebApplication app)
     {
         _ = await app.MigrateDatabaseAsync<UsersDbContext>();
-        if (!string.Equals(
-                Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"),
-                "true",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            await app.InitializeUsers();
-        }
-        _ = app.MapUsersApi();
+        await app.InitializeUsers();
+    }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+    {
+        _ = endpoints.MapUsersApi();
+        _ = endpoints.MapWebAuthnManagementEndpoints();
     }
 }

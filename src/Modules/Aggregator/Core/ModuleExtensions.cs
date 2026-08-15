@@ -87,6 +87,22 @@ public static class ModulesExtensions
 
     extension(WebApplication app)
     {
+        public WebApplication MapModuleEndpoints()
+        {
+            IReadOnlyList<IModule>? modules = app.Services.GetService<IReadOnlyList<IModule>>();
+            if (modules is null)
+            {
+                return app;
+            }
+
+            foreach (IModule module in modules)
+            {
+                module.MapEndpoints(app);
+            }
+
+            return app;
+        }
+
         public async Task<WebApplication> InitializeModules()
         {
             IReadOnlyList<IModule>? Modules = app.Services.GetService<IReadOnlyList<IModule>>();

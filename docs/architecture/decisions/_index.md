@@ -23,6 +23,7 @@ This index is the authoritative navigation point for global ADRs. Scoped platfor
 | [0010](0010-prefer-statically-analyzable-native-aot-compatible-design.md) | Prefer Statically Analyzable and Native AOT-Compatible Design for the .NET Backend | Accepted | 2026-07-11 |
 | [0011](0011-server-side-agents-sdk-runtime.md) | Run Clinic agents through a server-side OpenAI Agents SDK runtime | Accepted | 2026-07-29 |
 | [0012](0012-module-owned-agents-with-guarded-composition.md) | Module-owned agents with guarded composition | Accepted | 2026-08-12 |
+| [0013](0013-separate-e2e-host-with-shared-hosting-composition.md) | Separate E2E host with shared hosting composition | Accepted | 2026-08-15 |
 
 ## Related global architecture documents
 

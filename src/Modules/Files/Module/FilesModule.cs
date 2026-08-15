@@ -72,6 +72,7 @@ public class FilesModule : Modules.Base.Core.Module, IFilesModule
     public override async Task Initialize(WebApplication app)
     {
         _ = await app.MigrateDatabaseAsync<FilesDbContext>();
-        _ = app.MapFilesApi();
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapFilesApi();
 }

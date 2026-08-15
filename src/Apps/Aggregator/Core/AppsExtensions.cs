@@ -50,4 +50,20 @@ public static class AppsExtensions
 
         return app;
     }
+
+    public static WebApplication MapAppEndpoints(this WebApplication app)
+    {
+        IReadOnlyList<IApp>? apps = app.Services.GetService<IReadOnlyList<IApp>>();
+        if (apps is null)
+        {
+            return app;
+        }
+
+        foreach (IApp application in apps)
+        {
+            application.MapEndpoints(app);
+        }
+
+        return app;
+    }
 }

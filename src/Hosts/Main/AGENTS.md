@@ -19,3 +19,14 @@ App, Module, or Identity Application/Domain slice.
   keys, and JSON metadata identifiers. Main host wiring must not repeat these
   contract or security literals or become a second source of truth; use the
   existing Contracts, Identity, options, or generated metadata mechanism.
+
+## E2E proof feedback
+
+- **[MUST]** For production-host composition, middleware, authentication,
+  authorization, tenant, lifecycle, API, or browser-visible data changes, use
+  the real Web-to-`src/Hosts/E2e` flow before reporting completion.
+- The E2E host is the isolated provider and fixture boundary; validate Main's
+  behavior through the normal production path and do not add E2E branches,
+  bypass routes, or test credentials to Main.
+- Inspect the authenticated screenshot from the passing run as feedback and
+  correct any defect it reveals before completing the work.

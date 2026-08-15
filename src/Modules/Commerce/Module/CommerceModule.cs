@@ -28,9 +28,9 @@ public class CommerceModule : Modules.Base.Core.Module, ICommerceModule
 
     public override async Task Initialize(WebApplication app)
     {
-        _ = app.MapCommerceApi();
         _ = await app.MigrateDatabaseAsync<CommerceDbContext>();
-        if (!string.Equals(Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"), "true", StringComparison.OrdinalIgnoreCase))
-            await app.InitializeViews();
+        await app.InitializeViews();
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapCommerceApi();
 }

@@ -33,7 +33,8 @@ public sealed class ProjectManagementApp : Vitarish.Apps.Base.Core.App
 
     public override Task Initialize(WebApplication app)
     {
-        _ = app.MapProjectManagementApi();
         return Task.CompletedTask;
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapProjectManagementApi();
 }

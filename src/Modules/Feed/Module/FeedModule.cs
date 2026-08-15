@@ -18,7 +18,8 @@ public sealed class FeedModule : Modules.Base.Core.Module
 
     public override Task Initialize(WebApplication app)
     {
-        _ = app.MapFeedApi();
         return Task.CompletedTask;
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapFeedApi();
 }

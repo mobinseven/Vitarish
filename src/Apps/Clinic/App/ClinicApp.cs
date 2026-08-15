@@ -35,11 +35,9 @@ public class ClinicApp : Vitarish.Apps.Base.Core.App
 
     public override Task Initialize(WebApplication app)
     {
-        if (!DatabaseMigrationExtensions.IsOpenApiGeneration())
-        {
-            _ = app.InitializeViews();
-        }
-        _ = app.MapClinicApi();
+        _ = app.InitializeViews();
         return Task.CompletedTask;
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapClinicApi();
 }

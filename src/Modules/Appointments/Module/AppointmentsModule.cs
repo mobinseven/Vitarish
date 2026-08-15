@@ -47,8 +47,8 @@ public class AppointmentsModule : Modules.Base.Core.Module, IAppointmentsModule
     public override async Task Initialize(WebApplication app)
     {
         _ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
-        if (!string.Equals(Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"), "true", StringComparison.OrdinalIgnoreCase))
-            await app.InitializeViews();
-        _ = app.MapAppointmentsApi();
+        await app.InitializeViews();
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapAppointmentsApi();
 }

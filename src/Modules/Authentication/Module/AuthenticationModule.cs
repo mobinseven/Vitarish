@@ -15,7 +15,8 @@ public sealed class AuthenticationModule : Modules.Base.Core.Module
     }
     public override Task Initialize(WebApplication app)
     {
-        app.MapAuthenticationModuleEndpoints();
         return Task.CompletedTask;
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapAuthenticationModuleEndpoints();
 }

@@ -17,7 +17,8 @@ public sealed class JourneyModule : Modules.Base.Core.Module
 
     public override Task Initialize(WebApplication app)
     {
-        app.MapJourneyModuleEndpoints();
         return Task.CompletedTask;
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapJourneyModuleEndpoints();
 }

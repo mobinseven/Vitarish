@@ -27,4 +27,6 @@ public sealed class LinksModule : Modules.Base.Core.Module, ILinksModule
     }
 
     public override Task Initialize(WebApplication app) => app.MigrateDatabaseAsync<LinksDbContext>();
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) { }
 }

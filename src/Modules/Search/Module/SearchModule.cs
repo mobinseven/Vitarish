@@ -53,7 +53,8 @@ public class SearchModule : Modules.Base.Core.Module, ISearchModule
 
     public override Task Initialize(WebApplication app)
     {
-        _ = app.MapSearchApi();
         return Task.CompletedTask;
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapSearchApi();
 }

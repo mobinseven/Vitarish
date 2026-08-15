@@ -61,7 +61,8 @@ public sealed class KnowledgeModule : Modules.Base.Core.Module, IKnowledgeModule
     public override async Task Initialize(WebApplication app)
     {
       await  app.MigrateDatabaseAsync<KnowledgeDbContext>();
-      _ = app.MapKnowledgeApi();
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapKnowledgeApi();
 
 }

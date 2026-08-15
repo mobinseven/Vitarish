@@ -30,6 +30,7 @@ public abstract class Module : IModule
     }
 
     public abstract Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null);
+    public abstract void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints);
     public abstract Task Initialize(WebApplication app);
 }
 
@@ -38,6 +39,7 @@ public interface IModule
     string Name { get; }
     void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath);
     Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null);
+    void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints);
     Task Initialize(WebApplication app);
     bool IsAvailable { get; set; }
     event Action<bool> AvailabilityChanged;

@@ -33,3 +33,25 @@
 
 - **[MUST]** All dates must be displayed in localized formats. 
 - **[MUST]** All date conversions must be used by central conventions.
+
+## Real-host E2E feedback
+
+- **[MUST]** For changes that cross the API, authentication, authorization,
+  tenant, persistence, or shared transport boundary, run the real two-host
+  proof from `src/Hosts/Web`:
+
+  ```powershell
+  $proof = Join-Path (Resolve-Path ".") "artifacts/two-host-e2e/authenticated-dashboard-proof.png"
+  Remove-Item -LiteralPath $proof -Force -ErrorAction SilentlyContinue
+  $env:VITARISH_E2E_PROOF_SCREENSHOT = $proof
+  npm run test:e2e:two-host
+  if (-not (Test-Path -LiteralPath $proof)) { throw "E2E proof screenshot was not produced." }
+  ```
+
+- **[MUST]** Inspect the fresh authenticated screenshot as part of the
+  implementation flow. Use it to identify and correct layout, loading, data,
+  authentication, tenant, or authorization-flow defects, then rerun the proof.
+  Do not report completion from a passing test or screenshot that was not
+  inspected.
+- Visual-only changes that do not cross a backend boundary may use the existing
+  visual-test workflow instead.

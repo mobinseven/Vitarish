@@ -37,8 +37,9 @@ public class CommunicationModule : Modules.Base.Core.Module, ICommunicationsModu
     public override async Task Initialize(WebApplication app)
     {
         _ = await app.MigrateDatabaseAsync<CommunicationsDbContext>();
-        _ = app.MapCommunicationsApi();
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapCommunicationsApi();
     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         RegisterOptions(builder.Services, builder.Configuration, OptionsSectionPath);

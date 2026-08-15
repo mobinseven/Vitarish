@@ -11,11 +11,13 @@ public abstract class App : IApp
 
     public abstract Task Initialize(WebApplication app);
     public abstract Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null);
+    public abstract void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints);
 }
 
 public interface IApp
 {
     string Name { get; }
     Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null);
+    void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints);
     Task Initialize(WebApplication app);
 }

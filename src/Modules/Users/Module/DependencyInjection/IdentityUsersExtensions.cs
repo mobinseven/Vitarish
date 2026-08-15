@@ -65,6 +65,5 @@ public static class IdentityUsersExtensions
         {
             _ = await rm.CreateAsync(new IdentityRole(IdentityDefinitions.PlatformAdmin));
         }
-        _ = app.MapWebAuthnManagementEndpoints();
     }
 }

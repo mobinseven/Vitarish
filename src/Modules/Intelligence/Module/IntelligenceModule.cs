@@ -30,8 +30,9 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
     public override async Task Initialize(WebApplication app)
     {
         _ = await app.MigrateDatabaseAsync<IntelligenceDbContext>();
-        _ = app.MapIntelligenceApi();
     }
+
+    public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapIntelligenceApi();
 
     public override void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath)
     {
