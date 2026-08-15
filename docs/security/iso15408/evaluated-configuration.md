@@ -2,7 +2,9 @@
 
 Status: configuration baseline for issues [#766](https://github.com/mobinseven/Vitarish/issues/766) and [#767](https://github.com/mobinseven/Vitarish/issues/767). Reviewed 2026-08-15.
 
-This document is the authoritative scope manifest for the initial ISO/IEC 15408 readiness configuration. It describes one machine running one Main process and its two required state services. It is not a claim that the wider repository or production deployment is evaluated.
+This document is the authoritative scope manifest for the initial ISO/IEC 15408 readiness configuration. It describes one machine running one Main process and its two required state services. It is not a claim that the wider repository or production deployment is evaluated. The Security Target and proposed requirements matrix are [`security-target.md`](security-target.md) and [`sfr-sar-matrix.md`](sfr-sar-matrix.md).
+
+The TOE is evaluated in a single-machine configuration. Availability and integrity claims do not cover multi-instance failover. Database, cache, storage, operating system, container runtime, and ingress remain environmental dependencies unless explicitly included by a future Security Target. Distributed deployment, multi-region behavior, rolling upgrades, and cluster failover are outside the initial claim.
 
 ## Identity
 
@@ -10,7 +12,7 @@ This document is the authoritative scope manifest for the initial ISO/IEC 15408 
 | --- | --- | --- |
 | TOE name | Vitarish Main evaluated configuration | This manifest |
 | Configuration ID | `vitarish-toe-main-evaluated-2026-08-15` | This manifest; release operator owns the release record |
-| Source baseline commit | `b826ec212135bb32a0da9f23734976915595d6fc` | `git rev-parse HEAD`; the evaluated slice is currently an uncommitted worktree change |
+| Source baseline commit | `5a06b5ed02a174a4e848c51dcec8a2154d6a69ec` | `git rev-parse HEAD` at review; the Security Target and matrix are subsequent uncommitted worktree changes |
 | Build profile | `Evaluated` | `src/Build/ModuleBuildProfiles.props`; runtime allowlist in module/app aggregators |
 | Target framework | `net10.0` | `src/Directory.Build.props` |
 | .NET SDK observed | `10.0.302` | `dotnet --version` |
@@ -38,7 +40,7 @@ No app is enabled in evaluated runtime mode. This intentionally excludes Clinic,
 
 ## Evaluated endpoint and capability allowlist
 
-The evaluated HTTP surface is the endpoint mapping of these five module groups only. Route values and operation IDs remain owned by the module Contracts/API files; this table is the configuration allowlist, not a second route source of truth.
+The evaluated HTTP surface is the endpoint mapping of these six module groups only. Route values and operation IDs remain owned by the module Contracts/API files; this table is the configuration allowlist, not a second route source of truth.
 
 | Group | Base route | Mapping owner | Capability boundary |
 | --- | --- | --- | --- |
@@ -59,7 +61,7 @@ The only evaluated provider capabilities are PostgreSQL persistence/Hangfire sto
 | Medical and Tamin workflows | Medical is omitted from `Evaluated`; no Clinic app | Medical and app composition owners | No medical provider credentials are supplied | Source remains present and must not be mistaken for TOE behavior |
 | SMS, SMTP, notification providers | Communications omitted; no provider environment variables | Communications module owner | No outbound mail/SMS route is permitted | Generic network egress is an environmental control |
 | Search and Elasticsearch | Search and Knowledge omitted; no Elasticsearch service | Search module owner | No Elasticsearch host is configured | Search code remains in repository artifacts outside this build |
-| Social, commerce, payment, and provider-specific integrations | Social, Commerce, Files, Sea, Financial, Contents, Links, Feed, Appointments omitted from evaluated build | Owning module composition | No provider credentials or endpoints are supplied | Existing public contracts remain non-evaluated compatibility surface |
+| Social, commerce, payment, and provider-specific integrations | Social, Commerce, Files, Sea, Financial, Contents, Links, Appointments, and provider-specific capabilities omitted from evaluated build | Owning module composition | No provider credentials or endpoints are supplied | Existing public contracts remain non-evaluated compatibility surface |
 | Web/agent containers | No Web or agent-runtime service in the evaluated compose | Host/deployment owner | Browser is an environmental user agent calling Main | Browser UI is not part of the evaluated software artifact |
 
 Excluded public contracts are disabled by composition, not deleted or redesigned. A deployment that changes the build profile, enables an excluded module, adds an excluded service, or supplies excluded provider configuration is a different configuration identity.

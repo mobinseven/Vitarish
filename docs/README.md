@@ -16,7 +16,7 @@ This file is a map, not a source of truth. Scoped documents remain authoritative
 - [Indexes](indexes/): navigation-only journey and test indexes.
 - [Development](development/): contributor and development workflow notes.
 - [Runbooks](runbooks/): cross-cutting operational runbooks only.
-- [ISO/IEC 15408 scope](security/iso15408/evaluated-configuration.md): evaluated configuration, TOE inventory, and single-machine topology.
+- [ISO/IEC 15408 scope](security/iso15408/security-target.md): Security Target, TOE/threat model, SFR/SAR matrix, evaluated configuration, inventory, and single-machine topology.
 
 ## IDE discoverability
 

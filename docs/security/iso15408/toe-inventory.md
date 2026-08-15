@@ -73,7 +73,7 @@ The package lock and resolved container image digests, rather than floating tags
 
 ## Data flow and trust-boundary agreement
 
-The browser sends requests to the single Main process. Main authenticates and resolves tenant context, invokes only the five enabled modules, and persists state to PostgreSQL. Main uses Redis for protected key/cache state. Operators supply the image/profile and secret references. There is no evaluated flow to AI, agent-runtime, medical/Tamin, communications, search, object storage, payment, social, or other provider services. See [`topology.md`](topology.md).
+The browser sends requests to the single Main process. Main authenticates and resolves tenant context, invokes only the six enabled modules, and persists state to PostgreSQL. Main uses Redis for protected key/cache state. Operators supply the image/profile and secret references. There is no evaluated flow to AI, agent-runtime, medical/Tamin, communications, search, object storage, payment, social, or other provider services. See [`topology.md`](topology.md).
 
 ## Unknowns and ownership decisions
 
