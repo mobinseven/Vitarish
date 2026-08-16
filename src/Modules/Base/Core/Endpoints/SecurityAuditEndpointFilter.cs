@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
+using Vitarish.Requests.Application;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Modules.Base.Core.Endpoints;
@@ -39,7 +40,15 @@ public sealed class SecurityAuditEndpointFilter(
             return AuditUnavailableResult();
         }
 
-        string operationKey = requestContext.RequestId ?? Guid.NewGuid().ToString("N");
+        string? operationKey = context.HttpContext.Request.Headers[RequestIdentityConstants.RequestIdHeader].FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(operationKey))
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status428PreconditionRequired,
+                title: "A stable request identifier is required.",
+                detail: $"Retry with the {RequestIdentityConstants.RequestIdHeader} header so a retried mutation can be correlated and deduplicated.");
+        }
+
         string startedKey = $"{operationKey}:{convention.OperationId}{StartedKeySuffix}";
         string completedKey = $"{operationKey}:{convention.OperationId}{CompletedKeySuffix}";
 

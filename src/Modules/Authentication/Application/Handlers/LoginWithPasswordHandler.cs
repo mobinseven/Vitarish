@@ -41,6 +41,10 @@ public sealed class LoginWithPasswordHandler(
         {
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
 
         PasswordSignInResult signInResult = await signInService.PasswordSignInAsync(command.UserNameOrEmail, command.Password, command.RememberMe, cancellationToken);
 
@@ -74,7 +78,13 @@ public sealed class LoginWithPasswordHandler(
         }
         catch (SecurityAuditStoreException)
         {
+            await signInService.SignOutAsync(CancellationToken.None);
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
+        }
+        catch (OperationCanceledException)
+        {
+            await signInService.SignOutAsync(CancellationToken.None);
+            throw;
         }
 
         return result;
