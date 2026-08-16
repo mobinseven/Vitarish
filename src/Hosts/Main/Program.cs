@@ -4,6 +4,7 @@ using Vitarish.Hosting;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.Options;
+using Vitarish.Hosting.Infrastructure.Options;
 using Vitarish.Modules.Base.Core;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Apps.Aggregator.Core;
@@ -11,6 +12,7 @@ using Vitarish.Apps.Aggregator.Core;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 bool openApiGeneration = DatabaseMigrationExtensions.IsOpenApiGeneration() ||
     builder.Environment.EnvironmentName.Equals("OpenApiGeneration", StringComparison.OrdinalIgnoreCase);
+SecurityConfigurationOptions securityConfiguration = SecurityConfigurationValidator.Validate(builder.Configuration, builder.Environment, openApiGeneration);
 
 void configurePostgres(DbContextOptionsBuilder options)
 {
@@ -44,14 +46,14 @@ else
     signingCertificate = await HostDataProtectionExtensions.GetOrCreateFromRedisAsync(redis, authority, pfxPassword);
 }
 
-await builder.RegisterHosting(new HostingCompositionOptions(configurePostgres, signingCertificate, null));
+await builder.RegisterHosting(new HostingCompositionOptions(configurePostgres, signingCertificate, null, securityConfiguration));
 builder.AddHostHangfire(builder.Configuration.GetConnectionString("Db"));
 _ = builder.Services.AddOpenApi();
 
 if (openApiGeneration)
     builder.Services.AddOpenApiDataProtection(builder.Configuration);
 else
-    await builder.AddHostDataProtection();
+    await builder.AddHostDataProtection(securityConfiguration);
 
 if (openApiGeneration)
     _ = builder.Services.AddDistributedMemoryCache();

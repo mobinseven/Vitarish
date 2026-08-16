@@ -7,6 +7,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: 1,
+  grep: process.env.VITARISH_E2E_GREP ? new RegExp(process.env.VITARISH_E2E_GREP) : undefined,
   outputDir: "artifacts/two-host-e2e/test-results",
   reporter: [["list"], ["html", { outputFolder: "artifacts/two-host-e2e/report", open: "never" }]],
   use: {

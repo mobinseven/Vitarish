@@ -7,6 +7,8 @@ using Vitarish.Authentication.Api.Endpoints;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Pipeline;
 using Vitarish.Users.Infrastructure.Service;
+using Vitarish.Hosting.Infrastructure.Options;
+using Vitarish.Modules.Base.Core.Endpoints;
 
 public static class HostPipelineExtensions
 {
@@ -39,7 +41,7 @@ public static class HostPipelineExtensions
         });
     }
 
-    public static void AddHostPipeline(this WebApplicationBuilder builder)
+    public static void AddHostPipeline(this WebApplicationBuilder builder, SecurityConfigurationOptions security)
     {
         _ = builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         _ = builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
@@ -49,8 +51,8 @@ public static class HostPipelineExtensions
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
             options.ForwardLimit = 1;
-            // TODO: Configure KnownProxies/KnownNetworks for production deployment
-            // options.KnownProxies.Add(IPAddress.Parse("proxy-ip"));
+            foreach (System.Net.IPNetwork network in security.ParseTrustedProxyNetworks())
+                options.KnownIPNetworks.Add(network);
         });
 
         _ = builder.Services.AddRateLimiter(options =>
@@ -110,6 +112,19 @@ public static class HostPipelineExtensions
                     }));
         });
     }
+
+    public static IApplicationBuilder UseInternalServiceEndpointBoundary(this IApplicationBuilder app) =>
+        app.Use(async (context, next) =>
+        {
+            if (context.GetEndpoint()?.Metadata.GetMetadata<InternalServiceEndpointMetadata>() is not null &&
+                !context.Request.Headers.ContainsKey(InternalServiceEndpointConventions.CredentialHeaderName))
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return;
+            }
+
+            await next(context);
+        });
 
     public static void UseHostWebSockets(this WebApplication app)
     {

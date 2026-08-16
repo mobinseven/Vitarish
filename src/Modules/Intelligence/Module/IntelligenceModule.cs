@@ -81,6 +81,8 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
         _ = builder.Services.AddSingleton<IAgentToolDispatcher, RegisteredAgentToolDispatcher>();
         _ = builder.Services.AddScoped<IAgentConversationEndpointRegistry, AgentConversationEndpointRegistry>();
         _ = builder.Services.AddScoped<IAgentRuntimeToolEndpointRegistry, AgentRuntimeToolEndpointRegistry>();
+        _ = builder.Services.AddScoped<Lazy<IAgentRuntimeToolEndpointRegistry>>(sp =>
+            new(() => sp.GetRequiredService<IAgentRuntimeToolEndpointRegistry>()));
         _ = builder.Services.AddSingleton<IUniversalIntelligenceAgentTool, CalendarDateConversionTool>();
         _ = builder.Services.AddSingleton<IAgentRuntimeCredentialService, HmacAgentRuntimeCredentialService>();
         _ = builder.Services.AddSingleton<IAgentRuntimeReplayGuard, AgentRuntimeReplayGuard>();

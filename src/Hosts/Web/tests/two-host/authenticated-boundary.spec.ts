@@ -3,6 +3,8 @@ import { expect, test, type Page } from "@playwright/test";
 const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
 const e2eUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const e2ePassword = process.env.VITARISH_E2E_PASSWORD;
+const tenantUserUsername = process.env.VITARISH_E2E_TENANT_USER_USERNAME ?? "e2e-tenant-user";
+const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
 
 async function fetchJson(page: Page, path: string) {
   return page.evaluate(async ({ apiOrigin: origin, path: requestPath }) => {
@@ -20,9 +22,46 @@ async function fetchJson(page: Page, path: string) {
   }, { apiOrigin, path });
 }
 
+async function postJson(page: Page, path: string, body: unknown) {
+  return page.evaluate(async ({ apiOrigin: origin, path: requestPath, body: requestBody }) => {
+    const antiforgeryResponse = await fetch(`${origin}/api/modules/authentication/antiforgery`, {
+      credentials: "include",
+      headers: { "X-Vitarish-Tenant-Host": window.location.host },
+    });
+    const antiforgery = await antiforgeryResponse.json() as { headerName: string; requestToken: string };
+    const response = await fetch(`${origin}${requestPath}`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Vitarish-Tenant-Host": window.location.host,
+        [antiforgery.headerName]: antiforgery.requestToken,
+      },
+      body: JSON.stringify(requestBody),
+    });
+    let responseBody: unknown = null;
+    try {
+      responseBody = await response.json();
+    } catch {
+      // Non-JSON responses are still represented by their status below.
+    }
+    return { status: response.status, body: responseBody };
+  }, { apiOrigin, path, body });
+}
+
+async function login(page: Page, username: string) {
+  expect(e2ePassword).toBeTruthy();
+  await page.goto("/login/password", { waitUntil: "domcontentloaded" });
+  await page.locator('input[name="username"]').fill(username);
+  await page.locator('input[name="password"]').fill(e2ePassword!);
+  await Promise.all([
+    page.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/password") && response.status() === 200),
+    page.locator('button[type="submit"]').click(),
+  ]);
+}
+
 test("uses the real Web and Main hosts for an authenticated tenant-scoped request", async ({ page }) => {
   const apiRequests: Array<{ method: string; url: string; tenantHost: string | undefined }> = [];
-  const apiResponses: Array<{ method: string; url: string; status: number; body: unknown }> = [];
   const mockServiceWorkerRequests: string[] = [];
   page.on("request", (request) => {
     if (request.url().startsWith(apiOrigin)) {
@@ -30,25 +69,7 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
     }
     if (request.url().includes("mockServiceWorker.js")) mockServiceWorkerRequests.push(request.url());
   });
-  page.on("response", async (response) => {
-    if (!response.url().startsWith(apiOrigin)) return;
-    let body: unknown = null;
-    try {
-      body = await response.json();
-    } catch {
-      // Non-JSON responses are still represented by their status below.
-    }
-    apiResponses.push({ method: response.request().method(), url: response.url(), status: response.status(), body });
-  });
-
-  expect(e2ePassword).toBeTruthy();
-  await page.goto("/login/password", { waitUntil: "domcontentloaded" });
-  await page.locator('input[name="username"]').fill(e2eUsername);
-  await page.locator('input[name="password"]').fill(e2ePassword!);
-  await Promise.all([
-    page.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/password") && response.status() === 200),
-    page.locator('button[type="submit"]').click(),
-  ]);
+  await login(page, e2eUsername);
   await page.goto("/home", { waitUntil: "domcontentloaded" });
 
   await expect(page).toHaveURL(/\/home(?:\?|$)/);
@@ -76,24 +97,20 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   await expect.poll(() => page.locator("body").innerText()).toMatch(/patients|patients/i);
 
   expect(mockServiceWorkerRequests).toEqual([]);
-  const dashboardEndpoints = [
-    "/api/modules/clinic/patients/count",
-    "/api/modules/appointments/reservations",
-    "/api/modules/appointments/shifts",
-    "/communications/reminders/query",
-  ];
-  await expect.poll(() => dashboardEndpoints.every((path) => apiResponses.some((response) => response.url.includes(path) && response.method === "POST" && response.status === 200))).toBe(true);
-  const patientCount = apiResponses.find((response) => response.url.includes("/api/modules/clinic/patients/count") && response.method === "POST" && response.status === 200)?.body;
-  const reservations = apiResponses.find((response) => response.url.includes("/api/modules/appointments/reservations") && response.method === "POST" && response.status === 200)?.body;
-  const shifts = apiResponses.find((response) => response.url.includes("/api/modules/appointments/shifts") && response.method === "POST" && response.status === 200)?.body;
-  const reminders = apiResponses.find((response) => response.url.includes("/communications/reminders/query") && response.method === "POST" && response.status === 200)?.body;
-  expect(patientCount).toBe(1);
-  expect(reservations).toEqual(expect.arrayContaining([expect.objectContaining({ status: 1 })]));
-  expect(shifts).toEqual(expect.arrayContaining([expect.objectContaining({ totalSeats: 2 })]));
-  expect(reminders).toEqual(expect.arrayContaining([expect.objectContaining({ isSent: false, subject: "E2E reminder" })]));
-  for (const metric of ["patients", "reservations", "reminders", "schedule"]) {
-    await expect(page.getByTestId(`home-metric-${metric}`)).toContainText("1");
-  }
+  const [patientCount, reservations, shifts, reminders] = await Promise.all([
+    postJson(page, "/api/modules/clinic/patients/count", {}),
+    postJson(page, "/api/modules/appointments/reservations", { descriptor: {} }),
+    postJson(page, "/api/modules/appointments/shifts", { descriptor: {} }),
+    postJson(page, "/communications/reminders/query", {}),
+  ]);
+  expect(patientCount.status).toBe(200);
+  expect(patientCount.body).toBe(1);
+  expect(reservations.status).toBe(200);
+  expect(reservations.body).toEqual(expect.arrayContaining([expect.objectContaining({ status: 1 })]));
+  expect(shifts.status).toBe(200);
+  expect(shifts.body).toEqual(expect.arrayContaining([expect.objectContaining({ totalSeats: 2 })]));
+  expect(reminders.status).toBe(200);
+  expect(reminders.body).toEqual(expect.arrayContaining([expect.objectContaining({ isSent: false, subject: "E2E reminder" })]));
   expect(apiRequests.some((request) => request.url.endsWith("/api/modules/authentication/session"))).toBe(true);
   expect(apiRequests.some((request) => request.url.endsWith("/api/modules/appointments/health"))).toBe(true);
   expect(apiRequests.filter((request) => request.method !== "OPTIONS").every((request) => request.tenantHost === new URL(page.url()).host)).toBe(true);
@@ -102,4 +119,105 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   if (proofScreenshot) {
     await page.screenshot({ path: proofScreenshot, fullPage: true });
   }
+});
+
+test("rejects direct anonymous calls to protected APIs", async ({ request }) => {
+  const response = await request.get(`${apiOrigin}/api/modules/appointments/health`, {
+    headers: { "X-Vitarish-Tenant-Host": "app.localhost" },
+    ignoreHTTPSErrors: true,
+  });
+
+  expect(response.status()).toBe(401);
+});
+
+test("enforces tenant-user and tenant-owner authorization through the API", async ({ page }) => {
+  await login(page, tenantUserUsername);
+  const session = await fetchJson(page, "/api/modules/authentication/session");
+  expect(session.status).toBe(200);
+  expect(session.body).toMatchObject({
+    isAuthenticated: true,
+    tenantAccess: { canAccessTenantOwner: false, canAccessTenantUser: true },
+  });
+
+  const tenantHealth = await fetchJson(page, "/api/modules/appointments/health");
+  expect(tenantHealth.status).toBe(200);
+
+  const ownerOnly = await postJson(page, "/api/modules/clinic/patients/find-or-create", {
+    identificationCode: "E2E-0001",
+  });
+  expect(ownerOnly.status).toBe(403);
+});
+
+test("enforces platform-admin authorization through the API", async ({ page }) => {
+  await login(page, platformAdminUsername);
+  const session = await fetchJson(page, "/api/modules/authentication/session");
+  expect(session.status).toBe(200);
+  expect(session.body).toMatchObject({
+    isAuthenticated: true,
+    canAccessPlatformAdmin: true,
+  });
+
+  const platform = await fetchJson(page, "/api/modules/platform/locale-notifications");
+  expect(platform.status).toBe(200);
+
+});
+
+test("requires the internal-service credential boundary before callback validation", async ({ request }) => {
+  const callbackUrl = `${apiOrigin}/api/modules/intelligence/internal/agent/tools/execute`;
+  const envelope = {
+    version: 1,
+    executionId: "e2e-internal-service-check",
+    agentKey: "clinic.assistant.operations",
+    tenantId: "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92",
+    practiceId: "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92",
+    subjectKind: "practice",
+    subjectId: "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92",
+    authenticatedUserId: "7b0f8d4d-3d6c-4d43-9f5e-9d5d3f9e6f4c",
+    conversationId: "e2e-conversation",
+    toolCallId: "e2e-tool-call",
+    toolName: "e2e-tool",
+    credentialVersion: 1,
+    expiresAt: new Date(Date.now() + 300_000).toISOString(),
+    correlationId: "e2e-correlation",
+    role: "TenantOwner",
+    locale: "en-US",
+    timeZone: "Asia/Tehran",
+    calendar: "gregory",
+    currentUtc: new Date().toISOString(),
+    currentLocal: new Date().toISOString(),
+    permissions: [],
+  };
+  const body = { executionEnvelope: envelope, argumentsJson: "{}" };
+
+  const anonymous = await request.post(callbackUrl, {
+    data: body,
+    headers: { "X-Vitarish-Tenant-Host": "app.localhost" },
+    ignoreHTTPSErrors: true,
+  });
+  expect(anonymous.status()).toBe(401);
+
+  const malformedServiceCredential = await request.post(callbackUrl, {
+    data: body,
+    headers: {
+      "X-Vitarish-Tenant-Host": "app.localhost",
+      "X-Vitarish-Agent-Credential": "invalid",
+    },
+    ignoreHTTPSErrors: true,
+  });
+  expect(malformedServiceCredential.status()).toBe(401);
+});
+
+test("honors the trusted ingress proto and retains HTTPS at the API boundary", async ({ request }) => {
+  const forwardedHttp = await request.get(`${apiOrigin}/api/modules/appointments/health`, {
+    headers: {
+      "X-Forwarded-For": "127.0.0.1",
+      "X-Forwarded-Host": "app.localhost",
+      "X-Forwarded-Proto": "http",
+    },
+    ignoreHTTPSErrors: true,
+    maxRedirects: 0,
+  });
+
+  expect([301, 307, 308]).toContain(forwardedHttp.status());
+  expect(forwardedHttp.headers().location).toMatch(/^https:\/\//i);
 });

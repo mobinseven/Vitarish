@@ -19,6 +19,8 @@ namespace Vitarish.E2e.Infrastructure.Fixtures;
 internal static class E2eFixtureSeeder
 {
     public const string UserName = "e2e-owner";
+    public const string TenantUserName = "e2e-tenant-user";
+    public const string PlatformAdminUserName = "e2e-platform-admin";
     public const string PatientName = "E2E Patient";
     public const string PatientFirstName = "E2E";
     public const string PatientLastName = "Patient";
@@ -29,24 +31,30 @@ internal static class E2eFixtureSeeder
         UserManager<User> users = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
         RoleManager<IdentityRole> roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        User? user = await users.FindByNameAsync(UserName);
-        if (user is null)
-        {
-            user = new User
-            {
-                Id = Guid.Parse("7b0f8d4d-3d6c-4d43-9f5e-9d5d3f9e6f4c").ToString(),
-                UserName = UserName,
-                NormalizedUserName = UserName.ToUpperInvariant(),
-                Email = "e2e-owner@example.test",
-                NormalizedEmail = "E2E-OWNER@EXAMPLE.TEST",
-                EmailConfirmed = true,
-                FirstName = "E2E",
-                LastName = "Owner"
-            };
-            IdentityResult created = await users.CreateAsync(user, password);
-            if (!created.Succeeded)
-                throw new InvalidOperationException($"E2E user creation failed: {string.Join(';', created.Errors.Select(error => error.Code))}");
-        }
+        User user = await EnsureUserAsync(
+            users,
+            UserName,
+            Guid.Parse("7b0f8d4d-3d6c-4d43-9f5e-9d5d3f9e6f4c"),
+            "e2e-owner@example.test",
+            "E2E",
+            "Owner",
+            password);
+        User tenantUser = await EnsureUserAsync(
+            users,
+            TenantUserName,
+            Guid.Parse("5a4f5e2b-0ec6-4ad9-a0a1-4dbf0c6c2a19"),
+            "e2e-tenant-user@example.test",
+            "E2E",
+            "Tenant User",
+            password);
+        User platformAdmin = await EnsureUserAsync(
+            users,
+            PlatformAdminUserName,
+            Guid.Parse("f43b8f0e-3c4f-4ab3-b52e-2bf6f4d4d2a7"),
+            "e2e-platform-admin@example.test",
+            "E2E",
+            "Platform Admin",
+            password);
 
         Guid ownerId = Guid.Parse(user.Id);
         PartiesDbContext parties = scope.ServiceProvider.GetRequiredService<PartiesDbContext>();
@@ -157,5 +165,54 @@ internal static class E2eFixtureSeeder
             if (!result.Succeeded)
                 throw new InvalidOperationException("E2E tenant-owner role assignment failed.");
         }
+
+        string tenantUserRoleName = $"{tenant.Id}:{IdentityDefinitions.TenantUser}";
+        if (!await roles.RoleExistsAsync(tenantUserRoleName))
+            _ = (await roles.CreateAsync(new IdentityRole(tenantUserRoleName))).Succeeded;
+        if (!await users.IsInRoleAsync(tenantUser, tenantUserRoleName))
+        {
+            IdentityResult result = await users.AddToRoleAsync(tenantUser, tenantUserRoleName);
+            if (!result.Succeeded)
+                throw new InvalidOperationException("E2E tenant-user role assignment failed.");
+        }
+
+        if (!await roles.RoleExistsAsync(IdentityDefinitions.PlatformAdmin))
+            _ = (await roles.CreateAsync(new IdentityRole(IdentityDefinitions.PlatformAdmin))).Succeeded;
+        if (!await users.IsInRoleAsync(platformAdmin, IdentityDefinitions.PlatformAdmin))
+        {
+            IdentityResult result = await users.AddToRoleAsync(platformAdmin, IdentityDefinitions.PlatformAdmin);
+            if (!result.Succeeded)
+                throw new InvalidOperationException("E2E platform-admin role assignment failed.");
+        }
+    }
+
+    private static async Task<User> EnsureUserAsync(
+        UserManager<User> users,
+        string userName,
+        Guid id,
+        string email,
+        string firstName,
+        string lastName,
+        string password)
+    {
+        User? user = await users.FindByNameAsync(userName);
+        if (user is not null)
+            return user;
+
+        user = new User
+        {
+            Id = id.ToString(),
+            UserName = userName,
+            NormalizedUserName = userName.ToUpperInvariant(),
+            Email = email,
+            NormalizedEmail = email.ToUpperInvariant(),
+            EmailConfirmed = true,
+            FirstName = firstName,
+            LastName = lastName
+        };
+        IdentityResult created = await users.CreateAsync(user, password);
+        if (!created.Succeeded)
+            throw new InvalidOperationException($"E2E user creation failed: {string.Join(';', created.Errors.Select(error => error.Code))}");
+        return user;
     }
 }

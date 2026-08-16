@@ -44,9 +44,7 @@ public static class ClinicApiEndpointMapping
     public static IEndpointRouteBuilder MapClinicApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(ClinicApiRoutes.Base);
-        RouteGroupBuilder internalGroup = endpoints.MapAnonymousModuleGroup(
-            ClinicApiRoutes.Base,
-            "The internal agent tool endpoint is reachable only from the configured server-side Agents SDK runtime and authenticates every request with a signed execution credential.");
+        RouteGroupBuilder internalGroup = endpoints.MapInternalServiceModuleGroup(ClinicApiRoutes.Base);
 
         _ = group.MapModuleGet(ClinicApiRoutes.Health, () => Results.Ok(), "ClinicGetHealth");
         _ = group.MapModulePost(ClinicApiRoutes.Patients, ListPatientsAsync, "ClinicListPatients", typeof(PatientViewDto[]));
@@ -139,7 +137,7 @@ public static class ClinicApiEndpointMapping
         CancellationToken ct)
     {
         ILogger logger = loggerFactory.CreateLogger("Vitarish.Clinic.AgentRuntimeCallback");
-        string? credential = httpRequest.Headers["X-Vitarish-Agent-Credential"].FirstOrDefault();
+        string? credential = httpRequest.Headers[InternalServiceEndpointConventions.CredentialHeaderName].FirstOrDefault();
         if (request is null || request.ExecutionEnvelope is null || string.IsNullOrWhiteSpace(request.ArgumentsJson))
         {
             AssistantCallbackTelemetry.CallbackRejected(logger, "invalid_request", request?.ExecutionEnvelope?.ExecutionId ?? "", request?.ExecutionEnvelope?.AgentKey ?? "");

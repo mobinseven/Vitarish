@@ -11,6 +11,7 @@ using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.Entities;
 using Vitarish.Main.Infrastructure.Options;
+using Vitarish.Hosting.Infrastructure.Options;
 using Vitarish.Apps.Aggregator.Core;
 using Vitarish.Landing.Application;
 using Vitarish.Modules.Base.Core;
@@ -22,7 +23,8 @@ namespace Vitarish.Hosting;
 public sealed record HostingCompositionOptions(
     Action<DbContextOptionsBuilder> ConfigureDbContext,
     System.Security.Cryptography.X509Certificates.X509Certificate2 IdentityServerSigningCertificate,
-    IReadOnlyCollection<string>? AllowedCorsOrigins);
+    IReadOnlyCollection<string>? AllowedCorsOrigins,
+    SecurityConfigurationOptions SecurityConfiguration);
 
 public static class HostingComposition
 {
@@ -36,9 +38,9 @@ public static class HostingComposition
         builder.AddApplicationOptions();
         _ = builder.Services.AddOptions<LandingPlatformOptions>().Configure<IOptions<ApplicationOptions>>((landing, platform) => landing.LandingUrl = platform.Value.LandingUrl);
         builder.AddHostIdentityServer(options.ConfigureDbContext, options.IdentityServerSigningCertificate);
-        builder.AddHostAuthentication();
+        builder.AddHostAuthentication(options.SecurityConfiguration);
         builder.AddHostAuthorization();
-        builder.AddHostPipeline();
+        builder.AddHostPipeline(options.SecurityConfiguration);
         builder.AddHostCors(options.AllowedCorsOrigins);
         _ = builder.Services.AddMemoryCache();
         _ = builder.Services.AddHttpContextAccessor();
@@ -71,6 +73,7 @@ public static class HostingComposition
         _ = app.UseHsts();
         _ = app.UseHttpsRedirection();
         _ = app.UseRouting();
+        _ = app.UseInternalServiceEndpointBoundary();
         _ = app.UseCors("WebHostCors");
         app.UseHostWebSockets();
         _ = app.UseRateLimiter();

@@ -3,8 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Hosting;
 using Vitarish.E2e.Infrastructure.Fixtures;
 using Vitarish.E2e.Infrastructure.Data;
+using Vitarish.E2e.Infrastructure;
 using Vitarish.Apps.Aggregator.Core;
 using Vitarish.Clinic.Infrastructure.Data;
+using Vitarish.Hosting.Infrastructure.Options;
+using Vitarish.Modules.Base.Core.Platform.Idempotency;
 
 const string apiOriginKey = "VITARISH_E2E_API_ORIGIN";
 const string webOriginKey = "VITARISH_E2E_WEB_ORIGIN";
@@ -35,6 +38,10 @@ builder.Configuration["Vitarish:Files:AccessKey"] = "e2e-access-key";
 builder.Configuration["Vitarish:Files:SecretKey"] = "e2e-secret-key";
 builder.Configuration["Vitarish:Files:BucketName"] = "e2e";
 builder.Configuration["Vitarish:Search:Url"] = "http://localhost:3997";
+builder.Configuration["Vitarish:Security:MandatoryAuditEnabled"] = "true";
+builder.Configuration["Vitarish:Security:Tls:RequireHttps"] = "true";
+builder.Configuration["Vitarish:Security:TokenValidation:Issuer"] = apiOrigin.ToString().TrimEnd('/');
+builder.Configuration["Vitarish:Security:TokenValidation:Audiences:0"] = "vitarish-api";
 
 Dictionary<Type, string> databaseNames = [];
 void configureInMemory(DbContextOptionsBuilder options)
@@ -51,7 +58,12 @@ void configureInMemory(DbContextOptionsBuilder options)
 await builder.RegisterHosting(new HostingCompositionOptions(
     configureInMemory,
     EphemeralCertificateFactory.Create(apiOrigin.Host),
-    [webOrigin.ToString().TrimEnd('/') ]));
+    [webOrigin.ToString().TrimEnd('/') ],
+    SecurityConfigurationValidator.Validate(builder.Configuration, builder.Environment)));
+
+_ = builder.Services.AddSingleton(
+    typeof(IOperationReceiptStore<>),
+    typeof(E2eInMemoryOperationReceiptStore<>));
 
 _ = builder.Services.AddScoped<ClinicDbContext>(services =>
     new E2eClinicDbContext(

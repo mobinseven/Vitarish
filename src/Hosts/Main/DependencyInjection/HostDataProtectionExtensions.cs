@@ -3,6 +3,7 @@ using StackExchange.Redis;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using HostDataProtectionOptions = Vitarish.Main.Infrastructure.Options.DataProtectionOptions;
+using Vitarish.Hosting.Infrastructure.Options;
 
 namespace Vitarish.Main.DependencyInjection;
 
@@ -10,12 +11,16 @@ public static class HostDataProtectionExtensions
 {
     private const string ConfigSection = $"{nameof(Vitarish)}:Identity";
 
-    public static async Task AddHostDataProtection(this IServiceCollection services, IConfiguration configuration)
+    public static async Task AddHostDataProtection(this IServiceCollection services, IConfiguration configuration, SecurityConfigurationOptions security)
     {
         string domain = configuration[$"{ConfigSection}:Authority"] ?? throw new Exception($"{ConfigSection}:Authority not set");
         string pfxPassword = configuration[$"{ConfigSection}:DataProtectionPassword"] ?? throw new Exception($"{ConfigSection}:DataProtectionPassword not set");
-        HostDataProtectionOptions options = configuration.GetSection($"{ConfigSection}:DataProtection").Get<HostDataProtectionOptions>()
-            ?? throw new Exception($"{ConfigSection}:DataProtection not set");
+        HostDataProtectionOptions options = new()
+        {
+            KeyRingRedisKey = security.DataProtection.KeyRingRedisKey,
+            CertificateRedisKey = security.DataProtection.CertificateRedisKey,
+            PreviousCertificateRedisKeys = security.DataProtection.PreviousCertificateRedisKeys
+        };
         if (string.IsNullOrWhiteSpace(options.KeyRingRedisKey) || string.IsNullOrWhiteSpace(options.CertificateRedisKey))
             throw new Exception($"{ConfigSection}:DataProtection key names must be configured");
         ConnectionMultiplexer redis = await ConnectionMultiplexer.ConnectAsync(configuration.GetRedisConnectionString());
@@ -60,7 +65,7 @@ public static class HostDataProtectionExtensions
         return [.. certificates];
     }
 
-    public static Task AddHostDataProtection(this WebApplicationBuilder builder) => AddHostDataProtection(builder.Services, builder.Configuration);
+    public static Task AddHostDataProtection(this WebApplicationBuilder builder, SecurityConfigurationOptions security) => AddHostDataProtection(builder.Services, builder.Configuration, security);
 
     public static async Task<X509Certificate2> GetOrCreateFromRedisAsync(
         IConnectionMultiplexer mux,

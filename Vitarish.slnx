@@ -56,6 +56,9 @@
     <Project Path="tests/Apps/Clinic.Application.Tests/Clinic.Application.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/Hosts/Main.Tests/">
+    <Project Path="tests/Hosts/Main.Tests/Main.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/Apps/" />
   <Folder Name="/tests/Apps/Clinic.Agents.Tests/">
     <Project Path="tests/Apps/Clinic.Agents.Tests/Clinic.Agents.Tests.csproj" />

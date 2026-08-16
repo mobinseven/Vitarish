@@ -225,6 +225,14 @@ try {
   restoreNextTsconfig();
   restoreNextGeneratedFiles();
   for (const buildPath of e2eBuildPaths) {
-    if (existsSync(buildPath)) rmSync(buildPath, { recursive: true, force: true });
+    if (!existsSync(buildPath)) continue;
+    try {
+      rmSync(buildPath, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 });
+    } catch (error) {
+      // Windows can release the dotnet build lock after the child process has
+      // exited. The directory is ignored build output; preserve the passing
+      // test result and leave a diagnostic if the retry window is exhausted.
+      console.warn(`Could not remove generated E2E output ${buildPath}: ${error instanceof Error ? error.message : error}`);
+    }
   }
 }

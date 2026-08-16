@@ -28,7 +28,7 @@ public static class IntelligenceApiEndpointMapping
         _ = group.MapModulePost(IntelligenceApiRoutes.Rewrite, RewriteAsync, "IntelligenceRewrite", typeof(RewriteResult));
         _ = group.MapModulePost(IntelligenceApiRoutes.RewriteStream, StreamRewriteAsync, "IntelligenceStreamRewrite", profile: ModuleEndpointProfile.Streaming, contentType: ModuleEndpointOpenApiConventions.JsonStream);
         _ = group.MapModulePost(IntelligenceApiRoutes.AgentConversation, RunAgentConversationAsync, "IntelligenceRunAgentConversation", typeof(RunAgentConversationResponse));
-        RouteGroupBuilder internalGroup = endpoints.MapAnonymousModuleGroup(IntelligenceApiRoutes.Base, "Internal agent-runtime callbacks validate a short-lived signed credential before dispatch.");
+        RouteGroupBuilder internalGroup = endpoints.MapInternalServiceModuleGroup(IntelligenceApiRoutes.Base);
         _ = internalGroup.MapModulePost(IntelligenceApiRoutes.InternalAgentToolExecution, ExecuteAgentToolAsync, "IntelligenceExecuteInternalAgentTool", typeof(InternalAgentToolExecutionResponse), profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: "Internal agent runtime callback protected by a signed, short-lived execution credential.")
             .ExcludeFromOpenApiWithJustification("Internal agent runtime callback; not a public module API.");
         return endpoints;
@@ -39,7 +39,7 @@ public static class IntelligenceApiEndpointMapping
         HttpRequest httpRequest,
         [FromServices] IAgentRuntimeCredentialService credentials,
         [FromServices] IAgentRuntimeReplayGuard replayGuard,
-        [FromServices] IAgentRuntimeToolEndpointRegistry endpoints,
+        [FromServices] Lazy<IAgentRuntimeToolEndpointRegistry> endpoints,
         [FromServices] ILoggerFactory loggerFactory,
         CancellationToken ct)
     {
@@ -50,7 +50,7 @@ public static class IntelligenceApiEndpointMapping
             return Results.BadRequest();
         }
         AgentRuntimeExecutionEnvelope envelope = ToApplicationEnvelope(request.ExecutionEnvelope);
-        string? credential = httpRequest.Headers["X-Vitarish-Agent-Credential"].FirstOrDefault();
+        string? credential = httpRequest.Headers[InternalServiceEndpointConventions.CredentialHeaderName].FirstOrDefault();
         if (!credentials.ValidateCallback(credential ?? string.Empty, envelope))
         {
             IntelligenceAgentRuntimeTelemetry.CallbackRejected(logger, "credential_or_envelope", envelope.ExecutionId, envelope.AgentKey);
@@ -61,7 +61,7 @@ public static class IntelligenceApiEndpointMapping
             IntelligenceAgentRuntimeTelemetry.CallbackRejected(logger, "replay_or_expired", envelope.ExecutionId, envelope.AgentKey);
             return Results.Conflict();
         }
-        IAgentRuntimeToolEndpoint? endpoint = endpoints.Resolve(envelope.AgentKey);
+        IAgentRuntimeToolEndpoint? endpoint = endpoints.Value.Resolve(envelope.AgentKey);
         if (endpoint is null) return Results.NotFound();
         try
         {

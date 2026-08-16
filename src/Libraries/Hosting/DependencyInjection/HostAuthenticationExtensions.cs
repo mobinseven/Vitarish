@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Vitarish.Users.Domain.Options;
+using Vitarish.Hosting.Infrastructure.Options;
 
 public static class HostAuthenticationExtensions
 {
     private const string ConfigSection = $"{nameof(Vitarish)}:Identity";
-    public static void AddHostAuthentication(this WebApplicationBuilder builder)
+    public static void AddHostAuthentication(this WebApplicationBuilder builder, SecurityConfigurationOptions security)
     {
 
         AuthenticationBuilder authen = builder.Services
@@ -20,9 +21,12 @@ public static class HostAuthenticationExtensions
         });
         _ = authen.AddJwtBearer(jwt =>
                 {
-                    jwt.Authority = builder.Configuration[$"{ConfigSection}:Authority"];
+                    jwt.Authority = security.TokenValidation.Issuer;
                     jwt.RequireHttpsMetadata = true;
-                    jwt.TokenValidationParameters.ValidateAudience = false;
+                    jwt.TokenValidationParameters.ValidIssuer = security.TokenValidation.Issuer;
+                    jwt.TokenValidationParameters.ValidAudiences = security.TokenValidation.Audiences;
+                    jwt.TokenValidationParameters.ValidateIssuer = true;
+                    jwt.TokenValidationParameters.ValidateAudience = true;
                     jwt.TokenValidationParameters.ValidTypes = ["at+jwt"];
                 });
 
@@ -95,4 +99,3 @@ public static class HostAuthenticationExtensions
         });
     }
 }
-
