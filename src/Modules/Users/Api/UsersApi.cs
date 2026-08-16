@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Modules.Base.Core.Endpoints;
+using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Contracts.Requests;
@@ -20,25 +20,26 @@ public static class UsersApi
     public static IEndpointRouteBuilder MapUsersApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder users = endpoints.MapProtectedModuleGroup(UsersApiRoutes.Base);
-        _ = users.MapModuleGet(UsersApiRoutes.Search, SearchUsersAsync, "UsersSearchUsers", typeof(UserSummaryResponse[]));
-        _ = users.MapModuleGet(UsersApiRoutes.ById, GetUserAsync, "UsersGetUser", typeof(UserSummaryResponse));
-        _ = users.MapModuleGet(UsersApiRoutes.CheckEmail, CheckEmailAsync, "UsersCheckEmail", typeof(UserExistenceResponse));
-        _ = users.MapModuleGet(UsersApiRoutes.CheckPhone, CheckPhoneAsync, "UsersCheckPhone", typeof(UserExistenceResponse));
-        _ = users.MapModuleGet(UsersApiRoutes.CheckRole, CheckRoleAsync, "UsersCheckRole", typeof(UserRoleCheckResponse));
-        _ = users.MapModulePost(UsersApiRoutes.CreateWithPhone, CreateWithPhoneAsync, "UsersCreateWithPhone", typeof(UserSummaryResponse));
-        _ = users.MapModulePost(UsersApiRoutes.CreateWithEmail, CreateWithEmailAsync, "UsersCreateWithEmail", typeof(UserSummaryResponse));
-        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithPhone, CreateWithPhoneAsync, "UsersAdministrationCreateWithPhone", typeof(UserSummaryResponse)).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
-        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithEmail, CreateWithEmailAsync, "UsersAdministrationCreateWithEmail", typeof(UserSummaryResponse)).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
-        _ = users.MapModulePut(UsersApiRoutes.SetEmail, SetEmailAsync, "UsersSetEmail", typeof(UsersCommandResponse));
-        _ = users.MapModulePost(UsersApiRoutes.AddRole, AddRoleAsync, "UsersAddRole", typeof(UsersCommandResponse));
-        _ = users.MapModuleGet($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRoles}", ListTenantRolesAsync, "UsersAdministrationListTenantRoles", typeof(TenantRoleMembershipResponse[])).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
-        _ = users.MapModulePut($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRole}", GrantTenantRoleAsync, "UsersAdministrationGrantTenantRole", typeof(UsersCommandResponse)).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
-        _ = users.MapModuleDelete($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRole}", RevokeTenantRoleAsync, "UsersAdministrationRevokeTenantRole", typeof(UsersCommandResponse)).WithMetadata(new AuthorizeAttribute { Policy = "PlatformAdmin" });
+        _ = users.MapModuleGet(UsersApiRoutes.Search, SearchUsersAsync, "UsersSearchUsers", typeof(UserSummaryResponse[])).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModuleGet(UsersApiRoutes.ById, GetUserAsync, "UsersGetUser", typeof(UserSummaryResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModuleGet(UsersApiRoutes.CheckEmail, CheckEmailAsync, "UsersCheckEmail", typeof(UserExistenceResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModuleGet(UsersApiRoutes.CheckPhone, CheckPhoneAsync, "UsersCheckPhone", typeof(UserExistenceResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModuleGet(UsersApiRoutes.CheckRole, CheckRoleAsync, "UsersCheckRole", typeof(UserRoleCheckResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModulePost(UsersApiRoutes.CreateWithPhone, CreateWithPhoneAsync, "UsersCreateWithPhone", typeof(UserSummaryResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModulePost(UsersApiRoutes.CreateWithEmail, CreateWithEmailAsync, "UsersCreateWithEmail", typeof(UserSummaryResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithPhone, CreateWithPhoneAsync, "UsersAdministrationCreateWithPhone", typeof(UserSummaryResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithEmail, CreateWithEmailAsync, "UsersAdministrationCreateWithEmail", typeof(UserSummaryResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModulePut(UsersApiRoutes.SetEmail, SetEmailAsync, "UsersSetEmail", typeof(UsersCommandResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModulePost(UsersApiRoutes.AddRole, AddRoleAsync, "UsersAddRole", typeof(UsersCommandResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModuleGet($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRoles}", ListTenantRolesAsync, "UsersAdministrationListTenantRoles", typeof(TenantRoleMembershipResponse[])).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModulePut($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRole}", GrantTenantRoleAsync, "UsersAdministrationGrantTenantRole", typeof(UsersCommandResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModuleDelete($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRole}", RevokeTenantRoleAsync, "UsersAdministrationRevokeTenantRole", typeof(UsersCommandResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
         users.MapProfileEndpoints();
         users.MapWebAuthnEndpoints();
         users.MapPatEndpoints();
         return endpoints;
     }
+
     private static async Task<IResult> SearchUsersAsync([AsParameters] SearchUsersQueryParameters p, IUsersService service, CancellationToken ct) { if (string.IsNullOrWhiteSpace(p.Query)) { return Results.Ok(Array.Empty<UserSummaryResponse>()); } IEnumerable<User> users = await service.SearchUsersAsync(p.Query.Trim(), p.MaxResults ?? 50, ct); return Results.Ok(users.Select(ToSummary).ToArray()); }
     private static async Task<IResult> GetUserAsync(string userId, IUsersService service, CancellationToken ct) => await service.GetUserAsync(userId, ct) is { } user ? Results.Ok(ToSummary(user)) : Results.NotFound();
     private static async Task<IResult> CheckEmailAsync([AsParameters] CheckUserEmailInUseQueryParameters p, IUsersService service, CancellationToken ct) => Results.Ok(new UserExistenceResponse(await service.CheckUserEmailInUseAsync(p.Email, p.ExcludeUserId, ct)));
@@ -74,8 +75,8 @@ public static class UsersApi
         {
             bool assigned = await service.IsInRoleAsync(user, roleName, ct);
             if (assigned == grant) return Results.Ok(UsersCommandResponse.Success());
-            if (grant) await service.AddToRoleAsync(user, roleName, ct);
-            else await service.RemoveFromRoleAsync(user, roleName, ct);
+            if (grant) await service.AddToRoleAsync(user, roleSuffix, ct);
+            else await service.RemoveFromRoleAsync(user, roleSuffix, ct);
             return Results.Ok(UsersCommandResponse.Success());
         }
         catch (InvalidOperationException)

@@ -12,6 +12,11 @@ public sealed class EntitySearchPatternFactory
 
     public IReadOnlyCollection<string> CreateSearchPatterns(string search)
     {
+        return [.. CreateSearchFragments(search).Select(static fragment => $"%{EscapeLikeFragment(fragment)}%")];
+    }
+
+    public IReadOnlyCollection<string> CreateSearchFragments(string search)
+    {
         ArgumentNullException.ThrowIfNull(search);
 
         HashSet<string> fragments = new(StringComparer.Ordinal);
@@ -25,7 +30,7 @@ public sealed class EntitySearchPatternFactory
             }
         }
 
-        return [.. fragments.Select(static fragment => $"%{EscapeLikeFragment(fragment)}%")];
+        return [.. fragments];
     }
 
     private static string EscapeLikeFragment(string fragment) => fragment

@@ -11,6 +11,7 @@ public static partial class IdentityDefinitions
     public const string PlatformUser = nameof(PlatformUser);
     public const string TenantOwner = nameof(TenantOwner);
     public const string TenantUser = nameof(TenantUser);
+    public const string TenantAccess = nameof(TenantAccess);
     public const string AccessClaim = "access";
     public const string AccessScope = "access";
 }

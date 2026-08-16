@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Users.Application.Abstractions;
+using Vitarish.Users.Application.Authorization;
 using Vitarish.Users.Application.ProfileCompletion;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Options;
@@ -51,6 +52,7 @@ public static class IdentityUsersExtensions
         _ = builder.Services.AddTransient<IWebAuthnService, WebAuthnService>();
         _ = builder.Services.AddScoped<IWebAuthnCredentialLookup, WebAuthnCredentialLookup>();
         _ = builder.Services.AddScoped<IProfileCompletionPolicy, ProfileCompletionPolicy>();
+        _ = builder.Services.AddScoped<UserSubjectAccessPolicy>();
     }
 
     /// <summary>

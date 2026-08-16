@@ -8,6 +8,9 @@ using Vitarish.Apps.Aggregator.Core;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Hosting.Infrastructure.Options;
 using Vitarish.Modules.Base.Core.Platform.Idempotency;
+using Vitarish.Files.Application.Abstractions;
+using Vitarish.E2e.Infrastructure.Storage;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 const string apiOriginKey = "VITARISH_E2E_API_ORIGIN";
 const string webOriginKey = "VITARISH_E2E_WEB_ORIGIN";
@@ -31,6 +34,7 @@ if (!configuredUrls.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSpl
 builder.Configuration["Vitarish:Identity:Authority"] = apiOrigin.ToString().TrimEnd('/');
 builder.Configuration["Vitarish:LandingUrl"] = webOrigin.ToString().TrimEnd('/');
 builder.Configuration["Cors:AllowedOrigins:0"] = webOrigin.ToString().TrimEnd('/');
+builder.Configuration["Cors:AllowedOrigins:1"] = "http://tenant-b.localhost:3005";
 builder.Configuration["Vitarish:Intelligence:DefaultResponseModel"] = "e2e-test-model";
 builder.Configuration["Vitarish:Intelligence:AgentRuntime:BaseUrl"] = "http://localhost:3999";
 builder.Configuration["Vitarish:Files:Endpoint"] = "localhost:3998";
@@ -66,6 +70,7 @@ await builder.RegisterHosting(new HostingCompositionOptions(
 _ = builder.Services.AddSingleton(
     typeof(IOperationReceiptStore<>),
     typeof(E2eInMemoryOperationReceiptStore<>));
+builder.Services.Replace(ServiceDescriptor.Singleton<IObjectStorageService, E2eObjectStorageService>());
 
 _ = builder.Services.AddScoped<ClinicDbContext>(services =>
     new E2eClinicDbContext(

@@ -13,6 +13,9 @@ using Vitarish.Communications.Domain.Enums;
 using Vitarish.Communications.Infrastructure.Data;
 using Vitarish.Clinic.Domain.Models;
 using Vitarish.Clinic.Infrastructure.Data;
+using Vitarish.Files.Domain.Entities;
+using Vitarish.Files.Application.Abstractions;
+using Vitarish.Files.Infrastructure.Data;
 
 namespace Vitarish.E2e.Infrastructure.Fixtures;
 
@@ -20,6 +23,7 @@ internal static class E2eFixtureSeeder
 {
     public const string UserName = "e2e-owner";
     public const string TenantUserName = "e2e-tenant-user";
+    public const string TenantBOwnerUserName = "e2e-tenant-b-owner";
     public const string PlatformAdminUserName = "e2e-platform-admin";
     public const string PatientName = "E2E Patient";
     public const string PatientFirstName = "E2E";
@@ -46,6 +50,14 @@ internal static class E2eFixtureSeeder
             "e2e-tenant-user@example.test",
             "E2E",
             "Tenant User",
+            password);
+        User tenantBOwner = await EnsureUserAsync(
+            users,
+            TenantBOwnerUserName,
+            Guid.Parse("c65fcb80-8db3-4e2f-b3b9-1c4d7b1e0a62"),
+            "e2e-tenant-b-owner@example.test",
+            "E2E",
+            "Tenant B Owner",
             password);
         User platformAdmin = await EnsureUserAsync(
             users,
@@ -85,6 +97,33 @@ internal static class E2eFixtureSeeder
         }
 
         requestContext.SetContext("e2e", null, ownerId.ToString(), tenant.Id.ToString(), user.Id);
+
+        Guid tenantBOwnerId = Guid.Parse(tenantBOwner.Id);
+        Tenant? tenantB = await parties.Tenants.SingleOrDefaultAsync(item => item.AppId == "private-practice-owner-tenant-b", cancellationToken);
+        if (tenantB is null)
+        {
+            tenantB = new Tenant
+            {
+                Id = Guid.Parse("b2d2e4a1-2fd8-4781-8d9f-6c96f2a5e7b4"),
+                OwnerId = tenantBOwnerId,
+                Name = "E2E Clinic B",
+                AppId = "private-practice-owner-tenant-b"
+            };
+            _ = parties.Tenants.Add(tenantB);
+            _ = parties.TenantIndicators.Add(new TenantIndicator
+            {
+                Id = Guid.Parse("d88bd1d9-7dc4-4bc3-bb53-f4dd7bce0bb0"),
+                TenantId = tenantB.Id,
+                Method = IndicatorMethod.Hostname,
+                Value = "tenant-b.localhost",
+                Status = IndicatorStatus.Active,
+                IsPrimary = true
+            });
+        }
+
+        if (!await parties.Owners.AnyAsync(owner => owner.Id == tenantBOwnerId, cancellationToken))
+            _ = parties.Owners.Add(new Owner { Id = tenantBOwnerId, Name = "E2E Tenant B Owner" });
+        _ = await parties.SaveChangesAsync(cancellationToken);
 
         Guid patientId = Guid.Parse("2d7a3eb9-1d47-4c63-9a45-19d7e6a0fb18");
         ClinicDbContext clinic = scope.ServiceProvider.GetRequiredService<ClinicDbContext>();
@@ -156,6 +195,24 @@ internal static class E2eFixtureSeeder
             _ = await communications.SaveChangesAsync(cancellationToken);
         }
 
+        FilesDbContext files = scope.ServiceProvider.GetRequiredService<FilesDbContext>();
+        IObjectStorageService objectStorage = scope.ServiceProvider.GetRequiredService<IObjectStorageService>();
+        Guid fileId = Guid.Parse("4b8d1e7a-9f24-4d65-a8b1-6c0e2f5d7a91");
+        if (!await files.Set<FileInformation>().AnyAsync(file => file.Id == fileId, cancellationToken))
+        {
+            _ = files.Set<FileInformation>().Add(new FileInformation
+            {
+                Id = fileId,
+                TenantId = tenant.Id.ToString(),
+                ContentType = "text/plain",
+                Checksum = "e2e-tenant-a-file-checksum",
+                Url = "e2e/tenant-a/file.txt",
+                Metadata = "{\"size\":13}"
+            });
+            _ = await files.SaveChangesAsync(cancellationToken);
+        }
+        await EnsureObjectAsync(objectStorage, "e2e-tenant-a-file-checksum", "tenant-a-file", cancellationToken);
+
         string roleName = $"{tenant.Id}:{IdentityDefinitions.TenantOwner}";
         if (!await roles.RoleExistsAsync(roleName))
             _ = (await roles.CreateAsync(new IdentityRole(roleName))).Succeeded;
@@ -175,6 +232,104 @@ internal static class E2eFixtureSeeder
             if (!result.Succeeded)
                 throw new InvalidOperationException("E2E tenant-user role assignment failed.");
         }
+
+        string tenantBOwnerRoleName = $"{tenantB.Id}:{IdentityDefinitions.TenantOwner}";
+        if (!await roles.RoleExistsAsync(tenantBOwnerRoleName))
+            _ = (await roles.CreateAsync(new IdentityRole(tenantBOwnerRoleName))).Succeeded;
+        if (!await users.IsInRoleAsync(tenantBOwner, tenantBOwnerRoleName))
+        {
+            IdentityResult result = await users.AddToRoleAsync(tenantBOwner, tenantBOwnerRoleName);
+            if (!result.Succeeded)
+                throw new InvalidOperationException("E2E tenant-B owner role assignment failed.");
+        }
+
+        await using AsyncServiceScope tenantBScope = services.CreateAsyncScope();
+        IRequestContextWriter tenantBRequestContext = tenantBScope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
+        tenantBRequestContext.SetContext("e2e", null, tenantBOwnerId.ToString(), tenantB.Id.ToString(), tenantBOwner.Id);
+        ClinicDbContext tenantBClinic = tenantBScope.ServiceProvider.GetRequiredService<ClinicDbContext>();
+        AppointmentsDbContext tenantBAppointments = tenantBScope.ServiceProvider.GetRequiredService<AppointmentsDbContext>();
+        CommunicationsDbContext tenantBCommunications = tenantBScope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
+        Guid tenantBPatientId = Guid.Parse("f4c8109a-6f22-4a31-9ab8-48d7ad0d7e2f");
+        if (!await tenantBClinic.Set<PatientView>().AnyAsync(patient => patient.Id == tenantBPatientId, cancellationToken))
+        {
+            _ = tenantBClinic.Set<PatientView>().Add(new PatientView
+            {
+                Id = tenantBPatientId,
+                TenantId = tenantB.Id.ToString(),
+                Name = "E2E Tenant B Patient",
+                FirstName = "Tenant B",
+                LastName = "Patient",
+                IdentificationCode = "E2E-B-0001",
+                Email = "tenant-b-patient@example.test",
+                Phone = "+989000000001",
+                Template = false,
+                CreatedAt = DateTime.UtcNow
+            });
+            _ = await tenantBClinic.SaveChangesAsync(cancellationToken);
+        }
+
+        Guid tenantBShiftId = Guid.Parse("ab41d5d7-7c11-45a5-b9dc-24f9aa01f2c7");
+        if (!await tenantBAppointments.Shifts.AnyAsync(shift => shift.Id == tenantBShiftId, cancellationToken))
+        {
+            _ = tenantBAppointments.Shifts.Add(new Shift
+            {
+                Id = tenantBShiftId,
+                Status = ShiftStatus.Active,
+                Visibility = ShiftVisibility.Public,
+                DayOfWeek = dayOfWeek,
+                StartTime = new TimeOnly(11, 0),
+                EndTime = new TimeOnly(12, 0),
+                TimeZone = "Asia/Tehran",
+                TotalSeats = 3
+            });
+            _ = tenantBAppointments.Reservations.Add(new Reservation
+            {
+                Id = Guid.Parse("3a72a9a6-91cc-4ad6-8a23-04e0a0aee4c3"),
+                ShiftId = tenantBShiftId,
+                Date = today,
+                ReservingPartyId = tenantBPatientId.ToString(),
+                Status = ReservationStatus.Confirmed,
+                EstimatedSessionLength = TimeSpan.FromMinutes(60),
+                ConfirmedAt = DateTime.UtcNow
+            });
+            _ = await tenantBAppointments.SaveChangesAsync(cancellationToken);
+        }
+
+        Guid tenantBReminderId = Guid.Parse("8bb9f409-965a-4f8e-9a85-3a6fc4cc3b7e");
+        if (!await tenantBCommunications.Reminders.AnyAsync(reminder => reminder.Id == tenantBReminderId, cancellationToken))
+        {
+            _ = tenantBCommunications.Reminders.Add(new Reminder
+            {
+                Id = tenantBReminderId,
+                SourceId = tenantBPatientId,
+                SourceKind = "E2eTenantBFixture",
+                TemplatePurpose = "e2e-tenant-b-fixture",
+                Kind = ReminderKind.Email,
+                Recipient = "tenant-b-patient@example.test",
+                RecipientUserId = tenantBOwner.Id,
+                Subject = "E2E tenant B reminder",
+                TextBody = "E2E tenant B fixture reminder",
+                RemindAt = DateTime.UtcNow.AddHours(1)
+            });
+            _ = await tenantBCommunications.SaveChangesAsync(cancellationToken);
+        }
+
+        FilesDbContext tenantBFiles = tenantBScope.ServiceProvider.GetRequiredService<FilesDbContext>();
+        Guid tenantBFileId = Guid.Parse("9e2f6a41-7c35-4b8d-a0e6-1f5d9c2b7a84");
+        if (!await tenantBFiles.Set<FileInformation>().AnyAsync(file => file.Id == tenantBFileId, cancellationToken))
+        {
+            _ = tenantBFiles.Set<FileInformation>().Add(new FileInformation
+            {
+                Id = tenantBFileId,
+                TenantId = tenantB.Id.ToString(),
+                ContentType = "text/plain",
+                Checksum = "e2e-tenant-b-file-checksum",
+                Url = "e2e/tenant-b/file.txt",
+                Metadata = "{\"size\":13}"
+            });
+            _ = await tenantBFiles.SaveChangesAsync(cancellationToken);
+        }
+        await EnsureObjectAsync(objectStorage, "e2e-tenant-b-file-checksum", "tenant-b-file", cancellationToken);
 
         if (!await roles.RoleExistsAsync(IdentityDefinitions.PlatformAdmin))
             _ = (await roles.CreateAsync(new IdentityRole(IdentityDefinitions.PlatformAdmin))).Succeeded;
@@ -214,5 +369,14 @@ internal static class E2eFixtureSeeder
         if (!created.Succeeded)
             throw new InvalidOperationException($"E2E user creation failed: {string.Join(';', created.Errors.Select(error => error.Code))}");
         return user;
+    }
+
+    private static async Task EnsureObjectAsync(IObjectStorageService storage, string checksum, string content, CancellationToken cancellationToken)
+    {
+        if (await storage.ExistsAsync(checksum, cancellationToken))
+            return;
+
+        await using MemoryStream stream = new(System.Text.Encoding.UTF8.GetBytes(content), writable: false);
+        await storage.UploadAsync(checksum, "text/plain", stream, stream.Length, cancellationToken);
     }
 }
