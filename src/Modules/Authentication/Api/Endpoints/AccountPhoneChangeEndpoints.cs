@@ -5,14 +5,15 @@ using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Api.Mapping;
 using Vitarish.Authentication.Contracts.Requests;
 using Vitarish.Authentication.Contracts.Responses;
+using Vitarish.Modules.Base.Core.Endpoints;
 
 namespace Vitarish.Authentication.Api.Endpoints;
 
 public static class AccountPhoneChangeEndpoints
 {
-    public static IEndpointRouteBuilder MapAccountPhoneChangeEndpoints(this IEndpointRouteBuilder endpoints)
+    public static RouteGroupBuilder MapAccountPhoneChangeEndpoints(this RouteGroupBuilder group)
     {
-        endpoints.MapPost("/account/phone/begin", async (BeginChangePhoneRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginChangePhoneHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
+        group.MapModulePost("/account/phone/begin", async (BeginChangePhoneRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginChangePhoneHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
             string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
@@ -21,9 +22,7 @@ public static class AccountPhoneChangeEndpoints
             return r is AuthenticationResult<ChallengeResult>.Success s
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(s.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<ChallengeResult>.Failure)r).Error);
-        })
-        .RequireAuthorization()
-        .WithName("Authentication_Account_Phone_Change_Begin")
+        }, "Authentication_Account_Phone_Change_Begin", typeof(AuthenticationChallengeDto))
         .RequireRateLimiting(AuthenticationRateLimitPolicies.OtpBegin)
         .Produces<AuthenticationChallengeDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -31,18 +30,16 @@ public static class AccountPhoneChangeEndpoints
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .WithSummary("Begins phone number change.");
 
-        endpoints.MapPost("/account/phone/complete", async (CompleteChangePhoneRequest request, [Microsoft.AspNetCore.Mvc.FromServices] CompleteChangePhoneHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
+        group.MapModulePost("/account/phone/complete", async (CompleteChangePhoneRequest request, [Microsoft.AspNetCore.Mvc.FromServices] CompleteChangePhoneHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
             string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
 
             var r = await handler.Handle(new CompleteChangePhoneCommand(userId, request.ChallengeId, request.Code), ct);
             return r is AuthenticationResult<bool>.Success s && s.Value
-                ? Results.Ok(new { Succeeded = true })
+                ? Results.Ok(new AuthenticationActionResultDto(true))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<bool>.Failure)r).Error);
-        })
-        .RequireAuthorization()
-        .WithName("Authentication_Account_Phone_Change_Complete")
+        }, "Authentication_Account_Phone_Change_Complete", typeof(AuthenticationActionResultDto))
         .RequireRateLimiting(AuthenticationRateLimitPolicies.OtpComplete)
         .Produces(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -51,6 +48,6 @@ public static class AccountPhoneChangeEndpoints
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .WithSummary("Completes phone number change.");
 
-        return endpoints;
+        return group;
     }
 }

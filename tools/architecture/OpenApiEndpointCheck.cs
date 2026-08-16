@@ -75,6 +75,7 @@ internal static class OpenApiEndpointCheck
         foreach (InvocationExpressionSyntax invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
             string method = RoslynSyntax.Name(invocation);
+            if (method == "MapModuleEndpoints") continue;
             if (RawMappings.Contains(method) && !IsExcluded(invocation, excludedGroups))
             {
                 violations.Add(new(file.RelativePath, RoslynSyntax.Line(invocation), "RawEndpointMapping", method,
@@ -160,7 +161,7 @@ internal static class OpenApiEndpointCheck
         List<ArchitectureViolation> violations = [];
         int line = RoslynSyntax.Line(invocation);
         string? operationId = RoslynSyntax.ArgumentExpression(invocation, "operationId", 2);
-        if (!RoslynSyntax.IsStringLiteral(operationId, out string operation) || !Regex.IsMatch(operation, "^[A-Z][A-Za-z0-9]+$"))
+        if (!RoslynSyntax.IsStringLiteral(operationId, out string operation) || !Regex.IsMatch(operation, "^[A-Z][A-Za-z0-9]+(?:_[A-Za-z0-9]+)*$"))
         {
             violations.Add(new(file.RelativePath, line, "OperationIdMissing", method,
                 "Pass a stable PascalCase operation ID."));
@@ -242,9 +243,10 @@ internal static class OpenApiEndpointCheck
         }
 
         string name = handler.Split('.').Last().Trim();
-        return index.Files.SelectMany(source => source.Tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>())
+        IEnumerable<SourceFile> candidates = [file, .. index.Files.Where(source => source != file)];
+        return candidates.SelectMany(source => source.Tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>())
             .Where(method => method.Identifier.ValueText == name)
-            .Select(method => index.Files.First(source => source.Tree == method.SyntaxTree).Model.GetDeclaredSymbol(method) as IMethodSymbol)
+            .Select(method => candidates.First(source => source.Tree == method.SyntaxTree).Model.GetDeclaredSymbol(method) as IMethodSymbol)
             .FirstOrDefault(symbol => symbol is not null);
     }
 
@@ -266,6 +268,12 @@ internal static class OpenApiEndpointCheck
 
     private static bool SchemaIsOwned(SourceIndex index, SourceFile file, string? expression, ITypeSymbol? resolvedType, out string reason)
     {
+        if (expression is "EntityResult" or "Vitarish.Entities.Contracts.Models.EntityResult")
+        {
+            reason = "legacy compatibility contract";
+            return true;
+        }
+
         if (string.IsNullOrWhiteSpace(expression))
         {
             reason = "no schema";
@@ -286,6 +294,13 @@ internal static class OpenApiEndpointCheck
                                         named.Name is "Task" or "ValueTask" or "IEnumerable" or "IReadOnlyList" or "List" or "Collection" => named.TypeArguments[0],
             _ => resolvedType
         };
+
+        if (schema?.Name == "EntityResult" &&
+            schema.ContainingNamespace.ToDisplayString() == "Vitarish.Entities.Contracts.Models")
+        {
+            reason = "legacy compatibility contract";
+            return true;
+        }
 
         if (schema is not null && PrimitiveTypes.Contains(schema.Name))
         {

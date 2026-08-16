@@ -5,21 +5,21 @@ using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Contracts.Requests;
 using Vitarish.Authentication.Contracts.Responses;
+using Vitarish.Modules.Base.Core.Endpoints;
 
 namespace Vitarish.Authentication.Api.Endpoints;
 
 public static class PhoneLoginEndpoints
 {
-    public static IEndpointRouteBuilder MapPhoneLoginEndpoints(this IEndpointRouteBuilder endpoints)
+    public static RouteGroupBuilder MapPhoneLoginEndpoints(this RouteGroupBuilder group)
     {
-        endpoints.MapPost("/login/phone/begin", async (BeginPhoneLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginPhoneLoginHandler handler, CancellationToken ct) =>
+        group.MapModulePost("/login/phone/begin", async (BeginPhoneLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginPhoneLoginHandler handler, CancellationToken ct) =>
         {
             var r = await handler.Handle(new BeginPhoneLoginCommand(request.PhoneNumber, request.ReturnUrl), ct);
             return r is AuthenticationResult<ChallengeResult>.Success s
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(s.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<ChallengeResult>.Failure)r).Error);
-        })
-        .WithName("Authentication_Login_Phone_Begin")
+        }, "Authentication_Login_Phone_Begin", typeof(AuthenticationChallengeDto), profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: "authentication.login.phone")
         .RequireRateLimiting(AuthenticationRateLimitPolicies.OtpBegin)
         .Produces<AuthenticationChallengeDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -28,14 +28,13 @@ public static class PhoneLoginEndpoints
         .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
         .WithSummary("Begins phone login.");
 
-        endpoints.MapPost("/login/phone/complete", async (CompletePhoneLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] CompletePhoneLoginHandler handler, CancellationToken ct) =>
+        group.MapModulePost("/login/phone/complete", async (CompletePhoneLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] CompletePhoneLoginHandler handler, CancellationToken ct) =>
         {
             var r = await handler.Handle(new CompletePhoneLoginCommand(request.ChallengeId, request.Code, request.ReturnUrl), ct);
             return r is AuthenticationResult<LoginResult>.Success s
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(s.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<LoginResult>.Failure)r).Error);
-        })
-        .WithName("Authentication_Login_Phone_Complete")
+        }, "Authentication_Login_Phone_Complete", typeof(AuthenticationRedirectResultDto), profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: "authentication.login.phone")
         .RequireRateLimiting(AuthenticationRateLimitPolicies.OtpComplete)
         .Produces<AuthenticationRedirectResultDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -44,6 +43,6 @@ public static class PhoneLoginEndpoints
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .WithSummary("Completes phone login.");
 
-        return endpoints;
+        return group;
     }
 }
