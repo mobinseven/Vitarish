@@ -23,6 +23,7 @@ public static class AccountPasswordChangeEndpoints
                 ? Results.Ok(new AuthenticationActionResultDto(true))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<bool>.Failure)r).Error);
         }, "Authentication_Account_Password_Change", typeof(AuthenticationActionResultDto))
+        .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
         .Produces(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)

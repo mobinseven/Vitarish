@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Finbuckle.MultiTenant.Abstractions;
 using System.Diagnostics;
 using System.Security.Claims;
 using Vitarish.Modules.Base.Core.Identity;
@@ -189,7 +190,8 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
 
         string? resolvedClientId = http.GetClientId();
         string? resolvedOwnerId = http.GetOwnerId();
-        string? resolvedTenantId = http.GetTenantId();
+        string? resolvedTenantId = http.GetTenantId()
+            ?? http.RequestServices.GetService<IMultiTenantContextAccessor>()?.MultiTenantContext?.TenantInfo?.Id;
 
         string? resolvedUserId = AuthenticatedUserIdResolver.Resolve(user) is AuthenticatedUserIdResolution.Success resolvedUserIdResult
             ? resolvedUserIdResult.UserId.Value

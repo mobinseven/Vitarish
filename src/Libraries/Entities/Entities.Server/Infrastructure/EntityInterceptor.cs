@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.Logging;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Entities.Contracts.Models;
@@ -13,6 +14,7 @@ public sealed class EntityInterceptor(
         IEntityUserService userService,
         IEntityCacheInvalidationService cacheInvalidationService,
         IPublisher publisher,
+        ILogger<EntityInterceptor> logger,
         IAuditWriter? auditWriter = null) : SaveChangesInterceptor
 {
 
@@ -50,18 +52,23 @@ public sealed class EntityInterceptor(
 
     public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
     {
-        _ = Task.Run(async () =>
+        try
         {
-            try
-            {
-                await PublishNotificationsAsync(eventData.Context, publisher, CancellationToken.None);
-                await PersistAuditEntriesAsync(eventData.Context, auditWriter, CancellationToken.None);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to process post-save events: {ex.Message}");
-            }
-        });
+            PublishNotificationsAsync(eventData.Context, publisher, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Post-commit entity notifications could not be published.");
+        }
+
+        try
+        {
+            PersistAuditEntriesAsync(eventData.Context, auditWriter, CancellationToken.None).GetAwaiter().GetResult();
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Post-commit entity audit entries could not be persisted.");
+        }
 
         return base.SavedChanges(eventData, result);
     }
@@ -71,8 +78,24 @@ public sealed class EntityInterceptor(
         int result,
         CancellationToken cancellationToken = default)
     {
-        await PublishNotificationsAsync(eventData.Context, publisher, cancellationToken);
-        await PersistAuditEntriesAsync(eventData.Context, auditWriter, cancellationToken);
+        try
+        {
+            await PublishNotificationsAsync(eventData.Context, publisher, CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Post-commit entity notifications could not be published.");
+        }
+
+        try
+        {
+            await PersistAuditEntriesAsync(eventData.Context, auditWriter, CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Post-commit entity audit entries could not be persisted.");
+        }
+
         return await base.SavedChangesAsync(eventData, result, cancellationToken);
     }
 

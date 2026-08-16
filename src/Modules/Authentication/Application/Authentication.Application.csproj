@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\Domain\Authentication.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
+    <ProjectReference Include="..\..\..\Libraries\Audit\Audit.Domain\Audit.Domain.csproj" />
+    <ProjectReference Include="..\..\Requests\Application\Requests.Application.csproj" />
   </ItemGroup>
 </Project>

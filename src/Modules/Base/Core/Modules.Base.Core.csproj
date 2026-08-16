@@ -8,6 +8,8 @@
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\..\..\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
+	  <ProjectReference Include="..\..\..\Libraries\Audit\Audit.Domain\Audit.Domain.csproj" />
 	  <ProjectReference Include="..\..\Requests\Application\Requests.Application.csproj" />
 	  <ProjectReference Include="..\..\Users\Contracts\Users.Contracts.csproj" />
 	</ItemGroup>

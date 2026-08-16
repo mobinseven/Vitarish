@@ -13,7 +13,9 @@ public static class AntiforgeryEndpoints
         {
             AntiforgeryTokenSet tokens = antiforgery.GetAndStoreTokens(context);
             return Results.Ok(new AntiforgeryTokenDto(tokens.RequestToken, "X-XSRF-TOKEN"));
-        }, "Authentication_Antiforgery_Get", typeof(AntiforgeryTokenDto))
+        }, "Authentication_Antiforgery_Get", typeof(AntiforgeryTokenDto),
+            profile: ModuleEndpointProfile.AnonymousJson,
+            anonymousJustification: "authentication.antiforgery-bootstrap")
         .Produces<AntiforgeryTokenDto>(StatusCodes.Status200OK)
         .WithSummary("Gets an antiforgery request token.");
 

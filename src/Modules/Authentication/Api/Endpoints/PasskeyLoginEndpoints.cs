@@ -20,6 +20,7 @@ public static class PasskeyLoginEndpoints
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(s.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<ChallengeResult>.Failure)r).Error);
         }, "Authentication_Login_Passkey_Begin", typeof(AuthenticationChallengeDto), profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: "authentication.login.passkey")
+        .WithMetadata(new SecurityAuditRequiredMetadata())
         .RequireRateLimiting(AuthenticationRateLimitPolicies.Passkey)
         .Produces<AuthenticationChallengeDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -34,6 +35,7 @@ public static class PasskeyLoginEndpoints
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(s.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<LoginResult>.Failure)r).Error);
         }, "Authentication_Login_Passkey_Complete", typeof(AuthenticationRedirectResultDto), profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: "authentication.login.passkey")
+        .WithMetadata(new SecurityAuditRequiredMetadata())
         .RequireRateLimiting(AuthenticationRateLimitPolicies.Passkey)
         .Produces<AuthenticationRedirectResultDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)

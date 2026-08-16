@@ -15,6 +15,7 @@ namespace Vitarish.Users.Infrastructure.Extensions;
 /// </summary>
 public static class WebAuthnEndpointRouteBuilderExtensions
 {
+    private const string UpdateCredentialOperationId = "WebAuthnUpdateCredential";
     private const int MaxFriendlyNameLength = 200;
 
     /// <summary>
@@ -64,6 +65,11 @@ public static class WebAuthnEndpointRouteBuilderExtensions
 
             return Results.Ok();
         })
+        .WithMetadata(new ModuleEndpointOpenApiConvention(
+            UpdateCredentialOperationId,
+            StatusCodes.Status200OK,
+            Profile: ModuleEndpointProfile.ProtectedJson))
+        .AddEndpointFilter<SecurityAuditEndpointFilter>()
         .RequireAuthorization()
         .ExcludeFromOpenApiWithJustification("Infrastructure-owned WebAuthn credential management is bound to authenticated account UI behavior and is not part of module contract OpenAPI.");
 
