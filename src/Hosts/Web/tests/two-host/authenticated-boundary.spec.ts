@@ -35,6 +35,7 @@ async function postJson(page: Page, path: string, body: unknown) {
       headers: {
         "Content-Type": "application/json",
         "X-Vitarish-Tenant-Host": window.location.host,
+        "X-Request-Id": `e2e-${crypto.randomUUID()}`,
         [antiforgery.headerName]: antiforgery.requestToken,
       },
       body: JSON.stringify(requestBody),
@@ -152,7 +153,10 @@ test("allows intentional anonymous operations to reach their owning boundary", a
 
   const emailLoginBegin = await request.post(`${apiOrigin}/api/modules/authentication/login/email/begin`, {
     data: {},
-    headers: { "X-Vitarish-Tenant-Host": "localhost" },
+    headers: {
+      "X-Vitarish-Tenant-Host": "localhost",
+      "X-Request-Id": "authorization-matrix-email-login",
+    },
     ignoreHTTPSErrors: true,
   });
   expect(emailLoginBegin.status()).toBe(400);
