@@ -29,7 +29,7 @@ public static class AppointmentsApiEndpointMapping
                     DateFrom = request.From,
                     DateTo = request.To
                 }, ct)),
-            "AppointmentsListBookableDates", typeof(ShiftReservationReadDto[]));
+            "AppointmentsListBookableDates", typeof(Vitarish.Appointments.Contracts.Dto.ShiftReservationReadDto[]));
 
         _ = group.MapModulePost(AppointmentsApiRoutes.BookableSlots,
             async (BookableSlotQueryRequest request, IShiftBookableDateQueryService query, CancellationToken ct) =>
@@ -38,18 +38,18 @@ public static class AppointmentsApiEndpointMapping
                     DateFrom = request.Date,
                     DateTo = request.Date
                 }, ct)),
-            "AppointmentsListBookableSlots", typeof(BookableShiftSlot[]));
+            "AppointmentsListBookableSlots", typeof(Vitarish.Appointments.Contracts.Dto.BookableShiftSlot[]));
 
         // Reservations endpoints
         _ = group.MapModulePost(AppointmentsApiRoutes.Reservations,
             async (ListReservationsRequest request, IReservationManager m, CancellationToken ct) =>
                 OkList((await m.GetListAsync(request.Descriptor.ToDomain(), ct)).Value?.Select(r => r.ToContract()) ?? []),
-            "AppointmentsListReservations", typeof(ReservationReadDto[]));
+            "AppointmentsListReservations", typeof(Vitarish.Appointments.Contracts.Dto.ReservationReadDto[]));
 
         _ = group.MapModuleGet(AppointmentsApiRoutes.ReservationById,
             async (Guid id, IReservationManager m, CancellationToken ct) =>
                 Maybe((await m.GetAsync(id, ct)).Value?.ToContract()),
-            "AppointmentsGetReservation", typeof(ReservationReadDto));
+            "AppointmentsGetReservation", typeof(Vitarish.Appointments.Contracts.Dto.ReservationReadDto));
 
         _ = group.MapModulePost(AppointmentsApiRoutes.Reservations + "/create",
             async (CreateReservationRequest request, IReservationManager m, CancellationToken ct) =>
@@ -80,12 +80,12 @@ public static class AppointmentsApiEndpointMapping
         _ = group.MapModulePost(AppointmentsApiRoutes.Shifts,
             async (ListShiftsRequest request, IShiftManager m, CancellationToken ct) =>
                 OkList((await m.GetListAsync(request.Descriptor.ToDomain(), ct)).Value?.Select(s => s.ToContract()) ?? []),
-            "AppointmentsListShifts", typeof(ShiftReadDto[]));
+            "AppointmentsListShifts", typeof(Vitarish.Appointments.Contracts.Dto.ShiftReadDto[]));
 
         _ = group.MapModuleGet(AppointmentsApiRoutes.ShiftById,
             async (Guid id, IShiftManager m, CancellationToken ct) =>
                 Maybe((await m.GetAsync(id, ct)).Value?.ToContract()),
-            "AppointmentsGetShift", typeof(ShiftReadDto));
+            "AppointmentsGetShift", typeof(Vitarish.Appointments.Contracts.Dto.ShiftReadDto));
 
         _ = group.MapModulePost(AppointmentsApiRoutes.Shifts + "/create",
             async (ShiftWriteRequest request, IShiftManager m, CancellationToken ct) =>
@@ -111,12 +111,12 @@ public static class AppointmentsApiEndpointMapping
         _ = group.MapModulePost(AppointmentsApiRoutes.Services,
             async (ListServicesRequest request, IServiceManager m, CancellationToken ct) =>
                 OkList((await m.GetListAsync(request.Descriptor.ToDomain(), ct)).Value?.Select(s => s.ToContract()) ?? []),
-            "AppointmentsListServices", typeof(ServiceReadDto[]));
+            "AppointmentsListServices", typeof(Vitarish.Appointments.Contracts.Dto.ServiceReadDto[]));
 
         _ = group.MapModuleGet(AppointmentsApiRoutes.ServiceById,
             async (Guid id, IServiceManager m, CancellationToken ct) =>
                 Maybe((await m.GetAsync(id, ct)).Value?.ToContract()),
-            "AppointmentsGetService", typeof(ServiceReadDto));
+            "AppointmentsGetService", typeof(Vitarish.Appointments.Contracts.Dto.ServiceReadDto));
 
         _ = group.MapModulePost(AppointmentsApiRoutes.Services + "/create",
             async (ServiceWriteRequest request, IServiceManager m, CancellationToken ct) =>
@@ -137,12 +137,12 @@ public static class AppointmentsApiEndpointMapping
         _ = group.MapModulePost(AppointmentsApiRoutes.ServiceTypes,
             async (ListServiceTypesRequest request, IServiceTypeManager m, CancellationToken ct) =>
                 OkList((await m.GetListAsync(request.Descriptor.ToDomain(), ct)).Value?.Select(s => s.ToContract()) ?? []),
-            "AppointmentsListServiceTypes", typeof(ServiceTypeReadDto[]));
+            "AppointmentsListServiceTypes", typeof(Vitarish.Appointments.Contracts.Dto.ServiceTypeReadDto[]));
 
         _ = group.MapModuleGet(AppointmentsApiRoutes.ServiceTypeById,
             async (Guid id, IServiceTypeManager m, CancellationToken ct) =>
                 Maybe((await m.GetAsync(id, ct)).Value?.ToContract()),
-            "AppointmentsGetServiceType", typeof(ServiceTypeReadDto));
+            "AppointmentsGetServiceType", typeof(Vitarish.Appointments.Contracts.Dto.ServiceTypeReadDto));
 
         _ = group.MapModulePost(AppointmentsApiRoutes.ServiceTypes + "/create",
             async (ServiceTypeWriteRequest request, IServiceTypeManager m, CancellationToken ct) =>
@@ -163,12 +163,12 @@ public static class AppointmentsApiEndpointMapping
         _ = group.MapModulePost(AppointmentsApiRoutes.ServiceProviders,
             async (ListServiceProvidersRequest request, IServiceProviderManager m, CancellationToken ct) =>
                 OkList((await m.GetListAsync(request.Descriptor.ToDomain(), ct)).Value?.Select(s => s.ToContract()) ?? []),
-            "AppointmentsListServiceProviders", typeof(ServiceProviderReadDto[]));
+            "AppointmentsListServiceProviders", typeof(Vitarish.Appointments.Contracts.Dto.ServiceProviderReadDto[]));
 
         _ = group.MapModuleGet(AppointmentsApiRoutes.ServiceProviderById,
             async (Guid id, IServiceProviderManager m, CancellationToken ct) =>
                 Maybe((await m.GetAsync(id, ct)).Value?.ToContract()),
-            "AppointmentsGetServiceProvider", typeof(ServiceProviderReadDto));
+            "AppointmentsGetServiceProvider", typeof(Vitarish.Appointments.Contracts.Dto.ServiceProviderReadDto));
 
         _ = group.MapModulePost(AppointmentsApiRoutes.ServiceProviders + "/create",
             async (ServiceProviderWriteRequest request, IServiceProviderManager m, CancellationToken ct) =>
@@ -199,12 +199,12 @@ public static class AppointmentsApiEndpointMapping
         _ = group.MapModulePost(AppointmentsApiRoutes.ReminderPolicies,
             async (ShiftReminderPolicyDescriptorDto descriptor, IShiftReminderPolicyManager m, CancellationToken ct) =>
                 OkList((await m.GetListAsync(descriptor.ToDomain(), ct)).Value?.Select(p => p.ToContract()) ?? []),
-            "AppointmentsListReminderPolicies", typeof(ShiftReminderPolicyReadDto[]));
+            "AppointmentsListReminderPolicies", typeof(Vitarish.Appointments.Contracts.Dto.ShiftReminderPolicyReadDto[]));
 
         _ = group.MapModuleGet(AppointmentsApiRoutes.ReminderPolicyById,
             async (Guid id, IShiftReminderPolicyManager m, CancellationToken ct) =>
                 Maybe((await m.GetAsync(id, ct)).Value?.ToContract()),
-            "AppointmentsGetReminderPolicy", typeof(ShiftReminderPolicyReadDto));
+            "AppointmentsGetReminderPolicy", typeof(Vitarish.Appointments.Contracts.Dto.ShiftReminderPolicyReadDto));
 
         _ = group.MapModulePost(AppointmentsApiRoutes.ReminderPolicies + "/create",
             async (ShiftReminderPolicyWriteRequest request, IShiftReminderPolicyManager m, CancellationToken ct) =>
@@ -225,12 +225,12 @@ public static class AppointmentsApiEndpointMapping
         _ = group.MapModulePost(AppointmentsApiRoutes.BookingPolicies,
             async (ShiftBookingPolicyDescriptorDto descriptor, IShiftBookingPolicyManager m, CancellationToken ct) =>
                 OkList((await m.GetListAsync(descriptor.ToDomain(), ct)).Value?.Select(p => p.ToContract()) ?? []),
-            "AppointmentsListBookingPolicies", typeof(ShiftBookingPolicyReadDto[]));
+            "AppointmentsListBookingPolicies", typeof(Vitarish.Appointments.Contracts.Dto.ShiftBookingPolicyReadDto[]));
 
         _ = group.MapModuleGet(AppointmentsApiRoutes.BookingPolicyById,
             async (Guid id, IShiftBookingPolicyManager m, CancellationToken ct) =>
                 Maybe((await m.GetAsync(id, ct)).Value?.ToContract()),
-            "AppointmentsGetBookingPolicy", typeof(ShiftBookingPolicyReadDto));
+            "AppointmentsGetBookingPolicy", typeof(Vitarish.Appointments.Contracts.Dto.ShiftBookingPolicyReadDto));
 
         _ = group.MapModulePost(AppointmentsApiRoutes.BookingPolicies + "/create",
             async (ShiftBookingPolicyWriteRequest request, IShiftBookingPolicyManager m, CancellationToken ct) =>

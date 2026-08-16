@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Routing;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Contracts.Responses;
+using Vitarish.Users.Contracts.Requests;
 using Vitarish.Users.Contracts.Routes;
 
 namespace Vitarish.Users.Api.Endpoints;
@@ -41,7 +42,3 @@ public static class PatEndpoints
         return Results.Ok(true);
     }
 }
-
-public sealed record CreatePatRequest(int? LifetimeDays = null, IEnumerable<string>? Scopes = null);
-public sealed record PatCreateResponse(string Token);
-public sealed record PatListResponse(IReadOnlyCollection<string> Tokens);

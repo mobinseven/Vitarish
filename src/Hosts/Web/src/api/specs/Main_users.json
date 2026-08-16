@@ -1364,7 +1364,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/WebAuthnCredentialDto"
+                    "$ref": "#/components/schemas/WebAuthnCredentialResponse"
                   }
                 }
               }
@@ -2321,7 +2321,14 @@
           }
         }
       },
-      "WebAuthnCredentialDto": {
+      "WebAuthnCredentialResponse": {
+        "required": [
+          "id",
+          "friendlyName",
+          "registeredAt",
+          "lastUsedAt",
+          "transports"
+        ],
         "type": "object",
         "properties": {
           "id": {
