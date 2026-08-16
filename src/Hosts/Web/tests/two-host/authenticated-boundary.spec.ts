@@ -59,6 +59,34 @@ async function postJson(page: Page, path: string, body: unknown) {
   }, { apiOrigin, path, body });
 }
 
+async function putJson(page: Page, path: string, body: unknown) {
+  return page.evaluate(async ({ apiOrigin: origin, path: requestPath, body: requestBody }) => {
+    const antiforgeryResponse = await fetch(`${origin}/api/modules/authentication/antiforgery`, {
+      credentials: "include",
+      headers: { "X-Vitarish-Tenant-Host": window.location.host },
+    });
+    const antiforgery = await antiforgeryResponse.json() as { headerName: string; requestToken: string };
+    const response = await fetch(`${origin}${requestPath}`, {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Vitarish-Tenant-Host": window.location.host,
+        "X-Request-Id": `e2e-${crypto.randomUUID()}`,
+        [antiforgery.headerName]: antiforgery.requestToken,
+      },
+      body: JSON.stringify(requestBody),
+    });
+    let responseBody: unknown = null;
+    try {
+      responseBody = await response.json();
+    } catch {
+      // Non-JSON responses are still represented by their status below.
+    }
+    return { status: response.status, body: responseBody };
+  }, { apiOrigin, path, body });
+}
+
 async function fetchText(page: Page, path: string) {
   return page.evaluate(async ({ apiOrigin: origin, path: requestPath }) => {
     const response = await fetch(`${origin}${requestPath}`, {
@@ -408,31 +436,45 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
 
   const adminContext = await page.context().browser()!.newContext();
   const adminPage = await adminContext.newPage();
-  await login(adminPage, platformAdminUsername, tenantBOrigin);
-  const revoke = await deleteJson(
-    adminPage,
-    `/api/modules/users/administration/${encodeURIComponent(tenantBOwnerUserId)}/tenant-roles/${tenantBId}/TenantOwner`,
-    { roleSuffix: "TenantOwner" },
-  );
-  expect(revoke.status).toBe(200);
+  let tenantBRoleRevoked = false;
+  try {
+    await login(adminPage, platformAdminUsername);
+    const revoke = await deleteJson(
+      adminPage,
+      `/api/modules/users/administration/${encodeURIComponent(tenantBOwnerUserId)}/tenant-roles/${tenantBId}/TenantOwner`,
+      { roleSuffix: "TenantOwner" },
+    );
+    tenantBRoleRevoked = revoke.status === 200;
+    expect(revoke.status).toBe(200);
 
-  const staleClaimDetails = await fetchJson(tenantBPage, `/api/modules/clinic/patients/${tenantBPatientId}`);
-  expect(staleClaimDetails.status).toBe(403);
-  const adminTenant = await fetchJson(adminPage, `/api/modules/parties/administration/tenants/${tenantBId}`);
-  expect(adminTenant.status).toBe(200);
-  expect(adminTenant.body).toMatchObject({ id: tenantBId, name: "E2E Clinic B" });
-  const adminTenantB = await fetchJson(adminPage, `/api/modules/clinic/patients/${tenantBPatientId}`);
-  await adminPage.goto("http://localhost:3005", { waitUntil: "domcontentloaded" });
-  const adminTenantAPage = await adminContext.newPage();
-  await adminTenantAPage.goto("http://localhost:3005", { waitUntil: "domcontentloaded" });
-  const adminTenantA = await fetchJson(adminTenantAPage, `/api/modules/clinic/patients/${tenantAPatientId}`);
-  expect(adminTenantA.status).toBe(200);
-  expect(adminTenantB.status).toBe(200);
-  await adminTenantAPage.close();
-  await adminPage.close();
-  await adminContext.close();
-  await tenantBPage.close();
-  await tenantBContext.close();
+    const staleClaimDetails = await fetchJson(tenantBPage, `/api/modules/clinic/patients/${tenantBPatientId}`);
+    expect(staleClaimDetails.status).toBe(403);
+    const adminTenant = await fetchJson(adminPage, `/api/modules/parties/administration/tenants/${tenantBId}`);
+    expect(adminTenant.status).toBe(200);
+    expect(adminTenant.body).toMatchObject({ id: tenantBId, name: "E2E Clinic B" });
+    await adminPage.goto(tenantBOrigin, { waitUntil: "domcontentloaded" });
+    const adminTenantB = await fetchJson(adminPage, `/api/modules/clinic/patients/${tenantBPatientId}`);
+    await adminPage.goto("http://localhost:3005", { waitUntil: "domcontentloaded" });
+    const adminTenantAPage = await adminContext.newPage();
+    await adminTenantAPage.goto("http://localhost:3005", { waitUntil: "domcontentloaded" });
+    const adminTenantA = await fetchJson(adminTenantAPage, `/api/modules/clinic/patients/${tenantAPatientId}`);
+    expect(adminTenantA.status).toBe(200);
+    expect(adminTenantB.status).toBe(200);
+    await adminTenantAPage.close();
+  } finally {
+    if (tenantBRoleRevoked) {
+      const restore = await putJson(
+        adminPage,
+        `/api/modules/users/administration/${encodeURIComponent(tenantBOwnerUserId)}/tenant-roles/${tenantBId}/TenantOwner`,
+        { roleSuffix: "TenantOwner" },
+      );
+      expect(restore.status).toBe(200);
+    }
+    await adminPage.close();
+    await adminContext.close();
+    await tenantBPage.close();
+    await tenantBContext.close();
+  }
 });
 
 test("enforces platform-admin authorization through the API", async ({ page }) => {

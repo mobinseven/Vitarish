@@ -10,7 +10,7 @@ public static class JourneyApiServiceCollectionExtensions
 {
     public static IEndpointRouteBuilder MapJourneyEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(JourneyRoutes.BasePath);
+        RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(JourneyRoutes.BasePath, requireTenantAccess: false);
         group.MapCurrentJourneyEndpoints();
         return endpoints;
     }

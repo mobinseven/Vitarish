@@ -31,4 +31,6 @@ public interface IUsersService : IUserStore<User>, IUserSecurityStampStore<User>
     Task<IEnumerable<User>> GetUsersByIdentificationCodeAsync(string identificationCode, CancellationToken ct = default);
     Task<IEnumerable<User>> SearchUsersAsync(string query, int maxResults, CancellationToken ct = default);
     Task<bool> CheckUserRoleAsync(string userId, string roleName, CancellationToken ct = default);
+    Task AddToTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken ct = default);
+    Task RemoveFromTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken ct = default);
 }

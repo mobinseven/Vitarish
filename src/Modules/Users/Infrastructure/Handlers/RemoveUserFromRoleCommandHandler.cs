@@ -16,7 +16,7 @@ internal sealed class RemoveUserFromRoleCommandHandler(
         RemoveUserFromRoleCommand request,
         CancellationToken cancellationToken)
     {
-        string roleName = RoleForTenant(request.RoleName);
+        string roleName = RoleForTenant(request.RoleName, request.TenantId);
 
         var role = await dbContext.Roles
             .Where(r => r.Name == roleName)
@@ -50,8 +50,8 @@ internal sealed class RemoveUserFromRoleCommandHandler(
         return IdentityResult.Success;
     }
 
-    private string RoleForTenant(string roleName) =>
-        string.IsNullOrWhiteSpace(requestContext.TenantId)
+    private string RoleForTenant(string roleName, Guid? tenantId) =>
+        string.IsNullOrWhiteSpace(tenantId?.ToString() ?? requestContext.TenantId)
             ? roleName
-            : $"{requestContext.TenantId}:{roleName}";
+            : $"{tenantId?.ToString() ?? requestContext.TenantId}:{roleName}";
 }

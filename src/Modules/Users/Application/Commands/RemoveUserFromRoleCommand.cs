@@ -5,7 +5,7 @@ using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Users.Application.Commands;
 
-public record RemoveUserFromRoleCommand(User User, string RoleName) : IRequest<IdentityResult>;
+public record RemoveUserFromRoleCommand(User User, string RoleName, Guid? TenantId = null) : IRequest<IdentityResult>;
 
 public sealed class RemoveUserFromRoleCommandValidator : AbstractValidator<RemoveUserFromRoleCommand>
 {

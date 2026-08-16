@@ -19,7 +19,7 @@ public static class UsersApi
 {
     public static IEndpointRouteBuilder MapUsersApi(this IEndpointRouteBuilder endpoints)
     {
-        RouteGroupBuilder users = endpoints.MapProtectedModuleGroup(UsersApiRoutes.Base);
+        RouteGroupBuilder users = endpoints.MapProtectedModuleGroup(UsersApiRoutes.Base, requireTenantAccess: false);
         _ = users.MapModuleGet(UsersApiRoutes.Search, SearchUsersAsync, "UsersSearchUsers", typeof(UserSummaryResponse[])).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
         _ = users.MapModuleGet(UsersApiRoutes.ById, GetUserAsync, "UsersGetUser", typeof(UserSummaryResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
         _ = users.MapModuleGet(UsersApiRoutes.CheckEmail, CheckEmailAsync, "UsersCheckEmail", typeof(UserExistenceResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
@@ -75,8 +75,8 @@ public static class UsersApi
         {
             bool assigned = await service.IsInRoleAsync(user, roleName, ct);
             if (assigned == grant) return Results.Ok(UsersCommandResponse.Success());
-            if (grant) await service.AddToRoleAsync(user, roleSuffix, ct);
-            else await service.RemoveFromRoleAsync(user, roleSuffix, ct);
+            if (grant) await service.AddToTenantRoleAsync(user, roleSuffix, tenantId, ct);
+            else await service.RemoveFromTenantRoleAsync(user, roleSuffix, tenantId, ct);
             return Results.Ok(UsersCommandResponse.Success());
         }
         catch (InvalidOperationException)
