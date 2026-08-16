@@ -21,6 +21,7 @@ public static class PasswordLoginEndpoints
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(s.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<LoginResult>.Failure)r).Error);
         }, "Authentication_Login_Password", typeof(AuthenticationRedirectResultDto), profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: "authentication.login.password")
+        .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
         .RequireRateLimiting(AuthenticationRateLimitPolicies.PasswordLogin)
         .Produces<AuthenticationRedirectResultDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)

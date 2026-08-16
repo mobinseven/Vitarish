@@ -4,9 +4,12 @@ using Vitarish.Audit.Domain;
 
 namespace Vitarish.Audit.Server;
 
-internal sealed class AuditQueryService(AuditDbContext dbContext) : IAuditQueryService
+internal sealed class AuditQueryService(AuditDbContext dbContext, Vitarish.Requests.Application.Abstractions.IRequestContext requestContext) : IAuditQueryService
 {
-    public async Task<IReadOnlyList<AuditEntryReadDto>> GetByEntityAsync(string entityType, Guid entityId, CancellationToken cancellationToken) => await dbContext.AuditEntries
+    public async Task<IReadOnlyList<AuditEntryReadDto>> GetByEntityAsync(string entityType, Guid entityId, CancellationToken cancellationToken)
+    {
+        AuditAccessAuthorization.DemandReviewAccess(requestContext);
+        return await dbContext.AuditEntries
             .AsNoTracking()
             .Where(e => e.EntityType == entityType && e.EntityId == entityId)
             .OrderByDescending(e => e.OccurredAt)
@@ -23,8 +26,12 @@ internal sealed class AuditQueryService(AuditDbContext dbContext) : IAuditQueryS
                 TenantId = e.TenantId
             })
             .ToListAsync(cancellationToken);
+    }
 
-    public async Task<IReadOnlyList<AuditEntryReadDto>> GetByActorAsync(string actorId, CancellationToken cancellationToken) => await dbContext.AuditEntries
+    public async Task<IReadOnlyList<AuditEntryReadDto>> GetByActorAsync(string actorId, CancellationToken cancellationToken)
+    {
+        AuditAccessAuthorization.DemandReviewAccess(requestContext);
+        return await dbContext.AuditEntries
             .AsNoTracking()
             .Where(e => e.ActorId == actorId)
             .OrderByDescending(e => e.OccurredAt)
@@ -41,4 +48,5 @@ internal sealed class AuditQueryService(AuditDbContext dbContext) : IAuditQueryS
                 TenantId = e.TenantId
             })
             .ToListAsync(cancellationToken);
+    }
 }

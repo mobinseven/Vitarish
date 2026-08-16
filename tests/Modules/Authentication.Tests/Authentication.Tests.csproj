@@ -15,6 +15,9 @@
     <ProjectReference Include="..\..\..\src\Modules\Authentication\Api\Authentication.Api.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Authentication\Infrastructure\Authentication.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Journey\Application\Journey.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Libraries\Audit\Audit.Domain\Audit.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Requests\Application\Requests.Application.csproj" />
   </ItemGroup>
 
 </Project>

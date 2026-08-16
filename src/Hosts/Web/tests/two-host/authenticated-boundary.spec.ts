@@ -130,6 +130,43 @@ test("rejects direct anonymous calls to protected APIs", async ({ request }) => 
   expect(response.status()).toBe(401);
 });
 
+// authorization-matrix:intentional-anonymous
+test("allows intentional anonymous operations to reach their owning boundary", async ({ request }) => {
+  const response = await request.get(`${apiOrigin}/api/modules/authentication/antiforgery`, {
+    headers: { "X-Vitarish-Tenant-Host": "app.localhost" },
+    ignoreHTTPSErrors: true,
+  });
+
+  expect(response.status()).toBe(200);
+  await expect(response.json()).resolves.toMatchObject({
+    headerName: "X-XSRF-TOKEN",
+    requestToken: expect.any(String),
+  });
+
+  const contact = await request.post(`${apiOrigin}/communications/contact-inquiries`, {
+    data: {},
+    headers: { "X-Vitarish-Tenant-Host": "app.localhost" },
+    ignoreHTTPSErrors: true,
+  });
+  expect(contact.status()).toBe(400);
+
+  const emailLoginBegin = await request.post(`${apiOrigin}/api/modules/authentication/login/email/begin`, {
+    data: {},
+    headers: { "X-Vitarish-Tenant-Host": "localhost" },
+    ignoreHTTPSErrors: true,
+  });
+  expect(emailLoginBegin.status()).toBe(400);
+
+  const challenge = "authorization-matrix-proof";
+  const social = await request.get(`${apiOrigin}/webhooks/social/instagram?hub.challenge=${challenge}`, {
+    headers: { "X-Vitarish-Tenant-Host": "app.localhost" },
+    ignoreHTTPSErrors: true,
+  });
+  expect(social.status()).toBe(200);
+  expect(await social.text()).toBe(challenge);
+});
+
+// authorization-matrix:main-module-boundary
 test("enforces tenant-user and tenant-owner authorization through the API", async ({ page }) => {
   await login(page, tenantUserUsername);
   const session = await fetchJson(page, "/api/modules/authentication/session");

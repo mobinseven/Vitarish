@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace Vitarish.Modules.Base.Core.Endpoints;
@@ -31,6 +32,11 @@ public static class ModuleEndpointMappingExtensions
             and not ModuleEndpointProfile.AnonymousJson)
         {
             _ = builder.WithMetadata(new ModuleEndpointAntiforgeryMetadata());
+        }
+
+        if (convention.Profile is not ModuleEndpointProfile.AnonymousWebhook)
+        {
+            _ = builder.AddEndpointFilter<SecurityAuditEndpointFilter>();
         }
 
         return builder;

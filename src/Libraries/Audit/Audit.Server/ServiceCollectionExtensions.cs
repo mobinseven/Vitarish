@@ -15,6 +15,8 @@ public static class ServiceCollectionExtensions
 
         _ = services.AddTransient<IAuditWriter, AuditWriter>();
         _ = services.AddTransient<IAuditQueryService, AuditQueryService>();
+        _ = services.AddTransient<ISecurityAuditWriter, SecurityAuditWriter>();
+        _ = services.AddTransient<ISecurityAuditQueryService, SecurityAuditQueryService>();
 
         return services;
     }

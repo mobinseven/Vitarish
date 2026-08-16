@@ -50,18 +50,8 @@ public sealed class EntityInterceptor(
 
     public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
     {
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await PublishNotificationsAsync(eventData.Context, publisher, CancellationToken.None);
-                await PersistAuditEntriesAsync(eventData.Context, auditWriter, CancellationToken.None);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to process post-save events: {ex.Message}");
-            }
-        });
+        PublishNotificationsAsync(eventData.Context, publisher, CancellationToken.None).GetAwaiter().GetResult();
+        PersistAuditEntriesAsync(eventData.Context, auditWriter, CancellationToken.None).GetAwaiter().GetResult();
 
         return base.SavedChanges(eventData, result);
     }

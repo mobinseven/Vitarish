@@ -85,6 +85,9 @@
     <Project Path="src/Libraries/Entities/Entities.Generators/Entities.Generators.csproj" />
     <Project Path="src/Libraries/Entities/Entities.Server/Entities.Server.csproj" />
   </Folder>
+  <Folder Name="/tests/Libraries/">
+    <Project Path="tests/Libraries/Audit.Tests/Audit.Tests.csproj" />
+  </Folder>
   <Folder Name="/src/Libraries/Hosting/">
     <Project Path="src/Libraries/Hosting/Hosting.csproj" />
   </Folder>

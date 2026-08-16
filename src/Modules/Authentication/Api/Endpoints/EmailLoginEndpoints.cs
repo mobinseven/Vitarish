@@ -20,6 +20,7 @@ public static class EmailLoginEndpoints
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(s.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<ChallengeResult>.Failure)r).Error);
         }, "Authentication_Login_Email_Begin", typeof(AuthenticationChallengeDto), profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: "authentication.login.email")
+        .WithMetadata(new SecurityAuditRequiredMetadata())
         .RequireRateLimiting(AuthenticationRateLimitPolicies.OtpBegin)
         .Produces<AuthenticationChallengeDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -35,6 +36,7 @@ public static class EmailLoginEndpoints
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(s.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<LoginResult>.Failure)r).Error);
         }, "Authentication_Login_Email_Complete", typeof(AuthenticationRedirectResultDto), profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: "authentication.login.email")
+        .WithMetadata(new SecurityAuditRequiredMetadata())
         .RequireRateLimiting(AuthenticationRateLimitPolicies.OtpComplete)
         .Produces<AuthenticationRedirectResultDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)

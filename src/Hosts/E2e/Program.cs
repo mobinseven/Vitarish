@@ -38,10 +38,13 @@ builder.Configuration["Vitarish:Files:AccessKey"] = "e2e-access-key";
 builder.Configuration["Vitarish:Files:SecretKey"] = "e2e-secret-key";
 builder.Configuration["Vitarish:Files:BucketName"] = "e2e";
 builder.Configuration["Vitarish:Search:Url"] = "http://localhost:3997";
+builder.Configuration["Vitarish:Communications:Notifications:ContactEmailRecipient"] = "e2e-contact@example.test";
+builder.Configuration["Vitarish:Features:SocialIntegrations"] = "true";
 builder.Configuration["Vitarish:Security:MandatoryAuditEnabled"] = "true";
 builder.Configuration["Vitarish:Security:Tls:RequireHttps"] = "true";
 builder.Configuration["Vitarish:Security:TokenValidation:Issuer"] = apiOrigin.ToString().TrimEnd('/');
 builder.Configuration["Vitarish:Security:TokenValidation:Audiences:0"] = "vitarish-api";
+SecurityConfigurationOptions securityConfiguration = SecurityConfigurationValidator.Validate(builder.Configuration, builder.Environment);
 
 Dictionary<Type, string> databaseNames = [];
 void configureInMemory(DbContextOptionsBuilder options)
@@ -58,8 +61,7 @@ void configureInMemory(DbContextOptionsBuilder options)
 await builder.RegisterHosting(new HostingCompositionOptions(
     configureInMemory,
     EphemeralCertificateFactory.Create(apiOrigin.Host),
-    [webOrigin.ToString().TrimEnd('/') ],
-    SecurityConfigurationValidator.Validate(builder.Configuration, builder.Environment)));
+    securityConfiguration));
 
 _ = builder.Services.AddSingleton(
     typeof(IOperationReceiptStore<>),
@@ -75,7 +77,7 @@ _ = builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider().Se
 _ = builder.Services.AddDistributedMemoryCache();
 _ = builder.Services.AddOpenApi();
 WebApplication app = builder.Build();
-_ = app.UseHostingPipeline();
+_ = app.UseHostingPipeline(securityConfiguration);
 _ = app.MapModuleEndpoints();
 _ = app.MapAppEndpoints();
 
