@@ -2,15 +2,20 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Vitarish.Modules.Base.Core.Identity;
 
 namespace Vitarish.Modules.Base.Core.Endpoints;
 
 public static class ProtectedModuleEndpointRouteBuilderExtensions
 {
-    public static RouteGroupBuilder MapProtectedModuleGroup(this IEndpointRouteBuilder endpoints, string prefix, string scheme = ModuleEndpointAuthenticationSchemes.BrowserOrBearer)
+    public static RouteGroupBuilder MapProtectedModuleGroup(this IEndpointRouteBuilder endpoints, string prefix, string scheme = ModuleEndpointAuthenticationSchemes.BrowserOrBearer, bool requireTenantAccess = true)
     {
         RouteGroupBuilder group = endpoints.MapGroup(prefix);
         group.RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = scheme });
+        if (requireTenantAccess)
+        {
+            group.RequireAuthorization(IdentityDefinitions.TenantAccess);
+        }
         group.WithMetadata(new ProtectedModuleEndpointMetadata(scheme));
         group.WithGroupName(NormalizeGroupName(prefix));
         group.WithTags(NormalizeTag(prefix));

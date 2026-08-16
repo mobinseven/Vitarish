@@ -90,12 +90,11 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
     {
         EntityTypeBuilder<FileInformation> entityBuilder = modelBuilder.Entity<FileInformation>();
 
-        // Apply soft-delete filter and tenant filter with special RootTenant behavior
-        // Note: Files module allows RootTenant to access all files across tenants
+        // Apply soft-delete and tenant filters. Cross-tenant access is a separate
+        // platform-admin capability and must not be represented by a tenant value.
         _ = entityBuilder.HasQueryFilter(e =>
             EF.Property<DateTime?>(e, "DeletedAt") == null &&
-            (TenantInfo!.Id == TenantDefaults.RootTenant ||
-             e.TenantId == TenantInfo.Id));
+            e.TenantId == TenantInfo.Id);
 
         // Do NOT call IsMultiTenant() as we have custom tenant filtering logic above
     }

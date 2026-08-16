@@ -9,7 +9,7 @@ public static class AuthenticationApiEndpointRouteBuilderExtensions
     public static IEndpointRouteBuilder MapAuthenticationApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder anonymous = endpoints.MapAnonymousModuleGroup(AuthenticationRoutes.BasePath, "Authentication login, challenge, and antiforgery endpoints must be reachable before a user has an authenticated module session.").WithTags(AuthenticationEndpointTags.Authentication);
-        RouteGroupBuilder protectedGroup = endpoints.MapProtectedModuleGroup(AuthenticationRoutes.BasePath).WithTags(AuthenticationEndpointTags.Authentication);
+        RouteGroupBuilder protectedGroup = endpoints.MapProtectedModuleGroup(AuthenticationRoutes.BasePath, requireTenantAccess: false).WithTags(AuthenticationEndpointTags.Authentication);
         _ = anonymous.MapAntiforgeryEndpoints();
         _ = anonymous.MapPasswordLoginEndpoints();
         _ = anonymous.MapPhoneLoginEndpoints();

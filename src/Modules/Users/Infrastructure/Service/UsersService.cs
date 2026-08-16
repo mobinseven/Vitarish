@@ -128,9 +128,21 @@ public sealed class UsersService(ISender sender) : IUsersService
         EnsureSuccess(result);
     }
 
+    public async Task AddToTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken cancellationToken)
+    {
+        IdentityResult result = await sender.Send(new AddUserToRoleCommand(user, roleName, tenantId), cancellationToken);
+        EnsureSuccess(result);
+    }
+
     public async Task RemoveFromRoleAsync(User user, string roleName, CancellationToken cancellationToken)
     {
         IdentityResult result = await sender.Send(new RemoveUserFromRoleCommand(user, roleName), cancellationToken);
+        EnsureSuccess(result);
+    }
+
+    public async Task RemoveFromTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken cancellationToken)
+    {
+        IdentityResult result = await sender.Send(new RemoveUserFromRoleCommand(user, roleName, tenantId), cancellationToken);
         EnsureSuccess(result);
     }
 

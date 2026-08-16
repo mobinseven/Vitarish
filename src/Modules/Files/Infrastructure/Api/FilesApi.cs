@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Modules.Base.Core.Endpoints;
 
@@ -21,8 +22,8 @@ public static class FilesApi
     private static async Task GetFileByIdAsync(
         Guid id,
         HttpContext context,
-        IObjectStorageService storageService,
-         IFileInformationService fileInfoService)
+        IFileInformationService fileInfoService,
+        IServiceProvider services)
     {
         FileInformationReadDto? fileInfo = await fileInfoService.GetAsync(id, context.RequestAborted).GetValueOrDefaultAsync();
 
@@ -34,6 +35,7 @@ public static class FilesApi
 
         context.RequestAborted.ThrowIfCancellationRequested();
 
+        IObjectStorageService storageService = services.GetRequiredService<IObjectStorageService>();
         bool exists = await storageService.ExistsAsync(fileInfo.Checksum, context.RequestAborted);
 
         if (!exists)

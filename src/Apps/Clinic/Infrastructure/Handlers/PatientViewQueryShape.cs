@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Vitarish.Clinic.Domain.Enums;
 using Vitarish.Clinic.Domain.Models;
 using Vitarish.Entities.Server.Infrastructure.Search;
@@ -22,17 +21,17 @@ internal sealed class PatientViewQueryShape(EntitySearchPatternFactory searchPat
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            IReadOnlyCollection<string> patterns = searchPatternFactory.CreateSearchPatterns(search);
-            foreach (string pattern in patterns)
+            IReadOnlyCollection<string> fragments = searchPatternFactory.CreateSearchFragments(search);
+            foreach (string fragment in fragments)
             {
                 query = query.Where(patient =>
-                    EF.Functions.ILike(patient.Name, pattern)
-                    || EF.Functions.ILike(patient.Description, pattern)
-                    || EF.Functions.ILike(patient.IdentificationCode!, pattern)
-                    || EF.Functions.ILike(patient.FirstName!, pattern)
-                    || EF.Functions.ILike(patient.LastName!, pattern)
-                    || EF.Functions.ILike(patient.Email!, pattern)
-                    || EF.Functions.ILike(patient.Phone!, pattern));
+                    patient.Name.ToLower().Contains(fragment)
+                    || (patient.Description != null && patient.Description.ToLower().Contains(fragment))
+                    || (patient.IdentificationCode != null && patient.IdentificationCode.ToLower().Contains(fragment))
+                    || (patient.FirstName != null && patient.FirstName.ToLower().Contains(fragment))
+                    || (patient.LastName != null && patient.LastName.ToLower().Contains(fragment))
+                    || (patient.Email != null && patient.Email.ToLower().Contains(fragment))
+                    || (patient.Phone != null && patient.Phone.ToLower().Contains(fragment)));
             }
         }
 

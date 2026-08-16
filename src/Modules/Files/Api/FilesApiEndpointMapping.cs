@@ -3,6 +3,7 @@ using System.Threading.Channels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Contracts.Errors;
 using Vitarish.Files.Contracts.Requests;
@@ -136,7 +137,7 @@ finally
         }
     }
 
-    private static async Task<IResult> DownloadFileAsync(Guid fileId, HttpContext context, IObjectStorageService storageService, IFileInformationService fileInfoService)
+    private static async Task<IResult> DownloadFileAsync(Guid fileId, HttpContext context, IFileInformationService fileInfoService, IServiceProvider services)
     {
         D.FileInformationReadDto? fileInfo = await fileInfoService.GetAsync(fileId, context.RequestAborted).GetValueOrDefaultAsync().ConfigureAwait(false);
         if (fileInfo is null || string.IsNullOrWhiteSpace(fileInfo.Checksum))
@@ -144,6 +145,7 @@ finally
             return Results.NotFound(new FilesError(FilesErrorCode.NotFound, "File content was not found."));
         }
 
+        IObjectStorageService storageService = services.GetRequiredService<IObjectStorageService>();
         if (!await storageService.ExistsAsync(fileInfo.Checksum, context.RequestAborted).ConfigureAwait(false))
         {
             return Results.NotFound(new FilesError(FilesErrorCode.NotFound, "File content was not found."));

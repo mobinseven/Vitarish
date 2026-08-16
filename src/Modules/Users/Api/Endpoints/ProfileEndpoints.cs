@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Routing;
 using Vitarish.Modules.Base.Core.Abstractions;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Users.Application.Abstractions;
+using Vitarish.Users.Application.Authorization;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Contracts.Requests;
 using Vitarish.Users.Contracts.Responses;
@@ -23,8 +24,9 @@ public static class ProfileEndpoints
         return group;
     }
 
-    private static async Task<IResult> GetProfileAsync(string userId, IUsersService usersService, IUserProfileService profileService, CancellationToken ct)
+    private static async Task<IResult> GetProfileAsync(string userId, UserSubjectAccessPolicy access, IUsersService usersService, IUserProfileService profileService, CancellationToken ct)
     {
+        if (!access.AllowsSelf(userId)) return Results.Forbid();
         User? user = await usersService.GetUserAsync(userId, ct);
         if (user is null) return Results.NotFound();
 
@@ -36,8 +38,9 @@ public static class ProfileEndpoints
             user.Email, user.PhoneNumber, culture, culture));
     }
 
-    private static async Task<IResult> UpdateProfileAsync(string userId, UpdateUserProfileRequest request, IUsersService usersService, CancellationToken ct)
+    private static async Task<IResult> UpdateProfileAsync(string userId, UpdateUserProfileRequest request, UserSubjectAccessPolicy access, IUsersService usersService, CancellationToken ct)
     {
+        if (!access.AllowsSelf(userId)) return Results.Forbid();
         User? user = await usersService.GetUserAsync(userId, ct);
         if (user is null) return Results.NotFound();
 
@@ -50,15 +53,17 @@ public static class ProfileEndpoints
             : Results.BadRequest(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray()));
     }
 
-    private static async Task<IResult> GetCultureAsync(string userId, IUserProfileService profileService, CancellationToken ct)
+    private static async Task<IResult> GetCultureAsync(string userId, UserSubjectAccessPolicy access, IUserProfileService profileService, CancellationToken ct)
     {
+        if (!access.AllowsSelf(userId)) return Results.Forbid();
         Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct) ?? new Dictionary<string, string>();
         string? culture = profile.TryGetValue("Culture", out string? c) ? c : null;
         return Results.Ok(culture);
     }
 
-    private static async Task<IResult> SetCultureAsync(string userId, SetUserCultureRequest request, IUserProfileService profileService, IValidLocaleProvider? validLocaleProvider, CancellationToken ct)
+    private static async Task<IResult> SetCultureAsync(string userId, SetUserCultureRequest request, UserSubjectAccessPolicy access, IUserProfileService profileService, IValidLocaleProvider? validLocaleProvider, CancellationToken ct)
     {
+        if (!access.AllowsSelf(userId)) return Results.Forbid();
         if (validLocaleProvider is not null && !string.IsNullOrWhiteSpace(request.Culture))
         {
             bool isValid = await validLocaleProvider.IsValidLocaleAsync(request.Culture, ct);
