@@ -39,7 +39,7 @@ public sealed class PatientAppointmentWorkflowStoreTests
     [Fact]
     public async Task Commit_finalization_reports_a_failed_compare_and_swap()
     {
-        ReceiptStore<AppointmentCommitReceipt> commits = new { AllowUpdates = false };
+        ReceiptStore<AppointmentCommitReceipt> commits = new() { AllowUpdates = false };
         PatientAppointmentWorkflowStore sut = new(new ReceiptStore<AppointmentProposal>(), commits);
         Guid proposalId = Guid.NewGuid();
         await sut.TryClaimCommitAsync(proposalId, "practice", default);

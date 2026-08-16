@@ -3,6 +3,7 @@ using Moq;
 using Vitarish.Appointments.Application.Abstractions;
 using Vitarish.Appointments.Application.AgentCapabilities;
 using Vitarish.Appointments.Domain.Dto;
+using Vitarish.Appointments.Domain.Enums;
 using Vitarish.Appointments.Domain.Models;
 using Vitarish.Modules.Base.Core.Platform.Idempotency;
 using Vitarish.Entities.Contracts.Models;
@@ -295,7 +296,7 @@ public sealed class AppointmentSchedulingAgentCapabilityTests
         Mock<IShiftBookableDateQueryService> bookableSlots = new();
         DateOnly date = new(2026, 8, 3);
         bookableSlots.Setup(x => x.GetBookableSlotsAsync(
-                It.Is<ShiftDescriptorDto>(descriptor => descriptor.Id is null),
+                It.Is<ShiftDescriptorDto>(descriptor => descriptor.Id == null),
                 It.Is<ShiftDateRangeQuery>(range => range.DateFrom == date && range.DateTo == date),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
