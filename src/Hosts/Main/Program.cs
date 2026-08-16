@@ -29,8 +29,7 @@ void configurePostgres(DbContextOptionsBuilder options)
         });
 }
 
-string authority = builder.Configuration["Vitarish:Identity:Authority"]
-    ?? throw new InvalidOperationException("Vitarish:Identity:Authority not set");
+string authority = securityConfiguration.IdentityAuthority;
 string pfxPassword = builder.Configuration["Vitarish:Identity:DataProtectionPassword"]
     ?? throw new InvalidOperationException("Vitarish:Identity:DataProtectionPassword not set");
 System.Security.Cryptography.X509Certificates.X509Certificate2 signingCertificate;
@@ -46,12 +45,12 @@ else
     signingCertificate = await HostDataProtectionExtensions.GetOrCreateFromRedisAsync(redis, authority, pfxPassword);
 }
 
-await builder.RegisterHosting(new HostingCompositionOptions(configurePostgres, signingCertificate, null, securityConfiguration));
+await builder.RegisterHosting(new HostingCompositionOptions(configurePostgres, signingCertificate, securityConfiguration));
 builder.AddHostHangfire(builder.Configuration.GetConnectionString("Db"));
 _ = builder.Services.AddOpenApi();
 
 if (openApiGeneration)
-    builder.Services.AddOpenApiDataProtection(builder.Configuration);
+    builder.Services.AddOpenApiDataProtection(builder.Configuration, securityConfiguration);
 else
     await builder.AddHostDataProtection(securityConfiguration);
 
@@ -64,7 +63,7 @@ WebApplication app = builder.Build();
 if (!openApiGeneration)
     _ = await app.MigrateDatabaseAsync<AuditDbContext>();
 
-_ = app.UseHostingPipeline();
+_ = app.UseHostingPipeline(securityConfiguration);
 if (app.Environment.IsDevelopment())
     _ = app.MapOpenApi("/openapi/{documentName}.json");
 

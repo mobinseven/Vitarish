@@ -11,7 +11,7 @@ The TOE is evaluated in a single-machine configuration. Availability and integri
 | Item | Value | Evidence/owner |
 | --- | --- | --- |
 | TOE name | Vitarish Main evaluated configuration | This manifest |
-| Configuration ID | `vitarish-toe-main-evaluated-2026-08-15` | This manifest; release operator owns the release record |
+| Configuration ID | `vitarish-toe-main-evaluated-2026-08-15` | `Vitarish__EvaluatedConfiguration__Identity` and `ManifestIdentity` in `docker-compose.iso15408.yml`; release operator owns the release record |
 | Source baseline commit | `5a06b5ed02a174a4e848c51dcec8a2154d6a69ec` | `git rev-parse HEAD` at review; the Security Target and matrix are subsequent uncommitted worktree changes |
 | Build profile | `Evaluated` | `src/Build/ModuleBuildProfiles.props`; runtime allowlist in module/app aggregators |
 | Target framework | `net10.0` | `src/Directory.Build.props` |
@@ -68,7 +68,9 @@ Excluded public contracts are disabled by composition, not deleted or redesigned
 
 ## Deployment inputs
 
-Required non-secret inputs are `Vitarish__Identity__Authority`, `Vitarish__Identity__DataProtectionPassword`, `ConnectionStrings__Db`, and `ConnectionStrings__Redis`; values are supplied through the deployment secret store or environment and are never recorded here. The evaluated compose file sets `Vitarish__EvaluatedConfiguration__Enabled=true` and builds with `MODULE_BUILD_PROFILE=Evaluated`.
+Required non-secret inputs are `Vitarish__Identity__Authority`, `Vitarish__Identity__DataProtectionPassword`, `ConnectionStrings__Db`, and `ConnectionStrings__Redis`; values are supplied through the deployment secret store or environment and are never recorded here. The evaluated compose file sets `Vitarish__EvaluatedConfiguration__Enabled=true`, uses configuration ID `vitarish-toe-main-evaluated-2026-08-15`, and builds with `MODULE_BUILD_PROFILE=Evaluated`.
+
+The host binding is private (`127.0.0.1:5000` to Main's HTTP port `8080`). A separately operated TLS-terminating ingress is required for external traffic. The private HTTP upstream is not an externally secure interface and is covered by `OE.INGRESS`, not by a claim that Main itself terminates public TLS.
 
 Required runtime services are reachable only on the private compose network. The Main host is published on `127.0.0.1:5000` as a private upstream for the required TLS reverse proxy/operator boundary; PostgreSQL and Redis are not published to the host.
 
@@ -88,11 +90,19 @@ The complete asset, interface, and data-flow inventory is in [`toe-inventory.md`
 - A startup smoke test MUST run the evaluated compose file with non-production test secrets and verify the registered module/app list and absence of excluded endpoints/services before release.
 - The release record MUST retain the resolved image digests, build output hash, generated OpenAPI hash, smoke-test output, and source commit.
 
-### 2026-08-15 local smoke evidence
+### 2026-08-16 local candidate evidence
 
-The reference compose stack built and started successfully with test-only inputs. Observed image IDs were Main `sha256:2e83ab3b6d1c2d2f9d48a5f765658110c2d83782d2de48cdd0f85f6dfc1fcbad`, PostgreSQL `sha256:41fc5342eefba6cc2ccda736aaf034bbbb7c3df0fdb81516eba1ba33f360162c`, and Redis `sha256:90e7a336d044f1abc9e9dbc05d65566850896d11453bbd1dd0fb7e5059f0e8fb`. Main was running on `127.0.0.1:5000`; PostgreSQL and Redis were healthy and had no host ports.
+This is evidence for an uncommitted local candidate, not a release identity. The source baseline was `2f1fc8c94c3e38d72214782415a9d4dd90ed542b` with a dirty worktree containing this security slice and unrelated owner work. A release operator must replace that description with the clean commit containing the evaluated slice.
 
-The enabled route probes returned expected authentication responses: Authentication antiforgery `500`, Requests `401`, Feed `401`, Users `401`, Parties `401`, and Platform `401`. Medical, Intelligence, Search, and Communications probes returned `404`. The `500` Authentication antiforgery result occurred only when probing the private HTTP upstream directly; Main correctly rejected the non-SSL request because secure antiforgery cookies are mandatory. The production/browser probe must traverse the TLS reverse proxy. This is an environmental prerequisite, not evidence of an excluded route.
+| Evidence ID | Result |
+| --- | --- |
+| `EV-768-20260816-STARTUP` | `docker compose -f src/Hosts/docker-compose.iso15408.yml up --build -d --wait` completed successfully with disposable test-only inputs. Main, PostgreSQL, and Redis reached healthy/running state; Main logged `Application started` in Production on HTTP port `8080`, published privately as `127.0.0.1:5000`. |
+| `EV-768-20260816-INVALID-CONFIG` | A one-shot Main container with `ManifestIdentity=intentionally-invalid` exited non-zero (`139` reported by Docker) before host startup with `Security configuration validation failed: Security:EvaluatedConfiguration identity must match the deployment manifest.` |
+| `EV-768-20260816-ARTIFACTS` | Main image digest `sha256:8b443da6f95391a6540c5e6f95cf0979014a813b46b57be3fd6671f4ad8db977`; PostgreSQL digest `sha256:41fc5342eefba6cc2ccda736aaf034bbbb7c3df0fdb81516eba1ba33f360162c`; Redis digest `sha256:90e7a336d044f1abc9e9dbc05d65566850896d11453bbd1dd0fb7e5059f0e8fb`. Published artifact SHA-256 values: `Vitarish.Main.dll` `64e40a31f3261cca079f71e8ef7f7a7014914c385c07d70733bc33c69e00a5a8`; `Vitarish.Main.deps.json` `f44bf611e2f1322989a0eea476aeb4b327bd260f5558e453901303a2e89b103b`; `Vitarish.Main.runtimeconfig.json` `eff38a9750f7cca2407b1d639a963d56ffea92088e6da971bbbfa74e3dcd7224`. |
+| `EV-768-20260816-ROUTES` | Authentication antiforgery returned `500` over the private non-TLS upstream; Requests, Feed, Users, Parties, and Platform base prefixes returned `401`. Medical, Intelligence, Search, and Communications base prefixes also returned `401`, so base-prefix status is not proof that an excluded endpoint is absent. Exact endpoint probes remain dependent on #771's final inventory. |
+| `EV-768-20260816-OPENAPI` | No evaluated OpenAPI hash was produced. Profile-specific generation failed during endpoint metadata inference because a `seaAccess` parameter was inferred as a request body for an endpoint that does not allow inferred body parameters. This is a release-evidence gap, not a hash to substitute with the wider checked-in Main specs. |
+
+The antiforgery `500` occurred only when probing the private HTTP upstream directly; Main rejected the non-SSL request because secure antiforgery cookies are mandatory. The production/browser probe must traverse the TLS reverse proxy. This is an environmental prerequisite, not evidence of an excluded route.
 
 The published image contains transitive compatibility assemblies from repository project references, but only the allowlisted modules/apps are registered and mapped when `Vitarish__EvaluatedConfiguration__Enabled=true`. Binary presence is not evaluated functionality; changing that composition flag or build profile changes the configuration identity.
 

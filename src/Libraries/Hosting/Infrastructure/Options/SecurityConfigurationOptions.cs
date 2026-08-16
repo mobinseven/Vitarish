@@ -9,7 +9,12 @@ namespace Vitarish.Hosting.Infrastructure.Options;
 public sealed class SecurityConfigurationOptions
 {
     public const string SectionName = "Vitarish:Security";
+    public const string IdentityAuthorityKey = "Vitarish:Identity:Authority";
+    public const string EvaluatedConfigurationSectionName = "Vitarish:EvaluatedConfiguration";
+    public const string AllowedCorsOriginsSectionName = "Cors:AllowedOrigins";
 
+    public string IdentityAuthority { get; init; } = string.Empty;
+    public string[] AllowedCorsOrigins { get; init; } = [];
     public bool MandatoryAuditEnabled { get; init; }
     public string[] TrustedProxyNetworks { get; init; } = [];
     public TokenValidationConfiguration TokenValidation { get; init; } = new();
@@ -19,6 +24,9 @@ public sealed class SecurityConfigurationOptions
 
     internal IReadOnlyList<SystemIPNetwork> ParseTrustedProxyNetworks()
     {
+        if (TrustedProxyNetworks.Distinct(StringComparer.OrdinalIgnoreCase).Count() != TrustedProxyNetworks.Length)
+            throw new InvalidOperationException("Security:TrustedProxyNetworks must not contain duplicate networks.");
+
         return TrustedProxyNetworks.Select(ParseNetwork).ToArray();
     }
 
@@ -69,33 +77,47 @@ public static class SecurityConfigurationValidator
 {
     public static SecurityConfigurationOptions Validate(IConfiguration configuration, IHostEnvironment environment, bool openApiGeneration = false)
     {
-        bool strict = environment.IsProduction() || configuration.GetValue<bool>("Vitarish:EvaluatedConfiguration:Enabled");
-        string authority = configuration["Vitarish:Identity:Authority"] ?? string.Empty;
+        bool strict = environment.IsProduction() || configuration.GetValue<bool>($"{SecurityConfigurationOptions.EvaluatedConfigurationSectionName}:Enabled");
+        string authority = configuration[SecurityConfigurationOptions.IdentityAuthorityKey] ?? string.Empty;
         SecurityConfigurationOptions configured = configuration.GetSection(SecurityConfigurationOptions.SectionName).Get<SecurityConfigurationOptions>() ?? new();
-        EvaluatedConfigurationIdentity evaluated = configuration.GetSection("Vitarish:EvaluatedConfiguration").Get<EvaluatedConfigurationIdentity>() ?? configured.EvaluatedConfiguration;
-        string[] origins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+        EvaluatedConfigurationIdentity evaluated = configuration.GetSection(SecurityConfigurationOptions.EvaluatedConfigurationSectionName).Get<EvaluatedConfigurationIdentity>() ?? configured.EvaluatedConfiguration;
+        string[] origins = configuration.GetSection(SecurityConfigurationOptions.AllowedCorsOriginsSectionName).Get<string[]>() ?? [];
 
         if (strict && configured.MandatoryAuditEnabled is false)
             Fail("Security:MandatoryAuditEnabled must be true.");
         if (origins.Any(origin => origin == "*"))
             Fail("Cors:AllowedOrigins must contain exact origins when credentials are enabled.");
         if (origins.Any(origin => !Uri.TryCreate(origin, UriKind.Absolute, out Uri? uri) ||
-            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) || uri.AbsolutePath != "/"))
+            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) || uri.AbsolutePath != "/" ||
+            !string.IsNullOrEmpty(uri.Query) || !string.IsNullOrEmpty(uri.Fragment)))
             Fail("Cors:AllowedOrigins contains an invalid origin.");
+        if (strict && origins.Length == 0)
+            Fail("Cors:AllowedOrigins must contain at least one exact origin.");
         if (!Uri.TryCreate(authority, UriKind.Absolute, out Uri? authorityUri) || authorityUri.AbsolutePath != "/" || (strict && authorityUri.Scheme != Uri.UriSchemeHttps))
-            Fail("Vitarish:Identity:Authority must be an absolute HTTPS authority.");
+            Fail("Identity authority must be an absolute HTTPS authority.");
         if (configured.Tls.RequireHttps is false && strict)
             Fail("Security:Tls:RequireHttps cannot be disabled for production.");
         if (configured.TokenValidation.Audiences.Length == 0 && strict)
             Fail("Security:TokenValidation:Audiences must contain at least one audience.");
         if (string.IsNullOrWhiteSpace(configured.TokenValidation.Issuer) && strict)
             Fail("Security:TokenValidation:Issuer is required.");
+        if (!string.IsNullOrWhiteSpace(configured.TokenValidation.Issuer) &&
+            (!Uri.TryCreate(configured.TokenValidation.Issuer, UriKind.Absolute, out Uri? issuerUri) || issuerUri.AbsolutePath != "/" ||
+             (strict && issuerUri.Scheme != Uri.UriSchemeHttps)))
+            Fail("Security:TokenValidation:Issuer must be an absolute HTTPS authority.");
+        if (configured.TokenValidation.Audiences.Any(string.IsNullOrWhiteSpace) ||
+            configured.TokenValidation.Audiences.Distinct(StringComparer.Ordinal).Count() != configured.TokenValidation.Audiences.Length)
+            Fail("Security:TokenValidation:Audiences must contain unique non-empty values.");
         if (strict && configured.TrustedProxyNetworks.Length == 0)
             Fail("Security:TrustedProxyNetworks must identify the local ingress networks.");
         if (configured.TrustedProxyNetworks.Length > 0)
             _ = configured.ParseTrustedProxyNetworks();
         if (strict && (string.IsNullOrWhiteSpace(configured.DataProtection.KeyRingRedisKey) || string.IsNullOrWhiteSpace(configured.DataProtection.CertificateRedisKey)))
             Fail("Security:DataProtection key locations are required.");
+        ValidateKeyName(configured.DataProtection.KeyRingRedisKey);
+        ValidateKeyName(configured.DataProtection.CertificateRedisKey);
+        foreach (string key in configured.DataProtection.PreviousCertificateRedisKeys)
+            ValidateKeyName(key);
         if (evaluated.Enabled && (string.IsNullOrWhiteSpace(evaluated.Identity) ||
             !string.Equals(evaluated.Identity, evaluated.ManifestIdentity, StringComparison.Ordinal)))
             Fail("Security:EvaluatedConfiguration identity must match the deployment manifest.");
@@ -114,16 +136,29 @@ public static class SecurityConfigurationValidator
             },
             DataProtection = new DataProtectionConfiguration
             {
-                KeyRingRedisKey = string.IsNullOrWhiteSpace(configured.DataProtection.KeyRingRedisKey) ? configuration["Vitarish:Identity:DataProtection:KeyRingRedisKey"] ?? string.Empty : configured.DataProtection.KeyRingRedisKey,
-                CertificateRedisKey = string.IsNullOrWhiteSpace(configured.DataProtection.CertificateRedisKey) ? configuration["Vitarish:Identity:DataProtection:CertificateRedisKey"] ?? string.Empty : configured.DataProtection.CertificateRedisKey,
-                PreviousCertificateRedisKeys = configured.DataProtection.PreviousCertificateRedisKeys.Length == 0
-                    ? configuration.GetSection("Vitarish:Identity:DataProtection:PreviousCertificateRedisKeys").Get<string[]>() ?? []
-                    : configured.DataProtection.PreviousCertificateRedisKeys
+                KeyRingRedisKey = configured.DataProtection.KeyRingRedisKey,
+                CertificateRedisKey = configured.DataProtection.CertificateRedisKey,
+                PreviousCertificateRedisKeys = configured.DataProtection.PreviousCertificateRedisKeys
             },
             Tls = configured.Tls,
+            IdentityAuthority = authority,
+            AllowedCorsOrigins = origins,
             EvaluatedConfiguration = evaluated
         };
     }
 
     private static void Fail(string rule) => throw new InvalidOperationException($"Security configuration validation failed: {rule}");
+
+    private static void ValidateKeyName(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            return;
+
+        if (key.Contains('{') || key.Contains('}'))
+        {
+            string withoutTemplate = key.Replace("{domain}", string.Empty, StringComparison.Ordinal);
+            if (withoutTemplate.Contains('{') || withoutTemplate.Contains('}'))
+                Fail("Security:DataProtection key names may use only the {domain} template.");
+        }
+    }
 }

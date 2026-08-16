@@ -13,7 +13,7 @@ public static class HostDataProtectionExtensions
 
     public static async Task AddHostDataProtection(this IServiceCollection services, IConfiguration configuration, SecurityConfigurationOptions security)
     {
-        string domain = configuration[$"{ConfigSection}:Authority"] ?? throw new Exception($"{ConfigSection}:Authority not set");
+        string domain = security.IdentityAuthority;
         string pfxPassword = configuration[$"{ConfigSection}:DataProtectionPassword"] ?? throw new Exception($"{ConfigSection}:DataProtectionPassword not set");
         HostDataProtectionOptions options = new()
         {
@@ -37,9 +37,9 @@ public static class HostDataProtectionExtensions
             _ = dataProtection.UnprotectKeysWithAnyCertificate(previousCertificates);
     }
 
-    public static void AddOpenApiDataProtection(this IServiceCollection services, IConfiguration configuration)
+    public static void AddOpenApiDataProtection(this IServiceCollection services, IConfiguration configuration, SecurityConfigurationOptions security)
     {
-        string domain = configuration[$"{ConfigSection}:Authority"] ?? throw new Exception($"{ConfigSection}:Authority not set");
+        string domain = security.IdentityAuthority;
         string pfxPassword = configuration[$"{ConfigSection}:DataProtectionPassword"] ?? throw new Exception($"{ConfigSection}:DataProtectionPassword not set");
         X509Certificate2 certificate = CreateOpenApiCertificate(domain, pfxPassword);
         _ = services.AddDataProtection()

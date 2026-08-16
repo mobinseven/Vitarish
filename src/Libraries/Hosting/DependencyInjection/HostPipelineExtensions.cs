@@ -12,15 +12,9 @@ using Vitarish.Modules.Base.Core.Endpoints;
 
 public static class HostPipelineExtensions
 {
-    public static void AddHostCors(this WebApplicationBuilder builder, IReadOnlyCollection<string>? exactOrigins = null)
+    public static void AddHostCors(this WebApplicationBuilder builder, IReadOnlyCollection<string> exactOrigins)
     {
-        CorsOptions corsOptions = builder.Configuration
-            .GetSection(CorsOptions.SectionName)
-            .Get<CorsOptions>() ?? new();
-
-        string[] origins = exactOrigins is null
-            ? corsOptions.AllowedOrigins?.ToArray() ?? []
-            : exactOrigins.ToArray();
+        string[] origins = exactOrigins.ToArray();
 
         if (Array.Exists(origins, x => x == "*"))
         {
@@ -126,14 +120,11 @@ public static class HostPipelineExtensions
             await next(context);
         });
 
-    public static void UseHostWebSockets(this WebApplication app)
+    public static void UseHostWebSockets(this WebApplication app, SecurityConfigurationOptions security)
     {
-        CorsOptions corsOptions = app.Configuration
-            .GetSection(CorsOptions.SectionName)
-            .Get<CorsOptions>() ?? new();
         WebSocketOptions options = new() { KeepAliveInterval = TimeSpan.FromSeconds(30) };
 
-        foreach (string origin in corsOptions.AllowedOrigins ?? [])
+        foreach (string origin in security.AllowedCorsOrigins)
         {
             options.AllowedOrigins.Add(origin);
         }

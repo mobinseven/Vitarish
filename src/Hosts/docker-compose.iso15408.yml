@@ -12,8 +12,8 @@ services:
     environment:
       ASPNETCORE_URLS: http://+:8080
       Vitarish__EvaluatedConfiguration__Enabled: "true"
-      Vitarish__EvaluatedConfiguration__Identity: iso15408-v1
-      Vitarish__EvaluatedConfiguration__ManifestIdentity: iso15408-v1
+      Vitarish__EvaluatedConfiguration__Identity: vitarish-toe-main-evaluated-2026-08-15
+      Vitarish__EvaluatedConfiguration__ManifestIdentity: vitarish-toe-main-evaluated-2026-08-15
       Vitarish__Security__MandatoryAuditEnabled: "true"
       Vitarish__Security__TrustedProxyNetworks__0: 172.16.0.0/12
       Vitarish__Security__TokenValidation__Issuer: ${VITARISH_IDENTITY_AUTHORITY:?VITARISH_IDENTITY_AUTHORITY is required}

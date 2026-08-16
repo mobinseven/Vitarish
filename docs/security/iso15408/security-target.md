@@ -38,6 +38,14 @@ The protected assets are authenticated identities and credentials, sessions and 
 | `T.PRIVESC` | A tenant administrator or ordinary member attempts to obtain platform-wide or otherwise unauthorized privileges. | Role and administrative boundaries must be enforced and security-relevant changes attributable. |
 | `T.TAMPER` | A hostile client or compromised environmental service attempts to alter protected data, keys, configuration, or audit evidence through the TOE interfaces. | The TOE must validate inputs, authorize mutations, and preserve the integrity of security-relevant records within the stated environment assumptions. |
 | `T.AUDITLOSS` | A security-relevant action occurs without an attributable record or authorized review capability. | The TOE must generate and expose appropriately scoped audit records. |
+| `T.REPLAY` | A captured session, token, antiforgery value, or internal callback is replayed to repeat or extend an operation. | Authentication/session, antiforgery, callback-envelope, and duplicate-call controls must reject invalid or stale use. |
+| `T.ORIGIN` | A hostile origin, Host header, or cross-site request abuses browser credentials or trusted forwarded headers. | Exact CORS origins, antiforgery, TLS policy, and bounded proxy trust must be enforced. |
+| `T.INTERNAL` | An untrusted caller reaches an endpoint intended only for an internal service. | The endpoint must require its declared internal credential and application capability. |
+| `T.AUDITALTER` | An actor alters or suppresses audit evidence. | Audit writes and review must be authorized and preserved through the stated data-service assumptions. |
+| `T.CONFIG` | Unsafe security configuration, keys, or evaluated identity changes weaken the deployed TOE. | Startup validation must fail closed and release configuration must be attributable. |
+| `T.SUPPLY` | A compromised or unrecorded dependency/image changes evaluated behavior. | The release record must identify source, artifacts, and dependency/image inputs. |
+| `T.DOS` | A client exhausts the single Main instance or an environmental dependency. | The TOE limits exposed authentication traffic and fails closed; capacity and upstream protection remain environmental. |
+| `T.DISCLOSE` | Sensitive data, tokens, keys, or diagnostics are disclosed through an API, error, log, or configuration evidence. | Access control, redaction, and non-secret diagnostics must preserve confidentiality. |
 | `T.SINGLEFAIL` | The single Main process or an environmental dependency becomes unavailable or inconsistent. | The initial claim is limited to bounded single-machine operation; it does not promise multi-instance or failover availability/integrity. |
 
 ### Assumptions
@@ -57,30 +65,56 @@ There is no assumption of a distributed cluster, replica, multi-region service, 
 
 ### TOE objectives
 
-| ID | Objective |
-| --- | --- |
-| `O.AUTH` | Identify and authenticate users before protected operations, including the configured password/passkey flows. |
-| `O.ACCESS` | Enforce tenant, ownership, role, and platform-administrator access rules for protected objects and operations. |
-| `O.INPUT` | Validate transport and use-case inputs and reject malformed, replayed, or unauthorized requests at the relevant boundary. |
-| `O.AUDIT` | Generate attributable audit records for defined security-relevant actions and provide authorized, tenant-scoped review. |
-| `O.INTEGRITY` | Preserve the integrity of security-relevant state through authorized application writes and protected key/cache integration, within the single-machine environmental assumptions. |
-| `O.AVAIL` | Keep the evaluated single Main instance operational and fail closed when required environmental dependencies are unavailable; this objective has no multi-instance failover claim. |
+| ID | Objective | Owner and evidence direction |
+| --- | --- | --- |
+| `O.AUTH` | Identify and authenticate users before protected operations, including the configured password/passkey flows. | Authentication module/Main host; endpoint metadata and authentication regression tests. |
+| `O.ACCESS` | Enforce tenant, ownership, role, and platform-administrator access rules for protected objects and operations. | Module application/API owners; checked Main-module authorization matrix and direct authorization tests. |
+| `O.INPUT` | Validate transport and use-case inputs and reject malformed, replayed, or unauthorized requests at the relevant boundary. | Transport and application owners; validation, antiforgery, callback replay, and negative tests. |
+| `O.AUDIT` | Generate attributable audit records for defined security-relevant actions and provide authorized, tenant-scoped review. | Audit library and module application owners; audit migrations, writer/query tests, and evaluated startup record. |
+| `O.INTEGRITY` | Preserve the integrity of security-relevant state through authorized application writes and protected key/cache integration, within the single-machine environmental assumptions. | Main host/data-protection owner; security configuration tests and protected storage evidence. |
+| `O.AVAIL` | Keep the evaluated single Main instance operational and fail closed when required environmental dependencies are unavailable; this objective has no multi-instance failover claim. | Main host/operator; startup-failure evidence, rate-limit tests, and deployment record. |
+| `O.CONF` | Prevent disclosure of protected data and security material through authorized API behavior and non-secret diagnostics. | Module/API and host owners; authorization tests and diagnostic-output review. |
 
 ### Environmental objectives
 
-| ID | Objective |
-| --- | --- |
-| `OE.HOST` | Protect and patch the operating system, container runtime, host, volumes, network, and physical machine. |
-| `OE.DATA` | Operate, authenticate, isolate, back up, and recover PostgreSQL, Redis, and persistent storage. |
-| `OE.INGRESS` | Provide TLS, ingress routing, certificate lifecycle, upstream restrictions, and external availability at the deployment boundary. |
-| `OE.OPERATE` | Protect secrets, deploy only the recorded evaluated configuration, and control release and operator access. |
-| `OE.CLIENT` | Protect client credentials/tokens and use the TOE through the documented secure interface. |
+| ID | Objective | Owner and evidence direction |
+| --- | --- | --- |
+| `OE.HOST` | Protect and patch the operating system, container runtime, host, volumes, network, and physical machine. | Host owner; patch/administrative record. |
+| `OE.DATA` | Operate, authenticate, isolate, back up, and recover PostgreSQL, Redis, and persistent storage. | Data-service owner; deployment and recovery record. |
+| `OE.INGRESS` | Provide TLS, ingress routing, certificate lifecycle, upstream restrictions, and external availability at the deployment boundary. | Ingress owner; recorded TLS/ACL configuration. |
+| `OE.OPERATE` | Protect secrets, deploy only the recorded evaluated configuration, and control release and operator access. | Release operator; commit, digest, artifact-hash, and secret-reference record. |
+| `OE.CLIENT` | Protect client credentials/tokens and use the TOE through the documented secure interface. | User-agent owner; operational guidance. |
 
 ## Security claims
 
 The initial claim is the proposed SFR/SAR set in [`sfr-sar-matrix.md`](sfr-sar-matrix.md). The matrix is deliberately traceable to current implementation evidence and records exclusions where the repository does not support a defensible claim. It is not permission to infer claims for excluded apps, providers, infrastructure, or distributed operation.
 
-The proposed assurance set is EAL2-shaped for initial evaluator review; no EAL or certification level is claimed until an evaluator confirms the applicable Common Criteria/ISO/IEC 15408 version, dependencies, operations, evidence, and evaluation scope.
+The working assurance objective is EAL4-style: methodical design, implementation, test, vulnerability, delivery, and lifecycle evidence must be assembled to the degree an evaluator requires. This is a planning objective only, not an EAL4 claim, Protection Profile conformance claim, or certification result. The v3.1 R4 SFR/SAR matrix is the accepted non-normative planning baseline for issue #769; an evaluator must select the normative version, components, operations, and evidence before any conformance claim.
+
+## Traceability and gap register
+
+Every threat is addressed by the TOE or environmental objective(s) below; `T.SINGLEFAIL` is intentionally bounded by `O.AVAIL` and the explicit single-machine exclusion.
+
+| Threat | Objective or assumption | Closure evidence owner |
+| --- | --- | --- |
+| `T.UNAUTH`, `T.PRIVESC` | `O.AUTH`, `O.ACCESS`, `O.INPUT` | Authentication/module owners |
+| `T.CROSSTENANT` | `O.ACCESS`, `O.INPUT` | Module application owners |
+| `T.TAMPER`, `T.CONFIG` | `O.INTEGRITY`, `OE.OPERATE`, `OE.DATA` | Main host/release/data owners |
+| `T.AUDITLOSS`, `T.AUDITALTER` | `O.AUDIT`, `OE.DATA` | Audit/data owners |
+| `T.REPLAY`, `T.ORIGIN`, `T.INTERNAL` | `O.AUTH`, `O.INPUT`, `OE.INGRESS`, `OE.CLIENT` | Host/API/ingress owners |
+| `T.SUPPLY` | `OE.OPERATE`, `OE.HOST` | Release/host owners |
+| `T.DOS` | `O.AVAIL`, `OE.INGRESS`, `OE.DATA` | Main/ingress/data owners |
+| `T.DISCLOSE` | `O.CONF`, `O.ACCESS`, `OE.CLIENT` | Module/API/client owners |
+| `T.SINGLEFAIL` | `O.AVAIL`, `A.SERVICES`, `OE.DATA` and the explicit single-machine exclusion | Main/data-service owners |
+
+| Gap | Owner | Closure condition |
+| --- | --- | --- |
+| Evaluated startup and excluded-route probe record | Release operator | Local candidate evidence `EV-768-20260816-STARTUP`, `EV-768-20260816-INVALID-CONFIG`, `EV-768-20260816-ARTIFACTS`, and `EV-768-20260816-ROUTES` is recorded in `evaluated-configuration.md`; release evidence still requires a clean commit identity and the #771-derived exact endpoint probes. |
+| EAL4-style lifecycle and vulnerability evidence | Security/evaluation owner | Evaluator-approved evidence set, dependency review, and vulnerability-analysis result are linked to the release record. |
+| Ingress operational evidence | Ingress owner | TLS termination, ACL, certificate lifecycle, and private-upstream configuration are recorded for the evaluated deployment. |
+| Main-module operation evidence | Module/API owners | Checked matrix rows, endpoint metadata validation, and negative/positive authorization tests cover each composed module operation. |
+
+The objective and exclusion mappings must be reviewed against #771's final endpoint inventory before release evidence is accepted. The current base-prefix route probes are not endpoint-absence evidence because the authorization fallback can return `401` for an unmatched protected prefix.
 
 ## Security target limitations and revision triggers
 

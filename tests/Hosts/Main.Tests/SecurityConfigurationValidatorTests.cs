@@ -13,6 +13,7 @@ public sealed class SecurityConfigurationValidatorTests
     {
         IConfiguration configuration = Configuration([
             new("Vitarish:Security:MandatoryAuditEnabled", "true"),
+            new("Cors:AllowedOrigins:0", "https://app.example"),
             new("Vitarish:Identity:Authority", "https://issuer.example"),
             new("Vitarish:Security:TokenValidation:Issuer", "https://issuer.example"),
             new("Vitarish:Security:TokenValidation:Audiences:0", "vitarish-api"),
@@ -45,6 +46,78 @@ public sealed class SecurityConfigurationValidatorTests
             .WithMessage("*Cors:AllowedOrigins*");
     }
 
+    [Theory]
+    [InlineData("http://issuer.example", "Security:TokenValidation:Issuer")]
+    [InlineData("not-an-authority", "Security:TokenValidation:Issuer")]
+    public void Production_rejects_unsafe_or_malformed_token_issuer(string issuer, string expectedRule)
+    {
+        IConfiguration configuration = StrictConfiguration(("Vitarish:Security:TokenValidation:Issuer", issuer));
+
+        Action act = () => SecurityConfigurationValidator.Validate(configuration, Environment("Production"));
+
+        act.Should().Throw<InvalidOperationException>().WithMessage($"*{expectedRule}*");
+    }
+
+    [Fact]
+    public void Production_rejects_duplicate_token_audiences_without_echoing_values()
+    {
+        IConfiguration configuration = StrictConfiguration(
+            ("Vitarish:Security:TokenValidation:Audiences:1", "vitarish-api"));
+
+        Action act = () => SecurityConfigurationValidator.Validate(configuration, Environment("Production"));
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*Audiences*")
+            .Which.Message.Should().NotContain("vitarish-api");
+    }
+
+    [Fact]
+    public void Production_rejects_invalid_data_protection_key_template()
+    {
+        IConfiguration configuration = StrictConfiguration(
+            ("Vitarish:Security:DataProtection:CertificateRedisKey", "cert:{tenant}"));
+
+        Action act = () => SecurityConfigurationValidator.Validate(configuration, Environment("Production"));
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*DataProtection key names*");
+    }
+
+    [Theory]
+    [InlineData("https://app.example/path?x=1")]
+    [InlineData("https://app.example/#fragment")]
+    public void Production_rejects_origins_with_path_query_or_fragment(string origin)
+    {
+        IConfiguration configuration = StrictConfiguration(("Cors:AllowedOrigins:0", origin));
+
+        Action act = () => SecurityConfigurationValidator.Validate(configuration, Environment("Production"));
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*AllowedOrigins contains an invalid origin*");
+    }
+
+    [Fact]
+    public void Production_rejects_duplicate_proxy_networks()
+    {
+        IConfiguration configuration = StrictConfiguration(("Vitarish:Security:TrustedProxyNetworks:1", "127.0.0.1/32"));
+
+        Action act = () => SecurityConfigurationValidator.Validate(configuration, Environment("Production"));
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*duplicate networks*");
+    }
+
+    [Fact]
+    public void Evaluated_configuration_requires_identity()
+    {
+        IConfiguration configuration = StrictConfiguration(
+            ("Vitarish:EvaluatedConfiguration:Enabled", "true"),
+            ("Vitarish:EvaluatedConfiguration:Identity", ""),
+            ("Vitarish:EvaluatedConfiguration:ManifestIdentity", "release-a"));
+
+        Action act = () => SecurityConfigurationValidator.Validate(configuration, Environment("Development"));
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*EvaluatedConfiguration identity*");
+    }
+
     [Fact]
     public void Evaluated_configuration_requires_manifest_identity_match()
     {
@@ -53,6 +126,7 @@ public sealed class SecurityConfigurationValidatorTests
             new("Vitarish:EvaluatedConfiguration:Identity", "release-a"),
             new("Vitarish:EvaluatedConfiguration:ManifestIdentity", "release-b"),
             new("Vitarish:Security:MandatoryAuditEnabled", "true"),
+            new("Cors:AllowedOrigins:0", "https://app.example"),
             new("Vitarish:Security:TrustedProxyNetworks:0", "127.0.0.1/32")
             ,new("Vitarish:Identity:Authority", "https://issuer.example"),
             new("Vitarish:Security:TokenValidation:Issuer", "https://issuer.example"),
@@ -72,6 +146,7 @@ public sealed class SecurityConfigurationValidatorTests
     {
         IConfiguration configuration = Configuration([
             new("Vitarish:Security:MandatoryAuditEnabled", "true"),
+            new("Cors:AllowedOrigins:0", "https://app.example"),
             new("Vitarish:Security:TrustedProxyNetworks:0", "127.0.0.1/32"),
             new("Vitarish:Security:TokenValidation:Issuer", "https://issuer.example"),
             new("Vitarish:Security:TokenValidation:Audiences:0", "vitarish-api"),
@@ -95,6 +170,7 @@ public sealed class SecurityConfigurationValidatorTests
             new("Vitarish:EvaluatedConfiguration:ManifestIdentity", "release-a"),
             new("Vitarish:Identity:Authority", "https://issuer.example"),
             new("Vitarish:Security:MandatoryAuditEnabled", "true"),
+            new("Cors:AllowedOrigins:0", "https://app.example"),
             new("Vitarish:Security:TrustedProxyNetworks:0", "127.0.0.1/32"),
             new("Vitarish:Security:TokenValidation:Issuer", "https://issuer.example"),
             new("Vitarish:Security:TokenValidation:Audiences:0", "vitarish-api"),
@@ -109,11 +185,11 @@ public sealed class SecurityConfigurationValidatorTests
     }
 
     [Fact]
-    public void Legacy_previous_certificate_keys_are_preserved_when_new_section_is_empty()
+    public void Previous_certificate_keys_are_read_from_the_security_section()
     {
         IConfiguration configuration = Configuration([
             new("Vitarish:Identity:Authority", "https://issuer.example"),
-            new("Vitarish:Identity:DataProtection:PreviousCertificateRedisKeys:0", "cert:previous:{domain}"),
+            new("Vitarish:Security:DataProtection:PreviousCertificateRedisKeys:0", "cert:previous:{domain}"),
             new("Vitarish:Security:TrustedProxyNetworks:0", "127.0.0.1/32"),
             new("Vitarish:Security:TokenValidation:Issuer", "https://issuer.example"),
             new("Vitarish:Security:TokenValidation:Audiences:0", "vitarish-api")
@@ -127,6 +203,24 @@ public sealed class SecurityConfigurationValidatorTests
 
     private static IConfiguration Configuration(IEnumerable<KeyValuePair<string, string?>> values) =>
         new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+
+    private static IConfiguration StrictConfiguration(params (string Key, string Value)[] overrides)
+    {
+        Dictionary<string, string?> values = new(StringComparer.Ordinal)
+        {
+            ["Vitarish:Security:MandatoryAuditEnabled"] = "true",
+            ["Cors:AllowedOrigins:0"] = "https://app.example",
+            ["Vitarish:Security:TrustedProxyNetworks:0"] = "127.0.0.1/32",
+            ["Vitarish:Identity:Authority"] = "https://issuer.example",
+            ["Vitarish:Security:TokenValidation:Issuer"] = "https://issuer.example",
+            ["Vitarish:Security:TokenValidation:Audiences:0"] = "vitarish-api",
+            ["Vitarish:Security:DataProtection:KeyRingRedisKey"] = "keys",
+            ["Vitarish:Security:DataProtection:CertificateRedisKey"] = "cert:{domain}"
+        };
+        foreach ((string key, string value) in overrides)
+            values[key] = value;
+        return Configuration(values);
+    }
 
     private static IHostEnvironment Environment(string name) => new HostingEnvironment { EnvironmentName = name };
 

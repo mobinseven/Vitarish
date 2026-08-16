@@ -23,13 +23,13 @@ namespace Vitarish.Hosting;
 public sealed record HostingCompositionOptions(
     Action<DbContextOptionsBuilder> ConfigureDbContext,
     System.Security.Cryptography.X509Certificates.X509Certificate2 IdentityServerSigningCertificate,
-    IReadOnlyCollection<string>? AllowedCorsOrigins,
     SecurityConfigurationOptions SecurityConfiguration);
 
 public static class HostingComposition
 {
     public static async Task<WebApplicationBuilder> RegisterHosting(this WebApplicationBuilder builder, HostingCompositionOptions options)
     {
+        _ = builder.Services.AddSingleton(options.SecurityConfiguration);
         _ = builder.Services.AddScoped<ITenantService, TenantService>();
         _ = builder.Services.AddAuditInfrastructure(options.ConfigureDbContext);
         await builder.RegisterApps(options.ConfigureDbContext);
@@ -41,7 +41,7 @@ public static class HostingComposition
         builder.AddHostAuthentication(options.SecurityConfiguration);
         builder.AddHostAuthorization();
         builder.AddHostPipeline(options.SecurityConfiguration);
-        builder.AddHostCors(options.AllowedCorsOrigins);
+        builder.AddHostCors(options.SecurityConfiguration.AllowedCorsOrigins);
         _ = builder.Services.AddMemoryCache();
         _ = builder.Services.AddHttpContextAccessor();
         _ = builder.Services.AddSession(session => { session.IdleTimeout = TimeSpan.FromMinutes(2); session.Cookie.HttpOnly = true; session.Cookie.IsEssential = true; session.Cookie.SecurePolicy = CookieSecurePolicy.Always; });
@@ -64,18 +64,21 @@ public static class HostingComposition
         return builder;
     }
 
-    public static WebApplication UseHostingPipeline(this WebApplication app)
+    public static WebApplication UseHostingPipeline(this WebApplication app, SecurityConfigurationOptions security)
     {
         _ = app.UseForwardedHeaders();
         _ = app.UseRequestLocalization(new RequestLocalizationOptions().SetDefaultCulture("fa").AddSupportedCultures(["en", "fa"]).AddSupportedUICultures(["en", "fa"]));
         _ = app.UseCookiePolicy(new CookiePolicyOptions { Secure = CookieSecurePolicy.Always });
         _ = app.UseExceptionHandler();
-        _ = app.UseHsts();
-        _ = app.UseHttpsRedirection();
+        if (security.Tls.RequireHttps)
+        {
+            _ = app.UseHsts();
+            _ = app.UseHttpsRedirection();
+        }
         _ = app.UseRouting();
         _ = app.UseInternalServiceEndpointBoundary();
         _ = app.UseCors("WebHostCors");
-        app.UseHostWebSockets();
+        app.UseHostWebSockets(security);
         _ = app.UseRateLimiter();
         _ = app.UseSession();
         _ = app.UseIdentityServer();
