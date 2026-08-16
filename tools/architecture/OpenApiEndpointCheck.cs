@@ -28,7 +28,9 @@ internal static class OpenApiEndpointCheck
     private const string AllowedRawFile = "src/Modules/Base/Core/Endpoints/ModuleEndpointMappingExtensions.cs";
     private const string AllowedProtectedRawFile = "src/Modules/Base/Core/Endpoints/ProtectedModuleEndpointRouteBuilderExtensions.cs";
 
-    public static IReadOnlyList<ArchitectureViolation> Run(SourceIndex index)
+    public static IReadOnlyList<ArchitectureViolation> Run(SourceIndex index) => Run(index, validateAuthorizationMatrix: true);
+
+    internal static IReadOnlyList<ArchitectureViolation> Run(SourceIndex index, bool validateAuthorizationMatrix)
     {
         List<ArchitectureViolation> violations = [];
         foreach (SourceFile file in Files(index))
@@ -37,10 +39,13 @@ internal static class OpenApiEndpointCheck
             violations.AddRange(ScanFile(index, file));
         }
 
+        if (validateAuthorizationMatrix)
+            violations.AddRange(AuthorizationMatrixCheck.Run(index));
+
         return violations;
     }
 
-    private static IEnumerable<SourceFile> Files(SourceIndex index)
+    internal static IEnumerable<SourceFile> Files(SourceIndex index)
     {
         HashSet<string> selected = new(StringComparer.OrdinalIgnoreCase) { "src/Hosts/Main/Program.cs" };
         foreach (SourceFile file in index.Files)

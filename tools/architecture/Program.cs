@@ -19,6 +19,12 @@ internal static class Program
         string root = FindRepositoryRoot();
         SourceIndex index = SourceIndex.Load(root);
 
+        if (command == "authorization-matrix-inventory")
+        {
+            Console.WriteLine(AuthorizationMatrixCheck.RenderInventory(index));
+            return 0;
+        }
+
         IReadOnlyList<ArchitectureViolation> violations = command switch
         {
             "all" => RunAll(index),
