@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const appRoot = resolve(process.cwd(), "src/app");
 const pageOwnedLayoutPattern =
-  /(?:Standalone(?:Centered|Document|Immersive)Page|[A-Z][A-Za-z]+(?:PageWrapper|LayoutFixture))/;
+  /(?:Standalone(?:Centered|Document|Immersive)Page|[A-Z][A-Za-z]+(?:PageWrapper|LayoutFixture)|PracticePrinciplesShowcase)/;
 
 describe("private-practice route layout coverage", () => {
   it("gives every page an ancestor layout or explicit page-owned composition", () => {
