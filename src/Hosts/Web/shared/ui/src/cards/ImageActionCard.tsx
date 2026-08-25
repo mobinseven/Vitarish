@@ -1,6 +1,7 @@
 import { ItemCard, PressableFeedback } from "@heroui-pro/react";
 
 export interface ImageActionCardProps {
+  className?: string;
   imageSrc: string;
   isDisabled?: boolean;
   label: string;
@@ -8,6 +9,7 @@ export interface ImageActionCardProps {
 }
 
 export function ImageActionCard({
+  className,
   imageSrc,
   isDisabled = false,
   label,
@@ -15,7 +17,7 @@ export function ImageActionCard({
 }: ImageActionCardProps) {
   return (
     <ItemCard<"button">
-      className="relative min-h-40 cursor-pointer overflow-hidden"
+      className={`relative min-h-40 cursor-pointer overflow-hidden${className ? ` ${className}` : ""}`}
       disabled={isDisabled}
       onClick={onPress}
       render={(props) => <button type="button" {...props} />}

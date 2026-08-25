@@ -235,3 +235,63 @@ html.glass-dark {
     radial-gradient(circle at 90% 88%, oklch(58% 0.21 275 / 46%), transparent 20rem),
     radial-gradient(circle at 12% 92%, oklch(68% 0.22 125 / 32%), transparent 17rem);
 } */
+
+:root,
+.glass-light,
+.default,
+[data-theme="light"],
+[data-theme="default"],
+.glass-dark,
+[data-theme="dark"] {
+  /* Border Radius */
+  --field-radius: 0.5rem;
+
+  /* Font Sizes */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: calc(1 / 0.8125);
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: calc(1.25 / 0.9375);
+  --text-base: 1.0625rem;
+  --text-base--line-height: calc(1.5 / 1.0625);
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: calc(1.75 / 1.1875);
+  --text-xl: 1.375rem;
+  --text-xl--line-height: calc(1.75 / 1.375);
+  --text-2xl: 1.5625rem;
+  --text-2xl--line-height: calc(2 / 1.5625);
+  --text-3xl: 1.9375rem;
+  --text-3xl--line-height: calc(2.25 / 1.9375);
+  --text-4xl: 2.375rem;
+  --text-4xl--line-height: calc(2.5 / 2.375);
+  --text-5xl: 3.125rem;
+  --text-6xl: 3.875rem;
+  --text-7xl: 4.75rem;
+  --text-8xl: 6.375rem;
+  --text-9xl: 8.5rem;
+}
+
+:root,
+.glass-light,
+.default,
+[data-theme="light"],
+[data-theme="default"] {
+  /* Theme Colors */
+  --default: oklch(100.00% 0.0001 263.28);
+   --background: var(--color-slate-50, #F8FAFC);
+  --success: oklch(73.96% 0.1617 160.73 / 0.80);
+  --warning: oklch(91.19% 0.1603 97.66 / 0.80);
+  --danger: oklch(65.32% 0.2328 25.73 / 0.77);
+  --border: oklch(90.06% 0.0001 263.28 / 0.50);
+}
+
+.glass-dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+  /* Theme Colors */
+  --default: oklch(27.27% 0.0000 263.28);
+  --background: oklch(30.92% 0.0000 263.28);
+  --success: oklch(73.96% 0.1617 160.73 / 0.80);
+  --warning: oklch(90.25% 0.1606 100.55);
+  --danger: oklch(59.40% 0.1967 24.62);
+  --border: oklch(28.09% 0.0000 263.28);
+}
