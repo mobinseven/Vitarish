@@ -9,6 +9,7 @@ public static class AuthenticationModuleServiceCollectionExtensions
     public static IServiceCollection AddAuthenticationModuleServices(this IServiceCollection services)
     {
         services.AddScoped<LoginWithPasswordHandler>();
+        services.AddScoped<ChangePasswordHandler>();
         services.AddScoped<BeginPhoneLoginHandler>();
         services.AddScoped<CompletePhoneLoginHandler>();
         services.AddScoped<BeginEmailLoginHandler>();

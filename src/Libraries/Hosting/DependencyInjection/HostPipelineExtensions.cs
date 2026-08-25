@@ -51,6 +51,12 @@ public static class HostPipelineExtensions
 
         _ = builder.Services.AddRateLimiter(options =>
         {
+            options.OnRejected = static (context, _) =>
+            {
+                context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                return ValueTask.CompletedTask;
+            };
+
             _ = options.AddPolicy(AuthenticationRateLimitPolicies.PasswordLogin, context =>
                 RateLimitPartition.GetSlidingWindowLimiter(
                     partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? context.Request.Headers.Host.ToString(),

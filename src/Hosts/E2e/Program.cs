@@ -10,6 +10,9 @@ using Vitarish.Hosting.Infrastructure.Options;
 using Vitarish.Modules.Base.Core.Platform.Idempotency;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.E2e.Infrastructure.Storage;
+using Vitarish.E2e.Infrastructure.Events;
+using Vitarish.Clinic.Application.Events;
+using Vitarish.Clinic.Application.Assistant.Actions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 const string apiOriginKey = "VITARISH_E2E_API_ORIGIN";
@@ -71,6 +74,8 @@ _ = builder.Services.AddSingleton(
     typeof(IOperationReceiptStore<>),
     typeof(E2eInMemoryOperationReceiptStore<>));
 builder.Services.Replace(ServiceDescriptor.Singleton<IObjectStorageService, E2eObjectStorageService>());
+builder.Services.Replace(ServiceDescriptor.Singleton<IClinicalEventProposalStore, E2eClinicalEventProposalStore>());
+builder.Services.Replace(ServiceDescriptor.Singleton<IAssistantActionStore, E2eAssistantActionStore>());
 
 _ = builder.Services.AddScoped<ClinicDbContext>(services =>
     new E2eClinicDbContext(

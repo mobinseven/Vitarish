@@ -147,7 +147,7 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
         WebApplication app = builder.Build();
-        RouteGroupBuilder protectedGroup = app.MapProtectedModuleGroup(AuthenticationRoutes.BasePath);
+        RouteGroupBuilder protectedGroup = app.MapProtectedModuleGroup(AuthenticationRoutes.BasePath, requireTenantAccess: false);
         protectedGroup.MapCurrentSessionEndpoints();
         protectedGroup.MapLogoutEndpoints();
         return app;

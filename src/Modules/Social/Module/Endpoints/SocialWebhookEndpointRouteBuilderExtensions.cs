@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using System.Buffers;
 using System.IO.Pipelines;
@@ -33,7 +34,6 @@ public static class SocialWebhookEndpointRouteBuilderExtensions
     private static async Task<IResult> HandleWebhookAsync(
         string provider,
         HttpContext httpContext,
-        ISocialWebhookGatewayService gateway,
         CancellationToken cancellationToken)
     {
         if (!TryParseProvider(provider, out SocialProvider parsedProvider))
@@ -58,6 +58,7 @@ public static class SocialWebhookEndpointRouteBuilderExtensions
             return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
         }
 
+        ISocialWebhookGatewayService gateway = httpContext.RequestServices.GetRequiredService<ISocialWebhookGatewayService>();
         Dictionary<string, string> headers = new(StringComparer.OrdinalIgnoreCase);
         foreach ((string key, Microsoft.Extensions.Primitives.StringValues value) in httpContext.Request.Headers)
         {

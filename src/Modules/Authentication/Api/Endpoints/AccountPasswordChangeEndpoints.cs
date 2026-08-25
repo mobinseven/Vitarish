@@ -6,6 +6,7 @@ using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Contracts.Requests;
 using Vitarish.Authentication.Contracts.Responses;
 using Vitarish.Modules.Base.Core.Endpoints;
+using Vitarish.Modules.Base.Core.Identity;
 
 namespace Vitarish.Authentication.Api.Endpoints;
 
@@ -15,7 +16,9 @@ public static class AccountPasswordChangeEndpoints
     {
         group.MapModulePost("/account/password", async (ChangePasswordRequest request, [Microsoft.AspNetCore.Mvc.FromServices] ChangePasswordHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
-            string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            string? userId = AuthenticatedUserIdResolver.Resolve(user) is AuthenticatedUserIdResolution.Success resolvedUserId
+                ? resolvedUserId.UserId.Value
+                : null;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
 
             var r = await handler.Handle(new ChangePasswordCommand(userId, request.CurrentPassword, request.NewPassword), ct);

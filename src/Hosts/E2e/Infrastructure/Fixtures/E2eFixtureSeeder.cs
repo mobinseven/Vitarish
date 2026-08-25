@@ -123,7 +123,11 @@ internal static class E2eFixtureSeeder
 
         if (!await parties.Owners.AnyAsync(owner => owner.Id == tenantBOwnerId, cancellationToken))
             _ = parties.Owners.Add(new Owner { Id = tenantBOwnerId, Name = "E2E Tenant B Owner" });
+
+        requestContext.SetContext("e2e", null, tenantBOwnerId.ToString(), tenantB.Id.ToString(), tenantBOwner.Id);
         _ = await parties.SaveChangesAsync(cancellationToken);
+
+        requestContext.SetContext("e2e", null, ownerId.ToString(), tenant.Id.ToString(), user.Id);
 
         Guid patientId = Guid.Parse("2d7a3eb9-1d47-4c63-9a45-19d7e6a0fb18");
         ClinicDbContext clinic = scope.ServiceProvider.GetRequiredService<ClinicDbContext>();

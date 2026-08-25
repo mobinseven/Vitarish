@@ -81,6 +81,11 @@ internal sealed class SeaPatientDirectory(
         EntityResult<SeaProjectReadDto> existingResult = await projects.GetAsync(patient.Id, cancellationToken);
         if (existingResult.IsFailure)
         {
+            if (existingResult.Errors.FirstOrDefault()?.Code == EntityErrorCode.NotFound)
+            {
+                return new PatientUpdateResult.NotFound();
+            }
+
             return new PatientUpdateResult.Failure(
                 PatientUpdateFailureReason.Unexpected,
                 existingResult.Errors.FirstOrDefault()?.Message ?? "Failed to retrieve the existing patient.");
