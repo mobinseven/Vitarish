@@ -1,5 +1,5 @@
 import { parseAuthError, getErrorMessage } from "@/lib/errors";
-import { ApiError } from "@vitarish/web-api-client";
+import { ApiError } from "@vitarish/api-client";
 
 describe("parseAuthError", () => {
   it("should parse ApiError with code", () => {

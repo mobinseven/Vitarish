@@ -4,11 +4,11 @@ FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/platform-admin/package.json ./apps/platform-admin/
-COPY shared/auth-web/package.json ./shared/auth-web/
-COPY shared/platform-web/package.json ./shared/platform-web/
-COPY shared/web-api-client/package.json ./shared/web-api-client/
-COPY shared/web-localization/package.json ./shared/web-localization/
-COPY shared/web-ui/package.json ./shared/web-ui/
+COPY shared/auth/package.json ./shared/auth/
+COPY shared/platform/package.json ./shared/platform/
+COPY shared/api-client/package.json ./shared/api-client/
+COPY shared/localization/package.json ./shared/localization/
+COPY shared/ui/package.json ./shared/ui/
 RUN --mount=type=secret,id=HEROUI_AUTH_TOKEN,required=true --mount=type=cache,target=/root/.npm HEROUI_AUTH_TOKEN="$(cat /run/secrets/HEROUI_AUTH_TOKEN)" npm ci
 FROM base AS builder
 WORKDIR /app

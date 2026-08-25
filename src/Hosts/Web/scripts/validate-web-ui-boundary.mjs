@@ -3,10 +3,10 @@
  * Validates shared Web packages do not import forbidden dependencies.
  *
  * Enforced boundaries:
- *   - @vitarish/web-ui: no React Query, no apps, no generated clients, no backend, no feature packages
- *   - @vitarish/web-api-client: no React/UI, no localization, no generated clients, no apps, no backend
- *   - @vitarish/web-localization: no apps, no generated clients, no feature packages, no backend
- *   - @vitarish/knowledge-web: no apps, no generated clients, no backend, no app localization
+ *   - @vitarish/ui: no React Query, no apps, no generated clients, no backend, no feature packages
+ *   - @vitarish/api-client: no React/UI, no localization, no generated clients, no apps, no backend
+ *   - @vitarish/localization: no apps, no generated clients, no feature packages, no backend
+ *   - @vitarish/knowledge: no apps, no generated clients, no backend, no app localization
  *   - Feature packages: no apps, no backend, no deep-importing other feature packages
  */
 
@@ -52,31 +52,31 @@ const noNextNavigationPatterns = [
 // Sea must not depend on clinic. Clinic may consume SEA's public package API,
 // but neither package may deep-import the other's source tree.
 const clinicSeaBoundaryPatterns = [
-  { pattern: /from\s+["']@vitarish\/clinic-web(?!\/api\/generated)/, reason: "sea-web must not import from clinic-web" },
-  { pattern: /from\s+["'].*clinic-web\/src\/(?!api\/generated)/, reason: "must not deep-import from clinic-web (except generated API)" },
+  { pattern: /from\s+["']@vitarish\/clinic(?!\/api\/generated)/, reason: "sea must not import from clinic" },
+  { pattern: /from\s+["'].*clinic\/src\/(?!api\/generated)/, reason: "must not deep-import from clinic (except generated API)" },
 ];
 
 const seaClinicBoundaryPatterns = [
-  { pattern: /from\s+["'].*sea-web\/src\//, reason: "must not deep-import from sea-web" },
+  { pattern: /from\s+["'].*sea\/src\//, reason: "must not deep-import from sea" },
 ];
 
 const forbiddenPathBoundaries = [
   {
-    name: "@vitarish/sea-web",
-    path: resolve(__dirname, "../shared/sea-web/src/features/sea"),
+    name: "@vitarish/sea",
+    path: resolve(__dirname, "../shared/sea/src/features/sea"),
     reason: "must not reintroduce the removed src/features/sea ownership wrapper",
   },
   {
-    name: "@vitarish/clinic-web",
-    path: resolve(__dirname, "../shared/clinic-web/src/features/clinic"),
-    reason: "@vitarish/clinic-web must not reintroduce the removed src/features/clinic wrapper",
+    name: "@vitarish/clinic",
+    path: resolve(__dirname, "../shared/clinic/src/features/clinic"),
+    reason: "@vitarish/clinic must not reintroduce the removed src/features/clinic wrapper",
   },
 ];
 
 const packageBoundaries = [
   {
-    name: "@vitarish/web-ui",
-    src: resolve(__dirname, "../shared/web-ui/src"),
+    name: "@vitarish/ui",
+    src: resolve(__dirname, "../shared/ui/src"),
     forbiddenPatterns: [
       ...crossPackageForbiddenPatterns,
       ...noGeneratedClientPatterns,
@@ -85,8 +85,8 @@ const packageBoundaries = [
     ],
   },
   {
-    name: "@vitarish/web-api-client",
-    src: resolve(__dirname, "../shared/web-api-client/src"),
+    name: "@vitarish/api-client",
+    src: resolve(__dirname, "../shared/api-client/src"),
     forbiddenPatterns: [
       ...appAndBackendForbiddenPatterns,
       ...noNextNavigationPatterns,
@@ -95,15 +95,15 @@ const packageBoundaries = [
     ],
   },
   {
-    name: "@vitarish/web-localization",
-    src: resolve(__dirname, "../shared/web-localization/src"),
+    name: "@vitarish/localization",
+    src: resolve(__dirname, "../shared/localization/src"),
     forbiddenPatterns: [
       ...appAndBackendForbiddenPatterns,
     ],
   },
   {
-    name: "@vitarish/knowledge-web",
-    src: resolve(__dirname, "../shared/knowledge-web/src"),
+    name: "@vitarish/knowledge",
+    src: resolve(__dirname, "../shared/knowledge/src"),
     forbiddenPatterns: [
       ...crossPackageForbiddenPatterns,
       ...noGeneratedClientPatterns,
@@ -111,32 +111,32 @@ const packageBoundaries = [
     ],
   },
   {
-    name: "@vitarish/auth-web",
-    src: resolve(__dirname, "../shared/auth-web/src"),
+    name: "@vitarish/auth",
+    src: resolve(__dirname, "../shared/auth/src"),
     forbiddenPatterns: [
       ...featurePackageForbiddenPatterns,
       ...noNextNavigationPatterns,
     ],
   },
   {
-    name: "@vitarish/account-web",
-    src: resolve(__dirname, "../shared/account-web/src"),
+    name: "@vitarish/account",
+    src: resolve(__dirname, "../shared/account/src"),
     forbiddenPatterns: [
       ...featurePackageForbiddenPatterns,
       ...noNextNavigationPatterns,
     ],
   },
   {
-    name: "@vitarish/journey-web",
-    src: resolve(__dirname, "../shared/journey-web/src"),
+    name: "@vitarish/journey",
+    src: resolve(__dirname, "../shared/journey/src"),
     forbiddenPatterns: [
       ...featurePackageForbiddenPatterns,
       ...noNextNavigationPatterns,
     ],
   },
   {
-    name: "@vitarish/clinic-web",
-    src: resolve(__dirname, "../shared/clinic-web/src"),
+    name: "@vitarish/clinic",
+    src: resolve(__dirname, "../shared/clinic/src"),
     forbiddenPatterns: [
       ...featurePackageForbiddenPatterns,
       ...noNextNavigationPatterns,
@@ -144,24 +144,24 @@ const packageBoundaries = [
     ],
   },
   {
-    name: "@vitarish/intelligence-web",
-    src: resolve(__dirname, "../shared/intelligence-web/src"),
+    name: "@vitarish/intelligence",
+    src: resolve(__dirname, "../shared/intelligence/src"),
     forbiddenPatterns: [
       ...featurePackageForbiddenPatterns,
       ...noNextNavigationPatterns,
     ],
   },
   {
-    name: "@vitarish/communications-web",
-    src: resolve(__dirname, "../shared/communications-web/src"),
+    name: "@vitarish/communications",
+    src: resolve(__dirname, "../shared/communications/src"),
     forbiddenPatterns: [
       ...featurePackageForbiddenPatterns,
       ...noNextNavigationPatterns,
     ],
   },
   {
-    name: "@vitarish/sea-web",
-    src: resolve(__dirname, "../shared/sea-web/src"),
+    name: "@vitarish/sea",
+    src: resolve(__dirname, "../shared/sea/src"),
     forbiddenPatterns: [
       ...featurePackageForbiddenPatterns,
       ...noNextNavigationPatterns,

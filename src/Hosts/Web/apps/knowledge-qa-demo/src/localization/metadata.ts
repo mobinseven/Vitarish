@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { defaultLocale, type SupportedLocale } from "./locales";
 import { getMessages } from "./messages";
-import type { MessageKey } from "@vitarish/web-localization";
+import type { MessageKey } from "@vitarish/localization";
 
 function read(key: MessageKey, locale: SupportedLocale): string {
   const messages = getMessages(locale);

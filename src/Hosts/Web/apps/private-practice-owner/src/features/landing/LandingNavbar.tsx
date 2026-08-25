@@ -5,7 +5,7 @@ import { Navbar } from "@heroui-pro/react/navbar";
 import { useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
 import { useLocalizedText } from "@/localization";
-import { useAuthSession } from "@vitarish/auth-web";
+import { useAuthSession } from "@vitarish/auth";
 
 export function LandingNavbar() {
   const router = useRouter();
@@ -14,10 +14,10 @@ export function LandingNavbar() {
 
   return (
     <div className="sticky top-0 z-40 -mb-16">
-      <Navbar aria-label="Vitarish" className="bg-transparent text-white">
+      <Navbar aria-label={t("practiceLanding.navLabel")} className="bg-transparent text-white">
         <Navbar.Header>
           <Navbar.Brand className="text-xs font-normal uppercase tracking-[0.35em] text-white">
-            VITARISH
+            {t("appShell.brand")}
           </Navbar.Brand>
           <Navbar.Spacer />
           <Navbar.Content>

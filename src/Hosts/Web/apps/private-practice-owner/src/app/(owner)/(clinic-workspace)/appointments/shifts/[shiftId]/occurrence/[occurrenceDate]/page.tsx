@@ -1,6 +1,6 @@
 "use client";
 import { use } from "react";
-import { OwnerShiftOccurrencePage } from "@vitarish/clinic-web";
+import { OwnerShiftOccurrencePage } from "@vitarish/clinic";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 export default function OwnerShiftOccurrenceRoute({
   params,

@@ -2,19 +2,12 @@
 
 import { Suspense, useCallback, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AuthenticatedRedirectBoundary } from "@vitarish/auth-web";
-import { useLocalizedText } from "@/localization";
+import { AuthenticatedRedirectBoundary } from "@vitarish/auth";
 import { Routes } from "@/app/routes";
-import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
+import { LoadingScreen } from "@/components/loading/LoadingScreen";
 
 function LoginRouteFallback() {
-  const { t } = useLocalizedText();
-
-  return (
-    <StandaloneCenteredPage>
-      <p className="text-muted">{t("common.states.loading")}</p>
-    </StandaloneCenteredPage>
-  );
+  return <LoadingScreen />;
 }
 
 export default function LoginLayout({ children }: { children: ReactNode }) {
@@ -30,6 +23,7 @@ export default function LoginLayout({ children }: { children: ReactNode }) {
       <AuthenticatedRedirectBoundary
         authenticatedHref={Routes.Home}
         onNavigate={navigate}
+        loadingFallback={<LoadingScreen />}
         returnUrlSearchParams={searchParams}
       >
         {children}

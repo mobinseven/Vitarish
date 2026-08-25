@@ -3,7 +3,7 @@
 import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
-import { MockApiBootstrap } from "@vitarish/web-mock-runtime";
+import { MockApiBootstrap } from "@vitarish/mock-runtime";
 
 const themeModes = ["light", "dark"] as const;
 

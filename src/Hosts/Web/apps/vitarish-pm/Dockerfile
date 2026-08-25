@@ -4,13 +4,13 @@ FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/vitarish-pm/package.json ./apps/vitarish-pm/
-COPY shared/auth-web/package.json ./shared/auth-web/
-COPY shared/intelligence-web/package.json ./shared/intelligence-web/
-COPY shared/sea-web/package.json ./shared/sea-web/
-COPY shared/web-api-client/package.json ./shared/web-api-client/
-COPY shared/web-localization/package.json ./shared/web-localization/
-COPY shared/web-mock-runtime/package.json ./shared/web-mock-runtime/
-COPY shared/web-ui/package.json ./shared/web-ui/
+COPY shared/auth/package.json ./shared/auth/
+COPY shared/intelligence/package.json ./shared/intelligence/
+COPY shared/sea/package.json ./shared/sea/
+COPY shared/api-client/package.json ./shared/api-client/
+COPY shared/localization/package.json ./shared/localization/
+COPY shared/mock-runtime/package.json ./shared/mock-runtime/
+COPY shared/ui/package.json ./shared/ui/
 RUN --mount=type=secret,id=HEROUI_AUTH_TOKEN,required=true --mount=type=cache,target=/root/.npm HEROUI_AUTH_TOKEN="$(cat /run/secrets/HEROUI_AUTH_TOKEN)" npm ci
 FROM base AS builder
 WORKDIR /app

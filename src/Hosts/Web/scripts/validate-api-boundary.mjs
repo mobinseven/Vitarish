@@ -6,7 +6,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const extensions = new Set([".ts", ".tsx"]);
 let failed = false;
 
-// Check 1: No direct /api/modules fetch in app source (must use apiFetch from @vitarish/web-api-client)
+// Check 1: No direct /api/modules fetch in app source (must use apiFetch from @vitarish/api-client)
 const appDirs = [
   resolve(__dirname, "../apps/private-practice-owner/src"),
   resolve(__dirname, "../apps/patients/src"),
@@ -34,28 +34,28 @@ for (const root of appDirs) {
     if (allowedAppPaths.has(relativePath) || relativePath.startsWith("api/generated/")) return;
     const text = readFileSync(fullPath, "utf8");
     if (/\bfetch\s*\([^)]*['"`][^'"`]*\/api\/modules\//s.test(text)) {
-      console.error(`Direct /api/modules fetch is forbidden in ${relativePath}; use @vitarish/web-api-client.`);
+      console.error(`Direct /api/modules fetch is forbidden in ${relativePath}; use @vitarish/api-client.`);
       failed = true;
     }
   });
 }
 
-// Check 2: No duplicate apiFetch implementations outside web-api-client
+// Check 2: No duplicate apiFetch implementations outside api-client
 const sharedDir = resolve(__dirname, "../shared");
 if (statSync(sharedDir).isDirectory()) {
   for (const entry of readdirSync(sharedDir)) {
     const pkgDir = resolve(sharedDir, entry);
-    if (!statSync(pkgDir).isDirectory() || entry === "web-api-client") continue;
+    if (!statSync(pkgDir).isDirectory() || entry === "api-client") continue;
     const srcDir = resolve(pkgDir, "src");
     if (!statSync(srcDir).isDirectory()) continue;
     walk(srcDir, entry, (fullPath, relativePath) => {
       const text = readFileSync(fullPath, "utf8");
       const isOrvalMutatorAdapter = relativePath.endsWith("/api/client/apiFetch.ts")
-        && text.includes('from "@vitarish/web-api-client"')
+        && text.includes('from "@vitarish/api-client"')
         && text.includes("return sharedApiFetch<T>(urlOrConfig, options)");
       if (isOrvalMutatorAdapter) return;
       if (/export\s+(async\s+)?function\s+apiFetch/.test(text)) {
-        console.error(`Duplicate apiFetch implementation in shared/${relativePath}; use @vitarish/web-api-client.`);
+        console.error(`Duplicate apiFetch implementation in shared/${relativePath}; use @vitarish/api-client.`);
         failed = true;
       }
     });

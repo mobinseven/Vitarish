@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePlatformAuthorization } from "@vitarish/auth-web";
+import { usePlatformAuthorization } from "@vitarish/auth";
 import {
   getLandingAdministrationGetHostBindingQueryKey,
   getPartiesAdministrationGetTenantIndicatorsQueryKey,
@@ -11,8 +11,8 @@ import {
   useLandingAdministrationGetHostBinding,
   useLandingAdministrationSetHostBinding,
   usePartiesAdministrationGetTenants,
-} from "@vitarish/platform-web";
-import { useLocalizedText } from "@vitarish/web-localization";
+} from "@vitarish/platform";
+import { useLocalizedText } from "@vitarish/localization";
 
 export default function LandingSettingsPage() {
   const { hasAccess } = usePlatformAuthorization();

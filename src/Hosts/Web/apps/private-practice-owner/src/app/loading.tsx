@@ -1,10 +1,5 @@
-import { LoadingSpinner } from "@/components/loading/LoadingSpinner";
-import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
+import { LoadingScreen } from "@/components/loading/LoadingScreen";
 
 export default function Loading() {
-  return (
-    <StandaloneCenteredPage className="bg-background">
-      <LoadingSpinner />
-    </StandaloneCenteredPage>
-  );
+  return <LoadingScreen />;
 }

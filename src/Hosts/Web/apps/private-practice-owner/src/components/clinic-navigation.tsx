@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
-import type { NavigationIntent } from "@vitarish/clinic-web";
+import type { NavigationIntent } from "@vitarish/clinic";
 
 export function useClinicNavigation() {
   const router = useRouter();

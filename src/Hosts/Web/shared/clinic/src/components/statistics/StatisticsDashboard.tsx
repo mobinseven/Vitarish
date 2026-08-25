@@ -1,0 +1,20 @@
+"use client";
+
+import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/ui";
+import { useLocalizedText } from "../../localization/index";
+
+export function StatisticsDashboard() {
+  const { t } = useLocalizedText();
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-bold">{t("clinic.statistics.title")}</h1>
+        <p className="text-sm text-muted">
+          {t("clinic.statistics.description")}
+        </p>
+      </div>
+
+      <ClinicEmptyState title={t("clinic.statistics.comingSoon")} />
+    </div>
+  );
+}

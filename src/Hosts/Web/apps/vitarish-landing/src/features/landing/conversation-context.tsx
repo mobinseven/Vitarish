@@ -1,5 +1,5 @@
 import { Chip } from "@heroui/react";
-import { FaIcon } from "@vitarish/web-ui";
+import { FaIcon } from "@vitarish/ui";
 import type { LandingCopy } from "./landing-copy";
 
 export function ConversationContext({ copy }: { copy: LandingCopy }) {

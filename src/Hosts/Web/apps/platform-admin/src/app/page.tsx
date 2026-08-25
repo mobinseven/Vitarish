@@ -1,8 +1,8 @@
 "use client";
 
-import { useAuthSession, usePlatformAuthorization } from "@vitarish/auth-web";
-import { CenteredRegion } from "@vitarish/web-ui/layout";
-import { useLocalizedText } from "@vitarish/web-localization";
+import { useAuthSession, usePlatformAuthorization } from "@vitarish/auth";
+import { CenteredRegion } from "@vitarish/ui/layout";
+import { useLocalizedText } from "@vitarish/localization";
 import Link from "next/link";
 import { Routes } from "./routes";
 

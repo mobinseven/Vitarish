@@ -3,7 +3,7 @@
 import { Routes } from "@/app/routes";
 import { formatDateTime, useLocalizedText } from "@/localization";
 import { BrandLogotipo } from "@/features/landing/brand";
-import { PublicDocumentShell, StandaloneDocumentPage } from "@vitarish/web-ui/layout";
+import { PublicDocumentShell, StandaloneDocumentPage } from "@vitarish/ui/layout";
 import {
   FeatureItemCard,
   FeatureItemGroup,
@@ -14,7 +14,7 @@ import {
   MarketingHeader,
   MarketingSection,
   MarketingSectionHeading,
-} from "@vitarish/web-ui/marketing";
+} from "@vitarish/ui/marketing";
 
 export default function PatientsHomePage() {
   const { locale, t } = useLocalizedText();

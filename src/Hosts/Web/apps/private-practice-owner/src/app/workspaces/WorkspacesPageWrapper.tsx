@@ -5,7 +5,7 @@ import {
   dashboardFooterItems,
   mainDashboardNavGroups,
 } from "@/components/shell/dashboardShellNavigation";
-import { ContainedPage } from "@vitarish/web-ui/layout";
+import { ContainedPage } from "@vitarish/ui/layout";
 
 export function WorkspacesPageWrapper({
   children,

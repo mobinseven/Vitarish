@@ -2,7 +2,7 @@
 
 import { useCallback, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { AuthorizationGuard } from "@vitarish/auth-web";
+import { AuthorizationGuard } from "@vitarish/auth";
 import { Routes } from "@/app/routes";
 
 export default function KnowledgeLayout({ children }: { children: ReactNode }) {

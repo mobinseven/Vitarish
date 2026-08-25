@@ -1,4 +1,4 @@
-import { StandaloneDocumentPage } from "@vitarish/web-ui/layout";
+import { StandaloneDocumentPage } from "@vitarish/ui/layout";
 
 export function ValidPage() {
   return (

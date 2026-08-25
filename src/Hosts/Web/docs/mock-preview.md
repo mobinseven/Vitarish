@@ -24,7 +24,7 @@ reload or a new tab starts from the scenario seed; restart the corresponding
 
 Mock mode starts an MSW browser worker only when
 `NEXT_PUBLIC_VITARISH_MOCK_API=1`. It intercepts browser HTTP requests below the
-generated clients and `@vitarish/web-api-client`; the app still sends its normal
+generated clients and `@vitarish/api-client`; the app still sends its normal
 tenant header, credentials, and antiforgery bootstrap request. Unhandled
 requests are errors by design and must never fall through to live services.
 

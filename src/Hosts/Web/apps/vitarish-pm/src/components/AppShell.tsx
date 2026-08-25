@@ -2,14 +2,14 @@
 
 import { type ReactNode, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuthSession } from "@vitarish/auth-web";
+import { useAuthSession } from "@vitarish/auth";
 import {
   CenteredRegion,
   ContainedPage,
   DashboardFrame,
   type DashboardNavigationGroup,
-} from "@vitarish/web-ui";
-import { useLocalizedText } from "@vitarish/web-localization";
+} from "@vitarish/ui";
+import { useLocalizedText } from "@vitarish/localization";
 import { Routes } from "@/app/routes";
 
 export function AppShell({ children }: { children: ReactNode }) {

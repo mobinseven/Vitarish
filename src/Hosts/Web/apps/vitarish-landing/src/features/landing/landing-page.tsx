@@ -3,12 +3,12 @@
 import { useMemo, useState, type Key } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button, Popover, Tabs, Tooltip } from "@heroui/react";
-import { AgentConversationComposer } from "@vitarish/intelligence-web";
+import { AgentConversationComposer } from "@vitarish/intelligence";
 import {
   DashboardFrame,
   ImmersiveRegion,
   FaIcon,
-} from "@vitarish/web-ui";
+} from "@vitarish/ui";
 import { useLandingConversation } from "../conversation/use-landing-conversation";
 import { ConversationContext } from "./conversation-context";
 import { GuidedPage } from "./guided-page";

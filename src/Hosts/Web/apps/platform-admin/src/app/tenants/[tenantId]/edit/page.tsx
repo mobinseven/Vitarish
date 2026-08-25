@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { usePlatformAuthorization } from "@vitarish/auth-web";
-import { usePartiesAdministrationGetTenant, usePartiesAdministrationUpdateTenant } from "@vitarish/platform-web";
-import { useLocalizedText } from "@vitarish/web-localization";
+import { usePlatformAuthorization } from "@vitarish/auth";
+import { usePartiesAdministrationGetTenant, usePartiesAdministrationUpdateTenant } from "@vitarish/platform";
+import { useLocalizedText } from "@vitarish/localization";
 export default function EditTenantPage(){const {hasAccess}=usePlatformAuthorization();const {t}=useLocalizedText();const {tenantId}=useParams<{tenantId:string}>();const router=useRouter();const tenant=usePartiesAdministrationGetTenant(tenantId,{query:{enabled:hasAccess}});const update=usePartiesAdministrationUpdateTenant();const [name,setName]=useState("");const [appId,setAppId]=useState("");const [ownerId,setOwnerId]=useState("");useEffect(()=>{if(tenant.data){setName(tenant.data.name??"");setAppId(tenant.data.appId??"");setOwnerId(tenant.data.ownerId??"")}},[tenant.data]);if(!hasAccess)return null;return <main className="mx-auto max-w-2xl space-y-5 p-6"><h1 className="text-2xl font-semibold">{t("admin.tenants.editTitle")}</h1>{tenant.data&&<form className="space-y-4" onSubmit={e=>{e.preventDefault();update.mutate({tenantId,data:{id:tenantId,name,appId,ownerId}},{onSuccess:()=>router.push(`/tenants/${tenantId}`)})}}><label className="block">{t("admin.tenants.name")}<input className="mt-1 w-full rounded border p-2" required value={name} onChange={e=>setName(e.target.value)}/></label><label className="block">{t("admin.tenants.appId")}<input className="mt-1 w-full rounded border p-2" required value={appId} onChange={e=>setAppId(e.target.value)}/></label><label className="block">{t("admin.tenants.owner")}<input className="mt-1 w-full rounded border p-2" readOnly value={ownerId}/></label><button className="rounded bg-primary px-4 py-2 text-primary-foreground" disabled={update.isPending}>{t("admin.tenants.save")}</button></form>}</main>}

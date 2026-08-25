@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { usePlatformAuthorization } from "@vitarish/auth-web";
-import { usePartiesAdministrationCreateTenantIndicator, usePartiesAdministrationGetTenantIndicators } from "@vitarish/platform-web";
-import { useLocalizedText } from "@vitarish/web-localization";
+import { usePlatformAuthorization } from "@vitarish/auth";
+import { usePartiesAdministrationCreateTenantIndicator, usePartiesAdministrationGetTenantIndicators } from "@vitarish/platform";
+import { useLocalizedText } from "@vitarish/localization";
 export default function TenantDetailPage(){const {hasAccess}=usePlatformAuthorization();const {t}=useLocalizedText();const {tenantId}=useParams<{tenantId:string}>();const indicators=usePartiesAdministrationGetTenantIndicators(tenantId,{query:{enabled:hasAccess}});const create=usePartiesAdministrationCreateTenantIndicator();const [value,setValue]=useState("");if(!hasAccess)return null;return <main className="mx-auto max-w-5xl space-y-6 p-6"><h1 className="text-2xl font-semibold">{t("admin.tenants.indicators")}</h1><p>{tenantId}</p>{indicators.isLoading&&<p>{t("admin.tenants.loading")}</p>}{indicators.isError&&<p className="text-danger">{t("admin.tenants.error")}</p>}{!indicators.isLoading&&!indicators.isError&&!indicators.data?.length&&<p className="text-muted">{t("admin.tenants.noIndicators")}</p>}{!!indicators.data?.length&&<ul>{indicators.data.map(i=><li className="border-b py-3" key={i.id}>{i.method} · {i.value} · {i.status}</li>)}</ul>}<form className="space-y-3 rounded border p-4" onSubmit={e=>{e.preventDefault();create.mutate({data:{id:crypto.randomUUID(),tenantId,value,method:1,status:3,isPrimary:!indicators.data?.length}},{onSuccess:()=>{setValue("");indicators.refetch()}})}}><label className="block">{t("admin.tenants.indicatorValue")}<input className="mt-1 w-full rounded border p-2" required value={value} onChange={e=>setValue(e.target.value)}/></label><button className="rounded bg-primary px-4 py-2 text-primary-foreground" disabled={create.isPending}>{t("admin.tenants.createIndicator")}</button></form></main>}

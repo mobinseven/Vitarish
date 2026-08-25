@@ -4,14 +4,14 @@ import { PromptSuggestion, Timeline } from "@heroui-pro/react";
 import {
   ContactForm,
   submitContactInquiry,
-} from "@vitarish/communications-web";
+} from "@vitarish/communications";
 import {
   ChatConversation,
   ChatLoadingMessage,
   ChatMessage,
   FaIcon,
-} from "@vitarish/web-ui";
-import { AgentConversationComposer } from "@vitarish/intelligence-web";
+} from "@vitarish/ui";
+import { AgentConversationComposer } from "@vitarish/intelligence";
 import { useLandingConversation } from "../conversation/use-landing-conversation";
 import type { LandingConversationOwner } from "../conversation/landing-conversation";
 

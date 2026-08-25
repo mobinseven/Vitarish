@@ -2,10 +2,10 @@
 
 import { Suspense, useCallback, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AuthenticatedRedirectBoundary } from "@vitarish/auth-web";
+import { AuthenticatedRedirectBoundary } from "@vitarish/auth";
 import { Routes } from "@/app/routes";
 import { useLocalizedText } from "@/localization";
-import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
+import { StandaloneCenteredPage } from "@vitarish/ui/layout";
 
 function LoginFallback() {
   const { t } = useLocalizedText();

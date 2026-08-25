@@ -4,7 +4,7 @@ import * as React from "react";
 import { Button, Chip, Tooltip } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
 import { useRouter } from "next/navigation";
-import { useLocalizedText } from "@vitarish/web-localization";
+import { useLocalizedText } from "@vitarish/localization";
 import { Routes } from "@/app/routes";
 import {
   SeaEventAttachmentsPanel,
@@ -13,8 +13,8 @@ import {
   useCommitSeaEvent,
   useSeaEventDetail,
   useUncommitSeaEvent,
-} from "@vitarish/sea-web";
-import { FaIcon } from "@vitarish/web-ui";
+} from "@vitarish/sea";
+import { FaIcon } from "@vitarish/ui";
 import { PmEventAssistantSheet } from "./PmEventAssistantSheet";
 
 export function PmEventWorkspace({

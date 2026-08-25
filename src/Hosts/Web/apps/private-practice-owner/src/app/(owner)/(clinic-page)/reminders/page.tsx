@@ -1,4 +1,4 @@
-import { RemindersPage } from "@vitarish/clinic-web";
+import { RemindersPage } from "@vitarish/clinic";
 
 export default function RemindersRoute() {
   return <RemindersPage />;

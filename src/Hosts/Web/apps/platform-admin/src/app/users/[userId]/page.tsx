@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useAuthSession, usePlatformAuthorization, useUsersAdministrationGrantTenantRole, useUsersAdministrationListTenantRoles, useUsersAdministrationRevokeTenantRole } from "@vitarish/auth-web";
-import { CenteredRegion } from "@vitarish/web-ui/layout";
-import { useLocalizedText } from "@vitarish/web-localization";
+import { useAuthSession, usePlatformAuthorization, useUsersAdministrationGrantTenantRole, useUsersAdministrationListTenantRoles, useUsersAdministrationRevokeTenantRole } from "@vitarish/auth";
+import { CenteredRegion } from "@vitarish/ui/layout";
+import { useLocalizedText } from "@vitarish/localization";
 export default function UserDetailPage() {
  const {isAuthenticated,isLoading}=useAuthSession(); const {hasAccess}=usePlatformAuthorization(); const {t}=useLocalizedText(); const {userId}=useParams<{userId:string}>(); const roles=useUsersAdministrationListTenantRoles(userId); const grant=useUsersAdministrationGrantTenantRole(); const revoke=useUsersAdministrationRevokeTenantRole(); const [tenantId,setTenantId]=useState(""); const [roleSuffix,setRoleSuffix]=useState("TenantUser"); const [message,setMessage]=useState("");
  if(isLoading)return <CenteredRegion><p>{t("common.states.loading")}</p></CenteredRegion>; if(!isAuthenticated||!hasAccess)return <CenteredRegion><h1>{t("admin.forbiddenTitle")}</h1></CenteredRegion>;

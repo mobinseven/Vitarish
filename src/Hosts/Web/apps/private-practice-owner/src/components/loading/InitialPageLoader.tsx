@@ -1,23 +1,23 @@
 "use client";
 
 import { useEffect } from "react";
-import { useLocalizedText } from "@/localization";
-import { LoadingSpinner } from "./LoadingSpinner";
+import { useAuthSession } from "@vitarish/auth";
+import { LoadingScreen } from "./LoadingScreen";
 
 export function InitialPageLoader() {
-  const { t } = useLocalizedText();
+  const { isLoading } = useAuthSession();
   useEffect(() => {
-    document.getElementById("initial-page-loader")?.remove();
-  }, []);
+    if (!isLoading) {
+      document.getElementById("initial-page-loader")?.remove();
+    }
+  }, [isLoading]);
 
   return (
     <div
       id="initial-page-loader"
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-background"
-      aria-label={t("common.states.loading")}
-      role="status"
+      className="fixed inset-0 z-[9999] bg-background"
     >
-      <LoadingSpinner />
+      <LoadingScreen />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { usePlatformAuthorization } from "@vitarish/auth-web";
-import { usePartiesAdministrationCreateOwner } from "@vitarish/platform-web";
-import { useLocalizedText } from "@vitarish/web-localization";
+import { usePlatformAuthorization } from "@vitarish/auth";
+import { usePartiesAdministrationCreateOwner } from "@vitarish/platform";
+import { useLocalizedText } from "@vitarish/localization";
 export default function NewOwnerPage(){const {hasAccess}=usePlatformAuthorization();const {t}=useLocalizedText();const router=useRouter();const [name,setName]=useState("");const [description,setDescription]=useState("");const mutation=usePartiesAdministrationCreateOwner();if(!hasAccess)return null;return <main className="mx-auto max-w-2xl space-y-5 p-6"><h1 className="text-2xl font-semibold">{t("admin.owners.createTitle")}</h1><form className="space-y-4" onSubmit={e=>{e.preventDefault();mutation.mutate({data:{id:crypto.randomUUID(),name,description}}, {onSuccess:()=>router.push("/owners")})}}><label className="block">{t("admin.owners.name")}<input className="mt-1 w-full rounded border p-2" required value={name} onChange={e=>setName(e.target.value)}/></label><label className="block">{t("admin.owners.descriptionLabel")}<textarea className="mt-1 w-full rounded border p-2" value={description} onChange={e=>setDescription(e.target.value)}/></label><button className="rounded bg-primary px-4 py-2 text-primary-foreground" disabled={mutation.isPending}>{t("admin.owners.create")}</button>{mutation.isError&&<p className="text-danger">{t("admin.owners.createError")}</p>}</form></main>}

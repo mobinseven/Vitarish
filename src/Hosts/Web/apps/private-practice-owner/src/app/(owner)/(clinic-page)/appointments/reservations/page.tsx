@@ -1,6 +1,6 @@
 "use client";
 
-import { OwnerReservationListPage } from "@vitarish/clinic-web";
+import { OwnerReservationListPage } from "@vitarish/clinic";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 
 export default function OwnerReservationListRoute() {

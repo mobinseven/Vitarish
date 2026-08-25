@@ -9,12 +9,12 @@ import {
   type DashboardMobileNavigation,
   type DashboardNavigationGroup,
   type DashboardNavigationItem,
-} from "@vitarish/web-ui";
+} from "@vitarish/ui";
 import { usePathname, useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
-import { useAuthSession } from "@vitarish/auth-web";
-import { useTenantAuthorization } from "@vitarish/auth-web";
-import { ClinicAssistantAside, type ClinicAssistantScope } from "@vitarish/clinic-web";
+import { useAuthSession } from "@vitarish/auth";
+import { useTenantAuthorization } from "@vitarish/auth";
+import { ClinicAssistantAside, type ClinicAssistantScope } from "@vitarish/clinic";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { BreadcrumbUpButton } from "./BreadcrumbUpButton";
 import { CommandPalette } from "./CommandPalette/CommandPalette";

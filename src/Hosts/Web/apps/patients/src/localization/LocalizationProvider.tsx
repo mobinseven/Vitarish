@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { I18nProvider, type SupportedLocale } from "@vitarish/web-localization";
+import { I18nProvider, type SupportedLocale } from "@vitarish/localization";
 import { defaultLocale } from "./locales";
 import { getMessages, type MessageCatalog } from "./messages";
 

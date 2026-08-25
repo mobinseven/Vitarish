@@ -4,7 +4,7 @@ import { Toast } from "@heroui/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
-import { MockApiBootstrap } from "@vitarish/web-mock-runtime";
+import { MockApiBootstrap } from "@vitarish/mock-runtime";
 import { richSeaHandlers } from "./richSeaHandlers";
 
 export function Providers({ children }: { children: ReactNode }) {

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { ItemCard, ItemCardGroup } from "@heroui-pro/react";
-import { useAuthSession } from "@vitarish/auth-web";
-import { FaIcon } from "@vitarish/web-ui";
+import { useAuthSession } from "@vitarish/auth";
+import { FaIcon } from "@vitarish/ui";
 import { Routes } from "@/app/routes";
 import { AccountSurface } from "@/components/account/AccountSurface";
 import { useLocalizedText, type MessageKey } from "@/localization";

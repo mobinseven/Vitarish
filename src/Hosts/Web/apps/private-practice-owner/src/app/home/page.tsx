@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import { DashboardShell } from "@/components/shell";
+import {
+  dashboardFooterItems,
+  homeDashboardNavGroups,
+} from "@/components/shell/dashboardShellNavigation";
 import { HomeDashboard } from "@/features/home/components/HomeDashboard";
-import { HomePageWrapper } from "./HomePageWrapper";
+import { ContainedPage } from "@vitarish/ui/layout";
 
 export const metadata: Metadata = {
   title: "Home | Vitarish",
@@ -9,8 +14,13 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <HomePageWrapper>
-      <HomeDashboard />
-    </HomePageWrapper>
+    <DashboardShell
+      footerItems={dashboardFooterItems}
+      navGroups={homeDashboardNavGroups}
+    >
+      <ContainedPage>
+        <HomeDashboard />
+      </ContainedPage>
+    </DashboardShell>
   );
 }

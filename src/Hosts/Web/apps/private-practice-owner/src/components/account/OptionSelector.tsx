@@ -1,5 +1,5 @@
-export { OptionSelector } from "@vitarish/web-ui";
+export { OptionSelector } from "@vitarish/ui";
 export type {
   OptionSelectorOption,
   OptionSelectorProps,
-} from "@vitarish/web-ui";
+} from "@vitarish/ui";

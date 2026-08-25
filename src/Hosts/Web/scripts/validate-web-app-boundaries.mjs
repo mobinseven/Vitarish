@@ -3,7 +3,7 @@
  * Validates cross-app and public-import boundaries.
  *
  * Enforces:
- *   - apps may import @vitarish/web-ui, @vitarish/web-api-client, @vitarish/web-localization
+ *   - apps may import @vitarish/ui, @vitarish/api-client, @vitarish/localization
  *   - apps must not import package internals (src/**)
  *   - apps must not import other apps' private files
  *   - app-to-app relative imports are forbidden
@@ -73,7 +73,7 @@ for (const app of apps) {
             failed = true;
           }
         }
-        const imports = [...text.matchAll(/import\s*\{([^}]+)\}\s*from\s*["']@vitarish\/clinic-web["']/g)]
+        const imports = [...text.matchAll(/import\s*\{([^}]+)\}\s*from\s*["']@vitarish\/clinic["']/g)]
           .flatMap((match) => match[1].split(",").map((name) => name.trim()).filter(Boolean));
         for (const imported of imports) {
           if (!/^Clinic[A-Z]\w+Page$/.test(imported)) {

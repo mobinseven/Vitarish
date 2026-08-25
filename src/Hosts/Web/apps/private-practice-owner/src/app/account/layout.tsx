@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthSession } from "@vitarish/auth-web";
+import { useAuthSession } from "@vitarish/auth";
 import { JourneyGateBoundary } from "@/components/journey/JourneyGateBoundary";
 import { DashboardShell } from "@/components/shell";
 import {
@@ -10,8 +10,8 @@ import {
   mainDashboardNavGroups,
 } from "@/components/shell/dashboardShellNavigation";
 import { Routes } from "@/app/routes";
-import { useLocalizedText } from "@/localization";
-import { ContainedPage, StandaloneCenteredPage } from "@vitarish/web-ui/layout";
+import { LoadingScreen } from "@/components/loading/LoadingScreen";
+import { ContainedPage } from "@vitarish/ui/layout";
 
 export default function AccountLayout({
   children,
@@ -20,7 +20,6 @@ export default function AccountLayout({
 }) {
   const { isAuthenticated, isLoading } = useAuthSession();
   const router = useRouter();
-  const { t } = useLocalizedText();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -29,11 +28,7 @@ export default function AccountLayout({
   }, [isLoading, isAuthenticated, router]);
 
   if (isLoading) {
-    return (
-      <StandaloneCenteredPage>
-        <p className="text-muted">{t("common.states.loading")}</p>
-      </StandaloneCenteredPage>
-    );
+    return <LoadingScreen />;
   }
 
   if (!isAuthenticated) {

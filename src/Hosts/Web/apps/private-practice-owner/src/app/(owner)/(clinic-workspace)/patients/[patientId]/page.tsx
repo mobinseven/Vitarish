@@ -1,6 +1,6 @@
 "use client";
 import { use } from "react";
-import { PatientOverviewPage } from "@vitarish/clinic-web";
+import { PatientOverviewPage } from "@vitarish/clinic";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 export default function PatientOverviewRoute({
   params,

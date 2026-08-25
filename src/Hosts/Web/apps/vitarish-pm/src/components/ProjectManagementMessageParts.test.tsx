@@ -28,7 +28,7 @@ vi.mock("@heroui/react", async () => {
     Tooltip,
   };
 });
-vi.mock("@vitarish/web-localization", () => ({
+vi.mock("@vitarish/localization", () => ({
   formatDateTime: () => "localized date",
   formatFileSize: () => "4 KB",
   formatNumber: (value: number) => String(value),

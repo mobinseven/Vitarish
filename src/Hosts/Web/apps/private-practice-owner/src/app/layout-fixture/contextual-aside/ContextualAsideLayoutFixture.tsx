@@ -1,7 +1,7 @@
 "use client";
 
-import { DashboardFrame } from "@vitarish/web-ui";
-import { ContainedPage } from "@vitarish/web-ui/layout";
+import { DashboardFrame } from "@vitarish/ui";
+import { ContainedPage } from "@vitarish/ui/layout";
 import { useLocalizedText } from "@/localization";
 
 interface ContextualAsideLayoutFixtureProps {

@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LoginPageCard, PasskeyButton } from "@vitarish/auth-web";
+import { LoginPageCard, PasskeyButton } from "@vitarish/auth";
 import { useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 

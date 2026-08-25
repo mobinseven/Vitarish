@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Vazirmatn } from "next/font/google";
-import { I18nAppLayout, resolveI18nAppLocale } from "@vitarish/web-localization";
+import { I18nAppLayout, resolveI18nAppLocale } from "@vitarish/localization";
 import { AppProviders } from "../components/providers/AppProviders";
 import { getMessages } from "../localization";
 import "./globals.css";

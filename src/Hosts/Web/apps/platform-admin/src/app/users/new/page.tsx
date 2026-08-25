@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthSession, usePlatformAuthorization, useUsersAdministrationCreateWithEmail, useUsersAdministrationCreateWithPhone } from "@vitarish/auth-web";
-import { CenteredRegion } from "@vitarish/web-ui/layout";
-import { useLocalizedText } from "@vitarish/web-localization";
+import { useAuthSession, usePlatformAuthorization, useUsersAdministrationCreateWithEmail, useUsersAdministrationCreateWithPhone } from "@vitarish/auth";
+import { CenteredRegion } from "@vitarish/ui/layout";
+import { useLocalizedText } from "@vitarish/localization";
 
 export default function NewUserPage() {
   const { isAuthenticated, isLoading } = useAuthSession();

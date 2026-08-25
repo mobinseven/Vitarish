@@ -5,7 +5,7 @@ import {
   dashboardFooterItems,
   mainDashboardNavGroups,
 } from "@/components/shell/dashboardShellNavigation";
-import { ImmersiveRegion } from "@vitarish/web-ui/layout";
+import { ImmersiveRegion } from "@vitarish/ui/layout";
 
 export function KnowledgePageWrapper({
   children,

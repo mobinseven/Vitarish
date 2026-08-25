@@ -1,4 +1,4 @@
-import { WorkspaceSelectionPage } from "@vitarish/journey-web";
+import { WorkspaceSelectionPage } from "@vitarish/journey";
 import { WorkspacesPageWrapper } from "../WorkspacesPageWrapper";
 
 export default function WorkspaceSelectRoute() {

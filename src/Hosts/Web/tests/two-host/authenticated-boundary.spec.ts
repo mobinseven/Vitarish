@@ -1,5 +1,7 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { usersGetProfile } from "../../shared/auth-web/src/api/generated/users/users";
+import { existsSync, readFileSync } from "node:fs";
+import { createHmac } from "node:crypto";
+import { usersGetProfile } from "../../shared/auth/src/api/generated/users/users";
 
 const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
 const e2eUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
@@ -14,6 +16,8 @@ const tenantBId = "b2d2e4a1-2fd8-4781-8d9f-6c96f2a5e7b4";
 const tenantBOwnerUserId = "c65fcb80-8db3-4e2f-b3b9-1c4d7b1e0a62";
 const tenantAFileId = "4b8d1e7a-9f24-4d65-a8b1-6c0e2f5d7a91";
 const tenantBFileId = "9e2f6a41-7c35-4b8d-a0e6-1f5d9c2b7a84";
+const smtpCapturePath = process.env.VITARISH_E2E_SMTP_CAPTURE_PATH;
+const agentSharedSecret = process.env.VITARISH_E2E_AGENT_SHARED_SECRET;
 
 async function fetchJson(page: Page, path: string) {
   return page.evaluate(async ({ apiOrigin: origin, path: requestPath }) => {
@@ -96,6 +100,28 @@ async function fetchText(page: Page, path: string) {
     return { status: response.status, body: await response.text() };
   }, { apiOrigin, path });
 }
+
+function unsignedBearerToken(payload: Record<string, unknown>, header: Record<string, unknown> = { alg: "none", typ: "at+jwt" }) {
+  const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString("base64url");
+  return `${encode(header)}.${encode(payload)}.`;
+}
+
+function base64UrlHmac(key: string, payload: string): string {
+  return createHmac("sha256", key).update(payload, "utf8").digest("base64url");
+}
+
+function agentEnvelopeCanonical(envelope: Record<string, unknown>, includeCallbackFields: boolean): string {
+  const permissions = [...(envelope.permissions as string[])].sort();
+  return [
+    envelope.version, envelope.executionId, envelope.agentKey, envelope.tenantId, envelope.practiceId,
+    envelope.subjectKind, envelope.subjectId, envelope.authenticatedUserId, envelope.conversationId,
+    includeCallbackFields ? envelope.toolCallId : "", includeCallbackFields ? envelope.toolName : "",
+    envelope.credentialVersion, new Date(envelope.expiresAt as string).getTime(), envelope.correlationId,
+    envelope.role, envelope.locale, envelope.timeZone, envelope.calendar, envelope.currentUtc,
+    envelope.currentLocal, JSON.stringify(permissions), envelope.patientNationalId ?? "",
+  ].join("\n");
+}
+
 
 async function deleteJson(page: Page, path: string, body: unknown) {
   return page.evaluate(async ({ apiOrigin: origin, path: requestPath, body: requestBody }) => {
@@ -182,6 +208,16 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
     tenantAccess: { canAccessTenantOwner: true },
   });
 
+  const browserDisclosure = await page.evaluate((secret) => ({
+    urlHasSecret: window.location.href.includes(secret),
+    storageHasSecret: [
+      ...Object.values(window.localStorage),
+      ...Object.values(window.sessionStorage),
+    ].some(value => value.includes(secret)),
+  }), e2ePassword!);
+  expect(browserDisclosure.urlHasSecret).toBe(false);
+  expect(browserDisclosure.storageHasSecret).toBe(false);
+
   const antiforgery = await fetchJson(page, "/api/modules/authentication/antiforgery");
   expect(antiforgery.status).toBe(200);
   expect(antiforgery.body).toMatchObject({ headerName: "X-XSRF-TOKEN" });
@@ -221,6 +257,94 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   }
 });
 
+test("logs out through the real API and rejects the revoked session", async ({ page }) => {
+  await login(page, e2eUsername);
+
+  const beforeLogout = await fetchJson(page, "/api/modules/authentication/session");
+  expect(beforeLogout.status).toBe(200);
+  expect(beforeLogout.body).toMatchObject({ isAuthenticated: true });
+
+  const temporaryPassword = "E2E-Temporary-Password-774!";
+  const rejectedPasswordChange = await postJson(page, "/api/modules/authentication/account/password", {
+    currentPassword: "E2E-Wrong-Current-Password",
+    newPassword: temporaryPassword,
+  });
+  expect(rejectedPasswordChange.status).toBe(401);
+  expect(JSON.stringify(rejectedPasswordChange.body)).not.toContain(temporaryPassword);
+
+  let changed = false;
+  try {
+    const updatedPassword = await postJson(page, "/api/modules/authentication/account/password", {
+      currentPassword: e2ePassword,
+      newPassword: temporaryPassword,
+    });
+    expect(updatedPassword.status, JSON.stringify(updatedPassword.body)).toBe(200);
+    changed = true;
+  } finally {
+    if (changed) {
+      const restoredPassword = await postJson(page, "/api/modules/authentication/account/password", {
+        currentPassword: temporaryPassword,
+        newPassword: e2ePassword,
+      });
+      expect(restoredPassword.status).toBe(200);
+    }
+  }
+
+  const logout = await postJson(page, "/api/modules/authentication/logout", {
+    logoutId: null,
+    returnUrl: null,
+  });
+  expect(logout.status).toBe(200);
+  expect(logout.body).toMatchObject({ signedOut: true });
+
+  const afterLogout = await fetchJson(page, "/api/modules/authentication/session");
+  expect(afterLogout.status).toBe(401);
+
+  const protectedRequest = await fetchJson(page, "/api/modules/clinic/patients/count");
+  expect(protectedRequest.status).toBe(401);
+});
+
+test("rejects an authenticated browser mutation without antiforgery proof", async ({ page, request }) => {
+  await login(page, e2eUsername);
+
+  const response = await page.evaluate(async ({ origin }) => {
+    const result = await fetch(`${origin}/api/modules/clinic/patients/count`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Vitarish-Tenant-Host": window.location.host,
+      },
+      body: JSON.stringify({}),
+    });
+    return { status: result.status, body: await result.json() as { code?: string } };
+  }, { origin: apiOrigin });
+
+  expect(response.status).toBe(400);
+  expect(response.body.code).toBe("AntiforgeryValidationFailed");
+
+  const cookieHeader = (await page.context().cookies(apiOrigin))
+    .map(cookie => `${cookie.name}=${cookie.value}`)
+    .join("; ");
+  const hostileOrigin = await request.post(`${apiOrigin}/api/modules/authentication/account/password`, {
+    data: {
+      currentPassword: "E2E-Wrong-Current-Password",
+      newPassword: "E2E-Hostile-Origin-Password-774!",
+    },
+    headers: {
+      Cookie: cookieHeader,
+      Origin: "https://evil.example",
+      Referer: "https://evil.example/account",
+      "X-Vitarish-Tenant-Host": "localhost",
+      "X-Request-Id": "e2e-hostile-origin-csrf",
+    },
+    ignoreHTTPSErrors: true,
+  });
+  expect(hostileOrigin.status()).toBe(400);
+  const hostileOriginBody = await hostileOrigin.json() as { code?: string };
+  expect(hostileOriginBody.code).toBe("AntiforgeryValidationFailed");
+});
+
 test("rejects direct anonymous calls to protected APIs", async ({ request }) => {
   const response = await request.get(`${apiOrigin}/api/modules/appointments/health`, {
     headers: { "X-Vitarish-Tenant-Host": "app.localhost" },
@@ -228,6 +352,199 @@ test("rejects direct anonymous calls to protected APIs", async ({ request }) => 
   });
 
   expect(response.status()).toBe(401);
+});
+
+test("rejects invalid password authentication without creating a session", async ({ request }) => {
+  const response = await request.post(`${apiOrigin}/api/modules/authentication/login/password`, {
+    data: {
+      userNameOrEmail: "unknown-e2e-user@example.test",
+      password: "wrong-password-not-a-secret",
+      returnUrl: null,
+      rememberMe: false,
+    },
+    headers: { "X-Vitarish-Tenant-Host": "localhost" },
+    ignoreHTTPSErrors: true,
+  });
+  expect(response.status()).toBe(401);
+  const errorBody = await response.text();
+  expect(errorBody).not.toContain("wrong-password-not-a-secret");
+
+  const session = await request.get(`${apiOrigin}/api/modules/authentication/session`, {
+    headers: { "X-Vitarish-Tenant-Host": "localhost" },
+    ignoreHTTPSErrors: true,
+  });
+  expect(session.status()).toBe(401);
+});
+
+test("normalizes unsafe authentication return URLs at the real API boundary", async ({ request }) => {
+  expect(e2ePassword).toBeTruthy();
+
+  const unsafeReturnUrls = [
+    "https://evil.example/steal",
+    "//evil.example/steal",
+    "javascript:alert(1)",
+    "\\\\evil.example\\steal",
+  ];
+
+  for (const [index, returnUrl] of unsafeReturnUrls.entries()) {
+    const response = await request.post(`${apiOrigin}/api/modules/authentication/login/password`, {
+      data: {
+        userNameOrEmail: e2eUsername,
+        password: e2ePassword,
+        returnUrl,
+        rememberMe: false,
+      },
+      headers: {
+        "X-Vitarish-Tenant-Host": "localhost",
+        "X-Forwarded-For": `198.51.100.${120 + index}`,
+      },
+      ignoreHTTPSErrors: true,
+    });
+
+    expect(response.status(), returnUrl).toBe(200);
+    await expect(response.json(), returnUrl).resolves.toMatchObject({ returnUrl: "/home" });
+  }
+});
+
+test("rejects invalid OTP and passkey completions at the real API boundary", async ({ request }) => {
+  const emailCompletion = await request.post(`${apiOrigin}/api/modules/authentication/login/email/complete`, {
+    data: {
+      challengeId: "missing-e2e-email-challenge",
+      code: "000000",
+      returnUrl: null,
+    },
+    headers: {
+      "X-Vitarish-Tenant-Host": "localhost",
+      "X-Request-Id": "e2e-missing-email-challenge",
+    },
+    ignoreHTTPSErrors: true,
+  });
+  expect(emailCompletion.status()).toBe(401);
+
+  const passkeyCompletion = await request.post(`${apiOrigin}/api/modules/authentication/login/passkey/complete`, {
+    data: {
+      challengeId: "",
+      credentialJson: "",
+      returnUrl: null,
+    },
+    headers: {
+      "X-Vitarish-Tenant-Host": "localhost",
+      "X-Request-Id": "e2e-empty-passkey-completion",
+    },
+    ignoreHTTPSErrors: true,
+  });
+  expect(passkeyCompletion.status()).toBe(400);
+});
+
+test("completes a real email OTP once and rejects its replay", async ({ request }) => {
+  expect(smtpCapturePath).toBeTruthy();
+
+  const begin = await request.post(`${apiOrigin}/api/modules/authentication/login/email/begin`, {
+    data: { email: "e2e-owner@example.test", returnUrl: "/home" },
+    headers: {
+      "X-Vitarish-Tenant-Host": "localhost",
+      "X-Forwarded-For": "198.51.100.141",
+      "X-Request-Id": "e2e-email-otp-begin",
+    },
+    ignoreHTTPSErrors: true,
+  });
+  expect(begin.status()).toBe(200);
+  const challenge = await begin.json() as { challengeId?: string };
+  expect(challenge.challengeId).toEqual(expect.any(String));
+
+  await expect.poll(() => existsSync(smtpCapturePath!)).toBe(true);
+  const capturedMessage = readFileSync(smtpCapturePath!, "utf8");
+  const code = /Your verification code is:\s*(?:<strong>)?([^<\s]+)(?:<\/strong>)?/i.exec(capturedMessage)?.[1];
+  expect(code).toEqual(expect.any(String));
+
+  const completed = await request.post(`${apiOrigin}/api/modules/authentication/login/email/complete`, {
+    data: { challengeId: challenge.challengeId, code, returnUrl: "/home" },
+    headers: {
+      "X-Vitarish-Tenant-Host": "localhost",
+      "X-Forwarded-For": "198.51.100.141",
+      "X-Request-Id": "e2e-email-otp-complete",
+    },
+    ignoreHTTPSErrors: true,
+  });
+  expect(completed.status()).toBe(200);
+  await expect(completed.json()).resolves.toMatchObject({ returnUrl: "/home" });
+
+  const session = await request.get(`${apiOrigin}/api/modules/authentication/session`, {
+    headers: { "X-Vitarish-Tenant-Host": "localhost" },
+    ignoreHTTPSErrors: true,
+  });
+  expect(session.status()).toBe(200);
+  await expect(session.json()).resolves.toMatchObject({ isAuthenticated: true });
+
+  const replay = await request.post(`${apiOrigin}/api/modules/authentication/login/email/complete`, {
+    data: { challengeId: challenge.challengeId, code, returnUrl: "/home" },
+    headers: {
+      "X-Vitarish-Tenant-Host": "localhost",
+      "X-Forwarded-For": "198.51.100.141",
+      "X-Request-Id": "e2e-email-otp-replay",
+    },
+    ignoreHTTPSErrors: true,
+  });
+  expect(replay.status()).toBe(400);
+  await expect(replay.json()).resolves.toMatchObject({ code: "challenge_already_used" });
+});
+
+test("registers a passkey through the real browser ceremony once", async ({ page }) => {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("WebAuthn.enable");
+  const { authenticatorId } = await cdp.send("WebAuthn.addVirtualAuthenticator", {
+    options: {
+      protocol: "ctap2",
+      ctap2Version: "ctap2_1",
+      transport: "internal",
+      hasResidentKey: true,
+      hasUserVerification: true,
+      automaticPresenceSimulation: true,
+      isUserVerified: true,
+    },
+  });
+
+  await login(page, e2eUsername);
+  await page.goto("/account/passkeys", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Register New Passkey" }).click();
+  await expect(page.getByText("Passkey registered successfully")).toBeVisible();
+
+  const credentials = await cdp.send("WebAuthn.getCredentials", { authenticatorId });
+  expect(credentials.credentials).toHaveLength(1);
+});
+
+test("rejects malformed and invalid bearer tokens at the real API boundary", async ({ request }) => {
+  const now = Math.floor(Date.now() / 1000);
+  const cases = [
+    { name: "malformed", token: "not-a-jwt" },
+    {
+      name: "expired",
+      token: unsignedBearerToken({ iss: apiOrigin, aud: "vitarish-api", typ: "at+jwt", exp: now - 60 }),
+    },
+    {
+      name: "wrong issuer",
+      token: unsignedBearerToken({ iss: "https://wrong-issuer.invalid", aud: "vitarish-api", typ: "at+jwt", exp: now + 300 }),
+    },
+    {
+      name: "wrong audience",
+      token: unsignedBearerToken({ iss: apiOrigin, aud: "wrong-audience", typ: "at+jwt", exp: now + 300 }),
+    },
+    {
+      name: "wrong token type",
+      token: unsignedBearerToken({ iss: apiOrigin, aud: "vitarish-api", typ: "JWT", exp: now + 300 }),
+    },
+  ];
+
+  for (const testCase of cases) {
+    const response = await request.get(`${apiOrigin}/api/modules/appointments/health`, {
+      headers: {
+        Authorization: `Bearer ${testCase.token}`,
+        "X-Vitarish-Tenant-Host": "app.localhost",
+      },
+      ignoreHTTPSErrors: true,
+    });
+    expect(response.status(), testCase.name).toBe(401);
+  }
 });
 
 // authorization-matrix:intentional-anonymous
@@ -267,6 +584,17 @@ test("allows intentional anonymous operations to reach their owning boundary", a
   });
   expect(social.status()).toBe(200);
   expect(await social.text()).toBe(challenge);
+
+  const oversizedWebhook = await request.post(`${apiOrigin}/webhooks/social/instagram`, {
+    data: Buffer.alloc(1024 * 1024 + 1, "x"),
+    headers: {
+      "Content-Type": "text/plain",
+      "X-Vitarish-Tenant-Host": "app.localhost",
+      "X-Request-Id": "authorization-matrix-oversized-webhook",
+    },
+    ignoreHTTPSErrors: true,
+  });
+  expect(oversizedWebhook.status()).toBe(413);
 });
 
 // authorization-matrix:main-module-boundary
@@ -292,8 +620,17 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
   await login(page, e2eUsername);
 
   const substitutedDetails = await fetchJson(page, `/api/modules/clinic/patients/${tenantBPatientId}`);
+  const substitutedUpdate = await putJson(page, `/api/modules/clinic/patients/${tenantBPatientId}`, {
+    identificationCode: "E2E-FORGED-TENANT-B-UPDATE",
+    firstName: "Forged",
+    lastName: "Tenant",
+    email: "forged-tenant-b-update@example.test",
+    phone: "+989000000099",
+  });
   expect(substitutedDetails.status).toBe(404);
+  expect(substitutedUpdate.status).toBe(404);
   expect(JSON.stringify(substitutedDetails.body)).not.toContain("E2E Tenant B Patient");
+  expect(JSON.stringify(substitutedUpdate.body)).not.toContain("E2E Tenant B Patient");
 
   const substitutedSearch = await postJson(page, "/api/modules/clinic/patients/search", {
     search: null,
@@ -449,6 +786,10 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
 
     const staleClaimDetails = await fetchJson(tenantBPage, `/api/modules/clinic/patients/${tenantBPatientId}`);
     expect(staleClaimDetails.status).toBe(403);
+    const concurrentRevokedReads = await Promise.all(
+      Array.from({ length: 8 }, () => fetchJson(tenantBPage, `/api/modules/clinic/patients/${tenantBPatientId}`)),
+    );
+    expect(concurrentRevokedReads.every((response) => response.status === 403)).toBe(true);
     const adminTenant = await fetchJson(adminPage, `/api/modules/parties/administration/tenants/${tenantBId}`);
     expect(adminTenant.status).toBe(200);
     expect(adminTenant.body).toMatchObject({ id: tenantBId, name: "E2E Clinic B" });
@@ -469,6 +810,10 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
         { roleSuffix: "TenantOwner" },
       );
       expect(restore.status).toBe(200);
+      const concurrentRestoredReads = await Promise.all(
+        Array.from({ length: 8 }, () => fetchJson(tenantBPage, `/api/modules/clinic/patients/${tenantBPatientId}`)),
+      );
+      expect(concurrentRestoredReads.every((response) => response.status === 200)).toBe(true);
     }
     await adminPage.close();
     await adminContext.close();
@@ -536,6 +881,75 @@ test("requires the internal-service credential boundary before callback validati
   expect(malformedServiceCredential.status()).toBe(401);
 });
 
+test("accepts one valid signed callback only within its real practice scope", async ({ request }) => {
+  expect(agentSharedSecret).toBeTruthy();
+  const expiresAt = new Date(Date.now() + 300_000);
+  const envelope: Record<string, unknown> = {
+    version: 1,
+    executionId: "e2e-valid-callback-execution",
+    agentKey: "clinic.assistant.operations",
+    tenantId: tenantBId,
+    practiceId: tenantBId,
+    subjectKind: "practice",
+    subjectId: tenantBId,
+    authenticatedUserId: tenantBOwnerUserId,
+    conversationId: "e2e-valid-callback-conversation",
+    toolCallId: "e2e-valid-callback-tool-call",
+    toolName: "list_operations_shifts",
+    credentialVersion: 1,
+    expiresAt: expiresAt.toISOString(),
+    correlationId: "e2e-valid-callback-correlation",
+    role: "TenantOwner",
+    locale: "en-US",
+    timeZone: "Asia/Tehran",
+    calendar: "gregory",
+    currentUtc: new Date().toISOString(),
+    currentLocal: new Date().toISOString(),
+    permissions: [],
+  };
+  const expirySeconds = Math.floor(expiresAt.getTime() / 1000);
+  const credential = `${expirySeconds}.${base64UrlHmac(agentSharedSecret!, agentEnvelopeCanonical(envelope, false))}`;
+  envelope.callbackSignature = base64UrlHmac(credential, agentEnvelopeCanonical(envelope, true));
+  const body = { executionEnvelope: envelope, argumentsJson: "{}" };
+  const headers = {
+    "X-Vitarish-Tenant-Host": "localhost",
+    "X-Vitarish-Agent-Credential": credential,
+    "X-Request-Id": "e2e-valid-callback-request",
+  };
+
+  const scopeMismatch: Record<string, unknown> = {
+    ...envelope,
+    executionId: "e2e-cross-tenant-callback-execution",
+    tenantId: "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92",
+    practiceId: "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92",
+    subjectId: "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92",
+  };
+  const scopeCredential = `${expirySeconds}.${base64UrlHmac(agentSharedSecret!, agentEnvelopeCanonical(scopeMismatch, false))}`;
+  scopeMismatch.callbackSignature = base64UrlHmac(scopeCredential, agentEnvelopeCanonical(scopeMismatch, true));
+  const scopeMismatchResponse = await request.post(`${apiOrigin}/api/modules/intelligence/internal/agent/tools/execute`, {
+    data: { executionEnvelope: scopeMismatch, argumentsJson: "{}" },
+    headers: {
+      "X-Vitarish-Tenant-Host": "localhost",
+      "X-Vitarish-Agent-Credential": scopeCredential,
+      "X-Request-Id": "e2e-cross-tenant-callback-request",
+    },
+    ignoreHTTPSErrors: true,
+  });
+  expect(scopeMismatchResponse.status()).toBe(403);
+
+  const completed = await request.post(`${apiOrigin}/api/modules/intelligence/internal/agent/tools/execute`, {
+    data: body, headers, ignoreHTTPSErrors: true,
+  });
+  const completedBody = await completed.json();
+  expect(completed.status(), JSON.stringify(completedBody)).toBe(200);
+  expect(completedBody).toMatchObject({ callId: "e2e-valid-callback-tool-call" });
+
+  const replay = await request.post(`${apiOrigin}/api/modules/intelligence/internal/agent/tools/execute`, {
+    data: body, headers: { ...headers, "X-Request-Id": "e2e-valid-callback-replay" }, ignoreHTTPSErrors: true,
+  });
+  expect(replay.status()).toBe(409);
+});
+
 test("honors the trusted ingress proto and retains HTTPS at the API boundary", async ({ request }) => {
   const forwardedHttp = await request.get(`${apiOrigin}/api/modules/appointments/health`, {
     headers: {
@@ -549,4 +963,75 @@ test("honors the trusted ingress proto and retains HTTPS at the API boundary", a
 
   expect([301, 307, 308]).toContain(forwardedHttp.status());
   expect(forwardedHttp.headers().location).toMatch(/^https:\/\//i);
+});
+
+test("allows only the configured Web origin at the real CORS boundary", async ({ request }) => {
+  const allowedOrigin = "http://localhost:3005";
+  const allowed = await request.fetch(`${apiOrigin}/api/modules/appointments/health`, {
+    method: "OPTIONS",
+    headers: {
+      Origin: allowedOrigin,
+      "Access-Control-Request-Method": "GET",
+    },
+    ignoreHTTPSErrors: true,
+  });
+  expect(allowed.status()).toBe(204);
+  expect(allowed.headers()["access-control-allow-origin"]).toBe(allowedOrigin);
+
+  const deniedOrigin = "https://evil.example";
+  const denied = await request.fetch(`${apiOrigin}/api/modules/appointments/health`, {
+    method: "OPTIONS",
+    headers: {
+      Origin: deniedOrigin,
+      "Access-Control-Request-Method": "GET",
+    },
+    ignoreHTTPSErrors: true,
+  });
+  expect(denied.status()).toBe(204);
+  expect(denied.headers()["access-control-allow-origin"]).toBeUndefined();
+});
+
+test("locks the disposable platform-admin account after repeated real password failures", async ({ request }) => {
+  const statuses: number[] = [];
+  const lockoutClientIp = "198.51.100.77";
+
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const response = await request.post(`${apiOrigin}/api/modules/authentication/login/password`, {
+      data: {
+        userNameOrEmail: platformAdminUsername,
+        password: "E2E-Lockout-Wrong-Password",
+        returnUrl: null,
+        rememberMe: false,
+      },
+      headers: {
+        "X-Forwarded-For": lockoutClientIp,
+        "X-Vitarish-Tenant-Host": "localhost",
+        "X-Request-Id": `e2e-lockout-attempt-${attempt}`,
+      },
+      ignoreHTTPSErrors: true,
+    });
+    statuses.push(response.status());
+  }
+
+  expect(statuses.slice(0, 4).every(status => status === 401)).toBe(true);
+  expect(statuses.slice(4).every(status => status === 423)).toBe(true);
+});
+
+test("rate-limits repeated passkey authentication attempts at the real API boundary", async ({ request }) => {
+  const statuses: number[] = [];
+
+  for (let attempt = 0; attempt < 11; attempt += 1) {
+    const response = await request.post(`${apiOrigin}/api/modules/authentication/login/passkey/begin`, {
+      data: { userNameOrEmail: null, returnUrl: null },
+      headers: {
+        "X-Vitarish-Tenant-Host": "localhost",
+        "X-Request-Id": `e2e-passkey-rate-limit-${attempt}`,
+      },
+      ignoreHTTPSErrors: true,
+    });
+    statuses.push(response.status());
+  }
+
+  expect(statuses).toContain(429);
+  expect(statuses.every((status) => status === 200 || status === 429)).toBe(true);
 });

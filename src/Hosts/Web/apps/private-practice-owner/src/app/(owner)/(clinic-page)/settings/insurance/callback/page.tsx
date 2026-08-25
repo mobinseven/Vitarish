@@ -1,6 +1,6 @@
 "use client";
 
-import { InsuranceProviderAuthorizationCallbackPage } from "@vitarish/clinic-web";
+import { InsuranceProviderAuthorizationCallbackPage } from "@vitarish/clinic";
 import { useRouter } from "next/navigation";
 import { Routes } from "@/app/routes";
 

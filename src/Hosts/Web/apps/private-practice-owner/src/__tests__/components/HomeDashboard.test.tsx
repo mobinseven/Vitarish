@@ -1,38 +1,18 @@
 import { screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { HomeDashboard } from "@/features/home/components/HomeDashboard";
 import { renderWithLocalization } from "../localization/renderWithLocalization";
 
-vi.mock("@vitarish/auth-web", () => ({
-  useAuthSession: () => ({
-    user: {
-      displayName: "Raw Name",
-      email: "raw@example.com",
-      phoneNumber: null,
-    },
-    displayProfile: {
-      displayLabel: "Avery Stone",
-      givenName: "Avery",
-      familyName: "Stone",
-      initials: "AS",
-      contactLabel: "avery@example.com",
-    },
-    isLoading: false,
-  }),
-}));
-
 describe("HomeDashboard", () => {
-  it("greets the signed-in user and links to the Knowledge demo", () => {
+  it("renders primary, secondary, and tertiary stub buttons", () => {
     renderWithLocalization(<HomeDashboard />, { locale: "en" });
 
-    expect(
-      screen.getByRole("heading", { name: /welcome back, avery/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /open knowledge/i }),
-    ).toHaveAttribute("href", "/knowledge");
-    expect(
-      screen.getByRole("link", { name: /start with knowledge/i }),
-    ).toHaveAttribute("href", "/knowledge");
+    expect(screen.getByRole("button", { name: "Primary" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Secondary" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tertiary" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Info" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Highlight" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Support" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Emphasis" })).toBeInTheDocument();
   });
 });

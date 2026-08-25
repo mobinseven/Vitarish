@@ -1,5 +1,5 @@
 import type { SupportedLocale } from "../locales";
-import { intelligenceMessageCatalogs } from "@vitarish/intelligence-web/localization";
+import { intelligenceMessageCatalogs } from "@vitarish/intelligence/localization";
 import { enMessages } from "./en";
 
 const catalogs: Partial<Record<SupportedLocale, unknown>> = {

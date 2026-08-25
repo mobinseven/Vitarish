@@ -3,13 +3,13 @@
 import { useCallback } from "react";
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { useAuthSession } from "@vitarish/auth-web";
+import { useAuthSession } from "@vitarish/auth";
 import {
   AccountBackLink,
   AccountSurface,
 } from "@/components/account/AccountSurface";
-import { useAccountCulture } from "@vitarish/account-web";
-import { StatusAlert } from "@vitarish/web-ui";
+import { useAccountCulture } from "@vitarish/account";
+import { StatusAlert } from "@vitarish/ui";
 import { OptionSelector } from "@/components/account/OptionSelector";
 import {
   setLocaleCookie,

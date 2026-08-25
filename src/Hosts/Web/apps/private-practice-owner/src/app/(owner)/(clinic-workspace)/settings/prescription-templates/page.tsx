@@ -1,4 +1,4 @@
-import { PrescriptionTemplateWorkspace } from "@vitarish/clinic-web";
+import { PrescriptionTemplateWorkspace } from "@vitarish/clinic";
 
 export default function PrescriptionTemplateManagementRoute() {
   return <PrescriptionTemplateWorkspace />;

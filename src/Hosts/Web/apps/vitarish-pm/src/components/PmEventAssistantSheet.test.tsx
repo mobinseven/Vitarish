@@ -53,11 +53,11 @@ vi.mock("@heroui-pro/react", () => {
     ChatMessage: { User: Root, Assistant: Root, Bubble: Root, Content: Root },
   };
 });
-vi.mock("@vitarish/web-localization", () => ({
+vi.mock("@vitarish/localization", () => ({
   useLocalizedText: () => ({ t: (key: string) => key }),
 }));
-vi.mock("@vitarish/web-ui", () => ({ FaIcon: () => null }));
-vi.mock("@vitarish/sea-web", () => ({
+vi.mock("@vitarish/ui", () => ({ FaIcon: () => null }));
+vi.mock("@vitarish/sea", () => ({
   toSeaFileAttachment: (...args: unknown[]) => toSeaFileAttachment(...args),
   useCreateSeaFileAttachment: () => ({
     mutate: uploadMutation,
@@ -66,8 +66,8 @@ vi.mock("@vitarish/sea-web", () => ({
     isError: false,
   }),
 }));
-vi.mock("@vitarish/intelligence-web", async () => {
-  const actual = await vi.importActual<any>("@vitarish/intelligence-web");
+vi.mock("@vitarish/intelligence", async () => {
+  const actual = await vi.importActual<any>("@vitarish/intelligence");
   const AgentConversationComposer = ({
     value,
     onChange,

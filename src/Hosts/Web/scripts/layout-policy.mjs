@@ -13,7 +13,7 @@ export const layoutRuleIds = [
 ];
 
 const layoutRuleIdSet = new Set(layoutRuleIds);
-const layoutStylesheetImport = "@vitarish/web-ui/layout.css";
+const layoutStylesheetImport = "@vitarish/ui/layout.css";
 
 const ruleGuidance = {
   "raw-main": {
@@ -54,20 +54,20 @@ export function createProductionLayoutPolicyConfig(webRoot) {
     includeRoots: [
       "apps/private-practice-owner/src",
       "apps/knowledge-qa-demo/src",
-      "shared/auth-web/src",
-      "shared/clinic-web/src",
-      "shared/journey-web/src",
-      "shared/knowledge-web/src",
-      "shared/sea-web/src",
-      "shared/web-ui/src",
+      "shared/auth/src",
+      "shared/clinic/src",
+      "shared/journey/src",
+      "shared/knowledge/src",
+      "shared/sea/src",
+      "shared/ui/src",
     ],
     excludePrefixes: [
-      "shared/web-ui/src/__tests__/",
+      "shared/ui/src/__tests__/",
     ],
     owners: {
-      "raw-main": ["shared/web-ui/src/layout/LayoutPrimitives.tsx"],
-      "raw-viewport": ["shared/web-ui/src/layout.css"],
-      "direct-applayout": ["shared/web-ui/src/shell/DashboardFrame.tsx"],
+      "raw-main": ["shared/ui/src/layout/LayoutPrimitives.tsx"],
+      "raw-viewport": ["shared/ui/src/layout.css"],
+      "direct-applayout": ["shared/ui/src/shell/DashboardFrame.tsx"],
       "legacy-outer-container": [],
       "layout-css-import": [],
     },

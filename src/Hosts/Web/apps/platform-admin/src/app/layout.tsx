@@ -1,6 +1,6 @@
 import type { Viewport } from "next";
 import { headers } from "next/headers";
-import { I18nAppLayout } from "@vitarish/web-localization";
+import { I18nAppLayout } from "@vitarish/localization";
 import { Providers } from "@/components/Providers";
 import { getMessages } from "@/localization/messages";
 import "./globals.css";

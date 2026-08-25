@@ -1,10 +1,10 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 @import "@heroui-pro/react/css";
-@import "@vitarish/web-ui/layout.css";
+@import "@vitarish/ui/layout.css";
 
-@source "../../../../shared/sea-web/src/**/*.{ts,tsx}";
-@source "../../../../shared/web-ui/src/**/*.{ts,tsx}";
+@source "../../../../shared/sea/src/**/*.{ts,tsx}";
+@source "../../../../shared/ui/src/**/*.{ts,tsx}";
 
 :root {
   --background: oklch(97% 0.012 250);

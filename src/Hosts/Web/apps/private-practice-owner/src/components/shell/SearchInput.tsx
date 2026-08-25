@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Kbd, TextField, InputGroup } from "@heroui/react";
-import { FaIcon } from "@vitarish/web-ui";
+import { FaIcon } from "@vitarish/ui";
 import { useLocalizedText } from "@/localization";
 
 export interface SearchInputProps {

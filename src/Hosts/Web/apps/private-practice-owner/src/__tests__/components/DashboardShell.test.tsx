@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   DashboardFrame,
   type DashboardNavigationGroup,
-} from "@vitarish/web-ui";
+} from "@vitarish/ui";
 import {
   DashboardShell,
   type DashboardShellNavGroup,
@@ -38,7 +38,7 @@ vi.mock("next-themes", () => ({
   }),
 }));
 
-vi.mock("@vitarish/auth-web", () => ({
+vi.mock("@vitarish/auth", () => ({
   useAuthSession: () => ({
     isAuthenticated: true,
     isLoading: false,
@@ -56,7 +56,7 @@ vi.mock("@vitarish/auth-web", () => ({
   }),
 }));
 
-vi.mock("@vitarish/clinic-web", () => ({
+vi.mock("@vitarish/clinic", () => ({
   ClinicAssistantAside: ({ isOpen }: { isOpen: boolean }) => (
     <div data-testid="operations-agent" data-open={String(isOpen)} />
   ),
@@ -113,7 +113,7 @@ vi.mock("@/localization", () => ({
   supportedLocales: ["en", "fa"],
 }));
 
-vi.mock("@vitarish/web-localization", () => ({
+vi.mock("@vitarish/localization", () => ({
   useLocalizedText: () => ({
     t: (key: string) =>
       ({

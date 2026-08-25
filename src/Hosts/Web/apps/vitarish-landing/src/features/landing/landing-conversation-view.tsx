@@ -3,7 +3,7 @@ import {
   ChatLoadingMessage,
   ChatMessage,
   FaIcon,
-} from "@vitarish/web-ui";
+} from "@vitarish/ui";
 import { PromptSuggestion } from "@heroui-pro/react";
 import type { LandingCopy } from "./landing-copy";
 

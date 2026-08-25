@@ -7,7 +7,7 @@ import {
   formatFileSize,
   formatNumber,
   useLocalizedText,
-} from "@vitarish/web-localization";
+} from "@vitarish/localization";
 import { Routes } from "../app/routes";
 
 export type ProjectManagementTextPart = { type: "text"; text: string };

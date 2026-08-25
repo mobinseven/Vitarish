@@ -1,9 +1,9 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useConversationController } from "@vitarish/intelligence-web";
+import { useConversationController } from "@vitarish/intelligence";
 import { useLandingConversation } from "../use-landing-conversation";
 
-vi.mock("@vitarish/intelligence-web", () => ({
+vi.mock("@vitarish/intelligence", () => ({
   useConversationController: vi.fn(),
 }));
 

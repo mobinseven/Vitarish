@@ -1,5 +1,5 @@
-import { apiFetch as sharedApiFetch } from "@vitarish/web-api-client";
-import type { OrvalConfig } from "@vitarish/web-api-client";
+import { apiFetch as sharedApiFetch } from "@vitarish/api-client";
+import type { OrvalConfig } from "@vitarish/api-client";
 
 export function apiFetch<T>(
   urlOrConfig: string | OrvalConfig,

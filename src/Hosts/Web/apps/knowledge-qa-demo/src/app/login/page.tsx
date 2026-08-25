@@ -2,10 +2,10 @@
 
 import { Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LoginForm, LoginPageCard } from "@vitarish/auth-web";
+import { LoginForm, LoginPageCard } from "@vitarish/auth";
 import { Routes } from "@/app/routes";
 import { useLocalizedText } from "@/localization";
-import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
+import { StandaloneCenteredPage } from "@vitarish/ui/layout";
 
 function LoginFormSurface() {
   const router = useRouter();

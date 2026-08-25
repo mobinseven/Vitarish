@@ -1,1 +1,1 @@
-export type { MessageKey, MessageParameters, Translate } from "@vitarish/web-localization";
+export type { MessageKey, MessageParameters, Translate } from "@vitarish/localization";

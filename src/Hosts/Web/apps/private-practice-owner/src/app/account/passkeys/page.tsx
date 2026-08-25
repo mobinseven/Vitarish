@@ -3,16 +3,16 @@
 import { useCallback, useState } from "react";
 import { Button } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
-import { useAuthSession } from "@vitarish/auth-web";
+import { useAuthSession } from "@vitarish/auth";
 import {
   AccountBackLink,
   AccountSurface,
   AccountWidget,
 } from "@/components/account/AccountSurface";
-import { useAccountPasskeys } from "@vitarish/account-web";
-import { StatusAlert } from "@vitarish/web-ui";
+import { useAccountPasskeys } from "@vitarish/account";
+import { StatusAlert } from "@vitarish/ui";
 import { localizeApiError, useLocalizedText } from "@/localization";
-import { localizePasskeyRegistrationError } from "@vitarish/account-web";
+import { localizePasskeyRegistrationError } from "@vitarish/account";
 
 export default function PasskeysPage() {
   const { user } = useAuthSession();

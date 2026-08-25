@@ -3,11 +3,11 @@ import {
   ContentEditor,
   ContentList,
   createContentsClient,
-} from "@vitarish/contents-web";
+} from "@vitarish/contents";
 import type {
   ContentItemType,
   ContentStatus,
-} from "@vitarish/contents-web";
+} from "@vitarish/contents";
 import { useRouter } from "next/navigation";
 import { formatDateTime, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";

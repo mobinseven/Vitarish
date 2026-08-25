@@ -4,6 +4,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import http from "node:http";
 import https from "node:https";
+import net from "node:net";
 import crypto from "node:crypto";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -22,11 +23,106 @@ const originalAppTsconfig = readFileSync(appTsconfigPath, "utf8");
 const originalAppNextEnv = readFileSync(appNextEnvPath, "utf8");
 const mainOrigin = "https://localhost:7272";
 const webOrigin = "http://localhost:3005";
+const smtpCapturePath = resolve(artifactDirectory, "e2e-smtp-capture.eml");
+const smtpPort = 2525;
 
 mkdirSync(artifactDirectory, { recursive: true });
 
 const processes = [];
 let stopping = false;
+let smtpServer;
+
+function startSmtpCapture() {
+  rmSync(smtpCapturePath, { force: true });
+  smtpServer = net.createServer((socket) => {
+    socket.setEncoding("utf8");
+    socket.write("220 e2e-smtp.localhost E2E SMTP\r\n");
+    let input = "";
+    let dataMode = false;
+    let authMode = "";
+    const message = [];
+
+    const reply = (value) => socket.write(`${value}\r\n`);
+    const processLine = (line) => {
+      if (dataMode) {
+        if (line === ".") {
+          writeFileSync(smtpCapturePath, `${message.join("\r\n")}\r\n`, "utf8");
+          dataMode = false;
+          reply("250 2.0.0 queued");
+          return;
+        }
+        message.push(line.startsWith("..") ? line.slice(1) : line);
+        return;
+      }
+
+      if (authMode === "username") {
+        authMode = "password";
+        reply("334 UGFzc3dvcmQ6");
+        return;
+      }
+      if (authMode === "password") {
+        authMode = "";
+        reply("235 2.7.0 authenticated");
+        return;
+      }
+
+      const command = line.split(" ", 1)[0].toUpperCase();
+      switch (command) {
+        case "EHLO":
+        case "HELO":
+          reply("250-e2e-smtp.localhost");
+          reply("250 AUTH PLAIN LOGIN");
+          break;
+        case "AUTH":
+          if (line.toUpperCase().startsWith("AUTH LOGIN")) {
+            authMode = "username";
+            reply("334 VXNlcm5hbWU6");
+          } else {
+            reply("235 2.7.0 authenticated");
+          }
+          break;
+        case "MAIL":
+        case "RCPT":
+          reply("250 2.1.0 accepted");
+          break;
+        case "DATA":
+          dataMode = true;
+          reply("354 End data with <CR><LF>.<CR><LF>");
+          break;
+        case "RSET":
+          reply("250 2.0.0 reset");
+          break;
+        case "QUIT":
+          reply("221 2.0.0 closing");
+          socket.end();
+          break;
+        default:
+          reply("250 2.0.0 accepted");
+          break;
+      }
+    };
+
+    socket.on("data", (chunk) => {
+      input += chunk;
+      let lineEnd;
+      while ((lineEnd = input.indexOf("\r\n")) >= 0) {
+        const line = input.slice(0, lineEnd);
+        input = input.slice(lineEnd + 2);
+        processLine(line);
+      }
+    });
+  });
+
+  return new Promise((resolveSmtp, rejectSmtp) => {
+    smtpServer.once("error", rejectSmtp);
+    smtpServer.listen(smtpPort, "127.0.0.1", () => resolveSmtp());
+  });
+}
+
+function stopSmtpCapture() {
+  if (!smtpServer) return Promise.resolve();
+  return new Promise((resolveSmtp) => smtpServer.close(() => resolveSmtp()));
+}
 
 function startProcess(label, command, args, cwd, environment) {
   const logPath = resolve(artifactDirectory, `${label}.log`);
@@ -150,18 +246,31 @@ function createEnvironment(overrides) {
 
 async function run() {
   const password = `${crypto.randomBytes(24).toString("base64url")}!Aa1`;
+  const agentSharedSecret = crypto.randomBytes(32).toString("base64url");
+  await startSmtpCapture();
   const mainEnvironment = createEnvironment({
     ASPNETCORE_ENVIRONMENT: "E2E",
     ASPNETCORE_URLS: mainOrigin,
+    WebAuthn__Origins__0: webOrigin,
     VITARISH_E2E_API_ORIGIN: mainOrigin,
     VITARISH_E2E_WEB_ORIGIN: webOrigin,
     VITARISH_E2E_PASSWORD: password,
+    Vitarish__Intelligence__AgentRuntime__SharedSecret: agentSharedSecret,
+    Vitarish__Communications__Providers__Smtp__Host: "127.0.0.1",
+    Vitarish__Communications__Providers__Smtp__Port: String(smtpPort),
+    Vitarish__Communications__Providers__Smtp__EnableSsl: "false",
+    Vitarish__Communications__Providers__Smtp__Name: "E2E",
+    Vitarish__Communications__Providers__Smtp__Username: "e2e",
+    Vitarish__Communications__Providers__Smtp__Password: "e2e",
+    VITARISH_E2E_SMTP_CAPTURE_PATH: smtpCapturePath,
   });
   const webEnvironment = createEnvironment({
     NEXT_PUBLIC_API_BASE_URL: mainOrigin,
     NEXT_DIST_DIR: ".next-two-host-e2e",
     VITARISH_E2E_USERNAME: "e2e-owner",
     VITARISH_E2E_PASSWORD: password,
+    VITARISH_E2E_AGENT_SHARED_SECRET: agentSharedSecret,
+    VITARISH_E2E_SMTP_CAPTURE_PATH: smtpCapturePath,
   });
   delete webEnvironment.NEXT_PUBLIC_VITARISH_MOCK_API;
   delete webEnvironment.NEXT_PUBLIC_VITARISH_MOCK_SCENARIO;
@@ -222,6 +331,7 @@ try {
   process.exitCode = 1;
 } finally {
   await stopAll();
+  await stopSmtpCapture();
   restoreNextTsconfig();
   restoreNextGeneratedFiles();
   for (const buildPath of e2eBuildPaths) {

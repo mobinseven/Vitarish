@@ -8,13 +8,13 @@ import {
   AgentConversationComposer,
   intelligenceRunAgentConversation,
   useConversationController,
-} from "@vitarish/intelligence-web";
+} from "@vitarish/intelligence";
 import {
   toSeaFileAttachment,
   useCreateSeaFileAttachment,
-} from "@vitarish/sea-web";
-import { useLocalizedText } from "@vitarish/web-localization";
-import { FaIcon } from "@vitarish/web-ui";
+} from "@vitarish/sea";
+import { useLocalizedText } from "@vitarish/localization";
+import { FaIcon } from "@vitarish/ui";
 import {
   ProjectManagementMessageParts,
   type ProjectManagementDisplayPart,

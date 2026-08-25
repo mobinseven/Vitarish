@@ -4,7 +4,7 @@ import {
   clinicOwnerDashboardNavGroups,
   dashboardFooterItems,
 } from "@/components/shell/dashboardShellNavigation";
-import { ImmersiveRegion, PageContainer } from "@vitarish/web-ui/layout";
+import { ImmersiveRegion, PageContainer } from "@vitarish/ui/layout";
 
 export default function AssistantLayout({
   children,

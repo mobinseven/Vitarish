@@ -1,4 +1,4 @@
-import { useLocalizedText } from "@vitarish/web-localization";
+import { useLocalizedText } from "@vitarish/localization";
 
 export type LandingCopy = {
   app: string;

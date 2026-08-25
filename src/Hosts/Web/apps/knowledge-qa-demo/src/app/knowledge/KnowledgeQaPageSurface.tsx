@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 import {
   KnowledgeUserQaSurface,
   type KnowledgeQaLabels,
-} from "@vitarish/knowledge-web";
+} from "@vitarish/knowledge";
 import {
   getKnowledgeQaErrorMessage,
   knowledgeQaClient,
@@ -13,7 +13,7 @@ import { formatNumber, useLocalizedText } from "@/localization";
 import {
   ImmersiveRegion,
   StandaloneImmersivePage,
-} from "@vitarish/web-ui/layout";
+} from "@vitarish/ui/layout";
 
 export function KnowledgeQaPageSurface() {
   const { direction, locale, t } = useLocalizedText();

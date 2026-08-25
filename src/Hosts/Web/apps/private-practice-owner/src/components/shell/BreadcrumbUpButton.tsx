@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 import { Button, Tooltip } from "@heroui/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocalizedText } from "@/localization";
-import { FaIcon } from "@vitarish/web-ui";
+import { FaIcon } from "@vitarish/ui";
 import type {
   DashboardShellItem,
   DashboardShellNavGroup,

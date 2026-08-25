@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useCurrentJourney } from "@/hooks/journey/useCurrentJourney";
-import { JourneyErrorState, JourneyLoadingState } from "@vitarish/journey-web";
+import { JourneyErrorState, JourneyLoadingState } from "@vitarish/journey";
 
 interface JourneyGateBoundaryProps {
   children: React.ReactNode;

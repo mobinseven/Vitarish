@@ -1,0 +1,79 @@
+"use client";
+
+import { Button, Card } from "@heroui/react";
+import { ErrorStateSurface, LoadingStateSurface } from "@vitarish/ui";
+import { usePatientProcedureDetail } from "../../../hooks/patients/procedures/usePatientProcedureDetail";
+import { usePatientProcedureEvents } from "../../../hooks/patients/procedures/usePatientProcedureEvents";
+import { usePatientDetail } from "../../../hooks/patients/usePatientDetail";
+import { useLocalizedText } from "../../../localization";
+import type { NavigationIntent } from "../../../navigation";
+import { PatientProcedureActions } from "./PatientProcedureActions";
+import { PatientProcedureEventTimeline } from "./PatientProcedureEventTimeline";
+import { PatientProcedureHeader } from "./PatientProcedureHeader";
+
+interface PatientProcedureWorkspaceProps {
+  patientId: string;
+  procedureId: string;
+  onNavigate: (intent: NavigationIntent) => void;
+}
+
+export function PatientProcedureWorkspace({
+  patientId,
+  procedureId,
+  onNavigate,
+}: PatientProcedureWorkspaceProps) {
+  const { t } = useLocalizedText();
+  const procedureQuery = usePatientProcedureDetail(procedureId);
+  const eventsQuery = usePatientProcedureEvents(procedureId);
+  const events = eventsQuery.data ?? [];
+  const patientQuery = usePatientDetail(patientId);
+
+  if (
+    procedureQuery.isLoading ||
+    eventsQuery.isLoading ||
+    patientQuery.isLoading
+  ) {
+    return <LoadingStateSurface label={t("common.states.loading")} />;
+  }
+
+  if (procedureQuery.error || !procedureQuery.data) {
+    return <ErrorStateSurface title={t("clinic.procedures.notFound")} />;
+  }
+
+  return (
+    <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+      {patientQuery.data ? (
+        <PatientProcedureHeader
+          patient={patientQuery.data}
+          procedure={procedureQuery.data}
+        />
+      ) : null}
+      <Card className="m-0 w-full lg:max-w-4xl lg:self-center">
+        <Card.Content>
+          <PatientProcedureActions
+            patientId={patientId}
+            procedure={procedureQuery.data}
+            onDeleted={() => onNavigate({ kind: "patientDetail", patientId })}
+          />
+          {eventsQuery.error ? (
+            <ErrorStateSurface title={t("clinic.procedures.failedToLoad")}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onPress={() => void eventsQuery.refetch()}
+              >
+                {t("common.actions.retry")}
+              </Button>
+            </ErrorStateSurface>
+          ) : (
+            <PatientProcedureEventTimeline
+              patientId={patientId}
+              events={events}
+              procedureId={procedureId}
+            />
+          )}
+        </Card.Content>
+      </Card>
+    </section>
+  );
+}

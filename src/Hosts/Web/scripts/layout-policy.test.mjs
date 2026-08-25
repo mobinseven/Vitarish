@@ -73,8 +73,8 @@ test("production layout policy scans clinic, SEA, and every private-practice sou
   const webRoot = resolve(scriptDirectory, "..");
   const config = createProductionLayoutPolicyConfig(webRoot);
 
-  assert.ok(config.includeRoots.includes("shared/clinic-web/src"));
-  assert.ok(config.includeRoots.includes("shared/sea-web/src"));
+  assert.ok(config.includeRoots.includes("shared/clinic/src"));
+  assert.ok(config.includeRoots.includes("shared/sea/src"));
   assert.ok(
     !config.excludePrefixes.some((prefix) =>
       prefix.startsWith("apps/private-practice-owner/src/app/")

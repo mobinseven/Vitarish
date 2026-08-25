@@ -31,7 +31,7 @@ function validateFile(file) {
   const source = readFileSync(file, "utf8");
   for (const match of source.matchAll(literalPattern)) findings.push({ file, text: match[1].trim() });
   for (const match of source.matchAll(attrPattern)) findings.push({ file, text: match[1] + '="' + match[2] + '"' });
-  if (normalizedFile.includes("/shared/clinic-web/src/")) {
+  if (normalizedFile.includes("/shared/clinic/src/")) {
     for (const match of source.matchAll(/\bt\(["'](clinic\.[^"']+)["']/g)) {
       if (["clinic.procedures.events"].includes(match[1])) invalidClinicKeyUsages.push({ file, text: match[1] });
     }

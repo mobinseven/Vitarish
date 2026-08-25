@@ -4,7 +4,7 @@ import * as React from "react";
 import { Button, Chip, Disclosure, Tooltip } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
 import { useRouter } from "next/navigation";
-import { useLocalizedText } from "@vitarish/web-localization";
+import { useLocalizedText } from "@vitarish/localization";
 import { Routes } from "@/app/routes";
 import {
   SeaErrorState,
@@ -15,9 +15,9 @@ import {
   useSeaEvents,
   useSeaProcedureDetail,
   useUncommitSeaEvent,
-} from "@vitarish/sea-web";
-import type { SeaEventReadDto } from "@vitarish/sea-web";
-import { FaIcon } from "@vitarish/web-ui";
+} from "@vitarish/sea";
+import type { SeaEventReadDto } from "@vitarish/sea";
+import { FaIcon } from "@vitarish/ui";
 
 export function PmProcedureWorkspace({
   projectId,

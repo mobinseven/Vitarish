@@ -5,8 +5,8 @@ import { Avatar, AvatarFallback, Dropdown, Label } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Routes } from "@/app/routes";
-import { useAuthSession } from "@vitarish/auth-web";
-import { useLogout } from "@vitarish/auth-web";
+import { useAuthSession } from "@vitarish/auth";
+import { useLogout } from "@vitarish/auth";
 import { useLocalizedText } from "@/localization";
 
 export function UserMenu() {

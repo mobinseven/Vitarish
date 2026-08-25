@@ -6,7 +6,7 @@ import {
   PageContainer,
   PublicDocumentShell,
   StandaloneDocumentPage,
-} from "@vitarish/web-ui/layout";
+} from "@vitarish/ui/layout";
 
 export default function HomePage() {
   const messages = getMessages(defaultLocale).landing;

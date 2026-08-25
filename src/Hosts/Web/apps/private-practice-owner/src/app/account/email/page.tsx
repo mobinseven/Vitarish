@@ -2,15 +2,15 @@
 
 import { useCallback } from "react";
 import { TextField, Label, Input, Button } from "@heroui/react";
-import { useAuthSession } from "@vitarish/auth-web";
+import { useAuthSession } from "@vitarish/auth";
 import {
   AccountBackLink,
   AccountSurface,
   AccountWidget,
 } from "@/components/account/AccountSurface";
-import { useAccountEmailChange } from "@vitarish/account-web";
-import { StatusAlert } from "@vitarish/web-ui";
-import { OtpCodeInput } from "@vitarish/auth-web";
+import { useAccountEmailChange } from "@vitarish/account";
+import { StatusAlert } from "@vitarish/ui";
+import { OtpCodeInput } from "@vitarish/auth";
 import { localizeApiError, useLocalizedText } from "@/localization";
 
 export default function EmailChangePage() {

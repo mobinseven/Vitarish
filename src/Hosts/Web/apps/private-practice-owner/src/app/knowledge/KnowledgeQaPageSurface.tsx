@@ -4,12 +4,12 @@ import { useCallback, useMemo } from "react";
 import {
   KnowledgeUserQaSurface,
   type KnowledgeQaLabels,
-} from "@vitarish/knowledge-web";
+} from "@vitarish/knowledge";
 import {
   getKnowledgeQaErrorMessage,
   createKnowledgeQaClient,
-} from "@vitarish/knowledge-web";
-import { apiFetch } from "@vitarish/web-api-client";
+} from "@vitarish/knowledge";
+import { apiFetch } from "@vitarish/api-client";
 
 const knowledgeQaClient = createKnowledgeQaClient(
   apiFetch as <T>(url: string, options?: RequestInit) => Promise<T>,

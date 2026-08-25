@@ -1,6 +1,6 @@
 "use client";
 import { use } from "react";
-import { ServiceTypeDetailPage } from "@vitarish/clinic-web";
+import { ServiceTypeDetailPage } from "@vitarish/clinic";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 export default function ServiceTypeDetailRoute({
   params,

@@ -2,14 +2,14 @@
 
 import { useState, useCallback } from "react";
 import { TextField, Label, Input, Button } from "@heroui/react";
-import { useAuthSession } from "@vitarish/auth-web";
+import { useAuthSession } from "@vitarish/auth";
 import {
   AccountBackLink,
   AccountSurface,
   AccountWidget,
 } from "@/components/account/AccountSurface";
-import { useAccountPasswordChange } from "@vitarish/account-web";
-import { StatusAlert } from "@vitarish/web-ui";
+import { useAccountPasswordChange } from "@vitarish/account";
+import { StatusAlert } from "@vitarish/ui";
 import { localizeApiError, useLocalizedText } from "@/localization";
 
 export default function PasswordChangePage() {

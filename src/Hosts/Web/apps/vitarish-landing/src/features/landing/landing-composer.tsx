@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, Tooltip } from "@heroui/react";
-import { AgentConversationComposer } from "@vitarish/intelligence-web";
-import { FaIcon } from "@vitarish/web-ui";
+import { AgentConversationComposer } from "@vitarish/intelligence";
+import { FaIcon } from "@vitarish/ui";
 import type { LandingCopy } from "./landing-copy";
 
 type ConversationState = {

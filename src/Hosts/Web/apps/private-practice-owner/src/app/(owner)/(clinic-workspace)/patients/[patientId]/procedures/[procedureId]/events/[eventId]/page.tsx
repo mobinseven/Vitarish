@@ -1,8 +1,8 @@
 "use client";
 
 import { use } from "react";
-import { useAuthSession } from "@vitarish/auth-web";
-import { PatientProcedureEventPage } from "@vitarish/clinic-web";
+import { useAuthSession } from "@vitarish/auth";
+import { PatientProcedureEventPage } from "@vitarish/clinic";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 
 interface PatientProcedureEventRouteProps {

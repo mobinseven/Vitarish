@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useConversationController } from "@vitarish/intelligence-web";
+import { useConversationController } from "@vitarish/intelligence";
 import {
   deleteLandingConversation,
   LandingConversationError,

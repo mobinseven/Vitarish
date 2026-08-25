@@ -7,13 +7,13 @@ import {
   PasskeyRegistrationOptionsError,
   PasskeyRegistrationStageError,
   useAccountPasskeys,
-} from "@vitarish/account-web";
+} from "@vitarish/account";
 
 const beginRegisterMutateAsync = vi.fn();
 const completeRegisterMutateAsync = vi.fn();
 const deleteCredentialMutateAsync = vi.fn();
 
-vi.mock("@vitarish/auth-web", () => ({
+vi.mock("@vitarish/auth", () => ({
   useUsersListWebAuthnCredentials: vi.fn(() => ({
     data: [],
     isLoading: false,

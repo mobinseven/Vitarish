@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch } from "@vitarish/web-api-client";
+import { apiFetch } from "@vitarish/api-client";
 
 export interface JourneyGate {
   kind:

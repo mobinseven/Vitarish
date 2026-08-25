@@ -2,9 +2,9 @@
 @import "@heroui/styles";
 @import "@heroui-pro/react/css";
 @import "@heroui-pro/react/themes/glass";
-@import "@vitarish/web-ui/layout.css";
+@import "@vitarish/ui/layout.css";
 
-@source "../../../../shared/web-ui/src/**/*.{ts,tsx}";
+@source "../../../../shared/ui/src/**/*.{ts,tsx}";
 
 /*
  * HeroUI Pro Theme

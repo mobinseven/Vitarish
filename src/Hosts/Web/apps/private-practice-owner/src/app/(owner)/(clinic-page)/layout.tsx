@@ -4,7 +4,7 @@ import {
   clinicOwnerDashboardNavGroups,
   dashboardFooterItems,
 } from "@/components/shell/dashboardShellNavigation";
-import { ContainedPage } from "@vitarish/web-ui/layout";
+import { ContainedPage } from "@vitarish/ui/layout";
 
 export default function ClinicPageLayout({
   children,

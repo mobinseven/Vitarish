@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuthSession, usePlatformAuthorization, useUsersAdministrationListTenantRoles, useUsersSearchUsers } from "@vitarish/auth-web";
-import { CenteredRegion } from "@vitarish/web-ui/layout";
-import { useLocalizedText } from "@vitarish/web-localization";
+import { useAuthSession, usePlatformAuthorization, useUsersAdministrationListTenantRoles, useUsersSearchUsers } from "@vitarish/auth";
+import { CenteredRegion } from "@vitarish/ui/layout";
+import { useLocalizedText } from "@vitarish/localization";
 import { Routes } from "../routes";
 
 export default function UsersPage() {

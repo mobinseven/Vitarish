@@ -5,12 +5,12 @@ import { Widget } from "@heroui-pro/react";
 import { KPI } from "@heroui-pro/react/kpi";
 import { KPIGroup } from "@heroui-pro/react/kpi-group";
 import { useRouter } from "next/navigation";
-import { useLocalizedText } from "@vitarish/web-localization";
-import { useSeaProcedures } from "@vitarish/sea-web";
-import { useSeaProjectDetail } from "@vitarish/sea-web";
-import { SeaErrorState, SeaLoadingState } from "@vitarish/sea-web";
+import { useLocalizedText } from "@vitarish/localization";
+import { useSeaProcedures } from "@vitarish/sea";
+import { useSeaProjectDetail } from "@vitarish/sea";
+import { SeaErrorState, SeaLoadingState } from "@vitarish/sea";
 import { Routes } from "@/app/routes";
-import { FaIcon } from "@vitarish/web-ui";
+import { FaIcon } from "@vitarish/ui";
 
 export function PmProjectOverview({ projectId }: { projectId: string }) {
   const router = useRouter();

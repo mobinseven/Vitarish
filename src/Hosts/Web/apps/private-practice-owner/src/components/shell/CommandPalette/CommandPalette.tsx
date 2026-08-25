@@ -2,7 +2,7 @@
 
 import { Command, EmptyState } from "@heroui-pro/react";
 import { Kbd, Button } from "@heroui/react";
-import { FaIcon } from "@vitarish/web-ui";
+import { FaIcon } from "@vitarish/ui";
 import { useCommandPalette } from "./hooks/useCommandPalette";
 import { useLocalizedText } from "@/localization";
 

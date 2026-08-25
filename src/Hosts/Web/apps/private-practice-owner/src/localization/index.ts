@@ -1,4 +1,4 @@
-// Re-export infrastructure from @vitarish/web-localization
+// Re-export infrastructure from @vitarish/localization
 export {
   LocalizationContext,
   I18nProvider,
@@ -29,7 +29,7 @@ export {
   dateValueToIsoDate,
   getApiErrorMessageKey,
   localizeApiError,
-} from "@vitarish/web-localization";
+} from "@vitarish/localization";
 export type {
   LocalizationContextValue,
   SupportedLocale,
@@ -45,7 +45,7 @@ export type {
   MessageKey,
   MessageParameters,
   Translate,
-} from "@vitarish/web-localization";
+} from "@vitarish/localization";
 
 // App-specific catalog-loading provider, message catalogs, and metadata
 export { LocalizationProvider } from "./LocalizationProvider";

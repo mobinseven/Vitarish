@@ -1,6 +1,6 @@
-import { communicationsMessageCatalogs } from "@vitarish/communications-web/localization";
-import { intelligenceMessageCatalogs } from "@vitarish/intelligence-web/localization";
-import { defaultLocale, type SupportedLocale } from "@vitarish/web-localization";
+import { communicationsMessageCatalogs } from "@vitarish/communications/localization";
+import { intelligenceMessageCatalogs } from "@vitarish/intelligence/localization";
+import { defaultLocale, type SupportedLocale } from "@vitarish/localization";
 import { enMessages } from "./en";
 import { faMessages } from "./fa";
 

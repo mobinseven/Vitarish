@@ -1,6 +1,6 @@
 "use client";
 import { use } from "react";
-import { OwnerShiftEditPage } from "@vitarish/clinic-web";
+import { OwnerShiftEditPage } from "@vitarish/clinic";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 export default function OwnerShiftEditRoute({
   params,

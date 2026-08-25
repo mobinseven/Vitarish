@@ -1,2 +1,2 @@
-export { apiFetch, ApiError, resetAntiforgeryToken } from "@vitarish/web-api-client";
-export type { ProblemDetails } from "@vitarish/web-api-client";
+export { apiFetch, ApiError, resetAntiforgeryToken } from "@vitarish/api-client";
+export type { ProblemDetails } from "@vitarish/api-client";

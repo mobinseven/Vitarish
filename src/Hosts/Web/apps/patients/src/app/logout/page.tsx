@@ -3,9 +3,9 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Button } from "@heroui/react";
-import { useLogout } from "@vitarish/auth-web";
-import { StatusAlert } from "@vitarish/web-ui";
-import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
+import { useLogout } from "@vitarish/auth";
+import { StatusAlert } from "@vitarish/ui";
+import { StandaloneCenteredPage } from "@vitarish/ui/layout";
 import { useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 

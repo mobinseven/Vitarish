@@ -1,10 +1,10 @@
 "use client";
 
 import { Card } from "@heroui/react";
-import { AuthMethodSelector } from "@vitarish/auth-web";
+import { AuthMethodSelector } from "@vitarish/auth";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { Routes } from "@/app/routes";
-import { StandaloneCenteredPage } from "@vitarish/web-ui/layout";
+import { StandaloneCenteredPage } from "@vitarish/ui/layout";
 
 const authMethods = [
   {

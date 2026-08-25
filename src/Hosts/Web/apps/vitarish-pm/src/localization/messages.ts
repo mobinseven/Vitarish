@@ -1,4 +1,4 @@
-import type { SupportedLocale } from "@vitarish/web-localization";
+import type { SupportedLocale } from "@vitarish/localization";
 
 const sea = {
   navigation: {

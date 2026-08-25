@@ -7,7 +7,7 @@ import {
   type SettingsBackLinkProps,
   type SettingsSectionProps,
   type SettingsSurfaceProps,
-} from "@vitarish/web-ui";
+} from "@vitarish/ui";
 import { Routes } from "@/app/routes";
 import { useLocalizedText } from "@/localization";
 

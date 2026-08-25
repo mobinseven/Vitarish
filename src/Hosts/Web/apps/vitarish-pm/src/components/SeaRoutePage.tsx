@@ -6,9 +6,9 @@ import {
   SeaProjectForm,
   SeaProjectsPage,
   SeaRolesPage,
-} from "@vitarish/sea-web";
-import { SeaProcedureList } from "@vitarish/sea-web";
-import { useSeaProjectDetail } from "@vitarish/sea-web";
+} from "@vitarish/sea";
+import { SeaProcedureList } from "@vitarish/sea";
+import { useSeaProjectDetail } from "@vitarish/sea";
 import { Routes } from "@/app/routes";
 import { PmEventWorkspace } from "./PmEventWorkspace";
 import { PmProcedureWorkspace } from "./PmProcedureWorkspace";

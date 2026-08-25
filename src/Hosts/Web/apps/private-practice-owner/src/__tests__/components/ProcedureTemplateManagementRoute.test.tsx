@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import ProcedureTemplateManagementRoute from "@/app/(owner)/(clinic-workspace)/settings/procedure-templates/page";
 
-vi.mock("@vitarish/clinic-web", () => ({
+vi.mock("@vitarish/clinic", () => ({
   ProcedureTemplateManagementPanel: () => (
     <div data-testid="procedure-template-management-panel" />
   ),

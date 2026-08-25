@@ -1,6 +1,6 @@
 import { defaultLocale, type SupportedLocale } from "../locales";
-import { clinicMessageCatalogs } from "@vitarish/clinic-web/localization";
-import { intelligenceMessageCatalogs } from "@vitarish/intelligence-web/localization";
+import { clinicMessageCatalogs } from "@vitarish/clinic/localization";
+import { intelligenceMessageCatalogs } from "@vitarish/intelligence/localization";
 import { enMessages } from "./en";
 import { faMessages } from "./fa";
 

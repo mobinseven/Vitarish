@@ -4,5 +4,5 @@ export {
   WebAuthnUnsupportedError,
   WebAuthnOptionConversionError,
   WebAuthnRegistrationError,
-} from "@vitarish/account-web";
-export type { PublicKeyCredentialRequestOptionsJSON } from "@vitarish/account-web";
+} from "@vitarish/account";
+export type { PublicKeyCredentialRequestOptionsJSON } from "@vitarish/account";

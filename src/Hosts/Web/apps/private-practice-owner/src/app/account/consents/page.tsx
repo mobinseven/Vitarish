@@ -1,4 +1,4 @@
-import { ConsentReviewPage } from "@vitarish/journey-web";
+import { ConsentReviewPage } from "@vitarish/journey";
 
 export default function ConsentsRoute() {
   return <ConsentReviewPage />;

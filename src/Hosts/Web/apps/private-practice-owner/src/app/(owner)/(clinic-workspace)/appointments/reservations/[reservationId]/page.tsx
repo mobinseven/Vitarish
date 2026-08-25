@@ -1,6 +1,6 @@
 "use client";
 import { use } from "react";
-import { OwnerReservationDetailPage } from "@vitarish/clinic-web";
+import { OwnerReservationDetailPage } from "@vitarish/clinic";
 import { useClinicNavigation } from "@/components/clinic-navigation";
 export default function OwnerReservationDetailRoute({
   params,

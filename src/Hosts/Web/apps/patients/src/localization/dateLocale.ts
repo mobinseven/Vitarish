@@ -1,2 +1,2 @@
-export { getReactAriaLocale, getDateCalendar } from "@vitarish/web-localization";
-export type { SupportedDateCalendar } from "@vitarish/web-localization";
+export { getReactAriaLocale, getDateCalendar } from "@vitarish/localization";
+export type { SupportedDateCalendar } from "@vitarish/localization";
