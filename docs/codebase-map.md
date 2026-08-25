@@ -126,19 +126,19 @@ Run npm workspace commands from `src/Hosts/Web`.
 
 | Path | Responsibility |
 | --- | --- |
-| `shared/account-web` | Reusable account/profile Web feature surface. |
-| `shared/auth-web` | Authentication Web feature and generated API boundary. |
-| `shared/clinic-web` | Clinic/private-practice feature surface and generated clinic API boundary. |
-| `shared/communications-web` | Communications feature and generated API boundary. |
-| `shared/contents-web` | Content feature surface. |
-| `shared/intelligence-web` | Intelligence feature, generated API boundary, and browser realtime/dictation behavior. |
-| `shared/journey-web` | Journey/onboarding feature and generated API boundary. |
-| `shared/knowledge-web` | Knowledge feature surface. |
-| `shared/platform-web` | Platform administration feature surface. |
-| `shared/sea-web` | SEA feature and generated API boundary. |
-| `shared/web-api-client` | Shared browser transport: base URL, credentials, tenant header, CSRF, cancellation, and transport errors. |
-| `shared/web-localization` | Locale state, providers, formatting, and feature namespace registration. |
-| `shared/web-ui` | Generic Web presentation, layout primitives, and design tokens. |
+| `shared/account` | Reusable account/profile Web feature surface. |
+| `shared/auth` | Authentication Web feature and generated API boundary. |
+| `shared/clinic` | Clinic/private-practice feature surface and generated clinic API boundary. |
+| `shared/communications` | Communications feature and generated API boundary. |
+| `shared/contents` | Content feature surface. |
+| `shared/intelligence` | Intelligence feature, generated API boundary, and browser realtime/dictation behavior. |
+| `shared/journey` | Journey/onboarding feature and generated API boundary. |
+| `shared/knowledge` | Knowledge feature surface. |
+| `shared/platform` | Platform administration feature surface. |
+| `shared/sea` | SEA feature and generated API boundary. |
+| `shared/api-client` | Shared browser transport: base URL, credentials, tenant header, CSRF, cancellation, and transport errors. |
+| `shared/localization` | Locale state, providers, formatting, and feature namespace registration. |
+| `shared/ui` | Generic Web presentation, layout primitives, and design tokens. |
 
 App `src/app/**/page.tsx` files own route entry points and compose exported
 feature surfaces. Reusable workflow UI, hooks, generated clients, and
@@ -147,7 +147,7 @@ package. App-owned route shells, home/landing composition, and app navigation
 stay in the app.
 
 Use raw HeroUI/HeroUI Pro primitives by default. Add generic Web presentation
-to `shared/web-ui` only when it satisfies the promotion rules in
+to `shared/ui` only when it satisfies the promotion rules in
 [ADR-0008](architecture/decisions/0008-standardize-app-experience-boundaries.md).
 
 `src/Modules/Intelligence/Agents` contains the provider-neutral profile, capability-pack, composition, manifest, and compatibility framework defined by ADR-0012. Explicit app-owned profile, pack, and composition artifacts live under paths such as `src/Apps/Clinic/Agents`; they may reference their owning Application and Intelligence.Agents, while API and Infrastructure continue to consume application-owned agent contracts through Clinic.Application.
@@ -156,18 +156,18 @@ to `shared/web-ui` only when it satisfies the promotion rules in
 
 | Capability | Backend owner | Web owner when present | Tests | Documentation |
 | --- | --- | --- | --- | --- |
-| Authentication | `src/Modules/Authentication`, `src/Identity` | `shared/auth-web` | `tests/Modules/Authentication.Tests` | `docs/platform/modules/authentication` |
-| Journey/onboarding | `src/Modules/Journey` | `shared/journey-web` | `tests/Modules/Journey.Tests` | `docs/platform/modules/base/journeys` |
-| Clinic/private practice | `src/Apps/Clinic`, relevant modules | `apps/private-practice-owner`, `shared/clinic-web` | `tests/Apps/Clinic.*` and owning module tests | `docs/apps/private-practice-general` and module docs |
+| Authentication | `src/Modules/Authentication`, `src/Identity` | `shared/auth` | `tests/Modules/Authentication.Tests` | `docs/platform/modules/authentication` |
+| Journey/onboarding | `src/Modules/Journey` | `shared/journey` | `tests/Modules/Journey.Tests` | `docs/platform/modules/base/journeys` |
+| Clinic/private practice | `src/Apps/Clinic`, relevant modules | `apps/private-practice-owner`, `shared/clinic` | `tests/Apps/Clinic.*` and owning module tests | `docs/apps/private-practice-general` and module docs |
 | Patient experience | relevant modules and `src/Apps/Clinic` | `apps/patients`, feature packages | owning app/module tests | current app journeys under `docs/apps` |
-| Platform/tenants | `src/Modules/Platform`, `Parties`, `Users` | `shared/platform-web`, owner app routes | matching `tests/Modules/*.Tests` | matching `docs/platform/modules/*` |
+| Platform/tenants | `src/Modules/Platform`, `Parties`, `Users` | `shared/platform`, owner app routes | matching `tests/Modules/*.Tests` | matching `docs/platform/modules/*` |
 | Appointments | `src/Modules/Appointments` | clinic feature/routes | `tests/Modules/Appointments.Tests` | `docs/platform/modules/appointments` |
-| SEA | `src/Modules/Sea` | `shared/sea-web`, `shared/clinic-web` | `tests/Modules/Sea.Tests` | `docs/platform/modules/sea` |
+| SEA | `src/Modules/Sea` | `shared/sea`, `shared/clinic` | `tests/Modules/Sea.Tests` | `docs/platform/modules/sea` |
 | Medical/prescriptions | `src/Modules/Medical` | clinic feature/routes | `tests/Modules/Medical.Tests` | `docs/platform/modules/medical` |
-| Knowledge | `src/Modules/Knowledge` | `shared/knowledge-web`, `apps/knowledge-qa-demo` | `tests/Modules/Knowledge.Tests` and package tests | `docs/platform/modules/knowledge` |
-| Intelligence | `src/Modules/Intelligence` | `shared/intelligence-web`; server runtime in `apps/agent-runtime` | `tests/Modules/Intelligence.Tests` and package tests | `docs/platform/modules/intelligence` |
-| Communications | `src/Modules/Communications` | `shared/communications-web` | package and owning module tests | `docs/platform/modules/communications` |
-| Contents | `src/Modules/Contents` | `shared/contents-web` | `tests/Modules/Contents.Tests` | `docs/platform/modules/contents` when present |
+| Knowledge | `src/Modules/Knowledge` | `shared/knowledge`, `apps/knowledge-qa-demo` | `tests/Modules/Knowledge.Tests` and package tests | `docs/platform/modules/knowledge` |
+| Intelligence | `src/Modules/Intelligence` | `shared/intelligence`; server runtime in `apps/agent-runtime` | `tests/Modules/Intelligence.Tests` and package tests | `docs/platform/modules/intelligence` |
+| Communications | `src/Modules/Communications` | `shared/communications` | package and owning module tests | `docs/platform/modules/communications` |
+| Contents | `src/Modules/Contents` | `shared/contents` | `tests/Modules/Contents.Tests` | `docs/platform/modules/contents` when present |
 | Files | `src/Modules/Files` | owning feature routes/packages | `tests/Modules/Files.Tests` | `docs/platform/modules/files` |
 | Search | `src/Modules/Search` | owning feature routes/packages | `tests/Modules/Search.Tests` | `docs/platform/modules/search` |
 | Other modules | matching `src/Modules/<Name>` | owning app/feature package when implemented | matching test project when present | matching module docs when present |
@@ -178,7 +178,7 @@ to `shared/web-ui` only when it satisfies the promotion rules in
   IdentityServer, Hangfire, and development OpenAPI documents at
   `/openapi/{documentName}.json`.
 - React feature packages call backend APIs through generated Orval clients and
-  `shared/web-api-client`.
+  `shared/api-client`.
 - Main writes generated OpenAPI documents to
   `src/Hosts/Web/src/api/specs` during configured builds.
 - Feature-owned OpenAPI inputs and generated TypeScript output live under
@@ -205,7 +205,7 @@ the compose build paths before relying on it; the repository currently has no
 - **New Web workflow UI:** use
   `src/Hosts/Web/shared/<feature>-web`; keep the app route thin.
 - **New generic Web primitive:** prefer HeroUI/HeroUI Pro directly; use
-  `shared/web-ui` only for genuinely generic presentation.
+  `shared/ui` only for genuinely generic presentation.
 - **New domain behavior:** use `src/Modules/<Module>/Domain`.
 - **New command/query/workflow:** use the owning module or app `Application`
   slice. Queries must remain side-effect free.
@@ -217,7 +217,7 @@ the compose build paths before relying on it; the repository currently has no
 - **Database change:** update the owning persisted model/configuration and
   generate the migration under the owning Infrastructure migration tree.
 - **Localization:** generic locale/formatting belongs in
-  `shared/web-localization`; feature messages belong in the feature package;
+  `shared/localization`; feature messages belong in the feature package;
   app route/shell copy stays in the app.
 - **Tests:** use `tests/Modules/<Module>.Tests`,
   `tests/Apps/<App>.Tests`, or package-local Web tests according to the

@@ -65,7 +65,7 @@ export default defineConfig({
       override: {
         mutator: {
           // If Orval requires a file path, use a package-local file that re-exports this symbol.
-          path: "@vitarish/web-api-client",
+          path: "@vitarish/api-client",
           name: "apiFetch",
         },
       },
@@ -117,7 +117,7 @@ src/Hosts/Web/apps/private-practice-general/src/api/generated/
 
 ### The apiFetch Boundary
 
-All generated hooks use the shared Web `apiFetch` from `@vitarish/web-api-client` instead of raw `fetch` or package-local fetch copies:
+All generated hooks use the shared Web `apiFetch` from `@vitarish/api-client` instead of raw `fetch` or package-local fetch copies:
 
 - **Antiforgery**: Auto-fetches and attaches CSRF tokens for non-GET requests
 - **Error handling**: Throws `ApiError` with `ProblemDetails` on non-OK responses
@@ -186,7 +186,7 @@ modulename: {
     client: "react-query",
     override: {
       mutator: {
-        path: "@vitarish/web-api-client",
+        path: "@vitarish/api-client",
         name: "apiFetch",
       },
     },
@@ -242,14 +242,14 @@ The generated hook name follows the pattern: `use{OperationId}Mutation` or `use{
 | `src/Hosts/Main/Program.cs:93-109` | OpenAPI document registration |
 | `src/Hosts/Main/DependencyInjection/HostOpenApiDocumentExtensions.cs` | Module document filter |
 | `src/Hosts/Web/shared/<feature>-web/src/api/client/orval.config.ts` | Target feature package Orval generation config |
-| `src/Hosts/Web/shared/web-api-client/src/index.ts` | Shared `apiFetch` and Web transport boundary |
+| `src/Hosts/Web/shared/api-client/src/index.ts` | Shared `apiFetch` and Web transport boundary |
 | `src/Hosts/Web/shared/<feature>-web/src/api/generated/` | Target package-internal generated hooks, types, mocks |
 | `src/Hosts/Web/apps/private-practice-general/src/api/**` | Legacy app-bound generation source until migrated into feature packages |
 | `src/Hosts/Web/.env.example` | `NEXT_PUBLIC_API_BASE_URL` |
 
 ## Web host API boundary and antiforgery troubleshooting
 
-The React Web host must call module APIs through the central `apiFetch` mutator from `@vitarish/web-api-client`. Generated Orval clients are configured to use the shared mutator, and feature/page code must not call `/api/modules/**` with direct `fetch`. Run `npm run validate:api-boundary` from `src/Hosts/Web` before changing module API adapters.
+The React Web host must call module APIs through the central `apiFetch` mutator from `@vitarish/api-client`. Generated Orval clients are configured to use the shared mutator, and feature/page code must not call `/api/modules/**` with direct `fetch`. Run `npm run validate:api-boundary` from `src/Hosts/Web` before changing module API adapters.
 
 For unsafe browser-cookie requests, `apiFetch` first bootstraps an antiforgery token from the same API origin used for the module request. Troubleshoot failures in this order:
 

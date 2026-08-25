@@ -61,11 +61,11 @@ Account pages use OSS form primitives because the workflows are simple text inpu
 
 The following were migrated to Pro during this phase:
 
-- `shared/clinic-web/src/components/appointments/reservations/OwnerReservationsList.tsx` — Pro Table
-- `shared/clinic-web/src/components/appointments/shifts/OwnerShiftsList.tsx` — Pro Table
-- `shared/clinic-web/src/components/user-appointments/reservations/UserReservationsList.tsx` — Pro Table
-- `shared/clinic-web/src/components/user-appointments/shifts/UserShiftsList.tsx` — Pro Table
-- `shared/clinic-web/src/components/patients/list/PatientsGrid.tsx` — Pro Table
+- `shared/clinic/src/components/appointments/reservations/OwnerReservationsList.tsx` — Pro Table
+- `shared/clinic/src/components/appointments/shifts/OwnerShiftsList.tsx` — Pro Table
+- `shared/clinic/src/components/user-appointments/reservations/UserReservationsList.tsx` — Pro Table
+- `shared/clinic/src/components/user-appointments/shifts/UserShiftsList.tsx` — Pro Table
+- `shared/clinic/src/components/patients/list/PatientsGrid.tsx` — Pro Table
 - `src/app/owner/clinic/layout.tsx` — Pro AppLayout, Sidebar, Navbar
 
 ### Knowledge QA — already on Pro

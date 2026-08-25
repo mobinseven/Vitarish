@@ -30,8 +30,8 @@ Exercise desktop and narrow mobile widths in English LTR and Persian RTL. Enter 
 
 ## Validation commands
 
-- `npm run typecheck --workspace @vitarish/clinic-web`
-- `npm run test --workspace @vitarish/clinic-web`
+- `npm run typecheck --workspace @vitarish/clinic`
+- `npm run test --workspace @vitarish/clinic`
 - `npm run typecheck --workspace @vitarish/private-practice-owner`
 - Focused private-practice-owner navigation, route-composition, and route-layout tests
 - `npm run validate:web-ui-boundary`

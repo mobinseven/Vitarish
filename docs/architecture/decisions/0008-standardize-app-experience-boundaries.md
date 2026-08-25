@@ -87,16 +87,16 @@ The private-practice React workflow features are owned by Web workspace packages
 
 | Current feature folder | Target package folder | Package name |
 | --- | --- | --- |
-| `account` | `src/Hosts/Web/shared/account-web` | `@vitarish/account-web` |
-| `auth` | `src/Hosts/Web/shared/auth-web` | `@vitarish/auth-web` |
-| `clinic` | `src/Hosts/Web/shared/clinic-web` | `@vitarish/clinic-web` |
-| Communications module clients and reusable UI | `src/Hosts/Web/shared/communications-web` | `@vitarish/communications-web` |
-| `journey` | `src/Hosts/Web/shared/journey-web` | `@vitarish/journey-web` |
-| `sea` | `src/Hosts/Web/shared/sea-web` | `@vitarish/sea-web` |
+| `account` | `src/Hosts/Web/shared/account` | `@vitarish/account` |
+| `auth` | `src/Hosts/Web/shared/auth` | `@vitarish/auth` |
+| `clinic` | `src/Hosts/Web/shared/clinic` | `@vitarish/clinic` |
+| Communications module clients and reusable UI | `src/Hosts/Web/shared/communications` | `@vitarish/communications` |
+| `journey` | `src/Hosts/Web/shared/journey` | `@vitarish/journey` |
+| `sea` | `src/Hosts/Web/shared/sea` | `@vitarish/sea` |
 
 `home` and `landing` are app-owned route/shell composition folders, not feature package targets. `home` currently composes the app dashboard with app routes, app authentication state, and app localization. `landing` currently owns the app root marketing page, brand assets, and presentation sections. If either later gains reusable workflow behavior, backend API access, generated clients, or cross-app feature state, extract that behavior into the narrow owning package instead of creating a package for route composition.
 
-`@vitarish/knowledge-web` remains an approved feature package and must align with these package rules as it evolves.
+`@vitarish/knowledge` remains an approved feature package and must align with these package rules as it evolves.
 
 Feature packages own feature-specific React Web concerns:
 
@@ -117,7 +117,7 @@ src/Hosts/Web/apps/<app>/src/app/**/*
 
 Route files and app-owned route/shell folders compose providers, layouts, metadata, route params, navigation, and package page/surface components. They must not become workflow feature implementation folders and must not duplicate feature API wrappers, generated clients, React Query hooks, localization catalogs, or feature UI internals.
 
-Create a dedicated shared React Web UI package named `@vitarish/web-ui`.
+Create a dedicated shared React Web UI package named `@vitarish/ui`.
 
 The package is the source of truth for generic reusable React presentation artifacts inside the Web host family:
 
@@ -127,11 +127,11 @@ The package is the source of truth for generic reusable React presentation artif
 - icon usage helpers and presentation-only composition helpers;
 - reusable component contracts and examples when direct HeroUI usage is not enough.
 
-Raw HeroUI and HeroUI Pro components remain the default building blocks. `@vitarish/web-ui` must not introduce custom design-system wrappers that hide or replace HeroUI's component model. When a shared artifact is needed, it must stay presentation-only and should either document a raw HeroUI composition pattern or provide the smallest helper for behavior that raw HeroUI does not already provide directly.
+Raw HeroUI and HeroUI Pro components remain the default building blocks. `@vitarish/ui` must not introduce custom design-system wrappers that hide or replace HeroUI's component model. When a shared artifact is needed, it must stay presentation-only and should either document a raw HeroUI composition pattern or provide the smallest helper for behavior that raw HeroUI does not already provide directly.
 
-Create one Web transport package for generated-client mutators and shared browser transport mechanics. Use `@vitarish/web-api-client` unless a later implementation ADR chooses a narrower name. This package owns `apiFetch`, `ApiError`, CSRF/antiforgery bootstrapping, tenant host header propagation, credentials policy, base URL handling, cancellation adaptation, and transport error normalization. Feature packages consume this package for their generated clients and must not define their own `apiFetch` copies or competing CSRF, tenant header, credentials, or error-mapping behavior.
+Create one Web transport package for generated-client mutators and shared browser transport mechanics. Use `@vitarish/api-client` unless a later implementation ADR chooses a narrower name. This package owns `apiFetch`, `ApiError`, CSRF/antiforgery bootstrapping, tenant host header propagation, credentials policy, base URL handling, cancellation adaptation, and transport error normalization. Feature packages consume this package for their generated clients and must not define their own `apiFetch` copies or competing CSRF, tenant header, credentials, or error-mapping behavior.
 
-Create or use the core Web localization package described by ADR-0007 for locale/provider/formatting composition. Feature packages own their message namespaces; `@vitarish/web-ui` receives localized display text through props, slots, or children instead of importing feature or app catalogs.
+Create or use the core Web localization package described by ADR-0007 for locale/provider/formatting composition. Feature packages own their message namespaces; `@vitarish/ui` receives localized display text through props, slots, or children instead of importing feature or app catalogs.
 
 The target Web workspace shape is:
 
@@ -194,7 +194,7 @@ All apps rely on the backend as the source of truth for data, commands, authoriz
 
 Feature packages may call the backend only through package-owned generated clients and feature API wrappers that consume the shared Web transport package. Generated clients are transport artifacts, not business-rule owners. Feature wrappers may map transport status, stable API codes, and generated DTOs into feature read models or hook states, but they must not reimplement backend authorization, validation, data transitions, or workflow rules.
 
-`@vitarish/web-ui` does not call the backend directly. It receives data, state, localized display text, handlers, and navigation intents through props, slots, or children. It must not import generated clients, feature packages, `apiFetch`, backend contracts, or React Query hooks.
+`@vitarish/ui` does not call the backend directly. It receives data, state, localized display text, handlers, and navigation intents through props, slots, or children. It must not import generated clients, feature packages, `apiFetch`, backend contracts, or React Query hooks.
 
 Each app owns its route handlers, app-level providers, app shell, app navigation, and final route composition. Apps consume feature package exports rather than deep-importing feature internals or recreating feature API/localization/UI boundaries.
 
@@ -204,7 +204,7 @@ Shared Web UI may expose generic state contracts such as `isPending`, `isDisable
 
 ## Import Boundary Rules
 
-`@vitarish/web-ui` may depend on Web presentation-only libraries and package-local implementation files:
+`@vitarish/ui` may depend on Web presentation-only libraries and package-local implementation files:
 
 - `react` and React types;
 - HeroUI and HeroUI Pro primitives;
@@ -213,27 +213,27 @@ Shared Web UI may expose generic state contracts such as `isPending`, `isDisable
 - Font Awesome React and icon packages already approved by the Web host;
 - package-local CSS, tokens, types, and test helpers.
 
-`@vitarish/web-ui` must not import from:
+`@vitarish/ui` must not import from:
 
 - Web app route or page folders;
 - Web app feature folders;
 - generated OpenAPI clients, generated DTOs, query keys, or `apiFetch`;
 - React Query hooks or feature data hooks;
 - backend Domain, Application, Contracts, Infrastructure, or API projects;
-- feature packages such as `@vitarish/account-web`, `@vitarish/clinic-web`, `@vitarish/sea-web`, or `@vitarish/knowledge-web`;
+- feature packages such as `@vitarish/account`, `@vitarish/clinic`, `@vitarish/sea`, or `@vitarish/knowledge`;
 - feature-specific business types such as patient, clinic workflow, account workflow, journey, or knowledge entities;
 - app localization catalogs or providers directly;
 - other host families such as native, desktop, worker, or future non-Web hosts.
 
-`@vitarish/web-api-client` may depend only on runtime/browser transport primitives and package-local implementation files. It must not import React components, feature packages, localization catalogs, generated clients, backend projects, app route files, or `@vitarish/web-ui`. It owns transport behavior only: base URL, credentials, tenant header, CSRF/antiforgery, cancellation adaptation, and transport error normalization.
+`@vitarish/api-client` may depend only on runtime/browser transport primitives and package-local implementation files. It must not import React components, feature packages, localization catalogs, generated clients, backend projects, app route files, or `@vitarish/ui`. It owns transport behavior only: base URL, credentials, tenant header, CSRF/antiforgery, cancellation adaptation, and transport error normalization.
 
 Feature packages may import:
 
 - package-local generated clients, generated DTOs, query keys, and MSW mocks;
-- `@vitarish/web-api-client` for the generated-client mutator and shared transport errors;
+- `@vitarish/api-client` for the generated-client mutator and shared transport errors;
 - `@tanstack/react-query` for feature hooks;
-- `@vitarish/web-ui` for generic presentation artifacts;
-- `@vitarish/web-localization` for locale, formatting, provider contracts, and namespace registration;
+- `@vitarish/ui` for generic presentation artifacts;
+- `@vitarish/localization` for locale, formatting, provider contracts, and namespace registration;
 - other feature packages only through public exports and only when a real feature composition requires it.
 
 Feature packages must not import:
@@ -248,11 +248,11 @@ Feature packages must not import:
 
 Generated clients, generated DTOs, generated hooks, generated query keys, and generated MSW mocks must stay package-internal by default. They must not import localization, React presentation components, app route files, feature UI components, or backend implementation code.
 
-React Web apps may import from public `@vitarish/web-ui`, `@vitarish/web-api-client`, `@vitarish/web-localization`, and feature package exports. They must not deep-import package internals or another app's private UI files. Cross-web-app generic presentation reuse flows through `@vitarish/web-ui`; cross-web-app feature reuse flows through the owning feature package.
+React Web apps may import from public `@vitarish/ui`, `@vitarish/api-client`, `@vitarish/localization`, and feature package exports. They must not deep-import package internals or another app's private UI files. Cross-web-app generic presentation reuse flows through `@vitarish/ui`; cross-web-app feature reuse flows through the owning feature package.
 
 ## Promotion Rule
 
-A UI artifact may move into `@vitarish/web-ui` only when it satisfies all of these conditions:
+A UI artifact may move into `@vitarish/ui` only when it satisfies all of these conditions:
 
 1. It is Web presentation-only.
 2. It has no generated API, React Query, route, backend, host runtime, or feature workflow dependency.
@@ -327,17 +327,17 @@ Rejected. The current React Web host already uses npm and a `package-lock.json` 
 - Add a documentation validation rule that blocks nested folders under `docs/apps/<App>/{decision-trees,journeys,tests,decisions,roadmaps,tasks,runbooks}/`.
 - Add a documentation validation rule that journey maps cite at least one app decision tree when the journey contains branching, gates, recovery, or persona-specific behavior.
 - Add a documentation validation rule that app test docs cite the journeys they verify.
-- Add package-level typecheck and tests for `@vitarish/web-ui` before migrating production UI artifacts.
-- Add Web workspace import-boundary validation that blocks forbidden imports into `@vitarish/web-ui`.
-- Add Web workspace import-boundary validation that blocks forbidden imports into `@vitarish/web-api-client`.
+- Add package-level typecheck and tests for `@vitarish/ui` before migrating production UI artifacts.
+- Add Web workspace import-boundary validation that blocks forbidden imports into `@vitarish/ui`.
+- Add Web workspace import-boundary validation that blocks forbidden imports into `@vitarish/api-client`.
 - Add Web workspace import-boundary validation that blocks feature packages from importing app route/page folders, app-private feature folders, backend projects, another feature package's internals, or app-local fetch/localization implementations.
-- Add Web workspace validation that blocks app code from deep-importing `@vitarish/web-ui` internals.
+- Add Web workspace validation that blocks app code from deep-importing `@vitarish/ui` internals.
 - Add Web workspace validation that blocks app code from deep-importing feature package internals.
 - Add Web workspace validation that blocks one React Web app from importing another React Web app's private UI files.
 - Add Web workspace validation that detects duplicate `apiFetch` implementations outside the Web transport package.
 - Add Web workspace validation that keeps generated clients, generated DTOs, generated hooks, generated query keys, and generated MSW mocks package-internal and generated-only.
 - Add React localization validation for feature package namespaces and app route composition.
-- Require new generic Web design artifacts to be added to `@vitarish/web-ui` or documented as intentionally app-local.
+- Require new generic Web design artifacts to be added to `@vitarish/ui` or documented as intentionally app-local.
 
 ## Non-Goals
 
@@ -346,10 +346,10 @@ Rejected. The current React Web host already uses npm and a `package-lock.json` 
 - Do not redefine platform module behavior inside app docs.
 - Do not define native, desktop, worker, or other non-Web host UI package structures.
 - Do not create a cross-platform design-system package.
-- Do not move backend contracts into `@vitarish/web-ui`.
-- Do not move backend business rules into feature packages, generated clients, localization catalogs, or `@vitarish/web-api-client`.
-- Do not put generated API clients inside `@vitarish/web-ui`.
-- Do not make `@vitarish/web-ui` resolve app routes, localization keys, backend URLs, or workflow decisions.
+- Do not move backend contracts into `@vitarish/ui`.
+- Do not move backend business rules into feature packages, generated clients, localization catalogs, or `@vitarish/api-client`.
+- Do not put generated API clients inside `@vitarish/ui`.
+- Do not make `@vitarish/ui` resolve app routes, localization keys, backend URLs, or workflow decisions.
 - Do not localize display messages in `apiFetch`, generated clients, generated DTOs, or query keys.
 - Do not introduce custom design-system wrappers where raw HeroUI or HeroUI Pro components should be used directly.
 - Do not switch package managers in this ADR.

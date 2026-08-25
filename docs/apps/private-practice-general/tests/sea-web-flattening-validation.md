@@ -2,13 +2,13 @@
 
 Status: Follow-up evidence for `Flatten sea-web concern-first source boundaries`
 Owner: Web platform / Private Practice General
-Scope: `@vitarish/sea-web` path-only source-boundary refactor
+Scope: `@vitarish/sea` path-only source-boundary refactor
 Related journey: N/A
 Collected: 2026-07-13
 
 ## Purpose
 
-Record the baseline and post-change validation evidence for flattening `@vitarish/sea-web` from the redundant `src/features/sea` wrapper into package-level concern roots. This document is evidence only; it does not define SEA behavior, public exports, query keys, generated contracts, or app navigation.
+Record the baseline and post-change validation evidence for flattening `@vitarish/sea` from the redundant `src/features/sea` wrapper into package-level concern roots. This document is evidence only; it does not define SEA behavior, public exports, query keys, generated contracts, or app navigation.
 
 ## Commits compared
 
@@ -23,23 +23,23 @@ Both revisions were validated from `src/Hosts/Web` after `npm install` and after
 
 | Command | Baseline result | Post-change result | Classification |
 | --- | --- | --- | --- |
-| `npm run generate:api --workspace @vitarish/sea-web` | Pass, exit `0`. | Pass, exit `0`. | No regression. |
-| `npm run typecheck --workspace @vitarish/sea-web` | Fail, exit `2`. | Fail, exit `2`. | Pre-existing blockers remain; paths changed from old SEA layout to new SEA layout only. |
-| `npm run test --workspace @vitarish/sea-web` | Fail, exit `1`; 4 suites and 11 tests pass before 2 suites fail. | Fail, exit `1`; 4 suites and 11 tests pass before 2 suites fail. | Pre-existing auth generated-client blocker. |
+| `npm run generate:api --workspace @vitarish/sea` | Pass, exit `0`. | Pass, exit `0`. | No regression. |
+| `npm run typecheck --workspace @vitarish/sea` | Fail, exit `2`. | Fail, exit `2`. | Pre-existing blockers remain; paths changed from old SEA layout to new SEA layout only. |
+| `npm run test --workspace @vitarish/sea` | Fail, exit `1`; 4 suites and 11 tests pass before 2 suites fail. | Fail, exit `1`; 4 suites and 11 tests pass before 2 suites fail. | Pre-existing auth generated-client blocker. |
 | `npm run validate:web-ui-boundary` | Pass, exit `0`. | Pass, exit `0`. | No regression; post-change includes the `src/features/sea` reintroduction guard. |
 
 ## Failure classification
 
 ### Auth generated users client
 
-`npm run typecheck --workspace @vitarish/sea-web` fails on both baseline and post-change because `auth-web` references generated users artifacts that are not present in the validation checkout:
+`npm run typecheck --workspace @vitarish/sea` fails on both baseline and post-change because `auth-web` references generated users artifacts that are not present in the validation checkout:
 
 ```text
 ../auth-web/src/auth/userTypes.ts(5,86): error TS2307: Cannot find module '../api/generated/users/model' or its corresponding type declarations.
 ../auth-web/src/users.ts(1,34): error TS2307: Cannot find module './api/generated/users/users' or its corresponding type declarations.
 ```
 
-`npm run test --workspace @vitarish/sea-web` fails on both baseline and post-change for the same `auth-web/src/users.ts` generated-client import after successfully running 4 SEA test suites and 11 tests:
+`npm run test --workspace @vitarish/sea` fails on both baseline and post-change for the same `auth-web/src/users.ts` generated-client import after successfully running 4 SEA test suites and 11 tests:
 
 ```text
 Test Files  2 failed | 4 passed (6)
@@ -51,7 +51,7 @@ Classification: pre-existing, not introduced by the SEA path-only refactor.
 
 ### HeroUI Pro type declarations
 
-`npm run typecheck --workspace @vitarish/sea-web` fails on both baseline and post-change because `@heroui-pro/react` and subpath type declarations are unavailable in this validation environment. Baseline errors point to the old SEA paths and post-change errors point to the new concern-first paths, which confirms the same dependency blocker moved with the files rather than being introduced by the refactor.
+`npm run typecheck --workspace @vitarish/sea` fails on both baseline and post-change because `@heroui-pro/react` and subpath type declarations are unavailable in this validation environment. Baseline errors point to the old SEA paths and post-change errors point to the new concern-first paths, which confirms the same dependency blocker moved with the files rather than being introduced by the refactor.
 
 Examples from baseline:
 
@@ -80,7 +80,7 @@ Classification: pre-existing cascade from the same type declaration blocker.
 Post-change path checks from `src/Hosts/Web`:
 
 ```bash
-rg -n 'features/sea' shared/sea-web apps shared/clinic-web
+rg -n 'features/sea' shared/sea apps shared/clinic
 ```
 
 Result: no matches.
@@ -92,7 +92,7 @@ rg -n 'sea-web/src/features/sea' ../..
 Result: one intentional validator guard reference:
 
 ```text
-../../Hosts/Web/scripts/validate-web-ui-boundary.mjs:66:    path: resolve(__dirname, "../shared/sea-web/src/features/sea"),
+../../Hosts/Web/scripts/validate-web-ui-boundary.mjs:66:    path: resolve(__dirname, "../shared/sea/src/features/sea"),
 ```
 
 A wider repository search still finds historical migration documentation under `docs/apps/private-practice-general/decisions/0001-migration-matrix.md`; those entries describe earlier app-to-package migration evidence and are intentionally historical.
@@ -102,8 +102,8 @@ A wider repository search still finds historical migration documentation under `
 - No generated client, generated DTO, generated hook, query-key, or MSW mock edits are committed.
 - No package dependency or package-lock changes are committed.
 - No compatibility barrels are retained under `src/features/sea`.
-- The old `src/Hosts/Web/shared/sea-web/src/features` directory is absent after the refactor.
-- Public root exports remain routed through `src/Hosts/Web/shared/sea-web/src/index.ts`; only internal source paths changed.
+- The old `src/Hosts/Web/shared/sea/src/features` directory is absent after the refactor.
+- Public root exports remain routed through `src/Hosts/Web/shared/sea/src/index.ts`; only internal source paths changed.
 
 ## Architecture audit
 

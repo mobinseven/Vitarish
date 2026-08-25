@@ -25,9 +25,9 @@ ADR-0008 now requires React Web workflow feature code to move from app feature f
 
 React localization is composed through Web workspace packages instead of one app-owned central catalog.
 
-Create a core Web localization package under the Web workspace, named `@vitarish/web-localization` unless a later implementation ADR chooses a narrower name. The package owns locale identities, default locale, text direction, provider/context, message registration contract, metadata helpers, and `Intl`-based formatting helpers for dates, times, numbers, currencies, percentages, lists, and plural-sensitive messages.
+Create a core Web localization package under the Web workspace, named `@vitarish/localization` unless a later implementation ADR chooses a narrower name. The package owns locale identities, default locale, text direction, provider/context, message registration contract, metadata helpers, and `Intl`-based formatting helpers for dates, times, numbers, currencies, percentages, lists, and plural-sensitive messages.
 
-Each Web feature package owns its message namespace and localized catalogs for its feature UI. For example, `@vitarish/account-web` owns account messages, `@vitarish/clinic-web` owns clinic messages, and `@vitarish/sea-web` owns Sea messages. Feature packages register or export their namespace through the core localization package contract. Web apps compose the provider with the feature namespaces used by their routes.
+Each Web feature package owns its message namespace and localized catalogs for its feature UI. For example, `@vitarish/account` owns account messages, `@vitarish/clinic` owns clinic messages, and `@vitarish/sea` owns Sea messages. Feature packages register or export their namespace through the core localization package contract. Web apps compose the provider with the feature namespaces used by their routes.
 
 React presentation components consume localized messages through the provider/hook, namespace helpers, or metadata helper rather than declaring hard-coded display copy. App route files may own only route-composition copy that is not part of a feature package; they must not recreate feature catalogs.
 
@@ -39,7 +39,7 @@ The initial approved locales are Persian (`fa`, default) and English (`en`). Per
 
 Allowed dependencies:
 
-- React presentation components, Web-host pages, and UI-facing adapters may consume `@vitarish/web-localization` provider, hooks, metadata helpers, and formatting helpers.
+- React presentation components, Web-host pages, and UI-facing adapters may consume `@vitarish/localization` provider, hooks, metadata helpers, and formatting helpers.
 - Web feature packages may own package-local message namespaces and catalogs.
 - Web apps may compose the localization provider with the feature namespaces used by their route tree.
 - Tests that render localized UI may use localization-aware render helpers.
