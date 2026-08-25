@@ -1,6 +1,6 @@
 # Vitarish Network Application Security Questionnaire: Guide Screenshot Collection Plan
 
-**Status:** Separate screenshot-capture plan; execute only after the corresponding implementation checks and non-screenshot release evidence pass.
+**Status:** Separate screenshot-capture plan; execute only after the corresponding implementation checks and non-screenshot build/run/test reports are complete, and before the unsigned evidence candidate is validated and signed.
 **Source:** `nsmail-1.docx` self-assessment guide and the completed Persian questionnaire.
 **Companion:** [implementation plan](implementation-plan.md).
 **Outcome:** Every applicable guide test has a sanitized, reproducible, release-bound screenshot and access path for the guide's image fields.
@@ -13,7 +13,7 @@ Authenticated E2E screenshots required by the implementation plan remain enginee
 
 ## Preconditions
 
-The related implementation acceptance tests and non-screenshot evidence-index row must already pass for the exact evaluated release/topology. Capture only with disposable accounts, tenants, data, certificates, and fault-injection state.
+The related implementation acceptance tests and non-screenshot build/run/test reports must already pass for the exact evaluated release/topology. The screenshot references are then added to the unsigned evidence-index candidate; `Verify-NetworkQuestionnaireEvidence.ps1` validates the complete candidate before signing. Capture only with disposable accounts, tenants, data, certificates, and fault-injection state.
 
 Never capture credentials, secrets, private keys, raw cookies, bearer tokens, production data, patient data, or unredacted sensitive audit payloads.
 
@@ -43,7 +43,7 @@ For each applicable `nsmail-1` test, add only these values to the main plan's ev
 
 ## Naming and storage
 
-Store screenshots in an access-controlled, ignored release-evidence location under the main evidence bundle. Use the guide ID, purpose, commit, and UTC timestamp in each filename:
+Store screenshots in an access-controlled, ignored staging location until the release operator copies the selected files into the immutable unsigned candidate bundle. The candidate and its later signed attestation are separate immutable records; never replace a captured file after it has been indexed. Use the guide ID, purpose, commit, and UTC timestamp in each filename:
 
 ```text
 screenshots/
