@@ -49,17 +49,9 @@
   inline-size: 100%;
   margin-inline: auto;
   min-inline-size: 0;
-  padding-inline: 0;
-  padding-left: var(--vitarish-layout-safe-left);
-  padding-right: var(--vitarish-layout-safe-right);
-}
-
-@media (min-width: 640px) {
-  .vitarish-page-container {
-    padding-inline: var(--vitarish-layout-gutter-inline);
-    padding-left: calc(var(--vitarish-layout-gutter-inline) + var(--vitarish-layout-safe-left));
-    padding-right: calc(var(--vitarish-layout-gutter-inline) + var(--vitarish-layout-safe-right));
-  }
+  padding-inline: var(--vitarish-layout-gutter-inline);
+  padding-left: calc(var(--vitarish-layout-gutter-inline) + var(--vitarish-layout-safe-left));
+  padding-right: calc(var(--vitarish-layout-gutter-inline) + var(--vitarish-layout-safe-right));
 }
 
 .vitarish-page-container[data-vitarish-page-width="compact"] {
