@@ -42,6 +42,38 @@ unrelated legacy violations without expanding the change into cleanup.
   Client, Infrastructure, and composition code; do not repeat contract or
   business literals in production code or introduce a second source of truth.
 
+## Security-control participation
+
+- **[MUST] Endpoint disposition** — Every changed endpoint must have an
+  explicit authentication profile, written anonymous justification when
+  anonymous, audit disposition, and user-data transfer disposition. Do not
+  infer protection from route grouping, UI reachability, or conventions alone.
+- **[MUST] Resource authority** — The owning Application use case authorizes
+  tenant, subject, resource, purpose, and capability before accessing user
+  data. Hosting filters, endpoint metadata, Files verification, audit success,
+  and UI visibility never grant resource access.
+- **[MUST] Transfer classification** — Changed import, export, upload,
+  download, multipart, binary, or provider-transfer paths declare owner,
+  direction, data category/sensitivity, size ceiling, permitted media
+  type/format, applicable rate/frequency rule, audit operation, and
+  dependency-failure behavior. Enforce transport ceilings before activating
+  expensive providers, then enforce owner authorization in Application.
+- **[MUST] Integrity ownership** — A module owning sensitive non-file data also
+  owns its canonical integrity projection and version. Shared infrastructure
+  may persist/verify a keyed manifest but must not discover fields through
+  reflection or define the business projection. Integrity failure blocks
+  sensitive mutation/export and produces authorized warning/remediation
+  evidence.
+- **[MUST] External trust** — Infrastructure adapters validate external
+  responses and use the shared safe TLS/HTTP boundary. Never add an
+  invalid-certificate callback, hostname-validation bypass, per-provider TLS
+  downgrade, or retry that stacks with the initiating boundary.
+- **[MUST] Sensitive resource reuse** — Clear owned sensitive byte buffers
+  before reuse, remove sensitive temporary files on every completion/failure
+  path, avoid storage reuse that can reveal prior content, and test the actual
+  cleanup path. Do not make an unverifiable claim that the managed runtime
+  erases immutable strings.
+
 ## Native AOT readiness
 
 - **[MUST]** Follow

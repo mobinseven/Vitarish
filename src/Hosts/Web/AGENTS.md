@@ -29,6 +29,18 @@
 
 - **[MUST]** All buttons must have localized tooltips and icons. so in mobile view they can be shrunk to icon and tooltips to avoid confusing users.
 
+## Web test quality
+
+- **[MUST]** Every Web test must verify a meaningful, purposeful behavior,
+  contract, invariant, accessibility outcome, state transition, or user-visible
+  result that is worth protecting. A bare presence assertion such as
+  `getByRole(...).toBeInTheDocument()` is not a sufficient test unless the
+  existence itself is the contract being tested.
+- **[MUST]** Do not create or modify tests merely to make mock designs pass, to
+  mirror implementation markup, or to count rendered controls. For mock or
+  presentation-only work, leave unrelated tests unchanged and report stale or
+  irrelevant failures instead of shaping the UI around them.
+
 ## Date conventions
 
 - **[MUST]** All dates must be displayed in localized formats. 
@@ -55,3 +67,24 @@
   inspected.
 - Visual-only changes that do not cross a backend boundary may use the existing
   visual-test workflow instead.
+
+## Security-facing Web behavior
+
+- **[MUST]** Web displays security state; it never decides it. Do not calculate
+  effective authorization, tenant/resource ownership, session validity,
+  failed-attempt policy, file integrity, or audit scope in React code.
+- **[MUST]** Login history and parallel-session/integrity/security notices must
+  remain visible until the server-owned acknowledgement succeeds, or remain in
+  a stable account/security surface when the owning contract specifies that
+  model. A local dismissal, cache mutation, or optimistic UI state is not
+  acknowledgement.
+- **[MUST]** Use the shared authenticated API transport for credentials,
+  antiforgery, tenant headers, cancellation, and generated contracts. Handle
+  unauthenticated, forbidden, conflict/session-revoked, dependency-unavailable,
+  and integrity-blocked outcomes explicitly; do not turn them into empty or
+  successful UI states.
+- **[MUST]** Authentication/session UI changes require focused interaction
+  coverage plus the real two-host proof for known/unknown denial parity where
+  visible, sign-in, new-session notice, maximum-session behavior, idle expiry,
+  explicit sign-out, security-attribute revocation, and history acknowledgement
+  as applicable to the changed slice.

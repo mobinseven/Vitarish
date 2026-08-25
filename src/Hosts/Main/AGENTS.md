@@ -6,6 +6,27 @@ use-case behavior here to avoid changing its owner. The repository and scoped
 do not apply to backend host wiring. Move business behavior to its owning
 App, Module, or Identity Application/Domain slice.
 
+## Security composition
+
+- **[MUST]** Main composes security owners; it does not become one. Password,
+  failed-attempt, session, audit, transfer, resource-authorization, integrity,
+  and retention rules stay at their scoped owners and reach Main through
+  explicit registrations, options, metadata, and ports.
+- **[MUST]** Validate mandatory production security configuration on the real
+  startup path before serving traffic. Do not defer rejection until the first
+  request, replace validation with a warning, or add environment/test branches
+  that bypass it.
+- **[MUST]** Trust forwarded scheme, host, and client IP only after the shared
+  Hosting boundary accepts the immediate proxy and configured proxy network.
+  Main and modules must not parse raw forwarding headers independently.
+- **[MUST]** Keep middleware order explicit and regression-tested when changing
+  forwarded headers, HTTPS handling, authentication, session validation,
+  antiforgery, CORS, authorization, tenant resolution, rate limiting, audit,
+  exception handling, or endpoint metadata validation.
+- **[MUST]** Main must not be publicly exposed in a supported ingress
+  configuration. A direct private-HTTP probe is dependency diagnostics, not
+  HTTPS or browser-security proof.
+
 ## Native AOT readiness
 
 - **[MUST]** Apply the root Native AOT readiness rule. Keep host composition,

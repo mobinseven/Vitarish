@@ -76,6 +76,21 @@ unrelated legacy violations without expanding the change into cleanup.
   existing owning boundary across Api, Application, Client, and composition
   code; do not create a second source by repeating literals in production code.
 
+## Security-control participation
+
+- **[MUST]** App-owned endpoints and workflows follow the same explicit
+  authentication, anonymous-justification, audit, and transfer disposition as
+  module endpoints. App aggregation does not create an administrative,
+  tenant, transfer, or audit bypass.
+- **[MUST]** An app coordinating import/export or external-provider work owns
+  purpose and cross-module sequencing in Application, while each module keeps
+  its resource authorization and data semantics. Confirm authorization before
+  stream/provider activation and define cancellation, idempotency,
+  partial-failure, and recovery for the whole workflow.
+- **[MUST]** App-specific sensitive non-file integrity projections are explicit,
+  versioned Application artifacts. Do not centralize their business field
+  selection in Hosting, Audit, Files, UI, or a generic serializer.
+
 ## Native AOT readiness
 
 - **[MUST]** Follow
