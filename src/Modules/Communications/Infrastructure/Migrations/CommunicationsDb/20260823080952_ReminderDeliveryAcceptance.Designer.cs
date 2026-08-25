@@ -12,7 +12,7 @@ using Vitarish.Communications.Infrastructure.Data;
 namespace Vitarish.Communications.Infrastructure.Migrations.CommunicationsDb
 {
     [DbContext(typeof(CommunicationsDbContext))]
-    [Migration("20260807095638_ReminderDeliveryAcceptance")]
+    [Migration("20260823080952_ReminderDeliveryAcceptance")]
     partial class ReminderDeliveryAcceptance
     {
         /// <inheritdoc />
@@ -43,6 +43,9 @@ namespace Vitarish.Communications.Infrastructure.Migrations.CommunicationsDb
 
                     b.Property<string>("DeletedBy")
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("DeliveryAcceptedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Kind")
                         .HasColumnType("integer");

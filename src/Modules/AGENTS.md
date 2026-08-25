@@ -62,6 +62,25 @@ unrelated legacy violations without expanding the change into cleanup.
   with separately defined transaction, consistency, cancellation, and failure
   behavior.
 
+## EF migration safety
+
+- **[MUST] Generated migration ownership** — EF migration classes, designer
+  files, and model snapshots are generated output. Never hand-edit, restore,
+  reconstruct, copy, or patch them, including to establish a temporary
+  baseline. Change the authoritative model and use the canonical EF command to
+  generate the migration and snapshot.
+- **[MUST] Destructive migration gate** — Before `dotnet ef migrations remove`,
+  any `--force` migration command, a rollback to an earlier migration, or a
+  direct edit to `__EFMigrationsHistory`, identify the exact target database,
+  inspect its applied-migration ledger, and state the schema/data effects.
+  Do not execute an operation that can remove schema, data, or migration
+  history without the owner's explicit approval for that exact database.
+- **[MUST] Applied migration compatibility** — Do not rewrite or remove a
+  migration that may be applied outside an explicitly disposable database. Use
+  a forward-only corrective migration, or stop and obtain an approved
+  compatibility and recovery plan. Never infer that a local development
+  database is disposable.
+
 ## Validation
 
 - **[MUST] Agents ownership** — An optional `<Module>.Agents` project may reference

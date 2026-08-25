@@ -41,6 +41,9 @@ namespace Vitarish.Communications.Infrastructure.Migrations.CommunicationsDb
                     b.Property<string>("DeletedBy")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("DeliveryAcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Kind")
                         .HasColumnType("integer");
 
