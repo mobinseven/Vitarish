@@ -1,15 +1,23 @@
-# Vitarish Network Application Security Questionnaire: Implementation and Evidence Plan
+# Vitarish Network Application Security Questionnaire: Implementation Plan
 
-**Status:** Revised plan; compatibility claims remain blocked until Stage 0 closes applicability and evaluator questions.
+**Status:** Revised implementation plan; implementation completion is separate from deployment-evidence completion. The repository scope contains all mandatory rows and only conditional rows triggered by the frozen Vitarish boundary; optional rows are excluded.
 **Questionnaire source:** `راهنمای تکمیل پرسشنامه نرم_افزار.pdf`, 42 pages, questionnaire version 1.0 and completion-guide version 1.1.
-**Target outcome:** The evaluated release satisfies every unconditional requirement and every conditional requirement triggered by its declared capabilities, with source, deterministic tests, evaluated configuration, and release evidence.
+**Target outcome:** The repository delivers every mandatory requirement and every conditional requirement triggered by its declared capabilities, including committed deployment/configuration artifacts, with deterministic implementation proof. Deployment-specific evidence is a separate phase.
 **Implementation authority:** This version-controlled document authorizes the ordered implementation slices after Stage 0 freezes the evaluated boundary. It does not authorize silently narrowing product scope to avoid a requirement.
 
 **Profile relationship:** This plan creates the separate `vitarish-network-questionnaire-v1.0` evaluated profile. It does not widen, replace, or reuse evidence from the existing Main-only `vitarish-toe-main-evaluated-2026-08-15` profile under `docs/security/iso15408/`; that profile remains valid only for its declared single-machine Main/PostgreSQL/Redis boundary. A release claims exactly one profile.
 
-Guide-facing screenshot capture, access-path writing, and screenshot redaction are owned by the separate [guide screenshot-collection plan](guide-evidence-collection-plan.md). This plan owns every other release-evidence artifact and the authoritative per-test evidence index. Authenticated E2E screenshots required here remain implementation feedback, not submission-evidence collection.
+Guide-facing screenshot capture, access-path writing, screenshot redaction, and all other release-instance evidence are outside this implementation plan. They are owned by the separate [deployment-evidence plan](deployment-evidence-plan.md); the existing [guide screenshot-collection plan](guide-evidence-collection-plan.md) remains its guide-facing input. Authenticated E2E screenshots are deployment evidence, not implementation completion proof.
 
-The questionnaire, completed responses, guide documents, screenshots, scans, manifests, and evidence bundle are controlled evaluation artifacts, not product inputs. Runtime code, migrations, deployment composition, and implementation tests must operate without them: they must not read, embed, serve, branch on, or log their contents. Stage 0 records each artifact's controlled location, version, and hash; Stage 9 validates those bindings outside the product runtime.
+The questionnaire, completed responses, guide documents, screenshots, scans, manifests, and evidence bundle are controlled evaluation artifacts, not product inputs. Runtime code, migrations, committed deployment composition, and implementation tests must operate without them: they must not read, embed, serve, branch on, or log their contents. Deployment-specific evidence is produced later by the separate deployment-evidence phase.
+
+## Implementation and deployment-evidence boundary
+
+This document owns repository implementation: application code, migrations, tests, architecture checks, Docker Compose profiles, Caddy configuration, health checks, topology/configuration manifests, and verification scripts that can be committed and validated without starting the evaluated deployment.
+
+The separate deployment-evidence phase owns release-instance proof: live topology and listener scans, certificates and provider configuration, backup and alert-delivery records, external vulnerability scans, two-host E2E execution, screenshots, immutable evidence custody, signing, and release submission. Those activities are not required for implementation completion.
+
+Implementation completion requires repository artifacts to build or parse successfully and their unit, script, static, architecture, contract, migration, and integrity checks to pass. It does not require starting the network profile or collecting release-specific evidence. A repository-owned verification script is an implementation artifact; its live result against a release topology belongs to deployment evidence.
 
 ## Compatibility rule
 
@@ -17,10 +25,9 @@ Questionnaire compatibility is not inferred from a build, framework default, pri
 
 1. Every unconditional row is implemented and selected.
 2. Every conditional section triggered by an included protocol or capability is implemented and selected.
-3. Every unselected conditional or optional row has a truthful applicability reason tied to the evaluated boundary.
-4. Every selected option states its exact configured value; “secure,” “supported,” or “provided by the platform” is insufficient.
-5. Code-owned behavior has deterministic proof. Environment-owned behavior has release-specific evidence. A control spanning both requires both.
-6. The Persian submission, English working response, implementation, tests, release manifest, and deployed topology agree.
+3. Every selected option states its exact configured value; “secure,” “supported,” or “provided by the platform” is insufficient.
+4. Repository-owned behavior has deterministic implementation proof. Deployment-instance behavior has release-specific evidence in the separate phase. A control spanning both has a proof entry in each phase.
+5. The Persian submission, English working response, implementation, tests, release manifest, and deployed topology agree at release time.
 
 Stage 9 covers **every mandatory and triggered conditional row**, not merely every row someone chose to select.
 
@@ -90,13 +97,13 @@ Administrative settings may be stricter but may not weaken these values.
 
 ## Requirement closure matrix
 
-These stable plan IDs map to the questionnaire rows. Stage 0 adds exact Persian text, selected options, and applicability to the response artifacts.
+These stable plan IDs map to the in-scope questionnaire rows. The canonical matrix contains every mandatory row and only conditional rows triggered by the frozen Vitarish boundary; optional rows are not copied into this plan. Stage 0 adds exact Persian text, selected values, and trigger records to the response artifacts.
 
 ### Unconditional core requirements
 
 | ID | Row | Required closure and proof |
 | --- | --- | --- |
-| AU-1 | 2-1.1 | Enumerated event catalog covers every applicable mandatory event on pages 5–6, with owner, start/outcome semantics, redaction, and success/failure tests. An unsupported optional underlying function receives a row-specific rationale. |
+| AU-1 | 2-1.1 | Enumerated event catalog covers every mandatory event in the frozen boundary on pages 5–6, with owner, start/outcome semantics, redaction, and success/failure tests. |
 | AU-2 | 2-1.2 | Every audit event contains UTC date/time, type, actor identity when known, outcome, and normalized source IP. |
 | AU-3 | 2-1.3 | Named capabilities protect audit reads; direct store access is an operator boundary. Every allowed/denied review is audited. |
 | AU-4 | 2-1.4 | Audit DTOs are readable, typed, relevant, and free of opaque payload dumps; contract tests reject missing/invalid fields. |
@@ -129,7 +136,7 @@ These stable plan IDs map to the questionnaire rows. Stage 0 adds exact Persian 
 | SM-1 | 2-5.1 | Named capabilities control supported security-function behavior, including determine/change/enable/disable operations where applicable. |
 | SM-2 | 2-5.2 | Named capabilities restrict query/change/delete/default operations over active-user security attributes selected under IA-7. |
 | SM-3 | 2-5.3 | Named capabilities restrict supported create/read/change/delete/default operations over product data; no generic administrator bypass exists. |
-| SM-4 | 2-5.4 | The exhaustive management checklist below is implemented or has the guide-permitted row-specific rationale for an unsupported optional underlying function. |
+| SM-4 | 2-5.4 | The exhaustive management checklist below is implemented for every supported management function in the frozen boundary. |
 | SM-5 | 2-5.5 | Authorized administrators can define the evaluated roles/capabilities and their permitted product operations. |
 | SM-6 | 2-5.6 | Users can be assigned one evaluated role per tenant. The authorized assignment use case atomically replaces the existing tenant-role membership, audits it, revokes affected sessions, and handles concurrent assignments without leaving more than one effective role. Independent tenant/resource checks still apply. |
 | TSF-1 | 2-6.1 | Software and hardware/dependency failure preserve authorization, isolation, audit guarantees, and data integrity; errors reveal no internals. Recovery evidence covers restart and restore. |
@@ -168,20 +175,9 @@ These stable plan IDs map to the questionnaire rows. Stage 0 adds exact Persian 
 | TLSC-2 | Any enabled module calls external HTTPS/TLS | Apply RFC 6125 reference-identity/hostname validation. |
 | TLSC-3 | Any enabled module calls external HTTPS/TLS | Reject invalid server certificates without user, administrator, or callback bypass. |
 | TLSC-4 | An outbound suite uses ECDH/ECDHE | Offer only the approved NIST curves selected in the questionnaire. |
-| TLSB-1 | Certificate-based client authentication/mTLS is selected | Use X.509v3 mutual TLS authentication. Otherwise record the no-mTLS applicability reason. |
-| TLSB-2 | Product authenticates TLS clients by certificate | Reject a client when its distinguished name or SAN does not match the expected identity. |
 | CERT-1 | HTTPS/TLS certificate validation is used | Validate RFC 5280 paths to a trusted CA, require `basicConstraints CA=TRUE`, document path-length support, revocation method, and applicable EKUs. |
 | CERT-2 | HTTPS/TLS certificate validation is used | Accept a CA certificate only when `basicConstraints` is present and `CA=TRUE`. |
 | CERT-3 | HTTPS/TLS or conditional signing is selected | Use X.509v3 for the selected purpose; require Server Authentication and conditional Client Authentication, OCSP Signing, or Code Signing EKUs. |
-| SSH-1 | SSH becomes a product interface | Implement the listed SSH RFCs; currently not applicable because operator SSH is not product support. |
-| SSH-2 | SSH becomes a product interface | Support both public-key and password authentication as required by the questionnaire. |
-| SSH-3 | SSH becomes a product interface | Declare and enforce the maximum accepted SSH packet size. |
-| SSH-4 | SSH becomes a product interface | Select and restrict encryption to at least one questionnaire-permitted algorithm. |
-| SSH-5 | SSH becomes a product interface | Select and restrict host/public-key use to at least one permitted algorithm. |
-| SSH-6 | SSH becomes a product interface | Select and restrict integrity/MAC use to at least one permitted algorithm. |
-| SSH-7 | SSH becomes a product interface | Select and restrict key exchange to at least one permitted algorithm. |
-| SSH-8 | SSH becomes a product interface | Rekey before either one hour or 1 GiB is exceeded. |
-| SSH-9 | SSH becomes a product interface | SSH clients authenticate servers against an approved local host-key trust store. |
 | CR-3 | Product generates cryptographic keys | Inventory generation and secure destruction. TLS/platform key generation must be accounted for rather than assumed away. |
 | CR-4 / TSF-6 | Product signs data or performs automatic/signed-file updates | Implement approved algorithm/key length and certificate EKU rules. Manual immutable-image deployment does not create an automatic-update claim. |
 | TSF-3 | Product shares security data with another secure IT product | Map shared authentication data, keys, signatures, or audit data and prove compatible interpretation; otherwise record non-applicability. |
@@ -214,10 +210,11 @@ Each mutation requires server authorization, validation against hard bounds, opt
 ### Stage 0 — Applicability, TOE, and evaluator decision gate
 
 **Depends on:** none.
-**Outcome:** One authoritative matrix and reproducible topology exist before behavior changes.
+**Outcome:** One authoritative in-scope matrix and repository implementation boundary exist before behavior changes.
 
-- Copy every questionnaire row/option into a versioned matrix with plan ID, status, trigger, owner, selected value, implementation, test, release evidence, and disposition. At this gate, `proof` means an assigned proof path, not passing implementation evidence.
-- Create the new authoritative profile set under `docs/security/network-questionnaire-v1.0/`: `evaluated-configuration.md`, `security-target.md`, `toe-inventory.md`, `topology.md`, and `requirements-matrix.md`. The existing `docs/security/iso15408/` documents remain the authority for the Main-only profile; add a cross-link that states the two profiles are separate rather than editing their scope to imply equivalence.
+- Create the canonical `requirements-matrix.md` with every mandatory row and only conditional rows triggered by the frozen Vitarish boundary. Do not copy optional rows. Each included row records plan ID, trigger where applicable, owner, selected value, implementation artifact, deterministic test, deployment-evidence handoff where applicable, and status. At this gate, `proof` means an assigned proof path, not passing implementation evidence.
+- Create `implementation-matrix.md` for repository-owned application and committed deployment artifacts, and `deployment-evidence-matrix.md` for release-instance proof. Both reference the stable IDs in `requirements-matrix.md`; neither duplicates row definitions. The implementation matrix uses `implemented`, `implementation-gap`, `deployment-evidence-pending`, and `blocked` statuses.
+- Create the new authoritative profile set under `docs/security/network-questionnaire-v1.0/`: `evaluated-configuration.md`, `security-target.md`, `toe-inventory.md`, `topology.md`, `requirements-matrix.md`, and the separate [deployment-evidence plan](deployment-evidence-plan.md). The existing `docs/security/iso15408/` documents remain the authority for the Main-only profile; add a cross-link that states the two profiles are separate rather than editing their scope to imply equivalence.
 - Create `src/Hosts/docker-compose.network-questionnaire-v1.0.yml` as the versioned deployment manifest for this profile. Freeze its included Caddy/ingress, hosts, modules, browser apps, storage, providers, authentication methods, transfer routes, and administrative surfaces; every repository capability not listed is disabled or has an explicit non-applicability disposition. The evaluated remote-authentication profile always includes username/password and exactly one independently operated second mechanism selected from OTP or passkey; neither flow is a fallback, alias, or silent substitution for the other.
 - Record Caddy as inside this profile's TOE. Record each included browser app, PostgreSQL, Redis, object storage, and enabled provider as either inside the TOE or an environmental dependency. If a component is environmental, the profile records the product-side control and the release evidence required from its operator; it is not silently treated as inside the TOE.
 - Produce a data-flow diagram with trust boundaries, placement, protocols, authentication, and transferred user/security data. For every runtime link, freeze either (a) authenticated confidentiality and integrity across separate machines, or (b) a same-machine proof comprising component placement, non-routable endpoint, and configuration controls showing the link cannot be remotely configured; private networks and unpublished ports alone are insufficient.
@@ -227,14 +224,14 @@ Each mutation requires server authorization, validation against hard bounds, opt
 - Freeze the Audit-owned protected bounded emergency audit journal: storage and principal separately protected from the primary audit store and runtime database principal; bounded capacity and explicit overflow behavior; encryption and integrity protection; writer and authorized-reader identities; retention; reconciliation into the primary audit chain; relationship to the independent witness; and the precise fail-closed/restricted state. Stage 5 may implement this selected design only and may not introduce a substitute sink, store, or witness.
 - Select the independently protected append-only witness for audit and sensitive-data completeness checkpoints. Record its operator, immutability/retention guarantee, authenticated channel and identity validation, signing/key custody, checkpoint cadence and maximum staleness, database-operator retention authority, reconciliation procedure, and the safe response when the witness is unavailable.
 - For each enabled outbound client, record its endpoint identity, owner, enforcement plane (Caddy, runtime/OS, or provider), TLS-enabled/same-machine disposition, protocol/suite/curve disposition, certificate-chain and revocation behavior, and versioned positive/negative probe. A client without this record blocks Stage 1; a remotely configurable same-machine link is treated as a separate-machine link.
-- Freeze release-evidence custody: canonical immutable/write-once storage, a distinct immutable unsigned-candidate location and signed-bundle location, canonical serialization and SHA-256 payload-hash rules for the manifest and evidence index, detached-signature format, release-only signing key outside every bundle, public verification material, signing-key ID and custody, issuer, profile identity, topology identity, amendment/supersession format, append-only signed revocation format, and retention/access controls. Signing must never rewrite a candidate manifest, index, report, or screenshot; it creates a separate signed attestation over the exact candidate payload hashes.
+- Record the deployment-evidence handoff contract: canonical immutable/write-once storage, distinct immutable unsigned-candidate and signed-bundle locations, canonical serialization and SHA-256 payload-hash rules, detached-signature format, release-only signing-key custody, public verification material, profile/topology identity, amendment/supersession format, append-only revocation format, and retention/access controls. The separate deployment-evidence phase owns execution and signing; signing must never rewrite a candidate artifact.
 - Before role enforcement is designed, run a read-only production-equivalent membership analysis for every tenant-role naming pattern and record the query, snapshot identity, result, conflicting memberships, global-role disposition, and owner-approved migration decision. Do not assert that no conflicting data exists from source inspection alone.
 - Add revision triggers for new endpoints, providers, distributed components, mobile clients, authentication methods, transfers, SSH, automatic update, mTLS, crypto primitives, emergency-journal dependencies, or evidence-custody dependencies.
-- Implement the read-only `src/Hosts/scripts/Test-NetworkQuestionnairePlanIntegrity.ps1` lint before its gate below. It consumes only this version-controlled plan (including its versioned release-command contract) and the Stage-0 matrix and topology; it performs no deployment, product-runtime, or release-evidence mutation. Stage 2 may extend its checks only after this Stage-0 contract remains passing.
+- Implement the read-only `src/Hosts/scripts/Test-NetworkQuestionnairePlanIntegrity.ps1` lint before its gate below. It consumes only this version-controlled plan and the Stage-0 matrix and trigger register; it performs no deployment, product-runtime, or release-evidence mutation. Stage 2 may extend its checks only after this Stage-0 contract remains passing.
 
 **Pre-implementation integrity-lint gate:** before Stage 1 or any behavior change, run the plan's integrity lint. It traces every mandatory or triggered requirement to one owner, frozen topology disposition, implementation slice, deterministic command, expected artifact, evidence-integrity protection, and release-blocking failure. It rejects contradictory TLS wording, cross-module dependency inversion (including Base referencing Authentication CSRF contracts), unselected emergency dependencies, and evaluator decisions unspecified after Stage 0 closes.
 
-**Acceptance:** every mandatory row has an owner and planned proof path; every declared conditional trigger and evaluator interpretation has an owner and closure; the integrity lint passes; the new profile documents and deployment manifest agree on the declared included/excluded components. Stage 1 must mechanically reconcile that declaration with executable behavior; a newly discovered endpoint, client, provider, listener, or conditional trigger reopens Stage 0 and blocks later stages until it is disposed. The Main-only profile identity, compose file, topology, and evidence are rejected as proof for this profile. Current main-compose exposure and the currently missing Caddyfile are not compliant evidence. An incompatible mandatory control causes architecture revision before Stage 1.
+**Acceptance:** every mandatory row and every triggered conditional row has an owner and planned proof path; optional rows are absent; the trigger register and evaluator interpretations are closed; the integrity lint passes; the new profile documents and committed deployment artifacts agree on the declared included components. Stage 1 must mechanically reconcile that declaration with executable behavior; a newly discovered endpoint, client, provider, listener, or conditional trigger reopens Stage 0 and blocks later stages until the matrix is updated. The Main-only profile identity, compose file, topology, and evidence are rejected as proof for this profile. Current main-compose exposure and the currently missing Caddyfile are not compliant implementation artifacts. An incompatible mandatory control causes architecture revision before Stage 1.
 
 ### Stage 1 — Mechanically checked inventory and baseline
 
@@ -388,39 +385,6 @@ Each mutation requires server authorization, validation against hard bounds, opt
 
 **Acceptance:** fault injection and release recovery match the Stage 0 matrix; no bypass, corrupt confirmed state, unbounded retry, or swallowed failure occurs.
 
-### Stage 8A — Evaluated-profile teardown and retention-controlled cleanup
-
-**Depends on:** Stages 0–8, and is registered immediately after `Start-NetworkQuestionnaireProfile.ps1` starts the profile.
-**Outcome:** Each profile run leaves no evaluated runtime resources behind, while release evidence remains available and tamper-evident.
-
-- Implement `Stop-NetworkQuestionnaireProfile.ps1` under `src/Hosts/scripts/`. It accepts `-ProfileIdentity`, `-Commit`, and `-OutputDirectory`, rejects any profile other than `vitarish-network-questionnaire-v1.0`, and targets only the frozen compose project, its declared containers and networks, and explicitly declared ephemeral volumes. It must not stop Main, remove shared containers/networks/images, remove persistent data, or alter the candidate or signed-evidence locations.
-- Register the stop script as a `finally` action immediately after a successful profile start, so it runs after both successful and failed build/test/verification paths. It writes the sanitized cleanup result before removal and exits nonzero if a declared evaluated resource remains. A cleanup failure blocks candidate formation, signing, and release.
-- Stage 0 classifies every working output and failure artifact with its owner, storage location, retention period, access control, and deletion authority. After the required reports have either been copied into an immutable candidate or retained for the selected failed-run period, the cleanup owner may remove only that exact `<output>/<profile>/<commit>/` working subtree. It must never delete or rewrite an immutable candidate, signed attestation, amendment, revocation record, or their indexed payloads.
-- Record cleanup execution, remaining-resource inspection, and any retention disposition in `run/cleanup-report.json` and `run/cleanup-report.txt`. A manually retained failed run records its expiry and custodian; expiry disposal is authorized, auditable, and limited to the classified working artifacts.
-
-**Acceptance:** successful and faulted runs both stop the declared evaluated topology; no undeclared/shared resource is touched; a failed or skipped cleanup blocks release; working-output disposal is traceable; and immutable evidence remains unmodified and independently verifiable.
-
-### Stage 9 — Submission and release evidence gate
-
-**Depends on:** Stages 0–8A.
-**Outcome:** Every mandatory and triggered row is truthful and tied to the exact release.
-
-- Update English and Persian responses with ID, applicability, selected options, exact values, owner, configuration, tests, and evidence.
-- Include final architecture/data-flow diagram and exact placement/versions.
-- After the non-screenshot build/run/test reports are complete, capture any required guide screenshots under the companion plan and form one unsigned candidate bundle in the Stage-0-selected immutable candidate location. `Verify-NetworkQuestionnaireEvidence.ps1` validates its canonical manifest/index payloads, screenshot references, and required reports before any signature is created. Only a passing candidate-validation result permits the release-only signing key held outside every bundle to create a detached signed attestation over the exact canonical manifest and authoritative evidence-index payload hashes. The signed manifest records evaluated-profile identity, topology identity, profile-document and deployment-manifest hashes, clean commit, OpenAPI hash, immutable digests, component versions, policy version, authorization-matrix hash, Caddy hash, outbound TLS inventory, migrations, validation, capture time, issuer, signing-key ID, and key-custody reference. It rejects evidence labeled with another profile/topology or missing those bindings.
-- The signed evidence index covers every applicable questionnaire row and guide test: guide ID where applicable, plan ID, applicability, owner, resolved configuration, preconditions, action/expected result, automated proof, configuration/transport/runtime artifacts, durable-state evidence when relevant, release binding, hashes, capture time, issuer, profile/topology identity, and redaction review. The separate screenshot-collection plan contributes only the screenshot/access-path references for applicable guide tests; it neither approves nor replaces the non-screenshot evidence required here.
-- Evidence is never overwritten. An amendment creates a new signed superseding attestation that names and hashes the prior attestation; revocation is an append-only signed record. Independent verification uses the Stage-0-selected public verification material and fails closed on missing, altered, wrongly profiled/topologized, incomplete, unsigned, or revoked evidence.
-- After signing, `Verify-NetworkQuestionnaireSignedEvidence.ps1` independently verifies the final signed bundle, including detached signatures, artifact/index payload hashes, profile/topology binding, and amendment/revocation state. It must prove that the attestation covers the unmodified candidate payload bytes and that its payload hashes equal the passing candidate-validation result. Submission is blocked unless both candidate validation and signed-bundle verification pass for the same candidate and manifest/index payload hashes.
-- Run public TLS scan for chain, Server Authentication EKU, protocols, suites, key/curve, revocation, HSTS, and redirect. Any mismatch blocks release.
-- Attach the adapted Caddy configuration, container/listener evidence showing no UDP 443, and exact-hostname probes proving TLS 1.2 and HTTP/2-over-TLS succeed while TLS 1.3 and HTTP/3-only fail without fallback. Any unexpected TLS 1.3, QUIC, or HTTP/3 exposure blocks this TLS 1.2-only profile.
-- Attach the completed `nsmail-1` installation/vulnerability evidence: component and vulnerability inventory, public response-header report, cookie-attribute report, running-topology port scan with justification, unsafe-method probe report, CSRF lifecycle/replay report, and sanitized durable-state evidence where persistence itself is relevant. The separate guide screenshot-collection plan owns only guide-facing screenshot capture, access paths, and screenshot redaction.
-- Attach internal/outbound TLS evidence for every enabled distributed/provider flow.
-- Attach trusted-time, manual-update, backup/restore, alert-delivery, patching, and incident-response evidence where required, distinct from product behavior.
-- Run the Web two-host runner against the non-publishable in-memory `src/Hosts/E2e` host as implementation feedback; inspect its fresh authenticated screenshot, correct defects, and rerun. Do not treat this run as evaluated-deployment proof. Separately run the frozen network-profile Caddy-to-Main topology and collect its release-bound transport, listener, configuration, and runtime evidence.
-- Run the integrity lint again and perform an independent static review using the requirements matrix as the checklist. The review cites the exact plan sections closing CSRF ownership, TLS disposition, remote-authentication mechanisms, emergency journal, evidence integrity, release commands, and integrity lint. Never tick a row if its check was skipped, failed, or ran against another release/topology.
-
-**Acceptance:** matrix validation and integrity lint find no mandatory/triggered row without passing proof or its required trace; independent static review closes all seven integrity findings with exact citations; the guide evidence index is complete, immutable, signed, independently verifiable, and release-bound; candidate-validation and signed-bundle-verification results bind to the same manifest/index hashes; hashes/digests match deployment; no evaluator decision remains; owner approves submission. A failed or skipped deterministic release command prevents signing, submission, and release.
-
 ## Cross-boundary behavior
 
 | Boundary | Required behavior |
@@ -439,25 +403,11 @@ Each mutation requires server authorization, validation against hard bounds, opt
 
 ### Deterministic validation binding
 
-Each implementation slice adds its focused test beside the owner and runs the applicable commands below before it can advance. A command is not a substitute for release-topology proof; its required topology and expected artifact are part of the result.
+Each implementation slice adds its focused test beside the owner and runs the applicable repository-validation commands below before it can advance. These commands establish implementation completion; they do not collect deployment-instance evidence.
 
-### Versioned release-command contract
+Implementation completion does not start the network profile. Compose/Caddy/configuration artifacts are validated by parsing, rendering, static policy checks, and script tests. Live listeners, certificates, provider settings, scans, E2E, screenshots, backup/alert delivery, evidence custody, and signing remain deployment-evidence work.
 
-Stage 0 implements `Test-NetworkQuestionnairePlanIntegrity.ps1`; Stage 2 implements the build/start/test/verification scripts; Stage 8A implements `Stop-NetworkQuestionnaireProfile.ps1` under `src/Hosts/scripts/`. Together they are the only release-command path for `vitarish-network-questionnaire-v1.0`. Each accepts `-ProfileIdentity`, `-Commit`, and `-OutputDirectory`; `-Commit` must resolve to a clean repository commit. Each rejects a profile other than `vitarish-network-questionnaire-v1.0`, writes only sanitized output, records its own version and start/end UTC times, and exits nonzero on invalid inputs, a failed probe, missing prerequisite, unexpected topology, report-write failure, cleanup failure, or skipped required check. A nonzero or skipped invocation prevents candidate formation, signing, and release.
-
-For a release rooted at `<output>`, build/run/test/verification working reports use `<output>/<profile>/<commit>/build/`, `run/`, `test/`, and `verify/`. Once those reports and required screenshots are ready, the release operator writes one immutable candidate bundle to the separately selected candidate location. The final signed bundle is a separate immutable attestation and copies only the candidate reports/screenshots selected by the evidence index; it never overwrites the candidate. Candidate validation records canonical manifest/index payload hashes, and signed-bundle verification compares those hashes with the unmodified payload bytes and detached signatures. Raw secrets, cookies, tokens, private keys, audit payloads, and patient data never enter any of these locations.
-
-| Script | Required inputs and behavior | Required sanitized outputs |
-| --- | --- | --- |
-| `Build-NetworkQuestionnaireRelease.ps1` | Profile identity, clean commit, output directory, and the frozen compose/profile inputs. Resolves and pins source/configuration inputs, builds and publishes the declared images, and refuses mutable image references. | `build/build-report.json`, `build/build-report.txt`, and `build/image-digests.json` with commit, input/configuration hashes, resolved versions, immutable digests, timestamps, and issuer. |
-| `Start-NetworkQuestionnaireProfile.ps1` | Profile identity, clean commit, output directory, and build-report/digest paths. Starts only `src/Hosts/docker-compose.network-questionnaire-v1.0.yml`, waits for its declared health checks, and rejects additional compose files, direct-Main publication, undeclared listeners, or a profile/commit mismatch. | `run/start-report.json`, `run/health-report.json`, and `run/listener-topology.json` with sanitized container identities, health results, listeners, topology/protocol disposition, commit, digests, and configuration hashes. |
-| `Stop-NetworkQuestionnaireProfile.ps1` | Profile identity, clean commit, output directory, and started-topology evidence. Runs from the registered `finally` path and stops only the frozen compose project's declared containers, networks, and explicitly ephemeral volumes. It rejects a profile/commit/topology mismatch, preserves persistent data and all candidate/signed evidence, and fails if a declared evaluated resource remains. | `run/cleanup-report.json` and `run/cleanup-report.txt` with the sanitized stopped-resource inventory, remaining-resource inspection, working-output retention/disposal disposition, timestamps, and fail-closed result. |
-| `Test-NetworkQuestionnaireProfile.ps1` | Profile identity, clean commit, output directory, and the started topology evidence. Runs versioned transport, port, TLS, header, cookie, method, CSRF, endpoint, outbound-client, and remote-authentication probes against the frozen profile. It treats a missing required probe as failure. | `test/transport-report.json`, `test/port-report.json`, `test/tls-report.json`, `test/header-report.json`, `test/cookie-report.json`, `test/method-report.json`, `test/csrf-report.json`, `test/endpoint-report.json`, `test/outbound-tls-report.json`, `test/remote-authentication-report.json`, plus matching `.txt` summaries. |
-| `Verify-NetworkQuestionnaireEvidence.ps1` | Profile identity, clean commit, output directory, immutable unsigned manifest/index candidate payloads, all required reports/screenshots, and public verification material. Verifies canonical payload and artifact hashes, profile/topology binding, required-report completeness, screenshot-reference completeness, and candidate eligibility before signing; it cannot create, sign, or alter evidence. | `verify/evidence-candidate-validation.json` and `verify/evidence-candidate-validation.txt`, identifying each checked artifact and hash, the canonical manifest/index payload hashes, completeness result, and fail-closed disposition. |
-| `Verify-NetworkQuestionnaireSignedEvidence.ps1` | Profile identity, clean commit, output directory, immutable signed attestation, the unmodified candidate manifest/index payloads, candidate-validation result, all indexed reports/screenshots, and public verification material. Verifies detached signatures, that the attested manifest/index payload hashes equal the passing candidate-validation result and unmodified candidate payload bytes, profile/topology binding, amendment/revocation state, and final artifact completeness; it cannot create or alter evidence. | `verify/signed-evidence-verification.json` and `verify/signed-evidence-verification.txt`, identifying signature, payload-hash binding, attestation/revocation, completeness, and fail-closed results. |
-| `Test-NetworkQuestionnairePlanIntegrity.ps1` | This revised, version-controlled plan path, which is the authoritative versioned release-command contract, and the Stage-0 matrix and topology. Before implementation and again at Stage 9, mechanically traces every mandatory/triggered requirement to owner, topology disposition, slice, deterministic command, artifact, evidence protection, and release blocker. | `verify/integrity-lint.json` and `verify/integrity-lint.txt`; rejects contradictory TLS wording, dependency inversion, unselected emergency dependencies, and unresolved evaluator decisions. |
-
-`Verify-NetworkQuestionnaireEvidence.ps1` must complete successfully before the release-only key creates the detached manifest/index attestation. `Verify-NetworkQuestionnaireSignedEvidence.ps1` must then complete successfully before submission or release. A later amendment or revocation produces a new append-only signed record and requires both verification runs; neither script may mutate a prior evidence artifact.
+### Repository validation commands
 
 | Scope | Command and required setup | Expected result/artifact |
 | --- | --- | --- |
@@ -465,18 +415,18 @@ For a release rooted at `<output>`, build/run/test/verification working reports 
 | Audit and integrity checkpoints | `dotnet test tests/Libraries/Audit.Tests/Audit.Tests.csproj` plus the owning Files/module test project | Chain, witness, retention, and integrity tests pass; fault-injection evidence identifies the exact configuration. |
 | Endpoint/contract inventory | `dotnet run --project tools/architecture -- openapi-endpoints` and the owning generated-client command after an OpenAPI change | No architecture violations; generated output is regenerated and reviewed rather than edited. |
 | Browser/API/authentication feedback | From `src/Hosts/Web`, set `VITARISH_E2E_PROOF_SCREENSHOT` and run `npm run test:e2e:two-host` against `src/Hosts/E2e` | Passing two-host run and a freshly inspected authenticated screenshot under `artifacts/two-host-e2e`. |
-| Frozen network profile | `src/Hosts/scripts/Build-NetworkQuestionnaireRelease.ps1`, `Start-NetworkQuestionnaireProfile.ps1`, `Test-NetworkQuestionnaireProfile.ps1`, and `Stop-NetworkQuestionnaireProfile.ps1` with the profile identity, clean commit, and one output root | Required sanitized build/run/test/cleanup reports with commit, image digests, configuration hashes, hostname, scan time, and stopped-resource inventory; no direct-Main or undeclared listener exposure remains. |
-| Evidence verification and integrity lint | `src/Hosts/scripts/Verify-NetworkQuestionnaireEvidence.ps1`, `Verify-NetworkQuestionnaireSignedEvidence.ps1`, and `Test-NetworkQuestionnairePlanIntegrity.ps1` with the profile identity, clean commit, evidence/output root, and public verification material | Passing candidate-validation, signed-bundle-verification, and integrity-lint reports; no signing without candidate validation and no submission or release without all three. |
+| Repository profile artifacts | Compose/config rendering, Caddy validation, static listener/TLS/header/topology checks, script contract tests, and `Test-NetworkQuestionnairePlanIntegrity.ps1` | Passing repository-validation results; no profile startup or release evidence is required for implementation completion. |
+| Deployment evidence handoff | `Build-NetworkQuestionnaireRelease.ps1`, `Start-NetworkQuestionnaireProfile.ps1`, `Test-NetworkQuestionnaireProfile.ps1`, `Stop-NetworkQuestionnaireProfile.ps1`, evidence verification, and signed-evidence verification, run in the separate deployment-evidence phase | Release-bound build/run/test/cleanup reports, candidate validation, signed verification, and submission evidence for the exact deployed profile. |
 | Final structural and documentation review | `dotnet run --project tools/architecture`, `git diff --check`, and Markdown link/path validation | No architecture violations, whitespace errors, or broken plan links/paths. |
 
 - **Unit/Application:** policy bounds, passwords, realm/known-unknown parity, protected identifier derivation, client-tenant manipulation rejection, trusted-host realm selection, forwarded-header rejection, mechanisms, pre-auth actions, session limits/notices, idle resolution, revocation, one-role-per-tenant replacement and concurrent-assignment safety, CIDRs, audit scope, management permissions, transfer authorization.
 - **Persistence:** migrations, audit chain/key rotation, runtime-principal deny grants, witnessed checkpoint append/replay/rewind detection, authorized database-only retention, capacity, emergency reconciliation, manifest completeness-root mismatch, Files quarantine, legacy enrollment.
 - **Architecture:** endpoint/authorization/audit/transfer/residual/crypto/TLS inventories, anonymous justification, no unclassified binary route, OpenAPI/client regeneration.
-- **Transport:** Caddy/compose, explicit `h1 h2`/no-`h3` adapted configuration, TCP-only 443 listener proof, TLS 1.2/HTTP-2 success and TLS 1.3/HTTP-3-only negative probes, plaintext rejection, trusted-proxy rejection, public scan, outbound identity/certificate failures, distributed-channel proof.
+- **Transport implementation:** Caddy/Compose, explicit `h1 h2`/no-`h3` configuration, static TCP/UDP listener policy, TLS 1.2 policy, plaintext rejection rules, trusted-proxy policy, and outbound identity/certificate validation code. Live listener proof, public scans, and distributed-channel proof belong to deployment evidence.
 - **Vulnerability/install:** resolved component and known-vulnerability inventory, response headers by route class, all emitted cookie attributes, running port allowlist, unsafe-method and method-override rejection, CORS preflight, and CSRF issuance/expiry/invalidation/replay behavior.
 - **Failure:** process, PostgreSQL, Redis, storage, audit stores, independent witness/staleness, disk, integrity key, session registry, clock, provider, corrupted data; prove safe response/recovery.
-- **Real two-host E2E:** known/unknown lockout in the same authentication realm, client-tenant manipulation rejection, password plus OTP/passkey, session creation/replacement/notices, idle expiry, role/password invalidation, history acknowledgement, audit isolation/sort/filter, transfer authorization, integrity warning, cross-tenant denial, antiforgery, public HTTPS; inspect screenshot.
-- **Release gate:** migrations, focused tests, builds/architecture checks, generated review, manifest, TLS/time/update/backup/alert evidence. An unrun mandatory check blocks compatibility.
+- **Automated cross-boundary feedback:** testable request/authorization/antiforgery and profile-script contracts; live two-host E2E and screenshot inspection belong to deployment evidence.
+- **Implementation gate:** migrations, focused tests, builds, static deployment validation, architecture checks, generated review, and plan/matrix integrity. A failed repository check blocks implementation completion.
 
 ## Compatibility, migration, rollback, and operations
 
@@ -532,12 +482,12 @@ Reopen Stage 0 for any change to evaluated-profile identity, topology/placement,
 
 ## Definition of complete
 
-This plan is complete only when:
+Implementation is complete when:
 
 - all Stage 0 decisions are closed;
-- the separate network-profile configuration, Security Target, inventory, topology, matrix, and deployment manifest agree, while the Main-only profile remains explicitly separate;
+- the separate network-profile configuration, inventory, committed topology/configuration artifacts, and in-scope matrices agree, while the Main-only profile remains explicitly separate;
 - every mandatory and triggered conditional row has implementation and passing proof;
-- real cross-boundary E2E and screenshot inspection pass;
-- release evidence belongs to the exact artifacts/topology;
 - migrations, compatibility, rollback limits, security/operational effects, residual risks, deviations, and excluded scope are recorded;
-- no claim depends solely on framework defaults, private-HTTP probes, compilation, or unsupported assertion.
+- no implementation claim depends solely on framework defaults, private-HTTP probes, compilation, or unsupported assertion.
+
+Deployment-evidence completion is a separate gate. It requires live profile execution, release-specific topology and provider proof, two-host E2E, screenshots, immutable evidence custody, signing/verification, and owner-approved submission artifacts. It does not change the repository implementation status.
