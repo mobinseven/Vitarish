@@ -38,8 +38,13 @@ describe("mock preview handlers", () => {
       fetch("https://mock.example.test/api/modules/clinic/patients/count", { method: "POST", body: "{}" }),
     ]);
 
-    await expect(patients.json()).resolves.toMatchObject([{ id: "mock-patient-ada", name: "Ada Lovelace" }]);
-    await expect(count.json()).resolves.toBe(1);
+    await expect(patients.json()).resolves.toMatchObject([
+      { id: "mock-patient-ada", name: "Ada Lovelace" },
+      { id: "mock-patient-grace", name: "Grace Hopper" },
+      { id: "mock-patient-katherine", name: "Katherine Johnson" },
+      { id: "mock-patient-marie", name: "Marie Curie" },
+    ]);
+    await expect(count.json()).resolves.toBe(4);
   });
 
   it("keeps Knowledge answers deterministic but workflow-aware", async () => {
@@ -188,7 +193,7 @@ describe("mock preview handlers", () => {
     const invalid = await fetch("https://mock.example.test/api/modules/clinic/patients/find-or-create", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ firstName: "Only" }) });
     expect(invalid.status).toBe(400);
     const count = await fetch("https://mock.example.test/api/modules/clinic/patients/count", { method: "POST", body: "{}" });
-    await expect(count.json()).resolves.toBe(1);
+    await expect(count.json()).resolves.toBe(4);
   });
 
   it("returns deterministic Intelligence capabilities and agent results", async () => {

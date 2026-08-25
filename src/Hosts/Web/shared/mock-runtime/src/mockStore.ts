@@ -14,7 +14,12 @@ export function createMockStore(scenario: "ready" | "empty") {
     indicators: scenario === "empty" ? [] as MockIndicator[] : [{ id: "mock-indicator", tenantId: "mock-tenant", value: "mock.localhost", method: 1, status: 3, isPrimary: true }],
     users: scenario === "empty" ? [] as MockUser[] : [{ userId: "mock-user", fullName: "Mock User", userName: "mock.user", email: "mock.user@example.test" }],
     memberships: scenario === "empty" ? [] as Array<MockMembership & { userId: string }>: [{ userId: "mock-user", tenantId: "mock-tenant", roleSuffix: "Owner" }],
-    patients: scenario === "empty" ? [] as MockPatient[] : [{ id: "mock-patient-ada", tenantId: "mock-tenant", name: "Ada Lovelace", firstName: "Ada", lastName: "Lovelace", identificationCode: "mock-ada-001", phone: "+10000000001", email: "ada@example.test", dateOfBirth: "1990-12-10", createdAt: "2026-01-01T00:00:00.000Z", isDeleted: false }],
+    patients: scenario === "empty" ? [] as MockPatient[] : [
+      { id: "mock-patient-ada", tenantId: "mock-tenant", name: "Ada Lovelace", firstName: "Ada", lastName: "Lovelace", identificationCode: "mock-ada-001", phone: "+10000000001", email: "ada@example.test", dateOfBirth: "1990-12-10", createdAt: "2026-01-01T00:00:00.000Z", isDeleted: false },
+      { id: "mock-patient-grace", tenantId: "mock-tenant", name: "Grace Hopper", firstName: "Grace", lastName: "Hopper", identificationCode: "mock-grace-002", phone: "+10000000002", email: "grace@example.test", dateOfBirth: "1985-12-09", createdAt: "2026-01-02T00:00:00.000Z", isDeleted: false },
+      { id: "mock-patient-katherine", tenantId: "mock-tenant", name: "Katherine Johnson", firstName: "Katherine", lastName: "Johnson", identificationCode: "mock-katherine-003", phone: "+10000000003", email: "katherine@example.test", dateOfBirth: "1988-08-26", createdAt: "2026-01-03T00:00:00.000Z", isDeleted: false },
+      { id: "mock-patient-marie", tenantId: "mock-tenant", name: "Marie Curie", firstName: "Marie", lastName: "Curie", identificationCode: "mock-marie-004", phone: "+10000000004", email: "marie@example.test", dateOfBirth: "1992-11-07", createdAt: "2026-01-04T00:00:00.000Z", isDeleted: false },
+    ],
     conversations: [] as MockConversation[],
     knowledgeAsks: [] as string[],
     appointments: {

@@ -199,7 +199,7 @@ export function PatientsGrid({
                 <PatientRow
                   key={patient.id}
                   patient={patient}
-                  variant="secondary"
+                  variant="default"
                   subtitleField={sortBy}
                   onSelect={onSelectPatient}
                 />

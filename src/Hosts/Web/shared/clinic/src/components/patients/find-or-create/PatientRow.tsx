@@ -12,7 +12,7 @@ interface PatientRowProps {
   patient: PatientViewDto;
   onSelect: (patientId: string) => void;
   subtitleField?: PatientSortBy;
-  variant?: "outline" | "secondary";
+  variant?: "default" | "outline" | "secondary";
 }
 
 export function PatientRow({
