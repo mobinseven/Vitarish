@@ -1,4 +1,7 @@
 export type { NavigationIntent } from "./navigation";
+export { useOwnerReservations } from "./hooks/appointments/reservations/useOwnerReservations";
+export { useInsuranceProviderSetup } from "./hooks/settings/insurance/useInsuranceProviderSetup";
+export { useClinicListSurgeries } from "./api/generated/clinic/clinic";
 
 export { DashboardPage } from "./components/dashboard/DashboardPage";
 export { CheckInPage } from "./components/check-in/CheckInPage";

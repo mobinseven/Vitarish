@@ -295,3 +295,31 @@ html.glass-dark {
   --danger: oklch(59.40% 0.1967 24.62);
   --border: oklch(28.09% 0.0000 263.28);
 }
+
+.dashboard-panel-appointments {
+  --dashboard-accent: var(--highlight, oklch(62% 0.19 350));
+  --dashboard-accent-soft: var(--highlight-soft, oklch(78% 0.13 25));
+}
+
+.dashboard-panel-surgeries {
+  --dashboard-accent: var(--info, oklch(58% 0.16 245));
+  --dashboard-accent-soft: var(--info-soft, oklch(72% 0.13 235));
+}
+
+.dashboard-panel-insurance {
+  --dashboard-accent: var(--support, oklch(72% 0.2 125));
+  --dashboard-accent-soft: var(--support-soft, oklch(86% 0.17 105));
+}
+
+.dashboard-accent-text-appointments,
+.dashboard-accent-text-surgeries,
+.dashboard-accent-text-insurance {
+  color: var(--dashboard-accent);
+}
+
+.dashboard-avatar-appointments,
+.dashboard-avatar-surgeries,
+.dashboard-avatar-insurance {
+  background: color-mix(in oklch, var(--dashboard-accent-soft) 35%, transparent);
+  color: var(--dashboard-accent);
+}
