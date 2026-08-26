@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Clinic.Application.Abstractions;
+using Vitarish.Clinic.Application.Queries.Dashboard;
 using Vitarish.Clinic.Application.Handlers;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Capabilities;
@@ -37,6 +38,7 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
                 typeof(FindOrCreatePatientHandler).Assembly));
             _ = services.AddTransient<IPatientDirectory, SeaPatientDirectory>();
             _ = services.AddTransient<ISurgeryToolchain, SurgeryToolchain>();
+            _ = services.AddTransient<IClinicDashboardQueries, ClinicDashboardQueries>();
             _ = services.AddTransient<IProjectObjectMaterializedViewRefresher, SurgeryMaterializedViewRefresher>();
             _ = services.AddSingleton(new ProjectObjectTypeDefinition(SurgeryObjectTypes.OwnerEntityType, SurgeryObjectTypes.ObjectType));
             _ = services.AddTransient<IClinicActorContext, RequestClinicActorContext>();

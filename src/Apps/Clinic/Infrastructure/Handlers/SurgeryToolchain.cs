@@ -43,6 +43,21 @@ internal sealed class SurgeryToolchain(
             .ToArray();
     }
 
+    public async Task<IReadOnlyList<SurgeryReadModel>> GetRangeAsync(DateOnly dateFrom, DateOnly dateTo, int take, CancellationToken cancellationToken)
+    {
+        string tenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant context is required.");
+        DateTimeOffset start = new(dateFrom.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        DateTimeOffset endExclusive = new(dateTo.AddDays(1).ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        return (await dbContext.SurgeryViews.AsNoTracking()
+            .Where(item => item.TenantId == tenantId && item.Status == nameof(SurgeryStatus.Planned) && item.ScheduledAt >= start && item.ScheduledAt < endExclusive)
+            .OrderBy(item => item.ScheduledAt)
+            .ThenBy(item => item.Id)
+            .Take(take)
+            .ToListAsync(cancellationToken))
+            .Select(ToRead)
+            .ToArray();
+    }
+
     public async Task<IReadOnlyList<SurgeryReadModel>> GetByPatientAsync(Guid patientId, CancellationToken cancellationToken)
     {
         string tenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant context is required.");

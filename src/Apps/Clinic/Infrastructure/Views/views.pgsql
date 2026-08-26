@@ -150,7 +150,7 @@ SELECT
   po."Data" ->> 'CatalogId' AS "CatalogId",
   po."Data" ->> 'Name' AS "Name",
   po."Data" ->> 'Status' AS "Status",
-  po."Data" ->> 'ScheduledAt' AS "ScheduledAt",
+  (po."Data" ->> 'ScheduledAt')::timestamptz AS "ScheduledAt",
   po."Data" -> 'Tools' AS "Tools",
   po."Data" -> 'PersonsToNotify' AS "PersonsToNotify",
   po."Data" -> 'Contacts' AS "Contacts",

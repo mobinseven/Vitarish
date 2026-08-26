@@ -10,6 +10,7 @@ using System.Text;
 using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Commands.Visits;
 using Vitarish.Clinic.Application.Queries.Patients;
+using Vitarish.Clinic.Application.Queries.Dashboard;
 using Vitarish.Clinic.Application.Results;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Actions;
@@ -61,6 +62,10 @@ public static class ClinicApiEndpointMapping
             .RequireAuthorization(SeaManagePolicy);
         _ = group.MapModuleGet(ClinicApiRoutes.SurgeryCatalogs, GetSurgeryCatalogs, "ClinicGetSurgeryCatalogs", typeof(SurgeryCatalogDto[]));
         _ = group.MapModuleGet(ClinicApiRoutes.Surgeries, ListSurgeriesAsync, "ClinicListSurgeries", typeof(SurgeryResponse[]))
+            .RequireAuthorization(SeaManagePolicy);
+        _ = group.MapModuleGet(ClinicApiRoutes.DashboardAppointments, ListDashboardAppointmentsAsync, "ClinicListDashboardAppointments", typeof(DashboardAppointmentResponse[]))
+            .RequireAuthorization(SeaManagePolicy);
+        _ = group.MapModuleGet(ClinicApiRoutes.DashboardSurgeries, ListDashboardSurgeriesAsync, "ClinicListDashboardSurgeries", typeof(DashboardSurgeryResponse[]))
             .RequireAuthorization(SeaManagePolicy);
         _ = group.MapModuleGet(ClinicApiRoutes.PatientSurgeries, ListPatientSurgeriesAsync, "ClinicListPatientSurgeries", typeof(SurgeryResponse[]))
             .RequireAuthorization(SeaManagePolicy);
@@ -135,6 +140,29 @@ public static class ClinicApiEndpointMapping
 
     private static async Task<IResult> ListSurgeriesAsync([FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
         => Results.Ok((await toolchain.GetUpcomingAsync(cancellationToken)).Select(ToContract).ToArray());
+
+    private static Task<IResult> ListDashboardAppointmentsAsync([AsParameters] DashboardDateRangeRequest request, [FromServices] IClinicDashboardQueries queries, CancellationToken cancellationToken)
+        => ListDashboardAsync(request, queries.ListAppointmentsAsync, values => values.Select(value => new DashboardAppointmentResponse(value.ReservationId, value.PatientId, value.PatientDisplayName, value.ServiceId, value.ServiceDisplayName, value.Date, value.StartTime, value.TimeZone, (Vitarish.Appointments.Contracts.Enums.ReservationStatus)value.Status)).ToArray(), cancellationToken);
+
+    private static Task<IResult> ListDashboardSurgeriesAsync([AsParameters] DashboardDateRangeRequest request, [FromServices] IClinicDashboardQueries queries, CancellationToken cancellationToken)
+        => ListDashboardAsync(request, queries.ListSurgeriesAsync, values => values.Select(value => new DashboardSurgeryResponse(value.SurgeryId, value.PatientId, value.PatientDisplayName, value.SurgeryName, value.Status, value.ScheduledAt)).ToArray(), cancellationToken);
+
+    private static async Task<IResult> ListDashboardAsync<T, TContract>(DashboardDateRangeRequest request, Func<DashboardDateRange, CancellationToken, Task<IReadOnlyList<T>>> query, Func<IReadOnlyList<T>, TContract[]> map, CancellationToken cancellationToken)
+    {
+        try
+        {
+            DashboardDateRange range = DashboardDateRange.Create(request.dateFrom, request.dateTo, request.take);
+            return Results.Ok(map(await query(range, cancellationToken)));
+        }
+        catch (ArgumentException exception)
+        {
+            return Results.BadRequest(new ClinicError(ClinicErrorCode.ValidationFailure, exception.Message));
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
+    }
 
     private static async Task<IResult> ListPatientSurgeriesAsync(Guid patientId, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
         => Results.Ok((await toolchain.GetByPatientAsync(patientId, cancellationToken)).Select(ToContract).ToArray());

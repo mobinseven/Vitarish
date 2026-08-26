@@ -14,6 +14,29 @@ namespace Clinic.Tests.Api;
 public sealed class ClinicEndpointMetadataTests
 {
     [Theory]
+    [InlineData("ClinicListDashboardAppointments", "/dashboard/appointments")]
+    [InlineData("ClinicListDashboardSurgeries", "/dashboard/surgeries")]
+    public void Dashboard_read_endpoints_are_protected_and_use_sea_manage(
+        string operationId,
+        string route)
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAuthorization();
+        builder.Services.AddSingleton(Mock.Of<ISender>());
+        using WebApplication app = builder.Build();
+        _ = app.MapClinicApi();
+
+        Endpoint endpoint = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .Single(candidate => candidate.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName == operationId);
+
+        endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()!.HttpMethods.Should().ContainSingle().Which.Should().Be("GET");
+        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()
+            .Should().Contain(metadata => metadata.Policy == "Sea.Manage");
+        endpoint.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()!.Route.Should().Contain(route);
+    }
+
+    [Theory]
     [InlineData("ClinicGetPatientAssistantAction", "GET")]
     [InlineData("ClinicConfirmPatientAssistantAction", "POST")]
     [InlineData("ClinicRejectPatientAssistantAction", "POST")]

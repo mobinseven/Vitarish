@@ -10,6 +10,8 @@ internal sealed class SurgeryView
     public string ObjectType { get; set; } = string.Empty;
     public Guid ConcurrencyToken { get; set; }
     public JsonDocument Data { get; set; } = null!;
+    public string Status { get; set; } = string.Empty;
+    public DateTimeOffset ScheduledAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
