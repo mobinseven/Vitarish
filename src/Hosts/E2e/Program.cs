@@ -74,6 +74,7 @@ _ = builder.Services.AddSingleton(
     typeof(IOperationReceiptStore<>),
     typeof(E2eInMemoryOperationReceiptStore<>));
 builder.Services.Replace(ServiceDescriptor.Singleton<IObjectStorageService, E2eObjectStorageService>());
+builder.Services.AddSingleton<Hangfire.IBackgroundJobClient, E2eBackgroundJobClient>();
 builder.Services.Replace(ServiceDescriptor.Singleton<IClinicalEventProposalStore, E2eClinicalEventProposalStore>());
 builder.Services.Replace(ServiceDescriptor.Singleton<IAssistantActionStore, E2eAssistantActionStore>());
 
