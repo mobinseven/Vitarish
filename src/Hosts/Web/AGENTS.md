@@ -24,6 +24,7 @@
 - Use `FaIcon` from `@vitarish/ui` when its shared behavior is useful; otherwise, a plain semantic `<i>` with Font Awesome classes is acceptable.
 - SVG remains allowed for non-icon artwork such as logos, illustrations, diagrams, and data visualizations.
 - Decorative icons must be hidden from assistive technology. Icon-only controls must have an accessible label.
+- **[MUST]** Avoid directional arrows and chevrons when they add no meaningful information. When a directional icon communicates navigation, progression, or another inline-directional action, it must be culture-friendly: use the active document direction so it points right in LTR and left in RTL. Raw `arrow-left`, `arrow-right`, `chevron-left`, and `chevron-right` usage requires explicit RTL handling. Do not flip icons whose meaning is not document-directional, such as upload, download, undo, trend, or vertical movement indicators.
 
 ## Button conventions
 
@@ -46,6 +47,10 @@
 - **[MUST]** All dates must be displayed in localized formats. 
 - **[MUST]** All date conversions must be used by central conventions.
 
+## Screenshot capture
+
+- Use `scripts/screenshot.ps1` from the Web host root for browser screenshots. It accepts `-Url`, `-OutputPath`, `-ViewportSize`, and `-WaitMilliseconds`; inspect the generated image before reporting visual completion.
+
 ## Real-host E2E feedback
 
 - **[MUST]** For changes that cross the API, authentication, authorization,
@@ -60,8 +65,7 @@
   if (-not (Test-Path -LiteralPath $proof)) { throw "E2E proof screenshot was not produced." }
   ```
 
-- **[MUST]** Inspect the fresh authenticated screenshot as part of the
-  implementation flow. Use it to identify and correct layout, loading, data,
+- **[MUST]** Capture screenshots with `scripts/screenshot.ps1` and inspect the resulting image as part of the implementation flow. Use it to identify and correct layout, loading, data,
   authentication, tenant, or authorization-flow defects, then rerun the proof.
   Do not report completion from a passing test or screenshot that was not
   inspected.
