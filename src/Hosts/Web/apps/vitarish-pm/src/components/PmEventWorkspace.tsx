@@ -49,7 +49,6 @@ export function PmEventWorkspace({
                 router.push(Routes.Procedure(projectId, procedureId))
               }
             >
-              <FaIcon icon="arrow-left" aria-hidden="true" />
               {t("pm.backToProcedure")}
             </Button>
             <Tooltip.Content>{t("pm.backToProcedure")}</Tooltip.Content>

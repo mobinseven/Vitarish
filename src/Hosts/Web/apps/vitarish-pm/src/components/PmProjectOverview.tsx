@@ -39,7 +39,6 @@ export function PmProjectOverview({ projectId }: { projectId: string }) {
               size="sm"
               onPress={() => router.push(Routes.Projects)}
             >
-              <FaIcon icon="arrow-left" aria-hidden="true" />
               {t("sea.projects.backToProjects")}
             </Button>
             <Tooltip.Content>
@@ -196,7 +195,6 @@ export function PmProjectOverview({ projectId }: { projectId: string }) {
                           router.push(Routes.Procedure(projectId, procedure.id))
                         }
                       >
-                        <FaIcon icon="arrow-right" aria-hidden="true" />
                         <span className="hidden sm:inline">
                           {t("common.actions.view")}
                         </span>

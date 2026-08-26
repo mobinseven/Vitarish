@@ -58,7 +58,6 @@ export function PmProcedureWorkspace({
               variant="ghost"
               onPress={() => router.push(Routes.Project(projectId))}
             >
-              <FaIcon icon="arrow-left" aria-hidden="true" />
               {t("sea.procedures.backToProject")}
             </Button>
             <Tooltip.Content>
@@ -213,7 +212,6 @@ function EventRow({
             aria-label={`${t("common.actions.view")} ${event.title}`}
             onPress={onView}
           >
-            <FaIcon icon="arrow-right" aria-hidden="true" />
             <span className="hidden sm:inline">{t("common.actions.view")}</span>
           </Button>
           <Tooltip.Content>{t("common.actions.view")}</Tooltip.Content>
