@@ -93,7 +93,7 @@ export function ClinicAssistantAside({
             {surface.candidates.map((candidate) => <ItemCard key={candidate.candidateToken} variant="secondary">
               <ItemCard.Icon><FaIcon icon="user" aria-hidden="true" /></ItemCard.Icon>
               <ItemCard.Content><ItemCard.Title>{candidate.displayName}</ItemCard.Title><ItemCard.Description>{[candidate.maskedIdentification, candidate.maskedPhone, candidate.dateOfBirth ? formatDate(candidate.dateOfBirth, locale) : null].filter(Boolean).join(" · ")}</ItemCard.Description></ItemCard.Content>
-              <ItemCard.Action><Tooltip><Button size="sm" variant="outline" aria-label={t("clinic.operationsAssistant.candidates.select")} onPress={() => void selectCandidate(candidate.candidateToken)}><FaIcon icon="arrow-right" aria-hidden="true" />{t("clinic.operationsAssistant.candidates.select")}</Button><Tooltip.Content>{t("clinic.operationsAssistant.candidates.select")}</Tooltip.Content></Tooltip></ItemCard.Action>
+              <ItemCard.Action><Tooltip><Button size="sm" variant="outline" aria-label={t("clinic.operationsAssistant.candidates.select")} onPress={() => void selectCandidate(candidate.candidateToken)}>{t("clinic.operationsAssistant.candidates.select")}</Button><Tooltip.Content>{t("clinic.operationsAssistant.candidates.select")}</Tooltip.Content></Tooltip></ItemCard.Action>
             </ItemCard>)}
             {selectionError ? <p role="alert" className="text-sm text-danger">{t("clinic.operationsAssistant.candidates.expired")}</p> : null}
           </div> : null}

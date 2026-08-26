@@ -209,7 +209,7 @@ function ShiftCard({ shift, onSelect, isCompleted }: ShiftCardProps) {
           <FaIcon
             icon="chevron-right"
             aria-hidden="true"
-            className="text-muted"
+            className="text-muted rtl:rotate-180"
           />
         )}
       </ItemCard.Action>

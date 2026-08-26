@@ -198,7 +198,6 @@ export function PatientFindOrCreate({
               {t("clinic.patient.search.results")}
             </h3>
             <Button variant="ghost" size="sm" onPress={handleGoToLookup}>
-              <FaIcon icon="arrow-left" aria-hidden="true" className="mr-1" />
               {t("common.actions.previous")}
             </Button>
           </div>
@@ -217,7 +216,6 @@ export function PatientFindOrCreate({
               {t("clinic.patients.newPatient")}
             </h3>
             <Button variant="ghost" size="sm" onPress={handleGoToLookup}>
-              <FaIcon icon="arrow-left" aria-hidden="true" className="mr-1" />
               {t("common.actions.previous")}
             </Button>
           </div>

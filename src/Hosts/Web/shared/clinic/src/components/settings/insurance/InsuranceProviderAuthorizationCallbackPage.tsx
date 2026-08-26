@@ -60,7 +60,7 @@ export function InsuranceProviderAuthorizationCallbackPage({
             aria-label={t("clinic.settings.insurance.returnToSettings")}
             onPress={onReturn}
           >
-            <FaIcon icon="arrow-left" aria-hidden="true" />
+            <FaIcon icon="arrow-left" aria-hidden="true" className="rtl:rotate-180" />
           </Button>
           <Tooltip.Content>
             {t("clinic.settings.insurance.returnToSettings")}
