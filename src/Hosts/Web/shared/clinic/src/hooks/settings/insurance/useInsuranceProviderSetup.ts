@@ -18,8 +18,7 @@ export interface TaminCredentialInput {
   providerClinicIdentifier: string;
 }
 
-export function useInsuranceProviderSetup() {
-  const queryClient = useQueryClient();
+export function useInsuranceProviderCredentials() {
   const context = useQuery({
     queryKey: ["medical", "provider-credential-context"],
     queryFn: ({ signal }) =>
@@ -40,6 +39,12 @@ export function useInsuranceProviderSetup() {
         signal,
       ),
   });
+  return { context, credentials };
+}
+
+export function useInsuranceProviderSetup() {
+  const queryClient = useQueryClient();
+  const { context, credentials } = useInsuranceProviderCredentials();
 
   const authorize = useMutation({
     mutationFn: async (input: TaminCredentialInput) => {
@@ -71,7 +76,8 @@ export function useInsuranceProviderSetup() {
       });
       if (!authorization.isSuccess || !authorization.authorizationUri) {
         throw new Error(
-          authorization.errorMessage ?? "Provider authorization could not start.",
+          authorization.errorMessage ??
+            "Provider authorization could not start.",
         );
       }
 

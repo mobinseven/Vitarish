@@ -1,4 +1,13 @@
 export type { NavigationIntent } from "./navigation";
+export { useOwnerReservations } from "./hooks/appointments/reservations/useOwnerReservations";
+export {
+  useInsuranceProviderCredentials,
+  useInsuranceProviderSetup,
+} from "./hooks/settings/insurance/useInsuranceProviderSetup";
+export {
+  useClinicListDashboardAppointments,
+  useClinicListDashboardSurgeries,
+} from "./api/generated/clinic/clinic";
 
 export { DashboardPage } from "./components/dashboard/DashboardPage";
 export { CheckInPage } from "./components/check-in/CheckInPage";
@@ -14,7 +23,10 @@ export {
   AssistantErrorState,
 } from "./features/clinic-assistant/AssistantPanel";
 export { OperationsAssistantAside } from "./features/clinic-assistant/OperationsAssistantAside";
-export { ClinicAssistantAside, type ClinicAssistantScope } from "./features/clinic-assistant/ClinicAssistantAside";
+export {
+  ClinicAssistantAside,
+  type ClinicAssistantScope,
+} from "./features/clinic-assistant/ClinicAssistantAside";
 export {
   OperationsAssistantActionList,
   OperationsAssistantActionReview,
