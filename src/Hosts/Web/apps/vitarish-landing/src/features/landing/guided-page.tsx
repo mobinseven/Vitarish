@@ -80,7 +80,7 @@ export function GuidedPage({
                   index === 0
                     ? "sparkles"
                     : index === 1
-                      ? "arrow-right"
+                      ? "circle"
                       : "heart"
                 }
               />
