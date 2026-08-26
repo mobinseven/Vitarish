@@ -35,7 +35,7 @@ export function MarketingActionLink({
   const tone = action.tone ?? "primary";
   const classes = cx(actionClasses(tone), fullWidth && "w-full", className);
 
-  const content = <><span>{action.label}</span>{action.icon ?? <i aria-hidden="true" className="fa-light fa-arrow-right ms-2" />}</>;
+  const content = <><span>{action.label}</span>{action.icon}</>;
 
   if (action.href) {
     return (
