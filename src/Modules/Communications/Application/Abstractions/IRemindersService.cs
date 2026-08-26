@@ -15,6 +15,11 @@ public interface IRemindersService : IEntityService<ReminderReadDto, ReminderWri
         string? templateVariablesJson,
         CancellationToken cancellationToken);
 
+    Task ReplaceBySourceAsync(
+        Guid sourceId,
+        IReadOnlyList<ReminderWriteDto> reminders,
+        CancellationToken cancellationToken);
+
     Task<ReminderReadDto?> UpdateAsync(
         Guid id,
         ReminderKind kind,

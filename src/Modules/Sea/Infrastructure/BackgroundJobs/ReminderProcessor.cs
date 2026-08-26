@@ -6,6 +6,7 @@ using Vitarish.Communications.Domain.Dto;
 using Vitarish.Communications.Domain.Enums;
 using Vitarish.Communications.Domain.Models;
 using Vitarish.Modules.Base.Core.BackgroundJobs;
+using Vitarish.Modules.Base.Core.Platform.Idempotency;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Platform.Application.Abstractions;
@@ -22,9 +23,12 @@ namespace Vitarish.Sea.Infrastructure.BackgroundJobs;
 public class ReminderProcessor(
     ILogger<ReminderProcessor> logger,
     TenantBackgroundExecutor tenantBackgroundExecutor,
+    IOperationReceiptStore<string> deliveryClaims,
     TimeProvider? timeProvider = null)
 {
     private const string BackgroundResource = "hangfire:sea:reminders";
+    private const string DeliveryClaimScope = "sea.reminder-delivery";
+    private static readonly TimeSpan DeliveryClaimLifetime = TimeSpan.FromMinutes(2);
 
     private readonly ILogger<ReminderProcessor> _logger = logger;
     private readonly TenantBackgroundExecutor _tenantBackgroundExecutor = tenantBackgroundExecutor;
@@ -100,6 +104,26 @@ public class ReminderProcessor(
             await tenantContext.RemindersService.MarkSentAsync(reminder.Id, reminder.DeliveryAcceptedAt.Value, cancellationToken);
             return;
         }
+
+        ReminderReadDto? activeReminder = (await tenantContext.RemindersService.GetAsync(reminder.Id, cancellationToken)).GetValueOrDefault();
+        if (activeReminder is null || activeReminder.IsSent)
+        {
+            return;
+        }
+
+        OperationReceiptKey deliveryClaimKey = new(DeliveryClaimScope, tenantContext.RequestContext.TenantId!, reminder.Id.ToString("N"));
+        if (!await deliveryClaims.TryClaimAsync(deliveryClaimKey, "claimed", DeliveryClaimLifetime, cancellationToken))
+        {
+            return;
+        }
+
+        activeReminder = (await tenantContext.RemindersService.GetAsync(reminder.Id, cancellationToken)).GetValueOrDefault();
+        if (activeReminder is null || activeReminder.IsSent)
+        {
+            return;
+        }
+
+        reminder = activeReminder;
 
         try
         {

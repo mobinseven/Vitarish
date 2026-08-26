@@ -1,5 +1,7 @@
 namespace Vitarish.Communications.Infrastructure.Services;
 
+using Microsoft.EntityFrameworkCore.Storage;
+
 [RegisterTransient]
 internal class RemindersService(IMediator mediator, CommunicationsDbContext db) : EntityService<Reminder, ReminderDescriptor, ReminderReadDto, ReminderWriteDto, ReminderDescriptorDto>
     (
@@ -40,6 +42,31 @@ internal class RemindersService(IMediator mediator, CommunicationsDbContext db) 
         IReadOnlyList<Reminder> added = (await AddEntitiesAsync(reminders, cancellationToken))
             .EnsureValue("Add reminders");
         return [.. added.Select(reminder => reminder.ToRead())];
+    }
+
+    public async Task ReplaceBySourceAsync(
+        Guid sourceId,
+        IReadOnlyList<ReminderWriteDto> reminders,
+        CancellationToken cancellationToken)
+    {
+        DateTime deletedAt = DateTime.UtcNow;
+        IExecutionStrategy executionStrategy = db.Database.CreateExecutionStrategy();
+        await executionStrategy.ExecuteAsync(async () =>
+        {
+            await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+
+            List<Reminder> existing = await db.Reminders
+                .Where(reminder => reminder.SourceId == sourceId)
+                .ToListAsync(cancellationToken);
+            foreach (Reminder reminder in existing.Where(reminder => !reminder.IsSent))
+            {
+                reminder.DeletedAt = deletedAt;
+            }
+
+            await db.Reminders.AddRangeAsync(reminders.Select(reminder => reminder.ToEntity()), cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        });
     }
 
     public async Task<ReminderReadDto?> UpdateAsync(
