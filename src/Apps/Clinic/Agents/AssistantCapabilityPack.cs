@@ -17,13 +17,14 @@ public static class AssistantCapabilityKeys
     public const string ClinicPatientReads = "ClinicPatientReads";
     public const string SeaPatientReads = "SeaPatientReads";
     public const string ClinicalEvents = "ClinicalEvents";
+    public const string Surgeries = "Surgeries";
     public const string SeaManagement = "SeaManagement";
     public const string Operations = "Operations";
     public const string Search = "Search";
 
     public static readonly string[] Patient =
     [Appointments, AppointmentReads, Prescriptions, PrescriptionReads, PatientReminderReads,
-        ClinicPatientReads, SeaPatientReads, ClinicalEvents];
+        ClinicPatientReads, SeaPatientReads, ClinicalEvents, Surgeries];
 
     public static readonly string[] OperationsProfile = [Operations, SeaManagement, Search];
 }

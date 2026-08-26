@@ -20,6 +20,9 @@ using Vitarish.Clinic.Contracts.Errors;
 using Vitarish.Clinic.Contracts.ClinicAssistant;
 using Vitarish.Clinic.Contracts.Responses;
 using Vitarish.Clinic.Contracts.Routes;
+using Vitarish.Clinic.Contracts;
+using Vitarish.Clinic.Application.Abstractions;
+using Vitarish.Clinic.Domain.Surgery;
 using Vitarish.Clinic.Domain.Models;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Modules.Base.Core.Endpoints;
@@ -55,6 +58,17 @@ public static class ClinicApiEndpointMapping
             .RequireAuthorization(SeaManagePolicy);
         _ = group.MapModuleGet(ClinicApiRoutes.PatientDetails, GetPatientDetailsAsync, "ClinicGetPatientDetails", typeof(PatientViewDto));
         _ = group.MapModulePut(ClinicApiRoutes.PatientUpdate, UpdatePatientAsync, "ClinicUpdatePatient", typeof(PatientViewDto))
+            .RequireAuthorization(SeaManagePolicy);
+        _ = group.MapModuleGet(ClinicApiRoutes.SurgeryCatalogs, GetSurgeryCatalogs, "ClinicGetSurgeryCatalogs", typeof(SurgeryCatalogDto[]));
+        _ = group.MapModuleGet(ClinicApiRoutes.Surgeries, ListSurgeriesAsync, "ClinicListSurgeries", typeof(SurgeryResponse[]))
+            .RequireAuthorization(SeaManagePolicy);
+        _ = group.MapModuleGet(ClinicApiRoutes.PatientSurgeries, ListPatientSurgeriesAsync, "ClinicListPatientSurgeries", typeof(SurgeryResponse[]))
+            .RequireAuthorization(SeaManagePolicy);
+        _ = group.MapModulePost(ClinicApiRoutes.PatientSurgeries, CreatePatientSurgeryAsync, "ClinicCreatePatientSurgery", typeof(SurgeryResponse))
+            .RequireAuthorization(SeaManagePolicy);
+        _ = group.MapModulePut(ClinicApiRoutes.SurgeryById, UpdateSurgeryAsync, "ClinicUpdateSurgery", typeof(SurgeryResponse))
+            .RequireAuthorization(SeaManagePolicy);
+        _ = group.MapModulePost(ClinicApiRoutes.SurgeryCancel, CancelSurgeryAsync, "ClinicCancelSurgery", typeof(SurgeryResponse))
             .RequireAuthorization(SeaManagePolicy);
         _ = group.MapModulePost(ClinicApiRoutes.PatientAssistant, RunCanonicalPatientAssistantAsync, "ClinicRunPatientAssistant", typeof(RunClinicAssistantResponse));
         _ = group.MapModulePost(ClinicApiRoutes.LegacyPatientAgent, RunLegacyPatientAgentAsync, "ClinicRunPatientAgent", typeof(RunClinicAssistantResponse));
@@ -115,6 +129,180 @@ public static class ClinicApiEndpointMapping
 
         return endpoints;
     }
+
+    private static IReadOnlyList<SurgeryCatalogDto> GetSurgeryCatalogs([FromServices] ISurgeryToolchain toolchain)
+        => toolchain.GetCatalogs().Select(ToContract).ToArray();
+
+    private static async Task<IResult> ListSurgeriesAsync([FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+        => Results.Ok((await toolchain.GetUpcomingAsync(cancellationToken)).Select(ToContract).ToArray());
+
+    private static async Task<IResult> ListPatientSurgeriesAsync(Guid patientId, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+        => Results.Ok((await toolchain.GetByPatientAsync(patientId, cancellationToken)).Select(ToContract).ToArray());
+
+    private static async Task<IResult> CreatePatientSurgeryAsync(Guid patientId, SurgeryCreateRequest? request, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+    {
+        try
+        {
+            SurgeryCreateRequest validRequest = ValidateRequestShape(request);
+            SurgeryReadModel result = await toolchain.CreateAsync(ToDomain(Guid.Empty, patientId, validRequest), cancellationToken);
+            return Results.Created($"{ClinicApiRoutes.Base}/surgeries/{result.Id}", ToContract(result));
+        }
+        catch (ArgumentException exception)
+        {
+            return Results.BadRequest(exception.Message);
+        }
+        catch (SurgeryOperationUnavailableException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Results.Conflict(exception.Message);
+        }
+    }
+
+    private static async Task<IResult> UpdateSurgeryAsync(Guid id, SurgeryWriteRequest? request, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+    {
+        try
+        {
+            SurgeryWriteRequest validRequest = ValidateRequestShape(request);
+            SurgeryReadModel? result = await toolchain.UpdateAsync(ToDomain(id, Guid.Empty, validRequest), cancellationToken);
+            return result is null ? Results.NotFound() : Results.Ok(ToContract(result));
+        }
+        catch (ArgumentException exception)
+        {
+            return Results.BadRequest(exception.Message);
+        }
+        catch (SurgeryOperationUnavailableException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Results.Conflict(exception.Message);
+        }
+    }
+
+    private static async Task<IResult> CancelSurgeryAsync(Guid id, SurgeryCancelRequest? request, [FromServices] ISurgeryToolchain toolchain, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (request is null || request.ConcurrencyToken == Guid.Empty)
+            {
+                return Results.BadRequest("A concurrency token is required.");
+            }
+
+            SurgeryReadModel? result = await toolchain.CancelAsync(id, request.ConcurrencyToken, cancellationToken);
+            return result is null ? Results.NotFound() : Results.Ok(ToContract(result));
+        }
+        catch (ArgumentException exception)
+        {
+            return Results.BadRequest(exception.Message);
+        }
+        catch (SurgeryOperationUnavailableException exception)
+        {
+            return Results.Problem(exception.Message, statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Results.Conflict(exception.Message);
+        }
+    }
+
+    private static SurgeryWriteModel ToDomain(Guid id, Guid patientId, SurgeryWriteRequest request)
+        => ToDomain(
+            id,
+            patientId,
+            request.CatalogId,
+            request.Name,
+            request.Status,
+            request.ScheduledAt,
+            request.Tools,
+            request.PersonsToNotify,
+            request.Contacts,
+            request.ReminderPolicies,
+            request.ConcurrencyToken,
+            null);
+
+    private static SurgeryWriteModel ToDomain(Guid id, Guid patientId, SurgeryCreateRequest request)
+        => ToDomain(
+            id,
+            patientId,
+            request.CatalogId,
+            request.Name,
+            request.Status,
+            request.ScheduledAt,
+            request.Tools,
+            request.PersonsToNotify,
+            request.Contacts,
+            request.ReminderPolicies,
+            Guid.Empty,
+            request.IdempotencyKey);
+
+    private static SurgeryWriteModel ToDomain(
+        Guid id,
+        Guid patientId,
+        string catalogId,
+        string name,
+        string statusValue,
+        DateTimeOffset scheduledAt,
+        IReadOnlyList<string> tools,
+        IReadOnlyList<string> personsToNotify,
+        IReadOnlyList<SurgeryContactDto> contacts,
+        IReadOnlyList<SurgeryReminderPolicyDto> reminderPolicies,
+        Guid concurrencyToken,
+        string? idempotencyKey)
+    {
+        if (!Enum.TryParse(statusValue, true, out SurgeryStatus status))
+        {
+            throw new ArgumentException("Status must be Planned or Cancelled.", nameof(statusValue));
+        }
+
+        return new(
+            id,
+            patientId,
+            catalogId,
+            name,
+            idempotencyKey,
+            status,
+            scheduledAt,
+            tools,
+            personsToNotify,
+            contacts.Select(item => new SurgeryContact(item.Name, item.Destination, item.Channel)).ToArray(),
+            reminderPolicies.Select(item => new SurgeryReminderPolicy(item.Name, item.MinutesBefore, item.Subject, item.TextBody)).ToArray(),
+            concurrencyToken);
+    }
+
+    private static SurgeryCreateRequest ValidateRequestShape(SurgeryCreateRequest? request)
+    {
+        if (request is null) throw new ArgumentException("A surgery request is required.");
+        if (request.Tools is null || request.PersonsToNotify is null || request.Contacts is null || request.ReminderPolicies is null)
+        {
+            throw new ArgumentException("Surgery collections cannot be null.");
+        }
+
+        return request;
+    }
+
+    private static SurgeryWriteRequest ValidateRequestShape(SurgeryWriteRequest? request)
+    {
+        if (request is null) throw new ArgumentException("A surgery request is required.");
+        if (request.Tools is null || request.PersonsToNotify is null || request.Contacts is null || request.ReminderPolicies is null)
+        {
+            throw new ArgumentException("Surgery collections cannot be null.");
+        }
+
+        return request;
+    }
+
+    private static SurgeryCatalogDto ToContract(SurgeryCatalog value)
+        => new(value.Id, value.Name, value.Tools, value.PersonsToNotify, value.ReminderPolicies.Select(ToContract).ToArray());
+
+    private static SurgeryResponse ToContract(SurgeryReadModel value)
+        => new(value.Id, value.PatientId, value.CatalogId, value.Name, value.IdempotencyKey, value.Status.ToString(), value.ScheduledAt, value.Tools, value.PersonsToNotify, value.Contacts.Select(item => new SurgeryContactDto(item.Name, item.Destination, item.Channel)).ToArray(), value.ReminderPolicies.Select(ToContract).ToArray(), value.ConcurrencyToken, value.CreatedAt, value.UpdatedAt);
+
+    private static SurgeryReminderPolicyDto ToContract(SurgeryReminderPolicy value)
+        => new(value.Name, value.MinutesBefore, value.Subject, value.TextBody);
 
     private static IResult AgentRuntimeHealthAsync(
         HttpRequest request,

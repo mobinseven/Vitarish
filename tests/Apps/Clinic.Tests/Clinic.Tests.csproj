@@ -5,10 +5,12 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Moq" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Apps\Clinic\Application\Clinic.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Apps\Clinic\Api\Clinic.Api.csproj" />
+    <ProjectReference Include="..\..\..\src\Apps\Clinic\Infrastructure\Clinic.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Intelligence\Application\Intelligence.Application.csproj" />
   </ItemGroup>
 </Project>

@@ -19,9 +19,12 @@ using Vitarish.Clinic.Infrastructure.Assistant;
 using Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Operations;
 using Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Sea;
 using Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Communications;
+using Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Surgery;
 using Vitarish.Clinic.Infrastructure.Assistant.Operations;
 using Vitarish.Clinic.Application.Assistant.Operations;
 using Vitarish.Appointments.Application.AgentCapabilities;
+using Vitarish.Clinic.Domain.Surgery;
+using Vitarish.Sea.Application.Abstractions;
 
 namespace Vitarish.Clinic.Infrastructure.Extensions
 {
@@ -33,6 +36,9 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
                 typeof(ClinicDbContext).Assembly,
                 typeof(FindOrCreatePatientHandler).Assembly));
             _ = services.AddTransient<IPatientDirectory, SeaPatientDirectory>();
+            _ = services.AddTransient<ISurgeryToolchain, SurgeryToolchain>();
+            _ = services.AddTransient<IProjectObjectMaterializedViewRefresher, SurgeryMaterializedViewRefresher>();
+            _ = services.AddSingleton(new ProjectObjectTypeDefinition(SurgeryObjectTypes.OwnerEntityType, SurgeryObjectTypes.ObjectType));
             _ = services.AddTransient<IClinicActorContext, RequestClinicActorContext>();
             _ = services.AddTransient<IAssistantContextFactory, HttpAssistantContextFactory>();
             _ = services.AddTransient<IAssistantRoutePatientResolver, ClinicRoutePatientResolver>();
@@ -64,6 +70,9 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<IAssistantCapability, PrescriptionReadAgentCapability>();
             _ = services.AddTransient<ListPatientReminderStatusTool>();
             _ = services.AddTransient<IAssistantCapability, PatientReminderReadAgentCapability>();
+            _ = services.AddTransient<ListPatientSurgeriesAssistantTool>();
+            _ = services.AddTransient<PreparePatientSurgeryTool>();
+            _ = services.AddTransient<IAssistantCapability, PatientSurgeryAgentCapability>();
             services.TryAddSingleton(TimeProvider.System);
             _ = services.AddTransient<IClinicalEventProcedureBoundary, SeaClinicalEventProcedureBoundary>();
             _ = services.AddSingleton<IClinicalEventProposalStore, RedisClinicalEventProposalStore>();
@@ -124,6 +133,7 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
             _ = services.AddTransient<IAssistantActionCommitter, AppointmentAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitter, PrescriptionAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitter, ClinicalEventAssistantActionCommitter>();
+            _ = services.AddTransient<IAssistantActionCommitter, SurgeryAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitter, OperationsAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitter, SeaManagementAssistantActionCommitter>();
             _ = services.AddTransient<IAssistantActionCommitter, AppointmentAdministrationAssistantActionCommitter>();

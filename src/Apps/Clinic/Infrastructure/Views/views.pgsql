@@ -136,3 +136,34 @@ FROM src p;
 
 CREATE UNIQUE INDEX "IX_mv_Patients_Id"
   ON "Clinic"."mv_Patients" ("Id");
+
+DROP MATERIALIZED VIEW IF EXISTS "Clinic"."mv_PatientSurgeries";
+
+CREATE MATERIALIZED VIEW "Clinic"."mv_PatientSurgeries" AS
+SELECT
+  po."Id",
+  po."TenantId",
+  po."OwnerEntityId" AS "PatientId",
+  po."ObjectType",
+  po."ConcurrencyToken",
+  po."Data",
+  po."Data" ->> 'CatalogId' AS "CatalogId",
+  po."Data" ->> 'Name' AS "Name",
+  po."Data" ->> 'Status' AS "Status",
+  po."Data" ->> 'ScheduledAt' AS "ScheduledAt",
+  po."Data" -> 'Tools' AS "Tools",
+  po."Data" -> 'PersonsToNotify' AS "PersonsToNotify",
+  po."Data" -> 'Contacts' AS "Contacts",
+  po."Data" -> 'ReminderPolicies' AS "ReminderPolicies",
+  po."CreatedAt",
+  po."UpdatedAt"
+FROM "Sea"."ProjectObjects" po
+WHERE po."OwnerEntityType" = 'patient'
+  AND po."ObjectType" = 'patient.surgery'
+  AND po."DeletedAt" IS NULL;
+
+CREATE UNIQUE INDEX "IX_mv_PatientSurgeries_Id"
+  ON "Clinic"."mv_PatientSurgeries" ("Id");
+
+CREATE INDEX "IX_mv_PatientSurgeries_TenantId_PatientId"
+  ON "Clinic"."mv_PatientSurgeries" ("TenantId", "PatientId");

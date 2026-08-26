@@ -35,8 +35,7 @@ public class ClinicApp : Vitarish.Apps.Base.Core.App
 
     public override Task Initialize(WebApplication app)
     {
-        _ = app.InitializeViews();
-        return Task.CompletedTask;
+        return app.InitializeViews();
     }
 
     public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) => endpoints.MapClinicApi();

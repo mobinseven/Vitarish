@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Clinic.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="Views\views.pgsql" />
   </ItemGroup>
 
@@ -18,6 +22,7 @@
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 		<ProjectReference Include="..\Application\Clinic.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Sea\Application\Sea.Application.csproj" />
+		<ProjectReference Include="..\..\..\Modules\Communications\Application\Communications.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Appointments\Application\Appointments.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Medical\Application\Medical.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Users\Application\Users.Application.csproj" />

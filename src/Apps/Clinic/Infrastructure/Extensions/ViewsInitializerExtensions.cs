@@ -9,6 +9,8 @@ namespace Vitarish.Clinic.Infrastructure.Extensions;
 
 public static class ViewsInitializerExtensions
 {
+    private const long ViewInitializationLockKey = 684471233;
+
     extension(WebApplication app)
     {
         public async Task InitializeViews()
@@ -53,7 +55,10 @@ public static class ViewsInitializerExtensions
 
             try
             {
+                await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await db.Database.BeginTransactionAsync();
+                _ = await db.Database.ExecuteSqlRawAsync($"SELECT pg_advisory_xact_lock({ViewInitializationLockKey});");
                 _ = await db.Database.ExecuteSqlRawAsync(sql);
+                await transaction.CommitAsync();
                 logger.LogInformation("Views SQL executed successfully.");
             }
             catch (Exception exception)

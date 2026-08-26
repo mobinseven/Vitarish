@@ -4,6 +4,9 @@ using Vitarish.Clinic.Application.Events;
 using Vitarish.Clinic.Application.Assistant;
 using Vitarish.Clinic.Application.Assistant.Actions;
 using Vitarish.Medical.Application.AgentCapabilities.Prescriptions;
+using Vitarish.Clinic.Application.Abstractions;
+using Vitarish.Clinic.Domain.Surgery;
+using Vitarish.Clinic.Infrastructure.Assistant.Capabilities.Surgery;
 
 namespace Vitarish.Clinic.Infrastructure.Assistant.Actions;
 
@@ -82,5 +85,55 @@ public sealed class ClinicalEventAssistantActionCommitter(ConfirmClinicalEventPr
             ClinicalEventCommitResultStatus.ConfirmationInProgress => AssistantActionCommitResult.Failed("confirmation_in_progress", "Clinical-event confirmation is already in progress.", true),
             _ => AssistantActionCommitResult.Failed("owning_workflow_forbidden", "The clinical event cannot be created in this scope.")
         };
+    }
+}
+
+public sealed class SurgeryAssistantActionCommitter(ISurgeryToolchain surgeries) : IAssistantActionCommitter
+{
+    public string ActionType => SurgeryAssistantActions.Create;
+    public string WorkflowKey => SurgeryAssistantActions.Workflow;
+
+    public async Task<AssistantActionCommitResult> CommitAsync(AssistantAction action, AssistantContext context, CancellationToken cancellationToken)
+    {
+        try
+        {
+            SurgeryAssistantProposal proposal = JsonSerializer.Deserialize(
+                action.ReviewPayload,
+                SurgeryAssistantJsonSerializerContext.Default.SurgeryAssistantProposal)
+                ?? throw new JsonException("The surgery proposal is invalid.");
+            if (proposal.Id != action.OwningProposalId || proposal.PatientId != context.PatientId)
+            {
+                return AssistantActionCommitResult.Failed("owning_proposal_forbidden", "The surgery proposal does not belong to this patient.");
+            }
+
+            SurgeryReadModel result = await surgeries.CreateAsync(new(
+                Guid.Empty,
+                context.PatientId,
+                proposal.CatalogId,
+                proposal.Name,
+                action.ActionId.ToString("N"),
+                SurgeryStatus.Planned,
+                proposal.ScheduledAt,
+                proposal.Tools,
+                proposal.PersonsToNotify,
+                proposal.Contacts,
+                proposal.ReminderPolicies,
+                Guid.Empty), cancellationToken);
+            return AssistantActionCommitResult.Completed(JsonSerializer.Serialize(
+                result,
+                SurgeryAssistantJsonSerializerContext.Default.SurgeryReadModel));
+        }
+        catch (ArgumentException exception)
+        {
+            return AssistantActionCommitResult.Failed("invalid_surgery", exception.Message);
+        }
+        catch (SurgeryOperationUnavailableException exception)
+        {
+            return AssistantActionCommitResult.Failed("surgery_unavailable", exception.Message, true);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return AssistantActionCommitResult.Failed("surgery_in_progress", exception.Message, true);
+        }
     }
 }
