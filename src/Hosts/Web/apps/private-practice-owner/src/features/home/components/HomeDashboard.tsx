@@ -1,80 +1,37 @@
 "use client";
 
-import { Button } from "@heroui/react";
-import { HoverCard, ItemCardGroup } from "@heroui-pro/react";
-import { ImageActionCard } from "@vitarish/ui";
-import { useState } from "react";
-import { useLocalizedText } from "@/localization";
+import { formatDate, useLocalizedText } from "@/localization";
+import { AppointmentsWidget } from "../widgets/appointments/AppointmentsWidget";
+import { SurgeriesWidget } from "../widgets/surgeries/SurgeriesWidget";
+import { InsuranceWidget } from "../widgets/insurance/InsuranceWidget";
 
 export function HomeDashboard() {
-  const { t } = useLocalizedText();
-  const [openCardToken, setOpenCardToken] = useState<string | null>(null);
-  const accentCards = [
-    {
-      label: t("home.stubInfo"),
-      token: "info",
-      backgroundImage: "/card-red.webp",
-    },
-    {
-      label: t("home.stubHighlight"),
-      token: "highlight",
-      backgroundImage: "/card-blue.webp",
-    },
-    {
-      label: t("home.stubSupport"),
-      token: "support",
-      backgroundImage: "/card-green.webp",
-    },
-    {
-      label: t("home.stubEmphasis"),
-      token: "emphasis",
-      backgroundImage: "/card-purple.webp",
-    },
-  ] as const;
-
+  const { t, locale } = useLocalizedText();
   return (
-    <ItemCardGroup layout="grid" columns={3} variant="transparent">
-      {accentCards.map(({ label, token, backgroundImage }) => (
-        <HoverCard
-          key={token}
-          closeDelay={1000}
-          open={openCardToken === token}
-          openDelay={0}
-          onOpenChange={(isOpen) => {
-            setOpenCardToken((currentToken) => {
-              if (isOpen) {
-                return token;
-              }
-
-              return currentToken === token ? null : currentToken;
-            });
-          }}
-        >
-          <HoverCard.Trigger className="block w-full">
-            <ImageActionCard
-              className="w-full"
-              imageSrc={backgroundImage}
-              label={label}
-            />
-          </HoverCard.Trigger>
-          <HoverCard.Content placement="bottom">
-            <HoverCard.Arrow />
-            <p className="text-sm font-semibold">{label}</p>
-            <p className="text-muted mt-1 max-w-64 text-sm leading-relaxed">
-              {t("home.dashboardDescription")}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button size="sm">{t("home.stubPrimary")}</Button>
-              <Button size="sm" variant="secondary">
-                {t("home.stubSecondary")}
-              </Button>
-              <Button size="sm" variant="tertiary">
-                {t("home.stubTertiary")}
-              </Button>
-            </div>
-          </HoverCard.Content>
-        </HoverCard>
-      ))}
-    </ItemCardGroup>
+    <div className="flex flex-col gap-4 pb-8 pt-2">
+      <header>
+        <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-accent">
+          <i aria-hidden="true" className="fa-light fa-sparkles" />
+          {t("home.dashboard.eyebrow")}
+        </div>
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          {t("home.dashboard.greeting")}
+          <i
+            aria-hidden="true"
+            className="fa-light fa-hand-wave ms-3 text-amber-500"
+          />
+        </h1>
+        <p className="mt-2 max-w-2xl text-base text-muted">
+          {t("home.dashboard.dateSummary", {
+            date: formatDate(new Date(), locale, { dateStyle: "long" }),
+          })}
+        </p>
+      </header>
+      <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-3">
+        <AppointmentsWidget />
+        <SurgeriesWidget />
+        <InsuranceWidget />
+      </div>
+    </div>
   );
 }
