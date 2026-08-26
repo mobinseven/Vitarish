@@ -34,6 +34,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     public TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
 
     public DbSet<Project> Projects => Set<Project>();
+    public DbSet<ProjectObject> ProjectObjects => Set<ProjectObject>();
     public DbSet<Procedure> Procedures => Set<Procedure>();
     public DbSet<Event> Events => Set<Event>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
@@ -83,6 +84,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.ConfigureMultiTenant();
 
         ConfigureTenantEntity<Project>(modelBuilder);
+        ConfigureTenantEntity<ProjectObject>(modelBuilder);
         ConfigureTenantEntity<Procedure>(modelBuilder);
         ConfigureTenantEntity<Event>(modelBuilder);
         ConfigureTenantEntity<Attachment>(modelBuilder);
@@ -128,6 +130,22 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
             _ = entity.HasIndex("TenantId", nameof(Project.IdentificationCode))
                 .IsUnique()
                 .HasFilter("\"IdentificationCode\" IS NOT NULL AND \"IdentificationCode\" <> ''");
+        });
+
+        _ = modelBuilder.Entity<ProjectObject>(entity =>
+        {
+            _ = entity.Property(e => e.ConcurrencyToken).IsConcurrencyToken();
+            _ = entity.Property(e => e.Data)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => DeserializeMetadata(v))
+                .HasColumnType("jsonb")
+                .HasDefaultValueSql("'{}'::jsonb");
+
+            _ = entity.Property(e => e.OwnerEntityType).HasMaxLength(128).IsRequired();
+            _ = entity.Property(e => e.ObjectType).HasMaxLength(256).IsRequired();
+            _ = entity.HasIndex("TenantId", nameof(ProjectObject.OwnerEntityType), nameof(ProjectObject.OwnerEntityId), nameof(ProjectObject.ObjectType));
+            _ = entity.HasIndex("TenantId", nameof(ProjectObject.ObjectType), nameof(ProjectObject.OwnerEntityId));
         });
 
         _ = modelBuilder.Entity<ProcedureStats>(eb =>

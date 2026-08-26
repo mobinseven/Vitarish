@@ -12,6 +12,7 @@ public static class DependencyInjectionExtensions
     public static IServiceCollection AddSeaInfrastructure(this IServiceCollection services)
     {
         _ = services.AddVitarishSeaInfrastructure();
+        _ = services.AddSingleton<IProjectObjectTypeRegistry, ProjectObjectTypeRegistry>();
         _ = services.AddEntitySearchInfrastructure();
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(SeaDbContext).Assembly));
 

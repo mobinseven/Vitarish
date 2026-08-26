@@ -8,13 +8,15 @@ namespace Vitarish.Sea.Infrastructure.BackgroundJobs;
 public sealed class SeaRecurringJobScheduler(
     HangfireSeaJobManager seaJobManager,
     HangfireSeaIndexingJobManager seaIndexingJobManager,
-    HangfireRemindersJobManager remindersJobManager) : IRecurringJobScheduler
+    HangfireRemindersJobManager remindersJobManager,
+    HangfireProjectObjectRefreshJobManager projectObjectRefreshJobManager) : IRecurringJobScheduler
 {
     public void ScheduleJobs()
     {
         seaJobManager.ScheduleProcessing();
         seaIndexingJobManager.ScheduleProcessing();
         remindersJobManager.ScheduleProcessing();
+        projectObjectRefreshJobManager.ScheduleProcessing();
     }
 
     public void TriggerStartupJobs()
@@ -22,5 +24,6 @@ public sealed class SeaRecurringJobScheduler(
         seaJobManager.TriggerProcessing();
         seaIndexingJobManager.TriggerProcessing();
         remindersJobManager.TriggerProcessing();
+        projectObjectRefreshJobManager.TriggerProcessing();
     }
 }

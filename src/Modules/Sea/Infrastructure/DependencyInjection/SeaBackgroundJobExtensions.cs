@@ -15,6 +15,9 @@ public static class SeaBackgroundJobExtensions
         _ = services.AddSingleton<HangfireSeaIndexingJobManager>();
         _ = services.AddTransient<ReminderProcessor>();
         _ = services.AddSingleton<HangfireRemindersJobManager>();
+        _ = services.AddTransient<ProjectObjectRefreshProcessor>();
+        _ = services.AddTransient<ProjectObjectRefreshRequestHandler>();
+        _ = services.AddSingleton<HangfireProjectObjectRefreshJobManager>();
         _ = services.AddSingleton<IRecurringJobScheduler, SeaRecurringJobScheduler>();
         return services;
     }
