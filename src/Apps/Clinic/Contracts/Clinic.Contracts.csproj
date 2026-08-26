@@ -1,4 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
-  <ItemGroup><ProjectReference Include="..\..\..\Modules\Sea\Contracts\Sea.Contracts.csproj" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Modules\Sea\Contracts\Sea.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Appointments\Contracts\Appointments.Contracts.csproj" />
+  </ItemGroup>
 </Project>

@@ -22,6 +22,7 @@ public interface ISurgeryToolchain
 {
     IReadOnlyList<SurgeryCatalog> GetCatalogs();
     Task<IReadOnlyList<SurgeryReadModel>> GetUpcomingAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<SurgeryReadModel>> GetRangeAsync(DateOnly dateFrom, DateOnly dateTo, int take, CancellationToken cancellationToken);
     Task<IReadOnlyList<SurgeryReadModel>> GetByPatientAsync(Guid patientId, CancellationToken cancellationToken);
     Task<SurgeryReadModel?> GetAsync(Guid id, CancellationToken cancellationToken);
     Task<SurgeryReadModel> CreateAsync(SurgeryWriteModel surgery, CancellationToken cancellationToken);

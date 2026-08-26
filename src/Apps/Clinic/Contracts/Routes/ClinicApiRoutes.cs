@@ -13,6 +13,8 @@ public static class ClinicApiRoutes
     public const string SurgeryCatalogs = "/surgeries/catalogs";
     public const string PatientSurgeries = PatientDetails + "/surgeries";
     public const string Surgeries = "/surgeries";
+    public const string DashboardAppointments = "/dashboard/appointments";
+    public const string DashboardSurgeries = "/dashboard/surgeries";
     public const string SurgeryById = Surgeries + "/{id:guid}";
     public const string SurgeryCancel = SurgeryById + "/cancel";
     public const string PatientAssistant = "/patients/{patientId:guid}/assistant";

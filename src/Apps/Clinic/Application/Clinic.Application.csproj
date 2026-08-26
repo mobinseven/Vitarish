@@ -10,6 +10,7 @@
     <ProjectReference Include="..\Domain\Clinic.Domain\Clinic.Domain.csproj" />
     <ProjectReference Include="..\..\..\Modules\Intelligence\Application\Intelligence.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\Base\Core\Modules.Base.Core.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Appointments\Application\Appointments.Application.csproj" />
   </ItemGroup>
 
 </Project>
