@@ -7,6 +7,11 @@ namespace Vitarish.Modules.Base.Core;
 public abstract class Module : IModule
 {
     public const string ApplicationSection = "Vitarish";
+    public const string EvaluatedConfigurationSection = ApplicationSection + ":EvaluatedConfiguration";
+    public const string EvaluatedConfigurationEnabledKey = EvaluatedConfigurationSection + ":Enabled";
+    public const string EvaluatedConfigurationIdentityKey = EvaluatedConfigurationSection + ":Identity";
+    public const string MainOnlyEvaluatedProfileIdentity = "vitarish-toe-main-evaluated-2026-08-15";
+    public const string ProductEvaluatedProfileIdentity = "vitarish-product-evaluated-v1.0";
 
     public abstract string Name { get; }
 

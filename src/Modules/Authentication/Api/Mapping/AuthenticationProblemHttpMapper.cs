@@ -31,12 +31,15 @@ public static class AuthenticationProblemHttpMapper
             _ => (StatusCodes.Status500InternalServerError, AuthenticationErrorCode.invalid_input)
         };
 
-        return Results.Problem(new ProblemDetails
+        ProblemDetails details = new()
         {
             Status = status,
             Title = failure.Reason.ToString(),
             Detail = failure.Message,
             Extensions = { ["code"] = code.ToString() }
-        });
+        };
+        if (!string.IsNullOrWhiteSpace(failure.ChallengeId))
+            details.Extensions["challengeId"] = failure.ChallengeId;
+        return Results.Problem(details);
     }
 }

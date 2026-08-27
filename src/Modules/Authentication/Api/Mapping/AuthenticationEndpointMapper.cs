@@ -11,6 +11,7 @@ public static class AuthenticationEndpointMapper
     {
         AuthenticationChallengePurpose.PhoneLogin => AuthenticationChallengePurposeDto.PhoneLogin,
         AuthenticationChallengePurpose.EmailLogin => AuthenticationChallengePurposeDto.EmailLogin,
+        AuthenticationChallengePurpose.PasswordLoginOtp => AuthenticationChallengePurposeDto.PasswordLoginOtp,
         AuthenticationChallengePurpose.PhoneChange => AuthenticationChallengePurposeDto.PhoneChange,
         AuthenticationChallengePurpose.EmailChange => AuthenticationChallengePurposeDto.EmailChange,
         _ => AuthenticationChallengePurposeDto.PasskeyLogin

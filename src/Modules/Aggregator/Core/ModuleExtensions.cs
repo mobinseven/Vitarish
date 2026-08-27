@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Configuration;
 using Vitarish.Modules.Base.Core;
 using Vitarish.Modules.Base.Core.Endpoints;
+using BaseModule = Vitarish.Modules.Base.Core.Module;
 
 public static class ModulesExtensions
 {
@@ -35,12 +36,23 @@ public static class ModulesExtensions
         "Vitarish.Journey.Module",
     ];
 
-    public static List<IModule> GetModules(IConfiguration? configuration = null) =>
-        ModuleAssemblyNames
+    public static List<IModule> GetModules(IConfiguration? configuration = null)
+    {
+        bool evaluated = configuration?.GetValue<bool>(BaseModule.EvaluatedConfigurationEnabledKey) == true;
+        string? profile = configuration?[BaseModule.EvaluatedConfigurationIdentityKey];
+
+        if (evaluated && !string.Equals(profile, BaseModule.MainOnlyEvaluatedProfileIdentity, StringComparison.Ordinal) &&
+            !string.Equals(profile, BaseModule.ProductEvaluatedProfileIdentity, StringComparison.Ordinal))
+            throw new InvalidOperationException($"Unknown evaluated composition profile '{profile ?? ""}'.");
+
+        bool mainOnly = evaluated && string.Equals(profile, BaseModule.MainOnlyEvaluatedProfileIdentity, StringComparison.Ordinal);
+
+        return ModuleAssemblyNames
             .SelectMany(GetModuleTypes)
             .Select(moduleType => (IModule)Activator.CreateInstance(moduleType)!)
-            .Where(module => configuration?.GetValue<bool>("Vitarish:EvaluatedConfiguration:Enabled") != true || EvaluatedModuleNames.Contains(module.Name))
+            .Where(module => !mainOnly || EvaluatedModuleNames.Contains(module.Name))
             .ToList();
+    }
 
     private static IEnumerable<Type> GetModuleTypes(string assemblyName)
     {

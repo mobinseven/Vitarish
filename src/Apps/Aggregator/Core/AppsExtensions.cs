@@ -7,21 +7,32 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Configuration;
+using Vitarish.Modules.Base.Core;
 using Vitarish.Modules.Base.Core.Endpoints;
 
 namespace Vitarish.Apps.Aggregator.Core;
 
 public static class AppsExtensions
 {
-    public static List<IApp> GetApps(IConfiguration? configuration = null) =>
-            configuration?.GetValue<bool>("Vitarish:EvaluatedConfiguration:Enabled") == true
-            ? []
-            :
-            [
-                Activator.CreateInstance<ClinicApp>(),
-                Activator.CreateInstance<ProjectManagementApp>(),
-                Activator.CreateInstance<LandingApp>(),
+    public static List<IApp> GetApps(IConfiguration? configuration = null)
+    {
+        bool evaluated = configuration?.GetValue<bool>(Module.EvaluatedConfigurationEnabledKey) == true;
+        string? profile = configuration?[Module.EvaluatedConfigurationIdentityKey];
+
+        if (evaluated && !string.Equals(profile, Module.MainOnlyEvaluatedProfileIdentity, StringComparison.Ordinal) &&
+            !string.Equals(profile, Module.ProductEvaluatedProfileIdentity, StringComparison.Ordinal))
+            throw new InvalidOperationException($"Unknown evaluated composition profile '{profile ?? ""}'.");
+
+        if (evaluated && string.Equals(profile, Module.MainOnlyEvaluatedProfileIdentity, StringComparison.Ordinal))
+            return [];
+
+        return
+        [
+            Activator.CreateInstance<ClinicApp>(),
+            Activator.CreateInstance<ProjectManagementApp>(),
+            Activator.CreateInstance<LandingApp>(),
         ];
+    }
     public static async Task<WebApplicationBuilder> RegisterApps(
         this WebApplicationBuilder builder,
         Action<DbContextOptionsBuilder>? configureDbContext = null)

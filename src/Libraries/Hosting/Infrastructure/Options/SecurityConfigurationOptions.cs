@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using SystemIPNetwork = System.Net.IPNetwork;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Hosting.Infrastructure.Options;
 
@@ -10,7 +11,7 @@ public sealed class SecurityConfigurationOptions
 {
     public const string SectionName = "Vitarish:Security";
     public const string IdentityAuthorityKey = "Vitarish:Identity:Authority";
-    public const string EvaluatedConfigurationSectionName = "Vitarish:EvaluatedConfiguration";
+    public const string EvaluatedConfigurationSectionName = Module.EvaluatedConfigurationSection;
     public const string AllowedCorsOriginsSectionName = "Cors:AllowedOrigins";
 
     public string IdentityAuthority { get; init; } = string.Empty;
