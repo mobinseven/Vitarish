@@ -388,22 +388,37 @@ internal static class SecurityBaselineCheck
         string configPath = Path.Combine(profileRoot, "evaluated-configuration.md");
         string topologyPath = Path.Combine(profileRoot, "topology.md");
         string toePath = Path.Combine(profileRoot, "toe-inventory.md");
+        string transportInventoryPath = Path.Combine(profileRoot, "evaluated-transport-and-cryptography.md");
+        string updateRunbookPath = Path.Combine(profileRoot, "manual-update-runbook.md");
         string compose = ReadRequired(composePath, violations);
         string caddy = ReadRequired(caddyPath, violations);
         string config = ReadRequired(configPath, violations);
         string topology = ReadRequired(topologyPath, violations);
         string toe = ReadRequired(toePath, violations);
+        string transportInventory = ReadRequired(transportInventoryPath, violations);
+        string updateRunbook = ReadRequired(updateRunbookPath, violations);
 
         RequireText(config, ProfileIdentity, configPath, violations);
         RequireText(topology, ProfileIdentity, topologyPath, violations);
         RequireText(toe, ProfileIdentity, toePath, violations);
+        RequireText(transportInventory, ProfileIdentity, transportInventoryPath, violations);
+        RequireText(updateRunbook, ProfileIdentity, updateRunbookPath, violations);
         RequireText(compose, "name: vitarish-product-evaluated-v1-0", composePath, violations);
         RequireText(compose, "internal: true", composePath, violations);
         RequireText(caddy, "protocols tls1.2 tls1.2", caddyPath, violations);
+        RequireText(caddy, "ciphers TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", caddyPath, violations);
+        RequireText(caddy, "curves secp256r1", caddyPath, violations);
+        RequireText(caddy, "alpn h1 h2", caddyPath, violations);
         RequireText(caddy, "reverse_proxy @api main:8080", caddyPath, violations);
+        RequireText(topology, "same-machine", topologyPath, violations);
+        RequireText(topology, "separate-machine", topologyPath, violations);
+        RequireText(transportInventory, "basicConstraints CA=TRUE", transportInventoryPath, violations);
+        RequireText(transportInventory, "CR-4/TSF-6 not triggered", transportInventoryPath, violations);
+        RequireText(updateRunbook, "authorized administrator or developer", updateRunbookPath, violations);
+        RequireText(compose, "egress:", composePath, violations);
 
         if (Regex.IsMatch(compose, @"(?im)^\s*image:\s*[^\r\n]*:latest\s*$"))
-            violations.Add(ProfileViolation(composePath, "MutableImageReference", "Use a release-supplied immutable image reference."));
+            violations.Add(ProfileViolation(composePath, "MutableImageReference", "Use a release-supplied versioned image reference."));
         if (Regex.IsMatch(compose, @"(?im)^\s*-\s*[^\r\n]*(?:5432|6379)(?::|/)") ||
             Regex.IsMatch(compose, @"(?im)^\s*-\s*[^\r\n]*:443/udp\s*$"))
             violations.Add(ProfileViolation(composePath, "ForbiddenPublishedPort", "Only Caddy TCP 80 and TCP 443 may be published."));
@@ -421,7 +436,8 @@ internal static class SecurityBaselineCheck
                 violations.Add(ProfileViolation(composePath, "HostBoundaryMissing", $"Declare {host} in both the evaluated Compose and Caddy owners."));
         }
 
-        string serviceSection = compose.Split("networks:", 2, StringSplitOptions.None)[0];
+        Match servicesMatch = Regex.Match(compose, @"(?ms)^services:\s*\r?\n(?<services>.*?)(?=^networks:\s*$)");
+        string serviceSection = servicesMatch.Success ? servicesMatch.Groups["services"].Value : string.Empty;
         foreach (Match service in Regex.Matches(serviceSection, @"(?ms)^  (?<name>[a-z0-9-]+):\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:|\z)"))
         {
             string name = service.Groups["name"].Value;
@@ -431,6 +447,27 @@ internal static class SecurityBaselineCheck
             if (!body.Contains("image:", StringComparison.Ordinal) && name is not "networks" and not "volumes" and not "secrets")
                 violations.Add(ProfileViolation(composePath, "ServiceImageMissing", $"Service {name} has no image declaration."));
         }
+
+        Match mainNetworks = Regex.Match(serviceSection, @"(?ms)^  main:\s*(?<body>.*?)(?=^  [a-z0-9-]+:|\z)");
+        if (!mainNetworks.Success || !Regex.IsMatch(mainNetworks.Groups["body"].Value, @"(?m)^    networks:\s*\[application, egress\]\s*$"))
+            violations.Add(ProfileViolation(composePath, "MainEgressMissing", "Main must be attached to the dedicated non-internal egress network."));
+
+        foreach (Match service in Regex.Matches(serviceSection, @"(?ms)^  (?<name>[a-z0-9-]+):\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:|\z)"))
+        {
+            if (service.Groups["name"].Value != "main" &&
+                Regex.IsMatch(service.Groups["body"].Value, @"(?m)^    networks:\s*\[[^\]]*\begress\b[^\]]*\]\s*$"))
+                violations.Add(ProfileViolation(composePath, "UnexpectedEgressAttachment", $"Service {service.Groups["name"].Value} must not use the provider egress network."));
+        }
+
+        Match egressNetwork = Regex.Match(compose, @"(?ms)^  egress:\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:\s*$|\z)");
+        if (!egressNetwork.Success || egressNetwork.Groups["body"].Value.Contains("internal:", StringComparison.Ordinal))
+            violations.Add(ProfileViolation(composePath, "EgressNetworkMustBeExternal", "The dedicated provider egress network must be declared without internal=true."));
+
+        Match caddyService = Regex.Match(serviceSection, @"(?ms)^  caddy:\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:\r?$|\z)");
+        if (!caddyService.Success ||
+            !Regex.IsMatch(caddyService.Groups["body"].Value, @"(?m)^      - ""80:80/tcp""\s*$") ||
+            !Regex.IsMatch(caddyService.Groups["body"].Value, @"(?m)^      - ""443:443/tcp""\s*$"))
+            violations.Add(ProfileViolation(composePath, "IngressPortAllowlist", "Caddy must publish TCP 80 and TCP 443."));
 
         return violations;
     }

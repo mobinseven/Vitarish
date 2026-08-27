@@ -11,6 +11,8 @@ $profileRoot = Join-Path $RepositoryRoot 'docs\security\network-questionnaire-v1
 $planPath = Join-Path $profileRoot 'implementation-plan.md'
 $matrixPath = Join-Path $profileRoot 'requirements-matrix.md'
 $configPath = Join-Path $profileRoot 'evaluated-configuration.md'
+$transportInventoryPath = Join-Path $profileRoot 'evaluated-transport-and-cryptography.md'
+$updateRunbookPath = Join-Path $profileRoot 'manual-update-runbook.md'
 $composePath = Join-Path $RepositoryRoot 'src\Hosts\docker-compose.product-evaluated-v1.0.yml'
 $caddyPath = Join-Path $RepositoryRoot 'src\Hosts\caddy\Caddyfile.product-evaluated-v1.0'
 $dockerIgnorePath = Join-Path $RepositoryRoot '.dockerignore'
@@ -29,6 +31,8 @@ $matrix = Require-Text $matrixPath 'requirements matrix'
 $implementationMatrix = Require-Text (Join-Path $profileRoot 'implementation-matrix.md') 'implementation matrix'
 $deploymentMatrix = Require-Text (Join-Path $profileRoot 'deployment-evidence-matrix.md') 'deployment-evidence matrix'
 $config = Require-Text $configPath 'evaluated configuration'
+$transportInventory = Require-Text $transportInventoryPath 'transport and cryptography inventory'
+$updateRunbook = Require-Text $updateRunbookPath 'manual update runbook'
 $compose = Require-Text $composePath 'network compose manifest'
 $caddy = Require-Text $caddyPath 'network Caddyfile'
 $dockerIgnore = Require-Text $dockerIgnorePath 'Docker build ignore rules'
@@ -49,7 +53,8 @@ foreach ($id in $planIds) {
 
 foreach ($required in @(
     'implementation-matrix.md', 'deployment-evidence-matrix.md', 'security-target.md',
-    'toe-inventory.md', 'topology.md', 'deployment-evidence-plan.md'
+    'toe-inventory.md', 'topology.md', 'deployment-evidence-plan.md',
+    'evaluated-transport-and-cryptography.md', 'manual-update-runbook.md'
 )) {
     if (-not (Test-Path -LiteralPath (Join-Path $profileRoot $required) -PathType Leaf)) {
         $failures.Add("Missing Stage 0 artifact: $required")
@@ -67,7 +72,7 @@ foreach ($requiredText in @(
     'vitarish-product-evaluated-v1-0', 'VITARISH_MAIN_IMAGE',
     'VITARISH_OWNER_WEB_IMAGE', 'VITARISH_PATIENTS_WEB_IMAGE', 'VITARISH_PLATFORM_ADMIN_WEB_IMAGE',
     'VITARISH_PM_WEB_IMAGE', 'VITARISH_KNOWLEDGE_QA_WEB_IMAGE', 'VITARISH_LANDING_WEB_IMAGE',
-    'VITARISH_AGENT_RUNTIME_IMAGE', 'VITARISH_CADDY_IMAGE', 'internal: true'
+    'VITARISH_AGENT_RUNTIME_IMAGE', 'VITARISH_CADDY_IMAGE', 'internal: true', 'egress:',
     'VITARISH_IDENTITY_AUTHORITY', 'VITARISH_DATA_PROTECTION_PASSWORD',
     'VITARISH_SMS_API_KEY', 'VITARISH_SMTP_PASSWORD', 'VITARISH_OPENAI_API_KEY',
     'VITARISH_AGENT_RUNTIME_SHARED_SECRET',
@@ -78,6 +83,7 @@ foreach ($requiredText in @(
 }
 foreach ($requiredText in @(
     'protocols tls1.2 tls1.2', 'X-Content-Type-Options', 'Content-Security-Policy',
+    'ciphers TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256', 'curves secp256r1', 'alpn h1 h2',
     'reverse_proxy web-private-practice-owner:3000',
     'http://{$VITARISH_PUBLIC_HOST:?VITARISH_PUBLIC_HOST is required}',
     'http://{$VITARISH_PATIENTS_HOST:?VITARISH_PATIENTS_HOST is required}',
@@ -91,6 +97,55 @@ foreach ($requiredText in @(
 if ($caddy -match '(?im)h3|http/3|443/udp') { $failures.Add('Caddyfile enables or references HTTP/3/QUIC in the TLS 1.2-only profile.') }
 if ($caddy -match '(?im)agent-runtime') { $failures.Add('Caddyfile must not expose the server-only agent runtime publicly.') }
 if ($dockerIgnore -notmatch '(?m)^\*\*/appsettings\.json\s*$') { $failures.Add('Docker build context must exclude local appsettings.json files.') }
+
+$servicesMatch = [regex]::Match($compose, '(?ms)^services:\s*\r?\n(?<services>.*?)(?=^networks:\s*$)')
+$services = if ($servicesMatch.Success) { $servicesMatch.Groups['services'].Value } else { '' }
+$mainService = [regex]::Match($services, '(?ms)^  main:\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:\r?$|\z)')
+if (-not $mainService.Success -or $mainService.Groups['body'].Value -notmatch '(?m)^    networks:\s*\[application, egress\]\s*$') { $failures.Add('Main must use the application and dedicated egress networks.') }
+foreach ($service in [regex]::Matches($services, '(?ms)^  (?<name>[a-z0-9-]+):\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:\r?$|\z)')) {
+    if ($service.Groups['name'].Value -ne 'main' -and $service.Groups['body'].Value -match '(?m)^    networks:\s*\[[^\]]*\begress\b[^\]]*\]\s*$') {
+        $failures.Add("Only Main may use the dedicated egress network: $($service.Groups['name'].Value)")
+    }
+}
+if ($compose -match '(?ms)^  egress:\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:\s*$|\z)' -and $Matches.body -match '(?m)^    internal:\s*true\s*$') { $failures.Add('The dedicated egress network must not be internal.') }
+
+foreach ($requiredText in @(
+    'TLS 1.2 only', 'same-machine', 'separate-machine',
+    'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256', 'P-256', 'basicConstraints CA=TRUE',
+    'Server Authentication', 'native trusted-chain', 'CR-1', 'CR-2', 'CR-3',
+    'TSF-4', 'TSF-5', 'CR-4/TSF-6 not triggered'
+)) {
+    if ($transportInventory -notmatch [regex]::Escape($requiredText)) {
+        $failures.Add("Transport/cryptography inventory lacks required declaration: $requiredText")
+    }
+}
+foreach ($requiredText in @(
+    'authorized administrator or developer', 'versioned container image reference',
+    'forward-only', 'previous known-good', 'does not check for updates',
+    'update file''s signature'
+)) {
+    if ($updateRunbook -notmatch [regex]::Escape($requiredText)) {
+        $failures.Add("Manual update runbook lacks required boundary: $requiredText")
+    }
+}
+
+$sourcePaths = & rg --files (Join-Path $RepositoryRoot 'src') -g '*.cs' -g '!**/bin/**' -g '!**/obj/**' -g '!**/Migrations/**' -g '!**/node_modules/**'
+if ($LASTEXITCODE -notin 0, 1) {
+    $failures.Add('Source-file discovery failed while checking transport enforcement.')
+}
+$source = ($sourcePaths | ForEach-Object { [IO.File]::ReadAllText($_) }) -join "`n"
+if ($source -match 'DangerousAcceptAnyServerCertificateValidator|ServerCertificateCustomValidationCallback\s*=') {
+    $failures.Add('Source contains a certificate-validation bypass or custom callback assignment.')
+}
+foreach ($requiredText in @(
+    'SslProtocols.Tls12', 'CheckCertificateRevocationList = true',
+    'AddSecureHttpClientDefaults', 'client.SslProtocols = SslProtocols.Tls12',
+    'client.CheckCertificateRevocation = true'
+)) {
+    if ($source -notmatch [regex]::Escape($requiredText)) {
+        $failures.Add("Source lacks selected transport enforcement: $requiredText")
+    }
+}
 
 $baseFiles = Get-ChildItem (Join-Path $RepositoryRoot 'src\Modules\Base') -Recurse -File -Include *.cs -ErrorAction SilentlyContinue
 foreach ($file in $baseFiles) {
