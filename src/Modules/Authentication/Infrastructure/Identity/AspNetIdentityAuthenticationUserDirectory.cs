@@ -9,6 +9,13 @@ namespace Vitarish.Authentication.Infrastructure;
 
 public sealed class AspNetIdentityAuthenticationUserDirectory(UserManager<User> userManager, IHttpContextAccessor httpContextAccessor) : IAuthenticationUserDirectory
 {
+    public async Task<AuthenticationUserDescriptor?> FindByIdAsync(string userId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(userId)) return null;
+        User? user = await userManager.FindByIdAsync(userId);
+        return user is null ? null : ToDescriptor(user);
+    }
+
     public async Task<AuthenticationUserDescriptor?> FindByLoginAsync(string login, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(login)) return null;

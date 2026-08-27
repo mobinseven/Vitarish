@@ -1,13 +1,66 @@
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
+using StackExchange.Redis;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.Challenges;
 
 namespace Vitarish.Authentication.Infrastructure;
 
-public sealed class DistributedAuthenticationChallengeStore(IDistributedCache cache) : IAuthenticationChallengeStore
+public sealed class DistributedAuthenticationChallengeStore(IDistributedCache cache, IConnectionMultiplexer redis) : IAuthenticationChallengeStore
 {
     private const string KeyPrefix = "authentication:challenge:";
+    private const string ConsumedKeyPrefix = "authentication:challenge-consumed:";
+    private const string FailedKeyPrefix = "authentication:challenge-failed:";
+    private const string InFlightKeyPrefix = "authentication:challenge-in-flight:";
+
+    private static string ConsumedKey(string challengeId) => $"{ConsumedKeyPrefix}{{{challengeId}}}";
+    private static string FailedKey(string challengeId) => $"{FailedKeyPrefix}{{{challengeId}}}";
+    private static string InFlightKey(string challengeId) => $"{InFlightKeyPrefix}{{{challengeId}}}";
+
+    private const string TryReserveAttemptScript = """
+        if redis.call('EXISTS', KEYS[2]) == 1 then return 0 end
+        local failed = tonumber(redis.call('GET', KEYS[1]) or '0')
+        local in_flight = tonumber(redis.call('GET', KEYS[3]) or '0')
+        if failed + in_flight >= tonumber(ARGV[1]) then return 0 end
+        local reserved = redis.call('INCR', KEYS[3])
+        if reserved == 1 then redis.call('PEXPIRE', KEYS[3], ARGV[2]) end
+        return 1
+        """;
+
+    private const string ReleaseAttemptScript = """
+        local in_flight = tonumber(redis.call('GET', KEYS[1]) or '0')
+        if in_flight <= 0 then return 0 end
+        if in_flight == 1 then redis.call('DEL', KEYS[1]) else redis.call('DECR', KEYS[1]) end
+        return 1
+        """;
+
+    private const string TryConsumeScript = """
+        if redis.call('EXISTS', KEYS[1]) == 1 then
+            local in_flight = tonumber(redis.call('GET', KEYS[2]) or '0')
+            if in_flight > 0 then
+                if in_flight == 1 then redis.call('DEL', KEYS[2]) else redis.call('DECR', KEYS[2]) end
+            end
+            return 0
+        end
+        local result = redis.call('SET', KEYS[1], '1', 'PX', ARGV[1], 'NX')
+        if not result then return 0 end
+        local in_flight = tonumber(redis.call('GET', KEYS[2]) or '0')
+        if in_flight > 0 then
+            if in_flight == 1 then redis.call('DEL', KEYS[2]) else redis.call('DECR', KEYS[2]) end
+        end
+        return 1
+        """;
+
+    private const string TryRegisterFailureScript = """
+        local in_flight = tonumber(redis.call('GET', KEYS[3]) or '0')
+        if in_flight <= 0 then return 0 end
+        if in_flight == 1 then redis.call('DEL', KEYS[3]) else redis.call('DECR', KEYS[3]) end
+        if redis.call('EXISTS', KEYS[2]) == 1 then return 0 end
+        local failed = redis.call('INCR', KEYS[1])
+        if failed == 1 then redis.call('PEXPIRE', KEYS[1], ARGV[2]) end
+        if failed > tonumber(ARGV[1]) then return 0 end
+        return failed
+        """;
 
     public async Task SaveAsync(AuthenticationChallenge challenge, CancellationToken cancellationToken)
     {
@@ -23,7 +76,21 @@ public sealed class DistributedAuthenticationChallengeStore(IDistributedCache ca
     {
         byte[]? data = await cache.GetAsync(KeyPrefix + id.Value, cancellationToken);
         AuthenticationChallengeSnapshot? snapshot = data is null ? null : JsonSerializer.Deserialize<AuthenticationChallengeSnapshot>(data);
-        return snapshot?.ToChallenge();
+        AuthenticationChallenge? challenge = snapshot?.ToChallenge();
+        if (challenge is { Status: AuthenticationChallengeStatus.Pending })
+        {
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            if (await redis.GetDatabase().KeyExistsAsync(ConsumedKey(id.Value)))
+                challenge.Complete(now);
+            else if (await redis.GetDatabase().StringGetAsync(FailedKey(id.Value)) is RedisValue failedValue &&
+                     long.TryParse(failedValue.ToString(), out long failedAttempts))
+            {
+                for (long attempt = challenge.FailedAttempts; attempt < Math.Min(failedAttempts, challenge.MaximumAttempts); attempt++)
+                    challenge.RegisterFailure(now);
+            }
+        }
+
+        return challenge;
     }
 
     public async Task ReplaceAsync(AuthenticationChallenge challenge, CancellationToken cancellationToken)
@@ -34,6 +101,57 @@ public sealed class DistributedAuthenticationChallengeStore(IDistributedCache ca
             data,
             new DistributedCacheEntryOptions { AbsoluteExpiration = challenge.ExpiresAt },
             cancellationToken);
+    }
+
+    public async Task<bool> TryReserveAttemptAsync(AuthenticationChallenge challenge, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        TimeSpan lifetime = challenge.ExpiresAt - DateTimeOffset.UtcNow;
+        if (lifetime <= TimeSpan.Zero)
+            return false;
+
+        RedisResult result = await redis.GetDatabase().ScriptEvaluateAsync(
+            TryReserveAttemptScript,
+            [FailedKey(challenge.Id.Value), ConsumedKey(challenge.Id.Value), InFlightKey(challenge.Id.Value)],
+            [challenge.MaximumAttempts, Math.Max(1, (long)lifetime.TotalMilliseconds)]);
+        return (long)result == 1;
+    }
+
+    public async Task ReleaseAttemptAsync(AuthenticationChallenge challenge, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _ = await redis.GetDatabase().ScriptEvaluateAsync(
+            ReleaseAttemptScript,
+            [InFlightKey(challenge.Id.Value)]);
+    }
+
+    public async Task<bool> TryConsumeAsync(AuthenticationChallenge challenge, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        TimeSpan lifetime = challenge.ExpiresAt - DateTimeOffset.UtcNow;
+        if (lifetime <= TimeSpan.Zero)
+            return false;
+
+        RedisResult result = await redis.GetDatabase().ScriptEvaluateAsync(
+            TryConsumeScript,
+            [ConsumedKey(challenge.Id.Value), InFlightKey(challenge.Id.Value)],
+            [Math.Max(1, (long)lifetime.TotalMilliseconds)]);
+        return (long)result == 1;
+    }
+
+    public async Task<int> TryRegisterFailureAsync(AuthenticationChallenge challenge, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        TimeSpan lifetime = challenge.ExpiresAt - DateTimeOffset.UtcNow;
+        if (lifetime <= TimeSpan.Zero)
+            return 0;
+
+        RedisResult result = await redis.GetDatabase().ScriptEvaluateAsync(
+            TryRegisterFailureScript,
+            [FailedKey(challenge.Id.Value), ConsumedKey(challenge.Id.Value), InFlightKey(challenge.Id.Value)],
+            [challenge.MaximumAttempts, Math.Max(1, (long)lifetime.TotalMilliseconds)]);
+        long failedAttempts = (long)result;
+        return failedAttempts > int.MaxValue ? int.MaxValue : (int)failedAttempts;
     }
 
     private sealed record AuthenticationChallengeSnapshot(
@@ -47,7 +165,9 @@ public sealed class DistributedAuthenticationChallengeStore(IDistributedCache ca
         int MaximumAttempts,
         int FailedAttempts,
         AuthenticationChallengeStatus Status,
-        DateTimeOffset? CompletedAt)
+        DateTimeOffset? CompletedAt,
+        bool RememberMe = false,
+        bool RequiresProfileCompletion = false)
     {
         public static AuthenticationChallengeSnapshot FromChallenge(AuthenticationChallenge challenge) => new(
             challenge.Id.Value,
@@ -60,7 +180,9 @@ public sealed class DistributedAuthenticationChallengeStore(IDistributedCache ca
             challenge.MaximumAttempts,
             challenge.FailedAttempts,
             challenge.Status,
-            challenge.CompletedAt);
+            challenge.CompletedAt,
+            challenge.RememberMe,
+            challenge.RequiresProfileCompletion);
 
         public AuthenticationChallenge ToChallenge() => AuthenticationChallenge.Restore(
             new AuthenticationChallengeId(Id),
@@ -73,6 +195,8 @@ public sealed class DistributedAuthenticationChallengeStore(IDistributedCache ca
             MaximumAttempts,
             FailedAttempts,
             Status,
-            CompletedAt);
+            CompletedAt,
+            RememberMe,
+            RequiresProfileCompletion);
     }
 }

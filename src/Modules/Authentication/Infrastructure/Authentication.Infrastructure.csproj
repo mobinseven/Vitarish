@@ -6,6 +6,7 @@
     <PackageReference Include="Duende.IdentityServer" />
     <PackageReference Include="Fido2" />
     <PackageReference Include="Fido2.AspNet" />
+    <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Application\Authentication.Application.csproj" />

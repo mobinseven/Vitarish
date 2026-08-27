@@ -29,7 +29,31 @@ public sealed class AspNetIdentitySignInService(UserManager<User> userManager, S
 
         bool requiresProfileCompletion = string.IsNullOrWhiteSpace(user.FirstName) || string.IsNullOrWhiteSpace(user.LastName);
 
-        return new PasswordSignInResult(status, user.Id, requiresProfileCompletion);
+        return new PasswordSignInResult(status, user.Id, requiresProfileCompletion, status == PasswordSignInStatus.RequiresTwoFactor && user.TwoFactorEnabled);
+    }
+
+    public async Task<PasswordSignInResult> CheckPasswordSignInAsync(string login, string password, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
+            return new PasswordSignInResult(PasswordSignInStatus.InvalidCredentials, null, false);
+
+        User? user = await userManager.FindByNameAsync(login) ?? await userManager.FindByEmailAsync(login);
+        if (user is null)
+            return new PasswordSignInResult(PasswordSignInStatus.UserNotFound, null, false);
+
+        SignInResult result = await signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: true);
+        PasswordSignInStatus status = result.Succeeded
+            ? PasswordSignInStatus.Succeeded
+            : result.IsLockedOut
+                ? PasswordSignInStatus.LockedOut
+                : result.IsNotAllowed
+                    ? PasswordSignInStatus.NotAllowed
+                    : result.RequiresTwoFactor
+                        ? PasswordSignInStatus.RequiresTwoFactor
+                        : PasswordSignInStatus.InvalidCredentials;
+
+        bool requiresProfileCompletion = string.IsNullOrWhiteSpace(user.FirstName) || string.IsNullOrWhiteSpace(user.LastName);
+        return new PasswordSignInResult(status, user.Id, requiresProfileCompletion, (status is PasswordSignInStatus.Succeeded or PasswordSignInStatus.RequiresTwoFactor) && user.TwoFactorEnabled);
     }
 
     public async Task SignInAsync(string userId, bool rememberMe, CancellationToken cancellationToken)
