@@ -25,7 +25,7 @@ public static class WebAuthnEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        RouteGroupBuilder webauthnGroup = endpoints.MapGroup("/api/webauthn");
+        RouteGroupBuilder webauthnGroup = endpoints.MapProtectedModuleGroup("/api/webauthn", requireTenantAccess: false);
         webauthnGroup.ExcludeFromOpenApiWithJustification("Infrastructure-owned WebAuthn credential management is bound to authenticated account UI behavior and is not part of module contract OpenAPI.");
 
         // PATCH: Update WebAuthn credential friendly name

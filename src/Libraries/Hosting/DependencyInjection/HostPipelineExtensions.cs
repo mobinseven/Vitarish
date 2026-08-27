@@ -29,7 +29,7 @@ public static class HostPipelineExtensions
                 policy
                     .WithOrigins(origins)
                     .AllowAnyHeader()
-                    .AllowAnyMethod()
+                    .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
                     .AllowCredentials();
             });
         });

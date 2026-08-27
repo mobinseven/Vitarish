@@ -48,7 +48,7 @@ public static class ClinicApiEndpointMapping
     public static IEndpointRouteBuilder MapClinicApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(ClinicApiRoutes.Base);
-        RouteGroupBuilder internalGroup = endpoints.MapInternalServiceModuleGroup(ClinicApiRoutes.Base);
+        RouteGroupBuilder internalGroup = endpoints.MapInternalServiceModuleGroup(string.Empty);
 
         _ = group.MapModuleGet(ClinicApiRoutes.Health, () => Results.Ok(), "ClinicGetHealth");
         _ = group.MapModulePost(ClinicApiRoutes.Patients, ListPatientsAsync, "ClinicListPatients", typeof(PatientViewDto[]));
@@ -117,13 +117,17 @@ public static class ClinicApiEndpointMapping
                 ClinicApiRoutes.InternalAssistantHealth,
                 AgentRuntimeHealthAsync,
                 "ClinicGetInternalAssistantHealth",
-                typeof(object))
+                typeof(object),
+                profile: ModuleEndpointProfile.AnonymousJson,
+                anonymousJustification: "Internal agent runtime connectivity probe; it is protected by the internal service boundary.")
             .ExcludeFromOpenApiWithJustification("Internal agent runtime connectivity probe; not a public module API.");
         _ = internalGroup.MapModuleGet(
                 ClinicApiRoutes.LegacyInternalAgentHealth,
                 AgentRuntimeHealthAsync,
                 "ClinicGetInternalAgentHealth",
-                typeof(object))
+                typeof(object),
+                profile: ModuleEndpointProfile.AnonymousJson,
+                anonymousJustification: "Legacy internal agent runtime connectivity probe retained behind the internal service boundary.")
             .ExcludeFromOpenApiWithJustification("Legacy internal agent runtime connectivity probe retained during the assistant route migration.");
         _ = group.MapModulePost(
                 ClinicApiRoutes.StartVisitPrescriptionDraft,
