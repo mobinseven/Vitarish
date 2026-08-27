@@ -105,4 +105,15 @@ public class AuthenticationChallengePolicyTests
         challenge.Purpose.Should().Be(AuthenticationChallengePurpose.PasskeyLogin);
         challenge.Destination.Should().Be("challenge-ref");
     }
+
+    [Fact]
+    public void CreatePasswordLoginOtpChallenge_preserves_session_and_profile_state()
+    {
+        var challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
+            "user-1", "+1234567890", "token-purpose", DateTimeOffset.UtcNow, rememberMe: true, requiresProfileCompletion: true);
+
+        challenge.Purpose.Should().Be(AuthenticationChallengePurpose.PasswordLoginOtp);
+        challenge.RememberMe.Should().BeTrue();
+        challenge.RequiresProfileCompletion.Should().BeTrue();
+    }
 }

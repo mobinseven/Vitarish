@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Authentication.Api.DependencyInjection;
 using Vitarish.Authentication.Api.Endpoints;
 using Vitarish.Authentication.Contracts.Routes;
+using Vitarish.Authentication.Domain.Security;
 using Vitarish.Modules.Base.Core.Endpoints;
 
 namespace Authentication.Tests.Api;
@@ -141,6 +143,29 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
             .Should().AllSatisfy(endpoint => endpoint.Metadata.GetMetadata<SecurityAuditRequiredMetadata>().Should().NotBeNull());
         endpoints.Single(endpoint => endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName == "Authentication_Login_Password")
             .Metadata.GetMetadata<SecurityAuditHandledByApplicationMetadata>().Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Product_evaluated_profile_maps_only_declared_login_methods()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAntiforgery();
+        using WebApplication app = builder.Build();
+
+        app.MapAuthenticationApi(AuthenticationProfilePolicy.ProductEvaluated);
+
+        string[] operationIds = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .OfType<RouteEndpoint>()
+            .Select(endpoint => endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName)
+            .Where(name => name?.StartsWith("Authentication_Login_", StringComparison.Ordinal) == true)
+            .Select(name => name!)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToArray();
+
+        operationIds.Should().Equal(
+            "Authentication_Login_Password",
+            "Authentication_Login_PasswordOtp_Complete");
     }
 
     private static WebApplication CreateAppWithProtectedAuthenticationEndpoints()

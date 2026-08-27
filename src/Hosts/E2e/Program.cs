@@ -14,6 +14,8 @@ using Vitarish.E2e.Infrastructure.Events;
 using Vitarish.Clinic.Application.Events;
 using Vitarish.Clinic.Application.Assistant.Actions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Vitarish.Authentication.Application.Abstractions;
+using Vitarish.Authentication.Infrastructure;
 
 const string apiOriginKey = "VITARISH_E2E_API_ORIGIN";
 const string webOriginKey = "VITARISH_E2E_WEB_ORIGIN";
@@ -86,6 +88,7 @@ _ = builder.Services.AddScoped<ClinicDbContext>(services =>
 
 _ = builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider().SetApplicationName(apiOrigin.Host);
 _ = builder.Services.AddDistributedMemoryCache();
+builder.Services.Replace(ServiceDescriptor.Singleton<IAuthenticationChallengeStore, InMemoryAuthenticationChallengeStore>());
 _ = builder.Services.AddOpenApi();
 WebApplication app = builder.Build();
 _ = app.UseHostingPipeline(securityConfiguration);

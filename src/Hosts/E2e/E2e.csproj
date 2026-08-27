@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Libraries\Hosting\Hosting.csproj" />
+    <ProjectReference Include="..\..\Modules\Authentication\Infrastructure\Authentication.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Users\Infrastructure\Users.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Parties\Infrastructure\Parties.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Apps\Clinic\Infrastructure\Clinic.Infrastructure.csproj" />

@@ -7,5 +7,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Libraries\Hosting\Hosting.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Aggregator\Core\Modules.Aggregator.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\Apps\Aggregator\Core\Apps.Aggregator.Core.csproj" />
   </ItemGroup>
 </Project>
