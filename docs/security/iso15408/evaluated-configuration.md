@@ -4,6 +4,10 @@ Status: configuration baseline for issues [#766](https://github.com/mobinseven/V
 
 This document is the authoritative scope manifest for the initial ISO/IEC 15408 readiness configuration. It describes one machine running one Main process and its two required state services. It is not a claim that the wider repository or production deployment is evaluated. The Security Target and proposed requirements matrix are [`security-target.md`](security-target.md) and [`sfr-sar-matrix.md`](sfr-sar-matrix.md).
 
+This profile is separate from the network-questionnaire v1.0 profile. Do not
+reuse its identity, compose file, topology, or evidence for that profile; see
+[`../network-questionnaire-v1.0/evaluated-configuration.md`](../network-questionnaire-v1.0/evaluated-configuration.md).
+
 The TOE is evaluated in a single-machine configuration. Availability and integrity claims do not cover multi-instance failover. Database, cache, storage, operating system, container runtime, and ingress remain environmental dependencies unless explicitly included by a future Security Target. Distributed deployment, multi-region behavior, rolling upgrades, and cluster failover are outside the initial claim.
 
 ## Identity

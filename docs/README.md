@@ -10,6 +10,7 @@ This file is a map, not a source of truth. Scoped documents remain authoritative
 ## Primary scopes
 
 - [Architecture](architecture/decisions/_index.md): global ADRs, conventions, and validation rules.
+- [Solution architecture diagram](architecture/vitarish-solution-architecture.html): current Web, API, agent, data, and provider topology.
 - [Platform](platform/README.md): app-agnostic module design, roadmaps, tasks, tests, runbooks, providers, and shared design-system docs.
 - [Apps](apps/): app-specific decision trees, journeys, tests, decisions, roadmaps, tasks, and runbooks in flat app-owned collections.
 - [Hosts](hosts/): host-runtime runbooks, tasks, and tests.

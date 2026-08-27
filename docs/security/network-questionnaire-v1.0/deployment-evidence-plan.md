@@ -1,6 +1,6 @@
 # Vitarish Network Application Security Questionnaire: Deployment-Evidence Plan
 
-**Status:** Separate release-evidence phase for the `vitarish-network-questionnaire-v1.0` profile.
+**Status:** Separate release-evidence phase for the `vitarish-product-evaluated-v1.0` profile.
 **Prerequisite:** [implementation-plan.md](implementation-plan.md) is complete for the exact repository commit and the implementation matrix has no `implementation-gap` or `blocked` rows.
 
 ## Purpose and boundary
@@ -16,7 +16,7 @@ It does not add product behavior, alter application code, edit generated output,
 - `requirements-matrix.md` is the canonical catalog of every mandatory row and only conditional rows triggered by the frozen Vitarish boundary. Optional rows are absent.
 - `implementation-matrix.md` records repository-owned proof and must be complete before this phase starts.
 - `deployment-evidence-matrix.md` records release-instance proof and references the stable requirement IDs without duplicating row definitions.
-- `evaluated-configuration.md`, `security-target.md`, `toe-inventory.md`, `topology.md`, and `src/Hosts/docker-compose.network-questionnaire-v1.0.yml` define the exact profile.
+- `evaluated-configuration.md`, `security-target.md`, `toe-inventory.md`, `topology.md`, and `src/Hosts/docker-compose.product-evaluated-v1.0.yml` define the exact profile.
 
 Any new endpoint, provider, distributed component, listener, protocol, authentication method, transfer route, mobile client, SSH/mTLS capability, or other conditional trigger reopens Stage 0 and blocks evidence collection until the matrices and profile are updated.
 
@@ -32,7 +32,7 @@ The following committed scripts are the only release-command path for this profi
 | `Stop-NetworkQuestionnaireProfile.ps1` | The registered `finally` path stops only declared evaluated resources, preserves persistent data and evidence, and fails if resources remain. |
 | `Verify-NetworkQuestionnaireEvidence.ps1` | Candidate artifact hashes, manifest/index payloads, profile/topology binding, required reports, and screenshot references pass before signing. |
 | `Verify-NetworkQuestionnaireSignedEvidence.ps1` | Detached signatures, unmodified payload hashes, candidate-validation binding, amendment/revocation state, and final completeness pass before submission. |
-| `Test-NetworkQuestionnairePlanIntegrity.ps1` | Requirement-to-owner, topology, implementation proof, deployment proof, artifact, and release-blocker mappings remain complete. |
+| `Test-EvaluatedProfileIntegrity.ps1` | Requirement-to-owner, topology, implementation proof, deployment proof, artifact, and release-blocker mappings remain complete. |
 
 Reports are written beneath `<output>/<profile>/<commit>/build/`, `run/`, `test/`, and `verify/`. Candidate and signed bundles are separate immutable locations. No secret, cookie, token, private key, audit payload, or patient data enters those locations.
 
