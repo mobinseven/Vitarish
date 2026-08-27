@@ -35,6 +35,7 @@ public static class HostingComposition
         await builder.RegisterApps(options.ConfigureDbContext);
         await builder.RegisterModules(options.ConfigureDbContext);
         _ = builder.Services.AddFeedInfrastructure();
+        _ = builder.Services.AddSecureHttpClientDefaults();
         builder.AddApplicationOptions();
         _ = builder.Services.AddOptions<LandingPlatformOptions>().Configure<IOptions<ApplicationOptions>>((landing, platform) => landing.LandingUrl = platform.Value.LandingUrl);
         builder.AddHostIdentityServer(options.ConfigureDbContext, options.IdentityServerSigningCertificate);

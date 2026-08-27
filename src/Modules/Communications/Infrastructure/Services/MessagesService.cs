@@ -1,6 +1,7 @@
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using System.Security.Authentication;
 using Vitarish.Communications.Domain.Options;
 using Vitarish.Platform.Application.Abstractions;
 using Vitarish.Platform.Application.Contracts;
@@ -29,6 +30,8 @@ public class MessagesService(IOptionsMonitor<ProvidersOptions> providersOptions,
         };
         mimeMessage.Body = builder.ToMessageBody();
         using SmtpClient client = new();
+        client.SslProtocols = SslProtocols.Tls12;
+        client.CheckCertificateRevocation = true;
         await client.ConnectAsync(currentOptions.Smtp.Host, currentOptions.Smtp.Port, currentOptions.Smtp.EnableSsl, cancellationToken);
         await client.AuthenticateAsync(currentOptions.Smtp.Username, currentOptions.Smtp.Password, cancellationToken);
         _ = await client.SendAsync(mimeMessage, cancellationToken);

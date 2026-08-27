@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Kiota.Abstractions.Authentication;
 using Microsoft.Kiota.Http.HttpClientLibrary;
+using System.Net.Http;
+using System.Security.Authentication;
 using Tamin.Integration.Http;
 using ProdAccountClient = Tamin.Client.Account.Prod.ProdAccountClient;
 using ProdApiClient = Tamin.Client.Api.Prod.ProdApiClient;
@@ -79,14 +81,22 @@ internal sealed class TaminProviderSessionFactory(
     {
         TaminTransientFaultHandler retry = new()
         {
-            InnerHandler = new HttpClientHandler()
+            InnerHandler = new HttpClientHandler
+            {
+                SslProtocols = SslProtocols.Tls12,
+                CheckCertificateRevocationList = true
+            }
         };
         TaminRedactedResponseHandler capture = new(
             loggerFactory.CreateLogger<TaminRedactedResponseHandler>())
         {
             InnerHandler = retry
         };
-        HttpClient httpClient = new(capture, disposeHandler: true) { BaseAddress = baseUri };
+        HttpClient httpClient = new(capture, disposeHandler: true)
+        {
+            BaseAddress = baseUri,
+            Timeout = TimeSpan.FromSeconds(100)
+        };
         ownedClients.Add(httpClient);
         return new HttpClientRequestAdapter(authentication, httpClient: httpClient)
         {

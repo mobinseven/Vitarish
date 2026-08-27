@@ -9,6 +9,7 @@ using Vitarish.Search.Agents;
 using Vitarish.Search.Domain.Options;
 using Vitarish.Search.Infrastructure;
 using Vitarish.Search.Api;
+using Vitarish.Modules.Base.Core;
 
 namespace Vitarish.Search.Module;
 
@@ -21,10 +22,14 @@ public class SearchModule : Modules.Base.Core.Module, ISearchModule
 
     public override void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath)
     {
+        bool evaluatedProfile = configuration.GetValue<bool>(Vitarish.Modules.Base.Core.Module.EvaluatedConfigurationEnabledKey);
         _ = services.AddOptions<ElasticSearchOptions>()
             .BindConfiguration(sectionPath)
             .ValidateDataAnnotations()
             .Validate(options => !string.IsNullOrWhiteSpace(options.Url), $"{sectionPath}:{nameof(ElasticSearchOptions.Url)} is not defined")
+            .Validate(options => !evaluatedProfile ||
+                Uri.TryCreate(options.Url, UriKind.Absolute, out Uri? uri) && uri.Scheme == Uri.UriSchemeHttps,
+                $"{sectionPath}:{nameof(ElasticSearchOptions.Url)} must be an absolute HTTPS URI in the evaluated profile.")
             .ValidateOnStart();
         _ = services.AddOptions<SearchAgentOptions>()
             .BindConfiguration($"{sectionPath}:Agent")

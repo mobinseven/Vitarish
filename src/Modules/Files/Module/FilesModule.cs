@@ -22,6 +22,7 @@ public class FilesModule : Modules.Base.Core.Module, IFilesModule
 
     public override void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath)
     {
+        bool evaluatedProfile = configuration.GetValue<bool>(Vitarish.Modules.Base.Core.Module.EvaluatedConfigurationEnabledKey);
         _ = services.AddOptions<MinioOptions>()
             .BindConfiguration(sectionPath)
             .ValidateDataAnnotations()
@@ -29,6 +30,8 @@ public class FilesModule : Modules.Base.Core.Module, IFilesModule
             .Validate(options => !string.IsNullOrWhiteSpace(options.AccessKey), $"{sectionPath}:{nameof(MinioOptions.AccessKey)} is not defined")
             .Validate(options => !string.IsNullOrWhiteSpace(options.SecretKey), $"{sectionPath}:{nameof(MinioOptions.SecretKey)} is not defined")
             .Validate(options => !string.IsNullOrWhiteSpace(options.BucketName), $"{sectionPath}:{nameof(MinioOptions.BucketName)} is not defined")
+            .Validate(options => !evaluatedProfile || options.UseSsl,
+                $"{sectionPath}:{nameof(MinioOptions.UseSsl)} must be true in the evaluated profile.")
             .ValidateOnStart();
     }
 

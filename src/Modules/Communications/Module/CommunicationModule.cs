@@ -23,9 +23,12 @@ public class CommunicationModule : Modules.Base.Core.Module, ICommunicationsModu
 
     public override void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath)
     {
+        bool evaluatedProfile = configuration.GetValue<bool>(Vitarish.Modules.Base.Core.Module.EvaluatedConfigurationEnabledKey);
         _ = services.AddOptions<ProvidersOptions>()
             .BindConfiguration($"{sectionPath}:Providers")
             .ValidateDataAnnotations()
+            .Validate(options => !evaluatedProfile || options.Smtp.EnableSsl,
+                $"{sectionPath}:Providers:Smtp:EnableSsl must be true in the evaluated profile.")
             .ValidateOnStart();
 
         _ = services.AddOptions<NotificationOptions>()

@@ -36,9 +36,13 @@ public class IntelligenceModule : Modules.Base.Core.Module, IIntelligenceModule
 
     public override void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath)
     {
+        bool evaluatedProfile = configuration.GetValue<bool>(Vitarish.Modules.Base.Core.Module.EvaluatedConfigurationEnabledKey);
         _ = services.AddOptions<AiOptions>()
             .BindConfiguration(sectionPath)
             .ValidateDataAnnotations()
+            .Validate(options => !evaluatedProfile || string.IsNullOrWhiteSpace(options.DeepSeek.ApiKey) ||
+                Uri.TryCreate(options.DeepSeek.BaseUrl, UriKind.Absolute, out Uri? uri) && uri.Scheme == Uri.UriSchemeHttps,
+                $"{sectionPath}:DeepSeek:BaseUrl must be an absolute HTTPS URI when DeepSeek is enabled in the evaluated profile.")
             .ValidateOnStart();
         _ = services.AddOptions<AgentRuntimeOptions>()
             .BindConfiguration($"{sectionPath}:AgentRuntime");
