@@ -5,6 +5,9 @@
 (product_evaluated_tls) {
 	tls {$VITARISH_TLS_CERT_FILE:?VITARISH_TLS_CERT_FILE is required} {$VITARISH_TLS_KEY_FILE:?VITARISH_TLS_KEY_FILE is required} {
 		protocols tls1.2 tls1.2
+		ciphers TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+		curves secp256r1
+		alpn h1 h2
 	}
 	encode gzip
 	header {
