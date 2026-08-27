@@ -16,8 +16,6 @@ This index is not a source of truth. Scoped test files remain authoritative.
 - [docs/platform/modules/knowledge/journeys/knowledge-qa-test-journey.md](../platform/modules/knowledge/journeys/knowledge-qa-test-journey.md)
 - [docs/platform/modules/knowledge/tests/0001-knowledge-content-management-test-plan.md](../platform/modules/knowledge/tests/0001-knowledge-content-management-test-plan.md)
 - [docs/platform/modules/medical/tests/0001-adr-003-medical-interface-isolation-test-plan.md](../platform/modules/medical/tests/0001-adr-003-medical-interface-isolation-test-plan.md)
-- [docs/platform/modules/parties/tests/0001-adr-003-parties-boundary-test-plan.md](../platform/modules/parties/tests/0001-adr-003-parties-boundary-test-plan.md)
 - [docs/platform/modules/platform/tests/0001-adr-003-platform-boundary-test-plan.md](../platform/modules/platform/tests/0001-adr-003-platform-boundary-test-plan.md)
 - [docs/platform/modules/sea/tests/0001-sea-adr-003-migration-test-plan.md](../platform/modules/sea/tests/0001-sea-adr-003-migration-test-plan.md)
 - [docs/platform/modules/search/tests/0001-adr-003-search-boundary-test-plan.md](../platform/modules/search/tests/0001-adr-003-search-boundary-test-plan.md)
-- [docs/platform/modules/users/tests/0001-users-adr-0003-migration-test-plan.md](../platform/modules/users/tests/0001-users-adr-0003-migration-test-plan.md)

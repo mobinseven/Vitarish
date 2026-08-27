@@ -62,11 +62,6 @@ Executed against the current worktree, based at `2a300a46dbd079b5422e05ed422ee9b
 - `dotnet run --project tools/architecture -- openapi-endpoints` — `Violations found: 0`.
 - `npm run test:e2e:two-host` from `src/Hosts/Web` — 8/8 passed in the real two-host composition, including generated auth-web Users profile assertions, tenant-filtered file search, binary download/export behavior, and Intelligence agent-conversation substitutions; the fresh authenticated dashboard proof screenshot was visually inspected at `src/Hosts/Web/artifacts/two-host-e2e/authenticated-dashboard-proof.png`.
 
-`tests/Modules/Users.Tests/Users.Tests.csproj` remains 16/17: its existing
-boundary test expects the absent
-`src/Modules/Users/Interface/Users.Interface.csproj`. That repository issue is
-not caused by this change and was not weakened.
-
 ## Residual risks and boundaries
 
 - The E2E host uses in-memory persistence and object storage, with a disabled
