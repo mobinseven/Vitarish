@@ -142,7 +142,7 @@ These stable plan IDs map to the in-scope questionnaire rows. The canonical matr
 | TSF-1 | 2-6.1 | Software and hardware/dependency failure preserve authorization, isolation, audit guarantees, and data integrity; errors reveal no internals. Recovery evidence covers restart and restore. |
 | TSF-2 | 2-6.2 | Separate-machine links use authenticated encryption. Same-machine satisfaction requires proof of co-location and rejection of unsupported remote configuration. |
 | TSF-4 | 2-6.4 | Security time uses UTC from the evaluated OS clock; synchronization and change protection are release evidence. Duration logic resists wall-clock jumps. |
-| TSF-5 | 2-6.5 | Authorized operators can apply a manual update identified by commit and immutable digest; preflight, migration, health, rollback limits, and provenance are documented. |
+| TSF-5 | 2-6.5 | Authorized operators can apply a manual update identified by product version and source revision; preflight, migration, health, rollback limits, and provenance are documented. |
 | RA-1 | 2-7.1 | Stage 0 defines core functions and accepted degraded behavior for software failures. Restart, bounded retry, safe recovery/read-only behavior, and consistency are proven. If the evaluator requires uninterrupted HA, pause and add redundancy. |
 | AC-1 | 2-8.1 | Server transactionally enforces the configured per-user concurrent-session maximum. |
 | AC-2 | 2-8.2 | Administrators manage global and per-user idle time within safe bounds; all remote interactive sessions terminate after the effective interval. |
@@ -179,7 +179,7 @@ These stable plan IDs map to the in-scope questionnaire rows. The canonical matr
 | CERT-2 | HTTPS/TLS certificate validation is used | Accept a CA certificate only when `basicConstraints` is present and `CA=TRUE`. |
 | CERT-3 | HTTPS/TLS or conditional signing is selected | Use X.509v3 for the selected purpose; require Server Authentication and conditional Client Authentication, OCSP Signing, or Code Signing EKUs. |
 | CR-3 | Product generates cryptographic keys | Inventory generation and secure destruction. TLS/platform key generation must be accounted for rather than assumed away. |
-| CR-4 / TSF-6 | Product signs data or performs automatic/signed-file updates | Implement approved algorithm/key length and certificate EKU rules. Manual immutable-image deployment does not create an automatic-update claim. |
+| CR-4 / TSF-6 | Product signs data or performs automatic/signed-file updates | Implement approved algorithm/key length and certificate EKU rules. Version-identified manual deployment does not create an automatic-update or signing claim. |
 | TSF-3 | Product shares security data with another secure IT product | Map shared authentication data, keys, signatures, or audit data and prove compatible interpretation; otherwise record non-applicability. |
 
 ### Exhaustive SM-4 management checklist
@@ -254,7 +254,7 @@ Each mutation requires server authorization, validation against hard bounds, opt
 **Depends on:** Stage 1.
 **Outcome:** Public, internal, and outbound trust boundaries are reproducible.
 
-- Add the missing `src/Hosts/caddy/Caddyfile`; configure HTTP redirect, the declared evaluated TLS protocol set, permitted server cipher/key/curve behavior, a versioned response-header configuration surface, and private Main proxying. Pin Caddy image version/digest. Stage 2A finalizes and tests the exact response-header policy through that surface.
+- Add the missing `src/Hosts/caddy/Caddyfile`; configure HTTP redirect, the declared evaluated TLS protocol set, permitted server cipher/key/curve behavior, a versioned response-header configuration surface, and private Main proxying. Record the selected Caddy image version. Stage 2A finalizes and tests the exact response-header policy through that surface.
 - While the TLS 1.2-only baseline applies, set Caddy's `:443` server protocols explicitly to `h1 h2`, omit `h3`, and configure TLS minimum and maximum as TLS 1.2. The network-profile compose manifest publishes TCP 80/443 only; it does not publish UDP 443/QUIC. TLS 1.3 or HTTP/3 requires the Stage 0 written evaluator decision, an updated profile baseline, and new protocol/suite/port evidence before either is enabled.
 - Parameterize hostnames and DNS/certificate credentials through environment/secret-store references; never commit credentials.
 - Align trusted proxies/forwarded headers with the Caddy network; reject untrusted forwarded headers.
@@ -262,7 +262,7 @@ Each mutation requires server authorization, validation against hard bounds, opt
 - Centralize safe outbound defaults without hiding provider identity: for every TLS-enabled outbound client, enforce TLS 1.2, native RFC 5280 validation, RFC 6125 hostname validation, no invalid-certificate bypass, explicit timeout/cancellation, the Stage-0-selected revocation behavior, and the recorded enforcement plane. The client-specific positive/negative probe proves the selected protocol/suite/curve disposition and certificate/revocation failure behavior; Caddy, runtime/OS, and provider controls are not interchangeable claims.
 - Build the crypto inventory: algorithm, mode, length, purpose, library, key owner, rotation/destruction, and questionnaire selection.
 - Use evaluated OS time for wall clock and monotonic elapsed time for durations where feasible; document synchronization and clock-jump behavior.
-- Define authorized manual update: immutable identity, provenance, preflight, migration order, health verification, rollback constraints, and audit/release record.
+- Define authorized manual update: product-version/source-revision identity, provenance, preflight, migration order, health verification, rollback constraints, and audit/release record.
 
 **Acceptance:** checks reject missing authenticated confidentiality/integrity on separate-machine links, a remotely configurable same-machine exception, public Main exposure, unsafe certificate callbacks, undeclared TLS clients, `h3` in adapted Caddy configuration, or UDP 443 in the evaluated topology. TLS 1.2 and HTTP/2-over-TLS succeed; TLS 1.3 and HTTP/3-only probes fail without fallback. Every outbound-client disposition has passing versioned positive/negative probes. Disposable TLS smoke tests and scan assertions pass.
 
@@ -397,7 +397,7 @@ Each mutation requires server authorization, validation against hard bounds, opt
 | Audit → UI/alert receiver | DTOs only, tenant-scoped, no sensitive/HMAC material; product emits durable state and evidence proves delivery. |
 | Audit/data → independent witness | Application-owned checkpoint payload crosses an authenticated channel to an append-only witness outside PostgreSQL and the runtime database principal. The witness returns a durable reference; unavailable, stale, mismatched, or rewound witness state triggers the declared restricted mode and ordered reconciliation. |
 | Background job → data | Idempotent, tenant-aware, cancellable, auditable, bounded, resumable, and safe on partial failure. |
-| Operator → deployment | Immutable artifact, authorized manual update, ordered migrations, health verification, rollback limit, release record. |
+| Operator → deployment | Version-identified release, authorized manual update, ordered migrations, health verification, rollback limit, release record. |
 
 ## Verification requirements
 

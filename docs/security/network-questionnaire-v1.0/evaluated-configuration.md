@@ -2,7 +2,8 @@
 
 **Profile identity:** `vitarish-product-evaluated-v1.0`
 
-**Status:** Stage 0 implementation baseline selected; deployment and release-instance evidence remain outside repository implementation.
+**Status:** Stage 2 repository transport and cryptography baseline selected;
+deployment and release-instance evidence remain outside repository implementation.
 
 This is a separate profile from [`docs/security/iso15408/`](../iso15408/), whose
 identity is `vitarish-toe-main-evaluated-2026-08-15` and whose boundary is only
@@ -34,7 +35,8 @@ not a fallback or alias. The evaluator account is a dedicated account with
 ## Baseline policy
 
 Until a written evaluator decision changes it, the profile uses TLS 1.2 only on
-every TLS-enabled evaluated connection, Caddy `h1 h2`, no HTTP/3, no UDP 443,
+every TLS-enabled evaluated connection, Caddy `h1 h2`,
+`TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`, P-256, no HTTP/3, no UDP 443,
 minimum eight-character complex passwords, five failed attempts, fifteen-minute
 denial, one concurrent browser session, and a thirty-minute idle session.
 TLS 1.0/1.1 and SSL are rejected. Private placement or a Docker network is not
@@ -42,18 +44,20 @@ treated as a secure channel.
 
 ## Exact release inputs
 
-The release mechanism must resolve and record exact versions or immutable
-digests for every item below before evidence collection:
+The release mechanism must resolve and record a product version for every item
+below before evidence collection. An explicit versioned image/reference and
+source revision may be recorded for operational clarity; a cryptographic digest
+is not required by this profile.
 
 | Item | Repository baseline | Release value |
 | --- | --- | --- |
-| .NET target/runtime | `net10.0`; `mcr.microsoft.com/dotnet/aspnet:10.0` family | deployment-evidence-pending: exact digest |
-| Main build | `src/Hosts/Main/Dockerfile`, `ModuleBuildProfile=All` | commit and image digest |
-| PostgreSQL | PostgreSQL 18 line | deployment-evidence-pending: exact image digest |
-| Redis | Redis 7.4.5 baseline | deployment-evidence-pending: exact image digest |
-| Caddy | official Caddy image, explicit `h1 h2` policy | deployment-evidence-pending: exact version/digest |
-| Web applications | release-supplied immutable images | deployment-evidence-pending: exact image digests |
-| packages/providers | `src/Directory.Packages.props`, lockfiles, resolved npm lock | release lock/digest report |
+| .NET target/runtime | `net10.0`; `mcr.microsoft.com/dotnet/aspnet:10.0` family | deployment-evidence-pending: exact version |
+| Main build | `src/Hosts/Main/Dockerfile`, `ModuleBuildProfile=All` | source revision and image version |
+| PostgreSQL | PostgreSQL 18 line | deployment-evidence-pending: exact image version |
+| Redis | Redis 7.4.5 baseline | deployment-evidence-pending: exact image version |
+| Caddy | official Caddy image, explicit `h1 h2` policy | deployment-evidence-pending: exact version |
+| Web applications | release-supplied versioned images | deployment-evidence-pending: exact image versions |
+| packages/providers | `src/Directory.Packages.props`, lockfiles, resolved npm lock | release version report |
 
 No secret, credential, private key, token, patient data, questionnaire file, or
 release screenshot is an input to repository implementation or committed
@@ -73,10 +77,15 @@ configuration.
 | Emergency journal/witness | Separate protected bounded journal plus independent append-only witness | implementation-selected; deployment evidence pending |
 | Role membership | One evaluated role per user/tenant; production membership snapshot is an operator-owned deployment input, not repository implementation | implementation-selected; deployment evidence pending |
 | Runtime composition | Full product boundary; Main-only remains a separate restricted profile | implementation-selected |
+| TLS server suite | `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`; RSA certificate key at least 2048 bits; P-256 ECDH | implementation-selected; deployment evidence pending |
+| TLS clients | TLS 1.2; native X.509 path/CA/EKU/hostname validation; online revocation checking where the client exposes it; invalid certificates fail closed | implementation-selected; provider evidence pending |
+| Time source | Operating-system UTC clock; monotonic runtime clock for elapsed durations | implementation-selected; deployment evidence pending |
+| Update mechanism | Authorized manual deployment identified by product version and source revision; no automatic discovery, installation, signing, or update-file verification | implementation-selected; release evidence pending |
 
 The implementation baseline is not a claim that a deployed release has been
-evaluated. Exact image digests, production membership snapshots, operator
-decisions, and signed evidence belong to the separate deployment-evidence phase.
+evaluated. Release versions, production membership snapshots, operator
+decisions, and deployment evidence belong to the separate deployment-evidence
+phase.
 
 ## Required membership analysis record
 

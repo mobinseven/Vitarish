@@ -47,7 +47,7 @@ selected and has a proof path, but the Stage 0 evaluator gate is not closed.
 | TSF-1 | 2-6.1 mandatory | fail closed; preserve integrity | Hosting/owners | failure matrix | fault/restart tests | recovery record | stage-0-open |
 | TSF-2 | 2-6.2 mandatory | encrypted separate-machine links | Hosting | topology/link register | placement/channel test | topology scan | stage-0-open |
 | TSF-4 | 2-6.4 mandatory | UTC trusted OS clock | Hosting/operators | clock policy | monotonic-duration test | time record | stage-0-open |
-| TSF-5 | 2-6.5 mandatory | manual immutable-digest update | Release operator | update runbook | provenance validator | release record | stage-0-open |
+| TSF-5 | 2-6.5 mandatory | manual product-version update | Release operator | update runbook | provenance validator | release record | stage-0-open |
 | RA-1 | 2-7.1 mandatory | restart/read-only; no HA claim | Hosting/operators | degraded-mode matrix | dependency fault tests | recovery evidence | stage-0-open |
 | AC-1 | 2-8.1 mandatory | transactional session maximum | Authentication | session store | concurrency test | session probe | stage-0-open |
 | AC-2 | 2-8.2 mandatory | 1–30 minute idle bound | Authentication | timeout policy | expiry test | timeout probe | stage-0-open |
@@ -79,7 +79,7 @@ selected and has a proof path, but the Stage 0 evaluator gate is not closed.
 | CERT-2 | CA certificate validation | CA=TRUE required | Hosting/operators | certificate policy | CA constraint test | certificate report | stage-0-open |
 | CERT-3 | TLS/signing certificate | X.509v3 purpose EKU | Hosting/operators | certificate policy | EKU test | certificate report | stage-0-open |
 | CR-3 | product key generation | generation/destruction inventory | Hosting/operators | key inventory | key-lifecycle test | key report | stage-0-open |
-| CR-4 / TSF-6 | signing/update selected | no automatic update; selected signing rules | Release operator | update/evidence contract | signing policy test | signed evidence | stage-0-open |
+| CR-4 / TSF-6 | product signing or automatic/signed-file update selected | not triggered; no product signing or update-integrity feature | Release operator | applicability disposition | applicability check | release record if triggered | not-triggered |
 | TSF-3 | shared secure IT product data | OPEN shared-data map | Owners | data-sharing register | compatibility test | interoperability report | stage-0-open |
 
 The matrix is intentionally not a completion claim. The Stage 0 gate requires

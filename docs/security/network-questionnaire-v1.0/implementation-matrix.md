@@ -17,11 +17,13 @@ CERT-3.
 | ID range | Repository artifact/proof owner | Deterministic command or check | Status at Stage 0 |
 | --- | --- | --- | --- |
 | AU-1–AU-8 | `src/Libraries/Audit`, owning applications, emergency journal contract | Audit tests plus static owner/integrity lint | implementation-gap |
-| CR-1–CR-4 / TSF-6 | crypto inventory, Hosting/integration policy, release manifest | architecture inventory and script contract tests | implementation-gap |
+| CR-1–CR-3 | evaluated transport and cryptography inventory, existing platform certificate path | inventory and source-policy checks | implemented |
+| CR-4 / TSF-6 | not triggered; no product signing or signed-update capability | applicability check | deployment-evidence-pending |
 | IA-1–IA-9, AC-1–AC-7 | Authentication/Users policy, session contracts and tests | focused Authentication/Users tests | implementation-gap |
 | UD-1–UD-11, SM-1–SM-6 | owning Application policies, Files integrity, authorization matrix | endpoint/matrix validators and owning tests | implementation-gap |
-| TSF-1–TSF-5, RA-1 | Hosting/Main failure and deployment contracts | static profile checks and fault tests | implementation-gap |
-| TC-1–TC-3, HTTPS-1–3, TLSS-1–3, TLSC-1–4, CERT-1–3 | Caddyfile, Compose, outbound client inventory | Caddy/Compose parse and protocol checks | implementation-gap |
+| TSF-1–TSF-4 | Hosting/Main failure, time and topology contracts | static profile checks and fault tests | implementation-gap |
+| TSF-5 | manual-update-runbook.md | runbook/provenance contract check | implemented |
+| TC-1–TC-3, HTTPS-1–3, TLSS-1–3, TLSC-1–4, CERT-1–3 | Caddyfile, Compose, outbound client inventory | Caddy/Compose parse, source-policy and protocol checks | implemented |
 | VULN-1–VULN-6 | release inventory, ingress policy, cookie/CSRF contracts | plan lint and static route/config checks | implementation-gap |
 | TSF-3 | data-sharing register and compatibility tests | profile lint; exact enabled consumers | blocked |
 
