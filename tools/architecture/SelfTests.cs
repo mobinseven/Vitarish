@@ -6,6 +6,7 @@ internal static class SelfTests
     {
         InternalModuleClientCheckSelfTest();
         OpenApiEndpointCheckSelfTest();
+        SecurityBaselineSelfTest();
         Console.WriteLine("Architecture Roslyn self-tests passed");
     }
 
@@ -117,6 +118,120 @@ internal static class SelfTests
         IReadOnlyList<ArchitectureViolation> staleViolations = AuthorizationMatrixCheck.Run(index, stale);
         Require(staleViolations.Any(violation => violation.Kind == "MissingAuthorizationMatrixOperation"), "missing authorization matrix operation was not detected");
         Require(staleViolations.Any(violation => violation.Kind == "StaleAuthorizationMatrixOperation"), "stale authorization matrix operation was not detected");
+    }
+
+    private static void SecurityBaselineSelfTest()
+    {
+        SourceIndex validIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Contracts/FooContracts.cs", "namespace Foo.Contracts; public sealed record ResponseDto;"),
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                using Foo.Contracts;
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    static void Map(object endpoints)
+                    {
+                        var group = endpoints.MapProtectedModuleGroup("/api/foo");
+                        group.MapModuleGet("/items", Get, "FooGetItems", typeof(ResponseDto));
+                    }
+                    static void Get() { }
+                }
+                """));
+        Require(SecurityBaselineCheck.RunEndpoints(validIndex).Count == 0, "valid security endpoint produced a violation");
+
+        SourceIndex defaultHeadIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    static void Map(object endpoints)
+                    {
+                        var group = endpoints.MapProtectedModuleGroup("/api/foo");
+                        group.MapModuleHead("/download", Head, "FooHeadDownload");
+                    }
+                    static void Head() { }
+                }
+                """));
+        Require(SecurityBaselineCheck.RunEndpoints(defaultHeadIndex).Count == 0, "default HEAD profile produced a violation");
+
+        SourceIndex rawValidIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    static void Map(object endpoints)
+                    {
+                        var group = endpoints.MapProtectedModuleGroup("/api/foo");
+                        group.MapPost("/items", () => 1)
+                            .WithMetadata(new ModuleEndpointOpenApiConvention("FooCreateItem", 201, Profile: ModuleEndpointProfile.ProtectedJson))
+                            .AddEndpointFilter<SecurityAuditEndpointFilter>();
+                    }
+                }
+                """));
+        Require(SecurityBaselineCheck.RunEndpoints(rawValidIndex).Count == 0, "typed raw endpoint produced a violation");
+
+        SourceIndex rawMissingAuditIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    static void Map(object endpoints)
+                    {
+                        var group = endpoints.MapProtectedModuleGroup("/api/foo");
+                        group.MapPost("/items", () => 1)
+                            .WithMetadata(new ModuleEndpointOpenApiConvention("FooCreateItem", 201, Profile: ModuleEndpointProfile.ProtectedJson));
+                    }
+                }
+                """));
+        Require(SecurityBaselineCheck.RunEndpoints(rawMissingAuditIndex).Any(violation => violation.Kind == "AuditDispositionMissing"), "raw audit filter omission was not rejected");
+
+        SourceIndex invalidIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    static void Map(object endpoints)
+                    {
+                        var group = endpoints.MapGroup(GetPrefix());
+                        group.MapGet(GetPattern(), () => 1);
+                    }
+                    static string GetPrefix() => "/api/foo";
+                    static string GetPattern() => "/items";
+                }
+                """));
+        IReadOnlyList<ArchitectureViolation> invalid = SecurityBaselineCheck.RunEndpoints(invalidIndex);
+        Require(invalid.Any(violation => violation.Kind == "RouteUnresolved"), "dynamic route was not rejected");
+        Require(invalid.Any(violation => violation.Kind == "OperationIdMissing"), "raw endpoint operation ID was not rejected");
+        Require(invalid.Any(violation => violation.Kind == "AuthenticationUnresolved"), "unclassified authentication was not rejected");
+        SourceSecuritySurfaceSelfTest();
+        Console.WriteLine("Security baseline Roslyn self-test passed");
+    }
+
+    private static void SourceSecuritySurfaceSelfTest()
+    {
+        SourceIndex safeIndex = SourceIndex.FromSources(
+            ("src/Hosts/Main/Program.cs", """
+                app.UseCors(policy => policy.WithOrigins("https://example.test").WithMethods("GET", "POST").AllowCredentials());
+                response.Cookies.Append("session", value, new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.Strict });
+                """));
+        Require(SecurityBaselineCheck.RunSourceSecuritySurface(safeIndex).Count == 0, "safe source security surface produced a violation");
+
+        SourceIndex unsafeIndex = SourceIndex.FromSources(
+            ("src/Hosts/Main/Program.cs", """
+                app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyMethod());
+                app.MapMethods(GetPath(), GetMethods(), () => 1);
+                var handler = new HttpClientHandler { ServerCertificateCustomValidationCallback = (_, _, _, _) => true };
+                var options = new { UseSsl = false };
+                response.Cookies.Append("session", value, cookieOptions);
+                static string GetPath() => "/unsafe";
+                static string GetMethods() => "GET";
+                """));
+        IReadOnlyList<ArchitectureViolation> violations = SecurityBaselineCheck.RunSourceSecuritySurface(unsafeIndex);
+        Require(violations.Any(violation => violation.Kind == "UnsafeCorsPolicy"), "unsafe CORS was not rejected");
+        Require(violations.Any(violation => violation.Kind == "RouteMethodUnresolved"), "dynamic method set was not rejected");
+        Require(violations.Any(violation => violation.Kind == "CertificateValidationOverride"), "certificate callback was not rejected");
+        Require(violations.Any(violation => violation.Kind == "OutboundTlsDisabled"), "disabled outbound TLS was not rejected");
+        Require(violations.Any(violation => violation.Kind == "CookieDispositionMissing"), "insecure cookie disposition was not rejected");
     }
 
     private static void Require(bool condition, string message)

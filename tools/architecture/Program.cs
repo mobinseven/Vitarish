@@ -25,12 +25,16 @@ internal static class Program
             return 0;
         }
 
+        if (command == "dependency-vulnerability-baseline")
+            return DependencyVulnerabilityBaselineCheck.Run(root);
+
         IReadOnlyList<ArchitectureViolation> violations = command switch
         {
             "all" => RunAll(index),
             "app-experience" => AppExperienceBoundaryCheck.Run(root),
             "internal-module-clients" => InternalModuleClientCheck.Run(index),
             "openapi-endpoints" => OpenApiEndpointCheck.Run(index),
+            "security-baseline" => SecurityBaselineCheck.Run(index),
             "agents" => AgentArchitectureCheck.Run(root),
             _ => throw new ArgumentException($"Unknown architecture check '{command}'.")
         };
@@ -40,11 +44,15 @@ internal static class Program
             "app-experience" => "ADR-0008 app experience validation",
             "internal-module-clients" => "Internal module client boundary validation",
             "openapi-endpoints" => "OpenAPI endpoint coverage validation",
+            "security-baseline" => "Source-derived security baseline validation",
             "agents" => "Module-owned Agents architecture validation",
             _ => "Architecture validation"
         };
 
         Console.WriteLine(title);
+        if (command == "security-baseline")
+            SecurityBaselineCheck.RenderInventory(index);
+
         Console.WriteLine($"Violations found: {violations.Count}");
         foreach (ArchitectureViolation violation in violations)
         {

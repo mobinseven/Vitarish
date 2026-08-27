@@ -268,6 +268,8 @@ dotnet build src/Hosts/E2e/E2e.csproj --no-restore
 dotnet build src/Hosts/Main/Main.csproj -p:ModuleBuildProfile=All
 dotnet build Vitarish.slnx
 dotnet test tests/Modules/<Module>.Tests/<Module>.Tests.csproj
+dotnet run --project tools/architecture -- security-baseline
+dotnet run --project tools/architecture -- dependency-vulnerability-baseline
 ```
 
 Focused `ModuleBuildProfile` builds are inner-loop checks only. Read
