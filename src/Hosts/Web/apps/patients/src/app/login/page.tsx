@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@heroui/react";
-import { AuthMethodSelector } from "@vitarish/auth";
+import { AuthMethodSelector, useAuthenticationProfile } from "@vitarish/auth";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { Routes } from "@/app/routes";
 import { StandaloneCenteredPage } from "@vitarish/ui/layout";
@@ -35,6 +35,12 @@ const authMethods = [
 
 export default function LoginPage() {
   const { t } = useLocalizedText();
+  const { data: profile } = useAuthenticationProfile();
+  const enabledMethods = authMethods.filter((method) =>
+    method.id === "password" ||
+    (method.id === "phone" && profile?.allowPasswordlessPhoneLogin === true) ||
+    (method.id === "email" && profile?.allowPasswordlessEmailLogin === true) ||
+    (method.id === "passkey" && profile?.allowPasskeyLogin === true));
 
   return (
     <StandaloneCenteredPage>
@@ -46,7 +52,7 @@ export default function LoginPage() {
           </p>
         </Card.Header>
         <Card.Content>
-          <AuthMethodSelector methods={authMethods} />
+          <AuthMethodSelector methods={enabledMethods} />
         </Card.Content>
       </Card>
     </StandaloneCenteredPage>

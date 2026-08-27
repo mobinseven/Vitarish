@@ -56,6 +56,57 @@
         }
       }
     },
+    "/api/modules/authentication/profile": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Gets the authentication methods enabled by the active deployment profile.",
+        "operationId": "Authentication_Profile_Get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationProfileDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/authentication/login/password": {
       "post": {
         "tags": [
@@ -614,6 +665,97 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CompletePasskeyAuthenticationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationRedirectResultDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Gone",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/authentication/login/password/otp/complete": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Completes password plus phone OTP authentication.",
+        "operationId": "Authentication_Login_PasswordOtp_Complete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletePasswordLoginOtpRequest"
               }
             }
           },
@@ -1436,6 +1578,25 @@
       "AuthenticationChallengePurposeDto": {
         "type": "integer"
       },
+      "AuthenticationProfileDto": {
+        "required": [
+          "allowPasswordlessPhoneLogin",
+          "allowPasswordlessEmailLogin",
+          "allowPasskeyLogin"
+        ],
+        "type": "object",
+        "properties": {
+          "allowPasswordlessPhoneLogin": {
+            "type": "boolean"
+          },
+          "allowPasswordlessEmailLogin": {
+            "type": "boolean"
+          },
+          "allowPasskeyLogin": {
+            "type": "boolean"
+          }
+        }
+      },
       "AuthenticationRedirectResultDto": {
         "required": [
           "returnUrl",
@@ -1639,6 +1800,28 @@
             "type": "string"
           },
           "credentialJson": {
+            "type": "string"
+          },
+          "returnUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CompletePasswordLoginOtpRequest": {
+        "required": [
+          "challengeId",
+          "code",
+          "returnUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string"
+          },
+          "code": {
             "type": "string"
           },
           "returnUrl": {

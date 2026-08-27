@@ -23,6 +23,7 @@ export interface AuthError {
   code: AuthenticationErrorCode;
   message: string;
   status: number;
+  challengeId?: string;
 }
 
 export function parseAuthError(error: unknown): AuthError {
@@ -31,6 +32,7 @@ export function parseAuthError(error: unknown): AuthError {
       code: (error.code as AuthenticationErrorCode) ?? "invalid_input",
       message: error.message,
       status: error.status,
+      challengeId: error.problem.challengeId,
     };
   }
 

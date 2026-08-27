@@ -2,6 +2,7 @@
 
 import { ItemCardGroup } from "@heroui-pro/react";
 import { ImageActionCard } from "@vitarish/ui";
+import { useAuthenticationProfile } from "@vitarish/auth";
 import { useRouter } from "next/navigation";
 import { useLocalizedText, type MessageKey } from "@/localization";
 import { Routes } from "@/app/routes";
@@ -37,6 +38,12 @@ const authMethods = [
 export default function LoginPage() {
   const { t } = useLocalizedText();
   const router = useRouter();
+  const { data: profile } = useAuthenticationProfile();
+  const enabledMethods = authMethods.filter((method) =>
+    method.id === "password" ||
+    (method.id === "phone" && profile?.allowPasswordlessPhoneLogin === true) ||
+    (method.id === "email" && profile?.allowPasswordlessEmailLogin === true) ||
+    (method.id === "passkey" && profile?.allowPasskeyLogin === true));
 
   return (
     <StandaloneCenteredPage width="fluid">
@@ -48,7 +55,7 @@ export default function LoginPage() {
           </p>
         </div>
         <ItemCardGroup layout="grid" columns={2} variant="transparent">
-          {authMethods.map((method) => (
+          {enabledMethods.map((method) => (
             <ImageActionCard
               key={method.id}
               className="aspect-square w-full"

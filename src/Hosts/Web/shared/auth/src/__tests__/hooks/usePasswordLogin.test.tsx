@@ -183,4 +183,97 @@ describe("usePasswordLogin", () => {
     expect(result.current.error?.code).toBe("invalid_credentials");
     expect(result.current.errorMessage).toBe("Invalid username or password");
   });
+
+  it("completes the phone OTP challenge returned by password login", async () => {
+    let otpBody: Record<string, unknown> | undefined;
+    server.use(
+      http.post(
+        /\/api\/modules\/authentication\/login\/password(?:\?|$)/,
+        () =>
+          HttpResponse.json(
+            {
+              status: 409,
+              title: "AdditionalStepRequired",
+              detail: "Additional authentication required.",
+              code: "additional_step_required",
+              challengeId: "password-otp-challenge",
+            },
+            { status: 409 },
+          ),
+      ),
+      http.post(
+        /\/api\/modules\/authentication\/login\/password\/otp\/complete(?:\?|$)/,
+        async ({ request }) => {
+          otpBody = (await request.json()) as Record<string, unknown>;
+          return HttpResponse.json({
+            returnUrl: "/home",
+            requiresProfileCompletion: false,
+          });
+        },
+      ),
+    );
+
+    const { result } = renderHook(() => usePasswordLogin(), { wrapper });
+
+    await act(async () => {
+      await result.current.login("user@test.com", "password123", "/home");
+    });
+
+    expect(result.current.requiresOtp).toBe(true);
+
+    await act(async () => {
+      await result.current.completeOtp("123456");
+    });
+
+    expect(otpBody).toEqual({
+      challengeId: "password-otp-challenge",
+      code: "123456",
+      returnUrl: "/home",
+    });
+    expect(result.current.error).toBeNull();
+  });
+
+  it("returns to password login when the OTP challenge was already consumed", async () => {
+    server.use(
+      http.post(
+        /\/api\/modules\/authentication\/login\/password(?:\?|$)/,
+        () =>
+          HttpResponse.json(
+            {
+              status: 409,
+              title: "AdditionalStepRequired",
+              detail: "Additional authentication required.",
+              code: "additional_step_required",
+              challengeId: "already-consumed-challenge",
+            },
+            { status: 409 },
+          ),
+      ),
+      http.post(
+        /\/api\/modules\/authentication\/login\/password\/otp\/complete(?:\?|$)/,
+        () =>
+          HttpResponse.json(
+            {
+              status: 400,
+              title: "ChallengeAlreadyUsed",
+              detail: "Challenge has already been used.",
+              code: "challenge_already_used",
+            },
+            { status: 400 },
+          ),
+      ),
+    );
+
+    const { result } = renderHook(() => usePasswordLogin(), { wrapper });
+
+    await act(async () => {
+      await result.current.login("user@test.com", "password123");
+    });
+    await act(async () => {
+      await result.current.completeOtp("123456");
+    });
+
+    expect(result.current.requiresOtp).toBe(false);
+    expect(result.current.error?.code).toBe("challenge_already_used");
+  });
 });

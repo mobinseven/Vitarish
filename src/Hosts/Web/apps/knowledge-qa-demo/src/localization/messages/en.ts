@@ -28,6 +28,9 @@ export const enMessages = {
       passwordLabel: "Password",
       passwordPlaceholder: "Enter your password",
       signInAction: "Log in",
+      otpLabel: "Verification code",
+      otpPlaceholder: "Enter the code sent to your phone",
+      otpVerifyAction: "Verify code",
       otherMethods: "Other login methods",
     },
     guard: {

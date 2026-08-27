@@ -207,6 +207,8 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
     isAuthenticated: true,
     tenantAccess: { canAccessTenantOwner: true },
   });
+  await expect(page.locator("#initial-page-loader")).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
   const browserDisclosure = await page.evaluate((secret) => ({
     urlHasSecret: window.location.href.includes(secret),

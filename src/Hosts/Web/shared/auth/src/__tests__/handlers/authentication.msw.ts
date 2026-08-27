@@ -18,6 +18,14 @@ export const handlers = [
     return HttpResponse.json(body);
   }),
 
+  http.post(apiPath("/login/password/otp/complete"), () => {
+    const body: AuthenticationRedirectResultDto = {
+      returnUrl: "/home",
+      requiresProfileCompletion: false,
+    };
+    return HttpResponse.json(body);
+  }),
+
   http.post(apiPath("/login/phone/begin"), () => {
     const body: AuthenticationChallengeDto = {
       challengeId: "test-challenge-id",

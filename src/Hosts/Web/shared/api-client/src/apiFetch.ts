@@ -10,6 +10,7 @@ export interface ProblemDetails {
   instance?: string;
   code?: string;
   errors?: Record<string, string[]>;
+  challengeId?: string;
 }
 
 export class ApiError extends Error {

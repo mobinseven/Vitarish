@@ -34,6 +34,7 @@ export type { UserProfileResponse, UserSummaryResponse, WebAuthnCredentialDto } 
 // Generated authentication hooks
 export {
   getAuthenticationSessionGetQueryKey,
+  useAuthenticationProfileGet as useAuthenticationProfile,
   useAuthenticationLoginPassword,
   useAuthenticationLoginPhoneBegin,
   useAuthenticationLoginPhoneComplete,
