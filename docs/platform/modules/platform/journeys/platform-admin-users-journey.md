@@ -116,7 +116,7 @@
 
 **User actions:** Search for users; view user details; manage user roles.
 
-**Touchpoints / channels:** `PlatformAdminUsersPage`, `PlatformAdminUserPage`, `UserFindForm`, `RoleEditor`.
+**Touchpoints / channels:** `src/Hosts/Web/apps/platform-admin/src/app/users/page.tsx`, `src/Hosts/Web/apps/platform-admin/src/app/users/[userId]/page.tsx`, `src/Hosts/Web/apps/platform-admin/src/app/users/new/page.tsx`.
 
 **User thoughts / questions:** "Where is this user? What roles do they have across tenants?"
 
@@ -256,8 +256,9 @@
 ### Current implementation touchpoints
 
 - `src/Hosts/Main/Pages/Platform/PlatformAdminHomePage.razor` — admin dashboard with links to sub-sections.
-- `src/Hosts/Main/Pages/Platform/PlatformAdminUsersPage.razor` — lists all users as buttons with "Add User" button.
-- `src/Hosts/Main/Pages/Platform/PlatformAdminUserPage.razor` — renders `UserFindForm` for user search.
+- `src/Hosts/Web/apps/platform-admin/src/app/users/page.tsx` — searches platform users and displays tenant memberships.
+- `src/Hosts/Web/apps/platform-admin/src/app/users/[userId]/page.tsx` — manages a user's tenant roles.
+- `src/Hosts/Web/apps/platform-admin/src/app/users/new/page.tsx` — creates a user by email or phone.
 - `src/Hosts/Main/Pages/Platform/PlatformAdminOwnersPage.razor` — lists all owners as buttons with "Add Owner" button.
 - `src/Hosts/Main/Pages/Platform/PlatformAdminOwnerPage.razor` — renders `OwnerEditor` and tenant list for selected owner.
 - `src/Hosts/Main/Pages/Platform/PlatformAdminTenantPage.razor` — full tenant editor: `TenantEditor`, `TenantIndicatorsEditor`, `TenantModulesSelector`, `TenantAppsSelector`, Save and Delete buttons.
@@ -266,16 +267,14 @@
 - `src/Hosts/Main/Pages/Platform/PlatformAdminSearchPage.razor` — search index management.
 - `src/Hosts/Main/Pages/Platform/PlatformAdminCommunicationsPage.razor` — communications management.
 - `src/Hosts/Main/Pages/Platform/PlatformAdminConnectionMemoryPage.razor` — connection memory management.
-- `src/Modules/Parties/Interface/Components/Admins/OwnerEditor.razor` — edit owner fields.
-- `src/Modules/Parties/Interface/Components/Admins/TenantEditor.razor` — edit tenant fields.
-- `src/Modules/Parties/Interface/Components/Admins/TenantIndicatorsEditor.razor` — manage tenant indicators with add/edit/delete dialog.
-- `src/Modules/Users/Interface/Components/UserFindForm.razor` — debounced user search with scope selector.
-- `src/Modules/Users/Interface/Components/Admins/RoleEditor.razor` — role assignment table with Read/Write checkboxes.
+- `src/Hosts/Web/apps/platform-admin/src/app/owners/[ownerId]/page.tsx` — edit owner details.
+- `src/Hosts/Web/apps/platform-admin/src/app/tenants/[tenantId]/edit/page.tsx` — edit tenant details.
+- `src/Hosts/Web/apps/platform-admin/src/app/tenants/[tenantId]/indicators/[indicatorId]/edit/page.tsx` — edit a tenant indicator.
 - `src/Modules/Platform/Interface/Components/PlatformThemeForm.razor` — full theme editor with palette preview.
 
 ### Issues to address
 
-- No cross-tenant user search; `UserFindForm` defaults to `TenantUsers` scope and requires `AllPlatformUsers` selection per search.
+- No cross-tenant user search; the platform user query currently excludes tenant users.
 - `PlatformAdminTenantPage` saves tenant changes without confirmation; add save confirmation dialog.
 - No audit trail for tenant configuration changes; who changed modules, indicators, or settings is not recorded.
 - `PlatformAdminOwnersPage` and `PlatformAdminUsersPage` are simple button lists without search or filter.

@@ -254,9 +254,9 @@
 
 ### Current implementation touchpoints
 
-- `src/Modules/Parties/Interface/Components/Admins/TenantIndicatorsEditor.razor` — manages indicators for a tenant; supports add, edit, delete via `TenantIndicatorEditDialog`.
-- `src/Modules/Parties/Interface/Components/Admins/TenantIndicatorEditDialog.razor` — edit dialog for indicator method (Hostname/Subdomain), address value, and primary flag.
-- `src/Hosts/Main/Pages/Platform/PlatformAdminTenantPage.razor` — host page that composes `TenantIndicatorsEditor` alongside `TenantEditor`, `TenantModulesSelector`, `TenantAppsSelector`, and Save/Delete buttons.
+- `src/Hosts/Web/apps/platform-admin/src/app/tenants/[tenantId]/page.tsx` — tenant administration surface.
+- `src/Hosts/Web/apps/platform-admin/src/app/tenants/[tenantId]/indicators/[indicatorId]/edit/page.tsx` — edits a tenant indicator value.
+- `src/Hosts/Web/apps/platform-admin/src/app/tenants/[tenantId]/edit/page.tsx` — edits tenant details.
 - Runtime tenant resolution uses `TenantResolver` which normalizes hostnames via `HostnameNormalizer.Canonical()`, queries `TenantIndicators` where `Status == Active` and `Value == normalized`, and caches results for 10 minutes.
 - `src/Hosts/Main/Pages/Common/Home.razor` — home page reads `activeApps` from tenant metadata after resolution; uses the resolved tenant context.
 
