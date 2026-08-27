@@ -28,22 +28,54 @@ public sealed class CompleteChangePhoneHandler(
         if (validationError is not null)
             return new AuthenticationResult<bool>.Failure(new(validationError.Value, GetErrorMessage(validationError.Value)));
 
+        if (!await store.TryReserveAttemptAsync(challenge, cancellationToken))
+            return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.ChallengeAttemptsExhausted, "Too many failed attempts."));
+
         string normalizedCode = AuthenticationInputValidator.NormalizeVerificationCode(command.Code);
-        bool verified = await verifier.VerifyAsync(challenge.UserId, challenge.TokenPurpose, normalizedCode, cancellationToken);
+        bool verified;
+        try
+        {
+            verified = await verifier.VerifyAsync(challenge.UserId, challenge.TokenPurpose, normalizedCode, cancellationToken);
+        }
+        catch
+        {
+            await store.ReleaseAttemptAsync(challenge, CancellationToken.None);
+            throw;
+        }
 
         if (!verified)
         {
-            challenge.RegisterFailure(now);
-            await store.ReplaceAsync(challenge, cancellationToken);
-
-            if (challenge.Status == AuthenticationChallengeStatus.Exhausted)
+            int failedAttempts;
+            try
+            {
+                failedAttempts = await store.TryRegisterFailureAsync(challenge, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                await store.ReleaseAttemptAsync(challenge, CancellationToken.None);
+                throw;
+            }
+            if (failedAttempts <= 0 || failedAttempts >= challenge.MaximumAttempts)
                 return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.ChallengeAttemptsExhausted, "Too many failed attempts."));
 
             return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.InvalidVerificationCode, "Invalid verification code."));
         }
 
-        challenge.Complete(now);
-        await store.ReplaceAsync(challenge, cancellationToken);
+        bool consumed;
+        try
+        {
+            consumed = await store.TryConsumeAsync(challenge, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            await store.ReleaseAttemptAsync(challenge, CancellationToken.None);
+            throw;
+        }
+        if (!consumed)
+            return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.ChallengeAlreadyUsed, "Challenge has already been used."));
+
+        if (challenge.Status == AuthenticationChallengeStatus.Pending)
+            challenge.Complete(now);
 
         bool updated = await accountUpdater.SetPhoneNumberAsync(command.UserId, challenge.Destination, cancellationToken);
         return updated

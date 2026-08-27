@@ -4,6 +4,10 @@ internal static class AuthenticationSecurityAuditEvents
 {
     public const string PasswordChange = "authentication.account.password.change";
     public const string PasswordLogin = "authentication.password.login";
+    public const string PasswordLoginOtp = "authentication.password.login.otp";
+    public const string PasswordLoginOperation = "password.login";
+    public const string PasswordLoginOtpOperation = "password.login.otp";
+    public const string Resource = "authentication";
     public const string Operation = "account.password.change";
     public const string SourceBoundary = "authentication.application";
     public const string ResourcePrefix = "user/";

@@ -33,27 +33,59 @@ internal static class ChallengeCompletionHelper
         if (validationError is not null)
             return new AuthenticationResult<LoginResult>.Failure(new(validationError.Value, GetErrorMessage(validationError.Value)));
 
+        if (!await store.TryReserveAttemptAsync(challenge, cancellationToken))
+            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ChallengeAttemptsExhausted, "Too many failed attempts."));
+
         string normalizedCode = NormalizeVerificationCode(code);
-        bool verified = await verifier.VerifyAsync(challenge.UserId, challenge.TokenPurpose, normalizedCode, cancellationToken);
+        bool verified;
+        try
+        {
+            verified = await verifier.VerifyAsync(challenge.UserId, challenge.TokenPurpose, normalizedCode, cancellationToken);
+        }
+        catch
+        {
+            await store.ReleaseAttemptAsync(challenge, CancellationToken.None);
+            throw;
+        }
 
         if (!verified)
         {
-            challenge.RegisterFailure(now);
-            await store.ReplaceAsync(challenge, cancellationToken);
-
-            if (challenge.Status == AuthenticationChallengeStatus.Exhausted)
+            int failedAttempts;
+            try
+            {
+                failedAttempts = await store.TryRegisterFailureAsync(challenge, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                await store.ReleaseAttemptAsync(challenge, CancellationToken.None);
+                throw;
+            }
+            if (failedAttempts <= 0 || failedAttempts >= challenge.MaximumAttempts)
                 return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ChallengeAttemptsExhausted, "Too many failed attempts."));
 
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidVerificationCode, "Invalid verification code."));
         }
 
-        challenge.Complete(now);
-        await store.ReplaceAsync(challenge, cancellationToken);
+        bool consumed;
+        try
+        {
+            consumed = await store.TryConsumeAsync(challenge, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            await store.ReleaseAttemptAsync(challenge, CancellationToken.None);
+            throw;
+        }
+        if (!consumed)
+            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ChallengeAlreadyUsed, "Challenge has already been used."));
 
-        await signInService.SignInAsync(challenge.UserId, false, cancellationToken);
+        if (challenge.Status == AuthenticationChallengeStatus.Pending)
+            challenge.Complete(now);
 
-        string resolvedReturnUrl = await redirects.ResolveAsync(returnUrl, false, challenge.UserId, cancellationToken);
-        return new AuthenticationResult<LoginResult>.Success(new(challenge.UserId, resolvedReturnUrl, false));
+        await signInService.SignInAsync(challenge.UserId, challenge.RememberMe, cancellationToken);
+
+        string resolvedReturnUrl = await redirects.ResolveAsync(returnUrl, challenge.RequiresProfileCompletion, challenge.UserId, cancellationToken);
+        return new AuthenticationResult<LoginResult>.Success(new(challenge.UserId, resolvedReturnUrl, challenge.RequiresProfileCompletion));
     }
 
     private static string NormalizeVerificationCode(string code)

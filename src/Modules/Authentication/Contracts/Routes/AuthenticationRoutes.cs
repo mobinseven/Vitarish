@@ -5,6 +5,8 @@ public static class AuthenticationRoutes
     public const string BasePath = "/api/modules/authentication";
     public const string Session = BasePath + "/session";
     public const string Antiforgery = BasePath + "/antiforgery";
+    public const string ProfilePath = "/profile";
+    public const string Profile = BasePath + ProfilePath;
     public const string PasswordLogin = BasePath + "/login/password";
     public const string BeginPhoneLogin = BasePath + "/login/phone/begin";
     public const string CompletePhoneLogin = BasePath + "/login/phone/complete";

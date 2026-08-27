@@ -5,6 +5,7 @@ using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Application.Validation;
+using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Requests.Application.Abstractions;
 
@@ -14,7 +15,13 @@ public sealed class LoginWithPasswordHandler(
     IAuthenticationSignInService signInService,
     IAuthenticationRedirectResolver redirects,
     ISecurityAuditWriter securityAuditWriter,
-    IRequestContext requestContext)
+    IRequestContext requestContext,
+    AuthenticationProfilePolicy profilePolicy,
+    IAuthenticationChallengeStore challengeStore,
+    AuthenticationChallengePolicy challengePolicy,
+    IAuthenticationUserDirectory userDirectory,
+    IAuthenticationCodeGenerator codeGenerator,
+    IPhoneAuthenticationCodeSender phoneSender)
 {
     public async Task<AuthenticationResult<LoginResult>> Handle(LoginWithPasswordCommand command, CancellationToken cancellationToken)
     {
@@ -46,10 +53,18 @@ public sealed class LoginWithPasswordHandler(
             throw;
         }
 
-        PasswordSignInResult signInResult = await signInService.PasswordSignInAsync(command.UserNameOrEmail, command.Password, command.RememberMe, cancellationToken);
+        PasswordSignInResult signInResult = profilePolicy.UsePhoneOtpForTwoFactorAccounts
+            ? await signInService.CheckPasswordSignInAsync(command.UserNameOrEmail, command.Password, cancellationToken)
+            : await signInService.PasswordSignInAsync(command.UserNameOrEmail, command.Password, command.RememberMe, cancellationToken);
 
         AuthenticationResult<LoginResult> result = signInResult.Status switch
         {
+            PasswordSignInStatus.Succeeded when profilePolicy.UsePhoneOtpForTwoFactorAccounts && signInResult.RequiresTwoFactor =>
+                await IssuePhoneOtpChallengeAsync(signInResult, command.RememberMe, cancellationToken),
+            PasswordSignInStatus.RequiresTwoFactor when profilePolicy.UsePhoneOtpForTwoFactorAccounts =>
+                await IssuePhoneOtpChallengeAsync(signInResult, command.RememberMe, cancellationToken),
+            PasswordSignInStatus.Succeeded when profilePolicy.UsePhoneOtpForTwoFactorAccounts =>
+                await CompletePasswordOnlyLoginAsync(signInResult, command, cancellationToken),
             PasswordSignInStatus.Succeeded =>
                 new AuthenticationResult<LoginResult>.Success(new(
                     signInResult.UserId!,
@@ -78,16 +93,85 @@ public sealed class LoginWithPasswordHandler(
         }
         catch (SecurityAuditStoreException)
         {
+            await CancelIssuedChallengeAsync(result);
             await signInService.SignOutAsync(CancellationToken.None);
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
         }
         catch (OperationCanceledException)
         {
+            await CancelIssuedChallengeAsync(result);
             await signInService.SignOutAsync(CancellationToken.None);
             throw;
         }
 
         return result;
+    }
+
+    private async Task CancelIssuedChallengeAsync(AuthenticationResult<LoginResult> result)
+    {
+        if (result is not AuthenticationResult<LoginResult>.Failure { Error.ChallengeId: { Length: > 0 } challengeId })
+            return;
+
+        AuthenticationChallengeId id = AuthenticationChallengeId.Create(challengeId);
+        AuthenticationChallenge? challenge = await challengeStore.GetAsync(id, CancellationToken.None);
+        if (challenge is not null)
+            await challengeStore.TryConsumeAsync(challenge, CancellationToken.None);
+    }
+
+    private async Task<AuthenticationResult<LoginResult>> IssuePhoneOtpChallengeAsync(
+        PasswordSignInResult signInResult,
+        bool rememberMe,
+        CancellationToken cancellationToken)
+    {
+        AuthenticationUserDescriptor? user = await userDirectory.FindByIdAsync(signInResult.UserId!, cancellationToken);
+        if (user is null || string.IsNullOrWhiteSpace(user.PhoneNumber))
+            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Additional authentication is not configured."));
+
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        string tokenPurpose = challengePolicy.TokenPurpose(AuthenticationChallengePurpose.PasswordLoginOtp);
+        string code = await codeGenerator.GenerateAsync(user.UserId, tokenPurpose, cancellationToken);
+        AuthenticationChallenge challenge = challengePolicy.CreatePasswordLoginOtpChallenge(
+            user.UserId,
+            user.PhoneNumber,
+            tokenPurpose,
+            now,
+            rememberMe,
+            signInResult.RequiresProfileCompletion);
+        await challengeStore.SaveAsync(challenge, cancellationToken);
+
+        try
+        {
+            await phoneSender.SendAsync(user.PhoneNumber, code, AuthenticationChallengePurpose.PasswordLoginOtp, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            challenge.Cancel();
+            await challengeStore.ReplaceAsync(challenge, CancellationToken.None);
+            throw;
+        }
+        catch
+        {
+            challenge.Cancel();
+            await challengeStore.ReplaceAsync(challenge, CancellationToken.None);
+            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, "Additional authentication is temporarily unavailable."));
+        }
+
+        return new AuthenticationResult<LoginResult>.Failure(new(
+            AuthenticationFailureReason.AdditionalStepRequired,
+            "Additional authentication required.",
+            challenge.Id.Value));
+    }
+
+    private async Task<AuthenticationResult<LoginResult>> CompletePasswordOnlyLoginAsync(
+        PasswordSignInResult signInResult,
+        LoginWithPasswordCommand command,
+        CancellationToken cancellationToken)
+    {
+        await signInService.SignInAsync(signInResult.UserId!, command.RememberMe, cancellationToken);
+        return new AuthenticationResult<LoginResult>.Success(new(
+            signInResult.UserId!,
+            await redirects.ResolveAsync(command.ReturnUrl, signInResult.RequiresProfileCompletion, signInResult.UserId, cancellationToken),
+            signInResult.RequiresProfileCompletion));
     }
 
     private SecurityAuditEvent CreateAuditEvent(string outcome, string idempotencyKey, string? subjectId, string? reason) => new()
@@ -97,8 +181,8 @@ public sealed class LoginWithPasswordHandler(
         ActorId = requestContext.UserId,
         SubjectId = subjectId,
         TenantId = requestContext.TenantId!,
-        Resource = "authentication",
-        Operation = "password.login",
+        Resource = AuthenticationSecurityAuditEvents.Resource,
+        Operation = AuthenticationSecurityAuditEvents.PasswordLoginOperation,
         OccurredAt = DateTime.UtcNow,
         CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? idempotencyKey,
         SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,

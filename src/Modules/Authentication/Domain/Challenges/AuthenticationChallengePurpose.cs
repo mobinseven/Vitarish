@@ -1,3 +1,3 @@
 namespace Vitarish.Authentication.Domain.Challenges;
 
-public enum AuthenticationChallengePurpose { PhoneLogin, EmailLogin, PasskeyLogin, PhoneChange, EmailChange }
+public enum AuthenticationChallengePurpose { PhoneLogin, EmailLogin, PasskeyLogin, PasswordLoginOtp, PhoneChange, EmailChange }

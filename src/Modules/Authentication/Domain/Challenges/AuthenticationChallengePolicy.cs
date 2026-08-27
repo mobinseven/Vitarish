@@ -5,6 +5,7 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
     public static AuthenticationChallengePolicy Default { get; } = new(TimeSpan.FromMinutes(5), 5);
 
     private static readonly string PhoneLoginTokenPurpose = "Authentication:PhoneLogin";
+    private static readonly string PasswordLoginOtpTokenPurpose = "Authentication:PasswordLoginOtp";
     private static readonly string EmailLoginTokenPurpose = "Authentication:EmailLogin";
     private static readonly string PasskeyTokenPurpose = "Authentication:PasskeyLogin";
     private static readonly string PhoneChangeTokenPurpose = "Authentication:PhoneChange";
@@ -16,6 +17,7 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
     public string TokenPurpose(AuthenticationChallengePurpose purpose) => purpose switch
     {
         AuthenticationChallengePurpose.PhoneLogin => PhoneLoginTokenPurpose,
+        AuthenticationChallengePurpose.PasswordLoginOtp => PasswordLoginOtpTokenPurpose,
         AuthenticationChallengePurpose.EmailLogin => EmailLoginTokenPurpose,
         AuthenticationChallengePurpose.PasskeyLogin => PasskeyTokenPurpose,
         AuthenticationChallengePurpose.PhoneChange => PhoneChangeTokenPurpose,
@@ -25,6 +27,9 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
 
     public AuthenticationChallenge CreatePhoneLoginChallenge(string userId, string phoneNumber, string tokenPurpose, DateTimeOffset now) =>
         CreateChallenge(AuthenticationChallengePurpose.PhoneLogin, userId, phoneNumber, tokenPurpose, now);
+
+    public AuthenticationChallenge CreatePasswordLoginOtpChallenge(string userId, string phoneNumber, string tokenPurpose, DateTimeOffset now, bool rememberMe, bool requiresProfileCompletion) =>
+        CreateChallenge(AuthenticationChallengePurpose.PasswordLoginOtp, userId, phoneNumber, tokenPurpose, now, rememberMe, requiresProfileCompletion);
 
     public AuthenticationChallenge CreateEmailLoginChallenge(string userId, string email, string tokenPurpose, DateTimeOffset now) =>
         CreateChallenge(AuthenticationChallengePurpose.EmailLogin, userId, email, tokenPurpose, now);
@@ -38,7 +43,7 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
     public AuthenticationChallenge CreatePasskeyLoginChallenge(string userIdOrLoginHint, string challengeReference, DateTimeOffset now) =>
         CreateChallenge(AuthenticationChallengePurpose.PasskeyLogin, userIdOrLoginHint, challengeReference, PasskeyTokenPurpose, now);
 
-    private AuthenticationChallenge CreateChallenge(AuthenticationChallengePurpose purpose, string userId, string destination, string tokenPurpose, DateTimeOffset now) =>
+    private AuthenticationChallenge CreateChallenge(AuthenticationChallengePurpose purpose, string userId, string destination, string tokenPurpose, DateTimeOffset now, bool rememberMe = false, bool requiresProfileCompletion = false) =>
         new(
             new AuthenticationChallengeId(Guid.NewGuid().ToString("N")),
             purpose,
@@ -47,5 +52,7 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
             tokenPurpose,
             now,
             now.Add(Lifetime),
-            MaximumAttempts);
+            MaximumAttempts,
+            rememberMe,
+            requiresProfileCompletion);
 }

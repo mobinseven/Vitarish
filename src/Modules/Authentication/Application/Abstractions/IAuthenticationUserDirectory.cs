@@ -2,6 +2,7 @@ namespace Vitarish.Authentication.Application.Abstractions;
 
 public interface IAuthenticationUserDirectory
 {
+    Task<AuthenticationUserDescriptor?> FindByIdAsync(string userId, CancellationToken cancellationToken);
     Task<AuthenticationUserDescriptor?> FindByLoginAsync(string login, CancellationToken cancellationToken);
     Task<AuthenticationUserDescriptor?> FindByEmailAsync(string email, CancellationToken cancellationToken);
     Task<AuthenticationUserDescriptor> FindOrCreateByEmailAsync(string email, CancellationToken cancellationToken);
