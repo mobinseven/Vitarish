@@ -50,6 +50,9 @@ builder.Configuration["Vitarish:Search:Url"] = "http://localhost:3997";
 builder.Configuration["Vitarish:Communications:Notifications:ContactEmailRecipient"] = "e2e-contact@example.test";
 builder.Configuration["Vitarish:Features:SocialIntegrations"] = "true";
 builder.Configuration["Vitarish:Security:MandatoryAuditEnabled"] = "true";
+builder.Configuration["Vitarish:Security:AuthenticationAttempts:Realm"] = apiOrigin.Host;
+builder.Configuration["Vitarish:Security:AuthenticationAttempts:CurrentPepper"] = "e2e-authentication-attempt-key-pepper-20260829";
+builder.Configuration["Vitarish:Security:AuthenticationAttempts:CurrentVersion"] = "v1";
 builder.Configuration["Vitarish:Security:Tls:RequireHttps"] = "true";
 builder.Configuration["Vitarish:Security:TokenValidation:Issuer"] = apiOrigin.ToString().TrimEnd('/');
 builder.Configuration["Vitarish:Security:TokenValidation:Audiences:0"] = "vitarish-api";
@@ -89,6 +92,7 @@ _ = builder.Services.AddScoped<ClinicDbContext>(services =>
 _ = builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider().SetApplicationName(apiOrigin.Host);
 _ = builder.Services.AddDistributedMemoryCache();
 builder.Services.Replace(ServiceDescriptor.Singleton<IAuthenticationChallengeStore, InMemoryAuthenticationChallengeStore>());
+builder.Services.Replace(ServiceDescriptor.Singleton<IAuthenticationAttemptTracker, InMemoryAuthenticationAttemptTracker>());
 _ = builder.Services.AddOpenApi();
 WebApplication app = builder.Build();
 _ = app.UseHostingPipeline(securityConfiguration);

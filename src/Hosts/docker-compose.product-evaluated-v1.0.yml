@@ -48,6 +48,7 @@ services:
       Cors__AllowedOrigins__5: https://${VITARISH_LANDING_HOST:?VITARISH_LANDING_HOST is required}
       Vitarish__Identity__Authority: ${VITARISH_IDENTITY_AUTHORITY:?VITARISH_IDENTITY_AUTHORITY is required}
       Vitarish__Identity__DataProtectionPassword: ${VITARISH_DATA_PROTECTION_PASSWORD:?VITARISH_DATA_PROTECTION_PASSWORD is required}
+      Vitarish__Security__AuthenticationAttempts__CurrentPepper: ${VITARISH_AUTH_ATTEMPT_KEY_PEPPER:?VITARISH_AUTH_ATTEMPT_KEY_PEPPER is required}
       Vitarish__Security__TrustedProxyNetworks__0: ${VITARISH_PROXY_NETWORK:?VITARISH_PROXY_NETWORK is required}
       Vitarish__Security__TokenValidation__Issuer: ${VITARISH_TOKEN_ISSUER:?VITARISH_TOKEN_ISSUER is required}
       Vitarish__Security__TokenValidation__Audiences__0: vitarish-api

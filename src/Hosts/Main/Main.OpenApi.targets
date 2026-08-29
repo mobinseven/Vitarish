@@ -25,7 +25,7 @@
     <Message Importance="high" Text="%0AGenerateOpenApiDocuments:" />
     <Message Importance="high" Text="  $(_VitarishOpenApiCommand)" />
     <Exec Command="$(_VitarishOpenApiCommand)"
-          EnvironmentVariables="VITARISH_OPENAPI_GENERATION=true"
+          EnvironmentVariables="VITARISH_OPENAPI_GENERATION=true;ASPNETCORE_ENVIRONMENT=OpenApiGeneration;VITARISH_AUTH_ATTEMPT_KEY_PEPPER=openapi-generation-placeholder-at-least-32-characters"
           LogStandardErrorAsError="true" />
   </Target>
 </Project>
