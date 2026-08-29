@@ -63,6 +63,11 @@ No secret, credential, private key, token, patient data, questionnaire file, or
 release screenshot is an input to repository implementation or committed
 configuration.
 
+The Main container receives the authentication attempt-key pepper from the
+protected `VITARISH_AUTH_ATTEMPT_KEY_PEPPER` deployment input. It is used only
+for realm-scoped keyed attempt identifiers and is never recorded in release
+evidence.
+
 ## Stage 0 decisions
 
 | Decision | Selected repository baseline | Evaluator state |

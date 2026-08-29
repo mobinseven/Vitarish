@@ -72,7 +72,7 @@ Excluded public contracts are disabled by composition, not deleted or redesigned
 
 ## Deployment inputs
 
-Required non-secret inputs are `Vitarish__Identity__Authority`, `Vitarish__Identity__DataProtectionPassword`, `ConnectionStrings__Db`, and `ConnectionStrings__Redis`; values are supplied through the deployment secret store or environment and are never recorded here. The evaluated compose file sets `Vitarish__EvaluatedConfiguration__Enabled=true`, uses configuration ID `vitarish-toe-main-evaluated-2026-08-15`, and builds with `MODULE_BUILD_PROFILE=Evaluated`.
+Required inputs are `Vitarish__Identity__Authority`, `Vitarish__Identity__DataProtectionPassword`, `Vitarish__Security__AuthenticationAttempts__CurrentPepper`, `ConnectionStrings__Db`, and `ConnectionStrings__Redis`; secret values are supplied through the deployment secret store or environment and are never recorded here. The evaluated compose file sets `Vitarish__EvaluatedConfiguration__Enabled=true`, uses configuration ID `vitarish-toe-main-evaluated-2026-08-15`, and builds with `MODULE_BUILD_PROFILE=Evaluated`.
 
 The host binding is private (`127.0.0.1:5000` to Main's HTTP port `8080`). A separately operated TLS-terminating ingress is required for external traffic. The private HTTP upstream is not an externally secure interface and is covered by `OE.INGRESS`, not by a claim that Main itself terminates public TLS.
 
