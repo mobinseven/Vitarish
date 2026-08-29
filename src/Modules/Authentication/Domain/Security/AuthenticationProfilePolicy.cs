@@ -1,3 +1,5 @@
+using Vitarish.Authentication.Domain.Methods;
+
 namespace Vitarish.Authentication.Domain.Security;
 
 public sealed record AuthenticationProfilePolicy(
@@ -23,4 +25,40 @@ public sealed record AuthenticationProfilePolicy(
         AllowPasswordlessPhoneLogin: true,
         AllowPasswordlessEmailLogin: true,
         AllowPasskeyLogin: true);
+
+    public IReadOnlySet<AuthenticationMethod> EnabledAuthenticationMechanisms
+    {
+        get
+        {
+            HashSet<AuthenticationMethod> mechanisms = [AuthenticationMethod.Password];
+            if (AllowPasswordlessPhoneLogin || UsePhoneOtpForTwoFactorAccounts)
+                mechanisms.Add(AuthenticationMethod.Phone);
+            if (AllowPasswordlessEmailLogin)
+                mechanisms.Add(AuthenticationMethod.Email);
+            if (AllowPasskeyLogin)
+                mechanisms.Add(AuthenticationMethod.Passkey);
+            return mechanisms;
+        }
+    }
+
+    public IReadOnlySet<PreAuthenticationAction> PermittedPreAuthenticationActions
+    {
+        get
+        {
+            HashSet<PreAuthenticationAction> actions =
+            [
+                PreAuthenticationAction.AuthenticationProfile,
+                PreAuthenticationAction.PasswordLogin
+            ];
+            if (AllowPasswordlessPhoneLogin)
+                actions.Add(PreAuthenticationAction.PhoneLogin);
+            if (AllowPasswordlessEmailLogin)
+                actions.Add(PreAuthenticationAction.EmailLogin);
+            if (AllowPasskeyLogin)
+                actions.Add(PreAuthenticationAction.PasskeyLogin);
+            if (UsePhoneOtpForTwoFactorAccounts)
+                actions.Add(PreAuthenticationAction.PasswordPlusPhoneOtp);
+            return actions;
+        }
+    }
 }

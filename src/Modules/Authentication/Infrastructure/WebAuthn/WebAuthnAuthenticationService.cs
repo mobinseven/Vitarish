@@ -5,19 +5,24 @@ using Fido2NetLib.Objects;
 using Microsoft.Extensions.Caching.Distributed;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Domain.Methods;
+using Vitarish.Authentication.Domain.Security;
 
 namespace Vitarish.Authentication.Infrastructure;
 
 public sealed class WebAuthnAuthenticationService(
     IFido2 fido2,
     IDistributedCache cache,
-    IWebAuthnCredentialLookup credentialLookup) : IWebAuthnAuthenticationService
+    IWebAuthnCredentialLookup credentialLookup,
+    IAuthenticationAttemptKeyFactory attemptKeyFactory,
+    IAuthenticationSecurityPolicyProvider securityPolicyProvider) : IWebAuthnAuthenticationService
 {
     private static readonly TimeSpan ChallengeLifetime = TimeSpan.FromMinutes(5);
 
     public async Task<WebAuthnBeginResult> BeginAsync(string? userNameOrEmail, CancellationToken cancellationToken)
     {
         string challengeId = Guid.NewGuid().ToString("N");
+        SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
 
         List<PublicKeyCredentialDescriptor> allowedCredentials = [];
         if (!string.IsNullOrWhiteSpace(userNameOrEmail))
@@ -39,9 +44,44 @@ public sealed class WebAuthnAuthenticationService(
 
         string optionsJson = options.ToJson();
         await CacheAssertionOptionsAsync(challengeId, optionsJson, cancellationToken);
+        if (!string.IsNullOrWhiteSpace(userNameOrEmail))
+        {
+            await cache.SetStringAsync(GetAttemptKeyCacheKey(challengeId), attemptKeyFactory.Identifier(AuthenticationMethod.Passkey, userNameOrEmail), new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = ChallengeLifetime }, cancellationToken);
+        }
 
         DateTimeOffset expiresAt = DateTimeOffset.UtcNow.Add(ChallengeLifetime);
-        return new WebAuthnBeginResult(challengeId, optionsJson, expiresAt, 5);
+        return new WebAuthnBeginResult(challengeId, optionsJson, expiresAt, securityPolicy.FailedAttemptThreshold);
+    }
+
+    public async Task<string?> GetAttemptKeyAsync(string challengeId, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (string.IsNullOrWhiteSpace(challengeId))
+            return null;
+        return await cache.GetStringAsync(GetAttemptKeyCacheKey(challengeId), cancellationToken);
+    }
+
+    public async Task<string?> GetAttemptKeyAsync(string challengeId, string credentialJson, CancellationToken cancellationToken)
+    {
+        string? cachedAttemptKey = await GetAttemptKeyAsync(challengeId, cancellationToken);
+        if (!string.IsNullOrWhiteSpace(cachedAttemptKey))
+            return cachedAttemptKey;
+
+        string challengeAttemptKey = attemptKeyFactory.Identifier(AuthenticationMethod.Passkey, $"challenge:{challengeId}");
+        if (string.IsNullOrWhiteSpace(credentialJson))
+            return challengeAttemptKey;
+
+        try
+        {
+            AuthenticatorAssertionRawResponse? assertion = JsonSerializer.Deserialize<AuthenticatorAssertionRawResponse>(credentialJson);
+            return assertion?.RawId is { Length: > 0 }
+                ? attemptKeyFactory.Identifier(AuthenticationMethod.Passkey, Convert.ToBase64String(assertion.RawId))
+                : challengeAttemptKey;
+        }
+        catch (JsonException)
+        {
+            return challengeAttemptKey;
+        }
     }
 
     public async Task<WebAuthnCompleteResult> CompleteAsync(string challengeId, string credentialJson, CancellationToken cancellationToken)
@@ -98,6 +138,7 @@ public sealed class WebAuthnAuthenticationService(
 
         await credentialLookup.UpdateSignatureCounterAsync(assertionResponse.RawId, result.SignCount, cancellationToken);
         await RemoveAssertionOptionsAsync(challengeId, cancellationToken);
+        await cache.RemoveAsync(GetAttemptKeyCacheKey(challengeId), cancellationToken);
 
         return new WebAuthnCompleteResult(true, storedCredential.UserId, null);
     }
@@ -124,4 +165,5 @@ public sealed class WebAuthnAuthenticationService(
     }
 
     private static string GetCacheKey(string challengeId) => $"authentication:passkey:assertion:{challengeId}";
+    private static string GetAttemptKeyCacheKey(string challengeId) => $"authentication:passkey:attempt:{challengeId}";
 }

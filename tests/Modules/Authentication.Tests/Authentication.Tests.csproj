@@ -6,8 +6,10 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageReference Include="Moq" />
     <PackageReference Include="Testcontainers.Redis" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,6 +18,7 @@
     <ProjectReference Include="..\..\..\src\Modules\Authentication\Contracts\Authentication.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Authentication\Api\Authentication.Api.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Authentication\Infrastructure\Authentication.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Authentication\Module\Authentication.Module.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Journey\Application\Journey.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Libraries\Audit\Audit.Domain\Audit.Domain.csproj" />

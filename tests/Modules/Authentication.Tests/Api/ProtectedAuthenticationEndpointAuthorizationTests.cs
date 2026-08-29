@@ -146,7 +146,7 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
     }
 
     [Fact]
-    public void Product_evaluated_profile_maps_only_declared_login_methods()
+    public void Product_evaluated_profile_maps_only_enabled_login_methods()
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
         builder.Services.AddAntiforgery();

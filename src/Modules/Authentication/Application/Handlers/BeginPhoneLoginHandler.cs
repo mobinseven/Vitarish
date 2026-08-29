@@ -3,6 +3,7 @@ using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Application.Validation;
 using Vitarish.Authentication.Domain.Challenges;
+using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 
 namespace Vitarish.Authentication.Application.Handlers;
@@ -12,18 +13,32 @@ public sealed class BeginPhoneLoginHandler(
     IAuthenticationUserDirectory userDirectory,
     IAuthenticationCodeGenerator codeGenerator,
     IPhoneAuthenticationCodeSender phoneSender,
-    AuthenticationChallengePolicy policy)
+    AuthenticationChallengePolicy policy,
+    IAuthenticationAttemptTracker attemptTracker,
+    IAuthenticationSecurityPolicyProvider securityPolicyProvider,
+    IAuthenticationAttemptKeyFactory attemptKeyFactory)
 {
     public async Task<AuthenticationResult<ChallengeResult>> Handle(BeginPhoneLoginCommand command, CancellationToken cancellationToken)
     {
         if (!AuthenticationInputValidator.HasText(command.PhoneNumber))
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, "Phone number is required."));
 
+        SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
+        if (!securityPolicy.Allows(AuthenticationMethod.Phone, PreAuthenticationAction.PhoneLogin))
+            return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Phone authentication is not enabled."));
+
+        if (await IsDeniedAsync(attemptKeyFactory.IdentifierCandidates(AuthenticationMethod.Phone, command.PhoneNumber), cancellationToken))
+            return new AuthenticationResult<ChallengeResult>.Failure(AttemptDenied(securityPolicy));
+
         DateTimeOffset now = DateTimeOffset.UtcNow;
         AuthenticationUserDescriptor user = await userDirectory.FindOrCreateByPhoneNumberAsync(command.PhoneNumber, cancellationToken);
+        if (await IsDeniedAsync(attemptKeyFactory.SubjectCandidates(AuthenticationMethod.Phone, user.UserId), cancellationToken))
+            return new AuthenticationResult<ChallengeResult>.Failure(AttemptDenied(securityPolicy));
+        AuthenticationChallengePolicy effectivePolicy = policy.WithMaximumAttempts(securityPolicy.FailedAttemptThreshold);
 
-        string code = await codeGenerator.GenerateAsync(user.UserId, policy.TokenPurpose(AuthenticationChallengePurpose.PhoneLogin), cancellationToken);
-        AuthenticationChallenge challenge = policy.CreatePhoneLoginChallenge(user.UserId, command.PhoneNumber, policy.TokenPurpose(AuthenticationChallengePurpose.PhoneLogin), now);
+        string tokenPurpose = effectivePolicy.TokenPurpose(AuthenticationChallengePurpose.PhoneLogin);
+        string code = await codeGenerator.GenerateAsync(user.UserId, tokenPurpose, cancellationToken);
+        AuthenticationChallenge challenge = effectivePolicy.CreatePhoneLoginChallenge(user.UserId, command.PhoneNumber, tokenPurpose, now);
         await store.SaveAsync(challenge, cancellationToken);
 
         try
@@ -38,5 +53,17 @@ public sealed class BeginPhoneLoginHandler(
         }
 
         return new AuthenticationResult<ChallengeResult>.Success(new(challenge.Id.Value, challenge.Purpose, challenge.ExpiresAt, challenge.RemainingAttempts));
+    }
+
+    private static AuthenticationFailure AttemptDenied(SecurityAccessPolicy policy) =>
+        new(policy.FailedAttemptResponse is FailedAttemptResponse.Lockout ? AuthenticationFailureReason.LockedOut : AuthenticationFailureReason.TooManyAttempts,
+            policy.FailedAttemptResponse is FailedAttemptResponse.Lockout ? "Authentication is temporarily locked out." : "Too many authentication attempts.");
+
+    private async Task<bool> IsDeniedAsync(IReadOnlyList<string> keys, CancellationToken cancellationToken)
+    {
+        foreach (string key in keys)
+            if (await attemptTracker.IsDeniedAsync(key, cancellationToken))
+                return true;
+        return false;
     }
 }

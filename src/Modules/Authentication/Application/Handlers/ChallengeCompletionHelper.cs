@@ -17,7 +17,10 @@ internal static class ChallengeCompletionHelper
         IAuthenticationCodeVerifier verifier,
         IAuthenticationSignInService signInService,
         IAuthenticationRedirectResolver redirects,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IAuthenticationAttemptTracker attemptTracker,
+        SecurityAccessPolicy securityPolicy,
+        IAuthenticationAttemptKeyFactory attemptKeyFactory)
     {
         if (!AuthenticationInputValidator.HasText(challengeId) || !AuthenticationInputValidator.HasText(code))
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidInput, "Challenge ID and code are required."));
@@ -28,13 +31,24 @@ internal static class ChallengeCompletionHelper
         if (challenge is null)
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidCredentials, "Invalid verification code."));
 
+        IReadOnlyList<string> attemptKeys = attemptKeyFactory.ChallengeCandidates(expectedPurpose, challenge.UserId);
+        if (await IsDeniedAsync(attemptKeys, attemptTracker, cancellationToken))
+            return new AuthenticationResult<LoginResult>.Failure(new(
+                securityPolicy.FailedAttemptResponse is FailedAttemptResponse.Lockout ? AuthenticationFailureReason.LockedOut : AuthenticationFailureReason.TooManyAttempts,
+                securityPolicy.FailedAttemptResponse is FailedAttemptResponse.Lockout ? "Authentication is temporarily locked out." : "Too many authentication attempts."));
+
         DateTimeOffset now = DateTimeOffset.UtcNow;
         AuthenticationFailureReason? validationError = challenge.ValidateAttempt(now, expectedPurpose);
         if (validationError is not null)
-            return new AuthenticationResult<LoginResult>.Failure(new(validationError.Value, GetErrorMessage(validationError.Value)));
+        {
+            AuthenticationFailureReason reason = MapFailureReason(validationError.Value, securityPolicy.FailedAttemptResponse);
+            return new AuthenticationResult<LoginResult>.Failure(new(reason, GetErrorMessage(reason)));
+        }
 
         if (!await store.TryReserveAttemptAsync(challenge, cancellationToken))
-            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ChallengeAttemptsExhausted, "Too many failed attempts."));
+            return new AuthenticationResult<LoginResult>.Failure(new(
+                MapFailureReason(AuthenticationFailureReason.ChallengeAttemptsExhausted, securityPolicy.FailedAttemptResponse),
+                "Too many failed attempts."));
 
         string normalizedCode = NormalizeVerificationCode(code);
         bool verified;
@@ -60,8 +74,23 @@ internal static class ChallengeCompletionHelper
                 await store.ReleaseAttemptAsync(challenge, CancellationToken.None);
                 throw;
             }
+            int globalFailures = 0;
+            foreach (string attemptKey in attemptKeys)
+            {
+                globalFailures = Math.Max(globalFailures, await attemptTracker.RegisterFailureAsync(
+                    attemptKey,
+                    securityPolicy.FailedAttemptThreshold,
+                    securityPolicy.FailedAttemptDenialDuration,
+                    cancellationToken));
+            }
+            if (globalFailures >= securityPolicy.FailedAttemptThreshold)
+                return new AuthenticationResult<LoginResult>.Failure(new(
+                    MapFailureReason(AuthenticationFailureReason.ChallengeAttemptsExhausted, securityPolicy.FailedAttemptResponse),
+                    GetErrorMessage(MapFailureReason(AuthenticationFailureReason.ChallengeAttemptsExhausted, securityPolicy.FailedAttemptResponse))));
             if (failedAttempts <= 0 || failedAttempts >= challenge.MaximumAttempts)
-                return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ChallengeAttemptsExhausted, "Too many failed attempts."));
+                return new AuthenticationResult<LoginResult>.Failure(new(
+                    MapFailureReason(AuthenticationFailureReason.ChallengeAttemptsExhausted, securityPolicy.FailedAttemptResponse),
+                    "Too many failed attempts."));
 
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidVerificationCode, "Invalid verification code."));
         }
@@ -83,6 +112,9 @@ internal static class ChallengeCompletionHelper
             challenge.Complete(now);
 
         await signInService.SignInAsync(challenge.UserId, challenge.RememberMe, cancellationToken);
+
+        foreach (string attemptKey in attemptKeys)
+            await attemptTracker.ResetAsync(attemptKey, cancellationToken);
 
         string resolvedReturnUrl = await redirects.ResolveAsync(returnUrl, challenge.RequiresProfileCompletion, challenge.UserId, cancellationToken);
         return new AuthenticationResult<LoginResult>.Success(new(challenge.UserId, resolvedReturnUrl, challenge.RequiresProfileCompletion));
@@ -107,12 +139,32 @@ internal static class ChallengeCompletionHelper
         return new string(normalized);
     }
 
+    private static AuthenticationFailureReason MapFailureReason(AuthenticationFailureReason reason, FailedAttemptResponse? response) =>
+        reason is AuthenticationFailureReason.ChallengeAttemptsExhausted && response is not null
+            ? response is FailedAttemptResponse.Lockout
+                ? AuthenticationFailureReason.LockedOut
+                : AuthenticationFailureReason.TooManyAttempts
+            : reason;
+
+    private static async Task<bool> IsDeniedAsync(
+        IReadOnlyList<string> keys,
+        IAuthenticationAttemptTracker attemptTracker,
+        CancellationToken cancellationToken)
+    {
+        foreach (string key in keys)
+            if (await attemptTracker.IsDeniedAsync(key, cancellationToken))
+                return true;
+        return false;
+    }
+
     private static string GetErrorMessage(AuthenticationFailureReason reason) => reason switch
     {
         AuthenticationFailureReason.ChallengeNotFound => "Challenge not found.",
         AuthenticationFailureReason.ChallengeExpired => "Challenge has expired.",
         AuthenticationFailureReason.ChallengeAlreadyUsed => "Challenge has already been used.",
         AuthenticationFailureReason.ChallengeAttemptsExhausted => "Too many failed attempts.",
+        AuthenticationFailureReason.LockedOut => "Authentication is temporarily locked out.",
+        AuthenticationFailureReason.TooManyAttempts => "Too many authentication attempts.",
         AuthenticationFailureReason.InvalidVerificationCode => "Invalid verification code.",
         AuthenticationFailureReason.InvalidInput => "Invalid input.",
         _ => "Verification failed."

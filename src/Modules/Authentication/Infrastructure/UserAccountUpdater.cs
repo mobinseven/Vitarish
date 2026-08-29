@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Vitarish.Authentication.Application.Abstractions;
+using Vitarish.Authentication.Domain.Security;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 
@@ -27,10 +28,10 @@ public sealed class UserAccountUpdater(
         return result.Succeeded;
     }
 
-    public async Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default)
+    public async Task<PasswordChangeOutcome> ChangePasswordAsync(string userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default)
     {
         User? user = await userManager.FindByIdAsync(userId);
-        if (user is null) return false;
+        if (user is null) return PasswordChangeOutcome.Failure(PasswordChangeStatus.UserNotFound);
 
         IdentityResult result;
         if (string.IsNullOrEmpty(currentPassword))
@@ -41,7 +42,31 @@ public sealed class UserAccountUpdater(
         {
             result = await userManager.ChangePasswordAsync(user, currentPassword, newPassword);
         }
-        return result.Succeeded;
+        if (result.Succeeded)
+            return PasswordChangeOutcome.Success();
+
+        PasswordPolicyViolation[] violations = result.Errors
+            .Select(error => error.Code)
+            .Where(code => code.StartsWith("PasswordPolicy.", StringComparison.Ordinal))
+            .Select(code => Enum.TryParse(code["PasswordPolicy.".Length..], out PasswordPolicyViolation violation)
+                ? (PasswordPolicyViolation?)violation
+                : null)
+            .Where(violation => violation.HasValue)
+            .Select(violation => violation!.Value)
+            .Distinct()
+            .ToArray();
+        if (violations.Length > 0)
+            return PasswordChangeOutcome.PolicyFailure(violations);
+
+        return string.IsNullOrEmpty(currentPassword)
+            ? PasswordChangeOutcome.Failure(PasswordChangeStatus.Failed)
+            : PasswordChangeOutcome.Failure(PasswordChangeStatus.InvalidCurrentPassword);
+    }
+
+    public async Task<bool> PasswordMatchesAsync(string userId, string password, CancellationToken cancellationToken = default)
+    {
+        User? user = await userManager.FindByIdAsync(userId);
+        return user is not null && await userManager.CheckPasswordAsync(user, password);
     }
 
     public async Task<bool> UserHasPasswordAsync(string userId, CancellationToken cancellationToken = default)

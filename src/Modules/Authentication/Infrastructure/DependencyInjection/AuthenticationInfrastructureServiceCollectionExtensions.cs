@@ -1,15 +1,38 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.ReturnUrls;
+using Vitarish.Authentication.Infrastructure.Options;
+using Vitarish.Entities.Server.Extensions;
+using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Authentication.Infrastructure.DependencyInjection;
 
 public static class AuthenticationInfrastructureServiceCollectionExtensions
 {
-    public static IServiceCollection AddAuthenticationInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddAuthenticationInfrastructure(this IServiceCollection services, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
+        _ = services.AddTransientDbContext<AuthenticationDbContext>((_, options) => configureDbContext?.Invoke(options));
+        _ = services.AddScoped<SecurityAccessPolicyStore>();
+        _ = services.AddScoped<IAuthenticationSecurityPolicyStore>(provider => provider.GetRequiredService<SecurityAccessPolicyStore>());
+        _ = services.AddScoped<IAuthenticationSecurityPolicyProvider>(provider => provider.GetRequiredService<SecurityAccessPolicyStore>());
+        _ = services.AddOptions<AuthenticationAttemptKeyOptions>()
+            .BindConfiguration(AuthenticationAttemptKeyOptions.SectionName)
+            .ValidateOnStart();
+        _ = services.AddSingleton<IValidateOptions<AuthenticationAttemptKeyOptions>>(provider =>
+            new AuthenticationAttemptKeyOptionsValidator(
+                provider.GetRequiredService<IConfiguration>(),
+                provider.GetService<IHostEnvironment>()));
+        _ = services.AddSingleton<IAuthenticationAttemptKeyFactory, AuthenticationAttemptKeyFactory>();
+        _ = services.AddSingleton<IAuthenticationAttemptTracker, RedisAuthenticationAttemptTracker>();
+        _ = services.AddScoped<IPasswordValidator<User>, SecurityPolicyPasswordValidator>();
+        _ = services.AddScoped<UnknownPasswordVerifier>();
         services.AddHttpContextAccessor();
         services.AddSingleton<AuthenticationChallengePolicy>(AuthenticationChallengePolicy.Default);
         services.AddSingleton<IAuthenticationChallengeStore, DistributedAuthenticationChallengeStore>();

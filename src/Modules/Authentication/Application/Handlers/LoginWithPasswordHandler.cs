@@ -6,6 +6,7 @@ using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Application.Validation;
 using Vitarish.Authentication.Domain.Challenges;
+using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Requests.Application.Abstractions;
 
@@ -21,7 +22,10 @@ public sealed class LoginWithPasswordHandler(
     AuthenticationChallengePolicy challengePolicy,
     IAuthenticationUserDirectory userDirectory,
     IAuthenticationCodeGenerator codeGenerator,
-    IPhoneAuthenticationCodeSender phoneSender)
+    IPhoneAuthenticationCodeSender phoneSender,
+    IAuthenticationAttemptTracker attemptTracker,
+    IAuthenticationSecurityPolicyProvider securityPolicyProvider,
+    IAuthenticationAttemptKeyFactory attemptKeyFactory)
 {
     public async Task<AuthenticationResult<LoginResult>> Handle(LoginWithPasswordCommand command, CancellationToken cancellationToken)
     {
@@ -31,9 +35,26 @@ public sealed class LoginWithPasswordHandler(
         if (string.IsNullOrWhiteSpace(requestContext.TenantId))
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, "A tenant context is required for security auditing."));
 
+        SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
         string operationKey = command.IdempotencyKey ?? requestContext.RequestId ?? Guid.NewGuid().ToString("N");
         string startedKey = operationKey + AuthenticationSecurityAuditEvents.StartedKeySuffix;
         string completedKey = operationKey + AuthenticationSecurityAuditEvents.CompletedKeySuffix;
+        if (!securityPolicy.Allows(AuthenticationMethod.Password, PreAuthenticationAction.PasswordLogin))
+        {
+            try
+            {
+                _ = await securityAuditWriter.WriteAsync(CreateAuditEvent(
+                    SecurityAuditOutcome.Denied,
+                    completedKey,
+                    null,
+                    AuthenticationSecurityAuditEvents.FailurePasswordLoginDisabled), cancellationToken);
+            }
+            catch (SecurityAuditStoreException)
+            {
+                return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
+            }
+            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Password authentication is not enabled."));
+        }
         try
         {
             SecurityAuditWriteResult started = await securityAuditWriter.WriteAsync(CreateAuditEvent(
@@ -80,6 +101,8 @@ public sealed class LoginWithPasswordHandler(
                 new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.AdditionalStepRequired, "Additional authentication required.")),
             PasswordSignInStatus.ProviderFailure =>
                 new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, "Authentication provider failure.")),
+            PasswordSignInStatus.TooManyAttempts =>
+                new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.TooManyAttempts, "Too many authentication attempts.")),
             _ => new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidCredentials, "Invalid credentials."))
         };
 
@@ -128,9 +151,20 @@ public sealed class LoginWithPasswordHandler(
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Additional authentication is not configured."));
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        string tokenPurpose = challengePolicy.TokenPurpose(AuthenticationChallengePurpose.PasswordLoginOtp);
+        SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
+        if (!securityPolicy.Allows(AuthenticationMethod.Phone, PreAuthenticationAction.PasswordPlusPhoneOtp))
+            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Additional authentication is not enabled."));
+        IReadOnlyList<string> attemptKeys = attemptKeyFactory.SubjectCandidates(AuthenticationMethod.Phone, user.UserId);
+        foreach (string attemptKey in attemptKeys)
+        {
+            if (!await attemptTracker.IsDeniedAsync(attemptKey, cancellationToken))
+                continue;
+            return new AuthenticationResult<LoginResult>.Failure(AttemptDenied(securityPolicy));
+        }
+        AuthenticationChallengePolicy effectivePolicy = challengePolicy.WithMaximumAttempts(securityPolicy.FailedAttemptThreshold);
+        string tokenPurpose = effectivePolicy.TokenPurpose(AuthenticationChallengePurpose.PasswordLoginOtp);
         string code = await codeGenerator.GenerateAsync(user.UserId, tokenPurpose, cancellationToken);
-        AuthenticationChallenge challenge = challengePolicy.CreatePasswordLoginOtpChallenge(
+        AuthenticationChallenge challenge = effectivePolicy.CreatePasswordLoginOtpChallenge(
             user.UserId,
             user.PhoneNumber,
             tokenPurpose,
@@ -161,6 +195,10 @@ public sealed class LoginWithPasswordHandler(
             "Additional authentication required.",
             challenge.Id.Value));
     }
+
+    private static AuthenticationFailure AttemptDenied(SecurityAccessPolicy policy) =>
+        new(policy.FailedAttemptResponse is FailedAttemptResponse.Lockout ? AuthenticationFailureReason.LockedOut : AuthenticationFailureReason.TooManyAttempts,
+            policy.FailedAttemptResponse is FailedAttemptResponse.Lockout ? "Authentication is temporarily locked out." : "Too many authentication attempts.");
 
     private async Task<AuthenticationResult<LoginResult>> CompletePasswordOnlyLoginAsync(
         PasswordSignInResult signInResult,

@@ -5,6 +5,7 @@ using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Domain.Challenges;
+using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Requests.Application.Abstractions;
 
@@ -16,7 +17,10 @@ public sealed class CompletePasswordLoginOtpHandler(
     IAuthenticationSignInService signInService,
     IAuthenticationRedirectResolver redirects,
     ISecurityAuditWriter securityAuditWriter,
-    IRequestContext requestContext)
+    IRequestContext requestContext,
+    IAuthenticationAttemptTracker attemptTracker,
+    IAuthenticationSecurityPolicyProvider securityPolicyProvider,
+    IAuthenticationAttemptKeyFactory attemptKeyFactory)
 {
     public async Task<AuthenticationResult<LoginResult>> Handle(
         CompletePasswordLoginOtpCommand command,
@@ -24,6 +28,10 @@ public sealed class CompletePasswordLoginOtpHandler(
     {
         if (string.IsNullOrWhiteSpace(requestContext.TenantId))
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, "A tenant context is required for security auditing."));
+
+        SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
+        if (!securityPolicy.Allows(AuthenticationMethod.Phone, PreAuthenticationAction.PasswordPlusPhoneOtp))
+            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Additional authentication is not enabled."));
 
         string operationKey = requestContext.RequestId ?? Guid.NewGuid().ToString("N");
         string startedKey = operationKey + AuthenticationSecurityAuditEvents.StartedKeySuffix;
@@ -52,7 +60,10 @@ public sealed class CompletePasswordLoginOtpHandler(
             verifier,
             signInService,
             redirects,
-            cancellationToken);
+            cancellationToken,
+            attemptTracker,
+            securityPolicy,
+            attemptKeyFactory);
 
         try
         {
