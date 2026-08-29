@@ -18,7 +18,7 @@ Read only relevant sources:
 
 Do not duplicate those documents here.
 
-## Core rules
+## Core Architectural Rules
 
 1. **Cohesion [SHOULD]** — Give each artifact one primary reason to change. Split unrelated forces; do not split cohesive behavior merely to add indirection.
 2. **Authoritative ownership [MUST]** — Every rule, invariant, mutable state, and shared value has one owner. Derived DTOs, persistence shapes, caches, indexes, generated clients, fixtures, and view models must have an explicit source and synchronization path.
@@ -28,8 +28,6 @@ Do not duplicate those documents here.
 6. **Explicit boundaries [MUST]** — Validate transport shape at Transport, use-case preconditions at Application, invariants at their owner, and external responses before trust. Define relevant cancellation, timeout, retry, duplicate-call, idempotency, concurrency, partial-failure, and dependency-unavailable behavior. Never swallow failures.
 7. **Cohesive edits [SHOULD]** — Reuse a natural extension point; otherwise edit the current owner. Do not invent handlers, strategies, plug-ins, layers, or wrappers solely to avoid changing stable code.
 8. **Current requirements [SHOULD]** — Avoid speculative layers, options, abstractions, and configuration. When solutions are equally correct, prefer the simpler and more reversible one.
-9. **Named values [MUST]** — Do not duplicate string literals that represent a route, operation ID, configuration key, authorization claim or policy, event/message type, serialization discriminator, localization key, feature flag, cache key, or other contract or business value. Define each value at its authoritative owner and reuse it through an existing typed constant, enum, options, contract, or resource mechanism. An inline literal is acceptable only when it is local, self-explanatory, non-contractual, and does not encode a rule or compatibility boundary; exact-value tests may use literals when the literal itself is what the test asserts. Do not create broad `Constants`, `Common`, or wrapper abstractions solely to hide a literal.
-10. **Plan-agnostic names [MUST]** — Durable source files, types, commands, diagnostics, documentation, and configuration values must express their responsibility or current contract, not a temporary workstream, plan, stage, or phase label such as `Stage1` or `Phase2`. Use a plan/phase label only for an explicitly temporary artifact whose removal condition is recorded in the same authoritative plan or ADR.
 
 ## Safeguards
 
@@ -90,18 +88,12 @@ Require a current need and normally an ADR when repository architecture changes:
 
 Names must express a specific responsibility; `Manager`, `Helper`, `Util`, `Common`, or `Service` cannot rescue a vague name. Do not hide business rules or mutation in extension methods or place business rules in controllers, repositories, DTOs, migrations, adapters, UI, generated clients, localization resources, or skills.
 
-## Skills
-
-Skills live in `.agents/skills/`. Load only those owning current decisions. The
-nearest scoped `AGENTS.md` owns boundary-skill routing for its subtree; do not
-load a backend, Web, transport, persistence, integration, or trust skill merely
-because it exists in the repository-wide catalog. Planning-only work stops
-before edits unless implementation is explicitly authorized.
-
 ## Durable knowledge
 
 Write information to its owner: architecture decisions to ADRs or `docs/architecture.md`; navigation/commands to `docs/codebase-map.md`; repeatable procedures to skills/runbooks; actionable debt to the issue/debt tracker with owner and removal condition; rediscovery-prevention lessons and unfinished migration context to `docs/memory.md`. Do not turn memory into a project log.
 
 ## Needless to say
 
-* Always clean up after yourself. When you abandon a folder, you are the one who must delete the folder. When a file (log, screenshot, etc.) is no longer needed, you the creator are the one who must delete it.
+* **Cleaning-up [MUST]** — Always clean up after yourself. When you abandon a folder, you are the one who must delete the folder. When a file (log, screenshot, etc.) is no longer needed, you the creator are the one who must delete it.
+* **Named values [MUST]** — Do not duplicate string literals that represent a route, operation ID, configuration key, authorization claim or policy, event/message type, serialization discriminator, localization key, feature flag, cache key, or other contract or business value. Define each value at its authoritative owner and reuse it through an existing typed constant, enum, options, contract, or resource mechanism. An inline literal is acceptable only when it is local, self-explanatory, non-contractual, and does not encode a rule or compatibility boundary; exact-value tests may use literals when the literal itself is what the test asserts. Do not create broad `Constants`, `Common`, or wrapper abstractions solely to hide a literal.
+* **Plan-agnostic names [MUST]** — Durable source files, types, commands, diagnostics, documentation, and configuration values must express their responsibility or current contract, not a temporary workstream, plan, stage, or phase label such as `Stage1` or `Phase2`. Use a plan/phase label only for an explicitly temporary artifact whose removal condition is recorded in the same authoritative plan or ADR.
