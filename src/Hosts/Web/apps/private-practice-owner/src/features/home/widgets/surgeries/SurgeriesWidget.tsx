@@ -59,8 +59,12 @@ export function SurgeriesWidget() {
             <Calendar.Header>
               <Calendar.Heading />
               <div className="flex gap-1">
-                <Calendar.NavButton slot="previous" />
-                <Calendar.NavButton slot="next" />
+                <Calendar.NavButton slot="previous">
+                  {t("common.actions.previous")}
+                </Calendar.NavButton>
+                <Calendar.NavButton slot="next">
+                  {t("common.actions.next")}
+                </Calendar.NavButton>
               </div>
             </Calendar.Header>
             <Calendar.Grid>
