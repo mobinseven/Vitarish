@@ -1,7 +1,10 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $false)]
-    [string]$AppName
+    [string]$AppName,
+
+    [Parameter(Mandatory = $false)]
+    [string]$Password
 )
 
 Set-StrictMode -Version Latest
@@ -168,7 +171,10 @@ function Restore-ChildEnvironment {
     }
 }
 
-$password = [string]$env:VITARISH_E2E_PASSWORD
+$password = $Password
+if ([string]::IsNullOrWhiteSpace($password)) {
+    $password = [string]$env:VITARISH_E2E_PASSWORD
+}
 if ([string]::IsNullOrWhiteSpace($password)) {
     $passwordBytes = New-Object byte[] 24
     $randomNumberGenerator = [Security.Cryptography.RandomNumberGenerator]::Create()
