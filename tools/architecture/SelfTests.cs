@@ -49,6 +49,20 @@ internal static class SelfTests
                 """));
         Require(OpenApiEndpointCheck.Run(validIndex, validateAuthorizationMatrix: false).Count == 0, "valid OpenAPI endpoint produced a violation");
 
+        SourceIndex namedOperationIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Contracts/FooContracts.cs", "namespace Foo.Contracts; public sealed record ResponseDto;"),
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                using Foo.Contracts;
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    private const string OperationId = "FooGetItems";
+                    static void Map(object group) => group.MapModuleGet("/items", GetAsync, OperationId, typeof(ResponseDto));
+                    static void GetAsync() { }
+                }
+                """));
+        Require(OpenApiEndpointCheck.Run(namedOperationIndex, validateAuthorizationMatrix: false).Count == 0, "named operation ID produced a violation");
+
         SourceIndex invalidIndex = SourceIndex.FromSources(
             ("src/Modules/Foo/Api/FooApi.cs", "namespace Foo.Api; static class FooApi { static void Map(object group) => group.MapGet(\"/items\", () => 1); }"));
         Require(OpenApiEndpointCheck.Run(invalidIndex, validateAuthorizationMatrix: false).Any(violation => violation.Kind == "RawEndpointMapping"), "raw endpoint was not detected");

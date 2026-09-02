@@ -17,6 +17,7 @@ using Vitarish.Users.Infrastructure.Service;
 using Vitarish.Users.Infrastructure.Authentication;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Entities.Server.Extensions;
+using Vitarish.Authentication.Domain.Security;
 
 namespace Vitarish.Users.Module.DependencyInjection;
 
@@ -35,6 +36,18 @@ public static class IdentityUsersExtensions
             .AddSignInManager<AuditingSignInManager>()
             .AddClaimsPrincipalFactory<UserInfoClaimsPrincipalFactory>()
             .AddDefaultTokenProviders();
+
+        _ = builder.Services.Configure<IdentityOptions>(options =>
+        {
+            options.Password.RequiredLength = PasswordPolicy.Default.MinimumLength;
+            options.Password.RequireLowercase = PasswordPolicy.Default.RequireLowercase;
+            options.Password.RequireUppercase = PasswordPolicy.Default.RequireUppercase;
+            options.Password.RequireDigit = PasswordPolicy.Default.RequireNumber;
+            options.Password.RequireNonAlphanumeric = PasswordPolicy.Default.RequireSpecialCharacter;
+            options.Lockout.MaxFailedAccessAttempts = SecurityAccessPolicy.Default.FailedAttemptThreshold;
+            options.Lockout.DefaultLockoutTimeSpan = SecurityAccessPolicy.Default.FailedAttemptDenialDuration;
+            options.Lockout.AllowedForNewUsers = true;
+        });
 
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));

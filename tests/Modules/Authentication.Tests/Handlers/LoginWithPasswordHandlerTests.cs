@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Moq;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
@@ -8,9 +9,12 @@ using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Domain.Challenges;
+using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Domain.Entities;
+using Vitarish.Authentication.Infrastructure;
+using Vitarish.Authentication.Infrastructure.Options;
 using Xunit;
 
 namespace Vitarish.Authentication.Tests.Handlers;
@@ -79,6 +83,27 @@ public sealed class LoginWithPasswordHandlerTests
     }
 
     [Fact]
+    public async Task Product_profile_does_not_issue_otp_when_phone_attempt_is_denied()
+    {
+        TestDependencies dependencies = CreateDependencies(new PasswordSignInResult(
+            PasswordSignInStatus.Succeeded,
+            "user-42",
+            RequiresProfileCompletion: false,
+            RequiresTwoFactor: true));
+        string attemptKey = AuthenticationAttemptKeyFactoryForTests().Subject(AuthenticationMethod.Phone, "user-42");
+        dependencies.AttemptTracker.Setup(x => x.IsDeniedAsync(attemptKey, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", false, "operation-42"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.LockedOut);
+        dependencies.PhoneSender.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AuthenticationChallengePurpose>(), It.IsAny<CancellationToken>()), Times.Never);
+        dependencies.ChallengeStore.Verify(x => x.SaveAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Completed_audit_failure_consumes_the_issued_otp_challenge()
     {
         TestDependencies dependencies = CreateDependencies(new PasswordSignInResult(
@@ -120,7 +145,33 @@ public sealed class LoginWithPasswordHandlerTests
             CancellationToken.None), Times.Once);
     }
 
-    private static TestDependencies CreateDependencies(PasswordSignInResult signInResult)
+    [Fact]
+    public async Task Disabled_password_login_is_audited_before_the_denial_is_returned()
+    {
+        SecurityAccessPolicy policy = SecurityAccessPolicy.ProductEvaluated with
+        {
+            PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction>
+            {
+                PreAuthenticationAction.AuthenticationProfile
+            }
+        };
+        TestDependencies dependencies = CreateDependencies(
+            new PasswordSignInResult(PasswordSignInStatus.Succeeded, "user-42", false, false),
+            policy);
+
+        AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", false, "operation-42"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.NotAllowed);
+        dependencies.AuditWriter.Verify(x => x.WriteAsync(
+            It.Is<SecurityAuditEvent>(audit => audit.Outcome == SecurityAuditOutcome.Denied && audit.RedactedReason == "password_login_disabled"),
+            It.IsAny<CancellationToken>()), Times.Once);
+        dependencies.SignIn.VerifyNoOtherCalls();
+    }
+
+    private static TestDependencies CreateDependencies(PasswordSignInResult signInResult, SecurityAccessPolicy? policy = null)
     {
         Mock<IAuthenticationSignInService> signIn = new();
         signIn.Setup(x => x.CheckPasswordSignInAsync("user-42", "password", It.IsAny<CancellationToken>()))
@@ -143,6 +194,7 @@ public sealed class LoginWithPasswordHandlerTests
             .ReturnsAsync("123456");
 
         Mock<IPhoneAuthenticationCodeSender> phoneSender = new();
+        Mock<IAuthenticationAttemptTracker> attemptTracker = new();
         Mock<ISecurityAuditWriter> auditWriter = new();
         auditWriter.Setup(x => x.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(SecurityAuditWriteResult.Recorded);
@@ -157,9 +209,12 @@ public sealed class LoginWithPasswordHandlerTests
             AuthenticationChallengePolicy.Default,
             userDirectory.Object,
             codeGenerator.Object,
-            phoneSender.Object);
+            phoneSender.Object,
+            attemptTracker.Object,
+            new TestSecurityPolicyProvider(policy ?? SecurityAccessPolicy.ProductEvaluated),
+            AuthenticationAttemptKeyFactoryForTests());
 
-        return new TestDependencies(handler, signIn, challengeStore, phoneSender, auditWriter);
+        return new TestDependencies(handler, signIn, challengeStore, phoneSender, attemptTracker, auditWriter);
     }
 
     private sealed record TestDependencies(
@@ -167,7 +222,14 @@ public sealed class LoginWithPasswordHandlerTests
         Mock<IAuthenticationSignInService> SignIn,
         Mock<IAuthenticationChallengeStore> ChallengeStore,
         Mock<IPhoneAuthenticationCodeSender> PhoneSender,
+        Mock<IAuthenticationAttemptTracker> AttemptTracker,
         Mock<ISecurityAuditWriter> AuditWriter);
+
+    private sealed class TestSecurityPolicyProvider(SecurityAccessPolicy policy) : IAuthenticationSecurityPolicyProvider
+    {
+        public Task<SecurityAccessPolicy> GetAsync(CancellationToken cancellationToken) =>
+            Task.FromResult(policy);
+    }
 
     private sealed class TestRequestContext : IRequestContext
     {
@@ -183,4 +245,11 @@ public sealed class LoginWithPasswordHandlerTests
         public ClaimsPrincipal? User => new(new ClaimsIdentity());
         public Request GetRequest() => new() { RequestId = RequestId!, Authority = Authority, TenantId = TenantId };
     }
+
+    private static IAuthenticationAttemptKeyFactory AuthenticationAttemptKeyFactoryForTests() => new AuthenticationAttemptKeyFactory(
+        Options.Create(new AuthenticationAttemptKeyOptions
+        {
+            Realm = "tests",
+            CurrentPepper = "test-authentication-attempt-key-pepper-20260829"
+        }));
 }

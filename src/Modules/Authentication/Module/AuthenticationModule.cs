@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Authentication.Module.DependencyInjection;
 using Vitarish.Modules.Base.Core;
 using Vitarish.Authentication.Domain.Security;
+using Vitarish.Authentication.Infrastructure;
+using Vitarish.Authentication.Infrastructure.Options;
 using BaseModule = Vitarish.Modules.Base.Core.Module;
 
 namespace Vitarish.Authentication.Module;
@@ -20,7 +22,7 @@ public sealed class AuthenticationModule : Modules.Base.Core.Module
             BaseModule.ProductEvaluatedProfileIdentity,
             StringComparison.Ordinal);
         bool openApiGeneration = string.Equals(
-            Environment.GetEnvironmentVariable("VITARISH_OPENAPI_GENERATION"),
+            Environment.GetEnvironmentVariable(AuthenticationAttemptKeyOptions.OpenApiGenerationEnvironmentVariable),
             "true",
             StringComparison.OrdinalIgnoreCase);
         AuthenticationProfilePolicy profilePolicy = productEvaluatedProfile
@@ -28,12 +30,15 @@ public sealed class AuthenticationModule : Modules.Base.Core.Module
             : openApiGeneration
                 ? AuthenticationProfilePolicy.OpenApi
                 : AuthenticationProfilePolicy.Default;
-        builder.Services.AddAuthenticationModuleServices(profilePolicy);
+        builder.Services.AddAuthenticationModuleServices(profilePolicy, configureDbContext);
         return Task.CompletedTask;
     }
-    public override Task Initialize(WebApplication app)
+    public override async Task Initialize(WebApplication app)
     {
-        return Task.CompletedTask;
+        _ = await app.MigrateDatabaseAsync<AuthenticationDbContext>();
+        using IServiceScope scope = app.Services.CreateScope();
+        SecurityAccessPolicyStore policyStore = scope.ServiceProvider.GetRequiredService<SecurityAccessPolicyStore>();
+        await policyStore.InitializeAsync(CancellationToken.None);
     }
 
     public override void MapEndpoints(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) =>

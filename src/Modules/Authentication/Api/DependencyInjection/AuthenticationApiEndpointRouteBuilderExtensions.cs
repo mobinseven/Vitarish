@@ -23,6 +23,7 @@ public static class AuthenticationApiEndpointRouteBuilderExtensions
         if (profilePolicy.UsePhoneOtpForTwoFactorAccounts)
             _ = anonymous.MapPasswordLoginOtpEndpoints();
         _ = protectedGroup.MapCurrentSessionEndpoints();
+        _ = protectedGroup.MapAuthenticationSecurityEndpoints();
         _ = protectedGroup.MapLogoutEndpoints();
         _ = protectedGroup.MapAccountPhoneChangeEndpoints();
         _ = protectedGroup.MapAccountEmailChangeEndpoints();

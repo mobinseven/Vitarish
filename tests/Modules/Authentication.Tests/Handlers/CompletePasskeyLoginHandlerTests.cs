@@ -1,0 +1,164 @@
+using FluentAssertions;
+using Microsoft.Extensions.Options;
+using Moq;
+using Vitarish.Authentication.Application.Abstractions;
+using Vitarish.Authentication.Application.Commands;
+using Vitarish.Authentication.Application.Handlers;
+using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Domain.Methods;
+using Vitarish.Authentication.Domain.Security;
+using Vitarish.Authentication.Infrastructure;
+using Vitarish.Authentication.Infrastructure.Options;
+
+namespace Vitarish.Authentication.Tests.Handlers;
+
+public sealed class CompletePasskeyLoginHandlerTests
+{
+    [Fact]
+    public async Task Denied_cached_attempt_does_not_call_web_authn_completion()
+    {
+        Mock<IWebAuthnAuthenticationService> webAuthn = new();
+        IAuthenticationAttemptKeyFactory keys = CreateKeys();
+        webAuthn.Setup(item => item.GetAttemptKeyAsync("challenge-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(keys.Identifier(AuthenticationMethod.Passkey, "user@example.test"));
+        Mock<IAuthenticationAttemptTracker> tracker = new();
+        tracker.Setup(item => item.IsDeniedAsync(
+                keys.Identifier(AuthenticationMethod.Passkey, "user@example.test"),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        Mock<IAuthenticationSecurityPolicyProvider> policy = new();
+        policy.Setup(item => item.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
+
+        CompletePasskeyLoginHandler handler = new(
+            webAuthn.Object,
+            Mock.Of<IAuthenticationSignInService>(),
+            Mock.Of<IAuthenticationRedirectResolver>(),
+            policy.Object,
+            tracker.Object,
+            keys);
+
+        AuthenticationResult<LoginResult> result = await handler.Handle(
+            new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.LockedOut);
+        webAuthn.Verify(item => item.CompleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        tracker.Verify(item => item.IsDeniedAsync(
+            keys.Identifier(AuthenticationMethod.Passkey, "user@example.test"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Failed_completion_registers_the_same_cached_attempt_key()
+    {
+        IAuthenticationAttemptKeyFactory keys = CreateKeys();
+        string attemptKey = keys.Identifier(AuthenticationMethod.Passkey, "user@example.test");
+        Mock<IWebAuthnAuthenticationService> webAuthn = new();
+        webAuthn.Setup(item => item.GetAttemptKeyAsync("challenge-1", It.IsAny<CancellationToken>())).ReturnsAsync(attemptKey);
+        webAuthn.Setup(item => item.CompleteAsync("challenge-1", "credential", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebAuthnCompleteResult(false, null, new(AuthenticationFailureReason.InvalidCredential, "failed")));
+        Mock<IAuthenticationAttemptTracker> tracker = new();
+        tracker.Setup(item => item.IsDeniedAsync(attemptKey, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        tracker.Setup(item => item.IsDeniedAsync(It.Is<string>(key => key != attemptKey), It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        tracker.Setup(item => item.RegisterFailureAsync(attemptKey, It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        Mock<IAuthenticationSecurityPolicyProvider> policy = new();
+        policy.Setup(item => item.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
+
+        CompletePasskeyLoginHandler handler = new(
+            webAuthn.Object,
+            Mock.Of<IAuthenticationSignInService>(),
+            Mock.Of<IAuthenticationRedirectResolver>(),
+            policy.Object,
+            tracker.Object,
+            keys);
+
+        AuthenticationResult<LoginResult> result = await handler.Handle(
+            new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>();
+        tracker.Verify(item => item.RegisterFailureAsync(attemptKey, 5, TimeSpan.FromMinutes(15), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Discoverable_failed_completion_uses_the_credential_derived_attempt_key()
+    {
+        IAuthenticationAttemptKeyFactory keys = CreateKeys();
+        string attemptKey = keys.Identifier(AuthenticationMethod.Passkey, "credential-id");
+        Mock<IWebAuthnAuthenticationService> webAuthn = new();
+        webAuthn.Setup(item => item.GetAttemptKeyAsync("challenge-1", It.IsAny<CancellationToken>())).ReturnsAsync((string?)null);
+        webAuthn.Setup(item => item.GetAttemptKeyAsync("challenge-1", "credential", It.IsAny<CancellationToken>())).ReturnsAsync(attemptKey);
+        webAuthn.Setup(item => item.CompleteAsync("challenge-1", "credential", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebAuthnCompleteResult(false, null, new(AuthenticationFailureReason.InvalidCredential, "failed")));
+        Mock<IAuthenticationAttemptTracker> tracker = new();
+        tracker.Setup(item => item.IsDeniedAsync(attemptKey, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        tracker.Setup(item => item.IsDeniedAsync(It.Is<string>(key => key != attemptKey), It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        tracker.Setup(item => item.RegisterFailureAsync(attemptKey, It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        Mock<IAuthenticationSecurityPolicyProvider> policy = new();
+        policy.Setup(item => item.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
+
+        CompletePasskeyLoginHandler handler = new(
+            webAuthn.Object,
+            Mock.Of<IAuthenticationSignInService>(),
+            Mock.Of<IAuthenticationRedirectResolver>(),
+            policy.Object,
+            tracker.Object,
+            keys);
+
+        _ = await handler.Handle(new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"), CancellationToken.None);
+
+        tracker.Verify(item => item.RegisterFailureAsync(attemptKey, 5, TimeSpan.FromMinutes(15), It.IsAny<CancellationToken>()), Times.Once);
+        tracker.Verify(item => item.RegisterFailureAsync(
+            keys.Challenge(AuthenticationMethod.Passkey, "challenge-1"),
+            5,
+            TimeSpan.FromMinutes(15),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Discoverable_completion_cannot_bypass_the_threshold_by_rotating_credential_ids()
+    {
+        IAuthenticationAttemptKeyFactory keys = CreateKeys();
+        Mock<IWebAuthnAuthenticationService> webAuthn = new();
+        webAuthn.Setup(item => item.GetAttemptKeyAsync("challenge-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string?)null);
+        webAuthn.SetupSequence(item => item.GetAttemptKeyAsync("challenge-1", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(keys.Identifier(AuthenticationMethod.Passkey, "credential-id-1"))
+            .ReturnsAsync(keys.Identifier(AuthenticationMethod.Passkey, "credential-id-2"));
+        webAuthn.Setup(item => item.CompleteAsync("challenge-1", "credential", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebAuthnCompleteResult(false, null, new(AuthenticationFailureReason.InvalidCredential, "failed")));
+
+        SecurityAccessPolicy policy = SecurityAccessPolicy.Default with { FailedAttemptThreshold = 2 };
+        Mock<IAuthenticationSecurityPolicyProvider> policyProvider = new();
+        policyProvider.Setup(item => item.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(policy);
+        InMemoryAuthenticationAttemptTracker tracker = new();
+        CompletePasskeyLoginHandler handler = new(
+            webAuthn.Object,
+            Mock.Of<IAuthenticationSignInService>(),
+            Mock.Of<IAuthenticationRedirectResolver>(),
+            policyProvider.Object,
+            tracker,
+            keys);
+
+        AuthenticationResult<LoginResult> first = await handler.Handle(
+            new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
+            CancellationToken.None);
+        AuthenticationResult<LoginResult> second = await handler.Handle(
+            new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
+            CancellationToken.None);
+
+        first.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.InvalidCredential);
+        second.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.LockedOut);
+        webAuthn.Verify(item => item.CompleteAsync("challenge-1", "credential", It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    private static IAuthenticationAttemptKeyFactory CreateKeys() => new AuthenticationAttemptKeyFactory(
+        Options.Create(new AuthenticationAttemptKeyOptions
+        {
+            Realm = "tests",
+            CurrentPepper = "test-authentication-attempt-key-pepper-20260829"
+        }));
+}

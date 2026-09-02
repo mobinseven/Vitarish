@@ -59,8 +59,18 @@ export function AppointmentsWidget() {
             <Calendar.Header>
               <Calendar.Heading />
               <div className="flex gap-1">
-                <Calendar.NavButton slot="previous" />
-                <Calendar.NavButton slot="next" />
+                <Calendar.NavButton
+                  className="h-6 w-auto min-w-fit px-1.5 text-xs"
+                  slot="previous"
+                >
+                  {t("common.actions.previous")}
+                </Calendar.NavButton>
+                <Calendar.NavButton
+                  className="h-6 w-auto min-w-fit px-1.5 text-xs"
+                  slot="next"
+                >
+                  {t("common.actions.next")}
+                </Calendar.NavButton>
               </div>
             </Calendar.Header>
             <Calendar.Grid>

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Vitarish.Users.Domain.Options;
 using Vitarish.Hosting.Infrastructure.Options;
+using Vitarish.Authentication.Infrastructure.Identity;
 
 public static class HostAuthenticationExtensions
 {
@@ -32,6 +33,7 @@ public static class HostAuthenticationExtensions
 
         _ = builder.Services.ConfigureApplicationCookie(options =>
         {
+            options.EventsType = typeof(AuthenticationCookieEvents);
             options.Events.OnRedirectToLogin = ctx =>
             {
                 ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -46,9 +48,9 @@ public static class HostAuthenticationExtensions
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.None,
-                SecurePolicy = CookieSecurePolicy.Always,
-                MaxAge = TimeSpan.FromDays(14)
+                SecurePolicy = CookieSecurePolicy.Always
             };
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
             options.SlidingExpiration = true;
             options.Events.OnSignedIn = (context) =>
             {

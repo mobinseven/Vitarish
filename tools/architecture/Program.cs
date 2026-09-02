@@ -211,6 +211,31 @@ internal static class RoslynSyntax
         return false;
     }
 
+    public static string? ResolveString(SourceFile file, ExpressionSyntax? expression)
+    {
+        if (expression is null)
+            return null;
+        if (expression.ToString() == "string.Empty")
+            return string.Empty;
+
+        Optional<object?> constant = file.Model.GetConstantValue(expression);
+        if (constant.HasValue && constant.Value is string value)
+            return value;
+
+        if (expression is InterpolatedStringExpressionSyntax interpolated &&
+            interpolated.Contents.All(content => content is InterpolatedStringTextSyntax))
+            return string.Concat(interpolated.Contents.OfType<InterpolatedStringTextSyntax>().Select(content => content.TextToken.ValueText));
+
+        if (expression is BinaryExpressionSyntax binary && binary.IsKind(SyntaxKind.AddExpression))
+        {
+            string? left = ResolveString(file, binary.Left);
+            string? right = ResolveString(file, binary.Right);
+            return left is null || right is null ? null : left + right;
+        }
+
+        return null;
+    }
+
     public static bool IsUnder(SourceFile file, string folder) =>
         file.RelativePath.StartsWith(folder.TrimEnd('/') + "/", StringComparison.OrdinalIgnoreCase);
 }

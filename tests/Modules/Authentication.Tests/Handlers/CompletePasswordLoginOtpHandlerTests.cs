@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Moq;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
@@ -10,6 +11,7 @@ using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
+using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Domain.Entities;
 using Xunit;
@@ -74,7 +76,10 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             signIn.Object,
             redirects.Object,
             audit.Object,
-            new TestRequestContext());
+            new TestRequestContext(),
+            new InMemoryAuthenticationAttemptTracker(),
+            new TestSecurityPolicyProvider(),
+            CreateKeys());
 
         CompletePasswordLoginOtpCommand command = new(challenge.Id.Value, "123456", "/home");
         AuthenticationResult<LoginResult>[] results = await Task.WhenAll(
@@ -109,7 +114,10 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             signIn.Object,
             redirects.Object,
             audit.Object,
-            new TestRequestContext());
+            new TestRequestContext(),
+            new InMemoryAuthenticationAttemptTracker(),
+            new TestSecurityPolicyProvider(),
+            CreateKeys());
 
         CompletePasswordLoginOtpCommand command = new(challenge.Id.Value, "000000", "/home");
         AuthenticationResult<LoginResult>[] results = await Task.WhenAll(
@@ -120,7 +128,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
                                failure.Error.Reason == AuthenticationFailureReason.InvalidVerificationCode)
             .Should().BeLessThanOrEqualTo(challenge.MaximumAttempts - 1);
         results.Count(result => result is AuthenticationResult<LoginResult>.Failure failure &&
-                               failure.Error.Reason == AuthenticationFailureReason.ChallengeAttemptsExhausted)
+                               failure.Error.Reason == AuthenticationFailureReason.LockedOut)
             .Should().BeGreaterThan(0);
         (await store.GetAsync(challenge.Id, CancellationToken.None))!.Status
             .Should().Be(AuthenticationChallengeStatus.Exhausted);
@@ -154,7 +162,21 @@ public sealed class CompletePasswordLoginOtpHandlerTests
         Mock<IAuthenticationRedirectResolver> Redirects)
     {
         public CompletePasswordLoginOtpHandler CreateHandler(ISecurityAuditWriter writer) => new(
-            Store.Object, Verifier.Object, SignIn.Object, Redirects.Object, writer, new TestRequestContext());
+            Store.Object,
+            Verifier.Object,
+            SignIn.Object,
+            Redirects.Object,
+            writer,
+            new TestRequestContext(),
+            new InMemoryAuthenticationAttemptTracker(),
+            new TestSecurityPolicyProvider(),
+            CreateKeys());
+    }
+
+    private sealed class TestSecurityPolicyProvider : IAuthenticationSecurityPolicyProvider
+    {
+        public Task<SecurityAccessPolicy> GetAsync(CancellationToken cancellationToken) =>
+            Task.FromResult(SecurityAccessPolicy.ProductEvaluated);
     }
 
     private sealed class RecordingWriter(List<SecurityAuditEvent> events) : ISecurityAuditWriter
@@ -164,6 +186,9 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             events.Add(auditEvent);
             return Task.FromResult(SecurityAuditWriteResult.Recorded);
         }
+
+        public Task<SecurityAuditWriteResult> UpdateAsync(string tenantId, string idempotencyKey, string outcome, string? reason, CancellationToken cancellationToken) =>
+            Task.FromResult(SecurityAuditWriteResult.AlreadyRecorded);
     }
 
     private sealed class TestRequestContext : IRequestContext
@@ -180,4 +205,11 @@ public sealed class CompletePasswordLoginOtpHandlerTests
         public ClaimsPrincipal? User => new(new ClaimsIdentity());
         public Request GetRequest() => new() { RequestId = RequestId!, Authority = Authority, TenantId = TenantId };
     }
+
+    private static IAuthenticationAttemptKeyFactory CreateKeys() => new AuthenticationAttemptKeyFactory(
+        Options.Create(new AuthenticationAttemptKeyOptions
+        {
+            Realm = "tests",
+            CurrentPepper = "test-authentication-attempt-key-pepper-20260829"
+        }));
 }

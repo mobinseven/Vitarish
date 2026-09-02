@@ -1,20 +1,52 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.ReturnUrls;
+using Vitarish.Authentication.Infrastructure.Options;
+using Vitarish.Authentication.Infrastructure.Identity;
+using Vitarish.Entities.Server.Extensions;
+using Vitarish.Users.Domain.Entities;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Authentication.Infrastructure.DependencyInjection;
 
 public static class AuthenticationInfrastructureServiceCollectionExtensions
 {
-    public static IServiceCollection AddAuthenticationInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddAuthenticationInfrastructure(this IServiceCollection services, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
+        _ = services.AddTransientDbContext<AuthenticationDbContext>((_, options) => configureDbContext?.Invoke(options));
+        _ = services.AddScoped<SecurityAccessPolicyStore>();
+        _ = services.AddScoped<IAuthenticationSecurityPolicyStore>(provider => provider.GetRequiredService<SecurityAccessPolicyStore>());
+        _ = services.AddScoped<IAuthenticationSecurityPolicyProvider>(provider => provider.GetRequiredService<SecurityAccessPolicyStore>());
+        _ = services.AddOptions<AuthenticationAttemptKeyOptions>()
+            .BindConfiguration(AuthenticationAttemptKeyOptions.SectionName)
+            .ValidateOnStart();
+        _ = services.AddSingleton<IValidateOptions<AuthenticationAttemptKeyOptions>>(provider =>
+            new AuthenticationAttemptKeyOptionsValidator(
+                provider.GetRequiredService<IConfiguration>(),
+                provider.GetService<IHostEnvironment>()));
+        _ = services.AddSingleton<IAuthenticationAttemptKeyFactory, AuthenticationAttemptKeyFactory>();
+        _ = services.AddSingleton<IAuthenticationAttemptTracker, RedisAuthenticationAttemptTracker>();
+        _ = services.AddScoped<IPasswordValidator<User>, SecurityPolicyPasswordValidator>();
+        _ = services.AddScoped<UnknownPasswordVerifier>();
         services.AddHttpContextAccessor();
+        services.TryAddScoped<IClientIpAddressAccessor, UnavailableClientIpAddressAccessor>();
         services.AddSingleton<AuthenticationChallengePolicy>(AuthenticationChallengePolicy.Default);
         services.AddSingleton<IAuthenticationChallengeStore, DistributedAuthenticationChallengeStore>();
         services.AddScoped<IAuthenticationUserDirectory, AspNetIdentityAuthenticationUserDirectory>();
         services.AddScoped<IAuthenticationSignInService, AspNetIdentitySignInService>();
+        services.AddScoped<AuthenticationSessionRegistry>();
+        services.AddScoped<IAuthenticationSessionRegistry>(provider => provider.GetRequiredService<AuthenticationSessionRegistry>());
+        services.AddScoped<IAuthenticationActiveSessionQuery>(provider => provider.GetRequiredService<AuthenticationSessionRegistry>());
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddScoped<AuthenticationCookieEvents>();
         services.AddScoped<IAuthenticationCodeVerifier, AspNetIdentityCodeVerifier>();
         services.AddScoped<IAuthenticationCodeGenerator, AspNetIdentityCodeGenerator>();
         services.AddScoped<IAuthenticationReturnUrlStore, CookieAuthenticationReturnUrlStore>();

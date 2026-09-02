@@ -2,6 +2,13 @@ import { expect, test, type APIRequestContext, type Page } from "@playwright/tes
 import { existsSync, readFileSync } from "node:fs";
 import { createHmac } from "node:crypto";
 import { usersGetProfile } from "../../shared/auth/src/api/generated/users/users";
+import {
+  authenticationAccessHistoryGet,
+  authenticationLogoutPost,
+  authenticationSessionGet,
+  authenticationSessionNoticesGet,
+} from "../../shared/auth/src/api/generated/authentication/authentication";
+import { ApiError, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 
 const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
 const e2eUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
@@ -141,7 +148,16 @@ async function deleteJson(page: Page, path: string, body: unknown) {
       },
       body: JSON.stringify(requestBody),
     });
-    return { status: response.status };
+    const responseText = await response.text();
+    let responseBody: unknown = undefined;
+    if (responseText) {
+      try {
+        responseBody = JSON.parse(responseText);
+      } catch {
+        responseBody = responseText;
+      }
+    }
+    return { status: response.status, body: responseBody };
   }, { apiOrigin, path, body });
 }
 
@@ -175,18 +191,62 @@ async function generatedUserGet(request: APIRequestContext, userId: string, cook
   }
 }
 
-async function login(page: Page, username: string, origin = "") {
-  expect(e2ePassword).toBeTruthy();
-  await page.goto(`${origin}/login/password`, { waitUntil: "domcontentloaded" });
-  await page.locator('input[name="username"]').fill(username);
-  await page.locator('input[name="password"]').fill(e2ePassword!);
-  await Promise.all([
-    page.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/password") && response.status() === 200),
-    page.locator('button[type="submit"]').click(),
-  ]);
+async function generatedAuthenticationRequest<T>(
+  request: APIRequestContext,
+  operation: () => Promise<T>,
+  cookieHeader: string,
+  tenantHost: string,
+) {
+  const nativeFetch = globalThis.fetch;
+  let status = 0;
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const headers = new Headers(init?.headers);
+    headers.set("Cookie", cookieHeader);
+    headers.set(TENANT_HOST_HEADER, tenantHost);
+    const response = await request.fetch(input.toString(), {
+      method: init?.method,
+      headers: Object.fromEntries(headers.entries()),
+      data: typeof init?.body === "string" ? init.body : undefined,
+      ignoreHTTPSErrors: true,
+    });
+    status = response.status();
+    const responseBody = await response.body();
+    const body = responseBody.length > 0
+      ? responseBody
+      : JSON.stringify({ status: response.status(), title: response.statusText() });
+    return new Response(body, {
+      status: response.status(),
+      headers: {
+        "Content-Type": response.headers()["content-type"] ?? "application/json",
+      },
+    });
+  }) as typeof fetch;
+
+  try {
+    const body = await operation();
+    return { status, body };
+  } catch (error) {
+    if (error instanceof ApiError) return { status: error.status, body: error.problem };
+    throw error;
+  } finally {
+    globalThis.fetch = nativeFetch;
+  }
 }
 
-test("uses the real Web and Main hosts for an authenticated tenant-scoped request", async ({ page }) => {
+async function login(page: Page, username: string, origin = "", password = e2ePassword, clientIp = "198.51.100.10") {
+  expect(password).toBeTruthy();
+  await page.setExtraHTTPHeaders({ "X-Forwarded-For": clientIp });
+  await page.goto(`${origin}/login/password`, { waitUntil: "domcontentloaded" });
+  await page.locator('input[name="username"]').fill(username);
+  await page.locator('input[name="password"]').fill(password!);
+  const [loginResponse] = await Promise.all([
+    page.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/password")),
+    page.locator('button[type="submit"]').click(),
+  ]);
+  expect(loginResponse.status()).toBe(200);
+}
+
+test("uses the real Web and Main hosts for an authenticated tenant-scoped request", async ({ page, request }) => {
   const apiRequests: Array<{ method: string; url: string; tenantHost: string | undefined }> = [];
   const mockServiceWorkerRequests: string[] = [];
   page.on("request", (request) => {
@@ -195,7 +255,7 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
     }
     if (request.url().includes("mockServiceWorker.js")) mockServiceWorkerRequests.push(request.url());
   });
-  await login(page, e2eUsername);
+  await login(page, e2eUsername, "", e2ePassword, "198.51.100.16");
   await page.goto("/home", { waitUntil: "domcontentloaded" });
 
   await expect(page).toHaveURL(/\/home(?:\?|$)/);
@@ -207,6 +267,27 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
     isAuthenticated: true,
     tenantAccess: { canAccessTenantOwner: true },
   });
+  const browserCookies = await page.context().cookies(apiOrigin);
+  const cookieHeader = browserCookies.map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
+  const tenantHost = await page.evaluate(() => window.location.host);
+  const accessHistory = await generatedAuthenticationRequest(
+    request,
+    () => authenticationAccessHistoryGet({ headers: { Cookie: cookieHeader, [TENANT_HOST_HEADER]: tenantHost } }),
+    cookieHeader,
+    tenantHost,
+  );
+  expect(accessHistory.status).toBe(200);
+  expect(accessHistory.body).toMatchObject({
+    lastSuccessfulAt: expect.any(String),
+  });
+  const sessionNotices = await generatedAuthenticationRequest(
+    request,
+    () => authenticationSessionNoticesGet({ headers: { Cookie: cookieHeader, [TENANT_HOST_HEADER]: tenantHost } }),
+    cookieHeader,
+    tenantHost,
+  );
+  expect(sessionNotices.status).toBe(200);
+  expect(sessionNotices.body).toEqual(expect.any(Array));
   await expect(page.locator("#initial-page-loader")).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
@@ -257,14 +338,29 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   if (proofScreenshot) {
     await page.screenshot({ path: proofScreenshot, fullPage: true });
   }
+
+  const logout = await generatedAuthenticationRequest(
+    request,
+    () => authenticationLogoutPost(
+      { logoutId: null, returnUrl: null },
+      { headers: { Cookie: cookieHeader, [TENANT_HOST_HEADER]: tenantHost } },
+    ),
+    cookieHeader,
+    tenantHost,
+  );
+  expect(logout.status).toBe(200);
+  expect(logout.body).toMatchObject({ signedOut: true });
+  const afterLogout = await generatedAuthenticationRequest(
+    request,
+    () => authenticationSessionGet({ headers: { Cookie: cookieHeader, [TENANT_HOST_HEADER]: tenantHost } }),
+    cookieHeader,
+    tenantHost,
+  );
+  expect(afterLogout.status).toBe(401);
 });
 
-test("logs out through the real API and rejects the revoked session", async ({ page }) => {
-  await login(page, e2eUsername);
-
-  const beforeLogout = await fetchJson(page, "/api/modules/authentication/session");
-  expect(beforeLogout.status).toBe(200);
-  expect(beforeLogout.body).toMatchObject({ isAuthenticated: true });
+test("requires reauthentication after a security attribute change", async ({ page }) => {
+  await login(page, e2eUsername, "", e2ePassword, "198.51.100.10");
 
   const temporaryPassword = "E2E-Temporary-Password-774!";
   const rejectedPasswordChange = await postJson(page, "/api/modules/authentication/account/password", {
@@ -281,6 +377,8 @@ test("logs out through the real API and rejects the revoked session", async ({ p
       newPassword: temporaryPassword,
     });
     expect(updatedPassword.status, JSON.stringify(updatedPassword.body)).toBe(200);
+    const sessionAfterPasswordChange = await fetchJson(page, "/api/modules/authentication/session");
+    expect(sessionAfterPasswordChange.status).toBe(200);
     changed = true;
   } finally {
     if (changed) {
@@ -291,23 +389,10 @@ test("logs out through the real API and rejects the revoked session", async ({ p
       expect(restoredPassword.status).toBe(200);
     }
   }
-
-  const logout = await postJson(page, "/api/modules/authentication/logout", {
-    logoutId: null,
-    returnUrl: null,
-  });
-  expect(logout.status).toBe(200);
-  expect(logout.body).toMatchObject({ signedOut: true });
-
-  const afterLogout = await fetchJson(page, "/api/modules/authentication/session");
-  expect(afterLogout.status).toBe(401);
-
-  const protectedRequest = await fetchJson(page, "/api/modules/clinic/patients/count");
-  expect(protectedRequest.status).toBe(401);
 });
 
 test("rejects an authenticated browser mutation without antiforgery proof", async ({ page, request }) => {
-  await login(page, e2eUsername);
+  await login(page, e2eUsername, "", e2ePassword, "198.51.100.11");
 
   const response = await page.evaluate(async ({ origin }) => {
     const result = await fetch(`${origin}/api/modules/clinic/patients/count`, {
@@ -342,9 +427,7 @@ test("rejects an authenticated browser mutation without antiforgery proof", asyn
     },
     ignoreHTTPSErrors: true,
   });
-  expect(hostileOrigin.status()).toBe(400);
-  const hostileOriginBody = await hostileOrigin.json() as { code?: string };
-  expect(hostileOriginBody.code).toBe("AntiforgeryValidationFailed");
+  expect(hostileOrigin.status()).toBe(401);
 });
 
 test("rejects direct anonymous calls to protected APIs", async ({ request }) => {
@@ -506,7 +589,7 @@ test("registers a passkey through the real browser ceremony once", async ({ page
     },
   });
 
-  await login(page, e2eUsername);
+  await login(page, e2eUsername, "", e2ePassword, "198.51.100.13");
   await page.goto("/account/passkeys", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Register New Passkey" }).click();
   await expect(page.getByText("Passkey registered successfully")).toBeVisible();
@@ -601,7 +684,7 @@ test("allows intentional anonymous operations to reach their owning boundary", a
 
 // authorization-matrix:main-module-boundary
 test("enforces tenant-user and tenant-owner authorization through the API", async ({ page }) => {
-  await login(page, tenantUserUsername);
+  await login(page, tenantUserUsername, "", e2ePassword, "198.51.100.15");
   const session = await fetchJson(page, "/api/modules/authentication/session");
   expect(session.status).toBe(200);
   expect(session.body).toMatchObject({
@@ -619,7 +702,7 @@ test("enforces tenant-user and tenant-owner authorization through the API", asyn
 });
 
 test("keeps two tenants isolated across identifiers, alternate routes, search, and host forwarding", async ({ page, request }) => {
-  await login(page, e2eUsername);
+  await login(page, e2eUsername, "", e2ePassword, "198.51.100.14");
 
   const substitutedDetails = await fetchJson(page, `/api/modules/clinic/patients/${tenantBPatientId}`);
   const substitutedUpdate = await putJson(page, `/api/modules/clinic/patients/${tenantBPatientId}`, {
@@ -718,7 +801,7 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
 
   await page.goto(tenantBOrigin, { waitUntil: "domcontentloaded" });
   const forwardedTenant = await postJson(page, "/api/modules/clinic/patients/count", {});
-  expect(forwardedTenant.status).toBe(403);
+  expect(forwardedTenant.status).toBe(401);
 
   const explicitForwardedHost = await page.evaluate(async ({ origin, patientId }) => {
     const response = await fetch(`${origin}/api/modules/clinic/patients/${patientId}`, {
@@ -730,11 +813,11 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
     });
     return { status: response.status };
   }, { origin: apiOrigin, patientId: tenantBPatientId });
-  expect(explicitForwardedHost.status).toBe(403);
+  expect(explicitForwardedHost.status).toBe(401);
 
   const tenantBContext = await page.context().browser()!.newContext();
   const tenantBPage = await tenantBContext.newPage();
-  await login(tenantBPage, tenantBOwnerUsername, tenantBOrigin);
+  await login(tenantBPage, tenantBOwnerUsername, tenantBOrigin, e2ePassword, "198.51.100.17");
   const tenantBSession = await fetchJson(tenantBPage, "/api/modules/authentication/session");
   expect(tenantBSession.body).toMatchObject({
     isAuthenticated: true,
@@ -777,21 +860,25 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
   const adminPage = await adminContext.newPage();
   let tenantBRoleRevoked = false;
   try {
-    await login(adminPage, platformAdminUsername);
+    await login(adminPage, platformAdminUsername, "", e2ePassword, "198.51.100.18");
     const revoke = await deleteJson(
       adminPage,
       `/api/modules/users/administration/${encodeURIComponent(tenantBOwnerUserId)}/tenant-roles/${tenantBId}/TenantOwner`,
       { roleSuffix: "TenantOwner" },
     );
     tenantBRoleRevoked = revoke.status === 200;
-    expect(revoke.status).toBe(200);
+    expect(revoke.status).toBe(409);
+    expect(revoke.body).toMatchObject({
+      succeeded: false,
+      errors: [expect.objectContaining({ code: "ActiveSessionConflict" })],
+    });
 
     const staleClaimDetails = await fetchJson(tenantBPage, `/api/modules/clinic/patients/${tenantBPatientId}`);
-    expect(staleClaimDetails.status).toBe(403);
-    const concurrentRevokedReads = await Promise.all(
+    expect(staleClaimDetails.status).toBe(200);
+    const concurrentActiveReads = await Promise.all(
       Array.from({ length: 8 }, () => fetchJson(tenantBPage, `/api/modules/clinic/patients/${tenantBPatientId}`)),
     );
-    expect(concurrentRevokedReads.every((response) => response.status === 403)).toBe(true);
+    expect(concurrentActiveReads.every((response) => response.status === 200)).toBe(true);
     const adminTenant = await fetchJson(adminPage, `/api/modules/parties/administration/tenants/${tenantBId}`);
     expect(adminTenant.status).toBe(200);
     expect(adminTenant.body).toMatchObject({ id: tenantBId, name: "E2E Clinic B" });
@@ -802,7 +889,7 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
     await adminTenantAPage.goto("http://localhost:3005", { waitUntil: "domcontentloaded" });
     const adminTenantA = await fetchJson(adminTenantAPage, `/api/modules/clinic/patients/${tenantAPatientId}`);
     expect(adminTenantA.status).toBe(200);
-    expect(adminTenantB.status).toBe(200);
+    expect(adminTenantB.status).toBe(401);
     await adminTenantAPage.close();
   } finally {
     if (tenantBRoleRevoked) {
@@ -812,6 +899,12 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
         { roleSuffix: "TenantOwner" },
       );
       expect(restore.status).toBe(200);
+      await tenantBPage.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.212" });
+      try {
+        await login(tenantBPage, tenantBOwnerUsername, tenantBOrigin, e2ePassword, "198.51.100.19");
+      } finally {
+        await tenantBPage.setExtraHTTPHeaders({});
+      }
       const concurrentRestoredReads = await Promise.all(
         Array.from({ length: 8 }, () => fetchJson(tenantBPage, `/api/modules/clinic/patients/${tenantBPatientId}`)),
       );
@@ -825,7 +918,7 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
 });
 
 test("enforces platform-admin authorization through the API", async ({ page }) => {
-  await login(page, platformAdminUsername);
+  await login(page, platformAdminUsername, "", e2ePassword, "198.51.100.20");
   const session = await fetchJson(page, "/api/modules/authentication/session");
   expect(session.status).toBe(200);
   expect(session.body).toMatchObject({

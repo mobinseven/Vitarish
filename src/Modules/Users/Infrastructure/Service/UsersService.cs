@@ -124,27 +124,39 @@ public sealed class UsersService(ISender sender) : IUsersService
 
     public async Task AddToRoleAsync(User user, string roleName, CancellationToken cancellationToken)
     {
-        IdentityResult result = await sender.Send(new AddUserToRoleCommand(user, roleName), cancellationToken);
+        IdentityResult result = await AddUserToRoleAsync(user, roleName, cancellationToken);
         EnsureSuccess(result);
     }
+
+    public Task<IdentityResult> AddUserToRoleAsync(User user, string roleName, CancellationToken cancellationToken) =>
+        sender.Send(new AddUserToRoleCommand(user, roleName), cancellationToken);
 
     public async Task AddToTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken cancellationToken)
     {
-        IdentityResult result = await sender.Send(new AddUserToRoleCommand(user, roleName, tenantId), cancellationToken);
+        IdentityResult result = await AddUserToTenantRoleAsync(user, roleName, tenantId, cancellationToken);
         EnsureSuccess(result);
     }
+
+    public Task<IdentityResult> AddUserToTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken cancellationToken) =>
+        sender.Send(new AddUserToRoleCommand(user, roleName, tenantId), cancellationToken);
 
     public async Task RemoveFromRoleAsync(User user, string roleName, CancellationToken cancellationToken)
     {
-        IdentityResult result = await sender.Send(new RemoveUserFromRoleCommand(user, roleName), cancellationToken);
+        IdentityResult result = await RemoveUserFromRoleAsync(user, roleName, cancellationToken);
         EnsureSuccess(result);
     }
 
+    public Task<IdentityResult> RemoveUserFromRoleAsync(User user, string roleName, CancellationToken cancellationToken) =>
+        sender.Send(new RemoveUserFromRoleCommand(user, roleName), cancellationToken);
+
     public async Task RemoveFromTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken cancellationToken)
     {
-        IdentityResult result = await sender.Send(new RemoveUserFromRoleCommand(user, roleName, tenantId), cancellationToken);
+        IdentityResult result = await RemoveUserFromTenantRoleAsync(user, roleName, tenantId, cancellationToken);
         EnsureSuccess(result);
     }
+
+    public Task<IdentityResult> RemoveUserFromTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken cancellationToken) =>
+        sender.Send(new RemoveUserFromRoleCommand(user, roleName, tenantId), cancellationToken);
 
     public async Task<IList<string>> GetRolesAsync(User user, CancellationToken cancellationToken)
     {

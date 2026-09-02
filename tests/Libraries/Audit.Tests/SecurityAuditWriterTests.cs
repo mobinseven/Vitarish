@@ -138,6 +138,37 @@ public sealed class SecurityAuditWriterTests
         (await context.SecurityAuditEvents.CountAsync()).Should().Be(0);
     }
 
+    [Fact]
+    public async Task Pending_outcome_can_be_completed_idempotently_after_a_store_restart()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-pending-completion");
+        await using (AuditDbContext setup = CreateContext(options, "tenant-a"))
+        {
+            await setup.Database.EnsureCreatedAsync();
+        }
+
+        SecurityAuditEvent pending = CreateEvent("tenant-a", "request-pending");
+        pending.Outcome = SecurityAuditOutcome.Pending;
+        await using (AuditDbContext initial = CreateContext(options, "tenant-a"))
+        {
+            SecurityAuditWriter writer = new(initial);
+            _ = await writer.WriteAsync(pending, CancellationToken.None);
+        }
+
+        await using (AuditDbContext restarted = CreateContext(options, "tenant-a"))
+        {
+            SecurityAuditWriter writer = new(restarted);
+            (writer as ISecurityAuditOutcomeUpdater).Should().NotBeNull();
+            (await writer.UpdateAsync("tenant-a", "request-pending", SecurityAuditOutcome.Succeeded, "version:1", CancellationToken.None))
+                .Should().Be(SecurityAuditWriteResult.Recorded);
+            (await writer.UpdateAsync("tenant-a", "request-pending", SecurityAuditOutcome.Succeeded, "version:1", CancellationToken.None))
+                .Should().Be(SecurityAuditWriteResult.AlreadyRecorded);
+            (await restarted.SecurityAuditEvents.CountAsync()).Should().Be(2);
+            (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Pending)).Outcome.Should().Be(SecurityAuditOutcome.Pending);
+            (await restarted.SecurityAuditEvents.SingleAsync(item => item.Outcome == SecurityAuditOutcome.Succeeded)).Outcome.Should().Be(SecurityAuditOutcome.Succeeded);
+        }
+    }
+
     private static AuditDbContext CreateContext(DbContextOptions<AuditDbContext> options, string tenantId) => new(options, new TestRequestContext(tenantId));
 
     private static AuditDbContext CreateContext(DbContextOptions<AuditDbContext> options, string tenantId, string[] roles) => new(options, new TestRequestContext(tenantId, roles));

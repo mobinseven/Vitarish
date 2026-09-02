@@ -14,6 +14,14 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
     public bool IsExpired(DateTimeOffset createdAt, DateTimeOffset now) => now >= createdAt.Add(Lifetime);
     public bool HasAttemptsRemaining(int failedAttempts) => failedAttempts < MaximumAttempts;
 
+    public AuthenticationChallengePolicy WithMaximumAttempts(int maximumAttempts)
+    {
+        if (maximumAttempts < 1)
+            throw new ArgumentOutOfRangeException(nameof(maximumAttempts), "Maximum attempts must be positive.");
+
+        return this with { MaximumAttempts = maximumAttempts };
+    }
+
     public string TokenPurpose(AuthenticationChallengePurpose purpose) => purpose switch
     {
         AuthenticationChallengePurpose.PhoneLogin => PhoneLoginTokenPurpose,

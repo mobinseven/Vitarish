@@ -41,6 +41,7 @@ public static class RequestsExtensions
         _ = builder.Services.AddScoped<RequestContext>();
         _ = builder.Services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
         _ = builder.Services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
+        _ = builder.Services.AddScoped<IClientIpAddressAccessor>(sp => sp.GetRequiredService<RequestContext>());
         _ = builder.Services.AddScoped<IBackgroundRequestContextWriter, RequestContextBackgroundWriter>();
         _ = builder.Services.AddScoped<IInterceptor, RequestContextInterceptor>();
     }

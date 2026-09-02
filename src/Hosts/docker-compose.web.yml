@@ -50,6 +50,7 @@ services:
       Vitarish__Intelligence__AgentRuntime__BaseUrl: http://agent-runtime:3003
       Vitarish__Intelligence__AgentRuntime__ToolCallbackUrl: http://main:8080/api/modules/intelligence/internal/agent/tools/execute
       Vitarish__Intelligence__AgentRuntime__SharedSecret: ${VITARISH_AGENT_RUNTIME_SECRET}
+      Vitarish__Security__AuthenticationAttempts__CurrentPepper: ${VITARISH_AUTH_ATTEMPT_KEY_PEPPER:?VITARISH_AUTH_ATTEMPT_KEY_PEPPER is required}
       Cors__AllowedOrigins__0: http://localhost:3000
       Cors__AllowedOrigins__1: http://localhost:3004
 

@@ -77,6 +77,7 @@ public static class HostingComposition
             _ = app.UseHttpsRedirection();
         }
         _ = app.UseRouting();
+        _ = app.UseMultiTenant();
         _ = app.UseInternalServiceEndpointBoundary();
         _ = app.UseCors("WebHostCors");
         app.UseHostWebSockets(security);
@@ -85,7 +86,6 @@ public static class HostingComposition
         _ = app.UseIdentityServer();
         _ = app.UseAuthentication();
         _ = app.UseAuthorization();
-        _ = app.UseMultiTenant();
         _ = app.UseModuleEndpointAntiforgery();
         return app;
     }

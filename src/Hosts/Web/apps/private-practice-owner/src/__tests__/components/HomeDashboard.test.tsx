@@ -83,6 +83,8 @@ describe("HomeDashboard", () => {
     expect(screen.getByText("Appendectomy")).toBeInTheDocument();
     expect(screen.getByText("TAMIN")).toBeInTheDocument();
     expect(screen.queryByText("Maya Ellis")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Previous" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Next" })).toHaveLength(4);
 
     await user.click(screen.getByRole("button", { name: "Add appointment" }));
     expect(mocks.push).toHaveBeenCalledWith("/appointments");

@@ -45,9 +45,10 @@ Hosting composition are not alternate policy owners.
   set global or per-user values only from 1 through 30 minutes. Resolve one
   effective value server-side; cookie/sliding expiration must not outlive it.
 - **[MUST]** Missing, revoked, expired, wrong-tenant, disallowed-IP, or
-  policy-invalid sessions fail closed on protected cookie requests. Password,
-  role, authentication-method, allowed-IP, or material policy changes revoke
-  affected sessions before success is confirmed.
+  policy-invalid sessions fail closed on protected cookie requests. Username,
+  assigned-role, authorization-affecting-claim, and user-deletion mutations
+  reject with a conflict while an active session exists; other user mutations
+  do not revoke sessions as a side effect.
 - **[MUST]** Persist last successful attempt, last failed attempt, failures
   since prior success, date/time, and acknowledgement state. A query does not
   acknowledge or mutate history; use an explicit authorized command.

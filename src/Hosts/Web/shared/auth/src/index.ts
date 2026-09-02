@@ -44,7 +44,15 @@ export {
   useAuthenticationLoginPasskeyComplete,
   useAuthenticationLogoutPost,
   useAuthenticationLogoutContext,
+  useAuthenticationAccessHistoryGet as useAuthenticationAccessHistory,
+  useAuthenticationSessionNoticesGet as useAuthenticationSessionNotices,
 } from "./api/generated/authentication/authentication";
+
+export type {
+  AuthenticationAccessHistoryDto,
+  AuthenticationSessionNoticeDto,
+} from "./api/generated/authentication/model";
+export { AuthenticationSessionNoticeType } from "./api/generated/authentication/model";
 
 // Generated users hooks
 export {

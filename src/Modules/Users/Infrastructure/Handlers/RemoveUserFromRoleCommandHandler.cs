@@ -4,12 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Infrastructure.Data;
+using Vitarish.Authentication.Application.Abstractions;
+using Vitarish.Users.Contracts.Responses;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
 internal sealed class RemoveUserFromRoleCommandHandler(
     UsersDbContext dbContext,
-    IRequestContext requestContext)
+    IRequestContext requestContext,
+    IAuthenticationActiveSessionQuery activeSessionQuery)
     : IRequestHandler<RemoveUserFromRoleCommand, IdentityResult>
 {
     public async Task<IdentityResult> Handle(
@@ -42,6 +45,15 @@ internal sealed class RemoveUserFromRoleCommandHandler(
         {
             // User is not in the role → Identity treats this as success
             return IdentityResult.Success;
+        }
+
+        if (await activeSessionQuery.HasActiveSessionAsync(request.User.Id, cancellationToken))
+        {
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = UsersCommandErrorCodes.ActiveSessionConflict,
+                Description = UsersCommandErrorCodes.ActiveSessionConflictDescription
+            });
         }
 
         _ = dbContext.UserRoles.Remove(userRole);

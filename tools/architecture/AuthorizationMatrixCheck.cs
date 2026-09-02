@@ -77,8 +77,11 @@ internal static partial class AuthorizationMatrixCheck
             {
                 string method = RoslynSyntax.Name(invocation);
                 if (!ModuleMappings.Contains(method)) continue;
-                string? operationExpression = RoslynSyntax.ArgumentExpression(invocation, "operationId", 2);
-                if (!RoslynSyntax.IsStringLiteral(operationExpression, out string operationId)) continue;
+                ArgumentSyntax? operationArgument = invocation.ArgumentList.Arguments.FirstOrDefault(argument =>
+                    string.Equals(argument.NameColon?.Name.Identifier.ValueText, "operationId", StringComparison.Ordinal)) ??
+                    invocation.ArgumentList.Arguments.Where(argument => argument.NameColon is null).ElementAtOrDefault(2);
+                string? operationId = RoslynSyntax.ResolveString(file, operationArgument?.Expression);
+                if (operationId is null) continue;
 
                 ExpressionStatementSyntax? statement = invocation.FirstAncestorOrSelf<ExpressionStatementSyntax>();
                 string statementText = statement?.ToString() ?? invocation.ToString();
