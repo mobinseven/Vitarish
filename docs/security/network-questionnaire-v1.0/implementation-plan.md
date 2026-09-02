@@ -89,8 +89,8 @@ Administrative settings may be stricter but may not weaken these values.
 | Failed authentication response | 15-minute denial by default; known and unknown identifiers receive indistinguishable behavior and responses. |
 | Idle browser session | Default 30 minutes. Authorized administrators may configure global or per-user values from 1 through 30 minutes. |
 | Concurrent browser sessions | Default 1. Administrators may permit 2 or 3 only for a recorded functional need. Every new parallel session creates a durable notice for previously active sessions; at the maximum, policy explicitly rejects or replaces the oldest. |
-| Security-attribute changes | Password, role, authentication method, allowed-IP, and material access-policy changes revoke affected sessions before confirmation. |
-| Roles | In the evaluated configuration, exactly one role per user per tenant. An authorized assignment atomically replaces the existing tenant-role membership, audits the replacement, and revokes affected sessions. Tenant/subject/resource checks still apply. |
+| Security-attribute changes | Username, authorization-affecting role/claim changes, and user deletion reject while an active session exists; other listed mutations do not revoke sessions as a side effect. |
+| Roles | In the evaluated configuration, exactly one role per user per tenant. An authorized assignment atomically replaces the existing tenant-role membership, audits the replacement, and rejects while an active session exists. Tenant/subject/resource checks still apply. |
 | Evaluated TLS protocol set | TLS 1.2 only for every **TLS-enabled evaluated connection**. TLS 1.3 may be enabled, selected, or claimed only after Stage 0 records written evaluator approval of its use and exact suites. SSL 1.0/2.0/3.0 and TLS 1.0/1.1 are always rejected. Used suites and key/curve parameters must be selectable and scan-proven. Every separate-machine link instead requires authenticated confidentiality and integrity; a same-machine exception requires frozen topology proof and fails when the link can be configured remotely. |
 | Audit IP | Normalized source IP remains with each retained audit event. No independent redaction unless the evaluator approves a documented representation. |
 | Audit retention | Stage 0 sets the period. Expiry is authorized, segmented, auditable, and distinguishable from unauthorized deletion. |
@@ -121,7 +121,7 @@ These stable plan IDs map to the in-scope questionnaire rows. The canonical matr
 | IA-6 | 2-3.6 | Evaluated remote access enables username/password plus at least one independent mechanism such as OTP or passkey. Do not claim MFA unless multiple factors are required in one authentication. |
 | IA-7 | 2-3.7 | Active security state contains user ID, roles/capabilities, and successful/failed authentication history. |
 | IA-8 | 2-3.8 | Default single-session behavior invalidates the previous session. If parallel sessions are enabled for a recorded need, every new parallel session creates a durable notice for existing sessions. |
-| IA-9 | 2-3.9 | Changes to active security attributes revoke affected sessions so old attributes cannot remain effective. |
+| IA-9 | 2-3.9 | Username, authorization-affecting role/claim changes, and user deletion are rejected while an active session exists so old attributes cannot remain effective. |
 | UD-1 | 2-4.1 | Executable authorization matrix covers system administrators, ordinary users, protected object categories, and create/read/change/delete/metadata operations as applicable. |
 | UD-2 | 2-4.2 | Access policy uses authorized roles/capabilities plus server-trusted session/request attributes; client-supplied ownership or tenant values are never authoritative. |
 | UD-3 | 2-4.3 | Owning Application use cases authorize every active-subject/protected-object operation before access. Direct HTTP tests prove denial. |
@@ -138,7 +138,7 @@ These stable plan IDs map to the in-scope questionnaire rows. The canonical matr
 | SM-3 | 2-5.3 | Named capabilities restrict supported create/read/change/delete/default operations over product data; no generic administrator bypass exists. |
 | SM-4 | 2-5.4 | The exhaustive management checklist below is implemented for every supported management function in the frozen boundary. |
 | SM-5 | 2-5.5 | Authorized administrators can define the evaluated roles/capabilities and their permitted product operations. |
-| SM-6 | 2-5.6 | Users can be assigned one evaluated role per tenant. The authorized assignment use case atomically replaces the existing tenant-role membership, audits it, revokes affected sessions, and handles concurrent assignments without leaving more than one effective role. Independent tenant/resource checks still apply. |
+| SM-6 | 2-5.6 | Users can be assigned one evaluated role per tenant. The authorized assignment use case atomically replaces the existing tenant-role membership, audits it, rejects while an active session exists, and handles concurrent assignments without leaving more than one effective role. Independent tenant/resource checks still apply. |
 | TSF-1 | 2-6.1 | Software and hardware/dependency failure preserve authorization, isolation, audit guarantees, and data integrity; errors reveal no internals. Recovery evidence covers restart and restore. |
 | TSF-2 | 2-6.2 | Separate-machine links use authenticated encryption. Same-machine satisfaction requires proof of co-location and rejection of unsupported remote configuration. |
 | TSF-4 | 2-6.4 | Security time uses UTC from the evaluated OS clock; synchronization and change protection are release evidence. Duration logic resists wall-clock jumps. |
@@ -308,7 +308,7 @@ Each mutation requires server authorization, validation against hard bounds, opt
 - Validate sessions on every protected cookie request; missing, revoked, expired, wrong-tenant, disallowed-IP, or policy-violating sessions fail closed.
 - Default to one session. If 2 or 3 are enabled, notify every existing session on each new parallel session and apply reject/replace transactionally at the maximum.
 - Resolve global/per-user idle timeout within 1–30 minutes. Cookie lifetime never outlives server validity.
-- Revoke sessions after password, role, authentication-method, allowed-IP, or material policy changes.
+- Reject username, authorization-affecting role/claim, and user deletion mutations while an active session exists. Do not revoke sessions as a side effect of other user mutations.
 - Persist last success/failure, failures since prior success, and acknowledgement; display date/time until acknowledgement or in a stable account surface.
 - Apply CIDR allowlists only after trusted-proxy normalization.
 
@@ -362,7 +362,7 @@ Each mutation requires server authorization, validation against hard bounds, opt
 
 - Require explicit browser/bearer/internal/anonymous profile, anonymous justification, audit disposition, and transfer disposition in the authorization matrix.
 - Add named capabilities for every applicable SM-4 operation; no generic security-administrator bypass.
-- Replace the current additive tenant-role grant/revoke behavior with one authorized `ReplaceTenantRole` operation that atomically sets the single effective evaluated role (or removes membership where allowed), audits the before/after state, revokes affected sessions, and serializes or retries concurrent assignments without leaving more than one effective role. Preserve independent tenant/resource authorization.
+- Replace the current additive tenant-role grant/revoke behavior with one authorized `ReplaceTenantRole` operation that atomically sets the single effective evaluated role (or removes membership where allowed), audits the before/after state, rejects while an active session exists, and serializes or retries concurrent assignments without leaving more than one effective role. Preserve independent tenant/resource authorization.
 - Retire, version, or constrain every legacy direct writer before enabling the invariant: tenant-role grant must use replacement semantics; tenant-role revoke must use the same owner; and generic role assignment must reject tenant-role names and be limited to explicitly listed global roles. Record affected operation IDs, generated consumers, compatibility window, migration path, and removal condition. No evaluated endpoint may retain additive tenant-role semantics.
 - Execute the Stage 0 membership decision before cutover. Resolve every conflicting membership with an audited, owner-approved migration; block evaluated release if a conflict cannot be deterministically resolved. Global roles, including `PlatformAdmin` where applicable, are explicitly outside the per-tenant role cardinality only when documented in the matrix.
 - Add optimistic concurrency and hard bounds to competing changes.
@@ -453,7 +453,7 @@ Implementation completion does not start the network profile. Compose/Caddy/conf
 | Audit chain, emergency journal, and retention interact incorrectly | Freeze journal/witness semantics in Stage 0, then fault-inject and reconcile deterministically. |
 | Database-privileged tail/data-and-manifest deletion evades local HMAC verification | Deny runtime mutation grants and compare local chains/completeness roots with an independently protected append-only witness; treat stale, missing, mismatched, or rewound checkpoints as critical. |
 | Multiple sessions conflict with IA-8 | Default to one; require functional need and every-new-session notice. |
-| Concurrent role assignments could leave conflicting effective access | Serialize or retry the tenant-role replacement transaction; prove that a user never has more than one effective evaluated role per tenant and revoke sessions after the committed replacement. |
+| Concurrent role assignments could leave conflicting effective access | Serialize or retry the tenant-role replacement transaction; prove that a user never has more than one effective evaluated role per tenant and reject the replacement while an active session exists. |
 | Security policy becomes an unowned settings bag | Keep invariants with owners; aggregate only cohesive access-policy values. |
 | Guide expectations conflict with browser/framework defaults for `X-XSS-Protection` or per-request CSRF renewal | Obtain Stage 0 evaluator disposition; implement a nonce/replay owner only if required and prove the accepted behavior at public ingress. |
 | Integrity manifests are expensive/unstable | Version owner-defined canonical projections; scan incrementally; make progress resumable. |

@@ -4,13 +4,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.ReturnUrls;
 using Vitarish.Authentication.Infrastructure.Options;
+using Vitarish.Authentication.Infrastructure.Identity;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Authentication.Infrastructure.DependencyInjection;
 
@@ -34,10 +37,16 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
         _ = services.AddScoped<IPasswordValidator<User>, SecurityPolicyPasswordValidator>();
         _ = services.AddScoped<UnknownPasswordVerifier>();
         services.AddHttpContextAccessor();
+        services.TryAddScoped<IClientIpAddressAccessor, UnavailableClientIpAddressAccessor>();
         services.AddSingleton<AuthenticationChallengePolicy>(AuthenticationChallengePolicy.Default);
         services.AddSingleton<IAuthenticationChallengeStore, DistributedAuthenticationChallengeStore>();
         services.AddScoped<IAuthenticationUserDirectory, AspNetIdentityAuthenticationUserDirectory>();
         services.AddScoped<IAuthenticationSignInService, AspNetIdentitySignInService>();
+        services.AddScoped<AuthenticationSessionRegistry>();
+        services.AddScoped<IAuthenticationSessionRegistry>(provider => provider.GetRequiredService<AuthenticationSessionRegistry>());
+        services.AddScoped<IAuthenticationActiveSessionQuery>(provider => provider.GetRequiredService<AuthenticationSessionRegistry>());
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddScoped<AuthenticationCookieEvents>();
         services.AddScoped<IAuthenticationCodeVerifier, AspNetIdentityCodeVerifier>();
         services.AddScoped<IAuthenticationCodeGenerator, AspNetIdentityCodeGenerator>();
         services.AddScoped<IAuthenticationReturnUrlStore, CookieAuthenticationReturnUrlStore>();

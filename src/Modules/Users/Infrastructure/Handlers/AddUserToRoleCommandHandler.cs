@@ -5,12 +5,15 @@ using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Data;
+using Vitarish.Authentication.Application.Abstractions;
+using Vitarish.Users.Contracts.Responses;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
 internal sealed class AddUserToRoleCommandHandler(
     UsersDbContext dbContext,
-    IRequestContext requestContext) : IRequestHandler<AddUserToRoleCommand, IdentityResult>
+    IRequestContext requestContext,
+    IAuthenticationActiveSessionQuery activeSessionQuery) : IRequestHandler<AddUserToRoleCommand, IdentityResult>
 {
     public async Task<IdentityResult> Handle(AddUserToRoleCommand request, CancellationToken cancellationToken)
     {
@@ -35,6 +38,15 @@ internal sealed class AddUserToRoleCommandHandler(
         if (assigned)
         {
             return IdentityResult.Success;
+        }
+
+        if (await activeSessionQuery.HasActiveSessionAsync(request.User.Id, cancellationToken))
+        {
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = UsersCommandErrorCodes.ActiveSessionConflict,
+                Description = UsersCommandErrorCodes.ActiveSessionConflictDescription
+            });
         }
 
         dbContext.UserRoles.Add(new IdentityUserRole<string>

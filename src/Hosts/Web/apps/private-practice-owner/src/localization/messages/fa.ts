@@ -127,6 +127,7 @@ export const faMessages = {
       password: "رمز عبور",
       passkeys: "کلیدهای عبور",
       language: "زبان",
+      security: "تاریخچه امنیت",
     },
     name: {
       title: "ویرایش نام",
@@ -187,6 +188,22 @@ export const faMessages = {
       updateSucceeded: "زبان با موفقیت بروزرسانی شد",
     },
     consents: "رضایت‌ها",
+    security: {
+      title: "تاریخچه امنیت",
+      description: "فعالیت‌های ورود موفق و ناموفق ثبت‌شده برای این حساب را بررسی کنید.",
+      accessHistory: "تاریخچه دسترسی",
+      previousSuccessful: "ورود موفق قبلی",
+      lastSuccessful: "آخرین ورود موفق",
+      lastUnsuccessful: "آخرین ورود ناموفق",
+      failedAttempts: "تلاش‌های ناموفق از زمان موفقیت قبلی",
+      currentFailedAttempts: "تلاش‌های ناموفق فعلی",
+      notRecorded: "ثبت نشده است",
+      noHistory: "هنوز تاریخچه‌ای از ورود موفق ثبت نشده است.",
+      unavailable: "بارگذاری تاریخچه امنیت انجام نشد.",
+      notices: "اعلان‌های نشست",
+      parallelNotice: "یک نشست همزمان جدید ایجاد شد.",
+      noNotices: "اعلان جدیدی برای نشست وجود ندارد.",
+    },
   },
   journey: {
     loading: {

@@ -48,7 +48,7 @@ public static class UsersApi
     private static async Task<IResult> CreateWithPhoneAsync(CreateUserWithPhoneRequest r, IUsersService service, CancellationToken ct) => await service.CreateUserWithPhoneAsync(new CreateUserWithPhoneCommand(r.PhoneNumber, r.FirstName, r.LastName, r.IdentificationCode, r.DateOfBirth, r.BirthCountryCode, r.BirthCity), ct) is { } user ? Results.Ok(ToSummary(user)) : Results.Conflict();
     private static async Task<IResult> CreateWithEmailAsync(CreateUserWithEmailRequest r, IUsersService service, CancellationToken ct) => await service.CreateUserWithEmailAsync(new CreateUserWithEmailCommand(r.Email, r.FirstName, r.LastName, r.IdentificationCode, r.DateOfBirth, r.BirthCountryCode, r.BirthCity), ct) is { } user ? Results.Ok(ToSummary(user)) : Results.Conflict();
     private static async Task<IResult> SetEmailAsync(string userId, SetUserEmailRequest r, IUsersService service, CancellationToken ct) => ToCommandResult(await service.SetUserEmailAsync(userId, r.Email, ct));
-    private static async Task<IResult> AddRoleAsync(string userId, AddUserToRoleRequest r, IUsersService service, CancellationToken ct) { User? user = await service.GetUserAsync(userId, ct); if (user is null) { return Results.NotFound(); } try { await service.AddToRoleAsync(user, r.RoleName, ct); return Results.Ok(UsersCommandResponse.Success()); } catch (InvalidOperationException ex) { return Results.Conflict(UsersCommandResponse.Failed([new UsersCommandError("RoleAssignmentFailed", ex.Message)])); } }
+    private static async Task<IResult> AddRoleAsync(string userId, AddUserToRoleRequest r, IUsersService service, CancellationToken ct) { User? user = await service.GetUserAsync(userId, ct); if (user is null) { return Results.NotFound(); } return ToRoleCommandResult(await service.AddUserToRoleAsync(user, r.RoleName, ct)); }
     private static async Task<IResult> ListTenantRolesAsync(string userId, IUsersService service, CancellationToken ct)
     {
         User? user = await service.GetUserAsync(userId, ct);
@@ -71,18 +71,12 @@ public static class UsersApi
         User? user = await service.GetUserAsync(userId, ct);
         if (user is null) return Results.NotFound();
         string roleName = $"{tenantId}:{roleSuffix}";
-        try
-        {
-            bool assigned = await service.IsInRoleAsync(user, roleName, ct);
-            if (assigned == grant) return Results.Ok(UsersCommandResponse.Success());
-            if (grant) await service.AddToTenantRoleAsync(user, roleSuffix, tenantId, ct);
-            else await service.RemoveFromTenantRoleAsync(user, roleSuffix, tenantId, ct);
-            return Results.Ok(UsersCommandResponse.Success());
-        }
-        catch (InvalidOperationException)
-        {
-            return Results.Conflict(UsersCommandResponse.Failed([new UsersCommandError("RoleAssignmentFailed", "The tenant role could not be changed.")]));
-        }
+        bool assigned = await service.IsInRoleAsync(user, roleName, ct);
+        if (assigned == grant) return Results.Ok(UsersCommandResponse.Success());
+        IdentityResult result = grant
+            ? await service.AddUserToTenantRoleAsync(user, roleSuffix, tenantId, ct)
+            : await service.RemoveUserFromTenantRoleAsync(user, roleSuffix, tenantId, ct);
+        return ToRoleCommandResult(result);
     }
 
     private static TenantRoleMembershipResponse? ParseTenantRole(string role)
@@ -96,6 +90,7 @@ public static class UsersApi
     private static bool IsAllowedTenantRole(string roleSuffix) =>
         string.Equals(roleSuffix, "TenantOwner", StringComparison.Ordinal) ||
         string.Equals(roleSuffix, "TenantUser", StringComparison.Ordinal);
-    private static IResult ToCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : Results.BadRequest(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray()));
+    private static IResult ToCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : result.Errors.Any(error => error.Code == UsersCommandErrorCodes.ActiveSessionConflict) ? Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray())) : Results.BadRequest(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray()));
+    private static IResult ToRoleCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray()));
     private static UserSummaryResponse ToSummary(User user) => new(user.Id, user.UserName, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.IdentificationCode, user.DateOfBirth, user.BirthCountryCode, user.BirthCity, user.FullName);
 }

@@ -16,10 +16,16 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
 {
     public static TheoryData<string> ProtectedEndpointPatterns => new()
     {
-        "/api/modules/authentication/session",
-        "/api/modules/authentication/me",
-        "/api/modules/authentication/logout/context",
-        "/api/modules/authentication/logout"
+        AuthenticationRoutes.Session,
+        AuthenticationRoutes.Me,
+        AuthenticationRoutes.LogoutContext,
+        AuthenticationRoutes.Logout,
+        AuthenticationRoutes.BasePath + AuthenticationRoutes.AccessHistory,
+        AuthenticationRoutes.BasePath + AuthenticationRoutes.AccessHistoryAcknowledge,
+        AuthenticationRoutes.BasePath + AuthenticationRoutes.SessionNotices,
+        AuthenticationRoutes.BasePath + AuthenticationRoutes.SessionNoticeAcknowledge,
+        AuthenticationRoutes.BasePath + AuthenticationRoutes.SecuritySessionPolicy,
+        AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserInactivityPolicy
     };
 
     [Theory]
@@ -27,12 +33,20 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
     public void Protected_authentication_endpoints_use_browser_or_bearer_group_policy(string routePattern)
     {
         using WebApplication app = CreateAppWithProtectedAuthenticationEndpoints();
-        RouteEndpoint endpoint = FindRouteEndpoint(app, routePattern);
+        RouteEndpoint[] endpoints = FindRouteEndpoints(app, routePattern);
 
-        AuthorizeAttribute[] authorizeMetadata = endpoint.Metadata.OfType<AuthorizeAttribute>().ToArray();
+        endpoints.Should().AllSatisfy(endpoint =>
+        {
+            AuthorizeAttribute[] authorizeMetadata = endpoint.Metadata.OfType<AuthorizeAttribute>().ToArray();
+            authorizeMetadata.Should().Contain(attribute =>
+                attribute.AuthenticationSchemes == ModuleEndpointAuthenticationSchemes.BrowserOrBearer);
 
-        authorizeMetadata.Should().ContainSingle();
-        authorizeMetadata[0].AuthenticationSchemes.Should().Be(ModuleEndpointAuthenticationSchemes.BrowserOrBearer);
+            if (IsPlatformAdminProtectedRoute(routePattern))
+            {
+                authorizeMetadata.Should().Contain(attribute =>
+                    attribute.Policy == IdentityDefinitions.PlatformAdmin);
+            }
+        });
     }
 
     [Theory]
@@ -40,10 +54,11 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
     public void Protected_authentication_endpoints_do_not_add_default_only_authorization_metadata(string routePattern)
     {
         using WebApplication app = CreateAppWithProtectedAuthenticationEndpoints();
-        RouteEndpoint endpoint = FindRouteEndpoint(app, routePattern);
+        RouteEndpoint[] endpoints = FindRouteEndpoints(app, routePattern);
 
-        endpoint.Metadata.OfType<AuthorizeAttribute>()
-            .Should().NotContain(attribute => string.IsNullOrWhiteSpace(attribute.AuthenticationSchemes));
+        endpoints.Should().AllSatisfy(endpoint => endpoint.Metadata.OfType<AuthorizeAttribute>()
+            .Should().Contain(attribute =>
+                attribute.AuthenticationSchemes == ModuleEndpointAuthenticationSchemes.BrowserOrBearer));
     }
 
     [Fact]
@@ -175,15 +190,27 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         RouteGroupBuilder protectedGroup = app.MapProtectedModuleGroup(AuthenticationRoutes.BasePath, requireTenantAccess: false);
         protectedGroup.MapCurrentSessionEndpoints();
         protectedGroup.MapLogoutEndpoints();
+        protectedGroup.MapAuthenticationSecurityEndpoints();
         return app;
     }
 
     private static RouteEndpoint FindRouteEndpoint(WebApplication app, string routePattern)
     {
+        return FindRouteEndpoints(app, routePattern).Should().ContainSingle().Which;
+    }
+
+    private static RouteEndpoint[] FindRouteEndpoints(WebApplication app, string routePattern)
+    {
         return ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints)
             .OfType<RouteEndpoint>()
-            .Single(endpoint =>
+            .Where(endpoint =>
                 endpoint.RoutePattern.RawText == routePattern ||
-                endpoint.RoutePattern.RawText == routePattern[AuthenticationRoutes.BasePath.Length..]);
+                endpoint.RoutePattern.RawText == routePattern[AuthenticationRoutes.BasePath.Length..])
+            .ToArray();
     }
+
+    private static bool IsPlatformAdminProtectedRoute(string routePattern) =>
+        routePattern is
+            AuthenticationRoutes.BasePath + AuthenticationRoutes.SecuritySessionPolicy or
+            AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserInactivityPolicy;
 }

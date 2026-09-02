@@ -1,6 +1,6 @@
 namespace Vitarish.Authentication.Contracts.Routes;
 
-public static class AuthenticationRoutes
+public static partial class AuthenticationRoutes
 {
     public const string BasePath = "/api/modules/authentication";
     public const string Session = BasePath + "/session";

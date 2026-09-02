@@ -4,10 +4,12 @@ using Microsoft.Extensions.Caching.Distributed;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Extensions;
+using Vitarish.Authentication.Application.Abstractions;
+using Vitarish.Users.Contracts.Responses;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
-public class DeleteUserCommandHandler(UserManager<User> userManager, IDistributedCache cache) : IRequestHandler<DeleteUserCommand, IdentityResult>
+public class DeleteUserCommandHandler(UserManager<User> userManager, IDistributedCache cache, IAuthenticationActiveSessionQuery activeSessionQuery) : IRequestHandler<DeleteUserCommand, IdentityResult>
 {
     public async Task<IdentityResult> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
@@ -17,6 +19,14 @@ public class DeleteUserCommandHandler(UserManager<User> userManager, IDistribute
             return IdentityResult.Failed(new IdentityError { Description = "User not found" });
         }
 
+        if (await activeSessionQuery.HasActiveSessionAsync(request.Id, cancellationToken))
+        {
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = UsersCommandErrorCodes.ActiveSessionConflict,
+                Description = UsersCommandErrorCodes.ActiveSessionConflictDescription
+            });
+        }
         IdentityResult result = await userManager.DeleteAsync(user);
         if (result.Succeeded)
         {

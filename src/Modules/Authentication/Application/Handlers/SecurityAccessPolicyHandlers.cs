@@ -21,12 +21,12 @@ public sealed class GetSecurityAccessPolicyHandler(
         SecurityAuditWriteResult started = await WriteAuditAsync(
             authorized ? SecurityAuditOutcome.Started : SecurityAuditOutcome.Denied,
             operationKey + AuthenticationSecurityAuditEvents.SecurityAccessPolicyStartedSuffix,
-            authorized ? null : "unauthorized",
+            authorized ? null : AuthenticationSecurityAuditEvents.Unauthorized,
             cancellationToken);
 
         if (!authorized)
         {
-            await WriteAuditAsync(SecurityAuditOutcome.Denied, operationKey + AuthenticationSecurityAuditEvents.SecurityAccessPolicyCompletedSuffix, "unauthorized", cancellationToken);
+            await WriteAuditAsync(SecurityAuditOutcome.Denied, operationKey + AuthenticationSecurityAuditEvents.SecurityAccessPolicyCompletedSuffix, AuthenticationSecurityAuditEvents.Unauthorized, cancellationToken);
             throw new UnauthorizedAccessException("Only platform administrators may read the security access policy.");
         }
         if (started is SecurityAuditWriteResult.AlreadyRecorded)
@@ -63,7 +63,8 @@ public sealed class GetSecurityAccessPolicyHandler(
 public sealed class ChangeSecurityAccessPolicyHandler(
     IAuthenticationSecurityPolicyStore policyStore,
     ISecurityAuditWriter securityAuditWriter,
-    IRequestContext requestContext)
+    IRequestContext requestContext,
+    IAuthenticationSessionRegistry sessionRegistry)
 {
     public async Task<SecurityAccessPolicyState> Handle(ChangeSecurityAccessPolicyCommand command, CancellationToken cancellationToken)
     {
@@ -72,12 +73,12 @@ public sealed class ChangeSecurityAccessPolicyHandler(
         SecurityAuditWriteResult started = await WriteAuditAsync(
             authorized ? SecurityAuditOutcome.Started : SecurityAuditOutcome.Denied,
             operationKey + AuthenticationSecurityAuditEvents.SecurityAccessPolicyStartedSuffix,
-            authorized ? null : "unauthorized",
+            authorized ? null : AuthenticationSecurityAuditEvents.Unauthorized,
             cancellationToken);
 
         if (!authorized)
         {
-            await WriteAuditAsync(SecurityAuditOutcome.Denied, operationKey + AuthenticationSecurityAuditEvents.SecurityAccessPolicyCompletedSuffix, "unauthorized", cancellationToken);
+            await WriteAuditAsync(SecurityAuditOutcome.Denied, operationKey + AuthenticationSecurityAuditEvents.SecurityAccessPolicyCompletedSuffix, AuthenticationSecurityAuditEvents.Unauthorized, cancellationToken);
             throw new UnauthorizedAccessException("Only platform administrators may change the security access policy.");
         }
         if (started is SecurityAuditWriteResult.AlreadyRecorded)
@@ -106,7 +107,7 @@ public sealed class ChangeSecurityAccessPolicyHandler(
         SecurityAuditWriteResult pending = await WriteAuditAsync(
             SecurityAuditOutcome.Pending,
             operationKey + AuthenticationSecurityAuditEvents.SecurityAccessPolicyCompletedSuffix,
-            "awaiting_mutation_outcome",
+            AuthenticationSecurityAuditEvents.AwaitingMutationOutcome,
             cancellationToken);
         if (pending is SecurityAuditWriteResult.AlreadyRecorded)
             throw new InvalidOperationException("The security policy completion outcome is already recorded.");
@@ -115,6 +116,7 @@ public sealed class ChangeSecurityAccessPolicyHandler(
         try
         {
             command.Policy.ValidateConfiguration();
+            await sessionRegistry.RevokeSessionsInvalidatedByPolicyAsync(command.Policy, cancellationToken);
             saved = await policyStore.SaveAsync(command.Policy, command.ExpectedVersion, cancellationToken);
         }
         catch (SecurityAccessPolicyConcurrencyException exception)

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Finbuckle.MultiTenant.Abstractions;
 using System.Diagnostics;
+using System.Net;
 using System.Security.Claims;
 using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Requests.Application;
@@ -17,7 +18,7 @@ namespace Vitarish.Requests.Infrastructure.Services;
 /// by middleware from <see cref="Microsoft.AspNetCore.Http.HttpContext.User"/> claims,
 /// or manually via <see cref="IRequestIdentityContextWriter"/> for non-HTTP scenarios.
 /// </summary>
-public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : IRequestContext, IRequestContextWriter
+public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : IRequestContext, IRequestContextWriter, IClientIpAddressAccessor
 {
     private readonly IHttpContextAccessor httpContextAccessor = httpContextAccessor;
     private bool initializedFromHttpContext;
@@ -122,6 +123,16 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
         internal set;
     }
 
+    public string? ClientIpAddress
+    {
+        get
+        {
+            EnsureInitializedFromHttpContext();
+            return field;
+        }
+        internal set;
+    }
+
 
 
     ClaimsPrincipal? IRequestContext.User => httpContextAccessor.HttpContext?.User;
@@ -149,6 +160,7 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
         TraceId = traceId;
         RequestId = requestId ?? Guid.NewGuid().ToString();
         AdditionalInfo = additionalInfo;
+        ClientIpAddress = null;
     }
 
     public Request GetRequest() => new()
@@ -208,7 +220,16 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
         ResourceId = resolvedResourceId;
         TraceId = resolvedTraceId;
         RequestId = resolvedRequestId;
+        ClientIpAddress = NormalizeClientIpAddress(http.Connection.RemoteIpAddress);
 
         initializedFromHttpContext = true;
+    }
+
+    private static string? NormalizeClientIpAddress(IPAddress? address)
+    {
+        if (address is null)
+            return null;
+        IPAddress normalized = address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address;
+        return normalized.ToString();
     }
 }

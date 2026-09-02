@@ -20,3 +20,4 @@ Dockerfile*
 docker-compose*.yml
 *.env
 !src/Hosts/Main/Dockerfile
+!src/Hosts/E2e/Dockerfile

@@ -32,11 +32,12 @@ parent module contract and keep this boundary non-cyclic.
   union never bypasses tenant, subject, resource, or capability checks. Keep
   tenant-role naming/normalization at one owner and test conflicting-role
   access directly.
-- **[MUST]** A mutation affecting active security state must complete the
-  Authentication-owned session-revocation capability before reporting success.
-  Use a narrow Application port/event integration that preserves dependency
-  direction; do not add a reverse Users-to-Authentication Infrastructure
-  reference or rely on cookie expiry/security-stamp refresh alone.
+- **[MUST]** Username, assigned-role, authorization-affecting-claim, and user
+  deletion mutations reject with a typed conflict while an active session
+  exists, before changing user data. Other credential, contact, passkey,
+  security-stamp, and profile mutations do not revoke sessions as a side
+  effect. Use the Authentication Application active-session query port; do
+  not add a reverse Users-to-Authentication Infrastructure reference.
 - **[MUST]** Queries for users, roles, claims, or credentials are side-effect
   free and tenant/subject scoped. Reading access history or security state must
   not acknowledge, rotate, repair, or revoke it implicitly.

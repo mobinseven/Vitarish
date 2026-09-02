@@ -1,4 +1,9 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using Vitarish.Audit.Application;
+using Vitarish.Authentication.Domain.Sessions;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
@@ -12,7 +17,9 @@ public sealed class AspNetIdentitySignInService(
     IAuthenticationSecurityPolicyProvider policyProvider,
     IAuthenticationAttemptTracker attemptTracker,
     UnknownPasswordVerifier unknownPasswordVerifier,
-    IAuthenticationAttemptKeyFactory attemptKeyFactory) : IAuthenticationSignInService
+    IAuthenticationAttemptKeyFactory attemptKeyFactory,
+    IAuthenticationSessionRegistry sessionRegistry,
+    IHttpContextAccessor httpContextAccessor) : IAuthenticationSignInService
 {
     public Task<PasswordSignInResult> PasswordSignInAsync(string login, string password, bool rememberMe, CancellationToken cancellationToken) =>
         SignInCoreAsync(login, password, rememberMe, cancellationToken, signIn: true);
@@ -20,15 +27,67 @@ public sealed class AspNetIdentitySignInService(
     public Task<PasswordSignInResult> CheckPasswordSignInAsync(string login, string password, CancellationToken cancellationToken) =>
         SignInCoreAsync(login, password, false, cancellationToken, signIn: false);
 
-    public async Task SignInAsync(string userId, bool rememberMe, CancellationToken cancellationToken)
+    public async Task<AuthenticationSessionSignInResult> SignInAsync(string userId, bool rememberMe, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("User ID cannot be null or empty.", nameof(userId));
+        if (string.IsNullOrWhiteSpace(userId))
+            return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidInput, "User ID cannot be empty."));
         User? user = await userManager.FindByIdAsync(userId);
-        if (user is null) throw new InvalidOperationException("Cannot sign in an unknown user.");
-        await signInManager.SignInAsync(user, rememberMe);
+        if (user is null)
+            return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidCredentials, "Cannot sign in an unknown user."));
+
+        IAuthenticationSessionPreparation? preparation = null;
+        try
+        {
+            preparation = await sessionRegistry.PrepareAsync(userId, cancellationToken);
+        }
+        catch (SecurityAuditStoreException)
+        {
+            return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.ProviderFailure, "The authentication audit store is unavailable."));
+        }
+        if (!preparation.Result.Succeeded)
+        {
+            await preparation.DisposeAsync();
+            return AuthenticationSessionSignInResult.Failed(preparation.Result.Failure!);
+        }
+        AuthenticationSessionEstablishmentResult established = preparation.Result;
+        try
+        {
+            ClaimsPrincipal principal = await signInManager.CreateUserPrincipalAsync(user);
+            ClaimsIdentity identity = (ClaimsIdentity)principal.Identity!;
+            identity.AddClaim(new Claim(AuthenticationSessionClaimTypes.SessionId, established.SessionId!));
+            await httpContextAccessor.HttpContext!.SignInAsync(
+                IdentityConstants.ApplicationScheme,
+                principal,
+                new AuthenticationProperties
+                {
+                    IsPersistent = rememberMe,
+                    AllowRefresh = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(established.InactivityTimeoutMinutes!.Value)
+                });
+            await preparation.CompleteAsync(cancellationToken);
+        }
+        catch
+        {
+            if (preparation is not null)
+                await preparation.AbortAsync(CancellationToken.None);
+            httpContextAccessor.HttpContext?.Response.Cookies.Delete(IdentityConstants.ApplicationScheme);
+            throw;
+        }
+        finally
+        {
+            if (preparation is not null)
+                await preparation.DisposeAsync();
+        }
+        return AuthenticationSessionSignInResult.Success();
     }
 
-    public Task SignOutAsync(CancellationToken cancellationToken) => signInManager.SignOutAsync();
+    public async Task SignOutAsync(CancellationToken cancellationToken)
+    {
+        string? sessionId = httpContextAccessor.HttpContext?.User.FindFirstValue(AuthenticationSessionClaimTypes.SessionId);
+        if (!string.IsNullOrWhiteSpace(sessionId))
+            await sessionRegistry.RevokeAsync(sessionId, AuthenticationSessionTerminationReason.UserLogout, cancellationToken);
+        await signInManager.SignOutAsync();
+    }
 
     private async Task<PasswordSignInResult> SignInCoreAsync(string login, string password, bool rememberMe, CancellationToken cancellationToken, bool signIn)
     {
@@ -64,18 +123,23 @@ public sealed class AspNetIdentitySignInService(
         if (await IsDeniedAsync(subjectKeys, cancellationToken))
             return DeniedResult(policy.FailedAttemptResponse);
 
-        SignInResult result = signIn
-            ? await signInManager.PasswordSignInAsync(user, password, rememberMe, lockoutOnFailure: false)
-            : await signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: false);
+        SignInResult result = await signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: false);
         if (result.Succeeded || result.RequiresTwoFactor)
         {
             await ResetAsync(identifierKeys, cancellationToken);
             await ResetAsync(subjectKeys, cancellationToken);
-            return new PasswordSignInResult(
+            PasswordSignInResult successful = new(
                 result.RequiresTwoFactor ? PasswordSignInStatus.RequiresTwoFactor : PasswordSignInStatus.Succeeded,
                 user.Id,
                 RequiresProfileCompletion(user),
                 user.TwoFactorEnabled);
+            if (signIn && successful.Status == PasswordSignInStatus.Succeeded)
+            {
+                AuthenticationSessionSignInResult session = await SignInAsync(user.Id, rememberMe, cancellationToken);
+                if (!session.Succeeded)
+                    return successful with { Status = session.Failure?.Reason == AuthenticationFailureReason.NotAllowed ? PasswordSignInStatus.NotAllowed : PasswordSignInStatus.ProviderFailure };
+            }
+            return successful;
         }
 
         PasswordSignInStatus status = result.IsLockedOut
@@ -96,6 +160,9 @@ public sealed class AspNetIdentitySignInService(
                     : PasswordSignInStatus.TooManyAttempts;
         }
 
+        if (status is not PasswordSignInStatus.Succeeded and not PasswordSignInStatus.RequiresTwoFactor)
+            await sessionRegistry.RecordFailedAttemptAsync(user.Id, cancellationToken);
+
         return new PasswordSignInResult(status, user.Id, RequiresProfileCompletion(user));
     }
 
@@ -111,6 +178,7 @@ public sealed class AspNetIdentitySignInService(
         int identifierFailures = await RegisterFailuresAsync(identifierKeys, policy, cancellationToken);
         int subjectFailures = await RegisterFailuresAsync(subjectKeys, policy, cancellationToken);
         int failures = Math.Max(identifierFailures, subjectFailures);
+        await sessionRegistry.RecordFailedAttemptAsync(user.Id, cancellationToken);
         return failures >= policy.FailedAttemptThreshold
             ? DeniedResult(policy.FailedAttemptResponse)
             : new PasswordSignInResult(PasswordSignInStatus.InvalidCredentials, null, false);

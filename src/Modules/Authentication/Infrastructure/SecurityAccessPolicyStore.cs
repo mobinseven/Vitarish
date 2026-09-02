@@ -128,6 +128,11 @@ public sealed class SecurityAccessPolicyRecord
     public FailedAttemptResponse FailedAttemptResponse { get; set; }
     public string EnabledAuthenticationMechanisms { get; set; } = string.Empty;
     public string PermittedPreAuthenticationActions { get; set; } = string.Empty;
+    public int MaximumConcurrentSessions { get; set; } = 1;
+    public bool ConcurrentSessionsFunctionallyRequired { get; set; }
+    public int DefaultInactivityTimeoutMinutes { get; set; } = 30;
+    // The persisted column name remains stable while its values now contain normalized CIDRs.
+    public string? AllowedSessionStartIpAddresses { get; set; }
     public long Version { get; set; }
 
     public static SecurityAccessPolicyRecord FromDomain(SecurityAccessPolicy policy) => new()
@@ -143,7 +148,13 @@ public sealed class SecurityAccessPolicyRecord
         FailedAttemptDenialDurationSeconds = checked((int)policy.FailedAttemptDenialDuration.TotalSeconds),
         FailedAttemptResponse = policy.FailedAttemptResponse,
         EnabledAuthenticationMechanisms = Serialize(policy.EnabledAuthenticationMechanisms),
-        PermittedPreAuthenticationActions = Serialize(policy.PermittedPreAuthenticationActions)
+        PermittedPreAuthenticationActions = Serialize(policy.PermittedPreAuthenticationActions),
+        MaximumConcurrentSessions = policy.MaximumConcurrentSessions,
+        ConcurrentSessionsFunctionallyRequired = policy.ConcurrentSessionsFunctionallyRequired,
+        DefaultInactivityTimeoutMinutes = policy.DefaultInactivityTimeoutMinutes,
+        AllowedSessionStartIpAddresses = policy.AllowedSessionStartCidrs is null
+            ? null
+            : Serialize(policy.AllowedSessionStartCidrs)
     };
 
     public void Apply(SecurityAccessPolicy policy)
@@ -159,6 +170,12 @@ public sealed class SecurityAccessPolicyRecord
         FailedAttemptResponse = policy.FailedAttemptResponse;
         EnabledAuthenticationMechanisms = Serialize(policy.EnabledAuthenticationMechanisms);
         PermittedPreAuthenticationActions = Serialize(policy.PermittedPreAuthenticationActions);
+        MaximumConcurrentSessions = policy.MaximumConcurrentSessions;
+        ConcurrentSessionsFunctionallyRequired = policy.ConcurrentSessionsFunctionallyRequired;
+        DefaultInactivityTimeoutMinutes = policy.DefaultInactivityTimeoutMinutes;
+        AllowedSessionStartIpAddresses = policy.AllowedSessionStartCidrs is null
+            ? null
+            : Serialize(policy.AllowedSessionStartCidrs);
     }
 
     public SecurityAccessPolicyState ToState() => new(ToDomain(), Version);
@@ -169,7 +186,11 @@ public sealed class SecurityAccessPolicyRecord
         TimeSpan.FromSeconds(FailedAttemptDenialDurationSeconds),
         FailedAttemptResponse,
         Deserialize<AuthenticationMethod>(EnabledAuthenticationMechanisms),
-        Deserialize<PreAuthenticationAction>(PermittedPreAuthenticationActions));
+        Deserialize<PreAuthenticationAction>(PermittedPreAuthenticationActions),
+        MaximumConcurrentSessions,
+        ConcurrentSessionsFunctionallyRequired,
+        DefaultInactivityTimeoutMinutes,
+        DeserializeStringSet(AllowedSessionStartIpAddresses));
 
     private static string Serialize<T>(IEnumerable<T> values) where T : notnull => string.Join(',', values.OrderBy(value => value).Select(value => value.ToString()));
 
@@ -182,5 +203,9 @@ public sealed class SecurityAccessPolicyRecord
                 : throw new InvalidOperationException($"Unknown {typeof(T).Name} value in the security access policy."))
             .ToHashSet();
     }
+
+    private static IReadOnlySet<string>? DeserializeStringSet(string? value) =>
+        value?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToHashSet(StringComparer.Ordinal);
 
 }

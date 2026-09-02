@@ -59,12 +59,24 @@ export function AppointmentsWidget() {
             <Calendar.Header>
               <Calendar.Heading />
               <div className="flex gap-1">
-                <Calendar.NavButton slot="previous">
-                  {t("common.actions.previous")}
-                </Calendar.NavButton>
-                <Calendar.NavButton slot="next">
-                  {t("common.actions.next")}
-                </Calendar.NavButton>
+                <Tooltip>
+                  <Calendar.NavButton
+                    aria-label={t("common.actions.previous")}
+                    slot="previous"
+                  >
+                    <i aria-hidden="true" className="fa-light fa-chevron-left rtl:rotate-180" />
+                  </Calendar.NavButton>
+                  <Tooltip.Content>{t("common.actions.previous")}</Tooltip.Content>
+                </Tooltip>
+                <Tooltip>
+                  <Calendar.NavButton
+                    aria-label={t("common.actions.next")}
+                    slot="next"
+                  >
+                    <i aria-hidden="true" className="fa-light fa-chevron-right rtl:rotate-180" />
+                  </Calendar.NavButton>
+                  <Tooltip.Content>{t("common.actions.next")}</Tooltip.Content>
+                </Tooltip>
               </div>
             </Calendar.Header>
             <Calendar.Grid>

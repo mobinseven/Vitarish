@@ -127,6 +127,7 @@ export const enMessages = {
       password: "Password",
       passkeys: "Passkeys",
       language: "Language",
+      security: "Security history",
     },
     name: {
       title: "Edit Name",
@@ -187,6 +188,22 @@ export const enMessages = {
       updateSucceeded: "Language updated successfully",
     },
     consents: "Consents",
+    security: {
+      title: "Security history",
+      description: "Review the successful and unsuccessful sign-in activity recorded for this account.",
+      accessHistory: "Access history",
+      previousSuccessful: "Previous successful sign-in",
+      lastSuccessful: "Most recent successful sign-in",
+      lastUnsuccessful: "Most recent unsuccessful sign-in",
+      failedAttempts: "Unsuccessful attempts since the previous success",
+      currentFailedAttempts: "Current unsuccessful attempts",
+      notRecorded: "Not recorded",
+      noHistory: "No successful sign-in history is recorded yet.",
+      unavailable: "Security history could not be loaded.",
+      notices: "Session notices",
+      parallelNotice: "A new simultaneous session was established.",
+      noNotices: "There are no new session notices.",
+    },
   },
   journey: {
     loading: {

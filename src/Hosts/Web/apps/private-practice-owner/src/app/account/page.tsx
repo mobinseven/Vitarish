@@ -39,6 +39,11 @@ const settingsLinks = [
     href: Routes.Account.Culture,
     icon: "globe",
   },
+  {
+    labelKey: "account.navigation.security" as MessageKey,
+    href: Routes.Account.Security,
+    icon: "shield",
+  },
 ];
 
 export default function AccountSettingsPage() {

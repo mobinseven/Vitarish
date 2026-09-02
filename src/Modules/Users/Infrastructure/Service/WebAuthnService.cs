@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text;
 using System.Text.Json;
+using Vitarish.Authentication.Application.Abstractions;
+using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Domain.Sessions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Options;
@@ -18,7 +21,7 @@ namespace Vitarish.Users.Infrastructure.Service;
 public class WebAuthnService(
     IFido2 fido2,
     UserManager<User> userManager,
-    SignInManager<User> signInManager,
+    IAuthenticationSignInService signInService,
     UsersDbContext dbContext,
     WebAuthnOptions webAuthnOptions,
     IDistributedCache cache) : IWebAuthnService
@@ -268,7 +271,9 @@ public class WebAuthnService(
         {
             throw new InvalidOperationException("User associated with credential not found.");
         }
-        await signInManager.SignInAsync(credential.User, isPersistent: true);
+        AuthenticationSessionSignInResult signIn = await signInService.SignInAsync(credential.UserId, rememberMe: true, cancellationToken: ct);
+        if (!signIn.Succeeded)
+            throw new InvalidOperationException(signIn.Failure?.Message ?? "WebAuthn sign-in could not establish an authentication session.");
 
         // Clear the cache challenge
         await cache.RemoveAsync(GetAssertionCacheKey(credential.UserId), ct);

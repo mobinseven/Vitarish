@@ -19,7 +19,7 @@ public sealed class SecurityAccessPolicyHandlerTests
     {
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         RecordingAuditWriter audit = new();
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([]));
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([]), CreateSessionRegistry());
 
         Func<Task> act = () => handler.Handle(new ChangeSecurityAccessPolicyCommand(SecurityAccessPolicy.Default, 0), CancellationToken.None);
 
@@ -36,7 +36,7 @@ public sealed class SecurityAccessPolicyHandlerTests
         store.Setup(item => item.SaveAsync(policy, 0, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SecurityAccessPolicyState(policy, 1));
         RecordingAuditWriter audit = new();
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry());
 
         SecurityAccessPolicyState result = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
 
@@ -52,7 +52,7 @@ public sealed class SecurityAccessPolicyHandlerTests
         SecurityAccessPolicy policy = SecurityAccessPolicy.Default;
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         RecordingAuditWriter audit = new(SecurityAuditWriteResult.AlreadyRecorded);
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry());
 
         Func<Task> act = () => handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
 
@@ -68,7 +68,7 @@ public sealed class SecurityAccessPolicyHandlerTests
         store.Setup(item => item.SaveAsync(policy, 7, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SecurityAccessPolicyState(policy, 8));
         RecordingAuditWriter audit = new();
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry());
 
         SecurityAccessPolicyState result = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 7), CancellationToken.None);
 
@@ -85,7 +85,7 @@ public sealed class SecurityAccessPolicyHandlerTests
         SecurityAccessPolicyConcurrencyException conflict = new("stale");
         store.Setup(item => item.SaveAsync(policy, 7, It.IsAny<CancellationToken>())).ThrowsAsync(conflict);
         RecordingAuditWriter audit = new();
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry());
 
         Func<Task> act = () => handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 7), CancellationToken.None);
 
@@ -100,7 +100,7 @@ public sealed class SecurityAccessPolicyHandlerTests
         SecurityAccessPolicy invalid = SecurityAccessPolicy.Default with { FailedAttemptThreshold = 0 };
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         RecordingAuditWriter audit = new();
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry());
 
         Func<Task> act = () => handler.Handle(new ChangeSecurityAccessPolicyCommand(invalid, 0), CancellationToken.None);
 
@@ -118,7 +118,7 @@ public sealed class SecurityAccessPolicyHandlerTests
         store.Setup(item => item.SaveAsync(policy, 0, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SecurityAccessPolicyState(policy, 1));
         RecordingAuditWriter audit = new(failNextUpdate: true);
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry());
 
         Func<Task> act = () => handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
 
@@ -138,7 +138,7 @@ public sealed class SecurityAccessPolicyHandlerTests
             .ReturnsAsync(new SecurityAccessPolicyState(policy, 1));
         RecordingAuditWriter audit = new(failNextUpdate: true);
         TestRequestContext requestContext = new([IdentityDefinitions.PlatformAdmin]);
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, requestContext);
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, requestContext, CreateSessionRegistry());
 
         await ((Func<Task>)(() => handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None)))
             .Should().ThrowAsync<SecurityAuditStoreException>();
@@ -167,7 +167,7 @@ public sealed class SecurityAccessPolicyHandlerTests
             .ReturnsAsync(new SecurityAccessPolicyState(SecurityAccessPolicy.Default, 0));
         RecordingAuditWriter audit = new();
         TestRequestContext requestContext = new([IdentityDefinitions.PlatformAdmin]);
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, requestContext);
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, requestContext, CreateSessionRegistry());
 
         Task<SecurityAccessPolicyState> original = handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
         await saveEntered.Task;
@@ -192,7 +192,7 @@ public sealed class SecurityAccessPolicyHandlerTests
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SecurityAccessPolicyState(policy, 1));
         RecordingAuditWriter audit = new(SecurityAuditWriteResult.AlreadyRecorded);
-        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry());
 
         Func<Task> act = () => handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
 
@@ -233,6 +233,16 @@ public sealed class SecurityAccessPolicyHandlerTests
             pending.RedactedReason = reason;
             return Task.FromResult(SecurityAuditWriteResult.Recorded);
         }
+    }
+
+    private static IAuthenticationSessionRegistry CreateSessionRegistry()
+    {
+        Mock<IAuthenticationSessionRegistry> registry = new();
+        registry.Setup(item => item.RevokeSessionsInvalidatedByPolicyAsync(
+                It.IsAny<SecurityAccessPolicy>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        return registry.Object;
     }
 
     private sealed class TestRequestContext(IReadOnlyList<string> roles) : IRequestContext

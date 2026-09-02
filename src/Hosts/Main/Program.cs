@@ -54,10 +54,9 @@ if (openApiGeneration)
 else
     await builder.AddHostDataProtection(securityConfiguration);
 
-if (openApiGeneration)
-    _ = builder.Services.AddDistributedMemoryCache();
-else
-    builder.AddRedisCaching();
+// OpenAPI discovery validates the full service graph, including services
+// whose persistence is not exercised while generating the document.
+builder.AddRedisCaching();
 
 WebApplication app = builder.Build();
 if (!openApiGeneration)

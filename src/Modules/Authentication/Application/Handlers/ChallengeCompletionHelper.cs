@@ -111,7 +111,9 @@ internal static class ChallengeCompletionHelper
         if (challenge.Status == AuthenticationChallengeStatus.Pending)
             challenge.Complete(now);
 
-        await signInService.SignInAsync(challenge.UserId, challenge.RememberMe, cancellationToken);
+        AuthenticationSessionSignInResult session = await signInService.SignInAsync(challenge.UserId, challenge.RememberMe, cancellationToken);
+        if (session is not null && !session.Succeeded)
+            return new AuthenticationResult<LoginResult>.Failure(session.Failure!);
 
         foreach (string attemptKey in attemptKeys)
             await attemptTracker.ResetAsync(attemptKey, cancellationToken);

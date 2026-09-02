@@ -1,5 +1,5 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
-const TENANT_HOST_HEADER = "X-Vitarish-Tenant-Host";
+export const TENANT_HOST_HEADER = "X-Vitarish-Tenant-Host";
 const REQUEST_ID_HEADER = "X-Request-Id";
 
 export interface ProblemDetails {

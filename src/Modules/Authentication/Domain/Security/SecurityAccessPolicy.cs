@@ -8,7 +8,11 @@ public sealed record SecurityAccessPolicy(
     TimeSpan FailedAttemptDenialDuration,
     FailedAttemptResponse FailedAttemptResponse,
     IReadOnlySet<AuthenticationMethod> EnabledAuthenticationMechanisms,
-    IReadOnlySet<PreAuthenticationAction> PermittedPreAuthenticationActions)
+    IReadOnlySet<PreAuthenticationAction> PermittedPreAuthenticationActions,
+    int MaximumConcurrentSessions = 1,
+    bool ConcurrentSessionsFunctionallyRequired = false,
+    int DefaultInactivityTimeoutMinutes = 30,
+    IReadOnlySet<string>? AllowedSessionStartCidrs = null)
 {
     public static SecurityAccessPolicy Default { get; } = ForProfile(AuthenticationProfilePolicy.Default);
 
@@ -31,6 +35,20 @@ public sealed record SecurityAccessPolicy(
             throw new ArgumentOutOfRangeException(nameof(FailedAttemptDenialDuration), "Failed-attempt denial duration must be positive.");
         if (!EnabledAuthenticationMechanisms.Contains(AuthenticationMethod.Password))
             throw new ArgumentException("Username/password authentication must remain enabled.", nameof(EnabledAuthenticationMechanisms));
+        if (MaximumConcurrentSessions is < 1 or > 3)
+            throw new ArgumentOutOfRangeException(nameof(MaximumConcurrentSessions), "The concurrent-session maximum must be between 1 and 3.");
+        if (MaximumConcurrentSessions > 1 && !ConcurrentSessionsFunctionallyRequired)
+            throw new ArgumentException("Concurrent sessions require a recorded functional need.", nameof(ConcurrentSessionsFunctionallyRequired));
+        if (DefaultInactivityTimeoutMinutes is < 1 or > 30)
+            throw new ArgumentOutOfRangeException(nameof(DefaultInactivityTimeoutMinutes), "The default inactivity timeout must be between 1 and 30 minutes.");
+        if (AllowedSessionStartCidrs is not null)
+        {
+            foreach (string cidr in AllowedSessionStartCidrs)
+            {
+                if (!SessionStartCidr.TryParse(cidr, out string? normalized) || !string.Equals(cidr, normalized, StringComparison.Ordinal))
+                    throw new ArgumentException("Allowed session-start values must be normalized CIDRs.", nameof(AllowedSessionStartCidrs));
+            }
+        }
     }
 
     public bool Allows(AuthenticationMethod mechanism, PreAuthenticationAction action) =>
@@ -41,8 +59,12 @@ public sealed record SecurityAccessPolicy(
         FailedAttemptThreshold == other.FailedAttemptThreshold &&
         FailedAttemptDenialDuration == other.FailedAttemptDenialDuration &&
         FailedAttemptResponse == other.FailedAttemptResponse &&
+        MaximumConcurrentSessions == other.MaximumConcurrentSessions &&
+        ConcurrentSessionsFunctionallyRequired == other.ConcurrentSessionsFunctionallyRequired &&
+        DefaultInactivityTimeoutMinutes == other.DefaultInactivityTimeoutMinutes &&
         EnabledAuthenticationMechanisms.SetEquals(other.EnabledAuthenticationMechanisms) &&
-        PermittedPreAuthenticationActions.SetEquals(other.PermittedPreAuthenticationActions);
+        PermittedPreAuthenticationActions.SetEquals(other.PermittedPreAuthenticationActions) &&
+        (AllowedSessionStartCidrs ?? new HashSet<string>(StringComparer.Ordinal)).SetEquals(other.AllowedSessionStartCidrs ?? new HashSet<string>(StringComparer.Ordinal));
 
     public SecurityAccessPolicy ReconcileProfile(AuthenticationProfilePolicy profilePolicy)
     {
@@ -64,7 +86,8 @@ public sealed record SecurityAccessPolicy(
         return this with
         {
             EnabledAuthenticationMechanisms = mechanisms,
-            PermittedPreAuthenticationActions = actions
+            PermittedPreAuthenticationActions = actions,
+            AllowedSessionStartCidrs = AllowedSessionStartCidrs ?? new HashSet<string>(StringComparer.Ordinal)
         };
     }
 }

@@ -16,8 +16,8 @@ if (-not (Test-Path -LiteralPath $playwright)) {
 New-Item -ItemType Directory -Path (Split-Path -Parent $output) -Force | Out-Null
 
 & $playwright screenshot `
-  --viewport-size $ViewportSize `
-  --wait-for-timeout $WaitMilliseconds `
+  "--viewport-size=`"$ViewportSize`"" `
+  "--wait-for-timeout=$WaitMilliseconds" `
   --full-page `
   $Url `
   $output

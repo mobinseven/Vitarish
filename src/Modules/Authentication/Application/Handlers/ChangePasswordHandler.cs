@@ -118,7 +118,7 @@ public sealed class ChangePasswordHandler(
                 command.UserId,
                 SecurityAuditOutcome.Pending,
                 completedKey,
-                "awaiting_mutation_outcome"), cancellationToken);
+                AuthenticationSecurityAuditEvents.AwaitingMutationOutcome), cancellationToken);
         }
         catch (SecurityAuditStoreException)
         {

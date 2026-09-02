@@ -54,7 +54,9 @@ public sealed class CompletePasskeyLoginHandler(
             foreach (string subjectKey in attemptKeyFactory.SubjectCandidates(AuthenticationMethod.Passkey, result.UserId))
                 await attemptTracker.ResetAsync(subjectKey, cancellationToken);
 
-        await signInService.SignInAsync(result.UserId!, false, cancellationToken);
+        AuthenticationSessionSignInResult session = await signInService.SignInAsync(result.UserId!, false, cancellationToken);
+        if (session is not null && !session.Succeeded)
+            return new AuthenticationResult<LoginResult>.Failure(session.Failure!);
         string resolvedReturnUrl = await redirects.ResolveAsync(command.ReturnUrl, false, result.UserId, cancellationToken);
         return new AuthenticationResult<LoginResult>.Success(new(result.UserId!, resolvedReturnUrl, false));
     }

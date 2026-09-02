@@ -165,8 +165,9 @@ internal static class OpenApiEndpointCheck
     {
         List<ArchitectureViolation> violations = [];
         int line = RoslynSyntax.Line(invocation);
-        string? operationId = RoslynSyntax.ArgumentExpression(invocation, "operationId", 2);
-        if (!RoslynSyntax.IsStringLiteral(operationId, out string operation) || !Regex.IsMatch(operation, "^[A-Z][A-Za-z0-9]+(?:_[A-Za-z0-9]+)*$"))
+        ArgumentSyntax? operationArgument = FindArgument(invocation, "operationId", 2);
+        string? operation = RoslynSyntax.ResolveString(file, operationArgument?.Expression);
+        if (operation is null || !Regex.IsMatch(operation, "^[A-Z][A-Za-z0-9]+(?:_[A-Za-z0-9]+)*$"))
         {
             violations.Add(new(file.RelativePath, line, "OperationIdMissing", method,
                 "Pass a stable PascalCase operation ID."));

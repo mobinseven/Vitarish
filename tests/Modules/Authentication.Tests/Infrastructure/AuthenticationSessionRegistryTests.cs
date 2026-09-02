@@ -1,0 +1,273 @@
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using Vitarish.Audit.Application;
+using Vitarish.Audit.Domain;
+using Vitarish.Authentication.Application.Abstractions;
+using Vitarish.Authentication.Application.Security;
+using Vitarish.Authentication.Domain.Security;
+using Vitarish.Authentication.Domain.Sessions;
+using Vitarish.Authentication.Infrastructure;
+using Vitarish.Requests.Application.Abstractions;
+
+namespace Authentication.Tests.Infrastructure;
+
+public sealed class AuthenticationSessionRegistryTests
+{
+    [Fact]
+    public async Task Establishing_a_second_session_with_default_policy_terminates_the_first()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db, _) = CreateRegistry(SecurityAccessPolicy.Default, clock);
+
+        AuthenticationSessionEstablishmentResult first = await registry.EstablishAsync("user-1", CancellationToken.None);
+        AuthenticationSessionEstablishmentResult second = await registry.EstablishAsync("user-1", CancellationToken.None);
+
+        first.Succeeded.Should().BeTrue();
+        second.Succeeded.Should().BeTrue();
+        (await db.AuthenticationSessions.SingleAsync(session => session.Id == Guid.Parse(first.SessionId!))).TerminationReason
+            .Should().Be(AuthenticationSessionTerminationReason.ReplacedByNewSession);
+        (await db.AuthenticationSessions.CountAsync(session => session.UserId == "user-1" && session.TerminatedAt == null)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Functionally_required_parallel_sessions_are_limited_and_notify_the_prior_session()
+    {
+        SecurityAccessPolicy policy = SecurityAccessPolicy.Default with
+        {
+            MaximumConcurrentSessions = 2,
+            ConcurrentSessionsFunctionallyRequired = true
+        };
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db, _) = CreateRegistry(policy, new TestTimeProvider(DateTimeOffset.UtcNow));
+
+        AuthenticationSessionEstablishmentResult first = await registry.EstablishAsync("user-1", CancellationToken.None);
+        AuthenticationSessionEstablishmentResult second = await registry.EstablishAsync("user-1", CancellationToken.None);
+        AuthenticationSessionEstablishmentResult third = await registry.EstablishAsync("user-1", CancellationToken.None);
+
+        first.Succeeded.Should().BeTrue();
+        second.Succeeded.Should().BeTrue();
+        third.Succeeded.Should().BeFalse();
+        third.Failure!.Reason.Should().Be(AuthenticationFailureReason.TooManyAttempts);
+        (await db.AuthenticationSessionNotices.CountAsync(notice => notice.SessionId == Guid.Parse(first.SessionId!))).Should().Be(1);
+        (await db.AuthenticationSessionNotices.CountAsync(notice => notice.SessionId == Guid.Parse(second.SessionId!))).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Failed_attempts_are_carried_into_the_next_successful_access_history_record()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db, _) = CreateRegistry(SecurityAccessPolicy.Default, clock);
+
+        await registry.RecordFailedAttemptAsync("user-1", CancellationToken.None);
+        (await db.AuthenticationAccessHistories.SingleAsync()).CurrentFailedAttempts.Should().Be(1);
+        (await registry.GetAccessHistoryAsync("user-1", "tenant-1", CancellationToken.None))!.CurrentFailedAttempts.Should().Be(1);
+        AuthenticationSessionEstablishmentResult first = await registry.EstablishAsync("user-1", CancellationToken.None);
+        clock.UtcNow = clock.UtcNow.AddMinutes(1);
+        AuthenticationSessionEstablishmentResult second = await registry.EstablishAsync("user-1", CancellationToken.None);
+
+        first.AccessHistory!.FailedAttemptsSincePreviousSuccessful.Should().Be(1);
+        second.AccessHistory!.PreviousSuccessfulAt.Should().Be(first.AccessHistory.LastSuccessfulAt);
+        second.AccessHistory!.FailedAttemptsSincePreviousSuccessful.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task User_inactivity_timeout_rejects_a_stale_expected_version()
+    {
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db, _) = CreateRegistry(SecurityAccessPolicy.Default, TimeProvider.System);
+
+        await registry.SetUserInactivityTimeoutAsync("user-1", 10, 0, CancellationToken.None);
+
+        Func<Task> act = () => registry.SetUserInactivityTimeoutAsync("user-1", 15, 0, CancellationToken.None);
+        await act.Should().ThrowAsync<AuthenticationUserSessionPolicyConcurrencyException>();
+
+        AuthenticationUserSessionPolicyRecord record = await db.AuthenticationUserSessionPolicies.SingleAsync();
+        record.InactivityTimeoutMinutes.Should().Be(10);
+        record.Version.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Audit_failure_compensates_session_replacement_and_successful_access_history()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db, RecordingAuditWriter audit) = CreateRegistry(SecurityAccessPolicy.Default, clock);
+
+        AuthenticationSessionEstablishmentResult first = await registry.EstablishAsync("user-1", CancellationToken.None);
+        DateTime? firstLastSuccessfulAt = (await db.AuthenticationAccessHistories.SingleAsync()).LastSuccessfulAt;
+        audit.FailSuccessfulSessionEstablishment = true;
+
+        Func<Task> establishSecond = () => registry.EstablishAsync("user-1", CancellationToken.None);
+        await establishSecond.Should().ThrowAsync<SecurityAuditStoreException>();
+
+        AuthenticationSession restored = await db.AuthenticationSessions.SingleAsync(session => session.Id == Guid.Parse(first.SessionId!));
+        restored.TerminatedAt.Should().BeNull();
+        restored.TerminationReason.Should().BeNull();
+        (await db.AuthenticationSessions.CountAsync(session => session.UserId == "user-1" && session.TerminatedAt == null)).Should().Be(1);
+        (await db.AuthenticationAccessHistories.SingleAsync()).LastSuccessfulAt.Should().Be(firstLastSuccessfulAt);
+        (await db.AuthenticationAccessHistories.SingleAsync()).CurrentFailedAttempts.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Audit_failure_on_first_establishment_removes_new_history_and_session()
+    {
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db, RecordingAuditWriter audit) = CreateRegistry(SecurityAccessPolicy.Default, TimeProvider.System);
+        audit.FailSuccessfulSessionEstablishment = true;
+
+        await ((Func<Task>)(() => registry.EstablishAsync("user-1", CancellationToken.None)))
+            .Should().ThrowAsync<SecurityAuditStoreException>();
+
+        (await db.AuthenticationSessions.CountAsync()).Should().Be(0);
+        (await db.AuthenticationAccessHistories.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Establishment_returns_the_effective_per_user_inactivity_timeout()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db, _) = CreateRegistry(SecurityAccessPolicy.Default, clock);
+        _ = db.AuthenticationUserSessionPolicies.Add(new AuthenticationUserSessionPolicyRecord
+        {
+            UserId = "user-1",
+            InactivityTimeoutMinutes = 1,
+            Version = 1
+        });
+        await db.SaveChangesAsync();
+
+        AuthenticationSessionEstablishmentResult result = await registry.EstablishAsync("user-1", CancellationToken.None);
+
+        result.InactivityTimeoutMinutes.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Establishment_accepts_an_ip_inside_a_configured_cidr()
+    {
+        SecurityAccessPolicy policy = SecurityAccessPolicy.Default with
+        {
+            AllowedSessionStartCidrs = new HashSet<string>(StringComparer.Ordinal) { "10.0.0.0/24" }
+        };
+        (AuthenticationSessionRegistry registry, _, _) = CreateRegistry(policy, TimeProvider.System, "10.0.0.7");
+
+        (await registry.EstablishAsync("user-1", CancellationToken.None)).Succeeded.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Policy_change_revokes_sessions_outside_the_new_cidr()
+    {
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db, _) = CreateRegistry(SecurityAccessPolicy.Default, TimeProvider.System, "127.0.0.1");
+        _ = await registry.EstablishAsync("user-1", CancellationToken.None);
+
+        await registry.RevokeSessionsInvalidatedByPolicyAsync(SecurityAccessPolicy.Default with
+        {
+            AllowedSessionStartCidrs = new HashSet<string>(StringComparer.Ordinal) { "10.0.0.0/24" }
+        }, CancellationToken.None);
+
+        (await db.AuthenticationSessions.SingleAsync()).TerminationReason.Should().Be(AuthenticationSessionTerminationReason.AdministrativeRevocation);
+    }
+
+    [Fact]
+    public async Task User_timeout_change_revokes_only_sessions_expired_under_the_committed_timeout()
+    {
+        SecurityAccessPolicy policy = SecurityAccessPolicy.Default with
+        {
+            MaximumConcurrentSessions = 2,
+            ConcurrentSessionsFunctionallyRequired = true
+        };
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db, _) = CreateRegistry(policy, clock);
+
+        await registry.SetUserInactivityTimeoutAsync("user-1", 1, 0, CancellationToken.None);
+        AuthenticationSession first = new()
+        {
+            Id = Guid.NewGuid(),
+            UserId = "user-1",
+            TenantId = "tenant-1",
+            CreatedAt = clock.UtcNow.UtcDateTime,
+            LastActivityAt = clock.UtcNow.UtcDateTime,
+            ClientIpAddress = "127.0.0.1"
+        };
+        AuthenticationSession second = new()
+        {
+            Id = Guid.NewGuid(),
+            UserId = "user-1",
+            TenantId = "tenant-1",
+            CreatedAt = clock.UtcNow.UtcDateTime.AddMinutes(44),
+            LastActivityAt = clock.UtcNow.UtcDateTime.AddMinutes(44),
+            ClientIpAddress = "127.0.0.1"
+        };
+        db.AuthenticationSessions.AddRange(first, second);
+        await db.SaveChangesAsync();
+        clock.UtcNow = clock.UtcNow.AddMinutes(44.5);
+
+        await registry.RevokeSessionsExpiredByUserPolicyAsync("user-1", CancellationToken.None);
+
+        (await db.AuthenticationSessions.SingleAsync(session => session.Id == first.Id)).TerminationReason
+            .Should().Be(AuthenticationSessionTerminationReason.AdministrativeRevocation);
+        (await db.AuthenticationSessions.SingleAsync(session => session.Id == second.Id)).TerminatedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Active_session_query_returns_false_after_explicit_revocation()
+    {
+        (AuthenticationSessionRegistry registry, _, _) = CreateRegistry(SecurityAccessPolicy.Default, TimeProvider.System);
+        AuthenticationSessionEstablishmentResult result = await registry.EstablishAsync("user-1", CancellationToken.None);
+
+        (await registry.HasActiveSessionAsync("user-1", CancellationToken.None)).Should().BeTrue();
+
+        await registry.RevokeAsync(result.SessionId!, AuthenticationSessionTerminationReason.UserLogout, CancellationToken.None);
+
+        (await registry.HasActiveSessionAsync("user-1", CancellationToken.None)).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Active_session_query_returns_false_after_inactivity_timeout()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        SecurityAccessPolicy policy = SecurityAccessPolicy.Default with { DefaultInactivityTimeoutMinutes = 1 };
+        (AuthenticationSessionRegistry registry, _, _) = CreateRegistry(policy, clock);
+        _ = await registry.EstablishAsync("user-1", CancellationToken.None);
+
+        clock.UtcNow = clock.UtcNow.AddMinutes(1);
+
+        (await registry.HasActiveSessionAsync("user-1", CancellationToken.None)).Should().BeFalse();
+    }
+
+    private static (AuthenticationSessionRegistry Registry, AuthenticationDbContext Db, RecordingAuditWriter Audit) CreateRegistry(SecurityAccessPolicy policy, TimeProvider clock, string address = "127.0.0.1")
+    {
+        DbContextOptions<AuthenticationDbContext> options = new DbContextOptionsBuilder<AuthenticationDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+            .Options;
+        AuthenticationDbContext db = new(options);
+        Mock<IAuthenticationSecurityPolicyProvider> policyProvider = new();
+        policyProvider.Setup(provider => provider.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(policy);
+        Mock<IClientIpAddressAccessor> clientIp = new();
+        clientIp.SetupGet(accessor => accessor.ClientIpAddress).Returns(address);
+        Mock<IRequestContext> requestContext = new();
+        requestContext.SetupGet(context => context.TenantId).Returns("tenant-1");
+        requestContext.SetupGet(context => context.RequestId).Returns("request-1");
+        requestContext.SetupGet(context => context.TraceId).Returns("trace-1");
+        RecordingAuditWriter audit = new();
+        return (new AuthenticationSessionRegistry(db, policyProvider.Object, clientIp.Object, requestContext.Object, audit, clock), db, audit);
+    }
+
+    private sealed class RecordingAuditWriter : ISecurityAuditWriter
+    {
+        public List<SecurityAuditEvent> Events { get; } = [];
+        public bool FailSuccessfulSessionEstablishment { get; set; }
+
+        public Task<SecurityAuditWriteResult> WriteAsync(SecurityAuditEvent auditEvent, CancellationToken cancellationToken)
+        {
+            if (FailSuccessfulSessionEstablishment &&
+                auditEvent.EventName == AuthenticationSecurityAuditEvents.SessionEstablished &&
+                auditEvent.Outcome == SecurityAuditOutcome.Succeeded)
+                throw new SecurityAuditStoreException("offline", new InvalidOperationException());
+            Events.Add(auditEvent);
+            return Task.FromResult(SecurityAuditWriteResult.Recorded);
+        }
+    }
+
+    private sealed class TestTimeProvider(DateTimeOffset initialUtcNow) : TimeProvider
+    {
+        public DateTimeOffset UtcNow { get; set; } = initialUtcNow;
+
+        public override DateTimeOffset GetUtcNow() => UtcNow;
+    }
+}

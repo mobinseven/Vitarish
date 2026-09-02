@@ -205,7 +205,9 @@ public sealed class LoginWithPasswordHandler(
         LoginWithPasswordCommand command,
         CancellationToken cancellationToken)
     {
-        await signInService.SignInAsync(signInResult.UserId!, command.RememberMe, cancellationToken);
+        AuthenticationSessionSignInResult session = await signInService.SignInAsync(signInResult.UserId!, command.RememberMe, cancellationToken);
+        if (session is not null && !session.Succeeded)
+            return new AuthenticationResult<LoginResult>.Failure(session.Failure!);
         return new AuthenticationResult<LoginResult>.Success(new(
             signInResult.UserId!,
             await redirects.ResolveAsync(command.ReturnUrl, signInResult.RequiresProfileCompletion, signInResult.UserId, cancellationToken),

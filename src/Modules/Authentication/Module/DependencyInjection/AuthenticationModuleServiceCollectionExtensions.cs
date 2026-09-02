@@ -26,6 +26,11 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddScoped<GetLogoutContextHandler>();
         services.AddScoped<GetSecurityAccessPolicyHandler>();
         services.AddScoped<ChangeSecurityAccessPolicyHandler>();
+        services.AddScoped<GetAuthenticationAccessHistoryHandler>();
+        services.AddScoped<GetAuthenticationSessionNoticesHandler>();
+        services.AddScoped<AcknowledgeAuthenticationSessionNoticeHandler>();
+        services.AddScoped<AcknowledgeAuthenticationAccessHistoryHandler>();
+        services.AddScoped<ChangeUserInactivityTimeoutHandler>();
         services.AddHttpContextAccessor();
         services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
         return services.AddAuthenticationInfrastructure(configureDbContext);
