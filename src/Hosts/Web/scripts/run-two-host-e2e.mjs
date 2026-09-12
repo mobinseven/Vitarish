@@ -25,6 +25,7 @@ const mainOrigin = "https://localhost:7272";
 const webOrigin = "http://localhost:3005";
 const smtpCapturePath = resolve(artifactDirectory, "e2e-smtp-capture.eml");
 const smtpPort = 2525;
+const readinessProbeTimeoutMs = 5000;
 
 mkdirSync(artifactDirectory, { recursive: true });
 
@@ -157,7 +158,7 @@ function probe(url) {
       response.resume();
       resolveProbe(response.statusCode ?? 0);
     });
-    request.setTimeout(1000, () => request.destroy());
+    request.setTimeout(readinessProbeTimeoutMs, () => request.destroy());
     request.on("error", () => resolveProbe(false));
   });
 }
