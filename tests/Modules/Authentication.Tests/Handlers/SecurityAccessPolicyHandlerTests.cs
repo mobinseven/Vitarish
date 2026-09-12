@@ -6,6 +6,7 @@ using Vitarish.Audit.Domain;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
+using Vitarish.Authentication.Application.Queries;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Domain.Entities;
@@ -14,6 +15,24 @@ namespace Vitarish.Authentication.Tests.Handlers;
 
 public sealed class SecurityAccessPolicyHandlerTests
 {
+    [Fact]
+    public async Task Authorized_read_preserves_the_policy_when_the_audit_store_is_unavailable()
+    {
+        SecurityAccessPolicyState expected = new(SecurityAccessPolicy.ProductEvaluated, 4);
+        Mock<IAuthenticationSecurityPolicyStore> store = new();
+        store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+        Mock<ISecurityAuditWriter> audit = new();
+        audit.Setup(item => item.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new SecurityAuditStoreException("offline", new InvalidOperationException()));
+        GetSecurityAccessPolicyHandler handler = new(store.Object, audit.Object, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+
+        SecurityAccessPolicyState result = await handler.Handle(new GetSecurityAccessPolicyQuery(), CancellationToken.None);
+
+        result.Should().BeEquivalentTo(expected);
+        store.Verify(item => item.GetStateAsync(It.IsAny<CancellationToken>()), Times.Once);
+        audit.Verify(item => item.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
     [Fact]
     public async Task Unauthorized_change_is_rejected_and_audited()
     {
@@ -111,7 +130,7 @@ public sealed class SecurityAccessPolicyHandlerTests
     }
 
     [Fact]
-    public async Task Completion_audit_failure_withholds_success_and_leaves_a_durable_pending_outcome()
+    public async Task Completion_audit_failure_preserves_the_committed_policy_result()
     {
         SecurityAccessPolicy policy = SecurityAccessPolicy.ProductEvaluated;
         Mock<IAuthenticationSecurityPolicyStore> store = new();
@@ -120,9 +139,9 @@ public sealed class SecurityAccessPolicyHandlerTests
         RecordingAuditWriter audit = new(failNextUpdate: true);
         ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry());
 
-        Func<Task> act = () => handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
+        SecurityAccessPolicyState result = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
 
-        await act.Should().ThrowAsync<SecurityAuditStoreException>();
+        result.Version.Should().Be(1);
         audit.Events.Select(item => item.Outcome).Should().ContainInOrder(SecurityAuditOutcome.Started, SecurityAuditOutcome.Pending);
         store.Verify(item => item.SaveAsync(policy, 0, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -140,10 +159,10 @@ public sealed class SecurityAccessPolicyHandlerTests
         TestRequestContext requestContext = new([IdentityDefinitions.PlatformAdmin]);
         ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, requestContext, CreateSessionRegistry());
 
-        await ((Func<Task>)(() => handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None)))
-            .Should().ThrowAsync<SecurityAuditStoreException>();
+        SecurityAccessPolicyState first = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
         SecurityAccessPolicyState result = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, 0), CancellationToken.None);
 
+        first.Version.Should().Be(1);
         result.Version.Should().Be(1);
         audit.Events.Select(item => item.Outcome).Should().ContainInOrder(SecurityAuditOutcome.Started, SecurityAuditOutcome.Succeeded);
         store.Verify(item => item.SaveAsync(policy, 0, It.IsAny<CancellationToken>()), Times.Once);

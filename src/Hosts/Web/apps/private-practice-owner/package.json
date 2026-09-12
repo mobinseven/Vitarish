@@ -36,6 +36,7 @@
     "@vitarish/journey": "0.1.0",
     "@vitarish/knowledge": "0.1.0",
     "@vitarish/sea": "0.1.0",
+    "@vitarish/security": "0.1.0",
     "@vitarish/api-client": "0.1.0",
     "@vitarish/localization": "0.1.0",
     "@vitarish/mock-runtime": "0.1.0",

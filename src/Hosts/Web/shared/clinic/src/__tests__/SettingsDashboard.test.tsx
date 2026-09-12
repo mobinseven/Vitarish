@@ -6,6 +6,21 @@ import { SettingsDashboard } from "../components/settings/SettingsDashboard";
 afterEach(cleanup);
 
 describe("SettingsDashboard", () => {
+  it("emits the security-audit review intent", () => {
+    const onNavigate = vi.fn();
+    render(
+      <LocalizationProvider locale="en" messages={clinicMessageCatalogs.en}>
+        <SettingsDashboard onNavigate={onNavigate} />
+      </LocalizationProvider>,
+    );
+
+    const audit = screen.getByRole("button", { name: /Security audit/ });
+    expect(audit).toHaveAttribute("title", "Security audit");
+    expect(audit.querySelector(".fa-shield-halved")).toBeInTheDocument();
+    fireEvent.click(audit);
+    expect(onNavigate).toHaveBeenCalledWith({ kind: "clinicSettingsAudit" });
+  });
+
   it("emits the insurance-provider settings intent", () => {
     const onNavigate = vi.fn();
     render(

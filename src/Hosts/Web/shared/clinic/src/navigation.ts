@@ -21,6 +21,7 @@ export type NavigationIntent =
   | { kind: "appointmentSettings" }
   | { kind: "clinicSettings" }
   | { kind: "clinicSettingsUsers" }
+  | { kind: "clinicSettingsAudit" }
   | { kind: "clinicSettingsInsurance" }
   | { kind: "clinicStatistics" }
   | { kind: "procedureTemplateManagement" }

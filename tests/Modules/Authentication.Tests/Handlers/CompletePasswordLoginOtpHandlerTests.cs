@@ -36,7 +36,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
     }
 
     [Fact]
-    public async Task Completion_audit_failure_signs_out_and_withholds_success()
+    public async Task Completion_audit_failure_preserves_success()
     {
         TestDependencies dependencies = CreateDependencies();
         Mock<ISecurityAuditWriter> writer = new();
@@ -47,10 +47,9 @@ public sealed class CompletePasswordLoginOtpHandlerTests
 
         AuthenticationResult<LoginResult> result = await handler.Handle(Command(), CancellationToken.None);
 
-        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
-            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.ProviderFailure);
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Success>();
         dependencies.SignIn.Verify(x => x.SignInAsync("user-42", false, It.IsAny<CancellationToken>()), Times.Once);
-        dependencies.SignIn.Verify(x => x.SignOutAsync(It.IsAny<CancellationToken>()), Times.Once);
+        dependencies.SignIn.Verify(x => x.SignOutAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

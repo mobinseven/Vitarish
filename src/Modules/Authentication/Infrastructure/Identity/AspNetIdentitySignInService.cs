@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-using Vitarish.Audit.Application;
 using Vitarish.Authentication.Domain.Sessions;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.Methods;
@@ -36,14 +35,7 @@ public sealed class AspNetIdentitySignInService(
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidCredentials, "Cannot sign in an unknown user."));
 
         IAuthenticationSessionPreparation? preparation = null;
-        try
-        {
-            preparation = await sessionRegistry.PrepareAsync(userId, cancellationToken);
-        }
-        catch (SecurityAuditStoreException)
-        {
-            return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.ProviderFailure, "The authentication audit store is unavailable."));
-        }
+        preparation = await sessionRegistry.PrepareAsync(userId, cancellationToken);
         if (!preparation.Result.Succeeded)
         {
             await preparation.DisposeAsync();

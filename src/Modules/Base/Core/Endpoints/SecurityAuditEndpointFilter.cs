@@ -10,11 +10,11 @@ public sealed class SecurityAuditEndpointFilter(
     ISecurityAuditWriter securityAuditWriter,
     IRequestContext requestContext) : IEndpointFilter
 {
-    private const string EventName = "security.endpoint.mutation";
-    private const string SourceBoundary = "main.endpoint-filter";
-    private const string ResourcePrefix = "endpoint/";
-    private const string StartedKeySuffix = ":started";
-    private const string CompletedKeySuffix = ":completed";
+    private const string EventName = SecurityAuditEventCatalog.EndpointMutationEvent;
+    private const string SourceBoundary = SecurityAuditEventCatalog.EndpointFilterSourceBoundary;
+    private const string ResourcePrefix = SecurityAuditEventCatalog.EndpointResourcePrefix;
+    private const string StartedKeySuffix = SecurityAuditEventCatalog.StartedKeySuffix;
+    private const string CompletedKeySuffix = SecurityAuditEventCatalog.CompletedKeySuffix;
 
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
@@ -37,7 +37,7 @@ public sealed class SecurityAuditEndpointFilter(
 
         if (string.IsNullOrWhiteSpace(requestContext.TenantId))
         {
-            return AuditUnavailableResult();
+            return await next(context);
         }
 
         string? operationKey = context.HttpContext.Request.Headers[RequestIdentityConstants.RequestIdHeader].FirstOrDefault();
@@ -69,7 +69,8 @@ public sealed class SecurityAuditEndpointFilter(
         }
         catch (SecurityAuditStoreException)
         {
-            return AuditUnavailableResult();
+            // AU-8 preserves the initiating operation result when the audit
+            // store is unavailable; the writer emits the redacted host error.
         }
 
         object? result;
@@ -89,11 +90,11 @@ public sealed class SecurityAuditEndpointFilter(
                     convention.OperationId,
                     SecurityAuditOutcome.Failed,
                     completedKey,
-                    "endpoint_exception"), context.HttpContext.RequestAborted);
+                    SecurityAuditReasonCatalog.EndpointException), context.HttpContext.RequestAborted);
             }
             catch (SecurityAuditStoreException)
             {
-                return AuditUnavailableResult();
+                // Preserve the real operation exception under AU-8.
             }
 
             throw;
@@ -114,11 +115,11 @@ public sealed class SecurityAuditEndpointFilter(
                 convention.OperationId,
                 outcome,
                 completedKey,
-                statusCode >= StatusCodes.Status400BadRequest ? $"http_{statusCode}" : null), context.HttpContext.RequestAborted);
+                 statusCode >= StatusCodes.Status400BadRequest ? SecurityAuditReasonCatalog.HttpStatus(statusCode) : null), context.HttpContext.RequestAborted);
         }
         catch (SecurityAuditStoreException)
         {
-            return AuditUnavailableResult();
+            // Preserve the real operation result under AU-8.
         }
 
         return result;
@@ -127,6 +128,7 @@ public sealed class SecurityAuditEndpointFilter(
     private SecurityAuditEvent CreateEvent(string operationId, string outcome, string idempotencyKey, string? reason) => new()
     {
         EventName = EventName,
+        EventCategory = SecurityAuditEventCatalog.FunctionCategory,
         Outcome = outcome,
         ActorId = requestContext.UserId,
         SubjectId = requestContext.UserId,
@@ -140,8 +142,4 @@ public sealed class SecurityAuditEndpointFilter(
         IdempotencyKey = idempotencyKey
     };
 
-    private static IResult AuditUnavailableResult() => Results.Problem(
-        statusCode: StatusCodes.Status503ServiceUnavailable,
-        title: "Security audit is unavailable.",
-        detail: "The operation was not confirmed because its mandatory security audit could not be persisted.");
 }

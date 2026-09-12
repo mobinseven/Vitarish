@@ -1,0 +1,60 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Vitarish.Audit.Application;
+using Vitarish.Audit.Domain;
+using Vitarish.Modules.Base.Core.Endpoints;
+
+namespace Vitarish.Audit.Server;
+
+public static class SecurityAuditApi
+{
+    public static IEndpointRouteBuilder MapSecurityAuditApi(this IEndpointRouteBuilder endpoints)
+    {
+        RouteGroupBuilder group = endpoints
+            .MapProtectedModuleGroup(SecurityAuditApiRoutes.Base, requireTenantAccess: false)
+            .WithTags(SecurityAuditApiRoutes.DocumentTag);
+
+        _ = group.MapModuleGet(
+            SecurityAuditApiRoutes.SecurityEvents,
+            GetSecurityEventsAsync,
+            SecurityAuditApiOperations.ListSecurityEvents,
+            typeof(SecurityAuditPageReadDto))
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+        return endpoints;
+    }
+
+    private static async Task<IResult> GetSecurityEventsAsync(
+        int page,
+        int pageSize,
+        string? actorId,
+        string? eventName,
+        string? eventCategory,
+        DateTime? fromUtc,
+        DateTime? toUtc,
+        SecurityAuditSortField sortBy,
+        bool descending,
+        ISecurityAuditQueryService queryService,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            SecurityAuditPageReadDto result = await queryService.QueryAsync(
+                new SecurityAuditQuery(page, pageSize, actorId, eventName, eventCategory, fromUtc, toUtc, sortBy, descending),
+                cancellationToken);
+            return Results.Ok(result);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Forbid();
+        }
+        catch (ArgumentException)
+        {
+            return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid audit review query.", detail: "The audit review query is invalid.");
+        }
+        catch (SecurityAuditStoreException)
+        {
+            return Results.Problem(statusCode: StatusCodes.Status503ServiceUnavailable, title: "Audit review is unavailable.", detail: "The security audit store could not be read.");
+        }
+    }
+}

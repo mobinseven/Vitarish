@@ -16,6 +16,7 @@ using Vitarish.Clinic.Application.Assistant.Actions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Infrastructure;
+using Vitarish.Audit.Server;
 
 const string apiOriginKey = "VITARISH_E2E_API_ORIGIN";
 const string webOriginKey = "VITARISH_E2E_WEB_ORIGIN";
@@ -50,6 +51,7 @@ builder.Configuration["Vitarish:Search:Url"] = "http://localhost:3997";
 builder.Configuration["Vitarish:Communications:Notifications:ContactEmailRecipient"] = "e2e-contact@example.test";
 builder.Configuration["Vitarish:Features:SocialIntegrations"] = "true";
 builder.Configuration["Vitarish:Security:MandatoryAuditEnabled"] = "true";
+builder.Configuration["Vitarish:Security:Audit:CapacityWarningBytes"] = "1073741824";
 builder.Configuration["Vitarish:Security:AuthenticationAttempts:Realm"] = apiOrigin.Host;
 builder.Configuration["Vitarish:Security:AuthenticationAttempts:CurrentPepper"] = "e2e-authentication-attempt-key-pepper-20260829";
 builder.Configuration["Vitarish:Security:AuthenticationAttempts:CurrentVersion"] = "v1";
@@ -97,6 +99,7 @@ _ = builder.Services.AddOpenApi();
 WebApplication app = builder.Build();
 _ = app.UseHostingPipeline(securityConfiguration);
 _ = app.MapModuleEndpoints();
+_ = app.MapSecurityAuditApi();
 _ = app.MapAppEndpoints();
 
 await E2eFixtureSeeder.SeedAsync(app.Services, password, CancellationToken.None);

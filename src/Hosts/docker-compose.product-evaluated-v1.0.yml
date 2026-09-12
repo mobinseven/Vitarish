@@ -40,6 +40,7 @@ services:
       Vitarish__EvaluatedConfiguration__Identity: vitarish-product-evaluated-v1.0
       Vitarish__EvaluatedConfiguration__ManifestIdentity: vitarish-product-evaluated-v1.0
       Vitarish__Security__MandatoryAuditEnabled: "true"
+      Vitarish__Security__Audit__CapacityWarningBytes: ${VITARISH_AUDIT_CAPACITY_WARNING_BYTES:?VITARISH_AUDIT_CAPACITY_WARNING_BYTES is required}
       Cors__AllowedOrigins__0: https://${VITARISH_PUBLIC_HOST:?VITARISH_PUBLIC_HOST is required}
       Cors__AllowedOrigins__1: https://${VITARISH_PATIENTS_HOST:?VITARISH_PATIENTS_HOST is required}
       Cors__AllowedOrigins__2: https://${VITARISH_PLATFORM_ADMIN_HOST:?VITARISH_PLATFORM_ADMIN_HOST is required}

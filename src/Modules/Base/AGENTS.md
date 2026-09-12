@@ -19,7 +19,8 @@ module/app business policy.
 - **[MUST]** Audit disposition has exactly one responsible path. A use case
   marked as Application-audited must prove its required start/outcome events;
   a filter-audited endpoint must not also append a competing event sequence.
-  Required audit failure cannot be converted into endpoint success.
+  Under the approved AU-8 product selection, an audit-store failure is logged
+  once as a redacted host error and does not replace the initiating result.
 - **[MUST]** Internal-service metadata is not authorization by itself. Internal
   endpoints validate the approved short-lived credential, issuer/audience,
   expiry, replay/idempotency, tenant/scope, and exact operation at the endpoint

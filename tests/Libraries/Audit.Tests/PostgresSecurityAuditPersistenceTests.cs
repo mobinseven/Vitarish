@@ -86,6 +86,7 @@ public sealed class PostgresSecurityAuditPersistenceTests
     private static SecurityAuditEvent CreateEvent(string key) => new()
     {
         EventName = "audit.persistence.test",
+        EventCategory = SecurityAuditEventCatalog.ManagementCategory,
         Outcome = SecurityAuditOutcome.Succeeded,
         TenantId = "audit-test-tenant",
         Operation = "audit.persistence.test",

@@ -22,6 +22,12 @@ export function SettingsDashboard({ onNavigate }: SettingsDashboardProps) {
       icon: "user-gear",
     },
     {
+      title: t("clinic.settings.sections.audit.title"),
+      description: t("clinic.settings.sections.audit.description"),
+      intent: { kind: "clinicSettingsAudit" },
+      icon: "shield-halved",
+    },
+    {
       title: t("clinic.settings.sections.appointmentSettings.title"),
       description: t(
         "clinic.settings.sections.appointmentSettings.description",

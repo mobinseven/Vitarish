@@ -61,8 +61,9 @@ Hosting composition are not alternate policy owners.
   lockout/denial, session creation/replacement/revocation, history
   acknowledgement, and allowed/denied administrative actions. Never include
   passwords, OTPs, tokens, passkey material, request bodies, or raw recovery
-  data. A mutation requiring audit confirmation must not report success when
-  the audit store is unavailable.
+  data. Under the approved AU-8 product selection, an audit-store write
+  failure is logged once as a redacted host error and does not replace the
+  initiating operation result; an unreadable audit review is unavailable.
 - **[MUST]** Session IDs, policy versions, notice states, current-session DTOs,
   cookies, and persisted history are compatibility boundaries. Change them
   additively with generated migrations/clients and document one-time legacy

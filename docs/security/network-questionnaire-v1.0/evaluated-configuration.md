@@ -73,13 +73,15 @@ evidence.
 | Decision | Selected repository baseline | Evaluator state |
 | --- | --- | --- |
 | Audit IP | Retain normalized source IP for the full retained event lifetime | implementation-selected; deployment evidence pending |
-| Audit full | Restricted mode; protected bounded emergency journal; audit-required mutations fail closed | implementation-selected; deployment evidence pending |
+| Audit full | Initiating operations continue on audit-write failure; one redacted structured host error is emitted | implementation-selected; deployment evidence pending |
+| Audit review integrity | Read-only product surface; no hashes, chains, witnesses, repair, or background verifier | implementation-selected; deployment evidence pending |
+| Audit capacity | `Vitarish:Security:Audit:CapacityWarningBytes` is positive and explicitly supplied by the evaluated deployment; reached threshold is shown to authorized reviewers | implementation-selected; deployment evidence pending |
 | RA-1 continuity | Restart, bounded retry, safe recovery/read-only behavior; no HA claim | implementation-selected; deployment evidence pending |
 | TLS 1.3/suites | TLS 1.2 only; exact selected TLS 1.2 suites and key/curve settings are release-bound | implementation-selected; deployment evidence pending |
 | Revocation | RFC 5280 path validation with documented OCSP/CRL behavior and fail-closed policy | implementation-selected; deployment evidence pending |
 | `X-XSS-Protection` | Do not emit obsolete header unless evaluator explicitly requires it | implementation-selected; deployment evidence pending |
 | CSRF renewal | Authentication-owned lifecycle; bounded reusable antiforgery tokens unless evaluator requires a nonce/replay owner | implementation-selected; deployment evidence pending |
-| Emergency journal/witness | Separate protected bounded journal plus independent append-only witness | implementation-selected; deployment evidence pending |
+| Audit fallback systems | No emergency journal, outbox, external alerting, retention ledger, database trigger, signing key, or additional capability framework | implementation-selected |
 | Role membership | One evaluated role per user/tenant; production membership snapshot is an operator-owned deployment input, not repository implementation | implementation-selected; deployment evidence pending |
 | Runtime composition | Full product boundary; Main-only remains a separate restricted profile | implementation-selected |
 | TLS server suite | `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`; RSA certificate key at least 2048 bits; P-256 ECDH | implementation-selected; deployment evidence pending |

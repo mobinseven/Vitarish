@@ -51,7 +51,7 @@ public sealed class LoginWithPasswordHandler(
             }
             catch (SecurityAuditStoreException)
             {
-                return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
+                // AU-8 preserves the authentication denial when its audit record cannot be stored.
             }
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Password authentication is not enabled."));
         }
@@ -67,7 +67,7 @@ public sealed class LoginWithPasswordHandler(
         }
         catch (SecurityAuditStoreException)
         {
-            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
+            // AU-8 preserves the initiating authentication result when its audit record cannot be stored.
         }
         catch (OperationCanceledException)
         {
@@ -112,13 +112,11 @@ public sealed class LoginWithPasswordHandler(
                 result is AuthenticationResult<LoginResult>.Success ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
                 completedKey,
                 signInResult.UserId,
-                result is AuthenticationResult<LoginResult>.Failure failure ? failure.Error.Reason.ToString() : null), cancellationToken);
+                result is AuthenticationResult<LoginResult>.Failure ? AuthenticationSecurityAuditEvents.AuthenticationFailed : null), cancellationToken);
         }
         catch (SecurityAuditStoreException)
         {
-            await CancelIssuedChallengeAsync(result);
-            await signInService.SignOutAsync(CancellationToken.None);
-            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
+            // AU-8 preserves the authentication result and any issued challenge.
         }
         catch (OperationCanceledException)
         {

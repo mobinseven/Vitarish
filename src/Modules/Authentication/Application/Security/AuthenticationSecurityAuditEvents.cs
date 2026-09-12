@@ -1,59 +1,73 @@
 using Vitarish.Authentication.Domain.Sessions;
+using Vitarish.Audit.Domain;
 
 namespace Vitarish.Authentication.Application.Security;
 
 public static class AuthenticationSecurityAuditEvents
 {
-    public const string PasswordChange = "authentication.account.password.change";
-    public const string PasswordLogin = "authentication.password.login";
-    public const string PasswordLoginOtp = "authentication.password.login.otp";
-    public const string PasswordLoginOperation = "password.login";
-    public const string PasswordLoginOtpOperation = "password.login.otp";
+    public const string PasswordChange = SecurityAuditEventCatalog.AuthenticationPasswordChangeEvent;
+    public const string PasswordLogin = SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent;
+    public const string PasswordLoginOtp = SecurityAuditEventCatalog.AuthenticationPasswordLoginOtpEvent;
+    public const string PasswordLoginOperation = SecurityAuditEventCatalog.PasswordLoginOperation;
+    public const string PasswordLoginOtpOperation = SecurityAuditEventCatalog.PasswordLoginOtpOperation;
     public const string Resource = "authentication";
-    public const string Operation = "account.password.change";
+    public const string Operation = SecurityAuditEventCatalog.PasswordChangeOperation;
     public const string SourceBoundary = "authentication.application";
     public const string ResourcePrefix = "user/";
     public const string StartedKeySuffix = ":started";
     public const string CompletedKeySuffix = ":completed";
-    public const string FailureAuditUnavailable = "audit_store_unavailable";
-    public const string FailureMutationRejected = "mutation_rejected";
-    public const string FailurePasswordPolicyRejected = "password_policy_rejected";
-    public const string FailurePasswordLoginDisabled = "password_login_disabled";
-    public const string FailureDuplicateInProgress = "duplicate_outcome_unconfirmed";
-    public const string FailureDuplicatePayloadMismatch = "idempotency_key_reused";
-    public const string SecurityAccessPolicy = "authentication.security-access-policy";
-    public const string SecurityAccessPolicyOperation = "Authentication_SecurityAccessPolicy_Change";
+    public const string FailureAuditUnavailable = SecurityAuditReasonCatalog.AuditStoreUnavailable;
+    public const string FailureMutationRejected = SecurityAuditReasonCatalog.MutationRejected;
+    public const string FailurePasswordPolicyRejected = SecurityAuditReasonCatalog.PasswordPolicyRejected;
+    public const string FailurePasswordLoginDisabled = SecurityAuditReasonCatalog.PasswordLoginDisabled;
+    public const string FailureDuplicateInProgress = SecurityAuditReasonCatalog.DuplicateOutcomeUnconfirmed;
+    public const string FailureDuplicatePayloadMismatch = SecurityAuditReasonCatalog.IdempotencyKeyReused;
+    public const string SecurityAccessPolicy = SecurityAuditEventCatalog.AuthenticationSecurityAccessPolicyEvent;
+    public const string SecurityAccessPolicyOperation = SecurityAuditEventCatalog.SecurityAccessPolicyOperation;
     public const string SecurityAccessPolicyResource = "authentication/security-access-policy";
     public const string SecurityAccessPolicyStartedSuffix = ":authentication-security-policy:started";
     public const string SecurityAccessPolicyCompletedSuffix = ":authentication-security-policy:completed";
-    public const string SecurityAccessPolicyConcurrencyConflictReason = "concurrency_conflict";
-    public const string SecurityAccessPolicyValidationFailureReason = "validation_failed";
-    public const string SecurityAccessPolicyPersistenceFailureReason = "persistence_failure";
-    public const string SessionEstablished = "authentication.session.established";
-    public const string SessionEstablishedOperation = "session.establish";
-    public const string SessionTerminated = "authentication.session.terminated";
-    public const string SessionTerminatedOperation = "session.terminate";
-    public const string SessionAccessHistory = "authentication.access-history";
-    public const string SessionAccessHistoryOperation = "access-history";
-    public const string SessionNotice = "authentication.session.notice";
-    public const string SessionNoticeOperation = "session.notice";
-    public const string SessionPolicy = "authentication.session-policy";
-    public const string SessionPolicyOperation = "session-policy.change";
-    public const string SessionConcurrentLimit = "concurrent_session_limit";
-    public const string SessionIpDenied = "session_start_ip_denied";
-    public const string SessionInactive = "inactivity_timeout";
-    public const string SessionReplaced = "replaced_by_new_session";
-    public const string SessionAcknowledged = "acknowledged";
-    public const string SessionUserPolicyExpired = "user_policy_expired";
-    public const string SessionPolicyInvalidated = "policy_invalidated";
-    public const string AwaitingMutationOutcome = "awaiting_mutation_outcome";
+    public const string SecurityAccessPolicyConcurrencyConflictReason = SecurityAuditReasonCatalog.SecurityPolicyConcurrencyConflict;
+    public const string SecurityAccessPolicyValidationFailureReason = SecurityAuditReasonCatalog.SecurityPolicyValidationFailure;
+    public const string SecurityAccessPolicyPersistenceFailureReason = SecurityAuditReasonCatalog.SecurityPolicyPersistenceFailure;
+    public const string SessionEstablished = SecurityAuditEventCatalog.SessionEstablishedEvent;
+    public const string SessionEstablishedOperation = SecurityAuditEventCatalog.SessionEstablishedOperation;
+    public const string SessionTerminated = SecurityAuditEventCatalog.SessionTerminatedEvent;
+    public const string SessionTerminatedOperation = SecurityAuditEventCatalog.SessionTerminatedOperation;
+    public const string SessionAccessHistory = SecurityAuditEventCatalog.SessionAccessHistoryEvent;
+    public const string SessionAccessHistoryOperation = SecurityAuditEventCatalog.SessionAccessHistoryOperation;
+    public const string SessionNotice = SecurityAuditEventCatalog.SessionNoticeEvent;
+    public const string SessionNoticeOperation = SecurityAuditEventCatalog.SessionNoticeOperation;
+    public const string SessionPolicy = SecurityAuditEventCatalog.SessionPolicyEvent;
+    public const string SessionPolicyOperation = SecurityAuditEventCatalog.SessionPolicyOperation;
+    public const string SessionConcurrentLimit = SecurityAuditReasonCatalog.ConcurrentSessionLimit;
+    public const string SessionIpDenied = SecurityAuditReasonCatalog.SessionStartIpDenied;
+    public const string SessionInactive = SecurityAuditReasonCatalog.InactivityTimeout;
+    public const string SessionReplaced = SecurityAuditReasonCatalog.ReplacedByNewSession;
+    public const string SessionAcknowledged = SecurityAuditReasonCatalog.Acknowledged;
+    public const string SessionUserPolicyExpired = SecurityAuditReasonCatalog.UserPolicyExpired;
+    public const string SessionPolicyInvalidated = SecurityAuditReasonCatalog.PolicyInvalidated;
+    public const string AwaitingMutationOutcome = SecurityAuditReasonCatalog.AwaitingMutationOutcome;
     public const string UserPolicyOperationSegment = ":user:";
-    public const string UserTimeoutMinutesReasonPrefix = "user_timeout_minutes:";
-    public const string UserTimeoutDefaultReason = "user_timeout_default";
+    public const string UserTimeoutMinutesReasonPrefix = SecurityAuditReasonCatalog.UserTimeoutMinutesReasonPrefix;
+    public const string UserTimeoutDefaultReason = SecurityAuditReasonCatalog.UserTimeoutDefault;
     public const string DefaultEventKey = "event";
-    public const string SecurityAttributesChanged = "authentication.security-attributes.changed";
-    public const string SecurityAttributesChangedOperation = "security-attributes.change";
-    public const string AuthenticationFailed = "authentication_failed";
+    public const string SecurityAttributesChanged = SecurityAuditEventCatalog.SecurityAttributesChangedEvent;
+    public const string SecurityAttributesChangedOperation = SecurityAuditEventCatalog.SecurityAttributesChangedOperation;
+    public const string AuthenticationFailed = SecurityAuditReasonCatalog.AuthenticationFailed;
     public const string ParallelSessionEstablished = AuthenticationSessionNotice.ParallelSessionEstablishedNoticeType;
-    public const string Unauthorized = "unauthorized";
+    public const string Unauthorized = SecurityAuditReasonCatalog.Unauthorized;
+
+    public static string UserTimeoutMinutesReason(int minutes) => SecurityAuditReasonCatalog.UserTimeoutMinutes(minutes);
+
+    public static string SessionTerminationReason(AuthenticationSessionTerminationReason reason) => reason switch
+    {
+        AuthenticationSessionTerminationReason.UserLogout => SecurityAuditReasonCatalog.UserLogout,
+        AuthenticationSessionTerminationReason.ReplacedByNewSession => SecurityAuditReasonCatalog.ReplacedByNewSession,
+        AuthenticationSessionTerminationReason.InactivityTimeout => SecurityAuditReasonCatalog.InactivityTimeout,
+        AuthenticationSessionTerminationReason.SecurityAttributeChanged => SecurityAuditReasonCatalog.SecurityAttributeChanged,
+        AuthenticationSessionTerminationReason.CookieSignInFailed => SecurityAuditReasonCatalog.CookieSignInFailed,
+        AuthenticationSessionTerminationReason.AdministrativeRevocation => SecurityAuditReasonCatalog.AdministrativeRevocation,
+        _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null)
+    };
 }

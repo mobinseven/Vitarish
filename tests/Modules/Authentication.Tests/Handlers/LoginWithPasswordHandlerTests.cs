@@ -104,7 +104,7 @@ public sealed class LoginWithPasswordHandlerTests
     }
 
     [Fact]
-    public async Task Completed_audit_failure_consumes_the_issued_otp_challenge()
+    public async Task Completed_audit_failure_preserves_the_issued_otp_challenge()
     {
         TestDependencies dependencies = CreateDependencies(new PasswordSignInResult(
             PasswordSignInStatus.Succeeded,
@@ -120,8 +120,8 @@ public sealed class LoginWithPasswordHandlerTests
             CancellationToken.None);
 
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
-            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.ProviderFailure);
-        dependencies.ChallengeStore.Verify(x => x.TryConsumeAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>()), Times.Once);
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.AdditionalStepRequired);
+        dependencies.ChallengeStore.Verify(x => x.TryConsumeAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

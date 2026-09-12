@@ -8,6 +8,7 @@ import {
   authenticationSessionGet,
   authenticationSessionNoticesGet,
 } from "../../shared/auth/src/api/generated/authentication/authentication";
+import { auditSecurityEventsList } from "../../shared/security/src/api/generated/audit/audit";
 import { ApiError, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 
 const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
@@ -315,6 +316,30 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
 
   await expect.poll(() => page.locator("body").innerText()).toMatch(/patients|patients/i);
 
+  await page.goto("/settings/audit", { waitUntil: "domcontentloaded" });
+  await expect(page).toHaveURL(/\/settings\/audit(?:\?|$)/);
+  const auditReview = await fetchJson(page, "/api/audit/security-events?page=1&pageSize=25&sortBy=1&descending=true");
+  expect(auditReview.status).toBe(200);
+  expect(auditReview.body).toMatchObject({
+    items: expect.any(Array),
+    capacityThresholdReached: expect.any(Boolean),
+  });
+  expect((auditReview.body as { items: unknown[] }).items.length).toBeGreaterThan(0);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("columnheader").first()).toBeVisible();
+  await expect(page.locator("tbody tr").first()).toBeVisible();
+
+  const crossTenantAudit = await generatedAuthenticationRequest(
+    request,
+    () => auditSecurityEventsList(
+      { page: 1, pageSize: 25, sortBy: 1, descending: true },
+      { headers: { Cookie: cookieHeader, [TENANT_HOST_HEADER]: "tenant-b.localhost" } },
+    ),
+    cookieHeader,
+    "tenant-b.localhost",
+  );
+  expect(crossTenantAudit.status).toBe(401);
+
   expect(mockServiceWorkerRequests).toEqual([]);
   const [patientCount, reservations, shifts, reminders] = await Promise.all([
     postJson(page, "/api/modules/clinic/patients/count", {}),
@@ -437,6 +462,12 @@ test("rejects direct anonymous calls to protected APIs", async ({ request }) => 
   });
 
   expect(response.status()).toBe(401);
+
+  const auditResponse = await request.get(`${apiOrigin}/api/audit/security-events?page=1&pageSize=25&sortBy=1&descending=true`, {
+    headers: { "X-Vitarish-Tenant-Host": "localhost" },
+    ignoreHTTPSErrors: true,
+  });
+  expect(auditResponse.status()).toBe(401);
 });
 
 test("rejects invalid password authentication without creating a session", async ({ request }) => {

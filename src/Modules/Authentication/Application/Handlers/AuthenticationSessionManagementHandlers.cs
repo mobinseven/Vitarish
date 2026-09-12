@@ -44,25 +44,34 @@ public sealed class ChangeUserInactivityTimeoutHandler(
             throw new InvalidOperationException("A tenant context is required for policy auditing.");
         string operationKey = $"{AuthenticationSecurityAuditEvents.SessionPolicy}:{requestContext.RequestId ?? Guid.NewGuid().ToString("N")}{AuthenticationSecurityAuditEvents.UserPolicyOperationSegment}{userId}";
         string timeoutReason = minutes.HasValue
-            ? $"{AuthenticationSecurityAuditEvents.UserTimeoutMinutesReasonPrefix}{minutes.Value}"
+            ? AuthenticationSecurityAuditEvents.UserTimeoutMinutesReason(minutes.Value)
             : AuthenticationSecurityAuditEvents.UserTimeoutDefaultReason;
         SecurityAccessPolicy currentPolicy = await policyProvider.GetAsync(cancellationToken);
         (bool previousPolicyExists, int? previousMinutes, long previousVersion) = await sessionRegistry.GetUserInactivityTimeoutStateAsync(userId, cancellationToken);
-        SecurityAuditWriteResult pending = await auditWriter.WriteAsync(new SecurityAuditEvent
+        SecurityAuditWriteResult pending;
+        try
         {
-            EventName = AuthenticationSecurityAuditEvents.SessionPolicy,
-            Outcome = SecurityAuditOutcome.Pending,
-            ActorId = requestContext.UserId,
-            SubjectId = userId,
-            TenantId = requestContext.TenantId!,
-            Resource = AuthenticationSecurityAuditEvents.Resource,
-            Operation = AuthenticationSecurityAuditEvents.SessionPolicyOperation,
-            OccurredAt = DateTime.UtcNow,
-            CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? operationKey,
-            SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
-            RedactedReason = timeoutReason,
-            IdempotencyKey = operationKey
-        }, cancellationToken);
+            pending = await auditWriter.WriteAsync(new SecurityAuditEvent
+            {
+                EventName = AuthenticationSecurityAuditEvents.SessionPolicy,
+                Outcome = SecurityAuditOutcome.Pending,
+                ActorId = requestContext.UserId,
+                SubjectId = userId,
+                TenantId = requestContext.TenantId!,
+                Resource = AuthenticationSecurityAuditEvents.Resource,
+                Operation = AuthenticationSecurityAuditEvents.SessionPolicyOperation,
+                OccurredAt = DateTime.UtcNow,
+                CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? operationKey,
+                SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
+                RedactedReason = timeoutReason,
+                IdempotencyKey = operationKey
+            }, cancellationToken);
+        }
+        catch (SecurityAuditStoreException)
+        {
+            // AU-8 preserves the policy mutation when its audit start cannot be stored.
+            pending = SecurityAuditWriteResult.Recorded;
+        }
         if (pending is SecurityAuditWriteResult.AlreadyRecorded)
         {
             if (auditWriter is not ISecurityAuditOutcomeUpdater reconciliationUpdater)
@@ -145,33 +154,47 @@ public sealed class ChangeUserInactivityTimeoutHandler(
     {
         if (auditWriter is ISecurityAuditOutcomeUpdater outcomeUpdater)
         {
-            SecurityAuditWriteResult completed = await outcomeUpdater.UpdateAsync(
-                requestContext.TenantId!,
-                operationKey,
-                SecurityAuditOutcome.Succeeded,
-                timeoutReason,
-                cancellationToken);
-            if (completed is SecurityAuditWriteResult.AlreadyRecorded &&
-                await outcomeUpdater.GetOutcomeAsync(requestContext.TenantId!, operationKey, cancellationToken) is not SecurityAuditOutcome.Succeeded)
-                throw new InvalidOperationException("The committed user inactivity mutation has no confirmed successful audit outcome.");
+            try
+            {
+                SecurityAuditWriteResult completed = await outcomeUpdater.UpdateAsync(
+                    requestContext.TenantId!,
+                    operationKey,
+                    SecurityAuditOutcome.Succeeded,
+                    timeoutReason,
+                    cancellationToken);
+                if (completed is SecurityAuditWriteResult.AlreadyRecorded &&
+                    await outcomeUpdater.GetOutcomeAsync(requestContext.TenantId!, operationKey, cancellationToken) is not SecurityAuditOutcome.Succeeded)
+                    throw new InvalidOperationException("The committed user inactivity mutation has no confirmed successful audit outcome.");
+            }
+            catch (SecurityAuditStoreException)
+            {
+                // AU-8 preserves the committed policy mutation when its audit completion cannot be stored.
+            }
             return;
         }
 
-        _ = await auditWriter.WriteAsync(new SecurityAuditEvent
+        try
         {
-            EventName = AuthenticationSecurityAuditEvents.SessionPolicy,
-            Outcome = SecurityAuditOutcome.Succeeded,
-            ActorId = requestContext.UserId,
-            SubjectId = requestContext.UserId,
-            TenantId = requestContext.TenantId!,
-            Resource = AuthenticationSecurityAuditEvents.Resource,
-            Operation = AuthenticationSecurityAuditEvents.SessionPolicyOperation,
-            OccurredAt = DateTime.UtcNow,
-            CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? operationKey,
-            SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
-            RedactedReason = timeoutReason,
-            IdempotencyKey = operationKey + AuthenticationSecurityAuditEvents.CompletedKeySuffix
-        }, cancellationToken);
+            _ = await auditWriter.WriteAsync(new SecurityAuditEvent
+            {
+                EventName = AuthenticationSecurityAuditEvents.SessionPolicy,
+                Outcome = SecurityAuditOutcome.Succeeded,
+                ActorId = requestContext.UserId,
+                SubjectId = requestContext.UserId,
+                TenantId = requestContext.TenantId!,
+                Resource = AuthenticationSecurityAuditEvents.Resource,
+                Operation = AuthenticationSecurityAuditEvents.SessionPolicyOperation,
+                OccurredAt = DateTime.UtcNow,
+                CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? operationKey,
+                SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
+                RedactedReason = timeoutReason,
+                IdempotencyKey = operationKey + AuthenticationSecurityAuditEvents.CompletedKeySuffix
+            }, cancellationToken);
+        }
+        catch (SecurityAuditStoreException)
+        {
+            // AU-8 preserves the committed policy mutation when its audit completion cannot be stored.
+        }
     }
 
     private async Task CompleteDeniedAuditBestEffortAsync(string operationKey, string timeoutReason)

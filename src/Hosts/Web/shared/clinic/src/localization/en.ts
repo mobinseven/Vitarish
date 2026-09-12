@@ -666,6 +666,10 @@ export const clinicEnMessages = {
           title: "Users",
           description: "Manage clinic staff accounts and permissions.",
         },
+        audit: {
+          title: "Security audit",
+          description: "Review security events for this clinic.",
+        },
         appointmentSettings: {
           title: "Appointment Settings",
           description: "Configure services, service types, and providers.",

@@ -5,15 +5,17 @@ namespace Vitarish.Audit.Server;
 
 internal static class AuditAccessAuthorization
 {
-    public static void DemandReviewAccess(IRequestContext requestContext)
+    public static bool HasReviewAccess(IRequestContext requestContext)
     {
         ClaimsPrincipal? user = requestContext.User;
         string? tenantId = requestContext.TenantId;
-        bool isPlatformAdmin = user?.IsInRole(IdentityDefinitions.PlatformAdmin) is true;
-        bool isTenantOwner = !string.IsNullOrWhiteSpace(tenantId) &&
-            user?.IsInRole($"{tenantId}:{IdentityDefinitions.TenantOwner}") is true;
+        return !string.IsNullOrWhiteSpace(tenantId) &&
+            (user?.IsInRole(IdentityDefinitions.PlatformAdmin) is true || user?.IsInRole($"{tenantId}:{IdentityDefinitions.TenantOwner}") is true);
+    }
 
-        if (string.IsNullOrWhiteSpace(tenantId) || (!isPlatformAdmin && !isTenantOwner))
+    public static void DemandReviewAccess(IRequestContext requestContext)
+    {
+        if (!HasReviewAccess(requestContext))
         {
             throw new UnauthorizedAccessException("Audit review requires an authorized tenant owner or platform administrator.");
         }

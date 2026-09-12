@@ -17,19 +17,19 @@ namespace Vitarish.Authentication.Tests.Handlers;
 public sealed class SecurityAuditChangePasswordTests
 {
     [Fact]
-    public async Task Audit_store_failure_prevents_the_password_mutation()
+    public async Task Audit_store_failure_preserves_the_password_mutation_result()
     {
         Mock<IUserAccountUpdater> updater = new();
-        Mock<ISecurityAuditWriter> writer = new();
-        writer.Setup(x => x.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new SecurityAuditStoreException("offline", new InvalidOperationException()));
-        ChangePasswordHandler handler = new(updater.Object, writer.Object, new TestRequestContext(), new TestSecurityPolicyProvider());
+        updater.Setup(x => x.UserHasPasswordAsync("user-42", It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        updater.Setup(x => x.ChangePasswordAsync("user-42", "old", "Newpass1!", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(PasswordChangeOutcome.Success());
+        FailingAuditWriter writer = new();
+        ChangePasswordHandler handler = new(updater.Object, writer, new TestRequestContext(), new TestSecurityPolicyProvider());
 
         AuthenticationResult<bool> result = await handler.Handle(Command(), CancellationToken.None);
 
-        result.Should().BeOfType<AuthenticationResult<bool>.Failure>()
-            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.ProviderFailure);
-        updater.Verify(x => x.UserHasPasswordAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        result.Should().BeOfType<AuthenticationResult<bool>.Success>().Which.Value.Should().BeTrue();
+        updater.Verify(x => x.ChangePasswordAsync("user-42", "old", "Newpass1!", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public sealed class SecurityAuditChangePasswordTests
     }
 
     [Fact]
-    public async Task Completion_store_failure_withholds_success_without_replaying_the_mutation()
+    public async Task Completion_store_failure_preserves_success_without_replaying_the_mutation()
     {
         Mock<IUserAccountUpdater> updater = new();
         updater.Setup(x => x.UserHasPasswordAsync("user-42", It.IsAny<CancellationToken>())).ReturnsAsync(true);
@@ -94,8 +94,7 @@ public sealed class SecurityAuditChangePasswordTests
 
         AuthenticationResult<bool> result = await handler.Handle(Command(), CancellationToken.None);
 
-        result.Should().BeOfType<AuthenticationResult<bool>.Failure>()
-            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.ProviderFailure);
+        result.Should().BeOfType<AuthenticationResult<bool>.Success>().Which.Value.Should().BeTrue();
         updater.Verify(x => x.ChangePasswordAsync("user-42", "old", "Newpass1!", It.IsAny<CancellationToken>()), Times.Once);
         writer.WriteCount.Should().Be(2);
     }
@@ -113,8 +112,7 @@ public sealed class SecurityAuditChangePasswordTests
         AuthenticationResult<bool> first = await handler.Handle(Command(), CancellationToken.None);
         AuthenticationResult<bool> retry = await handler.Handle(Command(), CancellationToken.None);
 
-        first.Should().BeOfType<AuthenticationResult<bool>.Failure>()
-            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.ProviderFailure);
+        first.Should().BeOfType<AuthenticationResult<bool>.Success>().Which.Value.Should().BeTrue();
         retry.Should().BeOfType<AuthenticationResult<bool>.Success>().Which.Value.Should().BeTrue();
         updater.Verify(x => x.ChangePasswordAsync("user-42", "old", "Newpass1!", It.IsAny<CancellationToken>()), Times.Once);
         writer.Events.Should().ContainSingle(item => item.Outcome == SecurityAuditOutcome.Succeeded);
@@ -262,6 +260,18 @@ public sealed class SecurityAuditChangePasswordTests
             events.Add(auditEvent);
             return Task.FromResult(SecurityAuditWriteResult.Recorded);
         }
+
+        public Task<SecurityAuditWriteResult> UpdateAsync(string tenantId, string idempotencyKey, string outcome, string? reason, CancellationToken cancellationToken) =>
+            throw new SecurityAuditStoreException("offline", new InvalidOperationException());
+    }
+
+    private sealed class FailingAuditWriter : ISecurityAuditWriter, ISecurityAuditOutcomeUpdater
+    {
+        public Task<string?> GetOutcomeAsync(string tenantId, string idempotencyKey, CancellationToken cancellationToken) =>
+            Task.FromResult<string?>(null);
+
+        public Task<SecurityAuditWriteResult> WriteAsync(SecurityAuditEvent auditEvent, CancellationToken cancellationToken) =>
+            throw new SecurityAuditStoreException("offline", new InvalidOperationException());
 
         public Task<SecurityAuditWriteResult> UpdateAsync(string tenantId, string idempotencyKey, string outcome, string? reason, CancellationToken cancellationToken) =>
             throw new SecurityAuditStoreException("offline", new InvalidOperationException());

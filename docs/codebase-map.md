@@ -129,6 +129,7 @@ Run npm workspace commands from `src/Hosts/Web`.
 | `shared/account` | Reusable account/profile Web feature surface. |
 | `shared/auth` | Authentication Web feature and generated API boundary. |
 | `shared/clinic` | Clinic/private-practice feature surface and generated clinic API boundary. |
+| `shared/security` | Context-agnostic security feature components and generated audit API boundary. |
 | `shared/communications` | Communications feature and generated API boundary. |
 | `shared/contents` | Content feature surface. |
 | `shared/intelligence` | Intelligence feature, generated API boundary, and browser realtime/dictation behavior. |

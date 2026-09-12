@@ -13,6 +13,7 @@ public sealed class SecurityConfigurationValidatorTests
     {
         IConfiguration configuration = Configuration([
             new("Vitarish:Security:MandatoryAuditEnabled", "true"),
+            new("Vitarish:Security:Audit:CapacityWarningBytes", "1073741824"),
             new("Cors:AllowedOrigins:0", "https://app.example"),
             new("Vitarish:Identity:Authority", "https://issuer.example"),
             new("Vitarish:Security:TokenValidation:Issuer", "https://issuer.example"),
@@ -146,6 +147,7 @@ public sealed class SecurityConfigurationValidatorTests
     {
         IConfiguration configuration = Configuration([
             new("Vitarish:Security:MandatoryAuditEnabled", "true"),
+            new("Vitarish:Security:Audit:CapacityWarningBytes", "1073741824"),
             new("Cors:AllowedOrigins:0", "https://app.example"),
             new("Vitarish:Security:TrustedProxyNetworks:0", "127.0.0.1/32"),
             new("Vitarish:Security:TokenValidation:Issuer", "https://issuer.example"),
@@ -209,6 +211,7 @@ public sealed class SecurityConfigurationValidatorTests
         Dictionary<string, string?> values = new(StringComparer.Ordinal)
         {
             ["Vitarish:Security:MandatoryAuditEnabled"] = "true",
+            ["Vitarish:Security:Audit:CapacityWarningBytes"] = "1073741824",
             ["Cors:AllowedOrigins:0"] = "https://app.example",
             ["Vitarish:Security:TrustedProxyNetworks:0"] = "127.0.0.1/32",
             ["Vitarish:Identity:Authority"] = "https://issuer.example",

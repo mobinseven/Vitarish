@@ -17,5 +17,6 @@
     <ProjectReference Include="..\Audit.Application\Audit.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
     <ProjectReference Include="..\..\Entities\Entities.Server\Entities.Server.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Base\Core\Modules.Base.Core.csproj" />
 </ItemGroup>
 </Project>

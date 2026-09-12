@@ -16,7 +16,7 @@ CERT-3.
 
 | ID range | Repository artifact/proof owner | Deterministic command or check | Status at Stage 0 |
 | --- | --- | --- | --- |
-| AU-1–AU-8 | `src/Libraries/Audit`, owning applications, emergency journal contract | Audit tests plus static owner/integrity lint | implementation-gap |
+| AU-1–AU-8 | `src/Libraries/Audit`, owning applications, read-only review contract | Audit tests plus static owner/catalog lint | implementation-gap |
 | CR-1–CR-3 | evaluated transport and cryptography inventory, existing platform certificate path | inventory and source-policy checks | implemented |
 | CR-4 / TSF-6 | not triggered; no product signing or signed-update capability | applicability check | deployment-evidence-pending |
 | IA-1–IA-9, AC-1–AC-7 | Authentication/Users policy, session contracts and tests | focused Authentication/Users tests | implementation-gap |

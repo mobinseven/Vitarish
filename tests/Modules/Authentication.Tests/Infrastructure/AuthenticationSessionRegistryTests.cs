@@ -86,7 +86,7 @@ public sealed class AuthenticationSessionRegistryTests
     }
 
     [Fact]
-    public async Task Audit_failure_compensates_session_replacement_and_successful_access_history()
+    public async Task Audit_failure_preserves_session_replacement_and_successful_access_history()
     {
         TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
         (AuthenticationSessionRegistry registry, AuthenticationDbContext db, RecordingAuditWriter audit) = CreateRegistry(SecurityAccessPolicy.Default, clock);
@@ -94,29 +94,30 @@ public sealed class AuthenticationSessionRegistryTests
         AuthenticationSessionEstablishmentResult first = await registry.EstablishAsync("user-1", CancellationToken.None);
         DateTime? firstLastSuccessfulAt = (await db.AuthenticationAccessHistories.SingleAsync()).LastSuccessfulAt;
         audit.FailSuccessfulSessionEstablishment = true;
+        clock.UtcNow = clock.UtcNow.AddMinutes(1);
 
-        Func<Task> establishSecond = () => registry.EstablishAsync("user-1", CancellationToken.None);
-        await establishSecond.Should().ThrowAsync<SecurityAuditStoreException>();
+        AuthenticationSessionEstablishmentResult second = await registry.EstablishAsync("user-1", CancellationToken.None);
+        second.Succeeded.Should().BeTrue();
 
         AuthenticationSession restored = await db.AuthenticationSessions.SingleAsync(session => session.Id == Guid.Parse(first.SessionId!));
-        restored.TerminatedAt.Should().BeNull();
-        restored.TerminationReason.Should().BeNull();
+        restored.TerminatedAt.Should().NotBeNull();
+        restored.TerminationReason.Should().Be(AuthenticationSessionTerminationReason.ReplacedByNewSession);
         (await db.AuthenticationSessions.CountAsync(session => session.UserId == "user-1" && session.TerminatedAt == null)).Should().Be(1);
-        (await db.AuthenticationAccessHistories.SingleAsync()).LastSuccessfulAt.Should().Be(firstLastSuccessfulAt);
+        (await db.AuthenticationAccessHistories.SingleAsync()).LastSuccessfulAt.Should().NotBe(firstLastSuccessfulAt);
         (await db.AuthenticationAccessHistories.SingleAsync()).CurrentFailedAttempts.Should().Be(0);
     }
 
     [Fact]
-    public async Task Audit_failure_on_first_establishment_removes_new_history_and_session()
+    public async Task Audit_failure_on_first_establishment_preserves_new_history_and_session()
     {
         (AuthenticationSessionRegistry registry, AuthenticationDbContext db, RecordingAuditWriter audit) = CreateRegistry(SecurityAccessPolicy.Default, TimeProvider.System);
         audit.FailSuccessfulSessionEstablishment = true;
 
-        await ((Func<Task>)(() => registry.EstablishAsync("user-1", CancellationToken.None)))
-            .Should().ThrowAsync<SecurityAuditStoreException>();
+        AuthenticationSessionEstablishmentResult result = await registry.EstablishAsync("user-1", CancellationToken.None);
+        result.Succeeded.Should().BeTrue();
 
-        (await db.AuthenticationSessions.CountAsync()).Should().Be(0);
-        (await db.AuthenticationAccessHistories.CountAsync()).Should().Be(0);
+        (await db.AuthenticationSessions.CountAsync()).Should().Be(1);
+        (await db.AuthenticationAccessHistories.CountAsync()).Should().Be(1);
     }
 
     [Fact]

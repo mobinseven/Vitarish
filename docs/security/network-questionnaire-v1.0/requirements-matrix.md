@@ -10,12 +10,12 @@ selected and has a proof path, but the Stage 0 evaluator gate is not closed.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | AU-1 | 2-1.1 mandatory | typed catalog for all enabled events | Audit | event catalog and tests | catalog coverage test | event execution report | stage-0-open |
 | AU-2 | 2-1.2 mandatory | UTC, actor, outcome, normalized IP | Audit | event contract | field contract test | sampled event report | stage-0-open |
-| AU-3 | 2-1.3 mandatory | named tenant-safe review capability | Audit | review authorization | allowed/denied review test | access audit report | stage-0-open |
+| AU-3 | 2-1.3 mandatory | existing tenant-owner/platform-admin review rule with selected tenant | Audit | review authorization | allowed/denied review test | access audit report | stage-0-open |
 | AU-4 | 2-1.4 mandatory | typed DTOs; no opaque payload | Audit | review contracts | DTO contract test | response sample | stage-0-open |
 | AU-5 | 2-1.5 mandatory | actor/time/type filter and sort | Audit | query contract | query scope/sort test | review probe | stage-0-open |
-| AU-6 | 2-1.6 mandatory | tenant sequence plus keyed chain | Audit | chain/head persistence | tamper/delete/rotation test | integrity report | stage-0-open |
-| AU-7 | 2-1.7 mandatory | warning/critical durable notices | Audit | capacity state/outbox | threshold test | alert-delivery record | stage-0-open |
-| AU-8 | 2-1.8 mandatory | bounded journal and fail closed | Audit | emergency journal contract | outage/overflow/reconcile test | fault report | stage-0-open |
+| AU-6 | 2-1.6 mandatory | read-only product audit review; no hashes, chains, or witnesses | Audit | read-only review endpoint and DTOs | update/delete absence and review contract test | review probe | stage-0-open |
+| AU-7 | 2-1.7 mandatory | one positive configured storage threshold and in-product warning | Audit | capacity threshold query state | below/reached threshold test | capacity review record | stage-0-open |
+| AU-8 | 2-1.8 mandatory | continue operation, log one redacted structured host error, and return dependency-unavailable for failed reads | Audit | best-effort write/read failure contract | operation continuation and recovery test | fault report | stage-0-open |
 | CR-1 | 2-2.1 mandatory | AES inventory with exact mode/length | Hosting/owners | crypto inventory | inventory validator | release crypto scan | stage-0-open |
 | CR-2 | 2-2.2 mandatory | hash/HMAC/password inventory | Hosting/owners | crypto inventory | algorithm validator | release crypto scan | stage-0-open |
 | IA-1 | 2-3.1 mandatory | positive threshold, unknown IDs included | Authentication | policy options | parity/threshold test | lockout probe | stage-0-open |

@@ -308,7 +308,7 @@ public sealed class AuthenticationSessionRegistry(
         AuthenticationSession? session = await dbContext.AuthenticationSessions.SingleOrDefaultAsync(item => item.Id == id, cancellationToken);
         if (session is null)
             return;
-        string reasonText = reason.ToString();
+        string reasonText = AuthenticationSecurityAuditEvents.SessionTerminationReason(reason);
         string eventKey = session.Id.ToString("N");
         if (session.TerminatedAt is not null)
         {
@@ -664,45 +664,62 @@ public sealed class AuthenticationSessionRegistry(
     private async Task<SecurityAuditWriteResult> WriteAuditAsync(string eventName, string outcome, string userId, string? reason, string operation, string? eventKey, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(requestContext.TenantId))
-            throw new InvalidOperationException("A tenant context is required for session auditing.");
-        return await auditWriter.WriteAsync(new SecurityAuditEvent
+            return SecurityAuditWriteResult.Recorded;
+
+        try
         {
-            EventName = eventName,
-            Outcome = outcome,
-            ActorId = requestContext.UserId,
-            SubjectId = userId,
-            TenantId = requestContext.TenantId,
-            Resource = AuthenticationSecurityAuditEvents.Resource,
-            Operation = operation,
-            OccurredAt = timeProvider.GetUtcNow().UtcDateTime,
-            CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? Guid.NewGuid().ToString("N"),
-            SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
-            RedactedReason = reason,
-            IdempotencyKey = $"{eventName}:{requestContext.RequestId ?? requestContext.TraceId ?? userId}:{eventKey ?? reason ?? AuthenticationSecurityAuditEvents.DefaultEventKey}"
-        }, cancellationToken);
+            return await auditWriter.WriteAsync(new SecurityAuditEvent
+            {
+                EventName = eventName,
+                Outcome = outcome,
+                ActorId = requestContext.UserId,
+                SubjectId = userId,
+                TenantId = requestContext.TenantId,
+                Resource = AuthenticationSecurityAuditEvents.Resource,
+                Operation = operation,
+                OccurredAt = timeProvider.GetUtcNow().UtcDateTime,
+                CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? Guid.NewGuid().ToString("N"),
+                SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
+                RedactedReason = reason,
+                IdempotencyKey = $"{eventName}:{requestContext.RequestId ?? requestContext.TraceId ?? userId}:{eventKey ?? reason ?? AuthenticationSecurityAuditEvents.DefaultEventKey}"
+            }, cancellationToken);
+        }
+        catch (SecurityAuditStoreException)
+        {
+            // AU-8 preserves the session operation; the writer emits the redacted host error.
+            return SecurityAuditWriteResult.Recorded;
+        }
     }
 
     private async Task<SecurityAuditWriteResult> CompleteAuditAsync(string eventName, string outcome, string userId, string? reason, string operation, string? eventKey, CancellationToken cancellationToken)
     {
-        if (auditWriter is ISecurityAuditOutcomeUpdater outcomeUpdater && !string.IsNullOrWhiteSpace(requestContext.TenantId))
+        try
         {
-            string idempotencyKey = BuildAuditIdempotencyKey(eventName, userId, reason, eventKey);
-            SecurityAuditWriteResult result = await outcomeUpdater.UpdateAsync(
-                requestContext.TenantId,
-                idempotencyKey,
-                outcome,
-                reason,
-                cancellationToken);
-            if (result is SecurityAuditWriteResult.AlreadyRecorded)
+            if (auditWriter is ISecurityAuditOutcomeUpdater outcomeUpdater && !string.IsNullOrWhiteSpace(requestContext.TenantId))
             {
-                string? confirmed = await outcomeUpdater.GetOutcomeAsync(requestContext.TenantId, idempotencyKey, cancellationToken);
-                if (!string.Equals(confirmed, outcome, StringComparison.Ordinal))
-                    throw new SecurityAuditStoreException("The mandatory security audit event could not confirm its terminal outcome.", new InvalidOperationException());
+                string idempotencyKey = BuildAuditIdempotencyKey(eventName, userId, reason, eventKey);
+                SecurityAuditWriteResult result = await outcomeUpdater.UpdateAsync(
+                    requestContext.TenantId,
+                    idempotencyKey,
+                    outcome,
+                    reason,
+                    cancellationToken);
+                if (result is SecurityAuditWriteResult.AlreadyRecorded)
+                {
+                    string? confirmed = await outcomeUpdater.GetOutcomeAsync(requestContext.TenantId, idempotencyKey, cancellationToken);
+                    if (!string.Equals(confirmed, outcome, StringComparison.Ordinal))
+                        throw new SecurityAuditStoreException("The mandatory security audit event could not confirm its terminal outcome.", new InvalidOperationException());
+                }
+                return result;
             }
-            return result;
-        }
 
-        return await WriteAuditAsync(eventName, outcome, userId, reason, operation, eventKey is null ? null : eventKey + AuthenticationSecurityAuditEvents.CompletedKeySuffix, cancellationToken);
+            return await WriteAuditAsync(eventName, outcome, userId, reason, operation, eventKey is null ? null : eventKey + AuthenticationSecurityAuditEvents.CompletedKeySuffix, cancellationToken);
+        }
+        catch (SecurityAuditStoreException)
+        {
+            // AU-8 preserves the committed session operation when its terminal audit cannot be stored.
+            return SecurityAuditWriteResult.Recorded;
+        }
     }
 
     private async Task BeginTerminationAuditAsync(string userId, string reason, string eventKey, CancellationToken cancellationToken)

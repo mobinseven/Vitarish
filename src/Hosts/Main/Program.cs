@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Vitarish.Audit.Domain;
 using Vitarish.Audit.Server;
 using Vitarish.Hosting;
 using Vitarish.Main.DependencyInjection;
@@ -48,6 +49,7 @@ else
 await builder.RegisterHosting(new HostingCompositionOptions(configurePostgres, signingCertificate, securityConfiguration));
 builder.AddHostHangfire(builder.Configuration.GetConnectionString("Db"));
 _ = builder.Services.AddOpenApi();
+_ = builder.Services.AddModuleOpenApiDocument(SecurityAuditApiRoutes.DocumentName, SecurityAuditApiRoutes.DocumentTag);
 
 if (openApiGeneration)
     builder.Services.AddOpenApiDataProtection(builder.Configuration, securityConfiguration);
@@ -67,6 +69,7 @@ if (app.Environment.IsDevelopment())
     _ = app.MapOpenApi("/openapi/{documentName}.json");
 
 _ = app.MapModuleEndpoints();
+_ = app.MapSecurityAuditApi();
 _ = app.MapAppEndpoints();
 
 if (!openApiGeneration)

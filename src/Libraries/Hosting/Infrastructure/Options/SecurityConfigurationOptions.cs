@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using SystemIPNetwork = System.Net.IPNetwork;
 using Vitarish.Modules.Base.Core;
+using Vitarish.Audit.Server;
 
 namespace Vitarish.Hosting.Infrastructure.Options;
 
@@ -125,6 +126,10 @@ public static class SecurityConfigurationValidator
 
         if (openApiGeneration && evaluated.Enabled)
             Fail("OpenAPI generation cannot use evaluated production configuration.");
+
+        string? capacityWarningBytes = configuration[SecurityAuditOptions.CapacityWarningBytesKey];
+        if (strict && (!long.TryParse(capacityWarningBytes, out long capacity) || capacity <= 0))
+            Fail($"{SecurityAuditOptions.CapacityWarningBytesKey} must be a positive explicitly supplied value.");
 
         return new SecurityConfigurationOptions
         {

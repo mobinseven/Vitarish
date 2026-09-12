@@ -42,21 +42,29 @@ public sealed class GetSecurityAccessPolicyHandler(
         if (string.IsNullOrWhiteSpace(requestContext.TenantId))
             throw new InvalidOperationException("A tenant context is required for security auditing.");
 
-        return await securityAuditWriter.WriteAsync(new SecurityAuditEvent
+        try
         {
-            EventName = AuthenticationSecurityAuditEvents.SecurityAccessPolicy,
-            Outcome = outcome,
-            ActorId = requestContext.UserId,
-            SubjectId = requestContext.UserId,
-            TenantId = requestContext.TenantId,
-            Resource = AuthenticationSecurityAuditEvents.SecurityAccessPolicyResource,
-            Operation = AuthenticationSecurityAuditEvents.SecurityAccessPolicyOperation,
-            OccurredAt = DateTime.UtcNow,
-            CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? idempotencyKey,
-            SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
-            RedactedReason = reason,
-            IdempotencyKey = idempotencyKey
-        }, cancellationToken);
+            return await securityAuditWriter.WriteAsync(new SecurityAuditEvent
+            {
+                EventName = AuthenticationSecurityAuditEvents.SecurityAccessPolicy,
+                Outcome = outcome,
+                ActorId = requestContext.UserId,
+                SubjectId = requestContext.UserId,
+                TenantId = requestContext.TenantId,
+                Resource = AuthenticationSecurityAuditEvents.SecurityAccessPolicyResource,
+                Operation = AuthenticationSecurityAuditEvents.SecurityAccessPolicyOperation,
+                OccurredAt = DateTime.UtcNow,
+                CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? idempotencyKey,
+                SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
+                RedactedReason = reason,
+                IdempotencyKey = idempotencyKey
+            }, cancellationToken);
+        }
+        catch (SecurityAuditStoreException)
+        {
+            // AU-8 preserves the policy read when its audit write cannot be stored.
+            return SecurityAuditWriteResult.Recorded;
+        }
     }
 }
 
@@ -92,7 +100,7 @@ public sealed class ChangeSecurityAccessPolicyHandler(
                     requestContext.TenantId!,
                     completedKey,
                     SecurityAuditOutcome.Succeeded,
-                    $"version:{current.Version}",
+                    SecurityAuditReasonCatalog.Version(current.Version),
                     cancellationToken);
                 if (retried is SecurityAuditWriteResult.Recorded)
                     return current;
@@ -162,7 +170,7 @@ public sealed class ChangeSecurityAccessPolicyHandler(
                 requestContext.TenantId!,
                 operationKey + AuthenticationSecurityAuditEvents.SecurityAccessPolicyCompletedSuffix,
                 SecurityAuditOutcome.Succeeded,
-                $"version:{saved.Version}",
+                SecurityAuditReasonCatalog.Version(saved.Version),
                 cancellationToken);
             if (completed is SecurityAuditWriteResult.AlreadyRecorded &&
                 await outcomeUpdater.GetOutcomeAsync(
@@ -172,6 +180,10 @@ public sealed class ChangeSecurityAccessPolicyHandler(
             {
                 throw new InvalidOperationException("The committed security policy mutation has no confirmed successful audit outcome.");
             }
+        }
+        catch (SecurityAuditStoreException)
+        {
+            // AU-8 preserves the committed policy mutation when its audit completion cannot be stored.
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -211,21 +223,29 @@ public sealed class ChangeSecurityAccessPolicyHandler(
         if (string.IsNullOrWhiteSpace(requestContext.TenantId))
             throw new InvalidOperationException("A tenant context is required for security auditing.");
 
-        return await securityAuditWriter.WriteAsync(new SecurityAuditEvent
+        try
         {
-            EventName = AuthenticationSecurityAuditEvents.SecurityAccessPolicy,
-            Outcome = outcome,
-            ActorId = requestContext.UserId,
-            SubjectId = requestContext.UserId,
-            TenantId = requestContext.TenantId,
-            Resource = AuthenticationSecurityAuditEvents.SecurityAccessPolicyResource,
-            Operation = AuthenticationSecurityAuditEvents.SecurityAccessPolicyOperation,
-            OccurredAt = DateTime.UtcNow,
-            CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? idempotencyKey,
-            SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
-            RedactedReason = reason,
-            IdempotencyKey = idempotencyKey
-        }, cancellationToken);
+            return await securityAuditWriter.WriteAsync(new SecurityAuditEvent
+            {
+                EventName = AuthenticationSecurityAuditEvents.SecurityAccessPolicy,
+                Outcome = outcome,
+                ActorId = requestContext.UserId,
+                SubjectId = requestContext.UserId,
+                TenantId = requestContext.TenantId,
+                Resource = AuthenticationSecurityAuditEvents.SecurityAccessPolicyResource,
+                Operation = AuthenticationSecurityAuditEvents.SecurityAccessPolicyOperation,
+                OccurredAt = DateTime.UtcNow,
+                CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? idempotencyKey,
+                SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
+                RedactedReason = reason,
+                IdempotencyKey = idempotencyKey
+            }, cancellationToken);
+        }
+        catch (SecurityAuditStoreException)
+        {
+            // AU-8 preserves the policy mutation when its audit write cannot be stored.
+            return SecurityAuditWriteResult.Recorded;
+        }
     }
 
     private ISecurityAuditOutcomeUpdater OutcomeUpdater() => securityAuditWriter as ISecurityAuditOutcomeUpdater

@@ -48,7 +48,7 @@ public sealed class CompletePasswordLoginOtpHandler(
         }
         catch (SecurityAuditStoreException)
         {
-            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
+            // AU-8 preserves the OTP authentication flow when its audit record cannot be stored.
         }
 
         AuthenticationResult<LoginResult> result = await ChallengeCompletionHelper.CompleteChallengeAsync(
@@ -71,14 +71,11 @@ public sealed class CompletePasswordLoginOtpHandler(
                 result is AuthenticationResult<LoginResult>.Success ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
                 completedKey,
                 result is AuthenticationResult<LoginResult>.Success success ? success.Value.UserId : null,
-                result is AuthenticationResult<LoginResult>.Failure failure ? failure.Error.Reason.ToString() : null), cancellationToken);
+                result is AuthenticationResult<LoginResult>.Failure ? AuthenticationSecurityAuditEvents.AuthenticationFailed : null), cancellationToken);
         }
         catch (SecurityAuditStoreException)
         {
-            if (result is AuthenticationResult<LoginResult>.Success)
-                await signInService.SignOutAsync(CancellationToken.None);
-
-            return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
+            // AU-8 preserves the authentication result and established session.
         }
         catch (OperationCanceledException)
         {

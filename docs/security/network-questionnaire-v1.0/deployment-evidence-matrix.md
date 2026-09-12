@@ -16,7 +16,7 @@ CERT-3.
 
 | ID family | Release proof | Required artifact | Owner | Status |
 | --- | --- | --- | --- | --- |
-| AU-1–AU-8 | audit execution, capacity, journal, witness, retention and reconciliation | sanitized audit/fault reports | release operator + Audit | pending |
+| AU-1–AU-8 | audit execution, capacity warning, review access, and dependency-failure records | sanitized audit/fault reports | release operator + Audit | pending |
 | CR-1–CR-4 / TSF-6 | resolved crypto, key, certificate and signing inventory | release crypto report | release operator | pending |
 | IA-1–IA-9 / AC-1–AC-7 | remote authentication, lockout, sessions, history, CIDR and revocation | probe report | release operator + Authentication | pending |
 | UD-1–UD-11 / SM-1–SM-6 | tenant/object denial, transfer, integrity and management probes | authorization/transfer report | release operator + owners | pending |

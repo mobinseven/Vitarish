@@ -31,7 +31,7 @@ public static class HostingComposition
     {
         _ = builder.Services.AddSingleton(options.SecurityConfiguration);
         _ = builder.Services.AddScoped<ITenantService, TenantService>();
-        _ = builder.Services.AddAuditInfrastructure(options.ConfigureDbContext);
+        _ = builder.Services.AddAuditInfrastructure(options.ConfigureDbContext, builder.Configuration);
         await builder.RegisterApps(options.ConfigureDbContext);
         await builder.RegisterModules(options.ConfigureDbContext);
         _ = builder.Services.AddFeedInfrastructure();

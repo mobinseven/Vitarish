@@ -47,7 +47,7 @@ public sealed class ChangePasswordHandler(
             }
             catch (SecurityAuditStoreException)
             {
-                return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
+                // AU-8 preserves the password-policy result when its audit record cannot be stored.
             }
             return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.InvalidInput, "New password does not satisfy the active password policy."));
         }
@@ -108,7 +108,7 @@ public sealed class ChangePasswordHandler(
         }
         catch (SecurityAuditStoreException)
         {
-            return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
+            // AU-8 preserves the password mutation flow when its audit start cannot be stored.
         }
 
         SecurityAuditWriteResult pending;
@@ -122,7 +122,7 @@ public sealed class ChangePasswordHandler(
         }
         catch (SecurityAuditStoreException)
         {
-            return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
+            pending = SecurityAuditWriteResult.Recorded;
         }
         if (pending is SecurityAuditWriteResult.AlreadyRecorded)
             return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureDuplicateInProgress));
@@ -162,7 +162,7 @@ public sealed class ChangePasswordHandler(
         }
         catch (SecurityAuditStoreException)
         {
-            return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
+            // AU-8 preserves the successful password mutation when its completion record cannot be stored.
         }
 
         return new AuthenticationResult<bool>.Success(true);
@@ -182,7 +182,7 @@ public sealed class ChangePasswordHandler(
         }
         catch (SecurityAuditStoreException)
         {
-            return new AuthenticationResult<bool>.Failure(new(AuthenticationFailureReason.ProviderFailure, AuthenticationSecurityAuditEvents.FailureAuditUnavailable));
+            // AU-8 preserves the password mutation failure when its audit completion cannot be stored.
         }
 
         return new AuthenticationResult<bool>.Failure(new(reason, reason is AuthenticationFailureReason.InvalidCredentials ? "Current password is incorrect." : "Failed to set password."));

@@ -139,6 +139,15 @@ public sealed class SecurityAuditWriterTests
     }
 
     [Fact]
+    public void PostgreSql_capacity_query_aliases_the_scalar_and_counts_indexes_once()
+    {
+        PostgresAuditStorageSizeReader.StorageSizeSql.Should().Contain("pg_table_size");
+        PostgresAuditStorageSizeReader.StorageSizeSql.Should().Contain("pg_indexes_size");
+        PostgresAuditStorageSizeReader.StorageSizeSql.Should().Contain("AS \"Value\"");
+        PostgresAuditStorageSizeReader.StorageSizeSql.Should().NotContain("pg_total_relation_size");
+    }
+
+    [Fact]
     public async Task Pending_outcome_can_be_completed_idempotently_after_a_store_restart()
     {
         DbContextOptions<AuditDbContext> options = CreateOptions("security-audit-pending-completion");
@@ -179,6 +188,7 @@ public sealed class SecurityAuditWriterTests
     private static SecurityAuditEvent CreateEvent(string tenantId, string idempotencyKey) => new()
     {
         EventName = "authentication.password-login",
+        EventCategory = SecurityAuditEventCatalog.AuthenticationCategory,
         Outcome = SecurityAuditOutcome.Succeeded,
         SubjectId = "user-42",
         TenantId = tenantId,

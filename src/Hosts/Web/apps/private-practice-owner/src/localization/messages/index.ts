@@ -1,12 +1,13 @@
 import { defaultLocale, type SupportedLocale } from "../locales";
 import { clinicMessageCatalogs } from "@vitarish/clinic/localization";
 import { intelligenceMessageCatalogs } from "@vitarish/intelligence/localization";
+import { securityMessageCatalogs } from "@vitarish/security/localization";
 import { enMessages } from "./en";
 import { faMessages } from "./fa";
 
 export const catalogs = {
-  fa: { ...faMessages, ...clinicMessageCatalogs.fa, ...intelligenceMessageCatalogs.fa },
-  en: { ...enMessages, ...clinicMessageCatalogs.en, ...intelligenceMessageCatalogs.en },
+  fa: { ...faMessages, ...clinicMessageCatalogs.fa, ...intelligenceMessageCatalogs.fa, ...securityMessageCatalogs.fa },
+  en: { ...enMessages, ...clinicMessageCatalogs.en, ...intelligenceMessageCatalogs.en, ...securityMessageCatalogs.en },
 } as const;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

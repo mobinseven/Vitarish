@@ -67,6 +67,7 @@ export const Routes = {
     Settings: {
       Index: "/settings",
       Users: "/settings/users",
+      Audit: "/settings/audit",
       Insurance: "/settings/insurance",
       InsuranceCallback: "/settings/insurance/callback",
       Statistics: "/settings/statistics",

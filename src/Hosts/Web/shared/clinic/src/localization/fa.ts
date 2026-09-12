@@ -660,6 +660,10 @@ export const clinicFaMessages = {
           title: "کاربران",
           description: "مدیریت حساب‌ها و مجوزهای کارکنان کلینیک.",
         },
+        audit: {
+          title: "ممیزی امنیتی",
+          description: "رویدادهای امنیتی این کلینیک را بررسی کنید.",
+        },
         appointmentSettings: {
           title: "تنظیمات نوبت‌دهی",
           description: "پیکربندی خدمات، انواع خدمات و ارائه‌دهندگان.",
