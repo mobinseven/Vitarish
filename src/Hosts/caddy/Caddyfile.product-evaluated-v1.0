@@ -49,7 +49,11 @@ http://{$VITARISH_LANDING_HOST:?VITARISH_LANDING_HOST is required} {
 https://{$VITARISH_PUBLIC_HOST:?VITARISH_PUBLIC_HOST is required} {
 	import product_evaluated_tls
 	@api path /api/*
-	reverse_proxy @api main:8080
+	reverse_proxy @api main:8080 {
+		health_uri /health/ready
+		health_interval 10s
+		health_timeout 5s
+	}
 	reverse_proxy web-private-practice-owner:3000
 }
 

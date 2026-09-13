@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Audit.Server;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
@@ -29,6 +30,7 @@ public static class HostingComposition
 {
     public static async Task<WebApplicationBuilder> RegisterHosting(this WebApplicationBuilder builder, HostingCompositionOptions options)
     {
+        builder.Services.TryAddSingleton(TimeProvider.System);
         _ = builder.Services.AddSingleton(options.SecurityConfiguration);
         _ = builder.Services.AddScoped<ITenantService, TenantService>();
         _ = builder.Services.AddAuditInfrastructure(options.ConfigureDbContext, builder.Configuration);

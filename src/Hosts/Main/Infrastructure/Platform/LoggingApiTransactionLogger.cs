@@ -7,16 +7,18 @@ namespace Vitarish.Main.Infrastructure.Platform;
 /// Structured-logging backed implementation of IExternalApiTransactionLogger.
 /// Logs all outbound API transactions as structured log events for observability.
 /// </summary>
-internal sealed class LoggingApiTransactionLogger(ILogger<LoggingApiTransactionLogger> logger) : IExternalApiTransactionLogger
+internal sealed class LoggingApiTransactionLogger(
+    ILogger<LoggingApiTransactionLogger> logger,
+    TimeProvider timeProvider) : IExternalApiTransactionLogger
 {
-    private readonly ConcurrentDictionary<Guid, (ApiTransaction Transaction, DateTime StartedAt)> _pending = new();
+    private readonly ConcurrentDictionary<Guid, PendingTransaction> _pending = new();
 
     public Task<Guid> BeginTransactionAsync(ApiTransaction transaction, CancellationToken cancellationToken = default)
     {
         transaction.Id = transaction.Id == Guid.Empty ? Guid.NewGuid() : transaction.Id;
-        transaction.StartedAt = DateTime.UtcNow;
+        transaction.StartedAt = timeProvider.GetUtcNow().UtcDateTime;
 
-        _ = _pending.TryAdd(transaction.Id, (transaction, transaction.StartedAt));
+        _ = _pending.TryAdd(transaction.Id, new(transaction, timeProvider.GetTimestamp()));
 
         logger.LogDebug(
             "API transaction {TransactionId} started: {ProviderKey}/{OperationName} [correlationId={CorrelationId}]",
@@ -33,11 +35,16 @@ internal sealed class LoggingApiTransactionLogger(ILogger<LoggingApiTransactionL
         string? errorCategory = null,
         CancellationToken cancellationToken = default)
     {
-        _ = _pending.TryRemove(transactionId, out (ApiTransaction Transaction, DateTime StartedAt) pending);
+        bool found = _pending.TryRemove(transactionId, out PendingTransaction? pending);
 
-        long durationMs = pending.StartedAt == default
-            ? 0
-            : (long)(DateTime.UtcNow - pending.StartedAt).TotalMilliseconds;
+        long durationMs = found ? ElapsedMilliseconds(pending!.StartTimestamp) : 0;
+        if (found)
+        {
+            pending!.Transaction.DurationMs = durationMs;
+            pending.Transaction.FinishedAt = timeProvider.GetUtcNow().UtcDateTime;
+        }
+
+        ApiTransaction? completed = pending?.Transaction;
 
         if (success)
         {
@@ -45,9 +52,9 @@ internal sealed class LoggingApiTransactionLogger(ILogger<LoggingApiTransactionL
                 "API transaction {TransactionId} succeeded: {ProviderKey}/{OperationName} " +
                 "[correlationId={CorrelationId}, responseCode={ResponseCode}, durationMs={DurationMs}]",
                 transactionId,
-                pending.Transaction?.ProviderKey ?? "?",
-                pending.Transaction?.OperationName ?? "?",
-                pending.Transaction?.CorrelationId ?? "?",
+                completed?.ProviderKey ?? "?",
+                completed?.OperationName ?? "?",
+                completed?.CorrelationId ?? "?",
                 responseCode,
                 durationMs);
         }
@@ -57,9 +64,9 @@ internal sealed class LoggingApiTransactionLogger(ILogger<LoggingApiTransactionL
                 "API transaction {TransactionId} failed: {ProviderKey}/{OperationName} " +
                 "[correlationId={CorrelationId}, responseCode={ResponseCode}, errorCategory={ErrorCategory}, durationMs={DurationMs}]",
                 transactionId,
-                pending.Transaction?.ProviderKey ?? "?",
-                pending.Transaction?.OperationName ?? "?",
-                pending.Transaction?.CorrelationId ?? "?",
+                completed?.ProviderKey ?? "?",
+                completed?.OperationName ?? "?",
+                completed?.CorrelationId ?? "?",
                 responseCode,
                 errorCategory,
                 durationMs);
@@ -70,9 +77,7 @@ internal sealed class LoggingApiTransactionLogger(ILogger<LoggingApiTransactionL
 
     public Task LogTransactionAsync(ApiTransaction transaction, CancellationToken cancellationToken = default)
     {
-        long durationMs = transaction.FinishedAt.HasValue
-            ? (long)(transaction.FinishedAt.Value - transaction.StartedAt).TotalMilliseconds
-            : 0;
+        long durationMs = transaction.DurationMs;
 
         if (transaction.Success)
         {
@@ -93,4 +98,9 @@ internal sealed class LoggingApiTransactionLogger(ILogger<LoggingApiTransactionL
 
         return Task.CompletedTask;
     }
+
+    private long ElapsedMilliseconds(long startTimestamp) =>
+        Math.Max(0, (long)timeProvider.GetElapsedTime(startTimestamp).TotalMilliseconds);
+
+    private sealed record PendingTransaction(ApiTransaction Transaction, long StartTimestamp);
 }

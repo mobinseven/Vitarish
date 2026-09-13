@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Vitarish.Audit.Domain;
 using Vitarish.Audit.Server;
 using Vitarish.Hosting;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
+using Vitarish.Main.Infrastructure.Health;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Hosting.Infrastructure.Options;
 using Vitarish.Modules.Base.Core;
@@ -59,12 +61,31 @@ else
 // OpenAPI discovery validates the full service graph, including services
 // whose persistence is not exercised while generating the document.
 builder.AddRedisCaching();
+_ = builder.Services.AddHealthChecks()
+    .AddCheck<MainDependencyHealthCheck>(
+        MainHealthContract.ReadinessCheckName,
+        tags: [MainHealthContract.ReadinessTag]);
 
 WebApplication app = builder.Build();
 if (!openApiGeneration)
     _ = await app.MigrateDatabaseAsync<AuditDbContext>();
 
 _ = app.UseHostingPipeline(securityConfiguration);
+_ = app.MapHealthChecks(MainHealthContract.ReadinessPath, new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains(MainHealthContract.ReadinessTag),
+    ResultStatusCodes =
+    {
+        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable,
+        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+    },
+    ResponseWriter = static (context, _) =>
+    {
+        context.Response.ContentLength = 0;
+        return Task.CompletedTask;
+    }
+}).AllowAnonymous();
 if (app.Environment.IsDevelopment())
     _ = app.MapOpenApi("/openapi/{documentName}.json");
 

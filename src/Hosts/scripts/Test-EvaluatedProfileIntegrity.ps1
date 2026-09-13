@@ -15,6 +15,7 @@ $transportInventoryPath = Join-Path $profileRoot 'evaluated-transport-and-crypto
 $updateRunbookPath = Join-Path $profileRoot 'manual-update-runbook.md'
 $composePath = Join-Path $RepositoryRoot 'src\Hosts\docker-compose.product-evaluated-v1.0.yml'
 $caddyPath = Join-Path $RepositoryRoot 'src\Hosts\caddy\Caddyfile.product-evaluated-v1.0'
+$healthContractPath = Join-Path $RepositoryRoot 'src\Hosts\Main\Infrastructure\Health\MainDependencyHealthCheck.cs'
 $dockerIgnorePath = Join-Path $RepositoryRoot '.dockerignore'
 
 $failures = [System.Collections.Generic.List[string]]::new()
@@ -35,6 +36,7 @@ $transportInventory = Require-Text $transportInventoryPath 'transport and crypto
 $updateRunbook = Require-Text $updateRunbookPath 'manual update runbook'
 $compose = Require-Text $composePath 'network compose manifest'
 $caddy = Require-Text $caddyPath 'network Caddyfile'
+$healthContract = Require-Text $healthContractPath 'Main readiness contract'
 $dockerIgnore = Require-Text $dockerIgnorePath 'Docker build ignore rules'
 
 $planIds = [regex]::Matches($plan, '(?m)^\|\s*([A-Z]+-\d+)(?:\s*/\s*([A-Z]+-\d+))?\s*\|') |
@@ -54,7 +56,8 @@ foreach ($id in $planIds) {
 foreach ($required in @(
     'implementation-matrix.md', 'deployment-evidence-matrix.md', 'security-target.md',
     'toe-inventory.md', 'topology.md', 'deployment-evidence-plan.md',
-    'evaluated-transport-and-cryptography.md', 'manual-update-runbook.md'
+    'evaluated-transport-and-cryptography.md', 'manual-update-runbook.md',
+    'failure-recovery-matrix.md'
 )) {
     if (-not (Test-Path -LiteralPath (Join-Path $profileRoot $required) -PathType Leaf)) {
         $failures.Add("Missing Stage 0 artifact: $required")
@@ -84,6 +87,7 @@ foreach ($requiredText in @(
 foreach ($requiredText in @(
     'protocols tls1.2 tls1.2', 'X-Content-Type-Options', 'Content-Security-Policy',
     'ciphers TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256', 'curves secp256r1', 'alpn h1 h2',
+    'health_interval 10s', 'health_timeout 5s',
     'reverse_proxy web-private-practice-owner:3000',
     'http://{$VITARISH_PUBLIC_HOST:?VITARISH_PUBLIC_HOST is required}',
     'http://{$VITARISH_PATIENTS_HOST:?VITARISH_PATIENTS_HOST is required}',
@@ -97,12 +101,38 @@ foreach ($requiredText in @(
 if ($caddy -match '(?im)h3|http/3|443/udp') { $failures.Add('Caddyfile enables or references HTTP/3/QUIC in the TLS 1.2-only profile.') }
 if ($caddy -match '(?im)agent-runtime') { $failures.Add('Caddyfile must not expose the server-only agent runtime publicly.') }
 if ($dockerIgnore -notmatch '(?m)^\*\*/appsettings\.json\s*$') { $failures.Add('Docker build context must exclude local appsettings.json files.') }
+$readinessPathMatch = [regex]::Match($healthContract, '(?m)^\s*public const string ReadinessPath\s*=\s*"(?<path>/[^"]+)";')
+if (-not $readinessPathMatch.Success) {
+    $failures.Add('Main readiness contract does not declare a source-owned absolute readiness path.')
+} else {
+    $readinessPath = $readinessPathMatch.Groups['path'].Value
+    if ($caddy -notmatch "(?m)^\s*health_uri\s+$([regex]::Escape($readinessPath))\s*$") {
+        $failures.Add("Caddyfile does not probe the source-owned Main readiness path: $readinessPath")
+    }
+}
+$restartPolicyMatch = [regex]::Match($compose, '(?m)^x-bounded-runtime-restart:\s*&bounded-runtime-restart\s*"(?<policy>[^"]+)"\s*$')
+if (-not $restartPolicyMatch.Success) {
+    $failures.Add('Compose manifest does not declare the source-owned bounded runtime restart policy anchor.')
+} else {
+    $restartPolicy = $restartPolicyMatch.Groups['policy'].Value
+    if ($restartPolicy -ne 'on-failure:5') {
+        $failures.Add("Compose bounded runtime restart policy is not the selected value: $restartPolicy")
+    }
+}
 
 $servicesMatch = [regex]::Match($compose, '(?ms)^services:\s*\r?\n(?<services>.*?)(?=^networks:\s*$)')
 $services = if ($servicesMatch.Success) { $servicesMatch.Groups['services'].Value } else { '' }
+$runtimeServices = @(
+    'caddy', 'main', 'web-private-practice-owner', 'web-patients', 'web-platform-admin',
+    'web-vitarish-pm', 'web-knowledge-qa-demo', 'web-vitarish-landing', 'agent-runtime',
+    'postgres', 'redis'
+)
 $mainService = [regex]::Match($services, '(?ms)^  main:\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:\r?$|\z)')
 if (-not $mainService.Success -or $mainService.Groups['body'].Value -notmatch '(?m)^    networks:\s*\[application, egress\]\s*$') { $failures.Add('Main must use the application and dedicated egress networks.') }
 foreach ($service in [regex]::Matches($services, '(?ms)^  (?<name>[a-z0-9-]+):\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:\r?$|\z)')) {
+    if ($runtimeServices -contains $service.Groups['name'].Value -and $service.Groups['body'].Value -notmatch '(?m)^    restart:\s*\*bounded-runtime-restart\s*$') {
+        $failures.Add("Runtime service lacks bounded restart supervision: $($service.Groups['name'].Value)")
+    }
     if ($service.Groups['name'].Value -ne 'main' -and $service.Groups['body'].Value -match '(?m)^    networks:\s*\[[^\]]*\begress\b[^\]]*\]\s*$') {
         $failures.Add("Only Main may use the dedicated egress network: $($service.Groups['name'].Value)")
     }
