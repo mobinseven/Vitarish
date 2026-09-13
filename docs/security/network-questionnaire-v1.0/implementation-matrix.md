@@ -20,7 +20,10 @@ CERT-3.
 | CR-1–CR-3 | evaluated transport and cryptography inventory, existing platform certificate path | inventory and source-policy checks | implemented |
 | CR-4 / TSF-6 | not triggered; no product signing or signed-update capability | applicability check | deployment-evidence-pending |
 | IA-1–IA-9, AC-1–AC-7 | Authentication/Users policy, session contracts and tests | focused Authentication/Users tests | implementation-gap |
-| UD-1–UD-11, SM-1–SM-6 | owning Application policies, Files integrity, authorization matrix | endpoint/matrix validators and owning tests | implementation-gap |
+| UD-1–UD-11 | owning Application policies, Files integrity, authorization matrix | endpoint/matrix validators and owning tests | implementation-gap |
+| SM-1–SM-4 | Authentication, Sea, Users, Audit and existing owning capabilities | focused operation/policy/audit tests plus the PDF disposition table | implementation-in-progress |
+| SM-5 | Users existing role-backed model | named policy and role-owner tests; no new framework | implementation-in-progress |
+| SM-6 | Users canonical tenant-role replacement | focused replacement tests plus read-only membership analysis | blocked |
 | TSF-1–TSF-4 | Hosting/Main failure, time and topology contracts | static profile checks and fault tests | implementation-gap |
 | TSF-5 | manual-update-runbook.md | runbook/provenance contract check | implemented |
 | TC-1–TC-3, HTTPS-1–3, TLSS-1–3, TLSC-1–4, CERT-1–3 | Caddyfile, Compose, outbound client inventory | Caddy/Compose parse, source-policy and protocol checks | implemented |

@@ -1,9 +1,9 @@
 # Vitarish Network Application Security Questionnaire: Implementation Plan
 
-**Status:** Revised implementation plan; implementation completion is separate from deployment-evidence completion. The repository scope contains all mandatory rows and only conditional rows triggered by the frozen Vitarish boundary; optional rows are excluded.
+**Status:** Revised minimum-scope implementation plan; implementation completion is separate from deployment-evidence completion. This work item is limited to the PDF pages 20–23 management-function rows 2-5.1–2-5.6 and does not authorize optional questionnaire features.
 **Questionnaire source:** `راهنمای تکمیل پرسشنامه نرم_افزار.pdf`, 42 pages, questionnaire version 1.0 and completion-guide version 1.1.
-**Target outcome:** The repository delivers every mandatory requirement and every conditional requirement triggered by its declared capabilities, including committed deployment/configuration artifacts, with deterministic implementation proof. Deployment-specific evidence is a separate phase.
-**Implementation authority:** This version-controlled document authorizes the ordered implementation slices after Stage 0 freezes the evaluated boundary. It does not authorize silently narrowing product scope to avoid a requirement.
+**Target outcome:** The repository records and closes only the PDF-selected minimum: `Authentication_SessionPolicy_Put`, `Authentication_SessionPolicy_Get`, `SeaCreateProject`, the applicable 2-5.4 dispositions, and the existing role-backed one-effective-tenant-role model. Deployment-specific evidence is a separate phase.
+**Implementation authority:** The attached completion guide, PDF pages 20–23, is the sole scope authority for this work item. Existing broader questionnaire drafts and current-state baselines are not scope authority. This document does not authorize optional feature, generic capability, role-hierarchy, MFA, HA, export-retention, manifest/witness, or new-provider work.
 
 **Profile relationship:** This plan creates the separate `vitarish-product-evaluated-v1.0` evaluated profile. It does not widen, replace, or reuse evidence from the existing Main-only `vitarish-toe-main-evaluated-2026-08-15` profile under `docs/security/iso15408/`; that profile remains valid only for its declared single-machine Main/PostgreSQL/Redis boundary. A release claims exactly one profile.
 
@@ -79,6 +79,45 @@ If an Android or iOS product is included, pause and add the separate application
 Domain remains independent of UI, API, EF, HTTP, storage, Redis, Caddy, and vendors. Application depends only on Domain and Application-owned ports. Contracts own HTTP shapes, routes, operation IDs, and exposed security values. Generated clients change only through their source and canonical generator.
 
 ## Fixed evaluated baseline
+
+## PDF-selected minimum for this work item
+
+The selected operations are one existing security-function management operation
+(`Authentication_SessionPolicy_Put`), one existing protected security-feature
+operation (`Authentication_SessionPolicy_Get`), and one existing product-data
+management operation (`SeaCreateProject`). Existing public routes and operation
+IDs remain unchanged. The canonical Users application operation is an internal
+use-case boundary used by the existing tenant grant/revoke adapters and
+fixtures; it is not a new public route.
+
+### 2-5.4 mandatory management-function dispositions
+
+| PDF management category | Existing owner/capability | Minimum disposition | Status/evidence boundary |
+| --- | --- | --- | --- |
+| Users authorized to read logs | Audit review authorization | Reuse existing tenant/platform review authorization; no new reviewer group editor | Implementation retained; focused Audit proof required |
+| Permissions to view/edit logs | Audit append-only review surface | View is supported; edit/delete is not a supported product capability and is explicitly not claimed | Unsupported edit/delete is excluded; append-only tests remain required |
+| Log-storage failure thresholds and operation | Audit capacity and AU-8 failure path | Reuse one positive threshold and existing failure-preserving writer path; no log edit/delete path | Existing owner; capacity/failure proof required |
+| Access-grant/prevent criteria | Owning Application authorization | Use responsibility-specific policies/requirements and existing tenant/subject/resource checks | Selected operations changed; direct HTTP denial proof required |
+| Residual-data protection timing | Files/owning transfer paths | Reuse existing cleanup and buffer-bound controls; no new retention feature | Existing capability; focused owner proof required |
+| Additional import controls | Owning transfer paths | Reuse existing type/size/format/authorization bounds; no new import feature | Existing capability; evidence remains bounded to supported paths |
+| Predefined operation after integrity error | Files integrity owner | Reuse verify/block/warn behavior; no alternate repair operation | Existing capability; integrity failure proof required |
+| Failed-attempt threshold/response | Authentication | Reuse the Authentication-owned threshold and lockout response | Existing capability; Authentication proof required |
+| Password criteria | Authentication with Users writers | Reuse the shared Authentication-owned password validator | Existing capability; focused Users proof required |
+| Authentication data administration | Users/Authentication | Reuse existing user/security-state owners and named security-management policies | Selected security paths; audit proof required |
+| Operations before authentication | Authentication | Reuse the declared anonymous/pre-authentication endpoint register | No expansion of anonymous surface |
+| Authentication mechanisms | Authentication | Reuse existing password, OTP/passkey mechanisms; no MFA claim | Existing capability; no new mechanism |
+| Authentication rules | Authentication | Reuse the Authentication security policy owner | Existing capability; policy tests required |
+| Administrator pre-auth IP/session assignment | Authentication | Reuse named session-policy update and CIDR validation | `Authentication_SessionPolicy_Put`; authorization and bounds proof required |
+| Default active-entity security attributes | Owning modules | Existing tenant/resource defaults remain authoritative; no generic attribute editor is added | Unsupported as a new generic feature; not claimed |
+| Default access-control values | Owning Application policies | Reuse existing role/resource defaults and explicit policy owners | No catch-all administrator bypass |
+| Roles | Users | Canonical `ReplaceTenantRole` atomically replaces/revokes one permitted tenant role; global PlatformAdmin remains outside tenant cardinality | Membership analysis is a prerequisite; unresolved conflicts block completion |
+| Maximum concurrent sessions | Authentication | Reuse named session policy and application-owned enforcement | Existing capability; concurrency proof required |
+| Session start conditions | Authentication | Reuse authenticated session-start and CIDR conditions | Existing capability; boundary proof required |
+| Per-user/default inactivity timeout | Authentication | Reuse named inactivity policy operation and 1–30 minute bounds | Existing capability; policy/audit proof required |
+| One role per account | Users | Enforce one effective permitted tenant role per user per tenant; many users may share a role | Read-only membership analysis and concurrency proof required |
+
+The table records dispositions, not deployment submission. Unsupported optional
+features are not silently converted into implemented claims.
 
 Administrative settings may be stricter but may not weaken these values.
 
@@ -362,6 +401,24 @@ Each mutation requires server authorization, validation against hard bounds, opt
 - Add optimistic concurrency and hard bounds to competing changes.
 - Audit allowed/denied management reads/mutations as required.
 - Add direct HTTP regression tests for authorization, tenant, antiforgery, sessions, audit review, and transfer rules.
+
+### Role compatibility and cutover record
+
+The existing operation IDs `UsersAdministrationGrantTenantRole` and
+`UsersAdministrationRevokeTenantRole`, their existing routes and
+`ChangeTenantRoleRequest` body shape, and their `UsersApi` callers remain
+compatibility adapters. They delegate to the Users Application
+`ReplaceTenantRole` operation; `PartiesService` and E2E fixture setup use that
+same Application owner for tenant-role writes. The generic `UsersAddRole`
+operation remains available only for the explicitly permitted global-role
+allowlist. No generated client or other generated output changed, and no
+generated consumer of the tenant-role adapters was found in the repository.
+
+The compatibility window remains open. Removal or contract tightening is
+deferred until an operation/caller/generated-consumer inventory confirms that
+all consumers use the canonical operation, followed by a separately approved
+compatibility change. No evaluated endpoint retains additive tenant-role
+semantics during this window.
 
 **Acceptance:** management matrix equals executable mappings; every applicable operation has owner/proof; no endpoint is implicitly anonymous; every mutation has authorization/audit evidence.
 

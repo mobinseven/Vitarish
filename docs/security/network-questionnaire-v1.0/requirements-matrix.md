@@ -6,6 +6,13 @@ stable ID to its trigger, owner, planned proof, and release handoff. Optional
 questionnaire rows are intentionally absent. `stage-0-open` means the row is
 selected and has a proof path, but the Stage 0 evaluator gate is not closed.
 
+For this work item, the PDF pages 20–23 are the sole scope authority. The
+selected minimum is `Authentication_SessionPolicy_Put`,
+`Authentication_SessionPolicy_Get`, `SeaCreateProject`, the explicit 2-5.4
+disposition table in the implementation plan, and the existing Users
+one-effective-tenant-role model. The broader catalog remains a reference and
+does not authorize optional capabilities or generic role/capability frameworks.
+
 | ID | Source/trigger | Selected value | Owner | Implementation artifact | Deterministic test | Deployment handoff | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | AU-1 | 2-1.1 mandatory | typed catalog for all enabled events | Audit | event catalog and tests | catalog coverage test | event execution report | stage-0-open |
@@ -38,12 +45,12 @@ selected and has a proof path, but the Stage 0 evaluator gate is not closed.
 | UD-9 | 2-4.9 mandatory | named bulk-export capabilities | owning module | export administration | capability test | management report | stage-0-open |
 | UD-10 | 2-4.10 mandatory | keyed file/non-file integrity | Files/owning module | manifests and checksums | mismatch/delete test | integrity report | stage-0-open |
 | UD-11 | 2-4.11 mandatory | block and warn on mismatch | Files/owning module | remediation state | blocked-use test | warning/remediation record | stage-0-open |
-| SM-1 | 2-5.1 mandatory | named security-function capabilities | Authentication/Users | capability matrix | management authorization test | management probe | stage-0-open |
-| SM-2 | 2-5.2 mandatory | named active-security capabilities | Authentication/Users | security management matrix | query/change denial test | management probe | stage-0-open |
-| SM-3 | 2-5.3 mandatory | named product-data capabilities | owning Applications | operation matrix | no-bypass test | management probe | stage-0-open |
-| SM-4 | 2-5.4 mandatory | exhaustive supported-function checklist | owning owners | checklist and matrix | checklist validator | management report | stage-0-open |
-| SM-5 | 2-5.5 mandatory | authorized role/capability administration | Users | role policy | role-admin test | role report | stage-0-open |
-| SM-6 | 2-5.6 mandatory | one role/tenant; atomic replacement | Users | replacement command/migration | concurrency test | membership report | stage-0-open |
+| SM-1 | 2-5.1 mandatory | `Authentication_SessionPolicy_Put` changes the existing security-function policy | Authentication | named session-policy policy and application handler | unauthenticated/denied/authorized, bounds, antiforgery, audit | management probe | implementation-in-progress |
+| SM-2 | 2-5.2 mandatory | `Authentication_SessionPolicy_Get` reads the existing protected security feature | Authentication | named read policy and application handler | unauthenticated/denied/authorized, tenant, audit | management probe | implementation-in-progress |
+| SM-3 | 2-5.3 mandatory | `SeaCreateProject` uses the existing Sea capability with a responsibility-specific operation requirement | Sea | `SeaAuthorizationOperations.CreateProject` | no generic Manage path; authorization test | management probe | implementation-in-progress |
+| SM-4 | 2-5.4 mandatory | explicit supported/unsupported disposition for every PDF checklist category | owning modules | implementation-plan disposition table and existing owners | disposition/operation metadata plus focused owner tests | management report | implementation-in-progress |
+| SM-5 | 2-5.5 mandatory | existing role-backed model; no new role/capability framework | Users | existing named Users policies and role owner | role policy and denial tests | role report | implementation-in-progress |
+| SM-6 | 2-5.6 mandatory | one permitted effective tenant role; atomic canonical replacement/revoke | Users | `ReplaceTenantRole` compatibility adapter and handler | idempotency, active-session, conflict/retry, invariant, audit | membership report | blocked-unverified |
 | TSF-1 | 2-6.1 mandatory | fail closed; preserve integrity | Hosting/owners | failure matrix | fault/restart tests | recovery record | stage-0-open |
 | TSF-2 | 2-6.2 mandatory | encrypted separate-machine links | Hosting | topology/link register | placement/channel test | topology scan | stage-0-open |
 | TSF-4 | 2-6.4 mandatory | UTC trusted OS clock | Hosting/operators | clock policy | monotonic-duration test | time record | stage-0-open |
