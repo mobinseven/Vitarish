@@ -50,6 +50,10 @@ public static class SecurityAuditEventCatalog
     public const string SecurityAttributesChangedOperation = "security-attributes.change";
     public const string ImportEvent = "security.data.import";
     public const string ExportEvent = "security.data.export";
+    public const string IntegrityVerificationEvent = "security.data.integrity-verification";
+    public const string ImportOperation = "data.import";
+    public const string ExportOperation = "data.export";
+    public const string IntegrityVerificationOperation = "data.integrity.verify";
     public const string ManagementEvent = "security.management.operation";
     public const string SecurityFailureEvent = "security.failure";
     public const string SessionEstablishedEvent = "authentication.session.established";
@@ -74,8 +78,9 @@ public static class SecurityAuditEventCatalog
         new(AuthenticationCategory, AuthenticationPasswordLoginOtpEvent, PasswordLoginOtpOperation),
         new(AuthenticationCategory, AuthenticationSecurityAccessPolicyEvent, SecurityAccessPolicyOperation),
         new(SecurityAttributeCategory, SecurityAttributesChangedEvent, SecurityAttributesChangedOperation),
-        new(ImportExportCategory, ImportEvent, "data.import"),
-        new(ImportExportCategory, ExportEvent, "data.export"),
+        new(ImportExportCategory, ImportEvent, ImportOperation),
+        new(ImportExportCategory, ExportEvent, ExportOperation),
+        new(ImportExportCategory, IntegrityVerificationEvent, IntegrityVerificationOperation),
         new(ManagementCategory, ManagementEvent, "management.operation"),
         new(SecurityFailureCategory, SecurityFailureEvent, "security.failure"),
         new(SessionCategory, SessionEstablishedEvent, SessionEstablishedOperation),
