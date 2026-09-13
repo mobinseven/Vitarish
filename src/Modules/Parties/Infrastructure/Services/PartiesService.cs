@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Vitarish.Entities.Contracts.Models;
@@ -11,6 +12,7 @@ using Vitarish.Parties.Domain.Models;
 using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Parties.Infrastructure.Extensions;
 using Vitarish.Users.Application.Commands;
+using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
 
@@ -21,6 +23,7 @@ public sealed class PartiesService(
     TenantsService tenantService, 
     TenantIndicatorService tenantIndicatorService, 
     ISender sender,
+    IUsersService usersService,
     PartiesDbContext dbContext,
     IMemoryCache cache) : IPartiesService
 {
@@ -198,16 +201,16 @@ public sealed class PartiesService(
             IsPrimary = true
         }, ct);
 
-        // 4. Assign the onboarding user to all three tenant roles so they have full access.
+        // 4. Assign the onboarding user the single effective tenant role.
         User? user = await sender.Send(new GetUserQuery(request.UserId), ct);
         if (user is not null)
         {
-            foreach (string roleSuffix in new[] { IdentityDefinitions.TenantOwner, IdentityDefinitions.TenantUser })
+            // Roles were already created by CreateTenantRolesCommand above. TenantOwner is
+            // the single effective tenant role for the onboarding account.
+            IdentityResult result = await usersService.ReplaceTenantRoleAsync(user.Id, tenant.Id, IdentityDefinitions.TenantOwner, ct);
+            if (!result.Succeeded)
             {
-                // Roles were already created by CreateTenantRolesCommand above.
-                // The AddUserToRoleCommand handler uses the role name as-is when no tenant
-                // is active in the request context, so we pass the fully-qualified name.
-                _ = await sender.Send(new AddUserToRoleCommand(user, $"{tenant.Id}:{roleSuffix}"), ct);
+                return null;
             }
         }
 

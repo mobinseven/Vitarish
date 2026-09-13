@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Routing;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Users.Application.Abstractions;
+using Vitarish.Users.Application.Authorization;
 using Vitarish.Users.Application.Commands;
+using Vitarish.Users.Contracts.Authorization;
 using Vitarish.Users.Contracts.Requests;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Contracts.Routes;
@@ -20,20 +22,23 @@ public static class UsersApi
     public static IEndpointRouteBuilder MapUsersApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder users = endpoints.MapProtectedModuleGroup(UsersApiRoutes.Base, requireTenantAccess: false);
-        _ = users.MapModuleGet(UsersApiRoutes.Search, SearchUsersAsync, "UsersSearchUsers", typeof(UserSummaryResponse[])).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModuleGet(UsersApiRoutes.ById, GetUserAsync, "UsersGetUser", typeof(UserSummaryResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModuleGet(UsersApiRoutes.CheckEmail, CheckEmailAsync, "UsersCheckEmail", typeof(UserExistenceResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModuleGet(UsersApiRoutes.CheckPhone, CheckPhoneAsync, "UsersCheckPhone", typeof(UserExistenceResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModuleGet(UsersApiRoutes.CheckRole, CheckRoleAsync, "UsersCheckRole", typeof(UserRoleCheckResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModulePost(UsersApiRoutes.CreateWithPhone, CreateWithPhoneAsync, "UsersCreateWithPhone", typeof(UserSummaryResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModulePost(UsersApiRoutes.CreateWithEmail, CreateWithEmailAsync, "UsersCreateWithEmail", typeof(UserSummaryResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithPhone, CreateWithPhoneAsync, "UsersAdministrationCreateWithPhone", typeof(UserSummaryResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithEmail, CreateWithEmailAsync, "UsersAdministrationCreateWithEmail", typeof(UserSummaryResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModulePut(UsersApiRoutes.SetEmail, SetEmailAsync, "UsersSetEmail", typeof(UsersCommandResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModulePost(UsersApiRoutes.AddRole, AddRoleAsync, "UsersAddRole", typeof(UsersCommandResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModuleGet($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRoles}", ListTenantRolesAsync, "UsersAdministrationListTenantRoles", typeof(TenantRoleMembershipResponse[])).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModulePut($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRole}", GrantTenantRoleAsync, "UsersAdministrationGrantTenantRole", typeof(UsersCommandResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
-        _ = users.MapModuleDelete($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRole}", RevokeTenantRoleAsync, "UsersAdministrationRevokeTenantRole", typeof(UsersCommandResponse)).RequireAuthorization(IdentityDefinitions.PlatformAdmin);
+        _ = users.MapModuleGet(UsersApiRoutes.Search, SearchUsersAsync, "UsersSearchUsers", typeof(UserSummaryResponse[])).RequireAuthorization(UsersAuthorizationPolicies.ReadSecurityState);
+        _ = users.MapModuleGet(UsersApiRoutes.ById, GetUserAsync, "UsersGetUser", typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ReadSecurityState);
+        _ = users.MapModuleGet(UsersApiRoutes.CheckEmail, CheckEmailAsync, "UsersCheckEmail", typeof(UserExistenceResponse)).RequireAuthorization(UsersAuthorizationPolicies.ReadSecurityState);
+        _ = users.MapModuleGet(UsersApiRoutes.CheckPhone, CheckPhoneAsync, "UsersCheckPhone", typeof(UserExistenceResponse)).RequireAuthorization(UsersAuthorizationPolicies.ReadSecurityState);
+        _ = users.MapModuleGet(UsersApiRoutes.CheckRole, CheckRoleAsync, "UsersCheckRole", typeof(UserRoleCheckResponse)).RequireAuthorization(UsersAuthorizationPolicies.ReadSecurityState);
+        _ = users.MapModulePost(UsersApiRoutes.CreateWithPhone, CreateWithPhoneAsync, "UsersCreateWithPhone", typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts);
+        _ = users.MapModulePost(UsersApiRoutes.CreateWithEmail, CreateWithEmailAsync, "UsersCreateWithEmail", typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts);
+        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithPhone, CreateWithPhoneAsync, "UsersAdministrationCreateWithPhone", typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts);
+        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithEmail, CreateWithEmailAsync, "UsersAdministrationCreateWithEmail", typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts);
+        _ = users.MapModulePut(UsersApiRoutes.SetEmail, SetEmailAsync, "UsersSetEmail", typeof(UsersCommandResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts);
+        _ = users.MapModulePost(UsersApiRoutes.AddRole, AddRoleAsync, "UsersAddRole", typeof(UsersCommandResponse)).RequireAuthorization(UsersAuthorizationPolicies.AssignGlobalRole)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
+        _ = users.MapModuleGet($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRoles}", ListTenantRolesAsync, "UsersAdministrationListTenantRoles", typeof(TenantRoleMembershipResponse[])).RequireAuthorization(UsersAuthorizationPolicies.ReadTenantRoles);
+        _ = users.MapModulePut($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRole}", GrantTenantRoleAsync, "UsersAdministrationGrantTenantRole", typeof(UsersCommandResponse)).RequireAuthorization(UsersAuthorizationPolicies.ReplaceTenantRole)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
+        _ = users.MapModuleDelete($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRole}", RevokeTenantRoleAsync, "UsersAdministrationRevokeTenantRole", typeof(UsersCommandResponse)).RequireAuthorization(UsersAuthorizationPolicies.ReplaceTenantRole)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
         users.MapProfileEndpoints();
         users.MapWebAuthnEndpoints();
         users.MapPatEndpoints();
@@ -66,30 +71,24 @@ public static class UsersApi
     private static async Task<IResult> ChangeTenantRoleAsync(string userId, Guid tenantId, string roleSuffix, ChangeTenantRoleRequest? request, IUsersService service, ITenantExistence tenants, bool grant, CancellationToken ct)
     {
         if (request is null || tenantId == Guid.Empty || !IsAllowedTenantRole(roleSuffix) || !string.Equals(request.RoleSuffix, roleSuffix, StringComparison.Ordinal))
-            return Results.BadRequest(UsersCommandResponse.Failed([new UsersCommandError("InvalidTenantRole", "The tenant role is not valid.")]));
+            return Results.BadRequest(UsersCommandResponse.Failed([new UsersCommandError(UsersCommandErrorCodes.InvalidTenantRole, UsersCommandErrorCodes.InvalidTenantRoleDescription)]));
         if (!await tenants.ExistsAsync(tenantId, ct)) return Results.NotFound();
         User? user = await service.GetUserAsync(userId, ct);
         if (user is null) return Results.NotFound();
-        string roleName = $"{tenantId}:{roleSuffix}";
-        bool assigned = await service.IsInRoleAsync(user, roleName, ct);
-        if (assigned == grant) return Results.Ok(UsersCommandResponse.Success());
-        IdentityResult result = grant
-            ? await service.AddUserToTenantRoleAsync(user, roleSuffix, tenantId, ct)
-            : await service.RemoveUserFromTenantRoleAsync(user, roleSuffix, tenantId, ct);
+        IdentityResult result = await service.ReplaceTenantRoleAsync(userId, tenantId, grant ? roleSuffix : null, ct);
         return ToRoleCommandResult(result);
     }
 
     private static TenantRoleMembershipResponse? ParseTenantRole(string role)
     {
-        string[] parts = role.Split(':', 2, StringSplitOptions.TrimEntries);
+        string[] parts = role.Split(TenantRoleDefinitions.RoleSeparator, 2, StringSplitOptions.TrimEntries);
         return parts.Length == 2 && Guid.TryParse(parts[0], out Guid tenantId) && IsAllowedTenantRole(parts[1])
             ? new TenantRoleMembershipResponse(tenantId, parts[1], true)
             : null;
     }
 
     private static bool IsAllowedTenantRole(string roleSuffix) =>
-        string.Equals(roleSuffix, "TenantOwner", StringComparison.Ordinal) ||
-        string.Equals(roleSuffix, "TenantUser", StringComparison.Ordinal);
+        TenantRoleDefinitions.IsPermittedRoleSuffix(roleSuffix);
     private static IResult ToCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : result.Errors.Any(error => error.Code == UsersCommandErrorCodes.ActiveSessionConflict) ? Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray())) : Results.BadRequest(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray()));
     private static IResult ToRoleCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray()));
     private static UserSummaryResponse ToSummary(User user) => new(user.Id, user.UserName, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.IdentificationCode, user.DateOfBirth, user.BirthCountryCode, user.BirthCity, user.FullName);

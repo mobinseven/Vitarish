@@ -5,12 +5,18 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageReference Include="Moq" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Modules\Users\Contracts\Users.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Users\Client\Users.Client.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Users\Infrastructure\Users.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Authentication\Application\Authentication.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Libraries\Audit\Audit.Domain\Audit.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Requests\Application\Requests.Application.csproj" />
   </ItemGroup>
 
 </Project>

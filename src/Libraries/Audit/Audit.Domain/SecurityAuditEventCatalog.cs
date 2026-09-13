@@ -66,6 +66,12 @@ public static class SecurityAuditEventCatalog
     public const string SessionNoticeOperation = "session.notice";
     public const string SessionPolicyEvent = "authentication.session-policy";
     public const string SessionPolicyOperation = "session-policy.change";
+    public const string TenantRoleReplacementEvent = "users.tenant-role-replacement";
+    public const string TenantRoleReplacementOperation = "Users_ReplaceTenantRole";
+    public const string GlobalRoleAssignmentEvent = "users.global-role-assignment";
+    public const string GlobalRoleAssignmentOperation = "Users_AssignGlobalRole";
+    public const string GlobalRoleRevocationEvent = "users.global-role-revocation";
+    public const string GlobalRoleRevocationOperation = "Users_RevokeGlobalRole";
     public const string AdministratorIdleTerminationEvent = "security.session.administrator-idle-termination";
 
     public static IReadOnlyList<SecurityAuditCatalogEntry> Entries { get; } =
@@ -88,6 +94,9 @@ public static class SecurityAuditEventCatalog
         new(SessionCategory, SessionAccessHistoryEvent, SessionAccessHistoryOperation),
         new(SessionCategory, SessionNoticeEvent, SessionNoticeOperation),
         new(SessionCategory, SessionPolicyEvent, SessionPolicyOperation),
+        new(ManagementCategory, TenantRoleReplacementEvent, TenantRoleReplacementOperation),
+        new(ManagementCategory, GlobalRoleAssignmentEvent, GlobalRoleAssignmentOperation),
+        new(ManagementCategory, GlobalRoleRevocationEvent, GlobalRoleRevocationOperation),
         new(SessionCategory, AdministratorIdleTerminationEvent, "session.terminate.idle", false, "Optional administrator-initiated idle-session termination is not implemented.")
     ];
 

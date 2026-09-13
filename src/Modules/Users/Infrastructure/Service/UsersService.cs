@@ -138,7 +138,7 @@ public sealed class UsersService(ISender sender) : IUsersService
     }
 
     public Task<IdentityResult> AddUserToTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken cancellationToken) =>
-        sender.Send(new AddUserToRoleCommand(user, roleName, tenantId), cancellationToken);
+        ReplaceTenantRoleAsync(user.Id, tenantId, roleName, cancellationToken);
 
     public async Task RemoveFromRoleAsync(User user, string roleName, CancellationToken cancellationToken)
     {
@@ -156,7 +156,10 @@ public sealed class UsersService(ISender sender) : IUsersService
     }
 
     public Task<IdentityResult> RemoveUserFromTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken cancellationToken) =>
-        sender.Send(new RemoveUserFromRoleCommand(user, roleName, tenantId), cancellationToken);
+        ReplaceTenantRoleAsync(user.Id, tenantId, null, cancellationToken);
+
+    public Task<IdentityResult> ReplaceTenantRoleAsync(string userId, Guid tenantId, string? roleSuffix, CancellationToken cancellationToken) =>
+        sender.Send(new ReplaceTenantRoleCommand(userId, tenantId, roleSuffix), cancellationToken);
 
     public async Task<IList<string>> GetRolesAsync(User user, CancellationToken cancellationToken)
     {

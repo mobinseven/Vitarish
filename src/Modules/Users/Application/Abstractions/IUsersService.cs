@@ -35,6 +35,7 @@ public interface IUsersService : IUserStore<User>, IUserSecurityStampStore<User>
     Task<IdentityResult> AddUserToTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken ct = default);
     Task<IdentityResult> RemoveUserFromRoleAsync(User user, string roleName, CancellationToken ct = default);
     Task<IdentityResult> RemoveUserFromTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken ct = default);
+    Task<IdentityResult> ReplaceTenantRoleAsync(string userId, Guid tenantId, string? roleSuffix, CancellationToken ct = default);
     Task AddToTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken ct = default);
     Task RemoveFromTenantRoleAsync(User user, string roleName, Guid tenantId, CancellationToken ct = default);
 }

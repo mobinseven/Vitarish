@@ -30,6 +30,20 @@ public static class SecurityAuditReasonCatalog
     public const string SecurityAttributeChanged = "security_attribute_changed";
     public const string CookieSignInFailed = "cookie_sign_in_failed";
     public const string AdministrativeRevocation = "administrative_revocation";
+    public const string InvalidTenantRole = "invalid_tenant_role";
+    public const string ActiveSessionConflict = "active_session_conflict";
+    public const string UserNotFound = "user_not_found";
+    public const string TenantRoleConcurrencyConflict = "tenant_role_concurrency_conflict";
+    public const string TenantRolePersistenceFailure = "tenant_role_persistence_failure";
+    public const string TenantRoleNotFound = "tenant_role_not_found";
+    public const string GlobalRoleNotFound = "global_role_not_found";
+    public const string TenantRoleReplacementReasonPrefix = "tenant_role_replacement:";
+    public const string TenantRoleReplacementBeforePrefix = "before=";
+    public const string TenantRoleReplacementAfterSeparator = ";after=";
+    public const string TenantRoleStateNone = "none";
+    public const string TenantRoleStateOwner = "tenant_owner";
+    public const string TenantRoleStateUser = "tenant_user";
+    public const string TenantRoleStateMultiple = "multiple";
     public const string UserTimeoutMinutesReasonPrefix = "user_timeout_minutes:";
 
     private const string HttpStatusPrefix = "http_";
@@ -62,7 +76,14 @@ public static class SecurityAuditReasonCatalog
         UserLogout,
         SecurityAttributeChanged,
         CookieSignInFailed,
-        AdministrativeRevocation
+        AdministrativeRevocation,
+        InvalidTenantRole,
+        ActiveSessionConflict,
+        UserNotFound,
+        TenantRoleConcurrencyConflict,
+        TenantRolePersistenceFailure,
+        TenantRoleNotFound,
+        GlobalRoleNotFound
     };
 
     public static string HttpStatus(int statusCode)
@@ -89,12 +110,20 @@ public static class SecurityAuditReasonCatalog
         return $"{UserTimeoutMinutesReasonPrefix}{minutes}";
     }
 
+    public static string TenantRoleReplacement(string before, string after)
+    {
+        if (!IsTenantRoleState(before) || !IsTenantRoleState(after))
+            throw new ArgumentException("The tenant role state is not a permitted redacted value.");
+
+        return $"{TenantRoleReplacementReasonPrefix}{TenantRoleReplacementBeforePrefix}{before}{TenantRoleReplacementAfterSeparator}{after}";
+    }
+
     public static bool IsAllowed(string reason)
     {
         if (KnownReasons.Contains(reason))
             return true;
 
-        return IsHttpStatus(reason) || IsVersion(reason) || IsUserTimeoutMinutes(reason);
+        return IsHttpStatus(reason) || IsVersion(reason) || IsUserTimeoutMinutes(reason) || IsTenantRoleReplacement(reason);
     }
 
     private static bool IsHttpStatus(string reason)
@@ -121,6 +150,26 @@ public static class SecurityAuditReasonCatalog
                int.TryParse(suffix, NumberStyles.None, CultureInfo.InvariantCulture, out int minutes) &&
                minutes > 0;
     }
+
+    private static bool IsTenantRoleReplacement(string reason)
+    {
+        if (!reason.StartsWith(TenantRoleReplacementReasonPrefix, StringComparison.Ordinal))
+            return false;
+
+        string value = reason[TenantRoleReplacementReasonPrefix.Length..];
+        if (!value.StartsWith(TenantRoleReplacementBeforePrefix, StringComparison.Ordinal))
+            return false;
+
+        int separatorIndex = value.IndexOf(TenantRoleReplacementAfterSeparator, StringComparison.Ordinal);
+        if (separatorIndex <= TenantRoleReplacementBeforePrefix.Length)
+            return false;
+
+        string before = value[TenantRoleReplacementBeforePrefix.Length..separatorIndex];
+        string after = value[(separatorIndex + TenantRoleReplacementAfterSeparator.Length)..];
+        return IsTenantRoleState(before) && IsTenantRoleState(after);
+    }
+
+    private static bool IsTenantRoleState(string state) => state is TenantRoleStateNone or TenantRoleStateOwner or TenantRoleStateUser or TenantRoleStateMultiple;
 
     private static bool IsNonNegativeInteger(string reason, string prefix)
     {

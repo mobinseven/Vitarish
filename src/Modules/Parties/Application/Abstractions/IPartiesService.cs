@@ -42,7 +42,7 @@ public interface IPartiesService
 
     /// <summary>
     /// Full self-service onboarding: creates Owner, Tenant, TenantIndicator,
-    /// tenant roles, and assigns the caller to TenantOwner / TenantAdmin / TenantUser.
+    /// tenant roles, and assigns the caller to one effective tenant role.
     /// </summary>
     Task<TenantReadDto?> SetupTenantAsync(SetupTenantRequest request, CancellationToken ct = default);
 }

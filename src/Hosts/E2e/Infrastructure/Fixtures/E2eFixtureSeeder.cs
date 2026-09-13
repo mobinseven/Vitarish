@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Parties.Domain.Entities;
@@ -17,6 +19,7 @@ using Vitarish.Files.Domain.Entities;
 using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Infrastructure.Data;
+using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.E2e.Infrastructure.Fixtures;
 
@@ -37,6 +40,14 @@ internal static class E2eFixtureSeeder
         await using AsyncServiceScope scope = services.CreateAsyncScope();
         UserManager<User> users = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
         RoleManager<IdentityRole> roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        IUsersService usersService = scope.ServiceProvider.GetRequiredService<IUsersService>();
+        IHttpContextAccessor httpContextAccessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
+        httpContextAccessor.HttpContext = new DefaultHttpContext
+        {
+            User = new ClaimsPrincipal(new ClaimsIdentity(
+                [new Claim(ClaimTypes.Role, IdentityDefinitions.PlatformAdmin)],
+                "e2e-fixture"))
+        };
 
         User user = await EnsureUserAsync(
             users,
@@ -236,36 +247,28 @@ internal static class E2eFixtureSeeder
         string roleName = $"{tenant.Id}:{IdentityDefinitions.TenantOwner}";
         if (!await roles.RoleExistsAsync(roleName))
             _ = (await roles.CreateAsync(new IdentityRole(roleName))).Succeeded;
-        if (!await users.IsInRoleAsync(user, roleName))
-        {
-            IdentityResult result = await users.AddToRoleAsync(user, roleName);
-            if (!result.Succeeded)
-                throw new InvalidOperationException("E2E tenant-owner role assignment failed.");
-        }
+        IdentityResult tenantOwnerResult = await usersService.ReplaceTenantRoleAsync(user.Id, tenant.Id, IdentityDefinitions.TenantOwner, cancellationToken);
+        if (!tenantOwnerResult.Succeeded)
+            throw new InvalidOperationException("E2E tenant-owner role assignment failed.");
 
         string tenantUserRoleName = $"{tenant.Id}:{IdentityDefinitions.TenantUser}";
         if (!await roles.RoleExistsAsync(tenantUserRoleName))
             _ = (await roles.CreateAsync(new IdentityRole(tenantUserRoleName))).Succeeded;
-        if (!await users.IsInRoleAsync(tenantUser, tenantUserRoleName))
-        {
-            IdentityResult result = await users.AddToRoleAsync(tenantUser, tenantUserRoleName);
-            if (!result.Succeeded)
-                throw new InvalidOperationException("E2E tenant-user role assignment failed.");
-        }
+        IdentityResult tenantUserResult = await usersService.ReplaceTenantRoleAsync(tenantUser.Id, tenant.Id, IdentityDefinitions.TenantUser, cancellationToken);
+        if (!tenantUserResult.Succeeded)
+            throw new InvalidOperationException("E2E tenant-user role assignment failed.");
 
         string tenantBOwnerRoleName = $"{tenantB.Id}:{IdentityDefinitions.TenantOwner}";
         if (!await roles.RoleExistsAsync(tenantBOwnerRoleName))
             _ = (await roles.CreateAsync(new IdentityRole(tenantBOwnerRoleName))).Succeeded;
-        if (!await users.IsInRoleAsync(tenantBOwner, tenantBOwnerRoleName))
-        {
-            IdentityResult result = await users.AddToRoleAsync(tenantBOwner, tenantBOwnerRoleName);
-            if (!result.Succeeded)
-                throw new InvalidOperationException("E2E tenant-B owner role assignment failed.");
-        }
 
         await using AsyncServiceScope tenantBScope = services.CreateAsyncScope();
         IRequestContextWriter tenantBRequestContext = tenantBScope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
         tenantBRequestContext.SetContext("e2e", null, tenantBOwnerId.ToString(), tenantB.Id.ToString(), tenantBOwner.Id);
+        IUsersService tenantBUsersService = tenantBScope.ServiceProvider.GetRequiredService<IUsersService>();
+        IdentityResult tenantBOwnerResult = await tenantBUsersService.ReplaceTenantRoleAsync(tenantBOwner.Id, tenantB.Id, IdentityDefinitions.TenantOwner, cancellationToken);
+        if (!tenantBOwnerResult.Succeeded)
+            throw new InvalidOperationException("E2E tenant-B owner role assignment failed.");
         ClinicDbContext tenantBClinic = tenantBScope.ServiceProvider.GetRequiredService<ClinicDbContext>();
         AppointmentsDbContext tenantBAppointments = tenantBScope.ServiceProvider.GetRequiredService<AppointmentsDbContext>();
         CommunicationsDbContext tenantBCommunications = tenantBScope.ServiceProvider.GetRequiredService<CommunicationsDbContext>();
@@ -368,7 +371,7 @@ internal static class E2eFixtureSeeder
             _ = (await roles.CreateAsync(new IdentityRole(IdentityDefinitions.PlatformAdmin))).Succeeded;
         if (!await users.IsInRoleAsync(platformAdmin, IdentityDefinitions.PlatformAdmin))
         {
-            IdentityResult result = await users.AddToRoleAsync(platformAdmin, IdentityDefinitions.PlatformAdmin);
+            IdentityResult result = await usersService.AddUserToRoleAsync(platformAdmin, IdentityDefinitions.PlatformAdmin, cancellationToken);
             if (!result.Succeeded)
                 throw new InvalidOperationException("E2E platform-admin role assignment failed.");
         }

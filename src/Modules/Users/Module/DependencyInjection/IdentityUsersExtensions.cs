@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Application.Authorization;
 using Vitarish.Users.Application.ProfileCompletion;
+using Vitarish.Users.Contracts.Authorization;
+using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Options;
 using Vitarish.Users.Infrastructure;
@@ -51,6 +53,14 @@ public static class IdentityUsersExtensions
 
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));
+        _ = builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy(UsersAuthorizationPolicies.ManageAccounts, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
+            options.AddPolicy(UsersAuthorizationPolicies.ReadSecurityState, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
+            options.AddPolicy(UsersAuthorizationPolicies.AssignGlobalRole, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
+            options.AddPolicy(UsersAuthorizationPolicies.ReadTenantRoles, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
+            options.AddPolicy(UsersAuthorizationPolicies.ReplaceTenantRole, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
+        });
         _ = builder.Services.Configure<PersonalAccessTokenOptions>(builder.Configuration.GetSection("PersonalAccessTokens"));
         _ = builder.Services.Configure<TemporaryAutoAuthLinkOptions>(
             builder.Configuration.GetSection("Vitarish").GetSection(TemporaryAutoAuthLinkOptions.SectionName));
