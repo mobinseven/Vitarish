@@ -4,9 +4,12 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Moq" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Libraries\Hosting\Hosting.csproj" />
+    <ProjectReference Include="..\..\..\src\Hosts\Main\Main.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Aggregator\Core\Modules.Aggregator.Core.csproj" />
     <ProjectReference Include="..\..\..\src\Apps\Aggregator\Core\Apps.Aggregator.Core.csproj" />
   </ItemGroup>

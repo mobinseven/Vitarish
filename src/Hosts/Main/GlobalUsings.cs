@@ -10,3 +10,4 @@ global using Vitarish.Users.Application.Abstractions;
 global using Vitarish.Users.Domain.Entities;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Vitarish.Host.Tests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Main.Tests")]
