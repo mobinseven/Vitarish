@@ -14,6 +14,7 @@ using Vitarish.Communications.Infrastructure.Data;
 using Vitarish.Clinic.Domain.Models;
 using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Files.Domain.Entities;
+using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Infrastructure.Data;
 
@@ -28,6 +29,8 @@ internal static class E2eFixtureSeeder
     public const string PatientName = "E2E Patient";
     public const string PatientFirstName = "E2E";
     public const string PatientLastName = "Patient";
+    private const string TenantAFileChecksum = "720B672F1CF84CDE6F1788EECF15D8FA940BBEE7D6610D1B2E2546E85969A726";
+    private const string TenantBFileChecksum = "C869566813A0DFFB02AB1863035E73FC9F29E569B795BEF12E4EB7F6D80DFDA7";
 
     public static async Task SeedAsync(IServiceProvider services, string password, CancellationToken cancellationToken)
     {
@@ -209,13 +212,26 @@ internal static class E2eFixtureSeeder
                 Id = fileId,
                 TenantId = tenant.Id.ToString(),
                 ContentType = "text/plain",
-                Checksum = "e2e-tenant-a-file-checksum",
+                Checksum = TenantAFileChecksum,
                 Url = "e2e/tenant-a/file.txt",
                 Metadata = "{\"size\":13}"
             });
             _ = await files.SaveChangesAsync(cancellationToken);
         }
-        await EnsureObjectAsync(objectStorage, "e2e-tenant-a-file-checksum", "tenant-a-file", cancellationToken);
+        await EnsureObjectAsync(objectStorage, TenantAFileChecksum, "tenant-a-file", cancellationToken);
+        IFileIntegrityService fileIntegrity = scope.ServiceProvider.GetRequiredService<IFileIntegrityService>();
+        FileInformationReadDto tenantAFile = new()
+        {
+            Id = fileId,
+            Owner = tenant.Id.ToString(),
+            Checksum = TenantAFileChecksum,
+            ContentType = "text/plain",
+            Metadata = new FileMetadata { Size = 13 }
+        };
+        _ = await fileIntegrity.BeginLegacyEnrollmentAsync(tenantAFile, cancellationToken);
+        FileIntegrityVerificationResult tenantAFileVerification = await fileIntegrity.VerifyAsync(tenantAFile, cancellationToken);
+        if (!tenantAFileVerification.IsVerified)
+            throw new InvalidOperationException("E2E tenant-A file integrity enrollment failed.");
 
         string roleName = $"{tenant.Id}:{IdentityDefinitions.TenantOwner}";
         if (!await roles.RoleExistsAsync(roleName))
@@ -327,13 +343,26 @@ internal static class E2eFixtureSeeder
                 Id = tenantBFileId,
                 TenantId = tenantB.Id.ToString(),
                 ContentType = "text/plain",
-                Checksum = "e2e-tenant-b-file-checksum",
+                Checksum = TenantBFileChecksum,
                 Url = "e2e/tenant-b/file.txt",
                 Metadata = "{\"size\":13}"
             });
             _ = await tenantBFiles.SaveChangesAsync(cancellationToken);
         }
-        await EnsureObjectAsync(objectStorage, "e2e-tenant-b-file-checksum", "tenant-b-file", cancellationToken);
+        await EnsureObjectAsync(objectStorage, TenantBFileChecksum, "tenant-b-file", cancellationToken);
+        IFileIntegrityService tenantBFileIntegrity = tenantBScope.ServiceProvider.GetRequiredService<IFileIntegrityService>();
+        FileInformationReadDto tenantBFile = new()
+        {
+            Id = tenantBFileId,
+            Owner = tenantB.Id.ToString(),
+            Checksum = TenantBFileChecksum,
+            ContentType = "text/plain",
+            Metadata = new FileMetadata { Size = 13 }
+        };
+        _ = await tenantBFileIntegrity.BeginLegacyEnrollmentAsync(tenantBFile, cancellationToken);
+        FileIntegrityVerificationResult tenantBFileVerification = await tenantBFileIntegrity.VerifyAsync(tenantBFile, cancellationToken);
+        if (!tenantBFileVerification.IsVerified)
+            throw new InvalidOperationException("E2E tenant-B file integrity enrollment failed.");
 
         if (!await roles.RoleExistsAsync(IdentityDefinitions.PlatformAdmin))
             _ = (await roles.CreateAsync(new IdentityRole(IdentityDefinitions.PlatformAdmin))).Succeeded;

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Audit.Domain;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Modules.Base.Core.Endpoints;
 
@@ -22,29 +23,47 @@ public static class FilesApi
     private static async Task GetFileByIdAsync(
         Guid id,
         HttpContext context,
-        IFileInformationService fileInfoService,
+        IFileMetadataAccess metadataAccess,
+        IFileIntegrityService integrityService,
+        IFileTransferAudit transferAudit,
         IServiceProvider services)
     {
-        FileInformationReadDto? fileInfo = await fileInfoService.GetAsync(id, context.RequestAborted).GetValueOrDefaultAsync();
+        FileInformationReadDto? fileInfo = await metadataAccess.AuthorizeDownloadAsync(id, context.RequestAborted).ConfigureAwait(false);
 
         if (fileInfo is null)
         {
+            await transferAudit.RecordExportAsync(id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized, CancellationToken.None).ConfigureAwait(false);
             context.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
 
         context.RequestAborted.ThrowIfCancellationRequested();
 
-        IObjectStorageService storageService = services.GetRequiredService<IObjectStorageService>();
-        bool exists = await storageService.ExistsAsync(fileInfo.Checksum, context.RequestAborted);
-
-        if (!exists)
+        FileIntegrityVerificationResult verification;
+        try
         {
+            verification = await integrityService.VerifyAsync(fileInfo, context.RequestAborted);
+        }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            await transferAudit.RecordExportAsync(id, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
+            context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+            return;
+        }
+
+        if (!verification.IsVerified || string.IsNullOrWhiteSpace(verification.ObjectKey))
+        {
+            await transferAudit.RecordExportAsync(id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
             context.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
 
-        ObjectMetadata metadata = await storageService.GetMetadataAsync(fileInfo.Checksum, context.RequestAborted);
+        IObjectStorageService storageService = services.GetRequiredService<IObjectStorageService>();
+        ObjectMetadata metadata = new(verification.ExpectedLength, verification.ExpectedContentType);
 
         context.Response.ContentType = metadata.ContentType ?? fileInfo.ContentType ?? "application/octet-stream";
         context.Response.Headers.AcceptRanges = "bytes";
@@ -70,12 +89,25 @@ public static class FilesApi
             context.Response.ContentLength = metadata.Size;
         }
 
-        await storageService.StreamToAsync(
-            fileInfo.Checksum,
-            context.Response.Body,
-            isRangeRequest ? offset : null,
-            isRangeRequest ? length : null,
-            context.RequestAborted);
+        try
+        {
+            await storageService.StreamToAsync(
+                verification.ObjectKey,
+                context.Response.Body,
+                isRangeRequest ? offset : null,
+                isRangeRequest ? length : null,
+                context.RequestAborted);
+            await transferAudit.RecordExportAsync(id, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            await transferAudit.RecordExportAsync(id, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
+            throw;
+        }
     }
 
     private static (long offset, long length, bool isRangeRequest) ParseRangeHeader(string? rangeHeader, long fileSize)

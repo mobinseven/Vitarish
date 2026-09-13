@@ -14,7 +14,9 @@
 	</ItemGroup>
 	<ItemGroup>
 				<ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
-<ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
+		<ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
+		<ProjectReference Include="..\..\..\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
+		<ProjectReference Include="..\..\..\Libraries\Audit\Audit.Domain\Audit.Domain.csproj" />
 		<ProjectReference Include="..\Application\Files.Application.csproj" />
 	  <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>

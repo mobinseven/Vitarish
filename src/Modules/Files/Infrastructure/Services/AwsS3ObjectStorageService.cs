@@ -101,15 +101,12 @@ public sealed class AwsS3ObjectStorageService(
 
     public async Task<Stream> DownloadAsync(string objectKey, CancellationToken cancellationToken = default)
     {
-        MemoryStream buffer = new();
-        using GetObjectResponse response = await client.GetObjectAsync(new GetObjectRequest
+        GetObjectResponse response = await client.GetObjectAsync(new GetObjectRequest
         {
             BucketName = options.BucketName,
             Key = objectKey
-        }, cancellationToken);
-        await response.ResponseStream.CopyToAsync(buffer, cancellationToken);
-        _ = buffer.Seek(0, SeekOrigin.Begin);
-        return buffer;
+        }, cancellationToken).ConfigureAwait(false);
+        return new S3ResponseStream(response);
     }
     public async Task StreamToAsync
         (
@@ -203,5 +200,45 @@ public sealed class AwsS3ObjectStorageService(
             Verb = verb
         };
         return Task.FromResult(client.GetPreSignedURL(request));
+    }
+
+    private sealed class S3ResponseStream(GetObjectResponse response) : Stream
+    {
+        private readonly Stream responseStream = response.ResponseStream;
+
+        public override bool CanRead => responseStream.CanRead;
+        public override bool CanSeek => responseStream.CanSeek;
+        public override bool CanWrite => responseStream.CanWrite;
+        public override long Length => responseStream.Length;
+        public override long Position { get => responseStream.Position; set => responseStream.Position = value; }
+        public override void Flush() => responseStream.Flush();
+        public override Task FlushAsync(CancellationToken cancellationToken) => responseStream.FlushAsync(cancellationToken);
+        public override int Read(byte[] buffer, int offset, int count) => responseStream.Read(buffer, offset, count);
+        public override int Read(Span<byte> buffer) => responseStream.Read(buffer);
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) => responseStream.ReadAsync(buffer, cancellationToken);
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => responseStream.ReadAsync(buffer, offset, count, cancellationToken);
+        public override long Seek(long offset, SeekOrigin origin) => responseStream.Seek(offset, origin);
+        public override void SetLength(long value) => responseStream.SetLength(value);
+        public override void Write(byte[] buffer, int offset, int count) => responseStream.Write(buffer, offset, count);
+        public override void Write(ReadOnlySpan<byte> buffer) => responseStream.Write(buffer);
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default) => responseStream.WriteAsync(buffer, cancellationToken);
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => responseStream.WriteAsync(buffer, offset, count, cancellationToken);
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                responseStream.Dispose();
+                response.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
+
+        public override async ValueTask DisposeAsync()
+        {
+            await responseStream.DisposeAsync().ConfigureAwait(false);
+            response.Dispose();
+            await base.DisposeAsync().ConfigureAwait(false);
+        }
     }
 }

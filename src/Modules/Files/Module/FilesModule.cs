@@ -2,10 +2,12 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Vitarish.Files.Application.Abstractions;
+using Vitarish.Files.Application.Access;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Api;
 using Vitarish.Files.Infrastructure.Data;
@@ -60,7 +62,12 @@ public class FilesModule : Modules.Base.Core.Module, IFilesModule
 
         _ = services.AddSingleton<IObjectStorageService, AwsS3ObjectStorageService>();
         _ = services.AddScoped<IFilesService, FilesService>();
+        _ = services.AddScoped<IFileIntegrityService, FileIntegrityService>();
+        _ = services.AddScoped<IFileTransferAudit, FileTransferAudit>();
         _ = services.AddScoped<IFileInformationService, FileInformationService>();
+        _ = services.AddScoped<IFileMetadataAccess, FileMetadataAccess>();
+        _ = services.AddScoped<IFileTransferAuthorization, FileTransferAuthorization>();
+        _ = services.AddScoped<IInterceptor, FileIntegrityLifecycleInterceptor>();
 
         if (configureDbContext != null)
         {

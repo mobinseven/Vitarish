@@ -1,9 +1,12 @@
 using System.Globalization;
+using System.Buffers;
+using System.Security.Cryptography;
 using System.Threading.Channels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Audit.Domain;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Contracts.Errors;
 using Vitarish.Files.Contracts.Requests;
@@ -29,51 +32,82 @@ public static class FilesApiEndpointMapping
         return endpoints;
     }
 
-    private static async Task<IResult> GetFileInformationAsync(Guid fileId, IFileInformationService service, CancellationToken cancellationToken)
+    private static async Task<IResult> GetFileInformationAsync(Guid fileId, IFileMetadataAccess access, CancellationToken cancellationToken)
     {
-        D.FileInformationReadDto? file = await service.GetAsync(fileId, cancellationToken).GetValueOrDefaultAsync().ConfigureAwait(false);
+        D.FileInformationReadDto? file = await access.GetAsync(fileId, cancellationToken).ConfigureAwait(false);
         return file is null
             ? Results.NotFound(new FilesError(FilesErrorCode.NotFound, "File information was not found."))
             : Results.Ok(ToContract(file));
     }
 
-    private static async Task<IResult> FindFilesAsync(ListFilesRequest request, IFileInformationService service, CancellationToken cancellationToken)
+    private static async Task<IResult> FindFilesAsync(ListFilesRequest request, IFileMetadataAccess access, CancellationToken cancellationToken)
     {
-        IReadOnlyList<D.FileInformationReadDto> files = await service.GetListAsync(ToDomain(request.Descriptor), cancellationToken).GetValueOrDefaultAsync().ConfigureAwait(false) ?? [];
+        IReadOnlyList<D.FileInformationReadDto> files = await access.ListAsync(ToDomain(request.Descriptor), cancellationToken).ConfigureAwait(false);
         return Results.Ok(files.Select(ToContract).ToList());
     }
 
-    private static async Task<IResult> CreateFileRecordAsync(CreateFileRecordRequest request, IFileInformationService service, CancellationToken cancellationToken)
+    private static async Task<IResult> CreateFileRecordAsync(CreateFileRecordRequest request, IFileMetadataAccess access, CancellationToken cancellationToken)
     {
         if (request.File is null || string.IsNullOrWhiteSpace(request.File.ContentType))
         {
             return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "Content type is required."));
         }
 
-        D.FileInformationReadDto? file = await service.AddAsync(ToDomain(request.File), cancellationToken).GetValueOrDefaultAsync().ConfigureAwait(false);
+        D.FileInformationReadDto? file = await access.CreateAsync(ToDomain(request.File), cancellationToken).ConfigureAwait(false);
         return file is null
             ? Results.Conflict(new FilesError(FilesErrorCode.Conflict, "File record could not be created."))
             : Results.Ok(ToContract(file));
     }
 
-    private static async Task<IResult> UploadFileAsync(HttpRequest httpRequest, IFilesService filesService, CancellationToken cancellationToken)
+    private static async Task<IResult> UploadFileAsync(
+        HttpRequest httpRequest,
+        IFilesService filesService,
+        IFileTransferAudit transferAudit,
+        IFileTransferAuthorization transferAuthorization,
+        CancellationToken cancellationToken)
     {
         if (!httpRequest.HasFormContentType)
         {
+            await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
             return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "Multipart form content is required."));
+        }
+
+        if (httpRequest.ContentLength is > D.FileTransferPolicy.MaximumMultipartRequestBytes)
+        {
+            await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
+            return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "Multipart request exceeds the maximum supported size."));
         }
 
         IFormCollection form = await httpRequest.ReadFormAsync(cancellationToken).ConfigureAwait(false);
         IFormFile? content = form.Files.GetFile("content");
         if (content is null || content.Length <= 0)
         {
+            await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
             return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "File content is required."));
         }
 
-        FileUploadRequest uploadRequest = ReadUploadRequest(form, content);
-        if (string.IsNullOrWhiteSpace(uploadRequest.Checksum) || string.IsNullOrWhiteSpace(uploadRequest.ContentType))
+        if (content.Length > D.FileTransferPolicy.MaximumContentBytes)
         {
-            return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "Checksum and content type are required."));
+            await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
+            return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "File content exceeds the maximum supported size."));
+        }
+
+        FileUploadRequest uploadRequest = ReadUploadRequest(form, content);
+        if (string.IsNullOrWhiteSpace(uploadRequest.Checksum) ||
+            !D.FileTransferPolicy.TryNormalizeContentType(content.ContentType, out string actualContentType) ||
+            !D.FileTransferPolicy.TryNormalizeContentType(uploadRequest.ContentType, out string declaredContentType) ||
+            !string.Equals(actualContentType, declaredContentType, StringComparison.Ordinal))
+        {
+            await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
+            return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "Checksum and matching content type are required."));
+        }
+
+        uploadRequest = uploadRequest with { ContentType = declaredContentType };
+
+        if (!await transferAuthorization.CanUploadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            await transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized, CancellationToken.None).ConfigureAwait(false);
+            return Results.Forbid();
         }
 
         await using Stream input = content.OpenReadStream();
@@ -118,7 +152,11 @@ public static class FilesApiEndpointMapping
         {
             return Results.Conflict(new FilesError(FilesErrorCode.Conflict, ex.Message));
         }
-finally
+        catch (Exception)
+        {
+            return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
+        finally
         {
             if (!pumpCancellation.IsCancellationRequested)
             {
@@ -134,47 +172,92 @@ finally
             {
                 // Suppress background pump exceptions to avoid masking the primary exception
             }
+
+            while (channel.Reader.TryRead(out byte[]? unreadChunk))
+            {
+                CryptographicOperations.ZeroMemory(unreadChunk);
+            }
         }
     }
 
-    private static async Task<IResult> DownloadFileAsync(Guid fileId, HttpContext context, IFileInformationService fileInfoService, IServiceProvider services)
+    private static Task RecordUploadRejectionAsync(IFileTransferAudit transferAudit) =>
+        transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+
+    private static async Task<IResult> DownloadFileAsync(Guid fileId, HttpContext context, IFileMetadataAccess metadataAccess, IFileIntegrityService integrityService, IFileTransferAudit transferAudit, IServiceProvider services)
     {
-        D.FileInformationReadDto? fileInfo = await fileInfoService.GetAsync(fileId, context.RequestAborted).GetValueOrDefaultAsync().ConfigureAwait(false);
+        D.FileInformationReadDto? fileInfo = await metadataAccess.AuthorizeDownloadAsync(fileId, context.RequestAborted).ConfigureAwait(false);
         if (fileInfo is null || string.IsNullOrWhiteSpace(fileInfo.Checksum))
         {
+            await transferAudit.RecordExportAsync(fileId, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
+            return Results.NotFound(new FilesError(FilesErrorCode.NotFound, "File content was not found."));
+        }
+
+        D.FileIntegrityVerificationResult verification;
+        try
+        {
+            verification = await integrityService.VerifyAsync(fileInfo, context.RequestAborted).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            await transferAudit.RecordExportAsync(fileId, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
+            return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
+
+        if (!verification.IsVerified || string.IsNullOrWhiteSpace(verification.ObjectKey))
+        {
+            await transferAudit.RecordExportAsync(fileId, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.IntegrityValidationFailed, CancellationToken.None).ConfigureAwait(false);
             return Results.NotFound(new FilesError(FilesErrorCode.NotFound, "File content was not found."));
         }
 
         IObjectStorageService storageService = services.GetRequiredService<IObjectStorageService>();
-        if (!await storageService.ExistsAsync(fileInfo.Checksum, context.RequestAborted).ConfigureAwait(false))
-        {
-            return Results.NotFound(new FilesError(FilesErrorCode.NotFound, "File content was not found."));
-        }
-
-        ObjectMetadata metadata = await storageService.GetMetadataAsync(fileInfo.Checksum, context.RequestAborted).ConfigureAwait(false);
-        context.Response.ContentType = metadata.ContentType ?? fileInfo.ContentType ?? "application/octet-stream";
-        context.Response.ContentLength = metadata.Size;
+        context.Response.ContentType = verification.ExpectedContentType ?? fileInfo.ContentType ?? "application/octet-stream";
+        context.Response.ContentLength = verification.ExpectedLength;
 
         if (HttpMethods.IsHead(context.Request.Method))
         {
+            await transferAudit.RecordExportAsync(fileId, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
             return Results.Empty;
         }
 
-        await storageService.StreamToAsync(fileInfo.Checksum, context.Response.Body, cancellationToken: context.RequestAborted).ConfigureAwait(false);
-        return Results.Empty;
+        try
+        {
+            await storageService.StreamToAsync(verification.ObjectKey, context.Response.Body, cancellationToken: context.RequestAborted).ConfigureAwait(false);
+            await transferAudit.RecordExportAsync(fileId, SecurityAuditOutcome.Succeeded, null, context.RequestAborted).ConfigureAwait(false);
+            return Results.Empty;
+        }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            await transferAudit.RecordExportAsync(fileId, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.EndpointException, CancellationToken.None).ConfigureAwait(false);
+            return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        }
     }
 
     private static async Task PumpStreamAsync(Stream input, ChannelWriter<byte[]> writer, CancellationToken cancellationToken)
     {
         try
         {
-            byte[] buffer = new byte[64 * 1024];
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(64 * 1024);
+            try
+            {
             while (true)
             {
                 int read = await input.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken).ConfigureAwait(false);
                 if (read == 0) break;
                 byte[] chunk = buffer[..read].ToArray();
                 await writer.WriteAsync(chunk, cancellationToken).ConfigureAwait(false);
+            }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
             }
             writer.TryComplete();
         }

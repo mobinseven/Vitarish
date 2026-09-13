@@ -6,7 +6,10 @@ using Vitarish.Knowledge.Application.Contracts;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Importing;
 
-public sealed class KnowledgeImportFileReader(IFileInformationService fileInformationService, IObjectStorageService storage) : IKnowledgeImportFileReader
+public sealed class KnowledgeImportFileReader(
+    IFileInformationService fileInformationService,
+    IFileIntegrityService integrityService,
+    IObjectStorageService storage) : IKnowledgeImportFileReader
 {
     public async Task<KnowledgeImportFile> OpenAsync(Guid fileInformationId, string tenantId, CancellationToken cancellationToken)
     {
@@ -25,14 +28,14 @@ public sealed class KnowledgeImportFileReader(IFileInformationService fileInform
             throw new InvalidDataException($"File information '{fileInformationId}' does not have a checksum.");
         }
 
-        bool exists = await storage.ExistsAsync(file.Checksum, cancellationToken);
-        if (!exists)
+        FileIntegrityVerificationResult verification = await integrityService.VerifyAsync(file, cancellationToken).ConfigureAwait(false);
+        if (!verification.IsVerified || string.IsNullOrWhiteSpace(verification.ObjectKey))
         {
             throw new FileNotFoundException($"Stored object for file information '{fileInformationId}' was not found.");
         }
 
-        Stream content = await storage.DownloadAsync(file.Checksum, cancellationToken);
+        Stream content = await storage.DownloadAsync(verification.ObjectKey, cancellationToken).ConfigureAwait(false);
         string displayName = string.IsNullOrWhiteSpace(file.Tag) ? fileInformationId.ToString() : file.Tag;
-        return new KnowledgeImportFile(content, displayName, file.Checksum, $"file:{fileInformationId}", file.ContentType, file.Metadata?.Size > 0 ? file.Metadata.Size : null);
+        return new KnowledgeImportFile(content, displayName, file.Checksum, $"file:{fileInformationId}", verification.ExpectedContentType, verification.ExpectedLength);
     }
 }

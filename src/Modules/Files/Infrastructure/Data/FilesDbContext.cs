@@ -33,7 +33,10 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
     public TenantMismatchMode TenantMismatchMode { get; set; } = TenantMismatchMode.Throw;
     public TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
 
+    private string CurrentTenantId => TenantInfo?.Id ?? throw new InvalidOperationException("Tenant ID cannot be recognized.");
+
     internal DbSet<FileInformation> Files => Set<FileInformation>();
+    internal DbSet<FileIntegrityRecord> FileIntegrityRecords => Set<FileIntegrityRecord>();
 
     public FilesDbContext(
         DbContextOptions<FilesDbContext> options,
@@ -84,6 +87,14 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
 
         _ = modelBuilder.Entity<FileInformation>()
             .HasIndex(entity => entity.Checksum);
+
+        EntityTypeBuilder<FileIntegrityRecord> integrityRecord = modelBuilder.Entity<FileIntegrityRecord>();
+        _ = integrityRecord.HasIndex(entity => entity.FileInformationId).IsUnique();
+        _ = integrityRecord.HasOne<FileInformation>()
+            .WithOne()
+            .HasForeignKey<FileIntegrityRecord>(entity => entity.FileInformationId)
+            .OnDelete(DeleteBehavior.ClientNoAction);
+        _ = integrityRecord.HasQueryFilter(entity => entity.TenantId == CurrentTenantId);
     }
 
     private void ConfigureTenantEntity(ModelBuilder modelBuilder)
@@ -94,7 +105,7 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
         // platform-admin capability and must not be represented by a tenant value.
         _ = entityBuilder.HasQueryFilter(e =>
             EF.Property<DateTime?>(e, "DeletedAt") == null &&
-            e.TenantId == TenantInfo.Id);
+            e.TenantId == CurrentTenantId);
 
         // Do NOT call IsMultiTenant() as we have custom tenant filtering logic above
     }

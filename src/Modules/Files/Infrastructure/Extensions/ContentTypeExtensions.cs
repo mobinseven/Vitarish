@@ -2,17 +2,23 @@ using HeyRed.Mime;
 
 public static class ContentTypeExtensions
 {
-    public static string SafeGetExtension(string mimeType)
+    public static bool TryGetExtension(string mimeType, out string extension)
     {
+        extension = string.Empty;
         try
         {
-            string ext = MimeTypesMap.GetExtension(mimeType);
-            return string.IsNullOrWhiteSpace(ext) ? "bin" : ext.TrimStart('.');
+            extension = MimeTypesMap.GetExtension(mimeType)?.TrimStart('.') ?? string.Empty;
+            return !string.IsNullOrWhiteSpace(extension);
         }
         catch
         {
-            return "bin";
+            return false;
         }
+    }
+
+    public static string SafeGetExtension(string mimeType)
+    {
+        return TryGetExtension(mimeType, out string extension) ? extension : "bin";
     }
 
     public static string SafeGetContentType(string extension)

@@ -7,7 +7,15 @@ namespace Vitarish.Files.Infrastructure.BackgroundJobs;
 /// </summary>
 public sealed class FilesRecurringJobScheduler(HangfireFilesJobManager filesJobManager) : IRecurringJobScheduler
 {
-    public void ScheduleJobs() => filesJobManager.ScheduleProcessing();
+    public void ScheduleJobs()
+    {
+        filesJobManager.ScheduleProcessing();
+        filesJobManager.ScheduleIntegrityBaseline();
+    }
 
-    public void TriggerStartupJobs() => filesJobManager.TriggerProcessing();
+    public void TriggerStartupJobs()
+    {
+        filesJobManager.TriggerProcessing();
+        filesJobManager.TriggerIntegrityBaseline();
+    }
 }

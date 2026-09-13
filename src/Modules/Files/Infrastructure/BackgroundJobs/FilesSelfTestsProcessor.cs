@@ -82,7 +82,7 @@ public class FilesSelfTestsProcessor(
         }
         finally
         {
-            ArrayPool<byte>.Shared.Return(buffer);
+            ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
         }
     }
 

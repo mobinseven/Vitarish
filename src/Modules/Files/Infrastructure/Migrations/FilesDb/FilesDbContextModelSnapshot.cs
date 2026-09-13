@@ -18,7 +18,7 @@ namespace Vitarish.Files.Infrastructure.Migrations.FilesDb
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("Files")
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -89,6 +89,78 @@ namespace Vitarish.Files.Infrastructure.Migrations.FilesDb
                     b.HasIndex("Checksum");
 
                     b.ToTable("Files", "Files");
+                });
+
+            modelBuilder.Entity("Vitarish.Files.Domain.Entities.FileIntegrityRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("ContentLength")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Digest")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("FileInformationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ObjectKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ProjectionVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileInformationId")
+                        .IsUnique();
+
+                    b.ToTable("FileIntegrityRecords", "Files");
+                });
+
+            modelBuilder.Entity("Vitarish.Files.Domain.Entities.FileIntegrityRecord", b =>
+                {
+                    b.HasOne("Vitarish.Files.Domain.Entities.FileInformation", null)
+                        .WithOne()
+                        .HasForeignKey("Vitarish.Files.Domain.Entities.FileIntegrityRecord", "FileInformationId")
+                        .OnDelete(DeleteBehavior.ClientNoAction)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

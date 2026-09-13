@@ -9,6 +9,8 @@ public static class FilesBackgroundJobExtensions
     public static IServiceCollection AddFilesBackgroundJobs(this IServiceCollection services)
     {
         _ = services.AddTransient<FilesSelfTestsProcessor>();
+        _ = services.AddTransient<FileIntegrityBaselineProcessor>();
+        _ = services.AddScoped<FileIntegrityBaselineTenantProcessor>();
         _ = services.AddSingleton<HangfireFilesJobManager>();
         _ = services.AddSingleton<IRecurringJobScheduler, FilesRecurringJobScheduler>();
         return services;
