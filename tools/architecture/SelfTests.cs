@@ -217,6 +217,7 @@ internal static class SelfTests
         Require(invalid.Any(violation => violation.Kind == "RouteUnresolved"), "dynamic route was not rejected");
         Require(invalid.Any(violation => violation.Kind == "OperationIdMissing"), "raw endpoint operation ID was not rejected");
         Require(invalid.Any(violation => violation.Kind == "AuthenticationUnresolved"), "unclassified authentication was not rejected");
+        Require(invalid.Any(violation => violation.Kind == "UserDataOperationDispositionMissing"), "incomplete user-data operation inventory was not rejected");
         SourceSecuritySurfaceSelfTest();
         Console.WriteLine("Security baseline Roslyn self-test passed");
     }

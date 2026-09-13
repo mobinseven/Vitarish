@@ -59,10 +59,16 @@ internal static class SecurityBaselineCheck
     {
         foreach (DiscoveredEndpoint endpoint in DiscoverEndpoints(index))
         {
+            UserDataOperationInventory inventory = CreateUserDataInventory(endpoint);
             Console.WriteLine($"endpoint={endpoint.OperationId}; method={endpoint.Method}; route={endpoint.Route}; " +
                               $"owner={endpoint.File.RelativePath}:{endpoint.Line}; auth={endpoint.Authentication}; " +
                               $"profile={endpoint.Profile}; contentType={endpoint.ContentType}; openapi={endpoint.OpenApiStatus}; " +
-                              $"anonymous={endpoint.Anonymous}; audit={endpoint.Audit}; transfer={endpoint.Transfer}");
+                              $"anonymous={endpoint.Anonymous}; audit={endpoint.Audit}; transfer={endpoint.Transfer}; " +
+                              $"user-data-owner={inventory.Owner}; subject-session={inventory.SubjectAndSession}; " +
+                              $"object-operations={inventory.ProtectedObjectAndOperations}; authorization={inventory.Authorization}; " +
+                              $"direction={inventory.Direction}; format-size={inventory.FormatAndMaximumSize}; " +
+                              $"secure-channel={inventory.SecureChannel}; required-audit={inventory.RequiredAudit}; " +
+                              $"rate-restriction={inventory.RateRestriction}");
         }
 
         foreach (SourceFile file in index.Files.Where(file => file.RelativePath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)))
@@ -126,6 +132,10 @@ internal static class SecurityBaselineCheck
 
             if (endpoint.Profile is "AnonymousWebhook" && endpoint.Webhook is null)
                 violations.Add(endpoint.Violation("WebhookMetadataMissing", "Attach typed WebhookEndpointMetadata to the webhook endpoint."));
+
+            UserDataOperationInventory inventory = CreateUserDataInventory(endpoint);
+            if (inventory.IsIncomplete)
+                violations.Add(endpoint.Violation("UserDataOperationDispositionMissing", "Declare a stable operation ID, trusted authentication, transfer profile/content type, and audit disposition so the evaluated user-data inventory can classify the route."));
         }
 
         return violations;
@@ -632,6 +642,36 @@ internal static class SecurityBaselineCheck
         _ => null
     };
 
+    private static UserDataOperationInventory CreateUserDataInventory(DiscoveredEndpoint endpoint)
+    {
+        string? operation = endpoint.Method switch
+        {
+            "GET" or "HEAD" => "read-or-metadata",
+            "POST" => "create-or-command",
+            "PUT" or "PATCH" => "change",
+            "DELETE" => "delete",
+            _ => null
+        };
+        string? formatAndMaximumSize = endpoint.Profile switch
+        {
+            "MultipartUpload" => "declared-multipart-format; FileTransferPolicy.MaximumContentBytes",
+            "BinaryDownload" => "verified-stored-binary; FileTransferPolicy.MaximumContentBytes",
+            "Streaming" => endpoint.ContentType is null ? null : endpoint.ContentType + "; streaming-boundary",
+            _ => endpoint.ContentType is null ? null : endpoint.ContentType + "; route-contract-boundary"
+        };
+
+        return new UserDataOperationInventory(
+            Owner: endpoint.File.RelativePath,
+            SubjectAndSession: endpoint.Authentication,
+            ProtectedObjectAndOperations: endpoint.OperationId is null || operation is null ? null : endpoint.OperationId + ":" + operation,
+            Authorization: endpoint.Authentication,
+            Direction: endpoint.Transfer,
+            FormatAndMaximumSize: formatAndMaximumSize,
+            SecureChannel: endpoint.Authentication is null ? null : "evaluated-host-confidentiality-and-integrity-channel",
+            RequiredAudit: endpoint.Audit,
+            RateRestriction: "not-selected");
+    }
+
     private static string ExtractExclusionJustification(SourceFile file, InvocationExpressionSyntax invocation, GroupFact? group) =>
         group?.ExcludedFromOpenApi == true ? "group-typed-exclusion" : "typed-exclusion";
 
@@ -672,5 +712,27 @@ internal static class SecurityBaselineCheck
     {
         public ArchitectureViolation Violation(string kind, string remediation) =>
             new(File.RelativePath, Line, kind, Mapping, remediation);
+    }
+
+    private sealed record UserDataOperationInventory(
+        string? Owner,
+        string? SubjectAndSession,
+        string? ProtectedObjectAndOperations,
+        string? Authorization,
+        string? Direction,
+        string? FormatAndMaximumSize,
+        string? SecureChannel,
+        string? RequiredAudit,
+        string RateRestriction)
+    {
+        public bool IsIncomplete =>
+            string.IsNullOrWhiteSpace(Owner) ||
+            string.IsNullOrWhiteSpace(SubjectAndSession) ||
+            string.IsNullOrWhiteSpace(ProtectedObjectAndOperations) ||
+            string.IsNullOrWhiteSpace(Authorization) ||
+            string.IsNullOrWhiteSpace(Direction) ||
+            string.IsNullOrWhiteSpace(FormatAndMaximumSize) ||
+            string.IsNullOrWhiteSpace(SecureChannel) ||
+            string.IsNullOrWhiteSpace(RequiredAudit);
     }
 }
