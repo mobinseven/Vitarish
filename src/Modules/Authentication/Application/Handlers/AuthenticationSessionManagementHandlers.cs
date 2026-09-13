@@ -34,7 +34,7 @@ public sealed class ChangeUserInactivityTimeoutHandler(
 {
     public async Task<long> Handle(string userId, int? minutes, long expectedVersion, CancellationToken cancellationToken)
     {
-        if (requestContext.User?.IsInRole(IdentityDefinitions.PlatformAdmin) is not true)
+        if (!AuthenticationSecurityAuthorization.CanChangeUserInactivityPolicy(requestContext.User))
             throw new UnauthorizedAccessException("Only platform administrators may change inactivity policy.");
         if (minutes is < 1 or > 30)
             throw new ArgumentOutOfRangeException(nameof(minutes), "The inactivity timeout must be between 1 and 30 minutes.");

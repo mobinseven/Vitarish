@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Authentication.Api.DependencyInjection;
 using Vitarish.Authentication.Api.Endpoints;
 using Vitarish.Authentication.Contracts.Routes;
+using Vitarish.Authentication.Contracts.Authorization;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Modules.Base.Core.Endpoints;
 
@@ -44,7 +45,9 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
             if (IsPlatformAdminProtectedRoute(routePattern))
             {
                 authorizeMetadata.Should().Contain(attribute =>
-                    attribute.Policy == IdentityDefinitions.PlatformAdmin);
+                attribute.Policy == AuthenticationAuthorizationPolicies.ReadSessionPolicy ||
+                attribute.Policy == AuthenticationAuthorizationPolicies.ChangeSessionPolicy ||
+                attribute.Policy == AuthenticationAuthorizationPolicies.ChangeUserInactivityPolicy);
             }
         });
     }

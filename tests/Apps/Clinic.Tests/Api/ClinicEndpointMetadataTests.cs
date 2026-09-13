@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Vitarish.Clinic.Api;
+using Vitarish.Sea.Contracts.Authorization;
 
 namespace Clinic.Tests.Api;
 
@@ -16,7 +17,7 @@ public sealed class ClinicEndpointMetadataTests
     [Theory]
     [InlineData("ClinicListDashboardAppointments", "/dashboard/appointments")]
     [InlineData("ClinicListDashboardSurgeries", "/dashboard/surgeries")]
-    public void Dashboard_read_endpoints_are_protected_and_use_sea_manage(
+    public void Dashboard_read_endpoints_are_protected_and_use_sea_read_policy(
         string operationId,
         string route)
     {
@@ -32,7 +33,7 @@ public sealed class ClinicEndpointMetadataTests
 
         endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()!.HttpMethods.Should().ContainSingle().Which.Should().Be("GET");
         endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()
-            .Should().Contain(metadata => metadata.Policy == "Sea.Manage");
+            .Should().Contain(metadata => metadata.Policy == SeaAuthorizationPolicies.Read);
         endpoint.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()!.Route.Should().Contain(route);
     }
 
@@ -142,7 +143,7 @@ public sealed class ClinicEndpointMetadataTests
     }
 
     [Fact]
-    public void Find_or_create_keeps_its_operation_id_and_requires_sea_manage_authorization()
+    public void Find_or_create_keeps_its_operation_id_and_requires_sea_create_project_authorization()
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
         builder.Services.AddAuthorization();
@@ -156,11 +157,11 @@ public sealed class ClinicEndpointMetadataTests
                 == "ClinicFindOrCreatePatient");
 
         endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()
-            .Should().Contain(metadata => metadata.Policy == "Sea.Manage");
+            .Should().Contain(metadata => metadata.Policy == SeaAuthorizationPolicies.CreateProject);
     }
 
     [Fact]
-    public void Start_visit_prescription_keeps_its_operation_id_and_requires_sea_manage_authorization()
+    public void Start_visit_prescription_keeps_its_operation_id_and_requires_sea_create_project_authorization()
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
         builder.Services.AddAuthorization();
@@ -174,6 +175,6 @@ public sealed class ClinicEndpointMetadataTests
                 == "ClinicStartVisitPrescriptionDraft");
 
         endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()
-            .Should().Contain(metadata => metadata.Policy == "Sea.Manage");
+            .Should().Contain(metadata => metadata.Policy == SeaAuthorizationPolicies.CreateProject);
     }
 }

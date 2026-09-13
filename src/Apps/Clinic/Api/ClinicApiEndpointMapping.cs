@@ -28,6 +28,7 @@ using Vitarish.Clinic.Domain.Models;
 using Vitarish.Intelligence.Application.Agents;
 using Vitarish.Modules.Base.Core.Endpoints;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Sea.Contracts.Authorization;
 using ContractEducation = Vitarish.Clinic.Contracts.Enums.Education;
 using ContractGender = Vitarish.Clinic.Contracts.Enums.Gender;
 using ContractPatientSortBy = Vitarish.Clinic.Contracts.Enums.PatientSortBy;
@@ -43,7 +44,6 @@ public static class ClinicApiEndpointMapping
 {
     private const int DefaultSkip = 0;
     private const int DefaultTake = 100;
-    private const string SeaManagePolicy = "Sea.Manage";
 
     public static IEndpointRouteBuilder MapClinicApi(this IEndpointRouteBuilder endpoints)
     {
@@ -56,25 +56,25 @@ public static class ClinicApiEndpointMapping
         _ = group.MapModulePost(ClinicApiRoutes.PatientSearch, SearchPatientsAsync, "ClinicSearchPatients", typeof(PatientViewDto[]));
         _ = group.MapModulePost(ClinicApiRoutes.PatientIdentificationLookup, LookupPatientByIdentificationCodeAsync, "ClinicLookupPatientByIdentificationCode", typeof(PatientViewDto));
         _ = group.MapModulePost(ClinicApiRoutes.PatientFindOrCreate, FindOrCreatePatientAsync, "ClinicFindOrCreatePatient", typeof(PatientViewDto))
-            .RequireAuthorization(SeaManagePolicy);
+            .RequireAuthorization(SeaAuthorizationPolicies.CreateProject);
         _ = group.MapModuleGet(ClinicApiRoutes.PatientDetails, GetPatientDetailsAsync, "ClinicGetPatientDetails", typeof(PatientViewDto));
         _ = group.MapModulePut(ClinicApiRoutes.PatientUpdate, UpdatePatientAsync, "ClinicUpdatePatient", typeof(PatientViewDto))
-            .RequireAuthorization(SeaManagePolicy);
+            .RequireAuthorization(SeaAuthorizationPolicies.UpdateProject);
         _ = group.MapModuleGet(ClinicApiRoutes.SurgeryCatalogs, GetSurgeryCatalogs, "ClinicGetSurgeryCatalogs", typeof(SurgeryCatalogDto[]));
         _ = group.MapModuleGet(ClinicApiRoutes.Surgeries, ListSurgeriesAsync, "ClinicListSurgeries", typeof(SurgeryResponse[]))
-            .RequireAuthorization(SeaManagePolicy);
+            .RequireAuthorization(SeaAuthorizationPolicies.Read);
         _ = group.MapModuleGet(ClinicApiRoutes.DashboardAppointments, ListDashboardAppointmentsAsync, "ClinicListDashboardAppointments", typeof(DashboardAppointmentResponse[]))
-            .RequireAuthorization(SeaManagePolicy);
+            .RequireAuthorization(SeaAuthorizationPolicies.Read);
         _ = group.MapModuleGet(ClinicApiRoutes.DashboardSurgeries, ListDashboardSurgeriesAsync, "ClinicListDashboardSurgeries", typeof(DashboardSurgeryResponse[]))
-            .RequireAuthorization(SeaManagePolicy);
+            .RequireAuthorization(SeaAuthorizationPolicies.Read);
         _ = group.MapModuleGet(ClinicApiRoutes.PatientSurgeries, ListPatientSurgeriesAsync, "ClinicListPatientSurgeries", typeof(SurgeryResponse[]))
-            .RequireAuthorization(SeaManagePolicy);
+            .RequireAuthorization(SeaAuthorizationPolicies.Read);
         _ = group.MapModulePost(ClinicApiRoutes.PatientSurgeries, CreatePatientSurgeryAsync, "ClinicCreatePatientSurgery", typeof(SurgeryResponse))
-            .RequireAuthorization(SeaManagePolicy);
+            .RequireAuthorization(SeaAuthorizationPolicies.CreateProject);
         _ = group.MapModulePut(ClinicApiRoutes.SurgeryById, UpdateSurgeryAsync, "ClinicUpdateSurgery", typeof(SurgeryResponse))
-            .RequireAuthorization(SeaManagePolicy);
+            .RequireAuthorization(SeaAuthorizationPolicies.UpdateProject);
         _ = group.MapModulePost(ClinicApiRoutes.SurgeryCancel, CancelSurgeryAsync, "ClinicCancelSurgery", typeof(SurgeryResponse))
-            .RequireAuthorization(SeaManagePolicy);
+            .RequireAuthorization(SeaAuthorizationPolicies.UpdateProject);
         _ = group.MapModulePost(ClinicApiRoutes.PatientAssistant, RunCanonicalPatientAssistantAsync, "ClinicRunPatientAssistant", typeof(RunClinicAssistantResponse));
         _ = group.MapModulePost(ClinicApiRoutes.LegacyPatientAgent, RunLegacyPatientAgentAsync, "ClinicRunPatientAgent", typeof(RunClinicAssistantResponse));
         _ = group.MapModuleDelete(ClinicApiRoutes.PatientAssistantConversation, DeleteCanonicalPatientAssistantConversationAsync, "ClinicDeletePatientAssistantConversation");
@@ -134,7 +134,7 @@ public static class ClinicApiEndpointMapping
                 StartVisitPrescriptionDraftAsync,
                 "ClinicStartVisitPrescriptionDraft",
                 typeof(StartVisitPrescriptionDraftResponse))
-            .RequireAuthorization(SeaManagePolicy);
+            .RequireAuthorization(SeaAuthorizationPolicies.CreateProject);
 
         return endpoints;
     }

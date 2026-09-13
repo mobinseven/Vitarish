@@ -11,7 +11,7 @@ internal sealed class SeaManagementAuthorizationHandler(IRequestContext requestC
         AuthorizationHandlerContext context,
         OperationAuthorizationRequirement requirement)
     {
-        if (requirement.Name == SeaAuthorizationOperations.Manage.Name &&
+        if (SeaAuthorizationOperations.IsManagementOperation(requirement.Name) &&
             SeaPrincipalAccess.CanManage(context.User, requestContext.TenantId))
         {
             context.Succeed(requirement);

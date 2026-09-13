@@ -116,7 +116,7 @@ public static class SeaApiEndpointMapping
         _ = group.MapModuleGet(SeaApiRoutes.Statistics, GetStatisticsAsync, "SeaGetStatistics", typeof(C.DatabaseStatisticsReadDto));
 
     private static async Task<IResult> GetCapabilitiesAsync(ClaimsPrincipal user, IAuthorizationService authorization) =>
-        Results.Ok(new C.SeaCapabilitiesReadDto((await authorization.AuthorizeAsync(user, SeaAuthorizationPolicies.Manage)).Succeeded));
+        Results.Ok(new C.SeaCapabilitiesReadDto((await authorization.AuthorizeAsync(user, null, SeaAuthorizationOperations.ReadCapabilities)).Succeeded));
 
     private static async Task<IResult> ListProjectsAsync(
         ClaimsPrincipal user,
@@ -146,21 +146,21 @@ public static class SeaApiEndpointMapping
 
     private static async Task<IResult> CreateProjectAsync(C.ProjectWriteDto request, ClaimsPrincipal user, IProjectsService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.CreateProject)) return Results.Forbid();
         return Command(await service.AddAsync(ToDomain<D.ProjectWriteDto>(request), cancellationToken));
     }
 
     private static async Task<IResult> UpdateProjectAsync(C.ProjectWriteDto request, ClaimsPrincipal user, IProjectsService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
         if ((await service.GetAsync(request.Id, cancellationToken)).Value is null) return NotFound();
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.UpdateProject)) return Results.Forbid();
         return Command(await service.UpdateAsync(ToDomain<D.ProjectWriteDto>(request), cancellationToken));
     }
 
     private static async Task<IResult> DeleteProjectAsync(Guid id, ClaimsPrincipal user, IProjectsService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
         if ((await service.GetAsync(id, cancellationToken)).Value is null) return NotFound();
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.DeleteProject)) return Results.Forbid();
         EntityResult result = await service.RemoveAsync(id, cancellationToken);
         return result.IsSuccess ? Results.Ok(new SeaCommandResult(true, id)) : EntityFailure(result.Errors);
     }
@@ -216,21 +216,21 @@ public static class SeaApiEndpointMapping
 
     private static async Task<IResult> CreateProcedureAsync(C.ProcedureWriteDto request, ClaimsPrincipal user, IProceduresService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.CreateProcedure)) return Results.Forbid();
         return Command(await service.AddAsync(ToDomain<D.ProcedureWriteDto>(request), cancellationToken));
     }
 
     private static async Task<IResult> UpdateProcedureAsync(C.ProcedureWriteDto request, ClaimsPrincipal user, IProceduresService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
         if ((await service.GetAsync(request.Id, cancellationToken)).Value is null) return NotFound();
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.UpdateProcedure)) return Results.Forbid();
         return Command(await service.UpdateAsync(ToDomain<D.ProcedureWriteDto>(request), cancellationToken));
     }
 
     private static async Task<IResult> DeleteProcedureAsync(Guid id, ClaimsPrincipal user, IProceduresService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
         if ((await service.GetAsync(id, cancellationToken)).Value is null) return NotFound();
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.DeleteProcedure)) return Results.Forbid();
         await service.DeleteAsync(id, cancellationToken);
         return Results.Ok(new SeaCommandResult(true, id));
     }
@@ -286,7 +286,7 @@ public static class SeaApiEndpointMapping
         if ((await events.GetAsync(id, cancellationToken)).Value is null) return NotFound();
         bool canRead = await CanAsync(authorization, user, new SeaEventResource(id), SeaAuthorizationOperations.Read);
         bool canWrite = await CanAsync(authorization, user, new SeaEventResource(id), SeaAuthorizationOperations.Write);
-        bool canManage = await CanManageAsync(authorization, user);
+        bool canManage = await CanAsync(authorization, user, SeaAuthorizationOperations.ReadCapabilities);
         return Results.Ok(new C.EventCapabilitiesReadDto(canRead, canWrite, canManage));
     }
 
@@ -304,7 +304,7 @@ public static class SeaApiEndpointMapping
 
     private static async Task<IResult> CreateEventAsync(Guid? previousEventId, C.EventWriteDto request, ClaimsPrincipal user, IEventsService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.CreateEvent)) return Results.Forbid();
         return Command(await service.AddAsync(
             request.ProjectId,
             request.ProcedureId,
@@ -317,7 +317,7 @@ public static class SeaApiEndpointMapping
     private static async Task<IResult> UpdateEventAsync(C.EventWriteDto request, ClaimsPrincipal user, IEventsService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
         if ((await service.GetAsync(request.Id, cancellationToken)).Value is null) return NotFound();
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.UpdateEvent)) return Results.Forbid();
         return Command(await service.UpdateAsync(request.Id, request.Title ?? string.Empty, request.Description ?? string.Empty, cancellationToken));
     }
 
@@ -325,7 +325,7 @@ public static class SeaApiEndpointMapping
     {
         var eventResult = await service.GetAsync(id, cancellationToken);
         if (eventResult.Value is null) return NotFound();
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.DeleteEvent)) return Results.Forbid();
         return Results.Ok(new SeaCommandResult(await service.RemoveEventAsync(eventResult.Value.ProcedureId, id, cancellationToken), id));
     }
 
@@ -338,7 +338,7 @@ public static class SeaApiEndpointMapping
     private static async Task<IResult> MoveEventAsync(Guid id, bool up, ClaimsPrincipal user, IEventsService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
         if ((await service.GetAsync(id, cancellationToken)).Value is null) return NotFound();
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.MoveEvent)) return Results.Forbid();
         bool moved = up
             ? await service.MoveUpAsync(Guid.Empty, id, cancellationToken)
             : await service.MoveDownAsync(Guid.Empty, id, cancellationToken);
@@ -442,26 +442,26 @@ public static class SeaApiEndpointMapping
 
     private static async Task<IResult> ListRolesAsync(ClaimsPrincipal user, IRolesService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.ListRoles)) return Results.Forbid();
         return OkList<C.RoleReadDto>((await service.GetListAsync(new D.RoleDescriptorDto(), cancellationToken)).Value ?? []);
     }
 
     private static async Task<IResult> CreateRoleAsync(C.RoleWriteDto request, ClaimsPrincipal user, IRolesService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.CreateRole)) return Results.Forbid();
         return Results.Ok(new SeaCommandResult(true, await service.AddAsync(request.Name, cancellationToken)));
     }
 
     private static async Task<IResult> UpdateRoleAsync(C.RoleWriteDto request, ClaimsPrincipal user, IRolesService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.UpdateRole)) return Results.Forbid();
         await service.UpdateAsync(request.Id, request.Name, cancellationToken);
         return Results.Ok(new SeaCommandResult(true, request.Id));
     }
 
     private static async Task<IResult> DeleteRoleAsync(Guid id, ClaimsPrincipal user, IRolesService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.DeleteRole)) return Results.Forbid();
         await service.RemoveAsync(id, cancellationToken);
         return Results.Ok(new SeaCommandResult(true, id));
     }
@@ -469,20 +469,20 @@ public static class SeaApiEndpointMapping
     private static async Task<IResult> ListUserRolesAsync(string userId, ClaimsPrincipal user, IUserRolesService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(userId, out Guid id)) return Results.BadRequest(new SeaError(SeaErrorCode.ValidationFailure, "User ID must be a GUID."));
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.ListUserRoles)) return Results.Forbid();
         return OkList<C.UserRoleReadDto>((await service.GetListAsync(new D.UserRoleDescriptorDto { UserId = id }, cancellationToken)).Value ?? []);
     }
 
     private static async Task<IResult> AssignUserRoleAsync(C.UserRoleWriteDto request, ClaimsPrincipal user, IUserRolesService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.AssignUserRole)) return Results.Forbid();
         await service.AssignAsync(request.Id, request.RoleId, (DD.RoleType)(int)request.Type, cancellationToken);
         return Results.Ok(new SeaCommandResult(true));
     }
 
     private static async Task<IResult> RemoveUserRoleAsync(Guid id, ClaimsPrincipal user, IUserRolesService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.RemoveUserRole)) return Results.Forbid();
         await service.RemoveAsync(UserGuid(user), id, cancellationToken);
         return Results.Ok(new SeaCommandResult(true));
     }
@@ -490,7 +490,7 @@ public static class SeaApiEndpointMapping
     private static async Task<IResult> ListEventRolesAsync(Guid eventId, ClaimsPrincipal user, IEventsService events, IEventRolesService roles, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
         if ((await events.GetAsync(eventId, cancellationToken)).Value is null) return NotFound();
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.ListEventRoles)) return Results.Forbid();
         var ids = await roles.GetIdsAsync(eventId, cancellationToken);
         return Results.Ok(ids.ReadRoleIds.Concat(ids.WriteRoleIds).Distinct().ToArray());
     }
@@ -498,42 +498,42 @@ public static class SeaApiEndpointMapping
     private static async Task<IResult> ListEventReadRolesAsync(Guid eventId, ClaimsPrincipal user, IEventsService events, IEventRolesService roles, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
         if ((await events.GetAsync(eventId, cancellationToken)).Value is null) return NotFound();
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.ListEventReadRoles)) return Results.Forbid();
         return Results.Ok(await roles.GetReadIdsAsync(eventId, cancellationToken));
     }
 
     private static async Task<IResult> ListEventWriteRolesAsync(Guid eventId, ClaimsPrincipal user, IEventsService events, IEventRolesService roles, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
         if ((await events.GetAsync(eventId, cancellationToken)).Value is null) return NotFound();
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.ListEventWriteRoles)) return Results.Forbid();
         return Results.Ok(await roles.GetWriteIdsAsync(eventId, cancellationToken));
     }
 
     private static async Task<IResult> AssignEventRoleAsync(C.EventRoleWriteDto request, ClaimsPrincipal user, IEventRolesService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.AssignEventRole)) return Results.Forbid();
         await service.AssignAsync(request.EventId, request.RoleId, request.Type == CD.RoleType.Write, cancellationToken);
         return Results.Ok(new SeaCommandResult(true));
     }
 
     private static async Task<IResult> RemoveEventRoleAsync(Guid id, ClaimsPrincipal user, IEventRolesService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.RemoveEventRole)) return Results.Forbid();
         await service.RemoveAsync(id, cancellationToken);
         return Results.Ok(new SeaCommandResult(true));
     }
 
     private static async Task<IResult> GetStatisticsAsync(ClaimsPrincipal user, IDatabaseStatisticsService service, IAuthorizationService authorization, CancellationToken cancellationToken)
     {
-        if (!await CanManageAsync(authorization, user)) return Results.Forbid();
+        if (!await CanAsync(authorization, user, SeaAuthorizationOperations.ReadStatistics)) return Results.Forbid();
         return Results.Ok(ToContract<C.DatabaseStatisticsReadDto>(await service.GetAsync(cancellationToken)));
     }
 
-    private static async Task<bool> CanManageAsync(IAuthorizationService authorization, ClaimsPrincipal user) =>
-        (await authorization.AuthorizeAsync(user, SeaAuthorizationPolicies.Manage)).Succeeded;
-
     private static async Task<bool> CanAsync(IAuthorizationService authorization, ClaimsPrincipal user, object resource, IAuthorizationRequirement requirement) =>
         (await authorization.AuthorizeAsync(user, resource, requirement)).Succeeded;
+
+    private static async Task<bool> CanAsync(IAuthorizationService authorization, ClaimsPrincipal user, IAuthorizationRequirement requirement) =>
+        (await authorization.AuthorizeAsync(user, null, requirement)).Succeeded;
 
     private static IResult OkList<T>(IEnumerable<object> values) => Results.Ok(values.Select(ToContract<T>).ToArray());
     private static IResult NotFound() => Results.NotFound(new SeaError(SeaErrorCode.NotFound, "Sea resource was not found."));

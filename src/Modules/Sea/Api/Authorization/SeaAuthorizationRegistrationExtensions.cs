@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Sea.Contracts.Authorization;
 
 namespace Vitarish.Sea.Api.Authorization;
 
@@ -8,8 +9,11 @@ public static class SeaAuthorizationRegistrationExtensions
     public static IServiceCollection AddSeaApiAuthorization(this IServiceCollection services)
     {
         _ = services.AddAuthorization(options =>
-            options.AddPolicy(SeaAuthorizationPolicies.Manage, policy =>
-                policy.AddRequirements(SeaAuthorizationOperations.Manage)));
+        {
+            options.AddPolicy(SeaAuthorizationPolicies.Read, policy => policy.AddRequirements(SeaAuthorizationOperations.ReadManagement));
+            options.AddPolicy(SeaAuthorizationPolicies.CreateProject, policy => policy.AddRequirements(SeaAuthorizationOperations.CreateProject));
+            options.AddPolicy(SeaAuthorizationPolicies.UpdateProject, policy => policy.AddRequirements(SeaAuthorizationOperations.UpdateProject));
+        });
 
         _ = services.AddScoped<SeaManagementAuthorizationHandler>();
         _ = services.AddScoped<SeaEventAuthorizationHandler>();

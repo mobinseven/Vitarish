@@ -16,7 +16,7 @@ public sealed class GetSecurityAccessPolicyHandler(
 {
     public async Task<SecurityAccessPolicyState> Handle(GetSecurityAccessPolicyQuery query, CancellationToken cancellationToken)
     {
-        bool authorized = requestContext.User?.IsInRole(IdentityDefinitions.PlatformAdmin) is true;
+        bool authorized = AuthenticationSecurityAuthorization.CanReadSessionPolicy(requestContext.User);
         string operationKey = requestContext.RequestId ?? Guid.NewGuid().ToString("N");
         SecurityAuditWriteResult started = await WriteAuditAsync(
             authorized ? SecurityAuditOutcome.Started : SecurityAuditOutcome.Denied,
@@ -76,7 +76,7 @@ public sealed class ChangeSecurityAccessPolicyHandler(
 {
     public async Task<SecurityAccessPolicyState> Handle(ChangeSecurityAccessPolicyCommand command, CancellationToken cancellationToken)
     {
-        bool authorized = requestContext.User?.IsInRole(IdentityDefinitions.PlatformAdmin) is true;
+        bool authorized = AuthenticationSecurityAuthorization.CanChangeSessionPolicy(requestContext.User);
         string operationKey = requestContext.RequestId ?? Guid.NewGuid().ToString("N");
         SecurityAuditWriteResult started = await WriteAuditAsync(
             authorized ? SecurityAuditOutcome.Started : SecurityAuditOutcome.Denied,

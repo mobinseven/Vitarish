@@ -9,6 +9,7 @@ using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Contracts.Requests;
 using Vitarish.Authentication.Contracts.Responses;
 using Vitarish.Authentication.Contracts.Routes;
+using Vitarish.Authentication.Contracts.Authorization;
 using Vitarish.Authentication.Domain.Sessions;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Modules.Base.Core.Endpoints;
@@ -18,21 +19,13 @@ namespace Vitarish.Authentication.Api.Endpoints;
 
 public static class AuthenticationSecurityEndpoints
 {
-    private const string AccessHistoryGetOperationId = "Authentication_AccessHistory_Get";
-    private const string AccessHistoryAcknowledgeOperationId = "Authentication_AccessHistory_Acknowledge";
-    private const string SessionNoticesGetOperationId = "Authentication_SessionNotices_Get";
-    private const string SessionNoticeAcknowledgeOperationId = "Authentication_SessionNotice_Acknowledge";
-    private const string SessionPolicyGetOperationId = "Authentication_SessionPolicy_Get";
-    private const string SessionPolicyPutOperationId = "Authentication_SessionPolicy_Put";
-    private const string UserInactivityPolicyPutOperationId = "Authentication_UserInactivityPolicy_Put";
-
     public static RouteGroupBuilder MapAuthenticationSecurityEndpoints(this RouteGroupBuilder group)
     {
         _ = group.MapModuleGet(AuthenticationRoutes.AccessHistory, async ([Microsoft.AspNetCore.Mvc.FromServices] GetAuthenticationAccessHistoryHandler handler, CancellationToken ct) =>
         {
             AuthenticationAccessHistory? history = await handler.Handle(new GetAuthenticationAccessHistoryQuery(), ct);
             return history is null ? Results.NotFound() : Results.Ok(ToDto(history));
-        }, AccessHistoryGetOperationId, typeof(AuthenticationAccessHistoryDto))
+        }, AuthenticationSecurityOperationIds.AccessHistoryGet, typeof(AuthenticationAccessHistoryDto))
             .Produces<AuthenticationAccessHistoryDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .WithSummary("Gets the authenticated user's access history.");
@@ -41,7 +34,7 @@ public static class AuthenticationSecurityEndpoints
         {
             AuthenticationAccessHistory? history = await handler.Handle(context.UserId ?? string.Empty, context.TenantId, ct);
             return history is null ? Results.NotFound() : Results.Ok(ToDto(history));
-        }, AccessHistoryAcknowledgeOperationId, typeof(AuthenticationAccessHistoryDto));
+        }, AuthenticationSecurityOperationIds.AccessHistoryAcknowledge, typeof(AuthenticationAccessHistoryDto));
 
         _ = group.MapModuleGet(AuthenticationRoutes.SessionNotices, async (HttpContext http, [Microsoft.AspNetCore.Mvc.FromServices] GetAuthenticationSessionNoticesHandler handler, CancellationToken ct) =>
         {
@@ -50,7 +43,7 @@ public static class AuthenticationSecurityEndpoints
             return string.IsNullOrWhiteSpace(sessionId) || string.IsNullOrWhiteSpace(userId)
                 ? Results.Unauthorized()
                 : Results.Ok((await handler.Handle(sessionId, userId, ct)).Select(notice => new AuthenticationSessionNoticeDto(notice.Id, notice.CreatedAt, ToNoticeType(notice.NoticeType))).ToArray());
-        }, SessionNoticesGetOperationId, typeof(AuthenticationSessionNoticeDto[]));
+        }, AuthenticationSecurityOperationIds.SessionNoticesGet, typeof(AuthenticationSessionNoticeDto[]));
 
         _ = group.MapModulePost(AuthenticationRoutes.SessionNoticeAcknowledge, async (AcknowledgeAuthenticationSessionNoticeRequest request, HttpContext http, [Microsoft.AspNetCore.Mvc.FromServices] AcknowledgeAuthenticationSessionNoticeHandler handler, CancellationToken ct) =>
         {
@@ -60,12 +53,13 @@ public static class AuthenticationSecurityEndpoints
             return await handler.Handle(request.NoticeId, sessionId, userId, ct)
                 ? Results.Ok(new AuthenticationActionResultDto(true))
                 : Results.NotFound();
-        }, SessionNoticeAcknowledgeOperationId, typeof(AuthenticationActionResultDto))
+        }, AuthenticationSecurityOperationIds.SessionNoticeAcknowledge, typeof(AuthenticationActionResultDto))
             .Produces<AuthenticationActionResultDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
-        _ = group.MapModuleGet(AuthenticationRoutes.SecuritySessionPolicy, async ([Microsoft.AspNetCore.Mvc.FromServices] GetSecurityAccessPolicyHandler handler, CancellationToken ct) => ToDto(await handler.Handle(new GetSecurityAccessPolicyQuery(), ct)), SessionPolicyGetOperationId, typeof(SecuritySessionPolicyDto))
-            .RequireAuthorization(IdentityDefinitions.PlatformAdmin)
+        _ = group.MapModuleGet(AuthenticationRoutes.SecuritySessionPolicy, async ([Microsoft.AspNetCore.Mvc.FromServices] GetSecurityAccessPolicyHandler handler, CancellationToken ct) => ToDto(await handler.Handle(new GetSecurityAccessPolicyQuery(), ct)), AuthenticationSecurityOperationIds.SessionPolicyGet, typeof(SecuritySessionPolicyDto))
+            .RequireAuthorization(AuthenticationAuthorizationPolicies.ReadSessionPolicy)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
             .Produces<SecuritySessionPolicyDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
@@ -81,8 +75,9 @@ public static class AuthenticationSecurityEndpoints
             };
             SecurityAccessPolicyState saved = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, request.ExpectedVersion), ct);
             return Results.Ok(ToDto(saved));
-        }, SessionPolicyPutOperationId, typeof(SecuritySessionPolicyDto))
-            .RequireAuthorization(IdentityDefinitions.PlatformAdmin)
+        }, AuthenticationSecurityOperationIds.SessionPolicyPut, typeof(SecuritySessionPolicyDto))
+            .RequireAuthorization(AuthenticationAuthorizationPolicies.ChangeSessionPolicy)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
             .Produces<SecuritySessionPolicyDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status409Conflict);
@@ -98,8 +93,9 @@ public static class AuthenticationSecurityEndpoints
             {
                 return Results.Conflict();
             }
-        }, UserInactivityPolicyPutOperationId, typeof(UserInactivityTimeoutDto))
-            .RequireAuthorization(IdentityDefinitions.PlatformAdmin)
+        }, AuthenticationSecurityOperationIds.UserInactivityPolicyPut, typeof(UserInactivityTimeoutDto))
+            .RequireAuthorization(AuthenticationAuthorizationPolicies.ChangeUserInactivityPolicy)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
             .Produces<UserInactivityTimeoutDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)

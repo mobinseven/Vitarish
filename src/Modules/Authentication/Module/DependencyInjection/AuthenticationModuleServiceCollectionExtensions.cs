@@ -4,6 +4,7 @@ using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Infrastructure.DependencyInjection;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
+using Vitarish.Authentication.Contracts.Authorization;
 
 namespace Vitarish.Authentication.Module.DependencyInjection;
 
@@ -31,6 +32,12 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddScoped<AcknowledgeAuthenticationSessionNoticeHandler>();
         services.AddScoped<AcknowledgeAuthenticationAccessHistoryHandler>();
         services.AddScoped<ChangeUserInactivityTimeoutHandler>();
+        _ = services.AddAuthorization(options =>
+        {
+            options.AddPolicy(AuthenticationAuthorizationPolicies.ReadSessionPolicy, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
+            options.AddPolicy(AuthenticationAuthorizationPolicies.ChangeSessionPolicy, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
+            options.AddPolicy(AuthenticationAuthorizationPolicies.ChangeUserInactivityPolicy, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
+        });
         services.AddHttpContextAccessor();
         services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
         return services.AddAuthenticationInfrastructure(configureDbContext);

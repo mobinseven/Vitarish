@@ -39,16 +39,30 @@ public sealed class SeaAuthorizationHandlerTests
     }
 
     [Fact]
-    public async Task Platform_administrator_and_current_tenant_owner_satisfy_manage()
+    public async Task Platform_administrator_and_current_tenant_owner_satisfy_management_read()
     {
         var requestContext = RequestContext("tenant-a");
         var handler = new SeaManagementAuthorizationHandler(requestContext.Object);
 
-        bool platform = await AuthorizeAsync(handler, Principal(UserId.ToString(), new Claim(ClaimTypes.Role, IdentityDefinitions.PlatformAdmin)), SeaAuthorizationOperations.Manage, null);
-        bool owner = await AuthorizeAsync(handler, Principal(UserId.ToString(), new Claim(ClaimTypes.Role, $"tenant-a:{IdentityDefinitions.TenantOwner}")), SeaAuthorizationOperations.Manage, null);
+        bool platform = await AuthorizeAsync(handler, Principal(UserId.ToString(), new Claim(ClaimTypes.Role, IdentityDefinitions.PlatformAdmin)), SeaAuthorizationOperations.ReadManagement, null);
+        bool owner = await AuthorizeAsync(handler, Principal(UserId.ToString(), new Claim(ClaimTypes.Role, $"tenant-a:{IdentityDefinitions.TenantOwner}")), SeaAuthorizationOperations.ReadManagement, null);
 
         platform.Should().BeTrue();
         owner.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Resource_read_is_not_satisfied_by_management_access()
+    {
+        var handler = new SeaManagementAuthorizationHandler(RequestContext("tenant-a").Object);
+
+        bool allowed = await AuthorizeAsync(
+            handler,
+            Principal(UserId.ToString(), new Claim(ClaimTypes.Role, $"tenant-a:{IdentityDefinitions.TenantOwner}")),
+            SeaAuthorizationOperations.Read,
+            new SeaProjectResource(Guid.NewGuid()));
+
+        allowed.Should().BeFalse();
     }
 
     [Fact]
