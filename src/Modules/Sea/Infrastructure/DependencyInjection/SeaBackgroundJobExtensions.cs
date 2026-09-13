@@ -10,6 +10,8 @@ public static class SeaBackgroundJobExtensions
     {
         services.TryAddScoped<TenantBackgroundExecutor>();
         _ = services.AddTransient<AttachmentMigrationProcessor>();
+        _ = services.AddTransient<AttachmentIntegrityVerificationProcessor>();
+        _ = services.AddScoped<AttachmentIntegrityVerificationTenantProcessor>();
         _ = services.AddTransient<SeaIndexingProcessor>();
         _ = services.AddSingleton<HangfireSeaJobManager>();
         _ = services.AddSingleton<HangfireSeaIndexingJobManager>();

@@ -25,6 +25,7 @@ public sealed record SeaManagementAgentSubject(string TenantId, string UserId, G
 /// <summary>Authoritative SEA authorization boundary for agent operations.</summary>
 public interface ISeaManagementAccessEvaluator
 {
+    Task<bool> CanManageAsync(SeaManagementAgentSubject subject, CancellationToken cancellationToken = default);
     Task<bool> CanAccessTenantWorkspaceAsync(SeaManagementAgentSubject subject, CancellationToken cancellationToken = default);
     Task PrimeEventRolesAsync(IEnumerable<Guid> eventIds, CancellationToken cancellationToken = default);
     Task<bool> IsAuthorizedAsync(
@@ -36,4 +37,6 @@ public interface ISeaManagementAccessEvaluator
     Task<bool> CanReadProcedureAsync(SeaManagementAgentSubject subject, Guid procedureId, CancellationToken cancellationToken = default);
     Task<bool> CanReadEventAsync(SeaManagementAgentSubject subject, Guid eventId, CancellationToken cancellationToken = default);
     Task<bool> CanWriteEventAsync(SeaManagementAgentSubject subject, Guid eventId, CancellationToken cancellationToken = default);
+    Task<bool> CanReadAttachmentAsync(SeaManagementAgentSubject subject, Guid attachmentId, CancellationToken cancellationToken = default);
+    Task<bool> CanWriteAttachmentAsync(SeaManagementAgentSubject subject, Guid attachmentId, CancellationToken cancellationToken = default);
 }

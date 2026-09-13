@@ -1,4 +1,5 @@
 using Vitarish.Entities.Server.Extensions;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Vitarish.Feed.Domain.Abstractions;
 using Vitarish.Sea.Infrastructure.FeedSources;
 using Vitarish.Sea.Infrastructure.SearchProviders;
@@ -11,6 +12,7 @@ public static class DependencyInjectionExtensions
 {
     public static IServiceCollection AddSeaInfrastructure(this IServiceCollection services)
     {
+        _ = services.AddScoped<IInterceptor, SeaAttachmentIntegrityInterceptor>();
         _ = services.AddVitarishSeaInfrastructure();
         _ = services.AddSingleton<IProjectObjectTypeRegistry, ProjectObjectTypeRegistry>();
         _ = services.AddEntitySearchInfrastructure();

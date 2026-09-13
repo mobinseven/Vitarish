@@ -14,6 +14,7 @@ public sealed class SeaRecurringJobScheduler(
     public void ScheduleJobs()
     {
         seaJobManager.ScheduleProcessing();
+        seaJobManager.ScheduleIntegrityVerification();
         seaIndexingJobManager.ScheduleProcessing();
         remindersJobManager.ScheduleProcessing();
         projectObjectRefreshJobManager.ScheduleProcessing();
@@ -22,6 +23,7 @@ public sealed class SeaRecurringJobScheduler(
     public void TriggerStartupJobs()
     {
         seaJobManager.TriggerProcessing();
+        seaJobManager.TriggerIntegrityVerification();
         seaIndexingJobManager.TriggerProcessing();
         remindersJobManager.TriggerProcessing();
         projectObjectRefreshJobManager.TriggerProcessing();

@@ -1,9 +1,11 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Application.Agents;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Enums;
+using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.Sea.Infrastructure.Agents;
@@ -14,11 +16,34 @@ public sealed class SeaManagementAccessEvaluator(
     IUserRolesService userRoles,
     IEventRolesService eventRoles,
     IEventsService events,
-    IAttachmentsService? attachments = null) : ISeaManagementAccessEvaluator
+    SeaDbContext dbContext) : ISeaManagementAccessEvaluator
 {
     private readonly Dictionary<SubjectKey, bool> managementAccess = [];
     private readonly Dictionary<Guid, RoleAssignments> userRoleAssignments = [];
     private readonly Dictionary<Guid, EventRoleAssignments> eventRoleAssignments = [];
+
+    public Task<bool> CanManageAsync(SeaManagementAgentSubject subject, CancellationToken ct = default) =>
+        CanManageCoreAsync(subject, ct);
+
+    public async Task<bool> CanReadAttachmentAsync(SeaManagementAgentSubject subject, Guid attachmentId, CancellationToken ct = default)
+    {
+        Guid? eventId = await dbContext.Attachments
+            .Where(attachment => attachment.Id == attachmentId)
+            .Select(attachment => (Guid?)attachment.EventId)
+            .SingleOrDefaultAsync(ct)
+            .ConfigureAwait(false);
+        return eventId is { } id && await CanReadEventAsync(subject, id, ct).ConfigureAwait(false);
+    }
+
+    public async Task<bool> CanWriteAttachmentAsync(SeaManagementAgentSubject subject, Guid attachmentId, CancellationToken ct = default)
+    {
+        Guid? eventId = await dbContext.Attachments
+            .Where(attachment => attachment.Id == attachmentId)
+            .Select(attachment => (Guid?)attachment.EventId)
+            .SingleOrDefaultAsync(ct)
+            .ConfigureAwait(false);
+        return eventId is { } id && await CanWriteEventAsync(subject, id, ct).ConfigureAwait(false);
+    }
 
     public async Task PrimeEventRolesAsync(IEnumerable<Guid> eventIds, CancellationToken ct = default)
     {
@@ -38,7 +63,7 @@ public sealed class SeaManagementAccessEvaluator(
 
     public async Task<bool> CanAccessTenantWorkspaceAsync(SeaManagementAgentSubject subject, CancellationToken ct = default)
     {
-        if (await CanManageAsync(subject, ct))
+        if (await CanManageCoreAsync(subject, ct))
         {
             return true;
         }
@@ -66,7 +91,7 @@ public sealed class SeaManagementAccessEvaluator(
             return await IsAuthorizedForEventAsync(subject, eventId, operation, payloadJson, ct);
         }
 
-        if (await CanManageAsync(subject, ct))
+        if (await CanManageCoreAsync(subject, ct))
         {
             return true;
         }
@@ -139,8 +164,8 @@ public sealed class SeaManagementAccessEvaluator(
             : await CanWriteEventAsync(subject with { EventId = null }, eventId, ct);
     }
 
-    private async Task<bool> IsAttachmentOfEventAsync(Guid attachmentId, Guid eventId, CancellationToken ct) =>
-        attachments is not null && (await attachments.GetByEventAsync(eventId, ct)).Any(attachment => attachment.Id == attachmentId);
+    private Task<bool> IsAttachmentOfEventAsync(Guid attachmentId, Guid eventId, CancellationToken ct) =>
+        dbContext.Attachments.AnyAsync(attachment => attachment.Id == attachmentId && attachment.EventId == eventId, ct);
 
     private static bool IsAttachmentBatchForEvent(JsonElement payload, Guid eventId)
     {
@@ -156,16 +181,16 @@ public sealed class SeaManagementAccessEvaluator(
         IsAttachmentBatchForEvent(payload, eventId) && await CanWriteEventAsync(subject with { EventId = null }, eventId, ct);
 
     public async Task<bool> CanReadProjectAsync(SeaManagementAgentSubject subject, Guid projectId, CancellationToken ct = default) =>
-        await CanManageAsync(subject, ct) || await HasReadableEventAsync(subject, new EventDescriptorDto { ProjectId = projectId }, ct);
+        await CanManageCoreAsync(subject, ct) || await HasReadableEventAsync(subject, new EventDescriptorDto { ProjectId = projectId }, ct);
 
     public async Task<bool> CanReadProcedureAsync(SeaManagementAgentSubject subject, Guid procedureId, CancellationToken ct = default) =>
-        await CanManageAsync(subject, ct) || await HasReadableEventAsync(subject, new EventDescriptorDto { ProcedureId = procedureId }, ct);
+        await CanManageCoreAsync(subject, ct) || await HasReadableEventAsync(subject, new EventDescriptorDto { ProcedureId = procedureId }, ct);
 
     public async Task<bool> CanReadEventAsync(SeaManagementAgentSubject subject, Guid eventId, CancellationToken ct = default) =>
-        await CanManageAsync(subject, ct) || await HasEventAccessAsync(subject, eventId, false, ct);
+        await CanManageCoreAsync(subject, ct) || await HasEventAccessAsync(subject, eventId, false, ct);
 
     public async Task<bool> CanWriteEventAsync(SeaManagementAgentSubject subject, Guid eventId, CancellationToken ct = default) =>
-        await CanManageAsync(subject, ct) || await HasEventAccessAsync(subject, eventId, true, ct);
+        await CanManageCoreAsync(subject, ct) || await HasEventAccessAsync(subject, eventId, true, ct);
 
     private async Task<bool> CanMutateReceiptAsync(SeaManagementAgentSubject subject, JsonElement p, CancellationToken ct)
     {
@@ -242,7 +267,7 @@ public sealed class SeaManagementAccessEvaluator(
         return result;
     }
 
-    private async Task<bool> CanManageAsync(SeaManagementAgentSubject subject, CancellationToken ct)
+    private async Task<bool> CanManageCoreAsync(SeaManagementAgentSubject subject, CancellationToken ct)
     {
         SubjectKey key = new(subject.TenantId, subject.UserId);
         if (managementAccess.TryGetValue(key, out bool cached))

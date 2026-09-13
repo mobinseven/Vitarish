@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Entities.Contracts.Models;
@@ -375,39 +376,39 @@ public static class SeaApiEndpointMapping
         return Results.Ok(new SeaCommandResult(true, id));
     }
 
-    private static async Task<IResult> ListAttachmentsAsync(Guid eventId, ClaimsPrincipal user, IEventsService events, IAttachmentsService attachments, IAuthorizationService authorization, CancellationToken cancellationToken)
+    private static async Task<IResult> ListAttachmentsAsync(Guid eventId, IEventsService events, IAttachmentsService attachments, [FromServices] ISeaResourceAccess access, CancellationToken cancellationToken)
     {
+        if (!await access.CanReadEventAsync(eventId, cancellationToken)) return Results.Forbid();
         if ((await events.GetAsync(eventId, cancellationToken)).Value is null) return NotFound();
-        if (!await CanAsync(authorization, user, new SeaEventResource(eventId), SeaAuthorizationOperations.Read)) return Results.Forbid();
         return OkList<C.AttachmentReadDto>(await attachments.GetByEventAsync(eventId, cancellationToken));
     }
 
-    private static async Task<IResult> CountAttachmentsAsync(Guid eventId, ClaimsPrincipal user, IEventsService events, IAttachmentsService attachments, IAuthorizationService authorization, CancellationToken cancellationToken)
+    private static async Task<IResult> CountAttachmentsAsync(Guid eventId, IEventsService events, IAttachmentsService attachments, [FromServices] ISeaResourceAccess access, CancellationToken cancellationToken)
     {
+        if (!await access.CanReadEventAsync(eventId, cancellationToken)) return Results.Forbid();
         if ((await events.GetAsync(eventId, cancellationToken)).Value is null) return NotFound();
-        if (!await CanAsync(authorization, user, new SeaEventResource(eventId), SeaAuthorizationOperations.Read)) return Results.Forbid();
         return Results.Ok(await attachments.GetCountByEventAsync(eventId, cancellationToken));
     }
 
-    private static Task<IResult> AddTextAttachmentAsync(C.AttachmentWriteDto request, ClaimsPrincipal user, IEventsService events, IAttachmentsService attachments, IAuthorizationService authorization, CancellationToken cancellationToken) =>
-        AddAttachmentAsync(request, DD.AttachmentKind.Text, user, events, attachments, authorization, cancellationToken);
+    private static Task<IResult> AddTextAttachmentAsync(C.AttachmentWriteDto request, IEventsService events, IAttachmentsService attachments, [FromServices] ISeaResourceAccess access, CancellationToken cancellationToken) =>
+        AddAttachmentAsync(request, DD.AttachmentKind.Text, events, attachments, access, cancellationToken);
 
-    private static Task<IResult> AddFileAttachmentAsync(C.AttachmentWriteDto request, ClaimsPrincipal user, IEventsService events, IAttachmentsService attachments, IAuthorizationService authorization, CancellationToken cancellationToken) =>
-        AddAttachmentAsync(request, DD.AttachmentKind.File, user, events, attachments, authorization, cancellationToken);
+    private static Task<IResult> AddFileAttachmentAsync(C.AttachmentWriteDto request, IEventsService events, IAttachmentsService attachments, [FromServices] ISeaResourceAccess access, CancellationToken cancellationToken) =>
+        AddAttachmentAsync(request, DD.AttachmentKind.File, events, attachments, access, cancellationToken);
 
-    private static async Task<IResult> AddAttachmentAsync(C.AttachmentWriteDto request, DD.AttachmentKind kind, ClaimsPrincipal user, IEventsService events, IAttachmentsService attachments, IAuthorizationService authorization, CancellationToken cancellationToken)
+    private static async Task<IResult> AddAttachmentAsync(C.AttachmentWriteDto request, DD.AttachmentKind kind, IEventsService events, IAttachmentsService attachments, ISeaResourceAccess access, CancellationToken cancellationToken)
     {
+        if (!await access.CanWriteEventAsync(request.EventId, cancellationToken)) return Results.Forbid();
         if ((await events.GetAsync(request.EventId, cancellationToken)).Value is null) return NotFound();
-        if (!await CanAsync(authorization, user, new SeaEventResource(request.EventId), SeaAuthorizationOperations.Write)) return Results.Forbid();
         return Command(await attachments.AddAsync(request.EventId, request.Content, request.ContentType, request.ContentThumbnail, request.Size, request.FileName, kind, cancellationToken));
     }
 
-    private static async Task<IResult> AddAttachmentBatchAsync(IReadOnlyList<C.AttachmentWriteDto> requests, ClaimsPrincipal user, IEventsService events, IAttachmentsService attachments, IAuthorizationService authorization, CancellationToken cancellationToken)
+    private static async Task<IResult> AddAttachmentBatchAsync(IReadOnlyList<C.AttachmentWriteDto> requests, IEventsService events, IAttachmentsService attachments, [FromServices] ISeaResourceAccess access, CancellationToken cancellationToken)
     {
         foreach (Guid eventId in requests.Select(request => request.EventId).Distinct())
         {
+            if (!await access.CanWriteEventAsync(eventId, cancellationToken)) return Results.Forbid();
             if ((await events.GetAsync(eventId, cancellationToken)).Value is null) return NotFound();
-            if (!await CanAsync(authorization, user, new SeaEventResource(eventId), SeaAuthorizationOperations.Write)) return Results.Forbid();
         }
         D.AttachmentWriteDto[] items = [.. requests.Select(request => new D.AttachmentWriteDto(
             request.EventId,
@@ -423,18 +424,18 @@ public static class SeaApiEndpointMapping
         return Command(await attachments.AddBatchAsync(items, cancellationToken));
     }
 
-    private static async Task<IResult> UpdateTextAttachmentAsync(C.AttachmentWriteDto request, ClaimsPrincipal user, IAttachmentsService service, IAuthorizationService authorization, CancellationToken cancellationToken)
+    private static async Task<IResult> UpdateTextAttachmentAsync(C.AttachmentWriteDto request, IAttachmentsService service, [FromServices] ISeaResourceAccess access, CancellationToken cancellationToken)
     {
+        if (!await access.CanWriteAttachmentAsync(request.Id, cancellationToken)) return Results.Forbid();
         if ((await service.GetAsync(request.Id, cancellationToken)).Value is null) return NotFound();
-        if (!await CanAsync(authorization, user, new SeaAttachmentResource(request.Id), SeaAuthorizationOperations.Write)) return Results.Forbid();
         return Command(await service.UpdateAsync(request.EventId, request.Id, request.Content, cancellationToken));
     }
 
-    private static async Task<IResult> DeleteAttachmentAsync(Guid id, ClaimsPrincipal user, IAttachmentsService service, IAuthorizationService authorization, CancellationToken cancellationToken)
+    private static async Task<IResult> DeleteAttachmentAsync(Guid id, IAttachmentsService service, [FromServices] ISeaResourceAccess access, CancellationToken cancellationToken)
     {
+        if (!await access.CanWriteAttachmentAsync(id, cancellationToken)) return Results.Forbid();
         D.AttachmentReadDto? attachment = (await service.GetAsync(id, cancellationToken)).Value;
         if (attachment is null) return NotFound();
-        if (!await CanAsync(authorization, user, new SeaAttachmentResource(id), SeaAuthorizationOperations.Write)) return Results.Forbid();
         await service.RemoveAsync(attachment.EventId, id, cancellationToken);
         return Results.Ok(new SeaCommandResult(true, id));
     }

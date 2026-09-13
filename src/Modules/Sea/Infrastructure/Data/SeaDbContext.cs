@@ -12,6 +12,7 @@ namespace Vitarish.Sea.Infrastructure.Data;
 
 public class SeaDbContext : DbContext, IMultiTenantDbContext
 {
+    internal const string TenantIdPropertyName = "TenantId";
     private readonly IEnumerable<IInterceptor> _interceptors;
     private readonly IRequestContext _requestContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -33,11 +34,14 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     public TenantMismatchMode TenantMismatchMode { get; set; } = TenantMismatchMode.Throw;
     public TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
 
+    private string CurrentTenantId => TenantInfo?.Id ?? throw new InvalidOperationException("Tenant ID can not be recognized.");
+
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<ProjectObject> ProjectObjects => Set<ProjectObject>();
     public DbSet<Procedure> Procedures => Set<Procedure>();
     public DbSet<Event> Events => Set<Event>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
+    internal DbSet<AttachmentIntegrityRecord> AttachmentIntegrityRecords => Set<AttachmentIntegrityRecord>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<EventRole> EventRoles => Set<EventRole>();
@@ -87,7 +91,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<ProjectObject>(modelBuilder);
         ConfigureTenantEntity<Procedure>(modelBuilder);
         ConfigureTenantEntity<Event>(modelBuilder);
-        ConfigureTenantEntity<Attachment>(modelBuilder);
+        ConfigureAvailableAttachment(modelBuilder);
         ConfigureTenantEntity<Role>(modelBuilder);
         ConfigureTenantEntity<UserRole>(modelBuilder);
         ConfigureTenantEntity<EventRole>(modelBuilder);
@@ -177,6 +181,14 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.Entity<Attachment>()
             .Property(a => a.FileName)
             .HasMaxLength(Attachment.MaximumFileNameLength);
+
+        EntityTypeBuilder<AttachmentIntegrityRecord> attachmentIntegrityRecord = modelBuilder.Entity<AttachmentIntegrityRecord>();
+        _ = attachmentIntegrityRecord.HasIndex(entity => entity.AttachmentId).IsUnique();
+        _ = attachmentIntegrityRecord.HasOne<Attachment>()
+            .WithOne()
+            .HasForeignKey<AttachmentIntegrityRecord>(entity => entity.AttachmentId)
+            .OnDelete(DeleteBehavior.ClientNoAction);
+        _ = attachmentIntegrityRecord.HasQueryFilter(entity => entity.TenantId == CurrentTenantId);
     }
 
     private static Dictionary<string, object?> DeserializeMetadata(string? value)
@@ -193,5 +205,17 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
             EF.Property<DateTime?>(e, "DeletedAt") == null);
 
         _ = entityBuilder.IsMultiTenant();
+    }
+
+    private void ConfigureAvailableAttachment(ModelBuilder modelBuilder)
+    {
+        EntityTypeBuilder<Attachment> attachment = modelBuilder.Entity<Attachment>();
+        _ = attachment.HasQueryFilter(entity =>
+            entity.DeletedAt == null &&
+            EF.Property<string>(entity, TenantIdPropertyName) == CurrentTenantId &&
+            AttachmentIntegrityRecords.Any(record =>
+                record.AttachmentId == entity.Id &&
+                record.State == AttachmentIntegrityState.Verified));
+        _ = attachment.IsMultiTenant();
     }
 }

@@ -9,6 +9,7 @@
 		<ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
 		<ProjectReference Include="..\Domain\Sea.Domain.csproj" />
 		<ProjectReference Include="..\..\Communications\Application\Communications.Application.csproj" />
+		<ProjectReference Include="..\..\Requests\Application\Requests.Application.csproj" />
 	</ItemGroup>
 
 </Project>

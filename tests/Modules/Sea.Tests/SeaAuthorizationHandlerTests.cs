@@ -7,6 +7,7 @@ using Vitarish.Entities.Contracts.Models;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Sea.Api.Authorization;
 using Vitarish.Sea.Application.Abstractions;
+using Vitarish.Sea.Application.Access;
 using Vitarish.Sea.Application.Agents;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Enums;
@@ -83,14 +84,9 @@ public sealed class SeaAuthorizationHandlerTests
     public async Task Attachment_uses_only_its_actual_owning_event()
     {
         Guid attachmentId = Guid.NewGuid();
-        Guid owningEventId = Guid.NewGuid();
-        ISeaManagementAccessEvaluator access = Access(
-            [new UserRoleReadDto { RoleId = ReadRoleId, Type = RoleType.Read }],
-            new Dictionary<Guid, (IReadOnlyList<Guid>, IReadOnlyList<Guid>)> { [owningEventId] = ([ReadRoleId], []) });
-        var attachments = new Mock<IAttachmentsService>();
-        attachments.Setup(service => service.GetAsync(attachmentId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(EntityResult<AttachmentReadDto>.Success(new AttachmentReadDto { Id = attachmentId, EventId = owningEventId }));
-        var handler = new SeaAttachmentAuthorizationHandler(attachments.Object, access, RequestContext("tenant-a").Object, Accessor());
+        var resourceAccess = new Mock<ISeaResourceAccess>();
+        resourceAccess.Setup(value => value.CanReadAttachmentAsync(attachmentId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        var handler = new SeaAttachmentAuthorizationHandler(resourceAccess.Object, Accessor());
 
         bool allowed = await AuthorizeAsync(handler, Principal(UserId.ToString()), SeaAuthorizationOperations.Read, new SeaAttachmentResource(attachmentId));
 
@@ -113,13 +109,10 @@ public sealed class SeaAuthorizationHandlerTests
     [Fact]
     public async Task Hidden_cross_tenant_resources_fail_closed()
     {
-        var attachments = new Mock<IAttachmentsService>();
-        attachments.Setup(service => service.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(EntityResult<AttachmentReadDto>.Failure(EntityError.NotFound("Not found")));
+        var resourceAccess = new Mock<ISeaResourceAccess>();
+        resourceAccess.Setup(value => value.CanReadAttachmentAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
         var handler = new SeaAttachmentAuthorizationHandler(
-            attachments.Object,
-            Access([], new Dictionary<Guid, (IReadOnlyList<Guid>, IReadOnlyList<Guid>)>()),
-            RequestContext("tenant-a").Object,
+            resourceAccess.Object,
             Accessor());
 
         bool allowed = await AuthorizeAsync(handler, Principal(UserId.ToString()), SeaAuthorizationOperations.Read, new SeaAttachmentResource(Guid.NewGuid()));

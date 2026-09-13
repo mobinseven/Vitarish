@@ -1,17 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Http;
-using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Sea.Application.Abstractions;
-using Vitarish.Sea.Application.Agents;
-using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Sea.Api.Authorization;
 
 internal sealed class SeaAttachmentAuthorizationHandler(
-    IAttachmentsService attachmentsService,
-    ISeaManagementAccessEvaluator access,
-    IRequestContext requestContext,
+    ISeaResourceAccess access,
     IHttpContextAccessor httpContextAccessor)
     : AuthorizationHandler<OperationAuthorizationRequirement, SeaAttachmentResource>
 {
@@ -20,20 +15,11 @@ internal sealed class SeaAttachmentAuthorizationHandler(
         OperationAuthorizationRequirement requirement,
         SeaAttachmentResource resource)
     {
-        Domain.Dto.AttachmentReadDto? attachment =
-            (await attachmentsService.GetAsync(
-                resource.AttachmentId,
-                httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None)).Value;
-        if (attachment is null)
-        {
-            return;
-        }
-
-        AuthenticatedUserIdResolution user = AuthenticatedUserIdResolver.Resolve(context.User);
-        if (user is not AuthenticatedUserIdResolution.Success success || string.IsNullOrWhiteSpace(requestContext.TenantId)) return;
+        CancellationToken cancellationToken = httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None;
         bool authorized = requirement.Name == SeaAuthorizationOperations.Read.Name
-            ? await access.CanReadEventAsync(new(requestContext.TenantId, success.UserId.Value), attachment.EventId, httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None)
-            : await access.CanWriteEventAsync(new(requestContext.TenantId, success.UserId.Value), attachment.EventId, httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None);
+            ? await access.CanReadAttachmentAsync(resource.AttachmentId, cancellationToken)
+            : requirement.Name == SeaAuthorizationOperations.Write.Name
+                && await access.CanWriteAttachmentAsync(resource.AttachmentId, cancellationToken);
         if (authorized) context.Succeed(requirement);
     }
 }

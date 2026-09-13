@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Application.Agents;
+using Vitarish.Sea.Application.Access;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.DependencyInjection;
@@ -32,6 +33,7 @@ public class SeaModule : Modules.Base.Core.Module, ISeaModule
 
         _ = builder.Services.AddSeaInfrastructure();
         _ = builder.Services.AddScoped<ISeaManagementAccessEvaluator, SeaManagementAccessEvaluator>();
+        _ = builder.Services.AddScoped<ISeaResourceAccess, SeaResourceAccess>();
         _ = builder.Services.AddTransient<ISeaManagementAgentTool, SeaManagementAgentTool>();
         _ = builder.Services.AddSeaApiAuthorization();
 

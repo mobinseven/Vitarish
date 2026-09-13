@@ -1,12 +1,16 @@
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using System.Text.Json;
 using Vitarish.Entities.Contracts.Models;
+using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Application.Agents;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Enums;
 using Vitarish.Sea.Infrastructure.Agents;
+using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.Sea.Tests;
@@ -20,7 +24,8 @@ public sealed class SeaManagementAccessEvaluatorTests
         Guid roleId = Guid.NewGuid();
         Guid projectId = Guid.NewGuid();
         Guid eventId = Guid.NewGuid();
-        SeaManagementAccessEvaluator evaluator = Create(userId, roleId, RoleType.Read, eventId, [roleId], []);
+        await using SeaDbContext context = CreateContext();
+        SeaManagementAccessEvaluator evaluator = Create(context, userId, roleId, RoleType.Read, eventId, [roleId], []);
 
         (await evaluator.CanReadProjectAsync(new("tenant", userId.ToString("D")), projectId)).Should().BeTrue();
         (await evaluator.CanWriteEventAsync(new("tenant", userId.ToString("D")), eventId)).Should().BeFalse();
@@ -32,7 +37,8 @@ public sealed class SeaManagementAccessEvaluatorTests
         Guid userId = Guid.NewGuid();
         Guid roleId = Guid.NewGuid();
         Guid eventId = Guid.NewGuid();
-        SeaManagementAccessEvaluator evaluator = Create(userId, roleId, RoleType.Read, eventId, [roleId], []);
+        await using SeaDbContext context = CreateContext();
+        SeaManagementAccessEvaluator evaluator = Create(context, userId, roleId, RoleType.Read, eventId, [roleId], []);
         SeaManagementAgentSubject subject = new("tenant", userId.ToString("D"));
 
         (await evaluator.IsAuthorizedAsync(subject, "mark_read", JsonSerializer.Serialize(new { userId, id = eventId, kind = "event" }))).Should().BeTrue();
@@ -45,7 +51,8 @@ public sealed class SeaManagementAccessEvaluatorTests
         Guid userId = Guid.NewGuid();
         Guid roleId = Guid.NewGuid();
         Guid eventId = Guid.NewGuid();
-        SeaManagementAccessEvaluator evaluator = Create(userId, roleId, RoleType.Write, eventId, [roleId], [roleId]);
+        await using SeaDbContext context = CreateContext();
+        SeaManagementAccessEvaluator evaluator = Create(context, userId, roleId, RoleType.Write, eventId, [roleId], [roleId]);
         SeaManagementAgentSubject subject = new("tenant", userId.ToString("D"));
 
         (await evaluator.IsAuthorizedAsync(subject, "create_attachment_batch", JsonSerializer.Serialize(new
@@ -72,7 +79,8 @@ public sealed class SeaManagementAccessEvaluatorTests
         Mock<IEventRolesService> eventRoles = new();
         eventRoles.Setup(service => service.GetIdsAsync(eventId, It.IsAny<CancellationToken>())).ReturnsAsync(([roleId], (IReadOnlyList<Guid>)[]));
         Mock<IEventsService> events = new();
-        SeaManagementAccessEvaluator evaluator = new(users.Object, userRoles.Object, eventRoles.Object, events.Object);
+        await using SeaDbContext context = CreateContext();
+        SeaManagementAccessEvaluator evaluator = new(users.Object, userRoles.Object, eventRoles.Object, events.Object, context);
         SeaManagementAgentSubject subject = new("tenant", userId.ToString("D"));
 
         (await evaluator.CanReadEventAsync(subject, eventId)).Should().BeTrue();
@@ -83,7 +91,7 @@ public sealed class SeaManagementAccessEvaluatorTests
         eventRoles.Verify(service => service.GetIdsAsync(eventId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    private static SeaManagementAccessEvaluator Create(Guid userId, Guid roleId, RoleType roleType, Guid eventId, IReadOnlyList<Guid> readRoles, IReadOnlyList<Guid> writeRoles)
+    private static SeaManagementAccessEvaluator Create(SeaDbContext context, Guid userId, Guid roleId, RoleType roleType, Guid eventId, IReadOnlyList<Guid> readRoles, IReadOnlyList<Guid> writeRoles)
     {
         Mock<IUsersService> users = new();
         users.Setup(service => service.CheckUserRoleAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
@@ -96,6 +104,16 @@ public sealed class SeaManagementAccessEvaluatorTests
         Mock<IEventsService> events = new();
         events.Setup(service => service.GetListAsync(It.IsAny<EventDescriptorDto>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<IReadOnlyList<EventReadDto>>.Success([new EventReadDto { Id = eventId }]));
-        return new(users.Object, userRoles.Object, eventRoles.Object, events.Object);
+        return new(users.Object, userRoles.Object, eventRoles.Object, events.Object, context);
+    }
+
+    private static SeaDbContext CreateContext()
+    {
+        Mock<IRequestContext> requestContext = new();
+        requestContext.SetupGet(context => context.TenantId).Returns("tenant");
+        DbContextOptions<SeaDbContext> options = new DbContextOptionsBuilder<SeaDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+            .Options;
+        return new SeaDbContext(options, [], requestContext.Object, new HttpContextAccessor());
     }
 }

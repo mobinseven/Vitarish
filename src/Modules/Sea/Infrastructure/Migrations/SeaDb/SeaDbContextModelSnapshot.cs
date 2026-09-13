@@ -83,6 +83,58 @@ namespace Vitarish.Sea.Infrastructure.Migrations.SeaDb
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
+            modelBuilder.Entity("Vitarish.Sea.Domain.Entities.AttachmentIntegrityRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AttachmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Digest")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ProjectionVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttachmentId")
+                        .IsUnique();
+
+                    b.ToTable("AttachmentIntegrityRecords", "Sea");
+                });
+
             modelBuilder.Entity("Vitarish.Sea.Domain.Entities.Event", b =>
                 {
                     b.Property<Guid>("Id")
@@ -652,6 +704,15 @@ namespace Vitarish.Sea.Infrastructure.Migrations.SeaDb
                     b.ToTable((string)null);
 
                     b.ToView("vw_ProjectStats", "Sea");
+                });
+
+            modelBuilder.Entity("Vitarish.Sea.Domain.Entities.AttachmentIntegrityRecord", b =>
+                {
+                    b.HasOne("Vitarish.Sea.Domain.Entities.Attachment", null)
+                        .WithOne()
+                        .HasForeignKey("Vitarish.Sea.Domain.Entities.AttachmentIntegrityRecord", "AttachmentId")
+                        .OnDelete(DeleteBehavior.ClientNoAction)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
