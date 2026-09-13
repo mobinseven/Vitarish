@@ -76,7 +76,7 @@ evidence.
 | Audit full | Initiating operations continue on audit-write failure; one redacted structured host error is emitted | implementation-selected; deployment evidence pending |
 | Audit review integrity | Read-only product surface; no hashes, chains, witnesses, repair, or background verifier | implementation-selected; deployment evidence pending |
 | Audit capacity | `Vitarish:Security:Audit:CapacityWarningBytes` is positive and explicitly supplied by the evaluated deployment; reached threshold is shown to authorized reviewers | implementation-selected; deployment evidence pending |
-| RA-1 continuity | Restart, bounded retry, safe recovery/read-only behavior; no HA claim | implementation-selected; deployment evidence pending |
+| RA-1 continuity | Restart, bounded retry, safe recovery/read-only behavior; Restricted mode while mandatory recovery is incomplete; no HA claim | implementation-selected; deployment evidence pending |
 | TLS 1.3/suites | TLS 1.2 only; exact selected TLS 1.2 suites and key/curve settings are release-bound | implementation-selected; deployment evidence pending |
 | Revocation | RFC 5280 path validation with documented OCSP/CRL behavior and fail-closed policy | implementation-selected; deployment evidence pending |
 | `X-XSS-Protection` | Do not emit obsolete header unless evaluator explicitly requires it | implementation-selected; deployment evidence pending |

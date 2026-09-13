@@ -23,7 +23,7 @@ CERT-3.
 | TSF-1–TSF-5 / RA-1 | dependency faults, restart, restore, update and time records | recovery/provenance report | release operator | pending |
 | TC-1–TC-3 / HTTPS-1–3 / TLSS-1–3 / TLSC-1–4 / CERT-1–3 | listener, TLS, certificate and outbound identity scans | transport report | release operator | pending |
 | VULN-1–VULN-6 | component, headers, cookies, ports, methods and CSRF probes | vulnerability/install report | release operator | pending |
-| TSF-3 | shared-data compatibility proof if triggered | interoperability report | owning integration | pending |
+| TSF-3 | no proof required while the current profile has no shared security-data consumer | none unless the trigger is reopened | owning integration | not-triggered |
 
 No screenshot, E2E run, scan, backup record, alert-delivery record, signing
 record, or live topology is required to close repository implementation, but

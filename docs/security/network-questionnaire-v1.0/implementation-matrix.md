@@ -3,7 +3,7 @@
 This matrix records repository-owned proof and committed deployment artifacts;
 row definitions live in [requirements-matrix.md](requirements-matrix.md).
 Statuses are `implemented`, `implementation-gap`,
-`deployment-evidence-pending`, or `blocked`.
+`deployment-evidence-pending`, `blocked`, or `not-triggered`.
 
 **Stable-ID coverage:** AU-1, AU-2, AU-3, AU-4, AU-5, AU-6, AU-7, AU-8,
 CR-1, CR-2, CR-3, CR-4, IA-1, IA-2, IA-3, IA-4, IA-5, IA-6, IA-7, IA-8,
@@ -24,11 +24,14 @@ CERT-3.
 | SM-1–SM-4 | Authentication, Sea, Users, Audit and existing owning capabilities | focused operation/policy/audit tests plus the PDF disposition table | implementation-in-progress |
 | SM-5 | Users existing role-backed model | named policy and role-owner tests; no new framework | implementation-in-progress |
 | SM-6 | Users canonical tenant-role replacement | focused replacement tests plus read-only membership analysis | blocked |
-| TSF-1–TSF-4 | Hosting/Main failure, time and topology contracts | static profile checks and fault tests | implementation-gap |
+| TSF-1 | Main/Hosting failure matrix, private readiness contract, and evaluated Compose profile | profile-integrity script, dependency-health tests, fault/restart review | implemented |
+| TSF-2 | topology.md, transport inventory, Caddy/Compose profile | profile-integrity script and placement/channel review | implemented |
+| TSF-4 | Hosting clock owner and transaction duration boundary | focused monotonic-duration test and transport/configuration review | implemented |
 | TSF-5 | manual-update-runbook.md | runbook/provenance contract check | implemented |
+| RA-1 | failure-recovery-matrix.md, readiness contract, and bounded evaluated Compose supervision | dependency-health tests, profile-integrity script, and recovery review | implemented |
 | TC-1–TC-3, HTTPS-1–3, TLSS-1–3, TLSC-1–4, CERT-1–3 | Caddyfile, Compose, outbound client inventory | Caddy/Compose parse, source-policy and protocol checks | implemented |
 | VULN-1–VULN-6 | release inventory, ingress policy, cookie/CSRF contracts | plan lint and static route/config checks | implementation-gap |
-| TSF-3 | data-sharing register and compatibility tests | profile lint; exact enabled consumers | blocked |
+| TSF-3 | toe-inventory.md trigger register | profile lint; exact enabled consumers | not-triggered |
 
 The profile manifest, Caddyfile, topology, and configuration documents are
 implemented Stage 0 artifacts. Behavior rows remain gaps until later stages;

@@ -1,9 +1,9 @@
 # Vitarish Network Application Security Questionnaire: Implementation Plan
 
-**Status:** Revised minimum-scope implementation plan; implementation completion is separate from deployment-evidence completion. This work item is limited to the PDF pages 20–23 management-function rows 2-5.1–2-5.6 and does not authorize optional questionnaire features.
+**Status:** Revised minimum-scope implementation plan; implementation completion is separate from deployment-evidence completion. This work item covers the PDF pages 20–23 management-function rows 2-5.1–2-5.6 and the selected mandatory failure/recovery rows in pages 24–26, without authorizing optional questionnaire features.
 **Questionnaire source:** `راهنمای تکمیل پرسشنامه نرم_افزار.pdf`, 42 pages, questionnaire version 1.0 and completion-guide version 1.1.
-**Target outcome:** The repository records and closes only the PDF-selected minimum: `Authentication_SessionPolicy_Put`, `Authentication_SessionPolicy_Get`, `SeaCreateProject`, the applicable 2-5.4 dispositions, and the existing role-backed one-effective-tenant-role model. Deployment-specific evidence is a separate phase.
-**Implementation authority:** The attached completion guide, PDF pages 20–23, is the sole scope authority for this work item. Existing broader questionnaire drafts and current-state baselines are not scope authority. This document does not authorize optional feature, generic capability, role-hierarchy, MFA, HA, export-retention, manifest/witness, or new-provider work.
+**Target outcome:** The repository records and closes only the PDF-selected minimum: `Authentication_SessionPolicy_Put`, `Authentication_SessionPolicy_Get`, `SeaCreateProject`, the applicable 2-5.4 dispositions, the existing role-backed one-effective-tenant-role model, and the selected mandatory TSF-1/2/4/5 and RA-1 implementation controls. Deployment-specific evidence is a separate phase.
+**Implementation authority:** The attached completion guide, PDF pages 20–23 for management and pages 24–26 for selected rows 2-6.1, 2-6.2, 2-6.4, 2-6.5, and 2-7.1, is the sole scope authority for this work item. Existing broader questionnaire drafts and current-state baselines are not scope authority. This document does not authorize optional feature, generic capability, role-hierarchy, MFA, HA, export-retention, manifest/witness, automatic-update-authenticity, or new-provider work.
 
 **Profile relationship:** This plan creates the separate `vitarish-product-evaluated-v1.0` evaluated profile. It does not widen, replace, or reuse evidence from the existing Main-only `vitarish-toe-main-evaluated-2026-08-15` profile under `docs/security/iso15408/`; that profile remains valid only for its declared single-machine Main/PostgreSQL/Redis boundary. A release claims exactly one profile.
 
@@ -425,16 +425,18 @@ semantics during this window.
 ### Stage 8 — Failure, recovery, and continuity proof
 
 **Depends on:** Stages 2–7.
-**Outcome:** TSF-1/2/4/5 and RA-1 are proven without unsupported HA claims.
+**Outcome:** Implement only the mandatory software/hardware failure, secure-link, valid-time, manual-update, and core-function-failure controls selected from the completion guide. No HA or automatic-update feature is introduced.
 
-- Define core functions and safe degraded behavior for process, PostgreSQL, Redis, object store, audit store/full, integrity key, provider, clock anomaly, disk pressure, and corrupted-data failures.
-- Never fail open on authentication, authorization, tenant isolation, integrity, or audit. Preserve cancellation and bounded retry ownership; retried mutations require idempotency.
-- Configure health checks and supervised restart; prove recovery after termination and dependency restoration.
-- Perform backup/restore and migration-recovery exercises in release environment; no false success while recovery is incomplete.
-- Verify errors expose no stack, source, secret, token, credential, or sensitive payload.
-- If Stage 0 requires uninterrupted service, add an approved redundancy architecture before claiming RA-1.
+- Record the minimum failure behavior in [failure-recovery-matrix.md](failure-recovery-matrix.md): process/Main, PostgreSQL, Redis, provider/storage, audit, integrity/corrupt data, clock, disk, and hardware failure.
+- Expose a private Main readiness contract for PostgreSQL and Redis and use it for bounded upstream health evaluation. Preserve the existing process liveness check and bounded `on-failure:5` supervision in the evaluated Compose profile.
+- Keep authentication, authorization, tenant isolation, session, integrity, and audit dependencies fail closed. Preserve cancellation and owner-controlled bounded retry; a failed mutation must not become a confirmed success.
+- Keep separate-machine links on the existing authenticated encrypted transport policy. Same-machine links remain an explicit profile decision; private addressing alone is not transport proof.
+- Use the existing OS UTC wall clock for valid timestamps and an owned monotonic clock for elapsed durations. Do not add NTP or another product time service.
+- Keep the existing authorized manual update procedure. Do not add automatic discovery, download, installation, signing, hash verification, or update authenticity features.
+- Hardware loss, disk pressure, backup/restore, and live topology remain release-operator evidence. The repository makes no uninterrupted-availability or HA claim.
+- TSF-3 is not triggered by the current profile because no shared secure-IT-product security data consumer is selected. TSF-6/CR-4 is not triggered because automatic or signed-file update is not selected. Reopen the applicability decision if either profile fact changes.
 
-**Acceptance:** fault injection and release recovery match the Stage 0 matrix; no bypass, corrupt confirmed state, unbounded retry, or swallowed failure occurs.
+**Acceptance:** the failure matrix, private readiness contract, evaluated profile validator, focused fault/time tests, and mandatory transport/update records agree; no bypass, corrupt confirmed state, unbounded retry, or swallowed failure is introduced. Release-specific recovery, hardware, backup/restore, and live topology proof remains outside this implementation gate.
 
 ## Cross-boundary behavior
 
@@ -446,7 +448,6 @@ semantics during this window.
 | Module → external provider | Module authorizes purpose/data; transport validates TLS/certificate/hostname; explicit timeout/cancellation; mutation retry requires idempotency. |
 | Module → Files/storage | Authorization/metadata precede stream; mismatch blocks; no unbounded buffering; distributed transport is encrypted/authenticated. |
 | Audit → UI/alert receiver | DTOs only, tenant-scoped, no sensitive/HMAC material; product emits durable state and evidence proves delivery. |
-| Audit/data → independent witness | Application-owned checkpoint payload crosses an authenticated channel to an append-only witness outside PostgreSQL and the runtime database principal. The witness returns a durable reference; unavailable, stale, mismatched, or rewound witness state triggers the declared restricted mode and ordered reconciliation. |
 | Background job → data | Idempotent, tenant-aware, cancellable, auditable, bounded, resumable, and safe on partial failure. |
 | Operator → deployment | Version-identified release, authorized manual update, ordered migrations, health verification, rollback limit, release record. |
 
@@ -475,7 +476,7 @@ Implementation completion does not start the network profile. Compose/Caddy/conf
 - **Architecture:** endpoint/authorization/audit/transfer/residual/crypto/TLS inventories, anonymous justification, no unclassified binary route, OpenAPI/client regeneration.
 - **Transport implementation:** Caddy/Compose, explicit `h1 h2`/no-`h3` configuration, static TCP/UDP listener policy, TLS 1.2 policy, plaintext rejection rules, trusted-proxy policy, and outbound identity/certificate validation code. Live listener proof, public scans, and distributed-channel proof belong to deployment evidence.
 - **Vulnerability/install:** resolved component and known-vulnerability inventory, response headers by route class, all emitted cookie attributes, running port allowlist, unsafe-method and method-override rejection, CORS preflight, and CSRF issuance/expiry/invalidation/replay behavior.
-- **Failure:** process, PostgreSQL, Redis, storage, audit stores, independent witness/staleness, disk, integrity key, session registry, clock, provider, corrupted data; prove safe response/recovery.
+- **Failure:** process, PostgreSQL, Redis, storage/provider, audit stores, disk, integrity key, session registry, clock, and corrupted data; prove the mandatory safe response and record the release-evidence handoff without adding optional witness or HA behavior.
 - **Automated cross-boundary feedback:** testable request/authorization/antiforgery and profile-script contracts; live two-host E2E and screenshot inspection belong to deployment evidence.
 - **Implementation gate:** migrations, focused tests, builds, static deployment validation, architecture checks, generated review, and plan/matrix integrity. A failed repository check blocks implementation completion.
 

@@ -14,11 +14,12 @@
 | External providers | Only provider clients selected in the release | Environmental dependency | Owning integration; endpoint identity, TLS and failure policy |
 | Release operator | Manual deployment, backup, alert receiver, evidence custody | Environment | Release evidence; commit/digest and immutable evidence controls |
 
-The committed Compose health check for Main is currently a process-liveness
-check because the current Main host exposes no repository-owned HTTP health
-endpoint. A readiness/health contract is a Stage 1 implementation gap and
-must be added or an equivalent authenticated/private probe must be selected
-before deployment evidence claims dependency readiness.
+The committed Compose health check for Main remains a process-liveness check,
+and Main now also owns a private readiness contract for PostgreSQL and Redis.
+Caddy uses that contract for upstream health evaluation without publicly
+routing the readiness path. Release evidence must still exercise dependency
+readiness and recovery; a product health response is not delivered operator
+evidence.
 
 ## Repository-delivered capability inventory
 
@@ -46,6 +47,6 @@ not served, embedded, logged, or used as fixtures/configuration.
 | HTTPS server | Included; HTTPS-1/2, TLSS-1/2/3, CERT-1/2/3 apply | ingress removed or changed |
 | Outbound HTTPS/TLS | Triggered for every enabled provider/client | any new client/provider |
 | Key generation/signing | Triggered by TLS/platform keys and any selected signing | new primitive or update signer |
-| Shared security data | OPEN assessment for Identity/provider/audit sharing | new shared data or consumer |
+| Shared security data | Not triggered: the current profile does not exchange authentication data, keys, signatures, or audit data with another secure IT product | new shared data or consumer |
 | Mobile client | Not applicable | Android/iOS included |
 | SSH, automatic update, mTLS | Not applicable | capability or flow enabled |

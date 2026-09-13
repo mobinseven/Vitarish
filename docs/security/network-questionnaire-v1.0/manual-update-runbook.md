@@ -16,8 +16,9 @@ procedure, not an in-product update service.
    not remove applied migrations or run a destructive rollback.
 4. Deploy the versioned images through the operator's deployment tooling. Keep
    the previous known-good deployment available for operational rollback.
-5. Verify health, dependency readiness, ingress routing, TLS policy, and the
-   mandatory smoke checks before declaring the deployment active.
+5. Verify process health, the private Main dependency-readiness contract,
+   ingress routing, TLS policy, and the mandatory smoke checks before declaring
+   the deployment active.
 6. Record the outcome, migration state, image identities, configuration
    revision, health result, failures and operator approval in the release
    record. If the checks fail, stop traffic and return to the previous known

@@ -6,12 +6,14 @@ stable ID to its trigger, owner, planned proof, and release handoff. Optional
 questionnaire rows are intentionally absent. `stage-0-open` means the row is
 selected and has a proof path, but the Stage 0 evaluator gate is not closed.
 
-For this work item, the PDF pages 20–23 are the sole scope authority. The
-selected minimum is `Authentication_SessionPolicy_Put`,
+For this work item, the PDF pages 20–23 and the selected pages 24–26 rows are
+the sole scope authority. The selected minimum is `Authentication_SessionPolicy_Put`,
 `Authentication_SessionPolicy_Get`, `SeaCreateProject`, the explicit 2-5.4
 disposition table in the implementation plan, and the existing Users
-one-effective-tenant-role model. The broader catalog remains a reference and
-does not authorize optional capabilities or generic role/capability frameworks.
+one-effective-tenant-role model, plus TSF-1, TSF-2, TSF-4, TSF-5, and RA-1.
+The conditional TSF-3 and TSF-6/CR-4 rows are not triggered by the current
+profile. The broader catalog remains a reference and does not authorize
+optional capabilities or generic role/capability frameworks.
 
 | ID | Source/trigger | Selected value | Owner | Implementation artifact | Deterministic test | Deployment handoff | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -51,11 +53,11 @@ does not authorize optional capabilities or generic role/capability frameworks.
 | SM-4 | 2-5.4 mandatory | explicit supported/unsupported disposition for every PDF checklist category | owning modules | implementation-plan disposition table and existing owners | disposition/operation metadata plus focused owner tests | management report | implementation-in-progress |
 | SM-5 | 2-5.5 mandatory | existing role-backed model; no new role/capability framework | Users | existing named Users policies and role owner | role policy and denial tests | role report | implementation-in-progress |
 | SM-6 | 2-5.6 mandatory | one permitted effective tenant role; atomic canonical replacement/revoke | Users | `ReplaceTenantRole` compatibility adapter and handler | idempotency, active-session, conflict/retry, invariant, audit | membership report | blocked-unverified |
-| TSF-1 | 2-6.1 mandatory | fail closed; preserve integrity | Hosting/owners | failure matrix | fault/restart tests | recovery record | stage-0-open |
-| TSF-2 | 2-6.2 mandatory | encrypted separate-machine links | Hosting | topology/link register | placement/channel test | topology scan | stage-0-open |
-| TSF-4 | 2-6.4 mandatory | UTC trusted OS clock | Hosting/operators | clock policy | monotonic-duration test | time record | stage-0-open |
-| TSF-5 | 2-6.5 mandatory | manual product-version update | Release operator | update runbook | provenance validator | release record | stage-0-open |
-| RA-1 | 2-7.1 mandatory | restart/read-only; no HA claim | Hosting/operators | degraded-mode matrix | dependency fault tests | recovery evidence | stage-0-open |
+| TSF-1 | 2-6.1 mandatory | software/hardware failure: fail closed and preserve integrity | Hosting/owners | [failure-recovery-matrix.md](failure-recovery-matrix.md), readiness contract | fault/restart and dependency tests | recovery record | stage-0-open |
+| TSF-2 | 2-6.2 mandatory | authenticated encrypted separate-machine links; same-machine placement recorded | Hosting | [topology.md](topology.md), transport inventory, profile validator | placement/channel check | topology scan | stage-0-open |
+| TSF-4 | 2-6.4 mandatory | existing OS UTC clock plus monotonic elapsed time | Hosting/operators | clock policy and transaction time owner | monotonic-duration test | time record | stage-0-open |
+| TSF-5 | 2-6.5 mandatory | authorized manual product-version update | Release operator | [manual-update-runbook.md](manual-update-runbook.md) | provenance/profile validator | release record | stage-0-open |
+| RA-1 | 2-7.1 mandatory | restart/read-only safe recovery; no HA claim | Hosting/operators | [failure-recovery-matrix.md](failure-recovery-matrix.md), evaluated Compose profile | dependency fault and readiness tests | recovery evidence | stage-0-open |
 | AC-1 | 2-8.1 mandatory | transactional session maximum | Authentication | session store | concurrency test | session probe | stage-0-open |
 | AC-2 | 2-8.2 mandatory | 1–30 minute idle bound | Authentication | timeout policy | expiry test | timeout probe | stage-0-open |
 | AC-3 | 2-8.3 mandatory | server revoke before success | Authentication | logout command | logout test | logout probe | stage-0-open |
@@ -87,7 +89,7 @@ does not authorize optional capabilities or generic role/capability frameworks.
 | CERT-3 | TLS/signing certificate | X.509v3 purpose EKU | Hosting/operators | certificate policy | EKU test | certificate report | stage-0-open |
 | CR-3 | product key generation | generation/destruction inventory | Hosting/operators | key inventory | key-lifecycle test | key report | stage-0-open |
 | CR-4 / TSF-6 | product signing or automatic/signed-file update selected | not triggered; no product signing or update-integrity feature | Release operator | applicability disposition | applicability check | release record if triggered | not-triggered |
-| TSF-3 | shared secure IT product data | OPEN shared-data map | Owners | data-sharing register | compatibility test | interoperability report | stage-0-open |
+| TSF-3 | shared secure IT product data, conditional | not triggered; no shared security-data consumer in the current profile | Owners | [toe-inventory.md](toe-inventory.md) trigger register | exact enabled-consumer inventory | no interoperability report unless triggered | not-triggered |
 
 The matrix is intentionally not a completion claim. The Stage 0 gate requires
 the evaluator state, exact release inputs, membership analysis, topology
