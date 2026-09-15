@@ -20,6 +20,16 @@ public static class PartiesApiEndpointMapping
     public static IEndpointRouteBuilder MapPartiesApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder group = endpoints.MapProtectedModuleGroup(PartiesApiRoutes.Base);
+        RouteGroupBuilder platformGroup = endpoints
+            .MapProtectedModuleGroup($"{PartiesApiRoutes.Base}{PartiesApiRoutes.Platform}", requireTenantAccess: false)
+            .WithGroupName(PartiesApiRoutes.DocumentTag)
+            .WithTags(PartiesApiRoutes.DocumentTag);
+        _ = platformGroup.MapModuleGet(
+            PartiesApiRoutes.PlatformTenants,
+            GetTenantsAsync,
+            PartiesApiOperations.PlatformGetTenants,
+            typeof(IEnumerable<C.TenantReadDto>))
+            .RequireAuthorization(IdentityDefinitions.PlatformAdmin);
         _ = group.MapModuleGet(PartiesApiRoutes.UserTenants, GetUserTenantsAsync, "PartiesGetUserTenants");
         _ = group.MapModuleGet(PartiesApiRoutes.Owners, GetOwnersAsync, "PartiesGetOwners").RequireAuthorization(IdentityDefinitions.PlatformAdmin);
         _ = group.MapModuleGet(PartiesApiRoutes.OwnerById, GetOwnerAsync, "PartiesGetOwner").RequireAuthorization(IdentityDefinitions.PlatformAdmin);

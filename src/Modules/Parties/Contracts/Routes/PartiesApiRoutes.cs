@@ -1,6 +1,7 @@
 namespace Vitarish.Parties.Contracts.Routes;
 public static class PartiesApiRoutes
 {
+    public const string DocumentTag = "Parties";
     public const string Base = "/api/modules/parties";
     public const string UserTenants = "/user-tenants";
     public const string Owners = "/owners";
@@ -20,4 +21,6 @@ public static class PartiesApiRoutes
     public const string AdministrationTenantsByOwner = "/owners/{ownerId:guid}/tenants";
     public const string AdministrationTenantIndicatorsByTenant = "/tenants/{tenantId:guid}/indicators";
     public const string AdministrationTenantIndicatorById = "/tenant-indicators/{tenantIndicatorId:guid}";
+    public const string Platform = "/platform";
+    public const string PlatformTenants = "/tenants";
 }

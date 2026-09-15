@@ -10,6 +10,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Modules\Base\Core\Modules.Base.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Parties\Api\Parties.Api.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Parties\Contracts\Parties.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Parties\Client\Parties.Client.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Parties\Infrastructure\Parties.Infrastructure.csproj" />
