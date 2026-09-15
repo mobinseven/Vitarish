@@ -123,6 +123,18 @@ describe("apiFetch antiforgery", () => {
     await expect(apiFetch("/api/modules/example", { method: "POST" })).rejects.toMatchObject({ code: "ValidationFailed" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it("parses string-url blob responses when requested", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(new Response("csv", {
+      headers: { "Content-Type": "text/csv" },
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await apiFetch<Blob>("/api/modules/example/export", { responseType: "blob" });
+
+    expect(result).toMatchObject({ size: 3, type: "text/csv" });
+    expect(fetchMock.mock.calls[0][1].headers.get("Accept")).toBe("application/octet-stream");
+  });
 });
 
 describe("apiFetchBlob", () => {

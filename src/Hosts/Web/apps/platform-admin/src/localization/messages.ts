@@ -1,4 +1,5 @@
 import type { SupportedLocale } from "@vitarish/localization";
+import { securityMessageCatalogs } from "@vitarish/security/localization";
 
 const en = {
   common: { states: { loading: "Loading…" } },
@@ -12,6 +13,7 @@ const en = {
     foundationDescription: "User, owner, tenant, indicator, landing-binding, and settings workflows will appear here as their protected contracts are delivered.",
     usersLink: "Open user directory",
     ownersLink: "Open owner directory", tenantsLink: "Open tenant directory", settingsLink: "Open settings",
+    auditLink: "Open global security audit",
     settingsTitle: "Platform settings", localeNotificationsLink: "Locale notifications",
     landing: { title: "Landing host binding", description: "Review and reassign the configured public landing hostname.", loading: "Loading landing binding…", error: "Landing binding could not be loaded.", retry: "Retry", hostname: "Hostname", tenant: "Bound tenant", unbound: "No tenant is currently bound.", target: "Target tenant", selectTarget: "Select a tenant", confirmation: "This changes the tenant used by new anonymous landing requests. Continue?", confirm: "Reassign landing host", warning: "New anonymous landing requests will use the selected tenant.", success: "Landing host reassigned.", noop: "The landing host already uses that tenant.", mutationError: "Landing host reassignment failed." },
     owners: { title: "Owners", description: "Platform owner directory.", loading: "Loading owners…", empty: "No owners found.", error: "Owners could not be loaded.", retry: "Retry", name: "Name", descriptionLabel: "Description", createTitle: "Create owner", create: "Create owner", createError: "Owner could not be created.", editTitle: "Edit owner", save: "Save changes" },
@@ -39,6 +41,7 @@ const en = {
       detailTitle: "User administration", tenantId: "Tenant ID", grant: "Grant tenant role", revoke: "Revoke", revokeConfirm: "Revoke this tenant role?", roleGranted: "Tenant role granted.", roleRevoked: "Tenant role revoked.", mutationError: "The role change could not be completed.", createTitle: "Create user", creationMethod: "Creation method", firstName: "First name", lastName: "Last name", create: "Create user", createError: "The requested user could not be created.",
     },
   },
+  ...securityMessageCatalogs.en,
 } as const;
 
 const fa = {
@@ -53,6 +56,7 @@ const fa = {
     foundationDescription: "با ارائه قراردادهای محافظت‌شده، گردش‌های کاربر، مالک، مستأجر، شاخص، اتصال لندینگ و تنظیمات اینجا نمایش داده می‌شوند.",
     usersLink: "باز کردن فهرست کاربران",
     ownersLink: "باز کردن فهرست مالکان", tenantsLink: "باز کردن فهرست مستأجران", settingsLink: "باز کردن تنظیمات",
+    auditLink: "باز کردن ممیزی امنیتی سراسری",
     settingsTitle: "تنظیمات پلتفرم", localeNotificationsLink: "اعلان‌های زبان",
     landing: { title: "اتصال میزبان لندینگ", description: "میزبان عمومی لندینگ را بررسی و reassignment کنید.", loading: "در حال بارگذاری اتصال لندینگ…", error: "بارگذاری اتصال لندینگ ممکن نیست.", retry: "تلاش دوباره", hostname: "نام میزبان", tenant: "مستأجر متصل", unbound: "در حال حاضر مستأجری متصل نیست.", target: "مستأجر هدف", selectTarget: "انتخاب مستأجر", confirmation: "این تغییر مستأجر درخواست‌های ناشناس جدید لندینگ را تغییر می‌دهد. ادامه می‌دهید؟", confirm: "تغییر مستأجر لندینگ", warning: "درخواست‌های ناشناس جدید از مستأجر انتخاب‌شده استفاده می‌کنند.", success: "میزبان لندینگ تغییر کرد.", noop: "میزبان لندینگ از قبل از این مستأجر استفاده می‌کند.", mutationError: "تغییر میزبان لندینگ انجام نشد." },
     owners: { title: "مالکان", description: "فهرست مالکان پلتفرم.", loading: "در حال بارگذاری مالکان…", empty: "مالکی پیدا نشد.", error: "بارگذاری مالکان ممکن نیست.", retry: "تلاش دوباره", name: "نام", descriptionLabel: "توضیحات", createTitle: "ایجاد مالک", create: "ایجاد مالک", createError: "ایجاد مالک ممکن نیست.", editTitle: "ویرایش مالک", save: "ذخیره تغییرات" },
@@ -80,6 +84,7 @@ const fa = {
       detailTitle: "مدیریت کاربر", tenantId: "شناسه مستأجر", grant: "اعطای نقش مستأجر", revoke: "لغو", revokeConfirm: "این نقش مستأجر لغو شود؟", roleGranted: "نقش مستأجر اعطا شد.", roleRevoked: "نقش مستأجر لغو شد.", mutationError: "تغییر نقش انجام نشد.", createTitle: "ایجاد کاربر", creationMethod: "روش ایجاد", firstName: "نام", lastName: "نام خانوادگی", create: "ایجاد کاربر", createError: "ایجاد کاربر انجام نشد.",
     },
   },
+  ...securityMessageCatalogs.fa,
 };
 
 export function getMessages(locale: SupportedLocale) { return locale === "fa" ? fa : en; }

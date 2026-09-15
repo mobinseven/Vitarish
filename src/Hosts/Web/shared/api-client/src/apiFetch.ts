@@ -130,6 +130,12 @@ export function resetAntiforgeryToken(): void {
   antiforgeryHeaderName = "X-XSRF-TOKEN";
 }
 
+export type ApiResponseType = "json" | "blob" | "text";
+
+export type ApiRequestInit = RequestInit & {
+  responseType?: ApiResponseType;
+};
+
 export interface OrvalConfig {
   url: string;
   method?: string;
@@ -182,9 +188,18 @@ function toFetchSignal(signal: AbortSignal | undefined): AbortSignal | undefined
   return canUseSignal(controller.signal) ? controller.signal : undefined;
 }
 
-async function sendRequest<T>(url: string, method: string, headers: Headers, body: BodyInit | undefined, signal: AbortSignal | undefined, options: RequestInit): Promise<T> {
+async function sendRequest<T>(
+  url: string,
+  method: string,
+  headers: Headers,
+  body: BodyInit | undefined,
+  signal: AbortSignal | undefined,
+  responseType: ApiResponseType,
+  options: ApiRequestInit,
+): Promise<T> {
+  const { responseType: _responseType, ...fetchOptions } = options;
   const res = await fetch(`${BASE_URL}${url}`, {
-    ...options,
+    ...fetchOptions,
     method,
     headers,
     body,
@@ -199,6 +214,8 @@ async function sendRequest<T>(url: string, method: string, headers: Headers, bod
   }
 
   if (res.status === 204) return undefined as T;
+  if (responseType === "blob") return res.blob() as Promise<T>;
+  if (responseType === "text") return res.text() as Promise<T>;
   return res.json() as Promise<T>;
 }
 
@@ -226,11 +243,12 @@ export async function apiFetchBlob(url: string, options: Pick<RequestInit, "head
   return res.blob();
 }
 
-export async function apiFetch<T>(urlOrConfig: string | OrvalConfig, options: RequestInit = {}): Promise<T> {
+export async function apiFetch<T>(urlOrConfig: string | OrvalConfig, options: ApiRequestInit = {}): Promise<T> {
   let url: string;
   let method: string;
   let body: BodyInit | undefined;
   let signal: AbortSignal | undefined;
+  let responseType: ApiResponseType = "json";
   const baseHeaders = new Headers(options.headers);
 
   if (isOrvalConfig(urlOrConfig)) {
@@ -239,6 +257,7 @@ export async function apiFetch<T>(urlOrConfig: string | OrvalConfig, options: Re
     method = config.method?.toUpperCase() ?? "GET";
     for (const [key, value] of Object.entries(config.headers ?? {})) baseHeaders.set(key, value);
     signal = config.signal ?? (options.signal as AbortSignal | undefined);
+    responseType = options.responseType ?? "json";
     if (config.params) url = appendParams(url, config.params);
     if (config.data !== undefined) body = JSON.stringify(config.data);
   } else {
@@ -246,9 +265,15 @@ export async function apiFetch<T>(urlOrConfig: string | OrvalConfig, options: Re
     method = options.method?.toUpperCase() ?? "GET";
     body = options.body as BodyInit | undefined;
     signal = options.signal as AbortSignal | undefined;
+    responseType = options.responseType ?? "json";
   }
 
-  baseHeaders.set("Accept", "application/json");
+  if (!baseHeaders.has("Accept")) {
+    baseHeaders.set(
+      "Accept",
+      responseType === "blob" ? "application/octet-stream" : responseType === "text" ? "text/plain" : "application/json",
+    );
+  }
   if (!baseHeaders.has("Content-Type") && body) baseHeaders.set("Content-Type", "application/json");
   applyTenantHostHeader(baseHeaders);
   if (isUnsafeMethod(method)) applyRequestIdHeader(baseHeaders);
@@ -260,13 +285,13 @@ export async function apiFetch<T>(urlOrConfig: string | OrvalConfig, options: Re
   };
 
   try {
-    return await sendRequest<T>(url, method, await buildHeaders(), body, signal, options);
+    return await sendRequest<T>(url, method, await buildHeaders(), body, signal, responseType, options);
   } catch (error) {
     if (!isUnsafeMethod(method) || !(error instanceof ApiError) || !isAntiforgeryValidationFailure(error)) {
       throw error;
     }
 
     resetAntiforgeryToken();
-    return sendRequest<T>(url, method, await buildHeaders(), body, signal, options);
+    return sendRequest<T>(url, method, await buildHeaders(), body, signal, responseType, options);
   }
 }

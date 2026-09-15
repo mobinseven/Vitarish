@@ -9,7 +9,14 @@ export default defineConfig({
       target: "../generated/audit/audit.ts",
       schemas: "../generated/audit/model",
       client: "react-query",
-      override: { mutator: { path: "./apiFetch.ts", name: "apiFetch" } },
+      override: {
+        mutator: { path: "./apiFetch.ts", name: "apiFetch" },
+        operations: {
+          Audit_PlatformSecurityEvents_Export: {
+            requestOptions: { responseType: "blob" },
+          },
+        },
+      },
     },
   },
 });
