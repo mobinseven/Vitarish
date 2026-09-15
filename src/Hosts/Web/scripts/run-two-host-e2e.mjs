@@ -11,6 +11,7 @@ const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(scriptDirectory, "..");
 const repositoryRoot = resolve(webRoot, "..", "..", "..");
 const appRoot = resolve(webRoot, "apps", "private-practice-owner");
+const platformAdminAppRoot = resolve(webRoot, "apps", "platform-admin");
 const e2eProject = resolve(repositoryRoot, "src", "Hosts", "E2e", "E2e.csproj");
 const e2eProjectRoot = resolve(repositoryRoot, "src", "Hosts", "E2e");
 const playwrightConfig = resolve(webRoot, "playwright.two-host.config.ts");
@@ -23,6 +24,7 @@ const originalAppTsconfig = readFileSync(appTsconfigPath, "utf8");
 const originalAppNextEnv = readFileSync(appNextEnvPath, "utf8");
 const mainOrigin = "https://localhost:7272";
 const webOrigin = "http://localhost:3005";
+const platformAdminOrigin = "http://localhost:3006";
 const smtpCapturePath = resolve(artifactDirectory, "e2e-smtp-capture.eml");
 const smtpPort = 2525;
 const readinessProbeTimeoutMs = 5000;
@@ -253,8 +255,10 @@ async function run() {
     ASPNETCORE_ENVIRONMENT: "E2E",
     ASPNETCORE_URLS: mainOrigin,
     WebAuthn__Origins__0: webOrigin,
+    WebAuthn__Origins__1: platformAdminOrigin,
     VITARISH_E2E_API_ORIGIN: mainOrigin,
     VITARISH_E2E_WEB_ORIGIN: webOrigin,
+    VITARISH_E2E_PLATFORM_ADMIN_ORIGIN: platformAdminOrigin,
     VITARISH_E2E_PASSWORD: password,
     Vitarish__Intelligence__AgentRuntime__SharedSecret: agentSharedSecret,
     Vitarish__Communications__Providers__Smtp__Host: "127.0.0.1",
@@ -278,6 +282,7 @@ async function run() {
 
   await ensurePortAvailable("E2e", mainOrigin);
   await ensurePortAvailable("Private Practice Owner", webOrigin);
+  await ensurePortAvailable("Platform Admin", platformAdminOrigin);
 
   const main = startProcess(
     "e2e",
@@ -293,14 +298,24 @@ async function run() {
     appRoot,
     webEnvironment,
   );
+  const platformAdmin = startProcess(
+    "platform-admin",
+    process.execPath,
+    [resolve(webRoot, "node_modules", "next", "dist", "bin", "next"), "dev", "--port", "3006"],
+    platformAdminAppRoot,
+    webEnvironment,
+  );
 
   await waitForHttp("E2e", main, `${mainOrigin}/api/modules/authentication/antiforgery`);
   await waitForHttp("Private Practice Owner", web, `${webOrigin}/`);
+  await waitForHttp("Platform Admin", platformAdmin, `${platformAdminOrigin}/`);
+
+  webEnvironment.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN = platformAdminOrigin;
 
   const playwright = startProcess(
     "playwright",
     process.execPath,
-    [resolve(webRoot, "node_modules", "@playwright", "test", "cli.js"), "test", "--config", playwrightConfig],
+    [resolve(webRoot, "node_modules", "@playwright", "test", "cli.js"), "test", "--config", playwrightConfig, ...(process.env.VITARISH_E2E_GREP ? ["--grep", process.env.VITARISH_E2E_GREP] : [])],
     webRoot,
     webEnvironment,
   );
@@ -309,6 +324,7 @@ async function run() {
     waitForExit(playwright),
     waitForPrematureHostExit(main),
     waitForPrematureHostExit(web),
+    waitForPrematureHostExit(platformAdmin),
   ]);
 
   if (result.code !== 0 || result.signal !== null) {

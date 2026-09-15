@@ -20,6 +20,9 @@ using Vitarish.Audit.Server;
 
 const string apiOriginKey = "VITARISH_E2E_API_ORIGIN";
 const string webOriginKey = "VITARISH_E2E_WEB_ORIGIN";
+const string platformWebOriginKey = "VITARISH_E2E_PLATFORM_ADMIN_ORIGIN";
+const string platformCorsOriginKey = "Cors:AllowedOrigins:2";
+const string platformWebAuthnOriginKey = "WebAuthn:Origins:1";
 const string passwordKey = "VITARISH_E2E_PASSWORD";
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -28,6 +31,7 @@ if (!builder.Environment.EnvironmentName.Equals("E2E", StringComparison.Ordinal)
 
 Uri apiOrigin = RequireLoopbackOrigin(builder.Configuration[apiOriginKey], apiOriginKey, requireHttps: true);
 Uri webOrigin = RequireLoopbackOrigin(builder.Configuration[webOriginKey], webOriginKey, requireHttps: false);
+Uri platformWebOrigin = RequireLoopbackOrigin(builder.Configuration[platformWebOriginKey] ?? webOrigin.ToString(), platformWebOriginKey, requireHttps: false);
 string password = builder.Configuration[passwordKey] ?? throw new InvalidOperationException("E2E password is required.");
 if (password.Length < 12)
     throw new InvalidOperationException("E2E password must be at least 12 characters.");
@@ -41,6 +45,8 @@ builder.Configuration["Vitarish:Identity:Authority"] = apiOrigin.ToString().Trim
 builder.Configuration["Vitarish:LandingUrl"] = webOrigin.ToString().TrimEnd('/');
 builder.Configuration["Cors:AllowedOrigins:0"] = webOrigin.ToString().TrimEnd('/');
 builder.Configuration["Cors:AllowedOrigins:1"] = "http://tenant-b.localhost:3005";
+builder.Configuration[platformCorsOriginKey] = platformWebOrigin.ToString().TrimEnd('/');
+builder.Configuration[platformWebAuthnOriginKey] = platformWebOrigin.ToString().TrimEnd('/');
 builder.Configuration["Vitarish:Intelligence:DefaultResponseModel"] = "e2e-test-model";
 builder.Configuration["Vitarish:Intelligence:AgentRuntime:BaseUrl"] = "http://localhost:3999";
 builder.Configuration["Vitarish:Files:Endpoint"] = "localhost:3998";
@@ -107,7 +113,7 @@ app.Run();
 
 static Uri RequireLoopbackOrigin(string? value, string name, bool requireHttps)
 {
-    if (!Uri.TryCreate(value, UriKind.Absolute, out Uri? origin) || !origin.IsLoopback || origin.AbsolutePath != "/" || origin.Query.Length != 0 || origin.Fragment.Length != 0)
+    if (!Uri.TryCreate(value, UriKind.Absolute, out Uri? origin) || (!origin.IsLoopback && !origin.Host.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase)) || origin.AbsolutePath != "/" || origin.Query.Length != 0 || origin.Fragment.Length != 0)
         throw new InvalidOperationException($"{name} must be an absolute loopback origin with an explicit port.");
     if (requireHttps && origin.Scheme != Uri.UriSchemeHttps)
         throw new InvalidOperationException($"{name} must use HTTPS.");

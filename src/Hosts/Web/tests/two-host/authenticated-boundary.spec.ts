@@ -18,6 +18,9 @@ const tenantUserUsername = process.env.VITARISH_E2E_TENANT_USER_USERNAME ?? "e2e
 const tenantBOwnerUsername = process.env.VITARISH_E2E_TENANT_B_OWNER_USERNAME ?? "e2e-tenant-b-owner";
 const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
 const tenantBOrigin = "http://tenant-b.localhost:3005";
+const platformAdminOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
+const securityAuditReviewFixtureActorId = "e2e-audit-review";
+const tenantAId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
 const tenantAPatientId = "2d7a3eb9-1d47-4c63-9a45-19d7e6a0fb18";
 const tenantBPatientId = "f4c8109a-6f22-4a31-9ab8-48d7ad0d7e2f";
 const tenantBId = "b2d2e4a1-2fd8-4781-8d9f-6c96f2a5e7b4";
@@ -358,11 +361,6 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   expect(apiRequests.some((request) => request.url.endsWith("/api/modules/authentication/session"))).toBe(true);
   expect(apiRequests.some((request) => request.url.endsWith("/api/modules/appointments/health"))).toBe(true);
   expect(apiRequests.filter((request) => request.method !== "OPTIONS").every((request) => request.tenantHost === new URL(page.url()).host)).toBe(true);
-
-  const proofScreenshot = process.env.VITARISH_E2E_PROOF_SCREENSHOT;
-  if (proofScreenshot) {
-    await page.screenshot({ path: proofScreenshot, fullPage: true });
-  }
 
   const logout = await generatedAuthenticationRequest(
     request,
@@ -960,6 +958,120 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
   const platform = await fetchJson(page, "/api/modules/platform/locale-notifications");
   expect(platform.status).toBe(200);
 
+});
+
+// platform-audit
+test("proves the global audit grid across a separate platform-admin origin", async ({ page }) => {
+  await login(page, platformAdminUsername, "", e2ePassword, "198.51.100.21");
+  const tenantBContext = await page.context().browser()!.newContext();
+  const tenantBPage = await tenantBContext.newPage();
+  const ownerContext = await page.context().browser()!.newContext();
+  const ownerPage = await ownerContext.newPage();
+
+  try {
+    await login(tenantBPage, tenantBOwnerUsername, tenantBOrigin, e2ePassword, "198.51.100.22");
+    await page.goto(`${platformAdminOrigin}/audit`, { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(/localhost:3006\/audit(?:\?|$)/);
+    await expect(page.getByRole("heading", { name: "Global security audit" })).toBeVisible();
+    await expect(page.locator("tbody tr").first()).toBeVisible();
+
+    const tenants = await fetchJson(page, "/api/modules/parties/platform/tenants");
+    expect(tenants.status).toBe(200);
+    expect(tenants.body).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: tenantAId }),
+      expect.objectContaining({ id: tenantBId }),
+    ]));
+
+    const globalReview = await fetchJson(page, "/api/audit/platform/security-events?page=1&pageSize=100&sortBy=1&descending=true&uncataloguedOnly=false");
+    expect(globalReview.status).toBe(200);
+    const globalItems = (globalReview.body as { items: Array<{ tenantId?: string }> }).items;
+    expect(globalItems.some(item => item.tenantId === tenantAId)).toBe(true);
+    expect(globalItems.some(item => item.tenantId === tenantBId)).toBe(true);
+
+    const selectedTenant = await fetchJson(page, `/api/audit/platform/security-events?page=1&pageSize=25&tenantId=${tenantAId}&sortBy=1&descending=true&uncataloguedOnly=false`);
+    expect(selectedTenant.status).toBe(200);
+    const selectedTenantItems = (selectedTenant.body as { items: Array<{ tenantId?: string }> }).items;
+    expect(selectedTenantItems.length).toBeGreaterThan(0);
+    expect(selectedTenantItems.every(item => item.tenantId === tenantAId)).toBe(true);
+
+    const catalog = await fetchJson(page, "/api/audit/platform/security-event-catalog");
+    expect(catalog.status).toBe(200);
+    expect(catalog.body).toEqual(expect.arrayContaining([
+      expect.objectContaining({ category: "authentication", eventName: "authentication.password.login", operation: "password.login", isWildcard: false }),
+    ]));
+
+    const exactCatalogFilter = await fetchJson(page, "/api/audit/platform/security-events?page=1&pageSize=25&eventCategory=authentication&eventName=authentication.password.login&operation=password.login&sortBy=1&descending=true&uncataloguedOnly=false");
+    expect(exactCatalogFilter.status).toBe(200);
+    const exactItems = (exactCatalogFilter.body as { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string }> }).items;
+    expect(exactItems.length).toBeGreaterThan(0);
+    expect(exactItems.every(item => item.eventName === "authentication.password.login" && item.eventCategory === "authentication" && item.operation === "password.login")).toBe(true);
+
+    const exactEventId = exactItems[0].id;
+    expect(exactEventId).toBeTruthy();
+    const exactEventFilter = await fetchJson(page, `/api/audit/platform/security-events?page=1&pageSize=25&eventId=${exactEventId}&sortBy=1&descending=true&uncataloguedOnly=false`);
+    expect(exactEventFilter.status).toBe(200);
+    expect((exactEventFilter.body as { items: Array<{ id?: string }> }).items).toEqual([expect.objectContaining({ id: exactEventId })]);
+
+    await page.getByLabel("Event ID").fill(exactEventId!);
+    await page.getByRole("button", { name: "Apply filters" }).click();
+    await expect(page.getByText("1 event")).toBeVisible();
+    await expect(page.locator("tbody tr")).toHaveCount(1);
+    const evidenceScreenshot = process.env.VITARISH_NMAIL_EVIDENCE_SCREENSHOT;
+    if (evidenceScreenshot) {
+      await page.screenshot({ path: evidenceScreenshot, fullPage: true });
+    }
+
+    const [download] = await Promise.all([
+      page.waitForEvent("download"),
+      page.getByRole("button", { name: "Export CSV" }).click(),
+    ]);
+    const downloadPath = await download.path();
+    expect(downloadPath).toBeTruthy();
+    const csv = readFileSync(downloadPath!, "utf8");
+    expect(csv).toContain("\"id\",\"tenantId\",\"eventCategory\"");
+    expect(csv).not.toContain("idempotencyKey");
+    expect(csv).not.toContain("payload");
+
+    await page.locator("tbody tr").first().click();
+    await expect(page.getByRole("heading", { name: "Event details" })).toBeVisible();
+    await expect(page.getByText("This panel exposes review-safe metadata only.")).toBeVisible();
+    await page.getByRole("button", { name: "Close event details" }).click();
+
+    await page.getByRole("textbox", { name: "Event ID" }).fill("");
+    await page.getByPlaceholder("Exact actor identifier").fill(securityAuditReviewFixtureActorId);
+    await page.getByRole("button", { name: "Apply filters" }).click();
+    await expect(page.getByText("60 events")).toBeVisible();
+    await expect(page.getByText(securityAuditReviewFixtureActorId).first()).toBeVisible();
+
+    const oversizedExport = await page.evaluate(async ({ origin }) => {
+    const response = await fetch(`${origin}/api/audit/platform/security-events/export?sortBy=1&descending=true&uncataloguedOnly=false`, {
+        credentials: "include",
+        headers: { "X-Vitarish-Tenant-Host": window.location.host },
+      });
+      return { status: response.status, contentType: response.headers.get("content-type") };
+    }, { origin: apiOrigin });
+    expect(oversizedExport.status).toBe(413);
+    expect(oversizedExport.contentType).toContain("application/problem+json");
+
+    await login(ownerPage, e2eUsername, "", e2ePassword, "198.51.100.23");
+    await ownerPage.goto(`${platformAdminOrigin}/audit`, { waitUntil: "domcontentloaded" });
+    const deniedTenants = await fetchJson(ownerPage, "/api/modules/parties/platform/tenants");
+    expect(deniedTenants.status).toBe(403);
+    expect(JSON.stringify(deniedTenants.body ?? "")).not.toContain(tenantAId);
+    const denied = await fetchJson(ownerPage, "/api/audit/platform/security-events?page=1&pageSize=25&sortBy=1&descending=true&uncataloguedOnly=false");
+    expect(denied.status).toBe(403);
+    expect(JSON.stringify(denied.body ?? "")).not.toContain(tenantBId);
+
+    const proofScreenshot = process.env.VITARISH_E2E_PROOF_SCREENSHOT;
+    if (proofScreenshot) {
+      await page.screenshot({ path: proofScreenshot, fullPage: true });
+    }
+  } finally {
+    await ownerPage.close();
+    await ownerContext.close();
+    await tenantBPage.close();
+    await tenantBContext.close();
+  }
 });
 
 test("requires the internal-service credential boundary before callback validation", async ({ request }) => {

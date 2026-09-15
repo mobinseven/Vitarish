@@ -20,6 +20,8 @@ using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Users.Application.Abstractions;
+using Vitarish.Audit.Domain;
+using Vitarish.Audit.Server;
 
 namespace Vitarish.E2e.Infrastructure.Fixtures;
 
@@ -32,6 +34,12 @@ internal static class E2eFixtureSeeder
     public const string PatientName = "E2E Patient";
     public const string PatientFirstName = "E2E";
     public const string PatientLastName = "Patient";
+    private const string ExportCapacityActorId = "e2e-export-capacity";
+    private const string ExportCapacityResource = "e2e/export-capacity";
+    private const int SecurityAuditReviewFixtureEventsPerTenant = 30;
+    private const string SecurityAuditReviewFixtureActorId = "e2e-audit-review";
+    private const string SecurityAuditReviewFixtureResource = "e2e/audit-review";
+    private const string SecurityAuditReviewFixtureSourceBoundary = "e2e.audit-review";
     private const string TenantAFileChecksum = "720B672F1CF84CDE6F1788EECF15D8FA940BBEE7D6610D1B2E2546E85969A726";
     private const string TenantBFileChecksum = "C869566813A0DFFB02AB1863035E73FC9F29E569B795BEF12E4EB7F6D80DFDA7";
 
@@ -375,6 +383,105 @@ internal static class E2eFixtureSeeder
             if (!result.Succeeded)
                 throw new InvalidOperationException("E2E platform-admin role assignment failed.");
         }
+
+        AuditDbContext audit = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
+        AuditDbContext tenantBAudit = tenantBScope.ServiceProvider.GetRequiredService<AuditDbContext>();
+        DateTime securityAuditReviewFixtureSeedTime = DateTime.UtcNow;
+        await EnsureSecurityAuditReviewFixtureAsync(
+            audit,
+            tenant.Id.ToString(),
+            securityAuditReviewFixtureSeedTime,
+            cancellationToken);
+        await EnsureSecurityAuditReviewFixtureAsync(
+            tenantBAudit,
+            tenantB.Id.ToString(),
+            securityAuditReviewFixtureSeedTime,
+            cancellationToken);
+
+        int existingExportCapacityEvents = await audit.SecurityAuditEvents
+            .CountAsync(item => item.ActorId == ExportCapacityActorId, cancellationToken);
+        if (existingExportCapacityEvents < SecurityAuditExportPolicy.ProbeRows)
+        {
+            List<SecurityAuditEvent> exportCapacityEvents = Enumerable.Range(
+                    existingExportCapacityEvents,
+                    SecurityAuditExportPolicy.ProbeRows - existingExportCapacityEvents)
+                .Select(index => new SecurityAuditEvent
+                {
+                    Id = Guid.NewGuid(),
+                    EventName = SecurityAuditEventCatalog.AuditReviewEvent,
+                    EventCategory = SecurityAuditEventCatalog.ReviewCategory,
+                    Outcome = SecurityAuditOutcome.Succeeded,
+                    ActorKind = SecurityAuditActorKind.User,
+                    ActorId = ExportCapacityActorId,
+                    TenantId = tenant.Id.ToString(),
+                    Resource = ExportCapacityResource,
+                    Operation = SecurityAuditEventCatalog.AuditReviewOperation,
+                    OccurredAt = DateTime.UtcNow.AddDays(-30).AddSeconds(-index),
+                    CorrelationId = $"{ExportCapacityActorId}-{index}",
+                    SourceBoundary = SecurityAuditEventCatalog.AuditReviewSourceBoundary,
+                    SourceIpKind = SecurityAuditSourceKind.Unknown,
+                    IdempotencyKey = $"{ExportCapacityActorId}-{index}"
+                })
+                .ToList();
+            await audit.SecurityAuditEvents.AddRangeAsync(exportCapacityEvents, cancellationToken);
+            _ = await audit.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    private static async Task EnsureSecurityAuditReviewFixtureAsync(
+        AuditDbContext audit,
+        string tenantId,
+        DateTime seedTime,
+        CancellationToken cancellationToken)
+    {
+        int existingEvents = await audit.SecurityAuditEvents
+            .CountAsync(
+                item => item.TenantId == tenantId &&
+                    item.ActorId == SecurityAuditReviewFixtureActorId &&
+                    item.Resource == SecurityAuditReviewFixtureResource,
+                cancellationToken);
+        if (existingEvents >= SecurityAuditReviewFixtureEventsPerTenant)
+            return;
+
+        SecurityAuditCatalogEntry[] catalogEntries = SecurityAuditEventCatalog.Entries
+            .Where(entry => entry.Applicable && entry.Operation != SecurityAuditEventCatalog.OperationWildcard)
+            .ToArray();
+        List<SecurityAuditEvent> events = Enumerable.Range(
+                existingEvents,
+                SecurityAuditReviewFixtureEventsPerTenant - existingEvents)
+            .Select(index =>
+            {
+                SecurityAuditCatalogEntry entry = catalogEntries[index % catalogEntries.Length];
+                return new SecurityAuditEvent
+                {
+                    Id = Guid.NewGuid(),
+                    EventName = entry.EventName,
+                    EventCategory = entry.Category,
+                    Outcome = (index % 4) switch
+                    {
+                        0 => SecurityAuditOutcome.Succeeded,
+                        1 => SecurityAuditOutcome.Failed,
+                        2 => SecurityAuditOutcome.Denied,
+                        _ => SecurityAuditOutcome.Pending
+                    },
+                    ActorKind = SecurityAuditActorKind.User,
+                    ActorId = SecurityAuditReviewFixtureActorId,
+                    SubjectId = $"{SecurityAuditReviewFixtureActorId}-subject-{index}",
+                    TenantId = tenantId,
+                    Resource = SecurityAuditReviewFixtureResource,
+                    Operation = entry.Operation,
+                    OccurredAt = seedTime.AddSeconds(-index),
+                    CorrelationId = $"{SecurityAuditReviewFixtureActorId}-{tenantId}-{index}",
+                    SourceBoundary = SecurityAuditReviewFixtureSourceBoundary,
+                    SourceIpKind = SecurityAuditSourceKind.Client,
+                    SourceIpAddress = $"198.51.100.{50 + (index % 10)}",
+                    IdempotencyKey = $"{SecurityAuditReviewFixtureActorId}:{tenantId}:{index}"
+                };
+            })
+            .ToList();
+
+        await audit.SecurityAuditEvents.AddRangeAsync(events, cancellationToken);
+        _ = await audit.SaveChangesAsync(cancellationToken);
     }
 
     private static async Task<User> EnsureUserAsync(
