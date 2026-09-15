@@ -11,11 +11,16 @@ namespace Vitarish.Audit.Server;
 public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
 {
     private readonly IRequestContext _requestContext;
+    private readonly IMultiTenantContextAccessor<TenantInfo>? _multiTenantContextAccessor;
 
-    public AuditDbContext(DbContextOptions<AuditDbContext> options, IRequestContext requestContext)
+    public AuditDbContext(
+        DbContextOptions<AuditDbContext> options,
+        IRequestContext requestContext,
+        IMultiTenantContextAccessor<TenantInfo>? multiTenantContextAccessor = null)
         : base(options)
     {
         _requestContext = requestContext;
+        _multiTenantContextAccessor = multiTenantContextAccessor;
         this.EnforceMultiTenantOnTracking();
     }
 
@@ -23,7 +28,10 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
     {
         get
         {
-            string tenantId = _requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.");
+            string? tenantId = _multiTenantContextAccessor?.MultiTenantContext?.TenantInfo?.Id
+                ?? _requestContext.TenantId;
+            if (string.IsNullOrWhiteSpace(tenantId))
+                throw new InvalidOperationException("Tenant ID cannot be recognized.");
             return new TenantInfo
             {
                 Id = tenantId,

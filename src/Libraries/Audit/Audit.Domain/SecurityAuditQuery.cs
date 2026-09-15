@@ -16,7 +16,21 @@ public sealed record SecurityAuditQuery(
     DateTime? FromUtc = null,
     DateTime? ToUtc = null,
     SecurityAuditSortField SortBy = SecurityAuditSortField.OccurredAt,
-    bool Descending = true);
+    bool Descending = true,
+    string? Operation = null,
+    string? Outcome = null,
+    string? EventId = null);
+
+public sealed record SecurityAuditPlatformQuery(
+    SecurityAuditQuery Query,
+    string? TenantId = null,
+    bool UncataloguedOnly = false);
+
+public sealed record SecurityAuditCatalogEntryReadDto(
+    string Category,
+    string EventName,
+    string Operation,
+    bool IsWildcard);
 
 public sealed record SecurityAuditPageReadDto(
     IReadOnlyList<SecurityAuditEventReadDto> Items,

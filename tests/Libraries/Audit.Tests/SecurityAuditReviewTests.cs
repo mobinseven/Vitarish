@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.Abstractions;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -85,6 +87,25 @@ public sealed class SecurityAuditReviewTests
         idleTermination.Applicable.Should().BeFalse();
         SecurityAuditEventCatalog.Find(SecurityAuditEventCatalog.EndpointMutationEvent, "any-operation")
             .Should().NotBeNull();
+
+        SecurityAuditEventCatalog.IsCatalogued(new SecurityAuditEvent
+        {
+            EventName = SecurityAuditEventCatalog.EndpointMutationEvent,
+            EventCategory = SecurityAuditEventCatalog.FunctionCategory,
+            Operation = "any-operation"
+        }).Should().BeTrue();
+        SecurityAuditEventCatalog.IsCatalogued(new SecurityAuditEvent
+        {
+            EventName = SecurityAuditEventCatalog.AdministratorIdleTerminationEvent,
+            EventCategory = SecurityAuditEventCatalog.SessionCategory,
+            Operation = "session.terminate.idle"
+        }).Should().BeFalse();
+        SecurityAuditEventCatalog.IsCatalogued(new SecurityAuditEvent
+        {
+            EventName = SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent,
+            EventCategory = SecurityAuditEventCatalog.ManagementCategory,
+            Operation = SecurityAuditEventCatalog.PasswordLoginOperation
+        }).Should().BeFalse();
     }
 
     [Fact]
@@ -201,6 +222,231 @@ public sealed class SecurityAuditReviewTests
     }
 
     [Fact]
+    public async Task Platform_review_queries_all_tenants_and_separates_uncatalogued_rows()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions();
+        DateTime first = new(2026, 9, 2, 7, 0, 0, DateTimeKind.Utc);
+
+        await using (AuditDbContext tenantA = CreateContext(options, "tenant-a"))
+        {
+            await tenantA.Database.EnsureCreatedAsync();
+            tenantA.SecurityAuditEvents.Add(CreateEvent("tenant-a", "actor-a", SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent, first));
+            await tenantA.SaveChangesAsync();
+        }
+
+        await using (AuditDbContext tenantB = CreateContext(options, "tenant-b"))
+        {
+            SecurityAuditEvent failed = CreateEvent("tenant-b", "actor-b", SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent, first.AddMinutes(1));
+            failed.Outcome = SecurityAuditOutcome.Failed;
+            SecurityAuditEvent legacy = CreateEvent("tenant-b", "legacy-user", "legacy.event", first.AddMinutes(2));
+            legacy.EventCategory = null;
+            legacy.Operation = "legacy.operation";
+            tenantB.SecurityAuditEvents.AddRange(failed, legacy);
+            await tenantB.SaveChangesAsync();
+        }
+
+        await using (AuditDbContext platform = CreateContext(options, SecurityAuditScopeCatalog.PlatformScopeId))
+        {
+            platform.SecurityAuditEvents.Add(new SecurityAuditEvent
+            {
+                Id = Guid.NewGuid(),
+                EventName = SecurityAuditEventCatalog.AuditReviewEvent,
+                EventCategory = SecurityAuditEventCatalog.ReviewCategory,
+                Outcome = SecurityAuditOutcome.Succeeded,
+                ActorKind = SecurityAuditActorKind.User,
+                ActorId = "platform-reviewer",
+                TenantId = SecurityAuditScopeCatalog.PlatformScopeId,
+                Resource = SecurityAuditScopeCatalog.PlatformResource,
+                Operation = SecurityAuditEventCatalog.AuditReviewOperation,
+                OccurredAt = first.AddMinutes(3),
+                CorrelationId = "platform-request",
+                SourceBoundary = SecurityAuditEventCatalog.AuditReviewSourceBoundary,
+                SourceIpKind = SecurityAuditSourceKind.Unknown,
+                IdempotencyKey = "platform-request"
+            });
+            await platform.SaveChangesAsync();
+        }
+
+        await using AuditDbContext globalContext = CreateContext(options, SecurityAuditScopeCatalog.PlatformScopeId);
+        SecurityAuditQueryService service = new(globalContext, new TestRequestContext(SecurityAuditScopeCatalog.PlatformScopeId, [IdentityDefinitions.PlatformAdmin]));
+
+        SecurityAuditPageReadDto allScopes = await service.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10)),
+            CancellationToken.None);
+        allScopes.TotalCount.Should().Be(4);
+        allScopes.Items.Select(item => item.TenantId).Should().Contain(["tenant-a", "tenant-b", SecurityAuditScopeCatalog.PlatformScopeId]);
+
+        SecurityAuditPageReadDto tenantScopedReview = await service.QueryAsync(
+            new SecurityAuditQuery(PageSize: 10),
+            CancellationToken.None);
+        tenantScopedReview.TotalCount.Should().Be(0);
+
+        await using (AuditDbContext noTenantContext = CreateContext(options, null))
+        {
+            SecurityAuditPageReadDto noTenantReview = await new SecurityAuditQueryService(
+                noTenantContext,
+                new TestRequestContext(null, [IdentityDefinitions.PlatformAdmin]))
+                .QueryPlatformAsync(new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10)), CancellationToken.None);
+            noTenantReview.TotalCount.Should().Be(4);
+        }
+
+        SecurityAuditPageReadDto selectedTenant = await service.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10, Outcome: SecurityAuditOutcome.Failed), "tenant-b"),
+            CancellationToken.None);
+        selectedTenant.TotalCount.Should().Be(1);
+        selectedTenant.Items.Single().ActorId.Should().Be("actor-b");
+
+        Func<Task> platformTenantFilter = () => service.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10), SecurityAuditScopeCatalog.PlatformScopeId),
+            CancellationToken.None);
+        await platformTenantFilter.Should().ThrowAsync<ArgumentException>();
+
+        SecurityAuditPageReadDto uncatalogued = await service.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10), UncataloguedOnly: true),
+            CancellationToken.None);
+        uncatalogued.TotalCount.Should().Be(1);
+        uncatalogued.Items.Single().EventName.Should().Be("legacy.event");
+
+        SecurityAuditPageReadDto exactUncatalogued = await service.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(
+                new SecurityAuditQuery(PageSize: 10, EventName: "legacy.event", Operation: "legacy.operation"),
+                UncataloguedOnly: true),
+            CancellationToken.None);
+        exactUncatalogued.TotalCount.Should().Be(1);
+        exactUncatalogued.Items.Single().EventName.Should().Be("legacy.event");
+
+        Func<Task> categoryWithUncatalogued = () => service.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(
+                new SecurityAuditQuery(PageSize: 10, EventCategory: SecurityAuditEventCatalog.AuthenticationCategory),
+                UncataloguedOnly: true),
+            CancellationToken.None);
+        await categoryWithUncatalogued.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task Platform_export_rejects_more_than_the_bounded_row_limit()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions();
+        await using AuditDbContext context = CreateContext(options, SecurityAuditScopeCatalog.PlatformScopeId);
+        await context.Database.EnsureCreatedAsync();
+        List<SecurityAuditEvent> events = Enumerable.Range(0, SecurityAuditExportPolicy.ProbeRows)
+            .Select(index => CreateEvent(SecurityAuditScopeCatalog.PlatformScopeId, $"actor-{index}", SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent, DateTime.UtcNow.AddSeconds(-index)))
+            .ToList();
+        context.SecurityAuditEvents.AddRange(events);
+        await context.SaveChangesAsync();
+
+        SecurityAuditQueryService service = new(context, new TestRequestContext(SecurityAuditScopeCatalog.PlatformScopeId, [IdentityDefinitions.PlatformAdmin]));
+
+        Func<Task> export = () => service.ExportPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10)),
+            CancellationToken.None);
+
+        await export.Should().ThrowAsync<SecurityAuditExportLimitException>();
+    }
+
+    [Fact]
+    public async Task Platform_review_records_allowed_and_denied_attempts_without_replacing_results_or_leaking_scope()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions();
+        MultiTenantContext<TenantInfo> originalContext = CreateTenantContext("tenant-a");
+        TestTenantContextAccessor tenantContextAccessor = new(originalContext);
+        await using AuditDbContext context = new(options, new TestRequestContext("tenant-a"), tenantContextAccessor);
+        await context.Database.EnsureCreatedAsync();
+
+        RecordingSecurityAuditWriter allowedWriter = new(throwStoreFailure: true);
+        SecurityAuditQueryService allowedService = new(
+            context,
+            new TestRequestContext(null, [IdentityDefinitions.PlatformAdmin]),
+            platformAttemptRecorder: new PlatformSecurityAuditAttemptRecorder(
+                allowedWriter,
+                new TestRequestContext(null, [IdentityDefinitions.PlatformAdmin]),
+                tenantContextAccessor));
+
+        SecurityAuditPageReadDto allowedResult = await allowedService.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10)),
+            CancellationToken.None);
+
+        allowedResult.TotalCount.Should().Be(0);
+        allowedWriter.Events.Should().ContainSingle();
+        allowedWriter.Events.Single().TenantId.Should().Be(SecurityAuditScopeCatalog.PlatformScopeId);
+        allowedWriter.Events.Single().EventCategory.Should().Be(SecurityAuditEventCatalog.ReviewCategory);
+        allowedWriter.Events.Single().Outcome.Should().Be(SecurityAuditOutcome.Succeeded);
+        tenantContextAccessor.MultiTenantContext.Should().BeSameAs(originalContext);
+
+        RecordingSecurityAuditWriter deniedWriter = new(throwStoreFailure: true);
+        TestRequestContext deniedRequest = new(null);
+        SecurityAuditQueryService deniedService = new(
+            context,
+            deniedRequest,
+            platformAttemptRecorder: new PlatformSecurityAuditAttemptRecorder(deniedWriter, deniedRequest, tenantContextAccessor));
+
+        Func<Task> deniedRead = () => deniedService.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10)),
+            CancellationToken.None);
+
+        await deniedRead.Should().ThrowAsync<UnauthorizedAccessException>();
+        deniedWriter.Events.Should().ContainSingle();
+        deniedWriter.Events.Single().TenantId.Should().Be(SecurityAuditScopeCatalog.PlatformScopeId);
+        deniedWriter.Events.Single().Outcome.Should().Be(SecurityAuditOutcome.Denied);
+        tenantContextAccessor.MultiTenantContext.Should().BeSameAs(originalContext);
+    }
+
+    [Fact]
+    public async Task Platform_review_attempt_cancellation_is_not_swallowed_and_scope_is_restored()
+    {
+        MultiTenantContext<TenantInfo> originalContext = CreateTenantContext("tenant-a");
+        TestTenantContextAccessor tenantContextAccessor = new(originalContext);
+        using CancellationTokenSource cancellation = new();
+        cancellation.Cancel();
+        RecordingSecurityAuditWriter writer = new(throwCancellation: true);
+        PlatformSecurityAuditAttemptRecorder recorder = new(
+            writer,
+            new TestRequestContext(null, [IdentityDefinitions.PlatformAdmin]),
+            tenantContextAccessor);
+
+        Func<Task> record = () => recorder.RecordAsync(
+            SecurityAuditEventCatalog.AuditReviewEvent,
+            SecurityAuditEventCatalog.AuditReviewOperation,
+            SecurityAuditScopeCatalog.PlatformReviewIdempotencySuffix,
+            SecurityAuditOutcome.Succeeded,
+            cancellation.Token);
+
+        await record.Should().ThrowAsync<OperationCanceledException>();
+        writer.Events.Should().ContainSingle();
+        tenantContextAccessor.MultiTenantContext.Should().BeSameAs(originalContext);
+    }
+
+    [Fact]
+    public void Csv_export_contains_only_review_safe_fields_and_escapes_formula_cells()
+    {
+        string csv = System.Text.Encoding.UTF8.GetString(SecurityAuditCsvFormatter.Format(
+        [
+            new SecurityAuditEventReadDto
+            {
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                EventName = "=unsafe",
+                EventCategory = SecurityAuditEventCatalog.AuthenticationCategory,
+                Outcome = SecurityAuditOutcome.Succeeded,
+                ActorKind = SecurityAuditActorKind.User,
+                ActorId = "actor,one",
+                TenantId = "tenant-a",
+                Operation = SecurityAuditEventCatalog.PasswordLoginOperation,
+                OccurredAt = new DateTime(2026, 9, 2, 7, 0, 0, DateTimeKind.Utc),
+                CorrelationId = "request-1",
+                SourceBoundary = "tests",
+                SourceIpKind = SecurityAuditSourceKind.Unknown,
+                RedactedReason = "line one\nline two"
+            }
+        ]));
+
+        csv.Should().Contain("\"'=unsafe\"");
+        csv.Should().Contain("\"actor,one\"");
+        csv.Should().Contain("\"line one\nline two\"");
+        csv.Should().NotContain("idempotency");
+        csv.Should().NotContain("payload");
+    }
+
+    [Fact]
     public async Task Review_query_requires_the_existing_selected_tenant_authorization()
     {
         DbContextOptions<AuditDbContext> options = CreateOptions();
@@ -310,8 +556,18 @@ public sealed class SecurityAuditReviewTests
         IdempotencyKey = Guid.NewGuid().ToString("N")
     };
 
-    private static AuditDbContext CreateContext(DbContextOptions<AuditDbContext> options, string tenantId) =>
+    private static AuditDbContext CreateContext(DbContextOptions<AuditDbContext> options, string? tenantId) =>
         new(options, new TestRequestContext(tenantId));
+
+    private static MultiTenantContext<TenantInfo> CreateTenantContext(string tenantId) => new()
+    {
+        TenantInfo = new TenantInfo
+        {
+            Id = tenantId,
+            Identifier = tenantId,
+            Name = tenantId
+        }
+    };
 
     private static DbContextOptions<AuditDbContext> CreateOptions() =>
         new DbContextOptionsBuilder<AuditDbContext>()
@@ -349,7 +605,36 @@ public sealed class SecurityAuditReviewTests
         public string? ClientIpAddress { get; } = address;
     }
 
-    private sealed class TestRequestContext(string tenantId, string[]? roles = null) : IRequestContext
+    private sealed class RecordingSecurityAuditWriter(bool throwStoreFailure = false, bool throwCancellation = false) : ISecurityAuditWriter
+    {
+        public List<SecurityAuditEvent> Events { get; } = [];
+
+        public Task<SecurityAuditWriteResult> WriteAsync(SecurityAuditEvent auditEvent, CancellationToken cancellationToken)
+        {
+            Events.Add(auditEvent);
+            if (throwCancellation)
+                throw new OperationCanceledException(cancellationToken);
+            if (throwStoreFailure)
+                throw new SecurityAuditStoreException("test store failure", new InvalidOperationException("test store failure"));
+            return Task.FromResult(SecurityAuditWriteResult.Recorded);
+        }
+    }
+
+    private sealed class TestTenantContextAccessor(IMultiTenantContext<TenantInfo> initialContext) :
+        IMultiTenantContextAccessor<TenantInfo>,
+        IMultiTenantContextSetter
+    {
+        public IMultiTenantContext<TenantInfo> MultiTenantContext { get; private set; } = initialContext;
+
+        IMultiTenantContext IMultiTenantContextAccessor.MultiTenantContext => MultiTenantContext;
+
+        IMultiTenantContext IMultiTenantContextSetter.MultiTenantContext
+        {
+            set => MultiTenantContext = (IMultiTenantContext<TenantInfo>)value;
+        }
+    }
+
+    private sealed class TestRequestContext(string? tenantId, string[]? roles = null) : IRequestContext
     {
         public string Authority => "test";
         public string? ClientId => null;

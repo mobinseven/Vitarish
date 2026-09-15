@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace Vitarish.Audit.Domain;
 
 public sealed record SecurityAuditCatalogEntry(
@@ -102,4 +104,34 @@ public static class SecurityAuditEventCatalog
 
     public static SecurityAuditCatalogEntry? Find(string eventName, string operation) =>
         Entries.FirstOrDefault(entry => entry.Applicable && entry.Matches(eventName, operation));
+
+    public static bool IsCatalogued(SecurityAuditEvent auditEvent)
+    {
+        SecurityAuditCatalogEntry? entry = Find(auditEvent.EventName, auditEvent.Operation);
+        return entry is not null && string.Equals(auditEvent.EventCategory, entry.Category, StringComparison.Ordinal);
+    }
+
+    public static Expression<Func<SecurityAuditEvent, bool>> CataloguedPredicate()
+    {
+        ParameterExpression item = Expression.Parameter(typeof(SecurityAuditEvent), "item");
+        Expression? match = null;
+
+        foreach (SecurityAuditCatalogEntry entry in Entries.Where(entry => entry.Applicable))
+        {
+            Expression current = Expression.AndAlso(
+                Expression.Equal(Expression.Property(item, nameof(SecurityAuditEvent.EventName)), Expression.Constant(entry.EventName)),
+                Expression.Equal(Expression.Property(item, nameof(SecurityAuditEvent.EventCategory)), Expression.Constant(entry.Category)));
+
+            if (entry.Operation != OperationWildcard)
+            {
+                current = Expression.AndAlso(
+                    current,
+                    Expression.Equal(Expression.Property(item, nameof(SecurityAuditEvent.Operation)), Expression.Constant(entry.Operation)));
+            }
+
+            match = match is null ? current : Expression.OrElse(match, current);
+        }
+
+        return Expression.Lambda<Func<SecurityAuditEvent, bool>>(match ?? Expression.Constant(false), item);
+    }
 }
