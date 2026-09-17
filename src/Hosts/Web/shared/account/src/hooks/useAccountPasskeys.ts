@@ -5,11 +5,22 @@ import {
   useUsersBeginWebAuthnRegister,
   useUsersCompleteWebAuthnRegister,
   useUsersDeleteWebAuthnCredential,
+  type WebAuthnCredentialDto,
 } from "@vitarish/auth";
 import { registerPasskey, startRegistration } from "@vitarish/account";
 import { accountKeys } from "./accountKeys";
 
-export function useAccountPasskeys(userId: string) {
+export interface AccountPasskeysResult {
+  credentials: WebAuthnCredentialDto[] | undefined;
+  isLoadingCredentials: boolean;
+  isSupported: boolean | null;
+  isRegisterPending: boolean;
+  isDeletePending: boolean;
+  register: () => Promise<void>;
+  remove: (credentialId: string) => Promise<unknown>;
+}
+
+export function useAccountPasskeys(userId: string): AccountPasskeysResult {
   const queryClient = useQueryClient();
   const { data: credentials, isLoading: isLoadingCredentials } =
     useUsersListWebAuthnCredentials(userId);
