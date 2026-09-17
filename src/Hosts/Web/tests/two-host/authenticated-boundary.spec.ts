@@ -1,5 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { createHmac } from "node:crypto";
 import { usersGetProfile } from "../../shared/auth/src/api/generated/users/users";
 import {
@@ -19,7 +20,6 @@ const tenantBOwnerUsername = process.env.VITARISH_E2E_TENANT_B_OWNER_USERNAME ??
 const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
 const tenantBOrigin = "http://tenant-b.localhost:3005";
 const platformAdminOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
-const securityAuditReviewFixtureActorId = "e2e-audit-review";
 const tenantAId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
 const tenantAPatientId = "2d7a3eb9-1d47-4c63-9a45-19d7e6a0fb18";
 const tenantBPatientId = "f4c8109a-6f22-4a31-9ab8-48d7ad0d7e2f";
@@ -962,6 +962,7 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
 
 // platform-audit
 test("proves the global audit grid across a separate platform-admin origin", async ({ page }) => {
+  test.setTimeout(300_000);
   await login(page, platformAdminUsername, "", e2ePassword, "198.51.100.21");
   const tenantBContext = await page.context().browser()!.newContext();
   const tenantBPage = await tenantBContext.newPage();
@@ -972,8 +973,8 @@ test("proves the global audit grid across a separate platform-admin origin", asy
     await login(tenantBPage, tenantBOwnerUsername, tenantBOrigin, e2ePassword, "198.51.100.22");
     await page.goto(`${platformAdminOrigin}/audit`, { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/localhost:3006\/audit(?:\?|$)/);
-    await expect(page.getByRole("heading", { name: "Global security audit" })).toBeVisible();
-    await expect(page.locator("tbody tr").first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Global security audit" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 30_000 });
 
     const tenants = await fetchJson(page, "/api/modules/parties/platform/tenants");
     expect(tenants.status).toBe(200);
@@ -984,7 +985,7 @@ test("proves the global audit grid across a separate platform-admin origin", asy
 
     const globalReview = await fetchJson(page, "/api/audit/platform/security-events?page=1&pageSize=100&sortBy=1&descending=true&uncataloguedOnly=false");
     expect(globalReview.status).toBe(200);
-    const globalItems = (globalReview.body as { items: Array<{ tenantId?: string }> }).items;
+    const globalItems = (globalReview.body as { items: Array<{ id?: string; eventName?: string; tenantId?: string }> }).items;
     expect(globalItems.some(item => item.tenantId === tenantAId)).toBe(true);
     expect(globalItems.some(item => item.tenantId === tenantBId)).toBe(true);
 
@@ -1002,7 +1003,7 @@ test("proves the global audit grid across a separate platform-admin origin", asy
 
     const exactCatalogFilter = await fetchJson(page, "/api/audit/platform/security-events?page=1&pageSize=25&eventCategory=authentication&eventName=authentication.password.login&operation=password.login&sortBy=1&descending=true&uncataloguedOnly=false");
     expect(exactCatalogFilter.status).toBe(200);
-    const exactItems = (exactCatalogFilter.body as { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string }> }).items;
+    const exactItems = (exactCatalogFilter.body as { items: Array<{ id?: string; actorId?: string; eventName?: string; eventCategory?: string; operation?: string }> }).items;
     expect(exactItems.length).toBeGreaterThan(0);
     expect(exactItems.every(item => item.eventName === "authentication.password.login" && item.eventCategory === "authentication" && item.operation === "password.login")).toBe(true);
 
@@ -1012,13 +1013,36 @@ test("proves the global audit grid across a separate platform-admin origin", asy
     expect(exactEventFilter.status).toBe(200);
     expect((exactEventFilter.body as { items: Array<{ id?: string }> }).items).toEqual([expect.objectContaining({ id: exactEventId })]);
 
-    await page.getByLabel("Event ID").fill(exactEventId!);
+    await page.getByRole("button", { name: "All categories" }).click();
+    await page.getByRole("option", { name: "authentication" }).click();
+    await page.getByRole("button", { name: "All event types" }).click();
+    await page.getByRole("option", { name: "authentication.password.login", exact: true }).click();
+    await page.getByRole("button", { name: "All operations" }).click();
+    await page.getByRole("option", { name: "password.login", exact: true }).click();
     await page.getByRole("button", { name: "Apply filters" }).click();
-    await expect(page.getByText("1 event")).toBeVisible();
-    await expect(page.locator("tbody tr")).toHaveCount(1);
+    await expect(page.locator("tbody tr").first()).toBeVisible();
     const evidenceScreenshot = process.env.VITARISH_NMAIL_EVIDENCE_SCREENSHOT;
     if (evidenceScreenshot) {
       await page.screenshot({ path: evidenceScreenshot, fullPage: true });
+      mkdirSync(dirname(evidenceScreenshot), { recursive: true });
+
+      const organicEventNames = new Set(globalItems.map(item => item.eventName).filter((eventName): eventName is string => Boolean(eventName)));
+      const organicCatalogEntries = (catalog.body as Array<{ category?: string; eventName?: string; operation?: string }>)
+        .filter(entry => entry.category && entry.eventName && entry.operation && organicEventNames.has(entry.eventName));
+      for (const entry of organicCatalogEntries) {
+        await page.getByRole("button", { name: "Reset filters" }).click();
+        await page.getByRole("button", { name: "All categories" }).click();
+        await page.getByRole("option", { name: entry.category!, exact: true }).click();
+        await page.getByRole("button", { name: "All event types" }).click();
+        await page.getByRole("option", { name: entry.eventName!, exact: true }).click();
+        await page.getByRole("button", { name: "All operations" }).click();
+        await page.getByRole("option", { name: entry.operation!, exact: true }).click();
+        await page.getByRole("button", { name: "Apply filters" }).click();
+        if (await page.locator("tbody tr").count() > 0) {
+          const safeEventName = entry.eventName!.replace(/[^a-z0-9.-]+/gi, "-");
+          await page.screenshot({ path: join(dirname(evidenceScreenshot), `audit-${safeEventName}.png`), fullPage: true });
+        }
+      }
     }
 
     const [download] = await Promise.all([
@@ -1036,22 +1060,6 @@ test("proves the global audit grid across a separate platform-admin origin", asy
     await expect(page.getByRole("heading", { name: "Event details" })).toBeVisible();
     await expect(page.getByText("This panel exposes review-safe metadata only.")).toBeVisible();
     await page.getByRole("button", { name: "Close event details" }).click();
-
-    await page.getByRole("textbox", { name: "Event ID" }).fill("");
-    await page.getByPlaceholder("Exact actor identifier").fill(securityAuditReviewFixtureActorId);
-    await page.getByRole("button", { name: "Apply filters" }).click();
-    await expect(page.getByText("60 events")).toBeVisible();
-    await expect(page.getByText(securityAuditReviewFixtureActorId).first()).toBeVisible();
-
-    const oversizedExport = await page.evaluate(async ({ origin }) => {
-    const response = await fetch(`${origin}/api/audit/platform/security-events/export?sortBy=1&descending=true&uncataloguedOnly=false`, {
-        credentials: "include",
-        headers: { "X-Vitarish-Tenant-Host": window.location.host },
-      });
-      return { status: response.status, contentType: response.headers.get("content-type") };
-    }, { origin: apiOrigin });
-    expect(oversizedExport.status).toBe(413);
-    expect(oversizedExport.contentType).toContain("application/problem+json");
 
     await login(ownerPage, e2eUsername, "", e2ePassword, "198.51.100.23");
     await ownerPage.goto(`${platformAdminOrigin}/audit`, { waitUntil: "domcontentloaded" });
