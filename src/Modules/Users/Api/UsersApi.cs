@@ -14,6 +14,10 @@ using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Contracts.Routes;
 using Vitarish.Users.Api.Endpoints;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Users.Application.Queries;
+using Vitarish.Users.Application.Security;
+using MediatR;
 
 namespace Vitarish.Users.Api;
 
@@ -39,6 +43,11 @@ public static class UsersApi
             .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
         _ = users.MapModuleDelete($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRole}", RevokeTenantRoleAsync, "UsersAdministrationRevokeTenantRole", typeof(UsersCommandResponse)).RequireAuthorization(UsersAuthorizationPolicies.ReplaceTenantRole)
             .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
+        _ = users.MapModuleGet(UsersApiRoutes.TenantMembers, ListTenantMembersAsync, UsersApiRoutes.ListTenantMembersOperation, typeof(TenantMemberResponse[])).RequireAuthorization(UsersAuthorizationPolicies.ManageTenantMembers);
+        _ = users.MapModulePost(UsersApiRoutes.TenantMembers, ProvisionTenantMemberAsync, UsersApiRoutes.ProvisionTenantMemberOperation, typeof(ProvisionTenantMemberResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageTenantMembers)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
+        _ = users.MapModuleDelete(UsersApiRoutes.TenantMember, RemoveTenantMemberAsync, UsersApiRoutes.RemoveTenantMemberOperation, typeof(UsersCommandResponse), successStatusCode: StatusCodes.Status200OK).RequireAuthorization(UsersAuthorizationPolicies.ManageTenantMembers)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
         users.MapProfileEndpoints();
         users.MapWebAuthnEndpoints();
         users.MapPatEndpoints();
@@ -46,6 +55,37 @@ public static class UsersApi
     }
 
     private static async Task<IResult> SearchUsersAsync([AsParameters] SearchUsersQueryParameters p, IUsersService service, CancellationToken ct) { if (string.IsNullOrWhiteSpace(p.Query)) { return Results.Ok(Array.Empty<UserSummaryResponse>()); } IEnumerable<User> users = await service.SearchUsersAsync(p.Query.Trim(), p.MaxResults ?? 50, ct); return Results.Ok(users.Select(ToSummary).ToArray()); }
+    private static async Task<IResult> ListTenantMembersAsync([AsParameters] ListTenantMembersQueryParameters p, IRequestContext requestContext, ISender sender, CancellationToken ct)
+    {
+        if (!TryGetManageableTenant(requestContext, out _)) return Results.Forbid();
+        IReadOnlyList<TenantMemberSummary> members = await sender.Send(new ListTenantMembersQuery(p.Search, p.MaxResults ?? TenantMemberQueryDefaults.MaxResults), ct);
+        return Results.Ok(members.Select(ToTenantMemberResponse).ToArray());
+    }
+
+    private static async Task<IResult> ProvisionTenantMemberAsync(ProvisionTenantMemberRequest request, IRequestContext requestContext, ISender sender, CancellationToken ct)
+    {
+        if (!TryGetManageableTenant(requestContext, out _)) return Results.Forbid();
+        ProvisionTenantMemberResult result = await sender.Send(new ProvisionTenantMemberCommand(request.UserId, request.Email, request.PhoneNumber, request.FirstName, request.LastName), ct);
+        if (result.User is null)
+        {
+            return result.ErrorCode switch
+            {
+                UsersCommandErrorCodes.Unauthorized => Results.Forbid(),
+                UsersCommandErrorCodes.TenantMemberNotFound => Results.NotFound(),
+                UsersCommandErrorCodes.ActiveSessionConflict => Results.Conflict(UsersCommandResponse.Failed([new UsersCommandError(result.ErrorCode, UsersCommandErrorCodes.ActiveSessionConflictDescription)])),
+                UsersCommandErrorCodes.TenantMemberConflict => Results.Conflict(UsersCommandResponse.Failed([new UsersCommandError(result.ErrorCode, UsersCommandErrorCodes.TenantMemberConflictDescription)])),
+                _ => Results.Conflict(UsersCommandResponse.Failed([new UsersCommandError(result.ErrorCode ?? UsersCommandErrorCodes.TenantMemberConflict, result.ErrorCode ?? UsersCommandErrorCodes.TenantMemberConflictDescription)]))
+            };
+        }
+
+        return Results.Ok(new ProvisionTenantMemberResponse(ToSafeSummary(result.User), result.RoleSuffix, result.Created, result.AlreadyMember));
+    }
+
+    private static async Task<IResult> RemoveTenantMemberAsync(string userId, IRequestContext requestContext, ISender sender, CancellationToken ct)
+    {
+        if (!TryGetManageableTenant(requestContext, out _)) return Results.Forbid();
+        return ToCommandResult(await sender.Send(new RemoveTenantMemberCommand(userId), ct));
+    }
     private static async Task<IResult> GetUserAsync(string userId, IUsersService service, CancellationToken ct) => await service.GetUserAsync(userId, ct) is { } user ? Results.Ok(ToSummary(user)) : Results.NotFound();
     private static async Task<IResult> CheckEmailAsync([AsParameters] CheckUserEmailInUseQueryParameters p, IUsersService service, CancellationToken ct) => Results.Ok(new UserExistenceResponse(await service.CheckUserEmailInUseAsync(p.Email, p.ExcludeUserId, ct)));
     private static async Task<IResult> CheckPhoneAsync([AsParameters] CheckUserPhoneNumberInUseQueryParameters p, IUsersService service, CancellationToken ct) => Results.Ok(new UserExistenceResponse(await service.CheckUserPhoneNumberInUseAsync(p.PhoneNumber, p.ExcludeUserId, ct)));
@@ -92,4 +132,8 @@ public static class UsersApi
     private static IResult ToCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : result.Errors.Any(error => error.Code == UsersCommandErrorCodes.ActiveSessionConflict) ? Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray())) : Results.BadRequest(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray()));
     private static IResult ToRoleCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray()));
     private static UserSummaryResponse ToSummary(User user) => new(user.Id, user.UserName, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.IdentificationCode, user.DateOfBirth, user.BirthCountryCode, user.BirthCity, user.FullName);
+    private static UserSummaryResponse ToSafeSummary(User user) => new(user.Id, user.UserName, user.FirstName, user.LastName, user.Email, user.PhoneNumber, null, null, null, null, user.FullName);
+    private static TenantMemberResponse ToTenantMemberResponse(TenantMemberSummary member) => new(new UserSummaryResponse(member.Id, member.UserName, member.FirstName, member.LastName, member.Email, member.PhoneNumber, null, null, null, null, member.FullName), member.RoleSuffix);
+    private static bool TryGetManageableTenant(IRequestContext requestContext, out Guid tenantId) =>
+        Guid.TryParse(requestContext.TenantId, out tenantId) && UsersSecurityAuthorization.CanManageTenantMembers(requestContext.User, tenantId);
 }

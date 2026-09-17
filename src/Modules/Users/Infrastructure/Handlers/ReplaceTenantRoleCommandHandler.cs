@@ -145,6 +145,25 @@ internal sealed class ReplaceTenantRoleCommandHandler(
                     TenantRoleState.For(request.RoleSuffix));
             }
 
+            IdentityRole? ownerRole = tenantRoles.SingleOrDefault(role => role.Name == ownerRoleName);
+            bool currentlyOwner = ownerRole is not null && memberships.Any(membership => membership.RoleId == ownerRole.Id);
+            bool ownerWouldBeRemoved = currentlyOwner && request.RoleSuffix != IdentityDefinitions.TenantOwner;
+            if (ownerWouldBeRemoved)
+            {
+                int ownerCount = ownerRole is null
+                    ? 0
+                    : (await dbContext.UserRoles
+                        .Where(membership => membership.RoleId == ownerRole.Id)
+                        .ToListAsync(cancellationToken)).Count;
+                if (ownerCount <= 1)
+                {
+                    return new ReplacementResult(
+                        Failed(UsersCommandErrorCodes.LastOwnerProtection, UsersCommandErrorCodes.LastOwnerProtectionDescription),
+                        beforeState,
+                        request.RoleSuffix is null ? SecurityAuditReasonCatalog.TenantRoleStateNone : TenantRoleState.For(request.RoleSuffix));
+                }
+            }
+
             bool changed = memberships.Count != (requestedRole is null ? 0 : 1) ||
                            requestedRole is not null && memberships.Any(membership => membership.RoleId != requestedRole.Id);
             if (changed)

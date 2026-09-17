@@ -74,12 +74,22 @@ export {
   useUsersAdministrationGrantTenantRole,
   useUsersAdministrationRevokeTenantRole,
   getUsersAdministrationListTenantRolesQueryKey,
+  useUsersListTenantMembers,
+  useUsersProvisionTenantMember,
+  useUsersRemoveTenantMember,
   getUsersGetProfileQueryKey,
   getUsersGetCultureQueryKey,
   getUsersListWebAuthnCredentialsQueryKey,
 } from "./api/generated/users/users";
 
-export type { ChangeTenantRoleRequest, TenantRoleMembershipResponse } from "./api/generated/users/model";
+export type {
+  ChangeTenantRoleRequest,
+  TenantRoleMembershipResponse,
+  UsersListTenantMembersParams,
+  ProvisionTenantMemberRequest,
+  ProvisionTenantMemberResponse,
+  TenantMemberResponse,
+} from "./api/generated/users/model";
 
 // Components
 export { AuthMethodSelector } from "./components/AuthMethodSelector";

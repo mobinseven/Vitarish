@@ -1,13 +1,15 @@
 "use client";
-import { useState } from "react";
+
 import { useParams } from "next/navigation";
-import { useAuthSession, usePlatformAuthorization, useUsersAdministrationGrantTenantRole, useUsersAdministrationListTenantRoles, useUsersAdministrationRevokeTenantRole } from "@vitarish/auth";
-import { CenteredRegion } from "@vitarish/ui/layout";
+import { UserManagementSurface } from "@vitarish/users";
 import { useLocalizedText } from "@vitarish/localization";
+
 export default function UserDetailPage() {
- const {isAuthenticated,isLoading}=useAuthSession(); const {hasAccess}=usePlatformAuthorization(); const {t}=useLocalizedText(); const {userId}=useParams<{userId:string}>(); const roles=useUsersAdministrationListTenantRoles(userId); const grant=useUsersAdministrationGrantTenantRole(); const revoke=useUsersAdministrationRevokeTenantRole(); const [tenantId,setTenantId]=useState(""); const [roleSuffix,setRoleSuffix]=useState("TenantUser"); const [message,setMessage]=useState("");
- if(isLoading)return <CenteredRegion><p>{t("common.states.loading")}</p></CenteredRegion>; if(!isAuthenticated||!hasAccess)return <CenteredRegion><h1>{t("admin.forbiddenTitle")}</h1></CenteredRegion>;
- const submit=(e:React.FormEvent)=>{e.preventDefault();if(!tenantId.trim())return;grant.mutate({userId,tenantId:tenantId.trim(),roleSuffix,data:{roleSuffix}},{onSuccess:()=>{setMessage(t("admin.users.roleGranted"));roles.refetch()},onError:()=>setMessage(t("admin.users.mutationError"))})};
- const remove=(tenant:string,role:string)=>{if(!window.confirm(t("admin.users.revokeConfirm")))return;revoke.mutate({userId,tenantId:tenant,roleSuffix:role,data:{roleSuffix:role}},{onSuccess:()=>{setMessage(t("admin.users.roleRevoked"));roles.refetch()},onError:()=>setMessage(t("admin.users.mutationError"))})};
- return <main className="mx-auto max-w-3xl space-y-6 p-6"><h1 className="text-2xl font-semibold">{t("admin.users.detailTitle")}</h1><p>{userId}</p><section><h2>{t("admin.users.memberships")}</h2>{roles.data?.map(r=><div className="mt-2 flex justify-between rounded border p-3" key={`${r.tenantId}:${r.roleSuffix}`}><span>{r.tenantId} · {r.roleSuffix}</span><button disabled={revoke.isPending} onClick={()=>remove(r.tenantId,r.roleSuffix)}>{t("admin.users.revoke")}</button></div>)}</section><form className="space-y-3 rounded border p-4" onSubmit={submit}><h2>{t("admin.users.grant")}</h2><input className="w-full rounded border p-2" value={tenantId} onChange={e=>setTenantId(e.target.value)} placeholder={t("admin.users.tenantId")}/><select className="rounded border p-2" value={roleSuffix} onChange={e=>setRoleSuffix(e.target.value)}><option>TenantUser</option><option>TenantOwner</option></select><button disabled={grant.isPending||!tenantId.trim()}>{t("admin.users.grant")}</button></form>{message&&<p role="status">{message}</p>}</main>;
+  const { t } = useLocalizedText();
+  const { userId } = useParams<{ userId: string }>();
+  return (
+    <main className="mx-auto max-w-3xl space-y-6 p-6">
+      <UserManagementSurface mode="platform" platformView="detail" userId={userId} title={t("admin.users.detailTitle")} />
+    </main>
+  );
 }

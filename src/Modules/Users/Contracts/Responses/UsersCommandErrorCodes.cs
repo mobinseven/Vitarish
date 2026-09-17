@@ -16,4 +16,12 @@ public static class UsersCommandErrorCodes
     public const string UserNotFoundDescription = "The user was not found.";
     public const string TenantRoleConflict = "TenantRoleConflict";
     public const string TenantRoleConflictDescription = "The tenant role changed concurrently; retry the operation.";
+    public const string TenantMemberNotFound = "TenantMemberNotFound";
+    public const string TenantMemberNotFoundDescription = "The requested tenant member was not found.";
+    public const string TenantOwnerRemovalRejected = "TenantOwnerRemovalRejected";
+    public const string TenantOwnerRemovalRejectedDescription = "The tenant owner cannot be removed from the tenant staff surface.";
+    public const string TenantMemberConflict = "TenantMemberConflict";
+    public const string TenantMemberConflictDescription = "The tenant membership changed concurrently; retry the operation.";
+    public const string LastOwnerProtection = "LastOwnerProtection";
+    public const string LastOwnerProtectionDescription = "The last tenant owner cannot be removed or demoted.";
 }

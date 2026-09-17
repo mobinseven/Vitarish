@@ -7,4 +7,5 @@ public static class UsersAuthorizationPolicies
     public const string AssignGlobalRole = "Users.GlobalRole.Assign";
     public const string ReadTenantRoles = "Users.TenantRoles.Read";
     public const string ReplaceTenantRole = "Users.TenantRole.Replace";
+    public const string ManageTenantMembers = "Users.TenantMembers.Manage";
 }

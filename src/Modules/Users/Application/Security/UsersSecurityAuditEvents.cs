@@ -16,4 +16,10 @@ public static class UsersSecurityAuditEvents
     public const string GlobalScope = "global";
     public const string GlobalRoleAssignmentIdempotencySuffix = ":global-role-assignment";
     public const string GlobalRoleRevocationIdempotencySuffix = ":global-role-revocation";
+    public const string TenantMemberProvisioning = SecurityAuditEventCatalog.TenantMemberProvisioningEvent;
+    public const string TenantMemberProvisioningOperation = SecurityAuditEventCatalog.TenantMemberProvisioningOperation;
+    public const string TenantMemberProvisioningIdempotencySuffix = ":tenant-member-provisioning";
+    public const string TenantMemberRemoval = SecurityAuditEventCatalog.TenantMemberRemovalEvent;
+    public const string TenantMemberRemovalOperation = SecurityAuditEventCatalog.TenantMemberRemovalOperation;
+    public const string TenantMemberRemovalIdempotencySuffix = ":tenant-member-removal";
 }

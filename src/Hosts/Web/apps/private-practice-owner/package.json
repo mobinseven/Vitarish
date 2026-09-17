@@ -41,6 +41,7 @@
     "@vitarish/localization": "0.1.0",
     "@vitarish/mock-runtime": "0.1.0",
     "@vitarish/ui": "0.1.0",
+    "@vitarish/users": "0.1.0",
     "embla-carousel": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "maplibre-gl": "^5.24.0",

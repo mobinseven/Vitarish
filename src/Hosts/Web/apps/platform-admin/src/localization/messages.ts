@@ -1,5 +1,6 @@
 import type { SupportedLocale } from "@vitarish/localization";
 import { securityMessageCatalogs } from "@vitarish/security/localization";
+import { usersMessageCatalogs } from "@vitarish/users/localization";
 
 const en = {
   common: { states: { loading: "Loading…" } },
@@ -42,6 +43,7 @@ const en = {
     },
   },
   ...securityMessageCatalogs.en,
+  ...usersMessageCatalogs.en,
 } as const;
 
 const fa = {
@@ -85,6 +87,7 @@ const fa = {
     },
   },
   ...securityMessageCatalogs.fa,
+  ...usersMessageCatalogs.fa,
 };
 
 export function getMessages(locale: SupportedLocale) { return locale === "fa" ? fa : en; }

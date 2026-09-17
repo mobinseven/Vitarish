@@ -81,6 +81,23 @@ public sealed class ReplaceTenantRoleCommandHandlerTests
     }
 
     [Fact]
+    public async Task Last_owner_cannot_be_demoted_or_removed()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextAsync(includeConflictingMemberships: false);
+        IdentityRole ownerRole = await dbContext.Roles.SingleAsync(role => role.Name == TenantRoleDefinitions.BuildRoleName(TenantId, IdentityDefinitions.TenantOwner));
+        dbContext.UserRoles.Add(new IdentityUserRole<string> { UserId = UserId, RoleId = ownerRole.Id });
+        await dbContext.SaveChangesAsync();
+        Mock<ISecurityAuditWriter> audit = AuditWriter();
+        ReplaceTenantRoleCommandHandler handler = CreateHandler(dbContext, audit);
+
+        IdentityResult result = await handler.Handle(new ReplaceTenantRoleCommand(UserId, TenantId, null), CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Errors.Single().Code.Should().Be(UsersCommandErrorCodes.LastOwnerProtection);
+        await AssertMembershipsAsync(dbContext, IdentityDefinitions.TenantOwner);
+    }
+
+    [Fact]
     public async Task Generic_role_writer_rejects_tenant_role_assignment()
     {
         await using TestUsersDbContext dbContext = await CreateDbContextAsync(includeConflictingMemberships: false);

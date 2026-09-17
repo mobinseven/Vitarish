@@ -17,6 +17,12 @@ public static class UsersApiRoutes
     public const string AdministrationCreateWithEmail = "/administration/create/email";
     public const string AdministrationUserRoles = "/{userId}/tenant-roles";
     public const string AdministrationUserRole = "/{userId}/tenant-roles/{tenantId:guid}/{roleSuffix}";
+    public const string TenantMembers = "/tenant-members";
+    public const string TenantMember = "/tenant-members/{userId}";
+
+    public const string ListTenantMembersOperation = "UsersListTenantMembers";
+    public const string ProvisionTenantMemberOperation = "UsersProvisionTenantMember";
+    public const string RemoveTenantMemberOperation = "UsersRemoveTenantMember";
     public const string Profile = "/{userId}/profile";
     public const string Culture = "/{userId}/culture";
     public const string WebAuthnCredentials = "/{userId}/webauthn";

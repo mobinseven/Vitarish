@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Application.Authorization;
+using Vitarish.Users.Application.Security;
 using Vitarish.Users.Application.ProfileCompletion;
 using Vitarish.Users.Contracts.Authorization;
 using Vitarish.Users.Contracts.Responses;
@@ -60,6 +61,9 @@ public static class IdentityUsersExtensions
             options.AddPolicy(UsersAuthorizationPolicies.AssignGlobalRole, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
             options.AddPolicy(UsersAuthorizationPolicies.ReadTenantRoles, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
             options.AddPolicy(UsersAuthorizationPolicies.ReplaceTenantRole, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
+            options.AddPolicy(UsersAuthorizationPolicies.ManageTenantMembers, policy => policy
+                .RequireAuthenticatedUser()
+                .RequireAssertion(context => UsersSecurityAuthorization.CanManageAnyTenantMembers(context.User)));
         });
         _ = builder.Services.Configure<PersonalAccessTokenOptions>(builder.Configuration.GetSection("PersonalAccessTokens"));
         _ = builder.Services.Configure<TemporaryAutoAuthLinkOptions>(
