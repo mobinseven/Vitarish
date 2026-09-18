@@ -58,4 +58,16 @@ describe("shared layout policy stylesheet", () => {
     expect(css).toMatch(/\.vitarish-reveal-header[\s\S]*?position: absolute/);
     expect(css).not.toMatch(/\.vitarish-reveal-header\s*\{[\s\S]*?position: fixed/);
   });
+
+  it("defines the standard viewport reveal and its reduced-motion fallback", () => {
+    expect(css).toMatch(
+      /\.vitarish-viewport-reveal\[data-state="hidden"\][\s\S]*?opacity: 1[\s\S]*?transform: translate3d\(0, 0, 0\)/,
+    );
+    expect(css).toMatch(
+      /\.vitarish-viewport-reveal\[data-state="hidden"\]\[data-vitarish-viewport-reveal-enhanced\][\s\S]*?opacity: 0[\s\S]*?translate3d\(0, 1\.5rem, 0\)/,
+    );
+    expect(css).toMatch(
+      /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.vitarish-viewport-reveal[\s\S]*?opacity: 1[\s\S]*?translate3d\(0, 0, 0\)/,
+    );
+  });
 });

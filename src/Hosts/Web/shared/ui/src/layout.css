@@ -337,6 +337,36 @@
   transform: translateY(0);
 }
 
+/* Standard landing-page section reveal: opacity 0 -> 1 and Y 24px -> 0.
+   The enhanced marker keeps server-rendered content visible without JS. */
+.vitarish-viewport-reveal {
+  transition-delay: var(--vitarish-viewport-reveal-delay, 0ms);
+  transition-duration: 800ms, 1000ms;
+  transition-property: opacity, transform;
+  transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1), cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.vitarish-viewport-reveal[data-state="hidden"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.vitarish-viewport-reveal[data-state="revealed"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.vitarish-viewport-reveal[data-state="hidden"][data-vitarish-viewport-reveal-enhanced] {
+  opacity: 0;
+  transform: translate3d(0, 1.5rem, 0);
+  transition: none;
+}
+
+.vitarish-viewport-reveal[data-state="hidden"][data-vitarish-viewport-reveal-enhanced]:focus-within {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
 [data-vitarish-reveal-header-host] {
   block-size: 0;
   flex: none;
@@ -374,7 +404,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .vitarish-viewport-reveal,
   .vitarish-reveal-header {
     transition: none;
+  }
+
+  .vitarish-viewport-reveal[data-state="hidden"][data-vitarish-viewport-reveal-enhanced] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }

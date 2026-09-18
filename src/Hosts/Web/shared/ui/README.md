@@ -51,6 +51,25 @@ Do not deep-import from `@vitarish/ui/src/**`. Use only public exports.
 
 Import `@vitarish/ui/layout.css` exactly once from each app's root global stylesheet.
 
+## Viewport reveals
+
+`ViewportReveal` is the shared landing-page section reveal primitive. It uses the
+standard opacity `0` to `1` and Y `24px` to `0` contract, observes the viewport
+once by default, and keeps content visible when scripting or
+`IntersectionObserver` is unavailable.
+
+```tsx
+import { ViewportReveal } from "@vitarish/ui";
+
+<ViewportReveal as="section" delayMs={120}>
+  <h2>One clear section.</h2>
+</ViewportReveal>
+```
+
+Use it for ordinary sections and feature groups. Art-directed sticky product
+scenes remain page-owned and may use the landing-page motion guidance when a
+native scroll timeline is insufficient.
+
 ## Reveal headers
 
 `RevealHeader` renders a separate compact header pinned within the nearest shared page or workspace layout. Place its `Boundary`

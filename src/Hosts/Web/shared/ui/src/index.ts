@@ -67,6 +67,8 @@ export { IconButton } from "./shell/IconButton";
 export type { IconButtonProps } from "./shell/IconButton";
 export {FaIcon} from "./icons/FaIcon";
 export type {FaIconProps} from "./icons/FaIcon";
+export { ViewportReveal } from "./motion/ViewportReveal";
+export type { ViewportRevealProps } from "./motion/ViewportReveal";
 export {
   FeatureCarousel,
   FeatureItemCard,

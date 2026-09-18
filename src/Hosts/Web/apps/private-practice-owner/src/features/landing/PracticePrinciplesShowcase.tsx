@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Disclosure, DisclosureGroup } from "@heroui/react";
+import { ViewportReveal } from "@vitarish/ui";
 import { cn } from "tailwind-variants";
 import { useLocalizedText } from "@/localization";
 import * as React from "react";
@@ -28,7 +29,8 @@ export function PracticePrinciplesShowcase() {
   }
 
   return (
-    <section
+    <ViewportReveal
+      as="section"
       aria-labelledby="principles-heading"
       className="bg-background px-6 py-24 sm:px-10 lg:px-16 lg:py-32"
     >
@@ -144,6 +146,6 @@ export function PracticePrinciplesShowcase() {
           ) : null}
         </div>
       </div>
-    </section>
+    </ViewportReveal>
   );
 }
