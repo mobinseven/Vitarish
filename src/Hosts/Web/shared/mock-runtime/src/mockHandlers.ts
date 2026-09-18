@@ -1,10 +1,15 @@
 import { HttpResponse, http, type RequestHandler } from "msw";
+import { parseLocaleCookie } from "@vitarish/localization";
 import { createMockStore } from "./mockStore";
 
 export type MockScenario = "ready" | "empty" | "loading" | "error";
 export type MockHandlerFactory = (scenario: MockScenario) => readonly RequestHandler[];
 
 const scenarios = new Set<MockScenario>(["ready", "empty", "loading", "error"]);
+
+function isPersianRequest(request: Request) {
+  return (parseLocaleCookie(request.headers.get("cookie")) ?? "fa") === "fa";
+}
 
 export function resolveMockScenario(value: string | undefined): MockScenario {
   return scenarios.has(value as MockScenario) ? (value as MockScenario) : "ready";
@@ -30,16 +35,17 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       await withDelay();
       return HttpResponse.json({ requestToken: "mock-antiforgery-token", headerName: "X-XSRF-TOKEN" });
     }),
-    http.get(/\/api\/modules\/authentication\/session(?:\?|$)/, async () => {
+    http.get(/\/api\/modules\/authentication\/session(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
+      const isPersian = isPersianRequest(request);
       return HttpResponse.json({
         isAuthenticated: true,
         user: {
           userId: "mock-user",
-          displayName: "Mock User",
-          givenName: "Mock",
-          familyName: "User",
+          displayName: isPersian ? "کاربر نمونه" : "Mock User",
+          givenName: isPersian ? "کاربر" : "Mock",
+          familyName: isPersian ? "نمونه" : "User",
           email: "mock.user@example.test",
           phoneNumber: null,
         },
@@ -50,6 +56,37 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     http.get(/\/api\/modules\/journey\/current(?:\?|$)/, async () => {
       await withDelay();
       return HttpResponse.json({ step: { destinationUrl: "/home", destinationKind: "UserHome", nonBlockingGates: [] } });
+    }),
+    http.get(/\/api\/modules\/clinic\/dashboard\/appointments(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      if (activeScenario === "empty") return HttpResponse.json([]);
+
+      const date = new URL(request.url).searchParams.get("dateFrom") ?? "2026-01-01";
+      const isPersian = isPersianRequest(request);
+      const localizedPatientNames = ["آدا لاولیس", "گریس هاپر", "کاترین جانسون", "ماری کوری"];
+      const schedule = [
+        { patient: store.patients[0], startTime: "09:30:00", status: 1 },
+        { patient: store.patients[1], startTime: "11:00:00", status: 0 },
+        { patient: store.patients[2], startTime: "14:15:00", status: 7 },
+        { patient: store.patients[3], startTime: "16:00:00", status: 5 },
+      ];
+
+      return HttpResponse.json(
+        schedule.map(({ patient, startTime, status }, index) => ({
+          reservationId: `mock-dashboard-reservation-${index + 1}`,
+          patientId: patient.id,
+          patientDisplayName: isPersian ? localizedPatientNames[index] : patient.name,
+          serviceId: "mock-service",
+          serviceDisplayName: isPersian
+            ? index % 2 === 0 ? "ویزیت اولیه" : "ویزیت پیگیری"
+            : index % 2 === 0 ? "Initial consultation" : "Follow-up visit",
+          date,
+          startTime,
+          timeZone: "UTC",
+          status,
+        })),
+      );
     }),
     http.get(/\/api\/modules\/knowledge\/workspace(?:\?|$)/, async () => {
       await withDelay();

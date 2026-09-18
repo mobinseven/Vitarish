@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@vitarish/localization": "0.1.0",
     "msw": "^2.10.2",
     "react": "^19.0.0"
   },

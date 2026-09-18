@@ -18,7 +18,7 @@ export default function HomePage() {
       footerItems={dashboardFooterItems}
       navGroups={homeDashboardNavGroups}
     >
-      <ContainedPage>
+      <ContainedPage width="fluid">
         <HomeDashboard />
       </ContainedPage>
     </DashboardShell>
