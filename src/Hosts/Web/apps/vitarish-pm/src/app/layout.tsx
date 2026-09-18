@@ -3,14 +3,8 @@ import { headers } from "next/headers";
 import { I18nAppLayout } from "@vitarish/localization";
 import { Providers } from "@/components/Providers";
 import { getMessages } from "@/localization/messages";
-import { Vazirmatn } from "next/font/google";
+import { applicationFontVariables } from "./fonts";
 import "./globals.css";
-
-const vazirmatn = Vazirmatn({
-  subsets: ["arabic"],
-  variable: "--font-vazirmatn",
-  display: "swap",
-});
 
 export const metadata = {
   title: "Vitarish PM",
@@ -28,24 +22,12 @@ export default async function RootLayout({
     <>
       <head>
         <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@100..900&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
       </head>
       <I18nAppLayout
         cookieHeader={headerStore.get("cookie")}
         acceptLanguageHeader={headerStore.get("accept-language")}
         getMessages={getMessages}
-        htmlClassName="bg-background text-foreground"
+        htmlClassName={`${applicationFontVariables} bg-background text-foreground`}
         bodyClassName="bg-background text-foreground font-sans antialiased"
       >
         <Providers>{children}</Providers>

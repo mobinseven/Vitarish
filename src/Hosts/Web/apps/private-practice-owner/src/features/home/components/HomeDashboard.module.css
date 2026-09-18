@@ -2,7 +2,7 @@
   --dashboard-row-min-height: 4.5rem;
   background: var(--background);
   color: var(--foreground);
-  font-family: Tahoma, "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .panel {

@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Providers } from "@/components/providers/AppProviders";
 import { InitialPageLoader } from "@/components/loading/InitialPageLoader";
 import { getMessages, I18nAppLayout, localizedMetadata } from "@/localization";
+import { vazirmatn } from "./fonts";
 import "./globals.css";
 
 export const metadata = localizedMetadata(
@@ -28,7 +29,8 @@ export default async function RootLayout({
         cookieHeader={headerStore.get("cookie")}
         acceptLanguageHeader={headerStore.get("accept-language")}
         getMessages={getMessages}
-        htmlClassName="bg-background text-foreground"
+        htmlClassName={`${vazirmatn.variable} bg-background text-foreground`}
+        vibrantPalette
         bodyClassName="bg-background text-foreground font-sans antialiased"
       >
         <Providers>

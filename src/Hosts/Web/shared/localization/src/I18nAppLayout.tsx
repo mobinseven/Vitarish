@@ -23,6 +23,7 @@ export interface I18nAppLayoutProps {
   cookieHeader?: string | null;
   acceptLanguageHeader?: string | null;
   htmlClassName?: string;
+  vibrantPalette?: boolean;
   bodyClassName?: string;
 }
 
@@ -46,6 +47,7 @@ export function I18nAppLayout({
   cookieHeader,
   acceptLanguageHeader,
   htmlClassName,
+  vibrantPalette = false,
   bodyClassName,
 }: I18nAppLayoutProps) {
   const { locale } = resolveI18nAppLocale({
@@ -60,6 +62,7 @@ export function I18nAppLayout({
       dir={getLocaleDirection(locale)}
       suppressHydrationWarning
       className={htmlClassName}
+      data-vibrant-palette={vibrantPalette ? "true" : undefined}
     >
       <body className={bodyClassName}>
         <I18nProvider locale={locale} messages={getMessages(locale)}>

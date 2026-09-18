@@ -23,15 +23,6 @@ body {
  * @see https://heroui.com/docs/react/getting-started/theming
  */
 
-/*
- * Font: Hanken Grotesk
- * Load this font in your app:
- * <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@100..900&display=swap" rel="stylesheet" />
- *
- * Font: IBM Plex Mono
- * Load this font in your app:
- * <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
- */
 :root,
 .light,
 .default,
@@ -60,6 +51,7 @@ body {
 
   /* Font */
   --font-sans: var(--font-hanken-grotesk);
+  --font-mono: var(--font-ibm-plex-mono);
 
   /* Letter Spacing */
   --tracking-tighter: -0.01em;
