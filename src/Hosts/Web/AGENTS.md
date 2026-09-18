@@ -3,6 +3,23 @@
 - Route topology, feature entry points, navigation, and intent contracts: update every applicable route tree, registry, mapper, journey default, localization key, test, and generated transport source; never edit generated API output manually.
 - Route/page shells, main landmark, viewport geometry, outer scrolling, shared gutters, sidebar, and aside: classify the surface and reuse the matching `@vitarish/ui` capability; feature-internal grids and intentional workspace-pane scrolling remain local.
 
+## Color conventions
+
+- Prefer HeroUI semantic color and surface tokens over arbitrary named colors,
+  hex values, or one-off utility colors. Use the component's semantic color
+  props and the existing theme tokens so light mode, dark mode, contrast, and
+  status meaning stay consistent.
+- When a colorful design genuinely needs a new color or palette role that the
+  existing tokens cannot express, first review and follow the [HeroUI color
+  convention](https://heroui.com/en/docs/react/getting-started/colors). Add
+  the smallest justified theme token or semantic role at the shared theme
+  owner, document why the existing tokens are insufficient, and reuse that
+  owner everywhere; do not introduce local ad-hoc colors in a feature.
+- Treat new colors as exceptional: decorative variety alone is not sufficient
+  justification. Confirm the color has a clear product or semantic purpose,
+  works in both themes, and preserves readable contrast and meaningful status
+  semantics before adding it.
+
 ## Named values
 
 - **[MUST]** Reuse the authoritative owner for route and intent values, API
@@ -58,7 +75,7 @@
   proof from `src/Hosts/Web`:
 
   ```powershell
-  $proof = Join-Path (Resolve-Path ".") "artifacts/two-host-e2e/authenticated-dashboard-proof.png"
+  $proof = Join-Path (Resolve-Path ".") "artifacts/two-host-e2e/[distinctive-file-name-so-results-can-be-compared].png"
   Remove-Item -LiteralPath $proof -Force -ErrorAction SilentlyContinue
   $env:VITARISH_E2E_PROOF_SCREENSHOT = $proof
   npm run test:e2e:two-host
