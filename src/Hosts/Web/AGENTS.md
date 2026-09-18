@@ -20,6 +20,13 @@
   works in both themes, and preserves readable contrast and meaningful status
   semantics before adding it.
 
+## Global stylesheet conventions
+
+- **[MUST]** Global stylesheet files, including `app/globals.css`, may define
+  shared theme tokens, element defaults, and reusable cross-feature utilities,
+  but must not define page- or feature-specific selectors. Keep selectors such
+  as `.home-dashboard-review` with the owning page or feature styling instead.
+
 ## Named values
 
 - **[MUST]** Reuse the authoritative owner for route and intent values, API
