@@ -27,6 +27,23 @@
   but must not define page- or feature-specific selectors. Keep selectors such
   as `.home-dashboard-review` with the owning page or feature styling instead.
 
+## Google Font conventions
+
+- **[MUST]** Load Google Fonts through `next/font/google`; do not add Google
+  Fonts stylesheet links or `@import` rules. This self-hosts the selected files
+  and avoids browser requests to Google.
+- Define every Google Font used by an App Router host once in its
+  `src/app/fonts.ts`, with the exact subsets, non-variable weights where
+  required, `display: "swap"`, and a named CSS variable. The host root layout
+  applies each required `.variable` value through `htmlClassName`.
+- Map loaded font variables to semantic CSS roles such as `--font-sans` and
+  `--font-mono` in the host global stylesheet. Components use those roles or
+  Tailwind's `font-*` utilities; they do not use font-family names or invoke a
+  font loader independently.
+- Add a font only when it serves a defined language or typographic role, and
+  load only its required subsets and weights. A new role or different font
+  family requires an explicit product/design need.
+
 ## Named values
 
 - **[MUST]** Reuse the authoritative owner for route and intent values, API
