@@ -26,6 +26,11 @@
   shared theme tokens, element defaults, and reusable cross-feature utilities,
   but must not define page- or feature-specific selectors. Keep selectors such
   as `.home-dashboard-review` with the owning page or feature styling instead.
+- **[SHOULD]** Use colocated `*.module.css` files for page- and
+  feature-specific styling, import the module from the owning component, and
+  compose its classes with utility classes where useful. Use `:global(...)`
+  only for the smallest necessary document-state or framework boundary; do not
+  use it to recreate feature-wide global selectors.
 
 ## Google Font conventions
 
