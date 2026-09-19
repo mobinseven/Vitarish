@@ -1,39 +1,95 @@
 "use client";
 
-import { Button, Card, Chip, InputGroup, TextField, Tooltip } from "@heroui/react";
+import {
+  Button,
+  Calendar,
+  Card,
+  Chip,
+  DateField,
+  DatePicker,
+  InputGroup,
+  Label,
+  ListBox,
+  Popover,
+  Select,
+  TextField,
+  Tooltip,
+} from "@heroui/react";
 import {
   getLocalTimeZone,
   today,
   type CalendarDate,
 } from "@internationalized/date";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useClinicListDashboardAppointments } from "@vitarish/clinic";
-import { formatDate, formatNumber, useLocalizedText } from "@/localization";
+import { formatNumber, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
-import { calendarMonthRange } from "../calendarMonthRange";
+import { calendarDayRange } from "../calendarDayRange";
 import styles from "./HomeDashboard.module.css";
 
 type SortMode = "time" | "patient";
 type StatusColor = "accent" | "default" | "danger" | "success" | "warning";
+type FilterOption = { value: string; label: string };
 
 const patientIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function HomeDashboard() {
-  const { t, locale } = useLocalizedText();
+  const { direction, t, locale } = useLocalizedText();
   const router = useRouter();
   const [focusedDate, setFocusedDate] = useState<CalendarDate>(() =>
     today(getLocalTimeZone()),
   );
   const [search, setSearch] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("time");
-  const range = useMemo(() => calendarMonthRange(focusedDate), [focusedDate]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
+  const range = useMemo(() => calendarDayRange(focusedDate), [focusedDate]);
   const query = useClinicListDashboardAppointments(range);
   const rows = query.data ?? [];
+  const statusOptions = useMemo<FilterOption[]>(() => {
+    return [...new Set(rows.map((row) => row.status))]
+      .sort((left, right) => left - right)
+      .map((status) => ({
+        value: String(status),
+        label: getStatusMeta(status, t).label,
+      }));
+  }, [rows, t]);
+  const serviceOptions = useMemo<FilterOption[]>(() => {
+    const options = new Map<string, string>();
+    for (const row of rows) {
+      const value = getServiceFilterKey(row.serviceId, row.serviceDisplayName, locale);
+      options.set(value, getServiceLabel(row.serviceDisplayName, locale, t));
+    }
+
+    return [...options]
+      .map(([value, label]) => ({ value, label }))
+      .sort((left, right) => left.label.localeCompare(right.label, locale));
+  }, [locale, rows, t]);
+  const activeFilterCount =
+    selectedStatuses.length +
+    selectedServiceIds.length +
+    (search.trim() ? 1 : 0);
+
+  useEffect(() => {
+    setSelectedStatuses([]);
+    setSelectedServiceIds([]);
+  }, [focusedDate]);
+
   const visibleRows = useMemo(() => {
     const queryText = search.trim().toLocaleLowerCase(locale);
+    const statusSet = new Set(selectedStatuses);
+    const serviceSet = new Set(selectedServiceIds);
+
     return rows
       .filter((row) => {
+        if (statusSet.size > 0 && !statusSet.has(String(row.status))) return false;
+        if (
+          serviceSet.size > 0 &&
+          !serviceSet.has(getServiceFilterKey(row.serviceId, row.serviceDisplayName, locale))
+        ) {
+          return false;
+        }
         if (!queryText) return true;
         return [row.patientDisplayName, row.serviceDisplayName, row.reservationId]
           .filter(Boolean)
@@ -47,14 +103,16 @@ export function HomeDashboard() {
 
         return getAppointmentSortValue(left) - getAppointmentSortValue(right);
       });
-  }, [locale, rows, search, sortMode, t]);
+  }, [locale, rows, search, selectedServiceIds, selectedStatuses, sortMode, t]);
 
-  function moveMonth(months: number) {
-    setFocusedDate((current) => current.add({ months }));
+  function moveDay(days: number) {
+    setFocusedDate((current) => current.add({ days }));
   }
 
-  function openReservation(reservationId: string) {
-    router.push(Routes.Clinic.Appointments.Reservations.Detail(reservationId));
+  function clearFilters() {
+    setSearch("");
+    setSelectedStatuses([]);
+    setSelectedServiceIds([]);
   }
 
   function openPatient(patientId: string | null) {
@@ -66,28 +124,13 @@ export function HomeDashboard() {
     router.push(Routes.Clinic.Patients.Index);
   }
 
-  const monthLabel = formatDate(focusedDate.toDate(getLocalTimeZone()), locale, {
-    dateStyle: "long",
-  });
-
   return (
     <div className={`${styles.root} relative flex min-h-full flex-col gap-5 overflow-hidden px-4 py-5 sm:px-6 lg:px-8 lg:py-6`}>
       <header className="relative z-10 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-accent">
-            <i aria-hidden="true" className="fa-light fa-calendar-check" />
-            {t("home.dashboard.eyebrow")}
-          </p>
           <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             {t("home.dashboard.reviewBrowserTitle")}
           </h1>
-          <p className="mt-2 max-w-2xl text-base text-muted">
-            {t("home.dashboard.reviewBrowserDescription")}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-muted">
-          <span className="size-2 rounded-full bg-success" aria-hidden="true" />
-          {t("home.dashboard.liveSchedule")}
         </div>
       </header>
 
@@ -129,24 +172,108 @@ export function HomeDashboard() {
                     : t("home.dashboard.sortByPatient")}
                 </Tooltip.Content>
               </Tooltip>
-              <Tooltip>
-                <Button
-                  className="min-w-0"
-                  size="sm"
-                  variant="outline"
-                  onPress={() => setSearch("")}
-                >
-                  <i aria-hidden="true" className="fa-light fa-filter" />
-                  <span className="hidden sm:inline">{t("home.dashboard.clearFilters")}</span>
-                </Button>
-                <Tooltip.Content>{t("home.dashboard.clearFilters")}</Tooltip.Content>
-              </Tooltip>
+              <Popover>
+                <Tooltip>
+                  <Button
+                    aria-label={t("home.dashboard.filters")}
+                    className="min-w-0"
+                    size="sm"
+                    variant={activeFilterCount > 0 ? "secondary" : "outline"}
+                  >
+                    <i aria-hidden="true" className="fa-light fa-filter" />
+                    <span className="hidden sm:inline">{t("home.dashboard.filters")}</span>
+                    {activeFilterCount > 0 ? (
+                      <Chip
+                        aria-label={t("home.dashboard.activeFilterCount", {
+                          count: formatNumber(activeFilterCount, locale),
+                        })}
+                        color="accent"
+                        size="sm"
+                        variant="soft"
+                      >
+                        <Chip.Label>{formatNumber(activeFilterCount, locale)}</Chip.Label>
+                      </Chip>
+                    ) : null}
+                  </Button>
+                  <Tooltip.Content>{t("home.dashboard.filters")}</Tooltip.Content>
+                </Tooltip>
+                <Popover.Content className="w-[22rem] max-w-[calc(100vw-2rem)]">
+                  <Popover.Dialog className="space-y-4 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <Popover.Heading className="font-semibold">
+                        {t("home.dashboard.filterHeading")}
+                      </Popover.Heading>
+                      {activeFilterCount > 0 ? (
+                        <Button size="sm" variant="ghost" onPress={clearFilters}>
+                          <i aria-hidden="true" className="fa-light fa-rotate-left" />
+                          {t("home.dashboard.clearFilters")}
+                        </Button>
+                      ) : null}
+                    </div>
+
+                    <div className="space-y-3">
+                      <Select
+                        aria-label={t("home.dashboard.statusFilterLabel")}
+                        className="w-full"
+                        isDisabled={statusOptions.length === 0}
+                        placeholder={t("home.dashboard.allStatuses")}
+                        selectionMode="multiple"
+                        value={selectedStatuses}
+                        onChange={(value) => setSelectedStatuses(toSelectionValues(value))}
+                      >
+                        <Label>{t("home.dashboard.statusFilterLabel")}</Label>
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            {statusOptions.map((option) => (
+                              <ListBox.Item key={option.value} id={option.value} textValue={option.label}>
+                                {option.label}
+                                <ListBox.ItemIndicator />
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
+                      </Select>
+
+                      <Select
+                        aria-label={t("home.dashboard.serviceFilterLabel")}
+                        className="w-full"
+                        isDisabled={serviceOptions.length === 0}
+                        placeholder={t("home.dashboard.allServices")}
+                        selectionMode="multiple"
+                        value={selectedServiceIds}
+                        onChange={(value) => setSelectedServiceIds(toSelectionValues(value))}
+                      >
+                        <Label>{t("home.dashboard.serviceFilterLabel")}</Label>
+                        <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                          <ListBox>
+                            {serviceOptions.map((option) => (
+                              <ListBox.Item key={option.value} id={option.value} textValue={option.label}>
+                                {option.label}
+                                <ListBox.ItemIndicator />
+                              </ListBox.Item>
+                            ))}
+                          </ListBox>
+                        </Select.Popover>
+                      </Select>
+
+                    </div>
+                  </Popover.Dialog>
+                </Popover.Content>
+              </Popover>
             </div>
           </div>
 
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-            <TextField aria-label={t("home.dashboard.searchLabel")} className="min-w-0">
-              <InputGroup>
+          <div className="grid items-stretch gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+            <TextField aria-label={t("home.dashboard.searchLabel")} className={`${styles.searchField} min-w-0`}>
+              <InputGroup className={`${styles.searchGroup} h-10`}>
                 <InputGroup.Prefix>
                   <i aria-hidden="true" className="fa-light fa-magnifying-glass text-muted" />
                 </InputGroup.Prefix>
@@ -157,31 +284,107 @@ export function HomeDashboard() {
                 />
               </InputGroup>
             </TextField>
-            <div className="flex items-center justify-between gap-2 rounded-2xl bg-surface-secondary px-3 py-2 lg:min-w-72">
+            <div className={`${styles.dateControls} items-stretch gap-1`}>
               <Tooltip>
                 <Button
-                  isIconOnly
                   aria-label={t("common.actions.previous")}
-                  size="sm"
+                  className={`${styles.dateNavButton} h-10 px-3 text-sm`}
                   variant="ghost"
-                  onPress={() => moveMonth(-1)}
+                  onPress={() => moveDay(-1)}
                 >
-                  <i aria-hidden="true" className="fa-light fa-calendar-minus" />
+                  {t("common.actions.previous")}
                 </Button>
                 <Tooltip.Content>{t("common.actions.previous")}</Tooltip.Content>
               </Tooltip>
-              <span className="numeric min-w-0 truncate text-center text-sm font-semibold text-foreground">
-                {monthLabel}
-              </span>
+              <DatePicker
+                aria-label={t("home.dashboard.datePickerLabel")}
+                className={`${styles.datePicker} h-10`}
+                granularity="day"
+                value={focusedDate}
+                onChange={(value) => {
+                  if (value) setFocusedDate(value as CalendarDate);
+                }}
+              >
+                <Label className="sr-only">{t("home.dashboard.datePickerLabel")}</Label>
+                <DateField.Group className="h-full" fullWidth>
+                  <DateField.Input>
+                    {(segment) => <DateField.Segment segment={segment} />}
+                  </DateField.Input>
+                  <DateField.Suffix>
+                    <DatePicker.Trigger aria-label={t("home.dashboard.openDatePicker")}>
+                      <DatePicker.TriggerIndicator>
+                        <i aria-hidden="true" className="fa-light fa-calendar-days" />
+                      </DatePicker.TriggerIndicator>
+                    </DatePicker.Trigger>
+                  </DateField.Suffix>
+                </DateField.Group>
+                <DatePicker.Popover className="w-[24rem] max-w-[calc(100vw-2rem)]">
+                  <Calendar
+                    aria-label={t("home.dashboard.datePickerLabel")}
+                    className="mx-auto w-full max-w-none"
+                    onFocusChange={setFocusedDate}
+                    pageBehavior="single"
+                  >
+                    {() => (
+                      <>
+                        <Calendar.Header>
+                          <Calendar.NavButton
+                            slot="previous"
+                            aria-label={t("home.dashboard.previousMonth")}
+                          >
+                            <i
+                              aria-hidden="true"
+                              className={`fa-light ${direction === "rtl" ? "fa-chevron-right" : "fa-chevron-left"}`}
+                            />
+                          </Calendar.NavButton>
+                          <Calendar.YearPickerTrigger
+                            aria-label={t("home.dashboard.selectYear")}
+                          >
+                            <Calendar.YearPickerTriggerHeading />
+                            <Calendar.YearPickerTriggerIndicator />
+                          </Calendar.YearPickerTrigger>
+                          <Calendar.NavButton
+                            slot="next"
+                            aria-label={t("home.dashboard.nextMonth")}
+                          >
+                            <i
+                              aria-hidden="true"
+                              className={`fa-light ${direction === "rtl" ? "fa-chevron-left" : "fa-chevron-right"}`}
+                            />
+                          </Calendar.NavButton>
+                        </Calendar.Header>
+                        <Calendar.YearPickerGrid
+                          aria-label={t("home.dashboard.selectYear")}
+                        >
+                          <Calendar.YearPickerGridBody>
+                            {({ year, formattedYear }) => (
+                              <Calendar.YearPickerCell year={year}>
+                                {formattedYear}
+                              </Calendar.YearPickerCell>
+                            )}
+                          </Calendar.YearPickerGridBody>
+                        </Calendar.YearPickerGrid>
+                        <Calendar.Grid weekdayStyle="short">
+                          <Calendar.GridHeader>
+                            {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+                          </Calendar.GridHeader>
+                          <Calendar.GridBody>
+                            {(date) => <Calendar.Cell date={date} />}
+                          </Calendar.GridBody>
+                        </Calendar.Grid>
+                      </>
+                    )}
+                  </Calendar>
+                </DatePicker.Popover>
+              </DatePicker>
               <Tooltip>
                 <Button
-                  isIconOnly
                   aria-label={t("common.actions.next")}
-                  size="sm"
+                  className={`${styles.dateNavButton} h-10 px-3 text-sm`}
                   variant="ghost"
-                  onPress={() => moveMonth(1)}
+                  onPress={() => moveDay(1)}
                 >
-                  <i aria-hidden="true" className="fa-light fa-calendar-plus" />
+                  {t("common.actions.next")}
                 </Button>
                 <Tooltip.Content>{t("common.actions.next")}</Tooltip.Content>
               </Tooltip>
@@ -210,15 +413,16 @@ export function HomeDashboard() {
             <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
               <i aria-hidden="true" className="fa-light fa-calendar-xmark text-2xl text-muted" />
               <p className="text-sm text-muted">
-                {search ? t("home.dashboard.noSearchResults") : t("home.dashboard.noAppointments")}
+                {activeFilterCount > 0
+                  ? t("home.dashboard.noFilterResults")
+                  : t("home.dashboard.noAppointments")}
               </p>
             </div>
           ) : (
-            <div className={`${styles.table} overflow-x-auto`}>
-              <div className="min-w-[900px]">
-                <div className={`${styles.tableHeader} ${styles.gridColumns} grid gap-4 border-b border-separator px-4 py-3 text-xs font-semibold sm:px-6 lg:px-8`}>
+            <div className={`${styles.table} overflow-hidden`}>
+              <div>
+                <div className={`${styles.tableHeader} ${styles.gridColumns} grid gap-2 border-b border-separator px-4 py-3 text-xs font-semibold sm:px-6 lg:px-8`}>
                   <span>{t("home.dashboard.patientColumn")}</span>
-                  <span>{t("home.dashboard.timeColumn")}</span>
                   <span>{t("home.dashboard.serviceColumn")}</span>
                   <span>{t("home.dashboard.statusColumn")}</span>
                   <span>{t("home.dashboard.actionsColumn")}</span>
@@ -227,16 +431,10 @@ export function HomeDashboard() {
                   {visibleRows.map((row) => {
                     const patientLabel = getPatientLabel(row.patientDisplayName, t);
                     const status = getStatusMeta(row.status, t);
-                    const timeLabel = row.startTime
-                      ? formatDate(`${row.date}T${row.startTime}`, locale, {
-                          timeStyle: "short",
-                          timeZone: row.timeZone ?? undefined,
-                        })
-                      : t("home.dashboard.timeUnavailable");
 
                     return (
                       <div
-                        className={`${styles.row} ${styles.gridColumns} grid items-center gap-4 px-4 py-3 transition-colors sm:px-6 lg:px-8`}
+                        className={`${styles.row} ${styles.gridColumns} grid items-center gap-2 px-4 py-3 transition-colors sm:px-6 lg:px-8`}
                         key={row.reservationId}
                       >
                         <div className="flex min-w-0 items-center gap-3">
@@ -245,15 +443,7 @@ export function HomeDashboard() {
                           </span>
                           <div className="min-w-0">
                             <p className="truncate text-sm font-semibold text-foreground">{patientLabel}</p>
-                            <p className="truncate text-xs text-muted">
-                              {row.patientId
-                                ? t("home.dashboard.patientRecord")
-                                : t("home.dashboard.patientIdUnavailable")}
-                            </p>
                           </div>
-                        </div>
-                        <div>
-                          <time className={`${styles.numeric} block text-sm font-semibold text-foreground`}>{timeLabel}</time>
                         </div>
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium text-foreground">
@@ -266,18 +456,22 @@ export function HomeDashboard() {
                         </Chip>
                         <div className={styles.actions}>
                           <Tooltip>
-                            <Button className={styles.primary} size="sm" variant="primary" onPress={() => openPatient(row.patientId)}>
-                              <i aria-hidden="true" className="fa-light fa-user" />
-                              {t("home.dashboard.viewPatient")}
+                            <Button className={`${styles.primary} ${styles.actionButton}`} size="sm" variant="primary" onPress={() => openPatient(row.patientId)}>
+                              {t("home.dashboard.viewProfile")}
                             </Button>
-                            <Tooltip.Content>{t("home.dashboard.viewPatient")}</Tooltip.Content>
+                            <Tooltip.Content>{t("home.dashboard.viewProfile")}</Tooltip.Content>
                           </Tooltip>
                           <Tooltip>
-                            <Button size="sm" variant="outline" onPress={() => openReservation(row.reservationId)}>
-                              <i aria-hidden="true" className="fa-light fa-folder-open" />
-                              {t("home.dashboard.viewFile")}
+                            <Button className={`${styles.secondary} ${styles.actionButton}`} size="sm" variant="outline" onPress={() => openPatient(row.patientId)}>
+                              {t("home.dashboard.newPrescription")}
                             </Button>
-                            <Tooltip.Content>{t("home.dashboard.viewFile")}</Tooltip.Content>
+                            <Tooltip.Content>{t("home.dashboard.newPrescription")}</Tooltip.Content>
+                          </Tooltip>
+                          <Tooltip>
+                            <Button className={`${styles.tertiary} ${styles.actionButton}`} size="sm" variant="ghost" onPress={() => openPatient(row.patientId)}>
+                              {t("home.dashboard.newNote")}
+                            </Button>
+                            <Tooltip.Content>{t("home.dashboard.newNote")}</Tooltip.Content>
                           </Tooltip>
                         </div>
                       </div>
@@ -295,6 +489,30 @@ export function HomeDashboard() {
 
 function getAppointmentSortValue(row: { date: string; startTime: string | null }) {
   return Date.parse(`${row.date}T${row.startTime ?? "00:00:00"}`);
+}
+
+function toSelectionValues(value: unknown): string[] {
+  if (value === null || value === undefined) return [];
+  return Array.isArray(value) ? value.map(String) : [String(value)];
+}
+
+function getServiceFilterKey(
+  serviceId: string | null,
+  serviceDisplayName: string | null,
+  locale: string,
+) {
+  return getFilterKey(serviceId, serviceDisplayName, locale, "missing-service");
+}
+
+function getFilterKey(
+  id: string | null,
+  displayName: string | null,
+  locale: string,
+  missingKey: string,
+) {
+  if (id?.trim()) return `id:${id.trim()}`;
+  if (displayName?.trim()) return `name:${displayName.trim().toLocaleLowerCase(locale)}`;
+  return missingKey;
 }
 
 function getPatientLabel(
