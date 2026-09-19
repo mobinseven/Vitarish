@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useInsuranceProviderCredentials } from "@vitarish/clinic";
 import { useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
+import styles from "../HomeWidgets.module.css";
 
 export function InsuranceWidget() {
   const { t } = useLocalizedText();
@@ -13,7 +14,7 @@ export function InsuranceWidget() {
   const { context, credentials } = useInsuranceProviderCredentials();
   const rows = credentials.data ?? [];
   return (
-    <Card className="home-dashboard-widget relative flex h-full min-h-[620px] flex-col overflow-hidden p-0">
+    <Card className={`${styles.widget} relative flex h-full min-h-[620px] flex-col overflow-hidden p-0`}>
       <Image
         alt=""
         className="object-cover object-top"
@@ -21,7 +22,7 @@ export function InsuranceWidget() {
         sizes="(min-width: 1280px) 33vw, 100vw"
         src="/dashboard-insurance.webp"
       />
-      <div className="home-dashboard-widget-content relative z-10 flex h-full flex-col">
+      <div className={`${styles.content} relative z-10 flex h-full flex-col`}>
         <header className="min-h-40 px-5 py-6 text-white sm:min-h-44 sm:px-6">
           <i
             aria-hidden="true"
@@ -34,7 +35,7 @@ export function InsuranceWidget() {
             {t("home.dashboard.insuranceDescription")}
           </p>
         </header>
-        <section className="home-dashboard-widget-surface relative z-10 -mt-4 mx-1 flex flex-1 flex-col rounded-3xl bg-background/95 p-4 backdrop-blur-xl sm:p-5">
+        <section className={`${styles.surface} relative z-10 -mt-4 mx-1 flex flex-1 flex-col rounded-3xl bg-background/95 p-4 backdrop-blur-xl sm:p-5`}>
           {context.isLoading || credentials.isLoading ? (
             <p className="py-6 text-sm text-muted" aria-live="polite">
               {t("home.dashboard.loadingProviders")}

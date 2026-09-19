@@ -13,6 +13,7 @@ import { useClinicListDashboardAppointments } from "@vitarish/clinic";
 import { formatDate, formatDateTime, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarMonthRange } from "../../calendarMonthRange";
+import styles from "../HomeWidgets.module.css";
 
 export function AppointmentsWidget() {
   const { t, locale } = useLocalizedText();
@@ -25,7 +26,7 @@ export function AppointmentsWidget() {
   const query = useClinicListDashboardAppointments(range);
   const rows = query.data ?? [];
   return (
-    <Card className="home-dashboard-widget relative flex h-full min-h-[620px] flex-col overflow-hidden p-0">
+    <Card className={`${styles.widget} relative flex h-full min-h-[620px] flex-col overflow-hidden p-0`}>
       <Image
         alt=""
         className="object-cover object-top"
@@ -33,7 +34,7 @@ export function AppointmentsWidget() {
         sizes="(min-width: 1280px) 33vw, 100vw"
         src="/dashboard-appointments.webp"
       />
-      <div className="home-dashboard-widget-content relative z-10 flex h-full flex-col">
+      <div className={`${styles.content} relative z-10 flex h-full flex-col`}>
         <header className="min-h-40 px-5 py-6 text-white sm:min-h-44 sm:px-6">
           <i
             aria-hidden="true"
@@ -46,7 +47,7 @@ export function AppointmentsWidget() {
             {t("home.dashboard.appointmentsDescription")}
           </p>
         </header>
-        <section className="home-dashboard-widget-surface relative z-10 -mt-4 mx-1 flex flex-1 flex-col rounded-3xl bg-background/95 p-4 backdrop-blur-xl sm:p-5">
+        <section className={`${styles.surface} relative z-10 -mt-4 mx-1 flex flex-1 flex-col rounded-3xl bg-background/95 p-4 backdrop-blur-xl sm:p-5`}>
           <Calendar
             aria-label={t("home.dashboard.appointmentsCalendarLabel")}
             focusedValue={focusedDate}
