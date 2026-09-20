@@ -24,10 +24,13 @@ export default function RootPage() {
   if (!isAuthenticated) return <CenteredRegion><h1 className="text-2xl font-semibold">{t("admin.title")}</h1><p className="mt-2 text-muted">{t("admin.signInRequired")}</p></CenteredRegion>;
   if (!hasAccess) return <CenteredRegion><h1 className="text-2xl font-semibold text-danger">{t("admin.forbiddenTitle")}</h1><p className="mt-2 text-muted">{t("admin.forbiddenDescription")}</p></CenteredRegion>;
   return (
-    <CenteredRegion className="px-6 py-12">
-      <div className="w-full max-w-5xl text-center">
+    <CenteredRegion className="!flex min-h-full flex-col">
+      <header className="w-full">
+        <img src="/Master-Hel-Logotype.svg" alt="Vitarish" className="block h-auto w-full" />
+      </header>
+      <main className="flex flex-1 items-center justify-center px-6 py-12">
+        <div className="w-full max-w-5xl text-center">
         <div className="mx-auto max-w-2xl">
-          <p className="mb-3 text-sm font-medium text-primary">{t("admin.title")}</p>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("admin.foundationTitle")}</h1>
           <p className="mt-4 text-base leading-7 text-muted">{t("admin.foundationDescription")}</p>
         </div>
@@ -51,7 +54,8 @@ export default function RootPage() {
             </ItemCard>
           ))}
         </nav>
-      </div>
+        </div>
+      </main>
     </CenteredRegion>
   );
 }
