@@ -16,19 +16,31 @@ html[dir="rtl"] body {
   font-family: var(--font-sans);
 }
 
+
+:root,
+.light,
+.default,
+[data-theme="light"],
+[data-theme="default"],
+.dark,
+[data-theme="dark"] {
+  /* Border Radius */
+  --radius: 0;
+  --field-radius: 0;
+}
+
 :root,
 .light,
 .default,
 [data-theme="light"],
 [data-theme="default"] {
   /* Theme Colors */
-  --background: oklch(97.02% 0.0200 253.83);
-  /* --background: color-mix(in oklab, var(--color-indigo-50, #EEF2FF) 50%, transparent); */
+  --background: oklch(96.83% 0.0162 245.18);
   --muted: oklch(55.17% 0.0400 253.83);
   --scrollbar: oklch(87.10% 0.0200 253.83);
-  --surface-secondary: oklch(95.24% 0.0300 253.83);
+  --surface-secondary: var(--color-indigo-50, #EEF2FF);
   --surface-tertiary: oklch(93.73% 0.0300 253.83);
-  --default: oklch(94.00% 0.0200 253.83);
+  --default: var(--color-mist-50, #F9FBFB);
   --success: oklch(73.29% 0.2012 150.81);
   --warning: var(--color-amber-300, #FFD230);
   --danger: var(--color-red-600, #E7000B);
@@ -45,14 +57,14 @@ html[dir="rtl"] body {
 [data-theme="dark"] {
   color-scheme: dark;
   /* Theme Colors */
-  --background: oklch(12.00% 0.0200 253.83);
+  --background: var(--color-mist-950, #090B0C);
   --muted: oklch(70.50% 0.0400 253.83);
   --scrollbar: oklch(70.50% 0.0200 253.83);
-  --surface: oklch(21.03% 0.0400 253.83);
-  --surface-secondary: oklch(25.70% 0.0300 253.83);
+  --surface: var(--color-zinc-900, #18181B);
+  --surface-secondary: oklch(25.68% 0.0308 254.78);
   --surface-tertiary: oklch(27.21% 0.0300 253.83);
   --overlay: oklch(21.03% 0.0400 253.83);
-  --default: oklch(27.40% 0.0200 253.83);
+  --default: var(--color-zinc-900, #18181B);
   --success: oklch(73.29% 0.2012 150.81);
   --warning: var(--color-amber-300, #FFD230);
   --danger: var(--color-red-800, #9F0712);
