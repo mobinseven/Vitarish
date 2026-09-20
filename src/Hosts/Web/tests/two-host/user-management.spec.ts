@@ -1,6 +1,4 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mkdirSync } from "node:fs";
-import { dirname } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 
@@ -41,12 +39,6 @@ test("authenticated clinic owner manages tenant staff through the shared surface
   const contactLocator = page.getByText(contact, { exact: false });
   await expect(contactLocator).toBeVisible();
 
-  const proof = process.env.VITARISH_E2E_PROOF_SCREENSHOT;
-  if (proof) {
-    mkdirSync(dirname(proof), { recursive: true });
-    await contactLocator.scrollIntoViewIfNeeded();
-    await page.screenshot({ path: proof, fullPage: true });
-  }
 });
 
 test("authenticated platform administrator retains global search and membership inspection", async ({ page }) => {

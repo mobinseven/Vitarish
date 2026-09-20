@@ -124,9 +124,15 @@ describe("PlatformSecurityAuditReviewPage", () => {
   it("renders the catalog, operation, source-IP columns and all review-safe detail fields", async () => {
     renderPage();
 
+    expect(screen.getByText("Scope", { selector: "label" })).toBeInTheDocument();
+    expect(screen.getByText("Catalog category", { selector: "label" })).toBeInTheDocument();
+    expect(screen.getByText("Event type", { selector: "label" })).toBeInTheDocument();
+    expect(screen.getByText("Operation", { selector: "label" })).toBeInTheDocument();
+    expect(screen.getByText("Sort by", { selector: "label" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Catalog category" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Operation" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Source IP" })).toBeInTheDocument();
+    expect(screen.getByText("succeeded").closest(".chip")).toHaveClass("chip--success");
 
     const eventCells = screen.getAllByText("authentication.password.login");
     fireEvent.click(eventCells[eventCells.length - 1]);

@@ -3,7 +3,7 @@ import { resolveLocale } from "../resolveLocale";
 import { parseAcceptLanguage } from "../acceptLanguage";
 import { resolveI18nAppLocale } from "../I18nAppLayout";
 import { formatDate, formatFileSize, formatNumber } from "../format";
-import { parseIsoDateValue, dateValueToIsoDate } from "../dateValue";
+import { dateValueToIsoDate, parseIsoDateValue, toLocalizedDateValue } from "../dateValue";
 
 describe("resolveLocale", () => {
   it("returns default when no input", () => {
@@ -103,5 +103,12 @@ describe("parseIsoDateValue", () => {
 
   it("returns null for empty input", () => {
     expect(parseIsoDateValue(null)).toBeNull();
+  });
+
+  it("uses the locale calendar while preserving Gregorian API dates", () => {
+    const localized = toLocalizedDateValue(parseIsoDateValue("2024-01-15"), "fa");
+
+    expect(localized?.calendar.identifier).toBe("persian");
+    expect(dateValueToIsoDate(localized)).toBe("2024-01-15");
   });
 });

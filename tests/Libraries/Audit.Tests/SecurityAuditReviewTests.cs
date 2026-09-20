@@ -109,6 +109,55 @@ public sealed class SecurityAuditReviewTests
     }
 
     [Fact]
+    public void Catalog_declares_an_event_mapping_for_every_matrix_control()
+    {
+        HashSet<SecurityAuditControl> covered = SecurityAuditEventCatalog.Entries
+            .Where(entry => entry.Applicable)
+            .SelectMany(entry => entry.ControlItems)
+            .ToHashSet();
+
+        covered.Should().Contain(Enum.GetValues<SecurityAuditControl>().Where(control => control is not SecurityAuditControl.AdministratorIdleTermination));
+        SecurityAuditEventCatalog.Entries
+            .Single(entry => entry.EventName == SecurityAuditEventCatalog.AdministratorIdleTerminationEvent)
+            .ControlItems.Should().Contain(SecurityAuditControl.AdministratorIdleTermination);
+    }
+
+    [Fact]
+    public async Task Direct_review_lookups_record_allowed_and_denied_attempts()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions();
+        await using AuditDbContext context = CreateContext(options, "tenant-a");
+        await context.Database.EnsureCreatedAsync();
+        SecurityAuditEvent existing = CreateEvent("tenant-a", "existing", SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent, DateTime.UtcNow);
+        existing.Resource = "account/42";
+        context.SecurityAuditEvents.Add(existing);
+        await context.SaveChangesAsync();
+
+        SecurityAuditQueryService authorized = new(
+            context,
+            new TestRequestContext("tenant-a", ["tenant-a:" + IdentityDefinitions.TenantOwner], "review-allowed"),
+            auditWriter: new SecurityAuditWriter(context));
+
+        (await authorized.GetByResourceAsync("account/42", CancellationToken.None)).Should().ContainSingle();
+        context.SecurityAuditEvents
+            .Where(item => item.IdempotencyKey == "review-allowed:audit-review")
+            .Select(item => item.Outcome)
+            .Should().ContainSingle(SecurityAuditOutcome.Succeeded);
+
+        SecurityAuditQueryService denied = new(
+            context,
+            new TestRequestContext("tenant-a", requestId: "review-denied"),
+            auditWriter: new SecurityAuditWriter(context));
+
+        Func<Task> read = () => denied.GetByIdempotencyKeyAsync("existing", CancellationToken.None);
+        await read.Should().ThrowAsync<UnauthorizedAccessException>();
+        context.SecurityAuditEvents
+            .Where(item => item.IdempotencyKey == "review-denied:audit-review")
+            .Select(item => item.Outcome)
+            .Should().ContainSingle(SecurityAuditOutcome.Denied);
+    }
+
+    [Fact]
     public async Task Review_filters_by_actor_and_sorts_by_event_type_with_capacity_warning()
     {
         DbContextOptions<AuditDbContext> options = CreateOptions();
@@ -634,7 +683,7 @@ public sealed class SecurityAuditReviewTests
         }
     }
 
-    private sealed class TestRequestContext(string? tenantId, string[]? roles = null) : IRequestContext
+    private sealed class TestRequestContext(string? tenantId, string[]? roles = null, string? requestId = null) : IRequestContext
     {
         public string Authority => "test";
         public string? ClientId => null;
@@ -643,7 +692,7 @@ public sealed class SecurityAuditReviewTests
         public string? TenantId => tenantId;
         public string? ResourceId => null;
         public string? TraceId => "trace";
-        public string? RequestId => "request";
+        public string? RequestId => requestId ?? "request";
         public string? AdditionalInfo => null;
         public ClaimsPrincipal? User => new(new ClaimsIdentity((roles ?? []).Select(role => new Claim(ClaimTypes.Role, role)), "test"));
         public Request GetRequest() => new() { Authority = Authority, TenantId = TenantId };

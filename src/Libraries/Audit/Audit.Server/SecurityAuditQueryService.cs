@@ -120,22 +120,58 @@ internal sealed class SecurityAuditQueryService(
     public async Task<IReadOnlyList<SecurityAuditEventReadDto>> GetByResourceAsync(string resource, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(resource);
+        bool authorized = AuditAccessAuthorization.HasReviewAccess(requestContext);
+        await RecordReviewAttemptAsync(authorized, cancellationToken);
         AuditAccessAuthorization.DemandReviewAccess(requestContext);
-        return await dbContext.SecurityAuditEvents.AsNoTracking()
-            .Where(e => e.TenantId == requestContext.TenantId && e.TenantId != SecurityAuditScopeCatalog.PlatformScopeId && e.Resource == resource)
-            .OrderByDescending(e => e.OccurredAt)
-            .Select(ToReadDto)
-            .ToListAsync(cancellationToken);
+
+        try
+        {
+            return await dbContext.SecurityAuditEvents.AsNoTracking()
+                .Where(e => e.TenantId == requestContext.TenantId && e.TenantId != SecurityAuditScopeCatalog.PlatformScopeId && e.Resource == resource)
+                .OrderByDescending(e => e.OccurredAt)
+                .Select(ToReadDto)
+                .ToListAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (SecurityAuditStoreException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            throw new SecurityAuditStoreException("The security audit store could not be read.", exception);
+        }
     }
 
     public async Task<SecurityAuditEventReadDto?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
+        bool authorized = AuditAccessAuthorization.HasReviewAccess(requestContext);
+        await RecordReviewAttemptAsync(authorized, cancellationToken);
         AuditAccessAuthorization.DemandReviewAccess(requestContext);
-        return await dbContext.SecurityAuditEvents.AsNoTracking()
-            .Where(e => e.TenantId == requestContext.TenantId && e.TenantId != SecurityAuditScopeCatalog.PlatformScopeId && e.IdempotencyKey == idempotencyKey)
-            .Select(ToReadDto)
-            .SingleOrDefaultAsync(cancellationToken);
+
+        try
+        {
+            return await dbContext.SecurityAuditEvents.AsNoTracking()
+                .Where(e => e.TenantId == requestContext.TenantId && e.TenantId != SecurityAuditScopeCatalog.PlatformScopeId && e.IdempotencyKey == idempotencyKey)
+                .Select(ToReadDto)
+                .SingleOrDefaultAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (SecurityAuditStoreException)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            throw new SecurityAuditStoreException("The security audit store could not be read.", exception);
+        }
     }
 
     private async Task<SecurityAuditPageReadDto> ExecutePageAsync(

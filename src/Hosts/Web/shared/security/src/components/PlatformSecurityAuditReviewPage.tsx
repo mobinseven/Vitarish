@@ -1,9 +1,9 @@
 "use client";
 
-import { Alert, Button, Card, Checkbox, Chip, Input, Label, ListBox, Select, Spinner, TextField, Tooltip } from "@heroui/react";
+import { Alert, Button, Calendar, Card, Checkbox, Chip, DateField, DatePicker, Input, Label, ListBox, Select, Spinner, TextField, Tooltip } from "@heroui/react";
 import { DataGrid, Sheet, type DataGridColumn } from "@heroui-pro/react";
 import { ApiError } from "@vitarish/api-client";
-import { formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, useLocalizedText } from "@vitarish/localization";
+import { dateValueToIsoDate, formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, toLocalizedDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
 import { FaIcon } from "@vitarish/ui";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import {
@@ -53,9 +53,41 @@ interface AuditFilters {
 
 type AuditFilterKey = keyof AuditFilters;
 
+type AuditChipColor = "accent" | "default" | "danger" | "success" | "warning";
+
 interface ActiveFilterChip {
   key: AuditFilterKey;
   label: string;
+  color: AuditChipColor;
+}
+
+function activeFilterColor(key: AuditFilterKey): ActiveFilterChip["color"] {
+  switch (key) {
+    case "outcome":
+      return "success";
+    case "uncataloguedOnly":
+      return "warning";
+    case "category":
+    case "eventName":
+      return "accent";
+    default:
+      return "default";
+  }
+}
+
+function auditOutcomeColor(outcome: string | null | undefined): AuditChipColor {
+  switch (outcome?.trim().toLowerCase()) {
+    case "succeeded":
+      return "success";
+    case "failed":
+    case "denied":
+      return "danger";
+    case "pending":
+    case "started":
+      return "warning";
+    default:
+      return "default";
+  }
 }
 
 function createInitialFilters(): AuditFilters {
@@ -134,30 +166,33 @@ function FilterSelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <Select
-      aria-label={label}
-      className="min-w-0"
-      isDisabled={isDisabled}
-      placeholder={placeholder}
-      value={value}
-      variant="secondary"
-      onChange={(nextValue) => onChange(nextValue === null ? "" : String(nextValue))}
-    >
-      <Select.Trigger>
-        <Select.Value />
-        <Select.Indicator />
-      </Select.Trigger>
-      <Select.Popover>
-        <ListBox>
-          {options.map((option) => (
-            <ListBox.Item key={option.id} id={option.id} textValue={option.label}>
-              {option.label}
-              <ListBox.ItemIndicator />
-            </ListBox.Item>
-          ))}
-        </ListBox>
-      </Select.Popover>
-    </Select>
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <Label>{label}</Label>
+      <Select
+        aria-label={label}
+        className="min-w-0"
+        isDisabled={isDisabled}
+        placeholder={placeholder}
+        value={value}
+        variant="secondary"
+        onChange={(nextValue) => onChange(nextValue === null ? "" : String(nextValue))}
+      >
+        <Select.Trigger>
+          <Select.Value />
+          <Select.Indicator />
+        </Select.Trigger>
+        <Select.Popover>
+          <ListBox>
+            {options.map((option) => (
+              <ListBox.Item key={option.id} id={option.id} textValue={option.label}>
+                {option.label}
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+            ))}
+          </ListBox>
+        </Select.Popover>
+      </Select>
+    </div>
   );
 }
 
@@ -167,19 +202,50 @@ function DateFilter({
   onChange,
   onClear,
   clearLabel,
+  locale,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   onClear: () => void;
   clearLabel: string;
+  locale: SupportedLocale;
 }) {
+  const dateValue = toLocalizedDateValue(parseIsoDateValue(value), locale);
+
   return (
     <div className="flex min-w-0 items-end gap-2">
-      <TextField className="min-w-0 flex-1" value={value} onChange={onChange}>
+      <DatePicker
+        className="min-w-0 flex-1"
+        granularity="day"
+        value={dateValue}
+        onChange={(nextValue) => onChange(dateValueToIsoDate(nextValue))}
+      >
         <Label>{label}</Label>
-        <Input type="date" />
-      </TextField>
+        <DateField.Group fullWidth variant="secondary">
+          <DateField.Input>{(segment) => <DateField.Segment segment={segment} />}</DateField.Input>
+          <DateField.Suffix>
+            <DatePicker.Trigger aria-label={label}>
+              <DatePicker.TriggerIndicator />
+            </DatePicker.Trigger>
+          </DateField.Suffix>
+        </DateField.Group>
+        <DatePicker.Popover className="w-[24rem] max-w-[calc(100vw-2rem)]">
+          <Calendar aria-label={label} className="mx-auto w-full max-w-none">
+            <Calendar.Header>
+              <Calendar.Heading />
+              <Calendar.NavButton slot="previous" />
+              <Calendar.NavButton slot="next" />
+            </Calendar.Header>
+            <Calendar.Grid>
+              <Calendar.GridHeader>
+                {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+              </Calendar.GridHeader>
+              <Calendar.GridBody>{(date) => <Calendar.Cell date={date} />}</Calendar.GridBody>
+            </Calendar.Grid>
+          </Calendar>
+        </DatePicker.Popover>
+      </DatePicker>
       <Tooltip>
         <Button
           aria-label={clearLabel}
@@ -287,7 +353,7 @@ export function PlatformSecurityAuditReviewPage({
   const activeFilterChips = useMemo<ActiveFilterChip[]>(() => {
     const chips: ActiveFilterChip[] = [];
     const add = (key: AuditFilterKey, label: string, value: string) => {
-      if (value) chips.push({ key, label: `${label}: ${value}` });
+      if (value) chips.push({ key, label: `${label}: ${value}`, color: activeFilterColor(key) });
     };
     const tenant = tenantOptions.find((option) => option.id === filters.tenantId);
     add("tenantId", t("security.platformAudit.scope"), tenant?.label ?? filters.tenantId);
@@ -299,7 +365,7 @@ export function PlatformSecurityAuditReviewPage({
     add("outcome", t("security.platformAudit.outcome"), filters.outcome);
     add("fromDate", t("security.platformAudit.fromDate"), filters.fromDate);
     add("toDate", t("security.platformAudit.toDate"), filters.toDate);
-    if (filters.uncataloguedOnly) chips.push({ key: "uncataloguedOnly", label: t("security.platformAudit.uncataloguedOnly") });
+    if (filters.uncataloguedOnly) chips.push({ key: "uncataloguedOnly", label: t("security.platformAudit.uncataloguedOnly"), color: activeFilterColor("uncataloguedOnly") });
     return chips;
   }, [filters, t, tenantOptions]);
 
@@ -449,7 +515,7 @@ export function PlatformSecurityAuditReviewPage({
       header: t("security.platformAudit.outcome"),
       accessorKey: "outcome",
       minWidth: 110,
-      cell: (item) => <Chip size="sm" variant="soft"><Chip.Label>{displayValue(item.outcome, t("security.platformAudit.notAvailable"))}</Chip.Label></Chip>,
+       cell: (item) => <Chip color={auditOutcomeColor(item.outcome)} size="sm" variant="soft"><Chip.Label>{displayValue(item.outcome, t("security.platformAudit.notAvailable"))}</Chip.Label></Chip>,
     },
     {
       id: "sourceIpAddress",
@@ -461,8 +527,8 @@ export function PlatformSecurityAuditReviewPage({
   ];
 
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 p-4 sm:p-6 lg:p-8">
-      <header className="flex flex-col gap-4 border-b border-separator pb-6 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-8 px-4 pb-8 pt-8 sm:px-6 sm:pt-10 lg:px-8">
+      <header className="flex flex-col gap-5 pb-2 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-3xl">
           <div className="mb-3 flex items-center gap-3 text-primary">
             <FaIcon icon="shield-halved" aria-hidden="true" className="text-xl" />
@@ -519,8 +585,8 @@ export function PlatformSecurityAuditReviewPage({
           <Card.Description>{t("security.platformAudit.filtersDescription")}</Card.Description>
         </Card.Header>
         <Card.Content>
-          <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" onSubmit={applyFilters}>
-            <div className="md:col-span-2 xl:col-span-4">
+          <form className="grid items-end gap-x-4 gap-y-5 md:grid-cols-2 lg:grid-cols-12" onSubmit={applyFilters}>
+            <div className="min-w-0 lg:col-span-3">
               <FilterSelect
                 label={t("security.platformAudit.scope")}
                 placeholder={t("security.platformAudit.allScopes")}
@@ -531,59 +597,63 @@ export function PlatformSecurityAuditReviewPage({
               />
               {tenantsLoading ? <p className="mt-1 text-xs text-muted">{t("security.platformAudit.tenantsLoading")}</p> : null}
             </div>
-            <TextField value={draftFilters.actorId} onChange={(value) => updateDraft("actorId", value)}>
+            <TextField className="min-w-0 lg:col-span-3" value={draftFilters.actorId} onChange={(value) => updateDraft("actorId", value)}>
               <Label>{t("security.platformAudit.actorId")}</Label>
               <Input placeholder={t("security.platformAudit.actorPlaceholder")} />
             </TextField>
-            <TextField value={draftFilters.eventId} onChange={(value) => updateDraft("eventId", value)}>
+            <TextField className="min-w-0 lg:col-span-3" value={draftFilters.eventId} onChange={(value) => updateDraft("eventId", value)}>
               <Label>{t("security.platformAudit.eventId")}</Label>
               <Input placeholder={t("security.platformAudit.eventIdPlaceholder")} />
             </TextField>
-            <FilterSelect
-              label={t("security.platformAudit.category")}
-              placeholder={t("security.platformAudit.allCategories")}
-              value={draftFilters.category}
-              options={[{ id: "", label: t("security.platformAudit.allCategories") }, ...categoryOptions]}
-              isDisabled={draftFilters.uncataloguedOnly || catalogQuery.isLoading}
-              onChange={selectCategory}
-            />
+            <div className="min-w-0 lg:col-span-3">
+              <FilterSelect
+                label={t("security.platformAudit.category")}
+                placeholder={t("security.platformAudit.allCategories")}
+                value={draftFilters.category}
+                options={[{ id: "", label: t("security.platformAudit.allCategories") }, ...categoryOptions]}
+                isDisabled={draftFilters.uncataloguedOnly || catalogQuery.isLoading}
+                onChange={selectCategory}
+              />
+            </div>
             {draftFilters.uncataloguedOnly ? (
-              <TextField value={draftFilters.eventName} onChange={(value) => updateDraft("eventName", value)}>
+              <TextField className="min-w-0 lg:col-span-3" value={draftFilters.eventName} onChange={(value) => updateDraft("eventName", value)}>
                 <Label>{t("security.platformAudit.eventExact")}</Label>
                 <Input placeholder={t("security.platformAudit.eventFallbackPlaceholder")} />
               </TextField>
             ) : (
-              <FilterSelect
-                label={t("security.platformAudit.event")}
-                placeholder={t("security.platformAudit.allEvents")}
-                value={draftFilters.eventName}
-                options={[{ id: "", label: t("security.platformAudit.allEvents") }, ...eventOptions]}
-                isDisabled={catalogQuery.isLoading || !draftFilters.category}
-                onChange={selectEvent}
-              />
+              <div className="min-w-0 lg:col-span-3">
+                <FilterSelect
+                  label={t("security.platformAudit.event")}
+                  placeholder={t("security.platformAudit.allEvents")}
+                  value={draftFilters.eventName}
+                  options={[{ id: "", label: t("security.platformAudit.allEvents") }, ...eventOptions]}
+                  isDisabled={catalogQuery.isLoading || !draftFilters.category}
+                  onChange={selectEvent}
+                />
+              </div>
             )}
             {draftFilters.uncataloguedOnly ? (
-              <TextField value={draftFilters.operation} onChange={(value) => updateDraft("operation", value)}>
+              <TextField className="min-w-0 lg:col-span-3" value={draftFilters.operation} onChange={(value) => updateDraft("operation", value)}>
                 <Label>{t("security.platformAudit.operationExact")}</Label>
                 <Input placeholder={t("security.platformAudit.operationFallbackPlaceholder")} />
               </TextField>
             ) : (
-              <FilterSelect
-                label={t("security.platformAudit.operation")}
-                placeholder={t("security.platformAudit.allOperations")}
-                value={draftFilters.operation}
-                options={[{ id: "", label: t("security.platformAudit.allOperations") }, ...operationOptions]}
-                isDisabled={catalogQuery.isLoading || !draftFilters.eventName || operationOptions.length === 0}
-                onChange={(value) => updateDraft("operation", value)}
-              />
+              <div className="min-w-0 lg:col-span-3">
+                <FilterSelect
+                  label={t("security.platformAudit.operation")}
+                  placeholder={t("security.platformAudit.allOperations")}
+                  value={draftFilters.operation}
+                  options={[{ id: "", label: t("security.platformAudit.allOperations") }, ...operationOptions]}
+                  isDisabled={catalogQuery.isLoading || !draftFilters.eventName || operationOptions.length === 0}
+                  onChange={(value) => updateDraft("operation", value)}
+                />
+              </div>
             )}
-            <TextField value={draftFilters.outcome} onChange={(value) => updateDraft("outcome", value)}>
+            <TextField className="min-w-0 lg:col-span-3" value={draftFilters.outcome} onChange={(value) => updateDraft("outcome", value)}>
               <Label>{t("security.platformAudit.outcome")}</Label>
               <Input placeholder={t("security.platformAudit.outcomePlaceholder")} />
             </TextField>
-            <DateFilter label={t("security.platformAudit.fromDate")} value={draftFilters.fromDate} onChange={(value) => updateDraft("fromDate", value)} onClear={() => updateDraft("fromDate", "")} clearLabel={t("security.platformAudit.clearDate")} />
-            <DateFilter label={t("security.platformAudit.toDate")} value={draftFilters.toDate} onChange={(value) => updateDraft("toDate", value)} onClear={() => updateDraft("toDate", "")} clearLabel={t("security.platformAudit.clearDate")} />
-            <div className="flex items-end">
+            <div className="flex min-w-0 items-end lg:col-span-3">
               <Checkbox aria-label={t("security.platformAudit.uncataloguedOnly")} isSelected={draftFilters.uncataloguedOnly} onChange={toggleUncatalogued}>
                 <Checkbox.Content>
                   <Checkbox.Control><Checkbox.Indicator /></Checkbox.Control>
@@ -594,7 +664,9 @@ export function PlatformSecurityAuditReviewPage({
                 </Checkbox.Content>
               </Checkbox>
             </div>
-            <div className="flex items-end gap-2 md:col-span-2 xl:col-span-1">
+            <div className="min-w-0 lg:col-span-3"><DateFilter label={t("security.platformAudit.fromDate")} value={draftFilters.fromDate} onChange={(value) => updateDraft("fromDate", value)} onClear={() => updateDraft("fromDate", "")} clearLabel={t("security.platformAudit.clearDate")} locale={locale} /></div>
+            <div className="min-w-0 lg:col-span-3"><DateFilter label={t("security.platformAudit.toDate")} value={draftFilters.toDate} onChange={(value) => updateDraft("toDate", value)} onClear={() => updateDraft("toDate", "")} clearLabel={t("security.platformAudit.clearDate")} locale={locale} /></div>
+            <div className="flex min-w-0 items-end gap-2 md:col-span-2 lg:col-span-3">
               <FilterSelect
                 label={t("security.platformAudit.sortBy")}
                 placeholder={t("security.platformAudit.sortOccurredAt")}
@@ -615,7 +687,7 @@ export function PlatformSecurityAuditReviewPage({
                 <Tooltip.Content>{descending ? t("security.platformAudit.sortDescending") : t("security.platformAudit.sortAscending")}</Tooltip.Content>
               </Tooltip>
             </div>
-            <div className="flex items-end gap-2 md:col-span-2 xl:col-span-4">
+            <div className="flex items-end gap-2 md:col-span-2 lg:col-span-3">
               <Tooltip>
                 <Button type="submit" variant="primary">
                   <FaIcon icon="filter" aria-hidden="true" />
@@ -635,11 +707,11 @@ export function PlatformSecurityAuditReviewPage({
           {dateRangeError ? <p className="mt-3 text-sm text-danger" role="alert">{t("security.platformAudit.invalidDateRange")}</p> : null}
           {filters.uncataloguedOnly ? <p className="mt-3 text-sm text-muted">{t("security.platformAudit.uncataloguedApplied")}</p> : null}
           {activeFilterChips.length > 0 ? (
-            <div className="mt-5 flex flex-wrap items-center gap-2" aria-label={t("security.platformAudit.activeFilters")}>
+            <div className="mt-8 flex flex-wrap items-center gap-2 border-t border-separator pt-5" aria-label={t("security.platformAudit.activeFilters")}>
               <span className="text-xs font-medium text-muted">{t("security.platformAudit.activeFilters")}</span>
               {activeFilterChips.map((chip) => (
                 <div key={chip.key} className="flex items-center gap-0.5">
-                  <Chip size="sm" variant="soft"><Chip.Label>{chip.label}</Chip.Label></Chip>
+                  <Chip color={chip.color} size="sm" variant="soft"><Chip.Label>{chip.label}</Chip.Label></Chip>
                   <Tooltip>
                     <Button
                       aria-label={t("security.platformAudit.removeFilter", { filter: chip.label })}
@@ -661,7 +733,7 @@ export function PlatformSecurityAuditReviewPage({
       </Card>
 
       <Card>
-        <Card.Header className="flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Card.Header className="flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Card.Title>{t("security.platformAudit.eventsTitle")}</Card.Title>
             <Card.Description>{t("security.platformAudit.eventsCount", { count: formatNumber(totalCount, locale) })}</Card.Description>

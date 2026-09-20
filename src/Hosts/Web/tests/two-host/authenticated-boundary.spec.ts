@@ -11,10 +11,12 @@ import {
 } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { auditSecurityEventsList } from "../../shared/security/src/api/generated/audit/audit";
 import { ApiError, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 
 const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
 const e2eUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const e2ePassword = process.env.VITARISH_E2E_PASSWORD;
+const webOrigin = process.env.VITARISH_E2E_WEB_ORIGIN ?? "http://localhost:3005";
 const tenantUserUsername = process.env.VITARISH_E2E_TENANT_USER_USERNAME ?? "e2e-tenant-user";
 const tenantBOwnerUsername = process.env.VITARISH_E2E_TENANT_B_OWNER_USERNAME ?? "e2e-tenant-b-owner";
 const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
@@ -1061,7 +1063,7 @@ test("proves the global audit grid across a separate platform-admin origin", asy
     await expect(page.getByText("This panel exposes review-safe metadata only.")).toBeVisible();
     await page.getByRole("button", { name: "Close event details" }).click();
 
-    await login(ownerPage, e2eUsername, "", e2ePassword, "198.51.100.23");
+    await login(ownerPage, e2eUsername, webOrigin, e2ePassword, "198.51.100.23");
     await ownerPage.goto(`${platformAdminOrigin}/audit`, { waitUntil: "domcontentloaded" });
     const deniedTenants = await fetchJson(ownerPage, "/api/modules/parties/platform/tenants");
     expect(deniedTenants.status).toBe(403);
@@ -1070,9 +1072,16 @@ test("proves the global audit grid across a separate platform-admin origin", asy
     expect(denied.status).toBe(403);
     expect(JSON.stringify(denied.body ?? "")).not.toContain(tenantBId);
 
+    await ownerPage.goto(`${webOrigin}${ClinicRoutes.Clinic.Patients.Index}`, { waitUntil: "domcontentloaded" });
+    await expect(ownerPage.getByRole("toolbar", { name: "Patients", exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(ownerPage.getByText("E2E Patient", { exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(ownerPage.getByText("افزایش قد", { exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(ownerPage.getByText("Patient tags", { exact: true })).toBeVisible();
+
     const proofScreenshot = process.env.VITARISH_E2E_PROOF_SCREENSHOT;
     if (proofScreenshot) {
-      await page.screenshot({ path: proofScreenshot, fullPage: true });
+      mkdirSync(dirname(proofScreenshot), { recursive: true });
+      await ownerPage.screenshot({ path: proofScreenshot, fullPage: true });
     }
   } finally {
     await ownerPage.close();

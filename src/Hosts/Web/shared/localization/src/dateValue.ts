@@ -1,4 +1,6 @@
-import { parseDate, parseDateTime, type CalendarDateTime, type DateValue } from "@internationalized/date";
+import { createCalendar, parseDate, parseDateTime, toCalendar, type CalendarDateTime, type DateValue } from "@internationalized/date";
+import { getDateCalendar } from "./dateLocale";
+import type { SupportedLocale } from "./locales";
 
 const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -13,7 +15,11 @@ export function parseIsoDateValue(value: string | null | undefined): DateValue |
 }
 
 export function dateValueToIsoDate(value: DateValue | null): string {
-  return value?.toString() ?? "";
+  return value ? toCalendar(value, createCalendar("gregory")).toString() : "";
+}
+
+export function toLocalizedDateValue(value: DateValue | null, locale: SupportedLocale): DateValue | null {
+  return value ? toCalendar(value, createCalendar(getDateCalendar(locale))) : null;
 }
 
 /** Parses an API date plus either HH:mm or HH:mm:ss time into one date-time value. */

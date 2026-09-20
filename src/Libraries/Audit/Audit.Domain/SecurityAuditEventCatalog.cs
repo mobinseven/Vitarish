@@ -7,8 +7,11 @@ public sealed record SecurityAuditCatalogEntry(
     string EventName,
     string Operation,
     bool Applicable = true,
-    string? Note = null)
+    string? Note = null,
+    IEnumerable<SecurityAuditControl>? Controls = null)
 {
+    public IReadOnlySet<SecurityAuditControl> ControlItems { get; } = (Controls ?? []).ToHashSet();
+
     public bool Matches(string eventName, string operation) =>
         string.Equals(EventName, eventName, StringComparison.Ordinal) &&
         (Operation == SecurityAuditEventCatalog.OperationWildcard || string.Equals(Operation, operation, StringComparison.Ordinal));
@@ -40,6 +43,8 @@ public static class SecurityAuditEventCatalog
     public const string AuditReviewIdempotencySuffix = ":audit-review";
     public const string AuditConfigurationEvent = "security.audit.configuration";
     public const string AuditConfigurationOperation = "audit.configuration.read";
+    public const string AuditStorageThresholdEvent = "security.audit.storage-threshold";
+    public const string AuditStorageThresholdOperation = "audit.storage.threshold";
     public const string AuthenticationPasswordChangeEvent = "authentication.account.password.change";
     public const string AuthenticationPasswordLoginEvent = "authentication.password.login";
     public const string AuthenticationPasswordLoginOtpEvent = "authentication.password.login.otp";
@@ -82,30 +87,31 @@ public static class SecurityAuditEventCatalog
 
     public static IReadOnlyList<SecurityAuditCatalogEntry> Entries { get; } =
     [
-        new(FunctionCategory, EndpointMutationEvent, OperationWildcard),
-        new(ReviewCategory, AuditReviewEvent, AuditReviewOperation),
-        new(ConfigurationCategory, AuditConfigurationEvent, AuditConfigurationOperation),
-        new(AuthenticationCategory, AuthenticationPasswordChangeEvent, PasswordChangeOperation),
-        new(AuthenticationCategory, AuthenticationPasswordLoginEvent, PasswordLoginOperation),
-        new(AuthenticationCategory, AuthenticationPasswordLoginOtpEvent, PasswordLoginOtpOperation),
-        new(AuthenticationCategory, AuthenticationSecurityAccessPolicyEvent, SecurityAccessPolicyOperation),
-        new(SecurityAttributeCategory, SecurityAttributesChangedEvent, SecurityAttributesChangedOperation),
-        new(ImportExportCategory, ImportEvent, ImportOperation),
-        new(ImportExportCategory, ExportEvent, ExportOperation),
-        new(ImportExportCategory, IntegrityVerificationEvent, IntegrityVerificationOperation),
-        new(ManagementCategory, ManagementEvent, "management.operation"),
-        new(SecurityFailureCategory, SecurityFailureEvent, "security.failure"),
-        new(SessionCategory, SessionEstablishedEvent, SessionEstablishedOperation),
-        new(SessionCategory, SessionTerminatedEvent, SessionTerminatedOperation),
-        new(SessionCategory, SessionAccessHistoryEvent, SessionAccessHistoryOperation),
-        new(SessionCategory, SessionNoticeEvent, SessionNoticeOperation),
-        new(SessionCategory, SessionPolicyEvent, SessionPolicyOperation),
-        new(ManagementCategory, TenantRoleReplacementEvent, TenantRoleReplacementOperation),
-        new(ManagementCategory, GlobalRoleAssignmentEvent, GlobalRoleAssignmentOperation),
-        new(ManagementCategory, GlobalRoleRevocationEvent, GlobalRoleRevocationOperation),
-        new(ManagementCategory, TenantMemberProvisioningEvent, TenantMemberProvisioningOperation),
-        new(ManagementCategory, TenantMemberRemovalEvent, TenantMemberRemovalOperation),
-        new(SessionCategory, AdministratorIdleTerminationEvent, "session.terminate.idle", false, "Optional administrator-initiated idle-session termination is not implemented.")
+        new(FunctionCategory, EndpointMutationEvent, OperationWildcard, Controls: [SecurityAuditControl.SecurityFunctionLifecycle]),
+        new(ReviewCategory, AuditReviewEvent, AuditReviewOperation, Controls: [SecurityAuditControl.FailedSecurityRecordRead, SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAdministration]),
+        new(ConfigurationCategory, AuditConfigurationEvent, AuditConfigurationOperation, Controls: [SecurityAuditControl.SecurityConfigurationChange, SecurityAuditControl.SecurityBehaviorChange]),
+        new(SecurityFailureCategory, AuditStorageThresholdEvent, AuditStorageThresholdOperation, Controls: [SecurityAuditControl.AuditStorageThresholdAction]),
+        new(AuthenticationCategory, AuthenticationPasswordChangeEvent, PasswordChangeOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.PasswordVerification, SecurityAuditControl.SecurityAttributeChange]),
+        new(AuthenticationCategory, AuthenticationPasswordLoginEvent, PasswordLoginOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.PasswordVerification]),
+        new(AuthenticationCategory, AuthenticationPasswordLoginOtpEvent, PasswordLoginOtpOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
+        new(AuthenticationCategory, AuthenticationSecurityAccessPolicyEvent, SecurityAccessPolicyOperation, Controls: [SecurityAuditControl.SecurityConfigurationChange, SecurityAuditControl.SecurityBehaviorChange]),
+        new(SecurityAttributeCategory, SecurityAttributesChangedEvent, SecurityAttributesChangedOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
+        new(ImportExportCategory, ImportEvent, ImportOperation, Controls: [SecurityAuditControl.UserDataImport]),
+        new(ImportExportCategory, ExportEvent, ExportOperation, Controls: [SecurityAuditControl.InformationExport]),
+        new(ImportExportCategory, IntegrityVerificationEvent, IntegrityVerificationOperation, Controls: [SecurityAuditControl.UserDataIntegrityVerification]),
+        new(ManagementCategory, ManagementEvent, "management.operation", Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.InactiveEntityOperation, SecurityAuditControl.GroupRoleMembershipChange]),
+        new(SecurityFailureCategory, SecurityFailureEvent, "security.failure", Controls: [SecurityAuditControl.SecurityFunctionFailure, SecurityAuditControl.SecurityCapabilityUnavailable, SecurityAuditControl.AuditStorageFailureAction]),
+        new(SessionCategory, SessionEstablishedEvent, SessionEstablishedOperation, Controls: [SecurityAuditControl.SessionEstablishment, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.ConcurrentSessionLimit]),
+        new(SessionCategory, SessionTerminatedEvent, SessionTerminatedOperation, Controls: [SecurityAuditControl.IdleSessionTermination, SecurityAuditControl.SecurityAdministration]),
+        new(SessionCategory, SessionAccessHistoryEvent, SessionAccessHistoryOperation, Controls: [SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.FailedSecurityRecordRead]),
+        new(SessionCategory, SessionNoticeEvent, SessionNoticeOperation, Controls: [SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAttributeChange]),
+        new(SessionCategory, SessionPolicyEvent, SessionPolicyOperation, Controls: [SecurityAuditControl.SecurityConfigurationChange, SecurityAuditControl.SecurityBehaviorChange]),
+        new(ManagementCategory, TenantRoleReplacementEvent, TenantRoleReplacementOperation, Controls: [SecurityAuditControl.GroupRoleMembershipChange, SecurityAuditControl.SecurityAdministration]),
+        new(ManagementCategory, GlobalRoleAssignmentEvent, GlobalRoleAssignmentOperation, Controls: [SecurityAuditControl.GroupRoleMembershipChange, SecurityAuditControl.SecurityAdministration]),
+        new(ManagementCategory, GlobalRoleRevocationEvent, GlobalRoleRevocationOperation, Controls: [SecurityAuditControl.GroupRoleMembershipChange, SecurityAuditControl.SecurityAdministration]),
+        new(ManagementCategory, TenantMemberProvisioningEvent, TenantMemberProvisioningOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.GroupRoleMembershipChange]),
+        new(ManagementCategory, TenantMemberRemovalEvent, TenantMemberRemovalOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.GroupRoleMembershipChange]),
+        new(SessionCategory, AdministratorIdleTerminationEvent, "session.terminate.idle", false, "Optional administrator-initiated idle-session termination is not implemented.", [SecurityAuditControl.AdministratorIdleTermination])
     ];
 
     public static SecurityAuditCatalogEntry? Find(string eventName, string operation) =>

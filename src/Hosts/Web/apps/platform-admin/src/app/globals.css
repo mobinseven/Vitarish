@@ -4,4 +4,14 @@
 @import "@vitarish/ui/layout.css";
 
 @source "../../../../shared/platform/src/**/*.{ts,tsx}";
+@source "../../../../shared/security/src/**/*.{ts,tsx}";
 @source "../../../../shared/ui/src/**/*.{ts,tsx}";
+
+html[dir="rtl"] {
+  --font-sans: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
+  font-family: var(--font-sans);
+}
+
+html[dir="rtl"] body {
+  font-family: var(--font-sans);
+}

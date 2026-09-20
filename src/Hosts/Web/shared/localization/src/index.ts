@@ -16,6 +16,7 @@ export {
   parseIsoDateValue,
   parseIsoDateTimeValue,
   dateValueToIsoDate,
+  toLocalizedDateValue,
 } from "./dateValue";
 export { getApiErrorMessageKey, localizeApiError } from "./errors";
 export type { CodeBearingError } from "./errors";
