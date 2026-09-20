@@ -10,4 +10,5 @@ public sealed record GetPatientsQuery(
     int? Take = null,
     bool? Template = false,
     PatientSortBy? SortBy = PatientSortBy.Name,
-    bool Descending = false) : IRequest<IReadOnlyList<PatientView>>;
+    bool Descending = false,
+    IReadOnlyList<string>? Tags = null) : IRequest<IReadOnlyList<PatientView>>;

@@ -7,7 +7,7 @@ using Vitarish.Clinic.Domain.Models;
 
 namespace Vitarish.Clinic.Application.Handlers;
 
-public sealed class UpdatePatientHandler(IPatientDirectory patientDirectory)
+public sealed class UpdatePatientHandler(IPatientDirectory patientDirectory, ISender sender)
     : IRequestHandler<UpdatePatientCommand, PatientUpdateResult>
 {
     public Task<PatientUpdateResult> Handle(UpdatePatientCommand request, CancellationToken cancellationToken)
@@ -71,10 +71,32 @@ public sealed class UpdatePatientHandler(IPatientDirectory patientDirectory)
             CurrentMedications = NormalizeOptional(request.CurrentMedications),
             ClinicalNotes = NormalizeOptional(request.ClinicalNotes),
             EmergencyContactName = NormalizeOptional(request.EmergencyContactName),
-            EmergencyContactPhone = NormalizeOptional(request.EmergencyContactPhone)
+            EmergencyContactPhone = NormalizeOptional(request.EmergencyContactPhone),
+            Tags = PatientTags.Normalize(request.Tags)
         };
 
-        return patientDirectory.UpdateAsync(patient, cancellationToken);
+        return UpdateAsync(patient, cancellationToken);
+    }
+
+    private async Task<PatientUpdateResult> UpdateAsync(PatientWriteDto patient, CancellationToken cancellationToken)
+    {
+        PatientUpdateResult result = await patientDirectory.UpdateAsync(patient, cancellationToken);
+        if (result is not PatientUpdateResult.Success success)
+        {
+            return result;
+        }
+
+        try
+        {
+            await sender.Send(new PatientViewRefreshCommand(), cancellationToken);
+            return success;
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or System.Data.Common.DbException)
+        {
+            return new PatientUpdateResult.Failure(
+                PatientUpdateFailureReason.ReadModelUnavailable,
+                "The patient was updated but the patient list could not be refreshed.");
+        }
     }
 
     private static string? NormalizeOptional(string? value)

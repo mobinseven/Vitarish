@@ -20,7 +20,7 @@ internal sealed class GetPatientViewsHandler(
     {
         string tenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID is required to query patient views.");
 
-        IQueryable<PatientView> query = dbContext.PatientViews.AsNoTracking();
+        IQueryable<PatientView> query = queryShape.CreateQuery(dbContext, request.Tags);
         query = queryShape.ApplyFilters(query, tenantId, request.Search, request.Template);
         query = queryShape.ApplySort(query, request.SortBy, request.Descending);
 

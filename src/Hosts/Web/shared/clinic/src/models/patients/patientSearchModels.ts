@@ -8,6 +8,7 @@ export interface PatientSearchCriteria {
   take?: number;
   sortBy?: PatientSortBy;
   descending?: boolean;
+  tags?: string[];
 }
 
 export interface IdentificationLookupState {

@@ -3181,6 +3181,15 @@
               "boolean"
             ],
             "default": false
+          },
+          "tags": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -3347,6 +3356,15 @@
               "null",
               "string"
             ]
+          },
+          "tags": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -3408,6 +3426,15 @@
           "descending": {
             "type": "boolean",
             "default": false
+          },
+          "tags": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -3623,6 +3650,15 @@
               "null",
               "string"
             ]
+          },
+          "tags": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -3698,6 +3734,12 @@
             "type": "boolean"
           },
           "userIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
             "type": "array",
             "items": {
               "type": "string"

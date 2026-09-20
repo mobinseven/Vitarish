@@ -21,6 +21,7 @@ public sealed class PatientView
     public string? DeletedBy { get; init; }
     public bool IsDeleted => DeletedAt is not null;
     public string[] UserIds { get; init; } = [];
+    public string[] Tags { get; init; } = [];
     public string? FirstName { get; init; }
     public string? LastName { get; init; }
     public DateTime? DateOfBirth { get; init; }

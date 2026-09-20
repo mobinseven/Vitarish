@@ -63,6 +63,15 @@ export function PatientRow({
         {description && (
           <ItemCard.Description>{description}</ItemCard.Description>
         )}
+        {patient.tags?.length ? (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {patient.tags.map((tag) => (
+              <span key={tag} className="rounded-full bg-surface-secondary px-2 py-0.5 text-xs text-muted">
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
       </ItemCard.Content>
       <ItemCard.Action>
         <span className="text-sm text-muted">

@@ -6,6 +6,7 @@ public enum PatientCreationFailureReason
 {
     Validation,
     Conflict,
+    ReadModelUnavailable,
     Unexpected
 }
 

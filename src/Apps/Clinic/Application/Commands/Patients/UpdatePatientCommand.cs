@@ -28,4 +28,5 @@ public sealed record UpdatePatientCommand(
     string? CurrentMedications,
     string? ClinicalNotes,
     string? EmergencyContactName,
-    string? EmergencyContactPhone) : IRequest<PatientUpdateResult>;
+    string? EmergencyContactPhone,
+    IReadOnlyList<string>? Tags = null) : IRequest<PatientUpdateResult>;

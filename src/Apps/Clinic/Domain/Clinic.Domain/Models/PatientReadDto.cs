@@ -5,6 +5,8 @@ namespace Vitarish.Clinic.Domain.Models;
 
 public record PatientReadDto : ProjectReadDto
 {
+    public string[] Tags => GetField<string[]>() ?? [];
+
     public string? FirstName => GetField<string>();
 
     public string? LastName => GetField<string>();

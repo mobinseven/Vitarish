@@ -185,6 +185,7 @@ describe("patient find or create", () => {
       clinicalNotes: "Analytical Engine notes",
       emergencyContactName: "Charles Babbage",
     });
-    expect(Object.keys(request)).toHaveLength(23);
+    expect(Object.keys(request)).toHaveLength(24);
+    expect(request.tags).toEqual([]);
   });
 });

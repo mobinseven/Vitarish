@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Button,
+  Chip,
   Dropdown,
+  Input,
+  Label,
   ScrollShadow,
   Spinner,
+  TextField,
+  Tooltip,
   Toolbar,
 } from "@heroui/react";
 import { EmptyState } from "@heroui-pro/react";
@@ -27,6 +32,8 @@ interface PatientsGridProps {
   isLoadingMore?: boolean;
   onAddPatient: () => void;
   onSearch: (search: string) => void;
+  selectedTags?: string[];
+  onTagsChange?: (tags: string[]) => void;
   onSort: (field: PatientSortBy) => void;
   onSelectPatient: (patientId: string) => void;
   onLoadMore?: () => void;
@@ -41,6 +48,8 @@ export function PatientsGrid({
   isLoadingMore = false,
   onAddPatient,
   onSearch,
+  selectedTags = [],
+  onTagsChange = () => {},
   onSort,
   onSelectPatient,
   onLoadMore,
@@ -103,6 +112,7 @@ export function PatientsGrid({
         <div className="order-0 w-full min-w-0 md:order-none md:flex-1">
           <PatientSearchBar onSearch={onSearch} />
         </div>
+        <TagFilter selectedTags={selectedTags} onTagsChange={onTagsChange} />
 
         {/* Mobile: single row holding count + sort + add. Desktop: dissolves via contents so each child follows its own md:order-N */}
         <div className="flex w-full items-center justify-between gap-2 md:contents">
@@ -199,7 +209,7 @@ export function PatientsGrid({
                 <PatientRow
                   key={patient.id}
                   patient={patient}
-                  variant="default"
+                  variant="secondary"
                   subtitleField={sortBy}
                   onSelect={onSelectPatient}
                 />
@@ -219,6 +229,76 @@ export function PatientsGrid({
           )}
         </ScrollShadow>
       )}
+    </div>
+  );
+}
+
+function TagFilter({
+  selectedTags,
+  onTagsChange,
+}: {
+  selectedTags: string[];
+  onTagsChange: (tags: string[]) => void;
+}) {
+  const { t } = useLocalizedText();
+  const [draft, setDraft] = useState("");
+
+  const addTag = () => {
+    const tag = draft.trim();
+    if (!tag || selectedTags.some((item) => item.localeCompare(tag, undefined, { sensitivity: "accent" }) === 0)) {
+      return;
+    }
+    onTagsChange([...selectedTags, tag]);
+    setDraft("");
+  };
+
+  return (
+    <div className="flex min-w-0 flex-1 flex-wrap items-end gap-2 md:max-w-xl">
+      <TextField className="min-w-40 flex-1" variant="secondary">
+        <Label>{t("clinic.patient.tags.filterLabel")}</Label>
+        <Input
+          value={draft}
+          placeholder={t("clinic.patient.tags.filterPlaceholder")}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              addTag();
+            }
+          }}
+        />
+      </TextField>
+      <Tooltip>
+        <Button
+          type="button"
+          isIconOnly
+          size="sm"
+          variant="secondary"
+          aria-label={t("clinic.patient.tags.addFilter")}
+          onPress={addTag}
+        >
+          <FaIcon icon="filter" aria-hidden="true" />
+        </Button>
+        <Tooltip.Content>{t("clinic.patient.tags.addFilter")}</Tooltip.Content>
+      </Tooltip>
+      {selectedTags.map((tag) => (
+        <Chip key={tag} size="sm" variant="soft">
+          <Chip.Label>{tag}</Chip.Label>
+          <Tooltip>
+            <Button
+              type="button"
+              isIconOnly
+              size="sm"
+              variant="ghost"
+              aria-label={t("clinic.patient.tags.removeFilter", { tag })}
+              onPress={() => onTagsChange(selectedTags.filter((item) => item !== tag))}
+            >
+              <FaIcon icon="xmark" aria-hidden="true" />
+            </Button>
+            <Tooltip.Content>{t("clinic.patient.tags.removeFilter", { tag })}</Tooltip.Content>
+          </Tooltip>
+        </Chip>
+      ))}
     </div>
   );
 }

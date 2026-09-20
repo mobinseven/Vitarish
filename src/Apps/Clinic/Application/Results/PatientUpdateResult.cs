@@ -6,6 +6,7 @@ public enum PatientUpdateFailureReason
 {
     Validation,
     Conflict,
+    ReadModelUnavailable,
     Unexpected
 }
 

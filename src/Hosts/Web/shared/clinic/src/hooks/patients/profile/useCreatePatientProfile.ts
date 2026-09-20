@@ -46,6 +46,7 @@ export function toPatientFindOrCreateRequest(
     clinicalNotes: data.clinicalNotes || null,
     emergencyContactName: data.emergencyContactName || null,
     emergencyContactPhone: data.emergencyContactPhone || null,
+    tags: data.tags,
   };
 }
 

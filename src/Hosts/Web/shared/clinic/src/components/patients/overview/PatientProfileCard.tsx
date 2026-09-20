@@ -78,6 +78,7 @@ export function PatientProfileCard({ patient }: PatientProfileCardProps) {
       patient.currentMedications,
     ),
   ].filter((item): item is PatientDetail => item !== null);
+  const tags = patient.tags ?? [];
   const sections = [
     {
       title: t("clinic.patient.sections.personal"),
@@ -96,12 +97,27 @@ export function PatientProfileCard({ patient }: PatientProfileCardProps) {
     },
   ].filter((section) => section.items.length > 0);
 
-  if (sections.length === 0) return null;
+  if (sections.length === 0 && tags.length === 0) return null;
 
   return (
     <div className="flex flex-wrap gap-4">
-      {sections.map((section) => (
+      {tags.length > 0 && (
         <Card className="w-[200px] gap-2">
+          <Card.Header>
+            <span className="bg-surface shadow-surface flex size-8 items-center justify-center rounded-lg">
+              <FaIcon icon="tags" />
+            </span>
+            <Label className="text-sm font-semibold">{t("clinic.patient.sections.tags")}</Label>
+          </Card.Header>
+          <Card.Content>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => <Chip key={tag} size="sm" variant="soft">{tag}</Chip>)}
+            </div>
+          </Card.Content>
+        </Card>
+      )}
+      {sections.map((section) => (
+        <Card key={section.title} className="w-[200px] gap-2">
           <Card.Header>
             <span className="bg-surface shadow-surface flex size-8 items-center justify-center rounded-lg">
               <FaIcon icon="gear" />

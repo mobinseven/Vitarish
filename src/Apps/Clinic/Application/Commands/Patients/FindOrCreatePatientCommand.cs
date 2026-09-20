@@ -27,4 +27,5 @@ public sealed record FindOrCreatePatientCommand(
     string? CurrentMedications,
     string? ClinicalNotes,
     string? EmergencyContactName,
-    string? EmergencyContactPhone) : IRequest<FindOrCreatePatientResult>;
+    string? EmergencyContactPhone,
+    IReadOnlyList<string>? Tags = null) : IRequest<FindOrCreatePatientResult>;

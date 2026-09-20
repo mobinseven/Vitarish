@@ -754,7 +754,8 @@ public static class ClinicApiEndpointMapping
                 request.Take ?? DefaultTake,
                 request.Template ?? false,
                 ToDomain(request.SortBy),
-                request.Descending),
+                request.Descending,
+                request.Tags),
             ct);
 
         return Results.Ok(patients.Select(ToContract).ToList());
@@ -762,7 +763,7 @@ public static class ClinicApiEndpointMapping
 
     private static async Task<IResult> CountPatientsAsync(PatientCountRequest request, ISender sender, CancellationToken ct)
     {
-        int count = await sender.Send(new CountPatientsQuery(request.Search, request.Template), ct);
+        int count = await sender.Send(new CountPatientsQuery(request.Search, request.Template, request.Tags), ct);
         return Results.Ok(count);
     }
 
@@ -825,7 +826,8 @@ public static class ClinicApiEndpointMapping
                 request.CurrentMedications,
                 request.ClinicalNotes,
                 request.EmergencyContactName,
-                request.EmergencyContactPhone),
+                request.EmergencyContactPhone,
+                request.Tags),
             ct);
 
         if (result is FindOrCreatePatientResult.Success success)
@@ -843,6 +845,9 @@ public static class ClinicApiEndpointMapping
             PatientCreationFailureReason.Conflict => Results.Conflict(new ClinicError(
                 ClinicErrorCode.Conflict,
                 "A patient with this identification code already exists.")),
+            PatientCreationFailureReason.ReadModelUnavailable => Results.Json(
+                new ClinicError(ClinicErrorCode.TransportFailure, failure.Message),
+                statusCode: StatusCodes.Status503ServiceUnavailable),
             _ => Results.Json(
                 new ClinicError(ClinicErrorCode.UnexpectedFailure, "Patient creation failed."),
                 statusCode: StatusCodes.Status500InternalServerError)
@@ -899,7 +904,8 @@ public static class ClinicApiEndpointMapping
                 request.CurrentMedications,
                 request.ClinicalNotes,
                 request.EmergencyContactName,
-                request.EmergencyContactPhone),
+                request.EmergencyContactPhone,
+                request.Tags),
             ct);
 
         return result switch
@@ -913,6 +919,9 @@ public static class ClinicApiEndpointMapping
             PatientUpdateResult.Failure { Reason: PatientUpdateFailureReason.Conflict } => Results.Conflict(new ClinicError(
                 ClinicErrorCode.Conflict,
                 "A patient with this identification code already exists.")),
+            PatientUpdateResult.Failure { Reason: PatientUpdateFailureReason.ReadModelUnavailable } failure => Results.Json(
+                new ClinicError(ClinicErrorCode.TransportFailure, failure.Message),
+                statusCode: StatusCodes.Status503ServiceUnavailable),
             _ => Results.Json(
                 new ClinicError(ClinicErrorCode.UnexpectedFailure, "Patient update failed."),
                 statusCode: StatusCodes.Status500InternalServerError)
@@ -948,6 +957,7 @@ public static class ClinicApiEndpointMapping
         DeletedBy = patient.DeletedBy,
         IsDeleted = patient.IsDeleted,
         UserIds = patient.UserIds,
+        Tags = patient.Tags,
         FirstName = patient.FirstName,
         LastName = patient.LastName,
         DateOfBirth = patient.DateOfBirth,

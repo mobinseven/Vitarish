@@ -19,6 +19,7 @@ export const clinicEnMessages = {
         one: "{count} patient found",
         other: "{count} patients found",
       },
+      tagFilter: "Filter by tags",
     },
     patient: {
       delete: {
@@ -66,6 +67,7 @@ export const clinicEnMessages = {
         contact: "Contact Information",
         medical: "Medical Information",
         insurance: "Insurance & Other",
+        tags: "Tags",
         system: "System",
       },
       fields: {
@@ -96,6 +98,7 @@ export const clinicEnMessages = {
         template: "Template",
         created: "Created",
         updated: "Updated",
+        tags: "Tags",
       },
       overview: {
         title: "Overview",
@@ -125,6 +128,15 @@ export const clinicEnMessages = {
         placeholder: "Name, ID code, phone, or email...",
         clear: "Clear",
         results: "Search results",
+      },
+      tags: {
+        add: "Add tag",
+        placeholder: "Type a label, such as Height increase",
+        remove: "Remove tag {tag}",
+        filterLabel: "Patient tags",
+        filterPlaceholder: "Type a tag to filter",
+        addFilter: "Add tag filter",
+        removeFilter: "Remove tag filter {tag}",
       },
       identification: {
         label: "Identification Code",

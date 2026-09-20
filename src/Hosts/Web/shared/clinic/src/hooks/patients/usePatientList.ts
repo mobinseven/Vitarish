@@ -16,6 +16,7 @@ export function usePatientList(criteria: PatientSearchCriteria) {
         take: pageSize,
         sortBy: criteria.sortBy ?? undefined,
         descending: criteria.descending ?? false,
+        tags: criteria.tags,
       }),
     getNextPageParam: (lastPage, pages) =>
       lastPage.length === pageSize ? pages.length * pageSize : undefined,

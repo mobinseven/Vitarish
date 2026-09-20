@@ -3,8 +3,8 @@ using Vitarish.Sea.Contracts.Responses;
 
 namespace Vitarish.Clinic.Contracts.Responses;
 
-public sealed record PatientListRequest(string? Search = null, int? Skip = null, int? Take = null, bool? Template = false, PatientSortBy? SortBy = PatientSortBy.Name, bool Descending = false);
-public sealed record PatientCountRequest(string? Search = null, bool? Template = false);
+public sealed record PatientListRequest(string? Search = null, int? Skip = null, int? Take = null, bool? Template = false, PatientSortBy? SortBy = PatientSortBy.Name, bool Descending = false, IReadOnlyList<string>? Tags = null);
+public sealed record PatientCountRequest(string? Search = null, bool? Template = false, IReadOnlyList<string>? Tags = null);
 public sealed record PatientSearchRequest(string? Search = null, int? Skip = null, int? Take = null, bool? Template = false);
 public sealed record PatientIdentificationLookupRequest(string IdentificationCode);
 public sealed record PatientFindOrCreateRequest(
@@ -30,7 +30,8 @@ public sealed record PatientFindOrCreateRequest(
     string? CurrentMedications = null,
     string? ClinicalNotes = null,
     string? EmergencyContactName = null,
-    string? EmergencyContactPhone = null);
+    string? EmergencyContactPhone = null,
+    IReadOnlyList<string>? Tags = null);
 public sealed record PatientUpdateRequest(
     string? IdentificationCode,
     string? FirstName,
@@ -54,7 +55,8 @@ public sealed record PatientUpdateRequest(
     string? CurrentMedications = null,
     string? ClinicalNotes = null,
     string? EmergencyContactName = null,
-    string? EmergencyContactPhone = null);
+    string? EmergencyContactPhone = null,
+    IReadOnlyList<string>? Tags = null);
 public sealed record PatientDetailsRequest(Guid PatientId);
 public sealed record StartVisitPrescriptionDraftRequest(
     Guid PatientId,
@@ -80,6 +82,7 @@ public sealed class PatientViewDto
     public string? DeletedBy { get; init; }
     public bool IsDeleted { get; init; }
     public string[] UserIds { get; init; } = [];
+    public string[] Tags { get; init; } = [];
     public string? FirstName { get; init; }
     public string? LastName { get; init; }
     public DateTime? DateOfBirth { get; init; }

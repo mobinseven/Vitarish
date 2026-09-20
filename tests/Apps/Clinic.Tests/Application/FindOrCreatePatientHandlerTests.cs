@@ -1,4 +1,6 @@
 using FluentAssertions;
+using MediatR;
+using Moq;
 using Vitarish.Clinic.Application.Abstractions;
 using Vitarish.Clinic.Application.Commands.Patients;
 using Vitarish.Clinic.Application.Handlers;
@@ -11,11 +13,19 @@ namespace Clinic.Tests.Application;
 public sealed class FindOrCreatePatientHandlerTests
 {
     [Fact]
+    public void Patient_tags_trim_empty_values_and_deduplicate_case_insensitively()
+    {
+        PatientTags.Normalize([" افزایش قد ", "", "افزایش قد", "Follow-up", "follow-up"])
+            .Should().Equal("افزایش قد", "Follow-up");
+    }
+
+    [Fact]
     public async Task Existing_exact_match_is_returned_without_creating_a_patient()
     {
         PatientView existing = Patient(Guid.NewGuid(), "1234567890");
         StubPatientDirectory directory = new([existing]);
-        FindOrCreatePatientHandler handler = new(directory);
+        Mock<ISender> sender = RefreshSender();
+        FindOrCreatePatientHandler handler = new(directory, sender.Object);
 
         FindOrCreatePatientResult result = await handler.Handle(
             ValidCommand(identificationCode: " 1234567890 "),
@@ -34,9 +44,12 @@ public sealed class FindOrCreatePatientHandlerTests
         {
             CreationResult = new PatientCreationResult.Success(created)
         };
-        FindOrCreatePatientHandler handler = new(directory);
+        Mock<ISender> sender = RefreshSender();
+        FindOrCreatePatientHandler handler = new(directory, sender.Object);
 
-        FindOrCreatePatientResult result = await handler.Handle(ValidCommand(), CancellationToken.None);
+        FindOrCreatePatientResult result = await handler.Handle(
+            ValidCommand(tags: [" افزایش قد ", "افزایش قد", " follow-up "]),
+            CancellationToken.None);
 
         result.Should().BeEquivalentTo(new FindOrCreatePatientResult.Success(created, true));
         directory.CreatedPatient.Should().NotBeNull();
@@ -51,6 +64,10 @@ public sealed class FindOrCreatePatientHandlerTests
         directory.CreatedPatient.Height.Should().Be(165);
         directory.CreatedPatient.Allergies.Should().Be("None");
         directory.CreatedPatient.EmergencyContactName.Should().Be("Charles Babbage");
+        directory.CreatedPatient.Tags.Should().Equal("افزایش قد", "follow-up");
+        sender.Verify(
+            value => value.Send(It.IsAny<PatientViewRefreshCommand>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -63,7 +80,7 @@ public sealed class FindOrCreatePatientHandlerTests
                 PatientCreationFailureReason.Conflict,
                 "Unique identification code conflict.")
         };
-        FindOrCreatePatientHandler handler = new(directory);
+        FindOrCreatePatientHandler handler = new(directory, RefreshSender().Object);
 
         FindOrCreatePatientResult result = await handler.Handle(ValidCommand(), CancellationToken.None);
 
@@ -75,7 +92,7 @@ public sealed class FindOrCreatePatientHandlerTests
     public async Task Missing_names_are_rejected_only_after_lookup_misses()
     {
         StubPatientDirectory directory = new([null]);
-        FindOrCreatePatientHandler handler = new(directory);
+        FindOrCreatePatientHandler handler = new(directory, RefreshSender().Object);
 
         FindOrCreatePatientResult result = await handler.Handle(
             ValidCommand(firstName: " ", lastName: null),
@@ -96,7 +113,8 @@ public sealed class FindOrCreatePatientHandlerTests
         {
             UpdateResult = new PatientUpdateResult.Success(updated)
         };
-        UpdatePatientHandler handler = new(directory);
+        Mock<ISender> sender = RefreshSender();
+        UpdatePatientHandler handler = new(directory, sender.Object);
 
         PatientUpdateResult result = await handler.Handle(
             new UpdatePatientCommand(
@@ -123,7 +141,8 @@ public sealed class FindOrCreatePatientHandlerTests
                 "None",
                 "Analytical Engine notes",
                 "Charles Babbage",
-                "+44 20 1111 1111"),
+                "+44 20 1111 1111",
+                [" افزایش قد ", "افزایش قد", "follow-up"]),
             CancellationToken.None);
 
         result.Should().BeEquivalentTo(new PatientUpdateResult.Success(updated));
@@ -133,13 +152,39 @@ public sealed class FindOrCreatePatientHandlerTests
         directory.UpdatedPatient.Name.Should().Be("Ada Lovelace");
         directory.UpdatedPatient.FirstName.Should().Be("Ada");
         directory.UpdatedPatient.LastName.Should().Be("Lovelace");
+        directory.UpdatedPatient.Tags.Should().Equal("افزایش قد", "follow-up");
+        sender.Verify(
+            value => value.Send(It.IsAny<PatientViewRefreshCommand>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Refresh_failure_is_returned_after_the_patient_write_succeeds()
+    {
+        PatientView created = Patient(Guid.NewGuid(), "1234567890");
+        StubPatientDirectory directory = new([null])
+        {
+            CreationResult = new PatientCreationResult.Success(created)
+        };
+        Mock<ISender> sender = RefreshSender(new InvalidOperationException("Read model unavailable."));
+        FindOrCreatePatientHandler handler = new(directory, sender.Object);
+
+        FindOrCreatePatientResult result = await handler.Handle(ValidCommand(), CancellationToken.None);
+
+        FindOrCreatePatientResult.Failure failure = result.Should()
+            .BeOfType<FindOrCreatePatientResult.Failure>().Subject;
+        failure.Reason.Should().Be(PatientCreationFailureReason.ReadModelUnavailable);
+        directory.CreatedPatient.Should().NotBeNull();
+        sender.Verify(
+            value => value.Send(It.IsAny<PatientViewRefreshCommand>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
     public async Task Update_rejects_a_missing_identification_code_without_persisting()
     {
         StubPatientDirectory directory = new([]);
-        UpdatePatientHandler handler = new(directory);
+        UpdatePatientHandler handler = new(directory, RefreshSender().Object);
 
         PatientUpdateResult result = await handler.Handle(
             new UpdatePatientCommand(
@@ -156,7 +201,8 @@ public sealed class FindOrCreatePatientHandlerTests
     private static FindOrCreatePatientCommand ValidCommand(
         string? identificationCode = "1234567890",
         string? firstName = " Ada ",
-        string? lastName = " Lovelace ") => new(
+        string? lastName = " Lovelace ",
+        IReadOnlyList<string>? tags = null) => new(
             identificationCode,
             firstName,
             lastName,
@@ -179,7 +225,8 @@ public sealed class FindOrCreatePatientHandlerTests
             "None",
             "Analytical Engine notes",
             "Charles Babbage",
-            "+44 20 1111 1111");
+            "+44 20 1111 1111",
+            tags);
 
     private static PatientView Patient(Guid id, string identificationCode) => new()
     {
@@ -189,6 +236,23 @@ public sealed class FindOrCreatePatientHandlerTests
         IdentificationCode = identificationCode,
         CreatedAt = DateTime.UtcNow
     };
+
+    private static Mock<ISender> RefreshSender(Exception? exception = null)
+    {
+        Mock<ISender> sender = new();
+        if (exception is null)
+        {
+            sender.Setup(value => value.Send(It.IsAny<PatientViewRefreshCommand>(), It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+        }
+        else
+        {
+            sender.Setup(value => value.Send(It.IsAny<PatientViewRefreshCommand>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(exception);
+        }
+
+        return sender;
+    }
 
     private sealed class StubPatientDirectory(IEnumerable<PatientView?> lookupResults) : IPatientDirectory
     {

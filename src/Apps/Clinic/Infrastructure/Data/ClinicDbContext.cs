@@ -50,6 +50,7 @@ public class ClinicDbContext : DbContext, Finbuckle.MultiTenant.EntityFrameworkC
             _ = eb.HasNoKey();
             _ = eb.Property(patient => patient.TenantId).HasMaxLength(64);
             _ = eb.Property(patient => patient.UserIds).HasColumnType("text[]");
+            _ = eb.Property(patient => patient.Tags).HasColumnType("text[]");
         });
 
         _ = modelBuilder.Entity<SurgeryView>(eb =>

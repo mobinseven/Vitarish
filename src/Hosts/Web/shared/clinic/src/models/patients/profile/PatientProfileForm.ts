@@ -24,6 +24,7 @@ export interface PatientProfileFormData {
   insuranceProvider: string;
   referrer: string;
   visitReason: string;
+  tags: string[];
 }
 
 export function patientToFormData(patient: PatientViewDto): PatientProfileFormData {
@@ -55,6 +56,7 @@ export function patientToFormData(patient: PatientViewDto): PatientProfileFormDa
     insuranceProvider: patient.insuranceProvider ?? "",
     referrer: patient.referrer ?? "",
     visitReason: patient.visitReason ?? "",
+    tags: patient.tags ?? [],
   };
 }
 
@@ -83,6 +85,7 @@ export function emptyFormData(): PatientProfileFormData {
     insuranceProvider: "",
     referrer: "",
     visitReason: "",
+    tags: [],
   };
 }
 

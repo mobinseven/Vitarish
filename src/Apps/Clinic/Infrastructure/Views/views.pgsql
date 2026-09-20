@@ -102,6 +102,25 @@ SELECT
     ARRAY[]::text[]
   ) AS "UserIds",
 
+  CASE
+    WHEN jsonb_typeof(p.md -> 'Tags') = 'array' THEN COALESCE(
+      ARRAY(
+        SELECT tag
+        FROM (
+          SELECT DISTINCT ON (lower(btrim(value)))
+            btrim(value) AS tag,
+            position
+          FROM jsonb_array_elements_text(p.md -> 'Tags') WITH ORDINALITY AS value(value, position)
+          WHERE btrim(value) <> ''
+          ORDER BY lower(btrim(value)), position
+        ) normalized
+        ORDER BY position
+      ),
+      ARRAY[]::text[]
+    )
+    ELSE ARRAY[]::text[]
+  END AS "Tags",
+
   p.md ->> 'FirstName' AS "FirstName",
   p.md ->> 'LastName' AS "LastName",
 
@@ -136,6 +155,9 @@ FROM src p;
 
 CREATE UNIQUE INDEX "IX_mv_Patients_Id"
   ON "Clinic"."mv_Patients" ("Id");
+
+CREATE INDEX "IX_mv_Patients_Tags"
+  ON "Clinic"."mv_Patients" USING GIN ("Tags");
 
 DROP MATERIALIZED VIEW IF EXISTS "Clinic"."mv_PatientSurgeries";
 

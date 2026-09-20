@@ -5,6 +5,8 @@ namespace Vitarish.Clinic.Domain.Models;
 
 public record PatientWriteDto : ProjectWriteDto
 {
+    public string[] Tags { get => GetField<string[]>() ?? []; set => SetField(PatientTags.Normalize(value)); }
+
     public new Guid? AvatarFileId { get => GetField<Guid?>(); set => SetField(value); }
 
     public string? FirstName { get => GetField<string>(); set => SetField(value); }

@@ -1,11 +1,33 @@
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using NpgsqlTypes;
 using Vitarish.Clinic.Domain.Enums;
 using Vitarish.Clinic.Domain.Models;
+using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Entities.Server.Infrastructure.Search;
 
 namespace Vitarish.Clinic.Infrastructure.Handlers;
 
 internal sealed class PatientViewQueryShape(EntitySearchPatternFactory searchPatternFactory)
 {
+    public IQueryable<PatientView> CreateQuery(ClinicDbContext dbContext, IReadOnlyList<string>? tags)
+    {
+        string[] normalizedTags = PatientTags.Normalize(tags);
+        if (normalizedTags.Length == 0)
+        {
+            return dbContext.PatientViews.AsNoTracking();
+        }
+
+        NpgsqlParameter<string[]> tagParameter = new("tags", normalizedTags)
+        {
+            NpgsqlDbType = NpgsqlDbType.Array | NpgsqlDbType.Text
+        };
+
+        return dbContext.PatientViews
+            .FromSqlRaw("SELECT * FROM \"Clinic\".\"mv_Patients\" WHERE \"Tags\" @> @tags", tagParameter)
+            .AsNoTracking();
+    }
+
     public IQueryable<PatientView> ApplyFilters(
         IQueryable<PatientView> query,
         string tenantId,

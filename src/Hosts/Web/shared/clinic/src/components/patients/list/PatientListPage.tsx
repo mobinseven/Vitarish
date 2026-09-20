@@ -18,16 +18,18 @@ export function PatientListPage({ onNavigate }: PatientListPageProps) {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<PatientSortBy | undefined>();
   const [descending, setDescending] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
   const criteria: PatientSearchCriteria = useMemo(
     () => ({
       search: search || undefined,
       sortBy,
       descending,
+      tags,
     }),
-    [descending, search, sortBy],
+    [descending, search, sortBy, tags],
   );
   const patientsQuery = usePatientList(criteria);
-  const { data: count } = usePatientCount(search || undefined);
+  const { data: count } = usePatientCount(search || undefined, tags);
 
   const handleSearch = useCallback((value: string) => {
     setSearch(value);
@@ -67,6 +69,8 @@ export function PatientListPage({ onNavigate }: PatientListPageProps) {
         descending={descending}
         onAddPatient={handleAddPatient}
         onSearch={handleSearch}
+        selectedTags={tags}
+        onTagsChange={setTags}
         onSort={handleSort}
         onSelectPatient={handleSelectPatient}
         isLoading={patientsQuery.isLoading}

@@ -123,6 +123,7 @@ internal sealed class SeaPatientDirectory(
         updated.ClinicalNotes = patient.ClinicalNotes;
         updated.EmergencyContactName = patient.EmergencyContactName;
         updated.EmergencyContactPhone = patient.EmergencyContactPhone;
+        updated.Tags = patient.Tags;
 
         EntityResult<SeaProjectReadDto> result = await projects.UpdateAsync(updated, cancellationToken);
         if (result.IsSuccess && result.Value is not null)
@@ -173,6 +174,7 @@ internal sealed class SeaPatientDirectory(
         DeletedAt = project.DeletedAt,
         DeletedBy = project.DeletedBy,
         UserIds = [.. project.UserIds],
+        Tags = PatientTags.Normalize(patient.Tags),
         FirstName = patient.FirstName,
         LastName = patient.LastName,
         DateOfBirth = patient.DateOfBirth,

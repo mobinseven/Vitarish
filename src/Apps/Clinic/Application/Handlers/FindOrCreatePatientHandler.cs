@@ -7,7 +7,7 @@ using Vitarish.Clinic.Domain.Models;
 
 namespace Vitarish.Clinic.Application.Handlers;
 
-public sealed class FindOrCreatePatientHandler(IPatientDirectory patientDirectory)
+public sealed class FindOrCreatePatientHandler(IPatientDirectory patientDirectory, ISender sender)
     : IRequestHandler<FindOrCreatePatientCommand, FindOrCreatePatientResult>
 {
     public async Task<FindOrCreatePatientResult> Handle(
@@ -79,13 +79,24 @@ public sealed class FindOrCreatePatientHandler(IPatientDirectory patientDirector
             CurrentMedications = NormalizeOptional(request.CurrentMedications),
             ClinicalNotes = NormalizeOptional(request.ClinicalNotes),
             EmergencyContactName = NormalizeOptional(request.EmergencyContactName),
-            EmergencyContactPhone = NormalizeOptional(request.EmergencyContactPhone)
+            EmergencyContactPhone = NormalizeOptional(request.EmergencyContactPhone),
+            Tags = PatientTags.Normalize(request.Tags)
         };
 
         PatientCreationResult creation = await patientDirectory.CreateAsync(patient, cancellationToken);
         if (creation is PatientCreationResult.Success created)
         {
-            return new FindOrCreatePatientResult.Success(created.Patient, true);
+            try
+            {
+                await sender.Send(new PatientViewRefreshCommand(), cancellationToken);
+                return new FindOrCreatePatientResult.Success(created.Patient, true);
+            }
+            catch (Exception exception) when (exception is InvalidOperationException or System.Data.Common.DbException)
+            {
+                return new FindOrCreatePatientResult.Failure(
+                    PatientCreationFailureReason.ReadModelUnavailable,
+                    "The patient was created but the patient list could not be refreshed.");
+            }
         }
 
         PatientCreationResult.Failure failure = (PatientCreationResult.Failure)creation;

@@ -167,6 +167,7 @@ internal static class E2eFixtureSeeder
                 Email = "patient@example.test",
                 Phone = "+989000000000",
                 Template = false,
+                Tags = ["افزایش قد", "پیگیری"],
                 CreatedAt = DateTime.UtcNow
             });
             _ = await clinic.SaveChangesAsync(cancellationToken);

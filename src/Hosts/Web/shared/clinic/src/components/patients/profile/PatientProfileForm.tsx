@@ -4,18 +4,21 @@ import { useCallback, useState } from "react";
 import {
   Button,
   Calendar,
+  Chip,
   DateField,
   DatePicker,
   FieldError,
   Input,
   Label,
   TextField,
+  Tooltip,
 } from "@heroui/react";
 import { NativeSelect } from "@heroui-pro/react";
 import {
   dateValueToIsoDate,
   parseIsoDateValue,
 } from "@vitarish/localization";
+import { FaIcon } from "@vitarish/ui";
 import type {
   PatientProfileFormData,
   PatientProfileFormErrors,
@@ -38,6 +41,7 @@ export function PatientProfileForm({
   const { t } = useLocalizedText();
   const [formData, setFormData] = useState<PatientProfileFormData>(initialData);
   const [errors, setErrors] = useState<PatientProfileFormErrors>({});
+  const [tagDraft, setTagDraft] = useState("");
 
   const handleChange = useCallback(
     (field: keyof PatientProfileFormData, value: string) => {
@@ -70,6 +74,22 @@ export function PatientProfileForm({
 
     onSubmit(formData);
   }, [formData, onSubmit, t]);
+
+  const addTag = useCallback(() => {
+    const tag = tagDraft.trim();
+    if (!tag) return;
+    setFormData((prev) => {
+      if (prev.tags.some((item) => item.localeCompare(tag, undefined, { sensitivity: "accent" }) === 0)) {
+        return prev;
+      }
+      return { ...prev, tags: [...prev.tags, tag] };
+    });
+    setTagDraft("");
+  }, [tagDraft]);
+
+  const removeTag = useCallback((tag: string) => {
+    setFormData((prev) => ({ ...prev, tags: prev.tags.filter((item) => item !== tag) }));
+  }, []);
 
   return (
     <form
@@ -180,6 +200,64 @@ export function PatientProfileForm({
             value={formData.occupation}
             onChange={(v) => handleChange("occupation", v)}
           />
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-sm font-semibold text-foreground">
+          {t("clinic.patient.sections.tags")}
+        </h2>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-end gap-2">
+            <TextField className="min-w-0 flex-1" variant="secondary">
+              <Label>{t("clinic.patient.fields.tags")}</Label>
+              <Input
+                value={tagDraft}
+                placeholder={t("clinic.patient.tags.placeholder")}
+                onChange={(event) => setTagDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    addTag();
+                  }
+                }}
+              />
+            </TextField>
+            <Tooltip>
+              <Button
+                type="button"
+                isIconOnly
+                variant="secondary"
+                aria-label={t("clinic.patient.tags.add")}
+                onPress={addTag}
+              >
+                <FaIcon icon="plus" aria-hidden="true" />
+              </Button>
+              <Tooltip.Content>{t("clinic.patient.tags.add")}</Tooltip.Content>
+            </Tooltip>
+          </div>
+          {formData.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {formData.tags.map((tag) => (
+                <Chip key={tag} size="sm" variant="soft">
+                  <Chip.Label>{tag}</Chip.Label>
+                  <Tooltip>
+                    <Button
+                      type="button"
+                      isIconOnly
+                      size="sm"
+                      variant="ghost"
+                      aria-label={t("clinic.patient.tags.remove", { tag })}
+                      onPress={() => removeTag(tag)}
+                    >
+                      <FaIcon icon="xmark" aria-hidden="true" />
+                    </Button>
+                    <Tooltip.Content>{t("clinic.patient.tags.remove", { tag })}</Tooltip.Content>
+                  </Tooltip>
+                </Chip>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

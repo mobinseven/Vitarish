@@ -19,6 +19,7 @@ export const clinicFaMessages = {
         one: "{count} بیمار یافت شد",
         other: "{count} بیمار یافت شد",
       },
+      tagFilter: "فیلتر بر اساس برچسب",
     },
     patient: {
       delete: {
@@ -66,6 +67,7 @@ export const clinicFaMessages = {
         contact: "اطلاعات تماس",
         medical: "اطلاعات پزشکی",
         insurance: "بیمه و سایر",
+        tags: "برچسب‌ها",
         system: "سیستم",
       },
       fields: {
@@ -96,6 +98,7 @@ export const clinicFaMessages = {
         template: "قالب",
         created: "ایجاد شده",
         updated: "بروزرسانی شده",
+        tags: "برچسب‌ها",
       },
       overview: {
         title: "نمای کلی",
@@ -125,6 +128,15 @@ export const clinicFaMessages = {
         placeholder: "نام، کد شناسایی، تلفن یا ایمیل...",
         clear: "پاک کردن",
         results: "نتایج جستجو",
+      },
+      tags: {
+        add: "افزودن برچسب",
+        placeholder: "برچسب را بنویسید؛ مانند افزایش قد",
+        remove: "حذف برچسب {tag}",
+        filterLabel: "برچسب‌های بیمار",
+        filterPlaceholder: "برای فیلتر برچسب را بنویسید",
+        addFilter: "افزودن فیلتر برچسب",
+        removeFilter: "حذف فیلتر برچسب {tag}",
       },
       identification: {
         label: "کد شناسایی",
