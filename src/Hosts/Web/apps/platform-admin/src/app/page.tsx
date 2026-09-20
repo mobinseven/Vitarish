@@ -25,9 +25,6 @@ export default function RootPage() {
   if (!hasAccess) return <CenteredRegion><h1 className="text-2xl font-semibold text-danger">{t("admin.forbiddenTitle")}</h1><p className="mt-2 text-muted">{t("admin.forbiddenDescription")}</p></CenteredRegion>;
   return (
     <CenteredRegion className="!flex min-h-full flex-col">
-      <header className="w-full">
-        <img src="/Master-Hel-Logotype.svg" alt="Vitarish" className="block h-auto w-full" />
-      </header>
       <main className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-5xl text-center">
         <div className="mx-auto max-w-2xl">

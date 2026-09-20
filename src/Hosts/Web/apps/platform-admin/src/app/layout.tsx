@@ -11,9 +11,23 @@ export const viewport: Viewport = { viewportFit: "cover" };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const headerStore = await headers();
-  return <><head><link rel="stylesheet" href="/fontawesome/css/all.min.css" /></head><I18nAppLayout cookieHeader={headerStore.get("cookie")} acceptLanguageHeader={headerStore.get("accept-language")} getMessages={getMessages} htmlClassName={`${vazirmatn.variable} bg-background text-foreground`} bodyClassName="bg-background text-foreground font-sans antialiased"><Providers>{children}</Providers>
-    <header className="w-full">
-      <img src="/Master-Hel-Logotype.svg" alt="Vitarish" className="block h-auto w-full" />
-    </header>
-  </I18nAppLayout></>;
+  return <>
+    <head>
+      <link rel="stylesheet" href="/fontawesome/css/all.min.css" /></head>
+    <I18nAppLayout cookieHeader={headerStore.get("cookie")} acceptLanguageHeader={headerStore.get("accept-language")} getMessages={getMessages} htmlClassName={`${vazirmatn.variable} bg-background text-foreground`} bodyClassName="bg-background text-foreground font-sans antialiased">
+      <header className="w-full">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcSet="/Master-Hel-Logotype-Dark.svg" />
+          <img src="/Master-Hel-Logotype.svg" alt="Vitarish" className="block h-auto w-full" />
+        </picture>
+      </header>
+      <Providers>{children}</Providers>
+      <header className="w-full">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcSet="/Master-Hel-Logotype-Dark.svg" />
+          <img src="/Master-Hel-Logotype.svg" alt="Vitarish" className="block h-auto w-full" />
+        </picture>
+      </header>
+    </I18nAppLayout>
+  </>;
 }
