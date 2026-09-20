@@ -4,7 +4,7 @@ import { Alert, Button, Calendar, Checkbox, Chip, DateField, DatePicker, Input, 
 import { DataGrid, Sheet, type DataGridColumn } from "@heroui-pro/react";
 import { ApiError } from "@vitarish/api-client";
 import { dateValueToIsoDate, formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, toLocalizedDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, LoadingSpinner  } from "@vitarish/ui";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import {
   auditPlatformSecurityEventsExport,
@@ -178,7 +178,7 @@ function FilterSelect({
         onChange={(nextValue) => onChange(nextValue === null ? "" : String(nextValue))}
       >
         <Select.Trigger>
-          <Select.Value />
+          <Select.Value className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap" />
           <Select.Indicator />
         </Select.Trigger>
         <Select.Popover>
