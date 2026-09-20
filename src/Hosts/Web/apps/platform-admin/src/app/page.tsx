@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuthSession, usePlatformAuthorization } from "@vitarish/auth";
-import { CenteredRegion, FaIcon } from "@vitarish/ui";
+import { CenteredRegion, FaIcon, LoadingSpinner } from "@vitarish/ui";
 import { ItemCard } from "@heroui-pro/react";
 import { useLocalizedText } from "@vitarish/localization";
 import Link from "next/link";
@@ -20,7 +20,7 @@ export default function RootPage() {
   const { hasAccess } = usePlatformAuthorization();
   const { t } = useLocalizedText();
 
-  if (isLoading) return <CenteredRegion><p>{t("common.states.loading")}</p></CenteredRegion>;
+  if (isLoading) return <CenteredRegion><div role="status" aria-label={t("common.states.loading")}><LoadingSpinner /></div></CenteredRegion>;
   if (!isAuthenticated) return <CenteredRegion><h1 className="text-2xl font-semibold">{t("admin.title")}</h1><p className="mt-2 text-muted">{t("admin.signInRequired")}</p></CenteredRegion>;
   if (!hasAccess) return <CenteredRegion><h1 className="text-2xl font-semibold text-danger">{t("admin.forbiddenTitle")}</h1><p className="mt-2 text-muted">{t("admin.forbiddenDescription")}</p></CenteredRegion>;
   return (

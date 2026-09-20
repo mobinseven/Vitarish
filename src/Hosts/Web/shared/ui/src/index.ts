@@ -54,6 +54,8 @@ export type { ChatSourceListProps } from "./chat/ChatSourceList";
 export type { ChatMessageKind, ChatTextDirection, ChatTone } from "./chat/types";
 export { StatusAlert } from "./feedback/StatusAlert";
 export type { StatusAlertProps } from "./feedback/StatusAlert";
+export { LoadingSpinner } from "./feedback/LoadingSpinner";
+export type { LoadingSpinnerProps } from "./feedback/LoadingSpinner";
 export { DashboardFrame } from "./shell/DashboardFrame";
 export type {
   DashboardContentMode,

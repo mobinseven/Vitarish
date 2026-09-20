@@ -1,8 +1,7 @@
 "use client";
 
 import { useLocalizedText } from "@/localization";
-import { StandaloneCenteredPage } from "@vitarish/ui/layout";
-import { LoadingSpinner } from "./LoadingSpinner";
+import { LoadingSpinner, StandaloneCenteredPage } from "@vitarish/ui";
 
 export function LoadingScreen() {
   const { t } = useLocalizedText();
