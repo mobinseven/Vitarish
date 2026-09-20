@@ -14,6 +14,23 @@ const tenantUserRoleSuffix = "TenantUser";
 const password = process.env.VITARISH_E2E_PASSWORD;
 const evidenceDirectory = process.env.VITARISH_E2E_AUDIT_EVIDENCE_DIRECTORY
   ?? join(process.cwd(), "artifacts", "two-host-e2e", "security-audit-evidence");
+const locale = process.env.VITARISH_E2E_LOCALE === "fa" ? "fa" : "en";
+const uiText = {
+  clinicUsers: locale === "fa" ? "کاربران کلینیک" : "Clinic Users",
+  addStaff: locale === "fa" ? "افزودن کارمند" : "Add staff member",
+  memberCreated: locale === "fa" ? "حساب اکنون عضو مستأجر است." : "The account is now a tenant member.",
+  removeAccess: locale === "fa" ? "حذف دسترسی" : "Remove access",
+  memberRemoved: locale === "fa" ? "دسترسی مستأجر حذف شد." : "Tenant access removed.",
+  changePassword: locale === "fa" ? "تغییر رمز عبور" : "Change Password",
+  auditTitle: locale === "fa" ? "ممیزی امنیتی سراسری" : "Global security audit",
+  clearFilters: locale === "fa" ? "پاک کردن فیلترها" : "Clear filters",
+  allCategories: locale === "fa" ? "همه دسته‌ها" : "All categories",
+  allEvents: locale === "fa" ? "همه انواع رویداد" : "All event types",
+  allOperations: locale === "fa" ? "همه عملیات" : "All operations",
+  applyFilters: locale === "fa" ? "اعمال فیلتر" : "Apply filters",
+  outcome: locale === "fa" ? "نتیجه" : "Outcome",
+  export: locale === "fa" ? "خروجی CSV" : "Export CSV",
+} as const;
 
 const auditEvents = {
   passwordLogin: { controls: [1, 8, 9, 10], category: "authentication", name: "authentication.password.login", operation: "password.login" },
@@ -33,6 +50,10 @@ type AuditEventExpectation = (typeof auditEvents)[keyof typeof auditEvents] & { 
 type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string }> };
 
 async function login(page: Page, username: string, origin = "", clientIp = "198.51.100.60"): Promise<void> {
+  await page.context().addCookies([
+    { name: "vitarish.locale", value: locale, url: "http://localhost:3005/" },
+    { name: "vitarish.locale", value: locale, url: platformOrigin },
+  ]);
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
   await page.setExtraHTTPHeaders({ "X-Forwarded-For": clientIp });
   await page.goto(`${origin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
@@ -167,19 +188,19 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
     && Boolean(item.resource),
   )).toBe(true);
   await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Global security audit" })).toBeVisible({ timeout: 30_000 });
-  await page.getByRole("button", { name: "Clear filters" }).click();
-  await page.getByRole("button", { name: "All categories" }).click();
+  await expect(page.getByRole("heading", { name: uiText.auditTitle })).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: uiText.clearFilters }).click();
+  await page.getByRole("button", { name: uiText.allCategories }).click();
   await page.getByRole("option", { name: event.category, exact: true }).click();
-  await page.getByRole("button", { name: "All event types" }).click();
+  await page.getByRole("button", { name: uiText.allEvents }).click();
   await page.getByRole("option", { name: event.name, exact: true }).click();
-  await page.getByRole("button", { name: "All operations" }).click();
+  await page.getByRole("button", { name: uiText.allOperations }).click();
   await page.getByRole("option", { name: event.operation, exact: true }).click();
-  await page.getByLabel("Outcome").fill(event.outcome);
+  await page.getByLabel(uiText.outcome).fill(event.outcome);
   const response = page.waitForResponse((candidate) =>
     candidate.url().includes("/api/audit/platform/security-events") && candidate.request().method() === "GET",
   );
-  await page.getByRole("button", { name: "Apply filters" }).click();
+  await page.getByRole("button", { name: uiText.applyFilters }).click();
   await response;
   const firstRow = page.locator("tbody tr").first();
   await expect(firstRow).toBeVisible({ timeout: 30_000 });
@@ -214,22 +235,22 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await page.locator('input[name="newPassword"]').fill(temporaryPassword);
     await page.locator('input[name="confirmPassword"]').fill(temporaryPassword);
     const passwordChanged = page.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/account/password"));
-    await page.getByRole("button", { name: "Change Password" }).click();
+    await page.getByRole("button", { name: uiText.changePassword }).click();
     expect((await passwordChanged).status()).toBe(200);
 
     await page.locator('input[name="currentPassword"]').fill(temporaryPassword);
     await page.locator('input[name="newPassword"]').fill(password!);
     await page.locator('input[name="confirmPassword"]').fill(password!);
     const passwordRestored = page.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/account/password"));
-    await page.getByRole("button", { name: "Change Password" }).click();
+    await page.getByRole("button", { name: uiText.changePassword }).click();
     expect((await passwordRestored).status()).toBe(200);
 
     await page.goto(ClinicRoutes.Clinic.Settings.Users, { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "Clinic Users", exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: uiText.clinicUsers, exact: true })).toBeVisible({ timeout: 30_000 });
     const contact = `e2e-audit-member-${Date.now()}@example.test`;
-    await page.getByRole("textbox", { name: "Email address" }).fill(contact);
-    await page.getByRole("button", { name: "Add staff member" }).click();
-    await expect(page.getByText("The account is now a tenant member.", { exact: true })).toBeVisible();
+    await page.getByRole("textbox", { name: locale === "fa" ? "نشانی ایمیل" : "Email address" }).fill(contact);
+    await page.getByRole("button", { name: uiText.addStaff }).click();
+    await expect(page.getByText(uiText.memberCreated, { exact: true })).toBeVisible();
     const member = page.getByRole("listitem").filter({ hasText: contact });
     await expect(member).toBeVisible();
 
@@ -249,8 +270,8 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     expect((await putJson(administratorPage, rolePath, { roleSuffix: tenantUserRoleSuffix })).status).toBe(200);
 
     page.once("dialog", (dialog) => dialog.accept());
-    await member.getByRole("button", { name: "Remove access" }).click();
-    await expect(page.getByText("Tenant access removed.", { exact: true })).toBeVisible();
+    await member.getByRole("button", { name: uiText.removeAccess }).click();
+    await expect(page.getByText(uiText.memberRemoved, { exact: true })).toBeVisible();
 
     const uploaded = await uploadEvidenceFile(page);
     expect(uploaded.status).toBe(200);
@@ -320,7 +341,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
 
     const [download] = await Promise.all([
       administratorPage.waitForEvent("download"),
-      administratorPage.getByRole("button", { name: "Export CSV" }).click(),
+      administratorPage.getByRole("button", { name: uiText.export }).click(),
     ]);
     expect(await download.path()).toBeTruthy();
     await captureAuditEvidence(administratorPage, { ...auditEvents.auditExport, outcome: "succeeded" }, "audit-export.png");

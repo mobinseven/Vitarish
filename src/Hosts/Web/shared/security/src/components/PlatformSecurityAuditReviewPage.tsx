@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, Button, Calendar, Card, Checkbox, Chip, DateField, DatePicker, Input, Label, ListBox, Select, Spinner, TextField, Tooltip } from "@heroui/react";
+import { Alert, Button, Calendar, Checkbox, Chip, DateField, DatePicker, Input, Label, ListBox, Select, Spinner, Surface, TextField, Tooltip } from "@heroui/react";
 import { DataGrid, Sheet, type DataGridColumn } from "@heroui-pro/react";
 import { ApiError } from "@vitarish/api-client";
 import { dateValueToIsoDate, formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, toLocalizedDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
@@ -535,7 +535,6 @@ export function PlatformSecurityAuditReviewPage({
             <span className="text-xs font-semibold uppercase tracking-[0.18em]">{t("security.platformAudit.eyebrow")}</span>
           </div>
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">{t("security.platformAudit.title")}</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">{t("security.platformAudit.description")}</p>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted">
           <FaIcon icon="database" aria-hidden="true" />
@@ -579,12 +578,11 @@ export function PlatformSecurityAuditReviewPage({
         </Alert>
       ) : null}
 
-      <Card>
-        <Card.Header className="flex-col items-start gap-1">
-          <Card.Title>{t("security.platformAudit.filtersTitle")}</Card.Title>
-          <Card.Description>{t("security.platformAudit.filtersDescription")}</Card.Description>
-        </Card.Header>
-        <Card.Content>
+      <Surface className="flex flex-col gap-6 rounded-3xl p-6" variant="default">
+        <div className="flex flex-col items-start gap-1">
+          <h2 className="text-lg font-semibold text-foreground">{t("security.platformAudit.filtersTitle")}</h2>
+        </div>
+        <div>
           <form className="grid items-end gap-x-4 gap-y-5 md:grid-cols-2 lg:grid-cols-12" onSubmit={applyFilters}>
             <div className="min-w-0 lg:col-span-3">
               <FilterSelect
@@ -729,14 +727,14 @@ export function PlatformSecurityAuditReviewPage({
               ))}
             </div>
           ) : null}
-        </Card.Content>
-      </Card>
+        </div>
+      </Surface>
 
-      <Card>
-          <Card.Header className="flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <Surface className="flex flex-col gap-6 rounded-3xl p-6">
+          <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <Card.Title>{t("security.platformAudit.eventsTitle")}</Card.Title>
-            <Card.Description>{t("security.platformAudit.eventsCount", { count: formatNumber(totalCount, locale) })}</Card.Description>
+            <h2 className="text-lg font-semibold text-foreground">{t("security.platformAudit.eventsTitle")}</h2>
+            <p className="text-sm text-muted">{t("security.platformAudit.eventsCount", { count: formatNumber(totalCount, locale) })}</p>
           </div>
           <div className="flex items-center gap-2">
             {query.isFetching && !query.isPending ? <Spinner aria-label={t("security.platformAudit.loading")} size="sm" /> : null}
@@ -748,8 +746,8 @@ export function PlatformSecurityAuditReviewPage({
               <Tooltip.Content>{isExporting ? t("security.platformAudit.exporting") : t("security.platformAudit.export")}</Tooltip.Content>
             </Tooltip>
           </div>
-        </Card.Header>
-        <Card.Content>
+        </div>
+        <div>
           {query.isPending ? (
             <div className="flex justify-center py-16"><Spinner aria-label={t("security.platformAudit.loading")} /></div>
           ) : query.isError ? (
@@ -764,10 +762,11 @@ export function PlatformSecurityAuditReviewPage({
             <DataGrid
               aria-label={t("security.platformAudit.eventsTitle")}
               columns={columns}
-              contentClassName="min-w-[1500px]"
+              contentClassName="min-w-[1100px]"
               data={result?.items ?? []}
               getRowId={(item) => item.id ?? item.correlationId ?? `${item.occurredAt ?? "event"}-${item.eventName ?? "unknown"}`}
               renderEmptyState={() => <p className="p-10 text-center text-sm text-muted">{t("security.platformAudit.empty")}</p>}
+              scrollContainerClassName="w-full max-w-full overflow-x-auto"
               variant="secondary"
               onRowAction={(key) => {
                 const event = result?.items.find((item) => item.id === String(key));
@@ -775,8 +774,8 @@ export function PlatformSecurityAuditReviewPage({
               }}
             />
           )}
-        </Card.Content>
-        <Card.Footer className="flex items-center justify-between gap-3">
+        </div>
+        <div className="flex items-center justify-between gap-3">
           <span className="text-sm text-muted">{t("security.platformAudit.page", { page: formatNumber(page, locale), totalPages: formatNumber(totalPages, locale) })}</span>
           <div className="flex gap-2">
             <Tooltip>
@@ -794,8 +793,8 @@ export function PlatformSecurityAuditReviewPage({
               <Tooltip.Content>{t("security.platformAudit.next")}</Tooltip.Content>
             </Tooltip>
           </div>
-        </Card.Footer>
-      </Card>
+        </div>
+      </Surface>
 
       <EventDetailSheet event={selectedEvent} onClose={() => setSelectedEvent(null)} />
     </div>
