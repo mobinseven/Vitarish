@@ -44,6 +44,7 @@ const auditEvents = {
   auditExport: { controls: [1, 15], category: "import-export", name: "security.data.export", operation: "data.export" },
   accessHistory: { controls: [1, 3, 17], category: "session", name: "authentication.access-history", operation: "access-history" },
   sessionPolicy: { controls: [1, 4, 16, 17], category: "authentication", name: "authentication.security-access-policy", operation: "Authentication_SecurityAccessPolicy_Change" },
+  securityFunctionFailure: { controls: [19], category: "security-failure", name: "security.failure", operation: "security.failure" },
   tenantRoleReplacement: { controls: [11, 17, 18], category: "management", name: "users.tenant-role-replacement", operation: "Users_ReplaceTenantRole" },
   dataImport: { controls: [14], category: "import-export", name: "security.data.import", operation: "data.import" },
 } as const;
@@ -206,8 +207,8 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   await response;
   const firstRow = page.locator("tbody tr").first();
   await expect(firstRow).toBeVisible({ timeout: 30_000 });
-  await expect(firstRow.getByText(event.name, { exact: true })).toBeVisible();
-  await expect(firstRow.getByText(event.operation, { exact: true })).toBeVisible();
+  await expect(firstRow.getByText(event.name, { exact: true }).first()).toBeVisible();
+  await expect(firstRow.getByText(event.operation, { exact: true }).last()).toBeVisible();
   await expect(firstRow.getByText(event.outcome, { exact: true })).toBeVisible();
 
   mkdirSync(evidenceDirectory, { recursive: true });
@@ -302,6 +303,15 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     }, apiOrigin);
     expect(currentPolicy.status).toBe(200);
     const policy = currentPolicy.body;
+    const rejectedPolicyUpdate = await putJson(administratorPage, "/api/modules/authentication/security/session-policy", {
+      maximumConcurrentSessions: policy.maximumConcurrentSessions,
+      concurrentSessionsFunctionallyRequired: policy.concurrentSessionsFunctionallyRequired,
+      defaultInactivityTimeoutMinutes: 31,
+      allowedSessionStartCidrs: policy.allowedSessionStartCidrs,
+      expectedVersion: policy.version,
+    });
+    expect(rejectedPolicyUpdate.status).toBe(400);
+
     const policyUpdate = await putJson(administratorPage, "/api/modules/authentication/security/session-policy", {
       maximumConcurrentSessions: 2,
       concurrentSessionsFunctionallyRequired: true,
@@ -350,6 +360,9 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, { ...auditEvents.auditReview, outcome: "succeeded" }, "audit-review.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.accessHistory, outcome: "succeeded" }, "access-history.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionPolicy, outcome: "succeeded" }, "session-policy.png");
+    const securityFailureRecords = await platformAuditQuery(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" });
+    expect(securityFailureRecords.items.every((item) => item.redactedReason === "validation_failed")).toBe(true);
+    await captureAuditEvidence(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" }, "security-function-failure.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionEstablished, outcome: "denied" }, "session-concurrent-limit-denied.png");
 
     const [download] = await Promise.all([

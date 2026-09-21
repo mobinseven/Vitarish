@@ -7,6 +7,7 @@ using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Queries;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Domain.Entities;
@@ -110,7 +111,15 @@ public sealed class SecurityAccessPolicyHandlerTests
 
         await act.Should().ThrowAsync<SecurityAccessPolicyConcurrencyException>().Where(exception => ReferenceEquals(exception, conflict));
         audit.Events.Select(item => item.Outcome).Should().ContainInOrder(SecurityAuditOutcome.Started, SecurityAuditOutcome.Denied);
-        audit.Events[^1].RedactedReason.Should().Be("concurrency_conflict");
+        audit.Events.Should().ContainSingle(item =>
+            item.EventName == AuthenticationSecurityAuditEvents.SecurityAccessPolicy
+            && item.Outcome == SecurityAuditOutcome.Denied
+            && item.RedactedReason == SecurityAuditReasonCatalog.SecurityPolicyConcurrencyConflict);
+        audit.Events.Should().ContainSingle(item =>
+            item.EventName == AuthenticationSecurityAuditEvents.SecurityFailure
+            && item.Operation == AuthenticationSecurityAuditEvents.SecurityFailureOperation
+            && item.Outcome == SecurityAuditOutcome.Failed
+            && item.RedactedReason == SecurityAuditReasonCatalog.SecurityPolicyConcurrencyConflict);
     }
 
     [Fact]
@@ -124,8 +133,15 @@ public sealed class SecurityAccessPolicyHandlerTests
         Func<Task> act = () => handler.Handle(new ChangeSecurityAccessPolicyCommand(invalid, 0), CancellationToken.None);
 
         await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
-        audit.Events[^1].Outcome.Should().Be(SecurityAuditOutcome.Denied);
-        audit.Events[^1].RedactedReason.Should().Be("validation_failed");
+        audit.Events.Should().ContainSingle(item =>
+            item.EventName == AuthenticationSecurityAuditEvents.SecurityAccessPolicy
+            && item.Outcome == SecurityAuditOutcome.Denied
+            && item.RedactedReason == SecurityAuditReasonCatalog.SecurityPolicyValidationFailure);
+        audit.Events.Should().ContainSingle(item =>
+            item.EventName == AuthenticationSecurityAuditEvents.SecurityFailure
+            && item.Operation == AuthenticationSecurityAuditEvents.SecurityFailureOperation
+            && item.Outcome == SecurityAuditOutcome.Failed
+            && item.RedactedReason == SecurityAuditReasonCatalog.SecurityPolicyValidationFailure);
         store.Verify(item => item.SaveAsync(It.IsAny<SecurityAccessPolicy>(), It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 

@@ -5,7 +5,7 @@ real two-host evidence suite. A procedure is valid only when it performs the
 public action, verifies the durable record, opens the platform audit surface,
 and retains the matching unblurred audit-grid screenshot.
 
-Current report: 15 controls have executable evidence procedures; 9 controls are
+Current report: 16 controls have executable evidence procedures; 8 controls are
 explicitly excluded with a product-backed reason. Several controls are
 represented by one event because the authoritative catalog assigns that event
 to more than one control.
@@ -30,14 +30,14 @@ to more than one control.
 | 16 Security-behavior change | `sessionPolicy` security session-policy PUT | `session-policy.png` | Covered by `authentication.security-access-policy` |
 | 17 Security administration | Audit review, access-history acknowledgement, membership administration, and role replacement | `audit-review.png`, `access-history.png`, `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png` | Covered for implemented operations |
 | 18 Group/role/membership change | Tenant-member provisioning/removal and tenant-role replacement | `tenant-member-provisioned.png`, `tenant-member-removed.png`, `tenant-role-replaced.png` | Covered |
-| 19 Security-function failure | Public validation/failure path with durable security event | None | No generic public failure event currently emitted |
+| 19 Security-function failure | Invalid `sessionPolicy` validation path with durable security event | `security-function-failure.png` | Covered by `security.failure` |
 | 20 Security-capability unavailable | Audit/dependency unavailable path | None | No deterministic public trigger |
 | 21 Session establishment | Password login session establishment | `session-established.png` | Covered |
 | 22 Concurrent-session limit | Establish a third administrator session after setting maximum sessions to two | `session-concurrent-limit-denied.png` | Covered |
 | 23 Idle-session termination | Advance the E2E clock past inactivity timeout | None | Requires clock-control adapter or deterministic timeout procedure |
 | 24 Administrator idle termination | Administrator terminates another user’s idle session | None | Excluded: catalog marks feature not implemented |
 
-The nine excluded controls are 2, 5, 6, 7, 13, 19, 20, 23, and 24. They remain
+The eight excluded controls are 2, 5, 6, 7, 13, 20, 23, and 24. They remain
 visible here so omission cannot be mistaken for coverage. The suite is complete
 only when the focused run produces every listed screenshot in one fresh
 disposable run and the canonical two-host suite is reviewed for unrelated
@@ -53,15 +53,15 @@ npm run test:e2e:two-host
 Remove-Item Env:VITARISH_E2E_GREP -ErrorAction SilentlyContinue
 ```
 
-Result: 1 test passed against fresh two-host hosts. The 13 screenshots in
-`artifacts/two-host-e2e/security-audit-evidence` were inspected and each shows
-the full, unblurred Platform Admin audit grid filtered through the normal
-catalog event-type, category, operation, and outcome filters, with the expected
-event name, operation, outcome, actor, and scope fields visible in the row. No
-event-details dialog is opened for evidence capture.
+Result: 1 test passed against fresh two-host hosts and produced 16 screenshots
+in the fresh evidence directory. The newly added `security-function-failure.png`
+was inspected and shows the full, unblurred Platform Admin audit grid filtered
+through the normal catalog event-type, category, operation, and outcome filters,
+with the expected event name, operation, outcome, actor, and scope fields visible
+in the row. No event-details dialog is opened for evidence capture.
 
 Relevant unit tests: `dotnet test tests/Libraries/Audit.Tests/Audit.Tests.csproj
---no-restore` — 36 passed.
+--no-restore` — 37 passed.
 
 Canonical two-host review: 31 passed, 7 skipped, and 2 failed. The failures
 were the pre-existing authenticated-boundary scenario and shared `e2e-owner`

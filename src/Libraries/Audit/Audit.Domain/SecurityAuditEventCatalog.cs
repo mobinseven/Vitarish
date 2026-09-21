@@ -77,6 +77,7 @@ public static class SecurityAuditEventCatalog
     public const string IntegrityVerificationOperation = "data.integrity.verify";
     public const string ManagementEvent = "security.management.operation";
     public const string SecurityFailureEvent = "security.failure";
+    public const string SecurityFailureOperation = SecurityFailureEvent;
     public const string SessionEstablishedEvent = "authentication.session.established";
     public const string SessionEstablishedOperation = "session.establish";
     public const string SessionTerminatedEvent = "authentication.session.terminated";
@@ -121,7 +122,7 @@ public static class SecurityAuditEventCatalog
         new(ImportExportCategory, ExportEvent, ExportOperation, Controls: [SecurityAuditControl.InformationExport]),
         new(ImportExportCategory, IntegrityVerificationEvent, IntegrityVerificationOperation, Controls: [SecurityAuditControl.UserDataIntegrityVerification]),
         new(ManagementCategory, ManagementEvent, "management.operation", Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.InactiveEntityOperation, SecurityAuditControl.GroupRoleMembershipChange]),
-        new(SecurityFailureCategory, SecurityFailureEvent, "security.failure", Controls: [SecurityAuditControl.SecurityFunctionFailure, SecurityAuditControl.SecurityCapabilityUnavailable, SecurityAuditControl.AuditStorageFailureAction]),
+        new(SecurityFailureCategory, SecurityFailureEvent, SecurityFailureOperation, Controls: [SecurityAuditControl.SecurityFunctionFailure, SecurityAuditControl.SecurityCapabilityUnavailable, SecurityAuditControl.AuditStorageFailureAction]),
         new(SessionCategory, SessionEstablishedEvent, SessionEstablishedOperation, Controls: [SecurityAuditControl.SessionEstablishment, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.ConcurrentSessionLimit]),
         new(SessionCategory, SessionTerminatedEvent, SessionTerminatedOperation, Controls: [SecurityAuditControl.IdleSessionTermination, SecurityAuditControl.SecurityAdministration]),
         new(SessionCategory, SessionAccessHistoryEvent, SessionAccessHistoryOperation, Controls: [SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.FailedSecurityRecordRead]),

@@ -30,6 +30,9 @@ public static class AuthenticationSecurityAuditEvents
     public const string SecurityAccessPolicyConcurrencyConflictReason = SecurityAuditReasonCatalog.SecurityPolicyConcurrencyConflict;
     public const string SecurityAccessPolicyValidationFailureReason = SecurityAuditReasonCatalog.SecurityPolicyValidationFailure;
     public const string SecurityAccessPolicyPersistenceFailureReason = SecurityAuditReasonCatalog.SecurityPolicyPersistenceFailure;
+    public const string SecurityFailure = SecurityAuditEventCatalog.SecurityFailureEvent;
+    public const string SecurityFailureOperation = SecurityAuditEventCatalog.SecurityFailureOperation;
+    public const string SecurityFailureKeySuffix = ":security-failure";
     public const string SessionEstablished = SecurityAuditEventCatalog.SessionEstablishedEvent;
     public const string SessionEstablishedOperation = SecurityAuditEventCatalog.SessionEstablishedOperation;
     public const string SessionTerminated = SecurityAuditEventCatalog.SessionTerminatedEvent;
