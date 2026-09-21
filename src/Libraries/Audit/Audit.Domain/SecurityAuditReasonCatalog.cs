@@ -24,6 +24,11 @@ public static class SecurityAuditReasonCatalog
     public const string AwaitingMutationOutcome = "awaiting_mutation_outcome";
     public const string UserTimeoutDefault = "user_timeout_default";
     public const string AuthenticationFailed = "authentication_failed";
+    public const string AuthenticationLockout = "authentication_lockout";
+    public const string MfaFailure = "mfa_failure";
+    public const string SecondFactorRequired = "second_factor_required";
+    public const string AuthenticationProviderFailure = "authentication_provider_failure";
+    public const string TenantContextMissing = "tenant_context_missing";
     public const string IntegrityValidationFailed = "integrity_validation_failed";
     public const string Unauthorized = "unauthorized";
     public const string UserLogout = "user_logout";
@@ -71,6 +76,11 @@ public static class SecurityAuditReasonCatalog
         AwaitingMutationOutcome,
         UserTimeoutDefault,
         AuthenticationFailed,
+        AuthenticationLockout,
+        MfaFailure,
+        SecondFactorRequired,
+        AuthenticationProviderFailure,
+        TenantContextMissing,
         IntegrityValidationFailed,
         Unauthorized,
         UserLogout,

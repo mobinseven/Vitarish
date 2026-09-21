@@ -48,9 +48,23 @@ public static class SecurityAuditEventCatalog
     public const string AuthenticationPasswordChangeEvent = "authentication.account.password.change";
     public const string AuthenticationPasswordLoginEvent = "authentication.password.login";
     public const string AuthenticationPasswordLoginOtpEvent = "authentication.password.login.otp";
+    public const string AuthenticationIdentityPasswordSignInUserEvent = "authentication.identity.password-sign-in.user";
+    public const string AuthenticationIdentityPasswordSignInNameEvent = "authentication.identity.password-sign-in.name";
+    public const string AuthenticationIdentityPasswordCheckEvent = "authentication.identity.password-check";
+    public const string AuthenticationIdentityExternalLoginEvent = "authentication.identity.external-login";
+    public const string AuthenticationIdentityAuthenticatorMfaEvent = "authentication.identity.mfa.authenticator";
+    public const string AuthenticationIdentityRecoveryCodeMfaEvent = "authentication.identity.mfa.recovery-code";
+    public const string AuthenticationIdentityProviderMfaEvent = "authentication.identity.mfa.provider";
     public const string PasswordChangeOperation = "account.password.change";
     public const string PasswordLoginOperation = "password.login";
     public const string PasswordLoginOtpOperation = "password.login.otp";
+    public const string IdentityPasswordSignInUserOperation = "identity.password.sign-in.user";
+    public const string IdentityPasswordSignInNameOperation = "identity.password.sign-in.name";
+    public const string IdentityPasswordCheckOperation = "identity.password.check";
+    public const string IdentityExternalLoginOperation = "identity.external.login";
+    public const string IdentityAuthenticatorMfaOperation = "identity.mfa.authenticator";
+    public const string IdentityRecoveryCodeMfaOperation = "identity.mfa.recovery-code";
+    public const string IdentityProviderMfaOperation = "identity.mfa.provider";
     public const string AuthenticationSecurityAccessPolicyEvent = "authentication.security-access-policy";
     public const string SecurityAccessPolicyOperation = "Authentication_SecurityAccessPolicy_Change";
     public const string SecurityAttributesChangedEvent = "authentication.security-attributes.changed";
@@ -94,6 +108,13 @@ public static class SecurityAuditEventCatalog
         new(AuthenticationCategory, AuthenticationPasswordChangeEvent, PasswordChangeOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.PasswordVerification, SecurityAuditControl.SecurityAttributeChange]),
         new(AuthenticationCategory, AuthenticationPasswordLoginEvent, PasswordLoginOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.PasswordVerification]),
         new(AuthenticationCategory, AuthenticationPasswordLoginOtpEvent, PasswordLoginOtpOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
+        new(AuthenticationCategory, AuthenticationIdentityPasswordSignInUserEvent, IdentityPasswordSignInUserOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.PasswordVerification]),
+        new(AuthenticationCategory, AuthenticationIdentityPasswordSignInNameEvent, IdentityPasswordSignInNameOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.PasswordVerification]),
+        new(AuthenticationCategory, AuthenticationIdentityPasswordCheckEvent, IdentityPasswordCheckOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.PasswordVerification]),
+        new(AuthenticationCategory, AuthenticationIdentityExternalLoginEvent, IdentityExternalLoginOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
+        new(AuthenticationCategory, AuthenticationIdentityAuthenticatorMfaEvent, IdentityAuthenticatorMfaOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
+        new(AuthenticationCategory, AuthenticationIdentityRecoveryCodeMfaEvent, IdentityRecoveryCodeMfaOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
+        new(AuthenticationCategory, AuthenticationIdentityProviderMfaEvent, IdentityProviderMfaOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
         new(AuthenticationCategory, AuthenticationSecurityAccessPolicyEvent, SecurityAccessPolicyOperation, Controls: [SecurityAuditControl.SecurityConfigurationChange, SecurityAuditControl.SecurityBehaviorChange]),
         new(SecurityAttributeCategory, SecurityAttributesChangedEvent, SecurityAttributesChangedOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
         new(ImportExportCategory, ImportEvent, ImportOperation, Controls: [SecurityAuditControl.UserDataImport]),

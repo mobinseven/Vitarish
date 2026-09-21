@@ -109,6 +109,25 @@ public sealed class SecurityAuditReviewTests
     }
 
     [Fact]
+    public void Catalogues_each_identity_sign_in_manager_operation_and_redacts_new_reasons()
+    {
+        SecurityAuditEventCatalog.Entries.Should().Contain(entry => entry.EventName == SecurityAuditEventCatalog.AuthenticationIdentityPasswordSignInUserEvent && entry.Operation == SecurityAuditEventCatalog.IdentityPasswordSignInUserOperation);
+        SecurityAuditEventCatalog.Entries.Should().Contain(entry => entry.EventName == SecurityAuditEventCatalog.AuthenticationIdentityPasswordSignInNameEvent && entry.Operation == SecurityAuditEventCatalog.IdentityPasswordSignInNameOperation);
+        SecurityAuditEventCatalog.Entries.Should().Contain(entry => entry.EventName == SecurityAuditEventCatalog.AuthenticationIdentityPasswordCheckEvent && entry.Operation == SecurityAuditEventCatalog.IdentityPasswordCheckOperation);
+        SecurityAuditEventCatalog.Entries.Should().Contain(entry => entry.EventName == SecurityAuditEventCatalog.AuthenticationIdentityExternalLoginEvent && entry.Operation == SecurityAuditEventCatalog.IdentityExternalLoginOperation);
+        SecurityAuditEventCatalog.Entries.Should().Contain(entry => entry.EventName == SecurityAuditEventCatalog.AuthenticationIdentityAuthenticatorMfaEvent && entry.Operation == SecurityAuditEventCatalog.IdentityAuthenticatorMfaOperation);
+        SecurityAuditEventCatalog.Entries.Should().Contain(entry => entry.EventName == SecurityAuditEventCatalog.AuthenticationIdentityRecoveryCodeMfaEvent && entry.Operation == SecurityAuditEventCatalog.IdentityRecoveryCodeMfaOperation);
+        SecurityAuditEventCatalog.Entries.Should().Contain(entry => entry.EventName == SecurityAuditEventCatalog.AuthenticationIdentityProviderMfaEvent && entry.Operation == SecurityAuditEventCatalog.IdentityProviderMfaOperation);
+
+        SecurityAuditReasonCatalog.IsAllowed(SecurityAuditReasonCatalog.AuthenticationLockout).Should().BeTrue();
+        SecurityAuditReasonCatalog.IsAllowed(SecurityAuditReasonCatalog.MfaFailure).Should().BeTrue();
+        SecurityAuditReasonCatalog.IsAllowed(SecurityAuditReasonCatalog.SecondFactorRequired).Should().BeTrue();
+        SecurityAuditReasonCatalog.IsAllowed(SecurityAuditReasonCatalog.AuthenticationProviderFailure).Should().BeTrue();
+        SecurityAuditRedaction.Apply("password-value").Should().Be(SecurityAuditRedaction.Replacement);
+        SecurityAuditRedaction.Apply("otp-value").Should().Be(SecurityAuditRedaction.Replacement);
+    }
+
+    [Fact]
     public void Catalog_declares_an_event_mapping_for_every_matrix_control()
     {
         HashSet<SecurityAuditControl> covered = SecurityAuditEventCatalog.Entries
