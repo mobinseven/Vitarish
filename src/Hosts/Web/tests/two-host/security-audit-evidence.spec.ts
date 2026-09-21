@@ -34,7 +34,9 @@ const uiText = {
 
 const auditEvents = {
   passwordLogin: { controls: [1, 8, 9, 10], category: "authentication", name: "authentication.password.login", operation: "password.login" },
+  identityPasswordCheck: { controls: [1, 8, 9], category: "authentication", name: "authentication.identity.password-check", operation: "identity.password.check" },
   passwordChange: { controls: [1, 8, 10, 12], category: "authentication", name: "authentication.account.password.change", operation: "account.password.change" },
+  passwordPolicyRejected: { controls: [1, 8, 10, 12], category: "authentication", name: "authentication.account.password.change", operation: "account.password.change" },
   sessionEstablished: { controls: [1, 8, 9, 21, 22], category: "session", name: "authentication.session.established", operation: "session.establish" },
   tenantMemberProvisioning: { controls: [1, 11, 17, 18], category: "management", name: "users.tenant-member-provisioning", operation: "Users_ProvisionTenantMember" },
   tenantMemberRemoval: { controls: [1, 11, 17, 18], category: "management", name: "users.tenant-member-removal", operation: "Users_RemoveTenantMember" },
@@ -47,7 +49,7 @@ const auditEvents = {
 } as const;
 
 type AuditEventExpectation = (typeof auditEvents)[keyof typeof auditEvents] & { outcome: string };
-type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string }> };
+type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; redactedReason?: string }> };
 
 async function login(page: Page, username: string, origin = "", clientIp = "198.51.100.60"): Promise<void> {
   await page.context().addCookies([
@@ -232,6 +234,13 @@ test("real actions create visible platform security-audit evidence", async ({ pa
 
     await page.goto(ClinicRoutes.Account.Password, { waitUntil: "domcontentloaded" });
     await page.locator('input[name="currentPassword"]').fill(password!);
+    await page.locator('input[name="newPassword"]').fill("Ab1!xy");
+    await page.locator('input[name="confirmPassword"]').fill("Ab1!xy");
+    const rejectedPassword = page.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/account/password"));
+    await page.getByRole("button", { name: uiText.changePassword }).click();
+    expect((await rejectedPassword).status()).toBe(400);
+
+    await page.locator('input[name="currentPassword"]').fill(password!);
     await page.locator('input[name="newPassword"]').fill(temporaryPassword);
     await page.locator('input[name="confirmPassword"]').fill(temporaryPassword);
     const passwordChanged = page.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/account/password"));
@@ -328,8 +337,12 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     }
     await captureAuditEvidence(administratorPage, { ...auditEvents.passwordLogin, outcome: "succeeded" }, "password-login-succeeded.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.passwordLogin, outcome: "denied" }, "password-login-denied.png");
+    await captureAuditEvidence(administratorPage, { ...auditEvents.identityPasswordCheck, outcome: "denied" }, "identity-password-check-denied.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionEstablished, outcome: "succeeded" }, "session-established.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.passwordChange, outcome: "succeeded" }, "password-change.png");
+    const passwordPolicyRecords = await platformAuditQuery(administratorPage, { ...auditEvents.passwordPolicyRejected, outcome: "denied" });
+    expect(passwordPolicyRecords.items.every((item) => item.redactedReason === "password_policy_rejected")).toBe(true);
+    await captureAuditEvidence(administratorPage, { ...auditEvents.passwordPolicyRejected, outcome: "denied" }, "password-policy-rejected.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberProvisioning, outcome: "succeeded" }, "tenant-member-provisioned.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberRemoval, outcome: "succeeded" }, "tenant-member-removed.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantRoleReplacement, outcome: "succeeded" }, "tenant-role-replaced.png");
