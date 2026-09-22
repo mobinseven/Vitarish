@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
-import { readdirSync, rmSync } from "node:fs";
+import { mkdirSync, readdirSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -8,6 +8,7 @@ const repositoryRoot = resolve(webRoot, "..", "..", "..");
 const runner = resolve(webRoot, "scripts", "run-two-host-e2e.mjs");
 const signInManagerTests = resolve(repositoryRoot, "tests", "Modules", "Users.Tests", "Users.Tests.csproj");
 const evidenceDirectory = resolve(webRoot, "artifacts", "two-host-e2e", "security-audit-evidence");
+mkdirSync(evidenceDirectory, { recursive: true });
 for (const file of readdirSync(evidenceDirectory, { withFileTypes: true })) {
   if (file.isFile() && file.name.endsWith(".png")) rmSync(resolve(evidenceDirectory, file.name), { force: true });
 }

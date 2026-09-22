@@ -1,3 +1,5 @@
+import type { SupportedLocale } from "@vitarish/localization";
+
 const auditMessages = {
   title: "Security audit",
   description: "Review attributable security events without changing them.",
@@ -235,6 +237,123 @@ const platformAuditMessagesFa = {
   sourceIpAddress: "نشانی IP مبدأ",
   redactedReason: "دلیل پالایش‌شده",
 } as const;
+
+const platformAuditIdentifierLabels = {
+  en: {
+    categories: {
+      function: "Security function",
+      "audit-review": "Audit review",
+      "audit-configuration": "Audit configuration",
+      authentication: "Authentication",
+      "security-attributes": "Security attributes",
+      "import-export": "Import and export",
+      management: "Management",
+      "security-failure": "Security failure",
+      session: "Session",
+    },
+    events: {
+      "security.endpoint.mutation": "Security function lifecycle",
+      "security.audit.review": "Security audit review",
+      "security.audit.configuration": "Audit configuration",
+      "security.audit.storage-threshold": "Audit storage threshold",
+      "authentication.account.password.change": "Password change",
+      "authentication.password.login": "Password login",
+      "authentication.password.login.otp": "Password login with OTP",
+      "authentication.identity.password-sign-in.user": "Identity password sign-in",
+      "authentication.identity.password-sign-in.name": "Identity sign-in name check",
+      "authentication.identity.password-check": "Identity password check",
+      "authentication.identity.external-login": "External identity login",
+      "authentication.identity.mfa.authenticator": "Authenticator MFA",
+      "authentication.identity.mfa.recovery-code": "Recovery-code MFA",
+      "authentication.identity.mfa.provider": "Identity-provider MFA",
+      "authentication.security-access-policy": "Security access-policy change",
+      "authentication.security-attributes.changed": "Security attributes changed",
+      "security.data.import": "Data import",
+      "security.data.export": "Data export",
+      "security.data.integrity-verification": "Data integrity verification",
+      "security.management.operation": "Security management operation",
+      "security.failure": "Security function failure",
+      "authentication.session.established": "Session established",
+      "authentication.session.terminated": "Session terminated",
+      "authentication.access-history": "Access history",
+      "authentication.session.notice": "Session security notice",
+      "authentication.session-policy": "Session policy change",
+      "users.tenant-role-replacement": "Tenant role replacement",
+      "users.global-role-assignment": "Global role assignment",
+      "users.global-role-revocation": "Global role revocation",
+      "users.tenant-member-provisioning": "Tenant member provisioning",
+      "users.tenant-member-removal": "Tenant member removal",
+      "security.session.administrator-idle-termination": "Administrator idle termination",
+    },
+  },
+  fa: {
+    categories: {
+      function: "عملکرد امنیتی",
+      "audit-review": "بررسی ممیزی",
+      "audit-configuration": "پیکربندی ممیزی",
+      authentication: "احراز هویت",
+      "security-attributes": "ویژگی‌های امنیتی",
+      "import-export": "درون‌ریزی و برون‌بری",
+      management: "مدیریت",
+      "security-failure": "شکست امنیتی",
+      session: "نشست",
+    },
+    events: {
+      "security.endpoint.mutation": "چرخه عمر عملکرد امنیتی",
+      "security.audit.review": "بررسی ممیزی امنیتی",
+      "security.audit.configuration": "پیکربندی ممیزی",
+      "security.audit.storage-threshold": "آستانه ذخیره‌سازی ممیزی",
+      "authentication.account.password.change": "تغییر گذرواژه",
+      "authentication.password.login": "ورود با گذرواژه",
+      "authentication.password.login.otp": "ورود با گذرواژه و رمز یک‌بارمصرف",
+      "authentication.identity.password-sign-in.user": "ورود هویتی با گذرواژه",
+      "authentication.identity.password-sign-in.name": "بررسی نام ورود هویتی",
+      "authentication.identity.password-check": "بررسی گذرواژه هویتی",
+      "authentication.identity.external-login": "ورود با هویت بیرونی",
+      "authentication.identity.mfa.authenticator": "احراز هویت چندمرحله‌ای با اعتبارسنج",
+      "authentication.identity.mfa.recovery-code": "احراز هویت چندمرحله‌ای با کد بازیابی",
+      "authentication.identity.mfa.provider": "احراز هویت چندمرحله‌ای ارائه‌دهنده هویت",
+      "authentication.security-access-policy": "تغییر سیاست دسترسی امنیتی",
+      "authentication.security-attributes.changed": "تغییر ویژگی‌های امنیتی",
+      "security.data.import": "درون‌ریزی داده",
+      "security.data.export": "برون‌بری داده",
+      "security.data.integrity-verification": "راستی‌آزمایی تمامیت داده",
+      "security.management.operation": "عملیات مدیریت امنیتی",
+      "security.failure": "شکست عملکرد امنیتی",
+      "authentication.session.established": "برقراری نشست",
+      "authentication.session.terminated": "پایان نشست",
+      "authentication.access-history": "تاریخچه دسترسی",
+      "authentication.session.notice": "اعلان امنیتی نشست",
+      "authentication.session-policy": "تغییر سیاست نشست",
+      "users.tenant-role-replacement": "جایگزینی نقش مستأجر",
+      "users.global-role-assignment": "اختصاص نقش سراسری",
+      "users.global-role-revocation": "لغو نقش سراسری",
+      "users.tenant-member-provisioning": "ایجاد عضو مستأجر",
+      "users.tenant-member-removal": "حذف عضو مستأجر",
+      "security.session.administrator-idle-termination": "پایان نشست غیرفعال مدیر",
+    },
+  },
+} as const;
+
+type PlatformAuditIdentifierKind = "categories" | "events";
+
+function localizePlatformAuditIdentifier(
+  locale: SupportedLocale,
+  kind: PlatformAuditIdentifierKind,
+  value: string | null | undefined,
+  fallback: string,
+): string {
+  if (!value?.trim()) return fallback;
+  return (platformAuditIdentifierLabels[locale][kind] as Record<string, string>)[value] ?? value;
+}
+
+export function localizePlatformAuditCategory(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  return localizePlatformAuditIdentifier(locale, "categories", value, fallback);
+}
+
+export function localizePlatformAuditEvent(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  return localizePlatformAuditIdentifier(locale, "events", value, fallback);
+}
 
 export const securityMessageCatalogs = {
   en: { security: { audit: auditMessages, platformAudit: platformAuditMessages } },

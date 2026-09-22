@@ -1,4 +1,8 @@
-export { securityMessageCatalogs } from "./catalogs";
+export {
+  localizePlatformAuditCategory,
+  localizePlatformAuditEvent,
+  securityMessageCatalogs,
+} from "./catalogs";
 
 export {
   LocalizationProvider,

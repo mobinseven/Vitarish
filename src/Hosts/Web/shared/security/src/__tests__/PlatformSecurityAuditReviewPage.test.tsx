@@ -134,7 +134,8 @@ describe("PlatformSecurityAuditReviewPage", () => {
     expect(screen.getByRole("columnheader", { name: "Source IP" })).toBeInTheDocument();
     expect(screen.getByText("succeeded").closest(".chip")).toHaveClass("chip--success");
 
-    const eventCells = screen.getAllByText("authentication.password.login");
+    expect(screen.getAllByText("Authentication").length).toBeGreaterThan(0);
+    const eventCells = screen.getAllByText("Password login");
     fireEvent.click(eventCells[eventCells.length - 1]);
     await waitFor(() => expect(screen.getByRole("heading", { name: "Event details" })).toBeInTheDocument());
     expect(screen.getByText("event-1")).toBeInTheDocument();
@@ -202,7 +203,7 @@ describe("PlatformSecurityAuditReviewPage", () => {
   it("opens a read-only detail sheet from a selected event row", async () => {
     renderPage();
 
-    const eventCells = screen.getAllByText("authentication.password.login");
+    const eventCells = screen.getAllByText("Password login");
     fireEvent.click(eventCells[eventCells.length - 1]);
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Event details" })).toBeInTheDocument());
