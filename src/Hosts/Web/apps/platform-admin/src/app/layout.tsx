@@ -2,6 +2,7 @@ import type { Viewport } from "next";
 import { headers } from "next/headers";
 import { I18nAppLayout } from "@vitarish/localization";
 import { Providers } from "@/components/Providers";
+import { PlatformAdminAccessBoundary } from "@/components/PlatformAdminAccessBoundary";
 import { getMessages } from "@/localization/messages";
 import { vazirmatn } from "./fonts";
 import "./globals.css";
@@ -21,11 +22,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <img src="/Master-Hel-Logotype.svg" alt="Vitarish" className="block h-auto w-full" />
         </picture>
       </header>
-      <Providers>{children}</Providers>
+      <Providers><PlatformAdminAccessBoundary>{children}</PlatformAdminAccessBoundary></Providers>
       <header className="w-full">
         <picture>
-          <source media="(prefers-color-scheme: dark)" srcSet="/Master-Hel-Logotype-Dark.svg" />
-          <img src="/Master-Hel-Logotype.svg" alt="Vitarish" className="block h-auto w-full" />
+          <source media="(prefers-color-scheme: dark)" srcSet="/Master-Hel-Logotype-Dark-©.svg" />
+          <img src="/Master-Hel-Logotype-©.svg" alt="Vitarish" className="block h-auto w-full" />
         </picture>
       </header>
     </I18nAppLayout>

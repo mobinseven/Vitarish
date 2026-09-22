@@ -22,6 +22,7 @@ const tenantBOwnerUsername = process.env.VITARISH_E2E_TENANT_B_OWNER_USERNAME ??
 const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
 const tenantBOrigin = "http://tenant-b.localhost:3005";
 const platformAdminOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
+const forbiddenScreenshotPath = process.env.VITARISH_E2E_FORBIDDEN_SCREENSHOT;
 const tenantAId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
 const tenantAPatientId = "2d7a3eb9-1d47-4c63-9a45-19d7e6a0fb18";
 const tenantBPatientId = "f4c8109a-6f22-4a31-9ab8-48d7ad0d7e2f";
@@ -960,6 +961,37 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
   const platform = await fetchJson(page, "/api/modules/platform/locale-notifications");
   expect(platform.status).toBe(200);
 
+});
+
+test("shows a generic 403 page and records denied platform audit access", async ({ page }) => {
+  test.setTimeout(120_000);
+  await login(page, tenantBOwnerUsername, "", e2ePassword, "198.51.100.23");
+  const deniedAuditResponse = page.waitForResponse((response) =>
+    response.url().includes("/api/audit/platform/security-events") && response.status() === 403,
+  );
+  await page.goto(`${platformAdminOrigin}/`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: "Forbidden" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText("403", { exact: true })).toBeVisible();
+  await deniedAuditResponse;
+
+  if (forbiddenScreenshotPath) {
+    mkdirSync(dirname(forbiddenScreenshotPath), { recursive: true });
+    await page.screenshot({ path: forbiddenScreenshotPath, fullPage: true });
+  }
+
+  const administratorContext = await page.context().browser()!.newContext();
+  const administratorPage = await administratorContext.newPage();
+  try {
+    await login(administratorPage, platformAdminUsername, "", e2ePassword, "198.51.100.24");
+    const deniedReview = await fetchJson(administratorPage, "/api/audit/platform/security-events?page=1&pageSize=25&eventName=security.audit.review&eventCategory=audit-review&operation=audit.security-events.list&outcome=denied&sortBy=0&descending=true&uncataloguedOnly=false");
+    expect(deniedReview.status).toBe(200);
+    expect((deniedReview.body as { items?: Array<{ eventName?: string; outcome?: string }> }).items).toEqual(expect.arrayContaining([
+      expect.objectContaining({ eventName: "security.audit.review", outcome: "denied" }),
+    ]));
+  } finally {
+    await administratorPage.close();
+    await administratorContext.close();
+  }
 });
 
 // platform-audit
