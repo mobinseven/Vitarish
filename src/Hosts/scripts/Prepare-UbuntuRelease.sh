@@ -6,6 +6,7 @@ if [[ $EUID -ne 0 ]] || { (($# != 0 && $# != 2)); }; then
     exit 2
 fi
 
+registry=ghcr.io
 if (($# == 0)); then
     credential_file=/root/.docker/config.json
 else
@@ -19,7 +20,7 @@ fi
 mode=$(stat -c %a "$credential_file")
 (( (8#$mode & 077) == 0 )) || { printf 'Restrict the registry credential file to its owner.\n' >&2; exit 1; }
 [[ $(stat -c %u "$credential_file") == 0 ]] || { printf 'The registry credential file must be owned by root.\n' >&2; exit 1; }
-if (($# == 0)) && ! grep -q 'ghcr.io' "$credential_file"; then
+if (($# == 0)) && ! grep -q "$registry" "$credential_file"; then
     printf 'Docker has no GHCR login.\n' >&2
     exit 1
 fi
@@ -27,6 +28,6 @@ fi
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 bash "$script_dir/Setup-UbuntuServer.sh"
 if (($# == 2)); then
-    docker login ghcr.io --username "$registry_user" --password-stdin < "$token_file" >/dev/null
+    docker login "$registry" --username "$registry_user" --password-stdin < "$token_file" >/dev/null
 fi
 printf 'Docker and registry credentials are ready.\n'
