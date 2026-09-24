@@ -3,14 +3,8 @@ FROM node:22-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-COPY apps/vitarish-pm/package.json ./apps/vitarish-pm/
-COPY shared/auth/package.json ./shared/auth/
-COPY shared/intelligence/package.json ./shared/intelligence/
-COPY shared/sea/package.json ./shared/sea/
-COPY shared/api-client/package.json ./shared/api-client/
-COPY shared/localization/package.json ./shared/localization/
-COPY shared/mock-runtime/package.json ./shared/mock-runtime/
-COPY shared/ui/package.json ./shared/ui/
+COPY apps ./apps
+COPY shared ./shared
 RUN --mount=type=secret,id=HEROUI_AUTH_TOKEN,required=true --mount=type=cache,target=/root/.npm HEROUI_AUTH_TOKEN="$(cat /run/secrets/HEROUI_AUTH_TOKEN)" npm ci
 FROM base AS builder
 WORKDIR /app
