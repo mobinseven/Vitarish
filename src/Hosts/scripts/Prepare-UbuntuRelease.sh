@@ -9,7 +9,7 @@ fi
 registry_user=$1
 token_file=$2
 [[ $registry_user =~ ^[A-Za-z0-9-]+$ ]] || { printf 'Invalid registry user.\n' >&2; exit 2; }
-[[ $token_file == /root/.config/vitarish/ghcr-token ]] || { printf 'Use the protected server token path.\n' >&2; exit 2; }
+[[ $token_file == /* ]] || { printf 'Use an absolute token file path.\n' >&2; exit 2; }
 [[ -f $token_file && ! -L $token_file ]] || { printf 'Registry token file is missing or is a symbolic link.\n' >&2; exit 1; }
 mode=$(stat -c %a "$token_file")
 (( (8#$mode & 077) == 0 )) || { printf 'Restrict the registry token file to its owner.\n' >&2; exit 1; }
