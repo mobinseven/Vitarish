@@ -29,7 +29,7 @@ export type {
 } from "./auth/authenticationTypes";
 
 // Users types (via narrow facade)
-export type { UserProfileResponse, UserSummaryResponse, WebAuthnCredentialDto } from "./auth/userTypes";
+export type { UserProfileResponse, UserSummaryResponse, WebAuthnCredentialResponse } from "./auth/userTypes";
 
 // Generated authentication hooks
 export {

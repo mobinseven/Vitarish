@@ -5,13 +5,13 @@ import {
   useUsersBeginWebAuthnRegister,
   useUsersCompleteWebAuthnRegister,
   useUsersDeleteWebAuthnCredential,
-  type WebAuthnCredentialDto,
+  type WebAuthnCredentialResponse,
 } from "@vitarish/auth";
 import { registerPasskey, startRegistration } from "@vitarish/account";
 import { accountKeys } from "./accountKeys";
 
 export interface AccountPasskeysResult {
-  credentials: WebAuthnCredentialDto[] | undefined;
+  credentials: WebAuthnCredentialResponse[] | undefined;
   isLoadingCredentials: boolean;
   isSupported: boolean | null;
   isRegisterPending: boolean;
