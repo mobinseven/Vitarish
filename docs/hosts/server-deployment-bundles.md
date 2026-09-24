@@ -3,11 +3,11 @@
 The server reference lives under `src/Hosts/deployment`:
 
 - `docker-compose.ingress.yml` owns the only host listeners (TCP 80 and 443), Caddy ACME state, and the shared proxy networks.
-- `docker-compose.test.yml` owns the test Main/Web/agent runtime and its PostgreSQL, Redis, MinIO, and Elasticsearch data.
+- `docker-compose.test.yml` owns the test Main/Web/agent runtime and its PostgreSQL, Redis, MinIO AIStor, and Elasticsearch data.
 - `docker-compose.production.yml` owns the production equivalents with separate project names and volumes.
 - `.env.shared` owns common image versions, public hostnames, proxy network allocations, and ingress credentials. `.env.test` and `.env.production` own only their environment's application images and runtime credentials.
 
-The bundles assume test and production share one Docker host. Internal HTTP links are valid only because the communicating containers are co-located on that host. No database, Redis, MinIO, Elasticsearch, Main, or agent-runtime port is published to the host. Each internal proxy network has an operator-selected subnet and a fixed Caddy address; Main trusts only that address for forwarded headers. Web images use same-origin `/api` requests, and Caddy sends those requests to Main on every application hostname. Main and the agent runtime use their environment's egress network for configured providers; the databases and Web applications have no external route. Choose non-overlapping proxy subnets that do not conflict with the server LAN, VPN, or other Docker networks.
+The bundles assume test and production share one Docker host. Internal HTTP links are valid only because the communicating containers are co-located on that host. No database, Redis, MinIO AIStor, Elasticsearch, Main, or agent-runtime port is published to the host. Each internal proxy network has an operator-selected subnet and a fixed Caddy address; Main trusts only that address for forwarded headers. Web images use same-origin `/api` requests, and Caddy sends those requests to Main on every application hostname. Main and the agent runtime use their environment's egress network for configured providers; the databases and Web applications have no external route. Choose non-overlapping proxy subnets that do not conflict with the server LAN, VPN, or other Docker networks.
 
 The ingress supports wildcard environment routing. Configure DNS records for
 `*.e2e.vitarish.com`, `*.clinic.e2e.vitarish.com`, `*.vitarish.com`, and
@@ -25,6 +25,19 @@ public IPv4 address before deployment; remove stale A or AAAA records first.
 Download the exact release commit's `release-images-<commit>.env` artifact to the operator machine. Copy `.env.shared.example`, `.env.test.example`, and `.env.production.example` to their matching untracked files in `src/Hosts/deployment`. Replace every placeholder and use the artifact's image references. Authenticate Docker to GHCR on the server with package read access; the default installer path uses root's protected `/root/.docker/config.json`. Alternatively, put a token with `read:packages` in `/root/.config/vitarish/ghcr-token`, owned by root with mode `600`, and supply `-RegistryUser` to the installer. Do not put the token in the repository or command line. The operator machine must trust the server's SSH host key before running the installer. Allow inbound TCP 80 and 443, and configure DNS above. Hostnames must resolve to the server before HTTPS readiness can pass.
 
 For the initial deployment, the owner authorized generating missing runtime credentials on 2026-09-25. Generate each value independently with the operating system cryptographic random generator, store values only in the ignored `.env.test` and `.env.production` files, restrict those files to the operator account locally and mode `600` on the server, and never print or commit the values. This one-time approval covers the missing deployment credentials only; it does not permit reusing credentials across environments or changing repository secret handling requirements.
+
+Place the licensed MinIO AIStor file at `src/Hosts/deployment/minio.license` on the operator machine. The installer copies it to `/opt/vitarish/deployment/minio.license` and restricts it to root mode `600`; Compose mounts it read-only into the AIStor containers. The license file is ignored by Git and must not be added to a release artifact or commit.
+
+For a host that already has OSS MinIO data, stop Main and every other writer and stop MinIO before touching its data volume. Copy the stopped volume to the new AIStor volume, then leave the original volume offline until the AIStor data and application checks pass:
+
+```powershell
+$sourceVolume = 'vitarish-test-minio'
+$targetVolume = 'vitarish-test-aistor'
+docker volume create $targetVolume
+docker run --rm --volume "${sourceVolume}:/source:ro" --volume "${targetVolume}:/target" busybox:1.36.1 sh -c 'cp -a /source/. /target/'
+```
+
+AIStor upgrades the copied object-store metadata when it starts. Keep the original volume as the pre-upgrade recovery point; writes accepted by AIStor after cutover are not present in that copy. Do not run OSS MinIO and AIStor against the same volume at the same time. For the local-only `src/Hosts/docker-compose.main.yml`, use `minio-data` as the source and `aistor-data` as the target in the same copy procedure. The remote host checked for this rollout has no existing Vitarish data volume, so it requires no MinIO data migration.
 
 From the repository root on the operator machine, the initial install command copies the exact Compose, Caddy, environment, manifest, and server scripts; installs Docker Engine and Compose if needed; uses the protected GHCR login or authenticates with the supplied token; and invokes the server preflight and deployment. `-ValidateOnly` copies and validates the inputs without starting Vitarish containers:
 
@@ -85,7 +98,7 @@ The deployment preflight fixtures also reject image references that differ from 
 
 Change common image references in `.env.shared` and application image references in the matching untracked environment file. Render the configuration, run the repository deployment gate, pull the exact release images, and recreate that environment. Keep the previous image manifest until the new stack has passed readiness and browser/API smoke checks. Roll back by restoring the previous manifest and recreating only the affected environment.
 
-The `container-images` workflow publishes each application image with the commit SHA, resolves its immutable registry digest, and uploads a release `.env` manifest. Copy `VITARISH_CADDY_IMAGE` and the infrastructure versions into `.env.shared`, then copy the matching `VITARISH_TEST_*_IMAGE` or `VITARISH_PRODUCTION_*_IMAGE` values into the corresponding environment file. Keep secrets in these untracked files and restrict their access to deployment operators.
+The `container-images` workflow publishes each application image with the commit SHA, resolves immutable digests for Caddy and MinIO AIStor, and uploads a release `.env` manifest. Copy `VITARISH_CADDY_IMAGE`, `VITARISH_AISTOR_IMAGE`, and the infrastructure image references into `.env.shared`, then copy the matching `VITARISH_TEST_*_IMAGE` or `VITARISH_PRODUCTION_*_IMAGE` values into the corresponding environment file. Keep secrets in these untracked files and restrict their access to deployment operators.
 
 ## Backups and recovery
 
@@ -100,8 +113,9 @@ Get-Content .\backups\test-postgres.dump -AsByteStream | docker compose --env-fi
 docker compose --env-file .env.shared --env-file .env.test -f docker-compose.test.yml exec -T redis sh -c 'redis-cli -a "$REDIS_PASSWORD" BGSAVE'
 docker compose --env-file .env.shared --env-file .env.test -f docker-compose.test.yml cp redis:/data/dump.rdb .\backups\test-redis.rdb
 
-# MinIO is private; run the pinned mc client on the environment network.
-docker run --rm --network vitarish-test-application -e "MC_HOST_vitarish-test=http://<access-key>:<secret-key>@minio:9000" -v "${PWD}\backups\test-minio:/backup" minio/mc:RELEASE.2025-04-22T22-12-26Z mirror --preserve vitarish-test/<bucket-name> /backup
+# MinIO AIStor is private; use the pinned AIStor image's mc client on the environment network.
+New-Item -ItemType Directory -Force .\backups\test-aistor | Out-Null
+docker compose --env-file .env.shared --env-file .env.test -f docker-compose.test.yml run --rm --no-deps --entrypoint mc -e "MC_HOST_vitarish-test=http://<access-key>:<secret-key>@aistor:9000" --volume "${PWD}\backups\test-aistor:/backup" aistor mirror --preserve vitarish-test/<bucket-name> /backup
 
 # Elasticsearch: first register the operator-controlled repository using its approved storage settings,
 # then execute the snapshot through the private service network.
@@ -118,7 +132,7 @@ For a deliberate test reset, stop only the test project and remove its named vol
 
 ```powershell
 docker compose --env-file .env.shared --env-file .env.test -f docker-compose.test.yml down
-docker volume rm vitarish-test-postgres vitarish-test-redis vitarish-test-minio vitarish-test-elasticsearch
+docker volume rm vitarish-test-postgres vitarish-test-redis vitarish-test-aistor vitarish-test-elasticsearch
 docker compose --env-file .env.shared --env-file .env.test -f docker-compose.test.yml up -d
 ```
 

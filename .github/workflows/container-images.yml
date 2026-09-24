@@ -116,7 +116,12 @@ jobs:
               printf 'VITARISH_%s_%s=%s@%s\n' "$environment" "${names[$image]}" "$REGISTRY/$IMAGE_NAMESPACE/$image" "$digest" >> "$manifest"
             done
           done
-          printf 'VITARISH_POSTGRES_IMAGE=postgres:18.0\nVITARISH_REDIS_IMAGE=redis:7.4.5\nVITARISH_MINIO_IMAGE=minio/minio:RELEASE.2025-04-22T22-12-26Z\nVITARISH_ELASTICSEARCH_IMAGE=elasticsearch:9.3.4\n' >> "$manifest"
+          aistor_reference="quay.io/minio/aistor/minio:latest"
+          aistor_digest="$(docker buildx imagetools inspect "$aistor_reference" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+          test -n "$aistor_digest"
+          printf 'VITARISH_POSTGRES_IMAGE=postgres:18.0\nVITARISH_REDIS_IMAGE=redis:7.4.5\n' >> "$manifest"
+          printf 'VITARISH_AISTOR_IMAGE=quay.io/minio/aistor/minio@%s\n' "$aistor_digest" >> "$manifest"
+          printf 'VITARISH_ELASTICSEARCH_IMAGE=elasticsearch:9.3.4\n' >> "$manifest"
       - uses: actions/upload-artifact@v4
         with:
           name: release-image-manifest-${{ github.sha }}

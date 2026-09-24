@@ -34,6 +34,7 @@ cd "$deployment_dir"
 shared=.env.shared
 test_env=.env.test
 production_env=.env.production
+license=minio.license
 
 fail() { printf '%s\n' "$*" >&2; exit 1; }
 value() { sed -n "s/^$2=//p" "$1" | head -n 1; }
@@ -59,6 +60,11 @@ for file in "$shared" "$test_env" "$production_env"; do
     duplicate=$(cut -d= -f1 "$file" | grep '^VITARISH_' | sort | uniq -d | head -n 1)
     [[ -z $duplicate ]] || fail "Duplicate operator variable $duplicate in $file."
 done
+[[ -f $license && ! -L $license && -r $license ]] || fail 'A readable MinIO AIStor license file is required.'
+license_owner=$(stat -c %u "$license")
+license_mode=$(stat -c %a "$license")
+[[ $license_owner == 0 ]] || fail 'The MinIO AIStor license must be owned by root.'
+(( (8#$license_mode & 077) == 0 )) || fail 'Restrict the MinIO AIStor license to its owner.'
 
 for name in VITARISH_TEST_CLINIC_WILDCARD_HOST VITARISH_PRODUCTION_CLINIC_WILDCARD_HOST; do
     [[ -n $(value "$shared" "$name") ]] || fail "Missing $name in $shared."
@@ -67,7 +73,7 @@ done
 for file in "$shared" "$test_env" "$production_env"; do
     while IFS='=' read -r name reference; do
         [[ $name == VITARISH_*_IMAGE ]] || continue
-        if [[ $name == VITARISH_CADDY_IMAGE || $name =~ ^VITARISH_(TEST|PRODUCTION)_[A-Z0-9_]+_IMAGE$ ]]; then
+        if [[ $name == VITARISH_CADDY_IMAGE || $name == VITARISH_AISTOR_IMAGE || $name =~ ^VITARISH_(TEST|PRODUCTION)_[A-Z0-9_]+_IMAGE$ ]]; then
             [[ $reference =~ @sha256:[0-9a-f]{64}$ && ! $reference =~ @sha256:0{64}$ ]] || fail "$name lacks an immutable release digest."
         fi
         [[ $(value "$manifest" "$name") == "$reference" ]] || fail "$name differs from the release manifest."

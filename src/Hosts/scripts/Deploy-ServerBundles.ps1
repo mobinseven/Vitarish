@@ -16,9 +16,11 @@ if ([string]::IsNullOrWhiteSpace($RepositoryRoot)) {
 }
 $deploymentRoot = Join-Path $RepositoryRoot 'src/Hosts/deployment'
 $sharedFile = Join-Path $deploymentRoot '.env.shared'
+$licenseFile = Join-Path $deploymentRoot 'minio.license'
 $allEnvironments = @('test', 'production')
 $selectedEnvironments = if ($Environment -eq 'Both') { @('test', 'production') } else { @($Environment.ToLowerInvariant()) }
 if ([string]::IsNullOrWhiteSpace($ReleaseManifest)) { throw 'Provide the release image manifest path with -ReleaseManifest.' }
+if (-not (Test-Path -LiteralPath $licenseFile -PathType Leaf)) { throw "Missing MinIO AIStor license file: $licenseFile" }
 
 function Invoke-Docker([string[]]$Arguments, [string]$Step) {
     & docker @Arguments 2>&1 | Out-Null
@@ -108,6 +110,7 @@ Invoke-Docker @('compose', 'version') 'Docker Compose preflight'
 $sharedValues = Get-OperatorValues $sharedFile
 $releaseValues = Get-OperatorValues $ReleaseManifest $false
 Assert-ReleaseImage $sharedValues 'VITARISH_CADDY_IMAGE'
+Assert-ReleaseImage $sharedValues 'VITARISH_AISTOR_IMAGE'
 $operatorImageValues = @{}
 foreach ($name in @($sharedValues.Keys | Where-Object { $_.EndsWith('_IMAGE') })) { $operatorImageValues[$name] = $sharedValues[$name] }
 foreach ($item in $allEnvironments) {

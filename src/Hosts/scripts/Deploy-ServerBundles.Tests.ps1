@@ -20,6 +20,7 @@ function Reset-Fixture {
         $content = $content -replace 'registry\.example\.invalid', 'registry.vitarish.com' -replace '0{64}', ('1' * 64) -replace 'example\.invalid', 'vitarish.com' -replace 'replace-with-[^\r\n]+', 'fixture-value'
         [IO.File]::WriteAllText((Join-Path $fixtureDeployment ".env.$name"), $content)
     }
+    [IO.File]::WriteAllBytes((Join-Path $fixtureDeployment 'minio.license'), [byte[]]@())
     $imageLines = foreach ($name in @('shared', 'test', 'production')) {
         Get-Content -LiteralPath (Join-Path $fixtureDeployment ".env.$name") | Where-Object { $_ -match '^VITARISH_[A-Z0-9_]+_IMAGE=' }
     }
@@ -38,6 +39,10 @@ function Invoke-Case([bool]$ExpectedFailure, [string]$Name) {
 try {
     Reset-Fixture
     Invoke-Case $false 'valid-operator-values'
+
+    Reset-Fixture
+    Remove-Item -LiteralPath (Join-Path $fixtureDeployment 'minio.license')
+    Invoke-Case $true 'missing-license-file'
 
     Reset-Fixture
     $path = Join-Path $fixtureDeployment '.env.test'
@@ -68,7 +73,7 @@ try {
     $output = & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'Deploy-ServerBundles.ps1') -ValidateOnly -Environment Test -ReleaseManifest $fixtureManifest -RepositoryRoot $fixtureRoot 2>&1 | Out-String
     if ($LASTEXITCODE -eq 0) { throw 'Single-environment update preflight ignored the other environment.' }
 
-    Write-Output 'Server deployment preflight cases passed (7 cases).'
+    Write-Output 'Server deployment preflight cases passed (8 cases).'
 }
 finally {
     $resolved = [IO.Path]::GetFullPath($fixtureRoot)

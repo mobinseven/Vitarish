@@ -27,6 +27,7 @@ $files = @(
     (Join-Path $deploymentRoot 'docker-compose.ingress.yml'),
     (Join-Path $deploymentRoot 'docker-compose.test.yml'),
     (Join-Path $deploymentRoot 'docker-compose.production.yml'),
+    (Join-Path $deploymentRoot 'minio.license'),
     (Join-Path $deploymentRoot '.env.shared'),
     (Join-Path $deploymentRoot '.env.test'),
     (Join-Path $deploymentRoot '.env.production'),
@@ -51,7 +52,7 @@ $remoteScripts = @(
 )
 & scp @sshOptions @remoteScripts "${SshTarget}:/opt/vitarish/scripts/"
 if ($LASTEXITCODE -ne 0) { throw 'Could not copy server commands.' }
-& ssh @sshOptions $SshTarget 'chmod 600 /opt/vitarish/deployment/.env.shared /opt/vitarish/deployment/.env.test /opt/vitarish/deployment/.env.production; chmod 700 /opt/vitarish/scripts/*.sh'
+& ssh @sshOptions $SshTarget 'chmod 600 /opt/vitarish/deployment/.env.shared /opt/vitarish/deployment/.env.test /opt/vitarish/deployment/.env.production /opt/vitarish/deployment/minio.license; chmod 700 /opt/vitarish/scripts/*.sh'
 if ($LASTEXITCODE -ne 0) { throw 'Could not restrict remote operator inputs.' }
 $registryPreparation = if ($RegistryUser) {
     "bash /opt/vitarish/scripts/Prepare-UbuntuRelease.sh $RegistryUser /root/.config/vitarish/ghcr-token"

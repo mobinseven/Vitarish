@@ -50,9 +50,11 @@ foreach ($variable in $requiredIngressVariables) {
 if ($ingress -notmatch '(?m)\bCLOUDFLARE_API_TOKEN:\s*\$\{VITARISH_CLOUDFLARE_API_TOKEN:\?') { $failures.Add('Ingress is missing the required Cloudflare DNS API token binding.') }
 if ($caddy -notmatch '(?m)^\s*dns cloudflare \{env\.CLOUDFLARE_API_TOKEN\}\s*$' -or $caddyDockerfile -notmatch '(?m)^RUN xcaddy build v2\.10\.0 --with github\.com/caddy-dns/cloudflare\s*$') { $failures.Add('Wildcard ingress is missing the pinned Cloudflare-enabled Caddy build.') }
 if ($imageWorkflow -notmatch 'VITARISH_CADDY_IMAGE=%s@%s') { $failures.Add('The release image manifest must publish the shared Caddy image variable consumed by ingress.') }
+if ($imageWorkflow -notmatch 'aistor_reference="quay\.io/minio/aistor/minio:latest"' -or $imageWorkflow -notmatch 'VITARISH_AISTOR_IMAGE=quay\.io/minio/aistor/minio@%s') { $failures.Add('The release image manifest must resolve and publish the immutable MinIO AIStor image digest.') }
 if ($imageWorkflow -notmatch 'NEXT_PUBLIC_API_BASE_URL=') { $failures.Add('Web images must use portable same-origin API paths rather than a build-time localhost URL.') }
 if ($sharedExample -notmatch '(?m)^VITARISH_CLOUDFLARE_API_TOKEN=' -or $sharedExample -notmatch '(?m)^VITARISH_ACME_EMAIL=') { $failures.Add('The shared server environment must declare the ingress credentials.') }
 if ($sharedExample -notmatch '(?im)^VITARISH_.*_IMAGE=' -or $sharedExample -match '(?im)^VITARISH_.*_IMAGE=.*:latest\s*$') { $failures.Add('The shared server environment must declare version-pinned common images.') }
+if ($sharedExample -notmatch '(?m)^VITARISH_AISTOR_IMAGE=quay\.io/minio/aistor/minio@sha256:0{64}$') { $failures.Add('The shared example must declare the digest-pinned MinIO AIStor image.') }
 foreach ($placeholder in [regex]::Matches($ingress, '\$\{(?<name>VITARISH_[A-Z0-9_]+):\?')) {
     $name = $placeholder.Groups['name'].Value
     if (-not $sharedValues.ContainsKey($name)) { $failures.Add("$sharedExamplePath is missing required variable $name.") }
@@ -85,29 +87,36 @@ foreach ($environment in @('test', 'production')) {
         if ($imageLine.Value -notmatch '^\s*image:\s*"?\$\{[A-Z0-9_]+:\?[^}]+\}"?\s*$') { $failures.Add("$environment bundle contains an image that is not required through an environment variable.") }
     }
     if ($compose -match '(?im)^\s*ports:\s*') { $failures.Add("$environment bundle publishes an application or state-service port.") }
-    foreach ($service in @('main', 'private-practice-owner', 'patients', 'platform-admin', 'pm', 'knowledge-qa', 'landing', 'agent-runtime', 'postgres', 'redis', 'minio', 'elasticsearch')) {
+    foreach ($service in @('main', 'private-practice-owner', 'patients', 'platform-admin', 'pm', 'knowledge-qa', 'landing', 'agent-runtime', 'postgres', 'redis', 'aistor', 'elasticsearch')) {
         if ($compose -notmatch "(?m)^\s{2}$([regex]::Escape($service)):\s*$") { $failures.Add("$environment bundle is missing service $service.") }
     }
-    foreach ($stateService in @('postgres', 'redis', 'minio', 'elasticsearch')) {
+    foreach ($stateService in @('postgres', 'redis', 'aistor', 'elasticsearch')) {
         if ($compose -notmatch "(?ms)^  ${stateService}:\s*.*?^\s{4}healthcheck:\s*") { $failures.Add("$environment service $stateService is missing a readiness healthcheck.") }
     }
     foreach ($applicationService in @('main', 'private-practice-owner', 'patients', 'platform-admin', 'pm', 'knowledge-qa', 'landing', 'agent-runtime')) {
         if ($compose -notmatch "(?ms)^  ${applicationService}:\s*.*?^\s{4}healthcheck:\s*") { $failures.Add("$environment application service $applicationService is missing a readiness healthcheck.") }
     }
-    $agentRuntimeSection = [regex]::Match($compose, '(?ms)^  agent-runtime:\r?\n(?<body>.*?)(?=^  (?:postgres|redis|minio|elasticsearch):\r?\n)').Groups['body'].Value
+    $agentRuntimeSection = [regex]::Match($compose, '(?ms)^  agent-runtime:\r?\n(?<body>.*?)(?=^  (?:postgres|redis|aistor|elasticsearch):\r?\n)').Groups['body'].Value
     $openAiKeyPattern = '\$\{VITARISH_' + [regex]::Escape($prefix) + '_OPENAI_API_KEY:\?'
     if ($agentRuntimeSection -notmatch $openAiKeyPattern) { $failures.Add("$environment agent-runtime must receive its required OpenAI API key from the operator environment.") }
     if ($agentRuntimeSection -notmatch '(?m)^    networks:\s*\[application, egress\]\s*$') { $failures.Add("$environment agent-runtime must use its private application network and provider egress network.") }
     if ($agentRuntimeSection -notmatch '(?s)/api/internal/intelligence-agent/health.*AGENT_RUNTIME_SHARED_SECRET') { $failures.Add("$environment agent-runtime must use its authenticated health endpoint.") }
-    foreach ($dependency in @('postgres', 'redis', 'minio', 'elasticsearch')) {
+    foreach ($dependency in @('postgres', 'redis', 'aistor', 'elasticsearch')) {
         if ($compose -notmatch "(?ms)^\s{6}$([regex]::Escape($dependency)):\s*\{\s*condition:\s*service_healthy\s*\}") { $failures.Add("$environment Main is missing a healthy dependency gate for $dependency.") }
     }
     if ($compose -notmatch "(?m)^  application:\s*\{\s*name: vitarish-$environment-application, internal: true\s*\}") { $failures.Add("$environment application network must be private and environment-owned.") }
     if ($compose -notmatch "(?m)^  proxy:\s*\{\s*name: vitarish-$environment-proxy, external: true\s*\}") { $failures.Add("$environment proxy network must be environment-owned and shared with ingress.") }
     $trustedProxyPattern = '(?m)^\s+Vitarish__Security__TrustedProxyNetworks__0:\s*\$\{' + [regex]::Escape($ingressAddressVariable) + ':\?[^}]+\}/32\s*$'
     if ($compose -notmatch $trustedProxyPattern) { $failures.Add("$environment Main must trust only its Caddy ingress IPv4 address.") }
-    foreach ($volume in @('postgres', 'redis', 'minio', 'elasticsearch')) {
+    foreach ($volume in @('postgres', 'redis', 'aistor', 'elasticsearch')) {
         if ($compose -notmatch "(?m)^  ${environment}-${volume}:\s*\{\s*name: vitarish-${environment}-${volume}\s*\}") { $failures.Add("$environment volume $volume is not uniquely owned.") }
+    }
+    if ($compose -notmatch '(?m)^    command: server /mnt/data --license /minio\.license\s*$' -or
+        $compose -notmatch '(?m)^        source: \./minio\.license\s*$' -or
+        $compose -notmatch '(?m)^        target: /minio\.license\s*$' -or
+        $compose -notmatch '(?m)^        read_only: true\s*$' -or
+        $compose -notmatch '(?m)^    healthcheck: \{ test: \[CMD, mc, ready, local\]') {
+        $failures.Add("$environment MinIO AIStor must mount its license read-only and provide a readiness healthcheck.")
     }
     $examplePath = Join-Path $deploymentRoot ".env.$environment.example"
     $example = Require-File $examplePath

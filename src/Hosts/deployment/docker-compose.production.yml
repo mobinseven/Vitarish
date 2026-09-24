@@ -37,12 +37,12 @@ services:
       Vitarish__Security__DataProtection__CertificateRedisKey: ${VITARISH_PRODUCTION_CERTIFICATE_KEY_NAME:?VITARISH_PRODUCTION_CERTIFICATE_KEY_NAME is required}
       ConnectionStrings__Db: Host=postgres;Port=5432;Database=${VITARISH_PRODUCTION_POSTGRES_DB:?VITARISH_PRODUCTION_POSTGRES_DB is required};Username=${VITARISH_PRODUCTION_POSTGRES_USER:?VITARISH_PRODUCTION_POSTGRES_USER is required};Password=${VITARISH_PRODUCTION_POSTGRES_PASSWORD:?VITARISH_PRODUCTION_POSTGRES_PASSWORD is required}
       ConnectionStrings__Redis: redis:6379,password=${VITARISH_PRODUCTION_REDIS_PASSWORD:?VITARISH_PRODUCTION_REDIS_PASSWORD is required},abortConnect=false
-      Vitarish__Files__Endpoint: minio
+      Vitarish__Files__Endpoint: aistor
       Vitarish__Files__Port: "9000"
       Vitarish__Files__UseSsl: "false"
-      Vitarish__Files__AccessKey: ${VITARISH_PRODUCTION_MINIO_ACCESS_KEY:?VITARISH_PRODUCTION_MINIO_ACCESS_KEY is required}
-      Vitarish__Files__SecretKey: ${VITARISH_PRODUCTION_MINIO_SECRET_KEY:?VITARISH_PRODUCTION_MINIO_SECRET_KEY is required}
-      Vitarish__Files__BucketName: ${VITARISH_PRODUCTION_MINIO_BUCKET:?VITARISH_PRODUCTION_MINIO_BUCKET is required}
+      Vitarish__Files__AccessKey: ${VITARISH_PRODUCTION_AISTOR_ACCESS_KEY:?VITARISH_PRODUCTION_AISTOR_ACCESS_KEY is required}
+      Vitarish__Files__SecretKey: ${VITARISH_PRODUCTION_AISTOR_SECRET_KEY:?VITARISH_PRODUCTION_AISTOR_SECRET_KEY is required}
+      Vitarish__Files__BucketName: ${VITARISH_PRODUCTION_AISTOR_BUCKET:?VITARISH_PRODUCTION_AISTOR_BUCKET is required}
       Vitarish__Search__Url: http://elasticsearch:9200
       Vitarish__Search__Username: ${VITARISH_PRODUCTION_ELASTIC_USERNAME:?VITARISH_PRODUCTION_ELASTIC_USERNAME is required}
       Vitarish__Search__Password: ${VITARISH_PRODUCTION_ELASTIC_PASSWORD:?VITARISH_PRODUCTION_ELASTIC_PASSWORD is required}
@@ -70,7 +70,7 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
-      minio: { condition: service_healthy }
+      aistor: { condition: service_healthy }
       elasticsearch: { condition: service_healthy }
     healthcheck:
       test: [CMD-SHELL, "test -r /proc/1/cmdline && grep -aq 'Vitarish.Main' /proc/1/cmdline"]
@@ -157,15 +157,22 @@ services:
       REDIS_PASSWORD: "${VITARISH_PRODUCTION_REDIS_PASSWORD:?VITARISH_PRODUCTION_REDIS_PASSWORD is required}"
     healthcheck: { test: [CMD-SHELL, "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG"], interval: 10s, timeout: 5s, retries: 12 }
     networks: [application]
-  minio:
+  aistor:
     <<: *runtime
-    image: "${VITARISH_MINIO_IMAGE:?VITARISH_MINIO_IMAGE is required}"
-    command: server --address ":9000" --console-address ":9001" /data
+    image: "${VITARISH_AISTOR_IMAGE:?VITARISH_AISTOR_IMAGE is required}"
+    command: server /mnt/data --license /minio.license
     environment:
-      MINIO_ROOT_USER: "${VITARISH_PRODUCTION_MINIO_ACCESS_KEY:?VITARISH_PRODUCTION_MINIO_ACCESS_KEY is required}"
-      MINIO_ROOT_PASSWORD: "${VITARISH_PRODUCTION_MINIO_SECRET_KEY:?VITARISH_PRODUCTION_MINIO_SECRET_KEY is required}"
-    volumes: [production-minio:/data]
-    healthcheck: { test: [CMD-SHELL, "curl -fsS http://localhost:9000/minio/health/live"], interval: 10s, timeout: 5s, retries: 12 }
+      MINIO_ROOT_USER: "${VITARISH_PRODUCTION_AISTOR_ACCESS_KEY:?VITARISH_PRODUCTION_AISTOR_ACCESS_KEY is required}"
+      MINIO_ROOT_PASSWORD: "${VITARISH_PRODUCTION_AISTOR_SECRET_KEY:?VITARISH_PRODUCTION_AISTOR_SECRET_KEY is required}"
+    volumes:
+      - production-aistor:/mnt/data
+      - type: bind
+        source: ./minio.license
+        target: /minio.license
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck: { test: [CMD, mc, ready, local], interval: 5s, timeout: 5s, retries: 12 }
     networks: [application]
   elasticsearch:
     <<: *runtime
@@ -185,5 +192,5 @@ networks:
 volumes:
   production-postgres: { name: vitarish-production-postgres }
   production-redis: { name: vitarish-production-redis }
-  production-minio: { name: vitarish-production-minio }
+  production-aistor: { name: vitarish-production-aistor }
   production-elasticsearch: { name: vitarish-production-elasticsearch }
