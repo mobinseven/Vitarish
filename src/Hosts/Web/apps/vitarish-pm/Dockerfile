@@ -19,7 +19,7 @@ COPY . .
 ARG NEXT_PUBLIC_API_BASE_URL=https://localhost:7272
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN --mount=type=cache,id=vitarish-pm-next-cache,target=/app/apps/vitarish-pm/.next/cache npm run build --workspace @vitarish/vitarish-pm
+RUN --mount=type=cache,id=vitarish-pm-next-cache,target=/app/apps/vitarish-pm/.next/cache npm run build:vitarish-pm
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
