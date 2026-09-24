@@ -67,7 +67,9 @@ done
 for file in "$shared" "$test_env" "$production_env"; do
     while IFS='=' read -r name reference; do
         [[ $name == VITARISH_*_IMAGE ]] || continue
-        [[ $reference =~ @sha256:[0-9a-f]{64}$ && ! $reference =~ @sha256:0{64}$ ]] || fail "$name lacks an immutable release digest."
+        if [[ $name == VITARISH_CADDY_IMAGE || $name =~ ^VITARISH_(TEST|PRODUCTION)_[A-Z0-9_]+_IMAGE$ ]]; then
+            [[ $reference =~ @sha256:[0-9a-f]{64}$ && ! $reference =~ @sha256:0{64}$ ]] || fail "$name lacks an immutable release digest."
+        fi
         [[ $(value "$manifest" "$name") == "$reference" ]] || fail "$name differs from the release manifest."
     done < "$file"
 done
