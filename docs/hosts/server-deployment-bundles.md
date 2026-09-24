@@ -22,7 +22,16 @@ public IPv4 address before deployment; remove stale A or AAAA records first.
 
 ## First deployment
 
-On the target server, check out the exact release commit and download its `release-images-<commit>.env` artifact. `src/Hosts/scripts/Setup-UbuntuServer.sh` installs only missing Docker Engine and Compose prerequisites on Ubuntu 20.04 or 24.04 through the official [Docker package repository](https://docs.docker.com/engine/install/ubuntu/). It does not install PowerShell. On a server with Docker Engine already running, it adds only the Compose plugin. Authenticate the account running deployment to the release registry with read-only package access. Allow inbound TCP 80 and 443 and configure the public DNS records above. Copy `.env.shared.example` to an operator-managed, untracked `.env.shared`, then copy `.env.test.example` and `.env.production.example` to their matching untracked environment files. Replace every placeholder, use the artifact's image references, and restrict access to the environment files (`chmod 600` on Linux). Hostnames must resolve to the server before HTTPS readiness can pass.
+Download the exact release commit's `release-images-<commit>.env` artifact to the operator machine. Copy `.env.shared.example`, `.env.test.example`, and `.env.production.example` to their matching untracked files in `src/Hosts/deployment`. Replace every placeholder and use the artifact's image references. Put a GHCR token with `read:packages` in `/root/.config/vitarish/ghcr-token` on the server, owned by root with mode `600`; do not put the token in the repository or command line. The operator machine must trust the server's SSH host key before running the installer. Allow inbound TCP 80 and 443, and configure DNS above. Hostnames must resolve to the server before HTTPS readiness can pass.
+
+From the repository root on the operator machine, the initial install command copies the exact Compose, Caddy, environment, manifest, and server scripts; installs Docker Engine and Compose if needed; authenticates to GHCR; and invokes the server preflight and deployment. `-ValidateOnly` copies and validates the inputs without starting Vitarish containers:
+
+```powershell
+pwsh -NoProfile -File src/Hosts/scripts/Install-UbuntuServer.ps1 -SshTarget root@203.0.113.10 -PublicIPv4 203.0.113.10 -RegistryUser YOUR_GITHUB_USER -ReleaseManifest src/Hosts/deployment/release-images-REPLACE_WITH_COMMIT.env -ValidateOnly
+pwsh -NoProfile -File src/Hosts/scripts/Install-UbuntuServer.ps1 -SshTarget root@203.0.113.10 -PublicIPv4 203.0.113.10 -RegistryUser YOUR_GITHUB_USER -ReleaseManifest src/Hosts/deployment/release-images-REPLACE_WITH_COMMIT.env
+```
+
+`Setup-UbuntuServer.sh` installs only missing Docker Engine and Compose prerequisites on Ubuntu 20.04 or 24.04 through the official [Docker package repository](https://docs.docker.com/engine/install/ubuntu/). It does not install PowerShell. On a server with Docker Engine already running, it adds only the Compose plugin. The operator command requires local PowerShell, SSH, and SCP; the server runs Bash only.
 
 From the repository root, validate the operator files and rendered Compose bundles, then run the server deployment command. Replace the documentation IPv4 address with the public ingress address configured in DNS:
 
