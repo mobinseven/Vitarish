@@ -74,7 +74,7 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.name }}:${{ github.sha }}
           provenance: true
           build-args: ${{ matrix.requires_token && 'NEXT_PUBLIC_API_BASE_URL=' || '' }}
-          secret-envs: ${{ matrix.requires_token && 'HEROUI_AUTH_TOKEN' || '' }}
+          secret-envs: ${{ matrix.requires_token && 'HEROUI_AUTH_TOKEN=HEROUI_AUTH_TOKEN' || '' }}
         env:
           HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
 
