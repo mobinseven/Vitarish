@@ -2,7 +2,7 @@
 param(
     [Parameter(Mandatory)][ValidatePattern('^root@(?:[0-9]{1,3}\.){3}[0-9]{1,3}$')][string]$SshTarget,
     [Parameter(Mandatory)][ValidatePattern('^[0-9]{1,3}(?:\.[0-9]{1,3}){3}$')][string]$PublicIPv4,
-    [Parameter(Mandatory)][ValidatePattern('^[A-Za-z0-9-]+$')][string]$RegistryUser,
+    [ValidatePattern('^[A-Za-z0-9-]+$')][string]$RegistryUser,
     [Parameter(Mandatory)][string]$ReleaseManifest,
     [switch]$ValidateOnly,
     [ValidateRange(60, 3600)][int]$ReadinessTimeoutSeconds = 600
@@ -53,7 +53,12 @@ $remoteScripts = @(
 if ($LASTEXITCODE -ne 0) { throw 'Could not copy server commands.' }
 & ssh @sshOptions $SshTarget 'chmod 600 /opt/vitarish/deployment/.env.shared /opt/vitarish/deployment/.env.test /opt/vitarish/deployment/.env.production; chmod 700 /opt/vitarish/scripts/*.sh'
 if ($LASTEXITCODE -ne 0) { throw 'Could not restrict remote operator inputs.' }
-& ssh @sshOptions $SshTarget "bash /opt/vitarish/scripts/Prepare-UbuntuRelease.sh $RegistryUser /root/.config/vitarish/ghcr-token"
+$registryPreparation = if ($RegistryUser) {
+    "bash /opt/vitarish/scripts/Prepare-UbuntuRelease.sh $RegistryUser /root/.config/vitarish/ghcr-token"
+} else {
+    'bash /opt/vitarish/scripts/Prepare-UbuntuRelease.sh'
+}
+& ssh @sshOptions $SshTarget $registryPreparation
 if ($LASTEXITCODE -ne 0) { throw 'Remote Docker or registry preparation failed.' }
 
 $remoteDeploy = "bash /opt/vitarish/scripts/Deploy-ServerBundles.sh --release-manifest /opt/vitarish/deployment/$manifestName --public-ipv4 $PublicIPv4 --readiness-timeout $ReadinessTimeoutSeconds"
