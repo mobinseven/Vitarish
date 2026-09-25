@@ -182,7 +182,7 @@ foreach ($bundle in $bundles) {
     Invoke-Docker ($compose + @('pull')) "$bundle image pull"
 }
 $ingressCompose = Get-ComposeArguments 'ingress'
-Invoke-Docker ($ingressCompose + @('run', '--rm', '--no-deps', 'caddy', 'caddy', 'validate', '--config', '/etc/caddy/Caddyfile', '--adapter', 'caddyfile')) 'Caddy configuration validation'
+Invoke-Docker ($ingressCompose + @('run', '--rm', '--no-deps', 'caddy-config-validator', 'caddy', 'validate', '--config', '/etc/caddy/Caddyfile', '--adapter', 'caddyfile')) 'Caddy configuration validation'
 
 foreach ($bundle in $bundles) {
     $compose = Get-ComposeArguments $bundle

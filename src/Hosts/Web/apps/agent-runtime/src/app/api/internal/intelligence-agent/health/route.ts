@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { AGENT_CREDENTIAL_HEADER } from "../credential-header";
 
 function authorized(request: NextRequest): boolean {
   const expected = process.env.AGENT_RUNTIME_SHARED_SECRET;
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
   if (!url || !secret) return Response.json({ status: "not_configured" }, { status: 503 });
   try {
     const response = await fetch(url, {
-      headers: { authorization: `Bearer ${secret}` },
+      headers: { [AGENT_CREDENTIAL_HEADER]: secret },
       cache: "no-store",
       signal: AbortSignal.timeout(5000),
     });

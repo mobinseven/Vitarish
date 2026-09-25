@@ -1,3 +1,4 @@
+using Duende.IdentityServer.EntityFramework.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Vitarish.Audit.Domain;
@@ -68,7 +69,10 @@ _ = builder.Services.AddHealthChecks()
 
 WebApplication app = builder.Build();
 if (!openApiGeneration)
+{
+    _ = await app.MigrateDatabaseAsync<PersistedGrantDbContext>();
     _ = await app.MigrateDatabaseAsync<AuditDbContext>();
+}
 
 _ = app.UseHostingPipeline(securityConfiguration);
 _ = app.MapHealthChecks(MainHealthContract.ReadinessPath, new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions

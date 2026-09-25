@@ -1,5 +1,6 @@
 import { Agent, OpenAIProvider, Runner, tool, type Model, type ModelProvider } from "@openai/agents";
 import { NextRequest } from "next/server";
+import { AGENT_CREDENTIAL_HEADER } from "../credential-header";
 import { parseHistory } from "./history";
 
 interface AgentDefinition {
@@ -290,7 +291,7 @@ export async function POST(request: NextRequest) {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-Vitarish-Agent-Credential": input.callbackCredential,
+              [AGENT_CREDENTIAL_HEADER]: input.callbackCredential,
             },
             body: JSON.stringify({
               executionEnvelope: callbackEnvelope,

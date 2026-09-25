@@ -111,7 +111,7 @@ done < "$shared"
 bundles=(ingress)
 if [[ $environment == both ]]; then bundles+=(test production); else bundles+=("$environment"); fi
 for bundle in "${bundles[@]}"; do compose "$bundle" pull --quiet; done
-compose ingress run --rm --no-deps caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null
+compose ingress run --rm --no-deps caddy-config-validator caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null
 for bundle in "${bundles[@]}"; do
     compose "$bundle" up -d --wait --wait-timeout "$readiness_timeout"
 done

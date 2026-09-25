@@ -20,6 +20,11 @@ function Reset-Fixture {
     $workflowDestination = Join-Path $fixtureRoot '.github\workflows\container-images.yml'
     New-Item -ItemType Directory -Path (Split-Path $workflowDestination) -Force | Out-Null
     Copy-Item -LiteralPath $sourceImageWorkflow -Destination $workflowDestination
+    $scriptDestination = Join-Path $fixtureRoot 'src\Hosts\scripts'
+    New-Item -ItemType Directory -Path $scriptDestination -Force | Out-Null
+    foreach ($name in @('Deploy-ServerBundles.ps1', 'Deploy-ServerBundles.sh')) {
+        Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination (Join-Path $scriptDestination $name)
+    }
 }
 
 function Invoke-Gate([bool]$ExpectFailure, [string]$Name) {
@@ -34,6 +39,11 @@ function Invoke-Gate([bool]$ExpectFailure, [string]$Name) {
 try {
     Reset-Fixture
     Invoke-Gate $false 'valid-bundles'
+
+    Reset-Fixture
+    $path = Join-Path $caseRoot 'docker-compose.ingress.yml'
+    (Get-Content -Raw $path) -replace '    network_mode: none', '    network_mode: ingress-egress' | Set-Content -NoNewline $path
+    Invoke-Gate $true 'caddy-validator-uses-isolated-network-mode'
 
     Reset-Fixture
     $path = Join-Path $caseRoot '.env.shared'
@@ -104,6 +114,16 @@ try {
     $path = Join-Path $caseRoot 'docker-compose.test.yml'
     (Get-Content -Raw $path) -replace 'postgres: \{ condition: service_healthy \}', 'postgres: { condition: service_started }' | Set-Content -NoNewline $path
     Invoke-Gate $true 'missing-health-dependency'
+
+    Reset-Fixture
+    $path = Join-Path $caseRoot 'docker-compose.test.yml'
+    (Get-Content -Raw $path) -replace 'test-postgres:/var/lib/postgresql', 'test-postgres:/var/lib/postgresql/data' | Set-Content -NoNewline $path
+    Invoke-Gate $true 'postgres-volume-target-matches-major-version'
+
+    Reset-Fixture
+    $path = Join-Path $caseRoot '.env.shared.example'
+    (Get-Content -Raw $path) -replace '(?m)^VITARISH_POSTGRES_IMAGE=postgres:18\.0$', 'VITARISH_POSTGRES_IMAGE=postgres:17.6' | Set-Content -NoNewline $path
+    Invoke-Gate $true 'postgres-image-major-matches-volume-layout'
 
     Reset-Fixture
     $path = Join-Path $caseRoot 'Caddyfile'

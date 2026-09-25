@@ -28,6 +28,11 @@ function Reset-Fixture {
     $workflowDirectory = Join-Path $fixtureRoot '.github/workflows'
     New-Item -ItemType Directory -Path $workflowDirectory -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $repositoryRoot '.github/workflows/container-images.yml') -Destination (Join-Path $workflowDirectory 'container-images.yml')
+    $scriptsDirectory = Join-Path $fixtureRoot 'src/Hosts/scripts'
+    New-Item -ItemType Directory -Path $scriptsDirectory -Force | Out-Null
+    foreach ($name in @('Deploy-ServerBundles.sh', 'Deploy-ServerBundles.ps1')) {
+        Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination (Join-Path $scriptsDirectory $name)
+    }
 }
 
 function Invoke-Case([bool]$ExpectedFailure, [string]$Name) {

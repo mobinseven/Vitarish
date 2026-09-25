@@ -18,6 +18,8 @@ function Require-File([string]$Path) {
 }
 
 $ingress = Require-File (Join-Path $deploymentRoot 'docker-compose.ingress.yml')
+$deploymentShell = Require-File (Join-Path $RepositoryRoot 'src\Hosts\scripts\Deploy-ServerBundles.sh')
+$deploymentPowerShell = Require-File (Join-Path $RepositoryRoot 'src\Hosts\scripts\Deploy-ServerBundles.ps1')
 $caddy = Require-File (Join-Path $deploymentRoot 'Caddyfile')
 $caddyDockerfile = Require-File (Join-Path $deploymentRoot 'Dockerfile')
 $imageWorkflow = Require-File (Join-Path $RepositoryRoot '.github\workflows\container-images.yml')
@@ -34,6 +36,14 @@ foreach ($line in $operatorShared -split "`r?`n") {
     if ($line -match '^(?<name>[A-Z0-9_]+)=(?<value>.*)$') { $operatorSharedValues[$Matches.name] = $Matches.value }
 }
 if (([regex]::Matches($ingress, '"(?:80:80|443:443)/tcp"')).Count -ne 2 -or $ingress -notmatch '"80:80/tcp"' -or $ingress -notmatch '"443:443/tcp"') { $failures.Add('Ingress must publish exactly TCP 80 and TCP 443.') }
+if ($ingress -notmatch '(?m)^x-caddy-runtime: &caddy-runtime\s*$' -or
+    ([regex]::Matches($ingress, '(?m)^    <<: \*caddy-runtime\s*$')).Count -ne 2 -or
+    $ingress -notmatch '(?ms)^  caddy-config-validator:\r?\n.*?^    profiles: \[validation\]\s*$' -or
+    $ingress -notmatch '(?ms)^  caddy-config-validator:\r?\n.*?^    network_mode: none\s*$' -or
+    $deploymentShell -notmatch 'compose ingress run --rm --no-deps caddy-config-validator caddy validate' -or
+    $deploymentPowerShell -notmatch "'caddy-config-validator', 'caddy', 'validate'") {
+    $failures.Add('Caddy validation must reuse its runtime configuration without joining the fixed-address proxy networks.')
+}
 if ($ingress -match '443/udp|docker\.sock|agent-runtime') { $failures.Add('Ingress must not expose HTTP/3, the Docker socket, or the agent runtime.') }
 if ($ingress -notmatch '(?m)^      ingress-egress: \{\}\s*$' -or $ingress -notmatch '(?m)^  test-proxy:\r?\n    name: vitarish-test-proxy\r?\n    internal: true\s*$' -or $ingress -notmatch '(?m)^  production-proxy:\r?\n    name: vitarish-production-proxy\r?\n    internal: true\s*$') { $failures.Add('Ingress must isolate both proxy networks and use its dedicated egress network.') }
 if ($caddy -match '(?im)reverse_proxy[^\r\n]*agent-runtime') { $failures.Add('Caddy must not route publicly to agent-runtime.') }
@@ -54,7 +64,11 @@ if ($imageWorkflow -notmatch 'aistor_reference="quay\.io/minio/aistor/minio:late
 if ($imageWorkflow -notmatch 'NEXT_PUBLIC_API_BASE_URL=') { $failures.Add('Web images must use portable same-origin API paths rather than a build-time localhost URL.') }
 if ($sharedExample -notmatch '(?m)^VITARISH_CLOUDFLARE_API_TOKEN=' -or $sharedExample -notmatch '(?m)^VITARISH_ACME_EMAIL=') { $failures.Add('The shared server environment must declare the ingress credentials.') }
 if ($sharedExample -notmatch '(?im)^VITARISH_.*_IMAGE=' -or $sharedExample -match '(?im)^VITARISH_.*_IMAGE=.*:latest\s*$') { $failures.Add('The shared server environment must declare version-pinned common images.') }
+$postgresImage = $sharedValues.Values | Where-Object { $_ -match '^postgres:' } | Select-Object -First 1
+$postgresImageMatch = [regex]::Match([string]$postgresImage, '^postgres:(?<major>\d+)(?:\.\d+)?$')
+if (-not $postgresImageMatch.Success -or [int]$postgresImageMatch.Groups['major'].Value -lt 18) { $failures.Add('The shared PostgreSQL image must be version 18 or later for the persistent data-directory layout.') }
 if ($sharedExample -notmatch '(?m)^VITARISH_AISTOR_IMAGE=quay\.io/minio/aistor/minio@sha256:0{64}$') { $failures.Add('The shared example must declare the digest-pinned MinIO AIStor image.') }
+if (-not $sharedValues.ContainsKey('VITARISH_DEFAULT_RESPONSE_MODEL') -or [string]::IsNullOrWhiteSpace($sharedValues['VITARISH_DEFAULT_RESPONSE_MODEL'])) { $failures.Add('The shared environment must declare the default intelligence response model.') }
 foreach ($placeholder in [regex]::Matches($ingress, '\$\{(?<name>VITARISH_[A-Z0-9_]+):\?')) {
     $name = $placeholder.Groups['name'].Value
     if (-not $sharedValues.ContainsKey($name)) { $failures.Add("$sharedExamplePath is missing required variable $name.") }
@@ -82,11 +96,13 @@ foreach ($environment in @('test', 'production')) {
     if ($compose -match 'VITARISH_API_ORIGIN') { $failures.Add("$environment bundle sets an unused Web API origin; route same-origin API paths through ingress.") }
     if ($compose -notmatch "(?m)^name: vitarish-$environment\s*$") { $failures.Add("$environment bundle has the wrong Compose project name.") }
     if ($compose -notmatch '(?m)^      ASPNETCORE_ENVIRONMENT: Production\s*$' -or $compose -notmatch '(?m)^      Vitarish__Security__Tls__RequireHttps: "true"\s*$') { $failures.Add("$environment Main must explicitly use strict Production HTTPS configuration.") }
+    if ($compose -notmatch '(?m)^      Vitarish__Intelligence__DefaultResponseModel: \$\{VITARISH_DEFAULT_RESPONSE_MODEL:\?VITARISH_DEFAULT_RESPONSE_MODEL is required\}\s*$') { $failures.Add("$environment Main must receive its required default intelligence response model from the shared environment.") }
     if ($compose -match '(?im)^\s*image:\s*[^\r\n]*:latest\s*$') { $failures.Add("$environment bundle contains a mutable latest image.") }
     foreach ($imageLine in [regex]::Matches($compose, '(?im)^\s*image:\s*[^\r\n]+$')) {
         if ($imageLine.Value -notmatch '^\s*image:\s*"?\$\{[A-Z0-9_]+:\?[^}]+\}"?\s*$') { $failures.Add("$environment bundle contains an image that is not required through an environment variable.") }
     }
     if ($compose -match '(?im)^\s*ports:\s*') { $failures.Add("$environment bundle publishes an application or state-service port.") }
+    if ($compose -notmatch "(?m)^    volumes: \[$environment-postgres:/var/lib/postgresql\]\s*$") { $failures.Add("$environment PostgreSQL must persist its versioned data directory through the PostgreSQL parent volume.") }
     foreach ($service in @('main', 'private-practice-owner', 'patients', 'platform-admin', 'pm', 'knowledge-qa', 'landing', 'agent-runtime', 'postgres', 'redis', 'aistor', 'elasticsearch')) {
         if ($compose -notmatch "(?m)^\s{2}$([regex]::Escape($service)):\s*$") { $failures.Add("$environment bundle is missing service $service.") }
     }

@@ -47,6 +47,7 @@ services:
       Vitarish__Search__Username: ${VITARISH_TEST_ELASTIC_USERNAME:?VITARISH_TEST_ELASTIC_USERNAME is required}
       Vitarish__Search__Password: ${VITARISH_TEST_ELASTIC_PASSWORD:?VITARISH_TEST_ELASTIC_PASSWORD is required}
       Vitarish__Intelligence__OpenAi__ApiKey: ${VITARISH_TEST_OPENAI_API_KEY:?VITARISH_TEST_OPENAI_API_KEY is required}
+      Vitarish__Intelligence__DefaultResponseModel: ${VITARISH_DEFAULT_RESPONSE_MODEL:?VITARISH_DEFAULT_RESPONSE_MODEL is required}
       Vitarish__Intelligence__AgentRuntime__BaseUrl: http://agent-runtime:3003
       Vitarish__Intelligence__AgentRuntime__ToolCallbackUrl: http://main:8080/api/modules/intelligence/internal/agent/tools/execute
       Vitarish__Intelligence__AgentRuntime__SharedSecret: ${VITARISH_TEST_AGENT_RUNTIME_SHARED_SECRET:?VITARISH_TEST_AGENT_RUNTIME_SHARED_SECRET is required}
@@ -140,7 +141,7 @@ services:
       POSTGRES_DB: ${VITARISH_TEST_POSTGRES_DB:?VITARISH_TEST_POSTGRES_DB is required}
       POSTGRES_USER: ${VITARISH_TEST_POSTGRES_USER:?VITARISH_TEST_POSTGRES_USER is required}
       POSTGRES_PASSWORD: ${VITARISH_TEST_POSTGRES_PASSWORD:?VITARISH_TEST_POSTGRES_PASSWORD is required}
-    volumes: [test-postgres:/var/lib/postgresql/data]
+    volumes: [test-postgres:/var/lib/postgresql]
     healthcheck: { test: [CMD-SHELL, "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"], interval: 10s, timeout: 5s, retries: 12 }
     networks: [application]
   redis:
