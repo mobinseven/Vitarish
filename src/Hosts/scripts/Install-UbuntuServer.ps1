@@ -4,6 +4,7 @@ param(
     [Parameter(Mandatory)][ValidatePattern('^[0-9]{1,3}(?:\.[0-9]{1,3}){3}$')][string]$PublicIPv4,
     [ValidatePattern('^[A-Za-z0-9-]+$')][string]$RegistryUser,
     [Parameter(Mandatory)][string]$ReleaseManifest,
+    [ValidateSet('Both', 'Test', 'Production')][string]$Environment = 'Both',
     [switch]$ValidateOnly,
     [ValidateRange(60, 3600)][int]$ReadinessTimeoutSeconds = 600
 )
@@ -64,7 +65,7 @@ $registryPreparation = if ($RegistryUser) {
 & ssh @sshOptions $SshTarget $registryPreparation
 if ($LASTEXITCODE -ne 0) { throw 'Remote Docker or registry preparation failed.' }
 
-$remoteDeploy = "bash /opt/vitarish/scripts/Deploy-ServerBundles.sh --release-manifest /opt/vitarish/deployment/$manifestName --public-ipv4 $PublicIPv4 --readiness-timeout $ReadinessTimeoutSeconds"
+$remoteDeploy = "bash /opt/vitarish/scripts/Deploy-ServerBundles.sh --release-manifest /opt/vitarish/deployment/$manifestName --public-ipv4 $PublicIPv4 --environment $($Environment.ToLowerInvariant()) --readiness-timeout $ReadinessTimeoutSeconds"
 if ($ValidateOnly) { $remoteDeploy += ' --validate-only' }
 & ssh @sshOptions $SshTarget $remoteDeploy
 if ($LASTEXITCODE -ne 0) { throw 'Remote deployment failed. Inspect the server output before retrying.' }

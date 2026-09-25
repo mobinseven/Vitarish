@@ -98,9 +98,7 @@ if [[ $validate_only == true ]]; then
 fi
 
 if [[ $environment != both ]]; then
-    other=test
-    [[ $environment == test ]] && other=production
-    [[ -n $(compose "$other" ps --status running -q) ]] || fail 'Deploy both environments on a new server before a single-environment update.'
+    [[ -n $(compose "$environment" ps --status running -q) ]] || fail "The selected $environment environment must already be running before a single-environment update."
 fi
 
 while IFS='=' read -r name host; do
@@ -127,6 +125,7 @@ done
 deadline=$((SECONDS + readiness_timeout))
 while IFS='=' read -r name host; do
     [[ $name =~ ^VITARISH_(TEST|PRODUCTION)_[A-Z0-9_]+_HOST$ ]] || continue
+    if [[ $environment != both && $name != "VITARISH_${environment^^}_"* ]]; then continue; fi
     wildcard=false
     if [[ $host == \*.* ]]; then host=deployment-probe.${host#*.}; wildcard=true; fi
     while :; do

@@ -154,12 +154,11 @@ if ($ValidateOnly) {
 }
 
 if ($Environment -ne 'Both') {
-    $otherEnvironment = @($allEnvironments | Where-Object { $_ -notin $selectedEnvironments })[0]
-    $otherCompose = Get-ComposeArguments $otherEnvironment
-    $runningArguments = $otherCompose + @('ps', '--status', 'running', '-q')
+    $selectedCompose = Get-ComposeArguments $selectedEnvironments[0]
+    $runningArguments = $selectedCompose + @('ps', '--status', 'running', '-q')
     $running = & docker @runningArguments 2>$null
     if ($LASTEXITCODE -ne 0 -or -not $running) {
-        throw 'Deploy both environments on a new server before using a single-environment update.'
+        throw "The selected $($selectedEnvironments[0]) environment must already be running before a single-environment update."
     }
 }
 
@@ -170,6 +169,7 @@ if ($PublicIPv4 -notmatch '^\d{1,3}(\.\d{1,3}){3}$' -or
     throw 'Provide the public ingress IPv4 address with -PublicIPv4 before deployment.'
 }
 foreach ($item in $allEnvironments) {
+    if ($Environment -ne 'Both' -and $item -ne $selectedEnvironments[0]) { continue }
     $prefix = "VITARISH_$($item.ToUpperInvariant())_"
     foreach ($name in @($sharedValues.Keys | Where-Object { $_.StartsWith($prefix) -and $_.EndsWith('_HOST') })) {
         Assert-HostDns $sharedValues[$name] $ingressAddress
