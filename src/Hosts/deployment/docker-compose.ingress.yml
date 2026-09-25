@@ -5,7 +5,7 @@ x-caddy-runtime: &caddy-runtime
   security_opt: [no-new-privileges:true]
   environment:
     CLOUDFLARE_API_TOKEN: ${VITARISH_CLOUDFLARE_API_TOKEN:?VITARISH_CLOUDFLARE_API_TOKEN is required}
-    VITARISH_CONTENT_SECURITY_POLICY: "default-src 'self'; script-src 'self' 'nonce-{http.request.uuid}' 'sha256-eEHdIv93c9os3FXDkyGsdgClPMsNFoZrSzMCpiMvbZw=' 'strict-dynamic'; style-src 'self' 'nonce-{http.request.uuid}'; frame-ancestors 'none'; object-src 'none'"
+    VITARISH_CONTENT_SECURITY_POLICY: "default-src 'self'; script-src 'self' 'nonce-{http.request.uuid}' 'unsafe-inline'; style-src 'self' 'nonce-{http.request.uuid}' 'unsafe-inline'; frame-ancestors 'none'; object-src 'none'"
     TEST_PUBLIC_HOST: ${VITARISH_TEST_PUBLIC_HOST:?VITARISH_TEST_PUBLIC_HOST is required}
     TEST_PATIENTS_HOST: ${VITARISH_TEST_PATIENTS_HOST:?VITARISH_TEST_PATIENTS_HOST is required}
     TEST_PLATFORM_ADMIN_HOST: ${VITARISH_TEST_PLATFORM_ADMIN_HOST:?VITARISH_TEST_PLATFORM_ADMIN_HOST is required}

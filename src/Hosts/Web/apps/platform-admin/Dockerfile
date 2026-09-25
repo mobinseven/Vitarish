@@ -22,6 +22,7 @@ ENV PORT=3003
 ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder --chown=nextjs:nodejs /app/apps/platform-admin/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/platform-admin/public ./apps/platform-admin/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/platform-admin/.next/static ./apps/platform-admin/.next/static
 WORKDIR /app/apps/platform-admin
 USER nextjs
