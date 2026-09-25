@@ -316,9 +316,18 @@ internal sealed class SecurityAuditQueryService(
             SecurityAuditSortField.Actor => query.Descending
                 ? source.OrderByDescending(item => item.ActorId).ThenByDescending(item => item.OccurredAt)
                 : source.OrderBy(item => item.ActorId).ThenBy(item => item.OccurredAt),
+            SecurityAuditSortField.ActorKind => query.Descending
+                ? source.OrderByDescending(item => item.ActorKind).ThenByDescending(item => item.OccurredAt)
+                : source.OrderBy(item => item.ActorKind).ThenBy(item => item.OccurredAt),
+            SecurityAuditSortField.SourceIpKind => query.Descending
+                ? source.OrderByDescending(item => item.SourceIpKind).ThenByDescending(item => item.OccurredAt)
+                : source.OrderBy(item => item.SourceIpKind).ThenBy(item => item.OccurredAt),
             SecurityAuditSortField.EventType => query.Descending
                 ? source.OrderByDescending(item => item.EventName).ThenByDescending(item => item.OccurredAt)
                 : source.OrderBy(item => item.EventName).ThenBy(item => item.OccurredAt),
+            SecurityAuditSortField.SourceIpAddress => query.Descending
+                ? source.OrderByDescending(item => item.SourceIpAddress).ThenByDescending(item => item.OccurredAt)
+                : source.OrderBy(item => item.SourceIpAddress).ThenBy(item => item.OccurredAt),
             _ => query.Descending
                 ? source.OrderByDescending(item => item.OccurredAt).ThenByDescending(item => item.Id)
                 : source.OrderBy(item => item.OccurredAt).ThenBy(item => item.Id)

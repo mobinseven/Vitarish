@@ -1,20 +1,22 @@
 import { expect, test, type Page } from "@playwright/test";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { Routes } from "../../apps/private-practice-owner/src/app/routes";
+import { securityMessageCatalogs } from "../../shared/security/src/localization";
 import { dirname, resolve } from "node:path";
 import { mkdirSync } from "node:fs";
 
 const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
 const username = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
+const tenantUserUsername = "e2e-tenant-user";
 const password = process.env.VITARISH_E2E_PASSWORD;
 const auditEvidenceScreenshot = process.env.VITARISH_NMAIL_EVIDENCE_SCREENSHOT
   ?? resolve(process.cwd(), "..", "artifacts", "nsmail-1-evidence-md", "screenshots", "audit-authentication-password-login.png");
 const screenshotDirectory = resolve(process.cwd(), "..", "artifacts", "nsmail-1-evidence-md", "screenshots");
 
-async function login(page: Page): Promise<void> {
+async function login(page: Page, loginUsername = username): Promise<void> {
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
   await page.goto(Routes.Login.Password, { waitUntil: "domcontentloaded" });
-  await page.locator('input[name="username"]').fill(username);
+  await page.locator('input[name="username"]').fill(loginUsername);
   await page.locator('input[name="password"]').fill(password!);
   const [response] = await Promise.all([
     page.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/password")),
@@ -104,7 +106,7 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
     await page.getByLabel("Event type").fill("authentication.password.login");
     await page.getByLabel("Category").fill("authentication");
     await page.getByRole("button", { name: "Sort by" }).click();
-    await page.getByRole("menuitem", { name: "Actor" }).click();
+    await page.getByRole("menuitem", { name: securityMessageCatalogs.en.security.audit.sortActor }).click();
     await page.getByRole("button", { name: "Apply filters" }).click();
     await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 30_000 });
     const sortedPath = resolve(screenshotDirectory, "03-audit-sorted-records.png");
@@ -198,7 +200,7 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
 
   test("FIA_AFL/FIA_PMG_EXT: failed attempt history and password validation are visible in account security", async ({ page }) => {
     await page.goto(Routes.Login.Password, { waitUntil: "domcontentloaded" });
-    await page.getByLabel("Username or Email").fill(username);
+    await page.getByLabel("Username or Email").fill(tenantUserUsername);
     await page.getByLabel("Password").fill("incorrect-e2e-password");
     const response = page.waitForResponse(
       (candidate) => candidate.url().endsWith("/api/modules/authentication/login/password"),
@@ -207,7 +209,7 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
     expect([400, 401]).toContain((await response).status());
     await expect(page.getByText("Invalid username or password", { exact: true })).toBeVisible();
 
-    await login(page);
+    await login(page, tenantUserUsername);
     await page.goto(Routes.Account.Security, { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Security history", exact: true })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("Most recent unsuccessful sign-in", { exact: true })).toBeVisible();

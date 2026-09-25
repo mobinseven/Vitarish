@@ -25,6 +25,9 @@ const auditSortFields = {
   actor: 0,
   occurredAt: 1,
   eventType: 2,
+  actorKind: 3,
+  sourceIpKind: 4,
+  sourceIpAddress: 5,
 } as const satisfies Record<string, SecurityAuditSortField>;
 
 export interface PlatformAuditTenantOption {
@@ -144,8 +147,14 @@ function sortLabel(field: SecurityAuditSortField, t: ReturnType<typeof useLocali
   switch (field) {
     case auditSortFields.actor:
       return t("security.platformAudit.sortActor");
+    case auditSortFields.actorKind:
+      return t("security.platformAudit.sortActorKind");
+    case auditSortFields.sourceIpKind:
+      return t("security.platformAudit.sortSourceIpKind");
     case auditSortFields.eventType:
       return t("security.platformAudit.sortEventType");
+    case auditSortFields.sourceIpAddress:
+      return t("security.platformAudit.sortSourceIpAddress");
     default:
       return t("security.platformAudit.sortOccurredAt");
   }
@@ -318,6 +327,10 @@ export function PlatformSecurityAuditReviewPage({
       .map((tenant) => ({ id: tenant.id!, label: tenant.name?.trim() || tenant.id! })),
     [tenants],
   );
+  const tenantNamesById = useMemo(
+    () => new Map(tenantOptions.map((tenant) => [tenant.id, tenant.label])),
+    [tenantOptions],
+  );
 
   const params = useMemo<AuditPlatformSecurityEventsListParams>(() => ({
     page,
@@ -484,7 +497,11 @@ export function PlatformSecurityAuditReviewPage({
       header: t("security.platformAudit.scope"),
       accessorKey: "tenantId",
       minWidth: 150,
-      cell: (item) => <span className="font-mono text-xs">{displayValue(item.tenantId, t("security.platformAudit.notAvailable"))}</span>,
+      cell: (item) => {
+        const scope = displayValue(item.tenantId, t("security.platformAudit.notAvailable"));
+        const tenantName = item.tenantId ? tenantNamesById.get(item.tenantId) : undefined;
+        return <span className={tenantName ? "text-xs" : "font-mono text-xs"} title={tenantName ? scope : undefined}>{tenantName ?? scope}</span>;
+      },
     },
     {
       id: "eventCategory",

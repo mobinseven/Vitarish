@@ -132,6 +132,7 @@ describe("PlatformSecurityAuditReviewPage", () => {
     expect(screen.getByRole("columnheader", { name: "Catalog category" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Operation" })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Source IP" })).toBeInTheDocument();
+    expect(screen.getByText("Tenant A", { selector: "span" })).toHaveAttribute("title", "tenant-a");
     expect(screen.getByText("succeeded").closest(".chip")).toHaveClass("chip--success");
 
     expect(screen.getAllByText("Authentication").length).toBeGreaterThan(0);

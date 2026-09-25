@@ -4,7 +4,10 @@ public enum SecurityAuditSortField
 {
     Actor,
     OccurredAt,
-    EventType
+    EventType,
+    ActorKind,
+    SourceIpKind,
+    SourceIpAddress
 }
 
 public sealed record SecurityAuditQuery(

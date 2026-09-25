@@ -96,6 +96,27 @@ describe("mock preview handlers", () => {
     await expect(roles.json()).resolves.toMatchObject([{ tenantId: "mock-tenant", roleSuffix: "Owner" }]);
   });
 
+  it("returns a realistic paged audit catalog and filters records by operator fields", async () => {
+    const catalog = await fetch("https://mock.example.test/api/audit/platform/security-event-catalog");
+    const filtered = await fetch("https://mock.example.test/api/audit/platform/security-events?page=1&pageSize=25&eventCategory=authentication&eventName=authentication.password.login&operation=password.login&outcome=denied&sortBy=1&descending=true&uncataloguedOnly=false");
+
+    const catalogBody = await catalog.json() as Array<{ eventName: string }>;
+    const filteredBody = await filtered.json() as { items: Array<{ eventName: string; eventCategory: string; operation: string; outcome: string }>; totalCount: number };
+    expect(catalogBody.some((entry) => entry.eventName === "authentication.password.login")).toBe(true);
+    expect(filteredBody.totalCount).toBeGreaterThan(0);
+    expect(filteredBody.items.every((event) => event.eventName === "authentication.password.login" && event.eventCategory === "authentication" && event.operation === "password.login" && event.outcome === "denied")).toBe(true);
+  });
+
+  it("exports the same safe audit projection used by the mock review grid", async () => {
+    const response = await fetch("https://mock.example.test/api/audit/platform/security-events/export?eventCategory=authentication&outcome=denied&sortBy=1&descending=true&uncataloguedOnly=false");
+    const csv = await response.text();
+
+    expect(response.headers.get("content-type")).toContain("text/csv");
+    expect(csv).toContain("occurredAt,tenantId,eventCategory,eventName,operation,outcome");
+    expect(csv).toContain("authentication.password.login");
+    expect(csv).not.toContain("E2E-Audit");
+  });
+
   it("persists an owner create workflow for later reads", async () => {
     const created = await fetch("https://mock.example.test/api/modules/parties/administration/owners", {
       method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: "mock-owner-new", name: "New Practice" }),
