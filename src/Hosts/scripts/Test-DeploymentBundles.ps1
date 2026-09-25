@@ -99,6 +99,7 @@ foreach ($environment in @('test', 'production')) {
     if ($compose -notmatch "(?m)^name: vitarish-$environment\s*$") { $failures.Add("$environment bundle has the wrong Compose project name.") }
     if ($compose -notmatch '(?m)^      ASPNETCORE_ENVIRONMENT: Production\s*$' -or $compose -notmatch '(?m)^      Vitarish__Security__Tls__RequireHttps: "true"\s*$') { $failures.Add("$environment Main must explicitly use strict Production HTTPS configuration.") }
     if ($compose -notmatch '(?m)^      Vitarish__Intelligence__DefaultResponseModel: \$\{VITARISH_DEFAULT_RESPONSE_MODEL:\?VITARISH_DEFAULT_RESPONSE_MODEL is required\}\s*$') { $failures.Add("$environment Main must receive its required default intelligence response model from the shared environment.") }
+    if ($environment -eq 'production' -and $compose -notmatch '(?ms)^  main:\r?\n.*?^    env_file:\r?\n      - path: \.\/\.env\.production\.mediatr\r?\n        required: false\s*$') { $failures.Add('Production Main must load the optional protected MediatR environment file.') }
     if ($compose -match '(?im)^\s*image:\s*[^\r\n]*:latest\s*$') { $failures.Add("$environment bundle contains a mutable latest image.") }
     foreach ($imageLine in [regex]::Matches($compose, '(?im)^\s*image:\s*[^\r\n]+$')) {
         if ($imageLine.Value -notmatch '^\s*image:\s*"?\$\{[A-Z0-9_]+:\?[^}]+\}"?\s*$') { $failures.Add("$environment bundle contains an image that is not required through an environment variable.") }

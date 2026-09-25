@@ -34,6 +34,7 @@ cd "$deployment_dir"
 shared=.env.shared
 test_env=.env.test
 production_env=.env.production
+mediatr_environment=.env.production.mediatr
 license=minio.license
 
 fail() { printf '%s\n' "$*" >&2; exit 1; }
@@ -60,6 +61,13 @@ for file in "$shared" "$test_env" "$production_env"; do
     duplicate=$(cut -d= -f1 "$file" | grep '^VITARISH_' | sort | uniq -d | head -n 1)
     [[ -z $duplicate ]] || fail "Duplicate operator variable $duplicate in $file."
 done
+if [[ -e $mediatr_environment || -L $mediatr_environment ]]; then
+    [[ -f $mediatr_environment && ! -L $mediatr_environment ]] || fail 'The optional MediatR environment file must be a regular file.'
+    mediatr_owner=$(stat -c %u "$mediatr_environment")
+    mediatr_mode=$(stat -c %a "$mediatr_environment")
+    [[ $mediatr_owner == 0 ]] || fail 'The optional MediatR environment file must be owned by root.'
+    (( (8#$mediatr_mode & 077) == 0 )) || fail 'Restrict the optional MediatR environment file to its owner.'
+fi
 [[ -f $license && ! -L $license && -r $license ]] || fail 'A readable MinIO AIStor license file is required.'
 license_owner=$(stat -c %u "$license")
 license_mode=$(stat -c %a "$license")

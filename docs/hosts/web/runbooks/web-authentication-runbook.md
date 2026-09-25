@@ -49,27 +49,14 @@ The React web host and the .NET Main host are different HTTP origins in the spli
 
 The shared `apiFetch` boundary forwards the current web origin host through `X-Vitarish-Tenant-Host`. The Main host tenant resolver prefers that header when it matches the browser request source, then falls back to `Origin`, `Referer`, and finally `Request.Host`. This preserves tenant resolution for requests opened from tenant domains such as `tenantA.mydomain.com` while retaining the old mono-host behavior as a fallback.
 
-## Docker
+## Server deployment
 
-### Build and run the Next.js UI only
-
-```bash
-cd src/Hosts/Web
-docker build -t vitarish-web --build-arg NEXT_PUBLIC_API_BASE_URL=http://localhost:5000 .
-docker run -p 3000:3000 vitarish-web
-```
-
-### Run both services together
-
-From the repo root:
-
-```bash
-docker compose -f src/Hosts/docker-compose.web.yml up --build
-```
-
-This starts:
-- **web** — Next.js UI on port 3000
-- **main** — .NET host on port 5000
+The maintained Docker Compose topology uses release images, separate test and
+production environments, and shared HTTPS ingress. Follow
+[`docs/hosts/server-deployment-bundles.md`](../../server-deployment-bundles.md)
+for image publishing, operator environment files, startup, validation, and
+rollback. For local Web development, use the npm workspace quick start above
+and run Main separately.
 
 ## API Client Regeneration
 

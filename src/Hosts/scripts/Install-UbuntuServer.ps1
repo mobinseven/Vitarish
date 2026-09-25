@@ -33,6 +33,8 @@ $files = @(
     (Join-Path $deploymentRoot '.env.production'),
     $manifest
 )
+$mediatrEnvironment = Join-Path $deploymentRoot '.env.production.mediatr'
+if (Test-Path -LiteralPath $mediatrEnvironment -PathType Leaf) { $files += $mediatrEnvironment }
 foreach ($file in $files) {
     if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "Missing deployment input: $file" }
 }
@@ -52,7 +54,7 @@ $remoteScripts = @(
 )
 & scp @sshOptions @remoteScripts "${SshTarget}:/opt/vitarish/scripts/"
 if ($LASTEXITCODE -ne 0) { throw 'Could not copy server commands.' }
-& ssh @sshOptions $SshTarget 'chmod 600 /opt/vitarish/deployment/.env.shared /opt/vitarish/deployment/.env.test /opt/vitarish/deployment/.env.production /opt/vitarish/deployment/minio.license; chmod 700 /opt/vitarish/scripts/*.sh'
+& ssh @sshOptions $SshTarget 'chmod 700 /opt/vitarish/deployment; chmod 600 /opt/vitarish/deployment/.env.shared /opt/vitarish/deployment/.env.test /opt/vitarish/deployment/.env.production /opt/vitarish/deployment/minio.license; if [ -e /opt/vitarish/deployment/.env.production.mediatr ] || [ -L /opt/vitarish/deployment/.env.production.mediatr ]; then test -f /opt/vitarish/deployment/.env.production.mediatr && test ! -L /opt/vitarish/deployment/.env.production.mediatr && chmod 600 /opt/vitarish/deployment/.env.production.mediatr; fi; chmod 700 /opt/vitarish/scripts/*.sh'
 if ($LASTEXITCODE -ne 0) { throw 'Could not restrict remote operator inputs.' }
 $registryPreparation = if ($RegistryUser) {
     "bash /opt/vitarish/scripts/Prepare-UbuntuRelease.sh $RegistryUser /root/.config/vitarish/ghcr-token"

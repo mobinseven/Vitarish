@@ -38,13 +38,11 @@ internal static class SecurityBaselineCheck
         ["ProtectedJson", "AnonymousJson", "AnonymousWebhook", "MultipartUpload", "BinaryDownload", "Streaming"];
 
     private const string BaseEndpointPath = "src/Modules/Base/Core/Endpoints/";
-    private const string ProfileIdentity = "vitarish-product-evaluated-v1.0";
-
     public static IReadOnlyList<ArchitectureViolation> Run(SourceIndex index)
     {
         List<ArchitectureViolation> violations = [];
         violations.AddRange(DiscoverEndpointViolations(index));
-        violations.AddRange(CheckEvaluatedProfile(index.Root));
+        violations.AddRange(CheckDeploymentBundles(index.Root));
         violations.AddRange(CheckSourceSecuritySurface(index));
         return violations;
     }
@@ -54,6 +52,78 @@ internal static class SecurityBaselineCheck
 
     internal static IReadOnlyList<ArchitectureViolation> RunSourceSecuritySurface(SourceIndex index) =>
         CheckSourceSecuritySurface(index);
+
+    private static IReadOnlyList<ArchitectureViolation> CheckDeploymentBundles(string root)
+    {
+        List<ArchitectureViolation> violations = [];
+        string deploymentRoot = Path.Combine(root, "src", "Hosts", "deployment");
+        string ingressPath = Path.Combine(deploymentRoot, "docker-compose.ingress.yml");
+        string caddyPath = Path.Combine(deploymentRoot, "Caddyfile");
+        string ingress = ReadRequired(ingressPath, violations);
+        string caddy = ReadRequired(caddyPath, violations);
+
+        foreach (string environment in new[] { "test", "production" })
+        {
+            string composePath = Path.Combine(deploymentRoot, $"docker-compose.{environment}.yml");
+            string compose = ReadRequired(composePath, violations);
+            string examplePath = Path.Combine(deploymentRoot, $".env.{environment}.example");
+            string example = ReadRequired(examplePath, violations);
+            if (Regex.IsMatch(compose, @"(?im)^\s*image:\s*[^\r\n]*:latest\s*$"))
+                violations.Add(DeploymentViolation(composePath, "MutableImageReference", "Use a versioned or digest-pinned image reference."));
+            if (Regex.IsMatch(example, @"(?im)^VITARISH_.*_IMAGE=.*:latest\s*$"))
+                violations.Add(DeploymentViolation(examplePath, "MutableImageReference", "The committed environment contract must not suggest a mutable latest image."));
+            if (Regex.IsMatch(compose, @"(?im)^\s*ports:\s*"))
+                violations.Add(DeploymentViolation(composePath, "PublishedEnvironmentPort", "Environment services must be reachable through the shared ingress only."));
+            foreach (string service in new[] { "main", "private-practice-owner", "patients", "platform-admin", "pm", "knowledge-qa", "landing", "agent-runtime", "postgres", "redis", "aistor", "elasticsearch" })
+            {
+                if (!Regex.IsMatch(compose, $@"(?m)^\s{{2}}{Regex.Escape(service)}:\s*$"))
+                    violations.Add(DeploymentViolation(composePath, "RequiredServiceMissing", $"Declare the {service} service in the {environment} bundle."));
+            }
+            foreach (Match image in Regex.Matches(compose, "(?im)^\\s*image:\\s*\\\"?[^\\r\\n]+"))
+            {
+                if (!Regex.IsMatch(image.Value, @"\$\{[A-Z0-9_]+:\?[^}]+\}"))
+                    violations.Add(DeploymentViolation(composePath, "ImageVariableRequired", "Every service image must be supplied through a required environment variable."));
+            }
+            foreach (string dependency in new[] { "postgres", "redis", "aistor", "elasticsearch" })
+            {
+                if (!Regex.IsMatch(compose, $@"(?ms)^\s{{6}}{Regex.Escape(dependency)}:\s*\{{\s*condition:\s*service_healthy\s*\}}"))
+                    violations.Add(DeploymentViolation(composePath, "HealthyDependencyMissing", $"Main must wait for healthy {dependency}."));
+                if (!Regex.IsMatch(compose, $@"(?ms)^\s{{2}}{Regex.Escape(dependency)}:\s*.*?^\s{{4}}healthcheck:\s*"))
+                    violations.Add(DeploymentViolation(composePath, "HealthcheckMissing", $"The {dependency} service must define a readiness healthcheck."));
+            }
+            foreach (string applicationService in new[] { "main", "private-practice-owner", "patients", "platform-admin", "pm", "knowledge-qa", "landing", "agent-runtime" })
+            {
+                if (!Regex.IsMatch(compose, $@"(?ms)^\s{{2}}{Regex.Escape(applicationService)}:\s*.*?^\s{{4}}healthcheck:\s*"))
+                    violations.Add(DeploymentViolation(composePath, "HealthcheckMissing", $"The {applicationService} service must define a readiness healthcheck."));
+            }
+            if (!compose.Contains($"name: vitarish-{environment}", StringComparison.Ordinal))
+                violations.Add(DeploymentViolation(composePath, "ProjectNameMissing", "Use a distinct environment Compose project name."));
+            if (!compose.Contains("internal: true", StringComparison.Ordinal) || !compose.Contains("external: true", StringComparison.Ordinal))
+                violations.Add(DeploymentViolation(composePath, "NetworkIsolationMissing", "Declare an internal application network and an external shared proxy network."));
+            foreach (string ownedResource in new[] { "application", "proxy", "postgres", "redis", "aistor", "elasticsearch" })
+            {
+                string expected = $"vitarish-{environment}-{ownedResource}";
+                if (!compose.Contains(expected, StringComparison.Ordinal))
+                    violations.Add(DeploymentViolation(composePath, "EnvironmentResourceOwnershipMissing", $"Declare an environment-owned network or volume named {expected}."));
+            }
+        }
+
+        if (Regex.IsMatch(ingress, @"(?im)^\s*image:\s*[^\r\n]*:latest\s*$"))
+            violations.Add(DeploymentViolation(ingressPath, "MutableImageReference", "Use a versioned or digest-pinned ingress image."));
+        if (!ingress.Contains("80:80/tcp", StringComparison.Ordinal) || !ingress.Contains("443:443/tcp", StringComparison.Ordinal))
+            violations.Add(DeploymentViolation(ingressPath, "IngressPortAllowlist", "The shared ingress must publish TCP 80 and TCP 443."));
+        if (Regex.IsMatch(ingress, @"(?im)443/udp|docker\.sock|agent-runtime"))
+            violations.Add(DeploymentViolation(ingressPath, "IngressBoundaryViolation", "The ingress must not enable HTTP/3, mount the Docker socket, or expose the agent runtime."));
+        if (Regex.IsMatch(caddy, @"(?im)reverse_proxy[^\r\n]*agent-runtime"))
+            violations.Add(DeploymentViolation(caddyPath, "PublicAgentRuntime", "The server-only agent runtime must remain private."));
+        foreach (string host in new[] { "TEST_PUBLIC_HOST", "TEST_PATIENTS_HOST", "TEST_PLATFORM_ADMIN_HOST", "TEST_PM_HOST", "TEST_KNOWLEDGE_QA_HOST", "TEST_LANDING_HOST", "PRODUCTION_PUBLIC_HOST", "PRODUCTION_PATIENTS_HOST", "PRODUCTION_PLATFORM_ADMIN_HOST", "PRODUCTION_PM_HOST", "PRODUCTION_KNOWLEDGE_QA_HOST", "PRODUCTION_LANDING_HOST" })
+        {
+            if (!caddy.Contains("{$" + host + "}", StringComparison.Ordinal))
+                violations.Add(DeploymentViolation(caddyPath, "RouteHostMissing", $"Declare the {host} route host in the shared ingress."));
+        }
+
+        return violations;
+    }
 
     public static void RenderInventory(SourceIndex index)
     {
@@ -389,99 +459,6 @@ internal static class SecurityBaselineCheck
         return groups;
     }
 
-    private static IReadOnlyList<ArchitectureViolation> CheckEvaluatedProfile(string root)
-    {
-        List<ArchitectureViolation> violations = [];
-        string profileRoot = Path.Combine(root, "docs", "security", "network-questionnaire-v1.0");
-        string composePath = Path.Combine(root, "src", "Hosts", "docker-compose.product-evaluated-v1.0.yml");
-        string caddyPath = Path.Combine(root, "src", "Hosts", "caddy", "Caddyfile.product-evaluated-v1.0");
-        string configPath = Path.Combine(profileRoot, "evaluated-configuration.md");
-        string topologyPath = Path.Combine(profileRoot, "topology.md");
-        string toePath = Path.Combine(profileRoot, "toe-inventory.md");
-        string transportInventoryPath = Path.Combine(profileRoot, "evaluated-transport-and-cryptography.md");
-        string updateRunbookPath = Path.Combine(profileRoot, "manual-update-runbook.md");
-        string compose = ReadRequired(composePath, violations);
-        string caddy = ReadRequired(caddyPath, violations);
-        string config = ReadRequired(configPath, violations);
-        string topology = ReadRequired(topologyPath, violations);
-        string toe = ReadRequired(toePath, violations);
-        string transportInventory = ReadRequired(transportInventoryPath, violations);
-        string updateRunbook = ReadRequired(updateRunbookPath, violations);
-
-        RequireText(config, ProfileIdentity, configPath, violations);
-        RequireText(topology, ProfileIdentity, topologyPath, violations);
-        RequireText(toe, ProfileIdentity, toePath, violations);
-        RequireText(transportInventory, ProfileIdentity, transportInventoryPath, violations);
-        RequireText(updateRunbook, ProfileIdentity, updateRunbookPath, violations);
-        RequireText(compose, "name: vitarish-product-evaluated-v1-0", composePath, violations);
-        RequireText(compose, "internal: true", composePath, violations);
-        RequireText(caddy, "protocols tls1.2 tls1.2", caddyPath, violations);
-        RequireText(caddy, "ciphers TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", caddyPath, violations);
-        RequireText(caddy, "curves secp256r1", caddyPath, violations);
-        RequireText(caddy, "alpn h1 h2", caddyPath, violations);
-        RequireText(caddy, "reverse_proxy @api main:8080", caddyPath, violations);
-        RequireText(topology, "same-machine", topologyPath, violations);
-        RequireText(topology, "separate-machine", topologyPath, violations);
-        RequireText(transportInventory, "basicConstraints CA=TRUE", transportInventoryPath, violations);
-        RequireText(transportInventory, "CR-4/TSF-6 not triggered", transportInventoryPath, violations);
-        RequireText(updateRunbook, "authorized administrator or developer", updateRunbookPath, violations);
-        RequireText(compose, "egress:", composePath, violations);
-
-        if (Regex.IsMatch(compose, @"(?im)^\s*image:\s*[^\r\n]*:latest\s*$"))
-            violations.Add(ProfileViolation(composePath, "MutableImageReference", "Use a release-supplied versioned image reference."));
-        if (Regex.IsMatch(compose, @"(?im)^\s*-\s*[^\r\n]*(?:5432|6379)(?::|/)") ||
-            Regex.IsMatch(compose, @"(?im)^\s*-\s*[^\r\n]*:443/udp\s*$"))
-            violations.Add(ProfileViolation(composePath, "ForbiddenPublishedPort", "Only Caddy TCP 80 and TCP 443 may be published."));
-        if (Regex.IsMatch(caddy, "(?im)\\b(?:h3|http/3|quic)\\b|443/udp"))
-            violations.Add(ProfileViolation(caddyPath, "ForbiddenHttp3Exposure", "The frozen TLS 1.2 profile must not enable HTTP/3 or QUIC."));
-        if (Regex.IsMatch(caddy, "(?im)reverse_proxy[^\r\n]*agent-runtime"))
-            violations.Add(ProfileViolation(caddyPath, "PublicAgentRuntime", "The server-only agent runtime must remain private."));
-
-        string[] expectedHosts = [
-            "VITARISH_PUBLIC_HOST", "VITARISH_PATIENTS_HOST", "VITARISH_PLATFORM_ADMIN_HOST",
-            "VITARISH_PM_HOST", "VITARISH_KNOWLEDGE_QA_HOST", "VITARISH_LANDING_HOST"];
-        foreach (string host in expectedHosts)
-        {
-            if (!compose.Contains(host, StringComparison.Ordinal) || !caddy.Contains(host, StringComparison.Ordinal))
-                violations.Add(ProfileViolation(composePath, "HostBoundaryMissing", $"Declare {host} in both the evaluated Compose and Caddy owners."));
-        }
-
-        Match servicesMatch = Regex.Match(compose, @"(?ms)^services:\s*\r?\n(?<services>.*?)(?=^networks:\s*$)");
-        string serviceSection = servicesMatch.Success ? servicesMatch.Groups["services"].Value : string.Empty;
-        foreach (Match service in Regex.Matches(serviceSection, @"(?ms)^  (?<name>[a-z0-9-]+):\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:|\z)"))
-        {
-            string name = service.Groups["name"].Value;
-            string body = service.Groups["body"].Value;
-            if (body.Contains("ports:", StringComparison.Ordinal) && name != "caddy")
-                violations.Add(ProfileViolation(composePath, "NonIngressPublishedPort", $"Service {name} publishes a host port."));
-            if (!body.Contains("image:", StringComparison.Ordinal) && name is not "networks" and not "volumes" and not "secrets")
-                violations.Add(ProfileViolation(composePath, "ServiceImageMissing", $"Service {name} has no image declaration."));
-        }
-
-        Match mainNetworks = Regex.Match(serviceSection, @"(?ms)^  main:\s*(?<body>.*?)(?=^  [a-z0-9-]+:|\z)");
-        if (!mainNetworks.Success || !Regex.IsMatch(mainNetworks.Groups["body"].Value, @"(?m)^    networks:\s*\[application, egress\]\s*$"))
-            violations.Add(ProfileViolation(composePath, "MainEgressMissing", "Main must be attached to the dedicated non-internal egress network."));
-
-        foreach (Match service in Regex.Matches(serviceSection, @"(?ms)^  (?<name>[a-z0-9-]+):\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:|\z)"))
-        {
-            if (service.Groups["name"].Value != "main" &&
-                Regex.IsMatch(service.Groups["body"].Value, @"(?m)^    networks:\s*\[[^\]]*\begress\b[^\]]*\]\s*$"))
-                violations.Add(ProfileViolation(composePath, "UnexpectedEgressAttachment", $"Service {service.Groups["name"].Value} must not use the provider egress network."));
-        }
-
-        Match egressNetwork = Regex.Match(compose, @"(?ms)^  egress:\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:\s*$|\z)");
-        if (!egressNetwork.Success || egressNetwork.Groups["body"].Value.Contains("internal:", StringComparison.Ordinal))
-            violations.Add(ProfileViolation(composePath, "EgressNetworkMustBeExternal", "The dedicated provider egress network must be declared without internal=true."));
-
-        Match caddyService = Regex.Match(serviceSection, @"(?ms)^  caddy:\r?\n(?<body>.*?)(?=^  [a-z0-9-]+:\r?$|\z)");
-        if (!caddyService.Success ||
-            !Regex.IsMatch(caddyService.Groups["body"].Value, @"(?m)^      - ""80:80/tcp""\s*$") ||
-            !Regex.IsMatch(caddyService.Groups["body"].Value, @"(?m)^      - ""443:443/tcp""\s*$"))
-            violations.Add(ProfileViolation(composePath, "IngressPortAllowlist", "Caddy must publish TCP 80 and TCP 443."));
-
-        return violations;
-    }
-
     private static IReadOnlyList<ArchitectureViolation> CheckSourceSecuritySurface(SourceIndex index)
     {
         List<ArchitectureViolation> violations = [];
@@ -530,21 +507,15 @@ internal static class SecurityBaselineCheck
     {
         if (!File.Exists(path))
         {
-            violations.Add(ProfileViolation(path, "RequiredProfileArtifactMissing", "The evaluated profile artifact is required for source reconciliation."));
+            violations.Add(DeploymentViolation(path, "RequiredDeploymentArtifactMissing", "The deployment reference artifact is required for source reconciliation."));
             return string.Empty;
         }
 
         return File.ReadAllText(path);
     }
 
-    private static void RequireText(string content, string expected, string path, List<ArchitectureViolation> violations)
-    {
-        if (!content.Contains(expected, StringComparison.Ordinal))
-            violations.Add(ProfileViolation(path, "FrozenBoundaryTextMissing", $"The evaluated owner must contain '{expected}'."));
-    }
-
-    private static ArchitectureViolation ProfileViolation(string path, string kind, string remediation) =>
-        new(Path.GetRelativePath(Directory.GetCurrentDirectory(), path).Replace(Path.DirectorySeparatorChar, '/'), 1, kind, "EvaluatedProfile", remediation);
+    private static ArchitectureViolation DeploymentViolation(string path, string kind, string remediation) =>
+        new(Path.GetRelativePath(Directory.GetCurrentDirectory(), path).Replace(Path.DirectorySeparatorChar, '/'), 1, kind, "DeploymentBundles", remediation);
 
     private static ArgumentSyntax? Argument(InvocationExpressionSyntax invocation, string name, int position) =>
         invocation.ArgumentList.Arguments.FirstOrDefault(argument => argument.NameColon?.Name.Identifier.ValueText == name) ??

@@ -20,6 +20,9 @@ services:
   main:
     <<: *app-runtime
     image: "${VITARISH_PRODUCTION_MAIN_IMAGE:?VITARISH_PRODUCTION_MAIN_IMAGE is required}"
+    env_file:
+      - path: ./.env.production.mediatr
+        required: false
     expose: [8080]
     environment:
       ASPNETCORE_ENVIRONMENT: Production

@@ -41,6 +41,11 @@ try {
     Invoke-Gate $false 'valid-bundles'
 
     Reset-Fixture
+    $path = Join-Path $caseRoot 'docker-compose.production.yml'
+    (Get-Content -Raw $path) -replace '(?m)^        required: false$', '        required: true' | Set-Content -NoNewline $path
+    Invoke-Gate $true 'production-mediatr-file-remains-optional'
+
+    Reset-Fixture
     $path = Join-Path $caseRoot 'docker-compose.ingress.yml'
     $ingress = Get-Content -Raw $path
     $ingress = [regex]::Replace($ingress, '(?ms)(^  caddy:\r?\n.*?^    volumes:\r?\n)(      - \.\/Caddyfile:/etc/caddy/Caddyfile:ro\r?\n)', '$1')
