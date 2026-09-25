@@ -33,6 +33,7 @@ services:
       - "80:80/tcp"
       - "443:443/tcp"
     volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ingress-data:/data
       - ingress-config:/config
     networks:

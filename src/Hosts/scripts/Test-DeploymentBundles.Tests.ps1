@@ -42,6 +42,18 @@ try {
 
     Reset-Fixture
     $path = Join-Path $caseRoot 'docker-compose.ingress.yml'
+    $ingress = Get-Content -Raw $path
+    $ingress = [regex]::Replace($ingress, '(?ms)(^  caddy:\r?\n.*?^    volumes:\r?\n)(      - \.\/Caddyfile:/etc/caddy/Caddyfile:ro\r?\n)', '$1')
+    Set-Content -LiteralPath $path -Value $ingress -NoNewline
+    Invoke-Gate $true 'caddy-service-mounts-configured-file'
+
+    Reset-Fixture
+    $path = Join-Path $caseRoot 'Caddyfile'
+    (Get-Content -Raw $path) -replace '(?m)^        resolvers 1\.1\.1\.1\r?\n', '' | Set-Content -NoNewline $path
+    Invoke-Gate $true 'caddy-dns-challenge-uses-public-resolver'
+
+    Reset-Fixture
+    $path = Join-Path $caseRoot 'docker-compose.ingress.yml'
     (Get-Content -Raw $path) -replace '    network_mode: none', '    network_mode: ingress-egress' | Set-Content -NoNewline $path
     Invoke-Gate $true 'caddy-validator-uses-isolated-network-mode'
 

@@ -36,6 +36,8 @@ foreach ($line in $operatorShared -split "`r?`n") {
     if ($line -match '^(?<name>[A-Z0-9_]+)=(?<value>.*)$') { $operatorSharedValues[$Matches.name] = $Matches.value }
 }
 if (([regex]::Matches($ingress, '"(?:80:80|443:443)/tcp"')).Count -ne 2 -or $ingress -notmatch '"80:80/tcp"' -or $ingress -notmatch '"443:443/tcp"') { $failures.Add('Ingress must publish exactly TCP 80 and TCP 443.') }
+if ($ingress -notmatch '(?ms)^  caddy:\r?\n.*?^      - \.\/Caddyfile:/etc/caddy/Caddyfile:ro\s*$') { $failures.Add('The running Caddy service must mount the configured Caddyfile.') }
+if ($caddy -notmatch '(?ms)^\(security_headers\)\s*\{\s+tls\s*\{.*?dns cloudflare \{env\.CLOUDFLARE_API_TOKEN\}\s+resolvers 1\.1\.1\.1\s+\}') { $failures.Add('Caddy DNS challenges must use the configured public resolver.') }
 if ($ingress -notmatch '(?m)^x-caddy-runtime: &caddy-runtime\s*$' -or
     ([regex]::Matches($ingress, '(?m)^    <<: \*caddy-runtime\s*$')).Count -ne 2 -or
     $ingress -notmatch '(?ms)^  caddy-config-validator:\r?\n.*?^    profiles: \[validation\]\s*$' -or
