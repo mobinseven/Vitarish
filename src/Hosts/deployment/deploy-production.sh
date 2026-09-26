@@ -99,7 +99,7 @@ rollback() {
   rm -f -- "$release"
   [[ -z $updated_production ]] || rm -f -- "$updated_production"
   [[ -z $updated_shared ]] || rm -f -- "$updated_shared"
-  if [[ $attempted_caddy == true && $previous_ingress == true ]]; then ingress_previous up -d --wait --no-deps caddy || restore_failed=true; fi
+  if [[ $attempted_caddy == true && $previous_ingress == true ]]; then ingress_previous up -d --wait --no-deps --force-recreate caddy || restore_failed=true; fi
   previously_affected=()
   for service in "${attempted_apps[@]}"; do if was_running "$service"; then previously_affected+=("$service"); fi; done
   if ((${#previously_affected[@]})); then compose_previous up -d --wait --no-deps "${previously_affected[@]}" || restore_failed=true; fi
@@ -145,7 +145,7 @@ ingress pull caddy
 ingress run --interactive=false --rm --no-deps caddy-config-validator caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 attempted_caddy=true
 if selected caddy; then
-  ingress up -d --wait --wait-timeout 600 --no-deps --pull never caddy
+  ingress up -d --wait --wait-timeout 600 --no-deps --force-recreate --pull never caddy
 else
   ingress up -d --wait --wait-timeout 600 --no-deps --no-recreate --pull never caddy
 fi
