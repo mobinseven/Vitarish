@@ -68,7 +68,8 @@ test("the production readiness probe does not require an unsupported curl retry 
 });
 
 test("the production readiness probe pins HTTPS to the local ingress origin", () => {
-  assert.match(deployProductionScript, /--resolve "\$public_host:443:127\.0\.0\.1" --proto '=https' --tlsv1\.2 "https:\/\/\$public_host\$readiness_path"/);
+  assert.match(deployProductionScript, /--resolve "\$public_host:443:127\.0\.0\.1" --proto '=https' --tlsv1\.2[\s\S]*?"https:\/\/\$public_host\$readiness_path"/);
+  assert.match(deployProductionScript, /Production readiness returned HTTP %s from %s/);
 });
 
 test("production ingress forwards the Main readiness contract to the private Main upstream", () => {
