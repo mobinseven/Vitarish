@@ -173,6 +173,8 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.web_matrix != '[]' || needs.changes.outputs.full_suite == 'true' }}
     runs-on: ubuntu-latest
+    env:
+      HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
