@@ -44,7 +44,7 @@ test("configuration-only deployments remain eligible when publishing is skipped"
 });
 
 test("publishes selected images when unrelated test matrices are skipped", () => {
-  assert.match(workflow, /publish:\r?\n[\s\S]*?if: \$\{\{ !cancelled\(\)[^\n]*needs\.required\.result == 'success' \}\}/);
+  assert.match(workflow, /publish:\r?\n[\s\S]*?if: \$\{\{ github\.event_name == 'push'[^\n]*needs\.required\.result == 'success' && !cancelled\(\) \}\}/);
 });
 
 test("deployment script changes select every production service without publishing application images", () => {
