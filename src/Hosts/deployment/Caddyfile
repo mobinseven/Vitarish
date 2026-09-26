@@ -37,7 +37,7 @@
 }
 
 (production_readiness) {
-    # Expose Main readiness only on its public application host for release checks.
+    # Expose Main readiness only on its public application host for origin-pinned release checks.
     handle /health/ready {
         reverse_proxy production-main:8080
     }
