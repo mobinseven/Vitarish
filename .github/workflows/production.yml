@@ -286,8 +286,6 @@ jobs:
           file: src/Hosts/Web/apps/${{ matrix.image == 'pm' && 'vitarish-pm' || matrix.image == 'knowledge-qa' && 'knowledge-qa-demo' || matrix.image == 'landing' && 'vitarish-landing' || matrix.image }}/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/vitarish/${{ matrix.image }}:${{ github.sha }}
-          build-args: |
-            NEXT_PUBLIC_API_BASE_URL=
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
           provenance: true
