@@ -95,6 +95,8 @@ jobs:
             deployment:
               - 'src/Hosts/deployment/**'
               - 'src/Hosts/scripts/**'
+            deploy_script:
+              - 'src/Hosts/deployment/deploy-production.sh'
             security_tools:
               - 'tools/architecture/**'
             compose:
@@ -143,6 +145,7 @@ jobs:
           WEB_AGENT: ${{ steps.filter.outputs.web_agent }}
           CADDY: ${{ steps.filter.outputs.caddy }}
           DEPLOYMENT: ${{ steps.filter.outputs.deployment }}
+          DEPLOY_SCRIPT: ${{ steps.filter.outputs.deploy_script }}
           SECURITY_TOOLS: ${{ steps.filter.outputs.security_tools }}
           COMPOSE: ${{ steps.filter.outputs.compose }}
           TEST_COMPOSE: ${{ steps.filter.outputs.test_compose }}
