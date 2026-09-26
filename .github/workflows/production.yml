@@ -164,7 +164,7 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - name: Build solution
-        run: dotnet build Vitarish.slnx
+        run: dotnet build Vitarish.slnx -p:OpenApiGenerateDocumentsOnBuild=false
       - name: Test solution
         run: dotnet test Vitarish.slnx --no-build
 
