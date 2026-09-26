@@ -173,13 +173,13 @@ fi
 
 public_host=$(sed -n 's/^VITARISH_PRODUCTION_PUBLIC_HOST=//p' "$deployment/.env.shared")
 [[ $public_host =~ ^[A-Za-z0-9.-]+$ && -n $public_host ]] || { printf 'Invalid production public hostname.\n' >&2; false; }
-curl --fail --silent --show-error --retry 5 --retry-delay 5 --retry-all-errors --max-time 30 --proto '=https' --tlsv1.2 "https://$public_host$readiness_path" --output /dev/null
+curl --fail --silent --show-error --retry 5 --retry-delay 5 --max-time 30 --proto '=https' --tlsv1.2 "https://$public_host$readiness_path" --output /dev/null
 probe_route() {
   local variable=$1 host code headers
   host=$(sed -n "s/^${variable}=//p" "$deployment/.env.shared")
   [[ $host =~ ^[A-Za-z0-9.-]+$ && -n $host ]] || { printf 'Invalid production route hostname.\n' >&2; return 1; }
   headers=$(mktemp)
-  code=$(curl --silent --show-error --retry 5 --retry-delay 5 --retry-all-errors --max-time 30 --proto '=https' --tlsv1.2 --dump-header "$headers" --output /dev/null --write-out '%{http_code}' "https://$host/")
+  code=$(curl --silent --show-error --retry 5 --retry-delay 5 --max-time 30 --proto '=https' --tlsv1.2 --dump-header "$headers" --output /dev/null --write-out '%{http_code}' "https://$host/")
   case "$code" in 2*|301|302|303|307|308) ;; *) rm -f "$headers"; printf 'HTTPS route probe failed: %s.\n' "$variable" >&2; return 1 ;; esac
   grep -iq '^strict-transport-security:' "$headers" || { rm -f "$headers"; printf 'HSTS missing for production route: %s.\n' "$variable" >&2; return 1; }
   rm -f "$headers"
