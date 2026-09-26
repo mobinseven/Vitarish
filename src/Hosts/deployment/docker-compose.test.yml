@@ -1,0 +1,199 @@
+name: vitarish-test
+
+x-runtime: &runtime
+  restart: on-failure:5
+  security_opt: [no-new-privileges:true]
+
+x-app-runtime: &app-runtime
+  <<: *runtime
+  read_only: true
+  cap_drop: [ALL]
+  tmpfs: [/tmp]
+
+x-node-healthcheck: &node-healthcheck
+  test: [CMD, node, -e, "fetch('http://127.0.0.1:' + process.env.PORT).then(response => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+  interval: 10s
+  timeout: 5s
+  retries: 12
+
+services:
+  main:
+    <<: *app-runtime
+    image: ${VITARISH_TEST_MAIN_IMAGE:?VITARISH_TEST_MAIN_IMAGE is required}
+    expose: [8080]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      Vitarish__LandingUrl: https://${VITARISH_TEST_LANDING_HOST:?VITARISH_TEST_LANDING_HOST is required}
+      Vitarish__Identity__Authority: https://${VITARISH_TEST_PUBLIC_HOST:?VITARISH_TEST_PUBLIC_HOST is required}
+      Vitarish__Identity__DataProtectionPassword: ${VITARISH_TEST_DATA_PROTECTION_PASSWORD:?VITARISH_TEST_DATA_PROTECTION_PASSWORD is required}
+      Vitarish__Security__MandatoryAuditEnabled: "true"
+      Vitarish__Security__Audit__CapacityWarningBytes: ${VITARISH_TEST_AUDIT_CAPACITY_WARNING_BYTES:?VITARISH_TEST_AUDIT_CAPACITY_WARNING_BYTES is required}
+      Vitarish__Main__AuditCapacityAlert__EmailRecipient: ${VITARISH_TEST_AUDIT_ALERT_EMAIL:?VITARISH_TEST_AUDIT_ALERT_EMAIL is required}
+      Vitarish__Main__AuditCapacityAlert__SmsRecipient: ${VITARISH_TEST_AUDIT_ALERT_PHONE:?VITARISH_TEST_AUDIT_ALERT_PHONE is required}
+      Vitarish__Security__Tls__RequireHttps: "true"
+      Vitarish__Security__TrustedProxyNetworks__0: ${VITARISH_TEST_INGRESS_IPV4:?VITARISH_TEST_INGRESS_IPV4 is required}/32
+      Vitarish__Security__TokenValidation__Issuer: https://${VITARISH_TEST_PUBLIC_HOST:?VITARISH_TEST_PUBLIC_HOST is required}
+      Vitarish__Security__TokenValidation__Audiences__0: vitarish-api
+      Vitarish__Security__DataProtection__KeyRingRedisKey: ${VITARISH_TEST_KEY_RING_NAME:?VITARISH_TEST_KEY_RING_NAME is required}
+      Vitarish__Security__DataProtection__CertificateRedisKey: ${VITARISH_TEST_CERTIFICATE_KEY_NAME:?VITARISH_TEST_CERTIFICATE_KEY_NAME is required}
+      ConnectionStrings__Db: Host=postgres;Port=5432;Database=${VITARISH_TEST_POSTGRES_DB:?VITARISH_TEST_POSTGRES_DB is required};Username=${VITARISH_TEST_POSTGRES_USER:?VITARISH_TEST_POSTGRES_USER is required};Password=${VITARISH_TEST_POSTGRES_PASSWORD:?VITARISH_TEST_POSTGRES_PASSWORD is required}
+      ConnectionStrings__Redis: redis:6379,password=${VITARISH_TEST_REDIS_PASSWORD:?VITARISH_TEST_REDIS_PASSWORD is required},abortConnect=false
+      Vitarish__Files__Endpoint: aistor
+      Vitarish__Files__Port: "9000"
+      Vitarish__Files__UseSsl: "false"
+      Vitarish__Files__AccessKey: ${VITARISH_TEST_AISTOR_ACCESS_KEY:?VITARISH_TEST_AISTOR_ACCESS_KEY is required}
+      Vitarish__Files__SecretKey: ${VITARISH_TEST_AISTOR_SECRET_KEY:?VITARISH_TEST_AISTOR_SECRET_KEY is required}
+      Vitarish__Files__BucketName: ${VITARISH_TEST_AISTOR_BUCKET:?VITARISH_TEST_AISTOR_BUCKET is required}
+      Vitarish__Search__Url: http://elasticsearch:9200
+      Vitarish__Search__Username: ${VITARISH_TEST_ELASTIC_USERNAME:?VITARISH_TEST_ELASTIC_USERNAME is required}
+      Vitarish__Search__Password: ${VITARISH_TEST_ELASTIC_PASSWORD:?VITARISH_TEST_ELASTIC_PASSWORD is required}
+      Vitarish__Intelligence__OpenAi__ApiKey: ${VITARISH_TEST_OPENAI_API_KEY:?VITARISH_TEST_OPENAI_API_KEY is required}
+      Vitarish__Intelligence__DefaultResponseModel: ${VITARISH_DEFAULT_RESPONSE_MODEL:?VITARISH_DEFAULT_RESPONSE_MODEL is required}
+      Vitarish__Intelligence__AgentRuntime__BaseUrl: http://agent-runtime:3003
+      Vitarish__Intelligence__AgentRuntime__ToolCallbackUrl: http://main:8080/api/modules/intelligence/internal/agent/tools/execute
+      Vitarish__Intelligence__AgentRuntime__SharedSecret: ${VITARISH_TEST_AGENT_RUNTIME_SHARED_SECRET:?VITARISH_TEST_AGENT_RUNTIME_SHARED_SECRET is required}
+      Vitarish__Security__AuthenticationAttempts__CurrentPepper: ${VITARISH_TEST_AUTH_ATTEMPT_KEY_PEPPER:?VITARISH_TEST_AUTH_ATTEMPT_KEY_PEPPER is required}
+      Vitarish__Communications__Providers__SmsDotIr__Key: ${VITARISH_TEST_SMS_API_KEY:?VITARISH_TEST_SMS_API_KEY is required}
+      Vitarish__Communications__Providers__SmsDotIr__LineNumber: ${VITARISH_TEST_SMS_LINE_NUMBER:?VITARISH_TEST_SMS_LINE_NUMBER is required}
+      Vitarish__Communications__Providers__SmsDotIr__VerificationCodeTemplateId: ${VITARISH_TEST_SMS_VERIFICATION_TEMPLATE_ID:?VITARISH_TEST_SMS_VERIFICATION_TEMPLATE_ID is required}
+      Vitarish__Communications__Providers__SmsDotIr__ReminderTemplateId: ${VITARISH_TEST_SMS_REMINDER_TEMPLATE_ID:?VITARISH_TEST_SMS_REMINDER_TEMPLATE_ID is required}
+      Vitarish__Communications__Providers__Smtp__Host: ${VITARISH_TEST_SMTP_HOST:?VITARISH_TEST_SMTP_HOST is required}
+      Vitarish__Communications__Providers__Smtp__Port: ${VITARISH_TEST_SMTP_PORT:?VITARISH_TEST_SMTP_PORT is required}
+      Vitarish__Communications__Providers__Smtp__EnableSsl: "true"
+      Vitarish__Communications__Providers__Smtp__Name: ${VITARISH_TEST_SMTP_NAME:?VITARISH_TEST_SMTP_NAME is required}
+      Vitarish__Communications__Providers__Smtp__Username: ${VITARISH_TEST_SMTP_USERNAME:?VITARISH_TEST_SMTP_USERNAME is required}
+      Vitarish__Communications__Providers__Smtp__Password: ${VITARISH_TEST_SMTP_PASSWORD:?VITARISH_TEST_SMTP_PASSWORD is required}
+      Cors__AllowedOrigins__0: https://${VITARISH_TEST_PUBLIC_HOST:?VITARISH_TEST_PUBLIC_HOST is required}
+      Cors__AllowedOrigins__1: https://${VITARISH_TEST_PATIENTS_HOST:?VITARISH_TEST_PATIENTS_HOST is required}
+      Cors__AllowedOrigins__2: https://${VITARISH_TEST_PLATFORM_ADMIN_HOST:?VITARISH_TEST_PLATFORM_ADMIN_HOST is required}
+      Cors__AllowedOrigins__3: https://${VITARISH_TEST_PM_HOST:?VITARISH_TEST_PM_HOST is required}
+      Cors__AllowedOrigins__4: https://${VITARISH_TEST_KNOWLEDGE_QA_HOST:?VITARISH_TEST_KNOWLEDGE_QA_HOST is required}
+      Cors__AllowedOrigins__5: https://${VITARISH_TEST_LANDING_HOST:?VITARISH_TEST_LANDING_HOST is required}
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      aistor: { condition: service_healthy }
+      elasticsearch: { condition: service_healthy }
+    healthcheck:
+      test: [CMD-SHELL, "test -r /proc/1/cmdline && grep -aq 'Vitarish.Main' /proc/1/cmdline"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      application: {}
+      egress: {}
+      proxy: { aliases: [test-main] }
+
+  private-practice-owner:
+    <<: *app-runtime
+    image: ${VITARISH_TEST_OWNER_WEB_IMAGE:?VITARISH_TEST_OWNER_WEB_IMAGE is required}
+    expose: [3000]
+    healthcheck: *node-healthcheck
+    networks: { application: {}, proxy: { aliases: [test-private-practice-owner] } }
+  patients:
+    <<: *app-runtime
+    image: ${VITARISH_TEST_PATIENTS_WEB_IMAGE:?VITARISH_TEST_PATIENTS_WEB_IMAGE is required}
+    expose: [3001]
+    healthcheck: *node-healthcheck
+    networks: { application: {}, proxy: { aliases: [test-patients] } }
+  platform-admin:
+    <<: *app-runtime
+    image: ${VITARISH_TEST_PLATFORM_ADMIN_WEB_IMAGE:?VITARISH_TEST_PLATFORM_ADMIN_WEB_IMAGE is required}
+    expose: [3003]
+    healthcheck: *node-healthcheck
+    networks: { application: {}, proxy: { aliases: [test-platform-admin] } }
+  pm:
+    <<: *app-runtime
+    image: ${VITARISH_TEST_PM_WEB_IMAGE:?VITARISH_TEST_PM_WEB_IMAGE is required}
+    expose: [3004]
+    healthcheck: *node-healthcheck
+    networks: { application: {}, proxy: { aliases: [test-pm] } }
+  knowledge-qa:
+    <<: *app-runtime
+    image: ${VITARISH_TEST_KNOWLEDGE_QA_WEB_IMAGE:?VITARISH_TEST_KNOWLEDGE_QA_WEB_IMAGE is required}
+    expose: [3001]
+    healthcheck: *node-healthcheck
+    networks: { application: {}, proxy: { aliases: [test-knowledge-qa] } }
+  landing:
+    <<: *app-runtime
+    image: ${VITARISH_TEST_LANDING_WEB_IMAGE:?VITARISH_TEST_LANDING_WEB_IMAGE is required}
+    expose: [3002]
+    healthcheck: *node-healthcheck
+    networks: { application: {}, proxy: { aliases: [test-landing] } }
+  agent-runtime:
+    <<: *app-runtime
+    image: ${VITARISH_TEST_AGENT_RUNTIME_IMAGE:?VITARISH_TEST_AGENT_RUNTIME_IMAGE is required}
+    expose: [3003]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:' + process.env.PORT + '/api/internal/intelligence-agent/health', { headers: { authorization: 'Bearer ' + process.env.AGENT_RUNTIME_SHARED_SECRET } }).then(response => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    environment:
+      OPENAI_API_KEY: ${VITARISH_TEST_OPENAI_API_KEY:?VITARISH_TEST_OPENAI_API_KEY is required}
+      AGENT_RUNTIME_SHARED_SECRET: ${VITARISH_TEST_AGENT_RUNTIME_SHARED_SECRET:?VITARISH_TEST_AGENT_RUNTIME_SHARED_SECRET is required}
+      AGENT_RUNTIME_INTELLIGENCE_HEALTH_URL: http://main:8080/api/modules/clinic/internal/assistant/health
+    networks: [application, egress]
+
+  postgres:
+    <<: *runtime
+    image: ${VITARISH_POSTGRES_IMAGE:?VITARISH_POSTGRES_IMAGE is required}
+    environment:
+      POSTGRES_DB: ${VITARISH_TEST_POSTGRES_DB:?VITARISH_TEST_POSTGRES_DB is required}
+      POSTGRES_USER: ${VITARISH_TEST_POSTGRES_USER:?VITARISH_TEST_POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${VITARISH_TEST_POSTGRES_PASSWORD:?VITARISH_TEST_POSTGRES_PASSWORD is required}
+    volumes: [test-postgres:/var/lib/postgresql]
+    healthcheck: { test: [CMD-SHELL, "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"], interval: 10s, timeout: 5s, retries: 12 }
+    networks: [application]
+  redis:
+    <<: *runtime
+    image: ${VITARISH_REDIS_IMAGE:?VITARISH_REDIS_IMAGE is required}
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - "${VITARISH_TEST_REDIS_PASSWORD:?VITARISH_TEST_REDIS_PASSWORD is required}"
+    volumes: [test-redis:/data]
+    environment:
+      REDIS_PASSWORD: "${VITARISH_TEST_REDIS_PASSWORD:?VITARISH_TEST_REDIS_PASSWORD is required}"
+    healthcheck: { test: [CMD-SHELL, "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG"], interval: 10s, timeout: 5s, retries: 12 }
+    networks: [application]
+  aistor:
+    <<: *runtime
+    image: ${VITARISH_AISTOR_IMAGE:?VITARISH_AISTOR_IMAGE is required}
+    command: server /mnt/data --license /minio.license
+    environment:
+      MINIO_ROOT_USER: ${VITARISH_TEST_AISTOR_ACCESS_KEY:?VITARISH_TEST_AISTOR_ACCESS_KEY is required}
+      MINIO_ROOT_PASSWORD: ${VITARISH_TEST_AISTOR_SECRET_KEY:?VITARISH_TEST_AISTOR_SECRET_KEY is required}
+    volumes:
+      - test-aistor:/mnt/data
+      - type: bind
+        source: ./minio.license
+        target: /minio.license
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck: { test: [CMD, mc, ready, local], interval: 5s, timeout: 5s, retries: 12 }
+    networks: [application]
+  elasticsearch:
+    <<: *runtime
+    image: ${VITARISH_ELASTICSEARCH_IMAGE:?VITARISH_ELASTICSEARCH_IMAGE is required}
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "true"
+      ELASTIC_PASSWORD: ${VITARISH_TEST_ELASTIC_PASSWORD:?VITARISH_TEST_ELASTIC_PASSWORD is required}
+    volumes: [test-elasticsearch:/usr/share/elasticsearch/data]
+    healthcheck: { test: [CMD-SHELL, "curl -fsS -u elastic:$${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health"], interval: 10s, timeout: 5s, retries: 30 }
+    networks: [application]
+
+networks:
+  application: { name: vitarish-test-application, internal: true }
+  egress: { name: vitarish-test-egress }
+  proxy: { name: vitarish-test-proxy, external: true }
+volumes:
+  test-postgres: { name: vitarish-test-postgres }
+  test-redis: { name: vitarish-test-redis }
+  test-aistor: { name: vitarish-test-aistor }
+  test-elasticsearch: { name: vitarish-test-elasticsearch }

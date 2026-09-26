@@ -1,0 +1,409 @@
+name: Production CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: production-cicd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  changes:
+    name: Detect affected consumers
+    runs-on: ubuntu-latest
+    outputs:
+      filters: ${{ steps.filter.outputs.changes }}
+      dotnet: ${{ steps.filter.outputs.dotnet }}
+      main: ${{ steps.filter.outputs.main }}
+      web_all: ${{ steps.filter.outputs.web_all }}
+      web_owner: ${{ steps.filter.outputs.web_owner }}
+      web_patients: ${{ steps.filter.outputs.web_patients }}
+      web_admin: ${{ steps.filter.outputs.web_admin }}
+      web_pm: ${{ steps.filter.outputs.web_pm }}
+      web_qa: ${{ steps.filter.outputs.web_qa }}
+      web_landing: ${{ steps.filter.outputs.web_landing }}
+      web_agent: ${{ steps.filter.outputs.web_agent }}
+      caddy: ${{ steps.filter.outputs.caddy }}
+      deployment: ${{ steps.filter.outputs.deployment }}
+      security_tools: ${{ steps.filter.outputs.security_tools }}
+      workflow: ${{ steps.filter.outputs.workflow }}
+      unknown_source: ${{ steps.filter.outputs.unknown_source }}
+      web_matrix: ${{ steps.matrix.outputs.web }}
+      image_matrix: ${{ steps.matrix.outputs.images }}
+      deploy_services: ${{ steps.matrix.outputs.services }}
+      full_suite: ${{ steps.matrix.outputs.full_suite }}
+      readiness_path: ${{ steps.matrix.outputs.readiness_path }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Filter changed paths
+        id: filter
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        uses: dorny/paths-filter@v4
+        with:
+          predicate-quantifier: some-with-excludes
+          filters: |
+            dotnet:
+              - 'src/Apps/**'
+              - 'src/Build/**'
+              - 'src/Identity/**'
+              - 'src/Libraries/**'
+              - 'src/Modules/**'
+              - 'tests/**'
+              - 'src/Hosts/E2e/**'
+              - 'Directory.*'
+              - 'Vitarish.slnx'
+            main:
+              - 'src/Hosts/Main/**'
+            web_owner:
+              - 'src/Hosts/Web/apps/private-practice-owner/**'
+            web_patients:
+              - 'src/Hosts/Web/apps/patients/**'
+            web_admin:
+              - 'src/Hosts/Web/apps/platform-admin/**'
+            web_pm:
+              - 'src/Hosts/Web/apps/vitarish-pm/**'
+            web_qa:
+              - 'src/Hosts/Web/apps/knowledge-qa-demo/**'
+            web_landing:
+              - 'src/Hosts/Web/apps/vitarish-landing/**'
+            web_agent:
+              - 'src/Hosts/Web/apps/agent-runtime/**'
+            web_all:
+              - 'src/Hosts/Web/shared/**'
+              - 'src/Hosts/Web/scripts/**'
+              - 'src/Hosts/Web/package.json'
+              - 'src/Hosts/Web/package-lock.json'
+              - 'src/Hosts/Web/tsconfig.json'
+              - 'src/Hosts/Web/turbo.json'
+              - 'src/Modules/**/Contracts/**'
+              - 'src/Modules/**/Api/**'
+              - 'src/Hosts/Main/**'
+            caddy:
+              - 'src/Hosts/deployment/Caddyfile'
+              - 'src/Hosts/deployment/Dockerfile'
+            deployment:
+              - 'src/Hosts/deployment/**'
+              - 'src/Hosts/scripts/**'
+            security_tools:
+              - 'tools/architecture/**'
+            compose:
+              - 'src/Hosts/deployment/docker-compose.ingress.yml'
+              - 'src/Hosts/deployment/docker-compose.production.yml'
+            test_compose:
+              - 'src/Hosts/deployment/docker-compose.test.yml'
+            workflow:
+              - '.github/workflows/**'
+              - 'tools/ci/**'
+              - 'docs/architecture.md'
+              - 'AGENTS.md'
+              - 'docs/codebase-map.md'
+            unknown_source:
+              - 'src/**'
+              - 'tests/**'
+              - '!src/Apps/**'
+              - '!src/Build/**'
+              - '!src/Identity/**'
+              - '!src/Libraries/**'
+              - '!src/Modules/**'
+              - '!src/Hosts/Main/**'
+              - '!src/Hosts/E2e/**'
+              - '!src/Hosts/deployment/**'
+              - '!src/Hosts/scripts/**'
+              - '!src/Hosts/Web/apps/**'
+              - '!src/Hosts/Web/shared/**'
+              - '!src/Hosts/Web/scripts/**'
+              - '!src/Hosts/Web/package.json'
+              - '!src/Hosts/Web/package-lock.json'
+              - '!src/Hosts/Web/tsconfig.json'
+              - '!src/Hosts/Web/turbo.json'
+      - name: Create test, image, and deployment matrices
+        id: matrix
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DOTNET: ${{ steps.filter.outputs.dotnet }}
+          MAIN: ${{ steps.filter.outputs.main }}
+          WEB_ALL: ${{ steps.filter.outputs.web_all }}
+          WEB_OWNER: ${{ steps.filter.outputs.web_owner }}
+          WEB_PATIENTS: ${{ steps.filter.outputs.web_patients }}
+          WEB_ADMIN: ${{ steps.filter.outputs.web_admin }}
+          WEB_PM: ${{ steps.filter.outputs.web_pm }}
+          WEB_QA: ${{ steps.filter.outputs.web_qa }}
+          WEB_LANDING: ${{ steps.filter.outputs.web_landing }}
+          WEB_AGENT: ${{ steps.filter.outputs.web_agent }}
+          CADDY: ${{ steps.filter.outputs.caddy }}
+          DEPLOYMENT: ${{ steps.filter.outputs.deployment }}
+          SECURITY_TOOLS: ${{ steps.filter.outputs.security_tools }}
+          COMPOSE: ${{ steps.filter.outputs.compose }}
+          TEST_COMPOSE: ${{ steps.filter.outputs.test_compose }}
+          WORKFLOW: ${{ steps.filter.outputs.workflow }}
+          UNKNOWN_SOURCE: ${{ steps.filter.outputs.unknown_source }}
+        run: |
+          node tools/ci/select-production-matrix.mjs
+      - name: Verify path selection and release identity
+        run: node --test tools/ci/*.test.mjs
+
+  dotnet:
+    name: .NET build and tests
+    needs: changes
+    if: ${{ needs.changes.outputs.dotnet == 'true' || needs.changes.outputs.main == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.full_suite == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build solution
+        run: dotnet build Vitarish.slnx -p:OpenApiGenerateDocumentsOnBuild=false
+      - name: Test solution
+        run: dotnet test Vitarish.slnx --no-build
+
+  web:
+    name: Web checks (${{ matrix.workspace }})
+    needs: changes
+    if: ${{ needs.changes.outputs.web_matrix != '[]' || needs.changes.outputs.full_suite == 'true' }}
+    runs-on: ubuntu-latest
+    env:
+      HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.changes.outputs.web_matrix) }}
+    defaults:
+      run:
+        working-directory: src/Hosts/Web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/Hosts/Web/package-lock.json
+      - run: npm ci
+      - name: Generate API clients
+        run: npm run generate:api --workspaces --if-present
+      - name: Typecheck affected workspace
+        run: npm run typecheck --workspace @vitarish/${{ matrix.workspace }} --if-present
+      - name: Test affected workspace
+        run: npm run test --workspace @vitarish/${{ matrix.workspace }} --if-present
+      - name: Run shared Web checks
+        if: ${{ matrix.workspace == 'private-practice-owner' && (needs.changes.outputs.web_all == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.full_suite == 'true') }}
+        run: |
+          npm run typecheck
+          npm run validate:web-ui-boundary
+          npm run validate:app-boundaries
+          npm run validate:docs:app-boundaries
+          npm run validate:api-boundary
+          npm run validate:localization
+          npm run lint:layout
+          npm run test:layout-lint
+          npm run test
+
+  security:
+    name: Architecture security baseline
+    needs: changes
+    if: ${{ needs.changes.outputs.deployment == 'true' || needs.changes.outputs.security_tools == 'true' || needs.changes.outputs.dotnet == 'true' || needs.changes.outputs.main == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.workflow == 'true' || needs.changes.outputs.full_suite == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Run security baseline and regression fixtures
+        run: |
+          dotnet run --project tools/architecture -- security-baseline
+          dotnet run --project tools/architecture -- self-test
+      - name: Validate committed Compose examples
+        working-directory: src/Hosts/deployment
+        run: |
+          docker compose --env-file .env.shared.example -f docker-compose.ingress.yml config --quiet
+          docker compose --env-file .env.shared.example --env-file .env.test.example -f docker-compose.test.yml config --quiet
+          docker compose --env-file .env.shared.example --env-file .env.production.example -f docker-compose.production.yml config --quiet
+
+  required:
+    name: Required CI checks
+    if: ${{ always() }}
+    needs: [changes, dotnet, web, security]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail when an executed check failed
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1
+      - name: Checks passed or no relevant paths changed
+        run: echo "Required checks completed."
+
+  publish:
+    name: Publish affected SHA images
+    needs: [changes, required]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.image_matrix != '[]' && needs.required.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.changes.outputs.image_matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish service image
+        if: ${{ matrix.image == 'main' || matrix.image == 'caddy' }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.image == 'main' && '.' || 'src/Hosts/deployment' }}
+          file: ${{ matrix.image == 'main' && 'src/Hosts/Main/Dockerfile' || 'src/Hosts/deployment/Dockerfile' }}
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/vitarish/${{ matrix.image }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+          provenance: true
+      - name: Publish Web image
+        if: ${{ matrix.image != 'main' && matrix.image != 'caddy' }}
+        uses: docker/build-push-action@v6
+        with:
+          context: src/Hosts/Web
+          file: src/Hosts/Web/apps/${{ matrix.image == 'pm' && 'vitarish-pm' || matrix.image == 'knowledge-qa' && 'knowledge-qa-demo' || matrix.image == 'landing' && 'vitarish-landing' || matrix.image }}/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/vitarish/${{ matrix.image }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+          provenance: true
+          secret-envs: HEROUI_AUTH_TOKEN=HEROUI_AUTH_TOKEN
+        env:
+          HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
+      - name: Record the published image digest
+        env:
+          IMAGE_NAME: ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          image_ref="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/vitarish/$IMAGE_NAME:$GITHUB_SHA"
+          PUBLISHED_DIGEST="$(docker buildx imagetools inspect "$image_ref" --format '{{json .Manifest.Digest}}' | tr -d '"')"
+          [[ "$PUBLISHED_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]] || exit 1
+          mkdir -p image-digests
+          printf '%s\n' "$PUBLISHED_DIGEST" > "image-digests/$IMAGE_NAME.digest"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-digest-${{ matrix.image }}-${{ github.sha }}
+          path: image-digests/${{ matrix.image }}.digest
+          if-no-files-found: error
+
+  deploy_production:
+    name: Deploy affected production services
+    needs: [changes, required, publish]
+    if: ${{ always() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.deploy_services != '[]' && needs.required.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+    concurrency:
+      group: vitarish-production-deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: docker/setup-buildx-action@v3
+        if: ${{ needs.publish.result == 'success' }}
+      - uses: docker/login-action@v3
+        if: ${{ needs.publish.result == 'success' }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        if: ${{ needs.publish.result == 'success' }}
+        with:
+          pattern: image-digest-*-${{ github.sha }}
+          path: ${{ runner.temp }}/image-digests
+          merge-multiple: true
+      - name: Configure production SSH access
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.PRODUCTION_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 0700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 0600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 0600 ~/.ssh/known_hosts
+      - name: Install browser evidence dependencies
+        working-directory: src/Hosts/Web
+        env:
+          HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
+        run: npm ci
+      - name: Install Chromium for production evidence
+        working-directory: src/Hosts/Web
+        run: npx playwright install --with-deps chromium
+      - name: Resolve this run's published image digests
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          IMAGE_MATRIX: ${{ needs.changes.outputs.image_matrix }}
+          SERVICE_MATRIX: ${{ needs.changes.outputs.deploy_services }}
+          READINESS_PATH: ${{ needs.changes.outputs.readiness_path }}
+          COMMIT_SHA: ${{ github.sha }}
+          IMAGE_DIGEST_DIRECTORY: ${{ runner.temp }}/image-digests
+          RELEASE_OUTPUT_DIRECTORY: ${{ runner.temp }}/deployment
+        run: |
+          set -euo pipefail
+          install -m 0700 -d "$RELEASE_OUTPUT_DIRECTORY"
+          node tools/ci/resolve-production-images.mjs
+      - name: Transfer the release and deploy production
+        env:
+          SSH_USER: ${{ secrets.PRODUCTION_SSH_USER }}
+          SSH_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+          [[ "$SSH_USER" == "root" && "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ && "$COMMIT_SHA" =~ ^[0-9a-f]{40}$ && "$GITHUB_RUN_ID" =~ ^[1-9][0-9]*$ ]] || {
+            printf 'Invalid production SSH target or release identity.\n' >&2
+            exit 2
+          }
+          node - "$SSH_HOST" <<'NODE'
+          const { isIPv4 } = require("node:net");
+          if (!isIPv4(process.argv[2])) throw new Error("Production SSH host must be the verified public ingress IPv4 address.");
+          NODE
+          destination="$SSH_USER@$SSH_HOST"
+          ssh_options=(-o BatchMode=yes -o StrictHostKeyChecking=yes)
+          incoming="/opt/vitarish/deployment/.workflow-incoming/$COMMIT_SHA-$GITHUB_RUN_ID"
+          cleanup_incoming() { ssh "${ssh_options[@]}" "$destination" "rm -rf -- '$incoming'" || true; }
+          trap cleanup_incoming ERR
+          ssh "${ssh_options[@]}" "$destination" "install -d -m 0700 '$incoming'"
+          scp "${ssh_options[@]}" src/Hosts/deployment/Caddyfile src/Hosts/deployment/docker-compose.ingress.yml src/Hosts/deployment/docker-compose.test.yml src/Hosts/deployment/docker-compose.production.yml "$RUNNER_TEMP/deployment/release.env" "$RUNNER_TEMP/deployment/plan.json" "$destination:$incoming/"
+          ssh "${ssh_options[@]}" "$destination" "bash -s -- '$COMMIT_SHA' '$GITHUB_RUN_ID'" < src/Hosts/deployment/deploy-production.sh
+          trap - ERR
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deployed-release-${{ github.sha }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/deployment/plan.json
+          if-no-files-found: error
+      - name: Capture deployed production evidence
+        working-directory: src/Hosts/Web
+        env:
+          PUBLIC_INGRESS_IPV4: ${{ secrets.PRODUCTION_SSH_HOST }}
+          SSH_TARGET: root@${{ secrets.PRODUCTION_SSH_HOST }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: node scripts/capture-production-browser-evidence.mjs "$PUBLIC_INGRESS_IPV4" "$SSH_TARGET" "$COMMIT_SHA"
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: production-browser-evidence-${{ github.sha }}-${{ github.run_id }}
+          path: src/Hosts/Web/artifacts/deployment-evidence/
+          if-no-files-found: ignore

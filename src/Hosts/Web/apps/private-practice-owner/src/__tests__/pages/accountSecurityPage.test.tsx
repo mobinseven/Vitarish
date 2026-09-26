@@ -24,10 +24,15 @@ vi.mock("@vitarish/auth", () => ({
   }),
 }));
 
-vi.mock("@/components/account/AccountSurface", () => ({
-  AccountSurface: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
-  AccountBackLink: () => <a href="/account">Back</a>,
-}));
+vi.mock("@/components/account/AccountSurface", async () => {
+  const { StandaloneDocumentPage } = await import("@vitarish/ui");
+  return {
+    AccountSurface: ({ children }: { children: React.ReactNode }) => (
+      <StandaloneDocumentPage>{children}</StandaloneDocumentPage>
+    ),
+    AccountBackLink: () => <a href="/account">Back</a>,
+  };
+});
 
 vi.mock("@/localization", () => ({
   formatDateTime: (value: string) => value,

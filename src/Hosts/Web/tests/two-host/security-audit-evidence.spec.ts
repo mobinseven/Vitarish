@@ -3,6 +3,10 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
+import {
+  localizePlatformAuditCategory,
+  localizePlatformAuditEvent,
+} from "../../shared/security/src/localization";
 
 const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
 const platformOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
@@ -30,6 +34,7 @@ const uiText = {
   applyFilters: locale === "fa" ? "اعمال فیلتر" : "Apply filters",
   outcome: locale === "fa" ? "نتیجه" : "Outcome",
   export: locale === "fa" ? "خروجی CSV" : "Export CSV",
+  next: locale === "fa" ? "بعدی" : "Next",
 } as const;
 
 const auditEvents = {
@@ -44,6 +49,7 @@ const auditEvents = {
   auditExport: { controls: [1, 15], category: "import-export", name: "security.data.export", operation: "data.export" },
   accessHistory: { controls: [1, 3, 17], category: "session", name: "authentication.access-history", operation: "access-history" },
   sessionPolicy: { controls: [1, 4, 16, 17], category: "authentication", name: "authentication.security-access-policy", operation: "Authentication_SecurityAccessPolicy_Change" },
+  securityFunctionFailure: { controls: [19], category: "security-failure", name: "security.failure", operation: "security.failure" },
   tenantRoleReplacement: { controls: [11, 17, 18], category: "management", name: "users.tenant-role-replacement", operation: "Users_ReplaceTenantRole" },
   dataImport: { controls: [14], category: "import-export", name: "security.data.import", operation: "data.import" },
 } as const;
@@ -58,7 +64,13 @@ async function login(page: Page, username: string, origin = "", clientIp = "198.
   ]);
   expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
   await page.setExtraHTTPHeaders({ "X-Forwarded-For": clientIp });
-  await page.goto(`${origin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
+  if (origin === platformOrigin) {
+    await page.goto(`${platformOrigin}${PlatformRoutes.LoginPassword}`, { waitUntil: "networkidle" });
+    await expect(page.locator('input[name="username"]')).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
+  } else {
+    await page.goto(`${origin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
+  }
   await page.locator('input[name="username"]').fill(username);
   await page.locator('input[name="password"]').fill(password!);
   const [response] = await Promise.all([
@@ -175,6 +187,8 @@ async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: u
 }
 
 async function captureAuditEvidence(page: Page, event: AuditEventExpectation, filename: string): Promise<void> {
+  const visibleCategory = localizePlatformAuditCategory(locale, event.category, event.category);
+  const visibleEvent = localizePlatformAuditEvent(locale, event.name, event.name);
   const records = await platformAuditQuery(page, event);
   expect(records.items.length, `controls ${event.controls.join(", ")} / ${event.name} must have a durable event after its real action`).toBeGreaterThan(0);
   expect(records.items.every((item) =>
@@ -193,9 +207,9 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   await expect(page.getByRole("heading", { name: uiText.auditTitle })).toBeVisible({ timeout: 30_000 });
   await page.getByRole("button", { name: uiText.clearFilters }).click();
   await page.getByRole("button", { name: uiText.allCategories }).click();
-  await page.getByRole("option", { name: event.category, exact: true }).click();
+  await page.getByRole("option", { name: visibleCategory, exact: true }).click();
   await page.getByRole("button", { name: uiText.allEvents }).click();
-  await page.getByRole("option", { name: event.name, exact: true }).click();
+  await page.getByRole("option", { name: visibleEvent, exact: true }).click();
   await page.getByRole("button", { name: uiText.allOperations }).click();
   await page.getByRole("option", { name: event.operation, exact: true }).click();
   await page.getByLabel(uiText.outcome).fill(event.outcome);
@@ -206,12 +220,66 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   await response;
   const firstRow = page.locator("tbody tr").first();
   await expect(firstRow).toBeVisible({ timeout: 30_000 });
-  await expect(firstRow.getByText(event.name, { exact: true })).toBeVisible();
-  await expect(firstRow.getByText(event.operation, { exact: true })).toBeVisible();
+  await expect(firstRow.getByText(visibleEvent, { exact: true }).first()).toBeVisible();
+  await expect(firstRow.getByText(event.operation, { exact: true }).last()).toBeVisible();
   await expect(firstRow.getByText(event.outcome, { exact: true })).toBeVisible();
 
   mkdirSync(evidenceDirectory, { recursive: true });
   await page.screenshot({ path: join(evidenceDirectory, filename), fullPage: true });
+}
+
+async function platformAuditCategoryQuery(page: Page, category: string, pageNumber: number): Promise<AuditPage & { page: number; pageSize: number; totalCount: number }> {
+  const result = await page.evaluate(async ({ origin, eventCategory, page }) => {
+    const url = new URL("/api/audit/platform/security-events", origin);
+    url.search = new URLSearchParams({
+      page: String(page),
+      pageSize: "25",
+      eventCategory,
+      sortBy: "1",
+      descending: "true",
+      uncataloguedOnly: "false",
+    }).toString();
+    const response = await fetch(url, { credentials: "include" });
+    return { status: response.status, body: await response.json() };
+  }, { origin: apiOrigin, eventCategory: category, page: pageNumber });
+
+  expect(result.status).toBe(200);
+  return result.body as AuditPage & { page: number; pageSize: number; totalCount: number };
+}
+
+async function captureAllAuthenticationCatalogEvidence(page: Page): Promise<void> {
+  const category = auditEvents.passwordLogin.category;
+  const firstPage = await platformAuditCategoryQuery(page, category, 1);
+  expect(firstPage.totalCount, "the authentication catalog must contain durable records").toBeGreaterThan(0);
+  expect(firstPage.items.every((item) =>
+    item.eventCategory === category
+    && Boolean(item.eventName)
+    && Boolean(item.operation),
+  )).toBe(true);
+
+  await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: uiText.auditTitle })).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: uiText.clearFilters }).click();
+  await page.getByRole("button", { name: uiText.allCategories }).click();
+  await page.getByRole("option", {
+    name: localizePlatformAuditCategory(locale, category, category),
+    exact: true,
+  }).click();
+
+  const applyResponse = page.waitForResponse((candidate) =>
+    candidate.url().includes("/api/audit/platform/security-events") && candidate.request().method() === "GET",
+  );
+  await page.getByRole("button", { name: uiText.applyFilters }).click();
+  await applyResponse;
+
+  expect(firstPage.items.length).toBeGreaterThan(0);
+  expect(firstPage.items.every((item) => item.eventCategory === category)).toBe(true);
+  await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 30_000 });
+  mkdirSync(evidenceDirectory, { recursive: true });
+  await page.screenshot({
+    path: join(evidenceDirectory, "authentication-catalog-page-1.png"),
+    fullPage: true,
+  });
 }
 
 test("real actions create visible platform security-audit evidence", async ({ page, browser, request }) => {
@@ -263,7 +331,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const member = page.getByRole("listitem").filter({ hasText: contact });
     await expect(member).toBeVisible();
 
-    await login(administratorPage, platformAdminUsername, "", "198.51.100.62");
+    await login(administratorPage, platformAdminUsername, platformOrigin, "198.51.100.62");
     const tenantMembers = await page.evaluate(async (origin) => {
       const response = await fetch(`${origin}/api/modules/users/tenant-members?maxResults=100`, {
         credentials: "include",
@@ -302,6 +370,15 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     }, apiOrigin);
     expect(currentPolicy.status).toBe(200);
     const policy = currentPolicy.body;
+    const rejectedPolicyUpdate = await putJson(administratorPage, "/api/modules/authentication/security/session-policy", {
+      maximumConcurrentSessions: policy.maximumConcurrentSessions,
+      concurrentSessionsFunctionallyRequired: policy.concurrentSessionsFunctionallyRequired,
+      defaultInactivityTimeoutMinutes: 31,
+      allowedSessionStartCidrs: policy.allowedSessionStartCidrs,
+      expectedVersion: policy.version,
+    });
+    expect(rejectedPolicyUpdate.status).toBe(400);
+
     const policyUpdate = await putJson(administratorPage, "/api/modules/authentication/security/session-policy", {
       maximumConcurrentSessions: 2,
       concurrentSessionsFunctionallyRequired: true,
@@ -316,14 +393,16 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const thirdAdministratorContext = await browser.newContext();
     const thirdAdministratorPage = await thirdAdministratorContext.newPage();
     try {
-      await secondAdministratorPage.goto(ClinicRoutes.Login.Password, { waitUntil: "domcontentloaded" });
+      await secondAdministratorPage.goto(`${platformOrigin}${PlatformRoutes.LoginPassword}`, { waitUntil: "networkidle" });
+      await expect(secondAdministratorPage.locator('input[name="username"]')).toBeVisible({ timeout: 30_000 });
       await secondAdministratorPage.locator('input[name="username"]').fill(platformAdminUsername);
       await secondAdministratorPage.locator('input[name="password"]').fill(password!);
       const secondSession = secondAdministratorPage.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/password"));
       await secondAdministratorPage.locator('button[type="submit"]').click();
       expect((await secondSession).status()).toBe(200);
 
-      await thirdAdministratorPage.goto(ClinicRoutes.Login.Password, { waitUntil: "domcontentloaded" });
+      await thirdAdministratorPage.goto(`${platformOrigin}${PlatformRoutes.LoginPassword}`, { waitUntil: "networkidle" });
+      await expect(thirdAdministratorPage.locator('input[name="username"]')).toBeVisible({ timeout: 30_000 });
       await thirdAdministratorPage.locator('input[name="username"]').fill(platformAdminUsername);
       await thirdAdministratorPage.locator('input[name="password"]').fill(password!);
       const deniedSession = thirdAdministratorPage.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/password"));
@@ -350,6 +429,9 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, { ...auditEvents.auditReview, outcome: "succeeded" }, "audit-review.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.accessHistory, outcome: "succeeded" }, "access-history.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionPolicy, outcome: "succeeded" }, "session-policy.png");
+    const securityFailureRecords = await platformAuditQuery(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" });
+    expect(securityFailureRecords.items.every((item) => item.redactedReason === "validation_failed")).toBe(true);
+    await captureAuditEvidence(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" }, "security-function-failure.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionEstablished, outcome: "denied" }, "session-concurrent-limit-denied.png");
 
     const [download] = await Promise.all([
@@ -358,6 +440,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     ]);
     expect(await download.path()).toBeTruthy();
     await captureAuditEvidence(administratorPage, { ...auditEvents.auditExport, outcome: "succeeded" }, "audit-export.png");
+    await captureAllAuthenticationCatalogEvidence(administratorPage);
   } finally {
     await administratorPage.close();
     await administratorContext.close();

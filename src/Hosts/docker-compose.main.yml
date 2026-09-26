@@ -1,21 +1,29 @@
 name: vitarish
 services:
 
-  minio:
-    image: quay.io/minio/minio:latest
-    container_name: minio
-    command: server --address ":7010" --console-address ":7011" /data
+  aistor:
+    image: ${VITARISH_AISTOR_IMAGE:?VITARISH_AISTOR_IMAGE is required}
+    container_name: aistor
+    command: [server, --address, ":7010", --console-address, ":7011", /data, --license, /minio.license]
+    environment:
+      MINIO_ROOT_USER: ${VITARISH_TEST_AISTOR_ACCESS_KEY:?VITARISH_TEST_AISTOR_ACCESS_KEY is required}
+      MINIO_ROOT_PASSWORD: ${VITARISH_TEST_AISTOR_SECRET_KEY:?VITARISH_TEST_AISTOR_SECRET_KEY is required}
     ports:
       - "7010:7010"   # S3 API
       - "7011:7011"   # Web console
-    env_file: [ ./minio.env ]
     volumes:
-      - minio-data:/data
+      - aistor-data:/data
+      - type: bind
+        source: ./deployment/minio.license
+        target: /minio.license
+        read_only: true
+        bind:
+          create_host_path: false
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7010/minio/health/live"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
     networks: [appnet]
 
 
@@ -88,8 +96,8 @@ volumes:
     external: true
   caddy-data:
     name: caddy-data
-  minio-data:
-    name: minio-data
+  aistor-data:
+    name: aistor-data
   esdata:
     name: esdata
     external: true

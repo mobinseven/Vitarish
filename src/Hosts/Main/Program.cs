@@ -1,3 +1,4 @@
+using Duende.IdentityServer.EntityFramework.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Vitarish.Audit.Domain;
@@ -50,6 +51,7 @@ else
 
 await builder.RegisterHosting(new HostingCompositionOptions(configurePostgres, signingCertificate, securityConfiguration));
 builder.AddHostHangfire(builder.Configuration.GetConnectionString("Db"));
+_ = builder.Services.AddAuditCapacityAlertMonitoring(builder.Environment, openApiGeneration);
 _ = builder.Services.AddOpenApi();
 _ = builder.Services.AddModuleOpenApiDocument(SecurityAuditApiRoutes.DocumentName, SecurityAuditApiRoutes.DocumentTag);
 
@@ -68,7 +70,10 @@ _ = builder.Services.AddHealthChecks()
 
 WebApplication app = builder.Build();
 if (!openApiGeneration)
+{
+    _ = await app.MigrateDatabaseAsync<PersistedGrantDbContext>();
     _ = await app.MigrateDatabaseAsync<AuditDbContext>();
+}
 
 _ = app.UseHostingPipeline(securityConfiguration);
 _ = app.MapHealthChecks(MainHealthContract.ReadinessPath, new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions

@@ -73,8 +73,15 @@ public static class AuthenticationSecurityEndpoints
                 DefaultInactivityTimeoutMinutes = request.DefaultInactivityTimeoutMinutes,
                 AllowedSessionStartCidrs = SessionStartCidr.NormalizeSet(request.AllowedSessionStartCidrs ?? [])
             };
-            SecurityAccessPolicyState saved = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, request.ExpectedVersion), ct);
-            return Results.Ok(ToDto(saved));
+            try
+            {
+                SecurityAccessPolicyState saved = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, request.ExpectedVersion), ct);
+                return Results.Ok(ToDto(saved));
+            }
+            catch (ArgumentException)
+            {
+                return Results.BadRequest();
+            }
         }, AuthenticationSecurityOperationIds.SessionPolicyPut, typeof(SecuritySessionPolicyDto))
             .RequireAuthorization(AuthenticationAuthorizationPolicies.ChangeSessionPolicy)
             .WithMetadata(new SecurityAuditHandledByApplicationMetadata())

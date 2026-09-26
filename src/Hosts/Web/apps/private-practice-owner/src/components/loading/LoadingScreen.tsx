@@ -8,7 +8,7 @@ export function LoadingScreen() {
 
   return (
     <StandaloneCenteredPage
-      className="min-h-dvh bg-background"
+      className="bg-background"
       aria-label={t("common.states.loading")}
       role="status"
     >

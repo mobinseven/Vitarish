@@ -30,6 +30,7 @@ internal static class E2eFixtureSeeder
     public const string TenantBOwnerUserName = "e2e-tenant-b-owner";
     public const string PlatformAdminUserName = "e2e-platform-admin";
     public const string UserManagementPlatformAdminUserName = "e2e-user-management-admin";
+    public const string LockoutPlatformAdminUserName = "e2e-lockout-platform-admin";
     public const string PatientName = "E2E Patient";
     public const string PatientFirstName = "E2E";
     public const string PatientLastName = "Patient";
@@ -90,6 +91,20 @@ internal static class E2eFixtureSeeder
             "E2E",
             "User Management Admin",
             password);
+        User lockoutPlatformAdmin = await EnsureUserAsync(
+            users,
+            LockoutPlatformAdminUserName,
+            Guid.Parse("d08bc2a1-621d-4f60-a2e4-8cba70a279e1"),
+            "e2e-lockout-platform-admin@example.test",
+            "E2E",
+            "Lockout Platform Admin",
+            password);
+        IdentityResult failedAttemptReset = await users.ResetAccessFailedCountAsync(lockoutPlatformAdmin);
+        if (!failedAttemptReset.Succeeded)
+            throw new InvalidOperationException("E2E lockout platform-admin failed-attempt reset failed.");
+        IdentityResult lockoutReset = await users.SetLockoutEndDateAsync(lockoutPlatformAdmin, null);
+        if (!lockoutReset.Succeeded)
+            throw new InvalidOperationException("E2E lockout platform-admin lockout reset failed.");
 
         Guid ownerId = Guid.Parse(user.Id);
         PartiesDbContext parties = scope.ServiceProvider.GetRequiredService<PartiesDbContext>();
@@ -390,6 +405,12 @@ internal static class E2eFixtureSeeder
             IdentityResult result = await usersService.AddUserToRoleAsync(userManagementPlatformAdmin, IdentityDefinitions.PlatformAdmin, cancellationToken);
             if (!result.Succeeded)
                 throw new InvalidOperationException("E2E user-management platform-admin role assignment failed.");
+        }
+        if (!await users.IsInRoleAsync(lockoutPlatformAdmin, IdentityDefinitions.PlatformAdmin))
+        {
+            IdentityResult result = await usersService.AddUserToRoleAsync(lockoutPlatformAdmin, IdentityDefinitions.PlatformAdmin, cancellationToken);
+            if (!result.Succeeded)
+                throw new InvalidOperationException("E2E lockout platform-admin role assignment failed.");
         }
 
     }

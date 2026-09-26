@@ -206,20 +206,35 @@ public sealed class SecurityAuditReviewTests
     [Theory]
     [InlineData(SecurityAuditSortField.Actor, false)]
     [InlineData(SecurityAuditSortField.Actor, true)]
+    [InlineData(SecurityAuditSortField.ActorKind, false)]
+    [InlineData(SecurityAuditSortField.ActorKind, true)]
     [InlineData(SecurityAuditSortField.OccurredAt, false)]
     [InlineData(SecurityAuditSortField.OccurredAt, true)]
+    [InlineData(SecurityAuditSortField.SourceIpKind, false)]
+    [InlineData(SecurityAuditSortField.SourceIpKind, true)]
     [InlineData(SecurityAuditSortField.EventType, false)]
     [InlineData(SecurityAuditSortField.EventType, true)]
+    [InlineData(SecurityAuditSortField.SourceIpAddress, false)]
+    [InlineData(SecurityAuditSortField.SourceIpAddress, true)]
     public async Task Review_sorts_every_supported_field_in_both_directions(SecurityAuditSortField sortBy, bool descending)
     {
         DbContextOptions<AuditDbContext> options = CreateOptions();
         await using AuditDbContext context = CreateContext(options, "tenant-a");
         await context.Database.EnsureCreatedAsync();
         DateTime first = new(2026, 9, 2, 7, 0, 0, DateTimeKind.Utc);
-        context.SecurityAuditEvents.AddRange(
-            CreateEvent("tenant-a", "actor-b", SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent, first),
-            CreateEvent("tenant-a", "actor-a", SecurityAuditEventCatalog.AuthenticationPasswordChangeEvent, first.AddMinutes(1)),
-            CreateEvent("tenant-a", "actor-c", SecurityAuditEventCatalog.EndpointMutationEvent, first.AddMinutes(2)));
+        SecurityAuditEvent actorB = CreateEvent("tenant-a", "actor-b", SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent, first);
+        actorB.ActorKind = SecurityAuditActorKind.System;
+        actorB.SourceIpKind = SecurityAuditSourceKind.Client;
+        actorB.SourceIpAddress = "203.0.113.2";
+        SecurityAuditEvent actorA = CreateEvent("tenant-a", "actor-a", SecurityAuditEventCatalog.AuthenticationPasswordChangeEvent, first.AddMinutes(1));
+        actorA.ActorKind = SecurityAuditActorKind.Anonymous;
+        actorA.SourceIpKind = SecurityAuditSourceKind.Unknown;
+        actorA.SourceIpAddress = "203.0.113.1";
+        SecurityAuditEvent actorC = CreateEvent("tenant-a", "actor-c", SecurityAuditEventCatalog.EndpointMutationEvent, first.AddMinutes(2));
+        actorC.ActorKind = SecurityAuditActorKind.User;
+        actorC.SourceIpKind = SecurityAuditSourceKind.System;
+        actorC.SourceIpAddress = "203.0.113.3";
+        context.SecurityAuditEvents.AddRange(actorB, actorA, actorC);
         await context.SaveChangesAsync();
 
         SecurityAuditPageReadDto page = await new SecurityAuditQueryService(
@@ -230,17 +245,23 @@ public sealed class SecurityAuditReviewTests
         string[] actual = sortBy switch
         {
             SecurityAuditSortField.Actor => page.Items.Select(item => item.ActorId!).ToArray(),
+            SecurityAuditSortField.ActorKind => page.Items.Select(item => item.ActorKind!).ToArray(),
+            SecurityAuditSortField.SourceIpKind => page.Items.Select(item => item.SourceIpKind!).ToArray(),
             SecurityAuditSortField.EventType => page.Items.Select(item => item.EventName).ToArray(),
+            SecurityAuditSortField.SourceIpAddress => page.Items.Select(item => item.SourceIpAddress!).ToArray(),
             _ => page.Items.Select(item => item.OccurredAt).Select(value => value.ToString("O")).ToArray()
         };
         string[] expected = sortBy switch
         {
             SecurityAuditSortField.Actor => ["actor-a", "actor-b", "actor-c"],
+            SecurityAuditSortField.ActorKind => [SecurityAuditActorKind.Anonymous, SecurityAuditActorKind.System, SecurityAuditActorKind.User],
+            SecurityAuditSortField.SourceIpKind => [SecurityAuditSourceKind.Client, SecurityAuditSourceKind.System, SecurityAuditSourceKind.Unknown],
             SecurityAuditSortField.EventType => [
                 SecurityAuditEventCatalog.AuthenticationPasswordChangeEvent,
                 SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent,
                 SecurityAuditEventCatalog.EndpointMutationEvent
             ],
+            SecurityAuditSortField.SourceIpAddress => ["203.0.113.1", "203.0.113.2", "203.0.113.3"],
             _ => [first.ToString("O"), first.AddMinutes(1).ToString("O"), first.AddMinutes(2).ToString("O")]
         };
 

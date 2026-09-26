@@ -13,6 +13,9 @@ const auditSortFields = {
   actor: 0,
   occurredAt: 1,
   eventType: 2,
+  actorKind: 3,
+  sourceIpKind: 4,
+  sourceIpAddress: 5,
 } as const;
 type AuditSortField = typeof auditSortFields[keyof typeof auditSortFields];
 
@@ -33,8 +36,14 @@ function sortLabel(field: AuditSortField, t: ReturnType<typeof useLocalizedText>
   switch (field) {
     case auditSortFields.actor:
       return t("security.audit.sortActor");
+    case auditSortFields.actorKind:
+      return t("security.audit.sortActorKind");
+    case auditSortFields.sourceIpKind:
+      return t("security.audit.sortSourceIpKind");
     case auditSortFields.eventType:
       return t("security.audit.sortEventType");
+    case auditSortFields.sourceIpAddress:
+      return t("security.audit.sortSourceIpAddress");
     default:
       return t("security.audit.sortOccurredAt");
   }

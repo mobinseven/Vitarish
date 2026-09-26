@@ -25,7 +25,9 @@ meaning and resource authorization remain with the initiating use case.
 
 - **[MUST]** One configured positive storage threshold produces an in-product
   warning for existing authorized reviewers when the threshold is reached.
-  There is no product outbox or external alerting path in this scope.
+  Audit owns capacity measurement only; Main owns operational email/SMS
+  delivery to deployment-configured administrator contacts. Do not add
+  recipients, provider calls, or a product outbox to Audit.
 - **[MUST]** Audit-store write failure or exhausted storage emits one redacted
   structured host error and does not replace the initiating operation result.
   The review query returns dependency-unavailable when the store cannot be

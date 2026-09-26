@@ -58,6 +58,7 @@ TanStack Query, Orval, Vitest, Playwright, Docker Compose, and GitHub Actions.
 | `src/Hosts/Main` | Production ASP.NET Core runtime host. | Follow its `AGENTS.md`; no E2E branches or product UI. |
 | `src/Hosts/E2e` | Non-publishable in-memory host for real two-host browser tests. | No migrations, Hangfire, or test authentication bypass. |
 | `src/Hosts/Web` | npm workspace containing React apps, feature packages, Web infrastructure, and the agent runtime. | Follow its `AGENTS.md`; never edit generated API output manually. |
+| `src/Hosts/deployment` | Server reference Compose bundles for test and production, with shared ingress. | Keep environment files secret; validate both bundles before release. |
 | `src/Identity` | Identity Domain/Application/Infrastructure/Hosting/Client code. | Security-sensitive; follow its `AGENTS.md`. |
 | `src/Libraries` | Shared .NET libraries and generators, including Audit and Entities. | Keep app- and module-specific behavior out. |
 | `src/Modules` | Modular backend capabilities. | Follow `src/Modules/AGENTS.md` and preserve inward dependency direction. |
@@ -193,10 +194,19 @@ to `shared/ui` only when it satisfies the promotion rules in
 - External adapters include communication, object/file storage,
   search/Elasticsearch, AI/speech, passkey, and medical/prescription providers.
 
-`src/Hosts/docker-compose.web.yml` describes `web` on port 3000, `main` on
-host port 5000/container port 8080, and `agent-runtime` on port 3003. Inspect
-the compose build paths before relying on it; the repository currently has no
-`src/Hosts/Web/Dockerfile`.
+`src/Hosts/deployment` is the server Compose entry point for Main, Web apps,
+dependencies, and shared ingress. `.github/workflows/production.yml` filters
+affected consumers, runs PR checks, publishes selected full-SHA GHCR images on
+`main`, and deploys their verified registry digests over the `production` GitHub
+Environment's pinned SSH secrets. The remote `src/Hosts/deployment/deploy-production.sh`
+validates protected server env files, starts missing dependencies on a fresh
+host, and gates reference updates on container health and HTTPS probes. Its
+rollback restores prior configuration and running services on failure. See
+[`docs/hosts/server-deployment-bundles.md`](hosts/server-deployment-bundles.md)
+for bootstrap, secrets, health checks, and recovery. Use
+`src/Hosts/scripts/Install-UbuntuServer.ps1` once to provision Docker/Compose
+and the server's GHCR read login. Run local Web development through the npm
+workspace and a separately started Main host.
 
 ## 8. Common change guide
 

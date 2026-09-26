@@ -30,6 +30,47 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
   const badRequest = (detail: string) => HttpResponse.json({ status: 400, code: "InvalidRequest", title: "Invalid mock request", detail }, { status: 400 });
   const notFound = (detail: string) => HttpResponse.json({ status: 404, code: "NotFound", title: "Mock entity not found", detail }, { status: 404 });
 
+  const filteredAuditEvents = (request: Request) => {
+    const query = new URL(request.url).searchParams;
+    const matches = store.auditEvents.filter((event) => {
+      const fromUtc = query.get("fromUtc");
+      const toUtc = query.get("toUtc");
+      return (!query.get("tenantId") || event.tenantId === query.get("tenantId"))
+        && (!query.get("actorId") || event.actorId === query.get("actorId"))
+        && (!query.get("eventName") || event.eventName === query.get("eventName"))
+        && (!query.get("eventCategory") || event.eventCategory === query.get("eventCategory"))
+        && (!query.get("operation") || event.operation === query.get("operation"))
+        && (!query.get("outcome") || event.outcome === query.get("outcome"))
+        && (!query.get("eventId") || event.id === query.get("eventId"))
+        && (!fromUtc || event.occurredAt >= fromUtc)
+        && (!toUtc || event.occurredAt <= toUtc)
+        && (query.get("uncataloguedOnly") !== "true" || !store.auditCatalog.some((entry) => entry.category === event.eventCategory && entry.eventName === event.eventName && (entry.isWildcard || entry.operation === event.operation)));
+    });
+    const descending = query.get("descending") !== "false";
+    const sortBy = query.get("sortBy") ?? "1";
+    const sortValue = (event: (typeof matches)[number]) => {
+      switch (sortBy) {
+        case "0": return event.actorId;
+        case "2": return event.eventName;
+        case "3": return event.actorKind;
+        case "4": return event.sourceIpKind;
+        case "5": return event.sourceIpAddress;
+        default: return event.occurredAt;
+      }
+    };
+    matches.sort((left, right) => {
+      const leftValue = sortValue(left);
+      const rightValue = sortValue(right);
+      return (leftValue < rightValue ? -1 : leftValue > rightValue ? 1 : 0) * (descending ? -1 : 1);
+    });
+    return matches;
+  };
+
+  const auditCsv = (events: typeof store.auditEvents) => [
+    "occurredAt,tenantId,eventCategory,eventName,operation,outcome,actorKind,actorId,sourceIpAddress",
+    ...events.map((event) => [event.occurredAt, event.tenantId ?? "", event.eventCategory, event.eventName, event.operation, event.outcome, event.actorKind, event.actorId, event.sourceIpAddress].map((value) => `"${value.replaceAll('"', '""')}"`).join(",")),
+  ].join("\n");
+
   return [
     http.get(/\/api\/modules\/authentication\/antiforgery(?:\?|$)/, async () => {
       await withDelay();
@@ -56,6 +97,36 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     http.get(/\/api\/modules\/journey\/current(?:\?|$)/, async () => {
       await withDelay();
       return HttpResponse.json({ step: { destinationUrl: "/home", destinationKind: "UserHome", nonBlockingGates: [] } });
+    }),
+    http.get(/\/api\/audit\/platform\/security-event-catalog(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json(activeScenario === "empty" ? [] : store.auditCatalog);
+    }),
+    http.get(/\/api\/audit\/platform\/security-events\/export(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return new HttpResponse(auditCsv(filteredAuditEvents(request)), { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": "attachment; filename=security-audit-events.csv" } });
+    }),
+    http.get(/\/api\/audit\/platform\/security-events(?:\?|$)/, async ({ request }) => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      const query = new URL(request.url).searchParams;
+      const page = Math.max(1, Number(query.get("page") ?? "1"));
+      const pageSize = Math.max(1, Number(query.get("pageSize") ?? "25"));
+      const events = filteredAuditEvents(request);
+      return HttpResponse.json({
+        items: events.slice((page - 1) * pageSize, page * pageSize),
+        page,
+        pageSize,
+        totalCount: events.length,
+        capacityThresholdReached: false,
+      });
+    }),
+    http.get(/\/api\/modules\/parties\/platform\/tenants(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json(store.tenants.map((tenant) => ({ ...tenant, metadata: {}, ownerName: "Mock Practice" })));
     }),
     http.get(/\/api\/modules\/clinic\/dashboard\/appointments(?:\?|$)/, async ({ request }) => {
       await withDelay();

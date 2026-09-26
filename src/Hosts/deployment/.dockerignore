@@ -1,0 +1,8 @@
+.env
+.env.*
+minio.license
+backups/
+**/.env
+**/.env.*
+**/minio.license
+**/backups/

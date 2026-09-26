@@ -340,10 +340,10 @@ public static class ClinicApiEndpointMapping
         HttpRequest request,
         [FromServices] IOptions<Vitarish.Intelligence.Domain.Options.AgentRuntimeOptions> options)
     {
-        string? authorization = request.Headers.Authorization.FirstOrDefault();
-        string expected = $"Bearer {options.Value.SharedSecret}";
+        string? credential = request.Headers[InternalServiceEndpointConventions.CredentialHeaderName].FirstOrDefault();
+        string expected = options.Value.SharedSecret;
         bool valid = !string.IsNullOrWhiteSpace(options.Value.SharedSecret) &&
-            CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(authorization ?? string.Empty), Encoding.UTF8.GetBytes(expected));
+            CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(credential ?? string.Empty), Encoding.UTF8.GetBytes(expected));
         return valid ? Results.Ok(new { status = "ok", component = "intelligence-agent-runtime" }) : Results.Unauthorized();
     }
 

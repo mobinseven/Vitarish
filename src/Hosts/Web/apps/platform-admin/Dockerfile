@@ -3,12 +3,8 @@ FROM node:22-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-COPY apps/platform-admin/package.json ./apps/platform-admin/
-COPY shared/auth/package.json ./shared/auth/
-COPY shared/platform/package.json ./shared/platform/
-COPY shared/api-client/package.json ./shared/api-client/
-COPY shared/localization/package.json ./shared/localization/
-COPY shared/ui/package.json ./shared/ui/
+COPY apps ./apps
+COPY shared ./shared
 RUN --mount=type=secret,id=HEROUI_AUTH_TOKEN,required=true --mount=type=cache,target=/root/.npm HEROUI_AUTH_TOKEN="$(cat /run/secrets/HEROUI_AUTH_TOKEN)" npm ci
 FROM base AS builder
 WORKDIR /app
@@ -26,6 +22,7 @@ ENV PORT=3003
 ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder --chown=nextjs:nodejs /app/apps/platform-admin/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/platform-admin/public ./apps/platform-admin/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/platform-admin/.next/static ./apps/platform-admin/.next/static
 WORKDIR /app/apps/platform-admin
 USER nextjs

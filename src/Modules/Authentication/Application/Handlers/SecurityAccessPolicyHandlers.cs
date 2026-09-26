@@ -216,6 +216,33 @@ public sealed class ChangeSecurityAccessPolicyHandler(
         {
             originalException.Data["terminal_audit_failure"] = auditException.GetType().Name;
         }
+
+        try
+        {
+            _ = await securityAuditWriter.WriteAsync(new SecurityAuditEvent
+            {
+                EventName = AuthenticationSecurityAuditEvents.SecurityFailure,
+                Outcome = SecurityAuditOutcome.Failed,
+                ActorId = requestContext.UserId,
+                SubjectId = requestContext.UserId,
+                TenantId = requestContext.TenantId!,
+                Resource = AuthenticationSecurityAuditEvents.SecurityAccessPolicyResource,
+                Operation = AuthenticationSecurityAuditEvents.SecurityFailureOperation,
+                OccurredAt = DateTime.UtcNow,
+                CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? operationKey,
+                SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
+                RedactedReason = reason,
+                IdempotencyKey = operationKey + AuthenticationSecurityAuditEvents.SecurityFailureKeySuffix
+            }, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            originalException.Data["security_failure_audit_cancellation"] = true;
+        }
+        catch (Exception auditException)
+        {
+            originalException.Data["security_failure_audit_failure"] = auditException.GetType().Name;
+        }
     }
 
     private async Task<SecurityAuditWriteResult> WriteAuditAsync(string outcome, string idempotencyKey, string? reason, CancellationToken cancellationToken)

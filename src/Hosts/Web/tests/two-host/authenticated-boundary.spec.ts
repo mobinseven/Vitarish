@@ -11,6 +11,7 @@ import {
 } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { auditSecurityEventsList } from "../../shared/security/src/api/generated/audit/audit";
 import { ApiError, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 
 const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
@@ -20,8 +21,10 @@ const webOrigin = process.env.VITARISH_E2E_WEB_ORIGIN ?? "http://localhost:3005"
 const tenantUserUsername = process.env.VITARISH_E2E_TENANT_USER_USERNAME ?? "e2e-tenant-user";
 const tenantBOwnerUsername = process.env.VITARISH_E2E_TENANT_B_OWNER_USERNAME ?? "e2e-tenant-b-owner";
 const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?? "e2e-platform-admin";
+const lockoutPlatformAdminUsername = "e2e-lockout-platform-admin";
 const tenantBOrigin = "http://tenant-b.localhost:3005";
 const platformAdminOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
+const forbiddenScreenshotPath = process.env.VITARISH_E2E_FORBIDDEN_SCREENSHOT;
 const tenantAId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
 const tenantAPatientId = "2d7a3eb9-1d47-4c63-9a45-19d7e6a0fb18";
 const tenantBPatientId = "f4c8109a-6f22-4a31-9ab8-48d7ad0d7e2f";
@@ -962,6 +965,37 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
 
 });
 
+test("shows a generic 403 page and records denied platform audit access", async ({ page }) => {
+  test.setTimeout(120_000);
+  await login(page, tenantBOwnerUsername, "", e2ePassword, "198.51.100.23");
+  const deniedAuditResponse = page.waitForResponse((response) =>
+    response.url().includes("/api/audit/platform/security-events") && response.status() === 403,
+  );
+  await page.goto(`${platformAdminOrigin}/`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: "Forbidden" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText("403", { exact: true })).toBeVisible();
+  await deniedAuditResponse;
+
+  if (forbiddenScreenshotPath) {
+    mkdirSync(dirname(forbiddenScreenshotPath), { recursive: true });
+    await page.screenshot({ path: forbiddenScreenshotPath, fullPage: true });
+  }
+
+  const administratorContext = await page.context().browser()!.newContext();
+  const administratorPage = await administratorContext.newPage();
+  try {
+    await login(administratorPage, platformAdminUsername, "", e2ePassword, "198.51.100.24");
+    const deniedReview = await fetchJson(administratorPage, "/api/audit/platform/security-events?page=1&pageSize=25&eventName=security.audit.review&eventCategory=audit-review&operation=audit.security-events.list&outcome=denied&sortBy=0&descending=true&uncataloguedOnly=false");
+    expect(deniedReview.status).toBe(200);
+    expect((deniedReview.body as { items?: Array<{ eventName?: string; outcome?: string }> }).items).toEqual(expect.arrayContaining([
+      expect.objectContaining({ eventName: "security.audit.review", outcome: "denied" }),
+    ]));
+  } finally {
+    await administratorPage.close();
+    await administratorContext.close();
+  }
+});
+
 // platform-audit
 test("proves the global audit grid across a separate platform-admin origin", async ({ page }) => {
   test.setTimeout(300_000);
@@ -1018,25 +1052,34 @@ test("proves the global audit grid across a separate platform-admin origin", asy
     await page.getByRole("button", { name: "All categories" }).click();
     await page.getByRole("option", { name: "authentication" }).click();
     await page.getByRole("button", { name: "All event types" }).click();
-    await page.getByRole("option", { name: "authentication.password.login", exact: true }).click();
+    await page.getByRole("option", {
+      name: localizePlatformAuditEvent("en", "authentication.password.login", "authentication.password.login"),
+      exact: true,
+    }).click();
     await page.getByRole("button", { name: "All operations" }).click();
     await page.getByRole("option", { name: "password.login", exact: true }).click();
     await page.getByRole("button", { name: "Apply filters" }).click();
     await expect(page.locator("tbody tr").first()).toBeVisible();
     const evidenceScreenshot = process.env.VITARISH_NMAIL_EVIDENCE_SCREENSHOT;
     if (evidenceScreenshot) {
-      await page.screenshot({ path: evidenceScreenshot, fullPage: true });
       mkdirSync(dirname(evidenceScreenshot), { recursive: true });
+      await page.screenshot({ path: evidenceScreenshot, fullPage: true });
 
       const organicEventNames = new Set(globalItems.map(item => item.eventName).filter((eventName): eventName is string => Boolean(eventName)));
       const organicCatalogEntries = (catalog.body as Array<{ category?: string; eventName?: string; operation?: string }>)
         .filter(entry => entry.category && entry.eventName && entry.operation && organicEventNames.has(entry.eventName));
       for (const entry of organicCatalogEntries) {
-        await page.getByRole("button", { name: "Reset filters" }).click();
+        await page.getByRole("button", { name: "Clear filters" }).click();
         await page.getByRole("button", { name: "All categories" }).click();
-        await page.getByRole("option", { name: entry.category!, exact: true }).click();
+        await page.getByRole("option", {
+          name: localizePlatformAuditCategory("en", entry.category, entry.category!),
+          exact: true,
+        }).click();
         await page.getByRole("button", { name: "All event types" }).click();
-        await page.getByRole("option", { name: entry.eventName!, exact: true }).click();
+        await page.getByRole("option", {
+          name: localizePlatformAuditEvent("en", entry.eventName, entry.eventName!),
+          exact: true,
+        }).click();
         await page.getByRole("button", { name: "All operations" }).click();
         await page.getByRole("option", { name: entry.operation!, exact: true }).click();
         await page.getByRole("button", { name: "Apply filters" }).click();
@@ -1253,7 +1296,7 @@ test("locks the disposable platform-admin account after repeated real password f
   for (let attempt = 0; attempt < 6; attempt += 1) {
     const response = await request.post(`${apiOrigin}/api/modules/authentication/login/password`, {
       data: {
-        userNameOrEmail: platformAdminUsername,
+        userNameOrEmail: lockoutPlatformAdminUsername,
         password: "E2E-Lockout-Wrong-Password",
         returnUrl: null,
         rememberMe: false,

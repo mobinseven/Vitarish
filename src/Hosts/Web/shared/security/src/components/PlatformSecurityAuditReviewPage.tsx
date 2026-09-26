@@ -6,6 +6,7 @@ import { ApiError } from "@vitarish/api-client";
 import { dateValueToIsoDate, formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, toLocalizedDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
 import { FaIcon, LoadingSpinner  } from "@vitarish/ui";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../localization";
 import {
   auditPlatformSecurityEventsExport,
   useAuditPlatformSecurityEventCatalogGet,
@@ -24,6 +25,9 @@ const auditSortFields = {
   actor: 0,
   occurredAt: 1,
   eventType: 2,
+  actorKind: 3,
+  sourceIpKind: 4,
+  sourceIpAddress: 5,
 } as const satisfies Record<string, SecurityAuditSortField>;
 
 export interface PlatformAuditTenantOption {
@@ -143,8 +147,14 @@ function sortLabel(field: SecurityAuditSortField, t: ReturnType<typeof useLocali
   switch (field) {
     case auditSortFields.actor:
       return t("security.platformAudit.sortActor");
+    case auditSortFields.actorKind:
+      return t("security.platformAudit.sortActorKind");
+    case auditSortFields.sourceIpKind:
+      return t("security.platformAudit.sortSourceIpKind");
     case auditSortFields.eventType:
       return t("security.platformAudit.sortEventType");
+    case auditSortFields.sourceIpAddress:
+      return t("security.platformAudit.sortSourceIpAddress");
     default:
       return t("security.platformAudit.sortOccurredAt");
   }
@@ -292,13 +302,16 @@ export function PlatformSecurityAuditReviewPage({
 
   const catalog = catalogQuery.data ?? [];
   const categoryOptions = useMemo(
-    () => Array.from(new Set(catalog.map((entry) => entry.category))).map((category) => ({ id: category, label: category })),
-    [catalog],
+    () => Array.from(new Set(catalog.map((entry) => entry.category))).map((category) => ({
+      id: category,
+      label: localizePlatformAuditCategory(locale, category, category),
+    })),
+    [catalog, locale],
   );
   const eventOptions = useMemo(
     () => Array.from(new Set(catalog.filter((entry) => !draftFilters.category || entry.category === draftFilters.category).map((entry) => entry.eventName)))
-      .map((eventName) => ({ id: eventName, label: eventName })),
-    [catalog, draftFilters.category],
+      .map((eventName) => ({ id: eventName, label: localizePlatformAuditEvent(locale, eventName, eventName) })),
+    [catalog, draftFilters.category, locale],
   );
   const operationOptions = useMemo(
     () => Array.from(new Map(
@@ -313,6 +326,10 @@ export function PlatformSecurityAuditReviewPage({
       .filter((tenant) => tenant.id)
       .map((tenant) => ({ id: tenant.id!, label: tenant.name?.trim() || tenant.id! })),
     [tenants],
+  );
+  const tenantNamesById = useMemo(
+    () => new Map(tenantOptions.map((tenant) => [tenant.id, tenant.label])),
+    [tenantOptions],
   );
 
   const params = useMemo<AuditPlatformSecurityEventsListParams>(() => ({
@@ -359,15 +376,15 @@ export function PlatformSecurityAuditReviewPage({
     add("tenantId", t("security.platformAudit.scope"), tenant?.label ?? filters.tenantId);
     add("eventId", t("security.platformAudit.eventId"), filters.eventId);
     add("actorId", t("security.platformAudit.actorId"), filters.actorId);
-    add("category", t("security.platformAudit.category"), filters.category);
-    add("eventName", t("security.platformAudit.event"), filters.eventName);
+    add("category", t("security.platformAudit.category"), localizePlatformAuditCategory(locale, filters.category, filters.category));
+    add("eventName", t("security.platformAudit.event"), localizePlatformAuditEvent(locale, filters.eventName, filters.eventName));
     add("operation", t("security.platformAudit.operation"), filters.operation);
     add("outcome", t("security.platformAudit.outcome"), filters.outcome);
     add("fromDate", t("security.platformAudit.fromDate"), filters.fromDate);
     add("toDate", t("security.platformAudit.toDate"), filters.toDate);
     if (filters.uncataloguedOnly) chips.push({ key: "uncataloguedOnly", label: t("security.platformAudit.uncataloguedOnly"), color: activeFilterColor("uncataloguedOnly") });
     return chips;
-  }, [filters, t, tenantOptions]);
+  }, [filters, locale, t, tenantOptions]);
 
   const updateDraft = <K extends keyof AuditFilters>(key: K, value: AuditFilters[K]) => {
     setDraftFilters((current) => ({ ...current, [key]: value }));
@@ -480,21 +497,25 @@ export function PlatformSecurityAuditReviewPage({
       header: t("security.platformAudit.scope"),
       accessorKey: "tenantId",
       minWidth: 150,
-      cell: (item) => <span className="font-mono text-xs">{displayValue(item.tenantId, t("security.platformAudit.notAvailable"))}</span>,
+      cell: (item) => {
+        const scope = displayValue(item.tenantId, t("security.platformAudit.notAvailable"));
+        const tenantName = item.tenantId ? tenantNamesById.get(item.tenantId) : undefined;
+        return <span className={tenantName ? "text-xs" : "font-mono text-xs"} title={tenantName ? scope : undefined}>{tenantName ?? scope}</span>;
+      },
     },
     {
       id: "eventCategory",
       header: t("security.platformAudit.category"),
       accessorKey: "eventCategory",
       minWidth: 160,
-      cell: (item) => <span className="text-xs">{displayValue(item.eventCategory, t("security.platformAudit.uncatalogued"))}</span>,
+      cell: (item) => <span className="text-xs">{localizePlatformAuditCategory(locale, item.eventCategory, t("security.platformAudit.uncatalogued"))}</span>,
     },
     {
       id: "eventName",
       header: t("security.platformAudit.event"),
       accessorKey: "eventName",
       minWidth: 280,
-      cell: (item) => <span className="font-medium">{displayValue(item.eventName, t("security.platformAudit.notAvailable"))}</span>,
+      cell: (item) => <span className="font-medium">{localizePlatformAuditEvent(locale, item.eventName, t("security.platformAudit.notAvailable"))}</span>,
     },
     {
       id: "operation",
@@ -814,7 +835,7 @@ function PlatformAuditDetailSheet({
 }: {
   event: SecurityAuditEventReadDto | null;
   onClose: () => void;
-  locale: Parameters<typeof formatDateTime>[1];
+  locale: SupportedLocale;
   t: ReturnType<typeof useLocalizedText>["t"];
 }) {
   return (
@@ -839,8 +860,8 @@ function PlatformAuditDetailSheet({
                 <>
                   <dl>
                     <DetailField label={t("security.platformAudit.id")} value={displayValue(event.id, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.event")} value={displayValue(event.eventName, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.category")} value={displayValue(event.eventCategory, t("security.platformAudit.uncatalogued"))} />
+                    <DetailField label={t("security.platformAudit.event")} value={localizePlatformAuditEvent(locale, event.eventName, t("security.platformAudit.notAvailable"))} />
+                    <DetailField label={t("security.platformAudit.category")} value={localizePlatformAuditCategory(locale, event.eventCategory, t("security.platformAudit.uncatalogued"))} />
                     <DetailField label={t("security.platformAudit.operation")} value={displayValue(event.operation, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.outcome")} value={displayValue(event.outcome, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.actorKind")} value={displayValue(event.actorKind, t("security.platformAudit.notAvailable"))} />

@@ -1,0 +1,72 @@
+name: vitarish-ingress
+
+x-caddy-runtime: &caddy-runtime
+  image: ${VITARISH_CADDY_IMAGE:?VITARISH_CADDY_IMAGE is required}
+  security_opt: [no-new-privileges:true]
+  environment:
+    CLOUDFLARE_API_TOKEN: ${VITARISH_CLOUDFLARE_API_TOKEN:?VITARISH_CLOUDFLARE_API_TOKEN is required}
+    VITARISH_CONTENT_SECURITY_POLICY: "default-src 'self'; script-src 'self' 'nonce-{http.request.uuid}' 'unsafe-inline'; style-src 'self' 'nonce-{http.request.uuid}' 'unsafe-inline'; frame-ancestors 'none'; object-src 'none'"
+    TEST_PUBLIC_HOST: ${VITARISH_TEST_PUBLIC_HOST:?VITARISH_TEST_PUBLIC_HOST is required}
+    TEST_PATIENTS_HOST: ${VITARISH_TEST_PATIENTS_HOST:?VITARISH_TEST_PATIENTS_HOST is required}
+    TEST_PLATFORM_ADMIN_HOST: ${VITARISH_TEST_PLATFORM_ADMIN_HOST:?VITARISH_TEST_PLATFORM_ADMIN_HOST is required}
+    TEST_PM_HOST: ${VITARISH_TEST_PM_HOST:?VITARISH_TEST_PM_HOST is required}
+    TEST_KNOWLEDGE_QA_HOST: ${VITARISH_TEST_KNOWLEDGE_QA_HOST:?VITARISH_TEST_KNOWLEDGE_QA_HOST is required}
+    TEST_LANDING_HOST: ${VITARISH_TEST_LANDING_HOST:?VITARISH_TEST_LANDING_HOST is required}
+    TEST_WILDCARD_HOST: ${VITARISH_TEST_WILDCARD_HOST:?VITARISH_TEST_WILDCARD_HOST is required}
+    TEST_CLINIC_WILDCARD_HOST: ${VITARISH_TEST_CLINIC_WILDCARD_HOST:?VITARISH_TEST_CLINIC_WILDCARD_HOST is required}
+    PRODUCTION_PUBLIC_HOST: ${VITARISH_PRODUCTION_PUBLIC_HOST:?VITARISH_PRODUCTION_PUBLIC_HOST is required}
+    PRODUCTION_PATIENTS_HOST: ${VITARISH_PRODUCTION_PATIENTS_HOST:?VITARISH_PRODUCTION_PATIENTS_HOST is required}
+    PRODUCTION_PLATFORM_ADMIN_HOST: ${VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST:?VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST is required}
+    PRODUCTION_PM_HOST: ${VITARISH_PRODUCTION_PM_HOST:?VITARISH_PRODUCTION_PM_HOST is required}
+    PRODUCTION_KNOWLEDGE_QA_HOST: ${VITARISH_PRODUCTION_KNOWLEDGE_QA_HOST:?VITARISH_PRODUCTION_KNOWLEDGE_QA_HOST is required}
+    PRODUCTION_LANDING_HOST: ${VITARISH_PRODUCTION_LANDING_HOST:?VITARISH_PRODUCTION_LANDING_HOST is required}
+    PRODUCTION_WILDCARD_HOST: ${VITARISH_PRODUCTION_WILDCARD_HOST:?VITARISH_PRODUCTION_WILDCARD_HOST is required}
+    PRODUCTION_CLINIC_WILDCARD_HOST: ${VITARISH_PRODUCTION_CLINIC_WILDCARD_HOST:?VITARISH_PRODUCTION_CLINIC_WILDCARD_HOST is required}
+    VITARISH_ACME_EMAIL: ${VITARISH_ACME_EMAIL:?VITARISH_ACME_EMAIL is required}
+  volumes:
+    - ./Caddyfile:/etc/caddy/Caddyfile:ro
+
+services:
+  caddy:
+    <<: *caddy-runtime
+    restart: unless-stopped
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ingress-data:/data
+      - ingress-config:/config
+    networks:
+      test-proxy:
+        ipv4_address: ${VITARISH_TEST_INGRESS_IPV4:?VITARISH_TEST_INGRESS_IPV4 is required}
+      production-proxy:
+        ipv4_address: ${VITARISH_PRODUCTION_INGRESS_IPV4:?VITARISH_PRODUCTION_INGRESS_IPV4 is required}
+      ingress-egress: {}
+
+  caddy-config-validator:
+    <<: *caddy-runtime
+    profiles: [validation]
+    network_mode: none
+
+networks:
+  test-proxy:
+    name: vitarish-test-proxy
+    internal: true
+    ipam:
+      config:
+        - subnet: ${VITARISH_TEST_PROXY_SUBNET:?VITARISH_TEST_PROXY_SUBNET is required}
+  production-proxy:
+    name: vitarish-production-proxy
+    internal: true
+    ipam:
+      config:
+        - subnet: ${VITARISH_PRODUCTION_PROXY_SUBNET:?VITARISH_PRODUCTION_PROXY_SUBNET is required}
+  ingress-egress:
+    name: vitarish-ingress-egress
+
+volumes:
+  ingress-data:
+    name: vitarish-ingress-data
+  ingress-config:
+    name: vitarish-ingress-config
