@@ -122,6 +122,7 @@ internal sealed class SecurityAuditWriter(
                 ActorKind = pending.ActorKind,
                 ActorId = pending.ActorId,
                 SubjectId = pending.SubjectId,
+                Metadata = pending.Metadata,
                 TenantId = pending.TenantId,
                 Resource = pending.Resource,
                 Operation = pending.Operation,

@@ -92,6 +92,7 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.ActorKind).HasMaxLength(32);
             _ = entity.Property(e => e.ActorId).HasMaxLength(256);
             _ = entity.Property(e => e.SubjectId).HasMaxLength(256);
+            _ = entity.OwnsOne(e => e.Metadata, metadata => metadata.ToJson());
             _ = entity.Property(e => e.TenantId).HasMaxLength(64);
             _ = entity.Property(e => e.Resource).HasMaxLength(512);
             _ = entity.Property(e => e.Operation).HasMaxLength(256);

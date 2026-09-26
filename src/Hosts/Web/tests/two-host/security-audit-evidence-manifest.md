@@ -19,8 +19,8 @@ to more than one control.
 | 5 Audit-storage threshold action | Trigger configured capacity threshold | None | No deterministic public trigger |
 | 6 Audit-storage failure action | Inject audit-store failure through an E2E adapter | None | Requires named failure-injection adapter |
 | 7 User-data integrity verification | Public file upload/download invokes integrity verification internally | None | Excluded: no public durable integrity-verification event; only import/export events are emitted |
-| 8 Authentication-mechanism use | Password login and real email-OTP action | `password-login-succeeded.png`, `password-login-denied.png` | Covered for password; email-OTP action is exercised but has no catalogued durable event, and passkey has no dedicated durable event |
-| 9 Authentication outcome | Successful and denied password login | `password-login-succeeded.png`, `password-login-denied.png` | Covered for implemented password path |
+| 8 Authentication-mechanism use | Password login, including repeated attempts against a known username and similar unknown usernames, plus real email-OTP action | `password-login-succeeded.png`, `password-login-denied.png`, `existing-login-identifier-details.png`, `unknown-login-identifier-details.png` | Covered for password; the email-OTP action is exercised but has no catalogued durable event, and passkey has no dedicated durable event |
+| 9 Authentication outcome | Successful login and denied attempts for existing and non-existing similar usernames | `password-login-succeeded.png`, `password-login-denied.png`, `existing-login-identifier-details.png`, `unknown-login-identifier-details.png` | Covered for implemented password path; denied records keep `subjectId` null and share the generic authentication-failed event fields while `metadata.identifier` records only the submitted identifier |
 | 10 Password verification | Successful password login and password change | `password-login-succeeded.png`, `password-change.png` | Covered for implemented password paths |
 | 11 Security-attribute assignment | Tenant-member provisioning | `tenant-member-provisioned.png` | Covered for tenant membership |
 | 12 Security-attribute change | Password change | `password-change.png` | Covered for password; other attributes pending |
@@ -53,12 +53,19 @@ npm run test:e2e:two-host
 Remove-Item Env:VITARISH_E2E_GREP -ErrorAction SilentlyContinue
 ```
 
-Result: 1 test passed against fresh two-host hosts and produced 16 screenshots
-in the fresh evidence directory. The newly added `security-function-failure.png`
-was inspected and shows the full, unblurred Platform Admin audit grid filtered
-through the normal catalog event-type, category, operation, and outcome filters,
-with the expected event name, operation, outcome, actor, and scope fields visible
-in the row. No event-details dialog is opened for evidence capture.
+The details-sheet captures were produced in
+`artifacts/two-host-e2e/security-audit-evidence-details-sheet-20260926/` during
+a two-host run that later timed out before completing the full evidence suite.
+`existing-login-identifier-details.png` and
+`unknown-login-identifier-details.png` follow four real password login
+attempts: two for the seeded existing platform administrator and two for
+closely matching usernames that do not exist. The same generic denied event is
+queried for all four; each record has no subject ID, preserves the same
+redacted failure reason, and stores the exact submitted identifier in
+`metadata.identifier`. Both inspected Persian screenshots show the authorized
+audit page with the selected event's details sheet open; the localized metadata
+field displays the matching existing or unknown attempted identifier. The
+complete focused evidence suite has not yet passed in one fresh run.
 
 Relevant unit tests: `dotnet test tests/Libraries/Audit.Tests/Audit.Tests.csproj
 --no-restore` — 37 passed.

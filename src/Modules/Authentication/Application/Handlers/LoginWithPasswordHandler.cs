@@ -111,8 +111,11 @@ public sealed class LoginWithPasswordHandler(
             _ = await securityAuditWriter.WriteAsync(CreateAuditEvent(
                 result is AuthenticationResult<LoginResult>.Success ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
                 completedKey,
-                signInResult.UserId,
-                result is AuthenticationResult<LoginResult>.Failure ? AuthenticationSecurityAuditEvents.AuthenticationFailed : null), cancellationToken);
+                result is AuthenticationResult<LoginResult>.Success ? signInResult.UserId : null,
+                result is AuthenticationResult<LoginResult>.Failure ? AuthenticationSecurityAuditEvents.AuthenticationFailed : null,
+                result is AuthenticationResult<LoginResult>.Failure
+                    ? new SecurityAuditEventMetadata { Identifier = command.UserNameOrEmail }
+                    : null), cancellationToken);
         }
         catch (SecurityAuditStoreException)
         {
@@ -212,12 +215,13 @@ public sealed class LoginWithPasswordHandler(
             signInResult.RequiresProfileCompletion));
     }
 
-    private SecurityAuditEvent CreateAuditEvent(string outcome, string idempotencyKey, string? subjectId, string? reason) => new()
+    private SecurityAuditEvent CreateAuditEvent(string outcome, string idempotencyKey, string? subjectId, string? reason, SecurityAuditEventMetadata? metadata = null) => new()
     {
         EventName = AuthenticationSecurityAuditEvents.PasswordLogin,
         Outcome = outcome,
         ActorId = requestContext.UserId,
         SubjectId = subjectId,
+        Metadata = metadata,
         TenantId = requestContext.TenantId!,
         Resource = AuthenticationSecurityAuditEvents.Resource,
         Operation = AuthenticationSecurityAuditEvents.PasswordLoginOperation,

@@ -69,7 +69,13 @@ public sealed class AuditingSignInManager(
 
         string? resolvedSubjectId = await TryGetSubjectIdAsync(subjectIdFactory).ConfigureAwait(false);
         (string outcome, string? reason) = Outcome(result, mfa);
-        await TryWriteAsync(eventName, operation, idempotencySuffix, resolvedSubjectId, outcome, reason).ConfigureAwait(false);
+        await TryWriteAsync(
+            eventName,
+            operation,
+            idempotencySuffix,
+            outcome == SecurityAuditOutcome.Succeeded ? resolvedSubjectId : null,
+            outcome,
+            reason).ConfigureAwait(false);
         return result;
     }
 

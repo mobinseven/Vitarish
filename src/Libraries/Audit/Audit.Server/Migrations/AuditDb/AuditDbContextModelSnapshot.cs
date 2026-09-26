@@ -177,6 +177,29 @@ namespace Vitarish.Audit.Server.Migrations.AuditDb
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
+
+            modelBuilder.Entity("Vitarish.Audit.Domain.SecurityAuditEvent", b =>
+                {
+                    b.OwnsOne("Vitarish.Audit.Domain.SecurityAuditEventMetadata", "Metadata", b1 =>
+                        {
+                            b1.Property<Guid>("SecurityAuditEventId");
+
+                            b1.Property<string>("Identifier");
+
+                            b1.HasKey("SecurityAuditEventId");
+
+                            b1.ToTable("SecurityAuditEvents", "Audit");
+
+                            b1
+                                .ToJson("Metadata")
+                                .HasColumnType("jsonb");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SecurityAuditEventId");
+                        });
+
+                    b.Navigation("Metadata");
+                });
 #pragma warning restore 612, 618
         }
     }

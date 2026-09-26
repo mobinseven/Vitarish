@@ -344,6 +344,7 @@ internal sealed class SecurityAuditQueryService(
         ActorKind = item.ActorKind,
         ActorId = item.ActorId,
         SubjectId = item.SubjectId,
+        Metadata = item.Metadata,
         TenantId = item.TenantId,
         Resource = item.Resource,
         Operation = item.Operation,

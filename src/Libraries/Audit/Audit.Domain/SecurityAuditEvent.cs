@@ -13,6 +13,7 @@ public sealed class SecurityAuditEvent
     public string? ActorKind { get; set; }
     public string? ActorId { get; set; }
     public string? SubjectId { get; set; }
+    public SecurityAuditEventMetadata? Metadata { get; set; }
     public string TenantId { get; set; } = string.Empty;
     public string? Resource { get; set; }
     public string Operation { get; set; } = string.Empty;

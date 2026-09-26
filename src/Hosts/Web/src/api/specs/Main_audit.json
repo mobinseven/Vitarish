@@ -646,6 +646,17 @@
           }
         }
       },
+      "SecurityAuditEventMetadata": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SecurityAuditEventReadDto": {
         "type": "object",
         "properties": {
@@ -681,6 +692,16 @@
             "type": [
               "null",
               "string"
+            ]
+          },
+          "metadata": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SecurityAuditEventMetadata"
+              }
             ]
           },
           "tenantId": {

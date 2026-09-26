@@ -9,6 +9,7 @@ public sealed record SecurityAuditEventReadDto
     public string? ActorKind { get; init; }
     public string? ActorId { get; init; }
     public string? SubjectId { get; init; }
+    public SecurityAuditEventMetadata? Metadata { get; init; }
     public string TenantId { get; init; } = string.Empty;
     public string? Resource { get; init; }
     public string Operation { get; init; } = string.Empty;
