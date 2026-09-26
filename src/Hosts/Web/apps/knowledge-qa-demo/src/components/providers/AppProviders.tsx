@@ -5,7 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
 import { MockApiBootstrap } from "@vitarish/mock-runtime";
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -23,6 +23,7 @@ export function Providers({ children }: { children: ReactNode }) {
         themes={["light", "dark"]}
         enableSystem
         disableTransitionOnChange
+        nonce={nonce}
       >
         {children}
       </ThemeProvider>

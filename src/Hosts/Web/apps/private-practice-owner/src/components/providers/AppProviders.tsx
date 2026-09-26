@@ -8,7 +8,7 @@ import { MockApiBootstrap } from "@vitarish/mock-runtime";
 
 const themeModeOptions = ["light", "dark"] as const;
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -26,6 +26,7 @@ export function Providers({ children }: { children: ReactNode }) {
         themes={[...themeModeOptions]}
         enableSystem
         disableTransitionOnChange
+        nonce={nonce}
       >
         {children}
         <Toast.Provider placement="bottom" />
