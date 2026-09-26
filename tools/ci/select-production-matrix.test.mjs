@@ -7,6 +7,8 @@ import { selectProductionMatrix } from "./select-production-matrix.mjs";
 const workflow = readFileSync(new URL("../../.github/workflows/production.yml", import.meta.url), "utf8");
 const unknownSourceRules = /^            unknown_source:\r?\n((?:              - .*\r?\n)+)/m.exec(workflow)?.[1]
   ?.trim().split(/\r?\n/).map((line) => line.trim().slice(3).replace(/^'|'$/g, ""));
+const deployScriptRules = /^            deploy_script:\r?\n((?:              - .*\r?\n)+)/m.exec(workflow)?.[1]
+  ?.trim().split(/\r?\n/).map((line) => line.trim().slice(3).replace(/^'|'$/g, ""));
 
 function matchesUnknownSource(path) {
   assert.match(workflow, /^          predicate-quantifier: some-with-excludes$/m);
@@ -14,6 +16,11 @@ function matchesUnknownSource(path) {
   const included = unknownSourceRules.filter((rule) => !rule.startsWith("!"));
   const excluded = unknownSourceRules.filter((rule) => rule.startsWith("!")).map((rule) => rule.slice(1));
   return included.some((rule) => matchesGlob(path, rule)) && !excluded.some((rule) => matchesGlob(path, rule));
+}
+
+function matchesDeployScript(path) {
+  assert.ok(deployScriptRules?.length, "deploy_script filter is missing");
+  return deployScriptRules.some((rule) => matchesGlob(path, rule));
 }
 
 test("workflow path rules exclude classified source changes before selecting the fallback matrix", () => {
@@ -31,6 +38,18 @@ test("workflow path rules exclude classified source changes before selecting the
 test("configuration-only deployments remain eligible when publishing is skipped", () => {
   assert.match(workflow, /deploy_production:\r?\n[\s\S]*?if: \$\{\{ always\(\) && !cancelled\(\)[^\n]*needs\.publish\.result == 'skipped'/);
   assert.deepEqual(selectProductionMatrix("push", { compose: true }).images, []);
+});
+
+test("deployment script changes select every production service without publishing application images", () => {
+  const scriptPath = "src/Hosts/deployment/deploy-production.sh";
+  assert.equal(matchesDeployScript(scriptPath), true);
+  assert.equal(matchesDeployScript("src/Hosts/deployment/docker-compose.production.yml"), false);
+  const selected = selectProductionMatrix("push", { deploy_script: matchesDeployScript(scriptPath) });
+  assert.deepEqual(selected.images, []);
+  assert.deepEqual(selected.services, [
+    "main", "private-practice-owner", "patients", "platform-admin", "pm",
+    "knowledge-qa", "landing", "agent-runtime", "caddy",
+  ]);
 });
 
 test("an isolated Web app change selects only that app's tests, image, and service", () => {

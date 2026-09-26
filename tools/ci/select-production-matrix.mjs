@@ -35,7 +35,7 @@ export function selectProductionMatrix(eventName, filters) {
     ...webImages.map((consumer) => consumer.service),
     ...(caddy ? ["caddy"] : []),
   ];
-  if (filters.compose === true) services = [...sharedComposeConsumers];
+  if (filters.compose === true || filters.deploy_script === true) services = [...sharedComposeConsumers];
 
   return {
     web: webTests.map(({ image, workspace, service }) => ({ image, workspace, service })),
@@ -55,7 +55,7 @@ function readinessPathFromSource() {
 if (process.env.GITHUB_OUTPUT && resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url)) {
   const filters = Object.fromEntries([
     "dotnet", "main", "web_all", "web_owner", "web_patients", "web_admin", "web_pm",
-    "web_qa", "web_landing", "web_agent", "caddy", "compose", "test_compose", "workflow", "unknown_source",
+    "web_qa", "web_landing", "web_agent", "caddy", "compose", "deploy_script", "test_compose", "workflow", "unknown_source",
   ].map((name) => [name, process.env[name.toUpperCase()] === "true"]));
   const selected = selectProductionMatrix(process.env.EVENT_NAME, filters);
   const outputs = {
