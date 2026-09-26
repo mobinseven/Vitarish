@@ -72,8 +72,8 @@ test("production ingress forwards the Main readiness contract to the private Mai
   assert.ok(readinessPath, "Main readiness route contract is missing");
   const healthRoute = /\(production_readiness\)\s*\{(?<body>[\s\S]*?)\}/.exec(caddyfile)?.groups?.body;
   assert.ok(healthRoute, "production readiness route is missing");
-  assert.match(healthRoute, new RegExp(`@readiness path ${readinessPath.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`));
-  assert.match(healthRoute, /reverse_proxy @readiness production-main:8080/);
+  assert.match(healthRoute, new RegExp(`handle ${readinessPath.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`));
+  assert.match(healthRoute, /reverse_proxy production-main:8080/);
   assert.match(caddyfile, /https:\/\/\{\$PRODUCTION_PUBLIC_HOST\}\s*\{[^}]*import production_readiness/s);
 });
 
