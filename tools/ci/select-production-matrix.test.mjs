@@ -57,6 +57,10 @@ test("the remote Caddy validator does not consume the streamed deployment script
   assert.match(deployProductionScript, /^ingress run --interactive=false --rm --no-deps caddy-config-validator caddy validate --config \/etc\/caddy\/Caddyfile --adapter caddyfile$/m);
 });
 
+test("the production readiness probe does not require an unsupported curl retry option", () => {
+  assert.doesNotMatch(deployProductionScript, /--retry-all-errors/);
+});
+
 test("an isolated Web app change selects only that app's tests, image, and service", () => {
   const selected = selectProductionMatrix("pull_request", { web_owner: true });
   assert.deepEqual(selected.web.map(({ workspace }) => workspace), ["private-practice-owner"]);
