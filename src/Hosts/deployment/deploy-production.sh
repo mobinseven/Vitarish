@@ -173,7 +173,14 @@ fi
 
 public_host=$(sed -n 's/^VITARISH_PRODUCTION_PUBLIC_HOST=//p' "$deployment/.env.shared")
 [[ $public_host =~ ^[A-Za-z0-9.-]+$ && -n $public_host ]] || { printf 'Invalid production public hostname.\n' >&2; false; }
-curl --fail --silent --show-error --retry 5 --retry-delay 5 --max-time 30 --resolve "$public_host:443:127.0.0.1" --proto '=https' --tlsv1.2 "https://$public_host$readiness_path" --output /dev/null
+readiness_headers=$(mktemp)
+if ! readiness_status=$(curl --fail --silent --show-error --retry 5 --retry-delay 5 --max-time 30 --resolve "$public_host:443:127.0.0.1" --proto '=https' --tlsv1.2 --dump-header "$readiness_headers" --write-out '%{http_code}' "https://$public_host$readiness_path" --output /dev/null); then
+  if grep -iq '^server: caddy' "$readiness_headers"; then responder=caddy; elif grep -iq '^server: kestrel' "$readiness_headers"; then responder=main; else responder=unknown; fi
+  rm -f "$readiness_headers"
+  printf 'Production readiness returned HTTP %s from %s.\n' "${readiness_status:-000}" "$responder" >&2
+  false
+fi
+rm -f "$readiness_headers"
 probe_route() {
   local variable=$1 host code headers
   host=$(sed -n "s/^${variable}=//p" "$deployment/.env.shared")
