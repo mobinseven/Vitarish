@@ -63,6 +63,11 @@ test("the remote Caddy validator does not consume the streamed deployment script
   assert.match(deployProductionScript, /^ingress run --interactive=false --rm --no-deps caddy-config-validator caddy validate --config \/etc\/caddy\/Caddyfile --adapter caddyfile$/m);
 });
 
+test("selected Caddy configuration is loaded and rollback reloads the previous configuration", () => {
+  assert.match(deployProductionScript, /if selected caddy; then\r?\n\s+ingress up -d --wait --wait-timeout 600 --no-deps --force-recreate --pull never caddy/);
+  assert.match(deployProductionScript, /if \[\[ \$attempted_caddy == true && \$previous_ingress == true \]\]; then ingress_previous up -d --wait --no-deps --force-recreate caddy/);
+});
+
 test("the production readiness probe does not require an unsupported curl retry option", () => {
   assert.doesNotMatch(deployProductionScript, /--retry-all-errors/);
 });
