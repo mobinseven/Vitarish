@@ -175,12 +175,11 @@ export function HomeDashboard() {
               <Popover>
                 <Button
                   aria-label={t("home.dashboard.filters")}
-                  title={t("home.dashboard.filters")}
                   className="min-w-0"
                   size="sm"
                   variant={activeFilterCount > 0 ? "secondary" : "outline"}
                 >
-                  <i aria-hidden="true" className="fa-light fa-filter" />
+                  <i aria-hidden="true" className="fa-light fa-filter" title={t("home.dashboard.filters")} />
                   <span className="hidden sm:inline">{t("home.dashboard.filters")}</span>
                   {activeFilterCount > 0 ? (
                     <Chip
