@@ -43,6 +43,10 @@ test("configuration-only deployments remain eligible when publishing is skipped"
   assert.deepEqual(selectProductionMatrix("push", { compose: true }).images, []);
 });
 
+test("publishes selected images when unrelated test matrices are skipped", () => {
+  assert.match(workflow, /publish:\r?\n[\s\S]*?if: \$\{\{ github\.event_name == 'push'[^\n]*needs\.required\.result == 'success' && !cancelled\(\) \}\}/);
+});
+
 test("deployment script changes select every production service without publishing application images", () => {
   const scriptPath = "src/Hosts/deployment/deploy-production.sh";
   assert.equal(matchesDeployScript(scriptPath), true);
