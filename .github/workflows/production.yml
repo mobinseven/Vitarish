@@ -344,6 +344,14 @@ jobs:
           chmod 0600 ~/.ssh/id_ed25519
           printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 0600 ~/.ssh/known_hosts
+      - name: Install browser evidence dependencies
+        working-directory: src/Hosts/Web
+        env:
+          HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
+        run: npm ci
+      - name: Install Chromium for production evidence
+        working-directory: src/Hosts/Web
+        run: npx playwright install --with-deps chromium
       - name: Resolve this run's published image digests
         env:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
@@ -368,6 +376,10 @@ jobs:
             printf 'Invalid production SSH target or release identity.\n' >&2
             exit 2
           }
+          node - "$SSH_HOST" <<'NODE'
+          const { isIPv4 } = require("node:net");
+          if (!isIPv4(process.argv[2])) throw new Error("Production SSH host must be the verified public ingress IPv4 address.");
+          NODE
           destination="$SSH_USER@$SSH_HOST"
           ssh_options=(-o BatchMode=yes -o StrictHostKeyChecking=yes)
           incoming="/opt/vitarish/deployment/.workflow-incoming/$COMMIT_SHA-$GITHUB_RUN_ID"
@@ -382,3 +394,16 @@ jobs:
           name: deployed-release-${{ github.sha }}-${{ github.run_id }}
           path: ${{ runner.temp }}/deployment/plan.json
           if-no-files-found: error
+      - name: Capture deployed production evidence
+        working-directory: src/Hosts/Web
+        env:
+          PUBLIC_INGRESS_IPV4: ${{ secrets.PRODUCTION_SSH_HOST }}
+          SSH_TARGET: root@${{ secrets.PRODUCTION_SSH_HOST }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: node scripts/capture-production-browser-evidence.mjs "$PUBLIC_INGRESS_IPV4" "$SSH_TARGET" "$COMMIT_SHA"
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: production-browser-evidence-${{ github.sha }}-${{ github.run_id }}
+          path: src/Hosts/Web/artifacts/deployment-evidence/
+          if-no-files-found: ignore

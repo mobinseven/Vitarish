@@ -24,25 +24,21 @@ if (process.argv[2] === "--help") {
 const [publicIngressIPv4, sshTarget, commitArgument, sharedEnvironmentArgument, outputRootArgument] = process.argv.slice(2);
 if (!publicIngressIPv4 || !isIPv4(publicIngressIPv4) || sshTarget !== `root@${publicIngressIPv4}`) throw new Error(usage);
 if (!commitArgument || !/^[0-9a-f]{40}$/.test(commitArgument)) throw new Error("Provide the full commit SHA deployed by the production workflow.");
-const sharedEnvironmentPath = resolve(sharedEnvironmentArgument ?? resolve(deploymentRoot, ".env.shared"));
 const outputRoot = resolve(outputRootArgument ?? resolve(webRoot, "artifacts", "deployment-evidence"));
 const capturedAt = new Date();
 const runDirectory = resolve(outputRoot, capturedAt.toISOString().replace(/[:.]/g, "-"));
 
-async function readHosts(path) {
-  const hosts = [];
-  const lines = createInterface({ input: createReadStream(path), crlfDelay: Infinity });
-  for await (const line of lines) {
-    const match = /^(VITARISH_PRODUCTION_([A-Z0-9_]+_HOST))=(.*)$/.exec(line);
-    if (!match) continue;
-    const [, name, , configuredHost] = match;
-    const wildcard = configuredHost.startsWith("*.");
-    const hostname = wildcard ? `deployment-probe.${configuredHost.slice(2)}` : configuredHost;
-    if (!/^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$/.test(hostname)) {
-      throw new Error(`Invalid hostname configured for ${name}.`);
-    }
-    hosts.push({ name, environment: "production", hostname, configuredHost, wildcard });
-  }
+function parseHosts(configuredHosts) {
+  const hosts = Object.entries(configuredHosts)
+    .filter(([name]) => /^VITARISH_PRODUCTION_[A-Z0-9_]+_HOST$/.test(name))
+    .map(([name, configuredHost]) => {
+      const wildcard = configuredHost.startsWith("*.");
+      const hostname = wildcard ? `deployment-probe.${configuredHost.slice(2)}` : configuredHost;
+      if (!/^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$/.test(hostname)) {
+        throw new Error(`Invalid hostname configured for ${name}.`);
+      }
+      return { name, environment: "production", hostname, configuredHost, wildcard };
+    });
   if (hosts.length !== 8) {
     throw new Error(`Expected 8 configured production host entries; found ${hosts.length}.`);
   }
@@ -50,6 +46,19 @@ async function readHosts(path) {
     throw new Error("Expected both configured production wildcard host probes.");
   }
   return hosts.sort((left, right) => left.name.localeCompare(right.name));
+}
+
+async function readHosts(path) {
+  const configuredHosts = {};
+  const lines = createInterface({ input: createReadStream(path), crlfDelay: Infinity });
+  for await (const line of lines) {
+    const match = /^(VITARISH_PRODUCTION_([A-Z0-9_]+_HOST))=(.*)$/.exec(line);
+    if (!match) continue;
+    const [, name, , configuredHost] = match;
+    if (Object.hasOwn(configuredHosts, name)) throw new Error(`Duplicate production hostname setting: ${name}.`);
+    configuredHosts[name] = configuredHost;
+  }
+  return parseHosts(configuredHosts);
 }
 
 function readAuthenticationRoutes() {
@@ -61,7 +70,7 @@ function readAuthenticationRoutes() {
   return { profile: `${basePath}${profilePath}`, session: `${basePath}${sessionSuffix}` };
 }
 
-function collectRemoteState() {
+function collectRemoteState(expectedHosts) {
   const command = `
 set -e
 cd ${remoteDeploymentRoot}
@@ -124,9 +133,11 @@ PY
   if (state.commit !== commitArgument || !/^[1-9][0-9]*$/.test(state.runId) || !state.capturedAtUtc) {
     throw new Error("Remote workflow release identity or service-state timestamp was missing.");
   }
-  for (const host of hosts) {
-    if (state.configuredHosts?.[host.name] !== host.configuredHost) {
-      throw new Error("Operator and server production host configuration differ.");
+  if (expectedHosts) {
+    for (const host of expectedHosts) {
+      if (state.configuredHosts?.[host.name] !== host.configuredHost) {
+        throw new Error("Operator and server production host configuration differ.");
+      }
     }
   }
   for (const services of Object.values(state.stacks)) if (services.length === 0) throw new Error("Remote Compose service state was incomplete.");
@@ -143,10 +154,11 @@ function evidenceTable(title, headings, rows, capturedAtUtc) {
   return `<!doctype html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:0;padding:36px;background:#f4f6f8;color:#17212b;font:15px/1.5 Arial,sans-serif}main{max-width:1320px;margin:0 auto;background:#fff;border:1px solid #d8dee5;border-radius:12px;padding:28px}h1{font-size:25px;margin:0 0 6px}p{color:#526170;margin:0 0 22px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 12px;border-bottom:1px solid #e4e8ed;overflow-wrap:anywhere}th{background:#edf1f5;font-weight:700}</style></head><body><main><h1>${escapeHtml(title)}</h1><p>Captured ${escapeHtml(capturedAtUtc)} · Commit ${escapeHtml(commitArgument)}</p><table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></main></body></html>`;
 }
 
-const hosts = await readHosts(sharedEnvironmentPath);
+const expectedHosts = sharedEnvironmentArgument ? await readHosts(resolve(sharedEnvironmentArgument)) : null;
 const authenticationRoutes = readAuthenticationRoutes();
 await mkdir(runDirectory, { recursive: true });
-const serviceState = collectRemoteState();
+const serviceState = collectRemoteState(expectedHosts);
+const hosts = expectedHosts ?? parseHosts(serviceState.configuredHosts);
 const serviceStatePath = resolve(runDirectory, "service-status.json");
 await writeFile(serviceStatePath, `${JSON.stringify(serviceState, null, 2)}\n`, "utf8");
 
