@@ -34,6 +34,9 @@
 (production_api) {
     @api path /api/*
     reverse_proxy @api production-main:8080
+}
+
+(production_readiness) {
     @readiness path /health/ready
     reverse_proxy @readiness production-main:8080
 }
@@ -131,6 +134,7 @@ https://{$TEST_CLINIC_WILDCARD_HOST} {
 https://{$PRODUCTION_PUBLIC_HOST} {
     import security_headers
     import production_api
+    import production_readiness
     reverse_proxy production-private-practice-owner:3000
 }
 https://{$PRODUCTION_PATIENTS_HOST} {

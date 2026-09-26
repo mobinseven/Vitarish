@@ -66,8 +66,11 @@ test("the production readiness probe does not require an unsupported curl retry 
 test("production ingress forwards the Main readiness contract to the private Main upstream", () => {
   const readinessPath = /public const string ReadinessPath = "([^\"]+)";/.exec(mainHealthSource)?.[1];
   assert.ok(readinessPath, "Main readiness route contract is missing");
-  assert.match(caddyfile, new RegExp(`@readiness path ${readinessPath.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`));
-  assert.match(caddyfile, /reverse_proxy @readiness production-main:8080/);
+  const healthRoute = /\(production_readiness\)\s*\{(?<body>[\s\S]*?)\}/.exec(caddyfile)?.groups?.body;
+  assert.ok(healthRoute, "production readiness route is missing");
+  assert.match(healthRoute, new RegExp(`@readiness path ${readinessPath.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`));
+  assert.match(healthRoute, /reverse_proxy @readiness production-main:8080/);
+  assert.match(caddyfile, /https:\/\/\{\$PRODUCTION_PUBLIC_HOST\}\s*\{[^}]*import production_readiness/s);
 });
 
 test("an isolated Web app change selects only that app's tests, image, and service", () => {
