@@ -9,6 +9,12 @@
   --vitarish-layout-width-content: 80rem;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .vitarish-loading-spinner animate {
+    display: none;
+  }
+}
+
 @media (min-width: 640px) {
   :root {
     --vitarish-layout-gutter-inline: 1.5rem;

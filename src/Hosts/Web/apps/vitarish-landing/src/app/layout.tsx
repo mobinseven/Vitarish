@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { I18nAppLayout, resolveI18nAppLocale } from "@vitarish/localization";
+import { contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
 import { AppProviders } from "../components/providers/AppProviders";
 import { getMessages } from "../localization";
 import { applicationFontVariables } from "./fonts";
@@ -25,6 +26,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const headerStore = await headers();
+  const nonce = contentSecurityPolicyNonce(headerStore);
 
   return (
     <>
@@ -38,7 +40,7 @@ export default async function RootLayout({
         htmlClassName={applicationFontVariables}
         bodyClassName="bg-background text-foreground"
       >
-        <AppProviders>{children}</AppProviders>
+        <AppProviders nonce={nonce}>{children}</AppProviders>
       </I18nAppLayout>
     </>
   );

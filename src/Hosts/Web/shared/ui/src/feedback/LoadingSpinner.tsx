@@ -23,10 +23,9 @@ export function LoadingSpinner({
       height={size}
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
+      className={["vitarish-loading-spinner", className].filter(Boolean).join(" ")}
       aria-hidden="true"
     >
-      <style>{`@media (prefers-reduced-motion: reduce) { animate { display: none; } }`}</style>
       <rect width="10" height="10" x="1" y="1" fill="currentColor" rx="1">
         <animate id={ids[0]} fill="freeze" attributeName="x" begin={`0;${ids[11]}.end`} dur="0.2s" values="1;13" />
         <animate id={ids[1]} fill="freeze" attributeName="y" begin={`${ids[8]}.end`} dur="0.2s" values="1;13" />

@@ -1,21 +1,28 @@
 "use client";
 
 import { useMemo } from "react";
+import { ApiError } from "@vitarish/api-client";
 import { useAuthenticationSessionGet } from "../api/generated/authentication/authentication";
 import { resolveUserDisplayProfile } from "../session/userDisplayProfile";
 
 export function useAuthSession() {
-  const query = useAuthenticationSessionGet();
+  const query = useAuthenticationSessionGet({
+    query: {
+      retry: (failureCount, error) =>
+        !(error instanceof ApiError && error.status === 401) && failureCount < 1,
+    },
+  });
 
+  const unauthorized = query.error instanceof ApiError && query.error.status === 401;
   const user = query.data?.user ?? null;
   const displayProfile = useMemo(() => resolveUserDisplayProfile(user), [user]);
 
   return {
     session: query.data,
-    isAuthenticated: query.data?.isAuthenticated ?? false,
+    isAuthenticated: unauthorized ? false : query.data?.isAuthenticated ?? false,
     user,
     displayProfile,
-    isLoading: query.isLoading,
-    isError: query.isError,
+    isLoading: query.isLoading && !unauthorized,
+    isError: query.isError && !unauthorized,
   };
 }

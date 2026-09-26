@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { vi } from "vitest";
 import { type ReactNode } from "react";
 import { http, HttpResponse } from "msw";
+import { ApiError } from "@vitarish/api-client";
 import { server } from "../server";
 import { useAuthSession } from "../../hooks/useAuthSession";
 
@@ -31,6 +33,44 @@ describe("useAuthSession", () => {
     expect(result.current.isAuthenticated).toBe(false);
     expect(result.current.user).toBeNull();
     expect(result.current.displayProfile.displayLabel).toBe("friend");
+  });
+
+  it("treats an unauthorized session response as signed out without retrying", async () => {
+    let requests = 0;
+    server.use(
+      http.get(/\/api\/modules\/authentication\/session(?:\?|$)/, () => {
+        requests += 1;
+        return HttpResponse.json({ status: 401, title: "Unauthorized" }, { status: 401 });
+      }),
+    );
+
+    const { result } = renderHook(() => useAuthSession(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.isError).toBe(false);
+    expect(requests).toBe(1);
+    expect(result.current.session).toBeUndefined();
+    expect(result.current.displayProfile.displayLabel).toBe("friend");
+  });
+
+  it("keeps non-unauthorized session failures visible as errors", async () => {
+    server.use(
+      http.get(/\/api\/modules\/authentication\/session(?:\?|$)/, () =>
+        HttpResponse.json({ status: 503, title: "Unavailable" }, { status: 503 }),
+      ),
+    );
+
+    const { result } = renderHook(() => useAuthSession(), { wrapper });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 3_000 });
+    expect(result.current.isError).toBe(true);
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.session).toBeUndefined();
   });
 
   it("prefers authenticated user given name in the display profile", async () => {

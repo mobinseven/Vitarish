@@ -6,10 +6,10 @@ import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
 import { MockApiBootstrap } from "@vitarish/mock-runtime";
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
   const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 300_000 } } }));
   return <MockApiBootstrap><QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem disableTransitionOnChange nonce={nonce}>
       {children}
       <Toast.Provider placement="bottom" />
     </ThemeProvider>
