@@ -177,7 +177,10 @@ readiness_headers=$(mktemp)
 if ! readiness_status=$(curl --fail --silent --show-error --retry 5 --retry-delay 5 --max-time 30 --resolve "$public_host:443:127.0.0.1" --proto '=https' --tlsv1.2 --dump-header "$readiness_headers" --write-out '%{http_code}' "https://$public_host$readiness_path" --output /dev/null); then
   if grep -iq '^server: caddy' "$readiness_headers"; then responder=caddy; elif grep -iq '^server: kestrel' "$readiness_headers"; then responder=main; else responder=unknown; fi
   rm -f "$readiness_headers"
+  internal_readiness=$(compose exec -T patients node -e 'fetch("http://production-main:8080" + process.argv[1], { signal: AbortSignal.timeout(5000) }).then(response => console.log(`${response.status} ${response.headers.get("server")?.toLowerCase() === "kestrel" ? "main" : "unknown"}`)).catch(() => console.log("unavailable unknown"))' "$readiness_path" 2>/dev/null | tr -d '\r' | tail -n 1 || true)
+  [[ $internal_readiness =~ ^([0-9]{3}|unavailable)\ (main|unknown)$ ]] || internal_readiness='unavailable unknown'
   printf 'Production readiness returned HTTP %s from %s.\n' "${readiness_status:-000}" "$responder" >&2
+  printf 'Private Main readiness returned %s.\n' "$internal_readiness" >&2
   false
 fi
 rm -f "$readiness_headers"
