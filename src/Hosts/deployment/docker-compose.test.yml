@@ -29,6 +29,8 @@ services:
       Vitarish__Identity__DataProtectionPassword: ${VITARISH_TEST_DATA_PROTECTION_PASSWORD:?VITARISH_TEST_DATA_PROTECTION_PASSWORD is required}
       Vitarish__Security__MandatoryAuditEnabled: "true"
       Vitarish__Security__Audit__CapacityWarningBytes: ${VITARISH_TEST_AUDIT_CAPACITY_WARNING_BYTES:?VITARISH_TEST_AUDIT_CAPACITY_WARNING_BYTES is required}
+      Vitarish__Main__AuditCapacityAlert__EmailRecipient: ${VITARISH_TEST_AUDIT_ALERT_EMAIL:?VITARISH_TEST_AUDIT_ALERT_EMAIL is required}
+      Vitarish__Main__AuditCapacityAlert__SmsRecipient: ${VITARISH_TEST_AUDIT_ALERT_PHONE:?VITARISH_TEST_AUDIT_ALERT_PHONE is required}
       Vitarish__Security__Tls__RequireHttps: "true"
       Vitarish__Security__TrustedProxyNetworks__0: ${VITARISH_TEST_INGRESS_IPV4:?VITARISH_TEST_INGRESS_IPV4 is required}/32
       Vitarish__Security__TokenValidation__Issuer: https://${VITARISH_TEST_PUBLIC_HOST:?VITARISH_TEST_PUBLIC_HOST is required}

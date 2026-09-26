@@ -51,6 +51,7 @@ else
 
 await builder.RegisterHosting(new HostingCompositionOptions(configurePostgres, signingCertificate, securityConfiguration));
 builder.AddHostHangfire(builder.Configuration.GetConnectionString("Db"));
+_ = builder.Services.AddAuditCapacityAlertMonitoring(builder.Environment, openApiGeneration);
 _ = builder.Services.AddOpenApi();
 _ = builder.Services.AddModuleOpenApiDocument(SecurityAuditApiRoutes.DocumentName, SecurityAuditApiRoutes.DocumentTag);
 

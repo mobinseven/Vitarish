@@ -12,6 +12,9 @@ App, Module, or Identity Application/Domain slice.
   failed-attempt, session, audit, transfer, resource-authorization, integrity,
   and retention rules stay at their scoped owners and reach Main through
   explicit registrations, options, metadata, and ports.
+- **[MUST]** Main owns operational delivery of audit-capacity warnings. Reuse
+  Audit's capacity measurement and Communications' delivery capability;
+  Audit does not own operational recipients, email, or SMS behavior.
 - **[MUST]** Validate mandatory production security configuration on the real
   startup path before serving traffic. Do not defer rejection until the first
   request, replace validation with a warning, or add environment/test branches
