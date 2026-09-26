@@ -42,7 +42,7 @@ internal static class SecurityBaselineCheck
     {
         List<ArchitectureViolation> violations = [];
         violations.AddRange(DiscoverEndpointViolations(index));
-        violations.AddRange(CheckDeploymentBundles(index.Root));
+        violations.AddRange(RunDeploymentBundles(index.Root));
         violations.AddRange(CheckSourceSecuritySurface(index));
         return violations;
     }
@@ -53,14 +53,144 @@ internal static class SecurityBaselineCheck
     internal static IReadOnlyList<ArchitectureViolation> RunSourceSecuritySurface(SourceIndex index) =>
         CheckSourceSecuritySurface(index);
 
-    private static IReadOnlyList<ArchitectureViolation> CheckDeploymentBundles(string root)
+    internal static IReadOnlyList<ArchitectureViolation> RunDeploymentBundles(string root)
     {
         List<ArchitectureViolation> violations = [];
         string deploymentRoot = Path.Combine(root, "src", "Hosts", "deployment");
         string ingressPath = Path.Combine(deploymentRoot, "docker-compose.ingress.yml");
         string caddyPath = Path.Combine(deploymentRoot, "Caddyfile");
+        string caddyDockerfilePath = Path.Combine(deploymentRoot, "Dockerfile");
+        string deployScriptPath = Path.Combine(deploymentRoot, "deploy-production.sh");
+        string resolverPath = Path.Combine(root, "tools", "ci", "resolve-production-images.mjs");
+        string evidencePath = Path.Combine(root, "src", "Hosts", "Web", "scripts", "capture-production-browser-evidence.mjs");
         string ingress = ReadRequired(ingressPath, violations);
         string caddy = ReadRequired(caddyPath, violations);
+        string caddyDockerfile = ReadRequired(caddyDockerfilePath, violations);
+        string deployScript = ReadRequired(deployScriptPath, violations);
+        string resolver = ReadRequired(resolverPath, violations);
+        string evidence = ReadRequired(evidencePath, violations);
+        string sharedExamplePath = Path.Combine(deploymentRoot, ".env.shared.example");
+        string sharedExample = ReadRequired(sharedExamplePath, violations);
+        string workflowPath = Path.Combine(root, ".github", "workflows", "production.yml");
+        string workflow = ReadRequired(workflowPath, violations);
+        Dictionary<string, string> sharedValues = ReadEnvironmentValues(sharedExample, sharedExamplePath, violations);
+
+        if (Regex.Matches(ingress, "\\\"(?:80:80|443:443)/tcp\\\"").Count != 2 ||
+            !ingress.Contains("\"80:80/tcp\"", StringComparison.Ordinal) ||
+            !ingress.Contains("\"443:443/tcp\"", StringComparison.Ordinal))
+            violations.Add(DeploymentViolation(ingressPath, "IngressPortAllowlist", "Publish exactly TCP 80 and TCP 443."));
+        if (!Regex.IsMatch(ingress, @"(?ms)^  caddy:\r?\n.*?^      - \.\/Caddyfile:/etc/caddy/Caddyfile:ro\s*$"))
+            violations.Add(DeploymentViolation(ingressPath, "CaddyfileMountMissing", "Mount the configured Caddyfile read-only in the runtime service."));
+        if (!Regex.IsMatch(caddy, @"(?ms)^\(security_headers\)\s*\{.*?tls\s*\{.*?dns cloudflare \{env\.CLOUDFLARE_API_TOKEN\}\s+resolvers 1\.1\.1\.1\s+\}"))
+            violations.Add(DeploymentViolation(caddyPath, "DnsChallengeResolverMissing", "Use the configured public resolver for the Cloudflare DNS challenge."));
+        if (!Regex.IsMatch(ingress, @"(?m)^x-caddy-runtime: &caddy-runtime\s*$") ||
+            Regex.Matches(ingress, @"(?m)^    <<: \*caddy-runtime\s*$").Count != 2 ||
+            !Regex.IsMatch(ingress, @"(?ms)^  caddy-config-validator:\r?\n.*?^    profiles: \[validation\]\s*$") ||
+            !Regex.IsMatch(ingress, @"(?ms)^  caddy-config-validator:\r?\n.*?^    network_mode: none\s*$"))
+            violations.Add(DeploymentViolation(ingressPath, "CaddyValidationIsolationMissing", "Validate the runtime Caddy configuration without joining fixed-address proxy networks."));
+        if (Regex.IsMatch(ingress, @"(?im)443/udp|docker\.sock|agent-runtime"))
+            violations.Add(DeploymentViolation(ingressPath, "IngressBoundaryViolation", "Do not enable HTTP/3, mount the Docker socket, or expose the agent runtime."));
+        if (!Regex.IsMatch(ingress, @"(?m)^      ingress-egress: \{\}\s*$") ||
+            !Regex.IsMatch(ingress, @"(?m)^  test-proxy:\r?\n    name: vitarish-test-proxy\r?\n    internal: true\s*$") ||
+            !Regex.IsMatch(ingress, @"(?m)^  production-proxy:\r?\n    name: vitarish-production-proxy\r?\n    internal: true\s*$"))
+            violations.Add(DeploymentViolation(ingressPath, "IngressNetworkIsolationMissing", "Keep environment proxy networks internal and ingress egress separately owned."));
+        if (!Regex.IsMatch(caddy, @"(?m)^\s*dns cloudflare \{env\.CLOUDFLARE_API_TOKEN\}\s*$") ||
+            !Regex.IsMatch(caddyDockerfile, @"(?m)^RUN xcaddy build v2\.10\.0 --with github\.com/caddy-dns/cloudflare\s*$"))
+            violations.Add(DeploymentViolation(caddyDockerfilePath, "CloudflareCaddyModuleMissing", "Build the pinned Caddy version with its Cloudflare DNS module."));
+        if (!Regex.IsMatch(ingress, @"(?m)^    CLOUDFLARE_API_TOKEN: \$\{VITARISH_CLOUDFLARE_API_TOKEN:\?[^}]+\}\s*$") ||
+            !sharedValues.ContainsKey("VITARISH_CLOUDFLARE_API_TOKEN") ||
+            !sharedValues.ContainsKey("VITARISH_ACME_EMAIL"))
+            violations.Add(DeploymentViolation(sharedExamplePath, "IngressSecretInputMissing", "Require the Cloudflare DNS credential and ACME contact through the shared operator environment."));
+        foreach (string required in new[] { "VITARISH_CADDY_IMAGE", "VITARISH_POSTGRES_IMAGE", "VITARISH_REDIS_IMAGE", "VITARISH_AISTOR_IMAGE", "VITARISH_ELASTICSEARCH_IMAGE" })
+        {
+            if (!sharedValues.ContainsKey(required))
+                violations.Add(DeploymentViolation(sharedExamplePath, "SharedImageInputMissing", $"Declare the shared image input {required}."));
+        }
+        if (!sharedValues.TryGetValue("VITARISH_POSTGRES_IMAGE", out string? postgresImage) ||
+            !Regex.IsMatch(postgresImage, @"^postgres:(?:1[89]|[2-9][0-9])(?:\.\d+)?$"))
+            violations.Add(DeploymentViolation(sharedExamplePath, "PostgresVolumeLayoutMismatch", "Use PostgreSQL 18 or later with the versioned parent-volume mount."));
+        if (!Regex.IsMatch(sharedExample, @"(?m)^VITARISH_AISTOR_IMAGE=quay\.io/minio/aistor/minio@sha256:0{64}$"))
+            violations.Add(DeploymentViolation(sharedExamplePath, "AistorImageNotDigestPinned", "Declare the licensed AIStor image by immutable digest."));
+        if (!sharedValues.TryGetValue("VITARISH_DEFAULT_RESPONSE_MODEL", out string? responseModel) || string.IsNullOrWhiteSpace(responseModel))
+            violations.Add(DeploymentViolation(sharedExamplePath, "SharedModelInputMissing", "Declare the shared default intelligence response model."));
+        if (!workflow.Contains("dorny/paths-filter@v4", StringComparison.Ordinal) ||
+            !workflow.Contains("ghcr.io/${{ github.repository_owner }}/vitarish/${{ matrix.image }}:${{ github.sha }}", StringComparison.Ordinal) ||
+            !workflow.Contains("packages: write", StringComparison.Ordinal))
+            violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowImageContractInvalid", "Filter affected consumers and publish images under their full commit SHA in the established GHCR namespace."));
+        if (!workflow.Contains("predicate-quantifier: some-with-excludes", StringComparison.Ordinal) ||
+            !workflow.Contains("unknown_source:", StringComparison.Ordinal) ||
+            !workflow.Contains("'!src/Hosts/Main/**'", StringComparison.Ordinal))
+            violations.Add(DeploymentViolation(workflowPath, "ProductionPathFilterExclusionMissing", "Exclude classified source paths before choosing the broad fallback matrix."));
+        int publishStart = workflow.IndexOf("\n  publish:", StringComparison.Ordinal);
+        int deployStart = workflow.IndexOf("\n  deploy_production:", StringComparison.Ordinal);
+        int packageWrite = workflow.IndexOf("packages: write", StringComparison.Ordinal);
+        if (!Regex.IsMatch(workflow, @"(?m)^  pull_request:\s*$") ||
+            !Regex.IsMatch(workflow, @"(?m)^  push:\s*$") ||
+            !workflow.Contains("workflow_dispatch:", StringComparison.Ordinal) ||
+            workflow.Contains("schedule:", StringComparison.Ordinal) ||
+            !Regex.IsMatch(workflow, @"(?ms)^permissions:\r?\n  contents: read\r?\n  pull-requests: read\s*$") ||
+            publishStart < 0 || deployStart <= publishStart || packageWrite <= publishStart || packageWrite >= deployStart ||
+            !Regex.IsMatch(workflow[publishStart..deployStart], @"(?ms)^    permissions:\r?\n      contents: read\r?\n      packages: write\s*$"))
+            violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowPermissionsInvalid", "Keep PR permissions read-only and grant package write only to publication on main pushes."));
+        if (!Regex.IsMatch(workflow, @"(?ms)^  publish:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required\].*?^    if: \$\{\{ github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?\}\}") ||
+            !Regex.IsMatch(workflow, @"(?ms)^  deploy_production:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required, publish\].*?^    if: \$\{\{ always\(\) && !cancelled\(\) && github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?\}\}") ||
+            !Regex.IsMatch(workflow, @"(?ms)^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, dotnet, web, security\]" ) ||
+            !Regex.IsMatch(workflow, @"(?ms)^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    if: \$\{\{ always\(\) \}\}") ||
+            !workflow.Contains("contains(needs.*.result, 'failure')", StringComparison.Ordinal) ||
+            !workflow.Contains("contains(needs.*.result, 'cancelled')", StringComparison.Ordinal))
+            violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowTestGateMissing", "Make both publication and SSH deployment depend on successful affected checks and main pushes."));
+        if (!workflow.Contains("environment: production", StringComparison.Ordinal) ||
+            !workflow.Contains("secrets.PRODUCTION_SSH_HOST", StringComparison.Ordinal) ||
+            !workflow.Contains("secrets.PRODUCTION_SSH_USER", StringComparison.Ordinal) ||
+            !workflow.Contains("secrets.PRODUCTION_SSH_PRIVATE_KEY", StringComparison.Ordinal) ||
+            !workflow.Contains("secrets.PRODUCTION_SSH_KNOWN_HOSTS", StringComparison.Ordinal) ||
+            !workflow.Contains("[[ \"$SSH_USER\" == \"root\" &&", StringComparison.Ordinal) ||
+            !workflow.Contains("StrictHostKeyChecking=yes", StringComparison.Ordinal) ||
+            !workflow.Contains("group: vitarish-production-deploy", StringComparison.Ordinal))
+            violations.Add(DeploymentViolation(workflowPath, "ProductionSshBoundaryInvalid", "Scope pinned SSH access to the production environment and serialize production deployments."));
+        int rollbackTrap = deployScript.IndexOf("trap rollback ERR", StringComparison.Ordinal);
+        int firstReplacement = deployScript.IndexOf("install -m 0600 \"$incoming/release.env\"", StringComparison.Ordinal);
+        if (!deployScript.Contains("config --quiet", StringComparison.Ordinal) ||
+            !deployScript.Contains("caddy validate --config /etc/caddy/Caddyfile", StringComparison.Ordinal) ||
+            !deployScript.Contains("--no-deps --pull never", StringComparison.Ordinal) ||
+            !workflow.Contains("READINESS_PATH", StringComparison.Ordinal) ||
+            !deployScript.Contains("compose_previous up", StringComparison.Ordinal) ||
+            !deployScript.Contains("cp -a \"$backup/$file\"", StringComparison.Ordinal) ||
+            rollbackTrap < 0 || firstReplacement < 0 || rollbackTrap >= firstReplacement)
+            violations.Add(DeploymentViolation(deployScriptPath, "ProductionWorkflowRecoveryGateMissing", "Install rollback before replacing active configuration, validate protected Compose inputs, wait for health, and restore previous references on failure."));
+        if (!deployScript.Contains("dependencies=(postgres redis aistor elasticsearch)", StringComparison.Ordinal) ||
+            !deployScript.Contains("ingress up -d --wait", StringComparison.Ordinal) ||
+            !deployScript.Contains("compose up -d --wait --wait-timeout 600 --no-deps --no-recreate --pull never \"${dependencies[@]}\"", StringComparison.Ordinal) ||
+            !deployScript.Contains("compose config --services", StringComparison.Ordinal))
+            violations.Add(DeploymentViolation(deployScriptPath, "ProductionBootstrapMissing", "Start ingress, stateful dependencies, and missing application services before probing a new host."));
+        if (!workflow.Contains("docker buildx imagetools inspect \"$image_ref\"", StringComparison.Ordinal) ||
+            !workflow.Contains("actions/download-artifact@v4", StringComparison.Ordinal) ||
+            !resolver.Contains("docker", StringComparison.Ordinal) ||
+            !resolver.Contains("imagetools", StringComparison.Ordinal) ||
+            !resolver.Contains("publishedDigest !== registryDigest", StringComparison.Ordinal) ||
+            !deployScript.Contains("@sha256:", StringComparison.Ordinal))
+            violations.Add(DeploymentViolation(resolverPath, "ProductionImageDigestGateMissing", "Deploy the registry digest published by this workflow run and reject a moved SHA tag."));
+        if (!deployScript.Contains(".workflow-deployed.json", StringComparison.Ordinal) ||
+            !deployScript.Contains("'commit': plan['commit']", StringComparison.Ordinal) ||
+            !evidence.Contains("record.get('commit') != commit", StringComparison.Ordinal) ||
+            !evidence.Contains("image != configured['image']", StringComparison.Ordinal))
+            violations.Add(DeploymentViolation(evidencePath, "ProductionReleaseEvidenceIdentityMissing", "Bind release evidence to the workflow commit and exact running Compose image references, including configuration-only runs."));
+        if (!workflow.Contains("cache-from: type=gha", StringComparison.Ordinal) ||
+            !workflow.Contains("cache-to: type=gha", StringComparison.Ordinal) ||
+            !workflow.Contains("secret-envs: HEROUI_AUTH_TOKEN=HEROUI_AUTH_TOKEN", StringComparison.Ordinal))
+            violations.Add(DeploymentViolation(workflowPath, "WebImageBuildInputsMissing", "Use BuildKit cache and the existing Web build credential for Web image builds."));
+
+        string[] routeNames = ["PUBLIC", "PATIENTS", "PLATFORM_ADMIN", "PM", "KNOWLEDGE_QA", "LANDING"];
+        string[] environmentPrefixes = ["TEST", "PRODUCTION"];
+        foreach (string prefix in environmentPrefixes)
+        {
+            foreach (string route in routeNames)
+            {
+                string variable = $"{prefix}_{route}_HOST";
+                if (!ingress.Contains(variable, StringComparison.Ordinal) || !caddy.Contains("{$" + variable + "}", StringComparison.Ordinal))
+                    violations.Add(DeploymentViolation(caddyPath, "RouteHostMissing", $"Wire the {variable} input through ingress and Caddy."));
+            }
+        }
 
         foreach (string environment in new[] { "test", "production" })
         {
@@ -68,6 +198,7 @@ internal static class SecurityBaselineCheck
             string compose = ReadRequired(composePath, violations);
             string examplePath = Path.Combine(deploymentRoot, $".env.{environment}.example");
             string example = ReadRequired(examplePath, violations);
+            Dictionary<string, string> exampleValues = ReadEnvironmentValues(example, examplePath, violations);
             if (Regex.IsMatch(compose, @"(?im)^\s*image:\s*[^\r\n]*:latest\s*$"))
                 violations.Add(DeploymentViolation(composePath, "MutableImageReference", "Use a versioned or digest-pinned image reference."));
             if (Regex.IsMatch(example, @"(?im)^VITARISH_.*_IMAGE=.*:latest\s*$"))
@@ -84,6 +215,13 @@ internal static class SecurityBaselineCheck
                 if (!Regex.IsMatch(image.Value, @"\$\{[A-Z0-9_]+:\?[^}]+\}"))
                     violations.Add(DeploymentViolation(composePath, "ImageVariableRequired", "Every service image must be supplied through a required environment variable."));
             }
+            if (!Regex.IsMatch(compose, @"(?m)^      ASPNETCORE_ENVIRONMENT: Production\s*$") ||
+                !Regex.IsMatch(compose, @"(?m)^      Vitarish__Security__Tls__RequireHttps: ""true""\s*$"))
+                violations.Add(DeploymentViolation(composePath, "MainProductionTlsPolicyMissing", "Main must run in Production and require HTTPS."));
+            if (!Regex.IsMatch(compose, @"(?m)^      Vitarish__Intelligence__DefaultResponseModel: \$\{VITARISH_DEFAULT_RESPONSE_MODEL:\?[^}]+\}\s*$"))
+                violations.Add(DeploymentViolation(composePath, "MainModelInputMissing", "Main must receive the shared response model through its required input."));
+            if (environment == "production" && !Regex.IsMatch(compose, @"(?ms)^  main:\r?\n.*?^    env_file:\r?\n      - path: \.\/\.env\.production\.mediatr\r?\n        required: false\s*$"))
+                violations.Add(DeploymentViolation(composePath, "ProductionMediatREnvironmentMissing", "Load the optional protected production MediatR environment file."));
             foreach (string dependency in new[] { "postgres", "redis", "aistor", "elasticsearch" })
             {
                 if (!Regex.IsMatch(compose, $@"(?ms)^\s{{6}}{Regex.Escape(dependency)}:\s*\{{\s*condition:\s*service_healthy\s*\}}"))
@@ -100,29 +238,101 @@ internal static class SecurityBaselineCheck
                 violations.Add(DeploymentViolation(composePath, "ProjectNameMissing", "Use a distinct environment Compose project name."));
             if (!compose.Contains("internal: true", StringComparison.Ordinal) || !compose.Contains("external: true", StringComparison.Ordinal))
                 violations.Add(DeploymentViolation(composePath, "NetworkIsolationMissing", "Declare an internal application network and an external shared proxy network."));
+            if (!Regex.IsMatch(compose, $@"(?m)^  application: \{{ name: vitarish-{environment}-application, internal: true \}}$") ||
+                !Regex.IsMatch(compose, $@"(?m)^  proxy: \{{ name: vitarish-{environment}-proxy, external: true \}}$"))
+                violations.Add(DeploymentViolation(composePath, "EnvironmentNetworkOwnershipMissing", "Use the environment-owned private application network and its shared external ingress network."));
             foreach (string ownedResource in new[] { "application", "proxy", "postgres", "redis", "aistor", "elasticsearch" })
             {
                 string expected = $"vitarish-{environment}-{ownedResource}";
                 if (!compose.Contains(expected, StringComparison.Ordinal))
                     violations.Add(DeploymentViolation(composePath, "EnvironmentResourceOwnershipMissing", $"Declare an environment-owned network or volume named {expected}."));
             }
+            foreach (Match requiredInput in Regex.Matches(compose, @"\$\{(?<name>VITARISH_[A-Z0-9_]+):\?"))
+            {
+                string name = requiredInput.Groups["name"].Value;
+                if (!sharedValues.ContainsKey(name) && !exampleValues.ContainsKey(name))
+                    violations.Add(DeploymentViolation(examplePath, "ComposeInputUndeclared", $"Declare required Compose input {name} in exactly one committed environment example."));
+                if (sharedValues.ContainsKey(name) && exampleValues.ContainsKey(name))
+                    violations.Add(DeploymentViolation(examplePath, "ComposeInputOwnershipDuplicated", $"Give {name} exactly one committed environment owner."));
+            }
+            if (!Regex.IsMatch(compose, $@"(?m)^      Vitarish__Security__TrustedProxyNetworks__0: \$\{{VITARISH_{environment.ToUpperInvariant()}_INGRESS_IPV4:\?[^}}]+\}}/32\s*$"))
+                violations.Add(DeploymentViolation(composePath, "TrustedProxyRangeTooBroad", "Trust only the environment's exact Caddy ingress IPv4 address."));
+            if (!Regex.IsMatch(compose, $@"(?m)^    volumes: \[{environment}-postgres:/var/lib/postgresql\]\s*$"))
+                violations.Add(DeploymentViolation(composePath, "PostgresVolumeLayoutMismatch", "Persist the PostgreSQL versioned data directory through its environment-owned parent volume."));
+            if (!Regex.IsMatch(compose, @"(?m)^    command: server /mnt/data --license /minio\.license\s*$") ||
+                !Regex.IsMatch(compose, @"(?m)^        source: \.\/minio\.license\s*$") ||
+                !Regex.IsMatch(compose, @"(?m)^        target: /minio\.license\s*$") ||
+                !Regex.IsMatch(compose, @"(?m)^        read_only: true\s*$"))
+                violations.Add(DeploymentViolation(composePath, "AistorLicenseMountUnsafe", "Mount the licensed AIStor file read-only at its required container path."));
+            foreach (string route in routeNames)
+            {
+                string variable = $"VITARISH_{environment.ToUpperInvariant()}_{route}_HOST";
+                if (!compose.Contains(variable, StringComparison.Ordinal) || !caddy.Contains("{$" + variable["VITARISH_".Length..] + "}", StringComparison.Ordinal))
+                    violations.Add(DeploymentViolation(composePath, "RouteHostBindingMissing", $"Wire the {variable} input through the Compose and Caddy configurations."));
+            }
+            string environmentPrefix = environment.ToUpperInvariant();
+            foreach (string wildcard in new[] { "WILDCARD_HOST", "CLINIC_WILDCARD_HOST" })
+            {
+                string variable = $"{environmentPrefix}_{wildcard}";
+                string binding = Regex.Escape("{$" + variable + "}");
+                if (!ingress.Contains($"{variable}: ${{VITARISH_{variable}:?", StringComparison.Ordinal) ||
+                    !Regex.IsMatch(caddy, @"(?ms)^http://" + binding + @"\s*\{\s*redir https://\{host\}\{uri\} 308\s*\}") ||
+                    !Regex.IsMatch(caddy, @"(?ms)^https://" + binding + @"\s*\{\s*import security_headers\s+import " + environment + @"_api\s+reverse_proxy " + environment.ToLowerInvariant() + @"-private-practice-owner:3000\s*\}"))
+                    violations.Add(DeploymentViolation(caddyPath, "WildcardRouteSecurityMissing", $"Redirect {variable} to HTTPS and route it through Main API and the owner Web service."));
+            }
+            Dictionary<string, string[]> routeTargets = new(StringComparer.Ordinal)
+            {
+                ["PUBLIC"] = [$"{environment}-private-practice-owner:3000"],
+                ["PATIENTS"] = [$"{environment}-patients:3001"],
+                ["PLATFORM_ADMIN"] = [$"{environment}-platform-admin:3003"],
+                ["PM"] = [$"{environment}-pm:3004"],
+                ["KNOWLEDGE_QA"] = [$"{environment}-knowledge-qa:3001"],
+                ["LANDING"] = [$"{environment}-landing:3002"],
+            };
+            foreach ((string route, string[] targets) in routeTargets)
+            {
+                string variable = $"{environmentPrefix}_{route}_HOST";
+                string hostBinding = Regex.Escape("{$" + variable + "}");
+                string hostBlock = Regex.Match(caddy, @"(?ms)^https://" + hostBinding + @"\s*\{(?<body>.*?)^\}").Groups["body"].Value;
+                if (string.IsNullOrWhiteSpace(hostBlock) || targets.Any(target => !Regex.IsMatch(hostBlock, @"(?m)^\s*reverse_proxy[^\r\n]*" + Regex.Escape(target) + @"\s*$")))
+                    violations.Add(DeploymentViolation(caddyPath, "IngressRouteTargetMissing", $"Route {variable} only to its declared internal Compose services."));
+            }
+            Match agentRuntime = Regex.Match(compose, @"(?ms)^  agent-runtime:\r?\n(?<body>.*?)(?=^  postgres:\r?\n)");
+            string agentBody = agentRuntime.Groups["body"].Value;
+            if (!agentRuntime.Success ||
+                !agentBody.Contains($"VITARISH_{environmentPrefix}_OPENAI_API_KEY:?", StringComparison.Ordinal) ||
+                !agentBody.Contains("AGENT_RUNTIME_SHARED_SECRET", StringComparison.Ordinal) ||
+                !Regex.IsMatch(agentBody, @"(?m)^    networks: \[application, egress\]\s*$"))
+                violations.Add(DeploymentViolation(composePath, "AgentRuntimeBoundaryMissing", "Require the provider key and shared secret and confine the agent runtime to application and provider-egress networks."));
         }
 
         if (Regex.IsMatch(ingress, @"(?im)^\s*image:\s*[^\r\n]*:latest\s*$"))
             violations.Add(DeploymentViolation(ingressPath, "MutableImageReference", "Use a versioned or digest-pinned ingress image."));
-        if (!ingress.Contains("80:80/tcp", StringComparison.Ordinal) || !ingress.Contains("443:443/tcp", StringComparison.Ordinal))
-            violations.Add(DeploymentViolation(ingressPath, "IngressPortAllowlist", "The shared ingress must publish TCP 80 and TCP 443."));
-        if (Regex.IsMatch(ingress, @"(?im)443/udp|docker\.sock|agent-runtime"))
-            violations.Add(DeploymentViolation(ingressPath, "IngressBoundaryViolation", "The ingress must not enable HTTP/3, mount the Docker socket, or expose the agent runtime."));
         if (Regex.IsMatch(caddy, @"(?im)reverse_proxy[^\r\n]*agent-runtime"))
             violations.Add(DeploymentViolation(caddyPath, "PublicAgentRuntime", "The server-only agent runtime must remain private."));
-        foreach (string host in new[] { "TEST_PUBLIC_HOST", "TEST_PATIENTS_HOST", "TEST_PLATFORM_ADMIN_HOST", "TEST_PM_HOST", "TEST_KNOWLEDGE_QA_HOST", "TEST_LANDING_HOST", "PRODUCTION_PUBLIC_HOST", "PRODUCTION_PATIENTS_HOST", "PRODUCTION_PLATFORM_ADMIN_HOST", "PRODUCTION_PM_HOST", "PRODUCTION_KNOWLEDGE_QA_HOST", "PRODUCTION_LANDING_HOST" })
+        foreach (string environment in environmentPrefixes)
         {
-            if (!caddy.Contains("{$" + host + "}", StringComparison.Ordinal))
-                violations.Add(DeploymentViolation(caddyPath, "RouteHostMissing", $"Declare the {host} route host in the shared ingress."));
+            string apiImport = environment.ToLowerInvariant() + "_api";
+            if (Regex.Matches(caddy, @"(?m)^\s+import " + Regex.Escape(apiImport) + @"\s*$").Count != 8 ||
+                !Regex.IsMatch(caddy, @"(?ms)^\(" + Regex.Escape(apiImport) + @"\)\s*\{\s*@api path /api/\*\s*reverse_proxy @api " + environment.ToLowerInvariant() + @"-main:8080\s*\}"))
+                violations.Add(DeploymentViolation(caddyPath, "ApiRouteCoverageMissing", $"Route same-origin API requests from all application hosts to {environment.ToLowerInvariant()} Main."));
         }
 
         return violations;
+    }
+
+    private static Dictionary<string, string> ReadEnvironmentValues(string content, string path, List<ArchitectureViolation> violations)
+    {
+        Dictionary<string, string> values = new(StringComparer.Ordinal);
+        foreach (string line in content.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+        {
+            Match match = Regex.Match(line, @"^(?<name>[A-Z0-9_]+)=(?<value>.*)$");
+            if (!match.Success) continue;
+            string name = match.Groups["name"].Value;
+            if (!values.TryAdd(name, match.Groups["value"].Value))
+                violations.Add(DeploymentViolation(path, "EnvironmentInputDuplicate", $"Declare environment input {name} only once in its committed example."));
+        }
+        return values;
     }
 
     public static void RenderInventory(SourceIndex index)

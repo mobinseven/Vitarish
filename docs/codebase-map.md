@@ -194,14 +194,19 @@ to `shared/ui` only when it satisfies the promotion rules in
 - External adapters include communication, object/file storage,
   search/Elasticsearch, AI/speech, passkey, and medical/prescription providers.
 
-`src/Hosts/deployment` is the single supported server Compose entry point. It
-composes Main, the Web apps, dependencies, and shared ingress, with Main
-configured through Compose environment values. Use
-`src/Hosts/scripts/Setup-UbuntuServer.sh` for Docker prerequisites on Ubuntu
-20.04 or 24.04 and `src/Hosts/scripts/Deploy-ServerBundles.sh` for server-side
-deployment. The PowerShell deployment command remains available to operators
-with PowerShell. Run local Web development
-through the npm workspace and a separately started Main host.
+`src/Hosts/deployment` is the server Compose entry point for Main, Web apps,
+dependencies, and shared ingress. `.github/workflows/production.yml` filters
+affected consumers, runs PR checks, publishes selected full-SHA GHCR images on
+`main`, and deploys their verified registry digests over the `production` GitHub
+Environment's pinned SSH secrets. The remote `src/Hosts/deployment/deploy-production.sh`
+validates protected server env files, starts missing dependencies on a fresh
+host, and gates reference updates on container health and HTTPS probes. Its
+rollback restores prior configuration and running services on failure. See
+[`docs/hosts/server-deployment-bundles.md`](hosts/server-deployment-bundles.md)
+for bootstrap, secrets, health checks, and recovery. Use
+`src/Hosts/scripts/Install-UbuntuServer.ps1` once to provision Docker/Compose
+and the server's GHCR read login. Run local Web development through the npm
+workspace and a separately started Main host.
 
 ## 8. Common change guide
 

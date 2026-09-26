@@ -1,13 +1,119 @@
+using System.Text.RegularExpressions;
+
 namespace Vitarish.Tools.Architecture;
 
 internal static class SelfTests
 {
-    public static void Run()
+    public static void Run(string repositoryRoot)
     {
         InternalModuleClientCheckSelfTest();
         OpenApiEndpointCheckSelfTest();
         SecurityBaselineSelfTest();
+        DeploymentBundleSecuritySelfTest(repositoryRoot);
         Console.WriteLine("Architecture Roslyn self-tests passed");
+    }
+
+    private static void DeploymentBundleSecuritySelfTest(string repositoryRoot)
+    {
+        string fixtureRoot = Path.Combine(Path.GetTempPath(), "vitarish-security-baseline-" + Guid.NewGuid().ToString("N"));
+        string[] files =
+        [
+            "src/Hosts/deployment/Caddyfile",
+            "src/Hosts/deployment/Dockerfile",
+            "src/Hosts/deployment/docker-compose.ingress.yml",
+            "src/Hosts/deployment/docker-compose.test.yml",
+            "src/Hosts/deployment/docker-compose.production.yml",
+            "src/Hosts/deployment/.env.shared.example",
+            "src/Hosts/deployment/.env.test.example",
+            "src/Hosts/deployment/.env.production.example",
+            ".github/workflows/production.yml",
+            "src/Hosts/deployment/deploy-production.sh",
+            "tools/ci/resolve-production-images.mjs",
+            "src/Hosts/Web/scripts/capture-production-browser-evidence.mjs",
+        ];
+        try
+        {
+            Dictionary<string, string> sourceFiles = [];
+            foreach (string relativePath in files)
+            {
+                string sourcePath = Path.Combine(repositoryRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                string fixturePath = Path.Combine(fixtureRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                Directory.CreateDirectory(Path.GetDirectoryName(fixturePath)!);
+                File.Copy(sourcePath, fixturePath);
+                sourceFiles[relativePath] = File.ReadAllText(sourcePath);
+            }
+
+            IReadOnlyList<ArchitectureViolation> positiveViolations = SecurityBaselineCheck.RunDeploymentBundles(fixtureRoot);
+            Require(positiveViolations.Count == 0,
+                "valid deployment configuration produced a security-baseline violation: " + string.Join(", ", positiveViolations.Select(violation => violation.Kind)));
+            (string File, string Pattern, string Replacement, string Kind)[] negatives =
+            [
+                (files[2], Regex.Escape("\"443:443/tcp\""), "\"443:443/udp\"", "IngressBoundaryViolation"),
+                (files[2], Regex.Escape("\"80:80/tcp\""), "\"8080:80/tcp\"", "IngressPortAllowlist"),
+                (files[2], @"(?m)^\s+- \.\/Caddyfile:/etc/caddy/Caddyfile:ro\s*$", "", "CaddyfileMountMissing"),
+                (files[0], "resolvers 1\\.1\\.1\\.1", "resolvers 8.8.8.8", "DnsChallengeResolverMissing"),
+                (files[2], "network_mode: none", "network_mode: host", "CaddyValidationIsolationMissing"),
+                (files[2], "ingress-egress: {}", "ingress-egress: internal: true", "IngressNetworkIsolationMissing"),
+                (files[5], "VITARISH_ACME_EMAIL=", "VITARISH_ACME_CONTACT=", "IngressSecretInputMissing"),
+                (files[1], "v2\\.10\\.0", "v2.9.0", "CloudflareCaddyModuleMissing"),
+                (files[5], @"(?m)^VITARISH_REDIS_IMAGE=.*(?:\r?\n)?", "", "SharedImageInputMissing"),
+                (files[5], "VITARISH_POSTGRES_IMAGE=postgres:18\\.0", "VITARISH_POSTGRES_IMAGE=postgres:17.0", "PostgresVolumeLayoutMismatch"),
+                (files[5], "VITARISH_AISTOR_IMAGE=quay\\.io/minio/aistor/minio@sha256:0{64}", "VITARISH_AISTOR_IMAGE=quay.io/minio/aistor/minio:latest", "AistorImageNotDigestPinned"),
+                (files[5], @"(?m)^VITARISH_DEFAULT_RESPONSE_MODEL=.*$", "VITARISH_DEFAULT_RESPONSE_MODEL=", "SharedModelInputMissing"),
+                (files[8], "dorny/paths-filter@v4", "dorny/paths-filter@v3", "ProductionWorkflowImageContractInvalid"),
+                (files[8], "predicate-quantifier: some-with-excludes", "predicate-quantifier: some", "ProductionPathFilterExclusionMissing"),
+                (files[0], Regex.Escape("{$PRODUCTION_PM_HOST}"), "{$PRODUCTION_UNKNOWN_HOST}", "RouteHostMissing"),
+                (files[8], "packages: write", "contents: read", "ProductionWorkflowPermissionsInvalid"),
+                (files[8], "pull-requests: read", "actions: read", "ProductionWorkflowPermissionsInvalid"),
+                (files[8], "needs.required.result == 'success'", "needs.required.result == 'always'", "ProductionWorkflowTestGateMissing"),
+                (files[8], Regex.Escape("needs: [changes, dotnet, web, security]"), "needs: [dotnet, web, security]", "ProductionWorkflowTestGateMissing"),
+                (files[8], "github.ref == 'refs/heads/main'", "github.ref == 'refs/heads/release'", "ProductionWorkflowTestGateMissing"),
+                (files[8], "always\\(\\) && !cancelled\\(\\) && github.event_name", "github.event_name", "ProductionWorkflowTestGateMissing"),
+                (files[8], "StrictHostKeyChecking=yes", "StrictHostKeyChecking=no", "ProductionSshBoundaryInvalid"),
+                (files[8], Regex.Escape("[[ \"$SSH_USER\" == \"root\" &&"), "[[ \"$SSH_USER\" =~", "ProductionSshBoundaryInvalid"),
+                (files[9], "trap rollback ERR", ":", "ProductionWorkflowRecoveryGateMissing"),
+                (files[9], "dependencies=\\(postgres redis aistor elasticsearch\\)", "dependencies=()", "ProductionBootstrapMissing"),
+                (files[10], "publishedDigest !== registryDigest", "publishedDigest === registryDigest", "ProductionImageDigestGateMissing"),
+                (files[8], Regex.Escape("docker buildx imagetools inspect \"$image_ref\""), "echo", "ProductionImageDigestGateMissing"),
+                (files[11], "record.get\\('commit'\\) != commit", "record.get('commit') == commit", "ProductionReleaseEvidenceIdentityMissing"),
+                (files[8], "secret-envs: HEROUI_AUTH_TOKEN=HEROUI_AUTH_TOKEN", "secret-envs: OTHER_TOKEN=OTHER_TOKEN", "WebImageBuildInputsMissing"),
+                (files[4], "Vitarish__Security__Tls__RequireHttps: \\\"true\\\"", "Vitarish__Security__Tls__RequireHttps: \\\"false\\\"", "MainProductionTlsPolicyMissing"),
+                (files[4], "Vitarish__Intelligence__DefaultResponseModel", "Vitarish__Intelligence__ResponseModel", "MainModelInputMissing"),
+                (files[4], @"(?ms)^    env_file:\r?\n      - path: \.\/\.env\.production\.mediatr\r?\n        required: false\r?\n", "", "ProductionMediatREnvironmentMissing"),
+                (files[4], "VITARISH_DEFAULT_RESPONSE_MODEL", "VITARISH_UNDECLARED_MODEL", "ComposeInputUndeclared"),
+                (files[5], @"$", Environment.NewLine + "VITARISH_PRODUCTION_MAIN_IMAGE=ghcr.io/example/vitarish/main:example", "ComposeInputOwnershipDuplicated"),
+                (files[4], @"(?m)^      Vitarish__Security__TrustedProxyNetworks__0:.*$", "      Vitarish__Security__TrustedProxyNetworks__0: 0.0.0.0/0", "TrustedProxyRangeTooBroad"),
+                (files[4], "vitarish-production-application, internal: true", "vitarish-wrong-application, internal: false", "EnvironmentNetworkOwnershipMissing"),
+                (files[4], @"(?ms)(source: \.\/minio\.license\s*\n\s+target: /minio\.license\s*\n\s+read_only: )true", "$1false", "AistorLicenseMountUnsafe"),
+                (files[4], "VITARISH_PRODUCTION_PM_HOST", "VITARISH_PRODUCTION_UNKNOWN_HOST", "RouteHostBindingMissing"),
+                (files[0], @"(?m)^\s+import production_api\s*$", "", "ApiRouteCoverageMissing"),
+                (files[0], "reverse_proxy production-platform-admin:3003", "reverse_proxy wrong-service:3003", "IngressRouteTargetMissing"),
+                (files[0], "redir https://{host}{uri} 308", "redir http://{host}{uri} 308", "WildcardRouteSecurityMissing"),
+                (files[4], "VITARISH_PRODUCTION_OPENAI_API_KEY", "VITARISH_WRONG_OPENAI_API_KEY", "AgentRuntimeBoundaryMissing"),
+                (files[5], @"$", Environment.NewLine + "VITARISH_ACME_EMAIL=duplicate@example.invalid", "EnvironmentInputDuplicate"),
+                (files[3], @"(?m)^  postgres:\s*$", "  database:", "RequiredServiceMissing"),
+                (files[4], Regex.Escape("\"${VITARISH_PRODUCTION_MAIN_IMAGE:?VITARISH_PRODUCTION_MAIN_IMAGE is required}\""), "nginx:latest", "MutableImageReference"),
+                (files[4], @"(?m)^  main:\s*$", "  main:" + Environment.NewLine + "    ports:" + Environment.NewLine + "      - \"8080:8080\"", "PublishedEnvironmentPort"),
+                (files[4], @"(?m)^    healthcheck:.*$", "    command: /bin/false", "HealthcheckMissing"),
+            ];
+            foreach ((string relativePath, string pattern, string replacement, string kind) in negatives)
+            {
+                foreach (string file in files)
+                    File.WriteAllText(Path.Combine(fixtureRoot, file.Replace('/', Path.DirectorySeparatorChar)), sourceFiles[file]);
+                string fixturePath = Path.Combine(fixtureRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                string original = sourceFiles[relativePath];
+                string mutated = Regex.Replace(original, pattern, replacement, RegexOptions.CultureInvariant);
+                Require(mutated != original, $"negative deployment fixture for {kind} did not change its source");
+                File.WriteAllText(fixturePath, mutated);
+                IReadOnlyList<ArchitectureViolation> violations = SecurityBaselineCheck.RunDeploymentBundles(fixtureRoot);
+                Require(violations.Any(violation => violation.Kind == kind), $"deployment security regression fixture did not reject {kind} for {relativePath} pattern {pattern}");
+            }
+            Console.WriteLine("Deployment security baseline fixtures passed");
+        }
+        finally
+        {
+            if (Directory.Exists(fixtureRoot)) Directory.Delete(fixtureRoot, recursive: true);
+        }
     }
 
     private static void InternalModuleClientCheckSelfTest()

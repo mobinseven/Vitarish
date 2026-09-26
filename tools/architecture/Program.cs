@@ -8,15 +8,15 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        string root = FindRepositoryRoot();
         if (args.Contains("--self-test", StringComparer.OrdinalIgnoreCase) ||
             args.Contains("self-test", StringComparer.OrdinalIgnoreCase))
         {
-            SelfTests.Run();
+            SelfTests.Run(root);
             return 0;
         }
 
         string command = args.FirstOrDefault() ?? "all";
-        string root = FindRepositoryRoot();
         SourceIndex index = SourceIndex.Load(root);
 
         if (command == "authorization-matrix-inventory")
