@@ -34,6 +34,8 @@
 (production_api) {
     @api path /api/*
     reverse_proxy @api production-main:8080
+    @readiness path /health/ready
+    reverse_proxy @readiness production-main:8080
 }
 
 http://{$TEST_PUBLIC_HOST} {

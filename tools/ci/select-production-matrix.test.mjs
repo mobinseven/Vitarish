@@ -5,7 +5,9 @@ import test from "node:test";
 import { selectProductionMatrix } from "./select-production-matrix.mjs";
 
 const workflow = readFileSync(new URL("../../.github/workflows/production.yml", import.meta.url), "utf8");
+const caddyfile = readFileSync(new URL("../../src/Hosts/deployment/Caddyfile", import.meta.url), "utf8");
 const deployProductionScript = readFileSync(new URL("../../src/Hosts/deployment/deploy-production.sh", import.meta.url), "utf8");
+const mainHealthSource = readFileSync(new URL("../../src/Hosts/Main/Infrastructure/Health/MainDependencyHealthCheck.cs", import.meta.url), "utf8");
 const unknownSourceRules = /^            unknown_source:\r?\n((?:              - .*\r?\n)+)/m.exec(workflow)?.[1]
   ?.trim().split(/\r?\n/).map((line) => line.trim().slice(3).replace(/^'|'$/g, ""));
 const deployScriptRules = /^            deploy_script:\r?\n((?:              - .*\r?\n)+)/m.exec(workflow)?.[1]
@@ -59,6 +61,13 @@ test("the remote Caddy validator does not consume the streamed deployment script
 
 test("the production readiness probe does not require an unsupported curl retry option", () => {
   assert.doesNotMatch(deployProductionScript, /--retry-all-errors/);
+});
+
+test("production ingress forwards the Main readiness contract to the private Main upstream", () => {
+  const readinessPath = /public const string ReadinessPath = "([^\"]+)";/.exec(mainHealthSource)?.[1];
+  assert.ok(readinessPath, "Main readiness route contract is missing");
+  assert.match(caddyfile, new RegExp(`@readiness path ${readinessPath.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`));
+  assert.match(caddyfile, /reverse_proxy @readiness production-main:8080/);
 });
 
 test("an isolated Web app change selects only that app's tests, image, and service", () => {
