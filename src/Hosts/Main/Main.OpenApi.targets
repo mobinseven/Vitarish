@@ -12,7 +12,8 @@
 
     <PropertyGroup>
       <_VitarishOpenApiOutputPath>$([System.IO.Path]::GetFullPath('$(OpenApiDocumentsDirectory)').TrimEnd('\'))</_VitarishOpenApiOutputPath>
-      <_VitarishOpenApiCommand>dotnet "$(PkgMicrosoft_Extensions_ApiDescription_Server)\tools\dotnet-getdocument.dll" --assembly "$(TargetPath)"</_VitarishOpenApiCommand>
+      <_VitarishOpenApiToolPath>$([System.IO.Path]::Combine('$(PkgMicrosoft_Extensions_ApiDescription_Server)', 'tools', 'dotnet-getdocument.dll'))</_VitarishOpenApiToolPath>
+      <_VitarishOpenApiCommand>dotnet "$(_VitarishOpenApiToolPath)" --assembly "$(TargetPath)"</_VitarishOpenApiCommand>
       <_VitarishOpenApiCommand>$(_VitarishOpenApiCommand) --file-list "$(_OpenApiDocumentsCache)" --framework "$(TargetFrameworkMoniker)"</_VitarishOpenApiCommand>
       <_VitarishOpenApiCommand>$(_VitarishOpenApiCommand) --output "$(_VitarishOpenApiOutputPath)" --project "$(MSBuildProjectName)"</_VitarishOpenApiCommand>
       <_VitarishOpenApiCommand Condition="'$(ProjectAssetsFile)' != ''">$(_VitarishOpenApiCommand) --assets-file "$(ProjectAssetsFile)"</_VitarishOpenApiCommand>

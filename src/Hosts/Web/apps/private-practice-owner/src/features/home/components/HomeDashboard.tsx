@@ -173,30 +173,28 @@ export function HomeDashboard() {
                 </Tooltip.Content>
               </Tooltip>
               <Popover>
-                <Tooltip>
-                  <Button
-                    aria-label={t("home.dashboard.filters")}
-                    className="min-w-0"
-                    size="sm"
-                    variant={activeFilterCount > 0 ? "secondary" : "outline"}
-                  >
-                    <i aria-hidden="true" className="fa-light fa-filter" />
-                    <span className="hidden sm:inline">{t("home.dashboard.filters")}</span>
-                    {activeFilterCount > 0 ? (
-                      <Chip
-                        aria-label={t("home.dashboard.activeFilterCount", {
-                          count: formatNumber(activeFilterCount, locale),
-                        })}
-                        color="accent"
-                        size="sm"
-                        variant="soft"
-                      >
-                        <Chip.Label>{formatNumber(activeFilterCount, locale)}</Chip.Label>
-                      </Chip>
-                    ) : null}
-                  </Button>
-                  <Tooltip.Content>{t("home.dashboard.filters")}</Tooltip.Content>
-                </Tooltip>
+                <Button
+                  aria-label={t("home.dashboard.filters")}
+                  title={t("home.dashboard.filters")}
+                  className="min-w-0"
+                  size="sm"
+                  variant={activeFilterCount > 0 ? "secondary" : "outline"}
+                >
+                  <i aria-hidden="true" className="fa-light fa-filter" />
+                  <span className="hidden sm:inline">{t("home.dashboard.filters")}</span>
+                  {activeFilterCount > 0 ? (
+                    <Chip
+                      aria-label={t("home.dashboard.activeFilterCount", {
+                        count: formatNumber(activeFilterCount, locale),
+                      })}
+                      color="accent"
+                      size="sm"
+                      variant="soft"
+                    >
+                      <Chip.Label>{formatNumber(activeFilterCount, locale)}</Chip.Label>
+                    </Chip>
+                  ) : null}
+                </Button>
                 <Popover.Content className="w-[22rem] max-w-[calc(100vw-2rem)]">
                   <Popover.Dialog className="space-y-4 p-4">
                     <div className="flex items-center justify-between gap-3">
