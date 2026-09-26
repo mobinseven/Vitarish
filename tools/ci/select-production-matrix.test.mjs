@@ -5,6 +5,7 @@ import test from "node:test";
 import { selectProductionMatrix } from "./select-production-matrix.mjs";
 
 const workflow = readFileSync(new URL("../../.github/workflows/production.yml", import.meta.url), "utf8");
+const deployProductionScript = readFileSync(new URL("../../src/Hosts/deployment/deploy-production.sh", import.meta.url), "utf8");
 const unknownSourceRules = /^            unknown_source:\r?\n((?:              - .*\r?\n)+)/m.exec(workflow)?.[1]
   ?.trim().split(/\r?\n/).map((line) => line.trim().slice(3).replace(/^'|'$/g, ""));
 const deployScriptRules = /^            deploy_script:\r?\n((?:              - .*\r?\n)+)/m.exec(workflow)?.[1]
@@ -50,6 +51,10 @@ test("deployment script changes select every production service without publishi
     "main", "private-practice-owner", "patients", "platform-admin", "pm",
     "knowledge-qa", "landing", "agent-runtime", "caddy",
   ]);
+});
+
+test("the remote Caddy validator does not consume the streamed deployment script", () => {
+  assert.match(deployProductionScript, /^ingress run --interactive=false --rm --no-deps caddy-config-validator caddy validate --config \/etc\/caddy\/Caddyfile --adapter caddyfile$/m);
 });
 
 test("an isolated Web app change selects only that app's tests, image, and service", () => {

@@ -142,7 +142,7 @@ for bundle, envs in [('ingress', ['.env.shared', Path(sys.argv[2])]), ('producti
 PY
 
 ingress pull caddy
-ingress run --rm --no-deps caddy-config-validator caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile </dev/null
+ingress run --interactive=false --rm --no-deps caddy-config-validator caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 attempted_caddy=true
 if selected caddy; then
   ingress up -d --wait --wait-timeout 600 --no-deps --pull never caddy
