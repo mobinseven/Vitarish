@@ -90,8 +90,9 @@ jobs:
               - 'src/Modules/**/Api/**'
               - 'src/Hosts/Main/**'
             caddy:
-              - 'src/Hosts/deployment/Caddyfile'
               - 'src/Hosts/deployment/Dockerfile'
+            caddy_config:
+              - 'src/Hosts/deployment/Caddyfile'
             deployment:
               - 'src/Hosts/deployment/**'
               - 'src/Hosts/scripts/**'
@@ -144,6 +145,7 @@ jobs:
           WEB_LANDING: ${{ steps.filter.outputs.web_landing }}
           WEB_AGENT: ${{ steps.filter.outputs.web_agent }}
           CADDY: ${{ steps.filter.outputs.caddy }}
+          CADDY_CONFIG: ${{ steps.filter.outputs.caddy_config }}
           DEPLOYMENT: ${{ steps.filter.outputs.deployment }}
           DEPLOY_SCRIPT: ${{ steps.filter.outputs.deploy_script }}
           SECURITY_TOOLS: ${{ steps.filter.outputs.security_tools }}

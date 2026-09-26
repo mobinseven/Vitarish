@@ -37,6 +37,7 @@
 }
 
 (production_readiness) {
+    # Expose Main readiness only on its public application host for release checks.
     @readiness path /health/ready
     reverse_proxy @readiness production-main:8080
 }

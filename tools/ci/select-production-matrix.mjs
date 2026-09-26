@@ -24,16 +24,17 @@ export function selectProductionMatrix(eventName, filters) {
   const webTests = webConsumers.filter((consumer) => allWebImages || filters[consumer.filter] === true);
   const webImages = webConsumers.filter((consumer) => allWebImages || filters[consumer.filter] === true);
   const main = broad || filters.main === true || filters.dotnet === true;
-  const caddy = broad || filters.caddy === true;
+  const caddyImage = broad || filters.caddy === true;
+  const caddyService = caddyImage || filters.caddy_config === true;
   const images = [
     ...(main ? ["main"] : []),
     ...webImages.map((consumer) => consumer.image),
-    ...(caddy ? ["caddy"] : []),
+    ...(caddyImage ? ["caddy"] : []),
   ];
   let services = [
     ...(main ? ["main"] : []),
     ...webImages.map((consumer) => consumer.service),
-    ...(caddy ? ["caddy"] : []),
+    ...(caddyService ? ["caddy"] : []),
   ];
   if (filters.compose === true || filters.deploy_script === true) services = [...sharedComposeConsumers];
 
@@ -56,6 +57,7 @@ if (process.env.GITHUB_OUTPUT && resolve(process.argv[1] ?? "") === fileURLToPat
   const filters = Object.fromEntries([
     "dotnet", "main", "web_all", "web_owner", "web_patients", "web_admin", "web_pm",
     "web_qa", "web_landing", "web_agent", "caddy", "compose", "deploy_script", "test_compose", "workflow", "unknown_source",
+    "caddy_config",
   ].map((name) => [name, process.env[name.toUpperCase()] === "true"]));
   const selected = selectProductionMatrix(process.env.EVENT_NAME, filters);
   const outputs = {

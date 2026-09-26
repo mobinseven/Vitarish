@@ -100,8 +100,17 @@ test("an API contract change selects Main and every Web consumer", () => {
 });
 
 test("a Caddy change selects only the Caddy image and ingress service", () => {
+  assert.match(workflow, /caddy:\r?\n\s+- 'src\/Hosts\/deployment\/Dockerfile'/);
+  assert.doesNotMatch(workflow, /caddy:\r?\n(?:\s+- .*\r?\n)*\s+- 'src\/Hosts\/deployment\/Caddyfile'/);
   const selected = selectProductionMatrix("push", { caddy: true });
   assert.deepEqual(selected.images, ["caddy"]);
+  assert.deepEqual(selected.services, ["caddy"]);
+});
+
+test("a Caddyfile-only change deploys ingress configuration without publishing an image", () => {
+  assert.match(workflow, /caddy_config:\r?\n\s+- 'src\/Hosts\/deployment\/Caddyfile'/);
+  const selected = selectProductionMatrix("push", { caddy_config: true });
+  assert.deepEqual(selected.images, []);
   assert.deepEqual(selected.services, ["caddy"]);
 });
 
