@@ -151,7 +151,10 @@ describe("HomeDashboard", () => {
     await user.keyboard("{Escape}");
 
     expect(screen.getAllByRole("button", { name: "New prescription", hidden: true })).toHaveLength(1);
-    await user.click(screen.getByRole("button", { name: "Filters" }));
+    const serviceFilterButton = screen.getByRole("button", { name: "Filters", hidden: true });
+    if (serviceFilterButton.getAttribute("aria-expanded") !== "true") {
+      await user.click(serviceFilterButton);
+    }
     await user.click(screen.getByRole("button", { name: /Service/ }));
     await user.click(screen.getByRole("option", { name: "Consultation" }));
     await user.keyboard("{Escape}");
