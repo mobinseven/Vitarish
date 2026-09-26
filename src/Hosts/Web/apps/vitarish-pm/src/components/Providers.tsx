@@ -7,7 +7,7 @@ import { type ReactNode, useState } from "react";
 import { MockApiBootstrap } from "@vitarish/mock-runtime";
 import { richSeaHandlers } from "./richSeaHandlers";
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -26,6 +26,7 @@ export function Providers({ children }: { children: ReactNode }) {
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
+          nonce={nonce}
         >
           {children}
           <Toast.Provider placement="bottom" />

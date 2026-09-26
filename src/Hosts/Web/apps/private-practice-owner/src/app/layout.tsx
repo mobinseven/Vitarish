@@ -1,6 +1,7 @@
 import type { Viewport } from "next";
 import { headers } from "next/headers";
 import { Providers } from "@/components/providers/AppProviders";
+import { contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
 import { InitialPageLoader } from "@/components/loading/InitialPageLoader";
 import { getMessages, I18nAppLayout, localizedMetadata } from "@/localization";
 import { vazirmatn } from "./fonts";
@@ -19,6 +20,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const headerStore = await headers();
+  const nonce = contentSecurityPolicyNonce(headerStore);
 
   return (
     <>
@@ -33,7 +35,7 @@ export default async function RootLayout({
         vibrantPalette
         bodyClassName="bg-background text-foreground font-sans antialiased"
       >
-        <Providers>
+        <Providers nonce={nonce}>
           <InitialPageLoader />
           {children}
         </Providers>
