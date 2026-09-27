@@ -188,7 +188,7 @@ jobs:
       - name: Test affected workspace
         run: npm run test --workspace @vitarish/${{ matrix.workspace }} --if-present
       - name: Run shared Web checks
-        if: ${{ matrix.workspace == 'private-practice-owner' && (needs.changes.outputs.web_all == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.full_suite == 'true' || contains(needs.changes.outputs.filters, 'web_auth')) }}
+        if: ${{ matrix.workspace == 'private-practice-owner' && (needs.changes.outputs.web_all == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.full_suite == 'true') }}
         run: |
           npm run typecheck
           npm run validate:web-ui-boundary
@@ -199,6 +199,29 @@ jobs:
           npm run lint:layout
           npm run test:layout-lint
           npm run test
+
+  authentication_web:
+    name: Shared authentication checks
+    needs: changes
+    if: ${{ contains(needs.changes.outputs.filters, 'web_auth') }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/Hosts/Web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/Hosts/Web/package-lock.json
+      - run: npm ci
+      - name: Generate authentication API client
+        run: npm run generate:api --workspace @vitarish/auth --if-present
+      - name: Typecheck shared authentication
+        run: npm run typecheck --workspace @vitarish/auth --if-present
+      - name: Test shared authentication
+        run: npm run test --workspace @vitarish/auth --if-present
 
   security:
     name: Architecture security baseline
@@ -224,7 +247,7 @@ jobs:
   required:
     name: Required CI checks
     if: ${{ always() }}
-    needs: [changes, dotnet, web, security]
+    needs: [changes, dotnet, web, authentication_web, security]
     runs-on: ubuntu-latest
     steps:
       - name: Fail when an executed check failed

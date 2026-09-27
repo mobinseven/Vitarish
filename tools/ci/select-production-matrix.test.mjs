@@ -96,6 +96,22 @@ test("an isolated Web app change selects only that app's tests, image, and servi
   assert.deepEqual(selected.services, ["private-practice-owner"]);
 });
 
+test("a scoped authentication change selects only its app checks and shared auth checks", () => {
+  const selected = selectProductionMatrix("push", { web_auth: true }, "fix(platform-admin): redirect anonymous users");
+  assert.deepEqual(selected.web.map(({ workspace }) => workspace), ["platform-admin"]);
+  assert.deepEqual(selected.images, ["platform-admin"]);
+  assert.deepEqual(selected.services, ["platform-admin"]);
+  assert.match(workflow, /authentication_web:[\s\S]*?if: \$\{\{ contains\(needs\.changes\.outputs\.filters, 'web_auth'\) \}\}/);
+  assert.match(workflow, /needs: \[changes, dotnet, web, authentication_web, security\]/);
+  assert.doesNotMatch(workflow, /needs\.changes\.outputs\.full_suite == 'true' \|\| contains\(needs\.changes\.outputs\.filters, 'web_auth'\)/);
+});
+
+test("an unscoped authentication change checks every consuming app and shared auth", () => {
+  const selected = selectProductionMatrix("push", { web_auth: true });
+  assert.equal(selected.web.length, 7);
+  assert.equal(selected.images.length, 7);
+});
+
 test("a shared Web change selects all Web consumers", () => {
   const selected = selectProductionMatrix("push", { web_all: true });
   assert.equal(selected.web.length, 7);

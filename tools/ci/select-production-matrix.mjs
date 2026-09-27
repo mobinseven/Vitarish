@@ -30,9 +30,9 @@ export function selectProductionMatrix(eventName, filters, changeTitle = "") {
   const selectedAppConsumers = authChanged && appConsumers.length === 0 && commitScope === platformAdminCommitScope
     ? webConsumers.filter((consumer) => consumer.filter === platformAdminFilter)
     : appConsumers;
-  const allWebTests = broad || filters.web_all === true || authChanged;
+  const allWebConsumers = broad || filters.web_all === true || (authChanged && selectedAppConsumers.length === 0);
+  const webTests = webConsumers.filter((consumer) => allWebConsumers || selectedAppConsumers.includes(consumer));
   const allWebImages = broad || filters.web_all === true || (authChanged && selectedAppConsumers.length === 0);
-  const webTests = webConsumers.filter((consumer) => allWebTests || selectedAppConsumers.includes(consumer));
   const webImages = webConsumers.filter((consumer) => allWebImages || selectedAppConsumers.includes(consumer));
   const main = broad || filters.main === true || filters.dotnet === true;
   const caddyImage = broad || filters.caddy === true;
