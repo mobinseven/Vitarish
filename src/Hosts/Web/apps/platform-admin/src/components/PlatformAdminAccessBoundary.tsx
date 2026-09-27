@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { recordPlatformAuditAccessAttempt } from "@vitarish/security";
 import { useAuthSession, usePlatformAuthorization } from "@vitarish/auth";
 import { CenteredRegion, LoadingSpinner } from "@vitarish/ui";
@@ -17,10 +17,18 @@ export function PlatformAdminAccessBoundary({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { isAuthenticated, isLoading } = useAuthSession();
+  const router = useRouter();
+  const { isAuthenticated, isLoading, isError } = useAuthSession();
   const { hasAccess } = usePlatformAuthorization();
   const { t } = useLocalizedText();
   const recordedAttempt = useRef(false);
+  const isLoginRoute = pathname.startsWith(Routes.Login);
+
+  useEffect(() => {
+    if (!isLoginRoute && !isLoading && !isError && !isAuthenticated) {
+      router.replace(Routes.LoginPassword);
+    }
+  }, [isAuthenticated, isError, isLoading, isLoginRoute, router]);
 
   useEffect(() => {
     if (isAuthenticated && !hasAccess && !recordedAttempt.current) {
@@ -29,11 +37,31 @@ export function PlatformAdminAccessBoundary({
     }
   }, [hasAccess, isAuthenticated]);
 
-  if (pathname.startsWith(Routes.Login)) {
+  if (isLoginRoute) {
     return <>{children}</>;
   }
 
   if (isLoading) {
+    return (
+      <CenteredRegion>
+        <div role="status" aria-label={t("common.states.loading")}>
+          <LoadingSpinner />
+        </div>
+      </CenteredRegion>
+    );
+  }
+
+  if (isError && !isAuthenticated) {
+    return (
+      <CenteredRegion>
+        <main role="main" className="text-center">
+          <p className="text-muted">{t("admin.sessionUnavailable")}</p>
+        </main>
+      </CenteredRegion>
+    );
+  }
+
+  if (!isAuthenticated) {
     return (
       <CenteredRegion>
         <div role="status" aria-label={t("common.states.loading")}>
