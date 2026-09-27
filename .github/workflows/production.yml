@@ -187,7 +187,7 @@ jobs:
       - name: Test affected workspace
         run: npm run test --workspace @vitarish/${{ matrix.workspace }} --if-present
       - name: Run shared Web checks
-        if: ${{ matrix.workspace == 'private-practice-owner' && (needs.changes.outputs.web_all == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.full_suite == 'true') }}
+        if: ${{ matrix.workspace == 'private-practice-owner' && (needs.changes.outputs.web_all == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.full_suite == 'true' || contains(needs.changes.outputs.filters, 'web_auth')) }}
         run: |
           npm run typecheck
           npm run validate:web-ui-boundary
