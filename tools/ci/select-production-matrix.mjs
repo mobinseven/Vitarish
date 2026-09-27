@@ -12,6 +12,8 @@ const webConsumers = [
   { service: "agent-runtime", image: "agent-runtime", workspace: "agent-runtime", filter: "web_agent" },
 ];
 
+const webAuthFilter = "web_auth";
+
 const sharedComposeConsumers = [
   "main", "private-practice-owner", "patients", "platform-admin", "pm",
   "knowledge-qa", "landing", "agent-runtime", "caddy",
@@ -20,9 +22,12 @@ const sharedComposeConsumers = [
 export function selectProductionMatrix(eventName, filters) {
   const fullSuite = eventName === "workflow_dispatch";
   const broad = fullSuite || filters.unknown_source === true;
-  const allWebImages = broad || filters.web_all === true;
-  const webTests = webConsumers.filter((consumer) => allWebImages || filters[consumer.filter] === true);
-  const webImages = webConsumers.filter((consumer) => allWebImages || filters[consumer.filter] === true);
+  const appConsumers = webConsumers.filter((consumer) => filters[consumer.filter] === true);
+  const authChanged = filters[webAuthFilter] === true;
+  const allWebTests = broad || filters.web_all === true || authChanged;
+  const allWebImages = broad || filters.web_all === true || (authChanged && appConsumers.length === 0);
+  const webTests = webConsumers.filter((consumer) => allWebTests || appConsumers.includes(consumer));
+  const webImages = webConsumers.filter((consumer) => allWebImages || appConsumers.includes(consumer));
   const main = broad || filters.main === true || filters.dotnet === true;
   const caddyImage = broad || filters.caddy === true;
   const caddyService = caddyImage || filters.caddy_config === true;
@@ -54,11 +59,11 @@ function readinessPathFromSource() {
 }
 
 if (process.env.GITHUB_OUTPUT && resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url)) {
-  const filters = Object.fromEntries([
-    "dotnet", "main", "web_all", "web_owner", "web_patients", "web_admin", "web_pm",
-    "web_qa", "web_landing", "web_agent", "caddy", "compose", "deploy_script", "test_compose", "workflow", "unknown_source",
-    "caddy_config",
-  ].map((name) => [name, process.env[name.toUpperCase()] === "true"]));
+  const changedFilters = JSON.parse(process.env.CHANGED_FILTERS || "[]");
+  if (!Array.isArray(changedFilters) || changedFilters.some((name) => typeof name !== "string")) {
+    throw new Error("Changed path filters must be a JSON array of names.");
+  }
+  const filters = Object.fromEntries(changedFilters.map((name) => [name, true]));
   const selected = selectProductionMatrix(process.env.EVENT_NAME, filters);
   const outputs = {
     web: JSON.stringify(selected.web),
