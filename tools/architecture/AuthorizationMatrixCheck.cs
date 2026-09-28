@@ -8,6 +8,14 @@ internal static partial class AuthorizationMatrixCheck
     private const string MatrixPath = "docs/security/authorization-matrix.md";
     private const string StartMarker = "<!-- main-module-authorization-matrix:start -->";
     private const string EndMarker = "<!-- main-module-authorization-matrix:end -->";
+    private const string UserAuthStartMarker = "<!-- user-auth-role-object-matrix:start -->";
+    private const string UserAuthEndMarker = "<!-- user-auth-role-object-matrix:end -->";
+    private static readonly HashSet<string> UserDataCategories =
+        ["Account record", "Account profile metadata", "Authentication credential", "Authentication challenge", "Authentication session", "Authentication history", "Security policy", "Tenant membership", "Role assignment", "User security metadata"];
+    private static readonly HashSet<string> UserOperations =
+        ["Read", "Create", "Delete", "Change", "Acknowledge", "Authenticate", "End session", "Validate", "Change permissions"];
+    private static readonly HashSet<string> SubjectDispositions =
+        ["Allow", "Deny", "Self only", "Current tenant only", "Current session only", "Pre-auth only"];
     private static readonly HashSet<string> ModuleMappings =
         ["MapModuleGet", "MapModulePost", "MapModulePut", "MapModulePatch", "MapModuleDelete", "MapModuleHead"];
     private static readonly HashSet<string> ReauthenticationValues = ["Required", "Not required", "Conditional"];
@@ -22,6 +30,7 @@ internal static partial class AuthorizationMatrixCheck
         List<ArchitectureViolation> violations = [];
         IReadOnlyList<ModuleOperation> operations = ExtractOperations(index);
         IReadOnlyList<MatrixRow> rows = ParseRows(matrixText, violations);
+        ValidateUserAuthRoleObjectMatrix(index, matrixText, operations, violations);
 
         foreach (IGrouping<string, MatrixRow> duplicate in rows.GroupBy(row => row.OperationId, StringComparer.Ordinal).Where(group => group.Count() > 1))
         {
@@ -63,6 +72,91 @@ internal static partial class AuthorizationMatrixCheck
 
         return violations;
     }
+
+    private static void ValidateUserAuthRoleObjectMatrix(
+        SourceIndex index,
+        string text,
+        IReadOnlyList<ModuleOperation> operations,
+        List<ArchitectureViolation> violations)
+    {
+        int start = text.IndexOf(UserAuthStartMarker, StringComparison.Ordinal);
+        int end = text.IndexOf(UserAuthEndMarker, StringComparison.Ordinal);
+        if (start < 0 || end <= start)
+        {
+            violations.Add(new(MatrixPath, 1, "UserAuthRoleObjectMatrixMissing", MatrixPath,
+                $"Add one checked Users and Authentication role/object table between {UserAuthStartMarker} and {UserAuthEndMarker}."));
+            return;
+        }
+
+        string section = text[(start + UserAuthStartMarker.Length)..end];
+        int startLine = text[..start].Count(character => character == '\n') + 1;
+        List<UserAuthRow> rows = [];
+        string[] lines = section.Replace("\r", string.Empty, StringComparison.Ordinal).Split('\n');
+        for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
+        {
+            string line = lines[lineIndex].Trim();
+            if (!line.StartsWith('|') || line.Contains("Operation ID", StringComparison.Ordinal) || line.Contains("---", StringComparison.Ordinal)) continue;
+            string[] cells = line.Trim('|').Split('|').Select(cell => cell.Trim().Trim('`')).ToArray();
+            if (cells.Length != 8)
+            {
+                violations.Add(new(MatrixPath, startLine + lineIndex + 1, "UserAuthRoleObjectMatrixRowMalformed", line,
+                    "Use exactly eight columns: operation ID, data category, operation, three subject dispositions, owner, and regression test."));
+                continue;
+            }
+
+            rows.Add(new(cells[0], cells[1], cells[2], cells[3], cells[4], cells[5], cells[6], cells[7], startLine + lineIndex + 1));
+        }
+
+        foreach (IGrouping<string, UserAuthRow> duplicate in rows.GroupBy(row => row.OperationId, StringComparer.Ordinal).Where(group => group.Count() > 1))
+        {
+            violations.Add(new(MatrixPath, duplicate.First().Line, "DuplicateUserAuthRoleObjectOperation", duplicate.Key,
+                "Keep exactly one role/object disposition for each Users or Authentication HTTP operation."));
+        }
+
+        Dictionary<string, UserAuthRow> byOperation = rows
+            .GroupBy(row => row.OperationId, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+        HashSet<string> expected = operations
+            .Where(operation => operation.Module is "Users" or "Authentication")
+            .Select(operation => operation.OperationId)
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (string operationId in expected.Where(operationId => !byOperation.ContainsKey(operationId)))
+            violations.Add(new(MatrixPath, startLine, "MissingUserAuthRoleObjectOperation", operationId,
+                "Add a semantic data-category, operation, subject, owner, and regression-test disposition."));
+        foreach (UserAuthRow row in rows.Where(row => !expected.Contains(row.OperationId)))
+            violations.Add(new(MatrixPath, row.Line, "StaleUserAuthRoleObjectOperation", row.OperationId,
+                "Remove this row or restore its Users or Authentication HTTP operation mapping."));
+
+        foreach (UserAuthRow row in rows)
+        {
+            if (!UserDataCategories.Contains(row.DataCategory))
+                AddUserAuthIncomplete(row, "a recognized passive-entity category", violations);
+            if (!UserOperations.Contains(row.Operation))
+                AddUserAuthIncomplete(row, "a recognized operation", violations);
+            if (!SubjectDispositions.Contains(row.PlatformAdmin) || !SubjectDispositions.Contains(row.TenantOwner) || !SubjectDispositions.Contains(row.TenantUser))
+                AddUserAuthIncomplete(row, "valid PlatformAdmin, TenantOwner, and TenantUser dispositions", violations);
+            if (string.IsNullOrWhiteSpace(row.Authority) || row.Authority is "TBD" or "—")
+                AddUserAuthIncomplete(row, "the owning authorization policy or subject/resource rule", violations);
+            if (string.IsNullOrWhiteSpace(row.RegressionTest) || row.RegressionTest is "TBD" or "—")
+            {
+                AddUserAuthIncomplete(row, "a linked regression test", violations);
+                continue;
+            }
+
+            string[] reference = row.RegressionTest.Split('#', 2);
+            string testPath = reference[0];
+            string absoluteTestPath = Path.Combine(index.Root, testPath.Replace('/', Path.DirectorySeparatorChar));
+            if (!File.Exists(absoluteTestPath))
+                violations.Add(new(MatrixPath, row.Line, "UserAuthRoleObjectTestMissing", row.OperationId, $"Linked regression test path does not exist: {testPath}."));
+            else if (reference.Length != 2 || string.IsNullOrWhiteSpace(reference[1]) || !File.ReadAllText(absoluteTestPath).Contains(reference[1], StringComparison.Ordinal))
+                violations.Add(new(MatrixPath, row.Line, "UserAuthRoleObjectTestReferenceMissing", row.OperationId, $"Linked regression test reference does not exist in {testPath}."));
+        }
+    }
+
+    private static void AddUserAuthIncomplete(UserAuthRow row, string field, List<ArchitectureViolation> violations) =>
+        violations.Add(new(MatrixPath, row.Line, "UserAuthRoleObjectDispositionInvalid", row.OperationId,
+            $"Provide {field}; placeholders and unrecognized values are not accepted."));
 
     internal static IReadOnlyList<ModuleOperation> ExtractOperations(SourceIndex index)
     {
@@ -258,6 +352,17 @@ internal static partial class AuthorizationMatrixCheck
         string Authority,
         string Reauthentication,
         string PublicRationale,
+        string RegressionTest,
+        int Line);
+
+    private sealed record UserAuthRow(
+        string OperationId,
+        string DataCategory,
+        string Operation,
+        string PlatformAdmin,
+        string TenantOwner,
+        string TenantUser,
+        string Authority,
         string RegressionTest,
         int Line);
 }

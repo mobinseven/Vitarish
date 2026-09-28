@@ -733,6 +733,10 @@ test("enforces tenant-user and tenant-owner authorization through the API", asyn
     identificationCode: "E2E-0001",
   });
   expect(ownerOnly.status).toBe(403);
+  const userAdministration = await fetchJson(page, "/api/modules/users/search?query=e2e");
+  const otherUserProfile = await fetchJson(page, `/api/modules/users/${tenantBOwnerUserId}/profile`);
+  expect(userAdministration.status).toBe(403);
+  expect(otherUserProfile.status).toBe(403);
 });
 
 test("keeps two tenants isolated across identifiers, alternate routes, search, and host forwarding", async ({ page, request }) => {
@@ -863,6 +867,8 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
   const tenantBProfile = await fetchJson(tenantBPage, `/api/modules/users/${tenantBOwnerUserId}/profile`);
   expect(tenantBProfile.status).toBe(200);
   expect(tenantBProfile.body).toMatchObject({ userId: tenantBOwnerUserId });
+  const tenantBUserAdministration = await fetchJson(tenantBPage, "/api/modules/users/search?query=e2e");
+  expect(tenantBUserAdministration.status).toBe(403);
   const tenantBCookieHeader = (await tenantBContext.cookies(apiOrigin)).map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
   const generatedTenantBUser = await generatedUserGet(request, tenantBOwnerUserId, tenantBCookieHeader, "tenant-b.localhost");
   expect(generatedTenantBUser).toMatchObject({ userId: tenantBOwnerUserId });
@@ -962,6 +968,10 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
 
   const platform = await fetchJson(page, "/api/modules/platform/locale-notifications");
   expect(platform.status).toBe(200);
+  const managedUserSearch = await fetchJson(page, "/api/modules/users/search?query=e2e");
+  const otherUserProfile = await fetchJson(page, `/api/modules/users/${tenantBOwnerUserId}/profile`);
+  expect(managedUserSearch.status).toBe(200);
+  expect(otherUserProfile.status).toBe(403);
 
 });
 
