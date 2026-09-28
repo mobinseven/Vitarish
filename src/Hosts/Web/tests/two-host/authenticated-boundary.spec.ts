@@ -735,6 +735,86 @@ test("enforces tenant-user and tenant-owner authorization through the API", asyn
   expect(ownerOnly.status).toBe(403);
 });
 
+test("UsersSearchUsers requires the platform administrator policy", async ({ browser }) => {
+  const tenantUserPage = await browser.newPage();
+  await login(tenantUserPage, tenantUserUsername, "", e2ePassword, "198.51.100.25");
+  const denied = await fetchJson(tenantUserPage, "/api/modules/users/search?query=e2e");
+  expect(denied.status).toBe(403);
+  await tenantUserPage.close();
+
+  const administratorPage = await browser.newPage();
+  await login(administratorPage, platformAdminUsername, "", e2ePassword, "198.51.100.26");
+  const allowed = await fetchJson(administratorPage, "/api/modules/users/search?query=e2e");
+  expect(allowed.status).toBe(200);
+  await administratorPage.close();
+});
+
+test("UsersGetProfile denies a different authenticated subject", async ({ page }) => {
+  await login(page, tenantUserUsername, "", e2ePassword, "198.51.100.27");
+  const otherUserProfile = await fetchJson(page, `/api/modules/users/${tenantBOwnerUserId}/profile`);
+  expect(otherUserProfile.status).toBe(403);
+});
+
+test("User-auth matrix denies out-of-scope operation access per operation", async ({ page }) => {
+  await login(page, tenantUserUsername, "", e2ePassword, "198.51.100.28");
+
+  const matrixPath = join(process.cwd(), "../../../docs/security/authorization-matrix.md");
+  const matrixText = readFileSync(matrixPath, "utf8");
+  const matrixRows = matrixText.split(/\r?\n/)
+    .map(line => line.split("|").map(cell => cell.trim().replace(/^`|`$/g, "")))
+    .filter(cells => cells.length === 10 && cells[0] === "" && cells[9] === "");
+
+  const openApiDocuments = ["Main_users.json", "Main_authentication.json"].map(fileName =>
+    JSON.parse(readFileSync(join(process.cwd(), "src/api/specs", fileName), "utf8")) as {
+    paths: Record<string, Record<string, { operationId?: string }>>;
+  });
+  const operations = openApiDocuments.flatMap(document => Object.entries(document.paths).flatMap(([route, methods]) =>
+    Object.entries(methods).flatMap(([method, definition]) => definition.operationId
+      ? [{ operationId: definition.operationId, method: method.toUpperCase(), route }]
+      : [])));
+
+  for (const row of matrixRows) {
+    const operationId = row[1];
+    const selfScoped = row[4] === "Self only" && row[5] === "Self only" && row[6] === "Self only";
+    const tenantUserDenied = row[6] === "Deny";
+    if (!selfScoped && !tenantUserDenied) continue;
+    const operation = operations.find(candidate => candidate.operationId === operationId);
+    expect(operation, `${operationId} exists in a Users or Authentication OpenAPI contract`).toBeDefined();
+    if (!operation) continue;
+
+    const checksDifferentSubject = selfScoped && operation.route.includes("{userId}");
+    const requestPath = operation.route.replace(/\{([^}]+)\}/g, (_match, parameter: string) => {
+      if (parameter === "userId") return tenantBOwnerUserId;
+      if (parameter === "tenantId") return tenantAId;
+      if (parameter === "credentialId") return "00000000-0000-0000-0000-000000000000";
+      if (parameter === "roleSuffix") return "TenantUser";
+      if (parameter === "token") return "authorization-matrix-token";
+      throw new Error(`No test value is defined for OpenAPI parameter ${parameter} in ${operationId}.`);
+    });
+    const body = operation.route.endsWith("/complete-register")
+      ? { attestationResponseJson: "{}" }
+      : operation.method === "PUT" && operation.route.endsWith("/profile")
+        ? { firstName: null, lastName: null }
+        : operation.method === "PUT" && operation.route.endsWith("/culture")
+          ? { culture: "en" }
+          : {};
+    const response = operation.method === "GET"
+      ? await fetchJson(page, requestPath)
+      : operation.method === "POST"
+        ? await postJson(page, requestPath, body)
+        : operation.method === "PUT"
+          ? await putJson(page, requestPath, body)
+          : operation.method === "DELETE"
+            ? await deleteJson(page, requestPath, body)
+            : (() => { throw new Error(`Unsupported self-service HTTP method ${operation.method} for ${operationId}.`); })();
+    if (tenantUserDenied || checksDifferentSubject)
+      expect(response.status, `${operationId} denies a different subject or TenantUser`).toBe(403);
+    else
+      expect([200, 201, 202, 204, 400, 404, 409, 410, 422, 429], `${operationId} reaches its authenticated subject boundary`)
+        .toContain(response.status);
+  }
+});
+
 test("keeps two tenants isolated across identifiers, alternate routes, search, and host forwarding", async ({ page, request }) => {
   await login(page, e2eUsername, "", e2ePassword, "198.51.100.14");
 
@@ -863,6 +943,8 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
   const tenantBProfile = await fetchJson(tenantBPage, `/api/modules/users/${tenantBOwnerUserId}/profile`);
   expect(tenantBProfile.status).toBe(200);
   expect(tenantBProfile.body).toMatchObject({ userId: tenantBOwnerUserId });
+  const tenantBUserAdministration = await fetchJson(tenantBPage, "/api/modules/users/search?query=e2e");
+  expect(tenantBUserAdministration.status).toBe(403);
   const tenantBCookieHeader = (await tenantBContext.cookies(apiOrigin)).map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
   const generatedTenantBUser = await generatedUserGet(request, tenantBOwnerUserId, tenantBCookieHeader, "tenant-b.localhost");
   expect(generatedTenantBUser).toMatchObject({ userId: tenantBOwnerUserId });
@@ -962,6 +1044,10 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
 
   const platform = await fetchJson(page, "/api/modules/platform/locale-notifications");
   expect(platform.status).toBe(200);
+  const managedUserSearch = await fetchJson(page, "/api/modules/users/search?query=e2e");
+  const otherUserProfile = await fetchJson(page, `/api/modules/users/${tenantBOwnerUserId}/profile`);
+  expect(managedUserSearch.status).toBe(200);
+  expect(otherUserProfile.status).toBe(403);
 
 });
 
