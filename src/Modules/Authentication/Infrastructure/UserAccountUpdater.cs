@@ -51,8 +51,8 @@ public sealed class UserAccountUpdater(
 
         PasswordPolicyViolation[] violations = result.Errors
             .Select(error => error.Code)
-            .Where(code => code.StartsWith("PasswordPolicy.", StringComparison.Ordinal))
-            .Select(code => Enum.TryParse(code["PasswordPolicy.".Length..], out PasswordPolicyViolation violation)
+            .Where(code => code.StartsWith(SecurityPolicyPasswordValidator.PasswordPolicyViolationErrorCodePrefix, StringComparison.Ordinal))
+            .Select(code => Enum.TryParse(code[SecurityPolicyPasswordValidator.PasswordPolicyViolationErrorCodePrefix.Length..], out PasswordPolicyViolation violation)
                 ? (PasswordPolicyViolation?)violation
                 : null)
             .Where(violation => violation.HasValue)
@@ -79,8 +79,8 @@ public sealed class UserAccountUpdater(
 
         PasswordPolicyViolation[] violations = result.Errors
             .Select(error => error.Code)
-            .Where(code => code.StartsWith("PasswordPolicy.", StringComparison.Ordinal))
-            .Select(code => Enum.TryParse(code["PasswordPolicy.".Length..], out PasswordPolicyViolation violation)
+            .Where(code => code.StartsWith(SecurityPolicyPasswordValidator.PasswordPolicyViolationErrorCodePrefix, StringComparison.Ordinal))
+            .Select(code => Enum.TryParse(code[SecurityPolicyPasswordValidator.PasswordPolicyViolationErrorCodePrefix.Length..], out PasswordPolicyViolation violation)
                 ? (PasswordPolicyViolation?)violation
                 : null)
             .Where(violation => violation.HasValue)
