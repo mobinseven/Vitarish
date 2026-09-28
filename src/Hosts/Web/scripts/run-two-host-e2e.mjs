@@ -43,6 +43,7 @@ const platformAdminOrigin = "http://localhost:3006";
 const smtpCapturePath = resolve(artifactDirectory, "e2e-smtp-capture.eml");
 const smtpPort = 2525;
 const readinessProbeTimeoutMs = 5000;
+const readinessTimeoutMs = 300000;
 
 mkdirSync(artifactDirectory, { recursive: true });
 
@@ -180,7 +181,7 @@ function probe(url) {
   });
 }
 
-async function waitForHttp(label, child, url, timeoutMs = 120000) {
+async function waitForHttp(label, child, url, timeoutMs = readinessTimeoutMs) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (child.exitCode !== null || child.signalCode !== null) {
