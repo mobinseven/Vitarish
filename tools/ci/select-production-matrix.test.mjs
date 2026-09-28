@@ -102,7 +102,7 @@ test("a scoped authentication change selects only its app checks and shared auth
   assert.deepEqual(selected.images, ["platform-admin"]);
   assert.deepEqual(selected.services, ["platform-admin"]);
   assert.match(workflow, /authentication_web:[\s\S]*?if: \$\{\{ contains\(needs\.changes\.outputs\.filters, 'web_auth'\) \}\}/);
-  assert.match(workflow, /needs: \[changes, dotnet, web, authentication_web, security\]/);
+  assert.match(workflow, /needs: \[changes, dotnet, web, authentication_web, csp_browser, security\]/);
   assert.doesNotMatch(workflow, /needs\.changes\.outputs\.full_suite == 'true' \|\| contains\(needs\.changes\.outputs\.filters, 'web_auth'\)/);
 });
 
