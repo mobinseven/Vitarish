@@ -217,13 +217,27 @@ internal static class SelfTests
                     static void Map(object group) => group.MapModuleGet("/items", GetAsync, "FooGetItems");
                     static void GetAsync() { }
                 }
+                """),
+            ("src/Modules/Users/Api/ProfileEndpoints.cs", """
+                namespace Users.Api;
+                static class ProfileEndpoints
+                {
+                    static void Map(object group) => group.MapModuleGet("/profile", GetAsync, "UsersGetProfile");
+                    static void GetAsync() { }
+                }
                 """));
         string valid = """
             <!-- main-module-authorization-matrix:start -->
             | Operation ID | Module owner | Route owner | Classification | Authentication | Authority | Reauthentication | Public rationale | Regression test |
             | --- | --- | --- | --- | --- | --- | --- | --- | --- |
             | FooGetItems | Foo | src/Modules/Foo/Api/FooApi.cs | protected | BrowserOrBearer | Foo application boundary | Not required | — | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            | UsersGetProfile | Users | src/Modules/Users/Api/ProfileEndpoints.cs | protected | BrowserOrBearer | UserSubjectAccessPolicy applies the self-only rule | Not required | — | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
             <!-- main-module-authorization-matrix:end -->
+            <!-- user-auth-role-object-matrix:start -->
+            | Operation ID | Data category | Operation | PlatformAdmin | TenantOwner | TenantUser | Authorization owner | Regression test |
+            | --- | --- | --- | --- | --- | --- | --- | --- |
+            | UsersGetProfile | Account profile metadata | Read | Self only | Self only | Self only | UserSubjectAccessPolicy | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            <!-- user-auth-role-object-matrix:end -->
             """;
         Require(AuthorizationMatrixCheck.Run(index, valid).Count == 0, "valid authorization matrix produced a violation");
 
@@ -238,6 +252,31 @@ internal static class SelfTests
         IReadOnlyList<ArchitectureViolation> staleViolations = AuthorizationMatrixCheck.Run(index, stale);
         Require(staleViolations.Any(violation => violation.Kind == "MissingAuthorizationMatrixOperation"), "missing authorization matrix operation was not detected");
         Require(staleViolations.Any(violation => violation.Kind == "StaleAuthorizationMatrixOperation"), "stale authorization matrix operation was not detected");
+
+        string missingDisposition = valid.Replace("| UsersGetProfile | Account profile metadata | Read | Self only | Self only | Self only | UserSubjectAccessPolicy | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |", string.Empty, StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(index, missingDisposition).Any(violation => violation.Kind == "MissingUserAuthRoleObjectOperation"),
+            "missing Users or Authentication role/object disposition was not detected");
+        string duplicateDisposition = valid.Replace(
+            "<!-- user-auth-role-object-matrix:end -->",
+            "| UsersGetProfile | Account profile metadata | Read | Self only | Self only | Self only | UserSubjectAccessPolicy | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |\n<!-- user-auth-role-object-matrix:end -->",
+            StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(index, duplicateDisposition).Any(violation => violation.Kind == "DuplicateUserAuthRoleObjectOperation"),
+            "duplicate Users or Authentication role/object disposition was not detected");
+        string staleDisposition = valid.Replace(
+            "<!-- user-auth-role-object-matrix:end -->",
+            "| UsersStaleProfile | Account profile metadata | Read | Self only | Self only | Self only | UserSubjectAccessPolicy | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |\n<!-- user-auth-role-object-matrix:end -->",
+            StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(index, staleDisposition).Any(violation => violation.Kind == "StaleUserAuthRoleObjectOperation"),
+            "stale Users or Authentication role/object disposition was not detected");
+        string invalidDisposition = valid.Replace("| Self only | Self only | Self only |", "| Unknown | Self only | Self only |", StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(index, invalidDisposition).Any(violation => violation.Kind == "UserAuthRoleObjectDispositionInvalid"),
+            "invalid subject disposition was not detected");
+        string missingTest = valid.Replace(
+            "tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |\n<!-- user-auth-role-object-matrix:end -->",
+            "missing-test.cs#Absent |\n<!-- user-auth-role-object-matrix:end -->",
+            StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(index, missingTest).Any(violation => violation.Kind == "UserAuthRoleObjectTestMissing"),
+            "missing Users or Authentication regression test was not detected");
     }
 
     private static void SecurityBaselineSelfTest()
