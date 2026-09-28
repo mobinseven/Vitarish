@@ -69,6 +69,110 @@ internal static class SecurityBaselineCheck
         string deployScript = ReadRequired(deployScriptPath, violations);
         string resolver = ReadRequired(resolverPath, violations);
         string evidence = ReadRequired(evidencePath, violations);
+        string webRoot = Path.Combine(root, "src", "Hosts", "Web");
+        string proxyPath = Path.Combine(webRoot, "scripts", "csp-browser-proxy.mjs");
+        string proxy = ReadRequired(proxyPath, violations);
+        string browserEnvironmentPath = Path.Combine(webRoot, "scripts", "csp-browser-environment.cjs");
+        string browserEnvironment = ReadRequired(browserEnvironmentPath, violations);
+        string browserSuitePath = Path.Combine(webRoot, "tests", "csp-browser", "public-routes.spec.ts");
+        string browserSuite = ReadRequired(browserSuitePath, violations);
+        string authenticatedBrowserSuitePath = Path.Combine(webRoot, "tests", "csp-browser", "authenticated-journeys.spec.ts");
+        string authenticatedBrowserSuite = ReadRequired(authenticatedBrowserSuitePath, violations);
+        string browserConfigPath = Path.Combine(webRoot, "playwright.csp-browser.config.ts");
+        string browserConfig = ReadRequired(browserConfigPath, violations);
+        const string ingressPolicyVariable = "{$VITARISH_CONTENT_SECURITY_POLICY}";
+        string cspPolicy = Regex.Match(ingress, @"(?m)^\s*VITARISH_CONTENT_SECURITY_POLICY:\s*""([^""]+)""\s*$").Groups[1].Value;
+        bool sharedReportOnlyPolicy = caddy.Contains($"request_header Content-Security-Policy \"{ingressPolicyVariable}\"", StringComparison.Ordinal) &&
+            caddy.Contains($"Content-Security-Policy-Report-Only \"{ingressPolicyVariable}\"", StringComparison.Ordinal) &&
+            !Regex.IsMatch(caddy, @"(?m)^\s*Content-Security-Policy\s+");
+        if (!sharedReportOnlyPolicy || string.IsNullOrWhiteSpace(cspPolicy))
+            violations.Add(DeploymentViolation(caddyPath, "ContentSecurityPolicyReportOnlyContractMissing", "Keep the response policy in Report-Only mode and forward the same source policy to the Web host."));
+        if (!Regex.IsMatch(cspPolicy, @"(?:^|;)\s*default-src\s+'self'(?:;|$)") ||
+            !Regex.IsMatch(cspPolicy, @"(?:^|;)\s*script-src\s+'self'\s+'nonce-\{http\.request\.uuid\}'(?:;|$)") ||
+            !Regex.IsMatch(cspPolicy, @"(?:^|;)\s*style-src-elem\s+'self'\s+'nonce-\{http\.request\.uuid\}'(?:;|$)") ||
+            !Regex.IsMatch(cspPolicy, @"(?:^|;)\s*style-src-attr\s+'unsafe-inline'(?:;|$)") ||
+            !Regex.IsMatch(cspPolicy, @"(?:^|;)\s*img-src\s+'self'\s+data:\s+blob:(?:;|$)") ||
+            !Regex.IsMatch(cspPolicy, @"(?:^|;)\s*media-src\s+'self'\s+blob:(?:;|$)") ||
+            !Regex.IsMatch(cspPolicy, @"(?:^|;)\s*frame-ancestors\s+'none'(?:;|$)") ||
+            !Regex.IsMatch(cspPolicy, @"(?:^|;)\s*object-src\s+'none'(?:;|$)") ||
+            Regex.IsMatch(cspPolicy, @"(?:^|[;\s])\*(?:[;\s]|$)|'unsafe-eval'", RegexOptions.IgnoreCase) ||
+            Regex.IsMatch(cspPolicy, @"(?:^|;)\s*(?:script-src|style-src-elem)\s+[^;]*'unsafe-inline'", RegexOptions.IgnoreCase))
+            violations.Add(DeploymentViolation(ingressPath, "ContentSecurityPolicyBroadExceptionConfigured", "Preserve the nonce-based source restrictions and only the documented style-attribute exception."));
+        if (Regex.IsMatch(cspPolicy, @"(?:^|;)\s*style-src-elem\s+[^;]*sha(?:256|384|512)-", RegexOptions.IgnoreCase))
+            violations.Add(DeploymentViolation(ingressPath, "ContentSecurityPolicyStyleHashConfigured", "Use the per-request style nonce instead of a fixed stylesheet hash."));
+        bool browserEvidenceIsFailClosed = evidence.Contains("securitypolicyviolation", StringComparison.Ordinal) &&
+            evidence.Contains("effectiveDirective", StringComparison.Ordinal) &&
+            evidence.Contains("blockedOrigin", StringComparison.Ordinal) &&
+            evidence.Contains("blockedPath", StringComparison.Ordinal) &&
+            evidence.Contains("disposition", StringComparison.Ordinal) &&
+            evidence.Contains("cspReportOnlyPresent", StringComparison.Ordinal) &&
+            evidence.Contains("visibleContentPresent", StringComparison.Ordinal) &&
+            evidence.Contains("failedResources", StringComparison.Ordinal) &&
+            evidence.Contains("nonceRotatesBetweenRequests", StringComparison.Ordinal) &&
+            Regex.IsMatch(evidence, @"if\s*\(allViolations\.length\s*>\s*0\)\s*failures\.push\(") &&
+            Regex.IsMatch(evidence, @"if\s*\(failedResources\.length\s*>\s*0\)\s*failures\.push\(");
+        bool productionLikeProxyIsConnected = proxy.Contains("readIngressPolicy", StringComparison.Ordinal) &&
+            proxy.Contains("cspBrowserEnvironment.proxyApiOrigin", StringComparison.Ordinal) &&
+            browserEnvironment.Contains("proxyApiOrigin: \"VITARISH_CSP_PROXY_API_ORIGIN\"", StringComparison.Ordinal) &&
+            proxy.Contains("request.pipe(proxyRequest)", StringComparison.Ordinal) &&
+            proxy.Contains("proxyResponse.pipe(response)", StringComparison.Ordinal) &&
+            proxy.Contains("server.on(\"upgrade\"", StringComparison.Ordinal) &&
+            browserSuite.Contains("installCspObserver", StringComparison.Ordinal);
+        if (!browserEvidenceIsFailClosed || !productionLikeProxyIsConnected)
+            violations.Add(DeploymentViolation(evidencePath, "ContentSecurityPolicyBrowserEvidenceMissing", "Capture sanitized native CSP events, nonce rotation, and loaded assets through the ingress-backed browser proxy."));
+        if (!browserSuite.Contains("cspPolicyProblems", StringComparison.Ordinal) ||
+            !browserSuite.Contains("renderingProblems", StringComparison.Ordinal) ||
+            !authenticatedBrowserSuite.Contains("OwnerRoutes.Home", StringComparison.Ordinal) ||
+            !authenticatedBrowserSuite.Contains("PlatformAdminRoutes.Tenants.Index", StringComparison.Ordinal) ||
+            !authenticatedBrowserSuite.Contains("getByRole(\"dialog\")", StringComparison.Ordinal) ||
+            !authenticatedBrowserSuite.Contains("video[src^=\"blob:\"]", StringComparison.Ordinal) ||
+            !authenticatedBrowserSuite.Contains("Start voice dictation", StringComparison.Ordinal) ||
+            !browserConfig.Contains("browserName: \"chromium\"", StringComparison.Ordinal) ||
+            !browserConfig.Contains("browserName: \"firefox\"", StringComparison.Ordinal) ||
+            !browserConfig.Contains("browserName: \"webkit\"", StringComparison.Ordinal))
+            violations.Add(DeploymentViolation(browserSuitePath, "ContentSecurityPolicyCrossBrowserCoverageMissing", "Exercise public app routes and authenticated UI journeys across Chromium, Firefox, and WebKit."));
+        string nonceMetaPath = Path.Combine(webRoot, "shared", "ui", "src", "ContentSecurityPolicyNonceMeta.tsx");
+        string nonceMeta = ReadRequired(nonceMetaPath, violations);
+        string nonceHelperPath = Path.Combine(webRoot, "shared", "ui", "src", "contentSecurityPolicyNonce.ts");
+        string nonceHelper = ReadRequired(nonceHelperPath, violations);
+        string i18nLayoutPath = Path.Combine(webRoot, "shared", "localization", "src", "I18nAppLayout.tsx");
+        string i18nLayout = ReadRequired(i18nLayoutPath, violations);
+        if (!nonceMeta.Contains("cspNonceMetaProperty", StringComparison.Ordinal) || !nonceMeta.Contains("content={nonce}", StringComparison.Ordinal) ||
+            !nonceHelper.Contains("content-security-policy", StringComparison.Ordinal) ||
+            !i18nLayout.Contains("<head>{documentHead}</head>", StringComparison.Ordinal))
+            violations.Add(DeploymentViolation(nonceMetaPath, "ContentSecurityPolicyNonceOwnerMissing", "Read the forwarded request nonce and publish it in the shared document head."));
+        foreach (string app in new[] { "private-practice-owner", "patients", "platform-admin", "vitarish-pm", "knowledge-qa-demo", "vitarish-landing" })
+        {
+            string layoutPath = Path.Combine(webRoot, "apps", app, "src", "app", "layout.tsx");
+            string layout = ReadRequired(layoutPath, violations);
+            if (!layout.Contains("ContentSecurityPolicyNonceMeta", StringComparison.Ordinal) ||
+                !layout.Contains("contentSecurityPolicyNonce(headerStore)", StringComparison.Ordinal) ||
+                !layout.Contains("documentHead=", StringComparison.Ordinal))
+                violations.Add(DeploymentViolation(layoutPath, "ContentSecurityPolicyNonceLayoutMissing", $"Read and publish the forwarded request nonce in the {app} root layout."));
+            string providerName = app is "platform-admin" or "vitarish-pm" ? "Providers.tsx" : "AppProviders.tsx";
+            string providerDirectory = app is "platform-admin" or "vitarish-pm"
+                ? Path.Combine("src", "components")
+                : Path.Combine("src", "components", "providers");
+            string providerPath = Path.Combine(webRoot, "apps", app, providerDirectory, providerName);
+            string provider = ReadRequired(providerPath, violations);
+            if (!layout.Contains("nonce={nonce}", StringComparison.Ordinal) || !provider.Contains("<ThemeProvider", StringComparison.Ordinal) ||
+                !provider.Contains("nonce={nonce}", StringComparison.Ordinal))
+                violations.Add(DeploymentViolation(providerPath, "ContentSecurityPolicyThemeNonceMissing", $"Pass the root request nonce to {app} theme bootstrap."));
+        }
+        string releaseCompletionPath = Path.Combine(deploymentRoot, "complete-production-release.sh");
+        string releaseCompletion = ReadRequired(releaseCompletionPath, violations);
+        string evidenceWorkflowPath = Path.Combine(root, ".github", "workflows", "production.yml");
+        string evidenceWorkflow = ReadRequired(evidenceWorkflowPath, violations);
+        bool browserAcceptanceRollbackIsIdentityBound = deployScript.Contains("rollback snapshot retained for browser acceptance", StringComparison.Ordinal) &&
+            evidence.Contains("workflowRunId", StringComparison.Ordinal) && evidence.Contains("state.runId !== expectedRunId", StringComparison.Ordinal) &&
+            releaseCompletion.Contains("record.get('runId') != run_id", StringComparison.Ordinal) &&
+            releaseCompletion.Contains("compose_previous up", StringComparison.Ordinal) &&
+            releaseCompletion.Contains("mv -f -- \"$restored_state\" \"$state\"", StringComparison.Ordinal) &&
+            !releaseCompletion.Contains("down -v", StringComparison.Ordinal) &&
+            evidenceWorkflow.Contains("steps.browser_acceptance.outcome != 'success'", StringComparison.Ordinal) &&
+            evidenceWorkflow.Contains("complete-production-release.sh", StringComparison.Ordinal);
+        if (!browserAcceptanceRollbackIsIdentityBound)
+            violations.Add(DeploymentViolation(releaseCompletionPath, "ProductionWorkflowRecoveryGateMissing", "Retain the keyed snapshot through browser acceptance and restore only after exact commit/run verification."));
         string sharedExamplePath = Path.Combine(deploymentRoot, ".env.shared.example");
         string sharedExample = ReadRequired(sharedExamplePath, violations);
         string workflowPath = Path.Combine(root, ".github", "workflows", "production.yml");
@@ -109,7 +213,7 @@ internal static class SecurityBaselineCheck
         if (!sharedValues.TryGetValue("VITARISH_POSTGRES_IMAGE", out string? postgresImage) ||
             !Regex.IsMatch(postgresImage, @"^postgres:(?:1[89]|[2-9][0-9])(?:\.\d+)?$"))
             violations.Add(DeploymentViolation(sharedExamplePath, "PostgresVolumeLayoutMismatch", "Use PostgreSQL 18 or later with the versioned parent-volume mount."));
-        if (!Regex.IsMatch(sharedExample, @"(?m)^VITARISH_AISTOR_IMAGE=quay\.io/minio/aistor/minio@sha256:0{64}$"))
+        if (!Regex.IsMatch(sharedExample, @"(?m)^VITARISH_AISTOR_IMAGE=quay\.io/minio/aistor/minio@sha256:0{64}\r?$"))
             violations.Add(DeploymentViolation(sharedExamplePath, "AistorImageNotDigestPinned", "Declare the licensed AIStor image by immutable digest."));
         if (!sharedValues.TryGetValue("VITARISH_DEFAULT_RESPONSE_MODEL", out string? responseModel) || string.IsNullOrWhiteSpace(responseModel))
             violations.Add(DeploymentViolation(sharedExamplePath, "SharedModelInputMissing", "Declare the shared default intelligence response model."));
@@ -134,7 +238,7 @@ internal static class SecurityBaselineCheck
             violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowPermissionsInvalid", "Keep PR permissions read-only and grant package write only to publication on main pushes."));
         if (!Regex.IsMatch(workflow, @"(?ms)^  publish:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required\].*?^    if: \$\{\{ github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?\}\}") ||
             !Regex.IsMatch(workflow, @"(?ms)^  deploy_production:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required, publish\].*?^    if: \$\{\{ always\(\) && !cancelled\(\) && github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?\}\}") ||
-            !Regex.IsMatch(workflow, @"(?ms)^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, dotnet, web, security\]" ) ||
+            !Regex.IsMatch(workflow, @"(?ms)^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, dotnet, web, authentication_web, csp_browser, security\]" ) ||
             !Regex.IsMatch(workflow, @"(?ms)^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    if: \$\{\{ always\(\) \}\}") ||
             !workflow.Contains("contains(needs.*.result, 'failure')", StringComparison.Ordinal) ||
             !workflow.Contains("contains(needs.*.result, 'cancelled')", StringComparison.Ordinal))
@@ -238,8 +342,8 @@ internal static class SecurityBaselineCheck
                 violations.Add(DeploymentViolation(composePath, "ProjectNameMissing", "Use a distinct environment Compose project name."));
             if (!compose.Contains("internal: true", StringComparison.Ordinal) || !compose.Contains("external: true", StringComparison.Ordinal))
                 violations.Add(DeploymentViolation(composePath, "NetworkIsolationMissing", "Declare an internal application network and an external shared proxy network."));
-            if (!Regex.IsMatch(compose, $@"(?m)^  application: \{{ name: vitarish-{environment}-application, internal: true \}}$") ||
-                !Regex.IsMatch(compose, $@"(?m)^  proxy: \{{ name: vitarish-{environment}-proxy, external: true \}}$"))
+            if (!Regex.IsMatch(compose, $@"(?m)^  application: \{{ name: vitarish-{environment}-application, internal: true \}}\r?$") ||
+                !Regex.IsMatch(compose, $@"(?m)^  proxy: \{{ name: vitarish-{environment}-proxy, external: true \}}\r?$"))
                 violations.Add(DeploymentViolation(composePath, "EnvironmentNetworkOwnershipMissing", "Use the environment-owned private application network and its shared external ingress network."));
             foreach (string ownedResource in new[] { "application", "proxy", "postgres", "redis", "aistor", "elasticsearch" })
             {

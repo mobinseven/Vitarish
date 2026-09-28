@@ -21,13 +21,13 @@ export function Providers({ children, nonce }: { children: ReactNode; nonce?: st
   return (
     <MockApiBootstrap><QueryClientProvider client={queryClient}>
       <ThemeProvider
+        nonce={nonce}
         attribute="data-theme"
         defaultTheme="system"
         themes={[...themeModeOptions]}
-        // value={{ light: "glass-light", dark: "glass-dark" }}
+        value={{ light: "glass-light", dark: "glass-dark" }}
         enableSystem
         disableTransitionOnChange
-        nonce={nonce}
       >
         {children}
         <Toast.Provider placement="bottom" />

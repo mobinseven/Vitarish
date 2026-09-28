@@ -18,12 +18,12 @@ export function Providers({ children, nonce }: { children: ReactNode; nonce?: st
   return (
     <MockApiBootstrap><QueryClientProvider client={queryClient}>
       <ThemeProvider
+        nonce={nonce}
         attribute="data-theme"
         defaultTheme="system"
         themes={["light", "dark"]}
         enableSystem
         disableTransitionOnChange
-        nonce={nonce}
       >
         {children}
       </ThemeProvider>

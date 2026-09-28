@@ -32,6 +32,8 @@
     "test": "npm run test --workspaces --if-present",
     "test:layout:visual": "playwright test --config playwright.layout.config.ts --grep @visual",
     "test:e2e:two-host": "node scripts/run-two-host-e2e.mjs",
+    "test:csp:proxy": "node --test scripts/csp-browser-proxy.test.mjs",
+    "test:csp:browser": "node scripts/run-csp-browser-e2e.mjs",
     "test:layout:update-linux": "node scripts/update-layout-snapshots-linux.mjs",
     "validate:api-boundary": "npm run validate:api-boundary --workspaces --if-present",
     "validate:localization": "node scripts/validate-localization.mjs",

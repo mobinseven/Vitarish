@@ -31,6 +31,7 @@ jobs:
       web_qa: ${{ steps.filter.outputs.web_qa }}
       web_landing: ${{ steps.filter.outputs.web_landing }}
       web_agent: ${{ steps.filter.outputs.web_agent }}
+      csp_browser: ${{ steps.filter.outputs.csp_browser }}
       caddy: ${{ steps.filter.outputs.caddy }}
       deployment: ${{ steps.filter.outputs.deployment }}
       security_tools: ${{ steps.filter.outputs.security_tools }}
@@ -92,6 +93,26 @@ jobs:
               - 'src/Modules/**/Contracts/**'
               - 'src/Modules/**/Api/**'
               - 'src/Hosts/Main/**'
+            csp_browser:
+              - 'src/Hosts/Web/apps/*/src/**'
+              - 'src/Hosts/Web/apps/*/next.config.ts'
+              - 'src/Hosts/Web/shared/ui/**'
+              - 'src/Hosts/Web/shared/localization/**'
+              - 'src/Hosts/Web/scripts/csp-browser-*'
+              - 'src/Hosts/Web/scripts/run-csp-browser-e2e.mjs'
+              - 'src/Hosts/Web/scripts/run-two-host-e2e.mjs'
+              - 'src/Hosts/Web/scripts/capture-production-browser-evidence.mjs'
+              - 'src/Hosts/Web/tests/csp-browser/**'
+              - 'src/Hosts/Web/playwright.csp-browser.config.ts'
+              - 'src/Hosts/Web/package.json'
+              - 'src/Hosts/Web/package-lock.json'
+              - 'src/Hosts/E2e/Program.cs'
+              - 'src/Hosts/E2e/Infrastructure/Fixtures/**'
+              - 'src/Hosts/E2e/E2e.csproj'
+              - 'src/Hosts/deployment/Caddyfile'
+              - 'src/Hosts/deployment/docker-compose.ingress.yml'
+              - 'tools/architecture/SecurityBaselineCheck.cs'
+              - 'tools/architecture/SelfTests.cs'
             caddy:
               - 'src/Hosts/deployment/Dockerfile'
             caddy_config:
@@ -226,7 +247,7 @@ jobs:
   security:
     name: Architecture security baseline
     needs: changes
-    if: ${{ needs.changes.outputs.deployment == 'true' || needs.changes.outputs.security_tools == 'true' || needs.changes.outputs.dotnet == 'true' || needs.changes.outputs.main == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.workflow == 'true' || needs.changes.outputs.full_suite == 'true' }}
+    if: ${{ needs.changes.outputs.deployment == 'true' || needs.changes.outputs.security_tools == 'true' || needs.changes.outputs.dotnet == 'true' || needs.changes.outputs.main == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.workflow == 'true' || needs.changes.outputs.csp_browser == 'true' || needs.changes.outputs.full_suite == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -244,10 +265,53 @@ jobs:
           docker compose --env-file .env.shared.example --env-file .env.test.example -f docker-compose.test.yml config --quiet
           docker compose --env-file .env.shared.example --env-file .env.production.example -f docker-compose.production.yml config --quiet
 
+  csp_browser:
+    name: Report-Only CSP browser proof
+    needs: changes
+    if: ${{ needs.changes.outputs.csp_browser == 'true' || needs.changes.outputs.full_suite == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/Hosts/Web/package-lock.json
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: npm ci
+        working-directory: src/Hosts/Web
+      - name: Generate API clients
+        run: npm run generate:api --workspaces --if-present
+        working-directory: src/Hosts/Web
+      - name: Install three browser engines
+        run: npx playwright install --with-deps chromium firefox webkit
+        working-directory: src/Hosts/Web
+      - name: Verify the shared ingress policy and proxy
+        run: npm run test:csp:proxy
+        working-directory: src/Hosts/Web
+      - name: Run the real two-host E2E suite
+        run: npm run test:e2e:two-host
+        working-directory: src/Hosts/Web
+      - name: Run production-bundle CSP browser scenarios
+        run: npm run test:csp:browser
+        working-directory: src/Hosts/Web
+      - name: Preserve CSP browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: csp-browser-evidence-${{ github.sha }}-${{ github.run_id }}
+          path: src/Hosts/Web/artifacts/csp-browser-e2e/
+          if-no-files-found: warn
+
   required:
     name: Required CI checks
     if: ${{ always() }}
-    needs: [changes, dotnet, web, authentication_web, security]
+    needs: [changes, dotnet, web, authentication_web, csp_browser, security]
     runs-on: ubuntu-latest
     steps:
       - name: Fail when an executed check failed
@@ -380,6 +444,7 @@ jobs:
           install -m 0700 -d "$RELEASE_OUTPUT_DIRECTORY"
           node tools/ci/resolve-production-images.mjs
       - name: Transfer the release and deploy production
+        id: deploy_release
         env:
           SSH_USER: ${{ secrets.PRODUCTION_SSH_USER }}
           SSH_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
@@ -409,12 +474,36 @@ jobs:
           path: ${{ runner.temp }}/deployment/plan.json
           if-no-files-found: error
       - name: Capture deployed production evidence
+        id: browser_acceptance
         working-directory: src/Hosts/Web
         env:
           PUBLIC_INGRESS_IPV4: ${{ secrets.PRODUCTION_SSH_HOST }}
           SSH_TARGET: root@${{ secrets.PRODUCTION_SSH_HOST }}
           COMMIT_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: node scripts/capture-production-browser-evidence.mjs "$PUBLIC_INGRESS_IPV4" "$SSH_TARGET" "$COMMIT_SHA"
+      - name: Finalize the accepted production release
+        if: ${{ success() }}
+        env:
+          SSH_USER: ${{ secrets.PRODUCTION_SSH_USER }}
+          SSH_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+          destination="$SSH_USER@$SSH_HOST"
+          ssh_options=(-o BatchMode=yes -o StrictHostKeyChecking=yes)
+          ssh "${ssh_options[@]}" "$destination" "bash -s -- 'finalize' '$COMMIT_SHA' '$GITHUB_RUN_ID'" < src/Hosts/deployment/complete-production-release.sh
+      - name: Restore the previous production release after failed browser acceptance
+        if: ${{ failure() && steps.deploy_release.outcome == 'success' && steps.browser_acceptance.outcome != 'success' }}
+        env:
+          SSH_USER: ${{ secrets.PRODUCTION_SSH_USER }}
+          SSH_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+          destination="$SSH_USER@$SSH_HOST"
+          ssh_options=(-o BatchMode=yes -o StrictHostKeyChecking=yes)
+          ssh "${ssh_options[@]}" "$destination" "bash -s -- 'rollback' '$COMMIT_SHA' '$GITHUB_RUN_ID'" < src/Hosts/deployment/complete-production-release.sh
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:

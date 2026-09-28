@@ -18,6 +18,7 @@ export interface ResolveI18nAppLocaleInput {
 
 export interface I18nAppLayoutProps {
   children: ReactNode;
+  documentHead?: ReactNode;
   getMessages: (locale: SupportedLocale) => MessageCatalog;
   selectedLocale?: string | null;
   cookieHeader?: string | null;
@@ -42,6 +43,7 @@ export function resolveI18nAppLocale({
 
 export function I18nAppLayout({
   children,
+  documentHead,
   getMessages,
   selectedLocale,
   cookieHeader,
@@ -64,6 +66,7 @@ export function I18nAppLayout({
       className={htmlClassName}
       data-vibrant-palette={vibrantPalette ? "true" : undefined}
     >
+      <head>{documentHead}</head>
       <body className={bodyClassName}>
         <I18nProvider locale={locale} messages={getMessages(locale)}>
           {children}

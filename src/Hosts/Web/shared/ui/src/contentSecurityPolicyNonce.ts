@@ -3,6 +3,6 @@ export function contentSecurityPolicyNonce(headers: Pick<Headers, "get">): strin
   const policy = headers.get("content-security-policy");
   if (!policy) return undefined;
 
-  const nonceDirective = policy.match(/(?:^|;)\s*(?:script-src|style-src)\s+[^;]*?'nonce-([^']+)'/i);
+  const nonceDirective = policy.match(/(?:^|;)\s*(?:script-src|style-src(?:-elem)?)\s+[^;]*?'nonce-([^']+)'/i);
   return nonceDirective?.[1];
 }

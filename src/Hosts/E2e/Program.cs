@@ -17,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Audit.Server;
+using Vitarish.Intelligence.Application.Abstractions;
 
 const string apiOriginKey = "VITARISH_E2E_API_ORIGIN";
 const string webOriginKey = "VITARISH_E2E_WEB_ORIGIN";
@@ -89,6 +90,7 @@ _ = builder.Services.AddSingleton(
 builder.Services.Replace(ServiceDescriptor.Singleton<IObjectStorageService, E2eObjectStorageService>());
 builder.Services.AddSingleton<Hangfire.IBackgroundJobClient, E2eBackgroundJobClient>();
 builder.Services.Replace(ServiceDescriptor.Singleton<IClinicalEventProposalStore, E2eClinicalEventProposalStore>());
+builder.Services.Replace(ServiceDescriptor.Singleton<ITranscriptionProvider, E2eLiveTranscriptionProvider>());
 builder.Services.Replace(ServiceDescriptor.Singleton<IAssistantActionStore, E2eAssistantActionStore>());
 
 _ = builder.Services.AddScoped<ClinicDbContext>(services =>
@@ -103,6 +105,12 @@ builder.Services.Replace(ServiceDescriptor.Singleton<IAuthenticationChallengeSto
 builder.Services.Replace(ServiceDescriptor.Singleton<IAuthenticationAttemptTracker, InMemoryAuthenticationAttemptTracker>());
 _ = builder.Services.AddOpenApi();
 WebApplication app = builder.Build();
+E2eBrowserIngressProxy? browserIngressProxy = E2eBrowserIngressProxy.TryCreate(AppContext.BaseDirectory, configuredUrls);
+if (browserIngressProxy is not null)
+{
+    browserIngressProxy.Use(app);
+    app.Lifetime.ApplicationStopped.Register(browserIngressProxy.Dispose);
+}
 _ = app.UseHostingPipeline(securityConfiguration);
 _ = app.MapModuleEndpoints();
 _ = app.MapSecurityAuditApi();

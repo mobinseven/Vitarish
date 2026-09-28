@@ -19,4 +19,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Update="Infrastructure\Fixtures\csp-browser-proxy-ports.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" />
+  </ItemGroup>
 </Project>
