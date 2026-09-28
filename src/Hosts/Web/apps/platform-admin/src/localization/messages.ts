@@ -1,4 +1,5 @@
 import type { SupportedLocale } from "@vitarish/localization";
+import { authMessageCatalogs } from "@vitarish/auth/localization";
 import { securityMessageCatalogs } from "@vitarish/security/localization";
 import { usersMessageCatalogs } from "@vitarish/users/localization";
 
@@ -144,4 +145,9 @@ const fa = {
   ...usersMessageCatalogs.fa,
 };
 
-export function getMessages(locale: SupportedLocale) { return locale === "fa" ? fa : en; }
+const catalogs = {
+  en: { ...en, auth: { ...en.auth, ...authMessageCatalogs.en.auth } },
+  fa: { ...fa, auth: { ...fa.auth, ...authMessageCatalogs.fa.auth } },
+};
+
+export function getMessages(locale: SupportedLocale) { return catalogs[locale]; }

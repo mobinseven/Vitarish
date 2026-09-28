@@ -51,8 +51,8 @@ public sealed class UserAccountUpdater(
 
         PasswordPolicyViolation[] violations = result.Errors
             .Select(error => error.Code)
-            .Where(code => code.StartsWith("PasswordPolicy.", StringComparison.Ordinal))
-            .Select(code => Enum.TryParse(code["PasswordPolicy.".Length..], out PasswordPolicyViolation violation)
+            .Where(code => code.StartsWith(SecurityPolicyPasswordValidator.PasswordPolicyViolationErrorCodePrefix, StringComparison.Ordinal))
+            .Select(code => Enum.TryParse(code[SecurityPolicyPasswordValidator.PasswordPolicyViolationErrorCodePrefix.Length..], out PasswordPolicyViolation violation)
                 ? (PasswordPolicyViolation?)violation
                 : null)
             .Where(violation => violation.HasValue)
@@ -65,6 +65,31 @@ public sealed class UserAccountUpdater(
         return string.IsNullOrEmpty(currentPassword)
             ? PasswordChangeOutcome.Failure(PasswordChangeStatus.Failed)
             : PasswordChangeOutcome.Failure(PasswordChangeStatus.InvalidCurrentPassword);
+    }
+
+    public async Task<PasswordChangeOutcome> ResetPasswordAsync(string userId, string newPassword, CancellationToken cancellationToken = default)
+    {
+        User? user = await userManager.FindByIdAsync(userId);
+        if (user is null) return PasswordChangeOutcome.Failure(PasswordChangeStatus.UserNotFound);
+
+        string resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+        IdentityResult result = await userManager.ResetPasswordAsync(user, resetToken, newPassword);
+        if (result.Succeeded)
+            return PasswordChangeOutcome.Success();
+
+        PasswordPolicyViolation[] violations = result.Errors
+            .Select(error => error.Code)
+            .Where(code => code.StartsWith(SecurityPolicyPasswordValidator.PasswordPolicyViolationErrorCodePrefix, StringComparison.Ordinal))
+            .Select(code => Enum.TryParse(code[SecurityPolicyPasswordValidator.PasswordPolicyViolationErrorCodePrefix.Length..], out PasswordPolicyViolation violation)
+                ? (PasswordPolicyViolation?)violation
+                : null)
+            .Where(violation => violation.HasValue)
+            .Select(violation => violation!.Value)
+            .Distinct()
+            .ToArray();
+        return violations.Length > 0
+            ? PasswordChangeOutcome.PolicyFailure(violations)
+            : PasswordChangeOutcome.Failure(PasswordChangeStatus.Failed);
     }
 
     public async Task<bool> PasswordMatchesAsync(string userId, string password, CancellationToken cancellationToken = default)

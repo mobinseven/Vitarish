@@ -12,6 +12,10 @@ public static partial class AuthenticationRoutes
     public const string CompletePhoneLogin = BasePath + "/login/phone/complete";
     public const string BeginEmailLogin = BasePath + "/login/email/begin";
     public const string CompleteEmailLogin = BasePath + "/login/email/complete";
+    public const string BeginPasswordRecoveryPath = "/password-recovery/begin";
+    public const string CompletePasswordRecoveryPath = "/password-recovery/complete";
+    public const string BeginPasswordRecovery = BasePath + BeginPasswordRecoveryPath;
+    public const string CompletePasswordRecovery = BasePath + CompletePasswordRecoveryPath;
     public const string BeginPasskeyLogin = BasePath + "/login/passkey/begin";
     public const string CompletePasskeyLogin = BasePath + "/login/passkey/complete";
     public const string LogoutContext = BasePath + "/logout/context";

@@ -102,6 +102,7 @@ public enum PreAuthenticationAction
 {
     AuthenticationProfile,
     PasswordLogin,
+    PasswordRecovery,
     PhoneLogin,
     EmailLogin,
     PasskeyLogin,

@@ -66,7 +66,7 @@ internal static class SelfTests
                 (files[8], "packages: write", "contents: read", "ProductionWorkflowPermissionsInvalid"),
                 (files[8], "pull-requests: read", "actions: read", "ProductionWorkflowPermissionsInvalid"),
                 (files[8], "needs.required.result == 'success'", "needs.required.result == 'always'", "ProductionWorkflowTestGateMissing"),
-                (files[8], Regex.Escape("needs: [changes, dotnet, web, security]"), "needs: [dotnet, web, security]", "ProductionWorkflowTestGateMissing"),
+                (files[8], @"(?ms)(^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: )\[[^\]]*\]", "$1[]", "ProductionWorkflowTestGateMissing"),
                 (files[8], "github.ref == 'refs/heads/main'", "github.ref == 'refs/heads/release'", "ProductionWorkflowTestGateMissing"),
                 (files[8], "always\\(\\) && !cancelled\\(\\) && github.event_name", "github.event_name", "ProductionWorkflowTestGateMissing"),
                 (files[8], "StrictHostKeyChecking=yes", "StrictHostKeyChecking=no", "ProductionSshBoundaryInvalid"),
@@ -226,6 +226,31 @@ internal static class SelfTests
             <!-- main-module-authorization-matrix:end -->
             """;
         Require(AuthorizationMatrixCheck.Run(index, valid).Count == 0, "valid authorization matrix produced a violation");
+
+        SourceIndex namedRationaleIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Contracts/FooContracts.cs", "namespace Foo.Contracts; public static class FooAnonymousJustifications { public const string Recovery = \"foo.password-recovery\"; }"),
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                using Foo.Contracts;
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    static void Map(object group) => group.MapModulePost("/recovery", RecoverAsync, "FooPasswordRecovery", profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: FooAnonymousJustifications.Recovery);
+                    static void RecoverAsync() { }
+                }
+                """));
+        string namedRationaleMatrix = """
+            <!-- main-module-authorization-matrix:start -->
+            | Operation ID | Module owner | Route owner | Classification | Authentication | Authority | Reauthentication | Public rationale | Regression test |
+            | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+            | FooPasswordRecovery | Foo | src/Modules/Foo/Api/FooApi.cs | anonymous | None | Public recovery transport | Required | foo.password-recovery | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            <!-- main-module-authorization-matrix:end -->
+            """;
+        Require(AuthorizationMatrixCheck.Run(namedRationaleIndex, namedRationaleMatrix).Count == 0,
+            "source-owned anonymous rationale constant did not match its matrix row");
+        string mismatchedNamedRationale = namedRationaleMatrix.Replace("foo.password-recovery", "foo.other", StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(namedRationaleIndex, mismatchedNamedRationale)
+                .Any(violation => violation.Kind == "AnonymousRationaleMismatch"),
+            "source-owned anonymous rationale mismatch was not detected");
 
         string duplicate = valid.Replace(
             "<!-- main-module-authorization-matrix:end -->",

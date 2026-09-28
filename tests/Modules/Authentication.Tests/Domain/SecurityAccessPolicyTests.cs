@@ -54,6 +54,7 @@ public sealed class SecurityAccessPolicyTests
             .Should().BeEquivalentTo([
                 PreAuthenticationAction.AuthenticationProfile,
                 PreAuthenticationAction.PasswordLogin,
+                PreAuthenticationAction.PasswordRecovery,
                 PreAuthenticationAction.PasswordPlusPhoneOtp]);
     }
 

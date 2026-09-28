@@ -1,3 +1,5 @@
+import { AuthenticationWebRoutes } from "@vitarish/auth/routes";
+
 /** Centralized route definitions for the React web host.
  *  Equivalent to Blazor's AppRoutes class.
  *  Single source of truth for all navigation paths. */
@@ -15,6 +17,7 @@ export const Routes = {
     Phone: "/login/phone",
     Email: "/login/email",
     Passkey: "/login/passkey",
+    ForgotPassword: AuthenticationWebRoutes.PasswordRecovery,
   },
   Logout: "/logout",
 

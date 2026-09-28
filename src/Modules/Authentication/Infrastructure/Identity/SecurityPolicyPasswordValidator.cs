@@ -7,6 +7,8 @@ namespace Vitarish.Authentication.Infrastructure;
 
 public sealed class SecurityPolicyPasswordValidator(IAuthenticationSecurityPolicyProvider policyProvider) : IPasswordValidator<User>
 {
+    public const string PasswordPolicyViolationErrorCodePrefix = "PasswordPolicy.";
+
     public async Task<IdentityResult> ValidateAsync(UserManager<User> manager, User user, string? password)
     {
         SecurityAccessPolicy policy = await policyProvider.GetAsync(CancellationToken.None);
@@ -15,7 +17,7 @@ public sealed class SecurityPolicyPasswordValidator(IAuthenticationSecurityPolic
             ? IdentityResult.Success
             : IdentityResult.Failed(violations.Select(violation => new IdentityError
             {
-                Code = $"PasswordPolicy.{violation}",
+                Code = $"{PasswordPolicyViolationErrorCodePrefix}{violation}",
                 Description = $"Password does not satisfy the {violation} requirement."
             }).ToArray());
     }
