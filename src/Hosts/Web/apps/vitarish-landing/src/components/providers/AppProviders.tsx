@@ -7,7 +7,7 @@ import { MockApiBootstrap } from "@vitarish/mock-runtime";
 
 const themeModes = ["light", "dark"] as const;
 
-export function AppProviders({ children }: { children: ReactNode }) {
+export function AppProviders({ children, nonce }: { children: ReactNode; nonce?: string }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -25,6 +25,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
         disableTransitionOnChange
         enableSystem
         themes={[...themeModes]}
+        nonce={nonce}
       >
         {children}
       </ThemeProvider>

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Providers } from "@/components/providers/AppProviders";
+import { contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
 import { getMessages, I18nAppLayout } from "@/localization";
 import "./globals.css";
 
@@ -17,6 +18,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const headerStore = await headers();
+  const nonce = contentSecurityPolicyNonce(headerStore);
 
   return (
     <>
@@ -29,7 +31,7 @@ export default async function RootLayout({
         getMessages={getMessages}
         bodyClassName="bg-background font-sans antialiased"
       >
-        <Providers>{children}</Providers>
+        <Providers nonce={nonce}>{children}</Providers>
       </I18nAppLayout>
     </>
   );
