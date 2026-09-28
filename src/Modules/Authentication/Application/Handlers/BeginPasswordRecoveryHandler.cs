@@ -27,7 +27,11 @@ public sealed class BeginPasswordRecoveryHandler(
         if (!AuthenticationInputValidator.HasText(command.Contact) || command.Channel is not (PasswordRecoveryChannel.Email or PasswordRecoveryChannel.Sms))
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, "A supported recovery channel and contact are required."));
 
+        long startedAt = timeProvider.GetTimestamp();
         SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
+        if (!securityPolicy.PermittedPreAuthenticationActions.Contains(PreAuthenticationAction.PasswordRecovery))
+            return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Password recovery is not enabled."));
+
         AuthenticationMethod method = MethodFor(command.Channel);
         IReadOnlyList<string> identifierKeys = attemptKeyFactory.IdentifierCandidates(method, command.Contact);
         bool denied = await IsDeniedAsync(identifierKeys, cancellationToken);
@@ -84,6 +88,10 @@ public sealed class BeginPasswordRecoveryHandler(
                 await failureRecorder.RecordAsync(command.Channel, exception.GetType().Name, CancellationToken.None);
             }
         }
+
+        TimeSpan remainingResponseDelay = AuthenticationChallengePolicy.PasswordRecoveryMinimumResponseDuration - timeProvider.GetElapsedTime(startedAt);
+        if (remainingResponseDelay > TimeSpan.Zero)
+            await Task.Delay(remainingResponseDelay, timeProvider, cancellationToken);
 
         return new AuthenticationResult<ChallengeResult>.Success(
             new(challenge.Id.Value, challenge.Purpose, challenge.ExpiresAt, challenge.RemainingAttempts));

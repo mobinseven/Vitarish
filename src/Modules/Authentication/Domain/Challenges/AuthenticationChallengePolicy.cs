@@ -3,6 +3,7 @@ namespace Vitarish.Authentication.Domain.Challenges;
 public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int MaximumAttempts)
 {
     public static AuthenticationChallengePolicy Default { get; } = new(TimeSpan.FromMinutes(5), 5);
+    public static TimeSpan PasswordRecoveryMinimumResponseDuration { get; } = TimeSpan.FromSeconds(1);
 
     private static readonly string PhoneLoginTokenPurpose = "Authentication:PhoneLogin";
     private static readonly string PasswordLoginOtpTokenPurpose = "Authentication:PasswordLoginOtp";

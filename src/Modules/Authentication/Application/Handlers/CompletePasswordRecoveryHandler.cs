@@ -24,11 +24,14 @@ public sealed class CompletePasswordRecoveryHandler(
             !AuthenticationInputValidator.HasText(command.NewPassword))
             return Failure(AuthenticationFailureReason.InvalidInput, "Challenge, code, and new password are required.");
 
+        SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
+        if (!securityPolicy.PermittedPreAuthenticationActions.Contains(PreAuthenticationAction.PasswordRecovery))
+            return Failure(AuthenticationFailureReason.NotAllowed, "Password recovery is not enabled.");
+
         AuthenticationChallenge? challenge = await challengeStore.GetAsync(AuthenticationChallengeId.Create(command.ChallengeId), cancellationToken);
         if (challenge is null || !IsRecoveryPurpose(challenge.Purpose))
             return Failure(AuthenticationFailureReason.InvalidCredentials, "Invalid verification code.");
 
-        SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
         AuthenticationMethod method = AuthenticationAttemptKeyMethods.MethodFor(challenge.Purpose);
         IReadOnlyList<string> attemptKeys = attemptKeyFactory.ChallengeCandidates(method, challenge.Id.Value)
             .Concat(attemptKeyFactory.SubjectCandidates(method, challenge.UserId))
@@ -89,12 +92,49 @@ public sealed class CompletePasswordRecoveryHandler(
             return Failure(AuthenticationFailureReason.InvalidInput, "New password does not satisfy the active password policy.");
         }
 
-        if (!await challengeStore.TryConsumeAsync(challenge, cancellationToken))
+        if (!await challengeStore.TryReserveCompletionAsync(challenge, cancellationToken))
+        {
+            await challengeStore.ReleaseAttemptAsync(challenge, CancellationToken.None);
             return Failure(AuthenticationFailureReason.ChallengeAlreadyUsed, "Challenge has already been used.");
+        }
 
-        PasswordChangeOutcome update = await accountUpdater.ResetPasswordAsync(challenge.UserId, command.NewPassword, cancellationToken);
+        try
+        {
+            foreach (string key in attemptKeys)
+                await attemptTracker.ResetAsync(key, cancellationToken);
+        }
+        catch
+        {
+            await challengeStore.ReleaseCompletionAsync(challenge, CancellationToken.None);
+            await challengeStore.ReleaseAttemptAsync(challenge, CancellationToken.None);
+            throw;
+        }
+
+        PasswordChangeOutcome update;
+        try
+        {
+            // Once the exclusive completion reservation is held, finish the local password mutation even if the HTTP request is canceled.
+            update = await accountUpdater.ResetPasswordAsync(challenge.UserId, command.NewPassword, CancellationToken.None);
+        }
+        catch
+        {
+            // Reconcile an ambiguous provider exception before deciding whether the verified code can be retried.
+            bool requestedPasswordWasApplied = await accountUpdater.PasswordMatchesAsync(
+                challenge.UserId, command.NewPassword, CancellationToken.None);
+            if (!requestedPasswordWasApplied)
+            {
+                await challengeStore.ReleaseCompletionAsync(challenge, CancellationToken.None);
+                await challengeStore.ReleaseAttemptAsync(challenge, CancellationToken.None);
+                throw;
+            }
+
+            update = PasswordChangeOutcome.Success();
+        }
+
         if (!update.Succeeded)
         {
+            await challengeStore.ReleaseCompletionAsync(challenge, CancellationToken.None);
+            await challengeStore.ReleaseAttemptAsync(challenge, CancellationToken.None);
             AuthenticationFailureReason reason = update.Status is PasswordChangeStatus.PolicyRejected
                 ? AuthenticationFailureReason.InvalidInput
                 : AuthenticationFailureReason.ProviderFailure;
@@ -103,8 +143,13 @@ public sealed class CompletePasswordRecoveryHandler(
                 : "Password recovery could not be completed.");
         }
 
-        foreach (string key in attemptKeys)
-            await attemptTracker.ResetAsync(key, cancellationToken);
+        if (!await challengeStore.TryConsumeAsync(challenge, CancellationToken.None))
+        {
+            AuthenticationChallenge? current = await challengeStore.GetAsync(challenge.Id, CancellationToken.None);
+            if (current?.Status is not AuthenticationChallengeStatus.Completed &&
+                current?.IsExpired(timeProvider.GetUtcNow()) is not true)
+                return Failure(AuthenticationFailureReason.ProviderFailure, "Password recovery could not be completed.");
+        }
 
         return new AuthenticationResult<bool>.Success(true);
     }

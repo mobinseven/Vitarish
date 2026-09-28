@@ -45,13 +45,54 @@ public sealed class PasswordRecoveryHandlerTests
     }
 
     [Fact]
+    public async Task Begin_applies_the_same_minimum_response_duration_to_unknown_passwordless_denied_and_eligible_contacts()
+    {
+        foreach (BeginScenario scenario in Enum.GetValues<BeginScenario>())
+        {
+            ManualTimeProvider clock = new(DateTimeOffset.UtcNow);
+            BeginDependencies dependencies = CreateBeginDependencies(PasswordRecoveryChannel.Email, clock);
+            if (scenario is BeginScenario.Passwordless or BeginScenario.Eligible)
+            {
+                dependencies.UserDirectory.Setup(x => x.FindByEmailAsync("contact", It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(User("user-42"));
+                dependencies.AccountUpdater.Setup(x => x.UserHasPasswordAsync("user-42", It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(scenario is BeginScenario.Eligible);
+            }
+
+            if (scenario is BeginScenario.Denied)
+                dependencies.AttemptTracker.Setup(x => x.IsDeniedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+            if (scenario is BeginScenario.Eligible)
+            {
+                dependencies.CodeGenerator.Setup(x => x.GenerateAsync("user-42", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync("test-code");
+                dependencies.EmailSender.Setup(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AuthenticationChallengePurpose>(), It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask);
+            }
+
+            Task<AuthenticationResult<ChallengeResult>> request = dependencies.Handler.Handle(
+                new(PasswordRecoveryChannel.Email, "contact"), CancellationToken.None);
+
+            await clock.TimerScheduled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            request.IsCompleted.Should().BeFalse(scenario.ToString());
+            await Task.Yield();
+            clock.Advance(AuthenticationChallengePolicy.PasswordRecoveryMinimumResponseDuration);
+            (await request).Should().BeOfType<AuthenticationResult<ChallengeResult>.Success>();
+        }
+    }
+
+    [Fact]
     public async Task Begin_email_uses_registered_contact_even_when_email_sign_in_is_disabled()
     {
         BeginDependencies dependencies = CreateBeginDependencies(PasswordRecoveryChannel.Email);
         SecurityAccessPolicy disabledEmailLogin = SecurityAccessPolicy.ProductEvaluated with
         {
             EnabledAuthenticationMechanisms = new HashSet<AuthenticationMethod> { AuthenticationMethod.Password },
-            PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction> { PreAuthenticationAction.PasswordLogin }
+            PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction>
+            {
+                PreAuthenticationAction.PasswordLogin,
+                PreAuthenticationAction.PasswordRecovery
+            }
         };
         dependencies.SecurityPolicy.Setup(x => x.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(disabledEmailLogin);
         dependencies.UserDirectory.Setup(x => x.FindByEmailAsync("person@example.test", It.IsAny<CancellationToken>()))
@@ -65,6 +106,25 @@ public sealed class PasswordRecoveryHandlerTests
         result.Should().BeOfType<AuthenticationResult<ChallengeResult>.Success>();
         dependencies.EmailSender.Verify(x => x.SendAsync("Person@Example.test", "test-code", AuthenticationChallengePurpose.EmailPasswordRecovery, It.IsAny<CancellationToken>()), Times.Once);
         dependencies.PhoneSender.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AuthenticationChallengePurpose>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Begin_rejects_when_recovery_is_not_in_the_active_pre_authentication_allowlist()
+    {
+        BeginDependencies dependencies = CreateBeginDependencies(PasswordRecoveryChannel.Email);
+        dependencies.SecurityPolicy.Setup(x => x.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
+            SecurityAccessPolicy.ProductEvaluated with
+            {
+                PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction> { PreAuthenticationAction.PasswordLogin }
+            });
+
+        AuthenticationResult<ChallengeResult> result = await dependencies.Handler.Handle(
+            new(PasswordRecoveryChannel.Email, "person@example.test"), CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<ChallengeResult>.Failure>().Which.Error.Reason
+            .Should().Be(AuthenticationFailureReason.NotAllowed);
+        dependencies.UserDirectory.Verify(x => x.FindByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        dependencies.ChallengeStore.Verify(x => x.SaveAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -162,6 +222,100 @@ public sealed class PasswordRecoveryHandlerTests
     }
 
     [Fact]
+    public async Task Complete_releases_the_verified_code_after_a_known_password_update_failure()
+    {
+        CompleteDependencies dependencies = CreateCompleteDependencies(codeMatches: true);
+        dependencies.AccountUpdater.SetupSequence(x => x.ResetPasswordAsync("user-42", "StrongPass1!", CancellationToken.None))
+            .ReturnsAsync(PasswordChangeOutcome.Failure(PasswordChangeStatus.Failed))
+            .ReturnsAsync(PasswordChangeOutcome.Success());
+        CompletePasswordRecoveryCommand command = new(dependencies.Challenge.Id.Value, "valid", "StrongPass1!");
+
+        AuthenticationResult<bool> failed = await dependencies.Handler.Handle(command, CancellationToken.None);
+        AuthenticationResult<bool> retried = await dependencies.Handler.Handle(command, CancellationToken.None);
+
+        failed.Should().BeOfType<AuthenticationResult<bool>.Failure>().Which.Error.Reason
+            .Should().Be(AuthenticationFailureReason.ProviderFailure);
+        (await dependencies.ChallengeStore.GetAsync(dependencies.Challenge.Id, CancellationToken.None))!.Status
+            .Should().Be(AuthenticationChallengeStatus.Completed);
+        retried.Should().BeOfType<AuthenticationResult<bool>.Success>();
+        dependencies.AccountUpdater.Verify(x => x.ResetPasswordAsync("user-42", "StrongPass1!", CancellationToken.None), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task Complete_releases_the_verified_code_after_a_user_specific_password_policy_rejection()
+    {
+        CompleteDependencies dependencies = CreateCompleteDependencies(codeMatches: true);
+        dependencies.AccountUpdater.SetupSequence(x => x.ResetPasswordAsync("user-42", "StrongPass1!", CancellationToken.None))
+            .ReturnsAsync(PasswordChangeOutcome.PolicyFailure([PasswordPolicyViolation.MinimumLength]))
+            .ReturnsAsync(PasswordChangeOutcome.Success());
+        CompletePasswordRecoveryCommand command = new(dependencies.Challenge.Id.Value, "valid", "StrongPass1!");
+
+        AuthenticationResult<bool> rejected = await dependencies.Handler.Handle(command, CancellationToken.None);
+        AuthenticationResult<bool> retried = await dependencies.Handler.Handle(command, CancellationToken.None);
+
+        rejected.Should().BeOfType<AuthenticationResult<bool>.Failure>().Which.Error.Reason
+            .Should().Be(AuthenticationFailureReason.InvalidInput);
+        retried.Should().BeOfType<AuthenticationResult<bool>.Success>();
+        dependencies.AccountUpdater.Verify(x => x.ResetPasswordAsync("user-42", "StrongPass1!", CancellationToken.None), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task Complete_finishes_the_password_change_if_request_cancellation_arrives_after_mutation_starts()
+    {
+        CompleteDependencies dependencies = CreateCompleteDependencies(codeMatches: true);
+        using CancellationTokenSource cancellation = new();
+        dependencies.AccountUpdater.Setup(x => x.ResetPasswordAsync("user-42", "StrongPass1!", CancellationToken.None))
+            .Callback(() => cancellation.Cancel())
+            .ReturnsAsync(PasswordChangeOutcome.Success());
+
+        AuthenticationResult<bool> result = await dependencies.Handler.Handle(
+            new(dependencies.Challenge.Id.Value, "valid", "StrongPass1!"), cancellation.Token);
+
+        result.Should().BeOfType<AuthenticationResult<bool>.Success>();
+        (await dependencies.ChallengeStore.GetAsync(dependencies.Challenge.Id, CancellationToken.None))!.Status
+            .Should().Be(AuthenticationChallengeStatus.Completed);
+        dependencies.AccountUpdater.Verify(x => x.ResetPasswordAsync("user-42", "StrongPass1!", CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task Complete_reconciles_an_ambiguous_password_update_exception_before_consuming_the_code()
+    {
+        CompleteDependencies dependencies = CreateCompleteDependencies(codeMatches: true);
+        dependencies.AccountUpdater.Setup(x => x.ResetPasswordAsync("user-42", "StrongPass1!", CancellationToken.None))
+            .ThrowsAsync(new IOException("provider response was lost"));
+        dependencies.AccountUpdater.Setup(x => x.PasswordMatchesAsync("user-42", "StrongPass1!", CancellationToken.None))
+            .ReturnsAsync(true);
+
+        AuthenticationResult<bool> result = await dependencies.Handler.Handle(
+            new(dependencies.Challenge.Id.Value, "valid", "StrongPass1!"), CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<bool>.Success>();
+        (await dependencies.ChallengeStore.GetAsync(dependencies.Challenge.Id, CancellationToken.None))!.Status
+            .Should().Be(AuthenticationChallengeStatus.Completed);
+    }
+
+    [Fact]
+    public async Task Complete_releases_the_code_if_an_ambiguous_password_update_is_proven_not_applied()
+    {
+        CompleteDependencies dependencies = CreateCompleteDependencies(codeMatches: true);
+        dependencies.AccountUpdater.Setup(x => x.ResetPasswordAsync("user-42", "StrongPass1!", CancellationToken.None))
+            .ThrowsAsync(new IOException("provider failed before applying the reset"));
+        dependencies.AccountUpdater.Setup(x => x.PasswordMatchesAsync("user-42", "StrongPass1!", CancellationToken.None))
+            .ReturnsAsync(false);
+
+        await Assert.ThrowsAsync<IOException>(() => dependencies.Handler.Handle(
+            new(dependencies.Challenge.Id.Value, "valid", "StrongPass1!"), CancellationToken.None));
+
+        (await dependencies.ChallengeStore.GetAsync(dependencies.Challenge.Id, CancellationToken.None))!.Status
+            .Should().Be(AuthenticationChallengeStatus.Pending);
+        dependencies.AccountUpdater.Setup(x => x.ResetPasswordAsync("user-42", "StrongPass1!", CancellationToken.None))
+            .ReturnsAsync(PasswordChangeOutcome.Success());
+        AuthenticationResult<bool> retry = await dependencies.Handler.Handle(
+            new(dependencies.Challenge.Id.Value, "valid", "StrongPass1!"), CancellationToken.None);
+        retry.Should().BeOfType<AuthenticationResult<bool>.Success>();
+    }
+
+    [Fact]
     public async Task Complete_enforces_active_password_policy_and_leaves_code_available_for_retry()
     {
         CompleteDependencies dependencies = CreateCompleteDependencies(codeMatches: true);
@@ -177,7 +331,32 @@ public sealed class PasswordRecoveryHandlerTests
         dependencies.AccountUpdater.Verify(x => x.ResetPasswordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    private static BeginDependencies CreateBeginDependencies(PasswordRecoveryChannel channel)
+    [Fact]
+    public async Task Complete_rejects_when_recovery_is_not_in_the_active_pre_authentication_allowlist()
+    {
+        Mock<IAuthenticationChallengeStore> store = new();
+        Mock<IAuthenticationCodeVerifier> verifier = new();
+        Mock<IUserAccountUpdater> updater = new();
+        Mock<IAuthenticationSecurityPolicyProvider> policy = new();
+        policy.Setup(x => x.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(
+            SecurityAccessPolicy.ProductEvaluated with
+            {
+                PermittedPreAuthenticationActions = new HashSet<PreAuthenticationAction> { PreAuthenticationAction.PasswordLogin }
+            });
+        CompletePasswordRecoveryHandler handler = new(store.Object, verifier.Object, updater.Object,
+            new InMemoryAuthenticationAttemptTracker(), CreateKeys(), policy.Object, TimeProvider.System);
+
+        AuthenticationResult<bool> result = await handler.Handle(
+            new("challenge-id", "code", "StrongPass1!"), CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<bool>.Failure>().Which.Error.Reason
+            .Should().Be(AuthenticationFailureReason.NotAllowed);
+        store.Verify(x => x.GetAsync(It.IsAny<AuthenticationChallengeId>(), It.IsAny<CancellationToken>()), Times.Never);
+        verifier.Verify(x => x.VerifyAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        updater.Verify(x => x.ResetPasswordAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    private static BeginDependencies CreateBeginDependencies(PasswordRecoveryChannel channel, TimeProvider? clock = null)
     {
         Mock<IAuthenticationChallengeStore> store = new();
         Mock<IAuthenticationUserDirectory> userDirectory = new();
@@ -193,8 +372,8 @@ public sealed class PasswordRecoveryHandlerTests
         policy.Setup(x => x.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.ProductEvaluated);
         var handler = new BeginPasswordRecoveryHandler(store.Object, userDirectory.Object, generator.Object,
             emailSender.Object, phoneSender.Object, updater.Object, attempts.Object, CreateKeys(), recorder.Object,
-            AuthenticationChallengePolicy.Default, policy.Object, TimeProvider.System);
-        return new(handler, store, userDirectory, generator, emailSender, phoneSender, updater, recorder, policy);
+            AuthenticationChallengePolicy.Default, policy.Object, clock ?? TimeProvider.System);
+        return new(handler, store, userDirectory, generator, emailSender, phoneSender, updater, attempts, recorder, policy);
     }
 
     private static CompleteDependencies CreateCompleteDependencies(bool codeMatches) =>
@@ -208,7 +387,7 @@ public sealed class PasswordRecoveryHandlerTests
         verifier.Setup(x => x.VerifyAsync("user-42", challenge.TokenPurpose, "valid", It.IsAny<CancellationToken>())).ReturnsAsync(codeMatches);
         verifier.Setup(x => x.VerifyAsync("user-42", challenge.TokenPurpose, "wrong", It.IsAny<CancellationToken>())).ReturnsAsync(codeMatches);
         Mock<IUserAccountUpdater> updater = new();
-        updater.Setup(x => x.ResetPasswordAsync("user-42", "StrongPass1!", It.IsAny<CancellationToken>()))
+        updater.Setup(x => x.ResetPasswordAsync("user-42", "StrongPass1!", CancellationToken.None))
             .ReturnsAsync(PasswordChangeOutcome.Success());
         InMemoryAuthenticationAttemptTracker attemptTracker = new();
         Mock<IAuthenticationSecurityPolicyProvider> policy = new();
@@ -240,6 +419,7 @@ public sealed class PasswordRecoveryHandlerTests
         Mock<IEmailAuthenticationCodeSender> EmailSender,
         Mock<IPhoneAuthenticationCodeSender> PhoneSender,
         Mock<IUserAccountUpdater> AccountUpdater,
+        Mock<IAuthenticationAttemptTracker> AttemptTracker,
         Mock<IAuthenticationRecoveryDeliveryFailureRecorder> FailureRecorder,
         Mock<IAuthenticationSecurityPolicyProvider> SecurityPolicy);
 
@@ -250,4 +430,112 @@ public sealed class PasswordRecoveryHandlerTests
         Mock<IUserAccountUpdater> AccountUpdater,
         Mock<IAuthenticationSecurityPolicyProvider> SecurityPolicy,
         AuthenticationChallenge Challenge);
+
+    private enum BeginScenario
+    {
+        Unknown,
+        Passwordless,
+        Denied,
+        Eligible
+    }
+
+    private sealed class ManualTimeProvider(DateTimeOffset initial) : TimeProvider
+    {
+        private readonly object sync = new();
+        private readonly List<ManualTimer> timers = [];
+        private DateTimeOffset now = initial;
+        private long timestamp;
+
+        public TaskCompletionSource TimerScheduled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public override DateTimeOffset GetUtcNow()
+        {
+            lock (sync)
+                return now;
+        }
+
+        public override long GetTimestamp()
+        {
+            lock (sync)
+                return timestamp;
+        }
+
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            ManualTimer timer = new(this, callback, state);
+            lock (sync)
+            {
+                timers.Add(timer);
+                timer.Change(dueTime, period);
+            }
+
+            TimerScheduled.TrySetResult();
+            return timer;
+        }
+
+        public void Advance(TimeSpan duration)
+        {
+            ManualTimer[] due;
+            lock (sync)
+            {
+                now = now.Add(duration);
+                timestamp = checked(timestamp + duration.Ticks);
+                due = timers.Where(timer => timer.IsDue(now)).ToArray();
+            }
+
+            foreach (ManualTimer timer in due)
+                timer.Fire();
+        }
+
+        private sealed class ManualTimer(ManualTimeProvider owner, TimerCallback callback, object? state) : ITimer
+        {
+            private DateTimeOffset? dueAt;
+            private TimeSpan period = Timeout.InfiniteTimeSpan;
+            private bool disposed;
+
+            public bool Change(TimeSpan dueTime, TimeSpan timerPeriod)
+            {
+                lock (owner.sync)
+                {
+                    if (disposed)
+                        return false;
+
+                    dueAt = dueTime == Timeout.InfiniteTimeSpan ? null : owner.now.Add(dueTime);
+                    period = timerPeriod;
+                    return true;
+                }
+            }
+
+            public bool IsDue(DateTimeOffset current) => !disposed && dueAt is DateTimeOffset due && due <= current;
+
+            public void Fire()
+            {
+                lock (owner.sync)
+                {
+                    if (disposed || dueAt is null)
+                        return;
+                    dueAt = period == Timeout.InfiniteTimeSpan ? null : owner.now.Add(period);
+                }
+
+                callback(state);
+            }
+
+            public void Dispose()
+            {
+                lock (owner.sync)
+                {
+                    disposed = true;
+                    dueAt = null;
+                }
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                Dispose();
+                return ValueTask.CompletedTask;
+            }
+        }
+    }
 }
