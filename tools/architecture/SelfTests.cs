@@ -225,6 +225,27 @@ internal static class SelfTests
                     static void Map(object group) => group.MapModuleGet("/profile", GetAsync, "UsersGetProfile");
                     static void GetAsync() { }
                 }
+                """),
+            ("src/Modules/Authentication/Api/PasswordRecoveryEndpoints.cs", """
+                using Authentication.Contracts;
+                namespace Authentication.Api;
+                static class PasswordRecoveryEndpoints
+                {
+                    static void Map(object group)
+                    {
+                        group.MapModulePost("/first", BeginAsync, "Authentication_PasswordRecovery_Begin", profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: AuthenticationAnonymousEndpointJustifications.PasswordRecovery);
+                        group.MapModulePost("/second", CompleteAsync, "Authentication_PasswordRecovery_Complete", profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: AuthenticationAnonymousEndpointJustifications.PasswordRecovery);
+                    }
+                    static void BeginAsync() { }
+                    static void CompleteAsync() { }
+                }
+                """),
+            ("src/Modules/Authentication/Contracts/AuthenticationAnonymousEndpointJustifications.cs", """
+                namespace Authentication.Contracts;
+                static class AuthenticationAnonymousEndpointJustifications
+                {
+                    public const string PasswordRecovery = "authentication.password-recovery";
+                }
                 """));
         string valid = """
             <!-- main-module-authorization-matrix:start -->
@@ -232,11 +253,15 @@ internal static class SelfTests
             | --- | --- | --- | --- | --- | --- | --- | --- | --- |
             | FooGetItems | Foo | src/Modules/Foo/Api/FooApi.cs | protected | BrowserOrBearer | Foo application boundary | Not required | — | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
             | UsersGetProfile | Users | src/Modules/Users/Api/ProfileEndpoints.cs | protected | BrowserOrBearer | UserSubjectAccessPolicy applies the self-only rule | Not required | — | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            | Authentication_PasswordRecovery_Begin | Authentication | src/Modules/Authentication/Api/PasswordRecoveryEndpoints.cs | anonymous | None | Public recovery request uses Authentication pre-authentication policy | Not required | authentication.password-recovery | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            | Authentication_PasswordRecovery_Complete | Authentication | src/Modules/Authentication/Api/PasswordRecoveryEndpoints.cs | anonymous | None | Public recovery completion validates its single-use challenge and active password policy | Not required | authentication.password-recovery | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
             <!-- main-module-authorization-matrix:end -->
             <!-- user-auth-role-object-matrix:start -->
             | Operation ID | Data category | Operation | PlatformAdmin | TenantOwner | TenantUser | Authorization owner | Regression test |
             | --- | --- | --- | --- | --- | --- | --- | --- |
             | UsersGetProfile | Account profile metadata | Read | Self only | Self only | Self only | UserSubjectAccessPolicy | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            | Authentication_PasswordRecovery_Begin | Authentication challenge | Create | Pre-auth only | Pre-auth only | Pre-auth only | Anonymous endpoint mapping and Authentication password-recovery policy | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            | Authentication_PasswordRecovery_Complete | Authentication credential | Change | Pre-auth only | Pre-auth only | Pre-auth only | Anonymous endpoint mapping and single-use password-recovery challenge | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
             <!-- user-auth-role-object-matrix:end -->
             """;
         Require(AuthorizationMatrixCheck.Run(index, valid).Count == 0, "valid authorization matrix produced a violation");
@@ -258,6 +283,10 @@ internal static class SelfTests
             | --- | --- | --- | --- | --- | --- | --- | --- | --- |
             | FooPasswordRecovery | Foo | src/Modules/Foo/Api/FooApi.cs | anonymous | None | Public recovery transport | Required | foo.password-recovery | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
             <!-- main-module-authorization-matrix:end -->
+            <!-- user-auth-role-object-matrix:start -->
+            | Operation ID | Data category | Operation | PlatformAdmin | TenantOwner | TenantUser | Authorization owner | Regression test |
+            | --- | --- | --- | --- | --- | --- | --- | --- |
+            <!-- user-auth-role-object-matrix:end -->
             """;
         Require(AuthorizationMatrixCheck.Run(namedRationaleIndex, namedRationaleMatrix).Count == 0,
             "source-owned anonymous rationale constant did not match its matrix row");
