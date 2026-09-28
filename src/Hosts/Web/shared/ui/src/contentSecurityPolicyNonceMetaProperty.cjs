@@ -1,0 +1,1 @@
+exports.cspNonceMetaProperty = "csp-nonce";

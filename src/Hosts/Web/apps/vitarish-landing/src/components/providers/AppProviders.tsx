@@ -20,12 +20,12 @@ export function AppProviders({ children, nonce }: { children: ReactNode; nonce?:
   return (
     <MockApiBootstrap><QueryClientProvider client={queryClient}>
       <ThemeProvider
+        nonce={nonce}
         attribute="data-theme"
         defaultTheme="system"
         disableTransitionOnChange
         enableSystem
         themes={[...themeModes]}
-        nonce={nonce}
       >
         {children}
       </ThemeProvider>

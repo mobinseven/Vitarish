@@ -15,18 +15,15 @@ import { GuidedPage } from "./guided-page";
 import { LandingComposer } from "./landing-composer";
 import { LandingConversationView } from "./landing-conversation-view";
 import { useLandingCopy } from "./landing-copy";
-
-const guidedPaths = ["/about", "/portfolio", "/contact", "/explore"] as const;
+import { GuidedRoutes, Routes } from "../../app/routes";
 
 export function LandingPage() {
   const { direction, t, translate } = useLandingCopy();
   const pathname = usePathname();
   const router = useRouter();
-  const currentPath = pathname === "/" ? "/" : pathname;
+  const currentPath = pathname === Routes.Home ? Routes.Home : pathname;
   const conversation = useLandingConversation("home");
-  const isGuidedPage = guidedPaths.includes(
-    currentPath as (typeof guidedPaths)[number],
-  );
+  const isGuidedPage = GuidedRoutes.includes(currentPath as (typeof GuidedRoutes)[number]);
 
   const navigationGroups = useMemo(
     () => [
@@ -35,19 +32,19 @@ export function LandingPage() {
         items: [
           {
             exactMatch: true,
-            href: "/",
+            href: Routes.Home,
             icon: "pen-to-square",
             label: t.newChat,
           },
-          { href: "/about", icon: "heart", label: t.about },
-          { href: "/explore", icon: "compass", label: t.explore },
+          { href: Routes.About, icon: "heart", label: t.about },
+          { href: Routes.Explore, icon: "compass", label: t.explore },
         ],
       },
       {
         label: t.recent,
         items: [
-          { href: "/portfolio", icon: "images", label: t.portfolio },
-          { href: "/contact", icon: "envelope", label: t.contact },
+          { href: Routes.Portfolio, icon: "images", label: t.portfolio },
+          { href: Routes.Contact, icon: "envelope", label: t.contact },
         ],
       },
     ],
@@ -64,7 +61,7 @@ export function LandingPage() {
     await conversation.submit(text);
   }
 
-  if (currentPath === "/" && conversation.messages.length === 0) {
+  if (currentPath === Routes.Home && conversation.messages.length === 0) {
     return <LandingInitialHome copy={t} direction={direction} submit={submit} />;
   }
 

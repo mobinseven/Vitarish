@@ -20,6 +20,8 @@ using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Users.Application.Abstractions;
+using Vitarish.Sea.Domain.Entities;
+using Vitarish.Sea.Infrastructure.Data;
 
 namespace Vitarish.E2e.Infrastructure.Fixtures;
 
@@ -187,6 +189,44 @@ internal static class E2eFixtureSeeder
             });
             _ = await clinic.SaveChangesAsync(cancellationToken);
         }
+
+        Guid evidenceProcedureId = Guid.Parse("c4e2d4a6-6cf1-42bd-a26f-e7f573cb5261");
+        Guid evidenceEventId = Guid.Parse("cb81aa5c-15af-40d0-8b45-3943acaa1e0d");
+        SeaDbContext sea = scope.ServiceProvider.GetRequiredService<SeaDbContext>();
+        if (!await sea.Projects.AnyAsync(project => project.Id == patientId, cancellationToken))
+        {
+            _ = sea.Projects.Add(new Project
+            {
+                Id = patientId,
+                Name = PatientName,
+                Description = "E2E patient procedure fixture",
+                Template = false,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        if (!await sea.ProjectUsers.AnyAsync(projectUser => projectUser.ProjectId == patientId && projectUser.UserId == user.Id, cancellationToken))
+            _ = sea.ProjectUsers.Add(new ProjectUser(patientId, user.Id));
+        if (!await sea.Procedures.AnyAsync(procedure => procedure.Id == evidenceProcedureId, cancellationToken))
+        {
+            _ = sea.Procedures.Add(new Procedure
+            {
+                Id = evidenceProcedureId,
+                ProjectId = patientId,
+                Name = "E2E CSP evidence procedure",
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        if (!await sea.Events.AnyAsync(@event => @event.Id == evidenceEventId, cancellationToken))
+        {
+            _ = sea.Events.Add(new Vitarish.Sea.Domain.Entities.Event(patientId, evidenceProcedureId, null)
+            {
+                Id = evidenceEventId,
+                Title = "E2E CSP preview event",
+                Description = "Browser policy preview and transcription fixture",
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        _ = await sea.SaveChangesAsync(cancellationToken);
 
         DateOnly today = DateOnly.FromDateTime(DateTime.Now);
         DayOfWeek dayOfWeek = today.DayOfWeek;

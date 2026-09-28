@@ -72,7 +72,26 @@ if [[ $previous_ingress == true && ! -f $deployment/docker-compose.ingress.yml ]
   printf 'A running ingress has no previous Compose configuration.\n' >&2; exit 1
 fi
 
-mkdir -m 0700 -p "$backup"
+backup_root="$deployment/.workflow-backups"
+if [[ -e $backup_root || -L $backup_root ]]; then
+  [[ -d $backup_root && ! -L $backup_root && $(stat -c %u "$backup_root") == 0 ]] || {
+    printf 'The rollback snapshot directory is missing or unsafe.\n' >&2; exit 1;
+  }
+  chmod 0700 "$backup_root"
+else
+  install -d -m 0700 "$backup_root"
+fi
+[[ $(stat -c %a "$backup_root") == 700 && ! -e $backup && ! -L $backup ]] || {
+  printf 'The rollback snapshot already exists or its directory is unsafe.\n' >&2; exit 1;
+}
+mkdir -m 0700 "$backup"
+printf '%s\n' "${previous_running[@]}" > "$backup/previous-running"
+printf '%s\n' "$previous_ingress" > "$backup/previous-ingress"
+restore_dependencies=false
+if [[ -f $deployment/docker-compose.production.yml ]] && ! cmp -s "$deployment/docker-compose.production.yml" "$incoming/docker-compose.production.yml"; then
+  restore_dependencies=true
+fi
+printf '%s\n' "$restore_dependencies" > "$backup/restore-dependencies"
 for file in "${tracked[@]}" .env.shared .env.production .workflow-deployed.json; do
   if [[ -e $deployment/$file || -L $deployment/$file ]]; then
     [[ -f $deployment/$file && ! -L $deployment/$file ]] || { printf 'Unsafe existing deployment file: %s\n' "$file" >&2; exit 1; }
@@ -161,11 +180,15 @@ running_text=$(compose ps --status running --services)
 running=()
 if [[ -n $running_text ]]; then mapfile -t running <<< "$running_text"; fi
 mapfile -t declared < <(compose config --services)
+printf '%s\n' "${declared[@]}" > "$backup/declared-services"
+printf '%s\n' "${dependencies[@]}" > "$backup/dependencies"
 for service in "${declared[@]}"; do
   if [[ ! " ${dependencies[*]} " =~ " $service " ]] && { selected "$service" || [[ ! " ${running[*]} " =~ " $service " ]]; }; then
     attempted_apps+=("$service")
   fi
 done
+printf '%s\n' "${attempted_apps[@]}" > "$backup/attempted-apps"
+chmod 0600 "$backup/existed" "$backup/missing" "$backup/previous-running" "$backup/previous-ingress" "$backup/restore-dependencies" "$backup/declared-services" "$backup/dependencies" "$backup/attempted-apps"
 if ((${#attempted_apps[@]})); then
   compose pull "${attempted_apps[@]}"
   compose up -d --wait --wait-timeout 600 --no-deps --pull never "${attempted_apps[@]}"
@@ -243,5 +266,4 @@ PY
 
 trap - ERR
 rm -f -- "$release" || printf 'Temporary release file cleanup needs attention.\n' >&2
-rm -rf -- "$backup" "$incoming" || printf 'Release staging cleanup needs attention.\n' >&2
-printf 'Production commit %s passed Compose health, readiness, and HTTPS route probes.\n' "$commit"
+printf 'Production commit %s passed Compose health, readiness, and HTTPS route probes; rollback snapshot retained for browser acceptance.\n' "$commit"

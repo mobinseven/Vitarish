@@ -154,6 +154,16 @@ architecture check or Compose render is not deployment evidence. Keep the
 workflow run URL, release-plan artifact, commit SHA, changed service set, and
 resulting container health as release evidence.
 
+The server retains the matching root-owned rollback snapshot after deployment
+until the eight-host anonymous browser capture passes. The capture verifies the
+workflow run ID as well as the commit and recorded configuration. On success,
+the workflow finalizes that exact snapshot. If browser acceptance fails, it
+restores the saved ingress configuration and affected image references only
+after verifying the same commit/run identity, then waits for the previously
+running services to become healthy. It keeps the failed browser evidence and
+does not roll back data or migration history. If restoration fails, the
+snapshot remains for operator recovery.
+
 ## Checks and two-host feedback
 
 Run the repository security baseline and its positive/negative fixtures with:

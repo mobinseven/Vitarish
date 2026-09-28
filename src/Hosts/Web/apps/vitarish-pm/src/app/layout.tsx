@@ -2,6 +2,7 @@ import type { Viewport } from "next";
 import { headers } from "next/headers";
 import { I18nAppLayout } from "@vitarish/localization";
 import { contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
+import { ContentSecurityPolicyNonceMeta } from "@vitarish/ui/content-security-policy-nonce-meta";
 import { Providers } from "@/components/Providers";
 import { getMessages } from "@/localization/messages";
 import { applicationFontVariables } from "./fonts";
@@ -21,11 +22,8 @@ export default async function RootLayout({
   const headerStore = await headers();
   const nonce = contentSecurityPolicyNonce(headerStore);
   return (
-    <>
-      <head>
-        <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
-      </head>
-      <I18nAppLayout
+    <I18nAppLayout
+      documentHead={<><ContentSecurityPolicyNonceMeta nonce={nonce} /><link rel="stylesheet" href="/fontawesome/css/all.min.css" /></>}
         cookieHeader={headerStore.get("cookie")}
         acceptLanguageHeader={headerStore.get("accept-language")}
         getMessages={getMessages}
@@ -34,6 +32,5 @@ export default async function RootLayout({
       >
         <Providers nonce={nonce}>{children}</Providers>
       </I18nAppLayout>
-    </>
   );
 }

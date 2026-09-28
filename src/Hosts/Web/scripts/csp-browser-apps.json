@@ -1,0 +1,39 @@
+{
+  "buildDistDir": ".next-csp-browser-e2e",
+  "private-practice-owner": {
+    "workspace": "@vitarish/private-practice-owner",
+    "directory": "apps/private-practice-owner",
+    "nextPort": 3101,
+    "proxyPort": 3201
+  },
+  "patients": {
+    "workspace": "@vitarish/patients",
+    "directory": "apps/patients",
+    "nextPort": 3102,
+    "proxyPort": 3202
+  },
+  "platform-admin": {
+    "workspace": "@vitarish/platform-admin",
+    "directory": "apps/platform-admin",
+    "nextPort": 3103,
+    "proxyPort": 3203
+  },
+  "vitarish-pm": {
+    "workspace": "@vitarish/vitarish-pm",
+    "directory": "apps/vitarish-pm",
+    "nextPort": 3104,
+    "proxyPort": 3204
+  },
+  "knowledge-qa-demo": {
+    "workspace": "@vitarish/knowledge-qa-demo",
+    "directory": "apps/knowledge-qa-demo",
+    "nextPort": 3105,
+    "proxyPort": 3205
+  },
+  "vitarish-landing": {
+    "workspace": "@vitarish/vitarish-landing",
+    "directory": "apps/vitarish-landing",
+    "nextPort": 3106,
+    "proxyPort": 3206
+  }
+}
