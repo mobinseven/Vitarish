@@ -14,6 +14,7 @@ public static class AuthenticationApiEndpointRouteBuilderExtensions
         _ = anonymous.MapAntiforgeryEndpoints();
         _ = anonymous.MapAuthenticationProfileEndpoint();
         _ = anonymous.MapPasswordLoginEndpoints();
+        _ = anonymous.MapPasswordRecoveryEndpoints();
         if (profilePolicy.AllowPasswordlessPhoneLogin)
             _ = anonymous.MapPhoneLoginEndpoints();
         if (profilePolicy.AllowPasswordlessEmailLogin)

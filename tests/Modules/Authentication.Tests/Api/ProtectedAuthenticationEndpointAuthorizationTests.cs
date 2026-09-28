@@ -96,6 +96,7 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         anonymous.MapPhoneLoginEndpoints();
         anonymous.MapEmailLoginEndpoints();
         anonymous.MapPasskeyLoginEndpoints();
+        anonymous.MapPasswordRecoveryEndpoints();
         anonymous.MapAntiforgeryEndpoints();
 
         RouteEndpoint[] endpoints = ((IEndpointRouteBuilder)app).DataSources
@@ -117,7 +118,9 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
             "Authentication_Login_Passkey_Complete",
             "Authentication_Login_Password",
             "Authentication_Login_Phone_Begin",
-            "Authentication_Login_Phone_Complete");
+            "Authentication_Login_Phone_Complete",
+            AuthenticationPasswordRecoveryOperationIds.Begin,
+            AuthenticationPasswordRecoveryOperationIds.Complete);
         endpoints.Where(endpoint => operationIds.Contains(
                 endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName,
                 StringComparer.Ordinal))
@@ -142,6 +145,7 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         anonymous.MapPhoneLoginEndpoints();
         anonymous.MapEmailLoginEndpoints();
         anonymous.MapPasskeyLoginEndpoints();
+        anonymous.MapPasswordRecoveryEndpoints();
 
         RouteEndpoint[] endpoints = ((IEndpointRouteBuilder)app).DataSources
             .SelectMany(source => source.Endpoints)
@@ -153,14 +157,43 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
                 "Authentication_Login_Passkey_Complete" or
                 "Authentication_Login_Phone_Begin" or
                 "Authentication_Login_Phone_Complete" or
-                "Authentication_Login_Password")
+                "Authentication_Login_Password" or
+                AuthenticationPasswordRecoveryOperationIds.Begin or
+                AuthenticationPasswordRecoveryOperationIds.Complete)
             .ToArray();
 
-        endpoints.Should().HaveCount(7);
+        endpoints.Should().HaveCount(9);
         endpoints.Where(endpoint => endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName != "Authentication_Login_Password")
             .Should().AllSatisfy(endpoint => endpoint.Metadata.GetMetadata<SecurityAuditRequiredMetadata>().Should().NotBeNull());
         endpoints.Single(endpoint => endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName == "Authentication_Login_Password")
             .Metadata.GetMetadata<SecurityAuditHandledByApplicationMetadata>().Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Anonymous_password_recovery_is_explicitly_justified_audited_and_rate_limited()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
+        builder.Services.AddAntiforgery();
+        using WebApplication app = builder.Build();
+        RouteGroupBuilder anonymous = app.MapAnonymousModuleGroup(
+            AuthenticationRoutes.BasePath,
+            "Authentication entry points are intentionally public.");
+        anonymous.MapPasswordRecoveryEndpoints();
+
+        RouteEndpoint[] endpoints = [
+            FindRouteEndpoint(app, AuthenticationRoutes.BeginPasswordRecovery),
+            FindRouteEndpoint(app, AuthenticationRoutes.CompletePasswordRecovery)
+        ];
+
+        endpoints.Should().AllSatisfy(endpoint =>
+        {
+            endpoint.Metadata.GetMetadata<IAllowAnonymous>().Should().NotBeNull();
+            endpoint.Metadata.GetMetadata<AnonymousModuleEndpointMetadata>()?.Justification
+                .Should().Be(AuthenticationAnonymousEndpointJustifications.PasswordRecovery);
+            endpoint.Metadata.GetMetadata<SecurityAuditRequiredMetadata>().Should().NotBeNull();
+            endpoint.Metadata.GetOrderedMetadata<Microsoft.AspNetCore.RateLimiting.EnableRateLimitingAttribute>()
+                .Should().ContainSingle();
+        });
     }
 
     [Fact]
@@ -184,6 +217,16 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         operationIds.Should().Equal(
             "Authentication_Login_Password",
             "Authentication_Login_PasswordOtp_Complete");
+
+        string[] recoveryOperations = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .OfType<RouteEndpoint>()
+            .Select(endpoint => endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName)
+            .Where(name => name is AuthenticationPasswordRecoveryOperationIds.Begin or AuthenticationPasswordRecoveryOperationIds.Complete)
+            .Select(name => name!)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToArray();
+        recoveryOperations.Should().Equal(AuthenticationPasswordRecoveryOperationIds.Begin, AuthenticationPasswordRecoveryOperationIds.Complete);
     }
 
     private static WebApplication CreateAppWithProtectedAuthenticationEndpoints()

@@ -96,7 +96,8 @@ internal static partial class AuthorizationMatrixCheck
                         ? "BrowserOrBearer + Policy:\"PlatformAdmin\""
                         : ExpectedAuthentication(statementText);
                 string rationale = anonymous
-                    ? LiteralArgument(invocation, "anonymousJustification") ?? string.Empty
+                    ? RoslynSyntax.ResolveString(file, invocation.ArgumentList.Arguments.FirstOrDefault(argument =>
+                        string.Equals(argument.NameColon?.Name.Identifier.ValueText, "anonymousJustification", StringComparison.Ordinal))?.Expression) ?? string.Empty
                     : "—";
                 operations.Add(new(operationId, module, file.RelativePath, RoslynSyntax.Line(invocation), classification, authentication, rationale));
             }
@@ -152,12 +153,6 @@ internal static partial class AuthorizationMatrixCheck
         return requirement.Success
             ? $"BrowserOrBearer + Policy:{requirement.Groups[1].Value.Trim()}"
             : "BrowserOrBearer";
-    }
-
-    private static string? LiteralArgument(InvocationExpressionSyntax invocation, string name)
-    {
-        string? expression = RoslynSyntax.ArgumentExpression(invocation, name, -1);
-        return RoslynSyntax.IsStringLiteral(expression, out string value) ? value : null;
     }
 
     private static IReadOnlyList<MatrixRow> ParseRows(string text, List<ArchitectureViolation> violations)

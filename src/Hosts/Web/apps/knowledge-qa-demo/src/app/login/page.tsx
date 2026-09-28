@@ -25,6 +25,7 @@ function LoginFormSurface() {
         navigate={navigate}
         returnUrl={Routes.KnowledgeQa}
         returnUrlSearchParams={searchParams}
+        forgotPasswordHref={Routes.LoginForgotPassword}
       />
     </LoginPageCard>
   );

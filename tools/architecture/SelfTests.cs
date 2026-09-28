@@ -227,6 +227,31 @@ internal static class SelfTests
             """;
         Require(AuthorizationMatrixCheck.Run(index, valid).Count == 0, "valid authorization matrix produced a violation");
 
+        SourceIndex namedRationaleIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Contracts/FooContracts.cs", "namespace Foo.Contracts; public static class FooAnonymousJustifications { public const string Recovery = \"foo.password-recovery\"; }"),
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                using Foo.Contracts;
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    static void Map(object group) => group.MapModulePost("/recovery", RecoverAsync, "FooPasswordRecovery", profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: FooAnonymousJustifications.Recovery);
+                    static void RecoverAsync() { }
+                }
+                """));
+        string namedRationaleMatrix = """
+            <!-- main-module-authorization-matrix:start -->
+            | Operation ID | Module owner | Route owner | Classification | Authentication | Authority | Reauthentication | Public rationale | Regression test |
+            | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+            | FooPasswordRecovery | Foo | src/Modules/Foo/Api/FooApi.cs | anonymous | None | Public recovery transport | Required | foo.password-recovery | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            <!-- main-module-authorization-matrix:end -->
+            """;
+        Require(AuthorizationMatrixCheck.Run(namedRationaleIndex, namedRationaleMatrix).Count == 0,
+            "source-owned anonymous rationale constant did not match its matrix row");
+        string mismatchedNamedRationale = namedRationaleMatrix.Replace("foo.password-recovery", "foo.other", StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(namedRationaleIndex, mismatchedNamedRationale)
+                .Any(violation => violation.Kind == "AnonymousRationaleMismatch"),
+            "source-owned anonymous rationale mismatch was not detected");
+
         string duplicate = valid.Replace(
             "<!-- main-module-authorization-matrix:end -->",
             "| FooGetItems | Foo | src/Modules/Foo/Api/FooApi.cs | protected | BrowserOrBearer | Foo application boundary | Not required | — | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |\n<!-- main-module-authorization-matrix:end -->",

@@ -14,6 +14,8 @@ public static class AuthenticationEndpointMapper
         AuthenticationChallengePurpose.PasswordLoginOtp => AuthenticationChallengePurposeDto.PasswordLoginOtp,
         AuthenticationChallengePurpose.PhoneChange => AuthenticationChallengePurposeDto.PhoneChange,
         AuthenticationChallengePurpose.EmailChange => AuthenticationChallengePurposeDto.EmailChange,
+        AuthenticationChallengePurpose.EmailPasswordRecovery => AuthenticationChallengePurposeDto.EmailPasswordRecovery,
+        AuthenticationChallengePurpose.PhonePasswordRecovery => AuthenticationChallengePurposeDto.PhonePasswordRecovery,
         _ => AuthenticationChallengePurposeDto.PasskeyLogin
     }, result.ExpiresAt, result.RemainingAttempts, result.OptionsJson);
     public static AuthenticationRedirectResultDto ToDto(LoginResult result) => new(result.ReturnUrl, result.RequiresProfileCompletion);

@@ -1,0 +1,1 @@
+export { authMessageCatalogs } from "./catalogs";

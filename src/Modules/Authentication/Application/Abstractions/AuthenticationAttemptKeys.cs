@@ -22,6 +22,8 @@ public static class AuthenticationAttemptKeyMethods
     {
         AuthenticationChallengePurpose.EmailLogin => AuthenticationMethod.Email,
         AuthenticationChallengePurpose.PhoneLogin or AuthenticationChallengePurpose.PasswordLoginOtp => AuthenticationMethod.Phone,
+        AuthenticationChallengePurpose.EmailPasswordRecovery => AuthenticationMethod.Email,
+        AuthenticationChallengePurpose.PhonePasswordRecovery => AuthenticationMethod.Phone,
         _ => AuthenticationMethod.Passkey
     };
 }
