@@ -1,15 +1,27 @@
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Vitarish.Tools.Architecture;
 
 internal static partial class AuthorizationMatrixCheck
 {
+    internal const string ExecutableDispositionMismatchKind = "UserAuthExecutableDispositionMismatch";
+    internal const string ExecutableAuthorityMismatchKind = "UserAuthExecutableAuthorityMismatch";
+    internal const string UserAuthRoleObjectTestReferenceMissingKind = "UserAuthRoleObjectTestReferenceMissing";
+    internal const string UserAuthRoleObjectDispositionInvalidKind = "UserAuthRoleObjectDispositionInvalid";
     private const string MatrixPath = "docs/security/authorization-matrix.md";
     private const string StartMarker = "<!-- main-module-authorization-matrix:start -->";
     private const string EndMarker = "<!-- main-module-authorization-matrix:end -->";
     private const string UserAuthStartMarker = "<!-- user-auth-role-object-matrix:start -->";
     private const string UserAuthEndMarker = "<!-- user-auth-role-object-matrix:end -->";
+    private const string AllowDisposition = "Allow";
+    private const string DenyDisposition = "Deny";
+    private const string SelfOnlyDisposition = "Self only";
+    private const string CurrentTenantOnlyDisposition = "Current tenant only";
+    private const string CurrentSessionOnlyDisposition = "Current session only";
+    private const string PreAuthOnlyDisposition = "Pre-auth only";
     private static readonly HashSet<string> UserDataCategories =
         ["Account record", "Account profile metadata", "Authentication credential", "Authentication challenge", "Authentication session", "Authentication history", "Security policy", "Tenant membership", "Role assignment", "User security metadata"];
     private static readonly HashSet<string> UserOperations =
@@ -138,6 +150,7 @@ internal static partial class AuthorizationMatrixCheck
                 AddUserAuthIncomplete(row, "valid PlatformAdmin, TenantOwner, and TenantUser dispositions", violations);
             if (string.IsNullOrWhiteSpace(row.Authority) || row.Authority is "TBD" or "—")
                 AddUserAuthIncomplete(row, "the owning authorization policy or subject/resource rule", violations);
+            ValidateExecutableDisposition(index, operations, row, violations);
             if (string.IsNullOrWhiteSpace(row.RegressionTest) || row.RegressionTest is "TBD" or "—")
             {
                 AddUserAuthIncomplete(row, "a linked regression test", violations);
@@ -149,13 +162,189 @@ internal static partial class AuthorizationMatrixCheck
             string absoluteTestPath = Path.Combine(index.Root, testPath.Replace('/', Path.DirectorySeparatorChar));
             if (!File.Exists(absoluteTestPath))
                 violations.Add(new(MatrixPath, row.Line, "UserAuthRoleObjectTestMissing", row.OperationId, $"Linked regression test path does not exist: {testPath}."));
-            else if (reference.Length != 2 || string.IsNullOrWhiteSpace(reference[1]) || !File.ReadAllText(absoluteTestPath).Contains(reference[1], StringComparison.Ordinal))
-                violations.Add(new(MatrixPath, row.Line, "UserAuthRoleObjectTestReferenceMissing", row.OperationId, $"Linked regression test reference does not exist in {testPath}."));
+            else if (reference.Length != 2 || !IsTestCaseReference(absoluteTestPath, reference[1]))
+                violations.Add(new(MatrixPath, row.Line, UserAuthRoleObjectTestReferenceMissingKind, row.OperationId, $"Linked regression test reference does not exist in {testPath}."));
         }
     }
 
+    private static void ValidateExecutableDisposition(
+        SourceIndex index,
+        IReadOnlyList<ModuleOperation> operations,
+        UserAuthRow row,
+        List<ArchitectureViolation> violations)
+    {
+        ModuleOperation? operation = operations.FirstOrDefault(candidate => candidate.OperationId == row.OperationId);
+        SourceFile? endpointFile = operation is null ? null : index.Files.FirstOrDefault(file => file.RelativePath == operation.RouteOwner);
+        if (operation is null || endpointFile is null) return;
+
+        InvocationExpressionSyntax? mapping = endpointFile.Tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .FirstOrDefault(invocation => ModuleMappings.Contains(RoslynSyntax.Name(invocation)) &&
+                invocation.ArgumentList.Arguments.Any(argument => RoslynSyntax.ResolveString(endpointFile, argument.Expression) == row.OperationId));
+        if (mapping is null)
+        {
+            AddUserAuthIncomplete(row, "an executable endpoint mapping that can be classified", violations);
+            return;
+        }
+
+        ExpressionStatementSyntax? statement = mapping.FirstAncestorOrSelf<ExpressionStatementSyntax>();
+        string? handlerName = mapping.ArgumentList.Arguments.Where(argument => argument.NameColon is null)
+            .ElementAtOrDefault(1)?.Expression is IdentifierNameSyntax handlerIdentifier
+                ? handlerIdentifier.Identifier.ValueText
+                : null;
+        InvocationExpressionSyntax? authorization = statement?.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>()
+            .FirstOrDefault(invocation => RoslynSyntax.Name(invocation) == "RequireAuthorization");
+        if (operation.Classification == "anonymous")
+        {
+            if (!row.Authority.Contains("Anonymous endpoint mapping", StringComparison.Ordinal))
+                AddExecutableAuthorityMismatch(row, "the anonymous endpoint mapping", violations);
+            RequireDispositions(row, [PreAuthOnlyDisposition, PreAuthOnlyDisposition, PreAuthOnlyDisposition], violations);
+            return;
+        }
+
+        if (authorization is not null)
+        {
+            string policyExpression = authorization.ArgumentList.Arguments.FirstOrDefault()?.Expression.ToString() ?? string.Empty;
+            if (policyExpression.Length > 0 && !row.Authority.Contains(policyExpression, StringComparison.Ordinal))
+                AddExecutableAuthorityMismatch(row, policyExpression, violations);
+            string? policyName = authorization.ArgumentList.Arguments.FirstOrDefault() is { } policyArgument
+                ? RoslynSyntax.ResolveString(endpointFile, policyArgument.Expression)
+                : null;
+            (string[]? roles, bool classifiable, bool tenantOwnerAssertion) = ResolvePolicyRoles(index, policyName);
+            if (classifiable && roles is not null)
+            {
+                string platformRole = ResolveNamedConstant(index, "IdentityDefinitions.PlatformAdmin") ?? string.Empty;
+                string ownerRole = ResolveNamedConstant(index, "IdentityDefinitions.TenantOwner") ?? string.Empty;
+                MethodDeclarationSyntax[] endpointMethods = endpointFile.Tree.GetRoot().DescendantNodes()
+                    .OfType<MethodDeclarationSyntax>().ToArray();
+                bool endpointChecksTenant = handlerName is not null && endpointMethods
+                    .Where(method => method.Identifier.ValueText == handlerName)
+                    .SelectMany(method => method.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                    .Any(call => endpointMethods.Any(helper => helper.Identifier.ValueText == RoslynSyntax.Name(call) &&
+                        helper.ToString().Contains("requestContext.TenantId", StringComparison.Ordinal) &&
+                        helper.ToString().Contains("CanManageTenantMembers", StringComparison.Ordinal)));
+                RequireDispositions(row,
+                    [roles.Contains(platformRole, StringComparer.Ordinal) ? AllowDisposition : DenyDisposition,
+                     roles.Contains(ownerRole, StringComparer.Ordinal) ? tenantOwnerAssertion && endpointChecksTenant ? CurrentTenantOnlyDisposition : AllowDisposition : DenyDisposition,
+                     DenyDisposition], violations);
+                return;
+            }
+
+            if (!classifiable)
+            {
+                AddUserAuthIncomplete(row, "a policy whose executable role requirements can be resolved", violations);
+                return;
+            }
+        }
+
+        bool checksSelf = statement?.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>()
+                .Any(invocation => RoslynSyntax.Name(invocation) == "AllowsSelf") == true ||
+            handlerName is not null && endpointFile.Tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()
+                .Where(method => method.Identifier.ValueText == handlerName)
+                .SelectMany(method => method.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                .Any(invocation => RoslynSyntax.Name(invocation) == "AllowsSelf");
+        if (checksSelf)
+        {
+            if (!row.Authority.Contains("UserSubjectAccessPolicy", StringComparison.Ordinal))
+                AddExecutableAuthorityMismatch(row, "UserSubjectAccessPolicy", violations);
+            RequireDispositions(row, [SelfOnlyDisposition, SelfOnlyDisposition, SelfOnlyDisposition], violations);
+            return;
+        }
+
+        if (!row.Authority.Contains("Authenticated", StringComparison.Ordinal))
+            AddExecutableAuthorityMismatch(row, "the protected endpoint's authenticated subject/session owner", violations);
+        string[] actual = [row.PlatformAdmin, row.TenantOwner, row.TenantUser];
+        if (actual.Distinct(StringComparer.Ordinal).Count() != 1 || actual[0] is not (SelfOnlyDisposition or CurrentSessionOnlyDisposition))
+            AddUserAuthIncomplete(row, "one authenticated subject/session scope shared by the protected endpoint's roles", violations);
+    }
+
+    private static (string[]? Roles, bool Classifiable, bool TenantOwnerAssertion) ResolvePolicyRoles(SourceIndex index, string? policyName)
+    {
+        if (policyName is null) return (null, false, false);
+        foreach (SourceFile file in index.Files)
+        foreach (InvocationExpressionSyntax addPolicy in file.Tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+                     .Where(invocation => RoslynSyntax.Name(invocation) == "AddPolicy"))
+        {
+            if (addPolicy.ArgumentList.Arguments.Count < 2 ||
+                RoslynSyntax.ResolveString(file, addPolicy.ArgumentList.Arguments[0].Expression) != policyName) continue;
+            ExpressionSyntax definition = addPolicy.ArgumentList.Arguments[1].Expression;
+            InvocationExpressionSyntax[] requirements = definition.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>()
+                .Where(invocation => RoslynSyntax.Name(invocation) == "RequireRole").ToArray();
+            if (requirements.Length == 0)
+            {
+                bool tenantOwnerAssertion = definition.ToString().Contains("CanManageAnyTenantMembers", StringComparison.Ordinal);
+                if (!tenantOwnerAssertion) return (null, true, false);
+                MethodDeclarationSyntax? assertionOwner = index.Files.SelectMany(source => source.Tree.GetRoot()
+                        .DescendantNodes().OfType<MethodDeclarationSyntax>())
+                    .FirstOrDefault(method => method.Identifier.ValueText == "CanManageAnyTenantMembers");
+                string assertionBody = assertionOwner?.Body?.ToString() ?? assertionOwner?.ExpressionBody?.ToString() ?? string.Empty;
+                if (assertionOwner is null ||
+                    !assertionBody.Contains("IsPlatformAdministrator", StringComparison.Ordinal) ||
+                    !assertionBody.Contains("IdentityDefinitions.TenantOwner", StringComparison.Ordinal))
+                    return (null, false, false);
+                string? platformAdmin = ResolveNamedConstant(index, "IdentityDefinitions.PlatformAdmin");
+                string? tenantOwner = ResolveNamedConstant(index, "IdentityDefinitions.TenantOwner");
+                return platformAdmin is null || tenantOwner is null
+                    ? (null, false, false)
+                    : ([platformAdmin, tenantOwner], true, true);
+            }
+            if (requirements.Length != 1) return (null, false, false);
+            string[] roles = requirements.SelectMany(requirement => requirement.ArgumentList.Arguments
+                    .Select(argument => RoslynSyntax.ResolveString(file, argument.Expression)))
+                .Where(role => role is not null).Select(role => role!).ToArray();
+            return roles.Length == 0 ? (null, false, false) : (roles, true, false);
+        }
+
+        return (null, false, false);
+    }
+
+    private static string? ResolveNamedConstant(SourceIndex index, string qualifiedName)
+    {
+        string typeName = qualifiedName.Split('.')[0];
+        string memberName = qualifiedName.Split('.')[1];
+        foreach (SourceFile file in index.Files)
+        foreach (VariableDeclaratorSyntax variable in file.Tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>())
+        {
+            if (variable.Initializer is null || variable.Identifier.ValueText != memberName ||
+                variable.FirstAncestorOrSelf<ClassDeclarationSyntax>()?.Identifier.ValueText != typeName) continue;
+            string? value = RoslynSyntax.ResolveString(file, variable.Initializer.Value);
+            if (value is not null) return value;
+        }
+
+        return null;
+    }
+
+    private static void RequireDispositions(UserAuthRow row, string[] expected, List<ArchitectureViolation> violations)
+    {
+        string[] actual = [row.PlatformAdmin, row.TenantOwner, row.TenantUser];
+        if (actual.SequenceEqual(expected, StringComparer.Ordinal)) return;
+        violations.Add(new(MatrixPath, row.Line, ExecutableDispositionMismatchKind, row.OperationId,
+            $"Set PlatformAdmin, TenantOwner, and TenantUser to '{string.Join("', '", expected)}' to match the executable authorization owner."));
+    }
+
+    private static void AddExecutableAuthorityMismatch(UserAuthRow row, string owner, List<ArchitectureViolation> violations) =>
+        violations.Add(new(MatrixPath, row.Line, ExecutableAuthorityMismatchKind, row.OperationId,
+            $"Name the executable authorization owner '{owner}' in this row."));
+
+    private static bool IsTestCaseReference(string path, string anchor)
+    {
+        if (string.IsNullOrWhiteSpace(anchor)) return false;
+        string text = File.ReadAllText(path);
+        if (path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+        {
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(text);
+            string methodName = anchor.Split('.').Last();
+            return tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()
+                .Any(method => method.Identifier.ValueText == methodName &&
+                    (method.AttributeLists.SelectMany(list => list.Attributes).Any(attribute =>
+                         attribute.Name.ToString() is "Fact" or "Theory" or "FactAttribute" or "TheoryAttribute") ||
+                     methodName.EndsWith("SelfTest", StringComparison.Ordinal)));
+        }
+
+        return Regex.IsMatch(text, "\\btest\\s*\\(\\s*\\\"" + Regex.Escape(anchor) + "\\\"\\s*,", RegexOptions.CultureInvariant);
+    }
+
     private static void AddUserAuthIncomplete(UserAuthRow row, string field, List<ArchitectureViolation> violations) =>
-        violations.Add(new(MatrixPath, row.Line, "UserAuthRoleObjectDispositionInvalid", row.OperationId,
+        violations.Add(new(MatrixPath, row.Line, UserAuthRoleObjectDispositionInvalidKind, row.OperationId,
             $"Provide {field}; placeholders and unrecognized values are not accepted."));
 
     internal static IReadOnlyList<ModuleOperation> ExtractOperations(SourceIndex index)
