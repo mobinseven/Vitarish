@@ -340,7 +340,7 @@ internal static class SecurityBaselineCheck
             if (dependencies is null || !needsByJob.TryAdd(job.Groups["id"].Value, dependencies)) return false;
         }
 
-        if (!needsByJob.TryGetValue("required", out string[] requiredNeeds)) return false;
+        if (!needsByJob.TryGetValue("required", out string[]? requiredNeeds) || requiredNeeds is null) return false;
 
         HashSet<string> requiredDependencies = new(requiredNeeds, StringComparer.Ordinal);
         HashSet<string> checkJobsAndPrerequisites = new(StringComparer.Ordinal);
