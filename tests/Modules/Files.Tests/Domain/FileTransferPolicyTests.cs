@@ -30,4 +30,27 @@ public sealed class FileTransferPolicyTests
 
         FileStorageKey.For("tenant-a", fileId).Should().NotBe(FileStorageKey.For("tenant-b", fileId));
     }
+
+    [Theory]
+    [InlineData(FileTransferPurpose.Attachment, "application/pdf", true)]
+    [InlineData(FileTransferPurpose.Attachment, "video/mp4", true)]
+    [InlineData(FileTransferPurpose.KnowledgeImport, "video/mp4", false)]
+    [InlineData(FileTransferPurpose.Avatar, "image/webp", true)]
+    [InlineData(FileTransferPurpose.Avatar, "application/pdf", false)]
+    [InlineData(FileTransferPurpose.AudioRecording, "audio/mpeg", true)]
+    public void Transfer_policies_allow_only_their_owned_content_types(
+        FileTransferPurpose purpose,
+        string contentType,
+        bool expected)
+    {
+        FileTransferPolicy.IsAllowed(purpose, contentType).Should().Be(expected);
+    }
+
+    [Fact]
+    public void Transfer_policy_uses_the_required_temporary_lifecycle_values()
+    {
+        FileTransferPolicy.UnclaimedUploadLifetime.Should().Be(TimeSpan.FromHours(24));
+        FileTransferPolicy.CleanupInterval.Should().Be(TimeSpan.FromMinutes(5));
+        FileTransferPolicy.TransferStartsPerMinute.Should().Be(10);
+    }
 }

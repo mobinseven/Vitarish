@@ -37,6 +37,8 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
 
     internal DbSet<FileInformation> Files => Set<FileInformation>();
     internal DbSet<FileIntegrityRecord> FileIntegrityRecords => Set<FileIntegrityRecord>();
+    internal DbSet<FileTransferRecord> FileTransferRecords => Set<FileTransferRecord>();
+    internal DbSet<FileReferenceRecord> FileReferenceRecords => Set<FileReferenceRecord>();
 
     public FilesDbContext(
         DbContextOptions<FilesDbContext> options,
@@ -95,6 +97,14 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
             .HasForeignKey<FileIntegrityRecord>(entity => entity.FileInformationId)
             .OnDelete(DeleteBehavior.ClientNoAction);
         _ = integrityRecord.HasQueryFilter(entity => entity.TenantId == CurrentTenantId);
+
+        EntityTypeBuilder<FileTransferRecord> transferRecord = modelBuilder.Entity<FileTransferRecord>();
+        _ = transferRecord.HasIndex(entity => new { entity.TenantId, entity.ExpiresAt });
+        _ = transferRecord.HasQueryFilter(entity => entity.TenantId == CurrentTenantId);
+
+        EntityTypeBuilder<FileReferenceRecord> referenceRecord = modelBuilder.Entity<FileReferenceRecord>();
+        _ = referenceRecord.HasIndex(entity => new { entity.FileInformationId, entity.TransferId }).IsUnique();
+        _ = referenceRecord.HasQueryFilter(entity => entity.TenantId == CurrentTenantId);
     }
 
     private void ConfigureTenantEntity(ModelBuilder modelBuilder)

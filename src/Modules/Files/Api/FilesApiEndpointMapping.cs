@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Threading.Channels;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Audit.Domain;
@@ -26,7 +27,7 @@ public static class FilesApiEndpointMapping
         _ = group.MapModuleGet(FilesApiRoutes.ById, GetFileInformationAsync, "FilesGetFileInformation", typeof(C.FileInformationDto));
         _ = group.MapModulePost("/search", FindFilesAsync, "FilesFindFiles", typeof(C.FileInformationDto[]));
         _ = group.MapModulePost(string.Empty, CreateFileRecordAsync, "FilesCreateFileRecord", typeof(C.FileInformationDto));
-        _ = group.MapModulePost(FilesApiRoutes.Upload, UploadFileAsync, "FilesUploadFile", typeof(FileUploadResponse), profile: ModuleEndpointProfile.MultipartUpload).DisableAntiforgery();
+        _ = group.MapModulePost(FilesApiRoutes.Upload, UploadFileAsync, "FilesUploadFile", typeof(FileUploadResponse), profile: ModuleEndpointProfile.MultipartUpload);
         _ = group.MapModuleGet(FilesApiRoutes.ContentById, DownloadFileAsync, "FilesDownloadFile", successStatusCode: StatusCodes.Status200OK, profile: ModuleEndpointProfile.BinaryDownload, contentType: ModuleEndpointOpenApiConventions.BinaryStream);
         _ = group.MapModuleHead(FilesApiRoutes.ContentById, DownloadFileAsync, "FilesDownloadFileHead", successStatusCode: StatusCodes.Status200OK, contentType: ModuleEndpointOpenApiConventions.BinaryStream);
         return endpoints;
@@ -75,11 +76,21 @@ public static class FilesApiEndpointMapping
         if (httpRequest.ContentLength is > D.FileTransferPolicy.MaximumMultipartRequestBytes)
         {
             await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
-            return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "Multipart request exceeds the maximum supported size."));
+            return CreateMultipartRequestTooLargeResult();
         }
 
-        IFormCollection form = await httpRequest.ReadFormAsync(cancellationToken).ConfigureAwait(false);
-        IFormFile? content = form.Files.GetFile("content");
+        IFormCollection form;
+        try
+        {
+            form = await httpRequest.ReadFormAsync(CreateBoundedFormOptions(), cancellationToken).ConfigureAwait(false);
+        }
+        catch (InvalidDataException)
+        {
+            await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
+            return CreateMultipartRequestTooLargeResult();
+        }
+
+        IFormFile? content = form.Files.GetFile(FilesApiRoutes.UploadContentField);
         if (content is null || content.Length <= 0)
         {
             await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
@@ -182,6 +193,17 @@ public static class FilesApiEndpointMapping
 
     private static Task RecordUploadRejectionAsync(IFileTransferAudit transferAudit) =>
         transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+
+    private static IResult CreateMultipartRequestTooLargeResult() =>
+        Results.BadRequest(new FilesError(FilesErrorCode.Validation, "Multipart request exceeds the maximum supported size."));
+
+    private static FormOptions CreateBoundedFormOptions() => new()
+    {
+        MultipartBodyLengthLimit = D.FileTransferPolicy.MaximumMultipartRequestBytes,
+        ValueLengthLimit = D.FileTransferPolicy.MaximumMultipartFieldValueLength,
+        KeyLengthLimit = D.FileTransferPolicy.MaximumMultipartFieldNameLength,
+        ValueCountLimit = D.FileTransferPolicy.MaximumMultipartValueCount
+    };
 
     private static async Task<IResult> DownloadFileAsync(Guid fileId, HttpContext context, IFileMetadataAccess metadataAccess, IFileIntegrityService integrityService, IFileTransferAudit transferAudit, IServiceProvider services)
     {
