@@ -71,6 +71,8 @@ jobs:
               - 'src/Hosts/Web/apps/patients/**'
             web_admin:
               - 'src/Hosts/Web/apps/platform-admin/**'
+            web_auth:
+              - 'src/Hosts/Web/shared/auth/**'
             web_pm:
               - 'src/Hosts/Web/apps/vitarish-pm/**'
             web_qa:
@@ -81,6 +83,7 @@ jobs:
               - 'src/Hosts/Web/apps/agent-runtime/**'
             web_all:
               - 'src/Hosts/Web/shared/**'
+              - '!src/Hosts/Web/shared/auth/**'
               - 'src/Hosts/Web/scripts/**'
               - 'src/Hosts/Web/package.json'
               - 'src/Hosts/Web/package-lock.json'
@@ -134,25 +137,7 @@ jobs:
         id: matrix
         env:
           EVENT_NAME: ${{ github.event_name }}
-          DOTNET: ${{ steps.filter.outputs.dotnet }}
-          MAIN: ${{ steps.filter.outputs.main }}
-          WEB_ALL: ${{ steps.filter.outputs.web_all }}
-          WEB_OWNER: ${{ steps.filter.outputs.web_owner }}
-          WEB_PATIENTS: ${{ steps.filter.outputs.web_patients }}
-          WEB_ADMIN: ${{ steps.filter.outputs.web_admin }}
-          WEB_PM: ${{ steps.filter.outputs.web_pm }}
-          WEB_QA: ${{ steps.filter.outputs.web_qa }}
-          WEB_LANDING: ${{ steps.filter.outputs.web_landing }}
-          WEB_AGENT: ${{ steps.filter.outputs.web_agent }}
-          CADDY: ${{ steps.filter.outputs.caddy }}
-          CADDY_CONFIG: ${{ steps.filter.outputs.caddy_config }}
-          DEPLOYMENT: ${{ steps.filter.outputs.deployment }}
-          DEPLOY_SCRIPT: ${{ steps.filter.outputs.deploy_script }}
-          SECURITY_TOOLS: ${{ steps.filter.outputs.security_tools }}
-          COMPOSE: ${{ steps.filter.outputs.compose }}
-          TEST_COMPOSE: ${{ steps.filter.outputs.test_compose }}
-          WORKFLOW: ${{ steps.filter.outputs.workflow }}
-          UNKNOWN_SOURCE: ${{ steps.filter.outputs.unknown_source }}
+          CHANGED_FILTERS: ${{ steps.filter.outputs.changes }}
         run: |
           node tools/ci/select-production-matrix.mjs
       - name: Verify path selection and release identity
@@ -214,6 +199,31 @@ jobs:
           npm run test:layout-lint
           npm run test
 
+  authentication_web:
+    name: Shared authentication checks
+    needs: changes
+    if: ${{ contains(needs.changes.outputs.filters, 'web_auth') }}
+    runs-on: ubuntu-latest
+    env:
+      HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
+    defaults:
+      run:
+        working-directory: src/Hosts/Web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/Hosts/Web/package-lock.json
+      - run: npm ci
+      - name: Generate authentication API client
+        run: npm run generate:api --workspace @vitarish/auth --if-present
+      - name: Typecheck shared authentication
+        run: npm run typecheck --workspace @vitarish/auth --if-present
+      - name: Test shared authentication
+        run: npm run test --workspace @vitarish/auth --if-present
+
   security:
     name: Architecture security baseline
     needs: changes
@@ -238,7 +248,7 @@ jobs:
   required:
     name: Required CI checks
     if: ${{ always() }}
-    needs: [changes, dotnet, web, security]
+    needs: [changes, dotnet, web, authentication_web, security]
     runs-on: ubuntu-latest
     steps:
       - name: Fail when an executed check failed
