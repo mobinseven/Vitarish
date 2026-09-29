@@ -156,10 +156,11 @@ public sealed class AuthenticationSessionRegistryTests
         (AuthenticationSessionRegistry registry, AuthenticationDbContext db, _) = CreateRegistry(SecurityAccessPolicy.Default, TimeProvider.System, "127.0.0.1");
         _ = await registry.EstablishAsync("user-1", CancellationToken.None);
 
-        await registry.RevokeSessionsInvalidatedByPolicyAsync(SecurityAccessPolicy.Default with
+        SecurityAccessPolicy updated = SecurityAccessPolicy.Default with
         {
             AllowedSessionStartCidrs = new HashSet<string>(StringComparer.Ordinal) { "10.0.0.0/24" }
-        }, CancellationToken.None);
+        };
+        await registry.SavePolicyAndRevokeInvalidatedSessionsAsync(updated, 0, CancellationToken.None);
 
         (await db.AuthenticationSessions.SingleAsync()).TerminationReason.Should().Be(AuthenticationSessionTerminationReason.AdministrativeRevocation);
     }
@@ -237,6 +238,9 @@ public sealed class AuthenticationSessionRegistryTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
             .Options;
         AuthenticationDbContext db = new(options);
+        Mock<IAuthenticationSecurityPolicyStore> policyStore = new();
+        policyStore.Setup(store => store.SaveAsync(It.IsAny<SecurityAccessPolicy>(), It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((SecurityAccessPolicy value, long version, CancellationToken _) => new SecurityAccessPolicyState(value, version + 1));
         Mock<IAuthenticationSecurityPolicyProvider> policyProvider = new();
         policyProvider.Setup(provider => provider.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(policy);
         Mock<IClientIpAddressAccessor> clientIp = new();
@@ -246,7 +250,7 @@ public sealed class AuthenticationSessionRegistryTests
         requestContext.SetupGet(context => context.RequestId).Returns("request-1");
         requestContext.SetupGet(context => context.TraceId).Returns("trace-1");
         RecordingAuditWriter audit = new();
-        return (new AuthenticationSessionRegistry(db, policyProvider.Object, clientIp.Object, requestContext.Object, audit, clock), db, audit);
+        return (new AuthenticationSessionRegistry(db, policyStore.Object, policyProvider.Object, clientIp.Object, requestContext.Object, audit, clock), db, audit);
     }
 
     private sealed class RecordingAuditWriter : ISecurityAuditWriter

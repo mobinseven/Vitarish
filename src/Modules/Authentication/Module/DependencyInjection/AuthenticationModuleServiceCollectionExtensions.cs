@@ -29,16 +29,20 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddScoped<GetCurrentAuthenticationSessionHandler>();
         services.AddScoped<GetLogoutContextHandler>();
         services.AddScoped<GetSecurityAccessPolicyHandler>();
+        services.AddScoped<GetSecurityAuthenticationPolicyHandler>();
         services.AddScoped<ChangeSecurityAccessPolicyHandler>();
         services.AddScoped<GetAuthenticationAccessHistoryHandler>();
         services.AddScoped<GetAuthenticationSessionNoticesHandler>();
         services.AddScoped<AcknowledgeAuthenticationSessionNoticeHandler>();
         services.AddScoped<AcknowledgeAuthenticationAccessHistoryHandler>();
         services.AddScoped<ChangeUserInactivityTimeoutHandler>();
+        services.AddScoped<GetUserInactivityTimeoutHandler>();
         _ = services.AddAuthorization(options =>
         {
             options.AddPolicy(AuthenticationAuthorizationPolicies.ReadSessionPolicy, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
             options.AddPolicy(AuthenticationAuthorizationPolicies.ChangeSessionPolicy, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
+            options.AddPolicy(AuthenticationAuthorizationPolicies.ReadAuthenticationPolicy, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
+            options.AddPolicy(AuthenticationAuthorizationPolicies.ChangeAuthenticationPolicy, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
             options.AddPolicy(AuthenticationAuthorizationPolicies.ChangeUserInactivityPolicy, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
         });
         services.AddHttpContextAccessor();

@@ -3,6 +3,9 @@
 import { useEffect, useId, useState, type FormEvent } from "react";
 import {
   useAuthSession,
+  useAuthenticationUserInactivityPolicyGet,
+  useAuthenticationUserInactivityPolicyPut,
+  useUsersAddRole,
   usePlatformAuthorization,
   useTenantAuthorization,
   useUsersAdministrationCreateWithEmail,
@@ -301,8 +304,11 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const phoneContactHintId = useId();
   const { locale } = useLocalizedText();
   const grant = useUsersAdministrationGrantTenantRole();
+  const grantGlobalRole = useUsersAddRole();
   const revoke = useUsersAdministrationRevokeTenantRole();
   const update = useUsersAdministrationUpdateUser();
+  const inactivityPolicy = useAuthenticationUserInactivityPolicyGet(userId, { query: { enabled: userId.length > 0 } });
+  const saveInactivityPolicy = useAuthenticationUserInactivityPolicyPut();
   const [page, setPage] = useState(1);
   const [tenantId, setTenantId] = useState("");
   const [roleSuffix, setRoleSuffix] = useState<TenantRoleSuffix>(tenantRoleSuffixes.user);
@@ -311,6 +317,9 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [globalRole, setGlobalRole] = useState("");
+  const [inactivityTimeout, setInactivityTimeout] = useState("");
+  const [inactivityConflict, setInactivityConflict] = useState(false);
   const pageSize = 25;
   const securityQuery = useUsersAdministrationGetUserSecurity(
     userId,
@@ -333,7 +342,13 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
 
   useEffect(() => {
     setPage(1);
+    setGlobalRole("");
+    setInactivityConflict(false);
   }, [userId]);
+
+  useEffect(() => {
+    if (inactivityPolicy.data) setInactivityTimeout(inactivityPolicy.data.inactivityTimeoutMinutes?.toString() ?? "");
+  }, [inactivityPolicy.data?.version, userId]);
 
   useEffect(() => {
     const user = securityDetails?.user;
@@ -383,6 +398,24 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
     if (!window.confirm(t("users.management.revokeConfirm"))) return;
     revoke.mutate({ userId, tenantId: tenant, roleSuffix: role, data: { roleSuffix: role } }, { onSuccess: () => { setMessage(t("users.management.roleRevoked")); refreshSecurityDetails(); }, onError: () => setMessage(t("users.management.roleError")) });
   };
+  const submitGlobalRole = (event: FormEvent) => {
+    event.preventDefault();
+    if (!globalRole || !securityDetails?.permittedGlobalRoles.includes(globalRole)) return;
+    grantGlobalRole.mutate({ userId, data: { roleName: globalRole } }, {
+      onSuccess: async () => { setMessage(t("users.management.globalRoleGranted")); setGlobalRole(""); await refreshSecurityDetails(); },
+      onError: () => setMessage(t("users.management.roleError")),
+    });
+  };
+  const submitInactivityPolicy = (event: FormEvent) => {
+    event.preventDefault();
+    if (!inactivityPolicy.data) return;
+    const parsed = inactivityTimeout.trim() === "" ? null : Number(inactivityTimeout);
+    if (parsed !== null && !Number.isInteger(parsed)) { setMessage(t("users.management.inactivityValidationError")); return; }
+    saveInactivityPolicy.mutate({ userId, data: { inactivityTimeoutMinutes: parsed, expectedVersion: inactivityPolicy.data.version } }, {
+      onSuccess: async () => { setMessage(t("users.management.inactivitySaved")); setInactivityConflict(false); await inactivityPolicy.refetch(); },
+      onError: (error) => { const conflict = readHttpStatus(error) === 409; setInactivityConflict(conflict); setMessage(conflict ? t("users.management.inactivityConflict") : t("users.management.inactivityError")); },
+    });
+  };
   if (securityQuery.isLoading && !securityDetails) {
     return <main className="max-w-4xl space-y-6"><SurfaceHeader title={title} description={userId} /><p aria-live="polite">{t("users.management.loadingSecurity")}</p></main>;
   }
@@ -429,6 +462,11 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       {securityDetails.globalRoles.length === 0
         ? <p className="text-muted">{t("users.management.noRoles")}</p>
         : <ul className="flex flex-wrap gap-2">{securityDetails.globalRoles.map((role) => <li className="rounded border px-3 py-1" key={role}>{role}</li>)}</ul>}
+      <form className="flex flex-wrap items-end gap-3 border-t pt-4" onSubmit={submitGlobalRole}>
+        <label className="min-w-56 flex-1">{t("users.management.globalRoleToGrant")}<select className="mt-1 w-full rounded border p-2" value={globalRole} onChange={(event) => setGlobalRole(event.target.value)}><option value="">{t("users.management.selectGlobalRole")}</option>{securityDetails.permittedGlobalRoles.filter((role) => !securityDetails.globalRoles.includes(role)).map((role) => <option key={role} value={role}>{role}</option>)}</select></label>
+        <button className="inline-flex items-center gap-2 rounded border px-3 py-2" disabled={!globalRole || grantGlobalRole.isPending} title={t("users.management.grantGlobalRole")}><Icon name="user-check" />{t("users.management.grantGlobalRole")}</button>
+      </form>
+      <p className="text-sm text-muted">{t("users.management.globalRoleRevokeGap")}</p>
       <h3 className="pt-2 font-medium">{t("users.management.memberships")}</h3>
       {memberships.isLoading && <p aria-live="polite">{t("users.management.membershipLoading")}</p>}
       {memberships.isError && <p className="text-danger">{t("users.management.membershipError")}</p>}
@@ -443,6 +481,19 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
         <label className="block">{t("users.management.roleToGrant")}<select className="mt-1 rounded border p-2" value={roleSuffix} onChange={(event) => setRoleSuffix(event.target.value === tenantRoleSuffixes.owner ? tenantRoleSuffixes.owner : tenantRoleSuffixes.user)}><option value={tenantRoleSuffixes.user}>{tenantRoleSuffixes.user}</option><option value={tenantRoleSuffixes.owner}>{tenantRoleSuffixes.owner}</option></select></label>
         <button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={grant.isPending || !tenantId.trim()} title={t("users.management.grant")}><Icon name="user-check" />{t("users.management.grant")}</button>
       </form>
+    </section>
+
+    <section className="space-y-3 rounded border p-4">
+      <h2 className="text-lg font-semibold">{t("users.management.inactivityPolicyTitle")}</h2>
+      {inactivityPolicy.isLoading && <p aria-live="polite">{t("users.management.inactivityLoading")}</p>}
+      {inactivityPolicy.isError && <div role="alert"><p className="text-danger">{t("users.management.inactivityError")}</p><button className="inline-flex items-center gap-2 underline" onClick={() => inactivityPolicy.refetch()} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button></div>}
+      {inactivityPolicy.data && <form className="space-y-3" onSubmit={submitInactivityPolicy}>
+        <p className="text-sm text-muted">{t("users.management.inactivityDescription")}</p>
+        <label className="block">{t("users.management.inactivityTimeout")}<input className="mt-1 w-full rounded border p-2" type="number" min={1} max={30} value={inactivityTimeout} onChange={(event) => setInactivityTimeout(event.target.value)} /></label>
+        <p className="text-sm text-muted">{t("users.management.inactivityInheritHint")}</p>
+        <button className="inline-flex items-center gap-2 rounded border px-3 py-2" disabled={saveInactivityPolicy.isPending} title={t("users.management.saveInactivity")}><Icon name="floppy-disk" />{t("users.management.saveInactivity")}</button>
+        {inactivityConflict && <button className="inline-flex items-center gap-2 underline" onClick={() => inactivityPolicy.refetch()} title={t("users.management.reloadInactivity")}><Icon name="arrow-rotate-right" />{t("users.management.reloadInactivity")}</button>}
+      </form>}
     </section>
 
     <section className="space-y-4 rounded border p-4">
@@ -520,11 +571,22 @@ function isUserSecurityDetailsResponse(value: unknown, userId: string): value is
     && isOptionalString(user.phoneNumber)
     && isOptionalString(user.fullName)
     && Array.isArray(details.globalRoles) && details.globalRoles.every((role) => typeof role === "string")
+    && Array.isArray(details.permittedGlobalRoles) && details.permittedGlobalRoles.every((role) => typeof role === "string")
     && Array.isArray(details.tenantRoles) && details.tenantRoles.every(isTenantRoleMembership)
     && isOptionalHistory(details.securityHistory)
     && isOptionalHistory(details.authenticationHistory)
     && typeof details.securityHistoryAvailable === "boolean"
     && typeof details.authenticationHistoryAvailable === "boolean";
+}
+
+function readHttpStatus(error: unknown): number | undefined {
+  if (typeof error !== "object" || error === null) return undefined;
+  const value = error as Record<string, unknown>;
+  if (typeof value.status === "number") return value.status;
+  if (typeof value.problem === "object" && value.problem !== null && typeof (value.problem as Record<string, unknown>).status === "number") {
+    return (value.problem as Record<string, number>).status;
+  }
+  return undefined;
 }
 
 function isOptionalString(value: unknown): boolean {

@@ -61,4 +61,30 @@ public sealed record AuthenticationProfilePolicy(
             return actions;
         }
     }
+
+    public IReadOnlySet<AuthenticationMethod> RequiredAuthenticationMechanisms
+    {
+        get
+        {
+            HashSet<AuthenticationMethod> required = [AuthenticationMethod.Password];
+            if (UsePhoneOtpForTwoFactorAccounts)
+                required.Add(AuthenticationMethod.Phone);
+            return required;
+        }
+    }
+
+    public IReadOnlySet<PreAuthenticationAction> RequiredPreAuthenticationActions
+    {
+        get
+        {
+            HashSet<PreAuthenticationAction> required =
+            [
+                PreAuthenticationAction.AuthenticationProfile,
+                PreAuthenticationAction.PasswordLogin
+            ];
+            if (UsePhoneOtpForTwoFactorAccounts)
+                required.Add(PreAuthenticationAction.PasswordPlusPhoneOtp);
+            return required;
+        }
+    }
 }

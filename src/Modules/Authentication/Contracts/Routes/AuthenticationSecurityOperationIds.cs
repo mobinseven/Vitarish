@@ -8,5 +8,8 @@ public static class AuthenticationSecurityOperationIds
     public const string SessionNoticeAcknowledge = "Authentication_SessionNotice_Acknowledge";
     public const string SessionPolicyGet = "Authentication_SessionPolicy_Get";
     public const string SessionPolicyPut = "Authentication_SessionPolicy_Put";
+    public const string AuthenticationPolicyGet = "Authentication_AuthenticationPolicy_Get";
+    public const string AuthenticationPolicyPut = "Authentication_AuthenticationPolicy_Put";
+    public const string UserInactivityPolicyGet = "Authentication_UserInactivityPolicy_Get";
     public const string UserInactivityPolicyPut = "Authentication_UserInactivityPolicy_Put";
 }

@@ -17,6 +17,7 @@ namespace Vitarish.Authentication.Infrastructure;
 
 public sealed class AuthenticationSessionRegistry(
     AuthenticationDbContext dbContext,
+    IAuthenticationSecurityPolicyStore policyStore,
     IAuthenticationSecurityPolicyProvider policyProvider,
     IClientIpAddressAccessor clientIp,
     IRequestContext requestContext,
@@ -123,24 +124,30 @@ public sealed class AuthenticationSessionRegistry(
     private async Task<IAuthenticationSessionPreparation> PrepareCoreUnsafeAsync(string userId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
-        SecurityAccessPolicy policy = await policyProvider.GetAsync(cancellationToken);
-        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
         string? tenantId = requestContext.TenantId;
         string? address = clientIp.ClientIpAddress;
 
         if (string.IsNullOrWhiteSpace(tenantId))
             return new AuthenticationSessionPreparation(AuthenticationSessionEstablishmentResult.Failed(new(AuthenticationFailureReason.ProviderFailure, "A tenant context is required to establish a session.")));
 
+        IDbContextTransaction? transaction = dbContext.Database.IsRelational()
+            ? await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
+            : null;
+        SecurityAccessPolicy policy = await policyProvider.GetAsync(cancellationToken);
+        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
+
         IReadOnlySet<string> allowedCidrs = policy.AllowedSessionStartCidrs ?? new HashSet<string>(StringComparer.Ordinal);
         if (allowedCidrs.Count > 0 && (address is null || !System.Net.IPAddress.TryParse(address, out System.Net.IPAddress? parsedAddress) || !allowedCidrs.Any(cidr => SessionStartCidr.Contains(cidr, parsedAddress))))
         {
+            if (transaction is not null)
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
+                await transaction.DisposeAsync();
+            }
             await WriteAuditAsync(AuthenticationSecurityAuditEvents.SessionEstablished, SecurityAuditOutcome.Denied, userId, AuthenticationSecurityAuditEvents.SessionIpDenied, AuthenticationSecurityAuditEvents.SessionEstablishedOperation, AuthenticationSecurityAuditEvents.SessionIpDenied, cancellationToken);
             return new AuthenticationSessionPreparation(AuthenticationSessionEstablishmentResult.Failed(new(AuthenticationFailureReason.NotAllowed, "Session creation is not allowed from this client address.")));
         }
 
-        IDbContextTransaction? transaction = dbContext.Database.IsRelational()
-            ? await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken)
-            : null;
         List<(string Reason, string EventKey)> terminated = [];
         List<(AuthenticationSession Session, AuthenticationSessionTerminationReason Reason)> sessionsToTerminate = [];
         int inactivityMinutes = await GetEffectiveInactivityTimeoutAsync(userId, policy, cancellationToken);
@@ -513,47 +520,98 @@ public sealed class AuthenticationSessionRegistry(
             await CompleteAuditAsync(AuthenticationSecurityAuditEvents.SessionTerminated, SecurityAuditOutcome.Succeeded, userId, AuthenticationSecurityAuditEvents.SessionUserPolicyExpired, AuthenticationSecurityAuditEvents.SessionTerminatedOperation, session.Id.ToString("N"), cancellationToken);
     }
 
-    public async Task RevokeSessionsInvalidatedByPolicyAsync(SecurityAccessPolicy policy, CancellationToken cancellationToken)
+    public async Task<SecurityAccessPolicyState> SavePolicyAndRevokeInvalidatedSessionsAsync(
+        SecurityAccessPolicy policy,
+        long expectedVersion,
+        CancellationToken cancellationToken)
     {
-        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
-        List<AuthenticationSession> allSessions = await dbContext.AuthenticationSessions
-            .Where(session => session.TerminatedAt == null)
-            .OrderByDescending(session => session.CreatedAt)
-            .ToListAsync(cancellationToken);
-        List<AuthenticationSession> terminatedSessions = await dbContext.AuthenticationSessions
-            .Where(session => session.TerminatedAt != null)
-            .ToListAsync(cancellationToken);
-        foreach (AuthenticationSession session in terminatedSessions)
-            await ReconcilePendingTerminationAuditAsync(session.UserId, AuthenticationSecurityAuditEvents.SessionPolicyInvalidated, session.Id.ToString("N"), cancellationToken);
-        List<AuthenticationSession> sessions = allSessions;
-        Dictionary<string, int?> userTimeouts = await dbContext.AuthenticationUserSessionPolicies
-            .AsNoTracking()
-            .ToDictionaryAsync(item => item.UserId, item => item.InactivityTimeoutMinutes, cancellationToken);
-        Dictionary<string, int> retainedByUser = [];
-        List<AuthenticationSession> invalidated = [];
-        foreach (AuthenticationSession session in sessions)
+        async Task<(SecurityAccessPolicyState Saved, IReadOnlyList<AuthenticationSession> Invalidated)> SaveCoreAsync(CancellationToken operationToken)
         {
-            int retained = retainedByUser.GetValueOrDefault(session.UserId);
-            bool overLimit = retained >= policy.MaximumConcurrentSessions;
-            int inactivityMinutes = userTimeouts.GetValueOrDefault(session.UserId) ?? policy.DefaultInactivityTimeoutMinutes;
-            bool expired = session.LastActivityAt.AddMinutes(inactivityMinutes) <= now;
-            bool disallowedIp = policy.AllowedSessionStartCidrs is { Count: > 0 } &&
-                (!System.Net.IPAddress.TryParse(session.ClientIpAddress, out System.Net.IPAddress? address) || !policy.AllowedSessionStartCidrs.Any(cidr => SessionStartCidr.Contains(cidr, address)));
-            if (overLimit || expired || disallowedIp)
+            dbContext.ChangeTracker.Clear();
+            IDbContextTransaction? transaction = dbContext.Database.IsRelational()
+                ? await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, operationToken)
+                : null;
+            List<AuthenticationSession> invalidated = [];
+            try
             {
-                invalidated.Add(session);
-                continue;
+                SecurityAccessPolicyState saved = await policyStore.SaveAsync(policy, expectedVersion, operationToken);
+                DateTime now = timeProvider.GetUtcNow().UtcDateTime;
+                List<AuthenticationSession> terminatedSessions = await dbContext.AuthenticationSessions
+                    .Where(session => session.TerminatedAt != null)
+                    .ToListAsync(operationToken);
+                foreach (AuthenticationSession session in terminatedSessions)
+                    await ReconcilePendingTerminationAuditAsync(session.UserId, AuthenticationSecurityAuditEvents.SessionPolicyInvalidated, session.Id.ToString("N"), operationToken);
+
+                List<AuthenticationSession> sessions = await dbContext.AuthenticationSessions
+                    .Where(session => session.TerminatedAt == null)
+                    .OrderByDescending(session => session.CreatedAt)
+                    .ToListAsync(operationToken);
+                Dictionary<string, int?> userTimeouts = await dbContext.AuthenticationUserSessionPolicies
+                    .AsNoTracking()
+                    .ToDictionaryAsync(item => item.UserId, item => item.InactivityTimeoutMinutes, operationToken);
+                Dictionary<string, int> retainedByUser = [];
+                foreach (AuthenticationSession session in sessions)
+                {
+                    int retained = retainedByUser.GetValueOrDefault(session.UserId);
+                    bool overLimit = retained >= policy.MaximumConcurrentSessions;
+                    int inactivityMinutes = userTimeouts.GetValueOrDefault(session.UserId) ?? policy.DefaultInactivityTimeoutMinutes;
+                    bool expired = session.LastActivityAt.AddMinutes(inactivityMinutes) <= now;
+                    bool disallowedIp = policy.AllowedSessionStartCidrs is { Count: > 0 } &&
+                        (!System.Net.IPAddress.TryParse(session.ClientIpAddress, out System.Net.IPAddress? address) || !policy.AllowedSessionStartCidrs.Any(cidr => SessionStartCidr.Contains(cidr, address)));
+                    if (overLimit || expired || disallowedIp)
+                    {
+                        invalidated.Add(session);
+                        continue;
+                    }
+                    retainedByUser[session.UserId] = retained + 1;
+                }
+                foreach (AuthenticationSession session in invalidated)
+                    await BeginTerminationAuditAsync(session.UserId, AuthenticationSecurityAuditEvents.SessionPolicyInvalidated, session.Id.ToString("N"), operationToken);
+                foreach (AuthenticationSession session in invalidated)
+                    Terminate(session, now, AuthenticationSessionTerminationReason.AdministrativeRevocation);
+                if (invalidated.Count > 0)
+                    await SaveAsync(operationToken);
+                if (transaction is not null)
+                    await transaction.CommitAsync(operationToken);
+                return (saved, invalidated);
             }
-            retainedByUser[session.UserId] = retained + 1;
+            catch (Exception operationException)
+            {
+                if (transaction is not null)
+                    await transaction.RollbackAsync(CancellationToken.None);
+                dbContext.ChangeTracker.Clear();
+                foreach (AuthenticationSession session in invalidated)
+                {
+                    try
+                    {
+                        await CompleteAuditAsync(
+                            AuthenticationSecurityAuditEvents.SessionTerminated,
+                            SecurityAuditOutcome.Denied,
+                            session.UserId,
+                            AuthenticationSecurityAuditEvents.SessionPolicyInvalidated,
+                            AuthenticationSecurityAuditEvents.SessionTerminatedOperation,
+                            session.Id.ToString("N"),
+                            CancellationToken.None);
+                    }
+                    catch (Exception auditException) when (auditException is not OperationCanceledException)
+                    {
+                        operationException.Data["session_policy_audit_failure"] = auditException.GetType().Name;
+                    }
+                }
+                throw;
+            }
+            finally
+            {
+                if (transaction is not null)
+                    await transaction.DisposeAsync();
+            }
         }
-        foreach (AuthenticationSession session in invalidated)
-            await BeginTerminationAuditAsync(session.UserId, AuthenticationSecurityAuditEvents.SessionPolicyInvalidated, session.Id.ToString("N"), cancellationToken);
-        foreach (AuthenticationSession session in invalidated)
-            Terminate(session, now, AuthenticationSessionTerminationReason.AdministrativeRevocation);
-        if (invalidated.Count > 0)
-            await SaveAsync(cancellationToken);
+
+        (SecurityAccessPolicyState saved, IReadOnlyList<AuthenticationSession> invalidated) =
+            await dbContext.Database.CreateExecutionStrategy().ExecuteAsync(SaveCoreAsync, cancellationToken);
         foreach (AuthenticationSession session in invalidated)
             await CompleteAuditAsync(AuthenticationSecurityAuditEvents.SessionTerminated, SecurityAuditOutcome.Succeeded, session.UserId, AuthenticationSecurityAuditEvents.SessionPolicyInvalidated, AuthenticationSecurityAuditEvents.SessionTerminatedOperation, session.Id.ToString("N"), cancellationToken);
+        return saved;
     }
 
     private async Task<AuthenticationAccessHistory> RecordSuccessfulAttemptAsync(string userId, string tenantId, DateTime now, CancellationToken cancellationToken)

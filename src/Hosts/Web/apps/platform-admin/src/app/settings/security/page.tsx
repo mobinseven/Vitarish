@@ -1,0 +1,138 @@
+"use client";
+
+import { useEffect, useState, type FormEvent } from "react";
+import { useAuthenticationAuthenticationPolicyGet, useAuthenticationAuthenticationPolicyPut, useAuthenticationSessionPolicyGet, useAuthenticationSessionPolicyPut } from "@vitarish/auth";
+import { usePlatformAuthorization } from "@vitarish/auth";
+import type { ChangeSecurityAuthenticationPolicyRequest, ChangeSecuritySessionPolicyRequest } from "@vitarish/auth";
+import { useLocalizedText } from "@vitarish/localization";
+
+function statusOf(error: unknown): number | undefined {
+  if (typeof error !== "object" || error === null) return undefined;
+  const record = error as Record<string, unknown>;
+  if (typeof record.status === "number") return record.status;
+  if (typeof record.problem === "object" && record.problem !== null && typeof (record.problem as Record<string, unknown>).status === "number") {
+    return (record.problem as Record<string, number>).status;
+  }
+  return undefined;
+}
+
+export default function SecuritySettingsPage() {
+  const { hasAccess, isLoading: accessLoading } = usePlatformAuthorization();
+  const { t } = useLocalizedText();
+  const policy = useAuthenticationSessionPolicyGet({ query: { enabled: hasAccess } });
+  const save = useAuthenticationSessionPolicyPut();
+  const authenticationPolicy = useAuthenticationAuthenticationPolicyGet({ query: { enabled: hasAccess } });
+  const saveAuthenticationPolicy = useAuthenticationAuthenticationPolicyPut();
+  const [draft, setDraft] = useState<ChangeSecuritySessionPolicyRequest>();
+  const [authenticationDraft, setAuthenticationDraft] = useState<ChangeSecurityAuthenticationPolicyRequest>();
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (!policy.data) return;
+    setDraft({
+      maximumConcurrentSessions: policy.data.maximumConcurrentSessions,
+      concurrentSessionsFunctionallyRequired: policy.data.concurrentSessionsFunctionallyRequired,
+      defaultInactivityTimeoutMinutes: policy.data.defaultInactivityTimeoutMinutes,
+      allowedSessionStartCidrs: policy.data.allowedSessionStartCidrs ?? [],
+      expectedVersion: policy.data.version,
+    });
+  }, [policy.data]);
+
+  useEffect(() => {
+    if (!authenticationPolicy.data) return;
+    setAuthenticationDraft({
+      minimumPasswordLength: authenticationPolicy.data.minimumPasswordLength,
+      requirePasswordLowercase: authenticationPolicy.data.requirePasswordLowercase,
+      requirePasswordUppercase: authenticationPolicy.data.requirePasswordUppercase,
+      requirePasswordNumber: authenticationPolicy.data.requirePasswordNumber,
+      requirePasswordSpecialCharacter: authenticationPolicy.data.requirePasswordSpecialCharacter,
+      failedAttemptThreshold: authenticationPolicy.data.failedAttemptThreshold,
+      failedAttemptDenialDurationSeconds: authenticationPolicy.data.failedAttemptDenialDurationSeconds,
+      failedAttemptResponse: authenticationPolicy.data.failedAttemptResponse,
+      enabledAuthenticationMechanisms: authenticationPolicy.data.enabledAuthenticationMechanisms,
+      permittedPreAuthenticationActions: authenticationPolicy.data.permittedPreAuthenticationActions,
+      expectedVersion: authenticationPolicy.data.version,
+    });
+  }, [authenticationPolicy.data]);
+
+  if (accessLoading || policy.isLoading || authenticationPolicy.isLoading) return <main className="mx-auto max-w-3xl space-y-4 p-6"><p aria-live="polite">{t("admin.securityPolicy.loading")}</p></main>;
+  if (!hasAccess) return <main className="mx-auto max-w-3xl p-6"><p role="alert">{t("admin.securityPolicy.forbidden")}</p></main>;
+  if (!draft || !authenticationDraft || policy.isError || authenticationPolicy.isError) return <main className="mx-auto max-w-3xl space-y-4 p-6"><h1 className="text-2xl font-semibold">{t("admin.securityPolicy.title")}</h1><p role="alert">{t("admin.securityPolicy.loadError")}</p><button className="inline-flex items-center gap-2 underline" onClick={() => { void policy.refetch(); void authenticationPolicy.refetch(); }} title={t("admin.securityPolicy.reload")}><i aria-hidden="true" className="fa-light fa-rotate-right" />{t("admin.securityPolicy.reload")}</button></main>;
+
+  const submitAuthentication = async (event: FormEvent) => {
+    event.preventDefault();
+    setMessage("");
+    try {
+      await saveAuthenticationPolicy.mutateAsync({ data: authenticationDraft });
+      setMessage(t("admin.securityPolicy.saved"));
+      await authenticationPolicy.refetch();
+    } catch (error) {
+      if (statusOf(error) === 409) { setMessage(t("admin.securityPolicy.conflict")); return; }
+      if (statusOf(error) === 403) { setMessage(t("admin.securityPolicy.forbidden")); return; }
+      if (statusOf(error) === 503) { setMessage(t("admin.securityPolicy.unavailable")); return; }
+      setMessage(t("admin.securityPolicy.saveError"));
+    }
+  };
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    setMessage("");
+    try {
+      await save.mutateAsync({ data: { ...draft, allowedSessionStartCidrs: draft.allowedSessionStartCidrs } });
+      setMessage(t("admin.securityPolicy.saved"));
+      await policy.refetch();
+    } catch (error) {
+      if (statusOf(error) === 409) {
+        setMessage(t("admin.securityPolicy.conflict"));
+        return;
+      }
+      if (statusOf(error) === 403) {
+        setMessage(t("admin.securityPolicy.forbidden"));
+        return;
+      }
+      if (statusOf(error) === 503) {
+        setMessage(t("admin.securityPolicy.unavailable"));
+        return;
+      }
+      setMessage(t("admin.securityPolicy.saveError"));
+    }
+  };
+
+  return <main className="mx-auto max-w-3xl space-y-6 p-6">
+    <header><h1 className="text-2xl font-semibold">{t("admin.securityPolicy.title")}</h1><p className="mt-2 text-muted">{t("admin.securityPolicy.description")}</p></header>
+    <section className="space-y-4 rounded border p-4">
+      <h2 className="text-lg font-semibold">{t("admin.securityPolicy.authenticationTitle")}</h2>
+      <p role="note" className="rounded border border-warning p-3">{t("admin.securityPolicy.authenticationImpact", { minimum: authenticationPolicy.data!.mandatoryPasswordMinimumLength })}</p>
+      <form className="space-y-4" onSubmit={submitAuthentication}>
+        <label className="block">{t("admin.securityPolicy.minimumPasswordLength")}<input className="mt-1 w-full rounded border p-2" type="number" min={authenticationPolicy.data!.mandatoryPasswordMinimumLength} required value={authenticationDraft.minimumPasswordLength} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, minimumPasswordLength: Number(event.target.value) })} /></label>
+        <fieldset className="space-y-2"><legend className="font-medium">{t("admin.securityPolicy.passwordCategories")}</legend>
+          {([["requirePasswordLowercase", "lowercase"], ["requirePasswordUppercase", "uppercase"], ["requirePasswordNumber", "number"], ["requirePasswordSpecialCharacter", "special"]] as const).map(([field, label]) => <label className="flex items-center gap-2" key={field}><input type="checkbox" checked={authenticationDraft[field]} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, [field]: event.target.checked })} />{t(`admin.securityPolicy.password.${label}`)}</label>)}
+        </fieldset>
+        <label className="block">{t("admin.securityPolicy.failedThreshold")}<input className="mt-1 w-full rounded border p-2" type="number" min={1} required value={authenticationDraft.failedAttemptThreshold} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptThreshold: Number(event.target.value) })} /></label>
+        <label className="block">{t("admin.securityPolicy.denialDuration")}<input className="mt-1 w-full rounded border p-2" type="number" min={1} required value={authenticationDraft.failedAttemptDenialDurationSeconds} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptDenialDurationSeconds: Number(event.target.value) })} /></label>
+        <label className="block">{t("admin.securityPolicy.failureResponse")}<select className="mt-1 w-full rounded border p-2" required value={authenticationDraft.failedAttemptResponse} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptResponse: event.target.value })}>{authenticationPolicy.data!.availableFailedAttemptResponses.map((response) => <option key={response} value={response}>{t(`admin.securityPolicy.response.${response}`)}</option>)}</select></label>
+        <fieldset className="space-y-2"><legend className="font-medium">{t("admin.securityPolicy.mechanisms")}</legend>
+          {authenticationPolicy.data!.availableAuthenticationMechanisms.map((mechanism) => { const required = authenticationPolicy.data!.requiredAuthenticationMechanisms.includes(mechanism); return <label className="flex items-center gap-2" key={mechanism}><input type="checkbox" checked={authenticationDraft.enabledAuthenticationMechanisms.includes(mechanism)} disabled={required} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, enabledAuthenticationMechanisms: event.target.checked ? [...authenticationDraft.enabledAuthenticationMechanisms, mechanism] : authenticationDraft.enabledAuthenticationMechanisms.filter((item) => item !== mechanism) })} />{mechanism}{required && <span className="text-muted">({t("admin.securityPolicy.required")})</span>}</label>; })}
+        </fieldset>
+        <fieldset className="space-y-2"><legend className="font-medium">{t("admin.securityPolicy.preAuthenticationActions")}</legend>
+          {authenticationPolicy.data!.availablePreAuthenticationActions.map((action) => { const required = authenticationPolicy.data!.requiredPreAuthenticationActions.includes(action); return <label className="flex items-center gap-2" key={action}><input type="checkbox" checked={authenticationDraft.permittedPreAuthenticationActions.includes(action)} disabled={required} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, permittedPreAuthenticationActions: event.target.checked ? [...authenticationDraft.permittedPreAuthenticationActions, action] : authenticationDraft.permittedPreAuthenticationActions.filter((item) => item !== action) })} />{action}{required && <span className="text-muted">({t("admin.securityPolicy.required")})</span>}</label>; })}
+        </fieldset>
+        <button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={saveAuthenticationPolicy.isPending} title={t("admin.securityPolicy.saveAuthentication")}><i aria-hidden="true" className="fa-light fa-floppy-disk" />{saveAuthenticationPolicy.isPending ? t("admin.securityPolicy.saving") : t("admin.securityPolicy.saveAuthentication")}</button>
+      </form>
+      {saveAuthenticationPolicy.isError && statusOf(saveAuthenticationPolicy.error) === 409 && <button className="inline-flex items-center gap-2 underline" onClick={() => authenticationPolicy.refetch()} title={t("admin.securityPolicy.reload")}><i aria-hidden="true" className="fa-light fa-rotate-right" />{t("admin.securityPolicy.reload")}</button>}
+    </section>
+    <section className="space-y-4 rounded border p-4">
+      <h2 className="text-lg font-semibold">{t("admin.securityPolicy.sessionTitle")}</h2>
+      <p role="note" className="rounded border border-warning p-3">{t("admin.securityPolicy.sessionImpact")}</p>
+      <form className="space-y-4" onSubmit={submit}>
+        <label className="block">{t("admin.securityPolicy.maximumSessions")}<input className="mt-1 w-full rounded border p-2" type="number" required value={draft.maximumConcurrentSessions} onChange={(event) => setDraft({ ...draft, maximumConcurrentSessions: Number(event.target.value) })} /></label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={draft.concurrentSessionsFunctionallyRequired} onChange={(event) => setDraft({ ...draft, concurrentSessionsFunctionallyRequired: event.target.checked })} />{t("admin.securityPolicy.concurrentSessionsRequired")}</label>
+        <label className="block">{t("admin.securityPolicy.defaultIdleMinutes")}<input className="mt-1 w-full rounded border p-2" type="number" required value={draft.defaultInactivityTimeoutMinutes} onChange={(event) => setDraft({ ...draft, defaultInactivityTimeoutMinutes: Number(event.target.value) })} /></label>
+        <label className="block">{t("admin.securityPolicy.allowedCidrs")}<textarea className="mt-1 min-h-28 w-full rounded border p-2 font-mono" value={(draft.allowedSessionStartCidrs ?? []).join("\n")} onChange={(event) => setDraft({ ...draft, allowedSessionStartCidrs: event.target.value.split(/\r?\n/).map((cidr) => cidr.trim()).filter(Boolean) })} /></label>
+        <button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={save.isPending} title={t("admin.securityPolicy.save")}><i aria-hidden="true" className="fa-light fa-floppy-disk" />{save.isPending ? t("admin.securityPolicy.saving") : t("admin.securityPolicy.save")}</button>
+      </form>
+      {message && <p role="status" aria-live="polite">{message}</p>}
+      {save.isError && statusOf(save.error) === 409 && <button className="inline-flex items-center gap-2 underline" onClick={() => policy.refetch()} title={t("admin.securityPolicy.reload")}><i aria-hidden="true" className="fa-light fa-rotate-right" />{t("admin.securityPolicy.reload")}</button>}
+    </section>
+  </main>;
+}

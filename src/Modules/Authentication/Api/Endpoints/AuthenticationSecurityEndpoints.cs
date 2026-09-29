@@ -63,31 +63,98 @@ public static class AuthenticationSecurityEndpoints
             .Produces<SecuritySessionPolicyDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
-        _ = group.MapModulePut(AuthenticationRoutes.SecuritySessionPolicy, async (ChangeSecuritySessionPolicyRequest request, [Microsoft.AspNetCore.Mvc.FromServices] IAuthenticationSecurityPolicyStore store, [Microsoft.AspNetCore.Mvc.FromServices] ChangeSecurityAccessPolicyHandler handler, CancellationToken ct) =>
+        _ = group.MapModulePut(AuthenticationRoutes.SecuritySessionPolicy, async (ChangeSecuritySessionPolicyRequest request, [Microsoft.AspNetCore.Mvc.FromServices] ChangeSecurityAccessPolicyHandler handler, CancellationToken ct) =>
         {
-            SecurityAccessPolicyState current = await store.GetStateAsync(ct);
-            SecurityAccessPolicy policy = current.Policy with
-            {
-                MaximumConcurrentSessions = request.MaximumConcurrentSessions,
-                ConcurrentSessionsFunctionallyRequired = request.ConcurrentSessionsFunctionallyRequired,
-                DefaultInactivityTimeoutMinutes = request.DefaultInactivityTimeoutMinutes,
-                AllowedSessionStartCidrs = SessionStartCidr.NormalizeSet(request.AllowedSessionStartCidrs ?? [])
-            };
             try
             {
-                SecurityAccessPolicyState saved = await handler.Handle(new ChangeSecurityAccessPolicyCommand(policy, request.ExpectedVersion), ct);
+                SecurityAccessPolicyState saved = await handler.Handle(new ChangeSecuritySessionPolicyCommand(
+                    request.MaximumConcurrentSessions,
+                    request.ConcurrentSessionsFunctionallyRequired,
+                    request.DefaultInactivityTimeoutMinutes,
+                    request.AllowedSessionStartCidrs,
+                    request.ExpectedVersion), ct);
                 return Results.Ok(ToDto(saved));
             }
             catch (ArgumentException)
             {
                 return Results.BadRequest();
             }
+            catch (SecurityAccessPolicyConcurrencyException)
+            {
+                return Results.Conflict();
+            }
+            catch (SecurityAccessPolicyPersistenceException)
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
         }, AuthenticationSecurityOperationIds.SessionPolicyPut, typeof(SecuritySessionPolicyDto))
             .RequireAuthorization(AuthenticationAuthorizationPolicies.ChangeSessionPolicy)
             .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
             .Produces<SecuritySessionPolicyDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status409Conflict);
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+        _ = group.MapModuleGet(AuthenticationRoutes.SecurityAuthenticationPolicy, async ([Microsoft.AspNetCore.Mvc.FromServices] GetSecurityAuthenticationPolicyHandler handler, CancellationToken ct) =>
+        {
+            SecurityAuthenticationPolicyManagementState state = await handler.Handle(ct);
+            return Results.Ok(ToDto(state));
+        }, AuthenticationSecurityOperationIds.AuthenticationPolicyGet, typeof(SecurityAuthenticationPolicyDto))
+            .RequireAuthorization(AuthenticationAuthorizationPolicies.ReadAuthenticationPolicy)
+            .Produces<SecurityAuthenticationPolicyDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
+
+        _ = group.MapModulePut(AuthenticationRoutes.SecurityAuthenticationPolicy, async (ChangeSecurityAuthenticationPolicyRequest request, [Microsoft.AspNetCore.Mvc.FromServices] ChangeSecurityAccessPolicyHandler handler, [Microsoft.AspNetCore.Mvc.FromServices] GetSecurityAuthenticationPolicyHandler getHandler, CancellationToken ct) =>
+        {
+            try
+            {
+                SecurityAccessPolicyState saved = await handler.Handle(new ChangeSecurityAuthenticationPolicyCommand(
+                    request.MinimumPasswordLength,
+                    request.RequirePasswordLowercase,
+                    request.RequirePasswordUppercase,
+                    request.RequirePasswordNumber,
+                    request.RequirePasswordSpecialCharacter,
+                    request.FailedAttemptThreshold,
+                    request.FailedAttemptDenialDurationSeconds,
+                    request.FailedAttemptResponse,
+                    request.EnabledAuthenticationMechanisms,
+                    request.PermittedPreAuthenticationActions,
+                    request.ExpectedVersion), ct);
+                SecurityAuthenticationPolicyManagementState managed = await getHandler.Handle(ct);
+                return Results.Ok(ToDto(managed with { State = saved }));
+            }
+            catch (SecurityAccessPolicyConcurrencyException)
+            {
+                return Results.Conflict();
+            }
+            catch (ArgumentException)
+            {
+                return Results.BadRequest();
+            }
+            catch (SecurityAccessPolicyPersistenceException)
+            {
+                return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+        }, AuthenticationSecurityOperationIds.AuthenticationPolicyPut, typeof(SecurityAuthenticationPolicyDto))
+            .RequireAuthorization(AuthenticationAuthorizationPolicies.ChangeAuthenticationPolicy)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
+            .Produces<SecurityAuthenticationPolicyDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+        _ = group.MapModuleGet(AuthenticationRoutes.SecurityUserInactivityPolicy, async (string userId, [Microsoft.AspNetCore.Mvc.FromServices] GetUserInactivityTimeoutHandler handler, CancellationToken ct) =>
+        {
+            AuthenticationUserInactivityTimeoutState? state = await handler.Handle(userId, ct);
+            return state is null
+                ? Results.NotFound()
+                : Results.Ok(new UserInactivityTimeoutDto(state.Version, state.InactivityTimeoutMinutes));
+        }, AuthenticationSecurityOperationIds.UserInactivityPolicyGet, typeof(UserInactivityTimeoutDto))
+            .RequireAuthorization(AuthenticationAuthorizationPolicies.ChangeUserInactivityPolicy)
+            .Produces<UserInactivityTimeoutDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         _ = group.MapModulePut(AuthenticationRoutes.SecurityUserInactivityPolicy, async (string userId, ChangeUserInactivityTimeoutRequest request, [Microsoft.AspNetCore.Mvc.FromServices] ChangeUserInactivityTimeoutHandler handler, CancellationToken ct) =>
         {
@@ -100,12 +167,17 @@ public static class AuthenticationSecurityEndpoints
             {
                 return Results.Conflict();
             }
+            catch (AuthenticationUserNotFoundException)
+            {
+                return Results.NotFound();
+            }
         }, AuthenticationSecurityOperationIds.UserInactivityPolicyPut, typeof(UserInactivityTimeoutDto))
             .RequireAuthorization(AuthenticationAuthorizationPolicies.ChangeUserInactivityPolicy)
             .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
             .Produces<UserInactivityTimeoutDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
         return group;
@@ -117,6 +189,25 @@ public static class AuthenticationSecurityEndpoints
         state.Policy.DefaultInactivityTimeoutMinutes,
         (state.Policy.AllowedSessionStartCidrs ?? new HashSet<string>(StringComparer.Ordinal)).OrderBy(value => value, StringComparer.Ordinal).ToArray(),
         state.Version);
+
+    private static SecurityAuthenticationPolicyDto ToDto(SecurityAuthenticationPolicyManagementState managed) => new(
+        managed.State.Policy.PasswordPolicy.MinimumLength,
+        managed.State.Policy.PasswordPolicy.RequireLowercase,
+        managed.State.Policy.PasswordPolicy.RequireUppercase,
+        managed.State.Policy.PasswordPolicy.RequireNumber,
+        managed.State.Policy.PasswordPolicy.RequireSpecialCharacter,
+        managed.State.Policy.FailedAttemptThreshold,
+        checked((int)managed.State.Policy.FailedAttemptDenialDuration.TotalSeconds),
+        managed.State.Policy.FailedAttemptResponse.ToString(),
+        managed.State.Policy.EnabledAuthenticationMechanisms.Select(value => value.ToString()).OrderBy(value => value, StringComparer.Ordinal).ToArray(),
+        managed.State.Policy.PermittedPreAuthenticationActions.Select(value => value.ToString()).OrderBy(value => value, StringComparer.Ordinal).ToArray(),
+        managed.AvailableMechanisms.Select(value => value.ToString()).OrderBy(value => value, StringComparer.Ordinal).ToArray(),
+        managed.RequiredMechanisms.Select(value => value.ToString()).OrderBy(value => value, StringComparer.Ordinal).ToArray(),
+        managed.AvailableActions.Select(value => value.ToString()).OrderBy(value => value, StringComparer.Ordinal).ToArray(),
+        managed.RequiredActions.Select(value => value.ToString()).OrderBy(value => value, StringComparer.Ordinal).ToArray(),
+        managed.AvailableFailedAttemptResponses.Select(value => value.ToString()).OrderBy(value => value, StringComparer.Ordinal).ToArray(),
+        PasswordPolicy.Default.MinimumLength,
+        managed.State.Version);
 
     private static AuthenticationAccessHistoryDto ToDto(AuthenticationAccessHistory history) => new(
         history.PreviousSuccessfulAt,

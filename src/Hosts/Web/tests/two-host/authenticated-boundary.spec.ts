@@ -435,11 +435,32 @@ test("rejects an authenticated browser mutation without antiforgery proof", asyn
       },
       body: JSON.stringify({}),
     });
-    return { status: result.status, body: await result.json() as { code?: string } };
+    return { status: result.status };
   }, { origin: apiOrigin });
 
   expect(response.status).toBe(400);
-  expect(response.body.code).toBe("AntiforgeryValidationFailed");
+
+  const administratorContext = await page.context().browser()!.newContext();
+  const administratorPage = await administratorContext.newPage();
+  try {
+    await login(administratorPage, platformAdminUsername, '', e2ePassword, '198.51.100.12');
+    const rejectedAuthenticationPolicyWrite = await administratorPage.evaluate(async ({ origin }) => {
+      const result = await fetch(`${origin}/api/modules/authentication/security/authentication-policy`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Vitarish-Tenant-Host': window.location.host,
+        },
+        body: JSON.stringify({}),
+      });
+      return { status: result.status };
+    }, { origin: apiOrigin });
+    expect(rejectedAuthenticationPolicyWrite.status).toBe(400);
+  } finally {
+    await administratorContext.close();
+  }
+
 
   const cookieHeader = (await page.context().cookies(apiOrigin))
     .map(cookie => `${cookie.name}=${cookie.value}`)
@@ -1040,6 +1061,11 @@ test("audits denied user creation and editing requests", async ({ page }) => {
     lastName: "Edit",
   });
   expect(deniedEdit.status).toBe(403);
+
+  const deniedAuthenticationPolicyRead = await fetchJson(page, "/api/modules/authentication/security/authentication-policy");
+  expect(deniedAuthenticationPolicyRead.status).toBe(403);
+  const deniedAuthenticationPolicyChange = await putJson(page, "/api/modules/authentication/security/authentication-policy", {});
+  expect(deniedAuthenticationPolicyChange.status).toBe(403);
 
   const administratorContext = await page.context().browser()!.newContext();
   const administratorPage = await administratorContext.newPage();

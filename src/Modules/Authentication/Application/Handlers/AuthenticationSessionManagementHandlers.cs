@@ -2,11 +2,30 @@ using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Security;
+using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Domain.Sessions;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Authentication.Application.Handlers;
+
+public sealed class GetUserInactivityTimeoutHandler(
+    IAuthenticationUserDirectory userDirectory,
+    IAuthenticationSessionRegistry sessionRegistry,
+    IRequestContext requestContext)
+{
+    public async Task<AuthenticationUserInactivityTimeoutState?> Handle(string userId, CancellationToken cancellationToken)
+    {
+        if (!AuthenticationSecurityAuthorization.CanChangeUserInactivityPolicy(requestContext.User))
+            throw new UnauthorizedAccessException("Only platform administrators may read a user's inactivity policy.");
+
+        if (string.IsNullOrWhiteSpace(userId) || await userDirectory.FindByIdAsync(userId, cancellationToken) is null)
+            return null;
+
+        (_, int? minutes, long version) = await sessionRegistry.GetUserInactivityTimeoutStateAsync(userId, cancellationToken);
+        return new AuthenticationUserInactivityTimeoutState(version, minutes);
+    }
+}
 
 public sealed class GetAuthenticationSessionNoticesHandler(IAuthenticationSessionRegistry sessionRegistry)
 {
@@ -30,7 +49,8 @@ public sealed class ChangeUserInactivityTimeoutHandler(
     IAuthenticationSessionRegistry sessionRegistry,
     ISecurityAuditWriter auditWriter,
     IRequestContext requestContext,
-    IAuthenticationSecurityPolicyProvider policyProvider)
+    IAuthenticationSecurityPolicyProvider policyProvider,
+    IAuthenticationUserDirectory userDirectory)
 {
     public async Task<long> Handle(string userId, int? minutes, long expectedVersion, CancellationToken cancellationToken)
     {
@@ -46,8 +66,6 @@ public sealed class ChangeUserInactivityTimeoutHandler(
         string timeoutReason = minutes.HasValue
             ? AuthenticationSecurityAuditEvents.UserTimeoutMinutesReason(minutes.Value)
             : AuthenticationSecurityAuditEvents.UserTimeoutDefaultReason;
-        SecurityAccessPolicy currentPolicy = await policyProvider.GetAsync(cancellationToken);
-        (bool previousPolicyExists, int? previousMinutes, long previousVersion) = await sessionRegistry.GetUserInactivityTimeoutStateAsync(userId, cancellationToken);
         SecurityAuditWriteResult pending;
         try
         {
@@ -72,6 +90,14 @@ public sealed class ChangeUserInactivityTimeoutHandler(
             // AU-8 preserves the policy mutation when its audit start cannot be stored.
             pending = SecurityAuditWriteResult.Recorded;
         }
+
+        if (string.IsNullOrWhiteSpace(userId) || await userDirectory.FindByIdAsync(userId, cancellationToken) is null)
+        {
+            await CompleteDeniedAuditBestEffortAsync(operationKey, AuthenticationSecurityAuditEvents.UserPolicyTargetNotFoundReason);
+            throw new AuthenticationUserNotFoundException();
+        }
+
+        SecurityAccessPolicy currentPolicy = await policyProvider.GetAsync(cancellationToken);
         if (pending is SecurityAuditWriteResult.AlreadyRecorded)
         {
             if (auditWriter is not ISecurityAuditOutcomeUpdater reconciliationUpdater)
@@ -106,6 +132,8 @@ public sealed class ChangeUserInactivityTimeoutHandler(
             }
             throw new InvalidOperationException("The user inactivity policy operation is already in progress or has a terminal non-success outcome.");
         }
+
+        (bool previousPolicyExists, int? previousMinutes, long previousVersion) = await sessionRegistry.GetUserInactivityTimeoutStateAsync(userId, cancellationToken);
 
         bool mutationCommitted = false;
         long version = 0;

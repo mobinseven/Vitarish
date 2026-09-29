@@ -2726,6 +2726,7 @@
         "required": [
           "user",
           "globalRoles",
+          "permittedGlobalRoles",
           "tenantRoles",
           "securityHistory",
           "authenticationHistory",
@@ -2738,6 +2739,12 @@
             "$ref": "#/components/schemas/UserSecurityIdentityResponse"
           },
           "globalRoles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "permittedGlobalRoles": {
             "type": "array",
             "items": {
               "type": "string"

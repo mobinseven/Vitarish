@@ -25,6 +25,8 @@ export const Routes = {
   Audit: "/audit",
   Settings: {
     Index: "/settings",
+    Security: "/settings/security",
+    MyAccount: "/settings/my-account",
     Landing: "/settings/landing",
     LocaleNotifications: "/settings/locale-notifications",
     LocaleNotification: (locale: string) =>

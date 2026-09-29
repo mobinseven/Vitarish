@@ -16,6 +16,7 @@
     "@heroui/styles": "^3.2.1",
     "@tanstack/react-query": "5.101.2",
     "@vitarish/auth": "0.1.0",
+    "@vitarish/account": "0.1.0",
     "@vitarish/platform": "0.1.0",
     "@vitarish/security": "0.1.0",
     "@vitarish/users": "0.1.0",

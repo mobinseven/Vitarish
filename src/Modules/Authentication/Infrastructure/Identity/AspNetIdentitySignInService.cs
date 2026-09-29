@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using Vitarish.Authentication.Domain.Sessions;
 using Vitarish.Authentication.Application.Abstractions;
+using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Users.Domain.Entities;
@@ -129,7 +130,7 @@ public sealed class AspNetIdentitySignInService(
             {
                 AuthenticationSessionSignInResult session = await SignInAsync(user.Id, rememberMe, cancellationToken);
                 if (!session.Succeeded)
-                    return successful with { Status = session.Failure?.Reason == AuthenticationFailureReason.NotAllowed ? PasswordSignInStatus.NotAllowed : PasswordSignInStatus.ProviderFailure };
+                    return successful with { Status = StatusForSessionFailure(session.Failure) };
             }
             return successful;
         }
@@ -178,6 +179,14 @@ public sealed class AspNetIdentitySignInService(
 
     private static PasswordSignInResult DeniedResult(FailedAttemptResponse response) =>
         new(response == FailedAttemptResponse.Lockout ? PasswordSignInStatus.LockedOut : PasswordSignInStatus.TooManyAttempts, null, false);
+
+    private static PasswordSignInStatus StatusForSessionFailure(AuthenticationFailure? failure) => failure?.Reason switch
+    {
+        AuthenticationFailureReason.NotAllowed => PasswordSignInStatus.NotAllowed,
+        AuthenticationFailureReason.LockedOut => PasswordSignInStatus.LockedOut,
+        AuthenticationFailureReason.TooManyAttempts => PasswordSignInStatus.TooManyAttempts,
+        _ => PasswordSignInStatus.ProviderFailure
+    };
 
     private static bool RequiresProfileCompletion(User user) =>
         string.IsNullOrWhiteSpace(user.FirstName) || string.IsNullOrWhiteSpace(user.LastName);

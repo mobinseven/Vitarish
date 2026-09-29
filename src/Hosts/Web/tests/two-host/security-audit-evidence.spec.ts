@@ -408,7 +408,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
       await thirdAdministratorPage.locator('input[name="password"]').fill(password!);
       const deniedSession = thirdAdministratorPage.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/password"));
       await thirdAdministratorPage.locator('button[type="submit"]').click();
-      expect([400, 401, 403, 423, 503]).toContain((await deniedSession).status());
+      expect((await deniedSession).status()).toBe(429);
     } finally {
       await thirdAdministratorPage.close();
       await thirdAdministratorContext.close();

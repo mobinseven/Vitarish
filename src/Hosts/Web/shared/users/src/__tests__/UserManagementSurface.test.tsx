@@ -10,6 +10,8 @@ const tenantProvision = vi.fn((_input: unknown, options?: { onSuccess?: () => vo
 const tenantRemove = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
 const managedUserUpdate = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
 const platformPhoneCreate = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
+const globalRoleGrant = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
+const inactivityPolicySave = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 let securityDetailsQueryResponse: { data?: typeof userSecurityDetails; error: unknown; isLoading: boolean; isError: boolean; refetch: typeof refetch };
 const userSecurityDetails = {
   user: {
@@ -22,6 +24,7 @@ const userSecurityDetails = {
     fullName: "Platform User",
   },
   globalRoles: ["PlatformAdmin"],
+  permittedGlobalRoles: ["PlatformAdmin"],
   tenantRoles: [{ tenantId: "tenant-a", roleSuffix: "TenantUser" }],
   securityHistory: {
     items: [{
@@ -77,6 +80,9 @@ vi.mock("@vitarish/auth", () => ({
   ] }),
   useUsersAdministrationGetUserSecurity: () => securityDetailsQueryResponse,
   useUsersAdministrationUpdateUser: () => ({ isPending: false, mutate: managedUserUpdate }),
+  useUsersAddRole: () => ({ isPending: false, mutate: globalRoleGrant }),
+  useAuthenticationUserInactivityPolicyGet: () => ({ data: { version: 1, inactivityTimeoutMinutes: null }, isLoading: false, isError: false, refetch }),
+  useAuthenticationUserInactivityPolicyPut: () => ({ isPending: false, mutate: inactivityPolicySave }),
   useUsersAdministrationCreateWithEmail: () => ({ isPending: false, mutate: vi.fn() }),
   useUsersAdministrationCreateWithPhone: () => ({ isPending: false, mutate: platformPhoneCreate }),
   useUsersAdministrationGrantTenantRole: () => ({ isPending: false, mutate: vi.fn() }),
@@ -188,6 +194,58 @@ describe("UserManagementSurface", () => {
     expect(screen.getByText("Passkey login")).toBeInTheDocument();
     expect(screen.getByText("User security attributes changed")).toBeInTheDocument();
     expect(screen.getAllByText("admin.example.test")).toHaveLength(2);
+  });
+
+  it("grants only a global role offered by the server and refreshes security details", async () => {
+    const user = userEvent.setup();
+    securityDetailsQueryResponse.data = { ...userSecurityDetails, globalRoles: [] };
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Global role to grant" }), "PlatformAdmin");
+    await user.click(screen.getByRole("button", { name: "Grant global role" }));
+
+    expect(globalRoleGrant).toHaveBeenCalledWith({ userId: "platform-user", data: { roleName: "PlatformAdmin" } }, expect.any(Object));
+    expect(refetch).toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent("Global role granted.");
+  });
+
+  it("saves a per-user inactivity override with the server version", async () => {
+    const user = userEvent.setup();
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.type(screen.getByRole("spinbutton", { name: "Inactivity timeout (minutes)" }), "15");
+    await user.click(screen.getByRole("button", { name: "Save inactivity timeout" }));
+
+    expect(inactivityPolicySave).toHaveBeenCalledWith({
+      userId: "platform-user",
+      data: { inactivityTimeoutMinutes: 15, expectedVersion: 1 },
+    }, expect.any(Object));
+    expect(screen.getByRole("status")).toHaveTextContent("User inactivity timeout updated.");
+  });
+
+  it("clears a per-user inactivity override to inherit the server default", async () => {
+    const user = userEvent.setup();
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.click(screen.getByRole("button", { name: "Save inactivity timeout" }));
+
+    expect(inactivityPolicySave).toHaveBeenCalledWith({
+      userId: "platform-user",
+      data: { inactivityTimeoutMinutes: null, expectedVersion: 1 },
+    }, expect.any(Object));
+  });
+
+  it("requires reload after an inactivity-policy conflict", async () => {
+    const user = userEvent.setup();
+    inactivityPolicySave.mockImplementationOnce((_input, options) => options?.onError?.({ status: 409 }));
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.type(screen.getByRole("spinbutton", { name: "Inactivity timeout (minutes)" }), "12");
+    await user.click(screen.getByRole("button", { name: "Save inactivity timeout" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("This setting changed elsewhere. Reload it before saving again.");
+    await user.click(screen.getByRole("button", { name: "Reload current inactivity setting" }));
+    expect(refetch).toHaveBeenCalled();
   });
 
   it("keeps user identity and roles visible when audit history returns 503", () => {
