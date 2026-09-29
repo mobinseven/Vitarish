@@ -24,6 +24,7 @@ This index is the authoritative navigation point for global ADRs. Scoped platfor
 | [0011](0011-server-side-agents-sdk-runtime.md) | Run Clinic agents through a server-side OpenAI Agents SDK runtime | Accepted | 2026-07-29 |
 | [0012](0012-module-owned-agents-with-guarded-composition.md) | Module-owned agents with guarded composition | Accepted | 2026-08-12 |
 | [0013](0013-separate-e2e-host-with-shared-hosting-composition.md) | Separate E2E host with shared hosting composition | Accepted | 2026-08-15 |
+| [0014](0014-serve-rsa-and-ecdsa-certificates-from-caddy-ingress.md) | Serve RSA and ECDSA certificates from the Caddy ingress | Accepted | 2026-09-29 |
 
 ## Related global architecture documents
 

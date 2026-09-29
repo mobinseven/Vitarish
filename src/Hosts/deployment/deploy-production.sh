@@ -85,6 +85,7 @@ done
 
 attempted_apps=()
 attempted_caddy=false
+certificate_promotion_attempted=false
 updated_production=
 updated_shared=
 rollback() {
@@ -94,6 +95,9 @@ rollback() {
   restore_failed=false
   if ((${#attempted_apps[@]})); then compose stop "${attempted_apps[@]}" >/dev/null || restore_failed=true; fi
   if [[ $attempted_caddy == true && $previous_ingress == false ]]; then ingress stop caddy >/dev/null || restore_failed=true; fi
+  if [[ $certificate_promotion_attempted == true ]]; then
+    ingress --profile certificate-operations run --interactive=false --rm --no-deps --env CADDY_RSA_CERTIFICATE_OPERATION=restore rsa-certificate-renewal || restore_failed=true
+  fi
   while IFS= read -r file; do cp -a "$backup/$file" "$deployment/$file" || restore_failed=true; done < "$backup/existed"
   while IFS= read -r file; do rm -f -- "$deployment/$file" || restore_failed=true; done < "$backup/missing"
   rm -f -- "$release"
@@ -115,7 +119,7 @@ trap rollback ERR
 
 install -m 0600 "$incoming/release.env" "$release"
 for file in "${tracked[@]}"; do install -m 0644 "$incoming/$file" "$deployment/$file"; done
-ingress config --quiet
+ingress --profile certificate-operations --profile validation config --quiet
 compose config --quiet
 docker compose --env-file "$deployment/.env.shared" --env-file "$deployment/.env.test" -f "$deployment/docker-compose.test.yml" config --quiet
 
@@ -142,7 +146,15 @@ for bundle, envs in [('ingress', ['.env.shared', Path(sys.argv[2])]), ('producti
 PY
 
 ingress pull caddy
-ingress run --interactive=false --rm --no-deps caddy-config-validator caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+if ! ingress --profile validation run --interactive=false --rm --no-deps --entrypoint /bin/sh caddy-config-validator -ec 'test -s "$CADDY_RSA_CERTIFICATE_BUNDLE" && [ ! -L "$CADDY_RSA_CERTIFICATE_BUNDLE" ]'; then
+  ingress --profile certificate-operations run --interactive=false --rm --no-deps rsa-certificate-renewal
+  ingress --profile validation run --interactive=false --rm --no-deps --env CADDY_RSA_CERTIFICATE_BUNDLE=/var/lib/caddy-rsa-staging/rsa.pending.pem caddy-certificate-validator validate-certificate
+  certificate_promotion_attempted=true
+  ingress --profile certificate-operations run --interactive=false --rm --no-deps --env CADDY_RSA_CERTIFICATE_OPERATION=promote rsa-certificate-renewal
+else
+  ingress --profile validation run --interactive=false --rm --no-deps caddy-certificate-validator validate-certificate
+fi
+ingress --profile validation run --interactive=false --rm --no-deps --entrypoint /usr/bin/caddy caddy-config-validator validate --config /etc/caddy/Caddyfile --adapter caddyfile
 attempted_caddy=true
 if selected caddy; then
   ingress up -d --wait --wait-timeout 600 --no-deps --force-recreate --pull never caddy
@@ -185,17 +197,26 @@ if ! readiness_status=$(curl --fail --silent --show-error --retry 5 --retry-dela
 fi
 rm -f "$readiness_headers"
 probe_route() {
-  local variable=$1 host code headers
+  local variable=$1 host code headers wildcard=false suite
   host=$(sed -n "s/^${variable}=//p" "$deployment/.env.shared")
+  case $host in \*.*) host="tls-probe.${host#*.}"; wildcard=true ;; esac
   [[ $host =~ ^[A-Za-z0-9.-]+$ && -n $host ]] || { printf 'Invalid production route hostname.\n' >&2; return 1; }
-  headers=$(mktemp)
-  code=$(curl --silent --show-error --retry 5 --retry-delay 5 --max-time 30 --proto '=https' --tlsv1.2 --dump-header "$headers" --output /dev/null --write-out '%{http_code}' "https://$host/")
-  case "$code" in 2*|301|302|303|307|308) ;; *) rm -f "$headers"; printf 'HTTPS route probe failed: %s.\n' "$variable" >&2; return 1 ;; esac
-  grep -iq '^strict-transport-security:' "$headers" || { rm -f "$headers"; printf 'HSTS missing for production route: %s.\n' "$variable" >&2; return 1; }
-  rm -f "$headers"
+  if [[ $wildcard == false ]]; then
+    headers=$(mktemp)
+    code=$(curl --silent --show-error --retry 5 --retry-delay 5 --max-time 30 --proto '=https' --tlsv1.2 --dump-header "$headers" --output /dev/null --write-out '%{http_code}' "https://$host/")
+    case "$code" in 2*|301|302|303|307|308) ;; *) rm -f "$headers"; printf 'HTTPS route probe failed: %s.\n' "$variable" >&2; return 1 ;; esac
+    grep -iq '^strict-transport-security:' "$headers" || { rm -f "$headers"; printf 'HSTS missing for production route: %s.\n' "$variable" >&2; return 1; }
+    rm -f "$headers"
+  fi
+  for suite in ECDHE-RSA-AES128-GCM-SHA256 ECDHE-ECDSA-AES128-GCM-SHA256; do
+    if ! curl --silent --show-error --retry 5 --retry-delay 5 --max-time 30 --proto '=https' --tlsv1.2 --tls-max 1.2 --ciphers "$suite" --output /dev/null "https://$host/"; then
+      printf 'TLS 1.2 cipher probe failed for %s: %s.\n' "$variable" "$suite" >&2
+      return 1
+    fi
+  done
 }
 if selected caddy || ((${#services[@]} == 9)); then
-  for variable in VITARISH_PRODUCTION_PUBLIC_HOST VITARISH_PRODUCTION_PATIENTS_HOST VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST VITARISH_PRODUCTION_PM_HOST VITARISH_PRODUCTION_KNOWLEDGE_QA_HOST VITARISH_PRODUCTION_LANDING_HOST; do probe_route "$variable"; done
+  for variable in VITARISH_PRODUCTION_PUBLIC_HOST VITARISH_PRODUCTION_PATIENTS_HOST VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST VITARISH_PRODUCTION_PM_HOST VITARISH_PRODUCTION_KNOWLEDGE_QA_HOST VITARISH_PRODUCTION_LANDING_HOST VITARISH_PRODUCTION_WILDCARD_HOST VITARISH_PRODUCTION_CLINIC_WILDCARD_HOST; do probe_route "$variable"; done
 else
   for service in "${attempted_apps[@]}"; do
     case $service in
@@ -241,6 +262,7 @@ with tempfile.NamedTemporaryFile(mode='w', dir=root, prefix='.workflow-deployed.
 os.replace(temporary, sys.argv[2])
 PY
 
+certificate_promotion_attempted=false
 trap - ERR
 rm -f -- "$release" || printf 'Temporary release file cleanup needs attention.\n' >&2
 rm -rf -- "$backup" "$incoming" || printf 'Release staging cleanup needs attention.\n' >&2
