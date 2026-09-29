@@ -154,7 +154,7 @@ if ! ingress --profile validation run --interactive=false --rm --no-deps --entry
 else
   ingress --profile validation run --interactive=false --rm --no-deps caddy-certificate-validator validate-certificate
 fi
-ingress --profile validation run --interactive=false --rm --no-deps --entrypoint /usr/bin/caddy caddy-config-validator validate --config /etc/caddy/Caddyfile --adapter caddyfile
+ingress --profile validation run --interactive=false --rm --no-deps caddy-config-validator caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 attempted_caddy=true
 if selected caddy; then
   ingress up -d --wait --wait-timeout 600 --no-deps --force-recreate --pull never caddy
