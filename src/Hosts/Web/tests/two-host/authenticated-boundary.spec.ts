@@ -13,6 +13,7 @@ import { auditSecurityEventsList } from "../../shared/security/src/api/generated
 import { ApiError, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
+import { twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 
 const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
 const e2eUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
@@ -246,6 +247,8 @@ async function login(page: Page, username: string, origin = "", password = e2ePa
   expect(password).toBeTruthy();
   await page.setExtraHTTPHeaders({ "X-Forwarded-For": clientIp });
   await page.goto(`${origin}/login/password`, { waitUntil: "domcontentloaded" });
+  await expect(page.locator("form")).toHaveAttribute("method", "post", { timeout: 60_000 });
+  await expect(page.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
   await page.locator('input[name="username"]').fill(username);
   await page.locator('input[name="password"]').fill(password!);
   const [loginResponse] = await Promise.all([
@@ -298,7 +301,7 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   expect(sessionNotices.status).toBe(200);
   expect(sessionNotices.body).toEqual(expect.any(Array));
   await expect(page.locator("#initial-page-loader")).toHaveCount(0);
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 30_000 });
 
   const browserDisclosure = await page.evaluate((secret) => ({
     urlHasSecret: window.location.href.includes(secret),
@@ -733,6 +736,10 @@ test("enforces tenant-user and tenant-owner authorization through the API", asyn
     identificationCode: "E2E-0001",
   });
   expect(ownerOnly.status).toBe(403);
+  const userAdministration = await fetchJson(page, "/api/modules/users/search?query=e2e");
+  const otherUserProfile = await fetchJson(page, `/api/modules/users/${tenantBOwnerUserId}/profile`);
+  expect(userAdministration.status).toBe(403);
+  expect(otherUserProfile.status).toBe(403);
 });
 
 test("keeps two tenants isolated across identifiers, alternate routes, search, and host forwarding", async ({ page, request }) => {
@@ -863,6 +870,8 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
   const tenantBProfile = await fetchJson(tenantBPage, `/api/modules/users/${tenantBOwnerUserId}/profile`);
   expect(tenantBProfile.status).toBe(200);
   expect(tenantBProfile.body).toMatchObject({ userId: tenantBOwnerUserId });
+  const tenantBUserAdministration = await fetchJson(tenantBPage, "/api/modules/users/search?query=e2e");
+  expect(tenantBUserAdministration.status).toBe(403);
   const tenantBCookieHeader = (await tenantBContext.cookies(apiOrigin)).map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
   const generatedTenantBUser = await generatedUserGet(request, tenantBOwnerUserId, tenantBCookieHeader, "tenant-b.localhost");
   expect(generatedTenantBUser).toMatchObject({ userId: tenantBOwnerUserId });
@@ -962,34 +971,109 @@ test("enforces platform-admin authorization through the API", async ({ page }) =
 
   const platform = await fetchJson(page, "/api/modules/platform/locale-notifications");
   expect(platform.status).toBe(200);
+  const managedUserSearch = await fetchJson(page, "/api/modules/users/search?query=e2e");
+  const otherUserProfile = await fetchJson(page, `/api/modules/users/${tenantBOwnerUserId}/profile`);
+  expect(managedUserSearch.status).toBe(200);
+  expect(otherUserProfile.status).toBe(403);
 
 });
 
-test("shows a generic 403 page and records denied platform audit access", async ({ page }) => {
+test("shows a generic 403 page while audit reads remain side-effect-free", async ({ page }) => {
   test.setTimeout(120_000);
-  await login(page, tenantBOwnerUsername, "", e2ePassword, "198.51.100.23");
-  const deniedAuditResponse = page.waitForResponse((response) =>
-    response.url().includes("/api/audit/platform/security-events") && response.status() === 403,
-  );
-  await page.goto(`${platformAdminOrigin}/`, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Forbidden" })).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByText("403", { exact: true })).toBeVisible();
-  await deniedAuditResponse;
-
-  if (forbiddenScreenshotPath) {
-    mkdirSync(dirname(forbiddenScreenshotPath), { recursive: true });
-    await page.screenshot({ path: forbiddenScreenshotPath, fullPage: true });
-  }
+  await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.23");
 
   const administratorContext = await page.context().browser()!.newContext();
   const administratorPage = await administratorContext.newPage();
   try {
-    await login(administratorPage, platformAdminUsername, "", e2ePassword, "198.51.100.24");
-    const deniedReview = await fetchJson(administratorPage, "/api/audit/platform/security-events?page=1&pageSize=25&eventName=security.audit.review&eventCategory=audit-review&operation=audit.security-events.list&outcome=denied&sortBy=0&descending=true&uncataloguedOnly=false");
-    expect(deniedReview.status).toBe(200);
-    expect((deniedReview.body as { items?: Array<{ eventName?: string; outcome?: string }> }).items).toEqual(expect.arrayContaining([
-      expect.objectContaining({ eventName: "security.audit.review", outcome: "denied" }),
+    await login(administratorPage, platformAdminUsername, platformAdminOrigin, e2ePassword, "198.51.100.24");
+    const deniedReviewPath = `/api/audit/platform/security-events?page=1&pageSize=25&eventName=security.audit.review&eventCategory=audit-review&operation=audit.security-events.list&outcome=denied&actorId=${encodeURIComponent(tenantBOwnerUserId)}&sortBy=0&descending=true&uncataloguedOnly=false`;
+    const reviewEventsBefore = await fetchJson(administratorPage, deniedReviewPath);
+    expect(reviewEventsBefore.status).toBe(200);
+    const reviewEventCountBefore = (reviewEventsBefore.body as { totalCount: number }).totalCount;
+
+    await page.goto(`${platformAdminOrigin}/`, { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "Forbidden" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("403", { exact: true })).toBeVisible();
+
+    if (forbiddenScreenshotPath) {
+      mkdirSync(dirname(forbiddenScreenshotPath), { recursive: true });
+      await page.screenshot({ path: forbiddenScreenshotPath, fullPage: true });
+    }
+
+    const reviewEventsAfter = await fetchJson(administratorPage, deniedReviewPath);
+    expect(reviewEventsAfter.status).toBe(200);
+    expect((reviewEventsAfter.body as { totalCount: number }).totalCount).toBe(reviewEventCountBefore);
+
+    const platformOriginLogin = await fetchJson(
+      administratorPage,
+      `/api/audit/platform/security-events?page=1&pageSize=25&eventCategory=authentication&eventName=authentication.password.login&operation=password.login&outcome=succeeded&subjectId=${encodeURIComponent(tenantBOwnerUserId)}&sortBy=1&descending=true&uncataloguedOnly=false`,
+    );
+    expect(platformOriginLogin.status).toBe(200);
+    expect((platformOriginLogin.body as { items?: Array<{ eventName?: string; subjectId?: string; clientInterfaceHost?: string | null }> }).items).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        eventName: "authentication.password.login",
+        subjectId: tenantBOwnerUserId,
+        clientInterfaceHost: new URL(platformAdminOrigin).hostname,
+      }),
     ]));
+  } finally {
+    await administratorPage.close();
+    await administratorContext.close();
+  }
+});
+
+test("audits denied user creation and editing requests", async ({ page }) => {
+  test.setTimeout(120_000);
+  await login(page, tenantBOwnerUsername, platformAdminOrigin, e2ePassword, "198.51.100.25");
+
+  const deniedCreate = await postJson(page, "/api/modules/users/create/email", {
+    email: `unauthorized-create-${Date.now()}@example.test`,
+    firstName: "Denied",
+    lastName: "Creation",
+  });
+  expect(deniedCreate.status).toBe(403);
+
+  const deniedEdit = await putJson(page, `/api/modules/users/${tenantBOwnerUserId}`, {
+    email: "denied-edit@example.test",
+    phoneNumber: null,
+    firstName: "Denied",
+    lastName: "Edit",
+  });
+  expect(deniedEdit.status).toBe(403);
+
+  const administratorContext = await page.context().browser()!.newContext();
+  const administratorPage = await administratorContext.newPage();
+  try {
+    await login(administratorPage, platformAdminUsername, platformAdminOrigin, e2ePassword, "198.51.100.26");
+
+    const creationAudit = await fetchJson(
+      administratorPage,
+      `/api/audit/platform/security-events?page=1&pageSize=25&eventName=users.account.creation-failed&eventCategory=security-failure&operation=users.account.create&outcome=denied&actorId=${encodeURIComponent(tenantBOwnerUserId)}&sortBy=0&descending=true&uncataloguedOnly=false`,
+    );
+    expect(creationAudit.status).toBe(200);
+    expect((creationAudit.body as { items?: Array<{ eventName?: string; outcome?: string; redactedReason?: string }> }).items)
+      .toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          eventName: "users.account.creation-failed",
+          outcome: "denied",
+          redactedReason: "unauthorized",
+        }),
+      ]));
+
+    const editAudit = await fetchJson(
+      administratorPage,
+      `/api/audit/platform/security-events?page=1&pageSize=25&eventName=users.account.edit-failed&eventCategory=security-failure&operation=users.account.edit&outcome=denied&actorId=${encodeURIComponent(tenantBOwnerUserId)}&subjectId=${encodeURIComponent(tenantBOwnerUserId)}&sortBy=0&descending=true&uncataloguedOnly=false`,
+    );
+    expect(editAudit.status).toBe(200);
+    expect((editAudit.body as { items?: Array<{ eventName?: string; outcome?: string; redactedReason?: string; subjectId?: string }> }).items)
+      .toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          eventName: "users.account.edit-failed",
+          outcome: "denied",
+          redactedReason: "unauthorized",
+          subjectId: tenantBOwnerUserId,
+        }),
+      ]));
   } finally {
     await administratorPage.close();
     await administratorContext.close();
@@ -1121,9 +1205,10 @@ test("proves the global audit grid across a separate platform-admin origin", asy
     await expect(ownerPage.getByText("افزایش قد", { exact: true })).toBeVisible({ timeout: 30_000 });
     await expect(ownerPage.getByText("Patient tags", { exact: true })).toBeVisible();
 
-    const proofScreenshot = process.env.VITARISH_E2E_PROOF_SCREENSHOT;
+    const proofScreenshot = process.env[twoHostE2eProofScreenshotEnvironmentKey]?.replace(/\.png$/i, "-authenticated-boundary-patient-tags.png");
     if (proofScreenshot) {
       mkdirSync(dirname(proofScreenshot), { recursive: true });
+      expect(existsSync(proofScreenshot), `refusing to overwrite retained evidence at ${proofScreenshot}`).toBe(false);
       await ownerPage.screenshot({ path: proofScreenshot, fullPage: true });
     }
   } finally {

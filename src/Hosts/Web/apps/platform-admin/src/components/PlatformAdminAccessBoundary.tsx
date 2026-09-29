@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
-import { recordPlatformAuditAccessAttempt } from "@vitarish/security";
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuthSession, usePlatformAuthorization } from "@vitarish/auth";
 import { CenteredRegion, LoadingSpinner } from "@vitarish/ui";
 import { useLocalizedText } from "@vitarish/localization";
@@ -17,23 +16,43 @@ export function PlatformAdminAccessBoundary({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { isAuthenticated, isLoading } = useAuthSession();
+  const router = useRouter();
+  const { isAuthenticated, isLoading, isError } = useAuthSession();
   const { hasAccess } = usePlatformAuthorization();
   const { t } = useLocalizedText();
-  const recordedAttempt = useRef(false);
+  const isLoginRoute = pathname.startsWith(Routes.Login);
 
   useEffect(() => {
-    if (isAuthenticated && !hasAccess && !recordedAttempt.current) {
-      recordedAttempt.current = true;
-      void recordPlatformAuditAccessAttempt();
+    if (!isLoginRoute && !isLoading && !isError && !isAuthenticated) {
+      router.replace(Routes.LoginPassword);
     }
-  }, [hasAccess, isAuthenticated]);
+  }, [isAuthenticated, isError, isLoading, isLoginRoute, router]);
 
-  if (pathname.startsWith(Routes.Login)) {
+  if (isLoginRoute) {
     return <>{children}</>;
   }
 
   if (isLoading) {
+    return (
+      <CenteredRegion>
+        <div role="status" aria-label={t("common.states.loading")}>
+          <LoadingSpinner />
+        </div>
+      </CenteredRegion>
+    );
+  }
+
+  if (isError && !isAuthenticated) {
+    return (
+      <CenteredRegion>
+        <main role="main" className="text-center">
+          <p className="text-muted">{t("admin.sessionUnavailable")}</p>
+        </main>
+      </CenteredRegion>
+    );
+  }
+
+  if (!isAuthenticated) {
     return (
       <CenteredRegion>
         <div role="status" aria-label={t("common.states.loading")}>

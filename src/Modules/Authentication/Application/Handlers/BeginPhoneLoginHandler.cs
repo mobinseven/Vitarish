@@ -5,6 +5,7 @@ using Vitarish.Authentication.Application.Validation;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
+using Vitarish.Users.Domain.Security;
 
 namespace Vitarish.Authentication.Application.Handlers;
 
@@ -22,6 +23,8 @@ public sealed class BeginPhoneLoginHandler(
     {
         if (!AuthenticationInputValidator.HasText(command.PhoneNumber))
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, "Phone number is required."));
+        if (!UserPhoneNumberPolicy.IsValidE164(command.PhoneNumber))
+            return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, UserPhoneNumberPolicy.InvalidE164FormatMessage));
 
         SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
         if (!securityPolicy.Allows(AuthenticationMethod.Phone, PreAuthenticationAction.PhoneLogin))

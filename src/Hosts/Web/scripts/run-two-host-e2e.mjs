@@ -6,6 +6,13 @@ import http from "node:http";
 import https from "node:https";
 import net from "node:net";
 import crypto from "node:crypto";
+import {
+  twoHostE2eArtifactDirectoryEnvironmentKey,
+  twoHostE2eGrepEnvironmentKey,
+  twoHostE2eNextDistDirectoryEnvironmentKey,
+  twoHostE2eProofScreenshotEnvironmentKey,
+  twoHostE2eProofStorageStateEnvironmentKey,
+} from "./two-host-e2e-artifacts.mjs";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(scriptDirectory, "..");
@@ -13,15 +20,22 @@ const repositoryRoot = resolve(webRoot, "..", "..", "..");
 const appRoot = resolve(webRoot, "apps", "private-practice-owner");
 const platformAdminAppRoot = resolve(webRoot, "apps", "platform-admin");
 const e2eProject = resolve(repositoryRoot, "src", "Hosts", "E2e", "E2e.csproj");
-const e2eProjectRoot = resolve(repositoryRoot, "src", "Hosts", "E2e");
 const playwrightConfig = resolve(webRoot, "playwright.two-host.config.ts");
-const artifactDirectory = resolve(webRoot, "artifacts", "two-host-e2e");
+const artifactRoot = resolve(webRoot, "artifacts", "two-host-e2e");
+const runId = `${new Date().toISOString().replaceAll(":", "-")}-${process.pid}-${crypto.randomBytes(4).toString("hex")}`;
+const artifactDirectory = resolve(artifactRoot, "runs", runId);
+const proofStorageStatePath = resolve(artifactDirectory, "authenticated-user-security-state.json");
 const appTsconfigPath = resolve(appRoot, "tsconfig.json");
 const appNextEnvPath = resolve(appRoot, "next-env.d.ts");
-const appNextDistPath = resolve(appRoot, ".next-two-host-e2e");
-const e2eBuildPaths = [resolve(e2eProjectRoot, "bin"), resolve(e2eProjectRoot, "obj")];
+const appNextDistDirectory = `.next-two-host-e2e-${runId}`;
+const appNextDistPath = resolve(appRoot, appNextDistDirectory);
+const platformAdminTsconfigPath = resolve(platformAdminAppRoot, "tsconfig.json");
+const platformAdminNextEnvPath = resolve(platformAdminAppRoot, "next-env.d.ts");
+const platformAdminNextDistPath = resolve(platformAdminAppRoot, appNextDistDirectory);
 const originalAppTsconfig = readFileSync(appTsconfigPath, "utf8");
 const originalAppNextEnv = readFileSync(appNextEnvPath, "utf8");
+const originalPlatformAdminTsconfig = readFileSync(platformAdminTsconfigPath, "utf8");
+const originalPlatformAdminNextEnv = readFileSync(platformAdminNextEnvPath, "utf8");
 const mainOrigin = "https://localhost:7272";
 const webOrigin = "http://localhost:3005";
 const platformAdminOrigin = "http://localhost:3006";
@@ -29,14 +43,14 @@ const smtpCapturePath = resolve(artifactDirectory, "e2e-smtp-capture.eml");
 const smtpPort = 2525;
 const readinessProbeTimeoutMs = 5000;
 
-mkdirSync(artifactDirectory, { recursive: true });
+mkdirSync(resolve(artifactRoot, "runs"), { recursive: true });
+mkdirSync(artifactDirectory);
 
 const processes = [];
 let stopping = false;
 let smtpServer;
 
 function startSmtpCapture() {
-  rmSync(smtpCapturePath, { force: true });
   smtpServer = net.createServer((socket) => {
     socket.setEncoding("utf8");
     socket.write("220 e2e-smtp.localhost E2E SMTP\r\n");
@@ -129,7 +143,7 @@ function stopSmtpCapture() {
 
 function startProcess(label, command, args, cwd, environment) {
   const logPath = resolve(artifactDirectory, `${label}.log`);
-  const log = createWriteStream(logPath, { flags: "w" });
+  const log = createWriteStream(logPath, { flags: "wx" });
   const child = spawn(command, args, {
     cwd,
     env: environment,
@@ -225,21 +239,23 @@ async function stopAll() {
   await Promise.all(processes.slice().reverse().map(stopProcessTree));
 }
 
-function restoreNextTsconfig() {
-  const currentAppTsconfig = readFileSync(appTsconfigPath, "utf8");
-  if (!originalAppTsconfig.includes(".next-two-host-e2e/types/**/*.ts") && currentAppTsconfig.includes(".next-two-host-e2e/types/**/*.ts")) {
-    writeFileSync(appTsconfigPath, originalAppTsconfig);
+function restoreNextTsconfig(tsconfigPath, originalTsconfig) {
+  const currentTsconfig = readFileSync(tsconfigPath, "utf8");
+  const generatedTypesGlob = `${appNextDistDirectory}/types/**/*.ts`;
+  if (!originalTsconfig.includes(generatedTypesGlob) && currentTsconfig.includes(generatedTypesGlob)) {
+    writeFileSync(tsconfigPath, originalTsconfig);
   }
 }
 
-function restoreNextGeneratedFiles() {
-  const currentAppNextEnv = readFileSync(appNextEnvPath, "utf8");
-  if (!originalAppNextEnv.includes(".next-two-host-e2e/types/routes.d.ts") && currentAppNextEnv.includes(".next-two-host-e2e/types/routes.d.ts")) {
-    writeFileSync(appNextEnvPath, originalAppNextEnv);
+function restoreNextGeneratedFiles(nextEnvPath, originalNextEnv, nextDistPath) {
+  const currentNextEnv = readFileSync(nextEnvPath, "utf8");
+  const generatedRoutesReference = `${appNextDistDirectory}/types/routes.d.ts`;
+  if (!originalNextEnv.includes(generatedRoutesReference) && currentNextEnv.includes(generatedRoutesReference)) {
+    writeFileSync(nextEnvPath, originalNextEnv);
   }
 
-  if (existsSync(appNextDistPath)) {
-    rmSync(appNextDistPath, { recursive: true, force: true });
+  if (existsSync(nextDistPath)) {
+    rmSync(nextDistPath, { recursive: true, force: true });
   }
 }
 
@@ -248,6 +264,15 @@ function createEnvironment(overrides) {
 }
 
 async function run() {
+  const configuredProofScreenshotPath = process.env[twoHostE2eProofScreenshotEnvironmentKey];
+  const proofScreenshotPath = configuredProofScreenshotPath
+    ? resolve(configuredProofScreenshotPath)
+    : resolve(artifactDirectory, "authenticated-user-security-proof.png");
+  if (existsSync(proofScreenshotPath)) {
+    throw new Error(`Refusing to overwrite existing E2E proof screenshot: ${proofScreenshotPath}`);
+  }
+  mkdirSync(dirname(proofScreenshotPath), { recursive: true });
+
   const password = `${crypto.randomBytes(24).toString("base64url")}!Aa1`;
   const agentSharedSecret = crypto.randomBytes(32).toString("base64url");
   await startSmtpCapture();
@@ -268,14 +293,19 @@ async function run() {
     Vitarish__Communications__Providers__Smtp__Username: "e2e",
     Vitarish__Communications__Providers__Smtp__Password: "e2e",
     VITARISH_E2E_SMTP_CAPTURE_PATH: smtpCapturePath,
+    [twoHostE2eArtifactDirectoryEnvironmentKey]: artifactDirectory,
+    [twoHostE2eProofScreenshotEnvironmentKey]: proofScreenshotPath,
   });
   const webEnvironment = createEnvironment({
     NEXT_PUBLIC_API_BASE_URL: mainOrigin,
-    NEXT_DIST_DIR: ".next-two-host-e2e",
+    [twoHostE2eNextDistDirectoryEnvironmentKey]: appNextDistDirectory,
     VITARISH_E2E_USERNAME: "e2e-owner",
     VITARISH_E2E_PASSWORD: password,
     VITARISH_E2E_AGENT_SHARED_SECRET: agentSharedSecret,
     VITARISH_E2E_SMTP_CAPTURE_PATH: smtpCapturePath,
+    [twoHostE2eArtifactDirectoryEnvironmentKey]: artifactDirectory,
+    [twoHostE2eProofStorageStateEnvironmentKey]: proofStorageStatePath,
+    [twoHostE2eProofScreenshotEnvironmentKey]: proofScreenshotPath,
   });
   delete webEnvironment.NEXT_PUBLIC_VITARISH_MOCK_API;
   delete webEnvironment.NEXT_PUBLIC_VITARISH_MOCK_SCENARIO;
@@ -315,7 +345,7 @@ async function run() {
   const playwright = startProcess(
     "playwright",
     process.execPath,
-    [resolve(webRoot, "node_modules", "@playwright", "test", "cli.js"), "test", "--config", playwrightConfig, ...(process.env.VITARISH_E2E_GREP ? ["--grep", process.env.VITARISH_E2E_GREP] : [])],
+    [resolve(webRoot, "node_modules", "@playwright", "test", "cli.js"), "test", "--config", playwrightConfig, ...(process.env[twoHostE2eGrepEnvironmentKey] ? ["--grep", process.env[twoHostE2eGrepEnvironmentKey]] : [])],
     webRoot,
     webEnvironment,
   );
@@ -349,17 +379,11 @@ try {
 } finally {
   await stopAll();
   await stopSmtpCapture();
-  restoreNextTsconfig();
-  restoreNextGeneratedFiles();
-  for (const buildPath of e2eBuildPaths) {
-    if (!existsSync(buildPath)) continue;
-    try {
-      rmSync(buildPath, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 });
-    } catch (error) {
-      // Windows can release the dotnet build lock after the child process has
-      // exited. The directory is ignored build output; preserve the passing
-      // test result and leave a diagnostic if the retry window is exhausted.
-      console.warn(`Could not remove generated E2E output ${buildPath}: ${error instanceof Error ? error.message : error}`);
-    }
+  restoreNextTsconfig(appTsconfigPath, originalAppTsconfig);
+  restoreNextTsconfig(platformAdminTsconfigPath, originalPlatformAdminTsconfig);
+  restoreNextGeneratedFiles(appNextEnvPath, originalAppNextEnv, appNextDistPath);
+  restoreNextGeneratedFiles(platformAdminNextEnvPath, originalPlatformAdminNextEnv, platformAdminNextDistPath);
+  if (existsSync(proofStorageStatePath)) {
+    rmSync(proofStorageStatePath, { force: true });
   }
 }

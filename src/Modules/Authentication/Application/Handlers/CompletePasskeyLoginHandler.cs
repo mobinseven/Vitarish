@@ -1,6 +1,7 @@
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Application.Services;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 
@@ -12,9 +13,45 @@ public sealed class CompletePasskeyLoginHandler(
     IAuthenticationRedirectResolver redirects,
     IAuthenticationSecurityPolicyProvider securityPolicyProvider,
     IAuthenticationAttemptTracker attemptTracker,
-    IAuthenticationAttemptKeyFactory attemptKeyFactory)
+    IAuthenticationAttemptKeyFactory attemptKeyFactory,
+    AuthenticationAttemptAuditor attemptAuditor)
 {
     public async Task<AuthenticationResult<LoginResult>> Handle(CompletePasskeyLoginCommand command, CancellationToken cancellationToken)
+    {
+        string? knownUserId = null;
+        AuthenticationResult<LoginResult> result;
+        try
+        {
+            knownUserId = await webAuthn.GetSubjectIdAsync(command.ChallengeId, cancellationToken);
+            if (string.IsNullOrWhiteSpace(knownUserId))
+                knownUserId = await webAuthn.GetSubjectIdAsync(command.ChallengeId, command.CredentialJson, cancellationToken);
+            result = await HandleCoreAsync(command, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            await attemptAuditor.RecordAsync(AuthenticationMethod.Passkey, knownUserId, succeeded: false, cancellationToken: CancellationToken.None);
+            throw;
+        }
+
+        string? subjectId = result is AuthenticationResult<LoginResult>.Success success ? success.Value.UserId : knownUserId;
+        try
+        {
+            await attemptAuditor.RecordAsync(AuthenticationMethod.Passkey, subjectId, result is AuthenticationResult<LoginResult>.Success, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            if (result is AuthenticationResult<LoginResult>.Success)
+                await signInService.SignOutAsync(CancellationToken.None);
+            throw;
+        }
+        return result;
+    }
+
+    private async Task<AuthenticationResult<LoginResult>> HandleCoreAsync(CompletePasskeyLoginCommand command, CancellationToken cancellationToken)
     {
         SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
         if (!securityPolicy.Allows(AuthenticationMethod.Passkey, PreAuthenticationAction.PasskeyLogin))

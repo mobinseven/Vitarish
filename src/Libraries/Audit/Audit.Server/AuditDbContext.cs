@@ -99,12 +99,14 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.SourceBoundary).HasMaxLength(256);
             _ = entity.Property(e => e.SourceIpKind).HasMaxLength(32);
             _ = entity.Property(e => e.SourceIpAddress).HasMaxLength(64);
+            _ = entity.Property(e => e.ClientInterfaceHost).HasMaxLength(253);
             _ = entity.Property(e => e.RedactedReason).HasMaxLength(256);
             _ = entity.Property(e => e.IdempotencyKey).HasMaxLength(256);
             _ = entity.Property(e => e.OccurredAt);
             _ = entity.IsMultiTenant();
             _ = entity.HasIndex(e => new { e.TenantId, e.IdempotencyKey }).IsUnique();
             _ = entity.HasIndex(e => new { e.Resource, e.OccurredAt });
+            _ = entity.HasIndex(e => new { e.TenantId, e.SubjectId, e.OccurredAt });
             _ = entity.HasIndex(e => e.OccurredAt);
         });
     }

@@ -2,12 +2,17 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MediatR;
 using Vitarish.Authentication.Application.Abstractions;
+using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Authentication.Infrastructure;
 
-public sealed class AspNetIdentityAuthenticationUserDirectory(UserManager<User> userManager, IHttpContextAccessor httpContextAccessor) : IAuthenticationUserDirectory
+public sealed class AspNetIdentityAuthenticationUserDirectory(
+    UserManager<User> userManager,
+    ISender sender,
+    IHttpContextAccessor httpContextAccessor) : IAuthenticationUserDirectory
 {
     public async Task<AuthenticationUserDescriptor?> FindByIdAsync(string userId, CancellationToken cancellationToken)
     {
@@ -35,12 +40,8 @@ public sealed class AspNetIdentityAuthenticationUserDirectory(UserManager<User> 
         AuthenticationUserDescriptor? existing = await FindByEmailAsync(email, cancellationToken);
         if (existing is not null) return existing;
 
-        User user = Activator.CreateInstance<User>();
-        _ = await userManager.SetUserNameAsync(user, email);
-        _ = await userManager.SetEmailAsync(user, email);
-        IdentityResult result = await userManager.CreateAsync(user);
-        if (!result.Succeeded)
-            throw new InvalidOperationException(string.Join('\n', result.Errors.Select(e => $"{e.Code}:{e.Description}")));
+        User user = await sender.Send(new CreateUserWithEmailCommand(email, null, null), cancellationToken)
+            ?? throw new InvalidOperationException("The account could not be created.");
         return ToDescriptor(user);
     }
 
@@ -56,12 +57,8 @@ public sealed class AspNetIdentityAuthenticationUserDirectory(UserManager<User> 
         AuthenticationUserDescriptor? existing = await FindByPhoneNumberAsync(phoneNumber, cancellationToken);
         if (existing is not null) return existing;
 
-        User user = Activator.CreateInstance<User>();
-        _ = await userManager.SetUserNameAsync(user, phoneNumber);
-        _ = await userManager.SetPhoneNumberAsync(user, phoneNumber);
-        IdentityResult result = await userManager.CreateAsync(user);
-        if (!result.Succeeded)
-            throw new InvalidOperationException(string.Join('\n', result.Errors.Select(e => $"{e.Code}:{e.Description}")));
+        User user = await sender.Send(new CreateUserWithPhoneCommand(phoneNumber, null, null), cancellationToken)
+            ?? throw new InvalidOperationException("The account could not be created.");
         return ToDescriptor(user);
     }
 

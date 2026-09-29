@@ -2,12 +2,62 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LocalizationProvider } from "@vitarish/localization";
-import { UserManagementSurface } from "../components/UserManagementSurface";
+import { UserManagementSurface, type UserManagementSurfaceProps } from "../components/UserManagementSurface";
 import { usersMessageCatalogs } from "../localization/catalogs";
 
 const refetch = vi.fn(async () => ({}));
 const tenantProvision = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
 const tenantRemove = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
+const managedUserUpdate = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
+const platformPhoneCreate = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
+let securityDetailsQueryResponse: { data?: typeof userSecurityDetails; error: unknown; isLoading: boolean; isError: boolean; refetch: typeof refetch };
+const userSecurityDetails = {
+  user: {
+    id: "platform-user",
+    userName: "user@example.com",
+    firstName: "Platform",
+    lastName: "User",
+    email: "user@example.com",
+    phoneNumber: null,
+    fullName: "Platform User",
+  },
+  globalRoles: ["PlatformAdmin"],
+  tenantRoles: [{ tenantId: "tenant-a", roleSuffix: "TenantUser" }],
+  securityHistory: {
+    items: [{
+      eventName: "users.security-attributes.changed",
+      eventCategory: "security-attributes",
+      outcome: "succeeded",
+      actorId: "platform-admin-1",
+      operation: "users.security-attributes.change",
+      occurredAt: "2026-09-28T08:00:00Z",
+      clientInterfaceHost: "admin.example.test",
+      isAuthenticationEvent: false,
+      redactedReason: "security_attribute_changed",
+    }],
+    page: 1,
+    pageSize: 25,
+    totalCount: 1,
+  },
+  authenticationHistory: {
+    items: [{
+      eventName: "authentication.passkey.login",
+      eventCategory: "authentication",
+      outcome: "denied",
+      actorId: "platform-user",
+      operation: "passkey.login",
+      occurredAt: "2026-09-28T07:00:00Z",
+      clientInterfaceHost: "admin.example.test",
+      isAuthenticationEvent: true,
+      redactedReason: "authentication_failed",
+    }],
+    page: 1,
+    pageSize: 25,
+    totalCount: 1,
+  },
+  securityHistoryAvailable: true,
+  authenticationHistoryAvailable: true,
+};
 
 vi.mock("@vitarish/auth", () => ({
   useAuthSession: () => ({ isAuthenticated: true, isLoading: false, session: {} }),
@@ -25,8 +75,10 @@ vi.mock("@vitarish/auth", () => ({
   useUsersAdministrationListTenantRoles: () => ({ isLoading: false, isError: false, refetch, data: [
     { tenantId: "tenant-a", roleSuffix: "TenantUser", assigned: true },
   ] }),
+  useUsersAdministrationGetUserSecurity: () => securityDetailsQueryResponse,
+  useUsersAdministrationUpdateUser: () => ({ isPending: false, mutate: managedUserUpdate }),
   useUsersAdministrationCreateWithEmail: () => ({ isPending: false, mutate: vi.fn() }),
-  useUsersAdministrationCreateWithPhone: () => ({ isPending: false, mutate: vi.fn() }),
+  useUsersAdministrationCreateWithPhone: () => ({ isPending: false, mutate: platformPhoneCreate }),
   useUsersAdministrationGrantTenantRole: () => ({ isPending: false, mutate: vi.fn() }),
   useUsersAdministrationRevokeTenantRole: () => ({ isPending: false, mutate: vi.fn() }),
 }));
@@ -34,12 +86,15 @@ vi.mock("@vitarish/auth", () => ({
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  securityDetailsQueryResponse = { data: userSecurityDetails, error: null, isLoading: false, isError: false, refetch };
 });
 
-function renderSurface(mode: "tenant" | "platform") {
+securityDetailsQueryResponse = { data: userSecurityDetails, error: null, isLoading: false, isError: false, refetch };
+
+function renderSurface(mode: "tenant" | "platform", props: Partial<UserManagementSurfaceProps> = {}) {
   return render(
     <LocalizationProvider locale="en" messages={usersMessageCatalogs.en}>
-      <UserManagementSurface mode={mode} />
+      <UserManagementSurface mode={mode} {...props} />
     </LocalizationProvider>,
   );
 }
@@ -80,5 +135,112 @@ describe("UserManagementSurface", () => {
     await userEvent.setup().click(screen.getByText("Platform User"));
     expect(screen.getByText(/Tenant: tenant-a/)).toBeInTheDocument();
     expect(screen.getByText(/Role: TenantUser/)).toBeInTheDocument();
+  });
+
+  it("explains and submits E.164 phone identifiers for tenant user creation", async () => {
+    const user = userEvent.setup();
+    renderSurface("tenant");
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Contact type" }), "phone");
+    const phone = screen.getByRole("textbox", {
+      name: "Phone number",
+      description: "Use international format, starting with + and a country code.",
+    });
+    await user.type(phone, "+14155552671");
+    await user.click(screen.getByRole("button", { name: "Add staff member" }));
+
+    expect(tenantProvision).toHaveBeenCalledWith({ data: { phoneNumber: "+14155552671", firstName: undefined, lastName: undefined } }, expect.any(Object));
+  });
+
+  it("explains the E.164 phone format before platform user creation", async () => {
+    const user = userEvent.setup();
+    renderSurface("platform", { platformView: "create" });
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Contact type" }), "phone");
+    const phone = screen.getByRole("textbox", {
+      name: "Phone number",
+      description: "Use international format, starting with + and a country code.",
+    });
+    await user.type(phone, "+14155552671");
+    await user.click(screen.getByRole("button", { name: "Create user" }));
+
+    expect(platformPhoneCreate).toHaveBeenCalledWith({ data: { phoneNumber: "+14155552671", firstName: "", lastName: "" } }, expect.any(Object));
+  });
+
+  it("opens a user's security detail route from the directory action", async () => {
+    const openDetails = vi.fn();
+    renderSurface("platform", { onOpenUserDetails: openDetails });
+
+    await userEvent.setup().click(screen.getByRole("button", { name: "View user security details" }));
+
+    expect(openDetails).toHaveBeenCalledWith("platform-user");
+  });
+
+  it("shows identity, roles, security history, and authentication history in the detail view", () => {
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    expect(screen.getByText("User ID")).toBeInTheDocument();
+    expect(screen.getAllByText("platform-user")).toHaveLength(2);
+    expect(screen.getByText("PlatformAdmin")).toBeInTheDocument();
+    expect(screen.getByText(/Tenant: tenant-a/)).toBeInTheDocument();
+    expect(screen.getByText(/Role: TenantUser/)).toBeInTheDocument();
+    expect(screen.getByText("Authentication history")).toBeInTheDocument();
+    expect(screen.getByText("Passkey login")).toBeInTheDocument();
+    expect(screen.getByText("User security attributes changed")).toBeInTheDocument();
+    expect(screen.getAllByText("admin.example.test")).toHaveLength(2);
+  });
+
+  it("keeps user identity and roles visible when audit history returns 503", () => {
+    securityDetailsQueryResponse = {
+      data: undefined,
+      error: {
+        status: 503,
+        problem: {
+          ...userSecurityDetails,
+          securityHistory: null,
+          authenticationHistory: null,
+          securityHistoryAvailable: false,
+          authenticationHistoryAvailable: false,
+        },
+      },
+      isLoading: false,
+      isError: true,
+      refetch,
+    };
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    expect(screen.getByText("platform-user")).toBeInTheDocument();
+    expect(screen.getByText("PlatformAdmin")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Audit history is temporarily unavailable. User details and roles are still shown.");
+  });
+
+  it("requires an identifier and saves an E.164 phone as the user's contact identifier", async () => {
+    const user = userEvent.setup();
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    const email = screen.getByRole("textbox", { name: "Email address" });
+    expect(screen.getByRole("textbox", {
+      name: "Phone number",
+      description: "Use international format, starting with + and a country code.",
+    })).toBeInTheDocument();
+    await user.clear(email);
+    await user.click(screen.getByRole("button", { name: "Save user changes" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("Enter a valid email address or E.164 phone number.");
+    expect(managedUserUpdate).not.toHaveBeenCalled();
+
+    await user.type(screen.getByRole("textbox", { name: "Phone number" }), "+14155552671");
+    await user.click(screen.getByRole("button", { name: "Save user changes" }));
+
+    expect(managedUserUpdate).toHaveBeenCalledWith({
+      userId: "platform-user",
+      data: {
+        email: null,
+        phoneNumber: "+14155552671",
+        firstName: "Platform",
+        lastName: "User",
+      },
+    }, expect.any(Object));
+    expect(screen.getByRole("status")).toHaveTextContent("User details were updated.");
   });
 });

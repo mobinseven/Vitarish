@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,7 @@ using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Service;
 using Vitarish.Users.Infrastructure.Authentication;
+using Vitarish.Users.Api.Authorization;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Authentication.Domain.Security;
@@ -52,7 +54,10 @@ public static class IdentityUsersExtensions
             options.Lockout.AllowedForNewUsers = true;
         });
 
-        _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
+            typeof(AssemblyMarker).Assembly,
+            typeof(IUsersService).Assembly));
+        _ = builder.Services.AddScoped<IAuthorizationHandler, UsersManagementAuthorizationAuditHandler>();
         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));
         _ = builder.Services.AddAuthorization(options =>
         {
@@ -69,6 +74,7 @@ public static class IdentityUsersExtensions
         _ = builder.Services.Configure<TemporaryAutoAuthLinkOptions>(
             builder.Configuration.GetSection("Vitarish").GetSection(TemporaryAutoAuthLinkOptions.SectionName));
         _ = builder.Services.AddSingleton<IUserAccessAuditLogger, UserAccessAuditLogger>();
+        _ = builder.Services.AddScoped<UsersManagementAudit>();
         _ = builder.Services.AddTransient<IUserProfileService, UserProfileService>();
         _ = builder.Services.AddTransient<IPersonalAccessTokenGenerator, PersonalAccessTokenGenerator>();
         builder.Services.TryAddSingleton(TimeProvider.System);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { usePasswordLogin } from "../hooks/usePasswordLogin";
 import { useLocalizedText } from "@vitarish/localization";
@@ -24,6 +24,11 @@ export function LoginForm({
   const [userNameOrEmail, setUserNameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otpCode, setOtpCode] = useState("");
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -43,6 +48,7 @@ export function LoginForm({
 
   return (
     <Form
+      method="post"
       onSubmit={requiresOtp ? handleOtpSubmit : handleSubmit}
       className="flex flex-col gap-4"
     >
@@ -86,12 +92,12 @@ export function LoginForm({
               onChange={(e) => setOtpCode(e.target.value)}
             />
           </TextField>
-          <Button type="submit" isPending={isLoading} className="w-full">
+          <Button type="submit" isDisabled={!isHydrated || isLoading} isPending={isLoading} className="w-full">
             {t("auth.login.otpVerifyAction")}
           </Button>
         </>
       ) : (
-        <Button type="submit" isPending={isLoading} className="w-full">
+        <Button type="submit" isDisabled={!isHydrated || isLoading} isPending={isLoading} className="w-full">
           {t("auth.login.signInAction")}
         </Button>
       )}

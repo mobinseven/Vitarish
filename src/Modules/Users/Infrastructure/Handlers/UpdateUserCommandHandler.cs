@@ -8,30 +8,117 @@ using Vitarish.Authentication.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Infrastructure.Data;
+using Vitarish.Users.Infrastructure.Service;
+using Vitarish.Audit.Domain;
+using Vitarish.Users.Application.Security;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
-public class UpdateUserCommandHandler(UsersDbContext dbContext, UserManager<User> userManager, IDistributedCache cache, IAuthenticationActiveSessionQuery activeSessionQuery) : IRequestHandler<UpdateUserCommand, IdentityResult>
+public class UpdateUserCommandHandler(UsersDbContext dbContext, UserManager<User> userManager, IDistributedCache cache, IAuthenticationActiveSessionQuery activeSessionQuery, UsersManagementAudit managementAudit) : IRequestHandler<UpdateUserCommand, IdentityResult>
 {
     public async Task<IdentityResult> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
-        User? current = await dbContext.Users.AsNoTracking().SingleOrDefaultAsync(user => user.Id == request.User.Id, cancellationToken);
+        User? current;
+        try
+        {
+            current = await dbContext.Users.AsNoTracking().SingleOrDefaultAsync(user => user.Id == request.User.Id, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            await managementAudit.AccountEditFailedAsync(request.User.Id, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+            throw;
+        }
+
         bool usernameChanged = current is not null &&
             (!string.Equals(current.UserName, request.User.UserName, StringComparison.Ordinal) ||
              !string.Equals(current.NormalizedUserName, request.User.NormalizedUserName, StringComparison.Ordinal));
-        if (usernameChanged && await activeSessionQuery.HasActiveSessionAsync(request.User.Id, cancellationToken))
+        bool contactIdentifierChanged = current is not null &&
+            (!string.Equals(current.Email, request.User.Email, StringComparison.OrdinalIgnoreCase) ||
+             !string.Equals(current.PhoneNumber, request.User.PhoneNumber, StringComparison.Ordinal));
+        bool securityAttributesChanged = usernameChanged || contactIdentifierChanged;
+
+        if (!UserContactIdentifierPolicy.IsValid(request.User.Email, request.User.PhoneNumber, request.User.FirstName, request.User.LastName))
         {
+            await managementAudit.AccountEditFailedAsync(request.User.Id, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            if (securityAttributesChanged)
+                await managementAudit.SecurityAttributeChangedAsync(request.User.Id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
             return IdentityResult.Failed(new IdentityError
             {
-                Code = UsersCommandErrorCodes.ActiveSessionConflict,
-                Description = UsersCommandErrorCodes.ActiveSessionConflictDescription
+                Code = nameof(UsersCommandFailureCode.InvalidContact),
+                Description = UsersCommandErrorCodes.InvalidContactDescription
             });
         }
-        IdentityResult result = await userManager.UpdateAsync(request.User);
+
+        if (usernameChanged)
+        {
+            bool hasActiveSession;
+            try
+            {
+                hasActiveSession = await activeSessionQuery.HasActiveSessionAsync(request.User.Id, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch
+            {
+                await managementAudit.AccountEditFailedAsync(request.User.Id, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+                await managementAudit.SecurityAttributeChangedAsync(request.User.Id, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+                throw;
+            }
+
+            if (hasActiveSession)
+            {
+                await managementAudit.AccountEditFailedAsync(request.User.Id, SecurityAuditReasonCatalog.ActiveSessionConflict, cancellationToken);
+                await managementAudit.SecurityAttributeChangedAsync(request.User.Id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.ActiveSessionConflict, cancellationToken);
+                return IdentityResult.Failed(new IdentityError
+                {
+                    Code = UsersCommandErrorCodes.ActiveSessionConflict,
+                    Description = UsersCommandErrorCodes.ActiveSessionConflictDescription
+                });
+            }
+        }
+
+        IdentityResult result;
+        try
+        {
+            result = await userManager.UpdateAsync(request.User);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            await managementAudit.AccountEditFailedAsync(request.User.Id, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+            if (securityAttributesChanged)
+                await managementAudit.SecurityAttributeChangedAsync(request.User.Id, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+            throw;
+        }
+
         if (result.Succeeded)
         {
+            string? securityAttributeChangeReason = usernameChanged
+                ? SecurityAuditReasonCatalog.SecurityAttributeChanged
+                : contactIdentifierChanged
+                    ? SecurityAuditReasonCatalog.UserContactIdentifierChanged
+                    : null;
+            await managementAudit.AccountEditedAsync(request.User.Id, securityAttributeChangeReason, CancellationToken.None);
             await UserCacheExtensions.SetUserAsync(cache, request.User, cancellationToken);
             await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
+        }
+        else
+        {
+            string reason = result.Errors.Any(error => string.Equals(error.Code, nameof(UsersCommandFailureCode.ConcurrencyFailure), StringComparison.Ordinal))
+                ? SecurityAuditReasonCatalog.SecurityPolicyConcurrencyConflict
+                : SecurityAuditReasonCatalog.MutationRejected;
+            await managementAudit.AccountEditFailedAsync(request.User.Id, reason, cancellationToken);
+            if (securityAttributesChanged)
+                await managementAudit.SecurityAttributeChangedAsync(request.User.Id, SecurityAuditOutcome.Denied, reason, cancellationToken);
         }
 
         return result;

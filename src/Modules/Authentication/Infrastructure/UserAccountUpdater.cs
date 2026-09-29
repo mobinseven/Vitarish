@@ -1,29 +1,26 @@
 using Microsoft.AspNetCore.Identity;
+using MediatR;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Domain.Sessions;
+using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Authentication.Infrastructure;
 
 public sealed class UserAccountUpdater(
-    UserManager<User> userManager) : IUserAccountUpdater
+    UserManager<User> userManager,
+    ISender sender) : IUserAccountUpdater
 {
     public async Task<bool> SetPhoneNumberAsync(string userId, string phoneNumber, CancellationToken cancellationToken = default)
     {
-        User? user = await userManager.FindByIdAsync(userId);
-        if (user is null) return false;
-
-        IdentityResult result = await userManager.SetPhoneNumberAsync(user, phoneNumber);
+        IdentityResult result = await sender.Send(new SetUserPhoneNumberCommand(userId, phoneNumber), cancellationToken);
         return result.Succeeded;
     }
 
     public async Task<bool> SetEmailAsync(string userId, string email, CancellationToken cancellationToken = default)
     {
-        User? user = await userManager.FindByIdAsync(userId);
-        if (user is null) return false;
-
-        IdentityResult result = await userManager.SetEmailAsync(user, email);
+        IdentityResult result = await sender.Send(new SetUserEmailCommand(userId, email), cancellationToken);
         return result.Succeeded;
     }
 

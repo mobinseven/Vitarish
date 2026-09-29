@@ -71,6 +71,8 @@ export {
   useUsersAdministrationCreateWithEmail,
   useUsersAdministrationCreateWithPhone,
   useUsersAdministrationListTenantRoles,
+  useUsersAdministrationGetUserSecurity,
+  useUsersAdministrationUpdateUser,
   useUsersAdministrationGrantTenantRole,
   useUsersAdministrationRevokeTenantRole,
   getUsersAdministrationListTenantRolesQueryKey,
@@ -89,6 +91,10 @@ export type {
   ProvisionTenantMemberRequest,
   ProvisionTenantMemberResponse,
   TenantMemberResponse,
+  UserSecurityDetailsResponse,
+  UserSecurityEventResponse,
+  UserSecurityHistoryResponse,
+  UpdateManagedUserRequest,
 } from "./api/generated/users/model";
 
 // Components

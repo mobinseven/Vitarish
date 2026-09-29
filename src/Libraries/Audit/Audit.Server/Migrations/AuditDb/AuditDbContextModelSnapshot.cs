@@ -102,6 +102,10 @@ namespace Vitarish.Audit.Server.Migrations.AuditDb
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
+                    b.Property<string>("ClientInterfaceHost")
+                        .HasMaxLength(253)
+                        .HasColumnType("character varying(253)");
+
                     b.Property<string>("CorrelationId")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -172,6 +176,8 @@ namespace Vitarish.Audit.Server.Migrations.AuditDb
 
                     b.HasIndex("TenantId", "IdempotencyKey")
                         .IsUnique();
+
+                    b.HasIndex("TenantId", "SubjectId", "OccurredAt");
 
                     b.ToTable("SecurityAuditEvents", "Audit");
 

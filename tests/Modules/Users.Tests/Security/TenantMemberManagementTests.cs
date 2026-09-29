@@ -17,10 +17,12 @@ using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Authorization;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Application.Queries;
+using Vitarish.Users.Application.Security;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Handlers;
+using Vitarish.Users.Infrastructure.Service;
 
 namespace Vitarish.Users.Tests.Security;
 
@@ -49,13 +51,16 @@ public sealed class TenantMemberManagementTests
     {
         await using TestUsersDbContext dbContext = await CreateDbContextAsync();
         UserManager<User> userManager = CreateUserManager(dbContext);
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        IRequestContext requestContext = RequestContext(TenantId, IdentityDefinitions.PlatformAdmin);
         ProvisionTenantMemberCommandHandler handler = new(
             dbContext,
             userManager,
             new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())),
             ActiveSessions(false).Object,
-            AuditWriter().Object,
-            RequestContext(TenantId, IdentityDefinitions.PlatformAdmin));
+            auditWriter.Object,
+            requestContext,
+            new UsersManagementAudit(auditWriter.Object, requestContext, TimeProvider.System));
         ProvisionTenantMemberCommand request = new(null, "new@example.com", null, "New", "Member");
 
         ProvisionTenantMemberResult first = await handler.Handle(request, CancellationToken.None);
@@ -67,6 +72,11 @@ public sealed class TenantMemberManagementTests
         second.AlreadyMember.Should().BeTrue();
         (await dbContext.Users.CountAsync(user => user.NormalizedEmail == "NEW@EXAMPLE.COM")).Should().Be(1);
         (await dbContext.UserRoles.CountAsync(membership => membership.UserId == first.User!.Id)).Should().Be(1);
+        auditWriter.Verify(writer => writer.WriteAsync(
+            It.Is<SecurityAuditEvent>(entry =>
+                entry.EventName == SecurityAuditEventCatalog.UserCreationEvent &&
+                entry.SubjectId == first.User!.Id),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

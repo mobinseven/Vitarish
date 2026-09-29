@@ -2,7 +2,11 @@ param(
   [string]$Url = "http://localhost:3000/home",
   [string]$OutputPath = "artifacts/home-dashboard-proof/home-dashboard-latest.png",
   [string]$ViewportSize = "1440,1000",
-  [int]$WaitMilliseconds = 500
+  [int]$WaitMilliseconds = 500,
+  [int]$TimeoutMilliseconds = 30000,
+  [string]$WaitForSelector,
+  [string]$StorageStatePath,
+  [switch]$IgnoreHttpsErrors
 )
 
 $webRoot = Split-Path -Parent $PSScriptRoot
@@ -15,12 +19,27 @@ if (-not (Test-Path -LiteralPath $playwright)) {
 
 New-Item -ItemType Directory -Path (Split-Path -Parent $output) -Force | Out-Null
 
-& $playwright screenshot `
-  "--viewport-size=`"$ViewportSize`"" `
-  "--wait-for-timeout=$WaitMilliseconds" `
-  --full-page `
-  $Url `
-  $output
+$screenshotArguments = @(
+  "--viewport-size=$ViewportSize",
+  "--wait-for-timeout=$WaitMilliseconds",
+  "--timeout=$TimeoutMilliseconds",
+  "--full-page"
+)
+
+if ($WaitForSelector) {
+  $screenshotArguments += @("--wait-for-selector", $WaitForSelector)
+}
+
+if ($StorageStatePath) {
+  $screenshotArguments += @("--load-storage", $StorageStatePath)
+}
+
+if ($IgnoreHttpsErrors) {
+  $screenshotArguments += "--ignore-https-errors"
+}
+
+$screenshotArguments += @($Url, $output)
+& $playwright screenshot @screenshotArguments
 
 if ($LASTEXITCODE -ne 0) {
   throw "Screenshot capture failed with exit code $LASTEXITCODE. Is the app running at $Url?"

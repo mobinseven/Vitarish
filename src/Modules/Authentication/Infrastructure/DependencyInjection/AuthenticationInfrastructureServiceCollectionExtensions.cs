@@ -11,6 +11,7 @@ using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.ReturnUrls;
 using Vitarish.Authentication.Infrastructure.Options;
 using Vitarish.Authentication.Infrastructure.Identity;
+using Vitarish.Authentication.Infrastructure.Time;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Requests.Application.Abstractions;
@@ -46,6 +47,7 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
         services.AddScoped<IAuthenticationSessionRegistry>(provider => provider.GetRequiredService<AuthenticationSessionRegistry>());
         services.AddScoped<IAuthenticationActiveSessionQuery>(provider => provider.GetRequiredService<AuthenticationSessionRegistry>());
         services.TryAddSingleton(TimeProvider.System);
+        services.TryAddSingleton<IAuthenticationUtcClock, AuthenticationUtcClock>();
         services.AddScoped<AuthenticationCookieEvents>();
         services.AddScoped<IAuthenticationCodeVerifier, AspNetIdentityCodeVerifier>();
         services.AddScoped<IAuthenticationCodeGenerator, AspNetIdentityCodeGenerator>();

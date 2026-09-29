@@ -271,6 +271,11 @@ const platformAuditIdentifierLabels = {
       "authentication.account.password.change": "Password change",
       "authentication.password.login": "Password login",
       "authentication.password.login.otp": "Password login with OTP",
+      "authentication.phone.login": "Phone login",
+      "authentication.email.login": "Email login",
+      "authentication.passkey.login": "Passkey login",
+      "authentication.otp.sms.send-result": "SMS OTP send result",
+      "authentication.otp.email.send-result": "Email OTP send result",
       "authentication.identity.password-sign-in.user": "Identity password sign-in",
       "authentication.identity.password-sign-in.name": "Identity sign-in name check",
       "authentication.identity.password-check": "Identity password check",
@@ -295,6 +300,11 @@ const platformAuditIdentifierLabels = {
       "users.global-role-revocation": "Global role revocation",
       "users.tenant-member-provisioning": "Tenant member provisioning",
       "users.tenant-member-removal": "Tenant member removal",
+      "users.account.created": "User created",
+      "users.account.creation-failed": "User creation failed",
+      "users.account.edited": "User edited",
+      "users.account.edit-failed": "User edit failed",
+      "users.security-attributes.changed": "User security attributes changed",
       "security.session.administrator-idle-termination": "Administrator idle termination",
     },
   },
@@ -318,6 +328,11 @@ const platformAuditIdentifierLabels = {
       "authentication.account.password.change": "تغییر گذرواژه",
       "authentication.password.login": "ورود با گذرواژه",
       "authentication.password.login.otp": "ورود با گذرواژه و رمز یک‌بارمصرف",
+      "authentication.phone.login": "ورود با تلفن",
+      "authentication.email.login": "ورود با ایمیل",
+      "authentication.passkey.login": "ورود با کلید عبور",
+      "authentication.otp.sms.send-result": "نتیجه ارسال رمز یک‌بارمصرف پیامکی",
+      "authentication.otp.email.send-result": "نتیجه ارسال رمز یک‌بارمصرف ایمیلی",
       "authentication.identity.password-sign-in.user": "ورود هویتی با گذرواژه",
       "authentication.identity.password-sign-in.name": "بررسی نام ورود هویتی",
       "authentication.identity.password-check": "بررسی گذرواژه هویتی",
@@ -342,6 +357,11 @@ const platformAuditIdentifierLabels = {
       "users.global-role-revocation": "لغو نقش سراسری",
       "users.tenant-member-provisioning": "ایجاد عضو مستأجر",
       "users.tenant-member-removal": "حذف عضو مستأجر",
+      "users.account.created": "ایجاد کاربر",
+      "users.account.creation-failed": "ایجاد کاربر ناموفق بود",
+      "users.account.edited": "ویرایش کاربر",
+      "users.account.edit-failed": "ویرایش کاربر ناموفق بود",
+      "users.security-attributes.changed": "تغییر ویژگی‌های امنیتی کاربر",
       "security.session.administrator-idle-termination": "پایان نشست غیرفعال مدیر",
     },
   },
@@ -365,6 +385,17 @@ export function localizePlatformAuditCategory(locale: SupportedLocale, value: st
 
 export function localizePlatformAuditEvent(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
   return localizePlatformAuditIdentifier(locale, "events", value, fallback);
+}
+
+export function localizeSecurityAuditOutcome(locale: SupportedLocale, value: string | null | undefined, fallback: string): string {
+  switch (value) {
+    case "succeeded": return locale === "fa" ? auditMessagesFa.outcomeSucceeded : auditMessages.outcomeSucceeded;
+    case "failed": return locale === "fa" ? auditMessagesFa.outcomeFailed : auditMessages.outcomeFailed;
+    case "denied": return locale === "fa" ? auditMessagesFa.outcomeDenied : auditMessages.outcomeDenied;
+    case "pending": return locale === "fa" ? auditMessagesFa.outcomePending : auditMessages.outcomePending;
+    case "started": return locale === "fa" ? auditMessagesFa.outcomeStarted : auditMessages.outcomeStarted;
+    default: return value ?? fallback;
+  }
 }
 
 export const securityMessageCatalogs = {

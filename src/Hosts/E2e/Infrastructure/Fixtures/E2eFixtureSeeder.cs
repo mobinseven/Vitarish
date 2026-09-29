@@ -39,6 +39,7 @@ internal static class E2eFixtureSeeder
 
     public static async Task SeedAsync(IServiceProvider services, string password, CancellationToken cancellationToken)
     {
+        Console.WriteLine("E2E fixture seeding started.");
         await using AsyncServiceScope scope = services.CreateAsyncScope();
         UserManager<User> users = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
         RoleManager<IdentityRole> roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -51,6 +52,7 @@ internal static class E2eFixtureSeeder
                 "e2e-fixture"))
         };
 
+        Console.WriteLine("E2E fixture seeding: ensuring identity 1 of 6.");
         User user = await EnsureUserAsync(
             users,
             UserName,
@@ -59,6 +61,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Owner",
             password);
+        Console.WriteLine("E2E fixture seeding: ensuring identity 2 of 6.");
         User tenantUser = await EnsureUserAsync(
             users,
             TenantUserName,
@@ -67,6 +70,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Tenant User",
             password);
+        Console.WriteLine("E2E fixture seeding: ensuring identity 3 of 6.");
         User tenantBOwner = await EnsureUserAsync(
             users,
             TenantBOwnerUserName,
@@ -75,6 +79,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Tenant B Owner",
             password);
+        Console.WriteLine("E2E fixture seeding: ensuring identity 4 of 6.");
         User platformAdmin = await EnsureUserAsync(
             users,
             PlatformAdminUserName,
@@ -83,6 +88,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Platform Admin",
             password);
+        Console.WriteLine("E2E fixture seeding: ensuring identity 5 of 6.");
         User userManagementPlatformAdmin = await EnsureUserAsync(
             users,
             UserManagementPlatformAdminUserName,
@@ -91,6 +97,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "User Management Admin",
             password);
+        Console.WriteLine("E2E fixture seeding: ensuring identity 6 of 6.");
         User lockoutPlatformAdmin = await EnsureUserAsync(
             users,
             LockoutPlatformAdminUserName,
@@ -106,9 +113,11 @@ internal static class E2eFixtureSeeder
         if (!lockoutReset.Succeeded)
             throw new InvalidOperationException("E2E lockout platform-admin lockout reset failed.");
 
+        Console.WriteLine("E2E fixture seeding: identity accounts are ready.");
         Guid ownerId = Guid.Parse(user.Id);
         PartiesDbContext parties = scope.ServiceProvider.GetRequiredService<PartiesDbContext>();
         IRequestContextWriter requestContext = scope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
+        Console.WriteLine("E2E fixture seeding: preparing tenant A.");
         Tenant? tenant = await parties.Tenants.SingleOrDefaultAsync(item => item.AppId == "private-practice-owner", cancellationToken);
         if (tenant is null)
         {
@@ -137,6 +146,7 @@ internal static class E2eFixtureSeeder
         requestContext.SetContext("e2e", null, ownerId.ToString(), tenant.Id.ToString(), user.Id);
 
         Guid tenantBOwnerId = Guid.Parse(tenantBOwner.Id);
+        Console.WriteLine("E2E fixture seeding: preparing tenant B.");
         Tenant? tenantB = await parties.Tenants.SingleOrDefaultAsync(item => item.AppId == "private-practice-owner-tenant-b", cancellationToken);
         if (tenantB is null)
         {
@@ -167,6 +177,7 @@ internal static class E2eFixtureSeeder
 
         requestContext.SetContext("e2e", null, ownerId.ToString(), tenant.Id.ToString(), user.Id);
 
+        Console.WriteLine("E2E fixture seeding: preparing tenant A resources.");
         Guid patientId = Guid.Parse("2d7a3eb9-1d47-4c63-9a45-19d7e6a0fb18");
         ClinicDbContext clinic = scope.ServiceProvider.GetRequiredService<ClinicDbContext>();
         if (!await clinic.Set<PatientView>().AnyAsync(patient => patient.Id == patientId, cancellationToken))
@@ -283,6 +294,7 @@ internal static class E2eFixtureSeeder
         if (!tenantUserResult.Succeeded)
             throw new InvalidOperationException("E2E tenant-user role assignment failed.");
 
+        Console.WriteLine("E2E fixture seeding: preparing tenant B resources and access.");
         string tenantBOwnerRoleName = $"{tenantB.Id}:{IdentityDefinitions.TenantOwner}";
         if (!await roles.RoleExistsAsync(tenantBOwnerRoleName))
             _ = (await roles.CreateAsync(new IdentityRole(tenantBOwnerRoleName))).Succeeded;
@@ -392,6 +404,7 @@ internal static class E2eFixtureSeeder
         if (!tenantBFileVerification.IsVerified)
             throw new InvalidOperationException("E2E tenant-B file integrity enrollment failed.");
 
+        Console.WriteLine("E2E fixture seeding: assigning platform-admin access.");
         if (!await roles.RoleExistsAsync(IdentityDefinitions.PlatformAdmin))
             _ = (await roles.CreateAsync(new IdentityRole(IdentityDefinitions.PlatformAdmin))).Succeeded;
         if (!await users.IsInRoleAsync(platformAdmin, IdentityDefinitions.PlatformAdmin))

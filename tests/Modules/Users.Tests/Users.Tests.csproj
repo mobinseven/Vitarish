@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Modules\Users\Contracts\Users.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Users\Api\Users.Api.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Users\Client\Users.Client.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Users\Infrastructure\Users.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Authentication\Application\Authentication.Application.csproj" />

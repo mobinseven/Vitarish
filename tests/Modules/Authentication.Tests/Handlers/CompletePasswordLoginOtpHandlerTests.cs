@@ -78,7 +78,8 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new TestRequestContext(),
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
-            CreateKeys());
+            CreateKeys(),
+            new TestAuthenticationUtcClock());
 
         CompletePasswordLoginOtpCommand command = new(challenge.Id.Value, "123456", "/home");
         AuthenticationResult<LoginResult>[] results = await Task.WhenAll(
@@ -116,7 +117,8 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new TestRequestContext(),
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
-            CreateKeys());
+            CreateKeys(),
+            new TestAuthenticationUtcClock());
 
         CompletePasswordLoginOtpCommand command = new(challenge.Id.Value, "000000", "/home");
         AuthenticationResult<LoginResult>[] results = await Task.WhenAll(
@@ -169,7 +171,8 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             new TestRequestContext(),
             new InMemoryAuthenticationAttemptTracker(),
             new TestSecurityPolicyProvider(),
-            CreateKeys());
+            CreateKeys(),
+            new TestAuthenticationUtcClock());
     }
 
     private sealed class TestSecurityPolicyProvider : IAuthenticationSecurityPolicyProvider
@@ -211,4 +214,9 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             Realm = "tests",
             CurrentPepper = "test-authentication-attempt-key-pepper-20260829"
         }));
+
+    private sealed class TestAuthenticationUtcClock : IAuthenticationUtcClock
+    {
+        public DateTime UtcNow => new(2026, 9, 28, 8, 0, 0, DateTimeKind.Utc);
+    }
 }

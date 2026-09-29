@@ -294,6 +294,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "subjectId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -510,6 +517,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "subjectId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -712,6 +726,12 @@
             ]
           },
           "sourceIpAddress": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "clientInterfaceHost": {
             "type": [
               "null",
               "string"

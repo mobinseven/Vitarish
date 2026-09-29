@@ -39,7 +39,10 @@ describe("useAuthSession", () => {
     server.use(
       http.get(/\/api\/modules\/authentication\/session(?:\?|$)/, () => {
         requests += 1;
-        return HttpResponse.json({ status: 401, title: "Unauthorized" }, { status: 401 });
+        return HttpResponse.json(
+          { status: 401, title: "Unauthorized" },
+          { status: 401 },
+        );
       }),
     );
 

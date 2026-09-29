@@ -7,6 +7,6 @@ public interface IWebAuthnCredentialLookup
     Task UpdateSignatureCounterAsync(byte[] credentialId, uint newCounter, CancellationToken ct);
 }
 
-public record WebAuthnCredentialDescriptor(byte[] CredentialId);
+public record WebAuthnCredentialDescriptor(byte[] CredentialId, string UserId);
 
 public record WebAuthnCredentialData(string UserId, byte[] PublicKey, uint SignatureCounter, bool IsActive);

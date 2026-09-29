@@ -1,6 +1,7 @@
 export {
   localizePlatformAuditCategory,
   localizePlatformAuditEvent,
+  localizeSecurityAuditOutcome,
   securityMessageCatalogs,
 } from "./catalogs";
 
