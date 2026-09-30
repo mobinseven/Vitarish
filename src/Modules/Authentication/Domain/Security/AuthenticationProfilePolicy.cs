@@ -48,7 +48,8 @@ public sealed record AuthenticationProfilePolicy(
             HashSet<PreAuthenticationAction> actions =
             [
                 PreAuthenticationAction.AuthenticationProfile,
-                PreAuthenticationAction.PasswordLogin
+                PreAuthenticationAction.PasswordLogin,
+                PreAuthenticationAction.PasswordRecovery
             ];
             if (AllowPasswordlessPhoneLogin)
                 actions.Add(PreAuthenticationAction.PhoneLogin);

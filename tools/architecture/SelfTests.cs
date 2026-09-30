@@ -66,7 +66,9 @@ internal static class SelfTests
                 (files[8], "packages: write", "contents: read", "ProductionWorkflowPermissionsInvalid"),
                 (files[8], "pull-requests: read", "actions: read", "ProductionWorkflowPermissionsInvalid"),
                 (files[8], "needs.required.result == 'success'", "needs.required.result == 'always'", "ProductionWorkflowTestGateMissing"),
-                (files[8], Regex.Escape("needs: [changes, dotnet, web, security]"), "needs: [dotnet, web, security]", "ProductionWorkflowTestGateMissing"),
+                (files[8], Regex.Escape("needs: [changes, dotnet, web, authentication_web, security]"), "needs: [changes, dotnet, web, authentication_web]", "ProductionWorkflowTestGateMissing"),
+                (files[8], Regex.Escape("needs: [changes, dotnet, web, authentication_web, security]"), "needs: [changes, dotnet, web, security]", "ProductionWorkflowTestGateMissing"),
+                (files[8], @"(?ms)(^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: )\[[^\]]*\]", "$1[]", "ProductionWorkflowTestGateMissing"),
                 (files[8], "github.ref == 'refs/heads/main'", "github.ref == 'refs/heads/release'", "ProductionWorkflowTestGateMissing"),
                 (files[8], "always\\(\\) && !cancelled\\(\\) && github.event_name", "github.event_name", "ProductionWorkflowTestGateMissing"),
                 (files[8], "StrictHostKeyChecking=yes", "StrictHostKeyChecking=no", "ProductionSshBoundaryInvalid"),
@@ -223,7 +225,44 @@ internal static class SelfTests
                 static class ProfileEndpoints
                 {
                     static void Map(object group) => group.MapModuleGet("/profile", GetAsync, "UsersGetProfile");
-                    static void GetAsync() { }
+                    static void MapSearch(object group)
+                    {
+                        _ = group.MapModuleGet("/search", SearchAsync, "UsersSearchUsers").RequireAuthorization(FakePolicies.ReadUsers);
+                    }
+                    static void SearchAsync() { }
+                    static bool GetAsync(UserSubjectAccessPolicy access, string userId) => access.AllowsSelf(userId);
+                }
+                """),
+            ("src/Modules/Users/Module/AuthorizationPolicies.cs", """
+                static class FakePolicies
+                {
+                    public const string ReadUsers = "Users.SecurityState.Read";
+                    static void AddPolicies(AuthorizationOptions options) => options.AddPolicy("Users.SecurityState.Read", policy => policy.RequireRole("PlatformAdmin"));
+                }
+                static class IdentityDefinitions
+                {
+                    public const string PlatformAdmin = "PlatformAdmin";
+                }
+                """),
+            ("src/Modules/Authentication/Api/PasswordRecoveryEndpoints.cs", """
+                using Authentication.Contracts;
+                namespace Authentication.Api;
+                static class PasswordRecoveryEndpoints
+                {
+                    static void Map(object group)
+                    {
+                        group.MapModulePost("/first", BeginAsync, "Authentication_PasswordRecovery_Begin", profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: AuthenticationAnonymousEndpointJustifications.PasswordRecovery);
+                        group.MapModulePost("/second", CompleteAsync, "Authentication_PasswordRecovery_Complete", profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: AuthenticationAnonymousEndpointJustifications.PasswordRecovery);
+                    }
+                    static void BeginAsync() { }
+                    static void CompleteAsync() { }
+                }
+                """),
+            ("src/Modules/Authentication/Contracts/AuthenticationAnonymousEndpointJustifications.cs", """
+                namespace Authentication.Contracts;
+                static class AuthenticationAnonymousEndpointJustifications
+                {
+                    public const string PasswordRecovery = "authentication.password-recovery";
                 }
                 """));
         string valid = """
@@ -232,14 +271,72 @@ internal static class SelfTests
             | --- | --- | --- | --- | --- | --- | --- | --- | --- |
             | FooGetItems | Foo | src/Modules/Foo/Api/FooApi.cs | protected | BrowserOrBearer | Foo application boundary | Not required | — | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
             | UsersGetProfile | Users | src/Modules/Users/Api/ProfileEndpoints.cs | protected | BrowserOrBearer | UserSubjectAccessPolicy applies the self-only rule | Not required | — | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            | UsersSearchUsers | Users | src/Modules/Users/Api/ProfileEndpoints.cs | protected | BrowserOrBearer + Policy:FakePolicies.ReadUsers | PlatformAdmin policy | Not required | — | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            | Authentication_PasswordRecovery_Begin | Authentication | src/Modules/Authentication/Api/PasswordRecoveryEndpoints.cs | anonymous | None | Public recovery request uses Authentication pre-authentication policy | Not required | authentication.password-recovery | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            | Authentication_PasswordRecovery_Complete | Authentication | src/Modules/Authentication/Api/PasswordRecoveryEndpoints.cs | anonymous | None | Public recovery completion validates its single-use challenge and active password policy | Not required | authentication.password-recovery | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
             <!-- main-module-authorization-matrix:end -->
             <!-- user-auth-role-object-matrix:start -->
             | Operation ID | Data category | Operation | PlatformAdmin | TenantOwner | TenantUser | Authorization owner | Regression test |
             | --- | --- | --- | --- | --- | --- | --- | --- |
             | UsersGetProfile | Account profile metadata | Read | Self only | Self only | Self only | UserSubjectAccessPolicy | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            | UsersSearchUsers | Account record | Read | Allow | Deny | Deny | FakePolicies.ReadUsers | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            | Authentication_PasswordRecovery_Begin | Authentication challenge | Create | Pre-auth only | Pre-auth only | Pre-auth only | Anonymous endpoint mapping and Authentication password-recovery policy | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            | Authentication_PasswordRecovery_Complete | Authentication credential | Change | Pre-auth only | Pre-auth only | Pre-auth only | Anonymous endpoint mapping and single-use password-recovery challenge | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
             <!-- user-auth-role-object-matrix:end -->
             """;
-        Require(AuthorizationMatrixCheck.Run(index, valid).Count == 0, "valid authorization matrix produced a violation");
+        IReadOnlyList<ArchitectureViolation> validViolations = AuthorizationMatrixCheck.Run(index, valid);
+        Require(validViolations.Count == 0, $"valid authorization matrix produced a violation: {string.Join("; ", validViolations.Select(violation => violation.Kind + ":" + violation.Expression + ":" + violation.Remediation))}");
+        string widenedSelfAccess = valid.Replace("| Read | Self only | Self only | Self only |", "| Read | Allow | Self only | Self only |", StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(index, widenedSelfAccess).Any(violation => violation.Kind == AuthorizationMatrixCheck.ExecutableDispositionMismatchKind),
+            "self-only disposition widened to Allow without an executable authorization change");
+        string widenedRoleAccess = valid.Replace("| Read | Allow | Deny | Deny | FakePolicies.ReadUsers |", "| Read | Allow | Allow | Deny | FakePolicies.ReadUsers |", StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(index, widenedRoleAccess).Any(violation => violation.Kind == AuthorizationMatrixCheck.ExecutableDispositionMismatchKind),
+            "platform-admin policy widened to TenantOwner without an executable authorization change");
+        string arbitraryAuthority = valid.Replace("| Allow | Deny | Deny | FakePolicies.ReadUsers |", "| Allow | Deny | Deny | arbitrary prose |", StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(index, arbitraryAuthority).Any(violation => violation.Kind == AuthorizationMatrixCheck.ExecutableAuthorityMismatchKind),
+            "executable policy owner replaced by unbound prose");
+        (string RelativePath, string Text)[] compoundPolicySources = index.Files.Select(file => (
+            file.RelativePath,
+            file.RelativePath == "src/Modules/Users/Module/AuthorizationPolicies.cs"
+                ? file.Text.Replace("policy.RequireRole(\"PlatformAdmin\")", "policy.RequireRole(\"PlatformAdmin\").RequireRole(\"TenantOwner\")", StringComparison.Ordinal)
+                : file.Text)).ToArray();
+        SourceIndex compoundPolicyIndex = SourceIndex.FromSources(compoundPolicySources);
+        Require(AuthorizationMatrixCheck.Run(compoundPolicyIndex, valid).Any(violation => violation.Kind == AuthorizationMatrixCheck.UserAuthRoleObjectDispositionInvalidKind),
+            "compound authorization requirements were guessed instead of classified");
+        string nonTestAnchor = valid.Replace(
+            "UserSubjectAccessPolicy | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |",
+            "UserSubjectAccessPolicy | tools/architecture/SelfTests.cs#MapSearch |", StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(index, nonTestAnchor).Any(violation => violation.Kind == AuthorizationMatrixCheck.UserAuthRoleObjectTestReferenceMissingKind),
+            "source method text without a declared test case was accepted as regression evidence");
+
+        SourceIndex namedRationaleIndex = SourceIndex.FromSources(
+            ("src/Modules/Foo/Contracts/FooContracts.cs", "namespace Foo.Contracts; public static class FooAnonymousJustifications { public const string Recovery = \"foo.password-recovery\"; }"),
+            ("src/Modules/Foo/Api/FooApi.cs", """
+                using Foo.Contracts;
+                namespace Foo.Api;
+                static class FooApi
+                {
+                    static void Map(object group) => group.MapModulePost("/recovery", RecoverAsync, "FooPasswordRecovery", profile: ModuleEndpointProfile.AnonymousJson, anonymousJustification: FooAnonymousJustifications.Recovery);
+                    static void RecoverAsync() { }
+                }
+                """));
+        string namedRationaleMatrix = """
+            <!-- main-module-authorization-matrix:start -->
+            | Operation ID | Module owner | Route owner | Classification | Authentication | Authority | Reauthentication | Public rationale | Regression test |
+            | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+            | FooPasswordRecovery | Foo | src/Modules/Foo/Api/FooApi.cs | anonymous | None | Public recovery transport | Required | foo.password-recovery | tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |
+            <!-- main-module-authorization-matrix:end -->
+            <!-- user-auth-role-object-matrix:start -->
+            | Operation ID | Data category | Operation | PlatformAdmin | TenantOwner | TenantUser | Authorization owner | Regression test |
+            | --- | --- | --- | --- | --- | --- | --- | --- |
+            <!-- user-auth-role-object-matrix:end -->
+            """;
+        Require(AuthorizationMatrixCheck.Run(namedRationaleIndex, namedRationaleMatrix).Count == 0,
+            "source-owned anonymous rationale constant did not match its matrix row");
+        string mismatchedNamedRationale = namedRationaleMatrix.Replace("foo.password-recovery", "foo.other", StringComparison.Ordinal);
+        Require(AuthorizationMatrixCheck.Run(namedRationaleIndex, mismatchedNamedRationale)
+                .Any(violation => violation.Kind == "AnonymousRationaleMismatch"),
+            "source-owned anonymous rationale mismatch was not detected");
 
         string duplicate = valid.Replace(
             "<!-- main-module-authorization-matrix:end -->",
@@ -269,7 +366,7 @@ internal static class SelfTests
         Require(AuthorizationMatrixCheck.Run(index, staleDisposition).Any(violation => violation.Kind == "StaleUserAuthRoleObjectOperation"),
             "stale Users or Authentication role/object disposition was not detected");
         string invalidDisposition = valid.Replace("| Self only | Self only | Self only |", "| Unknown | Self only | Self only |", StringComparison.Ordinal);
-        Require(AuthorizationMatrixCheck.Run(index, invalidDisposition).Any(violation => violation.Kind == "UserAuthRoleObjectDispositionInvalid"),
+        Require(AuthorizationMatrixCheck.Run(index, invalidDisposition).Any(violation => violation.Kind == AuthorizationMatrixCheck.UserAuthRoleObjectDispositionInvalidKind),
             "invalid subject disposition was not detected");
         string missingTest = valid.Replace(
             "tools/architecture/SelfTests.cs#AuthorizationMatrixCheckSelfTest |\n<!-- user-auth-role-object-matrix:end -->",

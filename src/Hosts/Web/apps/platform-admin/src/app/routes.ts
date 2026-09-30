@@ -1,9 +1,12 @@
+import { AuthenticationWebRoutes } from "@vitarish/auth/routes";
+
 /** The platform-admin application's route source of truth. */
 export const Routes = {
   Root: "/",
   Logout: "/logout",
   Login: "/login",
   LoginPassword: "/login/password",
+  LoginForgotPassword: AuthenticationWebRoutes.PasswordRecovery,
   Users: {
     Index: "/users",
     New: "/users/new",

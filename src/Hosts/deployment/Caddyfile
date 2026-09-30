@@ -22,7 +22,7 @@
         X-Frame-Options "DENY"
         Referrer-Policy "strict-origin-when-cross-origin"
         Permissions-Policy "camera=(), microphone=(), geolocation=()"
-        Content-Security-Policy "{$VITARISH_CONTENT_SECURITY_POLICY}"
+        Content-Security-Policy-Report-Only "{$VITARISH_CONTENT_SECURITY_POLICY}"
     }
 }
 

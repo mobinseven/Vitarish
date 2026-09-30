@@ -2,12 +2,15 @@ import { appendFileSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+const platformAdminFilter = "web_admin";
+const webAuthFilter = "web_auth";
+
 const webConsumers = [
-  { service: "private-practice-owner", image: "private-practice-owner", workspace: "private-practice-owner", filter: "web_owner" },
-  { service: "patients", image: "patients", workspace: "patients", filter: "web_patients" },
-  { service: "platform-admin", image: "platform-admin", workspace: "platform-admin", filter: "web_admin" },
-  { service: "pm", image: "pm", workspace: "vitarish-pm", filter: "web_pm" },
-  { service: "knowledge-qa", image: "knowledge-qa", workspace: "knowledge-qa-demo", filter: "web_qa" },
+  { service: "private-practice-owner", image: "private-practice-owner", workspace: "private-practice-owner", filter: "web_owner", authConsumer: true },
+  { service: "patients", image: "patients", workspace: "patients", filter: "web_patients", authConsumer: true },
+  { service: "platform-admin", image: "platform-admin", workspace: "platform-admin", filter: platformAdminFilter, authConsumer: true },
+  { service: "pm", image: "pm", workspace: "vitarish-pm", filter: "web_pm", authConsumer: true },
+  { service: "knowledge-qa", image: "knowledge-qa", workspace: "knowledge-qa-demo", filter: "web_qa", authConsumer: true },
   { service: "landing", image: "landing", workspace: "vitarish-landing", filter: "web_landing" },
   { service: "agent-runtime", image: "agent-runtime", workspace: "agent-runtime", filter: "web_agent" },
 ];
@@ -20,9 +23,12 @@ const sharedComposeConsumers = [
 export function selectProductionMatrix(eventName, filters) {
   const fullSuite = eventName === "workflow_dispatch";
   const broad = fullSuite || filters.unknown_source === true;
-  const allWebImages = broad || filters.web_all === true;
-  const webTests = webConsumers.filter((consumer) => allWebImages || filters[consumer.filter] === true);
-  const webImages = webConsumers.filter((consumer) => allWebImages || filters[consumer.filter] === true);
+  const authChanged = filters[webAuthFilter] === true;
+  const selectedConsumers = webConsumers.filter((consumer) =>
+    filters[consumer.filter] === true || (authChanged && consumer.authConsumer));
+  const allWebConsumers = broad || filters.web_all === true;
+  const webTests = webConsumers.filter((consumer) => allWebConsumers || selectedConsumers.includes(consumer));
+  const webImages = webConsumers.filter((consumer) => allWebConsumers || selectedConsumers.includes(consumer));
   const main = broad || filters.main === true || filters.dotnet === true;
   const caddyImage = broad || filters.caddy === true;
   const caddyService = caddyImage || filters.caddy_config === true;
@@ -54,11 +60,11 @@ function readinessPathFromSource() {
 }
 
 if (process.env.GITHUB_OUTPUT && resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url)) {
-  const filters = Object.fromEntries([
-    "dotnet", "main", "web_all", "web_owner", "web_patients", "web_admin", "web_pm",
-    "web_qa", "web_landing", "web_agent", "caddy", "compose", "deploy_script", "test_compose", "workflow", "unknown_source",
-    "caddy_config",
-  ].map((name) => [name, process.env[name.toUpperCase()] === "true"]));
+  const changedFilters = JSON.parse(process.env.CHANGED_FILTERS || "[]");
+  if (!Array.isArray(changedFilters) || changedFilters.some((name) => typeof name !== "string")) {
+    throw new Error("Changed path filters must be a JSON array of names.");
+  }
+  const filters = Object.fromEntries(changedFilters.map((name) => [name, true]));
   const selected = selectProductionMatrix(process.env.EVENT_NAME, filters);
   const outputs = {
     web: JSON.stringify(selected.web),

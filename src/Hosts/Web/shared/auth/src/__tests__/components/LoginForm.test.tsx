@@ -27,6 +27,7 @@ function wrapper({ children }: { children: ReactNode }) {
               passwordPlaceholder: "Enter",
               signInAction: "Sign in",
             },
+            recovery: { forgotPasswordAction: "Forgot password?" },
           },
         }}
       >
@@ -44,13 +45,17 @@ describe("LoginForm", () => {
   });
 
   it("should render username and password fields", () => {
-    render(<LoginForm />, { wrapper });
+    render(<LoginForm forgotPasswordHref="/login/forgot-password" />, { wrapper });
 
     expect(screen.getByLabelText(/username or email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /sign in/i }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /forgot password/i })).toHaveAttribute(
+      "href",
+      "/login/forgot-password",
+    );
   });
 
   it("should render with correct input types", () => {
