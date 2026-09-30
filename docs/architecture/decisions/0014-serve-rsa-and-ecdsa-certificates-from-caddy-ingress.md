@@ -1,9 +1,9 @@
 # ADR-0014: Serve RSA and ECDSA certificates from the Caddy ingress
 
-- Status: Accepted
-- Date: 2026-09-29
-- Owner: Platform Architecture
-- Scope: Shared public ingress for test and production
+Status: Accepted<br>
+Date: 2026-09-29<br>
+Owner: Platform Architecture<br>
+Scope: Shared public ingress for test and production
 
 ## Context
 
