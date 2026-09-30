@@ -204,8 +204,6 @@ jobs:
     needs: changes
     if: ${{ contains(needs.changes.outputs.filters, 'web_auth') }}
     runs-on: ubuntu-latest
-    env:
-      HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
     defaults:
       run:
         working-directory: src/Hosts/Web
@@ -217,6 +215,8 @@ jobs:
           cache: npm
           cache-dependency-path: src/Hosts/Web/package-lock.json
       - run: npm ci
+        env:
+          HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
       - name: Generate authentication API client
         run: npm run generate:api --workspace @vitarish/auth --if-present
       - name: Typecheck shared authentication

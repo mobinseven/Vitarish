@@ -42,6 +42,8 @@ export {
   useAuthenticationLoginEmailComplete,
   useAuthenticationLoginPasskeyBegin,
   useAuthenticationLoginPasskeyComplete,
+  useAuthenticationPasswordRecoveryBegin,
+  useAuthenticationPasswordRecoveryComplete,
   useAuthenticationLogoutPost,
   useAuthenticationLogoutContext,
   useAuthenticationAccessHistoryGet as useAuthenticationAccessHistory,
@@ -103,7 +105,10 @@ export type { AuthMethodRoute } from "./components/AuthMethodSelector";
 export { AuthorizationGuard } from "./components/AuthorizationGuard";
 export { EmailOtpForm } from "./components/EmailOtpForm";
 export { LoginForm } from "./components/LoginForm";
+export { AuthenticationWebRoutes } from "./routes";
 export { LoginPageCard } from "./components/LoginPageCard";
+export { PasswordRecoveryForm } from "./components/PasswordRecoveryForm";
+export { PasswordRecoveryPage } from "./components/PasswordRecoveryPage";
 export { OtpCodeInput } from "./components/OtpCodeInput";
 export { OtpVerificationStep } from "./components/OtpVerificationStep";
 export { PasskeyButton } from "./components/PasskeyButton";
@@ -112,6 +117,7 @@ export { AuthenticatedRedirectBoundary, SessionRedirect, resolveSessionRedirectT
 
 // Workflow hooks
 export { usePasswordLogin } from "./hooks/usePasswordLogin";
+export { usePasswordRecovery } from "./hooks/usePasswordRecovery";
 export { usePhoneLogin } from "./hooks/usePhoneLogin";
 export type { PhoneLoginStep } from "./hooks/usePhoneLogin";
 export { useEmailLogin } from "./hooks/useEmailLogin";

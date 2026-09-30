@@ -46,6 +46,38 @@ public sealed class InMemoryAuthenticationChallengeStoreTests
     }
 
     [Fact]
+    public async Task Completion_reservation_is_exclusive_and_blocks_other_attempts_until_released_or_consumed()
+    {
+        InMemoryAuthenticationChallengeStore store = new();
+        AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreateEmailPasswordRecoveryChallenge(
+            "user-42",
+            "person@example.test",
+            AuthenticationChallengePolicy.Default.TokenPurpose(AuthenticationChallengePurpose.EmailPasswordRecovery),
+            DateTimeOffset.UtcNow);
+        await store.SaveAsync(challenge, CancellationToken.None);
+        (await store.TryReserveAttemptAsync(challenge, CancellationToken.None)).Should().BeTrue();
+        (await store.TryConsumeAsync(challenge, CancellationToken.None)).Should().BeFalse();
+        (await store.GetAsync(challenge.Id, CancellationToken.None))!.Status.Should().Be(AuthenticationChallengeStatus.Pending);
+        (await store.TryReserveAttemptAsync(challenge, CancellationToken.None)).Should().BeTrue();
+        (await store.TryReserveAttemptAsync(challenge, CancellationToken.None)).Should().BeTrue();
+
+        Task<bool>[] completions = Enumerable.Range(0, 16)
+            .Select(_ => store.TryReserveCompletionAsync(challenge, CancellationToken.None))
+            .ToArray();
+        bool[] reservations = await Task.WhenAll(completions);
+
+        reservations.Count(reserved => reserved).Should().Be(1);
+        (await store.TryReserveAttemptAsync(challenge, CancellationToken.None)).Should().BeFalse();
+        (await store.TryRegisterFailureAsync(challenge, CancellationToken.None)).Should().Be(0);
+        (await store.GetAsync(challenge.Id, CancellationToken.None))!.FailedAttempts.Should().Be(0);
+
+        await store.ReleaseCompletionAsync(challenge, CancellationToken.None);
+        (await store.TryReserveCompletionAsync(challenge, CancellationToken.None)).Should().BeTrue();
+        (await store.TryConsumeAsync(challenge, CancellationToken.None)).Should().BeTrue();
+        (await store.GetAsync(challenge.Id, CancellationToken.None))!.Status.Should().Be(AuthenticationChallengeStatus.Completed);
+    }
+
+    [Fact]
     public async Task TryRegisterFailureAsync_allows_only_the_configured_number_of_concurrent_failures()
     {
         InMemoryAuthenticationChallengeStore store = new();

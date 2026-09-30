@@ -19,7 +19,7 @@ export default function PasswordLoginPage() {
       skeletonHeight="184px"
       backHref={Routes.Login.Index}
     >
-      <LoginForm navigate={navigate} returnUrlSearchParams={searchParams} />
+      <LoginForm navigate={navigate} returnUrlSearchParams={searchParams} forgotPasswordHref={Routes.Login.ForgotPassword} />
     </LoginPageCard>
   );
 }

@@ -108,7 +108,7 @@ test("a shared authentication change selects every consuming app with shared aut
   assert.equal(selected.images.length, authConsumerWorkspaces.length + 1);
   assert.equal(selected.services.length, authConsumerWorkspaces.length + 1);
   assert.deepEqual(selected.web.map(({ workspace }) => workspace).sort(), [...authConsumerWorkspaces, "vitarish-landing"].sort());
-  assert.match(workflow, /authentication_web:[\s\S]*?env:\r?\n      HEROUI_AUTH_TOKEN: \$\{\{ secrets\.HEROUI_AUTH_TOKEN \}\}/);
+  assert.match(workflow, /authentication_web:[\s\S]*?env:\r?\n          HEROUI_AUTH_TOKEN: \$\{\{ secrets\.HEROUI_AUTH_TOKEN \}\}/);
   assert.match(workflow, /npm ci/);
   assert.match(workflow, /authentication_web:[\s\S]*?if: \$\{\{ contains\(needs\.changes\.outputs\.filters, 'web_auth'\) \}\}/);
   assert.match(workflow, /needs: \[changes, dotnet, web, authentication_web, security\]/);

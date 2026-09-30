@@ -9,10 +9,12 @@ import type { AuthNavigationOptions } from "../hooks/navigation";
 
 interface LoginFormProps extends AuthNavigationOptions {
   returnUrl?: string;
+  forgotPasswordHref?: string;
 }
 
 export function LoginForm({
   returnUrl,
+  forgotPasswordHref,
   navigate,
   returnUrlSearchParams,
 }: LoginFormProps) {
@@ -100,6 +102,11 @@ export function LoginForm({
         <Button type="submit" isDisabled={!isHydrated || isLoading} isPending={isLoading} className="w-full">
           {t("auth.login.signInAction")}
         </Button>
+      )}
+      {!requiresOtp && forgotPasswordHref && (
+        <a className="self-end text-sm text-primary underline-offset-4 hover:underline" href={forgotPasswordHref}>
+          {t("auth.recovery.forgotPasswordAction")}
+        </a>
       )}
     </Form>
   );

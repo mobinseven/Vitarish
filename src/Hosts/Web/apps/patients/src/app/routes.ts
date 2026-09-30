@@ -1,7 +1,9 @@
+import { AuthenticationWebRoutes } from "@vitarish/auth/routes";
+
 export const Routes = {
   Root: "/",
   Home: "/",
-  Login: { Index: "/login", Password: "/login/password", Phone: "/login/phone", Email: "/login/email", Passkey: "/login/passkey" },
+  Login: { Index: "/login", Password: "/login/password", Phone: "/login/phone", Email: "/login/email", Passkey: "/login/passkey", ForgotPassword: AuthenticationWebRoutes.PasswordRecovery },
   Logout: "/logout",
   Directory: "/practices",
   Profile: "/profile",

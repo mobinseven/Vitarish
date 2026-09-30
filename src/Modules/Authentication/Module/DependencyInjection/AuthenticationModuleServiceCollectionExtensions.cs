@@ -25,6 +25,8 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddScoped<CompletePasswordLoginOtpHandler>();
         services.AddScoped<AuthenticationOtpDeliveryService>();
         services.AddScoped<AuthenticationAttemptAuditor>();
+        services.AddScoped<BeginPasswordRecoveryHandler>();
+        services.AddScoped<CompletePasswordRecoveryHandler>();
         services.AddScoped<LogoutHandler>();
         services.AddScoped<GetCurrentAuthenticationSessionHandler>();
         services.AddScoped<GetLogoutContextHandler>();

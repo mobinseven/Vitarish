@@ -22,6 +22,7 @@ export default function PlatformPasswordLoginPage() {
         navigate={navigate}
         returnUrl={Routes.Audit}
         returnUrlSearchParams={searchParams}
+        forgotPasswordHref={Routes.LoginForgotPassword}
       />
     </LoginPageCard>
   );

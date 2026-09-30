@@ -134,7 +134,7 @@ internal static class SecurityBaselineCheck
             violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowPermissionsInvalid", "Keep PR permissions read-only and grant package write only to publication on main pushes."));
         if (!Regex.IsMatch(workflow, @"(?ms)^  publish:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required\].*?^    if: \$\{\{ github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?\}\}") ||
             !Regex.IsMatch(workflow, @"(?ms)^  deploy_production:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required, publish\].*?^    if: \$\{\{ always\(\) && !cancelled\(\) && github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?\}\}") ||
-            !RequiredJobGateCoversAllChecks(workflow) ||
+            !HasCompleteRequiredCheckDependencies(workflow) ||
             !Regex.IsMatch(workflow, @"(?ms)^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    if: \$\{\{ always\(\) \}\}") ||
             !workflow.Contains("contains(needs.*.result, 'failure')", StringComparison.Ordinal) ||
             !workflow.Contains("contains(needs.*.result, 'cancelled')", StringComparison.Ordinal))
@@ -321,68 +321,57 @@ internal static class SecurityBaselineCheck
         return violations;
     }
 
-    private static bool RequiredJobGateCoversAllChecks(string workflow)
+    private static bool HasCompleteRequiredCheckDependencies(string workflow)
     {
-        const string requiredJobName = "required";
-        Dictionary<string, HashSet<string>> jobDependencies = new(StringComparer.Ordinal);
-        string? currentJobName = null;
-        bool insideJobs = false;
+        Match jobsStart = Regex.Match(workflow, @"(?m)^jobs:[ \t]*\r?\n");
+        if (!jobsStart.Success) return false;
 
-        foreach (string rawLine in workflow.Split('\n'))
+        string jobDefinitions = workflow[(jobsStart.Index + jobsStart.Length)..];
+        MatchCollection jobMatches = Regex.Matches(
+            jobDefinitions,
+            @"(?ms)^  (?<id>[a-z][a-z0-9_-]*):\r?\n(?<body>.*?)(?=^  [a-z][a-z0-9_-]*:|\z)");
+        Dictionary<string, string[]> needsByJob = new(StringComparer.Ordinal);
+        foreach (Match job in jobMatches)
         {
-            string line = rawLine.TrimEnd('\r');
-            if (!insideJobs)
-            {
-                insideJobs = string.Equals(line, "jobs:", StringComparison.Ordinal);
-                continue;
-            }
+            Match needs = Regex.Match(job.Groups["body"].Value, @"(?m)^    needs:[ \t]*(?<value>[^\r\n]+)(?=\r?$)");
+            if (!needs.Success) continue;
 
-            if (line.Length > 0 && !char.IsWhiteSpace(line[0]) && !line.StartsWith('#'))
-                break;
-
-            Match jobDeclaration = Regex.Match(line, @"^  (?<name>[a-z_][a-z0-9_-]*):\s*$");
-            if (jobDeclaration.Success)
-            {
-                currentJobName = jobDeclaration.Groups["name"].Value;
-                jobDependencies[currentJobName] = new(StringComparer.Ordinal);
-                continue;
-            }
-
-            if (currentJobName is null)
-                continue;
-
-            Match needsDeclaration = Regex.Match(line, @"^    needs:\s*\[(?<names>[^\]]*)\]\s*$");
-            if (!needsDeclaration.Success)
-                continue;
-
-            foreach (string dependency in needsDeclaration.Groups["names"].Value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                jobDependencies[currentJobName].Add(dependency);
+            string[]? dependencies = ParseWorkflowNeeds(needs.Groups["value"].Value);
+            if (dependencies is null || !needsByJob.TryAdd(job.Groups["id"].Value, dependencies)) return false;
         }
 
-        if (!jobDependencies.TryGetValue(requiredJobName, out HashSet<string>? requiredDependencies) ||
-            requiredDependencies.Count == 0 ||
-            requiredDependencies.Any(dependency => !jobDependencies.ContainsKey(dependency)))
-            return false;
+        if (!needsByJob.TryGetValue("required", out string[]? requiredNeeds) || requiredNeeds is null) return false;
 
-        HashSet<string> downstreamJobs = new(StringComparer.Ordinal);
-        bool addedDownstreamJob;
-        do
+        HashSet<string> requiredDependencies = new(requiredNeeds, StringComparer.Ordinal);
+        HashSet<string> checkJobsAndPrerequisites = new(StringComparer.Ordinal);
+        foreach ((string jobId, string[] dependencies) in needsByJob)
         {
-            addedDownstreamJob = false;
-            foreach ((string jobName, HashSet<string> dependencies) in jobDependencies)
-            {
-                if (jobName == requiredJobName || downstreamJobs.Contains(jobName))
-                    continue;
+            if (jobId == "required" || dependencies.Length != 1) continue;
+            checkJobsAndPrerequisites.Add(jobId);
+            checkJobsAndPrerequisites.UnionWith(dependencies);
+        }
 
-                if (dependencies.Contains(requiredJobName) || dependencies.Overlaps(downstreamJobs))
-                    addedDownstreamJob |= downstreamJobs.Add(jobName);
-            }
-        } while (addedDownstreamJob);
-
-        return jobDependencies.Keys
-            .Where(jobName => jobName != requiredJobName && !downstreamJobs.Contains(jobName))
-            .All(requiredDependencies.Contains);
+        return checkJobsAndPrerequisites.Count > 0 &&
+            checkJobsAndPrerequisites.All(requiredDependencies.Contains);
     }
+
+    private static string[]? ParseWorkflowNeeds(string value)
+    {
+        value = value.Trim();
+        if (value.StartsWith("[", StringComparison.Ordinal) && value.EndsWith("]", StringComparison.Ordinal))
+        {
+            value = value[1..^1].Trim();
+            if (value.Length == 0) return [];
+
+            string[] dependencies = value.Split(',', StringSplitOptions.TrimEntries);
+            return dependencies.All(IsWorkflowJobId) ? dependencies : null;
+        }
+
+        return IsWorkflowJobId(value) ? [value] : null;
+    }
+
+    private static bool IsWorkflowJobId(string value) =>
+        Regex.IsMatch(value, @"^[a-z][a-z0-9_-]*$", RegexOptions.CultureInvariant);
 
     private static Dictionary<string, string> ReadEnvironmentValues(string content, string path, List<ArchitectureViolation> violations)
     {
