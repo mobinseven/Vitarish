@@ -134,7 +134,7 @@ internal static class SecurityBaselineCheck
             violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowPermissionsInvalid", "Keep PR permissions read-only and grant package write only to publication on main pushes."));
         if (!Regex.IsMatch(workflow, @"(?ms)^  publish:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required\].*?^    if: \$\{\{ github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?\}\}") ||
             !Regex.IsMatch(workflow, @"(?ms)^  deploy_production:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required, publish\].*?^    if: \$\{\{ always\(\) && !cancelled\(\) && github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?\}\}") ||
-            !Regex.IsMatch(workflow, @"(?ms)^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, dotnet, web, security\]" ) ||
+            !RequiredJobGateCoversAllChecks(workflow) ||
             !Regex.IsMatch(workflow, @"(?ms)^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    if: \$\{\{ always\(\) \}\}") ||
             !workflow.Contains("contains(needs.*.result, 'failure')", StringComparison.Ordinal) ||
             !workflow.Contains("contains(needs.*.result, 'cancelled')", StringComparison.Ordinal))
@@ -319,6 +319,69 @@ internal static class SecurityBaselineCheck
         }
 
         return violations;
+    }
+
+    private static bool RequiredJobGateCoversAllChecks(string workflow)
+    {
+        const string requiredJobName = "required";
+        Dictionary<string, HashSet<string>> jobDependencies = new(StringComparer.Ordinal);
+        string? currentJobName = null;
+        bool insideJobs = false;
+
+        foreach (string rawLine in workflow.Split('\n'))
+        {
+            string line = rawLine.TrimEnd('\r');
+            if (!insideJobs)
+            {
+                insideJobs = string.Equals(line, "jobs:", StringComparison.Ordinal);
+                continue;
+            }
+
+            if (line.Length > 0 && !char.IsWhiteSpace(line[0]) && !line.StartsWith('#'))
+                break;
+
+            Match jobDeclaration = Regex.Match(line, @"^  (?<name>[a-z_][a-z0-9_-]*):\s*$");
+            if (jobDeclaration.Success)
+            {
+                currentJobName = jobDeclaration.Groups["name"].Value;
+                jobDependencies[currentJobName] = new(StringComparer.Ordinal);
+                continue;
+            }
+
+            if (currentJobName is null)
+                continue;
+
+            Match needsDeclaration = Regex.Match(line, @"^    needs:\s*\[(?<names>[^\]]*)\]\s*$");
+            if (!needsDeclaration.Success)
+                continue;
+
+            foreach (string dependency in needsDeclaration.Groups["names"].Value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                jobDependencies[currentJobName].Add(dependency);
+        }
+
+        if (!jobDependencies.TryGetValue(requiredJobName, out HashSet<string>? requiredDependencies) ||
+            requiredDependencies.Count == 0 ||
+            requiredDependencies.Any(dependency => !jobDependencies.ContainsKey(dependency)))
+            return false;
+
+        HashSet<string> downstreamJobs = new(StringComparer.Ordinal);
+        bool addedDownstreamJob;
+        do
+        {
+            addedDownstreamJob = false;
+            foreach ((string jobName, HashSet<string> dependencies) in jobDependencies)
+            {
+                if (jobName == requiredJobName || downstreamJobs.Contains(jobName))
+                    continue;
+
+                if (dependencies.Contains(requiredJobName) || dependencies.Overlaps(downstreamJobs))
+                    addedDownstreamJob |= downstreamJobs.Add(jobName);
+            }
+        } while (addedDownstreamJob);
+
+        return jobDependencies.Keys
+            .Where(jobName => jobName != requiredJobName && !downstreamJobs.Contains(jobName))
+            .All(requiredDependencies.Contains);
     }
 
     private static Dictionary<string, string> ReadEnvironmentValues(string content, string path, List<ArchitectureViolation> violations)
