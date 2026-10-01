@@ -5,5 +5,6 @@ public enum UsersCommandFailureCode
     InvalidContact,
     UserNotFound,
     ConcurrencyFailure,
-    Unauthorized
+    Unauthorized,
+    ContactIdentifierInUse
 }

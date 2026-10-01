@@ -311,6 +311,7 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [revision, setRevision] = useState<string | null>(null);
   const pageSize = 25;
   const securityQuery = useUsersAdministrationGetUserSecurity(
     userId,
@@ -342,7 +343,8 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
     setPhoneNumber(user.phoneNumber ?? "");
     setFirstName(user.firstName ?? "");
     setLastName(user.lastName ?? "");
-  }, [securityDetails?.user.id, securityDetails?.user.email, securityDetails?.user.phoneNumber, securityDetails?.user.firstName, securityDetails?.user.lastName]);
+    setRevision(user.revision ?? null);
+  }, [securityDetails?.user.id, securityDetails?.user.email, securityDetails?.user.phoneNumber, securityDetails?.user.firstName, securityDetails?.user.lastName, securityDetails?.user.revision]);
 
   const refreshSecurityDetails = async () => {
     await Promise.all([securityQuery.refetch(), memberships.refetch()]);
@@ -364,13 +366,21 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
         phoneNumber: normalizedPhoneNumber || null,
         firstName: firstName.trim() || null,
         lastName: lastName.trim() || null,
+        revision,
       },
     }, {
       onSuccess: async () => {
         setMessage(t("users.management.changesSaved"));
         await refreshSecurityDetails();
       },
-      onError: () => setMessage(t("users.management.editError")),
+      onError: async (error) => {
+        if (readHttpStatus(error) === 409) {
+          setMessage(t("users.management.editConflict"));
+          await refreshSecurityDetails();
+          return;
+        }
+        setMessage(t("users.management.editError"));
+      },
     });
   };
 
@@ -496,6 +506,12 @@ function UserSecurityHistoryList({ history, available, emptyMessage, t, locale }
   </li>)}</ol>;
 }
 
+function readHttpStatus(error: unknown): number | undefined {
+  if (typeof error !== "object" || error === null) return undefined;
+  const status = (error as Record<string, unknown>).status;
+  return typeof status === "number" ? status : undefined;
+}
+
 function readUnavailableSecurityDetails(error: unknown, userId: string): UserSecurityDetailsResponse | undefined {
   if (typeof error !== "object" || error === null) return undefined;
   const errorRecord = error as Record<string, unknown>;
@@ -519,6 +535,7 @@ function isUserSecurityDetailsResponse(value: unknown, userId: string): value is
     && isOptionalString(user.email)
     && isOptionalString(user.phoneNumber)
     && isOptionalString(user.fullName)
+    && isOptionalString(user.revision)
     && Array.isArray(details.globalRoles) && details.globalRoles.every((role) => typeof role === "string")
     && Array.isArray(details.tenantRoles) && details.tenantRoles.every(isTenantRoleMembership)
     && isOptionalHistory(details.securityHistory)

@@ -61,3 +61,19 @@ Use dated entries only. Each entry must include:
 - Owning module/doc
 - Remove condition
 - Lesson for Codex
+
+### Optional managed-user edit revision
+
+- Status: active compatibility window.
+- Added date: 2026-10-01.
+- Owning module/doc: Users (`UpdateManagedUserCommandHandler`, `UpdateManagedUserRequest.Revision`).
+- Remove condition: once no deployed client sends `PUT /api/modules/users/{userId}` without `revision` (the shared Users Web surface always sends it; the OpenAPI contract already marks the field required), reject a missing value as a concurrency conflict instead of skipping the stale-edit check.
+- Lesson for Codex: a missing `revision` currently skips the stale-edit check; do not treat that as the intended steady state.
+
+### Non-E.164 phone login lookup
+
+- Status: owner-approved legacy path (2026-10-01).
+- Added date: 2026-10-01.
+- Owning module/doc: Authentication (`BeginPhoneLoginHandler`).
+- Remove condition: once stored phone numbers are migrated to E.164, restore unconditional E.164 rejection for phone login.
+- Lesson for Codex: a non-E.164 number only finds an existing account and never creates one. A known legacy number succeeds while an unknown one returns `InvalidInput`, so this path can reveal whether a legacy number has an account. That is an accepted gap against the Authentication module rule, not something to copy elsewhere.

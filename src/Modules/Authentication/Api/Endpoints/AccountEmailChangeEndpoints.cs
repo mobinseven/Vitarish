@@ -6,6 +6,7 @@ using Vitarish.Authentication.Api.Mapping;
 using Vitarish.Authentication.Contracts.Requests;
 using Vitarish.Authentication.Contracts.Responses;
 using Vitarish.Modules.Base.Core.Endpoints;
+using Vitarish.Modules.Base.Core.Identity;
 
 namespace Vitarish.Authentication.Api.Endpoints;
 
@@ -15,7 +16,9 @@ public static class AccountEmailChangeEndpoints
     {
         group.MapModulePost("/account/email/begin", async (BeginChangeEmailRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginChangeEmailHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
-            string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            string? userId = AuthenticatedUserIdResolver.Resolve(user) is AuthenticatedUserIdResolution.Success resolvedUserId
+                ? resolvedUserId.UserId.Value
+                : null;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
 
             var r = await handler.Handle(new BeginChangeEmailCommand(userId, request.Email), ct);
@@ -32,7 +35,9 @@ public static class AccountEmailChangeEndpoints
 
         group.MapModulePost("/account/email/complete", async (CompleteChangeEmailRequest request, [Microsoft.AspNetCore.Mvc.FromServices] CompleteChangeEmailHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
-            string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            string? userId = AuthenticatedUserIdResolver.Resolve(user) is AuthenticatedUserIdResolution.Success resolvedUserId
+                ? resolvedUserId.UserId.Value
+                : null;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
 
             var r = await handler.Handle(new CompleteChangeEmailCommand(userId, request.ChallengeId, request.Code), ct);

@@ -16,6 +16,10 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddSingleton(profilePolicy);
         services.AddScoped<LoginWithPasswordHandler>();
         services.AddScoped<ChangePasswordHandler>();
+        services.AddScoped<BeginChangeEmailHandler>();
+        services.AddScoped<CompleteChangeEmailHandler>();
+        services.AddScoped<BeginChangePhoneHandler>();
+        services.AddScoped<CompleteChangePhoneHandler>();
         services.AddScoped<BeginPhoneLoginHandler>();
         services.AddScoped<CompletePhoneLoginHandler>();
         services.AddScoped<BeginEmailLoginHandler>();

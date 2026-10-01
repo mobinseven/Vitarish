@@ -209,8 +209,8 @@ async function sendRequest<T>(
 
   if (!res.ok) {
     let problem: ProblemDetails;
-    try { problem = await res.json(); } catch { problem = { status: res.status, title: res.statusText }; }
-    throw new ApiError(problem);
+    try { problem = await res.json(); } catch { problem = { title: res.statusText }; }
+    throw new ApiError({ ...problem, status: res.status });
   }
 
   if (res.status === 204) return undefined as T;
@@ -235,9 +235,9 @@ export async function apiFetchBlob(url: string, options: Pick<RequestInit, "head
     try {
       problem = await res.json();
     } catch {
-      problem = { status: res.status, title: res.statusText };
+      problem = { title: res.statusText };
     }
-    throw new ApiError(problem);
+    throw new ApiError({ ...problem, status: res.status });
   }
 
   return res.blob();

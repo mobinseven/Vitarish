@@ -23,8 +23,6 @@ public sealed class BeginPhoneLoginHandler(
     {
         if (!AuthenticationInputValidator.HasText(command.PhoneNumber))
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, "Phone number is required."));
-        if (!UserPhoneNumberPolicy.IsValidE164(command.PhoneNumber))
-            return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, UserPhoneNumberPolicy.InvalidE164FormatMessage));
 
         SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
         if (!securityPolicy.Allows(AuthenticationMethod.Phone, PreAuthenticationAction.PhoneLogin))
@@ -34,7 +32,12 @@ public sealed class BeginPhoneLoginHandler(
             return new AuthenticationResult<ChallengeResult>.Failure(AttemptDenied(securityPolicy));
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        AuthenticationUserDescriptor user = await userDirectory.FindOrCreateByPhoneNumberAsync(command.PhoneNumber, cancellationToken);
+        // Accounts stored before E.164 enforcement can still sign in, but a non-E.164 number never creates an account.
+        AuthenticationUserDescriptor? user = UserPhoneNumberPolicy.IsValidE164(command.PhoneNumber)
+            ? await userDirectory.FindOrCreateByPhoneNumberAsync(command.PhoneNumber, cancellationToken)
+            : await userDirectory.FindByPhoneNumberAsync(command.PhoneNumber, cancellationToken);
+        if (user is null)
+            return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, UserPhoneNumberPolicy.InvalidE164FormatMessage));
         if (await IsDeniedAsync(attemptKeyFactory.SubjectCandidates(AuthenticationMethod.Phone, user.UserId), cancellationToken))
             return new AuthenticationResult<ChallengeResult>.Failure(AttemptDenied(securityPolicy));
         AuthenticationChallengePolicy effectivePolicy = policy.WithMaximumAttempts(securityPolicy.FailedAttemptThreshold);

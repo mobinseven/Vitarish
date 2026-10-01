@@ -99,7 +99,8 @@ test("password recovery completes through both shared LoginForm hosts", async ({
   if (proofScreenshot) {
     const host = hostFlows[hostFlows.length - 1];
     mkdirSync(dirname(proofScreenshot), { recursive: true });
-    await page.screenshot({ path: proofScreenshot, fullPage: true });
+    const recoveryProofScreenshot = proofScreenshot.replace(/\.png$/i, "-password-recovery.png");
+    await page.screenshot({ path: recoveryProofScreenshot, fullPage: true });
     await page.close();
     const screenshotHelper = resolve("scripts/screenshot.ps1");
     const helperOutput = join(proofDirectory, "password-recovery-screenshot-helper.png");

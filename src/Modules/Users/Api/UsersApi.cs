@@ -111,7 +111,7 @@ public static class UsersApi
     private static async Task<IResult> CreateAdministrativeWithEmailAsync(CreateUserWithEmailRequest r, IUsersService service, CancellationToken ct) => await service.CreateUserWithEmailAsync(new CreateUserWithEmailCommand(r.Email, r.FirstName, r.LastName, r.IdentificationCode, r.DateOfBirth, r.BirthCountryCode, r.BirthCity, RejectIfAlreadyExists: true), ct) is { } user ? Results.Ok(ToSummary(user)) : Results.Conflict();
     private static async Task<IResult> UpdateManagedUserAsync(string userId, UpdateManagedUserRequest request, ISender sender, CancellationToken ct)
     {
-        IdentityResult result = await sender.Send(new UpdateManagedUserCommand(userId, request.Email, request.PhoneNumber, request.FirstName, request.LastName), ct);
+        IdentityResult result = await sender.Send(new UpdateManagedUserCommand(userId, request.Email, request.PhoneNumber, request.FirstName, request.LastName, request.Revision), ct);
         if (!result.Succeeded)
         {
             UsersCommandError[] errors = result.Errors.Select(ToManagedUserError).ToArray();
@@ -135,6 +135,7 @@ public static class UsersApi
         return failureCode switch
         {
             UsersCommandFailureCode.InvalidContact => new(UsersCommandErrorCodes.InvalidContact, UsersCommandErrorCodes.InvalidContactDescription),
+            UsersCommandFailureCode.ContactIdentifierInUse => new(UsersCommandErrorCodes.ContactIdentifierInUse, UsersCommandErrorCodes.ContactIdentifierInUseDescription),
             UsersCommandFailureCode.UserNotFound => new(UsersCommandErrorCodes.UserNotFound, UsersCommandErrorCodes.UserNotFoundDescription),
             UsersCommandFailureCode.ConcurrencyFailure => new(UsersCommandErrorCodes.ConcurrencyFailure, UsersCommandErrorCodes.ConcurrencyFailureDescription),
             UsersCommandFailureCode.Unauthorized => new(UsersCommandErrorCodes.Unauthorized, UsersCommandErrorCodes.UnauthorizedDescription),
@@ -186,7 +187,8 @@ public static class UsersApi
             details.User.LastName,
             details.User.Email,
             details.User.PhoneNumber,
-            details.User.FullName);
+            details.User.FullName,
+            details.User.ConcurrencyStamp);
         UserSecurityDetailsResponse response = new(
             identity,
             globalRoles,

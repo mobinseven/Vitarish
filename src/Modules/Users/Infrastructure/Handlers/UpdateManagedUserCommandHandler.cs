@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Distributed;
 using Vitarish.Audit.Domain;
 using Vitarish.Users.Application.Commands;
+using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Application.Security;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Domain.Entities;
@@ -14,6 +15,7 @@ namespace Vitarish.Users.Infrastructure.Handlers;
 
 internal sealed class UpdateManagedUserCommandHandler(
     UserManager<User> userManager,
+    ISender sender,
     IDistributedCache cache,
     UsersManagementAudit managementAudit,
     IRequestContext requestContext) : IRequestHandler<UpdateManagedUserCommand, IdentityResult>
@@ -55,9 +57,23 @@ internal sealed class UpdateManagedUserCommandHandler(
             });
         }
 
-        bool contactIdentifierChanged =
-            !string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(user.PhoneNumber, phoneNumber, StringComparison.Ordinal);
+        bool emailChanged = !string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase);
+        bool phoneChanged = !string.Equals(user.PhoneNumber, phoneNumber, StringComparison.Ordinal);
+        bool contactIdentifierChanged = emailChanged || phoneChanged;
+
+        // Compatibility window: callers that predate Revision omit it and skip the stale-edit check (see docs/memory.md).
+        if (request.Revision is not null && !string.Equals(user.ConcurrencyStamp, request.Revision, StringComparison.Ordinal))
+        {
+            await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+            await managementAudit.AccountEditFailedAsync(user.Id, SecurityAuditReasonCatalog.SecurityPolicyConcurrencyConflict, cancellationToken);
+            if (contactIdentifierChanged)
+                await managementAudit.SecurityAttributeChangedAsync(user.Id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.SecurityPolicyConcurrencyConflict, cancellationToken);
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = nameof(UsersCommandFailureCode.ConcurrencyFailure),
+                Description = UsersCommandErrorCodes.ConcurrencyFailureDescription
+            });
+        }
 
         if (!UserContactIdentifierPolicy.IsValid(email, phoneNumber, firstName, lastName))
         {
@@ -71,10 +87,30 @@ internal sealed class UpdateManagedUserCommandHandler(
             });
         }
 
+        bool emailOwnedByAnotherAccount = emailChanged && email is not null &&
+            await sender.Send(new CheckUserEmailInUseQuery(email, user.Id), cancellationToken);
+        bool phoneOwnedByAnotherAccount = phoneChanged && phoneNumber is not null &&
+            await sender.Send(new CheckUserPhoneNumberInUseQuery(phoneNumber, user.Id), cancellationToken);
+        if (emailOwnedByAnotherAccount || phoneOwnedByAnotherAccount)
+        {
+            await managementAudit.AccountEditFailedAsync(user.Id, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            await managementAudit.SecurityAttributeChangedAsync(user.Id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = nameof(UsersCommandFailureCode.ContactIdentifierInUse),
+                Description = UsersCommandErrorCodes.ContactIdentifierInUseDescription
+            });
+        }
+
         user.Email = email;
         user.PhoneNumber = phoneNumber;
         user.FirstName = firstName;
         user.LastName = lastName;
+        if (emailChanged)
+            user.EmailConfirmed = false;
+        if (phoneChanged)
+            user.PhoneNumberConfirmed = false;
+        user.ConcurrencyStamp = Guid.NewGuid().ToString("N");
 
         IdentityResult result;
         try

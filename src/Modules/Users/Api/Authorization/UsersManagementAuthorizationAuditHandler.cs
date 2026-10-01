@@ -59,7 +59,7 @@ public sealed class UsersManagementAuthorizationAuditHandler(UsersManagementAudi
     private static string? GetSingleRouteValue(HttpContext httpContext)
     {
         if (httpContext.GetEndpoint() is not RouteEndpoint routeEndpoint ||
-            routeEndpoint.RoutePattern.Parameters.SingleOrDefault()?.Name != UsersApiRoutes.UserIdRouteValue)
+            routeEndpoint.RoutePattern.Parameters.FirstOrDefault()?.Name != UsersApiRoutes.UserIdRouteValue)
             return null;
 
         return httpContext.Request.RouteValues[UsersApiRoutes.UserIdRouteValue]?.ToString();

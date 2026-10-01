@@ -157,6 +157,9 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await expect(page.getByText(createdUser.id!, { exact: true })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText("No roles are assigned.", { exact: true })).toBeVisible();
   await expect(page.getByText("No authentication attempts have been recorded for this user.", { exact: true })).toBeVisible();
+  const stalePage = await page.context().newPage();
+  await stalePage.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "domcontentloaded" });
+  await expect(stalePage.getByText(createdUser.id!, { exact: true })).toBeVisible({ timeout: 30_000 });
   await page.getByRole("textbox", { name: "Email address" }).fill(changedContact);
   const [editResponse] = await Promise.all([
     page.waitForResponse((response) => response.request().method() === "PUT" && response.request().postData()?.includes(changedContact) === true),
@@ -164,6 +167,17 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   ]);
   expect(editResponse.ok()).toBe(true);
   await expect(page.getByRole("status").filter({ hasText: "User details were updated." })).toBeVisible();
+
+  const staleContact = `e2e-security-stale-${Date.now()}@example.test`;
+  await stalePage.getByRole("textbox", { name: "Email address" }).fill(staleContact);
+  const [conflictResponse] = await Promise.all([
+    stalePage.waitForResponse((response) => response.request().method() === "PUT" && response.request().postData()?.includes(staleContact) === true),
+    stalePage.getByRole("button", { name: "Save user changes" }).click(),
+  ]);
+  expect(conflictResponse.status()).toBe(409);
+  await expect(stalePage.getByRole("status").filter({ hasText: "This account changed elsewhere." })).toBeVisible();
+  await expect(stalePage.getByRole("textbox", { name: "Email address" })).toHaveValue(changedContact);
+  await stalePage.close();
 
   await page.getByRole("textbox", { name: "Tenant ID" }).fill(tenantId!);
   const [grantResponse] = await Promise.all([

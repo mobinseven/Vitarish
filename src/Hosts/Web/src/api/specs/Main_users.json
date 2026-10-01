@@ -2557,7 +2557,8 @@
           "email",
           "phoneNumber",
           "firstName",
-          "lastName"
+          "lastName",
+          "revision"
         ],
         "type": "object",
         "properties": {
@@ -2580,6 +2581,12 @@
             ]
           },
           "lastName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "revision": {
             "type": [
               "null",
               "string"
@@ -2882,7 +2889,8 @@
           "lastName",
           "email",
           "phoneNumber",
-          "fullName"
+          "fullName",
+          "revision"
         ],
         "type": "object",
         "properties": {
@@ -2920,6 +2928,12 @@
             ]
           },
           "fullName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "revision": {
             "type": [
               "null",
               "string"

@@ -6,11 +6,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
+using MediatR;
 using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Commands;
@@ -18,6 +20,7 @@ using Vitarish.Users.Application.Security;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Data;
+using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Handlers;
 
 namespace Vitarish.Users.Tests.Security;
@@ -25,6 +28,7 @@ namespace Vitarish.Users.Tests.Security;
 public sealed class ManagedUserAuditTests
 {
     private const string ManagedUserId = "managed-user";
+    private const string SeedRevision = "seed-revision";
 
     [Fact]
     public async Task Successful_account_creation_records_the_user_subject_without_contact_data()
@@ -78,14 +82,10 @@ public sealed class ManagedUserAuditTests
     {
         await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync();
         Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
-        UpdateManagedUserCommandHandler handler = new(
-            CreateUserManager(dbContext),
-            CreateCache(),
-            new UsersManagementAudit(auditWriter.Object, RequestContext(), TimeProvider.System),
-            RequestContext());
+        UpdateManagedUserCommandHandler handler = CreateUpdateHandler(dbContext, CreateCache(), auditWriter);
 
         IdentityResult result = await handler.Handle(
-            new UpdateManagedUserCommand(ManagedUserId, "updated@example.test", null, "Changed", "User"),
+            new UpdateManagedUserCommand(ManagedUserId, "updated@example.test", null, "Changed", "User", SeedRevision),
             CancellationToken.None);
 
         result.Succeeded.Should().BeTrue();
@@ -109,14 +109,10 @@ public sealed class ManagedUserAuditTests
     {
         await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync();
         Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
-        UpdateManagedUserCommandHandler handler = new(
-            CreateUserManager(dbContext),
-            CreateCache(),
-            new UsersManagementAudit(auditWriter.Object, RequestContext(), TimeProvider.System),
-            RequestContext());
+        UpdateManagedUserCommandHandler handler = CreateUpdateHandler(dbContext, CreateCache(), auditWriter);
 
         IdentityResult result = await handler.Handle(
-            new UpdateManagedUserCommand(ManagedUserId, null, "09121234567", "Changed", "User"),
+            new UpdateManagedUserCommand(ManagedUserId, null, "09121234567", "Changed", "User", SeedRevision),
             CancellationToken.None);
 
         result.Succeeded.Should().BeFalse();
@@ -131,6 +127,169 @@ public sealed class ManagedUserAuditTests
             entry.SubjectId == ManagedUserId &&
             entry.Outcome == SecurityAuditOutcome.Denied &&
             entry.RedactedReason == SecurityAuditReasonCatalog.MutationRejected);
+    }
+
+    [Fact]
+    public async Task Duplicate_email_edit_is_rejected_with_a_typed_conflict_and_no_mutation()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync();
+        await SeedConflictingUserAsync(dbContext, "other-user", "taken@example.test", null);
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        UpdateManagedUserCommandHandler handler = CreateUpdateHandler(dbContext, CreateCache(), auditWriter);
+
+        IdentityResult result = await handler.Handle(
+            new UpdateManagedUserCommand(ManagedUserId, "taken@example.test", null, "Changed", "User", SeedRevision),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Errors.Should().ContainSingle()
+            .Which.Code.Should().Be(nameof(UsersCommandFailureCode.ContactIdentifierInUse));
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId);
+        persisted.Email.Should().Be("original@example.test");
+        persisted.FirstName.Should().Be("Original");
+        persisted.ConcurrencyStamp.Should().Be(SeedRevision);
+        SecurityAuditEvent[] events = AuditEvents(auditWriter);
+        events.Should().ContainSingle(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserEditFailureEvent &&
+            entry.Outcome == SecurityAuditOutcome.Denied &&
+            entry.RedactedReason == SecurityAuditReasonCatalog.MutationRejected);
+        events.Should().ContainSingle(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent &&
+            entry.Outcome == SecurityAuditOutcome.Denied &&
+            entry.RedactedReason == SecurityAuditReasonCatalog.MutationRejected);
+        events.Should().NotContain(entry =>
+            entry.RedactedReason != null &&
+            entry.RedactedReason.Contains("taken@example.test", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Duplicate_phone_edit_is_rejected_with_a_typed_conflict_and_no_mutation()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync();
+        await SeedConflictingUserAsync(dbContext, "other-user", null, "+14155552671");
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        UpdateManagedUserCommandHandler handler = CreateUpdateHandler(dbContext, CreateCache(), auditWriter);
+
+        IdentityResult result = await handler.Handle(
+            new UpdateManagedUserCommand(ManagedUserId, "original@example.test", "+14155552671", "Changed", "User", SeedRevision),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Errors.Should().ContainSingle()
+            .Which.Code.Should().Be(nameof(UsersCommandFailureCode.ContactIdentifierInUse));
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId);
+        persisted.PhoneNumber.Should().BeNull();
+        persisted.FirstName.Should().Be("Original");
+        persisted.ConcurrencyStamp.Should().Be(SeedRevision);
+        SecurityAuditEvent[] events = AuditEvents(auditWriter);
+        events.Should().ContainSingle(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserEditFailureEvent &&
+            entry.Outcome == SecurityAuditOutcome.Denied &&
+            entry.RedactedReason == SecurityAuditReasonCatalog.MutationRejected);
+    }
+
+    [Fact]
+    public async Task Edit_without_a_revision_from_a_legacy_caller_skips_the_stale_edit_check()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync();
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        UpdateManagedUserCommandHandler handler = CreateUpdateHandler(dbContext, CreateCache(), auditWriter);
+
+        IdentityResult result = await handler.Handle(
+            new UpdateManagedUserCommand(ManagedUserId, "updated@example.test", null, "Changed", "User", null),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId);
+        persisted.Email.Should().Be("updated@example.test");
+        persisted.ConcurrencyStamp.Should().NotBe(SeedRevision);
+    }
+
+    [Fact]
+    public async Task Edit_with_a_stale_revision_is_rejected_as_a_concurrency_conflict()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync();
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        IDistributedCache cache = CreateCache();
+        UpdateManagedUserCommandHandler handler = CreateUpdateHandler(dbContext, cache, auditWriter);
+
+        IdentityResult result = await handler.Handle(
+            new UpdateManagedUserCommand(ManagedUserId, "updated@example.test", null, "Changed", "User", "stale-revision"),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error =>
+            error.Code == nameof(UsersCommandFailureCode.ConcurrencyFailure) &&
+            error.Description == UsersCommandErrorCodes.ConcurrencyFailureDescription);
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId);
+        persisted.Email.Should().Be("original@example.test");
+        persisted.FirstName.Should().Be("Original");
+        persisted.ConcurrencyStamp.Should().Be(SeedRevision);
+        SecurityAuditEvent[] events = AuditEvents(auditWriter);
+        events.Should().ContainSingle(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserEditFailureEvent &&
+            entry.Outcome == SecurityAuditOutcome.Denied &&
+            entry.RedactedReason == SecurityAuditReasonCatalog.SecurityPolicyConcurrencyConflict);
+        events.Should().ContainSingle(entry =>
+            entry.EventName == SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent &&
+            entry.Outcome == SecurityAuditOutcome.Denied &&
+            entry.RedactedReason == SecurityAuditReasonCatalog.SecurityPolicyConcurrencyConflict);
+        User? cached = await UserCacheExtensions.GetUserAsync(cache, ManagedUserId, CancellationToken.None);
+        cached.Should().NotBeNull();
+        cached!.ConcurrencyStamp.Should().Be(SeedRevision);
+    }
+
+    [Fact]
+    public async Task Successful_edit_with_a_matching_revision_clears_only_the_changed_contact_confirmation_and_advances_the_revision()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync(user =>
+        {
+            user.EmailConfirmed = true;
+            user.PhoneNumber = "+14155552671";
+            user.PhoneNumberConfirmed = true;
+        });
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        IDistributedCache cache = CreateCache();
+        UpdateManagedUserCommandHandler handler = CreateUpdateHandler(dbContext, cache, auditWriter);
+
+        IdentityResult result = await handler.Handle(
+            new UpdateManagedUserCommand(ManagedUserId, "updated@example.test", "+14155552671", "Changed", "User", SeedRevision),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId);
+        persisted.Email.Should().Be("updated@example.test");
+        persisted.EmailConfirmed.Should().BeFalse();
+        persisted.PhoneNumber.Should().Be("+14155552671");
+        persisted.PhoneNumberConfirmed.Should().BeTrue();
+        persisted.ConcurrencyStamp.Should().NotBeNull().And.NotBe(SeedRevision);
+        User? cached = await UserCacheExtensions.GetUserAsync(cache, ManagedUserId, CancellationToken.None);
+        cached.Should().NotBeNull();
+        cached!.ConcurrencyStamp.Should().Be(persisted.ConcurrencyStamp);
+    }
+
+    [Fact]
+    public async Task Clearing_a_contact_clears_its_confirmation_flag_and_leaves_the_unchanged_contact_confirmation()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync(user =>
+        {
+            user.EmailConfirmed = true;
+            user.PhoneNumber = "+14155552671";
+            user.PhoneNumberConfirmed = true;
+        });
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        UpdateManagedUserCommandHandler handler = CreateUpdateHandler(dbContext, CreateCache(), auditWriter);
+
+        IdentityResult result = await handler.Handle(
+            new UpdateManagedUserCommand(ManagedUserId, "original@example.test", null, "Changed", "User", SeedRevision),
+            CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId);
+        persisted.Email.Should().Be("original@example.test");
+        persisted.EmailConfirmed.Should().BeTrue();
+        persisted.PhoneNumber.Should().BeNull();
+        persisted.PhoneNumberConfirmed.Should().BeFalse();
     }
 
     private static SecurityAuditEvent[] AuditEvents(Mock<ISecurityAuditWriter> auditWriter) => auditWriter.Invocations
@@ -160,6 +319,27 @@ public sealed class ManagedUserAuditTests
     private static IDistributedCache CreateCache() => new MemoryDistributedCache(
         Options.Create(new MemoryDistributedCacheOptions()));
 
+    private static UpdateManagedUserCommandHandler CreateUpdateHandler(
+        TestUsersDbContext dbContext,
+        IDistributedCache cache,
+        Mock<ISecurityAuditWriter> auditWriter) => new(
+        CreateUserManager(dbContext),
+        CreateSender(dbContext),
+        cache,
+        new UsersManagementAudit(auditWriter.Object, RequestContext(), TimeProvider.System),
+        RequestContext());
+
+    private static ISender CreateSender(TestUsersDbContext dbContext)
+    {
+        ServiceCollection services = new();
+        _ = services.AddLogging();
+        _ = services.AddMediatR(configuration =>
+            configuration.RegisterServicesFromAssembly(typeof(CheckUserEmailInUseQueryHandler).Assembly));
+        _ = services.AddSingleton<UsersDbContext>(dbContext);
+        _ = services.AddSingleton<ILookupNormalizer>(new UpperInvariantLookupNormalizer());
+        return services.BuildServiceProvider().GetRequiredService<ISender>();
+    }
+
     private static UserManager<User> CreateUserManager(UsersDbContext dbContext) => new(
         new UserStore<User>(dbContext),
         Options.Create(new IdentityOptions()),
@@ -179,20 +359,41 @@ public sealed class ManagedUserAuditTests
         return new TestUsersDbContext(options);
     }
 
-    private static async Task<TestUsersDbContext> CreateDbContextWithManagedUserAsync()
+    private static async Task<TestUsersDbContext> CreateDbContextWithManagedUserAsync(Action<User>? configure = null)
     {
         TestUsersDbContext dbContext = CreateDbContext();
-        dbContext.Users.Add(new User
+        User managedUser = new()
         {
             Id = ManagedUserId,
             UserName = "original@example.test",
             NormalizedUserName = "ORIGINAL@EXAMPLE.TEST",
             Email = "original@example.test",
             NormalizedEmail = "ORIGINAL@EXAMPLE.TEST",
-            SecurityStamp = "security-stamp"
-        });
+            FirstName = "Original",
+            LastName = "User",
+            SecurityStamp = "security-stamp",
+            ConcurrencyStamp = SeedRevision
+        };
+        configure?.Invoke(managedUser);
+        dbContext.Users.Add(managedUser);
         await dbContext.SaveChangesAsync();
         return dbContext;
+    }
+
+    private static async Task SeedConflictingUserAsync(TestUsersDbContext dbContext, string userId, string? email, string? phoneNumber)
+    {
+        dbContext.Users.Add(new User
+        {
+            Id = userId,
+            UserName = email ?? phoneNumber,
+            NormalizedUserName = (email ?? phoneNumber)?.ToUpperInvariant(),
+            Email = email,
+            NormalizedEmail = email?.ToUpperInvariant(),
+            PhoneNumber = phoneNumber,
+            SecurityStamp = "conflicting-security-stamp",
+            ConcurrencyStamp = "conflicting-revision"
+        });
+        await dbContext.SaveChangesAsync();
     }
 
     private sealed class TestUsersDbContext(DbContextOptions<UsersDbContext> options) : UsersDbContext(options);

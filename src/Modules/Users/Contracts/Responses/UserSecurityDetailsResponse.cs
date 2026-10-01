@@ -16,7 +16,8 @@ public sealed record UserSecurityIdentityResponse(
     string? LastName,
     string? Email,
     string? PhoneNumber,
-    string? FullName);
+    string? FullName,
+    string? Revision);
 
 public sealed record UserSecurityHistoryResponse(
     IReadOnlyList<UserSecurityEventResponse> Items,

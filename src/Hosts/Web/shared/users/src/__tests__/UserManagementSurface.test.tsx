@@ -8,7 +8,7 @@ import { usersMessageCatalogs } from "../localization/catalogs";
 const refetch = vi.fn(async () => ({}));
 const tenantProvision = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
 const tenantRemove = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
-const managedUserUpdate = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
+const managedUserUpdate = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const platformPhoneCreate = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
 let securityDetailsQueryResponse: { data?: typeof userSecurityDetails; error: unknown; isLoading: boolean; isError: boolean; refetch: typeof refetch };
 const userSecurityDetails = {
@@ -20,6 +20,7 @@ const userSecurityDetails = {
     email: "user@example.com",
     phoneNumber: null,
     fullName: "Platform User",
+    revision: "server-revision-1",
   },
   globalRoles: ["PlatformAdmin"],
   tenantRoles: [{ tenantId: "tenant-a", roleSuffix: "TenantUser" }],
@@ -239,8 +240,24 @@ describe("UserManagementSurface", () => {
         phoneNumber: "+14155552671",
         firstName: "Platform",
         lastName: "User",
+        revision: "server-revision-1",
       },
     }, expect.any(Object));
     expect(screen.getByRole("status")).toHaveTextContent("User details were updated.");
+  });
+
+  it("rejects a stale save with a conflict message and reloads the account", async () => {
+    const user = userEvent.setup();
+    managedUserUpdate.mockImplementationOnce(
+      (_input: unknown, options?: { onError?: (error: unknown) => void }) => options?.onError?.({ status: 409 }),
+    );
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.click(screen.getByRole("button", { name: "Save user changes" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "This account changed elsewhere. The details were reloaded; review them and save again.",
+    );
+    expect(refetch).toHaveBeenCalled();
   });
 });
