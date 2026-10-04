@@ -437,8 +437,7 @@ public sealed class PasswordRecoveryHandlerTests
     }
 
     private static AuthenticationChallenge Challenge(DateTimeOffset now) => AuthenticationChallengePolicy.Default
-        .CreateEmailPasswordRecoveryChallenge("user-42", "person@example.test",
-            AuthenticationChallengePolicy.Default.TokenPurpose(AuthenticationChallengePurpose.EmailPasswordRecovery), now);
+        .CreateEmailPasswordRecoveryChallenge("user-42", "person@example.test", now);
 
     private static AuthenticationUserDescriptor User(string userId, string? email = "person@example.test", string? phone = "+15550101") =>
         new(userId, "person", null, null, null, email, phone, false);

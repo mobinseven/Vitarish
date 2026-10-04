@@ -26,8 +26,8 @@ public sealed class BeginChangePhoneHandler(
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, UserPhoneNumberPolicy.InvalidPhoneNumberMessage));
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        string code = await codeGenerator.GenerateAsync(command.UserId, policy.TokenPurpose(AuthenticationChallengePurpose.PhoneChange), cancellationToken);
-        AuthenticationChallenge challenge = policy.CreatePhoneChangeChallenge(command.UserId, phoneNumber, policy.TokenPurpose(AuthenticationChallengePurpose.PhoneChange), now);
+        AuthenticationChallenge challenge = policy.CreatePhoneChangeChallenge(command.UserId, phoneNumber, now);
+        string code = await codeGenerator.GenerateAsync(command.UserId, challenge.TokenPurpose, cancellationToken);
         await store.SaveAsync(challenge, cancellationToken);
 
         try

@@ -54,12 +54,11 @@ public sealed class EmailChangeSessionSurvivalTests
         session.Succeeded.Should().BeTrue();
 
         InMemoryAuthenticationChallengeStore store = new();
-        string tokenPurpose = AuthenticationChallengePolicy.Default.TokenPurpose(AuthenticationChallengePurpose.EmailChange);
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreateEmailChangeChallenge(
-            "session-user", "new@example.test", tokenPurpose, DateTimeOffset.UtcNow);
+            "session-user", "new@example.test", DateTimeOffset.UtcNow);
         await store.SaveAsync(challenge, CancellationToken.None);
         Mock<IAuthenticationCodeVerifier> verifier = new();
-        verifier.Setup(value => value.VerifyAsync("session-user", tokenPurpose, "123456", It.IsAny<CancellationToken>()))
+        verifier.Setup(value => value.VerifyAsync("session-user", challenge.TokenPurpose, "123456", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         UserAccountUpdater updater = new(CreateUserManager(usersDb), CreateSender(usersDb));
         CompleteChangeEmailHandler handler = new(store, verifier.Object, updater);

@@ -22,10 +22,12 @@ public class CreateUserWithEmailCommandHandler(UserManager<User> userManager, IS
             return null;
         }
 
+        string? normalizedEmail = userManager.NormalizeEmail(request.Email);
+
         User? user;
         try
         {
-            user = await userManager.Users.SingleOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+            user = await userManager.Users.SingleOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
         }
         catch (OperationCanceledException)
         {
@@ -45,14 +47,19 @@ public class CreateUserWithEmailCommandHandler(UserManager<User> userManager, IS
 
         if (user is null)
         {
-            string? normalizedEmail = userManager.NormalizeEmail(request.Email);
             bool emailOwnedByAnotherAccount = await sender.Send(
                 new CheckLoginIdentifierInUseQuery(request.Email, LoginIdentifierKind.Email, null), cancellationToken);
             if (emailOwnedByAnotherAccount)
             {
                 user = await userManager.Users.SingleOrDefaultAsync(
-                    candidate => candidate.NormalizedUserName == normalizedEmail, cancellationToken);
-                if (user is not null && request.RejectIfAlreadyExists)
+                    candidate => candidate.NormalizedEmail == normalizedEmail, cancellationToken);
+                if (user is null)
+                {
+                    await managementAudit.AccountCreationFailedAsync(null, cancellationToken);
+                    return null;
+                }
+
+                if (request.RejectIfAlreadyExists)
                 {
                     await managementAudit.AccountCreationFailedAsync(user.Id, cancellationToken);
                     return null;
@@ -80,7 +87,7 @@ public class CreateUserWithEmailCommandHandler(UserManager<User> userManager, IS
                 User? racingOwner = await FindRacingOwnerAsync(request.Email, cancellationToken);
                 if (racingOwner is not null)
                     return request.RejectIfAlreadyExists ? null : racingOwner;
-                throw;
+                return null;
             }
             catch (DbUpdateException exception) when (ContactIdentifierUniqueViolation.Matches(exception))
             {
@@ -88,7 +95,7 @@ public class CreateUserWithEmailCommandHandler(UserManager<User> userManager, IS
                 User? racingOwner = await FindRacingOwnerAsync(request.Email, cancellationToken);
                 if (racingOwner is not null)
                     return request.RejectIfAlreadyExists ? null : racingOwner;
-                throw;
+                return null;
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
@@ -108,7 +115,7 @@ public class CreateUserWithEmailCommandHandler(UserManager<User> userManager, IS
     {
         string? normalizedEmail = userManager.NormalizeEmail(email);
         return await userManager.Users.FirstOrDefaultAsync(
-            candidate => candidate.NormalizedEmail == normalizedEmail || candidate.NormalizedUserName == normalizedEmail, cancellationToken);
+            candidate => candidate.NormalizedEmail == normalizedEmail, cancellationToken);
     }
 
     private static bool IsIdentifierConflict(CreateUserFailureException exception) =>

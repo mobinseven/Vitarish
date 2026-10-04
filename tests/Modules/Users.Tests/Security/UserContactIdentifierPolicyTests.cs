@@ -33,4 +33,18 @@ public sealed class UserContactIdentifierPolicyTests
     {
         UserContactIdentifierPolicy.IsValid(null, null, "User", "Name").Should().BeFalse();
     }
+
+    [Fact]
+    public void Field_validation_accepts_blank_values_and_rejects_invalid_changed_values()
+    {
+        UserContactIdentifierPolicy.IsValidEmail("user@example.com").Should().BeTrue();
+        UserContactIdentifierPolicy.IsValidEmail(null).Should().BeTrue();
+        UserContactIdentifierPolicy.IsValidEmail("not-an-email").Should().BeFalse();
+        UserContactIdentifierPolicy.IsValidPhoneNumber(null).Should().BeTrue();
+        UserContactIdentifierPolicy.IsValidPhoneNumber("09121234567").Should().BeFalse();
+        UserContactIdentifierPolicy.IsValidName(new string('n', UserContactIdentifierPolicy.MaximumNameLength)).Should().BeTrue();
+        UserContactIdentifierPolicy.IsValidName(new string('n', UserContactIdentifierPolicy.MaximumNameLength + 1)).Should().BeFalse();
+        UserContactIdentifierPolicy.HasContactIdentifier(null, null).Should().BeFalse();
+        UserContactIdentifierPolicy.HasContactIdentifier(null, "+989121234567").Should().BeTrue();
+    }
 }

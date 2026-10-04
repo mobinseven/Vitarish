@@ -19,8 +19,10 @@ public sealed class AspNetIdentityCodeTests
         await using ServiceProvider services = await CreateServicesAsync();
         using IServiceScope scope = services.CreateScope();
         AspNetIdentityCodeGenerator generator = new(scope.ServiceProvider.GetRequiredService<UserManager<User>>());
+        AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreateEmailChangeChallenge(
+            UserId, "new@example.test", DateTimeOffset.UtcNow);
 
-        string code = await generator.GenerateAsync(UserId, Purpose(AuthenticationChallengePurpose.EmailChange), CancellationToken.None);
+        string code = await generator.GenerateAsync(UserId, challenge.TokenPurpose, CancellationToken.None);
 
         code.Should().MatchRegex("^[0-9]{6}$");
     }
@@ -33,13 +35,41 @@ public sealed class AspNetIdentityCodeTests
         UserManager<User> userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
         AspNetIdentityCodeGenerator generator = new(userManager);
         AspNetIdentityCodeVerifier verifier = new(userManager);
-        string purpose = Purpose(AuthenticationChallengePurpose.EmailChange);
+        AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreateEmailChangeChallenge(
+            UserId, "new@example.test", DateTimeOffset.UtcNow);
+        AuthenticationChallenge otherChallenge = AuthenticationChallengePolicy.Default.CreateEmailPasswordRecoveryChallenge(
+            UserId, "otp@example.test", DateTimeOffset.UtcNow);
 
-        string code = await generator.GenerateAsync(UserId, purpose, CancellationToken.None);
+        string code = await generator.GenerateAsync(UserId, challenge.TokenPurpose, CancellationToken.None);
 
-        (await verifier.VerifyAsync(UserId, purpose, code, CancellationToken.None)).Should().BeTrue();
-        (await verifier.VerifyAsync(UserId, Purpose(AuthenticationChallengePurpose.EmailPasswordRecovery), code, CancellationToken.None)).Should().BeFalse();
-        (await verifier.VerifyAsync(UserId, purpose, WrongCode(code), CancellationToken.None)).Should().BeFalse();
+        (await verifier.VerifyAsync(UserId, challenge.TokenPurpose, code, CancellationToken.None)).Should().BeTrue();
+        (await verifier.VerifyAsync(UserId, otherChallenge.TokenPurpose, code, CancellationToken.None)).Should().BeFalse();
+        (await verifier.VerifyAsync(UserId, challenge.TokenPurpose, WrongCode(code), CancellationToken.None)).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Code_from_one_challenge_does_not_verify_for_a_second_challenge_with_the_same_purpose()
+    {
+        await using ServiceProvider services = await CreateServicesAsync();
+        using IServiceScope scope = services.CreateScope();
+        UserManager<User> userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+        AspNetIdentityCodeGenerator generator = new(userManager);
+        AspNetIdentityCodeVerifier verifier = new(userManager);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        AuthenticationChallenge first = AuthenticationChallengePolicy.Default.CreateEmailChangeChallenge(
+            UserId, "first@example.test", now);
+        AuthenticationChallenge second = AuthenticationChallengePolicy.Default.CreateEmailChangeChallenge(
+            UserId, "second@example.test", now);
+
+        first.TokenPurpose.Should().NotBe(second.TokenPurpose);
+
+        string firstCode = await generator.GenerateAsync(UserId, first.TokenPurpose, CancellationToken.None);
+        string secondCode = await generator.GenerateAsync(UserId, second.TokenPurpose, CancellationToken.None);
+
+        (await verifier.VerifyAsync(UserId, first.TokenPurpose, firstCode, CancellationToken.None)).Should().BeTrue();
+        (await verifier.VerifyAsync(UserId, second.TokenPurpose, secondCode, CancellationToken.None)).Should().BeTrue();
+        (await verifier.VerifyAsync(UserId, second.TokenPurpose, firstCode, CancellationToken.None)).Should().BeFalse();
+        (await verifier.VerifyAsync(UserId, first.TokenPurpose, secondCode, CancellationToken.None)).Should().BeFalse();
     }
 
     [Fact]
@@ -50,17 +80,15 @@ public sealed class AspNetIdentityCodeTests
         UserManager<User> userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
         AspNetIdentityCodeGenerator generator = new(userManager);
         AspNetIdentityCodeVerifier verifier = new(userManager);
-        string purpose = Purpose(AuthenticationChallengePurpose.PhoneLogin);
-        string code = await generator.GenerateAsync(UserId, purpose, CancellationToken.None);
+        AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePhoneLoginChallenge(
+            UserId, "+15550100", DateTimeOffset.UtcNow);
+        string code = await generator.GenerateAsync(UserId, challenge.TokenPurpose, CancellationToken.None);
 
         User user = (await userManager.FindByIdAsync(UserId))!;
         (await userManager.UpdateSecurityStampAsync(user)).Succeeded.Should().BeTrue();
 
-        (await verifier.VerifyAsync(UserId, purpose, code, CancellationToken.None)).Should().BeFalse();
+        (await verifier.VerifyAsync(UserId, challenge.TokenPurpose, code, CancellationToken.None)).Should().BeFalse();
     }
-
-    private static string Purpose(AuthenticationChallengePurpose purpose) =>
-        AuthenticationChallengePolicy.Default.TokenPurpose(purpose);
 
     private static string WrongCode(string code) =>
         string.Concat(code.Select(digit => (char)('0' + ((digit - '0' + 1) % 10))));

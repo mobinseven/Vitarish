@@ -41,9 +41,8 @@ public sealed class BeginPhoneLoginHandler(
             return new AuthenticationResult<ChallengeResult>.Failure(AttemptDenied(securityPolicy));
         AuthenticationChallengePolicy effectivePolicy = policy.WithMaximumAttempts(securityPolicy.FailedAttemptThreshold);
 
-        string tokenPurpose = effectivePolicy.TokenPurpose(AuthenticationChallengePurpose.PhoneLogin);
-        string code = await codeGenerator.GenerateAsync(user.UserId, tokenPurpose, cancellationToken);
-        AuthenticationChallenge challenge = effectivePolicy.CreatePhoneLoginChallenge(user.UserId, phoneNumber, tokenPurpose, now);
+        AuthenticationChallenge challenge = effectivePolicy.CreatePhoneLoginChallenge(user.UserId, phoneNumber, now);
+        string code = await codeGenerator.GenerateAsync(user.UserId, challenge.TokenPurpose, cancellationToken);
         await store.SaveAsync(challenge, cancellationToken);
 
         try

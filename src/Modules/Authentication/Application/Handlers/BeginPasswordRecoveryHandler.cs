@@ -73,18 +73,17 @@ public sealed class BeginPasswordRecoveryHandler(
         string userId = eligible ? user!.UserId : Guid.NewGuid().ToString("N");
         string destination = eligible ? registeredDestination! : string.Empty;
         AuthenticationChallengePolicy effectivePolicy = challengePolicy.WithMaximumAttempts(securityPolicy.FailedAttemptThreshold);
-        string tokenPurpose = effectivePolicy.TokenPurpose(purpose);
         DateTimeOffset now = timeProvider.GetUtcNow();
         AuthenticationChallenge challenge = command.Channel is PasswordRecoveryChannel.Email
-            ? effectivePolicy.CreateEmailPasswordRecoveryChallenge(userId, destination, tokenPurpose, now)
-            : effectivePolicy.CreatePhonePasswordRecoveryChallenge(userId, destination, tokenPurpose, now);
+            ? effectivePolicy.CreateEmailPasswordRecoveryChallenge(userId, destination, now)
+            : effectivePolicy.CreatePhonePasswordRecoveryChallenge(userId, destination, now);
         await challengeStore.SaveAsync(challenge, cancellationToken);
 
         if (eligible)
         {
             try
             {
-                string code = await codeGenerator.GenerateAsync(userId, tokenPurpose, cancellationToken);
+                string code = await codeGenerator.GenerateAsync(userId, challenge.TokenPurpose, cancellationToken);
                 if (command.Channel is PasswordRecoveryChannel.Email)
                     await emailSender.SendAsync(destination, code, purpose, cancellationToken);
                 else

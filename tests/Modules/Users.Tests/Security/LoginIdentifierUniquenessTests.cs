@@ -184,7 +184,7 @@ public sealed class LoginIdentifierUniquenessTests
     }
 
     [Fact]
-    public async Task Create_with_phone_returns_the_existing_account_that_owns_the_number_as_its_user_name()
+    public async Task Create_with_phone_does_not_return_an_account_that_only_matches_by_user_name()
     {
         await using TestUsersDbContext dbContext = CreateDbContext();
         await SeedUserAsync(dbContext, "other-user", userName: "+989123456789", email: null, phoneNumber: null);
@@ -195,9 +195,51 @@ public sealed class LoginIdentifierUniquenessTests
         User? user = await handler.Handle(
             new CreateUserWithPhoneCommand("09123456789", "New", "Member"), CancellationToken.None);
 
-        user.Should().NotBeNull();
-        user!.Id.Should().Be("other-user");
+        user.Should().BeNull();
         (await dbContext.Users.CountAsync()).Should().Be(1);
+        SecurityAuditEvent failed = AuditEvents(auditWriter).Single();
+        failed.EventName.Should().Be(SecurityAuditEventCatalog.UserCreationFailureEvent);
+        failed.Outcome.Should().Be(SecurityAuditOutcome.Denied);
+        failed.RedactedReason.Should().Be(SecurityAuditReasonCatalog.MutationRejected);
+    }
+
+    [Fact]
+    public async Task Create_with_email_does_not_return_an_account_that_only_matches_by_user_name()
+    {
+        await using TestUsersDbContext dbContext = CreateDbContext();
+        await SeedUserAsync(dbContext, "other-user", userName: "taken@example.test", email: null, phoneNumber: null);
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        CreateUserWithEmailCommandHandler handler = new(
+            CreateUserManager(dbContext), CreateSender(dbContext), CreateCache(), CreateAudit(auditWriter));
+
+        User? user = await handler.Handle(
+            new CreateUserWithEmailCommand("taken@example.test", "New", "Member"), CancellationToken.None);
+
+        user.Should().BeNull();
+        (await dbContext.Users.CountAsync()).Should().Be(1);
+        SecurityAuditEvent failed = AuditEvents(auditWriter).Single();
+        failed.EventName.Should().Be(SecurityAuditEventCatalog.UserCreationFailureEvent);
+        failed.Outcome.Should().Be(SecurityAuditOutcome.Denied);
+        failed.RedactedReason.Should().Be(SecurityAuditReasonCatalog.MutationRejected);
+    }
+
+    [Fact]
+    public async Task Create_with_a_differently_cased_email_returns_the_existing_account()
+    {
+        await using TestUsersDbContext dbContext = CreateDbContext();
+        await SeedUserAsync(dbContext, "existing-user", userName: "existing-user", email: "owner@example.test", phoneNumber: null);
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        CreateUserWithEmailCommandHandler handler = new(
+            CreateUserManager(dbContext), CreateSender(dbContext), CreateCache(), CreateAudit(auditWriter));
+
+        User? user = await handler.Handle(
+            new CreateUserWithEmailCommand("Owner@Example.Test", "New", "Member"), CancellationToken.None);
+
+        user.Should().NotBeNull();
+        user!.Id.Should().Be("existing-user");
+        user.Email.Should().Be("owner@example.test");
+        (await dbContext.Users.CountAsync()).Should().Be(1);
+        AuditEvents(auditWriter).Should().BeEmpty();
     }
 
     private static SecurityAuditEvent[] AuditEvents(Mock<ISecurityAuditWriter> auditWriter) => auditWriter.Invocations

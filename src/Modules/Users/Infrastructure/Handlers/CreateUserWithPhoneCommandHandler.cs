@@ -52,8 +52,14 @@ public class CreateUserWithPhoneCommandHandler(UserManager<User> userManager, IS
             if (phoneOwnedByAnotherAccount)
             {
                 user = await userManager.Users.SingleOrDefaultAsync(
-                    candidate => candidate.NormalizedUserName == phoneNumber, cancellationToken);
-                if (user is not null && request.RejectIfAlreadyExists)
+                    candidate => candidate.PhoneNumber == phoneNumber, cancellationToken);
+                if (user is null)
+                {
+                    await managementAudit.AccountCreationFailedAsync(null, cancellationToken);
+                    return null;
+                }
+
+                if (request.RejectIfAlreadyExists)
                 {
                     await managementAudit.AccountCreationFailedAsync(user.Id, cancellationToken);
                     return null;
@@ -79,19 +85,19 @@ public class CreateUserWithPhoneCommandHandler(UserManager<User> userManager, IS
             {
                 await managementAudit.AccountCreationFailedAsync(null, CancellationToken.None);
                 User? racingOwner = await userManager.Users.FirstOrDefaultAsync(
-                    candidate => candidate.PhoneNumber == phoneNumber || candidate.NormalizedUserName == phoneNumber, cancellationToken);
+                    candidate => candidate.PhoneNumber == phoneNumber, cancellationToken);
                 if (racingOwner is not null)
                     return request.RejectIfAlreadyExists ? null : racingOwner;
-                throw;
+                return null;
             }
             catch (DbUpdateException exception) when (ContactIdentifierUniqueViolation.Matches(exception))
             {
                 await managementAudit.AccountCreationFailedAsync(null, CancellationToken.None);
                 User? racingOwner = await userManager.Users.FirstOrDefaultAsync(
-                    candidate => candidate.PhoneNumber == phoneNumber || candidate.NormalizedUserName == phoneNumber, cancellationToken);
+                    candidate => candidate.PhoneNumber == phoneNumber, cancellationToken);
                 if (racingOwner is not null)
                     return request.RejectIfAlreadyExists ? null : racingOwner;
-                throw;
+                return null;
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
