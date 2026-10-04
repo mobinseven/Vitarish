@@ -103,7 +103,9 @@ export function OtpVerificationStep({
         <StatusAlert className="mb-4" message={statusMessage} />
       )}
       <p className="text-sm text-muted">
-        {t("auth.otp.codeSentTo", { destination: destinationLabel })}
+        {t("auth.otp.codeSentToPrefix")}
+        <span dir="ltr">{destinationLabel}</span>
+        {t("auth.otp.codeSentToSuffix")}
         {remainingAttempts !== undefined && remainingAttempts !== null && (
           <span className="block text-xs">
             {t("auth.otp.attemptsRemaining", { count: remainingAttempts })}

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { TextField, Label, Input, Button, Form } from "@heroui/react";
+import { Button, Form } from "@heroui/react";
 import { usePhoneLogin } from "../hooks/usePhoneLogin";
 import { useLocalizedText } from "@vitarish/localization";
-import { StatusAlert } from "@vitarish/ui";
+import { MobileNumberField, StatusAlert } from "@vitarish/ui";
 import type { AuthNavigationOptions } from "../hooks/navigation";
 import { OtpVerificationStep } from "./OtpVerificationStep";
 
@@ -25,6 +25,7 @@ export function PhoneOtpForm({
     resend,
     reset,
     isLoading,
+    error,
     errorMessage,
     statusCode,
     remainingAttempts,
@@ -33,6 +34,7 @@ export function PhoneOtpForm({
   const { t } = useLocalizedText();
   const [phoneInput, setPhoneInput] = useState("");
   const [code, setCode] = useState("");
+  const invalidPhoneNumber = error?.status === 400;
 
   const handlePhoneSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -64,17 +66,18 @@ export function PhoneOtpForm({
 
   return (
     <Form onSubmit={handlePhoneSubmit} className="flex flex-col gap-4">
-      {errorMessage && <StatusAlert className="mb-4" message={errorMessage} />}
-      <TextField name="phone" isRequired isDisabled={isLoading}>
-        <Label>{t("auth.otp.phoneLabel")}</Label>
-        <Input
-          placeholder={t("auth.otp.phonePlaceholder")}
-          value={phoneInput}
-          onChange={(e) => setPhoneInput(e.target.value)}
-          autoComplete="tel"
-          inputMode="tel"
-        />
-      </TextField>
+      {errorMessage && !invalidPhoneNumber && <StatusAlert className="mb-4" message={errorMessage} />}
+      <MobileNumberField
+        name="phone"
+        label={t("auth.otp.phoneLabel")}
+        hint={t("auth.otp.phoneHint")}
+        error={invalidPhoneNumber ? t("auth.otp.invalidPhoneNumber") : undefined}
+        placeholder={t("auth.otp.phonePlaceholder")}
+        value={phoneInput}
+        onChange={setPhoneInput}
+        isRequired
+        isDisabled={isLoading}
+      />
       <Button type="submit" isPending={isLoading} className="w-full">
         {t("auth.otp.sendAction")}
       </Button>

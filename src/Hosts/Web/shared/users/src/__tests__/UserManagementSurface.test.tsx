@@ -9,7 +9,7 @@ const refetch = vi.fn(async () => ({}));
 const tenantProvision = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
 const tenantRemove = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
 const managedUserUpdate = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
-const platformPhoneCreate = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
+const platformPhoneCreate = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 let securityDetailsQueryResponse: { data?: typeof userSecurityDetails; error: unknown; isLoading: boolean; isError: boolean; refetch: typeof refetch };
 const userSecurityDetails = {
   user: {
@@ -138,14 +138,14 @@ describe("UserManagementSurface", () => {
     expect(screen.getByText(/Role: TenantUser/)).toBeInTheDocument();
   });
 
-  it("explains and submits E.164 phone identifiers for tenant user creation", async () => {
+  it("explains and submits phone identifiers for tenant user creation", async () => {
     const user = userEvent.setup();
     renderSurface("tenant");
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Contact type" }), "phone");
     const phone = screen.getByRole("textbox", {
       name: "Phone number",
-      description: "Use international format, starting with + and a country code.",
+      description: "Mobile number, for example 0912 345 6789.",
     });
     await user.type(phone, "+14155552671");
     await user.click(screen.getByRole("button", { name: "Add staff member" }));
@@ -153,14 +153,14 @@ describe("UserManagementSurface", () => {
     expect(tenantProvision).toHaveBeenCalledWith({ data: { phoneNumber: "+14155552671", firstName: undefined, lastName: undefined } }, expect.any(Object));
   });
 
-  it("explains the E.164 phone format before platform user creation", async () => {
+  it("explains the mobile number format before platform user creation", async () => {
     const user = userEvent.setup();
     renderSurface("platform", { platformView: "create" });
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Contact type" }), "phone");
     const phone = screen.getByRole("textbox", {
       name: "Phone number",
-      description: "Use international format, starting with + and a country code.",
+      description: "Mobile number, for example 0912 345 6789.",
     });
     await user.type(phone, "+14155552671");
     await user.click(screen.getByRole("button", { name: "Create user" }));
@@ -215,19 +215,19 @@ describe("UserManagementSurface", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Audit history is temporarily unavailable. User details and roles are still shown.");
   });
 
-  it("requires an identifier and saves an E.164 phone as the user's contact identifier", async () => {
+  it("requires an identifier and saves the typed phone as the user's contact identifier", async () => {
     const user = userEvent.setup();
     renderSurface("platform", { platformView: "detail", userId: "platform-user" });
 
     const email = screen.getByRole("textbox", { name: "Email address" });
     expect(screen.getByRole("textbox", {
       name: "Phone number",
-      description: "Use international format, starting with + and a country code.",
+      description: "Mobile number, for example 0912 345 6789.",
     })).toBeInTheDocument();
     await user.clear(email);
     await user.click(screen.getByRole("button", { name: "Save user changes" }));
 
-    expect(screen.getByRole("status")).toHaveTextContent("Enter a valid email address or E.164 phone number.");
+    expect(screen.getByRole("status")).toHaveTextContent("Enter a valid email address or mobile number.");
     expect(managedUserUpdate).not.toHaveBeenCalled();
 
     await user.type(screen.getByRole("textbox", { name: "Phone number" }), "+14155552671");
@@ -259,5 +259,76 @@ describe("UserManagementSurface", () => {
       "This account changed elsewhere. The details were reloaded; review them and save again.",
     );
     expect(refetch).toHaveBeenCalled();
+  });
+
+  it("explains a duplicate contact on save, keeps the form, and does not reload", async () => {
+    const user = userEvent.setup();
+    managedUserUpdate.mockImplementationOnce(
+      (_input: unknown, options?: { onError?: (error: unknown) => void }) => options?.onError?.({
+        status: 400,
+        problem: {
+          status: 400,
+          errors: [
+            { code: "ContactIdentifierInUse", description: "Another account already uses this email address or phone number.", failureCode: "ContactIdentifierInUse" },
+          ],
+        },
+      }),
+    );
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.clear(screen.getByRole("textbox", { name: "Email address" }));
+    await user.type(screen.getByRole("textbox", { name: "Email address" }), "taken@example.test");
+    await user.click(screen.getByRole("button", { name: "Save user changes" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Another account already uses this email address or phone number.",
+    );
+    expect(refetch).not.toHaveBeenCalled();
+    expect(screen.getByRole("textbox", { name: "Email address" })).toHaveValue("taken@example.test");
+  });
+
+  it("shows a localized phone-field error for an invalid managed contact", async () => {
+    const user = userEvent.setup();
+    managedUserUpdate.mockImplementationOnce(
+      (_input: unknown, options?: { onError?: (error: unknown) => void }) => options?.onError?.({
+        status: 400,
+        problem: {
+          errors: [{ code: "InvalidContact", description: "At least one valid contact is required.", failureCode: "InvalidContact" }],
+        },
+      }),
+    );
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.clear(screen.getByRole("textbox", { name: "Email address" }));
+    const phone = screen.getByRole("textbox", { name: "Phone number" });
+    await user.type(phone, "+982112345678");
+    await user.click(screen.getByRole("button", { name: "Save user changes" }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Enter a valid email address or mobile number.");
+    expect(screen.getByText("+98")).toBeInTheDocument();
+    expect(phone).toHaveValue("2112345678");
+  });
+
+  it("explains a duplicate contact when the created account already exists", async () => {
+    const user = userEvent.setup();
+    platformPhoneCreate.mockImplementationOnce(
+      (_input: unknown, options?: { onError?: (error: unknown) => void }) => options?.onError?.({
+        status: 409,
+        problem: {
+          status: 409,
+          errors: [{ code: "ContactIdentifierInUse", description: "Another account already uses this email address or phone number.", failureCode: "ContactIdentifierInUse" }],
+        },
+      }),
+    );
+    renderSurface("platform", { platformView: "create" });
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Contact type" }), "phone");
+    await user.type(screen.getByRole("textbox", { name: "Phone number" }), "09123456789");
+    await user.click(screen.getByRole("button", { name: "Create user" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Another account already uses this email address or phone number.",
+    );
+    expect(screen.getByRole("textbox", { name: "Phone number" })).toHaveValue("09123456789");
   });
 });

@@ -18,6 +18,12 @@ vi.mock("../../api/generated/authentication/authentication", () => ({
 vi.mock("@vitarish/ui", () => ({
   FaIcon: () => null,
   StatusAlert: ({ message }: { message: string }) => <p role="alert">{message}</p>,
+  MobileNumberField: ({ label, value, onChange }: { label: string; value: string; onChange: (next: string) => void }) => (
+    <label>
+      {label}
+      <input value={value} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  ),
 }));
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });

@@ -59,9 +59,9 @@ describe("OtpVerificationStep", () => {
       changeDestinationLabel: "Use a different email",
     });
 
-    expect(
-      screen.getByText(/code sent to user@example.test/i),
-    ).toBeInTheDocument();
+    const destination = screen.getByText("user@example.test");
+    expect(destination).toHaveAttribute("dir", "ltr");
+    expect(destination.parentElement).toHaveTextContent("Code sent to user@example.test.");
     expect(screen.getByText(/3 attempts remaining/i)).toBeInTheDocument();
     expect(screen.getByText(/expires in/i)).toBeInTheDocument();
     expect(
