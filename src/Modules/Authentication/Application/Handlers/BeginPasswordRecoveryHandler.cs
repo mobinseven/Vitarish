@@ -13,8 +13,7 @@ public sealed class BeginPasswordRecoveryHandler(
     IAuthenticationChallengeStore challengeStore,
     IAuthenticationUserDirectory userDirectory,
     IAuthenticationCodeGenerator codeGenerator,
-    IEmailAuthenticationCodeSender emailSender,
-    IPhoneAuthenticationCodeSender phoneSender,
+    IPasswordRecoveryCodeDispatcher codeDispatcher,
     IUserAccountUpdater accountUpdater,
     IAuthenticationAttemptTracker attemptTracker,
     IAuthenticationAttemptKeyFactory attemptKeyFactory,
@@ -69,7 +68,6 @@ public sealed class BeginPasswordRecoveryHandler(
             : command.Channel is PasswordRecoveryChannel.Email ? user.Email : user.PhoneNumber;
         eligible = eligible && !string.IsNullOrWhiteSpace(registeredDestination);
 
-        AuthenticationChallengePurpose purpose = PurposeFor(command.Channel);
         string userId = eligible ? user!.UserId : Guid.NewGuid().ToString("N");
         string destination = eligible ? registeredDestination! : string.Empty;
         AuthenticationChallengePolicy effectivePolicy = challengePolicy.WithMaximumAttempts(securityPolicy.FailedAttemptThreshold);
@@ -84,10 +82,7 @@ public sealed class BeginPasswordRecoveryHandler(
             try
             {
                 string code = await codeGenerator.GenerateAsync(userId, challenge.TokenPurpose, cancellationToken);
-                if (command.Channel is PasswordRecoveryChannel.Email)
-                    await emailSender.SendAsync(destination, code, purpose, cancellationToken);
-                else
-                    await phoneSender.SendAsync(destination, code, purpose, cancellationToken);
+                await codeDispatcher.DispatchAsync(challenge, code, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -121,13 +116,6 @@ public sealed class BeginPasswordRecoveryHandler(
     {
         PasswordRecoveryChannel.Email => AuthenticationMethod.Email,
         PasswordRecoveryChannel.Sms => AuthenticationMethod.Phone,
-        _ => throw new ArgumentOutOfRangeException(nameof(channel))
-    };
-
-    private static AuthenticationChallengePurpose PurposeFor(PasswordRecoveryChannel channel) => channel switch
-    {
-        PasswordRecoveryChannel.Email => AuthenticationChallengePurpose.EmailPasswordRecovery,
-        PasswordRecoveryChannel.Sms => AuthenticationChallengePurpose.PhonePasswordRecovery,
         _ => throw new ArgumentOutOfRangeException(nameof(channel))
     };
 }

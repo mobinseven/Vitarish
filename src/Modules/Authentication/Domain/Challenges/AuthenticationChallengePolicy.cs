@@ -4,6 +4,7 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
 {
     public static AuthenticationChallengePolicy Default { get; } = new(TimeSpan.FromMinutes(5), 5);
     public static TimeSpan PasswordRecoveryMinimumResponseDuration { get; } = TimeSpan.FromSeconds(1);
+    public static TimeSpan PasswordRecoveryDeliveryTimeout { get; } = TimeSpan.FromMinutes(5);
 
     private static readonly string PhoneLoginTokenPurpose = "Authentication:PhoneLogin";
     private static readonly string PasswordLoginOtpTokenPurpose = "Authentication:PasswordLoginOtp";
