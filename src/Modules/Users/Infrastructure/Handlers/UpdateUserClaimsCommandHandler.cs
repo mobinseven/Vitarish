@@ -3,15 +3,18 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Security.Claims;
+using Vitarish.Audit.Domain;
 using Vitarish.Users.Application.Commands;
+using Vitarish.Users.Application.Security;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Users.Contracts.Responses;
+using Vitarish.Users.Infrastructure.Service;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
-public class UpdateUserClaimsCommandHandler(UsersDbContext dbContext, UserManager<User> userManager, IAuthenticationActiveSessionQuery activeSessionQuery) : IRequestHandler<UpdateUserClaimsCommand, IdentityResult>
+public class UpdateUserClaimsCommandHandler(UsersDbContext dbContext, UserManager<User> userManager, IAuthenticationActiveSessionQuery activeSessionQuery, UsersManagementAudit managementAudit) : IRequestHandler<UpdateUserClaimsCommand, IdentityResult>
 {
     private class ClaimEqualityComparer : IEqualityComparer<Claim>
     {
@@ -29,6 +32,7 @@ public class UpdateUserClaimsCommandHandler(UsersDbContext dbContext, UserManage
 
         if (await activeSessionQuery.HasActiveSessionAsync(request.User.Id, cancellationToken))
         {
+            await managementAudit.SecurityAttributeChangedAsync(request.User.Id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.ActiveSessionConflict, cancellationToken);
             return IdentityResult.Failed(new IdentityError
             {
                 Code = UsersCommandErrorCodes.ActiveSessionConflict,
@@ -38,21 +42,35 @@ public class UpdateUserClaimsCommandHandler(UsersDbContext dbContext, UserManage
 
         IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
         IdentityResult? outcome = null;
-        await strategy.ExecuteAsync(async ct =>
+        try
         {
-            await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(ct);
-            IdentityResult result = await userManager.RemoveClaimsAsync(request.User, claimsToRemove);
-            if (result.Succeeded)
-                result = await userManager.AddClaimsAsync(request.User, claimsToAdd);
-            if (!result.Succeeded)
+            await strategy.ExecuteAsync(async ct =>
             {
-                await transaction.RollbackAsync(CancellationToken.None);
+                await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(ct);
+                IdentityResult result = await userManager.RemoveClaimsAsync(request.User, claimsToRemove);
+                if (result.Succeeded)
+                    result = await userManager.AddClaimsAsync(request.User, claimsToAdd);
+                if (!result.Succeeded)
+                {
+                    await transaction.RollbackAsync(CancellationToken.None);
+                    outcome = result;
+                    return;
+                }
+                await transaction.CommitAsync(ct);
                 outcome = result;
-                return;
-            }
-            await transaction.CommitAsync(ct);
-            outcome = result;
-        }, cancellationToken);
+            }, cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            await managementAudit.SecurityAttributeChangedAsync(request.User.Id, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+            throw;
+        }
+
+        await managementAudit.SecurityAttributeChangedAsync(
+            request.User.Id,
+            outcome?.Succeeded is true ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
+            outcome?.Succeeded is true ? SecurityAuditReasonCatalog.SecurityAttributeChanged : SecurityAuditReasonCatalog.MutationRejected,
+            outcome?.Succeeded is true ? CancellationToken.None : cancellationToken);
         return outcome!;
     }
 }

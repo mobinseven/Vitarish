@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useAuditSecurityEventsList } from "../api/generated/audit/audit";
 import type { AuditSecurityEventsListParams } from "../api/generated/audit/model";
 import { formatDateTime, formatNumber, localizeApiError, useLocalizedText } from "@vitarish/localization";
+import { localizeSecurityAuditOutcome } from "../localization";
 
 const pageSize = 25;
 // OpenAPI currently emits the C# SecurityAuditSortField enum as an integer.
@@ -49,21 +50,8 @@ function sortLabel(field: AuditSortField, t: ReturnType<typeof useLocalizedText>
   }
 }
 
-function outcomeLabel(outcome: string | null | undefined, t: ReturnType<typeof useLocalizedText>["t"]): string {
-  switch (outcome) {
-    case "succeeded":
-      return t("security.audit.outcomeSucceeded");
-    case "failed":
-      return t("security.audit.outcomeFailed");
-    case "denied":
-      return t("security.audit.outcomeDenied");
-    case "pending":
-      return t("security.audit.outcomePending");
-    case "started":
-      return t("security.audit.outcomeStarted");
-    default:
-      return outcome ?? "—";
-  }
+function outcomeLabel(outcome: string | null | undefined, locale: Parameters<typeof localizeSecurityAuditOutcome>[0]): string {
+  return localizeSecurityAuditOutcome(locale, outcome, "—");
 }
 
 export function SecurityAuditReviewPage() {
@@ -232,7 +220,7 @@ export function SecurityAuditReviewPage() {
                     <tr key={item.id} className="border-b last:border-0">
                       <td className="px-3 py-3 font-medium">{item.eventName ?? "—"}</td>
                       <td className="px-3 py-3">{item.actorId ?? item.actorKind ?? t("security.audit.unknownActor")}</td>
-                      <td className="px-3 py-3">{outcomeLabel(item.outcome, t)}</td>
+                      <td className="px-3 py-3">{outcomeLabel(item.outcome, locale)}</td>
                       <td className="px-3 py-3">{item.sourceIpAddress ?? item.sourceIpKind ?? "—"}</td>
                       <td className="px-3 py-3 whitespace-nowrap">{item.occurredAt ? formatDateTime(item.occurredAt, locale) : "—"}</td>
                     </tr>

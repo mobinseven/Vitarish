@@ -102,6 +102,7 @@ public static class SecurityAuditApi
         string? outcome,
         bool uncataloguedOnly,
         string? eventId,
+        string? subjectId,
         ISecurityAuditQueryService queryService,
         CancellationToken cancellationToken)
     {
@@ -109,7 +110,7 @@ public static class SecurityAuditApi
         {
             SecurityAuditPageReadDto result = await queryService.QueryPlatformAsync(
                 new SecurityAuditPlatformQuery(
-                    new SecurityAuditQuery(page, pageSize, actorId, eventName, eventCategory, fromUtc, toUtc, sortBy, descending, operation, outcome, eventId),
+                    new SecurityAuditQuery(page, pageSize, actorId, eventName, eventCategory, fromUtc, toUtc, sortBy, descending, operation, outcome, eventId, subjectId),
                     tenantId,
                     uncataloguedOnly),
                 cancellationToken);
@@ -156,6 +157,7 @@ public static class SecurityAuditApi
         string? outcome,
         bool uncataloguedOnly,
         string? eventId,
+        string? subjectId,
         HttpContext httpContext,
         ISecurityAuditQueryService queryService,
         CancellationToken cancellationToken)
@@ -174,7 +176,8 @@ public static class SecurityAuditApi
                         Descending: descending,
                         Operation: operation,
                         Outcome: outcome,
-                        EventId: eventId),
+                        EventId: eventId,
+                        SubjectId: subjectId),
                     tenantId,
                     uncataloguedOnly),
                 cancellationToken);

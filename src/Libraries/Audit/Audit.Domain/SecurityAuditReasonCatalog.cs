@@ -33,6 +33,7 @@ public static class SecurityAuditReasonCatalog
     public const string Unauthorized = "unauthorized";
     public const string UserLogout = "user_logout";
     public const string SecurityAttributeChanged = "security_attribute_changed";
+    public const string UserContactIdentifierChanged = "user_contact_identifier_changed";
     public const string CookieSignInFailed = "cookie_sign_in_failed";
     public const string AdministrativeRevocation = "administrative_revocation";
     public const string InvalidTenantRole = "invalid_tenant_role";
@@ -85,6 +86,7 @@ public static class SecurityAuditReasonCatalog
         Unauthorized,
         UserLogout,
         SecurityAttributeChanged,
+        UserContactIdentifierChanged,
         CookieSignInFailed,
         AdministrativeRevocation,
         InvalidTenantRole,

@@ -4,5 +4,6 @@
     <ProjectReference Include="..\..\..\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Audit\Audit.Domain\Audit.Domain.csproj" />
     <ProjectReference Include="..\..\Requests\Application\Requests.Application.csproj" />
+    <ProjectReference Include="..\..\Users\Domain\Users.Domain.csproj" />
   </ItemGroup>
 </Project>

@@ -20,7 +20,8 @@ public sealed class CompletePasswordLoginOtpHandler(
     IRequestContext requestContext,
     IAuthenticationAttemptTracker attemptTracker,
     IAuthenticationSecurityPolicyProvider securityPolicyProvider,
-    IAuthenticationAttemptKeyFactory attemptKeyFactory)
+    IAuthenticationAttemptKeyFactory attemptKeyFactory,
+    IAuthenticationUtcClock clock)
 {
     public async Task<AuthenticationResult<LoginResult>> Handle(
         CompletePasswordLoginOtpCommand command,
@@ -51,6 +52,13 @@ public sealed class CompletePasswordLoginOtpHandler(
             // AU-8 preserves the OTP authentication flow when its audit record cannot be stored.
         }
 
+        string? knownUserId = null;
+        if (!string.IsNullOrWhiteSpace(command.ChallengeId))
+        {
+            AuthenticationChallenge? challenge = await store.GetAsync(AuthenticationChallengeId.Create(command.ChallengeId), cancellationToken);
+            knownUserId = challenge?.UserId;
+        }
+
         AuthenticationResult<LoginResult> result = await ChallengeCompletionHelper.CompleteChallengeAsync(
             command.ChallengeId,
             command.Code,
@@ -70,7 +78,7 @@ public sealed class CompletePasswordLoginOtpHandler(
             _ = await securityAuditWriter.WriteAsync(CreateAuditEvent(
                 result is AuthenticationResult<LoginResult>.Success ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
                 completedKey,
-                result is AuthenticationResult<LoginResult>.Success success ? success.Value.UserId : null,
+                result is AuthenticationResult<LoginResult>.Success success ? success.Value.UserId : knownUserId,
                 result is AuthenticationResult<LoginResult>.Failure ? AuthenticationSecurityAuditEvents.AuthenticationFailed : null), cancellationToken);
         }
         catch (SecurityAuditStoreException)
@@ -96,7 +104,7 @@ public sealed class CompletePasswordLoginOtpHandler(
         TenantId = requestContext.TenantId!,
         Resource = AuthenticationSecurityAuditEvents.Resource,
         Operation = AuthenticationSecurityAuditEvents.PasswordLoginOtpOperation,
-        OccurredAt = DateTime.UtcNow,
+        OccurredAt = clock.UtcNow,
         CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? idempotencyKey,
         SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
         RedactedReason = reason,

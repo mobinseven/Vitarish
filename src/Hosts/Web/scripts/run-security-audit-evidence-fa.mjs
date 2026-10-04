@@ -1,17 +1,20 @@
 import { spawn, spawnSync } from "node:child_process";
-import { mkdirSync, readdirSync, rmSync } from "node:fs";
+import { mkdirSync } from "node:fs";
+import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import {
+  twoHostE2eAuditEvidenceDirectoryEnvironmentKey,
+  twoHostE2eGrepEnvironmentKey,
+} from "./two-host-e2e-artifacts.mjs";
 
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repositoryRoot = resolve(webRoot, "..", "..", "..");
 const runner = resolve(webRoot, "scripts", "run-two-host-e2e.mjs");
 const signInManagerTests = resolve(repositoryRoot, "tests", "Modules", "Users.Tests", "Users.Tests.csproj");
-const evidenceDirectory = resolve(webRoot, "artifacts", "two-host-e2e", "security-audit-evidence");
+const evidenceRunId = `${new Date().toISOString().replaceAll(":", "-")}-${process.pid}-${randomBytes(4).toString("hex")}`;
+const evidenceDirectory = resolve(webRoot, "artifacts", "two-host-e2e", "security-audit-evidence", "runs", evidenceRunId);
 mkdirSync(evidenceDirectory, { recursive: true });
-for (const file of readdirSync(evidenceDirectory, { withFileTypes: true })) {
-  if (file.isFile() && file.name.endsWith(".png")) rmSync(resolve(evidenceDirectory, file.name), { force: true });
-}
 
 // The browser flow can prove only the public password paths. Keep the seven
 // AuditingSignInManager overrides and their result, attribution, correlation,
@@ -39,8 +42,8 @@ const child = spawn(process.execPath, [runner], {
   env: {
     ...process.env,
     VITARISH_E2E_LOCALE: "fa",
-    VITARISH_E2E_AUDIT_EVIDENCE_DIRECTORY: evidenceDirectory,
-    VITARISH_E2E_GREP: "real actions create visible platform security-audit evidence",
+    [twoHostE2eAuditEvidenceDirectoryEnvironmentKey]: evidenceDirectory,
+    [twoHostE2eGrepEnvironmentKey]: "real actions create visible platform security-audit evidence",
   },
   stdio: "inherit",
   windowsHide: false,

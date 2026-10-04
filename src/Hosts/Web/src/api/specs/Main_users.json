@@ -157,6 +157,80 @@
             }
           }
         }
+      },
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "UsersAdministrationUpdateUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateManagedUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsersCommandResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/modules/users/email-in-use": {
@@ -636,6 +710,108 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/users/administration/{userId}/security": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "UsersAdministrationGetUserSecurity",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSecurityDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSecurityDetailsResponse"
                 }
               }
             }
@@ -2376,6 +2552,48 @@
           }
         }
       },
+      "UpdateManagedUserRequest": {
+        "required": [
+          "email",
+          "phoneNumber",
+          "firstName",
+          "lastName",
+          "revision"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phoneNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "revision": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "UpdateUserProfileRequest": {
         "required": [
           "firstName",
@@ -2490,8 +2708,37 @@
           },
           "description": {
             "type": "string"
+          },
+          "failureCode": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/UsersCommandErrorKind"
+              }
+            ]
           }
         }
+      },
+      "UsersCommandErrorKind": {
+        "enum": [
+          "Unauthorized",
+          "ActiveSessionConflict",
+          "RoleNotFound",
+          "InvalidGlobalRole",
+          "InvalidTenantRole",
+          "UserNotFound",
+          "InvalidContact",
+          "ContactIdentifierInUse",
+          "ConcurrencyFailure",
+          "TenantRoleConflict",
+          "TenantMemberNotFound",
+          "TenantOwnerRemovalRejected",
+          "TenantMemberConflict",
+          "LastOwnerProtection",
+          null
+        ]
       },
       "UsersCommandResponse": {
         "required": [
@@ -2508,6 +2755,218 @@
             "items": {
               "$ref": "#/components/schemas/UsersCommandError"
             }
+          }
+        }
+      },
+      "UserSecurityDetailsResponse": {
+        "required": [
+          "user",
+          "globalRoles",
+          "tenantRoles",
+          "securityHistory",
+          "authenticationHistory",
+          "securityHistoryAvailable",
+          "authenticationHistoryAvailable"
+        ],
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserSecurityIdentityResponse"
+          },
+          "globalRoles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tenantRoles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TenantRoleMembershipResponse"
+            }
+          },
+          "securityHistory": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/UserSecurityHistoryResponse"
+              }
+            ]
+          },
+          "authenticationHistory": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/UserSecurityHistoryResponse"
+              }
+            ]
+          },
+          "securityHistoryAvailable": {
+            "type": "boolean"
+          },
+          "authenticationHistoryAvailable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UserSecurityEventResponse": {
+        "required": [
+          "eventName",
+          "eventCategory",
+          "outcome",
+          "actorId",
+          "operation",
+          "occurredAt",
+          "clientInterfaceHost",
+          "isAuthenticationEvent",
+          "redactedReason"
+        ],
+        "type": "object",
+        "properties": {
+          "eventName": {
+            "type": "string"
+          },
+          "eventCategory": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "operation": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "clientInterfaceHost": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isAuthenticationEvent": {
+            "type": "boolean"
+          },
+          "redactedReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "UserSecurityHistoryResponse": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "totalCount"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserSecurityEventResponse"
+            }
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "UserSecurityIdentityResponse": {
+        "required": [
+          "id",
+          "userName",
+          "firstName",
+          "lastName",
+          "email",
+          "phoneNumber",
+          "fullName",
+          "revision"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "firstName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lastName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phoneNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fullName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "revision": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

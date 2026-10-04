@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { matchesGlob } from "node:path";
 import test from "node:test";
 import { selectProductionMatrix } from "./select-production-matrix.mjs";
@@ -8,6 +8,12 @@ const workflow = readFileSync(new URL("../../.github/workflows/production.yml", 
 const caddyfile = readFileSync(new URL("../../src/Hosts/deployment/Caddyfile", import.meta.url), "utf8");
 const deployProductionScript = readFileSync(new URL("../../src/Hosts/deployment/deploy-production.sh", import.meta.url), "utf8");
 const mainHealthSource = readFileSync(new URL("../../src/Hosts/Main/Infrastructure/Health/MainDependencyHealthCheck.cs", import.meta.url), "utf8");
+const authConsumerWorkspaces = readdirSync(new URL("../../src/Hosts/Web/apps/", import.meta.url), { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => JSON.parse(readFileSync(new URL(`../../src/Hosts/Web/apps/${entry.name}/package.json`, import.meta.url), "utf8")))
+  .filter((manifest) => manifest.dependencies?.["@vitarish/auth"])
+  .map((manifest) => manifest.name.replace(/^@vitarish\//, ""))
+  .sort();
 const unknownSourceRules = /^            unknown_source:\r?\n((?:              - .*\r?\n)+)/m.exec(workflow)?.[1]
   ?.trim().split(/\r?\n/).map((line) => line.trim().slice(3).replace(/^'|'$/g, ""));
 const deployScriptRules = /^            deploy_script:\r?\n((?:              - .*\r?\n)+)/m.exec(workflow)?.[1]
@@ -96,20 +102,22 @@ test("an isolated Web app change selects only that app's tests, image, and servi
   assert.deepEqual(selected.services, ["private-practice-owner"]);
 });
 
-test("a scoped authentication change selects only its app checks and shared auth checks", () => {
-  const selected = selectProductionMatrix("push", { web_auth: true }, "fix(platform-admin): redirect anonymous users");
-  assert.deepEqual(selected.web.map(({ workspace }) => workspace), ["platform-admin"]);
-  assert.deepEqual(selected.images, ["platform-admin"]);
-  assert.deepEqual(selected.services, ["platform-admin"]);
+test("a shared authentication change selects every consuming app with shared auth checks", () => {
+  const selected = selectProductionMatrix("push", { web_auth: true, web_landing: true });
+  assert.equal(selected.web.length, authConsumerWorkspaces.length + 1);
+  assert.equal(selected.images.length, authConsumerWorkspaces.length + 1);
+  assert.equal(selected.services.length, authConsumerWorkspaces.length + 1);
+  assert.deepEqual(selected.web.map(({ workspace }) => workspace).sort(), [...authConsumerWorkspaces, "vitarish-landing"].sort());
+  assert.match(workflow, /authentication_web:[\s\S]*?env:\r?\n          HEROUI_AUTH_TOKEN: \$\{\{ secrets\.HEROUI_AUTH_TOKEN \}\}/);
+  assert.match(workflow, /npm ci/);
   assert.match(workflow, /authentication_web:[\s\S]*?if: \$\{\{ contains\(needs\.changes\.outputs\.filters, 'web_auth'\) \}\}/);
   assert.match(workflow, /needs: \[changes, dotnet, web, authentication_web, security\]/);
-  assert.doesNotMatch(workflow, /needs\.changes\.outputs\.full_suite == 'true' \|\| contains\(needs\.changes\.outputs\.filters, 'web_auth'\)/);
 });
 
-test("an unscoped authentication change checks every consuming app and shared auth", () => {
+test("an authentication-only change selects every consuming app and shared auth", () => {
   const selected = selectProductionMatrix("push", { web_auth: true });
-  assert.equal(selected.web.length, 7);
-  assert.equal(selected.images.length, 7);
+  assert.equal(selected.web.length, 5);
+  assert.equal(selected.images.length, 5);
 });
 
 test("a shared Web change selects all Web consumers", () => {

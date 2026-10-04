@@ -22,7 +22,8 @@ public sealed record SecurityAuditQuery(
     bool Descending = true,
     string? Operation = null,
     string? Outcome = null,
-    string? EventId = null);
+    string? EventId = null,
+    string? SubjectId = null);
 
 public sealed record SecurityAuditPlatformQuery(
     SecurityAuditQuery Query,

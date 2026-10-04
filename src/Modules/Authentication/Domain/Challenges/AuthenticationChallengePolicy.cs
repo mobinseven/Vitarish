@@ -25,7 +25,50 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
         return this with { MaximumAttempts = maximumAttempts };
     }
 
-    public string TokenPurpose(AuthenticationChallengePurpose purpose) => purpose switch
+    public AuthenticationChallenge CreatePhoneLoginChallenge(string userId, string phoneNumber, DateTimeOffset now) =>
+        CreateChallenge(AuthenticationChallengePurpose.PhoneLogin, userId, phoneNumber, now);
+
+    public AuthenticationChallenge CreatePasswordLoginOtpChallenge(string userId, string phoneNumber, DateTimeOffset now, bool rememberMe, bool requiresProfileCompletion) =>
+        CreateChallenge(AuthenticationChallengePurpose.PasswordLoginOtp, userId, phoneNumber, now, rememberMe, requiresProfileCompletion);
+
+    public AuthenticationChallenge CreateEmailLoginChallenge(string userId, string email, DateTimeOffset now) =>
+        CreateChallenge(AuthenticationChallengePurpose.EmailLogin, userId, email, now);
+
+    public AuthenticationChallenge CreatePhoneChangeChallenge(string userId, string phoneNumber, DateTimeOffset now) =>
+        CreateChallenge(AuthenticationChallengePurpose.PhoneChange, userId, phoneNumber, now);
+
+    public AuthenticationChallenge CreateEmailChangeChallenge(string userId, string email, DateTimeOffset now) =>
+        CreateChallenge(AuthenticationChallengePurpose.EmailChange, userId, email, now);
+
+    public AuthenticationChallenge CreateEmailPasswordRecoveryChallenge(string userId, string email, DateTimeOffset now) =>
+        CreateChallenge(AuthenticationChallengePurpose.EmailPasswordRecovery, userId, email, now);
+
+    public AuthenticationChallenge CreatePhonePasswordRecoveryChallenge(string userId, string phoneNumber, DateTimeOffset now) =>
+        CreateChallenge(AuthenticationChallengePurpose.PhonePasswordRecovery, userId, phoneNumber, now);
+
+    public AuthenticationChallenge CreatePasskeyLoginChallenge(string userIdOrLoginHint, string challengeReference, DateTimeOffset now) =>
+        CreateChallenge(AuthenticationChallengePurpose.PasskeyLogin, userIdOrLoginHint, challengeReference, now);
+
+    private AuthenticationChallenge CreateChallenge(AuthenticationChallengePurpose purpose, string userId, string destination, DateTimeOffset now, bool rememberMe = false, bool requiresProfileCompletion = false)
+    {
+        AuthenticationChallengeId challengeId = new(Guid.NewGuid().ToString("N"));
+        return new(
+            challengeId,
+            purpose,
+            userId,
+            destination,
+            TokenPurpose(purpose, challengeId),
+            now,
+            now.Add(Lifetime),
+            MaximumAttempts,
+            rememberMe,
+            requiresProfileCompletion);
+    }
+
+    private static string TokenPurpose(AuthenticationChallengePurpose purpose, AuthenticationChallengeId challengeId) =>
+        $"{BaseTokenPurpose(purpose)}:{challengeId.Value}";
+
+    private static string BaseTokenPurpose(AuthenticationChallengePurpose purpose) => purpose switch
     {
         AuthenticationChallengePurpose.PhoneLogin => PhoneLoginTokenPurpose,
         AuthenticationChallengePurpose.PasswordLoginOtp => PasswordLoginOtpTokenPurpose,
@@ -37,41 +80,4 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
         AuthenticationChallengePurpose.PhonePasswordRecovery => PhonePasswordRecoveryTokenPurpose,
         _ => throw new ArgumentOutOfRangeException(nameof(purpose))
     };
-
-    public AuthenticationChallenge CreatePhoneLoginChallenge(string userId, string phoneNumber, string tokenPurpose, DateTimeOffset now) =>
-        CreateChallenge(AuthenticationChallengePurpose.PhoneLogin, userId, phoneNumber, tokenPurpose, now);
-
-    public AuthenticationChallenge CreatePasswordLoginOtpChallenge(string userId, string phoneNumber, string tokenPurpose, DateTimeOffset now, bool rememberMe, bool requiresProfileCompletion) =>
-        CreateChallenge(AuthenticationChallengePurpose.PasswordLoginOtp, userId, phoneNumber, tokenPurpose, now, rememberMe, requiresProfileCompletion);
-
-    public AuthenticationChallenge CreateEmailLoginChallenge(string userId, string email, string tokenPurpose, DateTimeOffset now) =>
-        CreateChallenge(AuthenticationChallengePurpose.EmailLogin, userId, email, tokenPurpose, now);
-
-    public AuthenticationChallenge CreatePhoneChangeChallenge(string userId, string phoneNumber, string tokenPurpose, DateTimeOffset now) =>
-        CreateChallenge(AuthenticationChallengePurpose.PhoneChange, userId, phoneNumber, tokenPurpose, now);
-
-    public AuthenticationChallenge CreateEmailChangeChallenge(string userId, string email, string tokenPurpose, DateTimeOffset now) =>
-        CreateChallenge(AuthenticationChallengePurpose.EmailChange, userId, email, tokenPurpose, now);
-
-    public AuthenticationChallenge CreateEmailPasswordRecoveryChallenge(string userId, string email, string tokenPurpose, DateTimeOffset now) =>
-        CreateChallenge(AuthenticationChallengePurpose.EmailPasswordRecovery, userId, email, tokenPurpose, now);
-
-    public AuthenticationChallenge CreatePhonePasswordRecoveryChallenge(string userId, string phoneNumber, string tokenPurpose, DateTimeOffset now) =>
-        CreateChallenge(AuthenticationChallengePurpose.PhonePasswordRecovery, userId, phoneNumber, tokenPurpose, now);
-
-    public AuthenticationChallenge CreatePasskeyLoginChallenge(string userIdOrLoginHint, string challengeReference, DateTimeOffset now) =>
-        CreateChallenge(AuthenticationChallengePurpose.PasskeyLogin, userIdOrLoginHint, challengeReference, PasskeyTokenPurpose, now);
-
-    private AuthenticationChallenge CreateChallenge(AuthenticationChallengePurpose purpose, string userId, string destination, string tokenPurpose, DateTimeOffset now, bool rememberMe = false, bool requiresProfileCompletion = false) =>
-        new(
-            new AuthenticationChallengeId(Guid.NewGuid().ToString("N")),
-            purpose,
-            userId,
-            destination,
-            tokenPurpose,
-            now,
-            now.Add(Lifetime),
-            MaximumAttempts,
-            rememberMe,
-            requiresProfileCompletion);
 }

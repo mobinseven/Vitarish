@@ -184,7 +184,7 @@ public sealed class LoginWithPasswordHandlerTests
         Mock<IAuthenticationChallengeStore> challengeStore = new();
         challengeStore.Setup(x => x.GetAsync(It.IsAny<AuthenticationChallengeId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
-                "user-42", "+989121234567", "Authentication:PasswordLoginOtp", DateTimeOffset.UtcNow, false, false));
+                "user-42", "+989121234567", DateTimeOffset.UtcNow, false, false));
         Mock<IAuthenticationUserDirectory> userDirectory = new();
         userDirectory.Setup(x => x.FindByIdAsync("user-42", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new AuthenticationUserDescriptor("user-42", "user-42", null, "Given", "Family", null, "+989121234567", false));

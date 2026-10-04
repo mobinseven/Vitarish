@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { twoHostE2eAuditEvidenceDirectoryEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 import {
@@ -16,7 +17,7 @@ const platformAdminUsername = process.env.VITARISH_E2E_PLATFORM_ADMIN_USERNAME ?
 const ownerTenantId = "9c8b6b3a-7d6e-4f75-a88d-7d3f5b1b0f92";
 const tenantUserRoleSuffix = "TenantUser";
 const password = process.env.VITARISH_E2E_PASSWORD;
-const evidenceDirectory = process.env.VITARISH_E2E_AUDIT_EVIDENCE_DIRECTORY
+const evidenceDirectory = process.env[twoHostE2eAuditEvidenceDirectoryEnvironmentKey]
   ?? join(process.cwd(), "artifacts", "two-host-e2e", "security-audit-evidence");
 const locale = process.env.VITARISH_E2E_LOCALE === "fa" ? "fa" : "en";
 const uiText = {
@@ -55,7 +56,7 @@ const auditEvents = {
 } as const;
 
 type AuditEventExpectation = (typeof auditEvents)[keyof typeof auditEvents] & { outcome: string };
-type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; redactedReason?: string }> };
+type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; redactedReason?: string }>; totalCount: number };
 
 async function login(page: Page, username: string, origin = "", clientIp = "198.51.100.60"): Promise<void> {
   await page.context().addCookies([
@@ -426,7 +427,12 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantMemberRemoval, outcome: "succeeded" }, "tenant-member-removed.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.tenantRoleReplacement, outcome: "succeeded" }, "tenant-role-replaced.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.dataImport, outcome: "succeeded" }, "data-import.png");
-    await captureAuditEvidence(administratorPage, { ...auditEvents.auditReview, outcome: "succeeded" }, "audit-review.png");
+    const reviewEvent = { ...auditEvents.auditReview, outcome: "succeeded" };
+    const reviewEventsBefore = await platformAuditQuery(administratorPage, reviewEvent);
+    await administratorPage.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
+    await expect(administratorPage.getByRole("heading", { name: uiText.auditTitle })).toBeVisible({ timeout: 30_000 });
+    const reviewEventsAfter = await platformAuditQuery(administratorPage, reviewEvent);
+    expect(reviewEventsAfter.totalCount).toBe(reviewEventsBefore.totalCount);
     await captureAuditEvidence(administratorPage, { ...auditEvents.accessHistory, outcome: "succeeded" }, "access-history.png");
     await captureAuditEvidence(administratorPage, { ...auditEvents.sessionPolicy, outcome: "succeeded" }, "session-policy.png");
     const securityFailureRecords = await platformAuditQuery(administratorPage, { ...auditEvents.securityFunctionFailure, outcome: "failed" });

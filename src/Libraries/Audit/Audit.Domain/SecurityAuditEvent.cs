@@ -21,6 +21,7 @@ public sealed class SecurityAuditEvent
     public string SourceBoundary { get; set; } = string.Empty;
     public string? SourceIpKind { get; set; }
     public string? SourceIpAddress { get; set; }
+    public string? ClientInterfaceHost { get; set; }
     public string? RedactedReason { get; set; }
     public string IdempotencyKey { get; set; } = string.Empty;
 }

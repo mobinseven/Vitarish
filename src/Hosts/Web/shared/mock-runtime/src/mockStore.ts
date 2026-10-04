@@ -27,6 +27,12 @@ export type MockAuditEvent = {
 
 // Keep mock values in the shared fixture owner so every mock host exercises the
 // same operator-facing catalog and realistic, mixed-outcome audit history.
+const mockSessionTerminatedAudit = {
+  category: "session",
+  eventName: "authentication.session.terminated",
+  operation: "session.terminate",
+} as const;
+
 export const mockAuditCatalog: MockAuditCatalogEntry[] = [
   ["function", "security.endpoint.mutation", "*"],
   ["audit-review", "security.audit.review", "audit.security-events.list"],
@@ -50,7 +56,7 @@ export const mockAuditCatalog: MockAuditCatalogEntry[] = [
   ["management", "security.management.operation", "management.operation"],
   ["security-failure", "security.failure", "security.failure"],
   ["session", "authentication.session.established", "session.establish"],
-  ["session", "authentication.session.terminated", "session.terminate"],
+  [mockSessionTerminatedAudit.category, mockSessionTerminatedAudit.eventName, mockSessionTerminatedAudit.operation],
   ["session", "authentication.access-history", "access-history"],
   ["session", "authentication.session.notice", "session.notice"],
   ["session", "authentication.session-policy", "session-policy.change"],
@@ -66,6 +72,7 @@ function createMockAuditEvents(): MockAuditEvent[] {
     ["authentication.password.login", "authentication", "password.login", "anonymous", "denied"],
     ["authentication.identity.password-check", "authentication", "identity.password.check", "anonymous", "succeeded"],
     ["authentication.password.login", "authentication", "password.login", "anonymous", "started"],
+    [mockSessionTerminatedAudit.eventName, mockSessionTerminatedAudit.category, mockSessionTerminatedAudit.operation, "system", "succeeded"],
     ["authentication.security-access-policy", "authentication", "Authentication_SecurityAccessPolicy_Change", "user", "succeeded"],
     ["authentication.security-access-policy", "authentication", "Authentication_SecurityAccessPolicy_Change", "user", "pending"],
     ["authentication.account.password.change", "authentication", "account.password.change", "user", "succeeded"],
@@ -82,7 +89,7 @@ function createMockAuditEvents(): MockAuditEvent[] {
       operation,
       outcome,
       actorKind,
-      actorId: actorKind === "anonymous" ? "anonymous" : "mock-user",
+      actorId: actorKind === "anonymous" ? "anonymous" : actorKind === "system" ? "system" : "mock-user",
       subjectId: actorKind === "anonymous" ? undefined : "mock-user",
       tenantId: index % 5 === 0 ? undefined : "mock-tenant",
       resource: eventCategory === "management" ? "tenant-membership" : "authentication",
@@ -91,7 +98,11 @@ function createMockAuditEvents(): MockAuditEvent[] {
       sourceBoundary: actorKind === "anonymous" ? "main.endpoint-filter" : "authentication.application",
       sourceIpKind: actorKind === "anonymous" ? "direct" : "forwarded",
       sourceIpAddress: actorKind === "anonymous" ? "1::1" : index % 2 === 0 ? "198.51.100.62" : "198.51.100.61",
-      redactedReason: actorKind === "anonymous" && outcome === "denied" ? "authentication failure" : undefined,
+      redactedReason: actorKind === "anonymous" && outcome === "denied"
+        ? "authentication failure"
+        : eventName === mockSessionTerminatedAudit.eventName
+          ? "Session expired due to inactivity."
+          : undefined,
     };
   });
 }

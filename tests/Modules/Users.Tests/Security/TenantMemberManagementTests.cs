@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using MediatR;
 using Moq;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Vitarish.Audit.Application;
@@ -17,10 +18,12 @@ using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Authorization;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Application.Queries;
+using Vitarish.Users.Application.Security;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Handlers;
+using Vitarish.Users.Infrastructure.Service;
 
 namespace Vitarish.Users.Tests.Security;
 
@@ -49,13 +52,17 @@ public sealed class TenantMemberManagementTests
     {
         await using TestUsersDbContext dbContext = await CreateDbContextAsync();
         UserManager<User> userManager = CreateUserManager(dbContext);
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        IRequestContext requestContext = RequestContext(TenantId, IdentityDefinitions.PlatformAdmin);
         ProvisionTenantMemberCommandHandler handler = new(
             dbContext,
             userManager,
+            CreateSender(dbContext),
             new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())),
             ActiveSessions(false).Object,
-            AuditWriter().Object,
-            RequestContext(TenantId, IdentityDefinitions.PlatformAdmin));
+            auditWriter.Object,
+            requestContext,
+            new UsersManagementAudit(auditWriter.Object, requestContext, TimeProvider.System));
         ProvisionTenantMemberCommand request = new(null, "new@example.com", null, "New", "Member");
 
         ProvisionTenantMemberResult first = await handler.Handle(request, CancellationToken.None);
@@ -67,6 +74,70 @@ public sealed class TenantMemberManagementTests
         second.AlreadyMember.Should().BeTrue();
         (await dbContext.Users.CountAsync(user => user.NormalizedEmail == "NEW@EXAMPLE.COM")).Should().Be(1);
         (await dbContext.UserRoles.CountAsync(membership => membership.UserId == first.User!.Id)).Should().Be(1);
+        auditWriter.Verify(writer => writer.WriteAsync(
+            It.Is<SecurityAuditEvent>(entry =>
+                entry.EventName == SecurityAuditEventCatalog.UserCreationEvent &&
+                entry.SubjectId == first.User!.Id),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Provision_with_a_local_format_phone_stores_the_e164_number()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextAsync();
+        UserManager<User> userManager = CreateUserManager(dbContext);
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        IRequestContext requestContext = RequestContext(TenantId, IdentityDefinitions.PlatformAdmin);
+        ProvisionTenantMemberCommandHandler handler = new(
+            dbContext,
+            userManager,
+            CreateSender(dbContext),
+            new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())),
+            ActiveSessions(false).Object,
+            auditWriter.Object,
+            requestContext,
+            new UsersManagementAudit(auditWriter.Object, requestContext, TimeProvider.System));
+
+        ProvisionTenantMemberResult result = await handler.Handle(
+            new(null, null, "09123456789", "New", "Member"), CancellationToken.None);
+
+        result.Created.Should().BeTrue();
+        User created = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == result.User!.Id);
+        created.PhoneNumber.Should().Be("+989123456789");
+        created.UserName.Should().Be("+989123456789");
+    }
+
+    [Fact]
+    public async Task Provision_rejects_a_contact_already_owned_by_another_account()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextAsync();
+        dbContext.Users.Add(new User { Id = "username-owner", UserName = "taken@example.test", NormalizedUserName = "TAKEN@EXAMPLE.TEST" });
+        await dbContext.SaveChangesAsync();
+        UserManager<User> userManager = CreateUserManager(dbContext);
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        IRequestContext requestContext = RequestContext(TenantId, IdentityDefinitions.PlatformAdmin);
+        ProvisionTenantMemberCommandHandler handler = new(
+            dbContext,
+            userManager,
+            CreateSender(dbContext),
+            new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())),
+            ActiveSessions(false).Object,
+            auditWriter.Object,
+            requestContext,
+            new UsersManagementAudit(auditWriter.Object, requestContext, TimeProvider.System));
+
+        ProvisionTenantMemberResult result = await handler.Handle(
+            new(null, "TAKEN@example.test", null, "New", "Member"), CancellationToken.None);
+
+        result.Created.Should().BeFalse();
+        result.ErrorCode.Should().Be(UsersCommandErrorCodes.ContactIdentifierInUse);
+        (await dbContext.Users.CountAsync()).Should().Be(4);
+        auditWriter.Verify(writer => writer.WriteAsync(
+            It.Is<SecurityAuditEvent>(entry =>
+                entry.EventName == SecurityAuditEventCatalog.UserCreationFailureEvent &&
+                entry.Outcome == SecurityAuditOutcome.Denied &&
+                entry.RedactedReason == SecurityAuditReasonCatalog.MutationRejected),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -82,6 +153,17 @@ public sealed class TenantMemberManagementTests
         (await dbContext.UserRoles.AnyAsync(membership => membership.UserId == "staff")).Should().BeFalse();
         ownerResult.Errors.Single().Code.Should().Be(UsersCommandErrorCodes.TenantOwnerRemovalRejected);
         (await dbContext.UserRoles.AnyAsync(membership => membership.UserId == "owner")).Should().BeTrue();
+    }
+
+    private static ISender CreateSender(UsersDbContext dbContext)
+    {
+        ServiceCollection services = new();
+        _ = services.AddLogging();
+        _ = services.AddMediatR(configuration =>
+            configuration.RegisterServicesFromAssembly(typeof(CheckUserEmailInUseQueryHandler).Assembly));
+        _ = services.AddSingleton<UsersDbContext>(dbContext);
+        _ = services.AddSingleton<ILookupNormalizer>(new UpperInvariantLookupNormalizer());
+        return services.BuildServiceProvider().GetRequiredService<ISender>();
     }
 
     private static UserManager<User> CreateUserManager(UsersDbContext dbContext) => new(

@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
-import { TextField, Label, Input, Button } from "@heroui/react";
+import { useCallback, useState } from "react";
+import { Button } from "@heroui/react";
 import { useAuthSession } from "@vitarish/auth";
 import {
   AccountBackLink,
@@ -9,7 +9,7 @@ import {
   AccountWidget,
 } from "@/components/account/AccountSurface";
 import { useAccountPhoneChange } from "@vitarish/account";
-import { StatusAlert } from "@vitarish/ui";
+import { MobileNumberField, StatusAlert } from "@vitarish/ui";
 import { OtpCodeInput } from "@vitarish/auth";
 import { localizeApiError, useLocalizedText } from "@/localization";
 
@@ -32,6 +32,7 @@ export default function PhoneChangePage() {
     beginPhoneChange,
     verifyPhoneChange,
   } = useAccountPhoneChange(userId);
+  const [phoneFieldError, setPhoneFieldError] = useState<string | undefined>();
 
   const handlePhoneSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -39,6 +40,11 @@ export default function PhoneChangePage() {
       try {
         await beginPhoneChange(phoneNumber);
       } catch (err: unknown) {
+        if (typeof err === "object" && err !== null && "status" in err && err.status === 400) {
+          setPhoneFieldError(t("auth.otp.invalidPhoneNumber"));
+          setError(null);
+          return;
+        }
         setError(localizeApiError(err, t));
       }
     },
@@ -62,7 +68,8 @@ export default function PhoneChangePage() {
       <AccountWidget title={t("account.phone.title")}>
         {profile?.phoneNumber && (
           <p className="text-sm text-muted">
-            {t("account.phone.currentValue", { value: profile.phoneNumber })}
+            {t("account.phone.currentValue", { value: "" })}
+            <span dir="ltr">{profile.phoneNumber}</span>
           </p>
         )}
         {error && <StatusAlert className="mb-4" message={error} />}
@@ -76,15 +83,18 @@ export default function PhoneChangePage() {
 
         {step === "phone" ? (
           <form onSubmit={handlePhoneSubmit} className="flex flex-col gap-4">
-            <TextField name="phone" isRequired>
-              <Label>{t("account.phone.newPhone")}</Label>
-              <Input
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                autoComplete="tel"
-                inputMode="tel"
-              />
-            </TextField>
+            <MobileNumberField
+              name="phone"
+              label={t("account.phone.newPhone")}
+              hint={t("auth.otp.phoneHint")}
+              value={phoneNumber}
+              onChange={(value) => {
+                setPhoneNumber(value);
+                setPhoneFieldError(undefined);
+              }}
+              error={phoneFieldError}
+              isRequired
+            />
             <Button type="submit" isPending={isLoading} className="w-full">
               {t("auth.otp.sendAction")}
             </Button>
@@ -92,7 +102,9 @@ export default function PhoneChangePage() {
         ) : (
           <form onSubmit={handleCodeSubmit} className="flex flex-col gap-4">
             <p className="text-sm text-muted">
-              {t("auth.otp.codeSentTo", { destination: phoneNumber })}
+              {t("auth.otp.codeSentToPrefix")}
+              <span dir="ltr">{phoneNumber}</span>
+              {t("auth.otp.codeSentToSuffix")}
             </p>
             <OtpCodeInput
               value={code}

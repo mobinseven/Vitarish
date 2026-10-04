@@ -137,6 +137,24 @@ describe("apiFetch antiforgery", () => {
   });
 });
 
+describe("apiFetch error status", () => {
+  beforeEach(() => {
+    resetAntiforgeryToken();
+    vi.restoreAllMocks();
+  });
+
+  it("reports the real HTTP status when the error body has no status field", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({ requestToken: "token" }))
+      .mockResolvedValueOnce(jsonResponse({ succeeded: false, errors: [] }, { status: 409 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(apiFetch("/api/modules/users/user-id", { method: "PUT", body: "{}" })).rejects.toMatchObject({
+      status: 409,
+    });
+  });
+});
+
 describe("apiFetchBlob", () => {
   beforeEach(() => {
     vi.restoreAllMocks();

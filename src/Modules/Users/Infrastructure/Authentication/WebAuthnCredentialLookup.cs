@@ -12,7 +12,7 @@ public sealed class WebAuthnCredentialLookup(UsersDbContext dbContext) : IWebAut
             .Where(c => c.UserId == userId && c.IsActive)
             .ToListAsync(ct);
 
-        return credentials.Select(c => new WebAuthnCredentialDescriptor(c.CredentialId)).ToList();
+        return credentials.Select(c => new WebAuthnCredentialDescriptor(c.CredentialId, c.UserId)).ToList();
     }
 
     public async Task<WebAuthnCredentialData?> FindByCredentialIdAsync(byte[] credentialId, CancellationToken ct)

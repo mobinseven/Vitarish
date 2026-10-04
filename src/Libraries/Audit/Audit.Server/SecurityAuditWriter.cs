@@ -12,7 +12,8 @@ namespace Vitarish.Audit.Server;
 internal sealed class SecurityAuditWriter(
     AuditDbContext dbContext,
     IClientIpAddressAccessor? clientIpAddressAccessor = null,
-    ILogger<SecurityAuditWriter>? logger = null) : ISecurityAuditWriter, ISecurityAuditOutcomeUpdater
+    ILogger<SecurityAuditWriter>? logger = null,
+    IClientInterfaceHostAccessor? clientInterfaceHostAccessor = null) : ISecurityAuditWriter, ISecurityAuditOutcomeUpdater
 {
     public async Task<string?> GetOutcomeAsync(string tenantId, string idempotencyKey, CancellationToken cancellationToken)
     {
@@ -130,6 +131,7 @@ internal sealed class SecurityAuditWriter(
                 SourceBoundary = pending.SourceBoundary,
                 SourceIpKind = pending.SourceIpKind,
                 SourceIpAddress = pending.SourceIpAddress,
+                ClientInterfaceHost = pending.ClientInterfaceHost,
                 RedactedReason = SecurityAuditRedaction.Apply(reason),
                 IdempotencyKey = terminalKey
             }, cancellationToken);
@@ -182,6 +184,7 @@ internal sealed class SecurityAuditWriter(
         {
             auditEvent.SourceIpAddress = null;
         }
+        auditEvent.ClientInterfaceHost ??= clientInterfaceHostAccessor?.ClientInterfaceHost;
     }
 
     private static void Validate(SecurityAuditEvent auditEvent)

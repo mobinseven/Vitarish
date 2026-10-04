@@ -138,7 +138,6 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           CHANGED_FILTERS: ${{ steps.filter.outputs.changes }}
-          CHANGE_TITLE: ${{ github.event.head_commit.message || github.event.pull_request.title || '' }}
         run: |
           node tools/ci/select-production-matrix.mjs
       - name: Verify path selection and release identity

@@ -1,14 +1,16 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Vitarish.Users.Application.Queries;
-using Vitarish.Users.Infrastructure.Data;
+using Vitarish.Users.Domain.Security;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
-public class CheckUserPhoneNumberInUseQueryHandler(UsersDbContext dbContext) : IRequestHandler<CheckUserPhoneNumberInUseQuery, bool>
+public class CheckUserPhoneNumberInUseQueryHandler(ISender sender) : IRequestHandler<CheckUserPhoneNumberInUseQuery, bool>
 {
-    public Task<bool> Handle(CheckUserPhoneNumberInUseQuery request, CancellationToken cancellationToken) =>
-        dbContext.Users.AsNoTracking().AnyAsync(
-            user => user.PhoneNumber == request.PhoneNumber && (request.ExcludeUserId == null || user.Id != request.ExcludeUserId),
-            cancellationToken);
+    public Task<bool> Handle(CheckUserPhoneNumberInUseQuery request, CancellationToken cancellationToken)
+    {
+        if (!UserPhoneNumberPolicy.TryNormalize(request.PhoneNumber, out string? phoneNumber))
+            return Task.FromResult(false);
+
+        return sender.Send(new CheckLoginIdentifierInUseQuery(phoneNumber, LoginIdentifierKind.Phone, request.ExcludeUserId), cancellationToken);
+    }
 }

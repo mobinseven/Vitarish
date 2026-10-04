@@ -64,4 +64,10 @@ describe("LoginForm", () => {
     const passwordInput = screen.getByLabelText(/password/i);
     expect(passwordInput).toHaveAttribute("type", "password");
   });
+
+  it("uses a POST fallback so credentials cannot appear in the URL before hydration", () => {
+    render(<LoginForm />, { wrapper });
+
+    expect(screen.getByRole("button", { name: /sign in/i }).closest("form")).toHaveAttribute("method", "post");
+  });
 });

@@ -2,16 +2,15 @@ import { appendFileSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const platformAdminCommitScope = "platform-admin";
 const platformAdminFilter = "web_admin";
 const webAuthFilter = "web_auth";
 
 const webConsumers = [
-  { service: "private-practice-owner", image: "private-practice-owner", workspace: "private-practice-owner", filter: "web_owner" },
-  { service: "patients", image: "patients", workspace: "patients", filter: "web_patients" },
-  { service: "platform-admin", image: "platform-admin", workspace: "platform-admin", filter: platformAdminFilter },
-  { service: "pm", image: "pm", workspace: "vitarish-pm", filter: "web_pm" },
-  { service: "knowledge-qa", image: "knowledge-qa", workspace: "knowledge-qa-demo", filter: "web_qa" },
+  { service: "private-practice-owner", image: "private-practice-owner", workspace: "private-practice-owner", filter: "web_owner", authConsumer: true },
+  { service: "patients", image: "patients", workspace: "patients", filter: "web_patients", authConsumer: true },
+  { service: "platform-admin", image: "platform-admin", workspace: "platform-admin", filter: platformAdminFilter, authConsumer: true },
+  { service: "pm", image: "pm", workspace: "vitarish-pm", filter: "web_pm", authConsumer: true },
+  { service: "knowledge-qa", image: "knowledge-qa", workspace: "knowledge-qa-demo", filter: "web_qa", authConsumer: true },
   { service: "landing", image: "landing", workspace: "vitarish-landing", filter: "web_landing" },
   { service: "agent-runtime", image: "agent-runtime", workspace: "agent-runtime", filter: "web_agent" },
 ];
@@ -21,19 +20,15 @@ const sharedComposeConsumers = [
   "knowledge-qa", "landing", "agent-runtime", "caddy",
 ];
 
-export function selectProductionMatrix(eventName, filters, changeTitle = "") {
+export function selectProductionMatrix(eventName, filters) {
   const fullSuite = eventName === "workflow_dispatch";
   const broad = fullSuite || filters.unknown_source === true;
-  const appConsumers = webConsumers.filter((consumer) => filters[consumer.filter] === true);
   const authChanged = filters[webAuthFilter] === true;
-  const commitScope = /^\w+\(([^)]+)\):/.exec(changeTitle.trim())?.[1];
-  const selectedAppConsumers = authChanged && appConsumers.length === 0 && commitScope === platformAdminCommitScope
-    ? webConsumers.filter((consumer) => consumer.filter === platformAdminFilter)
-    : appConsumers;
-  const allWebConsumers = broad || filters.web_all === true || (authChanged && selectedAppConsumers.length === 0);
-  const webTests = webConsumers.filter((consumer) => allWebConsumers || selectedAppConsumers.includes(consumer));
-  const allWebImages = broad || filters.web_all === true || (authChanged && selectedAppConsumers.length === 0);
-  const webImages = webConsumers.filter((consumer) => allWebImages || selectedAppConsumers.includes(consumer));
+  const selectedConsumers = webConsumers.filter((consumer) =>
+    filters[consumer.filter] === true || (authChanged && consumer.authConsumer));
+  const allWebConsumers = broad || filters.web_all === true;
+  const webTests = webConsumers.filter((consumer) => allWebConsumers || selectedConsumers.includes(consumer));
+  const webImages = webConsumers.filter((consumer) => allWebConsumers || selectedConsumers.includes(consumer));
   const main = broad || filters.main === true || filters.dotnet === true;
   const caddyImage = broad || filters.caddy === true;
   const caddyService = caddyImage || filters.caddy_config === true;
@@ -70,7 +65,7 @@ if (process.env.GITHUB_OUTPUT && resolve(process.argv[1] ?? "") === fileURLToPat
     throw new Error("Changed path filters must be a JSON array of names.");
   }
   const filters = Object.fromEntries(changedFilters.map((name) => [name, true]));
-  const selected = selectProductionMatrix(process.env.EVENT_NAME, filters, process.env.CHANGE_TITLE);
+  const selected = selectProductionMatrix(process.env.EVENT_NAME, filters);
   const outputs = {
     web: JSON.stringify(selected.web),
     images: JSON.stringify(selected.images),

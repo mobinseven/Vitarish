@@ -36,9 +36,8 @@ public sealed class BeginEmailLoginHandler(
             return new AuthenticationResult<ChallengeResult>.Failure(AttemptDenied(securityPolicy));
         AuthenticationChallengePolicy effectivePolicy = policy.WithMaximumAttempts(securityPolicy.FailedAttemptThreshold);
 
-        string tokenPurpose = effectivePolicy.TokenPurpose(AuthenticationChallengePurpose.EmailLogin);
-        string code = await codeGenerator.GenerateAsync(user.UserId, tokenPurpose, cancellationToken);
-        AuthenticationChallenge challenge = effectivePolicy.CreateEmailLoginChallenge(user.UserId, command.Email, tokenPurpose, now);
+        AuthenticationChallenge challenge = effectivePolicy.CreateEmailLoginChallenge(user.UserId, command.Email, now);
+        string code = await codeGenerator.GenerateAsync(user.UserId, challenge.TokenPurpose, cancellationToken);
         await store.SaveAsync(challenge, cancellationToken);
 
         try

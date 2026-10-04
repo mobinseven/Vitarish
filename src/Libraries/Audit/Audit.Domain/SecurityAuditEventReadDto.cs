@@ -17,5 +17,6 @@ public sealed record SecurityAuditEventReadDto
     public string SourceBoundary { get; init; } = string.Empty;
     public string? SourceIpKind { get; init; }
     public string? SourceIpAddress { get; init; }
+    public string? ClientInterfaceHost { get; init; }
     public string? RedactedReason { get; init; }
 }

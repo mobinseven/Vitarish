@@ -14,12 +14,13 @@ export function useAuthSession() {
   });
 
   const unauthorized = query.error instanceof ApiError && query.error.status === 401;
-  const user = query.data?.user ?? null;
+  const session = unauthorized ? undefined : query.data;
+  const user = session?.user ?? null;
   const displayProfile = useMemo(() => resolveUserDisplayProfile(user), [user]);
 
   return {
-    session: query.data,
-    isAuthenticated: unauthorized ? false : query.data?.isAuthenticated ?? false,
+    session,
+    isAuthenticated: session?.isAuthenticated ?? false,
     user,
     displayProfile,
     isLoading: query.isLoading && !unauthorized,

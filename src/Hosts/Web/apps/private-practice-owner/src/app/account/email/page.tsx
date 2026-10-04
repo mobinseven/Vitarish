@@ -91,7 +91,9 @@ export default function EmailChangePage() {
         ) : (
           <form onSubmit={handleCodeSubmit} className="flex flex-col gap-4">
             <p className="text-sm text-muted">
-              {t("auth.otp.codeSentTo", { destination: email })}
+              {t("auth.otp.codeSentToPrefix")}
+              <span dir="ltr">{email}</span>
+              {t("auth.otp.codeSentToSuffix")}
             </p>
             <OtpCodeInput
               value={code}

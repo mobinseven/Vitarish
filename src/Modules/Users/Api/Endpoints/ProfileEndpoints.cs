@@ -50,7 +50,7 @@ public static class ProfileEndpoints
         IdentityResult result = await usersService.UpdateUserAsync(new UpdateUserCommand(user), ct);
         return result.Succeeded
             ? Results.Ok(UsersCommandResponse.Success())
-            : Results.BadRequest(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray()));
+            : Results.BadRequest(UsersCommandResponse.Failed(result.Errors.Select(e => UsersCommandErrorKinds.ForCode(e.Code, e.Description)).ToArray()));
     }
 
     private static async Task<IResult> GetCultureAsync(string userId, UserSubjectAccessPolicy access, IUserProfileService profileService, CancellationToken ct)
@@ -70,7 +70,7 @@ public static class ProfileEndpoints
             if (!isValid)
             {
                 return Results.BadRequest(UsersCommandResponse.Failed(
-                    [new UsersCommandError("InvalidLocale", $"Locale '{request.Culture}' is not supported.")]));
+                    [UsersCommandErrorKinds.ForCode("InvalidLocale", $"Locale '{request.Culture}' is not supported.")]));
             }
         }
 
