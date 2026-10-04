@@ -68,6 +68,7 @@ public static class AuthenticationSecurityAuditEvents
     public const string UserPolicyOperationSegment = ":user:";
     public const string UserTimeoutMinutesReasonPrefix = SecurityAuditReasonCatalog.UserTimeoutMinutesReasonPrefix;
     public const string UserTimeoutDefaultReason = SecurityAuditReasonCatalog.UserTimeoutDefault;
+    public const string UserPolicyTargetNotFoundReason = SecurityAuditReasonCatalog.UserNotFound;
     public const string DefaultEventKey = "event";
     public const string SecurityAttributesChanged = SecurityAuditEventCatalog.SecurityAttributesChangedEvent;
     public const string SecurityAttributesChangedOperation = SecurityAuditEventCatalog.SecurityAttributesChangedOperation;

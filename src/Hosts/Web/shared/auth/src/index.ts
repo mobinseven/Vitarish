@@ -33,6 +33,14 @@ export type { UserProfileResponse, UserSummaryResponse, WebAuthnCredentialRespon
 
 // Generated authentication hooks
 export {
+  getAuthenticationSessionPolicyGetQueryKey,
+  useAuthenticationSessionPolicyGet,
+  useAuthenticationSessionPolicyPut,
+  getAuthenticationAuthenticationPolicyGetQueryKey,
+  useAuthenticationAuthenticationPolicyGet,
+  useAuthenticationAuthenticationPolicyPut,
+  useAuthenticationUserInactivityPolicyGet,
+  useAuthenticationUserInactivityPolicyPut,
   getAuthenticationSessionGetQueryKey,
   useAuthenticationProfileGet as useAuthenticationProfile,
   useAuthenticationLoginPassword,
@@ -53,6 +61,12 @@ export {
 export type {
   AuthenticationAccessHistoryDto,
   AuthenticationSessionNoticeDto,
+  ChangeSecuritySessionPolicyRequest,
+  SecuritySessionPolicyDto,
+  ChangeSecurityAuthenticationPolicyRequest,
+  SecurityAuthenticationPolicyDto,
+  ChangeUserInactivityTimeoutRequest,
+  UserInactivityTimeoutDto,
 } from "./api/generated/authentication/model";
 export { AuthenticationSessionNoticeType } from "./api/generated/authentication/model";
 
@@ -75,6 +89,7 @@ export {
   useUsersAdministrationListTenantRoles,
   useUsersAdministrationGetUserSecurity,
   useUsersAdministrationUpdateUser,
+  useUsersAddRole,
   useUsersAdministrationGrantTenantRole,
   useUsersAdministrationRevokeTenantRole,
   getUsersAdministrationListTenantRolesQueryKey,
@@ -97,6 +112,7 @@ export type {
   UserSecurityEventResponse,
   UserSecurityHistoryResponse,
   UpdateManagedUserRequest,
+  AddUserToRoleRequest,
 } from "./api/generated/users/model";
 
 // Components

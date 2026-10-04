@@ -196,6 +196,7 @@ public static class UsersApi
         UserSecurityDetailsResponse response = new(
             identity,
             globalRoles,
+            TenantRoleDefinitions.PermittedGlobalRoles.Order(StringComparer.Ordinal).ToArray(),
             tenantRoles,
             details.SecurityHistory is null ? null : MapUserSecurityHistory(details.SecurityHistory),
             details.AuthenticationHistory is null ? null : MapUserSecurityHistory(details.AuthenticationHistory),

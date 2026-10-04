@@ -71,17 +71,12 @@ public sealed record SecurityAccessPolicy(
         HashSet<AuthenticationMethod> mechanisms = EnabledAuthenticationMechanisms
             .Where(profilePolicy.EnabledAuthenticationMechanisms.Contains)
             .ToHashSet();
-        _ = mechanisms.Add(AuthenticationMethod.Password);
-        if (profilePolicy.UsePhoneOtpForTwoFactorAccounts)
-            _ = mechanisms.Add(AuthenticationMethod.Phone);
+        mechanisms.UnionWith(profilePolicy.RequiredAuthenticationMechanisms);
 
         HashSet<PreAuthenticationAction> actions = PermittedPreAuthenticationActions
             .Where(profilePolicy.PermittedPreAuthenticationActions.Contains)
             .ToHashSet();
-        _ = actions.Add(PreAuthenticationAction.AuthenticationProfile);
-        _ = actions.Add(PreAuthenticationAction.PasswordLogin);
-        if (profilePolicy.UsePhoneOtpForTwoFactorAccounts)
-            _ = actions.Add(PreAuthenticationAction.PasswordPlusPhoneOtp);
+        actions.UnionWith(profilePolicy.RequiredPreAuthenticationActions);
 
         return this with
         {

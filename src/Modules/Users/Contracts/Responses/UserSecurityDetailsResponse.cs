@@ -3,6 +3,7 @@ namespace Vitarish.Users.Contracts.Responses;
 public sealed record UserSecurityDetailsResponse(
     UserSecurityIdentityResponse User,
     IReadOnlyList<string> GlobalRoles,
+    IReadOnlyList<string> PermittedGlobalRoles,
     IReadOnlyList<TenantRoleMembershipResponse> TenantRoles,
     UserSecurityHistoryResponse? SecurityHistory,
     UserSecurityHistoryResponse? AuthenticationHistory,

@@ -83,6 +83,7 @@ public sealed class EmailChangeSessionSurvivalTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
             .Options;
         AuthenticationDbContext db = new(options);
+        Mock<IAuthenticationSecurityPolicyStore> policyStore = new();
         Mock<IAuthenticationSecurityPolicyProvider> policyProvider = new();
         policyProvider.Setup(provider => provider.GetAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(SecurityAccessPolicy.Default);
@@ -92,7 +93,7 @@ public sealed class EmailChangeSessionSurvivalTests
         auditWriter.Setup(writer => writer.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(SecurityAuditWriteResult.Recorded);
         return new AuthenticationSessionRegistry(
-            db, policyProvider.Object, clientIp.Object, RequestContext(), auditWriter.Object, TimeProvider.System);
+            db, policyStore.Object, policyProvider.Object, clientIp.Object, RequestContext(), auditWriter.Object, TimeProvider.System);
     }
 
     private static UsersDbContext CreateUsersDbContext()

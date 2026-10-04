@@ -6,10 +6,14 @@ import { promisify } from "node:util";
 import { resolve } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
+import { authenticationLogoutPost } from "../../shared/auth/src/api/generated/authentication/authentication";
+import type { SecurityAuthenticationPolicyDto } from "../../shared/auth/src/api/generated/authentication/model";
+import { resetAntiforgeryToken, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { UsersCommandErrorKind } from "../../shared/auth/src/users";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
 import {
   twoHostE2eProofScreenshotEnvironmentKey,
+  twoHostE2eSecurityPolicyScreenshotEnvironmentKey,
   twoHostE2eProofStorageStateEnvironmentKey,
 } from "../../scripts/two-host-e2e-artifacts.mjs";
 
@@ -17,6 +21,7 @@ const platformOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://l
 const password = process.env.VITARISH_E2E_PASSWORD;
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const platformUsername = process.env.VITARISH_E2E_USER_MANAGEMENT_PLATFORM_ADMIN_USERNAME ?? "e2e-user-management-admin";
+const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
 const execFileAsync = promisify(execFile);
 
 async function captureAuthenticatedScreenshot(page: Page, outputPath: string): Promise<void> {
@@ -45,6 +50,60 @@ async function captureAuthenticatedScreenshot(page: Page, outputPath: string): P
   } finally {
     await rm(storageStatePath!, { force: true });
   }
+}
+
+async function signOutThroughPublicApi(page: Page): Promise<void> {
+  const tenantHost = new URL(page.url()).host;
+  const originalFetch = globalThis.fetch;
+  let responseStatus = 0;
+  resetAntiforgeryToken();
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const headers = new Headers(init?.headers);
+    headers.set(TENANT_HOST_HEADER, tenantHost);
+    const response = await page.request.fetch(input.toString(), {
+      method: init?.method,
+      headers: Object.fromEntries(headers.entries()),
+      data: typeof init?.body === "string" ? init.body : undefined,
+      ignoreHTTPSErrors: true,
+    });
+    responseStatus = response.status();
+    return new Response(await response.body(), {
+      status: response.status(),
+      headers: { "Content-Type": response.headers()["content-type"] ?? "application/json" },
+    });
+  }) as typeof fetch;
+
+  try {
+    const result = await authenticationLogoutPost(
+      { logoutId: null, returnUrl: null },
+      { headers: { [TENANT_HOST_HEADER]: tenantHost } },
+    );
+    expect(responseStatus).toBe(200);
+    expect(result).toMatchObject({ signedOut: true });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+}
+
+async function putAuthenticationPolicy(page: Page, request: Record<string, unknown>): Promise<number> {
+  return page.evaluate(async ({ origin, body, tenantHost }) => {
+    const antiforgeryResponse = await fetch(`${origin}/api/modules/authentication/antiforgery`, {
+      credentials: "include",
+      headers: { ["X-Vitarish-Tenant-Host"]: tenantHost },
+    });
+    const antiforgery = await antiforgeryResponse.json() as { headerName: string; requestToken: string };
+    const response = await fetch(`${origin}/api/modules/authentication/security/authentication-policy`, {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ["X-Vitarish-Tenant-Host"]: tenantHost,
+        [antiforgery.headerName]: antiforgery.requestToken,
+      },
+      body: JSON.stringify(body),
+    });
+    return response.status;
+  }, { origin: apiOrigin, body: request, tenantHost: new URL(page.url()).host });
 }
 
 async function login(page: Page, username: string, origin = ""): Promise<void> {
@@ -124,7 +183,68 @@ test("authenticated platform administrator retains global search and membership 
   await expect(authenticationHistory.getByText("Password login", { exact: true })).toBeVisible();
   const passwordLoginEvent = authenticationHistory.getByRole("listitem").filter({ hasText: "Password login" }).first();
   await expect(passwordLoginEvent.getByText(new URL(platformOrigin).hostname, { exact: true })).toBeVisible();
+  await signOutThroughPublicApi(page);
+});
 
+test("platform administrator manages profile-constrained authentication policy through Settings", async ({ page }) => {
+  await login(page, platformUsername, platformOrigin);
+  await page.goto(`${platformOrigin}/settings/security`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: "Authentication policy", exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold" })).toHaveValue("5");
+  await expect(page.getByText("Required by deployment profile").first()).toBeVisible();
+
+  const loadedPolicyResponse = await page.request.get(`${apiOrigin}/api/modules/authentication/security/authentication-policy`, {
+    headers: { [TENANT_HOST_HEADER]: new URL(platformOrigin).host },
+    ignoreHTTPSErrors: true,
+  });
+  expect(loadedPolicyResponse.status()).toBe(200);
+  const originalPolicy = await loadedPolicyResponse.json() as SecurityAuthenticationPolicyDto;
+  const threshold = page.getByRole("spinbutton", { name: "Failed authentication threshold" });
+  await threshold.fill("6");
+  const [policyResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith("/api/modules/authentication/security/authentication-policy")),
+    page.getByRole("button", { name: "Save authentication policy" }).click(),
+  ]);
+  expect(policyResponse.status()).toBe(200);
+  const updatedPolicy = await policyResponse.json() as SecurityAuthenticationPolicyDto;
+  expect(updatedPolicy.failedAttemptThreshold).toBe(6);
+  await expect(page.getByRole("status").filter({ hasText: "Security policy saved." })).toBeVisible();
+
+  const securityPolicyScreenshot = process.env[twoHostE2eSecurityPolicyScreenshotEnvironmentKey];
+  if (securityPolicyScreenshot) await captureAuthenticatedScreenshot(page, securityPolicyScreenshot);
+
+  await page.reload({ waitUntil: "domcontentloaded" });
+  const reloadedThreshold = page.getByRole("spinbutton", { name: "Failed authentication threshold" });
+  await expect(reloadedThreshold).toHaveValue("6");
+  const invalidUpdateStatus = await putAuthenticationPolicy(page, {
+    minimumPasswordLength: originalPolicy.minimumPasswordLength,
+    requirePasswordLowercase: originalPolicy.requirePasswordLowercase,
+    requirePasswordUppercase: originalPolicy.requirePasswordUppercase,
+    requirePasswordNumber: originalPolicy.requirePasswordNumber,
+    requirePasswordSpecialCharacter: originalPolicy.requirePasswordSpecialCharacter,
+    failedAttemptThreshold: 0,
+    failedAttemptDenialDurationSeconds: originalPolicy.failedAttemptDenialDurationSeconds,
+    failedAttemptResponse: originalPolicy.failedAttemptResponse,
+    enabledAuthenticationMechanisms: originalPolicy.enabledAuthenticationMechanisms,
+    permittedPreAuthenticationActions: originalPolicy.permittedPreAuthenticationActions,
+    expectedVersion: updatedPolicy.version,
+  });
+  expect(invalidUpdateStatus).toBe(400);
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold" })).toHaveValue("6");
+
+  await page.getByRole("spinbutton", { name: "Failed authentication threshold" }).fill(String(originalPolicy.failedAttemptThreshold));
+  const [restoreResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "PUT" && response.url().endsWith("/api/modules/authentication/security/authentication-policy")),
+    page.getByRole("button", { name: "Save authentication policy" }).click(),
+  ]);
+  expect(restoreResponse.status()).toBe(200);
+  await expect(page.getByRole("spinbutton", { name: "Failed authentication threshold" })).toHaveValue(String(originalPolicy.failedAttemptThreshold));
+
+  await page.goto(`${platformOrigin}${PlatformRoutes.Audit}`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: "Security event stream", exact: true })).toBeVisible({ timeout: 30_000 });
+  await reviewUserAuditEvent(page, "authentication", "authentication.security-access-policy", "Authentication_SecurityAccessPolicy_Change");
+  await signOutThroughPublicApi(page);
 });
 
 test("platform administrator creates, edits, assigns access, and reviews a user's security history", async ({ page }) => {
@@ -174,6 +294,33 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await expect(page.getByText(createdUser.id!, { exact: true })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText("No roles are assigned.", { exact: true })).toBeVisible();
   await expect(page.getByText("No authentication attempts have been recorded for this user.", { exact: true })).toBeVisible();
+
+  await page.getByLabel("Global role to grant").selectOption("PlatformAdmin");
+  const [globalRoleResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes(`/api/modules/users/${createdUser.id}/roles`)),
+    page.getByRole("button", { name: "Grant global role" }).click(),
+  ]);
+  expect(globalRoleResponse.ok()).toBe(true);
+  await expect(page.getByText("PlatformAdmin", { exact: true })).toBeVisible();
+
+  const inactivityInput = page.getByRole("spinbutton", { name: "Inactivity timeout (minutes)" });
+  await inactivityInput.fill("15");
+  const [inactivityResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "PUT" && response.url().includes(`/api/modules/authentication/security/users/${createdUser.id}/inactivity-timeout`)),
+    page.getByRole("button", { name: "Save inactivity timeout" }).click(),
+  ]);
+  expect(inactivityResponse.ok()).toBe(true);
+  await expect(page.getByRole("status").filter({ hasText: "User inactivity timeout updated." })).toBeVisible();
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("spinbutton", { name: "Inactivity timeout (minutes)" })).toHaveValue("15");
+
+  await page.getByRole("spinbutton", { name: "Inactivity timeout (minutes)" }).fill("");
+  const [inheritResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "PUT" && response.url().includes(`/api/modules/authentication/security/users/${createdUser.id}/inactivity-timeout`)),
+    page.getByRole("button", { name: "Save inactivity timeout" }).click(),
+  ]);
+  expect(inheritResponse.ok()).toBe(true);
+
   const stalePage = await page.context().newPage();
   await stalePage.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "domcontentloaded" });
   await expect(stalePage.getByText(createdUser.id!, { exact: true })).toBeVisible({ timeout: 30_000 });
@@ -256,4 +403,5 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   await reviewUserAuditEvent(page, "management", "users.account.created", "users.account.create");
   await reviewUserAuditEvent(page, "management", "users.account.edited", "users.account.edit");
   await reviewUserAuditEvent(page, "security-attributes", "users.security-attributes.changed", "users.security-attributes.change");
+  await signOutThroughPublicApi(page);
 });
