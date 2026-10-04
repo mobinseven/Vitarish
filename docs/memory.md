@@ -40,6 +40,10 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
   remaining email-versus-another-account's `NormalizedUserName` race cannot be
   enforced by those independent indexes; Users owns it and should revisit the
   schema if the race is observed.
+- react-aria `usePress` injects its own runtime style element and reads the CSP
+  nonce from `<meta property="csp-nonce">`; every Web app layout must render
+  `ContentSecurityPolicyNonceMeta` from `@vitarish/ui/content-security-policy`
+  or the production browser-evidence gate fails on a `style-src-elem` violation.
 
 ## Package/tool quirks
 

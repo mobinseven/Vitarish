@@ -9,7 +9,7 @@
     "./marketing": "./src/marketing.tsx",
     "./layout": "./src/layout/index.ts",
     "./layout.css": "./src/layout.css",
-    "./content-security-policy": "./src/contentSecurityPolicyNonce.ts"
+    "./content-security-policy": "./src/contentSecurityPolicyNonce.tsx"
   },
   "sideEffects": [
     "./src/layout.css"

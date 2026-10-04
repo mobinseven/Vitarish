@@ -1,7 +1,7 @@
 import type { Viewport } from "next";
 import { headers } from "next/headers";
 import { I18nAppLayout } from "@vitarish/localization";
-import { contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
+import { ContentSecurityPolicyNonceMeta, contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
 import { Providers } from "@/components/Providers";
 import { getMessages } from "@/localization/messages";
 import { applicationFontVariables } from "./fonts";
@@ -24,6 +24,7 @@ export default async function RootLayout({
     <>
       <head>
         <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
+        <ContentSecurityPolicyNonceMeta nonce={nonce} />
       </head>
       <I18nAppLayout
         cookieHeader={headerStore.get("cookie")}
