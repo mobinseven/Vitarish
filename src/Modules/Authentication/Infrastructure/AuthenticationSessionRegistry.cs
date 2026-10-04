@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -17,7 +18,6 @@ namespace Vitarish.Authentication.Infrastructure;
 
 public sealed class AuthenticationSessionRegistry(
     AuthenticationDbContext dbContext,
-    IAuthenticationSecurityPolicyStore policyStore,
     IAuthenticationSecurityPolicyProvider policyProvider,
     IClientIpAddressAccessor clientIp,
     IRequestContext requestContext,
@@ -534,7 +534,7 @@ public sealed class AuthenticationSessionRegistry(
             List<AuthenticationSession> invalidated = [];
             try
             {
-                SecurityAccessPolicyState saved = await policyStore.SaveAsync(policy, expectedVersion, operationToken);
+                SecurityAccessPolicyState saved = await SecurityAccessPolicyStore.SaveAsync(dbContext, policy, expectedVersion, operationToken);
                 DateTime now = timeProvider.GetUtcNow().UtcDateTime;
                 List<AuthenticationSession> terminatedSessions = await dbContext.AuthenticationSessions
                     .Where(session => session.TerminatedAt != null)
@@ -607,8 +607,19 @@ public sealed class AuthenticationSessionRegistry(
             }
         }
 
-        (SecurityAccessPolicyState saved, IReadOnlyList<AuthenticationSession> invalidated) =
-            await dbContext.Database.CreateExecutionStrategy().ExecuteAsync(SaveCoreAsync, cancellationToken);
+        SecurityAccessPolicyState saved;
+        IReadOnlyList<AuthenticationSession> invalidated;
+        try
+        {
+            (saved, invalidated) =
+                await dbContext.Database.CreateExecutionStrategy().ExecuteAsync(SaveCoreAsync, cancellationToken);
+        }
+        catch (Exception exception) when (exception is DbException or RetryLimitExceededException)
+        {
+            throw new SecurityAccessPolicyPersistenceException(
+                "The security access policy change and its session revocation could not be persisted.",
+                exception);
+        }
         foreach (AuthenticationSession session in invalidated)
             await CompleteAuditAsync(AuthenticationSecurityAuditEvents.SessionTerminated, SecurityAuditOutcome.Succeeded, session.UserId, AuthenticationSecurityAuditEvents.SessionPolicyInvalidated, AuthenticationSecurityAuditEvents.SessionTerminatedOperation, session.Id.ToString("N"), cancellationToken);
         return saved;

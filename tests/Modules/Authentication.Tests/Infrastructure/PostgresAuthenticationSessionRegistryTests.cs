@@ -34,7 +34,6 @@ public sealed class PostgresAuthenticationSessionRegistryTests
         AuthenticationSessionRegistry registry = new(
             context,
             policyStore,
-            policyStore,
             clientIp.Object,
             requestContext.Object,
             new RecordingAuditWriter(),
@@ -54,8 +53,9 @@ public sealed class PostgresAuthenticationSessionRegistryTests
     {
         string connectionString = ConnectionString();
         DbContextOptions<AuthenticationDbContext> options = await PrepareAsync(connectionString);
-        await using AuthenticationDbContext context = new(options);
-        SecurityAccessPolicyStore policyStore = new(context);
+        await using AuthenticationDbContext registryContext = new(options);
+        await using AuthenticationDbContext storeContext = new(options);
+        SecurityAccessPolicyStore policyStore = new(storeContext);
         await policyStore.InitializeAsync(CancellationToken.None);
         AuthenticationSession session = new()
         {
@@ -66,9 +66,9 @@ public sealed class PostgresAuthenticationSessionRegistryTests
             LastActivityAt = DateTime.UtcNow,
             ClientIpAddress = "127.0.0.1"
         };
-        context.AuthenticationSessions.Add(session);
-        await context.SaveChangesAsync();
-        AuthenticationSessionRegistry registry = CreateSessionRegistry(context, policyStore);
+        registryContext.AuthenticationSessions.Add(session);
+        await registryContext.SaveChangesAsync();
+        AuthenticationSessionRegistry registry = CreateSessionRegistry(registryContext);
         SecurityAccessPolicy changed = SecurityAccessPolicy.Default with
         {
             AllowedSessionStartCidrs = new HashSet<string>(StringComparer.Ordinal) { "10.0.0.0/24" }
@@ -77,15 +77,81 @@ public sealed class PostgresAuthenticationSessionRegistryTests
         Func<Task> act = () => registry.SavePolicyAndRevokeInvalidatedSessionsAsync(changed, 5, CancellationToken.None);
 
         await act.Should().ThrowAsync<SecurityAccessPolicyConcurrencyException>();
-        (await context.AuthenticationSessions.AsNoTracking().SingleAsync(item => item.Id == session.Id).ConfigureAwait(false))
+        (await registryContext.AuthenticationSessions.AsNoTracking().SingleAsync(item => item.Id == session.Id).ConfigureAwait(false))
             .TerminatedAt.Should().BeNull();
         SecurityAccessPolicyState state = await policyStore.GetStateAsync(CancellationToken.None);
         state.Version.Should().Be(0);
         state.Policy.AllowedSessionStartCidrs.Should().BeNullOrEmpty();
     }
 
-    private static AuthenticationSessionRegistry CreateSessionRegistry(AuthenticationDbContext context, SecurityAccessPolicyStore policyStore)
+    [PostgresFact]
+    public async Task Revocation_failure_rolls_back_the_policy_change_written_in_the_same_transaction()
     {
+        string connectionString = ConnectionString();
+        DbContextOptions<AuthenticationDbContext> options = await PrepareAsync(connectionString);
+        await using AuthenticationDbContext registryContext = new(options);
+        await using AuthenticationDbContext storeContext = new(options);
+        SecurityAccessPolicyStore policyStore = new(storeContext);
+        await policyStore.InitializeAsync(CancellationToken.None);
+        AuthenticationSession session = new()
+        {
+            Id = Guid.NewGuid(),
+            UserId = "policy-rollback-user",
+            TenantId = "tenant-1",
+            CreatedAt = DateTime.UtcNow,
+            LastActivityAt = DateTime.UtcNow,
+            ClientIpAddress = "127.0.0.1"
+        };
+        registryContext.AuthenticationSessions.Add(session);
+        await registryContext.SaveChangesAsync();
+
+        await using (AuthenticationDbContext guard = new(options))
+        {
+            await guard.Database.ExecuteSqlRawAsync(
+                """
+                CREATE OR REPLACE FUNCTION "Authentication"."block_authentication_session_termination"() RETURNS trigger AS $block$
+                BEGIN
+                    RAISE EXCEPTION 'session termination blocked by atomicity test';
+                END;
+                $block$ LANGUAGE plpgsql;
+                CREATE TRIGGER "block_authentication_session_termination" BEFORE UPDATE ON "Authentication"."AuthenticationSessions"
+                FOR EACH ROW EXECUTE FUNCTION "Authentication"."block_authentication_session_termination"();
+                """);
+        }
+
+        try
+        {
+            AuthenticationSessionRegistry registry = CreateSessionRegistry(registryContext);
+            SecurityAccessPolicy changed = SecurityAccessPolicy.Default with
+            {
+                AllowedSessionStartCidrs = new HashSet<string>(StringComparer.Ordinal) { "10.0.0.0/24" }
+            };
+
+            Func<Task> act = () => registry.SavePolicyAndRevokeInvalidatedSessionsAsync(changed, 0, CancellationToken.None);
+
+            await act.Should().ThrowAsync<SecurityAccessPolicyPersistenceException>();
+        }
+        finally
+        {
+            await using AuthenticationDbContext cleanup = new(options);
+            await cleanup.Database.ExecuteSqlRawAsync(
+                """
+                DROP TRIGGER IF EXISTS "block_authentication_session_termination" ON "Authentication"."AuthenticationSessions";
+                DROP FUNCTION IF EXISTS "Authentication"."block_authentication_session_termination"();
+                """);
+        }
+
+        SecurityAccessPolicyState state = await policyStore.GetStateAsync(CancellationToken.None);
+        state.Version.Should().Be(0);
+        state.Policy.AllowedSessionStartCidrs.Should().BeNullOrEmpty();
+        (await registryContext.AuthenticationSessions.AsNoTracking().SingleAsync(item => item.Id == session.Id).ConfigureAwait(false))
+            .TerminatedAt.Should().BeNull();
+    }
+
+    private static AuthenticationSessionRegistry CreateSessionRegistry(AuthenticationDbContext context)
+    {
+        Mock<IAuthenticationSecurityPolicyProvider> policyProvider = new();
+        policyProvider.Setup(provider => provider.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
         Mock<IClientIpAddressAccessor> clientIp = new();
         clientIp.SetupGet(accessor => accessor.ClientIpAddress).Returns("127.0.0.1");
         Mock<IRequestContext> requestContext = new();
@@ -96,8 +162,7 @@ public sealed class PostgresAuthenticationSessionRegistryTests
 
         return new AuthenticationSessionRegistry(
             context,
-            policyStore,
-            policyStore,
+            policyProvider.Object,
             clientIp.Object,
             requestContext.Object,
             new RecordingAuditWriter(),
