@@ -10,4 +10,15 @@ public sealed record SecurityAuthenticationPolicyManagementState(
     IReadOnlySet<AuthenticationMethod> RequiredMechanisms,
     IReadOnlySet<PreAuthenticationAction> AvailableActions,
     IReadOnlySet<PreAuthenticationAction> RequiredActions,
-    IReadOnlySet<FailedAttemptResponse> AvailableFailedAttemptResponses);
+    IReadOnlySet<FailedAttemptResponse> AvailableFailedAttemptResponses)
+{
+    public static SecurityAuthenticationPolicyManagementState ForState(
+        SecurityAccessPolicyState state,
+        AuthenticationProfilePolicy profilePolicy) => new(
+            state with { Policy = state.Policy.ReconcileProfile(profilePolicy) },
+            profilePolicy.EnabledAuthenticationMechanisms,
+            profilePolicy.RequiredAuthenticationMechanisms,
+            profilePolicy.PermittedPreAuthenticationActions,
+            profilePolicy.RequiredPreAuthenticationActions,
+            Enum.GetValues<FailedAttemptResponse>().ToHashSet());
+}

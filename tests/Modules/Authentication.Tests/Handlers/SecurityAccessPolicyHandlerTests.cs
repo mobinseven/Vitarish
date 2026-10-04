@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FluentAssertions;
 using Moq;
+using Npgsql;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Authentication.Application.Abstractions;
@@ -23,27 +24,30 @@ public sealed class SecurityAccessPolicyHandlerTests
     {
         SecurityAccessPolicyState expected = new(SecurityAccessPolicy.ProductEvaluated, 4);
         Mock<IAuthenticationSecurityPolicyStore> store = new();
-        store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(SecurityAccessPolicy.Default, 0));
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(expected);
-        GetSecurityAccessPolicyHandler handler = new(store.Object, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+        RecordingAuditWriter audit = new();
+        GetSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
 
         SecurityAccessPolicyState result = await handler.Handle(new GetSecurityAccessPolicyQuery(), CancellationToken.None);
 
         result.Should().BeEquivalentTo(expected);
+        audit.Events.Select(item => item.Outcome).Should().ContainInOrder(SecurityAuditOutcome.Started, SecurityAuditOutcome.Succeeded);
         store.Verify(item => item.GetStateAsync(It.IsAny<CancellationToken>()), Times.Once);
         store.Verify(item => item.SaveAsync(It.IsAny<SecurityAccessPolicy>(), It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public async Task Unauthorized_read_is_rejected_without_mutating_or_auditing_the_query()
+    public async Task Unauthorized_read_is_rejected_without_mutating_the_security_store_and_is_audited()
     {
         Mock<IAuthenticationSecurityPolicyStore> store = new();
         store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(SecurityAccessPolicy.Default, 0));
-        GetSecurityAccessPolicyHandler handler = new(store.Object, new TestRequestContext([]));
+        RecordingAuditWriter audit = new();
+        GetSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([]));
 
         Func<Task> act = () => handler.Handle(new GetSecurityAccessPolicyQuery(), CancellationToken.None);
 
         await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        audit.Events.Select(item => item.Outcome).Should().ContainInOrder(SecurityAuditOutcome.Denied, SecurityAuditOutcome.Denied);
         store.VerifyNoOtherCalls();
     }
 
@@ -363,6 +367,84 @@ public sealed class SecurityAccessPolicyHandlerTests
         await act.Should().ThrowAsync<ArgumentException>();
         audit.Events.Should().Contain(item => item.Outcome == SecurityAuditOutcome.Denied && item.RedactedReason == SecurityAuditReasonCatalog.SecurityPolicyValidationFailure);
         store.Verify(item => item.SaveAsync(It.IsAny<SecurityAccessPolicy>(), It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Session_policy_change_on_product_evaluated_profile_keeps_raw_stored_authentication_choices()
+    {
+        SecurityAccessPolicy rawStored = SecurityAccessPolicy.Default;
+        SecurityAccessPolicy expected = rawStored with
+        {
+            MaximumConcurrentSessions = 2,
+            ConcurrentSessionsFunctionallyRequired = true,
+            DefaultInactivityTimeoutMinutes = 10,
+            AllowedSessionStartCidrs = new HashSet<string>(StringComparer.Ordinal) { "10.0.0.0/24" }
+        };
+        Mock<IAuthenticationSecurityPolicyStore> store = new();
+        store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(rawStored, 0));
+        store.Setup(item => item.SaveAsync(It.IsAny<SecurityAccessPolicy>(), 0, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((SecurityAccessPolicy policy, long version, CancellationToken _) => new SecurityAccessPolicyState(policy, version + 1));
+        RecordingAuditWriter audit = new();
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store), AuthenticationProfilePolicy.ProductEvaluated);
+
+        SecurityAccessPolicyState result = await handler.Handle(
+            new ChangeSecuritySessionPolicyCommand(2, true, 10, ["10.0.0.0/24"], 0),
+            CancellationToken.None);
+
+        result.Version.Should().Be(1);
+        store.Verify(item => item.SaveAsync(It.Is<SecurityAccessPolicy>(policy => policy.EquivalentTo(expected)), 0, It.IsAny<CancellationToken>()), Times.Once);
+        audit.Events.Select(item => item.Outcome).Should().ContainInOrder(SecurityAuditOutcome.Started, SecurityAuditOutcome.Succeeded);
+    }
+
+    [Fact]
+    public async Task Policy_read_dependency_failure_completes_pending_audit_as_persistence_failure()
+    {
+        Mock<IAuthenticationSecurityPolicyStore> store = new();
+        store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ThrowsAsync(new NpgsqlException("policy store offline"));
+        RecordingAuditWriter audit = new();
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), CreateSessionRegistry(store));
+
+        Func<Task> act = () => handler.Handle(new ChangeSecurityAccessPolicyCommand(SecurityAccessPolicy.Default, 0), CancellationToken.None);
+
+        await act.Should().ThrowAsync<SecurityAccessPolicyPersistenceException>();
+        audit.Events.Select(item => item.Outcome).Should().ContainInOrder(SecurityAuditOutcome.Started, SecurityAuditOutcome.Denied);
+        audit.Events.Should().ContainSingle(item =>
+            item.EventName == AuthenticationSecurityAuditEvents.SecurityAccessPolicy
+            && item.Outcome == SecurityAuditOutcome.Denied
+            && item.RedactedReason == SecurityAuditReasonCatalog.SecurityPolicyPersistenceFailure);
+        audit.Events.Should().ContainSingle(item =>
+            item.EventName == AuthenticationSecurityAuditEvents.SecurityFailure
+            && item.Outcome == SecurityAuditOutcome.Failed
+            && item.RedactedReason == SecurityAuditReasonCatalog.SecurityPolicyPersistenceFailure);
+        store.Verify(item => item.SaveAsync(It.IsAny<SecurityAccessPolicy>(), It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Session_revocation_dependency_failure_completes_pending_audit_as_persistence_failure()
+    {
+        Mock<IAuthenticationSecurityPolicyStore> store = new();
+        store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(SecurityAccessPolicy.Default, 0));
+        Mock<IAuthenticationSessionRegistry> registry = new();
+        registry.Setup(item => item.SavePolicyAndRevokeInvalidatedSessionsAsync(
+                It.IsAny<SecurityAccessPolicy>(),
+                It.IsAny<long>(),
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NpgsqlException("session revocation offline"));
+        RecordingAuditWriter audit = new();
+        ChangeSecurityAccessPolicyHandler handler = new(store.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]), registry.Object);
+
+        Func<Task> act = () => handler.Handle(new ChangeSecurityAccessPolicyCommand(SecurityAccessPolicy.Default, 0), CancellationToken.None);
+
+        await act.Should().ThrowAsync<SecurityAccessPolicyPersistenceException>();
+        audit.Events.Select(item => item.Outcome).Should().ContainInOrder(SecurityAuditOutcome.Started, SecurityAuditOutcome.Denied);
+        audit.Events.Should().ContainSingle(item =>
+            item.EventName == AuthenticationSecurityAuditEvents.SecurityAccessPolicy
+            && item.Outcome == SecurityAuditOutcome.Denied
+            && item.RedactedReason == SecurityAuditReasonCatalog.SecurityPolicyPersistenceFailure);
+        audit.Events.Should().ContainSingle(item =>
+            item.EventName == AuthenticationSecurityAuditEvents.SecurityFailure
+            && item.Outcome == SecurityAuditOutcome.Failed
+            && item.RedactedReason == SecurityAuditReasonCatalog.SecurityPolicyPersistenceFailure);
     }
 
     private sealed class RecordingAuditWriter(

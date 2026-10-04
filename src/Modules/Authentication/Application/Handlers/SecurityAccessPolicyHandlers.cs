@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Authentication.Application.Abstractions;
@@ -13,13 +14,60 @@ namespace Vitarish.Authentication.Application.Handlers;
 
 public sealed class GetSecurityAccessPolicyHandler(
     IAuthenticationSecurityPolicyStore policyStore,
+    ISecurityAuditWriter securityAuditWriter,
     IRequestContext requestContext)
 {
     public async Task<SecurityAccessPolicyState> Handle(GetSecurityAccessPolicyQuery query, CancellationToken cancellationToken)
     {
-        if (!AuthenticationSecurityAuthorization.CanReadSessionPolicy(requestContext.User))
+        bool authorized = AuthenticationSecurityAuthorization.CanReadSessionPolicy(requestContext.User);
+        string operationKey = requestContext.RequestId ?? Guid.NewGuid().ToString("N");
+        SecurityAuditWriteResult started = await WriteAuditAsync(
+            authorized ? SecurityAuditOutcome.Started : SecurityAuditOutcome.Denied,
+            operationKey + AuthenticationSecurityAuditEvents.SecurityAccessPolicyStartedSuffix,
+            authorized ? null : AuthenticationSecurityAuditEvents.Unauthorized,
+            cancellationToken);
+
+        if (!authorized)
+        {
+            await WriteAuditAsync(SecurityAuditOutcome.Denied, operationKey + AuthenticationSecurityAuditEvents.SecurityAccessPolicyCompletedSuffix, AuthenticationSecurityAuditEvents.Unauthorized, cancellationToken);
             throw new UnauthorizedAccessException("Only platform administrators may read the security access policy.");
-        return await policyStore.GetStateAsync(cancellationToken);
+        }
+        if (started is SecurityAuditWriteResult.AlreadyRecorded)
+            throw new InvalidOperationException("The security policy operation is already in progress or its outcome is already recorded.");
+
+        SecurityAccessPolicyState policy = await policyStore.GetStateAsync(cancellationToken);
+        _ = await WriteAuditAsync(SecurityAuditOutcome.Succeeded, operationKey + AuthenticationSecurityAuditEvents.SecurityAccessPolicyCompletedSuffix, null, cancellationToken);
+        return policy;
+    }
+
+    private async Task<SecurityAuditWriteResult> WriteAuditAsync(string outcome, string idempotencyKey, string? reason, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(requestContext.TenantId))
+            throw new InvalidOperationException("A tenant context is required for security auditing.");
+
+        try
+        {
+            return await securityAuditWriter.WriteAsync(new SecurityAuditEvent
+            {
+                EventName = AuthenticationSecurityAuditEvents.SecurityAccessPolicy,
+                Outcome = outcome,
+                ActorId = requestContext.UserId,
+                SubjectId = requestContext.UserId,
+                TenantId = requestContext.TenantId,
+                Resource = AuthenticationSecurityAuditEvents.SecurityAccessPolicyResource,
+                Operation = AuthenticationSecurityAuditEvents.SecurityAccessPolicyOperation,
+                OccurredAt = DateTime.UtcNow,
+                CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? idempotencyKey,
+                SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
+                RedactedReason = reason,
+                IdempotencyKey = idempotencyKey
+            }, cancellationToken);
+        }
+        catch (SecurityAuditStoreException)
+        {
+            // AU-8 preserves the policy read when its audit write cannot be stored.
+            return SecurityAuditWriteResult.Recorded;
+        }
     }
 }
 
@@ -34,13 +82,7 @@ public sealed class GetSecurityAuthenticationPolicyHandler(
             throw new UnauthorizedAccessException("Only platform administrators may read the authentication policy.");
 
         SecurityAccessPolicyState stored = await policyStore.GetStateAsync(cancellationToken);
-        return new(
-            stored with { Policy = stored.Policy.ReconcileProfile(profilePolicy) },
-            profilePolicy.EnabledAuthenticationMechanisms,
-            profilePolicy.RequiredAuthenticationMechanisms,
-            profilePolicy.PermittedPreAuthenticationActions,
-            profilePolicy.RequiredPreAuthenticationActions,
-            Enum.GetValues<FailedAttemptResponse>().ToHashSet());
+        return SecurityAuthenticationPolicyManagementState.ForState(stored, profilePolicy);
     }
 }
 
@@ -52,7 +94,7 @@ public sealed class ChangeSecurityAccessPolicyHandler(
     AuthenticationProfilePolicy? profilePolicy = null)
 {
     public Task<SecurityAccessPolicyState> Handle(ChangeSecurityAccessPolicyCommand command, CancellationToken cancellationToken) =>
-        HandleCore(command.ExpectedVersion, _ => command.Policy, cancellationToken);
+        HandleCore(command.ExpectedVersion, _ => command.Policy, validateProfileConstraints: true, cancellationToken);
 
     public Task<SecurityAccessPolicyState> Handle(ChangeSecuritySessionPolicyCommand command, CancellationToken cancellationToken) =>
         HandleCore(command.ExpectedVersion, current => current with
@@ -61,7 +103,7 @@ public sealed class ChangeSecurityAccessPolicyHandler(
             ConcurrentSessionsFunctionallyRequired = command.ConcurrentSessionsFunctionallyRequired,
             DefaultInactivityTimeoutMinutes = command.DefaultInactivityTimeoutMinutes,
             AllowedSessionStartCidrs = SessionStartCidr.NormalizeSet(command.AllowedSessionStartCidrs ?? [])
-        }, cancellationToken);
+        }, validateProfileConstraints: false, cancellationToken);
 
     public Task<SecurityAccessPolicyState> Handle(ChangeSecurityAuthenticationPolicyCommand command, CancellationToken cancellationToken) =>
         HandleCore(command.ExpectedVersion, current => current with
@@ -77,11 +119,12 @@ public sealed class ChangeSecurityAccessPolicyHandler(
             FailedAttemptResponse = ParsePolicyEnum<FailedAttemptResponse>(command.FailedAttemptResponse),
             EnabledAuthenticationMechanisms = ParsePolicyEnumSet<AuthenticationMethod>(command.EnabledAuthenticationMechanisms),
             PermittedPreAuthenticationActions = ParsePolicyEnumSet<PreAuthenticationAction>(command.PermittedPreAuthenticationActions)
-        }, cancellationToken);
+        }, validateProfileConstraints: true, cancellationToken);
 
     private async Task<SecurityAccessPolicyState> HandleCore(
         long expectedVersion,
         Func<SecurityAccessPolicy, SecurityAccessPolicy> applyChanges,
+        bool validateProfileConstraints,
         CancellationToken cancellationToken)
     {
         bool authorized = AuthenticationSecurityAuthorization.CanChangeSessionPolicy(requestContext.User);
@@ -134,7 +177,8 @@ public sealed class ChangeSecurityAccessPolicyHandler(
             SecurityAccessPolicyState current = await policyStore.GetStateAsync(cancellationToken);
             SecurityAccessPolicy requested = applyChanges(current.Policy);
             requested.ValidateConfiguration();
-            ValidateProfileConstraints(requested);
+            if (validateProfileConstraints)
+                ValidateProfileConstraints(requested);
             saved = await sessionRegistry.SavePolicyAndRevokeInvalidatedSessionsAsync(requested, expectedVersion, cancellationToken);
         }
         catch (SecurityAccessPolicyConcurrencyException exception)
@@ -172,6 +216,17 @@ public sealed class ChangeSecurityAccessPolicyHandler(
                 exception,
                 CancellationToken.None);
             throw;
+        }
+        catch (Exception exception) when (exception is DbException or TimeoutException)
+        {
+            await CompletePendingAuditBestEffortAsync(
+                operationKey,
+                AuthenticationSecurityAuditEvents.SecurityAccessPolicyPersistenceFailureReason,
+                exception,
+                CancellationToken.None);
+            throw new SecurityAccessPolicyPersistenceException(
+                "The security access policy store is unavailable.",
+                exception);
         }
         try
         {

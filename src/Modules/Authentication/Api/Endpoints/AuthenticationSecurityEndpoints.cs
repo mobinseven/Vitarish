@@ -104,7 +104,7 @@ public static class AuthenticationSecurityEndpoints
             .Produces<SecurityAuthenticationPolicyDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
-        _ = group.MapModulePut(AuthenticationRoutes.SecurityAuthenticationPolicy, async (ChangeSecurityAuthenticationPolicyRequest request, [Microsoft.AspNetCore.Mvc.FromServices] ChangeSecurityAccessPolicyHandler handler, [Microsoft.AspNetCore.Mvc.FromServices] GetSecurityAuthenticationPolicyHandler getHandler, CancellationToken ct) =>
+        _ = group.MapModulePut(AuthenticationRoutes.SecurityAuthenticationPolicy, async (ChangeSecurityAuthenticationPolicyRequest request, [Microsoft.AspNetCore.Mvc.FromServices] ChangeSecurityAccessPolicyHandler handler, [Microsoft.AspNetCore.Mvc.FromServices] AuthenticationProfilePolicy profilePolicy, CancellationToken ct) =>
         {
             try
             {
@@ -120,8 +120,8 @@ public static class AuthenticationSecurityEndpoints
                     request.EnabledAuthenticationMechanisms,
                     request.PermittedPreAuthenticationActions,
                     request.ExpectedVersion), ct);
-                SecurityAuthenticationPolicyManagementState managed = await getHandler.Handle(ct);
-                return Results.Ok(ToDto(managed with { State = saved }));
+                SecurityAuthenticationPolicyManagementState managed = SecurityAuthenticationPolicyManagementState.ForState(saved, profilePolicy);
+                return Results.Ok(ToDto(managed));
             }
             catch (SecurityAccessPolicyConcurrencyException)
             {

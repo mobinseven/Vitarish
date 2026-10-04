@@ -24,7 +24,14 @@ public sealed class SecurityAccessPolicyStore(
             : record.ToState();
     }
 
-    public async Task<SecurityAccessPolicyState> SaveAsync(SecurityAccessPolicy policy, long expectedVersion, CancellationToken cancellationToken)
+    public Task<SecurityAccessPolicyState> SaveAsync(SecurityAccessPolicy policy, long expectedVersion, CancellationToken cancellationToken) =>
+        SaveAsync(dbContext, policy, expectedVersion, cancellationToken);
+
+    internal static async Task<SecurityAccessPolicyState> SaveAsync(
+        AuthenticationDbContext dbContext,
+        SecurityAccessPolicy policy,
+        long expectedVersion,
+        CancellationToken cancellationToken)
     {
         policy.ValidateConfiguration();
         if (expectedVersion < 0)

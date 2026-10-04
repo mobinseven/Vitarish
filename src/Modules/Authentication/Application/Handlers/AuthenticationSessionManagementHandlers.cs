@@ -66,6 +66,13 @@ public sealed class ChangeUserInactivityTimeoutHandler(
         string timeoutReason = minutes.HasValue
             ? AuthenticationSecurityAuditEvents.UserTimeoutMinutesReason(minutes.Value)
             : AuthenticationSecurityAuditEvents.UserTimeoutDefaultReason;
+        bool userExists = !string.IsNullOrWhiteSpace(userId)
+            && await userDirectory.FindByIdAsync(userId, cancellationToken) is not null;
+        SecurityAccessPolicy currentPolicy = await policyProvider.GetAsync(cancellationToken);
+        (bool previousPolicyExists, int? previousMinutes, long previousVersion) = userExists
+            ? await sessionRegistry.GetUserInactivityTimeoutStateAsync(userId, cancellationToken)
+            : (false, null, 0);
+
         SecurityAuditWriteResult pending;
         try
         {
@@ -91,13 +98,12 @@ public sealed class ChangeUserInactivityTimeoutHandler(
             pending = SecurityAuditWriteResult.Recorded;
         }
 
-        if (string.IsNullOrWhiteSpace(userId) || await userDirectory.FindByIdAsync(userId, cancellationToken) is null)
+        if (!userExists)
         {
             await CompleteDeniedAuditBestEffortAsync(operationKey, AuthenticationSecurityAuditEvents.UserPolicyTargetNotFoundReason);
             throw new AuthenticationUserNotFoundException();
         }
 
-        SecurityAccessPolicy currentPolicy = await policyProvider.GetAsync(cancellationToken);
         if (pending is SecurityAuditWriteResult.AlreadyRecorded)
         {
             if (auditWriter is not ISecurityAuditOutcomeUpdater reconciliationUpdater)
@@ -132,8 +138,6 @@ public sealed class ChangeUserInactivityTimeoutHandler(
             }
             throw new InvalidOperationException("The user inactivity policy operation is already in progress or has a terminal non-success outcome.");
         }
-
-        (bool previousPolicyExists, int? previousMinutes, long previousVersion) = await sessionRegistry.GetUserInactivityTimeoutStateAsync(userId, cancellationToken);
 
         bool mutationCommitted = false;
         long version = 0;
