@@ -293,6 +293,27 @@ public sealed class SecurityAccessPolicyHandlerTests
     }
 
     [Fact]
+    public async Task Authentication_policy_read_is_platform_admin_only()
+    {
+        SecurityAccessPolicy storedPolicy = SecurityAccessPolicy.Default;
+        Mock<IAuthenticationSecurityPolicyStore> store = new();
+        store.Setup(item => item.GetStateAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new SecurityAccessPolicyState(storedPolicy, 9));
+        GetSecurityAuthenticationPolicyHandler deniedHandler = new(store.Object, AuthenticationProfilePolicy.Default, new TestRequestContext([]));
+
+        Func<Task> denied = () => deniedHandler.Handle(CancellationToken.None);
+
+        await denied.Should().ThrowAsync<UnauthorizedAccessException>();
+        store.Verify(item => item.GetStateAsync(It.IsAny<CancellationToken>()), Times.Never);
+
+        GetSecurityAuthenticationPolicyHandler allowedHandler = new(store.Object, AuthenticationProfilePolicy.ProductEvaluated, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+
+        SecurityAuthenticationPolicyManagementState result = await allowedHandler.Handle(CancellationToken.None);
+
+        result.State.Version.Should().Be(9);
+        store.Verify(item => item.GetStateAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
     public async Task Authentication_policy_change_merges_authentication_fields_and_preserves_session_policy()
     {
         SecurityAccessPolicy current = SecurityAccessPolicy.Default with
