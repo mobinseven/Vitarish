@@ -66,7 +66,7 @@ test("deployment script changes select every production service without publishi
 });
 
 test("the remote Caddy validator does not consume the streamed deployment script", () => {
-  assert.match(deployProductionScript, /^ingress --profile validation run --interactive=false --rm --no-deps caddy-config-validator caddy validate --config \/etc\/caddy\/Caddyfile --adapter caddyfile$/m);
+  assert.match(deployProductionScript, /^ingress run --interactive=false --rm --no-deps caddy-config-validator caddy validate --config \/etc\/caddy\/Caddyfile --adapter caddyfile$/m);
 });
 
 test("selected Caddy configuration is loaded and rollback reloads the previous configuration", () => {

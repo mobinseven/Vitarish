@@ -73,7 +73,6 @@ internal static class SelfTests
                 (files[8], "always\\(\\) && !cancelled\\(\\) && github.event_name", "github.event_name", "ProductionWorkflowTestGateMissing"),
                 (files[8], "StrictHostKeyChecking=yes", "StrictHostKeyChecking=no", "ProductionSshBoundaryInvalid"),
                 (files[8], Regex.Escape("[[ \"$SSH_USER\" == \"root\" &&"), "[[ \"$SSH_USER\" =~", "ProductionSshBoundaryInvalid"),
-                (files[9], "caddy-config-validator caddy validate --config", "--entrypoint /usr/bin/caddy caddy-config-validator validate --config", "ProductionWorkflowRecoveryGateMissing"),
                 (files[9], "trap rollback ERR", ":", "ProductionWorkflowRecoveryGateMissing"),
                 (files[9], "dependencies=\\(postgres redis aistor elasticsearch\\)", "dependencies=()", "ProductionBootstrapMissing"),
                 (files[10], "publishedDigest !== registryDigest", "publishedDigest === registryDigest", "ProductionImageDigestGateMissing"),

@@ -94,8 +94,6 @@ jobs:
               - 'src/Hosts/Main/**'
             caddy:
               - 'src/Hosts/deployment/Dockerfile'
-              - 'src/Hosts/deployment/caddy-entrypoint.sh'
-              - 'src/Hosts/deployment/validate-rsa-certificate.sh'
             caddy_config:
               - 'src/Hosts/deployment/Caddyfile'
             deployment:
@@ -243,7 +241,7 @@ jobs:
       - name: Validate committed Compose examples
         working-directory: src/Hosts/deployment
         run: |
-          docker compose --env-file .env.shared.example -f docker-compose.ingress.yml --profile certificate-operations --profile validation config --quiet
+          docker compose --env-file .env.shared.example -f docker-compose.ingress.yml config --quiet
           docker compose --env-file .env.shared.example --env-file .env.test.example -f docker-compose.test.yml config --quiet
           docker compose --env-file .env.shared.example --env-file .env.production.example -f docker-compose.production.yml config --quiet
 
