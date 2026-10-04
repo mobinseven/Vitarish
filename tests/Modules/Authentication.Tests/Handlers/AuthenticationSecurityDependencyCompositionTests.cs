@@ -29,6 +29,7 @@ public sealed class AuthenticationSecurityDependencyCompositionTests
         yield return [typeof(CompletePasskeyLoginHandler)];
         yield return [typeof(CompletePasswordLoginOtpHandler)];
         yield return [typeof(LoginWithPasswordHandler)];
+        yield return [typeof(BeginPasswordRecoveryHandler)];
     }
 
     [Theory]
@@ -61,6 +62,7 @@ public sealed class AuthenticationSecurityDependencyCompositionTests
         ServiceCollection services = new();
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
         services.AddSingleton(configuration);
+        services.AddLogging();
         services.AddAuthenticationModuleServices(AuthenticationProfilePolicy.Default);
         services.Configure<AuthenticationAttemptKeyOptions>(options =>
         {
@@ -76,6 +78,7 @@ public sealed class AuthenticationSecurityDependencyCompositionTests
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationUserDirectory>(_ => Mock.Of<IAuthenticationUserDirectory>()));
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationCodeGenerator>(_ => Mock.Of<IAuthenticationCodeGenerator>()));
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationCodeVerifier>(_ => Mock.Of<IAuthenticationCodeVerifier>()));
+        services.Replace(ServiceDescriptor.Scoped<IUserAccountUpdater>(_ => Mock.Of<IUserAccountUpdater>()));
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationSignInService>(_ => Mock.Of<IAuthenticationSignInService>()));
         services.Replace(ServiceDescriptor.Scoped<IAuthenticationRedirectResolver>(_ => Mock.Of<IAuthenticationRedirectResolver>()));
         services.Replace(ServiceDescriptor.Scoped<IEmailAuthenticationCodeSender>(_ => Mock.Of<IEmailAuthenticationCodeSender>()));
@@ -90,6 +93,9 @@ public sealed class AuthenticationSecurityDependencyCompositionTests
         foreach (Type handlerType in AuthenticationHandlers().Select(item => (Type)item[0])
             .Concat([typeof(GetSecurityAccessPolicyHandler), typeof(ChangeSecurityAccessPolicyHandler)]))
             scope.ServiceProvider.GetRequiredService(handlerType).Should().NotBeNull();
+
+        scope.ServiceProvider.GetRequiredService<IPasswordRecoveryCodeDispatcher>()
+            .Should().BeOfType<PasswordRecoveryCodeDispatcher>();
     }
 
     private sealed class TestSecurityPolicyProvider : IAuthenticationSecurityPolicyProvider

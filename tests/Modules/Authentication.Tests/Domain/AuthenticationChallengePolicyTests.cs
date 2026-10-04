@@ -12,6 +12,13 @@ public class AuthenticationChallengePolicyTests
     }
 
     [Fact]
+    public void Default_lifetime_covers_the_password_recovery_delivery_timeout()
+    {
+        AuthenticationChallengePolicy.PasswordRecoveryDeliveryTimeout.Should().Be(TimeSpan.FromMinutes(5));
+        AuthenticationChallengePolicy.Default.Lifetime.Should().BeGreaterThanOrEqualTo(AuthenticationChallengePolicy.PasswordRecoveryDeliveryTimeout);
+    }
+
+    [Fact]
     public void Default_has_five_maximum_attempts()
     {
         AuthenticationChallengePolicy.Default.MaximumAttempts.Should().Be(5);

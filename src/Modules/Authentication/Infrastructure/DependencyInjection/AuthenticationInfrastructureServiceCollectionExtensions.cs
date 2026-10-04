@@ -56,6 +56,7 @@ public static class AuthenticationInfrastructureServiceCollectionExtensions
         services.AddScoped<IPhoneAuthenticationCodeSender, SmsAuthenticationCodeSender>();
         services.AddScoped<IEmailAuthenticationCodeSender, EmailAuthenticationCodeSender>();
         services.AddScoped<IAuthenticationRecoveryDeliveryFailureRecorder, AuthenticationRecoveryDeliveryFailureRecorder>();
+        services.AddSingleton<IPasswordRecoveryCodeDispatcher, PasswordRecoveryCodeDispatcher>();
         services.AddScoped<IWebAuthnAuthenticationService, WebAuthnAuthenticationService>();
         services.AddScoped<ILogoutContextService, DuendeLogoutContextService>();
         services.AddSingleton<VerificationSmsRequestShield, InMemoryVerificationSmsRequestShield>();
