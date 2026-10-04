@@ -45,12 +45,14 @@ test("workflow path rules exclude classified source changes before selecting the
 });
 
 test("configuration-only deployments remain eligible when publishing is skipped", () => {
-  assert.match(workflow, /deploy_production:\r?\n[\s\S]*?if: \$\{\{ always\(\) && !cancelled\(\)[^\n]*needs\.publish\.result == 'skipped'/);
+  assert.match(workflow, /deploy_production:\r?\n[\s\S]*?if: \$\{\{ always\(\) && !cancelled\(\)[^\n]*needs\.required\.result == 'success'[^\n]*needs\.publish\.result == 'skipped'/);
   assert.deepEqual(selectProductionMatrix("push", { compose: true }).images, []);
 });
 
 test("publishes selected images when unrelated test matrices are skipped", () => {
-  assert.match(workflow, /publish:\r?\n[\s\S]*?if: \$\{\{ github\.event_name == 'push'[^\n]*needs\.required\.result == 'success' && !cancelled\(\) \}\}/);
+  assert.match(workflow, /publish:\r?\n[\s\S]*?needs: \[changes\]/);
+  assert.match(workflow, /publish:\r?\n[\s\S]*?if: \$\{\{ github\.event_name == 'push'[^\n]*needs\.changes\.outputs\.image_matrix != '\[\]'[^\n]*&& !cancelled\(\) \}\}/);
+  assert.match(workflow, /deploy_production:\r?\n[\s\S]*?needs: \[changes, required, publish\][\s\S]*?needs\.required\.result == 'success'/);
 });
 
 test("deployment script changes select every production service without publishing application images", () => {
@@ -111,7 +113,7 @@ test("a shared authentication change selects every consuming app with shared aut
   assert.match(workflow, /authentication_web:[\s\S]*?env:\r?\n          HEROUI_AUTH_TOKEN: \$\{\{ secrets\.HEROUI_AUTH_TOKEN \}\}/);
   assert.match(workflow, /npm ci/);
   assert.match(workflow, /authentication_web:[\s\S]*?if: \$\{\{ contains\(needs\.changes\.outputs\.filters, 'web_auth'\) \}\}/);
-  assert.match(workflow, /needs: \[changes, dotnet, web, authentication_web, security\]/);
+  assert.match(workflow, /needs: \[changes, dotnet, web, web_shared_tests, web_shared_validators, authentication_web, security\]/);
 });
 
 test("an authentication-only change selects every consuming app and shared auth", () => {

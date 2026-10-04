@@ -132,13 +132,13 @@ internal static class SecurityBaselineCheck
             publishStart < 0 || deployStart <= publishStart || packageWrite <= publishStart || packageWrite >= deployStart ||
             !Regex.IsMatch(workflow[publishStart..deployStart], @"(?ms)^    permissions:\r?\n      contents: read\r?\n      packages: write\s*$"))
             violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowPermissionsInvalid", "Keep PR permissions read-only and grant package write only to publication on main pushes."));
-        if (!Regex.IsMatch(workflow, @"(?ms)^  publish:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required\].*?^    if: \$\{\{ github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?\}\}") ||
-            !Regex.IsMatch(workflow, @"(?ms)^  deploy_production:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required, publish\].*?^    if: \$\{\{ always\(\) && !cancelled\(\) && github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?\}\}") ||
+        if (!Regex.IsMatch(workflow, @"(?ms)^  publish:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes\].*?^    if: \$\{\{ github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.changes\.outputs\.image_matrix != '\[\]'.*?&& !cancelled\(\) \}\}") ||
+            !Regex.IsMatch(workflow, @"(?ms)^  deploy_production:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required, publish\].*?^    if: \$\{\{ always\(\) && !cancelled\(\) && github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?needs\.publish\.result == 'success'.*?\}\}") ||
             !HasCompleteRequiredCheckDependencies(workflow) ||
             !Regex.IsMatch(workflow, @"(?ms)^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    if: \$\{\{ always\(\) \}\}") ||
             !workflow.Contains("contains(needs.*.result, 'failure')", StringComparison.Ordinal) ||
             !workflow.Contains("contains(needs.*.result, 'cancelled')", StringComparison.Ordinal))
-            violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowTestGateMissing", "Make both publication and SSH deployment depend on successful affected checks and main pushes."));
+            violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowTestGateMissing", "Publish immutable commit-SHA images on main pushes and deploy over SSH only when every affected check and the publication for this run succeeded."));
         if (!workflow.Contains("environment: production", StringComparison.Ordinal) ||
             !workflow.Contains("secrets.PRODUCTION_SSH_HOST", StringComparison.Ordinal) ||
             !workflow.Contains("secrets.PRODUCTION_SSH_USER", StringComparison.Ordinal) ||
@@ -341,12 +341,23 @@ internal static class SecurityBaselineCheck
         }
 
         if (!needsByJob.TryGetValue("required", out string[]? requiredNeeds) || requiredNeeds is null) return false;
+        if (!needsByJob.TryGetValue("deploy_production", out string[]? deployNeeds) || deployNeeds is null) return false;
+
+        Match deployCondition = Regex.Match(workflow, @"(?ms)^  deploy_production:\r?\n(?:(?!^  [a-z_]+:).)*?^    if: (?<condition>[^\r\n]+)");
+        if (!deployCondition.Success) return false;
 
         HashSet<string> requiredDependencies = new(requiredNeeds, StringComparer.Ordinal);
         HashSet<string> checkJobsAndPrerequisites = new(StringComparer.Ordinal);
         foreach ((string jobId, string[] dependencies) in needsByJob)
         {
-            if (jobId == "required" || dependencies.Length != 1) continue;
+            if (jobId == "required" || jobId == "deploy_production" || dependencies.Length != 1) continue;
+
+            // A single-dependency job gated directly by the deployment stage (for
+            // example image publication) is not a check prerequisite of the required
+            // gate. It still blocks deployment because deploy_production's own
+            // condition checks its result.
+            if (deployNeeds.Contains(jobId) && deployCondition.Groups["condition"].Value.Contains($"needs.{jobId}.result", StringComparison.Ordinal)) continue;
+
             checkJobsAndPrerequisites.Add(jobId);
             checkJobsAndPrerequisites.UnionWith(dependencies);
         }

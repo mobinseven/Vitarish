@@ -4,9 +4,10 @@
 uses job-level path filters while the workflow itself remains unfiltered, so a
 required check always reaches a completed state. Pull requests to `main` run
 checks for affected consumers and cannot publish or deploy. A push to `main`
-runs those checks, publishes only affected images as
+runs those checks and publishes only affected images in parallel as
 `ghcr.io/<owner>/vitarish/<app>:<full-commit-sha>`, resolves the registry digests
-published by that run, then deploys those immutable references. Manual dispatch runs the full .NET, Web, security, and
+published by that run, then deploys those immutable references only after every
+check passed. Manual dispatch runs the full .NET, Web, security, and
 Compose checks; it never publishes or deploys. There are no scheduled runs.
 
 The workflow maps isolated Web app changes to that app, shared Web changes to
@@ -15,7 +16,8 @@ to Main plus all Web apps. Unknown source paths select the broad checks and
 image set. Production or ingress Compose changes select the production
 services affected by that configuration. Test Compose changes run security
 and example-render checks without publishing or touching production. A test or
-security failure prevents publication and SSH access.
+security failure prevents SSH deployment; published images remain immutable
+commit-SHA tags and are never deployed unless every check passed.
 
 ## Production GitHub Environment
 
