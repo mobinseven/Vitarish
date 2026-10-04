@@ -6,6 +6,7 @@ using Vitarish.Authentication.Api.Mapping;
 using Vitarish.Authentication.Contracts.Requests;
 using Vitarish.Authentication.Contracts.Responses;
 using Vitarish.Modules.Base.Core.Endpoints;
+using Vitarish.Modules.Base.Core.Identity;
 
 namespace Vitarish.Authentication.Api.Endpoints;
 
@@ -15,7 +16,9 @@ public static class AccountPhoneChangeEndpoints
     {
         group.MapModulePost("/account/phone/begin", async (BeginChangePhoneRequest request, [Microsoft.AspNetCore.Mvc.FromServices] BeginChangePhoneHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
-            string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            string? userId = AuthenticatedUserIdResolver.Resolve(user) is AuthenticatedUserIdResolution.Success resolvedUserId
+                ? resolvedUserId.UserId.Value
+                : null;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
 
             var r = await handler.Handle(new BeginChangePhoneCommand(userId, request.PhoneNumber), ct);
@@ -32,7 +35,9 @@ public static class AccountPhoneChangeEndpoints
 
         group.MapModulePost("/account/phone/complete", async (CompleteChangePhoneRequest request, [Microsoft.AspNetCore.Mvc.FromServices] CompleteChangePhoneHandler handler, System.Security.Claims.ClaimsPrincipal user, CancellationToken ct) =>
         {
-            string? userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            string? userId = AuthenticatedUserIdResolver.Resolve(user) is AuthenticatedUserIdResolution.Success resolvedUserId
+                ? resolvedUserId.UserId.Value
+                : null;
             if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
 
             var r = await handler.Handle(new CompleteChangePhoneCommand(userId, request.ChallengeId, request.Code), ct);

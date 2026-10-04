@@ -69,6 +69,9 @@
   <Folder Name="/tests/Apps/ProjectManagement.Api.Tests/">
     <Project Path="tests/Apps/ProjectManagement.Api.Tests/ProjectManagement.Api.Tests.csproj" />
   </Folder>
+  <Folder Name="/tests/Apps/Clinic.Tests/">
+    <Project Path="tests/Apps/Clinic.Tests/Clinic.Tests.csproj" />
+  </Folder>
   <Folder Name="/src/Hosts/">
     <Project Path="src/Hosts/E2e/E2e.csproj" />
     <Project Path="src/Hosts/Main/Main.csproj" />
@@ -87,6 +90,46 @@
   </Folder>
   <Folder Name="/tests/Libraries/">
     <Project Path="tests/Libraries/Audit.Tests/Audit.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/" />
+  <Folder Name="/tests/Modules/Appointments.Tests/">
+    <Project Path="tests/Modules/Appointments.Tests/Appointments.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Authentication.Tests/">
+    <Project Path="tests/Modules/Authentication.Tests/Authentication.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Contents.Tests/">
+    <Project Path="tests/Modules/Contents.Tests/Contents.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Files.Tests/">
+    <Project Path="tests/Modules/Files.Tests/Files.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Intelligence.Tests/">
+    <Project Path="tests/Modules/Intelligence.Tests/Intelligence.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Journey.Tests/">
+    <Project Path="tests/Modules/Journey.Tests/Journey.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Knowledge.Tests/">
+    <Project Path="tests/Modules/Knowledge.Tests/Knowledge.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Medical.Tests/">
+    <Project Path="tests/Modules/Medical.Tests/Medical.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Parties.Tests/">
+    <Project Path="tests/Modules/Parties.Tests/Parties.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Platform.Tests/">
+    <Project Path="tests/Modules/Platform.Tests/Platform.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Search.Tests/">
+    <Project Path="tests/Modules/Search.Tests/Search.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Sea.Tests/">
+    <Project Path="tests/Modules/Sea.Tests/Sea.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Users.Tests/">
+    <Project Path="tests/Modules/Users.Tests/Users.Tests.csproj" />
   </Folder>
   <Folder Name="/src/Libraries/Hosting/">
     <Project Path="src/Libraries/Hosting/Hosting.csproj" />

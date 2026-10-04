@@ -11,6 +11,7 @@ using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Service;
 using Vitarish.Audit.Domain;
 using Vitarish.Users.Application.Security;
+using Vitarish.Users.Domain.Security;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
@@ -33,15 +34,41 @@ public class UpdateUserCommandHandler(UsersDbContext dbContext, UserManager<User
             throw;
         }
 
+        bool phoneConversionFailed = false;
+        if (!string.IsNullOrWhiteSpace(request.User.PhoneNumber))
+        {
+            if (UserPhoneNumberPolicy.TryNormalize(request.User.PhoneNumber, out string? normalizedPhone))
+                request.User.PhoneNumber = normalizedPhone;
+            else
+                phoneConversionFailed = true;
+        }
+
         bool usernameChanged = current is not null &&
             (!string.Equals(current.UserName, request.User.UserName, StringComparison.Ordinal) ||
              !string.Equals(current.NormalizedUserName, request.User.NormalizedUserName, StringComparison.Ordinal));
-        bool contactIdentifierChanged = current is not null &&
-            (!string.Equals(current.Email, request.User.Email, StringComparison.OrdinalIgnoreCase) ||
-             !string.Equals(current.PhoneNumber, request.User.PhoneNumber, StringComparison.Ordinal));
+        bool emailChanged = current is not null &&
+            !string.Equals(current.Email, request.User.Email, StringComparison.OrdinalIgnoreCase);
+        bool phoneChanged = current is not null &&
+            !string.Equals(current.PhoneNumber, request.User.PhoneNumber, StringComparison.Ordinal);
+        bool contactIdentifierChanged = emailChanged || phoneChanged;
         bool securityAttributesChanged = usernameChanged || contactIdentifierChanged;
 
-        if (!UserContactIdentifierPolicy.IsValid(request.User.Email, request.User.PhoneNumber, request.User.FirstName, request.User.LastName))
+        bool validateEmail = current is null || emailChanged;
+        bool validatePhone = current is null || phoneChanged;
+        bool validateFirstName = current is null ||
+            !string.Equals(current.FirstName, request.User.FirstName, StringComparison.Ordinal);
+        bool validateLastName = current is null ||
+            !string.Equals(current.LastName, request.User.LastName, StringComparison.Ordinal);
+
+        bool invalidContact =
+            (validatePhone && phoneConversionFailed) ||
+            (validateEmail && !UserContactIdentifierPolicy.IsValidEmail(request.User.Email)) ||
+            (validatePhone && !UserContactIdentifierPolicy.IsValidPhoneNumber(request.User.PhoneNumber)) ||
+            (validateFirstName && !UserContactIdentifierPolicy.IsValidName(request.User.FirstName)) ||
+            (validateLastName && !UserContactIdentifierPolicy.IsValidName(request.User.LastName)) ||
+            ((validateEmail || validatePhone) && !UserContactIdentifierPolicy.HasContactIdentifier(request.User.Email, request.User.PhoneNumber));
+
+        if (invalidContact)
         {
             await managementAudit.AccountEditFailedAsync(request.User.Id, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
             if (securityAttributesChanged)
@@ -87,6 +114,17 @@ public class UpdateUserCommandHandler(UsersDbContext dbContext, UserManager<User
         try
         {
             result = await userManager.UpdateAsync(request.User);
+        }
+        catch (DbUpdateException exception) when (ContactIdentifierUniqueViolation.Matches(exception))
+        {
+            await managementAudit.AccountEditFailedAsync(request.User.Id, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            if (securityAttributesChanged)
+                await managementAudit.SecurityAttributeChangedAsync(request.User.Id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = nameof(UsersCommandFailureCode.ContactIdentifierInUse),
+                Description = UsersCommandErrorCodes.ContactIdentifierInUseDescription
+            });
         }
         catch (OperationCanceledException)
         {

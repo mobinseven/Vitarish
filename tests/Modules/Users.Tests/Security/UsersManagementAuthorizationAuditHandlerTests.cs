@@ -74,6 +74,23 @@ public sealed class UsersManagementAuthorizationAuditHandlerTests
         writer.Verify(value => value.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Fact]
+    public async Task Authorization_denials_on_multi_parameter_routes_do_not_crash_the_audit_handler()
+    {
+        (UsersManagementAuthorizationAuditHandler handler, Mock<ISecurityAuditWriter> writer) = CreateHandler();
+        AuthorizationHandlerContext context = CreateAuthorizationContext(
+            UsersApiRoutes.AdministrationGetUserSecurityOperation,
+            new ClaimsPrincipal(new ClaimsIdentity()),
+            includeApplicationAuditMetadata: true,
+            targetUserId: "user-42",
+            routePattern: $"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRole}");
+
+        Func<Task> handle = () => handler.HandleAsync(context);
+
+        await handle.Should().NotThrowAsync();
+        writer.Verify(value => value.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     private static (UsersManagementAuthorizationAuditHandler Handler, Mock<ISecurityAuditWriter> Writer) CreateHandler()
     {
         Mock<ISecurityAuditWriter> writer = new();
@@ -92,7 +109,8 @@ public sealed class UsersManagementAuthorizationAuditHandlerTests
         string operationId,
         ClaimsPrincipal user,
         bool includeApplicationAuditMetadata,
-        string? targetUserId = null)
+        string? targetUserId = null,
+        string? routePattern = null)
     {
         List<object> metadata = [new ModuleEndpointOpenApiConvention(operationId)];
         if (includeApplicationAuditMetadata)
@@ -101,7 +119,7 @@ public sealed class UsersManagementAuthorizationAuditHandlerTests
         DefaultHttpContext httpContext = new();
         RouteEndpoint endpoint = new(
             _ => Task.CompletedTask,
-            RoutePatternFactory.Parse(UsersApiRoutes.ById),
+            RoutePatternFactory.Parse(routePattern ?? UsersApiRoutes.ById),
             0,
             new EndpointMetadataCollection(metadata),
             operationId);

@@ -57,11 +57,11 @@ public sealed class CompletePasswordLoginOtpHandlerTests
     {
         InMemoryAuthenticationChallengeStore store = new();
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
-            "user-42", "+989121234567", "Authentication:PasswordLoginOtp", DateTimeOffset.UtcNow, false, false);
+            "user-42", "+989121234567", DateTimeOffset.UtcNow, false, false);
         await store.SaveAsync(challenge, CancellationToken.None);
 
         Mock<IAuthenticationCodeVerifier> verifier = new();
-        verifier.Setup(x => x.VerifyAsync("user-42", "Authentication:PasswordLoginOtp", "123456", It.IsAny<CancellationToken>()))
+        verifier.Setup(x => x.VerifyAsync("user-42", challenge.TokenPurpose, "123456", It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         Mock<IAuthenticationSignInService> signIn = new();
         Mock<IAuthenticationRedirectResolver> redirects = new();
@@ -97,11 +97,11 @@ public sealed class CompletePasswordLoginOtpHandlerTests
     {
         InMemoryAuthenticationChallengeStore store = new();
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
-            "user-42", "+989121234567", "Authentication:PasswordLoginOtp", DateTimeOffset.UtcNow, false, false);
+            "user-42", "+989121234567", DateTimeOffset.UtcNow, false, false);
         await store.SaveAsync(challenge, CancellationToken.None);
 
         Mock<IAuthenticationCodeVerifier> verifier = new();
-        verifier.Setup(x => x.VerifyAsync("user-42", "Authentication:PasswordLoginOtp", "000000", It.IsAny<CancellationToken>()))
+        verifier.Setup(x => x.VerifyAsync("user-42", challenge.TokenPurpose, "000000", It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
         Mock<IAuthenticationSignInService> signIn = new();
         Mock<IAuthenticationRedirectResolver> redirects = new();
@@ -133,7 +133,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             .Should().BeGreaterThan(0);
         (await store.GetAsync(challenge.Id, CancellationToken.None))!.Status
             .Should().Be(AuthenticationChallengeStatus.Exhausted);
-        verifier.Verify(x => x.VerifyAsync("user-42", "Authentication:PasswordLoginOtp", "000000", It.IsAny<CancellationToken>()),
+        verifier.Verify(x => x.VerifyAsync("user-42", challenge.TokenPurpose, "000000", It.IsAny<CancellationToken>()),
             Times.Exactly(challenge.MaximumAttempts));
         signIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -144,12 +144,12 @@ public sealed class CompletePasswordLoginOtpHandlerTests
     {
         Mock<IAuthenticationChallengeStore> store = new();
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
-            "user-42", "+989121234567", "Authentication:PasswordLoginOtp", DateTimeOffset.UtcNow, false, false);
+            "user-42", "+989121234567", DateTimeOffset.UtcNow, false, false);
         store.Setup(x => x.GetAsync(It.IsAny<AuthenticationChallengeId>(), It.IsAny<CancellationToken>())).ReturnsAsync(challenge);
         store.Setup(x => x.TryReserveAttemptAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
         store.Setup(x => x.TryConsumeAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
         Mock<IAuthenticationCodeVerifier> verifier = new();
-        verifier.Setup(x => x.VerifyAsync("user-42", "Authentication:PasswordLoginOtp", "123456", It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        verifier.Setup(x => x.VerifyAsync("user-42", challenge.TokenPurpose, "123456", It.IsAny<CancellationToken>())).ReturnsAsync(true);
         Mock<IAuthenticationSignInService> signIn = new();
         Mock<IAuthenticationRedirectResolver> redirects = new();
         redirects.Setup(x => x.ResolveAsync("/home", false, "user-42", It.IsAny<CancellationToken>())).ReturnsAsync("/home");

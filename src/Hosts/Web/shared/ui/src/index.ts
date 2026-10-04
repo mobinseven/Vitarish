@@ -56,6 +56,8 @@ export { StatusAlert } from "./feedback/StatusAlert";
 export type { StatusAlertProps } from "./feedback/StatusAlert";
 export { LoadingSpinner } from "./feedback/LoadingSpinner";
 export type { LoadingSpinnerProps } from "./feedback/LoadingSpinner";
+export { MobileNumberField } from "./inputs/MobileNumberField";
+export type { MobileNumberFieldProps } from "./inputs/MobileNumberField";
 export { DashboardFrame } from "./shell/DashboardFrame";
 export type {
   DashboardContentMode,

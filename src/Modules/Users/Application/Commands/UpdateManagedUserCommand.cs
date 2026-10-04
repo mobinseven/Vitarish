@@ -8,4 +8,5 @@ public sealed record UpdateManagedUserCommand(
     string? Email,
     string? PhoneNumber,
     string? FirstName,
-    string? LastName) : IRequest<IdentityResult>;
+    string? LastName,
+    string? Revision) : IRequest<IdentityResult>;

@@ -38,6 +38,11 @@ parent module contract and keep this boundary non-cyclic.
   security-stamp, and profile mutations do not revoke sessions as a side
   effect. Use the Authentication Application active-session query port; do
   not add a reverse Users-to-Authentication Infrastructure reference.
+  Narrow exception: when the username is the email or phone being replaced,
+  that contact change also moves the username to the new contact, or to the
+  remaining contact if one is cleared. This move is not an active-session
+  conflict. An unrelated username change still rejects while a session is
+  active.
 - **[MUST]** Queries for users, roles, claims, or credentials are side-effect
   free and tenant/subject scoped. Reading access history or security state must
   not acknowledge, rotate, repair, or revoke it implicitly.

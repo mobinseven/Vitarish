@@ -86,7 +86,6 @@ public sealed class DistributedAuthenticationChallengeStoreTests
     private static AuthenticationChallenge CreateChallenge() => AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
         "user-42",
         "+989121234567",
-        "Authentication:PasswordLoginOtp",
         DateTimeOffset.UtcNow,
         rememberMe: false,
         requiresProfileCompletion: false);
@@ -94,7 +93,6 @@ public sealed class DistributedAuthenticationChallengeStoreTests
     private static AuthenticationChallenge CreateRecoveryChallenge() => AuthenticationChallengePolicy.Default.CreateEmailPasswordRecoveryChallenge(
         "user-42",
         "person@example.test",
-        AuthenticationChallengePolicy.Default.TokenPurpose(AuthenticationChallengePurpose.EmailPasswordRecovery),
         DateTimeOffset.UtcNow);
 
     private static AuthenticationChallenge Copy(AuthenticationChallenge challenge) => AuthenticationChallenge.Restore(

@@ -11,9 +11,11 @@ using Vitarish.Modules.Base.Core.Identity;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Authorization;
 using Vitarish.Users.Application.Commands;
+using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Application.Security;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Domain.Security;
 using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Service;
@@ -23,6 +25,7 @@ namespace Vitarish.Users.Infrastructure.Handlers;
 internal sealed class ProvisionTenantMemberCommandHandler(
     UsersDbContext dbContext,
     UserManager<User> userManager,
+    ISender sender,
     IDistributedCache cache,
     IAuthenticationActiveSessionQuery activeSessionQuery,
     ISecurityAuditWriter securityAuditWriter,
@@ -37,6 +40,15 @@ internal sealed class ProvisionTenantMemberCommandHandler(
         {
             await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.Unauthorized, cancellationToken);
             return Failure(UsersCommandErrorCodes.Unauthorized);
+        }
+
+        string? phoneNumber = null;
+        bool phoneConversionFailed = false;
+        if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+        {
+            phoneConversionFailed = !UserPhoneNumberPolicy.TryNormalize(request.PhoneNumber, out phoneNumber);
+            if (!phoneConversionFailed)
+                request = request with { PhoneNumber = phoneNumber };
         }
 
         string roleName = TenantRoleDefinitions.BuildRoleName(tenantId, IdentityDefinitions.TenantUser);
@@ -65,16 +77,32 @@ internal sealed class ProvisionTenantMemberCommandHandler(
 
             if (user is null)
             {
-                if (!UserContactIdentifierPolicy.IsValid(request.Email, request.PhoneNumber, request.FirstName, request.LastName))
+                if (phoneConversionFailed || !UserContactIdentifierPolicy.IsValid(request.Email, request.PhoneNumber, request.FirstName, request.LastName))
                 {
                     await managementAudit.AccountCreationFailedAsync(null, CancellationToken.None);
                     await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
                     return Failure(UsersCommandErrorCodes.InvalidContact);
                 }
 
+                bool identifierInUse = request.Email is not null
+                    ? await sender.Send(new CheckLoginIdentifierInUseQuery(request.Email, LoginIdentifierKind.Email, null), cancellationToken)
+                    : await sender.Send(new CheckLoginIdentifierInUseQuery(request.PhoneNumber!, LoginIdentifierKind.Phone, null), cancellationToken);
+                if (identifierInUse)
+                {
+                    await managementAudit.AccountCreationFailedAsync(null, CancellationToken.None);
+                    await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+                    return Failure(UsersCommandErrorCodes.ContactIdentifierInUse);
+                }
+
                 try
                 {
                     user = await CreateUserAsync(request, cancellationToken);
+                }
+                catch (DbUpdateException exception) when (ContactIdentifierUniqueViolation.Matches(exception))
+                {
+                    await managementAudit.AccountCreationFailedAsync(null, CancellationToken.None);
+                    await WriteAuditAsync(request, tenantId, operationKey, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+                    return Failure(UsersCommandErrorCodes.ContactIdentifierInUse);
                 }
                 catch (Exception exception) when (exception is not OperationCanceledException)
                 {

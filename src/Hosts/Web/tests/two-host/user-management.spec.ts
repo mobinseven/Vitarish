@@ -9,6 +9,7 @@ import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/rout
 import { authenticationLogoutPost } from "../../shared/auth/src/api/generated/authentication/authentication";
 import type { SecurityAuthenticationPolicyDto } from "../../shared/auth/src/api/generated/authentication/model";
 import { resetAntiforgeryToken, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { UsersCommandErrorKind } from "../../shared/auth/src/users";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
 import {
   twoHostE2eProofScreenshotEnvironmentKey,
@@ -39,6 +40,10 @@ async function captureAuthenticatedScreenshot(page: Page, outputPath: string): P
       outputPath,
       "-StorageStatePath",
       storageStatePath!,
+      // The restored session must actually render the authenticated detail
+      // page (this test's fixture name); never retain a login-page capture.
+      "-WaitForSelector",
+      "text=Security Evidence",
       "-IgnoreHttpsErrors",
     ], { cwd: process.cwd(), timeout: 45_000, windowsHide: true });
     expect(existsSync(outputPath), `the screenshot script did not create ${outputPath}`).toBe(true);
@@ -272,6 +277,18 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   const createdUser = await createResponse.json() as { id?: string };
   expect(createdUser.id).toBeTruthy();
 
+  const duplicateEmail = page.getByRole("textbox", { name: "Email address" });
+  await duplicateEmail.fill(originalContact);
+  const [duplicateResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "POST" && response.request().postData()?.includes(originalContact) === true),
+    page.getByRole("button", { name: "Create user" }).click(),
+  ]);
+  expect(duplicateResponse.status()).toBe(409);
+  const duplicateBody = await duplicateResponse.json() as { errors?: Array<{ failureCode?: string | null }> };
+  expect(duplicateBody.errors?.some((error) => error.failureCode === UsersCommandErrorKind.ContactIdentifierInUse)).toBe(true);
+  await expect(page.getByRole("status").filter({ hasText: "Another account already uses this email address or phone number." })).toBeVisible();
+  await expect(duplicateEmail).toHaveValue(originalContact);
+
   const changedContact = `e2e-security-edited-${Date.now()}@example.test`;
   await page.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "domcontentloaded" });
   await expect(page.getByText(createdUser.id!, { exact: true })).toBeVisible({ timeout: 30_000 });
@@ -304,6 +321,9 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   ]);
   expect(inheritResponse.ok()).toBe(true);
 
+  const stalePage = await page.context().newPage();
+  await stalePage.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "domcontentloaded" });
+  await expect(stalePage.getByText(createdUser.id!, { exact: true })).toBeVisible({ timeout: 30_000 });
   await page.getByRole("textbox", { name: "Email address" }).fill(changedContact);
   const [editResponse] = await Promise.all([
     page.waitForResponse((response) => response.request().method() === "PUT" && response.request().postData()?.includes(changedContact) === true),
@@ -311,6 +331,17 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   ]);
   expect(editResponse.ok()).toBe(true);
   await expect(page.getByRole("status").filter({ hasText: "User details were updated." })).toBeVisible();
+
+  const staleContact = `e2e-security-stale-${Date.now()}@example.test`;
+  await stalePage.getByRole("textbox", { name: "Email address" }).fill(staleContact);
+  const [conflictResponse] = await Promise.all([
+    stalePage.waitForResponse((response) => response.request().method() === "PUT" && response.request().postData()?.includes(staleContact) === true),
+    stalePage.getByRole("button", { name: "Save user changes" }).click(),
+  ]);
+  expect(conflictResponse.status()).toBe(409);
+  await expect(stalePage.getByRole("status").filter({ hasText: "This account changed elsewhere." })).toBeVisible();
+  await expect(stalePage.getByRole("textbox", { name: "Email address" })).toHaveValue(changedContact);
+  await stalePage.close();
 
   await page.getByRole("textbox", { name: "Tenant ID" }).fill(tenantId!);
   const [grantResponse] = await Promise.all([

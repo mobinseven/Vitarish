@@ -4,4 +4,5 @@ public sealed record UpdateManagedUserRequest(
     string? Email,
     string? PhoneNumber,
     string? FirstName,
-    string? LastName);
+    string? LastName,
+    string? Revision);

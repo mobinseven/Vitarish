@@ -27,6 +27,6 @@ internal static class UserManagerExtensions
         user.BirthCountryCode = birthCountryCode?.Trim();
         user.BirthCity = birthCity?.Trim();
         IdentityResult result = await userManager.CreateAsync(user);
-        return !result.Succeeded ? throw new Exception(string.Join('\n', result.Errors.Select(e => $"{e.Code}:{e.Description}"))) : user;
+        return !result.Succeeded ? throw new CreateUserFailureException(result) : user;
     }
 }

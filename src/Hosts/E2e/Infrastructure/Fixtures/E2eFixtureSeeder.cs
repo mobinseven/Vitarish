@@ -27,6 +27,7 @@ internal static class E2eFixtureSeeder
 {
     public const string UserName = "e2e-owner";
     public const string TenantUserName = "e2e-tenant-user";
+    public const string EmailChangeUserName = "e2e-email-change-user";
     public const string TenantBOwnerUserName = "e2e-tenant-b-owner";
     public const string PlatformAdminUserName = "e2e-platform-admin";
     public const string UserManagementPlatformAdminUserName = "e2e-user-management-admin";
@@ -52,7 +53,7 @@ internal static class E2eFixtureSeeder
                 "e2e-fixture"))
         };
 
-        Console.WriteLine("E2E fixture seeding: ensuring identity 1 of 6.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 1 of 7.");
         User user = await EnsureUserAsync(
             users,
             UserName,
@@ -61,7 +62,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Owner",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 2 of 6.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 2 of 7.");
         User tenantUser = await EnsureUserAsync(
             users,
             TenantUserName,
@@ -70,7 +71,16 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Tenant User",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 3 of 6.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 3 of 7.");
+        User emailChangeUser = await EnsureUserAsync(
+            users,
+            EmailChangeUserName,
+            Guid.Parse("b7f0c2e8-4a1d-4e9b-8c3f-5d2a7b6e9f14"),
+            "e2e-email-change-user@example.test",
+            "E2E",
+            "Email Change User",
+            password);
+        Console.WriteLine("E2E fixture seeding: ensuring identity 4 of 7.");
         User tenantBOwner = await EnsureUserAsync(
             users,
             TenantBOwnerUserName,
@@ -79,7 +89,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Tenant B Owner",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 4 of 6.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 5 of 7.");
         User platformAdmin = await EnsureUserAsync(
             users,
             PlatformAdminUserName,
@@ -88,7 +98,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "Platform Admin",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 5 of 6.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 6 of 7.");
         User userManagementPlatformAdmin = await EnsureUserAsync(
             users,
             UserManagementPlatformAdminUserName,
@@ -97,7 +107,7 @@ internal static class E2eFixtureSeeder
             "E2E",
             "User Management Admin",
             password);
-        Console.WriteLine("E2E fixture seeding: ensuring identity 6 of 6.");
+        Console.WriteLine("E2E fixture seeding: ensuring identity 7 of 7.");
         User lockoutPlatformAdmin = await EnsureUserAsync(
             users,
             LockoutPlatformAdminUserName,
@@ -293,6 +303,10 @@ internal static class E2eFixtureSeeder
         IdentityResult tenantUserResult = await usersService.ReplaceTenantRoleAsync(tenantUser.Id, tenant.Id, IdentityDefinitions.TenantUser, cancellationToken);
         if (!tenantUserResult.Succeeded)
             throw new InvalidOperationException("E2E tenant-user role assignment failed.");
+
+        IdentityResult emailChangeUserResult = await usersService.ReplaceTenantRoleAsync(emailChangeUser.Id, tenant.Id, IdentityDefinitions.TenantUser, cancellationToken);
+        if (!emailChangeUserResult.Succeeded)
+            throw new InvalidOperationException("E2E email-change user role assignment failed.");
 
         Console.WriteLine("E2E fixture seeding: preparing tenant B resources and access.");
         string tenantBOwnerRoleName = $"{tenantB.Id}:{IdentityDefinitions.TenantOwner}";

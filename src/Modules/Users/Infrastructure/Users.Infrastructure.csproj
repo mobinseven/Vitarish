@@ -3,11 +3,16 @@
     <InternalsVisibleTo Include="Users.Tests" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Data\PhoneNumberNormalization.sql" />
+    <EmbeddedResource Include="Data\UserNameFollowsContactIdentifier.sql" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Duende.IdentityServer" />
     <PackageReference Include="Fido2" />
     <PackageReference Include="Fido2.AspNet" />
     <PackageReference Include="MediatR" />
 	  <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
 	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>
   <ItemGroup>

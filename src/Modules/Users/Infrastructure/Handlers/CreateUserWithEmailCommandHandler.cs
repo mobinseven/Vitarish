@@ -3,14 +3,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Vitarish.Users.Application.Commands;
+using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Application.Security;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Service;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
-public class CreateUserWithEmailCommandHandler(UserManager<User> userManager, IDistributedCache cache, UsersManagementAudit managementAudit) : IRequestHandler<CreateUserWithEmailCommand, User?>
+public class CreateUserWithEmailCommandHandler(UserManager<User> userManager, ISender sender, IDistributedCache cache, UsersManagementAudit managementAudit) : IRequestHandler<CreateUserWithEmailCommand, User?>
 {
     public async Task<User?> Handle(CreateUserWithEmailCommand request, CancellationToken cancellationToken)
     {
@@ -20,10 +22,12 @@ public class CreateUserWithEmailCommandHandler(UserManager<User> userManager, ID
             return null;
         }
 
+        string? normalizedEmail = userManager.NormalizeEmail(request.Email);
+
         User? user;
         try
         {
-            user = await userManager.Users.SingleOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+            user = await userManager.Users.SingleOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken);
         }
         catch (OperationCanceledException)
         {
@@ -43,6 +47,28 @@ public class CreateUserWithEmailCommandHandler(UserManager<User> userManager, ID
 
         if (user is null)
         {
+            bool emailOwnedByAnotherAccount = await sender.Send(
+                new CheckLoginIdentifierInUseQuery(request.Email, LoginIdentifierKind.Email, null), cancellationToken);
+            if (emailOwnedByAnotherAccount)
+            {
+                user = await userManager.Users.SingleOrDefaultAsync(
+                    candidate => candidate.NormalizedEmail == normalizedEmail, cancellationToken);
+                if (user is null)
+                {
+                    await managementAudit.AccountCreationFailedAsync(null, cancellationToken);
+                    return null;
+                }
+
+                if (request.RejectIfAlreadyExists)
+                {
+                    await managementAudit.AccountCreationFailedAsync(user.Id, cancellationToken);
+                    return null;
+                }
+            }
+        }
+
+        if (user is null)
+        {
             try
             {
                 user = await userManager.CreateUserWithoutPasswordAsync(
@@ -54,6 +80,22 @@ public class CreateUserWithEmailCommandHandler(UserManager<User> userManager, ID
                     request.DateOfBirth,
                     request.BirthCountryCode,
                     request.BirthCity);
+            }
+            catch (CreateUserFailureException exception) when (IsIdentifierConflict(exception))
+            {
+                await managementAudit.AccountCreationFailedAsync(null, CancellationToken.None);
+                User? racingOwner = await FindRacingOwnerAsync(request.Email, cancellationToken);
+                if (racingOwner is not null)
+                    return request.RejectIfAlreadyExists ? null : racingOwner;
+                return null;
+            }
+            catch (DbUpdateException exception) when (ContactIdentifierUniqueViolation.Matches(exception))
+            {
+                await managementAudit.AccountCreationFailedAsync(null, CancellationToken.None);
+                User? racingOwner = await FindRacingOwnerAsync(request.Email, cancellationToken);
+                if (racingOwner is not null)
+                    return request.RejectIfAlreadyExists ? null : racingOwner;
+                return null;
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
@@ -68,4 +110,14 @@ public class CreateUserWithEmailCommandHandler(UserManager<User> userManager, ID
         await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
         return user;
     }
+
+    private async Task<User?> FindRacingOwnerAsync(string email, CancellationToken cancellationToken)
+    {
+        string? normalizedEmail = userManager.NormalizeEmail(email);
+        return await userManager.Users.FirstOrDefaultAsync(
+            candidate => candidate.NormalizedEmail == normalizedEmail, cancellationToken);
+    }
+
+    private static bool IsIdentifierConflict(CreateUserFailureException exception) =>
+        exception.Result.Errors.Any(error => error.Code is "DuplicateUserName" or "DuplicateEmail");
 }

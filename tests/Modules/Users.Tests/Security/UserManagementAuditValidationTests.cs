@@ -28,13 +28,13 @@ public sealed class UserManagementAuditValidationTests
     }
 
     [Fact]
-    public async Task Invalid_e164_phone_creation_is_rejected_and_audited()
+    public async Task Iranian_landline_creation_is_rejected_and_audited()
     {
         (UsersManagementAudit audit, Mock<ISecurityAuditWriter> writer) = CreateAudit();
         CreateUserWithPhoneCommandValidator validator = new(audit);
 
         FluentValidation.Results.ValidationResult result = await validator.ValidateAsync(
-            new CreateUserWithPhoneCommand("09121234567", null, null));
+            new CreateUserWithPhoneCommand("+982112345678", null, null));
 
         result.IsValid.Should().BeFalse();
         SecurityAuditEvent auditEvent = VerifySingleEvent(writer, SecurityAuditEventCatalog.UserCreationFailureEvent);

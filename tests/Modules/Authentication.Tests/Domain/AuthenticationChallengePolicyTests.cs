@@ -46,33 +46,12 @@ public class AuthenticationChallengePolicyTests
     }
 
     [Fact]
-    public void TokenPurpose_returns_phone_login_purpose()
-    {
-        AuthenticationChallengePolicy.Default.TokenPurpose(AuthenticationChallengePurpose.PhoneLogin)
-            .Should().Be("Authentication:PhoneLogin");
-    }
-
-    [Fact]
-    public void TokenPurpose_returns_email_login_purpose()
-    {
-        AuthenticationChallengePolicy.Default.TokenPurpose(AuthenticationChallengePurpose.EmailLogin)
-            .Should().Be("Authentication:EmailLogin");
-    }
-
-    [Fact]
-    public void TokenPurpose_returns_passkey_purpose()
-    {
-        AuthenticationChallengePolicy.Default.TokenPurpose(AuthenticationChallengePurpose.PasskeyLogin)
-            .Should().Be("Authentication:PasskeyLogin");
-    }
-
-    [Fact]
-    public void CreatePhoneLoginChallenge_creates_challenge_with_correct_purpose()
+    public void CreatePhoneLoginChallenge_binds_token_purpose_to_the_challenge()
     {
         var now = DateTimeOffset.UtcNow;
 
         var challenge = AuthenticationChallengePolicy.Default
-            .CreatePhoneLoginChallenge("user-1", "+1234567890", "token-purpose", now);
+            .CreatePhoneLoginChallenge("user-1", "+1234567890", now);
 
         challenge.Purpose.Should().Be(AuthenticationChallengePurpose.PhoneLogin);
         challenge.UserId.Should().Be("user-1");
@@ -80,6 +59,7 @@ public class AuthenticationChallengePolicyTests
         challenge.CreatedAt.Should().Be(now);
         challenge.ExpiresAt.Should().Be(now.AddMinutes(5));
         challenge.MaximumAttempts.Should().Be(5);
+        challenge.TokenPurpose.Should().Be($"Authentication:PhoneLogin:{challenge.Id.Value}");
     }
 
     [Fact]
@@ -88,10 +68,25 @@ public class AuthenticationChallengePolicyTests
         var now = DateTimeOffset.UtcNow;
 
         var challenge = AuthenticationChallengePolicy.Default
-            .CreateEmailLoginChallenge("user-1", "test@example.com", "token-purpose", now);
+            .CreateEmailLoginChallenge("user-1", "test@example.com", now);
 
         challenge.Purpose.Should().Be(AuthenticationChallengePurpose.EmailLogin);
         challenge.Destination.Should().Be("test@example.com");
+        challenge.TokenPurpose.Should().Be($"Authentication:EmailLogin:{challenge.Id.Value}");
+    }
+
+    [Fact]
+    public void Challenges_with_the_same_user_and_purpose_get_distinct_token_purposes()
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        var first = AuthenticationChallengePolicy.Default
+            .CreateEmailChangeChallenge("user-1", "same@example.com", now);
+        var second = AuthenticationChallengePolicy.Default
+            .CreateEmailChangeChallenge("user-1", "same@example.com", now);
+
+        first.Id.Should().NotBe(second.Id);
+        first.TokenPurpose.Should().NotBe(second.TokenPurpose);
     }
 
     [Fact]
@@ -110,7 +105,7 @@ public class AuthenticationChallengePolicyTests
     public void CreatePasswordLoginOtpChallenge_preserves_session_and_profile_state()
     {
         var challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
-            "user-1", "+1234567890", "token-purpose", DateTimeOffset.UtcNow, rememberMe: true, requiresProfileCompletion: true);
+            "user-1", "+1234567890", DateTimeOffset.UtcNow, rememberMe: true, requiresProfileCompletion: true);
 
         challenge.Purpose.Should().Be(AuthenticationChallengePurpose.PasswordLoginOtp);
         challenge.RememberMe.Should().BeTrue();

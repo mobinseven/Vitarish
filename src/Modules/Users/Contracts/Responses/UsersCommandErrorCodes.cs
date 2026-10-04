@@ -16,6 +16,8 @@ public static class UsersCommandErrorCodes
     public const string UserNotFoundDescription = "The user was not found.";
     public const string InvalidContact = "InvalidContact";
     public const string InvalidContactDescription = "At least one valid email address or E.164 phone number is required.";
+    public const string ContactIdentifierInUse = "ContactIdentifierInUse";
+    public const string ContactIdentifierInUseDescription = "Another account already uses this email address or phone number.";
     public const string ConcurrencyFailure = "ConcurrencyFailure";
     public const string ConcurrencyFailureDescription = "The user changed concurrently; reload the account and retry the edit.";
     public const string TenantRoleConflict = "TenantRoleConflict";

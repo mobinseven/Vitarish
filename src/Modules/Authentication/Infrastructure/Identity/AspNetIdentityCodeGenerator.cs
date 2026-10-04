@@ -13,6 +13,8 @@ public sealed class AspNetIdentityCodeGenerator(UserManager<User> userManager) :
         User? user = await userManager.FindByIdAsync(userId);
         if (user is null) throw new InvalidOperationException("User not found.");
 
-        return await userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultProvider, tokenPurpose);
+        // Codes are typed into a numeric one-time-code field on every channel, so use Identity's
+        // six-digit TOTP provider. Single use and attempt limits remain owned by the challenge store.
+        return await userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultEmailProvider, tokenPurpose);
     }
 }

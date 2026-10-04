@@ -138,7 +138,7 @@ export function SeaUserRoleAssignmentsPanel({
                   <span className="block text-sm font-medium">
                     {user.fullName ?? user.userName ?? user.id}
                   </span>
-                  <span className="block text-xs text-muted">
+                  <span className="block text-xs text-muted" dir="ltr">
                     {user.email ?? user.phoneNumber ?? user.id}
                   </span>
                 </button>
@@ -155,7 +155,7 @@ export function SeaUserRoleAssignmentsPanel({
                   selectedUser.userName ??
                   selectedUser.id}
               </p>
-              <p className="text-xs text-muted">
+              <p className="text-xs text-muted" dir="ltr">
                 {selectedUser.email ??
                   selectedUser.phoneNumber ??
                   selectedUser.id}

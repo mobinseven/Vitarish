@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   useAuthSession,
   useAuthenticationUserInactivityPolicyGet,
@@ -21,10 +21,11 @@ import {
   useUsersRemoveTenantMember,
 } from "@vitarish/auth";
 import type { TenantRoleMembershipResponse, UserSecurityDetailsResponse, UserSecurityEventResponse, UserSecurityHistoryResponse } from "@vitarish/auth";
-import { tenantRoleSuffixes } from "@vitarish/auth/users";
+import { tenantRoleSuffixes, UsersCommandErrorKind } from "@vitarish/auth/users";
 import type { TenantRoleSuffix } from "@vitarish/auth/users";
 import { formatDateTime, formatNumber, useLocalizedText } from "@vitarish/localization";
 import { localizePlatformAuditEvent, localizeSecurityAuditOutcome } from "@vitarish/security/localization";
+import { MobileNumberField } from "@vitarish/ui";
 
 export type UserManagementMode = "tenant" | "platform";
 export type UserManagementPlatformView = "directory" | "create" | "detail";
@@ -178,12 +179,12 @@ function TenantUserManagement({
   onRefresh: () => Promise<unknown>;
   t: Translate;
 }) {
-  const phoneContactHintId = useId();
   const [contactType, setContactType] = useState<"email" | "phone">("email");
   const [contact, setContact] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [message, setMessage] = useState("");
+  const [contactFieldError, setContactFieldError] = useState<string | undefined>();
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -193,12 +194,29 @@ function TenantUserManagement({
     provision.mutate({ data }, {
       onSuccess: async () => {
         setContact("");
+        setContactFieldError(undefined);
         setFirstName("");
         setLastName("");
         setMessage(t("users.management.created"));
         await onRefresh();
       },
-      onError: () => setMessage(t("users.management.createError")),
+      onError: (error) => {
+        if (isContactIdentifierInUse(error)) {
+          setContactFieldError(undefined);
+          setMessage(t("users.management.contactInUse"));
+          return;
+        }
+        if (isInvalidContact(error)) {
+          if (contactType === "phone") {
+            setContactFieldError(t("users.management.contactRequired"));
+            setMessage("");
+          } else {
+            setMessage(t("users.management.contactRequired"));
+          }
+          return;
+        }
+        setMessage(t("users.management.createError"));
+      },
     });
   };
 
@@ -217,16 +235,26 @@ function TenantUserManagement({
         <h2 className="text-lg font-semibold">{t("users.management.addMember")}</h2>
         <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={submit}>
           <label>{t("users.management.contactType")}
-            <select className="mt-1 w-full rounded border p-2" value={contactType} onChange={(event) => setContactType(event.target.value as "email" | "phone")}>
+            <select className="mt-1 w-full rounded border p-2" value={contactType} onChange={(event) => { setContactType(event.target.value as "email" | "phone"); setContactFieldError(undefined); }}>
               <option value="email">{t("users.management.emailContact")}</option>
               <option value="phone">{t("users.management.phoneContact")}</option>
             </select>
           </label>
           <div>
-            <label>{contactType === "email" ? t("users.management.emailContact") : t("users.management.phoneContact")}
-              <input className="mt-1 w-full rounded border p-2" required value={contact} onChange={(event) => setContact(event.target.value)} aria-describedby={contactType === "phone" ? phoneContactHintId : undefined} />
-            </label>
-            {contactType === "phone" && <p className="mt-1 text-sm text-muted" id={phoneContactHintId}>{t("users.management.phoneContactHint")}</p>}
+            {contactType === "email" ? (
+              <label>{t("users.management.emailContact")}
+                <input className="mt-1 w-full rounded border p-2" required value={contact} onChange={(event) => setContact(event.target.value)} />
+              </label>
+            ) : (
+              <MobileNumberField
+                label={t("users.management.phoneContact")}
+                hint={t("users.management.phoneContactHint")}
+                value={contact}
+                onChange={(value) => { setContact(value); setContactFieldError(undefined); }}
+                isRequired
+                error={contactFieldError}
+              />
+            )}
           </div>
           <label>{t("users.management.firstName")} <span className="text-muted">({t("users.management.optional")})</span>
             <input className="mt-1 w-full rounded border p-2" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
@@ -248,7 +276,7 @@ function TenantUserManagement({
           const isOwner = member.roleSuffix === tenantRoleSuffixes.owner;
           const displayName = member.user.fullName ?? member.user.userName ?? member.user.email ?? member.user.phoneNumber ?? member.user.id;
           return <li className="flex flex-wrap items-center justify-between gap-3 rounded border p-4" key={member.user.id}>
-            <div><p className="font-medium">{displayName}</p><p className="text-sm text-muted">{isOwner ? t("users.management.owner") : t("users.management.staff")}{member.user.email ? ` · ${member.user.email}` : ""}{member.user.phoneNumber ? ` · ${member.user.phoneNumber}` : ""}</p></div>
+            <div><p className="font-medium">{displayName}</p><p className="text-sm text-muted">{isOwner ? t("users.management.owner") : t("users.management.staff")}{member.user.email ? ` · ${member.user.email}` : ""}{member.user.phoneNumber ? <> · <span dir="ltr">{member.user.phoneNumber}</span></> : ""}</p></div>
             {!isOwner && <button className="inline-flex items-center gap-2 rounded border px-3 py-2 text-danger" disabled={remove.isPending} onClick={() => removeMember(member.user.id)} title={t("users.management.remove")}><Icon name="user-minus" />{t("users.management.remove")}</button>}
           </li>;
         })}
@@ -273,7 +301,7 @@ function PlatformUserDirectory({
     {isLoading && <p aria-live="polite">{t("users.management.loading")}</p>}
     {isError && <div role="alert"><p className="text-danger">{t("users.management.error")}</p><button className="inline-flex items-center gap-2 underline" onClick={onRetry} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button></div>}
     {!isLoading && !isError && users.length === 0 && <p className="text-muted">{t("users.management.empty")}</p>}
-    {users.length > 0 && <div className="grid gap-6 lg:grid-cols-[1fr_1fr]"><div className="overflow-x-auto"><table className="w-full text-left"><thead><tr><th>{t("users.management.name")}</th><th>{t("users.management.email")}</th><th>{t("users.management.phone")}</th><th><span className="sr-only">{t("users.management.userDetails")}</span></th></tr></thead><tbody>{users.map((user) => <tr className="border-t" key={user.id} onClick={() => onSelect(user.id)}><td className="py-3">{user.fullName ?? user.userName ?? user.id}</td><td>{user.email ?? "—"}</td><td>{user.phoneNumber ?? "—"}</td><td><button className="inline-flex items-center gap-2 rounded border px-3 py-2" type="button" onClick={(event) => { event.stopPropagation(); onOpenUserDetails?.(user.id); }} title={t("users.management.userDetails")} aria-label={t("users.management.userDetails")}><Icon name="user-gear" /></button></td></tr>)}</tbody></table></div><MembershipList userId={selectedUserId} memberships={memberships} t={t} /></div>}
+    {users.length > 0 && <div className="grid gap-6 lg:grid-cols-[1fr_1fr]"><div className="overflow-x-auto"><table className="w-full text-left"><thead><tr><th>{t("users.management.name")}</th><th>{t("users.management.email")}</th><th>{t("users.management.phone")}</th><th><span className="sr-only">{t("users.management.userDetails")}</span></th></tr></thead><tbody>{users.map((user) => <tr className="border-t" key={user.id} onClick={() => onSelect(user.id)}><td className="py-3">{user.fullName ?? user.userName ?? user.id}</td><td>{user.email ?? "—"}</td><td><span dir="ltr">{user.phoneNumber ?? "—"}</span></td><td><button className="inline-flex items-center gap-2 rounded border px-3 py-2" type="button" onClick={(event) => { event.stopPropagation(); onOpenUserDetails?.(user.id); }} title={t("users.management.userDetails")} aria-label={t("users.management.userDetails")}><Icon name="user-gear" /></button></td></tr>)}</tbody></table></div><MembershipList userId={selectedUserId} memberships={memberships} t={t} /></div>}
   </main>;
 }
 
@@ -282,26 +310,42 @@ function MembershipList({ userId, memberships, t }: { userId: string; membership
 }
 
 function PlatformCreateUser({ title, t }: { title: string; t: Translate }) {
-  const phoneContactHintId = useId();
   const [contactType, setContactType] = useState<"email" | "phone">("email");
   const [contact, setContact] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [message, setMessage] = useState("");
+  const [contactFieldError, setContactFieldError] = useState<string | undefined>();
   const email = useUsersAdministrationCreateWithEmail();
   const phone = useUsersAdministrationCreateWithPhone();
   const pending = email.isPending || phone.isPending;
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    const onSuccess = () => { setMessage(t("users.management.createdPlatform")); setContact(""); };
-    if (contactType === "email") email.mutate({ data: { email: contact.trim(), firstName: firstName.trim(), lastName: lastName.trim() } }, { onSuccess, onError: () => setMessage(t("users.management.createError")) });
-    else phone.mutate({ data: { phoneNumber: contact.trim(), firstName: firstName.trim(), lastName: lastName.trim() } }, { onSuccess, onError: () => setMessage(t("users.management.createError")) });
+    const onSuccess = () => { setMessage(t("users.management.createdPlatform")); setContact(""); setContactFieldError(undefined); };
+    const onError = (error: unknown) => {
+      if (isContactIdentifierInUse(error)) {
+        setContactFieldError(undefined);
+        setMessage(t("users.management.contactInUse"));
+        return;
+      }
+      if (isInvalidContact(error)) {
+        if (contactType === "phone") {
+          setContactFieldError(t("users.management.contactRequired"));
+          setMessage("");
+        } else {
+          setMessage(t("users.management.contactRequired"));
+        }
+        return;
+      }
+      setMessage(t("users.management.createError"));
+    };
+    if (contactType === "email") email.mutate({ data: { email: contact.trim(), firstName: firstName.trim(), lastName: lastName.trim() } }, { onSuccess, onError });
+    else phone.mutate({ data: { phoneNumber: contact.trim(), firstName: firstName.trim(), lastName: lastName.trim() } }, { onSuccess, onError });
   };
-  return <main className="max-w-2xl space-y-5"><SurfaceHeader title={title} /><form className="space-y-4" onSubmit={submit}><label className="block">{t("users.management.contactType")}<select className="mt-1 w-full rounded border p-2" value={contactType} onChange={(event) => setContactType(event.target.value as "email" | "phone")}><option value="email">{t("users.management.emailContact")}</option><option value="phone">{t("users.management.phoneContact")}</option></select></label><div><label className="block">{contactType === "email" ? t("users.management.emailContact") : t("users.management.phoneContact")}<input className="mt-1 w-full rounded border p-2" required value={contact} onChange={(event) => setContact(event.target.value)} aria-describedby={contactType === "phone" ? phoneContactHintId : undefined} /></label>{contactType === "phone" && <p className="mt-1 text-sm text-muted" id={phoneContactHintId}>{t("users.management.phoneContactHint")}</p>}</div><label className="block">{t("users.management.firstName")}<input className="mt-1 w-full rounded border p-2" value={firstName} onChange={(event) => setFirstName(event.target.value)} /></label><label className="block">{t("users.management.lastName")}<input className="mt-1 w-full rounded border p-2" value={lastName} onChange={(event) => setLastName(event.target.value)} /></label><button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={pending} title={t("users.management.createUser")}><Icon name="user-plus" />{pending ? t("users.management.adding") : t("users.management.createUser")}</button></form>{message && <p role="status">{message}</p>}</main>;
+  return <main className="max-w-2xl space-y-5"><SurfaceHeader title={title} /><form className="space-y-4" onSubmit={submit}><label className="block">{t("users.management.contactType")}<select className="mt-1 w-full rounded border p-2" value={contactType} onChange={(event) => { setContactType(event.target.value as "email" | "phone"); setContactFieldError(undefined); }}><option value="email">{t("users.management.emailContact")}</option><option value="phone">{t("users.management.phoneContact")}</option></select></label><div>{contactType === "email" ? <label className="block">{t("users.management.emailContact")}<input className="mt-1 w-full rounded border p-2" required value={contact} onChange={(event) => setContact(event.target.value)} /></label> : <MobileNumberField label={t("users.management.phoneContact")} hint={t("users.management.phoneContactHint")} value={contact} onChange={(value) => { setContact(value); setContactFieldError(undefined); }} isRequired error={contactFieldError} />}</div><label className="block">{t("users.management.firstName")}<input className="mt-1 w-full rounded border p-2" value={firstName} onChange={(event) => setFirstName(event.target.value)} /></label><label className="block">{t("users.management.lastName")}<input className="mt-1 w-full rounded border p-2" value={lastName} onChange={(event) => setLastName(event.target.value)} /></label><button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={pending} title={t("users.management.createUser")}><Icon name="user-plus" />{pending ? t("users.management.adding") : t("users.management.createUser")}</button></form>{message && <p role="status">{message}</p>}</main>;
 }
 
 function PlatformUserDetail({ title, userId, memberships, t }: { title: string; userId: string; memberships: MembershipQuery; t: Translate }) {
-  const phoneContactHintId = useId();
   const { locale } = useLocalizedText();
   const grant = useUsersAdministrationGrantTenantRole();
   const grantGlobalRole = useUsersAddRole();
@@ -315,11 +359,13 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const [message, setMessage] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneFieldError, setPhoneFieldError] = useState<string | undefined>();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [globalRole, setGlobalRole] = useState("");
   const [inactivityTimeout, setInactivityTimeout] = useState("");
   const [inactivityConflict, setInactivityConflict] = useState(false);
+  const [revision, setRevision] = useState<string | null>(null);
   const pageSize = 25;
   const securityQuery = useUsersAdministrationGetUserSecurity(
     userId,
@@ -355,9 +401,11 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
     if (!user) return;
     setEmail(user.email ?? "");
     setPhoneNumber(user.phoneNumber ?? "");
+    setPhoneFieldError(undefined);
     setFirstName(user.firstName ?? "");
     setLastName(user.lastName ?? "");
-  }, [securityDetails?.user.id, securityDetails?.user.email, securityDetails?.user.phoneNumber, securityDetails?.user.firstName, securityDetails?.user.lastName]);
+    setRevision(user.revision ?? null);
+  }, [securityDetails?.user.id, securityDetails?.user.email, securityDetails?.user.phoneNumber, securityDetails?.user.firstName, securityDetails?.user.lastName, securityDetails?.user.revision]);
 
   const refreshSecurityDetails = async () => {
     await Promise.all([securityQuery.refetch(), memberships.refetch()]);
@@ -379,13 +427,35 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
         phoneNumber: normalizedPhoneNumber || null,
         firstName: firstName.trim() || null,
         lastName: lastName.trim() || null,
+        revision,
       },
     }, {
       onSuccess: async () => {
         setMessage(t("users.management.changesSaved"));
+        setPhoneFieldError(undefined);
         await refreshSecurityDetails();
       },
-      onError: () => setMessage(t("users.management.editError")),
+      onError: async (error) => {
+        if (isContactIdentifierInUse(error)) {
+          setMessage(t("users.management.contactInUse"));
+          return;
+        }
+        if (isInvalidContact(error)) {
+          if (normalizedPhoneNumber) {
+            setPhoneFieldError(t("users.management.contactRequired"));
+            setMessage("");
+          } else {
+            setMessage(t("users.management.contactRequired"));
+          }
+          return;
+        }
+        if (readHttpStatus(error) === 409) {
+          setMessage(t("users.management.editConflict"));
+          await refreshSecurityDetails();
+          return;
+        }
+        setMessage(t("users.management.editError"));
+      },
     });
   };
 
@@ -439,12 +509,16 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
         <label>{t("users.management.emailContact")}
           <input className="mt-1 w-full rounded border p-2" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
         </label>
-        <div>
-          <label>{t("users.management.phoneContact")}
-            <input className="mt-1 w-full rounded border p-2" type="tel" autoComplete="tel" value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} aria-describedby={phoneContactHintId} />
-          </label>
-          <p className="mt-1 text-sm text-muted" id={phoneContactHintId}>{t("users.management.phoneContactHint")}</p>
-        </div>
+        <MobileNumberField
+          label={t("users.management.phoneContact")}
+          hint={t("users.management.phoneContactHint")}
+          value={phoneNumber}
+          onChange={(value) => {
+            setPhoneNumber(value);
+            setPhoneFieldError(undefined);
+          }}
+          error={phoneFieldError}
+        />
         <label>{t("users.management.firstName")}
           <input className="mt-1 w-full rounded border p-2" autoComplete="given-name" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
         </label>
@@ -547,6 +621,27 @@ function UserSecurityHistoryList({ history, available, emptyMessage, t, locale }
   </li>)}</ol>;
 }
 
+function isContactIdentifierInUse(error: unknown): boolean {
+  return hasUsersCommandFailure(error, UsersCommandErrorKind.ContactIdentifierInUse);
+}
+
+function isInvalidContact(error: unknown): boolean {
+  return hasUsersCommandFailure(error, UsersCommandErrorKind.InvalidContact);
+}
+
+function hasUsersCommandFailure(error: unknown, failureCode: UsersCommandErrorKind): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  const errorRecord = error as Record<string, unknown>;
+  const problem = typeof errorRecord.problem === "object" && errorRecord.problem !== null
+    ? errorRecord.problem as Record<string, unknown>
+    : errorRecord;
+  const errors = problem.errors;
+  if (!Array.isArray(errors)) return false;
+  return errors.some((entry) =>
+    typeof entry === "object" && entry !== null &&
+    (entry as Record<string, unknown>).failureCode === failureCode);
+}
+
 function readUnavailableSecurityDetails(error: unknown, userId: string): UserSecurityDetailsResponse | undefined {
   if (typeof error !== "object" || error === null) return undefined;
   const errorRecord = error as Record<string, unknown>;
@@ -570,6 +665,7 @@ function isUserSecurityDetailsResponse(value: unknown, userId: string): value is
     && isOptionalString(user.email)
     && isOptionalString(user.phoneNumber)
     && isOptionalString(user.fullName)
+    && isOptionalString(user.revision)
     && Array.isArray(details.globalRoles) && details.globalRoles.every((role) => typeof role === "string")
     && Array.isArray(details.permittedGlobalRoles) && details.permittedGlobalRoles.every((role) => typeof role === "string")
     && Array.isArray(details.tenantRoles) && details.tenantRoles.every(isTenantRoleMembership)

@@ -58,7 +58,11 @@ public static class IdentityUsersExtensions
             typeof(AssemblyMarker).Assembly,
             typeof(IUsersService).Assembly));
         _ = builder.Services.AddScoped<IAuthorizationHandler, UsersManagementAuthorizationAuditHandler>();
-        _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));
+        _ = builder.Services.AddValidatorsFromAssemblies(
+        [
+            typeof(AssemblyMarker).Assembly,
+            typeof(IUsersService).Assembly
+        ]);
         _ = builder.Services.AddAuthorization(options =>
         {
             options.AddPolicy(UsersAuthorizationPolicies.ManageAccounts, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));
