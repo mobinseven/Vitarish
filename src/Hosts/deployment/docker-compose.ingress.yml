@@ -100,7 +100,7 @@ services:
       - |
         case "$${CADDY_RSA_CERTIFICATE_OPERATION}" in
           issue)
-            lego run --path /acme-state
+            /lego run --path /acme-state
             certificate="/acme-state/certificates/$${PRODUCTION_PUBLIC_HOST}.crt"
             key="/acme-state/certificates/$${PRODUCTION_PUBLIC_HOST}.key"
             temporary="$${CADDY_RSA_CERTIFICATE_CANDIDATE}.new"
