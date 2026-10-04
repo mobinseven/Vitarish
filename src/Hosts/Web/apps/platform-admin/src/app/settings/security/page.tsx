@@ -25,7 +25,8 @@ export default function SecuritySettingsPage() {
   const saveAuthenticationPolicy = useAuthenticationAuthenticationPolicyPut();
   const [draft, setDraft] = useState<ChangeSecuritySessionPolicyRequest>();
   const [authenticationDraft, setAuthenticationDraft] = useState<ChangeSecurityAuthenticationPolicyRequest>();
-  const [message, setMessage] = useState("");
+  const [sessionMessage, setSessionMessage] = useState("");
+  const [authenticationMessage, setAuthenticationMessage] = useState("");
 
   useEffect(() => {
     if (!policy.data) return;
@@ -61,40 +62,44 @@ export default function SecuritySettingsPage() {
 
   const submitAuthentication = async (event: FormEvent) => {
     event.preventDefault();
-    setMessage("");
+    setAuthenticationMessage("");
     try {
-      await saveAuthenticationPolicy.mutateAsync({ data: authenticationDraft });
-      setMessage(t("admin.securityPolicy.saved"));
+      const saved = await saveAuthenticationPolicy.mutateAsync({ data: authenticationDraft });
+      setAuthenticationDraft((current) => current ? { ...current, expectedVersion: saved.version } : current);
+      setDraft((current) => current ? { ...current, expectedVersion: saved.version } : current);
+      setAuthenticationMessage(t("admin.securityPolicy.saved"));
       await authenticationPolicy.refetch();
     } catch (error) {
-      if (statusOf(error) === 409) { setMessage(t("admin.securityPolicy.conflict")); return; }
-      if (statusOf(error) === 403) { setMessage(t("admin.securityPolicy.forbidden")); return; }
-      if (statusOf(error) === 503) { setMessage(t("admin.securityPolicy.unavailable")); return; }
-      setMessage(t("admin.securityPolicy.saveError"));
+      if (statusOf(error) === 409) { setAuthenticationMessage(t("admin.securityPolicy.conflict")); return; }
+      if (statusOf(error) === 403) { setAuthenticationMessage(t("admin.securityPolicy.forbidden")); return; }
+      if (statusOf(error) === 503) { setAuthenticationMessage(t("admin.securityPolicy.unavailable")); return; }
+      setAuthenticationMessage(t("admin.securityPolicy.saveError"));
     }
   };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    setMessage("");
+    setSessionMessage("");
     try {
-      await save.mutateAsync({ data: { ...draft, allowedSessionStartCidrs: draft.allowedSessionStartCidrs } });
-      setMessage(t("admin.securityPolicy.saved"));
+      const saved = await save.mutateAsync({ data: { ...draft, allowedSessionStartCidrs: draft.allowedSessionStartCidrs } });
+      setDraft((current) => current ? { ...current, expectedVersion: saved.version } : current);
+      setAuthenticationDraft((current) => current ? { ...current, expectedVersion: saved.version } : current);
+      setSessionMessage(t("admin.securityPolicy.saved"));
       await policy.refetch();
     } catch (error) {
       if (statusOf(error) === 409) {
-        setMessage(t("admin.securityPolicy.conflict"));
+        setSessionMessage(t("admin.securityPolicy.conflict"));
         return;
       }
       if (statusOf(error) === 403) {
-        setMessage(t("admin.securityPolicy.forbidden"));
+        setSessionMessage(t("admin.securityPolicy.forbidden"));
         return;
       }
       if (statusOf(error) === 503) {
-        setMessage(t("admin.securityPolicy.unavailable"));
+        setSessionMessage(t("admin.securityPolicy.unavailable"));
         return;
       }
-      setMessage(t("admin.securityPolicy.saveError"));
+      setSessionMessage(t("admin.securityPolicy.saveError"));
     }
   };
 
@@ -112,13 +117,14 @@ export default function SecuritySettingsPage() {
         <label className="block">{t("admin.securityPolicy.denialDuration")}<input className="mt-1 w-full rounded border p-2" type="number" min={1} required value={authenticationDraft.failedAttemptDenialDurationSeconds} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptDenialDurationSeconds: Number(event.target.value) })} /></label>
         <label className="block">{t("admin.securityPolicy.failureResponse")}<select className="mt-1 w-full rounded border p-2" required value={authenticationDraft.failedAttemptResponse} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptResponse: event.target.value })}>{authenticationPolicy.data!.availableFailedAttemptResponses.map((response) => <option key={response} value={response}>{t(`admin.securityPolicy.response.${response}`)}</option>)}</select></label>
         <fieldset className="space-y-2"><legend className="font-medium">{t("admin.securityPolicy.mechanisms")}</legend>
-          {authenticationPolicy.data!.availableAuthenticationMechanisms.map((mechanism) => { const required = authenticationPolicy.data!.requiredAuthenticationMechanisms.includes(mechanism); return <label className="flex items-center gap-2" key={mechanism}><input type="checkbox" checked={authenticationDraft.enabledAuthenticationMechanisms.includes(mechanism)} disabled={required} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, enabledAuthenticationMechanisms: event.target.checked ? [...authenticationDraft.enabledAuthenticationMechanisms, mechanism] : authenticationDraft.enabledAuthenticationMechanisms.filter((item) => item !== mechanism) })} />{mechanism}{required && <span className="text-muted">({t("admin.securityPolicy.required")})</span>}</label>; })}
+          {authenticationPolicy.data!.availableAuthenticationMechanisms.map((mechanism) => { const required = authenticationPolicy.data!.requiredAuthenticationMechanisms.includes(mechanism); return <label className="flex items-center gap-2" key={mechanism}><input type="checkbox" checked={authenticationDraft.enabledAuthenticationMechanisms.includes(mechanism)} disabled={required} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, enabledAuthenticationMechanisms: event.target.checked ? [...authenticationDraft.enabledAuthenticationMechanisms, mechanism] : authenticationDraft.enabledAuthenticationMechanisms.filter((item) => item !== mechanism) })} />{t(`admin.securityPolicy.mechanism.${mechanism}`)}{required && <span className="text-muted">({t("admin.securityPolicy.required")})</span>}</label>; })}
         </fieldset>
         <fieldset className="space-y-2"><legend className="font-medium">{t("admin.securityPolicy.preAuthenticationActions")}</legend>
-          {authenticationPolicy.data!.availablePreAuthenticationActions.map((action) => { const required = authenticationPolicy.data!.requiredPreAuthenticationActions.includes(action); return <label className="flex items-center gap-2" key={action}><input type="checkbox" checked={authenticationDraft.permittedPreAuthenticationActions.includes(action)} disabled={required} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, permittedPreAuthenticationActions: event.target.checked ? [...authenticationDraft.permittedPreAuthenticationActions, action] : authenticationDraft.permittedPreAuthenticationActions.filter((item) => item !== action) })} />{action}{required && <span className="text-muted">({t("admin.securityPolicy.required")})</span>}</label>; })}
+          {authenticationPolicy.data!.availablePreAuthenticationActions.map((action) => { const required = authenticationPolicy.data!.requiredPreAuthenticationActions.includes(action); return <label className="flex items-center gap-2" key={action}><input type="checkbox" checked={authenticationDraft.permittedPreAuthenticationActions.includes(action)} disabled={required} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, permittedPreAuthenticationActions: event.target.checked ? [...authenticationDraft.permittedPreAuthenticationActions, action] : authenticationDraft.permittedPreAuthenticationActions.filter((item) => item !== action) })} />{t(`admin.securityPolicy.preAuthenticationAction.${action}`)}{required && <span className="text-muted">({t("admin.securityPolicy.required")})</span>}</label>; })}
         </fieldset>
         <button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={saveAuthenticationPolicy.isPending} title={t("admin.securityPolicy.saveAuthentication")}><i aria-hidden="true" className="fa-light fa-floppy-disk" />{saveAuthenticationPolicy.isPending ? t("admin.securityPolicy.saving") : t("admin.securityPolicy.saveAuthentication")}</button>
       </form>
+      {authenticationMessage && <p role="status" aria-live="polite">{authenticationMessage}</p>}
       {saveAuthenticationPolicy.isError && statusOf(saveAuthenticationPolicy.error) === 409 && <button className="inline-flex items-center gap-2 underline" onClick={() => authenticationPolicy.refetch()} title={t("admin.securityPolicy.reload")}><i aria-hidden="true" className="fa-light fa-rotate-right" />{t("admin.securityPolicy.reload")}</button>}
     </section>
     <section className="space-y-4 rounded border p-4">
@@ -131,7 +137,7 @@ export default function SecuritySettingsPage() {
         <label className="block">{t("admin.securityPolicy.allowedCidrs")}<textarea className="mt-1 min-h-28 w-full rounded border p-2 font-mono" value={(draft.allowedSessionStartCidrs ?? []).join("\n")} onChange={(event) => setDraft({ ...draft, allowedSessionStartCidrs: event.target.value.split(/\r?\n/).map((cidr) => cidr.trim()).filter(Boolean) })} /></label>
         <button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={save.isPending} title={t("admin.securityPolicy.save")}><i aria-hidden="true" className="fa-light fa-floppy-disk" />{save.isPending ? t("admin.securityPolicy.saving") : t("admin.securityPolicy.save")}</button>
       </form>
-      {message && <p role="status" aria-live="polite">{message}</p>}
+      {sessionMessage && <p role="status" aria-live="polite">{sessionMessage}</p>}
       {save.isError && statusOf(save.error) === 409 && <button className="inline-flex items-center gap-2 underline" onClick={() => policy.refetch()} title={t("admin.securityPolicy.reload")}><i aria-hidden="true" className="fa-light fa-rotate-right" />{t("admin.securityPolicy.reload")}</button>}
     </section>
   </main>;
