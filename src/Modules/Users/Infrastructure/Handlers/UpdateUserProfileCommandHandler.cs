@@ -7,6 +7,7 @@ using Vitarish.Users.Application.Common;
 using Vitarish.Users.Application.Security;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Domain.Security;
 using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Service;
 
@@ -37,7 +38,16 @@ public class UpdateUserProfileCommandHandler(UserManager<User> userManager, IDis
             throw new InvalidDataException("User ID is invalid");
         }
 
-        if (!UserContactIdentifierPolicy.IsValid(user.Email, user.PhoneNumber, user.FirstName, user.LastName))
+        bool phoneConversionFailed = false;
+        if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
+        {
+            if (UserPhoneNumberPolicy.TryNormalize(user.PhoneNumber, out string? normalizedPhone))
+                user.PhoneNumber = normalizedPhone;
+            else
+                phoneConversionFailed = true;
+        }
+
+        if (phoneConversionFailed || !UserContactIdentifierPolicy.IsValid(user.Email, user.PhoneNumber, user.FirstName, user.LastName))
         {
             await managementAudit.AccountEditFailedAsync(user.Id, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
             throw new InvalidDataException(UsersCommandErrorCodes.InvalidContactDescription);

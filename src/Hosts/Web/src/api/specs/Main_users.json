@@ -2708,8 +2708,37 @@
           },
           "description": {
             "type": "string"
+          },
+          "failureCode": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/UsersCommandErrorKind"
+              }
+            ]
           }
         }
+      },
+      "UsersCommandErrorKind": {
+        "enum": [
+          "Unauthorized",
+          "ActiveSessionConflict",
+          "RoleNotFound",
+          "InvalidGlobalRole",
+          "InvalidTenantRole",
+          "UserNotFound",
+          "InvalidContact",
+          "ContactIdentifierInUse",
+          "ConcurrencyFailure",
+          "TenantRoleConflict",
+          "TenantMemberNotFound",
+          "TenantOwnerRemovalRejected",
+          "TenantMemberConflict",
+          "LastOwnerProtection",
+          null
+        ]
       },
       "UsersCommandResponse": {
         "required": [

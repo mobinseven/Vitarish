@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Vitarish.Audit.Domain;
 using Vitarish.Users.Application.Commands;
@@ -7,6 +8,8 @@ using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Application.Security;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Domain.Security;
+using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Service;
@@ -29,7 +32,10 @@ internal sealed class UpdateManagedUserCommandHandler(
         }
 
         string? email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim();
-        string? phoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
+        string? phoneNumber = null;
+        bool phoneConversionFailed = false;
+        if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+            phoneConversionFailed = !UserPhoneNumberPolicy.TryNormalize(request.PhoneNumber, out phoneNumber);
         string? firstName = string.IsNullOrWhiteSpace(request.FirstName) ? null : request.FirstName.Trim();
         string? lastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName.Trim();
 
@@ -75,7 +81,7 @@ internal sealed class UpdateManagedUserCommandHandler(
             });
         }
 
-        if (!UserContactIdentifierPolicy.IsValid(email, phoneNumber, firstName, lastName))
+        if (phoneConversionFailed || !UserContactIdentifierPolicy.IsValid(email, phoneNumber, firstName, lastName))
         {
             await managementAudit.AccountEditFailedAsync(user.Id, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
             if (contactIdentifierChanged)
@@ -88,9 +94,9 @@ internal sealed class UpdateManagedUserCommandHandler(
         }
 
         bool emailOwnedByAnotherAccount = emailChanged && email is not null &&
-            await sender.Send(new CheckUserEmailInUseQuery(email, user.Id), cancellationToken);
+            await sender.Send(new CheckLoginIdentifierInUseQuery(email, LoginIdentifierKind.Email, user.Id), cancellationToken);
         bool phoneOwnedByAnotherAccount = phoneChanged && phoneNumber is not null &&
-            await sender.Send(new CheckUserPhoneNumberInUseQuery(phoneNumber, user.Id), cancellationToken);
+            await sender.Send(new CheckLoginIdentifierInUseQuery(phoneNumber, LoginIdentifierKind.Phone, user.Id), cancellationToken);
         if (emailOwnedByAnotherAccount || phoneOwnedByAnotherAccount)
         {
             await managementAudit.AccountEditFailedAsync(user.Id, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
@@ -101,6 +107,10 @@ internal sealed class UpdateManagedUserCommandHandler(
                 Description = UsersCommandErrorCodes.ContactIdentifierInUseDescription
             });
         }
+
+        string? movedUserName = ContactUserName.MoveWithContact(user, user.Email, user.PhoneNumber, email, phoneNumber);
+        if (movedUserName is not null)
+            user.NormalizedUserName = userManager.NormalizeName(movedUserName);
 
         user.Email = email;
         user.PhoneNumber = phoneNumber;
@@ -116,6 +126,16 @@ internal sealed class UpdateManagedUserCommandHandler(
         try
         {
             result = await userManager.UpdateAsync(user);
+        }
+        catch (DbUpdateException exception) when (ContactIdentifierUniqueViolation.Matches(exception))
+        {
+            await managementAudit.AccountEditFailedAsync(user.Id, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            await managementAudit.SecurityAttributeChangedAsync(user.Id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = nameof(UsersCommandFailureCode.ContactIdentifierInUse),
+                Description = UsersCommandErrorCodes.ContactIdentifierInUseDescription
+            });
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {

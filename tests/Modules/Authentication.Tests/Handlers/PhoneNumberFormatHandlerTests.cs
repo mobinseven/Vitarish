@@ -9,21 +9,23 @@ using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.Options;
+using Vitarish.Users.Domain.Security;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
 public sealed class PhoneNumberFormatHandlerTests
 {
     [Fact]
-    public async Task Phone_login_preserves_the_legacy_path_for_a_stored_non_E164_number()
+    public async Task Phone_login_converts_a_local_format_number_before_lookup_and_sms()
     {
-        const string legacyPhoneNumber = "09121234567";
+        const string localPhoneNumber = "09123456789";
+        const string e164PhoneNumber = "+989123456789";
         Mock<IAuthenticationChallengeStore> challengeStore = new();
         Mock<IAuthenticationUserDirectory> userDirectory = new(MockBehavior.Strict);
-        userDirectory.Setup(value => value.FindByPhoneNumberAsync(legacyPhoneNumber, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AuthenticationUserDescriptor("legacy-user", legacyPhoneNumber, null, null, null, null, legacyPhoneNumber, false));
+        userDirectory.Setup(value => value.FindOrCreateByPhoneNumberAsync(e164PhoneNumber, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AuthenticationUserDescriptor("user-1", e164PhoneNumber, null, null, null, null, e164PhoneNumber, false));
         Mock<IAuthenticationCodeGenerator> codeGenerator = new();
-        codeGenerator.Setup(value => value.GenerateAsync("legacy-user", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        codeGenerator.Setup(value => value.GenerateAsync("user-1", It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("654321");
         Mock<IPhoneAuthenticationCodeSender> phoneSender = new();
         Mock<IAuthenticationAttemptTracker> attemptTracker = new();
@@ -47,24 +49,24 @@ public sealed class PhoneNumberFormatHandlerTests
             })));
 
         AuthenticationResult<ChallengeResult> result = await handler.Handle(
-            new BeginPhoneLoginCommand(legacyPhoneNumber, null),
+            new BeginPhoneLoginCommand(localPhoneNumber, null),
             CancellationToken.None);
 
         result.Should().BeOfType<AuthenticationResult<ChallengeResult>.Success>();
-        userDirectory.Verify(value => value.FindByPhoneNumberAsync(legacyPhoneNumber, It.IsAny<CancellationToken>()), Times.Once);
+        userDirectory.Verify(value => value.FindOrCreateByPhoneNumberAsync(e164PhoneNumber, It.IsAny<CancellationToken>()), Times.Once);
         userDirectory.VerifyNoOtherCalls();
-        phoneSender.Verify(value => value.SendAsync(legacyPhoneNumber, "654321", AuthenticationChallengePurpose.PhoneLogin, It.IsAny<CancellationToken>()), Times.Once);
+        phoneSender.Verify(value => value.SendAsync(e164PhoneNumber, "654321", AuthenticationChallengePurpose.PhoneLogin, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Theory]
     [InlineData("2025550123")]
     [InlineData("+0123456789")]
     [InlineData("+1234567890123456")]
-    public async Task Phone_login_rejects_an_unknown_non_E164_number_without_creating_an_account_or_challenge(string phoneNumber)
+    [InlineData("+982112345678")]
+    [InlineData("abc")]
+    public async Task Phone_login_rejects_an_unconvertible_number_without_any_directory_store_or_sms_call(string phoneNumber)
     {
         Mock<IAuthenticationUserDirectory> userDirectory = new(MockBehavior.Strict);
-        userDirectory.Setup(value => value.FindByPhoneNumberAsync(phoneNumber, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((AuthenticationUserDescriptor?)null);
         Mock<IAuthenticationChallengeStore> challengeStore = new(MockBehavior.Strict);
         Mock<IAuthenticationCodeGenerator> codeGenerator = new(MockBehavior.Strict);
         Mock<IPhoneAuthenticationCodeSender> phoneSender = new(MockBehavior.Strict);
@@ -93,8 +95,9 @@ public sealed class PhoneNumberFormatHandlerTests
             CancellationToken.None);
 
         result.Should().BeOfType<AuthenticationResult<ChallengeResult>.Failure>()
-            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.InvalidInput);
-        userDirectory.Verify(value => value.FindByPhoneNumberAsync(phoneNumber, It.IsAny<CancellationToken>()), Times.Once);
+            .Which.Error.Should().Match<AuthenticationFailure>(failure =>
+                failure.Reason == AuthenticationFailureReason.InvalidInput &&
+                failure.Message == UserPhoneNumberPolicy.InvalidPhoneNumberMessage);
         userDirectory.VerifyNoOtherCalls();
         challengeStore.VerifyNoOtherCalls();
         codeGenerator.VerifyNoOtherCalls();
@@ -105,6 +108,8 @@ public sealed class PhoneNumberFormatHandlerTests
     [InlineData("2025550123")]
     [InlineData("+0123456789")]
     [InlineData("+1234567890123456")]
+    [InlineData("+982112345678")]
+    [InlineData("abc")]
     public async Task Phone_change_rejects_non_E164_numbers_before_creating_a_challenge(string phoneNumber)
     {
         Mock<IAuthenticationUserDirectory> userDirectory = new(MockBehavior.Strict);
@@ -128,5 +133,36 @@ public sealed class PhoneNumberFormatHandlerTests
         challengeStore.VerifyNoOtherCalls();
         codeGenerator.VerifyNoOtherCalls();
         phoneSender.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Phone_change_converts_a_local_format_number_before_the_challenge_and_sms()
+    {
+        Mock<IAuthenticationChallengeStore> challengeStore = new();
+        Mock<IAuthenticationUserDirectory> userDirectory = new(MockBehavior.Strict);
+        Mock<IAuthenticationCodeGenerator> codeGenerator = new();
+        codeGenerator.Setup(value => value.GenerateAsync("user-id", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("654321");
+        Mock<IPhoneAuthenticationCodeSender> phoneSender = new();
+        BeginChangePhoneHandler handler = new(
+            challengeStore.Object,
+            userDirectory.Object,
+            codeGenerator.Object,
+            phoneSender.Object,
+            AuthenticationChallengePolicy.Default);
+
+        AuthenticationResult<ChallengeResult> result = await handler.Handle(
+            new BeginChangePhoneCommand("user-id", "۰۹۱۲۳۴۵۶۷۸۹"), CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<ChallengeResult>.Success>();
+        challengeStore.Verify(value => value.SaveAsync(
+            It.Is<AuthenticationChallenge>(challenge => challenge.Destination == "+989123456789"),
+            It.IsAny<CancellationToken>()), Times.Once);
+        phoneSender.Verify(value => value.SendAsync(
+            "+989123456789",
+            "654321",
+            AuthenticationChallengePurpose.PhoneChange,
+            It.IsAny<CancellationToken>()), Times.Once);
+        userDirectory.VerifyNoOtherCalls();
     }
 }

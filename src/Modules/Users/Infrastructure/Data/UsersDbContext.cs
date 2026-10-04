@@ -21,6 +21,21 @@ public class UsersDbContext(DbContextOptions<UsersDbContext> options) : Identity
         _ = builder.ConfigureUtcDateTimeColumns();
         _ = builder.HasDefaultSchema(nameof(Users));
 
+        // One sign-in namespace: email addresses and phone numbers are unique
+        // across all accounts and cannot collide with another account's
+        // Identity-managed NormalizedUserName.
+        _ = builder.Entity<User>(entity =>
+        {
+            _ = entity.HasIndex(user => user.NormalizedEmail)
+                .IsUnique()
+                .HasFilter("\"NormalizedEmail\" IS NOT NULL")
+                .HasDatabaseName(UsersContactIdentifierIndexNames.EmailIndex);
+            _ = entity.HasIndex(user => user.PhoneNumber)
+                .IsUnique()
+                .HasFilter("\"PhoneNumber\" IS NOT NULL")
+                .HasDatabaseName(UsersContactIdentifierIndexNames.PhoneNumberIndex);
+        });
+
         // Configure WebAuthnCredential entity
         _ = builder.Entity<WebAuthnCredential>(entity =>
         {

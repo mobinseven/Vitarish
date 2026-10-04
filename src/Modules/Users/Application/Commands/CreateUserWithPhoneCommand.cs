@@ -15,8 +15,8 @@ public class CreateUserWithPhoneCommandValidator : AbstractValidator<CreateUserW
     {
         _ = RuleFor(c => c.PhoneNumber).NotEmpty();
         _ = RuleFor(c => c.PhoneNumber)
-            .Must(UserContactIdentifierPolicy.IsValidE164PhoneNumber)
-            .WithMessage(UserPhoneNumberPolicy.InvalidE164FormatMessage);
+            .Must(phoneNumber => UserPhoneNumberPolicy.TryNormalize(phoneNumber, out _))
+            .WithMessage(UserPhoneNumberPolicy.InvalidPhoneNumberMessage);
         _ = RuleFor(c => c.IdentificationCode).MaximumLength(UserIdentityNormalization.IdentificationCodeMaxLength);
         _ = RuleFor(c => c.BirthCountryCode).MaximumLength(UserIdentityNormalization.BirthCountryCodeMaxLength);
         _ = RuleFor(c => c.BirthCity).MaximumLength(UserIdentityNormalization.BirthCityMaxLength);
@@ -24,8 +24,10 @@ public class CreateUserWithPhoneCommandValidator : AbstractValidator<CreateUserW
         _ = RuleFor(c => c.LastName).MaximumLength(UserContactIdentifierPolicy.MaximumNameLength);
         _ = RuleFor(c => c).CustomAsync(async (command, _, cancellationToken) =>
         {
+            bool converted = UserPhoneNumberPolicy.TryNormalize(command.PhoneNumber, out string? phoneNumber);
             bool invalid =
-                !UserContactIdentifierPolicy.IsValid(null, command.PhoneNumber, command.FirstName, command.LastName) ||
+                !converted ||
+                !UserContactIdentifierPolicy.IsValid(null, phoneNumber, command.FirstName, command.LastName) ||
                 (command.IdentificationCode?.Length ?? 0) > UserIdentityNormalization.IdentificationCodeMaxLength ||
                 (command.BirthCountryCode?.Length ?? 0) > UserIdentityNormalization.BirthCountryCodeMaxLength ||
                 (command.BirthCity?.Length ?? 0) > UserIdentityNormalization.BirthCityMaxLength;

@@ -16,12 +16,12 @@ public class SetUserPhoneNumberCommandValidator : AbstractValidator<SetUserPhone
         _ = RuleFor(c => c.Id).NotEmpty();
         _ = RuleFor(c => c.PhoneNumber).NotEmpty();
         _ = RuleFor(c => c.PhoneNumber)
-            .Must(UserContactIdentifierPolicy.IsValidE164PhoneNumber)
-            .WithMessage(UserPhoneNumberPolicy.InvalidE164FormatMessage);
+            .Must(phoneNumber => UserPhoneNumberPolicy.TryNormalize(phoneNumber, out _))
+            .WithMessage(UserPhoneNumberPolicy.InvalidPhoneNumberMessage);
         _ = RuleFor(c => c).CustomAsync(async (command, _, cancellationToken) =>
         {
             bool invalid = string.IsNullOrWhiteSpace(command.Id) ||
-                !UserContactIdentifierPolicy.IsValidE164PhoneNumber(command.PhoneNumber);
+                !UserPhoneNumberPolicy.TryNormalize(command.PhoneNumber, out string? normalizedPhone);
             if (!invalid)
                 return;
 

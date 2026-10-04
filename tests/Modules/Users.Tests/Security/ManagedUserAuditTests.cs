@@ -38,6 +38,7 @@ public sealed class ManagedUserAuditTests
         UsersManagementAudit managementAudit = new(auditWriter.Object, RequestContext(), TimeProvider.System);
         CreateUserWithEmailCommandHandler handler = new(
             CreateUserManager(dbContext),
+            CreateSender(dbContext),
             CreateCache(),
             managementAudit);
 
@@ -62,10 +63,11 @@ public sealed class ManagedUserAuditTests
         UsersManagementAudit managementAudit = new(auditWriter.Object, RequestContext(), TimeProvider.System);
         CreateUserWithPhoneCommandHandler handler = new(
             CreateUserManager(dbContext),
+            CreateSender(dbContext),
             CreateCache(),
             managementAudit);
 
-        User? user = await handler.Handle(new CreateUserWithPhoneCommand("09121234567", "New", "User"), CancellationToken.None);
+        User? user = await handler.Handle(new CreateUserWithPhoneCommand("+982112345678", "New", "User"), CancellationToken.None);
 
         user.Should().BeNull();
         (await dbContext.Users.CountAsync()).Should().Be(0);
@@ -112,7 +114,7 @@ public sealed class ManagedUserAuditTests
         UpdateManagedUserCommandHandler handler = CreateUpdateHandler(dbContext, CreateCache(), auditWriter);
 
         IdentityResult result = await handler.Handle(
-            new UpdateManagedUserCommand(ManagedUserId, null, "09121234567", "Changed", "User", SeedRevision),
+            new UpdateManagedUserCommand(ManagedUserId, null, "+982112345678", "Changed", "User", SeedRevision),
             CancellationToken.None);
 
         result.Succeeded.Should().BeFalse();
@@ -259,6 +261,9 @@ public sealed class ManagedUserAuditTests
         result.Succeeded.Should().BeTrue();
         User persisted = await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId);
         persisted.Email.Should().Be("updated@example.test");
+        persisted.UserName.Should().Be("updated@example.test");
+        persisted.NormalizedUserName.Should().Be("UPDATED@EXAMPLE.TEST");
+        persisted.SecurityStamp.Should().Be("security-stamp");
         persisted.EmailConfirmed.Should().BeFalse();
         persisted.PhoneNumber.Should().Be("+14155552671");
         persisted.PhoneNumberConfirmed.Should().BeTrue();

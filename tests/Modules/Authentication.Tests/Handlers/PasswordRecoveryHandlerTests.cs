@@ -109,6 +109,45 @@ public sealed class PasswordRecoveryHandlerTests
     }
 
     [Fact]
+    public async Task Begin_sms_converts_a_local_format_number_before_lookup_and_delivery()
+    {
+        BeginDependencies dependencies = CreateBeginDependencies(PasswordRecoveryChannel.Sms);
+        dependencies.UserDirectory.Setup(x => x.FindByPhoneNumberAsync("+989123456789", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(User("user-42", phone: "+989123456789"));
+        dependencies.AccountUpdater.Setup(x => x.UserHasPasswordAsync("user-42", It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        dependencies.CodeGenerator.Setup(x => x.GenerateAsync("user-42", It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync("test-code");
+
+        AuthenticationResult<ChallengeResult> result = await dependencies.Handler.Handle(
+            new(PasswordRecoveryChannel.Sms, "09123456789"), CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<ChallengeResult>.Success>();
+        dependencies.UserDirectory.Verify(x => x.FindByPhoneNumberAsync("+989123456789", It.IsAny<CancellationToken>()), Times.Once);
+        dependencies.PhoneSender.Verify(x => x.SendAsync("+989123456789", "test-code", AuthenticationChallengePurpose.PhonePasswordRecovery, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Begin_sms_returns_the_same_public_result_for_an_unconvertible_and_an_unknown_number()
+    {
+        BeginDependencies unconvertible = CreateBeginDependencies(PasswordRecoveryChannel.Sms);
+        BeginDependencies unknown = CreateBeginDependencies(PasswordRecoveryChannel.Sms);
+
+        AuthenticationResult<ChallengeResult> unconvertibleResult = await unconvertible.Handler.Handle(
+            new(PasswordRecoveryChannel.Sms, "not-a-number"), CancellationToken.None);
+        AuthenticationResult<ChallengeResult> unknownResult = await unknown.Handler.Handle(
+            new(PasswordRecoveryChannel.Sms, "09123456789"), CancellationToken.None);
+
+        ChallengeResult unconvertibleChallenge = unconvertibleResult.Should().BeOfType<AuthenticationResult<ChallengeResult>.Success>().Subject.Value;
+        ChallengeResult unknownChallenge = unknownResult.Should().BeOfType<AuthenticationResult<ChallengeResult>.Success>().Subject.Value;
+        unconvertibleChallenge.Purpose.Should().Be(unknownChallenge.Purpose);
+        unconvertibleChallenge.RemainingAttempts.Should().Be(unknownChallenge.RemainingAttempts);
+        unconvertible.UserDirectory.Verify(x => x.FindByPhoneNumberAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        unconvertible.PhoneSender.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AuthenticationChallengePurpose>(), It.IsAny<CancellationToken>()), Times.Never);
+        unknown.PhoneSender.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AuthenticationChallengePurpose>(), It.IsAny<CancellationToken>()), Times.Never);
+        unconvertible.FailureRecorder.Verify(x => x.RecordAsync(It.IsAny<PasswordRecoveryChannel>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        unknown.FailureRecorder.Verify(x => x.RecordAsync(It.IsAny<PasswordRecoveryChannel>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Begin_rejects_when_recovery_is_not_in_the_active_pre_authentication_allowlist()
     {
         BeginDependencies dependencies = CreateBeginDependencies(PasswordRecoveryChannel.Email);

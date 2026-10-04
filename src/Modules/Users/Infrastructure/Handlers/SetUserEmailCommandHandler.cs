@@ -1,17 +1,20 @@
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Vitarish.Audit.Domain;
 using Vitarish.Users.Application.Commands;
+using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Application.Security;
 using Vitarish.Users.Contracts.Responses;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Service;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
-public class SetUserEmailCommandHandler(UserManager<User> userManager, IDistributedCache cache, UsersManagementAudit managementAudit) : IRequestHandler<SetUserEmailCommand, IdentityResult>
+public class SetUserEmailCommandHandler(UserManager<User> userManager, ISender sender, IDistributedCache cache, UsersManagementAudit managementAudit) : IRequestHandler<SetUserEmailCommand, IdentityResult>
 {
     public async Task<IdentityResult> Handle(SetUserEmailCommand request, CancellationToken cancellationToken)
     {
@@ -49,10 +52,36 @@ public class SetUserEmailCommandHandler(UserManager<User> userManager, IDistribu
         }
 
         bool changed = !string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase);
+        if (changed && email is not null &&
+            await sender.Send(new CheckLoginIdentifierInUseQuery(email, LoginIdentifierKind.Email, user.Id), cancellationToken))
+        {
+            await managementAudit.AccountEditFailedAsync(user.Id, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            await managementAudit.SecurityAttributeChangedAsync(user.Id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = nameof(UsersCommandFailureCode.ContactIdentifierInUse),
+                Description = UsersCommandErrorCodes.ContactIdentifierInUseDescription
+            });
+        }
+
+        string? movedUserName = ContactUserName.MoveWithContact(user, user.Email, user.PhoneNumber, email, user.PhoneNumber);
+        if (movedUserName is not null)
+            user.NormalizedUserName = userManager.NormalizeName(movedUserName);
+
         IdentityResult result;
         try
         {
             result = await userManager.SetEmailAsync(user, email);
+        }
+        catch (DbUpdateException exception) when (ContactIdentifierUniqueViolation.Matches(exception))
+        {
+            await managementAudit.AccountEditFailedAsync(user.Id, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            await managementAudit.SecurityAttributeChangedAsync(user.Id, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.MutationRejected, cancellationToken);
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = nameof(UsersCommandFailureCode.ContactIdentifierInUse),
+                Description = UsersCommandErrorCodes.ContactIdentifierInUseDescription
+            });
         }
         catch (OperationCanceledException)
         {

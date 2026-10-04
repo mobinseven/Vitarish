@@ -48,7 +48,8 @@ Hosting composition are not alternate policy owners.
   policy-invalid sessions fail closed on protected cookie requests. Username,
   assigned-role, authorization-affecting-claim, and user-deletion mutations
   reject with a conflict while an active session exists; other user mutations
-  do not revoke sessions as a side effect.
+  do not revoke sessions as a side effect. The only username exception is the
+  contact-owned move recorded in `src/Modules/Users/AGENTS.md`.
 - **[MUST]** Persist last successful attempt, last failed attempt, failures
   since prior success, date/time, and acknowledgement state. A query does not
   acknowledge or mutate history; use an explicit authorized command.

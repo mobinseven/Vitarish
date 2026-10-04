@@ -23,33 +23,32 @@ public sealed class BeginPhoneLoginHandler(
     {
         if (!AuthenticationInputValidator.HasText(command.PhoneNumber))
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, "Phone number is required."));
+        if (!UserPhoneNumberPolicy.TryNormalize(command.PhoneNumber, out string? phoneNumber))
+            return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, UserPhoneNumberPolicy.InvalidPhoneNumberMessage));
 
         SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
         if (!securityPolicy.Allows(AuthenticationMethod.Phone, PreAuthenticationAction.PhoneLogin))
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Phone authentication is not enabled."));
 
-        if (await IsDeniedAsync(attemptKeyFactory.IdentifierCandidates(AuthenticationMethod.Phone, command.PhoneNumber), cancellationToken))
+        if (await IsDeniedAsync(attemptKeyFactory.IdentifierCandidates(AuthenticationMethod.Phone, phoneNumber), cancellationToken))
             return new AuthenticationResult<ChallengeResult>.Failure(AttemptDenied(securityPolicy));
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        // Accounts stored before E.164 enforcement can still sign in, but a non-E.164 number never creates an account.
-        AuthenticationUserDescriptor? user = UserPhoneNumberPolicy.IsValidE164(command.PhoneNumber)
-            ? await userDirectory.FindOrCreateByPhoneNumberAsync(command.PhoneNumber, cancellationToken)
-            : await userDirectory.FindByPhoneNumberAsync(command.PhoneNumber, cancellationToken);
+        AuthenticationUserDescriptor? user = await userDirectory.FindOrCreateByPhoneNumberAsync(phoneNumber, cancellationToken);
         if (user is null)
-            return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, UserPhoneNumberPolicy.InvalidE164FormatMessage));
+            return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, UserPhoneNumberPolicy.InvalidPhoneNumberMessage));
         if (await IsDeniedAsync(attemptKeyFactory.SubjectCandidates(AuthenticationMethod.Phone, user.UserId), cancellationToken))
             return new AuthenticationResult<ChallengeResult>.Failure(AttemptDenied(securityPolicy));
         AuthenticationChallengePolicy effectivePolicy = policy.WithMaximumAttempts(securityPolicy.FailedAttemptThreshold);
 
         string tokenPurpose = effectivePolicy.TokenPurpose(AuthenticationChallengePurpose.PhoneLogin);
         string code = await codeGenerator.GenerateAsync(user.UserId, tokenPurpose, cancellationToken);
-        AuthenticationChallenge challenge = effectivePolicy.CreatePhoneLoginChallenge(user.UserId, command.PhoneNumber, tokenPurpose, now);
+        AuthenticationChallenge challenge = effectivePolicy.CreatePhoneLoginChallenge(user.UserId, phoneNumber, tokenPurpose, now);
         await store.SaveAsync(challenge, cancellationToken);
 
         try
         {
-            await phoneSender.SendAsync(command.PhoneNumber, code, AuthenticationChallengePurpose.PhoneLogin, cancellationToken);
+            await phoneSender.SendAsync(phoneNumber, code, AuthenticationChallengePurpose.PhoneLogin, cancellationToken);
         }
         catch
         {
