@@ -151,7 +151,7 @@ internal static class SecurityBaselineCheck
         int rollbackTrap = deployScript.IndexOf("trap rollback ERR", StringComparison.Ordinal);
         int firstReplacement = deployScript.IndexOf("install -m 0600 \"$incoming/release.env\"", StringComparison.Ordinal);
         if (!deployScript.Contains("config --quiet", StringComparison.Ordinal) ||
-            !deployScript.Contains("caddy-config-validator caddy validate --config /etc/caddy/Caddyfile", StringComparison.Ordinal) ||
+            !deployScript.Contains("caddy validate --config /etc/caddy/Caddyfile", StringComparison.Ordinal) ||
             !deployScript.Contains("--no-deps --pull never", StringComparison.Ordinal) ||
             !workflow.Contains("READINESS_PATH", StringComparison.Ordinal) ||
             !deployScript.Contains("compose_previous up", StringComparison.Ordinal) ||

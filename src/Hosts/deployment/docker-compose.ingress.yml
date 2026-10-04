@@ -1,18 +1,9 @@
 name: vitarish-ingress
 
-x-rsa-certificate-paths: &rsa-certificate-paths
-  CADDY_RSA_CERTIFICATE_DIRECTORY: /etc/caddy/rsa-certificates
-  CADDY_RSA_CERTIFICATE_BUNDLE: /etc/caddy/rsa-certificates/rsa.pem
-  CADDY_RSA_CERTIFICATE_CANDIDATE: /var/lib/caddy-rsa-staging/rsa.pending.pem
-  CADDY_RSA_CERTIFICATE_BACKUP: /var/lib/caddy-rsa-backup/rsa.previous.pem
-  CADDY_RSA_CERTIFICATE_PREVIOUS_STATE: /var/lib/caddy-rsa-backup/rsa.previous-state
-  CADDY_RSA_CERTIFICATE_HOSTS: ${VITARISH_TEST_PUBLIC_HOST},${VITARISH_TEST_PATIENTS_HOST},${VITARISH_TEST_PLATFORM_ADMIN_HOST},${VITARISH_TEST_PM_HOST},${VITARISH_TEST_KNOWLEDGE_QA_HOST},${VITARISH_TEST_LANDING_HOST},${VITARISH_TEST_WILDCARD_HOST},${VITARISH_TEST_CLINIC_WILDCARD_HOST},${VITARISH_PRODUCTION_PUBLIC_HOST},${VITARISH_PRODUCTION_PATIENTS_HOST},${VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST},${VITARISH_PRODUCTION_PM_HOST},${VITARISH_PRODUCTION_KNOWLEDGE_QA_HOST},${VITARISH_PRODUCTION_LANDING_HOST},${VITARISH_PRODUCTION_WILDCARD_HOST},${VITARISH_PRODUCTION_CLINIC_WILDCARD_HOST}
-
 x-caddy-runtime: &caddy-runtime
   image: ${VITARISH_CADDY_IMAGE:?VITARISH_CADDY_IMAGE is required}
   security_opt: [no-new-privileges:true]
   environment:
-    <<: *rsa-certificate-paths
     CLOUDFLARE_API_TOKEN: ${VITARISH_CLOUDFLARE_API_TOKEN:?VITARISH_CLOUDFLARE_API_TOKEN is required}
     VITARISH_CONTENT_SECURITY_POLICY: "default-src 'self'; script-src 'self' 'nonce-{http.request.uuid}'; style-src-elem 'self' 'nonce-{http.request.uuid}'; style-src-attr 'unsafe-inline'; frame-ancestors 'none'; object-src 'none'"
     TEST_PUBLIC_HOST: ${VITARISH_TEST_PUBLIC_HOST:?VITARISH_TEST_PUBLIC_HOST is required}
@@ -34,7 +25,6 @@ x-caddy-runtime: &caddy-runtime
     VITARISH_ACME_EMAIL: ${VITARISH_ACME_EMAIL:?VITARISH_ACME_EMAIL is required}
   volumes:
     - ./Caddyfile:/etc/caddy/Caddyfile:ro
-    - ingress-rsa-certificates:/etc/caddy/rsa-certificates:ro
 
 services:
   caddy:
@@ -59,120 +49,6 @@ services:
     profiles: [validation]
     network_mode: none
 
-  caddy-certificate-validator:
-    image: ${VITARISH_CADDY_IMAGE:?VITARISH_CADDY_IMAGE is required}
-    security_opt: [no-new-privileges:true]
-    profiles: [validation]
-    environment:
-      <<: *rsa-certificate-paths
-    command: ["validate-certificate"]
-    volumes:
-      - ingress-rsa-certificates:/etc/caddy/rsa-certificates:ro
-      - ingress-rsa-certificate-staging:/var/lib/caddy-rsa-staging:ro
-    networks:
-      - ingress-egress
-
-  rsa-certificate-renewal:
-    image: goacme/lego:v5.5.2
-    profiles: [certificate-operations]
-    restart: "no"
-    security_opt: [no-new-privileges:true]
-    entrypoint: ["/bin/sh", "-ec"]
-    environment:
-      <<: *rsa-certificate-paths
-      CADDY_RSA_CERTIFICATE_OPERATION: issue
-      PRODUCTION_PUBLIC_HOST: ${VITARISH_PRODUCTION_PUBLIC_HOST:?VITARISH_PRODUCTION_PUBLIC_HOST is required}
-      LEGO_ACCEPT_TOS: "true"
-      LEGO_DNS: cloudflare
-      LEGO_DOMAINS: ${VITARISH_PRODUCTION_PUBLIC_HOST:?VITARISH_PRODUCTION_PUBLIC_HOST is required},${VITARISH_PRODUCTION_PATIENTS_HOST:?VITARISH_PRODUCTION_PATIENTS_HOST is required},${VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST:?VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST is required},${VITARISH_PRODUCTION_PM_HOST:?VITARISH_PRODUCTION_PM_HOST is required},${VITARISH_PRODUCTION_KNOWLEDGE_QA_HOST:?VITARISH_PRODUCTION_KNOWLEDGE_QA_HOST is required},${VITARISH_PRODUCTION_LANDING_HOST:?VITARISH_PRODUCTION_LANDING_HOST is required},${VITARISH_PRODUCTION_WILDCARD_HOST:?VITARISH_PRODUCTION_WILDCARD_HOST is required},${VITARISH_PRODUCTION_CLINIC_WILDCARD_HOST:?VITARISH_PRODUCTION_CLINIC_WILDCARD_HOST is required},${VITARISH_TEST_PUBLIC_HOST:?VITARISH_TEST_PUBLIC_HOST is required},${VITARISH_TEST_PATIENTS_HOST:?VITARISH_TEST_PATIENTS_HOST is required},${VITARISH_TEST_PLATFORM_ADMIN_HOST:?VITARISH_TEST_PLATFORM_ADMIN_HOST is required},${VITARISH_TEST_PM_HOST:?VITARISH_TEST_PM_HOST is required},${VITARISH_TEST_KNOWLEDGE_QA_HOST:?VITARISH_TEST_KNOWLEDGE_QA_HOST is required},${VITARISH_TEST_LANDING_HOST:?VITARISH_TEST_LANDING_HOST is required},${VITARISH_TEST_WILDCARD_HOST:?VITARISH_TEST_WILDCARD_HOST is required},${VITARISH_TEST_CLINIC_WILDCARD_HOST:?VITARISH_TEST_CLINIC_WILDCARD_HOST is required}
-      LEGO_EMAIL: ${VITARISH_ACME_EMAIL:?VITARISH_ACME_EMAIL is required}
-      LEGO_KEY_TYPE: RSA2048
-      LEGO_RENEW_DAYS: "30"
-      CLOUDFLARE_DNS_API_TOKEN: ${VITARISH_CLOUDFLARE_API_TOKEN:?VITARISH_CLOUDFLARE_API_TOKEN is required}
-    volumes:
-      - ingress-rsa-certificates:/etc/caddy/rsa-certificates
-      - ingress-rsa-certificate-backup:/var/lib/caddy-rsa-backup
-      - ingress-rsa-certificate-staging:/var/lib/caddy-rsa-staging
-      - ingress-rsa-acme-state:/acme-state
-    networks:
-      - ingress-egress
-    command:
-      - |
-        case "$${CADDY_RSA_CERTIFICATE_OPERATION}" in
-          issue)
-            /lego run --path /acme-state
-            certificate="/acme-state/certificates/$${PRODUCTION_PUBLIC_HOST}.crt"
-            key="/acme-state/certificates/$${PRODUCTION_PUBLIC_HOST}.key"
-            temporary="$${CADDY_RSA_CERTIFICATE_CANDIDATE}.new"
-            umask 077
-            test -s "$$certificate"
-            test -s "$$key"
-            trap 'rm -f "$$temporary"' EXIT
-            cat "$$certificate" "$$key" > "$$temporary"
-            chmod 0600 "$$temporary"
-            mv -f "$$temporary" "$$CADDY_RSA_CERTIFICATE_CANDIDATE"
-            trap - EXIT
-            ;;
-          promote)
-            temporary="$${CADDY_RSA_CERTIFICATE_BUNDLE}.new"
-            backup_temporary="$${CADDY_RSA_CERTIFICATE_BACKUP}.new"
-            state_temporary="$${CADDY_RSA_CERTIFICATE_PREVIOUS_STATE}.new"
-            umask 077
-            test -s "$$CADDY_RSA_CERTIFICATE_CANDIDATE"
-            test ! -L "$$CADDY_RSA_CERTIFICATE_CANDIDATE"
-            trap 'rm -f "$$temporary" "$$backup_temporary" "$$state_temporary"' EXIT
-            rm -f "$$CADDY_RSA_CERTIFICATE_PREVIOUS_STATE" "$$CADDY_RSA_CERTIFICATE_BACKUP"
-            if [ -e "$$CADDY_RSA_CERTIFICATE_BUNDLE" ] || [ -L "$$CADDY_RSA_CERTIFICATE_BUNDLE" ]; then
-              test -f "$$CADDY_RSA_CERTIFICATE_BUNDLE"
-              test ! -L "$$CADDY_RSA_CERTIFICATE_BUNDLE"
-              cp "$$CADDY_RSA_CERTIFICATE_BUNDLE" "$$backup_temporary"
-              chmod 0600 "$$backup_temporary"
-              mv -f "$$backup_temporary" "$$CADDY_RSA_CERTIFICATE_BACKUP"
-              printf present > "$$state_temporary"
-            else
-              printf absent > "$$state_temporary"
-            fi
-            mv -f "$$state_temporary" "$$CADDY_RSA_CERTIFICATE_PREVIOUS_STATE"
-            cp "$$CADDY_RSA_CERTIFICATE_CANDIDATE" "$$temporary"
-            chmod 0600 "$$temporary"
-            mv -f "$$temporary" "$$CADDY_RSA_CERTIFICATE_BUNDLE"
-            rm -f "$$CADDY_RSA_CERTIFICATE_CANDIDATE"
-            trap - EXIT
-            ;;
-          restore)
-            temporary="$${CADDY_RSA_CERTIFICATE_BUNDLE}.restore"
-            if [ ! -e "$$CADDY_RSA_CERTIFICATE_PREVIOUS_STATE" ] && [ ! -L "$$CADDY_RSA_CERTIFICATE_PREVIOUS_STATE" ]; then
-              exit 0
-            fi
-            test -f "$$CADDY_RSA_CERTIFICATE_PREVIOUS_STATE"
-            test ! -L "$$CADDY_RSA_CERTIFICATE_PREVIOUS_STATE"
-            state=$$(cat "$$CADDY_RSA_CERTIFICATE_PREVIOUS_STATE")
-            case "$$state" in
-              present)
-                test -s "$$CADDY_RSA_CERTIFICATE_BACKUP"
-                test ! -L "$$CADDY_RSA_CERTIFICATE_BACKUP"
-                cp "$$CADDY_RSA_CERTIFICATE_BACKUP" "$$temporary"
-                chmod 0600 "$$temporary"
-                mv -f "$$temporary" "$$CADDY_RSA_CERTIFICATE_BUNDLE"
-                ;;
-              absent)
-                rm -f "$$CADDY_RSA_CERTIFICATE_BUNDLE"
-                ;;
-              *)
-                printf 'Previous RSA certificate state is missing or invalid.\n' >&2
-                exit 1
-                ;;
-            esac
-            ;;
-          discard)
-            rm -f "$$CADDY_RSA_CERTIFICATE_CANDIDATE"
-            ;;
-          *)
-            printf 'RSA certificate operation is invalid.\n' >&2
-            exit 1
-            ;;
-        esac
-
 networks:
   test-proxy:
     name: vitarish-test-proxy
@@ -194,11 +70,3 @@ volumes:
     name: vitarish-ingress-data
   ingress-config:
     name: vitarish-ingress-config
-  ingress-rsa-certificates:
-    name: vitarish-ingress-rsa-certificates
-  ingress-rsa-certificate-backup:
-    name: vitarish-ingress-rsa-certificate-backup
-  ingress-rsa-certificate-staging:
-    name: vitarish-ingress-rsa-certificate-staging
-  ingress-rsa-acme-state:
-    name: vitarish-ingress-rsa-acme-state

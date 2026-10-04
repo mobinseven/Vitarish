@@ -104,17 +104,6 @@ proxy subnets that do not conflict with the host LAN, VPN, or other Docker
 networks. Main trusts only the fixed Caddy IPv4 address on its environment
 proxy network.
 
-Caddy continues to manage its P-256 ECDSA certificates. It also loads the
-separately issued RSA certificate bundle used for RSA-authenticated ECDHE
-handshakes. The first deployment provisions that bundle through the Cloudflare
-DNS challenge before Caddy can start; if issuance fails or the bundle is
-missing, ingress validation fails before traffic is served. Follow the
-[RSA certificate renewal runbook](caddy-rsa-certificate-renewal.md) for manual
-renewal, validation, reload, and recovery. The RSA bundle is staged and checked
-for every configured hostname, a trusted certificate path, CA constraints,
-Server Authentication EKU, and CRL status before it becomes active. Caddy also
-runs the same checks on the active RSA bundle before starting.
-
 The repository's examples use deliberately invalid image and credential
 values. They are for Compose rendering only; replace them in the protected
 operator files before bringing services up. The security baseline validates
@@ -177,7 +166,7 @@ dotnet run --project tools/architecture -- self-test
 Render the committed examples without starting containers:
 
 ```powershell
-docker compose --env-file src/Hosts/deployment/.env.shared.example -f src/Hosts/deployment/docker-compose.ingress.yml --profile certificate-operations --profile validation config --quiet
+docker compose --env-file src/Hosts/deployment/.env.shared.example -f src/Hosts/deployment/docker-compose.ingress.yml config --quiet
 docker compose --env-file src/Hosts/deployment/.env.shared.example --env-file src/Hosts/deployment/.env.test.example -f src/Hosts/deployment/docker-compose.test.yml config --quiet
 docker compose --env-file src/Hosts/deployment/.env.shared.example --env-file src/Hosts/deployment/.env.production.example -f src/Hosts/deployment/docker-compose.production.yml config --quiet
 ```
