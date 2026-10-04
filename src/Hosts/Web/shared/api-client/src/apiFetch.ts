@@ -1,5 +1,6 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 export const TENANT_HOST_HEADER = "X-Vitarish-Tenant-Host";
+export const ANTIFORGERY_VALIDATION_FAILED_CODE = "AntiforgeryValidationFailed";
 const REQUEST_ID_HEADER = "X-Request-Id";
 
 export interface ProblemDetails {
@@ -160,7 +161,7 @@ function appendParams(url: string, params: Record<string, unknown>): string {
 }
 
 function isAntiforgeryValidationFailure(error: ApiError): boolean {
-  return error.code === "AntiforgeryValidationFailed";
+  return error.code === ANTIFORGERY_VALIDATION_FAILED_CODE;
 }
 
 function canUseSignal(signal: AbortSignal): boolean {

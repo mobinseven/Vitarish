@@ -10,7 +10,7 @@ import {
   authenticationSessionNoticesGet,
 } from "../../shared/auth/src/api/generated/authentication/authentication";
 import { auditSecurityEventsList } from "../../shared/security/src/api/generated/audit/audit";
-import { ApiError, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
+import { ApiError, ANTIFORGERY_VALIDATION_FAILED_CODE, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
@@ -435,16 +435,39 @@ test("rejects an authenticated browser mutation without antiforgery proof", asyn
       },
       body: JSON.stringify({}),
     });
-    return { status: result.status };
+    return { status: result.status, body: await result.json() as { code?: string } };
   }, { origin: apiOrigin });
 
   expect(response.status).toBe(400);
+  expect(response.body.code).toBe(ANTIFORGERY_VALIDATION_FAILED_CODE);
 
   const administratorContext = await page.context().browser()!.newContext();
   const administratorPage = await administratorContext.newPage();
   try {
     await login(administratorPage, platformAdminUsername, '', e2ePassword, '198.51.100.12');
     const rejectedAuthenticationPolicyWrite = await administratorPage.evaluate(async ({ origin }) => {
+      const currentPolicyResponse = await fetch(`${origin}/api/modules/authentication/security/authentication-policy`, {
+        credentials: 'include',
+        headers: {
+          'X-Vitarish-Tenant-Host': window.location.host,
+        },
+      });
+      if (!currentPolicyResponse.ok) {
+        throw new Error(`Authentication policy read failed with status ${currentPolicyResponse.status}.`);
+      }
+      const currentPolicy = await currentPolicyResponse.json() as {
+        minimumPasswordLength: number;
+        requirePasswordLowercase: boolean;
+        requirePasswordUppercase: boolean;
+        requirePasswordNumber: boolean;
+        requirePasswordSpecialCharacter: boolean;
+        failedAttemptThreshold: number;
+        failedAttemptDenialDurationSeconds: number;
+        failedAttemptResponse: string;
+        enabledAuthenticationMechanisms: string[];
+        permittedPreAuthenticationActions: string[];
+        version: number;
+      };
       const result = await fetch(`${origin}/api/modules/authentication/security/authentication-policy`, {
         method: 'PUT',
         credentials: 'include',
@@ -452,11 +475,24 @@ test("rejects an authenticated browser mutation without antiforgery proof", asyn
           'Content-Type': 'application/json',
           'X-Vitarish-Tenant-Host': window.location.host,
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({
+          minimumPasswordLength: currentPolicy.minimumPasswordLength,
+          requirePasswordLowercase: currentPolicy.requirePasswordLowercase,
+          requirePasswordUppercase: currentPolicy.requirePasswordUppercase,
+          requirePasswordNumber: currentPolicy.requirePasswordNumber,
+          requirePasswordSpecialCharacter: currentPolicy.requirePasswordSpecialCharacter,
+          failedAttemptThreshold: currentPolicy.failedAttemptThreshold,
+          failedAttemptDenialDurationSeconds: currentPolicy.failedAttemptDenialDurationSeconds,
+          failedAttemptResponse: currentPolicy.failedAttemptResponse,
+          enabledAuthenticationMechanisms: currentPolicy.enabledAuthenticationMechanisms,
+          permittedPreAuthenticationActions: currentPolicy.permittedPreAuthenticationActions,
+          expectedVersion: currentPolicy.version,
+        }),
       });
-      return { status: result.status };
+      return { status: result.status, body: await result.json() as { code?: string } };
     }, { origin: apiOrigin });
     expect(rejectedAuthenticationPolicyWrite.status).toBe(400);
+    expect(rejectedAuthenticationPolicyWrite.body.code).toBe(ANTIFORGERY_VALIDATION_FAILED_CODE);
   } finally {
     await administratorContext.close();
   }
