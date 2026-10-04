@@ -35,6 +35,11 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
 - Provider reference versions must not default to `unknown`.
 - Tamin provider dates must use the provider’s expected calendar/date format.
 - Knowledge normal-user QA must not reuse owner command components.
+- The Users sign-in namespace is guarded by normalized-email, phone-number,
+  and Identity user-name indexes plus a write-time cross-column check. The
+  remaining email-versus-another-account's `NormalizedUserName` race cannot be
+  enforced by those independent indexes; Users owns it and should revisit the
+  schema if the race is observed.
 
 ## Package/tool quirks
 
@@ -70,10 +75,31 @@ Use dated entries only. Each entry must include:
 - Remove condition: once no deployed client sends `PUT /api/modules/users/{userId}` without `revision` (the shared Users Web surface always sends it; the OpenAPI contract already marks the field required), reject a missing value as a concurrency conflict instead of skipping the stale-edit check.
 - Lesson for Codex: a missing `revision` currently skips the stale-edit check; do not treat that as the intended steady state.
 
-### Non-E.164 phone login lookup
+### Users contact-identifier index rollout
 
-- Status: owner-approved legacy path (2026-10-01).
-- Added date: 2026-10-01.
-- Owning module/doc: Authentication (`BeginPhoneLoginHandler`).
-- Remove condition: once stored phone numbers are migrated to E.164, restore unconditional E.164 rejection for phone login.
-- Lesson for Codex: a non-E.164 number only finds an existing account and never creates one. A known legacy number succeeds while an unknown one returns `InvalidInput`, so this path can reveal whether a legacy number has an account. That is an accepted gap against the Authentication module rule, not something to copy elsewhere.
+- Status: active rollout note.
+- Added date: 2026-10-03.
+- Owning module/doc: Users phone normalization and unique-identifier migrations.
+- Remove condition: after all Users migrations have been applied to every
+  deployed database and the rollout is closed.
+- Lesson for Codex: `UsersModule.Initialize` applies migrations during host
+  startup. If either duplicate guard or unique-index creation fails, that new
+  host instance does not start; already-running instances continue on the old
+  code until the duplicate accounts are resolved. Migration 1 reports account
+  IDs only. Before applying migration 2, find duplicate normalized emails with:
+
+  ```sql
+  SELECT array_agg("Id" ORDER BY "Id") AS account_ids
+  FROM "Users"."AspNetUsers"
+  WHERE "NormalizedEmail" IS NOT NULL
+  GROUP BY "NormalizedEmail"
+  HAVING COUNT(*) > 1;
+  ```
+
+### Persian-digit change-phone E2E deferred
+
+- Status: active debt.
+- Added date: 2026-10-03.
+- Owning module/doc: E2E host (`src/Hosts/E2e`), two-host Web tests.
+- Remove condition: an E2E fake `ISmsProvider` outer adapter exists at E2E composition and the Persian-digit change-phone scenario passes in the two-host suite.
+- Lesson for Codex: `BeginChangePhoneHandler` sends the SMS synchronously, so without a fake SMS provider every phone-change begin fails with `ProviderFailure`. The conversion itself is covered by `PhoneNumberFormatHandlerTests.Phone_change_converts_a_local_format_number_before_the_challenge_and_sms`. Do not add a production test-mode branch to unblock this.

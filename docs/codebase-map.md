@@ -226,7 +226,14 @@ workspace and a separately started Main host.
 - **New external provider:** implement an Infrastructure adapter for an
   Application-owned port and register it at composition.
 - **Database change:** update the owning persisted model/configuration and
-  generate the migration under the owning Infrastructure migration tree.
+  generate the migration under the owning Infrastructure migration tree with
+  `dotnet ef migrations add <Name> --project src/Modules/<Module>/Infrastructure --context <ContextName>`
+  (requires the global `dotnet-ef` tool; each migrating module Infrastructure
+  owns an `IDesignTimeDbContextFactory` that reads `VITARISH_DB_CONNECTION`
+  when a design-time connection is needed). Never hand-edit the generated
+  migration, designer, or snapshot output; hand-written `migrationBuilder.Sql`
+  bodies inside a freshly generated migration are the supported way to add data
+  steps.
 - **Localization:** generic locale/formatting belongs in
   `shared/localization`; feature messages belong in the feature package;
   app route/shell copy stays in the app.
