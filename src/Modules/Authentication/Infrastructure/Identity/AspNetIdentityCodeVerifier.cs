@@ -12,6 +12,6 @@ public sealed class AspNetIdentityCodeVerifier(UserManager<User> userManager) : 
             return false;
 
         User? user = await userManager.FindByIdAsync(userId);
-        return user is not null && await userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultProvider, tokenPurpose, code);
+        return user is not null && await userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, tokenPurpose, code);
     }
 }
