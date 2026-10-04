@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import { resolve } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
+import { UsersCommandErrorKind } from "../../shared/auth/src/users";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
 import {
   twoHostE2eProofScreenshotEnvironmentKey,
@@ -34,6 +35,10 @@ async function captureAuthenticatedScreenshot(page: Page, outputPath: string): P
       outputPath,
       "-StorageStatePath",
       storageStatePath!,
+      // The restored session must actually render the authenticated detail
+      // page (this test's fixture name); never retain a login-page capture.
+      "-WaitForSelector",
+      "text=Security Evidence",
       "-IgnoreHttpsErrors",
     ], { cwd: process.cwd(), timeout: 45_000, windowsHide: true });
     expect(existsSync(outputPath), `the screenshot script did not create ${outputPath}`).toBe(true);
@@ -151,6 +156,18 @@ test("platform administrator creates, edits, assigns access, and reviews a user'
   expect(createResponse.ok()).toBe(true);
   const createdUser = await createResponse.json() as { id?: string };
   expect(createdUser.id).toBeTruthy();
+
+  const duplicateEmail = page.getByRole("textbox", { name: "Email address" });
+  await duplicateEmail.fill(originalContact);
+  const [duplicateResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "POST" && response.request().postData()?.includes(originalContact) === true),
+    page.getByRole("button", { name: "Create user" }).click(),
+  ]);
+  expect(duplicateResponse.status()).toBe(409);
+  const duplicateBody = await duplicateResponse.json() as { errors?: Array<{ failureCode?: string | null }> };
+  expect(duplicateBody.errors?.some((error) => error.failureCode === UsersCommandErrorKind.ContactIdentifierInUse)).toBe(true);
+  await expect(page.getByRole("status").filter({ hasText: "Another account already uses this email address or phone number." })).toBeVisible();
+  await expect(duplicateEmail).toHaveValue(originalContact);
 
   const changedContact = `e2e-security-edited-${Date.now()}@example.test`;
   await page.goto(`${platformOrigin}${PlatformRoutes.Users.Detail(createdUser.id!)}`, { waitUntil: "domcontentloaded" });

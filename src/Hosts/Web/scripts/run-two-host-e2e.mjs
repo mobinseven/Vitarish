@@ -300,6 +300,7 @@ async function run() {
     NEXT_PUBLIC_API_BASE_URL: mainOrigin,
     [twoHostE2eNextDistDirectoryEnvironmentKey]: appNextDistDirectory,
     VITARISH_E2E_USERNAME: "e2e-owner",
+    VITARISH_E2E_EMAIL_CHANGE_USERNAME: "e2e-email-change-user",
     VITARISH_E2E_PASSWORD: password,
     VITARISH_E2E_AGENT_SHARED_SECRET: agentSharedSecret,
     VITARISH_E2E_SMTP_CAPTURE_PATH: smtpCapturePath,
