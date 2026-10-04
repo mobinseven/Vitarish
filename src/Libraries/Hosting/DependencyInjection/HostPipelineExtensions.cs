@@ -8,7 +8,9 @@ using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Pipeline;
 using Vitarish.Users.Infrastructure.Service;
 using Vitarish.Hosting.Infrastructure.Options;
+using Vitarish.Hosting;
 using Vitarish.Modules.Base.Core.Endpoints;
+using Vitarish.Requests.Application.Abstractions;
 
 public static class HostPipelineExtensions
 {
@@ -33,6 +35,8 @@ public static class HostPipelineExtensions
                     .AllowCredentials();
             });
         });
+        builder.Services.AddSingleton<IClientInterfaceHostAccessor>(services =>
+            new ClientInterfaceHostAccessor(origins, services.GetRequiredService<IHttpContextAccessor>()));
     }
 
     public static void AddHostPipeline(this WebApplicationBuilder builder, SecurityConfigurationOptions security)

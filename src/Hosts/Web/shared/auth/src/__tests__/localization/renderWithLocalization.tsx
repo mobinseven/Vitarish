@@ -24,6 +24,8 @@ const messages: MessageCatalog = {
       resendAction: "Resend code",
       differentDestinationAction: "Use a different destination",
       codeSentTo: "Code sent to {destination}",
+      codeSentToPrefix: "Code sent to ",
+      codeSentToSuffix: ".",
       attemptsRemaining: "{count} attempts remaining",
       emailLabel: "Email",
       emailPlaceholder: "you@example.com",

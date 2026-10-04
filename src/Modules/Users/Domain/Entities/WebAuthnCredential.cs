@@ -7,6 +7,8 @@ namespace Vitarish.Users.Domain.Entities;
 /// </summary>
 public class WebAuthnCredential
 {
+    public const string PublicKeyCredentialType = "public-key";
+
     /// <summary>
     /// The unique identifier for this credential record.
     /// </summary>

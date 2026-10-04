@@ -18,7 +18,7 @@ namespace Vitarish.Users.Infrastructure.Migrations.UsersDb
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("Users")
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -297,11 +297,18 @@ namespace Vitarish.Users.Infrastructure.Migrations.UsersDb
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
+                        .IsUnique()
+                        .HasDatabaseName("EmailIndex")
+                        .HasFilter("\"NormalizedEmail\" IS NOT NULL");
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique()
+                        .HasDatabaseName("PhoneNumberIndex")
+                        .HasFilter("\"PhoneNumber\" IS NOT NULL");
 
                     b.ToTable("AspNetUsers", "Users");
                 });

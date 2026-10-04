@@ -75,7 +75,7 @@ public sealed class SecurityAccessPolicyTests
     {
         AuthenticationChallengePolicy policy = new(TimeSpan.FromMinutes(5), 3);
 
-        policy.CreatePhoneLoginChallenge("user-1", "+123", "purpose", DateTimeOffset.UtcNow)
+        policy.CreatePhoneLoginChallenge("user-1", "+123", DateTimeOffset.UtcNow)
             .MaximumAttempts.Should().Be(3);
     }
 }

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Form, Input, Label, TextField, Tooltip } from "@heroui/react";
 import { useLocalizedText } from "@vitarish/localization";
-import { FaIcon, StatusAlert } from "@vitarish/ui";
+import { FaIcon, MobileNumberField, StatusAlert } from "@vitarish/ui";
 import { usePasswordRecovery } from "../hooks/usePasswordRecovery";
 import type { PasswordRecoveryChannel } from "../auth/passwordRecoveryChannel";
 
@@ -16,6 +16,11 @@ export function PasswordRecoveryForm() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMismatch, setPasswordMismatch] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   if (recovery.isComplete) {
     return (
@@ -87,6 +92,7 @@ export function PasswordRecoveryForm() {
 
   return (
     <Form
+      method="post"
       onSubmit={(event) => {
         event.preventDefault();
         void recovery.begin(channel, contact);
@@ -121,16 +127,28 @@ export function PasswordRecoveryForm() {
           <Tooltip.Content>{t("auth.recovery.smsChannel")}</Tooltip.Content>
         </Tooltip>
       </div>
-      <TextField name="recovery-contact" type={channel === "email" ? "email" : "tel"} isRequired isDisabled={recovery.isLoading}>
-        <Label>{channel === "email" ? t("auth.recovery.emailLabel") : t("auth.recovery.phoneLabel")}</Label>
-        <Input
-          autoComplete={channel === "email" ? "email" : "tel"}
+      {channel === "email" ? (
+        <TextField name="recovery-contact" type="email" isRequired isDisabled={recovery.isLoading}>
+          <Label>{t("auth.recovery.emailLabel")}</Label>
+          <Input
+            autoComplete="email"
+            value={contact}
+            onChange={(event) => setContact(event.target.value)}
+          />
+        </TextField>
+      ) : (
+        <MobileNumberField
+          name="recovery-contact"
+          label={t("auth.recovery.phoneLabel")}
+          hint={t("auth.recovery.phoneHint")}
           value={contact}
-          onChange={(event) => setContact(event.target.value)}
+          onChange={setContact}
+          isRequired
+          isDisabled={recovery.isLoading}
         />
-      </TextField>
+      )}
       <Tooltip>
-        <Button type="submit" isPending={recovery.isLoading} className="w-full">
+        <Button type="submit" isDisabled={!isHydrated || recovery.isLoading} isPending={recovery.isLoading} className="w-full">
           <FaIcon icon="paper-plane" aria-hidden="true" />
           {t("auth.recovery.sendCodeAction")}
         </Button>

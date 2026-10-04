@@ -14,7 +14,6 @@ public sealed class InMemoryAuthenticationChallengeStoreTests
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
             "user-42",
             "+989121234567",
-            "Authentication:PasswordLoginOtp",
             DateTimeOffset.UtcNow,
             rememberMe: false,
             requiresProfileCompletion: false);
@@ -52,7 +51,6 @@ public sealed class InMemoryAuthenticationChallengeStoreTests
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreateEmailPasswordRecoveryChallenge(
             "user-42",
             "person@example.test",
-            AuthenticationChallengePolicy.Default.TokenPurpose(AuthenticationChallengePurpose.EmailPasswordRecovery),
             DateTimeOffset.UtcNow);
         await store.SaveAsync(challenge, CancellationToken.None);
         (await store.TryReserveAttemptAsync(challenge, CancellationToken.None)).Should().BeTrue();
@@ -84,7 +82,6 @@ public sealed class InMemoryAuthenticationChallengeStoreTests
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
             "user-42",
             "+989121234567",
-            "Authentication:PasswordLoginOtp",
             DateTimeOffset.UtcNow,
             rememberMe: false,
             requiresProfileCompletion: false);

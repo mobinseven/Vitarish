@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Authentication.Application.Handlers;
+using Vitarish.Authentication.Application.Services;
 using Vitarish.Authentication.Infrastructure.DependencyInjection;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
@@ -15,6 +16,10 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddSingleton(profilePolicy);
         services.AddScoped<LoginWithPasswordHandler>();
         services.AddScoped<ChangePasswordHandler>();
+        services.AddScoped<BeginChangeEmailHandler>();
+        services.AddScoped<CompleteChangeEmailHandler>();
+        services.AddScoped<BeginChangePhoneHandler>();
+        services.AddScoped<CompleteChangePhoneHandler>();
         services.AddScoped<BeginPhoneLoginHandler>();
         services.AddScoped<CompletePhoneLoginHandler>();
         services.AddScoped<BeginEmailLoginHandler>();
@@ -22,6 +27,8 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddScoped<BeginPasskeyLoginHandler>();
         services.AddScoped<CompletePasskeyLoginHandler>();
         services.AddScoped<CompletePasswordLoginOtpHandler>();
+        services.AddScoped<AuthenticationOtpDeliveryService>();
+        services.AddScoped<AuthenticationAttemptAuditor>();
         services.AddScoped<BeginPasswordRecoveryHandler>();
         services.AddScoped<CompletePasswordRecoveryHandler>();
         services.AddScoped<LogoutHandler>();

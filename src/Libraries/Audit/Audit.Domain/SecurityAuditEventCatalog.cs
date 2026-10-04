@@ -48,6 +48,11 @@ public static class SecurityAuditEventCatalog
     public const string AuthenticationPasswordChangeEvent = "authentication.account.password.change";
     public const string AuthenticationPasswordLoginEvent = "authentication.password.login";
     public const string AuthenticationPasswordLoginOtpEvent = "authentication.password.login.otp";
+    public const string AuthenticationPhoneLoginEvent = "authentication.phone.login";
+    public const string AuthenticationEmailLoginEvent = "authentication.email.login";
+    public const string AuthenticationPasskeyLoginEvent = "authentication.passkey.login";
+    public const string AuthenticationOtpSmsSendEvent = "authentication.otp.sms.send-result";
+    public const string AuthenticationOtpEmailSendEvent = "authentication.otp.email.send-result";
     public const string AuthenticationIdentityPasswordSignInUserEvent = "authentication.identity.password-sign-in.user";
     public const string AuthenticationIdentityPasswordSignInNameEvent = "authentication.identity.password-sign-in.name";
     public const string AuthenticationIdentityPasswordCheckEvent = "authentication.identity.password-check";
@@ -58,6 +63,11 @@ public static class SecurityAuditEventCatalog
     public const string PasswordChangeOperation = "account.password.change";
     public const string PasswordLoginOperation = "password.login";
     public const string PasswordLoginOtpOperation = "password.login.otp";
+    public const string PhoneLoginOperation = "phone.login";
+    public const string EmailLoginOperation = "email.login";
+    public const string PasskeyLoginOperation = "passkey.login";
+    public const string AuthenticationOtpSmsSendOperation = "authentication.otp.sms.send";
+    public const string AuthenticationOtpEmailSendOperation = "authentication.otp.email.send";
     public const string IdentityPasswordSignInUserOperation = "identity.password.sign-in.user";
     public const string IdentityPasswordSignInNameOperation = "identity.password.sign-in.name";
     public const string IdentityPasswordCheckOperation = "identity.password.check";
@@ -98,6 +108,16 @@ public static class SecurityAuditEventCatalog
     public const string TenantMemberProvisioningOperation = "Users_ProvisionTenantMember";
     public const string TenantMemberRemovalEvent = "users.tenant-member-removal";
     public const string TenantMemberRemovalOperation = "Users_RemoveTenantMember";
+    public const string UserCreationEvent = "users.account.created";
+    public const string UserCreationOperation = "users.account.create";
+    public const string UserCreationFailureEvent = "users.account.creation-failed";
+    public const string UserCreationFailureOperation = UserCreationOperation;
+    public const string UserEditEvent = "users.account.edited";
+    public const string UserEditOperation = "users.account.edit";
+    public const string UserEditFailureEvent = "users.account.edit-failed";
+    public const string UserEditFailureOperation = UserEditOperation;
+    public const string UserSecurityAttributeChangeEvent = "users.security-attributes.changed";
+    public const string UserSecurityAttributeChangeOperation = "users.security-attributes.change";
     public const string AdministratorIdleTerminationEvent = "security.session.administrator-idle-termination";
 
     public static IReadOnlyList<SecurityAuditCatalogEntry> Entries { get; } =
@@ -109,6 +129,11 @@ public static class SecurityAuditEventCatalog
         new(AuthenticationCategory, AuthenticationPasswordChangeEvent, PasswordChangeOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.PasswordVerification, SecurityAuditControl.SecurityAttributeChange]),
         new(AuthenticationCategory, AuthenticationPasswordLoginEvent, PasswordLoginOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.PasswordVerification]),
         new(AuthenticationCategory, AuthenticationPasswordLoginOtpEvent, PasswordLoginOtpOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
+        new(AuthenticationCategory, AuthenticationPhoneLoginEvent, PhoneLoginOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
+        new(AuthenticationCategory, AuthenticationEmailLoginEvent, EmailLoginOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
+        new(AuthenticationCategory, AuthenticationPasskeyLoginEvent, PasskeyLoginOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
+        new(AuthenticationCategory, AuthenticationOtpSmsSendEvent, AuthenticationOtpSmsSendOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
+        new(AuthenticationCategory, AuthenticationOtpEmailSendEvent, AuthenticationOtpEmailSendOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome]),
         new(AuthenticationCategory, AuthenticationIdentityPasswordSignInUserEvent, IdentityPasswordSignInUserOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.PasswordVerification]),
         new(AuthenticationCategory, AuthenticationIdentityPasswordSignInNameEvent, IdentityPasswordSignInNameOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.PasswordVerification]),
         new(AuthenticationCategory, AuthenticationIdentityPasswordCheckEvent, IdentityPasswordCheckOperation, Controls: [SecurityAuditControl.AuthenticationMechanismUse, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.PasswordVerification]),
@@ -133,6 +158,11 @@ public static class SecurityAuditEventCatalog
         new(ManagementCategory, GlobalRoleRevocationEvent, GlobalRoleRevocationOperation, Controls: [SecurityAuditControl.GroupRoleMembershipChange, SecurityAuditControl.SecurityAdministration]),
         new(ManagementCategory, TenantMemberProvisioningEvent, TenantMemberProvisioningOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.GroupRoleMembershipChange]),
         new(ManagementCategory, TenantMemberRemovalEvent, TenantMemberRemovalOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.GroupRoleMembershipChange]),
+        new(ManagementCategory, UserCreationEvent, UserCreationOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAdministration]),
+        new(SecurityFailureCategory, UserCreationFailureEvent, UserCreationFailureOperation, Controls: [SecurityAuditControl.SecurityFunctionFailure, SecurityAuditControl.SecurityAdministration]),
+        new(ManagementCategory, UserEditEvent, UserEditOperation, Controls: [SecurityAuditControl.SecurityAttributeChange, SecurityAuditControl.SecurityAdministration]),
+        new(SecurityFailureCategory, UserEditFailureEvent, UserEditFailureOperation, Controls: [SecurityAuditControl.SecurityFunctionFailure, SecurityAuditControl.SecurityAdministration]),
+        new(SecurityAttributeCategory, UserSecurityAttributeChangeEvent, UserSecurityAttributeChangeOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
         new(SessionCategory, AdministratorIdleTerminationEvent, "session.terminate.idle", false, "Optional administrator-initiated idle-session termination is not implemented.", [SecurityAuditControl.AdministratorIdleTermination])
     ];
 

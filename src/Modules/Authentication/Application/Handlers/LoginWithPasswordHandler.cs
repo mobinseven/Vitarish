@@ -160,15 +160,13 @@ public sealed class LoginWithPasswordHandler(
             return new AuthenticationResult<LoginResult>.Failure(AttemptDenied(securityPolicy));
         }
         AuthenticationChallengePolicy effectivePolicy = challengePolicy.WithMaximumAttempts(securityPolicy.FailedAttemptThreshold);
-        string tokenPurpose = effectivePolicy.TokenPurpose(AuthenticationChallengePurpose.PasswordLoginOtp);
-        string code = await codeGenerator.GenerateAsync(user.UserId, tokenPurpose, cancellationToken);
         AuthenticationChallenge challenge = effectivePolicy.CreatePasswordLoginOtpChallenge(
             user.UserId,
             user.PhoneNumber,
-            tokenPurpose,
             now,
             rememberMe,
             signInResult.RequiresProfileCompletion);
+        string code = await codeGenerator.GenerateAsync(user.UserId, challenge.TokenPurpose, cancellationToken);
         await challengeStore.SaveAsync(challenge, cancellationToken);
 
         try

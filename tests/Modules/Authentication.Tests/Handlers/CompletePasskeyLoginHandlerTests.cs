@@ -1,14 +1,18 @@
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Moq;
+using Vitarish.Audit.Application;
+using Vitarish.Audit.Domain;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Application.Services;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Infrastructure;
 using Vitarish.Authentication.Infrastructure.Options;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Authentication.Tests.Handlers;
 
@@ -35,7 +39,8 @@ public sealed class CompletePasskeyLoginHandlerTests
             Mock.Of<IAuthenticationRedirectResolver>(),
             policy.Object,
             tracker.Object,
-            keys);
+            keys,
+            CreateAttemptAuditor());
 
         AuthenticationResult<LoginResult> result = await handler.Handle(
             new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
@@ -71,7 +76,8 @@ public sealed class CompletePasskeyLoginHandlerTests
             Mock.Of<IAuthenticationRedirectResolver>(),
             policy.Object,
             tracker.Object,
-            keys);
+            keys,
+            CreateAttemptAuditor());
 
         AuthenticationResult<LoginResult> result = await handler.Handle(
             new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
@@ -104,7 +110,8 @@ public sealed class CompletePasskeyLoginHandlerTests
             Mock.Of<IAuthenticationRedirectResolver>(),
             policy.Object,
             tracker.Object,
-            keys);
+            keys,
+            CreateAttemptAuditor());
 
         _ = await handler.Handle(new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"), CancellationToken.None);
 
@@ -139,7 +146,8 @@ public sealed class CompletePasskeyLoginHandlerTests
             Mock.Of<IAuthenticationRedirectResolver>(),
             policyProvider.Object,
             tracker,
-            keys);
+            keys,
+            CreateAttemptAuditor());
 
         AuthenticationResult<LoginResult> first = await handler.Handle(
             new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
@@ -161,4 +169,21 @@ public sealed class CompletePasskeyLoginHandlerTests
             Realm = "tests",
             CurrentPepper = "test-authentication-attempt-key-pepper-20260829"
         }));
+
+    private static AuthenticationAttemptAuditor CreateAttemptAuditor()
+    {
+        Mock<ISecurityAuditWriter> writer = new();
+        writer.Setup(item => item.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SecurityAuditWriteResult.Recorded);
+        Mock<IRequestContext> requestContext = new();
+        requestContext.SetupGet(item => item.TenantId).Returns("tenant-a");
+        requestContext.SetupGet(item => item.RequestId).Returns("passkey-request");
+        requestContext.SetupGet(item => item.TraceId).Returns("passkey-trace");
+        return new AuthenticationAttemptAuditor(writer.Object, requestContext.Object, new TestAuthenticationUtcClock());
+    }
+
+    private sealed class TestAuthenticationUtcClock : IAuthenticationUtcClock
+    {
+        public DateTime UtcNow => new(2026, 9, 28, 8, 0, 0, DateTimeKind.Utc);
+    }
 }

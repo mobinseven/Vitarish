@@ -66,6 +66,8 @@ internal static class SelfTests
                 (files[8], "packages: write", "contents: read", "ProductionWorkflowPermissionsInvalid"),
                 (files[8], "pull-requests: read", "actions: read", "ProductionWorkflowPermissionsInvalid"),
                 (files[8], "needs.required.result == 'success'", "needs.required.result == 'always'", "ProductionWorkflowTestGateMissing"),
+                (files[8], Regex.Escape("needs: [changes, dotnet, web, authentication_web, security]"), "needs: [changes, dotnet, web, authentication_web]", "ProductionWorkflowTestGateMissing"),
+                (files[8], Regex.Escape("needs: [changes, dotnet, web, authentication_web, security]"), "needs: [changes, dotnet, web, security]", "ProductionWorkflowTestGateMissing"),
                 (files[8], @"(?ms)(^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: )\[[^\]]*\]", "$1[]", "ProductionWorkflowTestGateMissing"),
                 (files[8], "github.ref == 'refs/heads/main'", "github.ref == 'refs/heads/release'", "ProductionWorkflowTestGateMissing"),
                 (files[8], "always\\(\\) && !cancelled\\(\\) && github.event_name", "github.event_name", "ProductionWorkflowTestGateMissing"),

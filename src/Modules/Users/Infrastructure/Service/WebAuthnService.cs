@@ -5,10 +5,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text;
 using System.Text.Json;
+using Vitarish.Audit.Domain;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Domain.Sessions;
 using Vitarish.Users.Application.Abstractions;
+using Vitarish.Users.Application.Security;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Options;
 using Vitarish.Users.Infrastructure.Data;
@@ -24,7 +26,8 @@ public class WebAuthnService(
     IAuthenticationSignInService signInService,
     UsersDbContext dbContext,
     WebAuthnOptions webAuthnOptions,
-    IDistributedCache cache) : IWebAuthnService
+    IDistributedCache cache,
+    UsersManagementAudit managementAudit) : IWebAuthnService
 {
     [Obsolete]
     public async Task<string> BeginRegistrationAsync(string userId, CancellationToken ct = default)
@@ -98,59 +101,79 @@ public class WebAuthnService(
             throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
         }
 
-        // Retrieve the challenge from distributed cache
-        byte[]? jsonOptionsBytes = await cache.GetAsync(GetAttestationCacheKey(userId), ct);
-        if (jsonOptionsBytes == null)
+        bool credentialPersisted = false;
+        try
         {
-            throw new InvalidOperationException("Registration options not found. Please start registration again.");
-        }
-
-        string jsonOptions = Encoding.UTF8.GetString(jsonOptionsBytes);
-        CredentialCreateOptions? options = CredentialCreateOptions.FromJson(jsonOptions);
-        if (options == null)
-        {
-            throw new InvalidOperationException("Invalid registration options JSON.");
-        }
-
-        // Parse the attestation response from JSON
-        AuthenticatorAttestationRawResponse attestationResponse = JsonSerializer.Deserialize<AuthenticatorAttestationRawResponse>(attestationResponseJson)
-            ?? throw new InvalidOperationException("Failed to deserialize attestation response");
-
-        // Verify the attestation response using Fido2 3.0.1 API
-        RegisteredPublicKeyCredential credential = await fido2.MakeNewCredentialAsync(new MakeNewCredentialParams
-        {
-            AttestationResponse = attestationResponse,
-            IsCredentialIdUniqueToUserCallback = async (args, cancellationToken) =>
+            // Retrieve the challenge from distributed cache
+            byte[]? jsonOptionsBytes = await cache.GetAsync(GetAttestationCacheKey(userId), ct);
+            if (jsonOptionsBytes == null)
             {
-                // Check if credential ID already exists
-                bool exists = await dbContext.WebAuthnCredentials
-                    .AnyAsync(c => c.CredentialId == args.CredentialId, cancellationToken);
-                return !exists;
+                throw new InvalidOperationException("Registration options not found. Please start registration again.");
+            }
+
+            string jsonOptions = Encoding.UTF8.GetString(jsonOptionsBytes);
+            CredentialCreateOptions? options = CredentialCreateOptions.FromJson(jsonOptions);
+            if (options == null)
+            {
+                throw new InvalidOperationException("Invalid registration options JSON.");
+            }
+
+            // Parse the attestation response from JSON
+            AuthenticatorAttestationRawResponse attestationResponse = JsonSerializer.Deserialize<AuthenticatorAttestationRawResponse>(attestationResponseJson)
+                ?? throw new InvalidOperationException("Failed to deserialize attestation response");
+
+            // Verify the attestation response using Fido2 3.0.1 API
+            RegisteredPublicKeyCredential credential = await fido2.MakeNewCredentialAsync(new MakeNewCredentialParams
+            {
+                AttestationResponse = attestationResponse,
+                IsCredentialIdUniqueToUserCallback = async (args, cancellationToken) =>
+                {
+                    // Check if credential ID already exists
+                    bool exists = await dbContext.WebAuthnCredentials
+                        .AnyAsync(c => c.CredentialId == args.CredentialId, cancellationToken);
+                    return !exists;
+                },
+                OriginalOptions = options
             },
-            OriginalOptions = options
-        },
-            cancellationToken: ct);
+                cancellationToken: ct);
 
-        WebAuthnCredential storedCredential = new()
+            WebAuthnCredential storedCredential = new()
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                CredentialId = credential.Id,
+                PublicKey = credential.PublicKey,
+                SignatureCounter = credential.SignCount,
+                CredentialType = WebAuthnCredential.PublicKeyCredentialType,
+                AaGuid = credential.AaGuid,
+                RegisteredAt = DateTime.UtcNow,
+                IsActive = true
+            };
+
+            _ = dbContext.WebAuthnCredentials.Add(storedCredential);
+            _ = await dbContext.SaveChangesAsync(ct);
+            credentialPersisted = true;
+            await managementAudit.AccountEditedAsync(userId, SecurityAuditReasonCatalog.SecurityAttributeChanged, CancellationToken.None);
+
+            // Clear the cache challenge
+            await cache.RemoveAsync(GetAttestationCacheKey(userId), ct);
+
+            return Convert.ToBase64String(storedCredential.CredentialId);
+        }
+        catch (OperationCanceledException)
         {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            CredentialId = credential.Id,
-            PublicKey = credential.PublicKey,
-            SignatureCounter = credential.SignCount,
-            CredentialType = "public-key",
-            AaGuid = credential.AaGuid,
-            RegisteredAt = DateTime.UtcNow,
-            IsActive = true
-        };
+            throw;
+        }
+        catch
+        {
+            if (!credentialPersisted)
+            {
+                await managementAudit.AccountEditFailedAsync(userId, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+                await managementAudit.SecurityAttributeChangedAsync(userId, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+            }
 
-        _ = dbContext.WebAuthnCredentials.Add(storedCredential);
-        _ = await dbContext.SaveChangesAsync(ct);
-
-        // Clear the cache challenge
-        await cache.RemoveAsync(GetAttestationCacheKey(userId), ct);
-
-        return Convert.ToBase64String(storedCredential.CredentialId);
+            throw;
+        }
     }
 
     public async Task<string> BeginAuthenticationAsync(string username, CancellationToken ct = default)
@@ -310,17 +333,47 @@ public class WebAuthnService(
             throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
         }
 
-        WebAuthnCredential? credential = await dbContext.WebAuthnCredentials
-            .FirstOrDefaultAsync(c => c.Id == credentialId && c.UserId == userId, ct);
+        WebAuthnCredential? credential;
+        try
+        {
+            credential = await dbContext.WebAuthnCredentials
+                .FirstOrDefaultAsync(c => c.Id == credentialId && c.UserId == userId, ct);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            await managementAudit.AccountEditFailedAsync(userId, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+            await managementAudit.SecurityAttributeChangedAsync(userId, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+            throw;
+        }
 
         if (credential == null)
         {
+            await managementAudit.AccountEditFailedAsync(userId, SecurityAuditReasonCatalog.UserNotFound, CancellationToken.None);
+            await managementAudit.SecurityAttributeChangedAsync(userId, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.UserNotFound, CancellationToken.None);
             return false;
         }
 
-        _ = dbContext.WebAuthnCredentials.Remove(credential);
-        _ = await dbContext.SaveChangesAsync(ct);
+        try
+        {
+            _ = dbContext.WebAuthnCredentials.Remove(credential);
+            _ = await dbContext.SaveChangesAsync(ct);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            await managementAudit.AccountEditFailedAsync(userId, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+            await managementAudit.SecurityAttributeChangedAsync(userId, SecurityAuditOutcome.Failed, SecurityAuditReasonCatalog.MutationRejected, CancellationToken.None);
+            throw;
+        }
 
+        await managementAudit.AccountEditedAsync(userId, SecurityAuditReasonCatalog.SecurityAttributeChanged, CancellationToken.None);
         return true;
     }
 

@@ -23,6 +23,7 @@ internal static class SecurityAuditCsvFormatter
         "sourceBoundary",
         "sourceIpKind",
         "sourceIpAddress",
+        "clientInterfaceHost",
         "redactedReason"
     ];
 
@@ -49,6 +50,7 @@ internal static class SecurityAuditCsvFormatter
                 row.SourceBoundary,
                 row.SourceIpKind,
                 row.SourceIpAddress,
+                row.ClientInterfaceHost,
                 row.RedactedReason
             ]);
         }

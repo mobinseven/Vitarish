@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { recordPlatformAuditAccessAttempt } from "@vitarish/security";
 import { useAuthSession, usePlatformAuthorization } from "@vitarish/auth";
 import { CenteredRegion, LoadingSpinner } from "@vitarish/ui";
 import { useLocalizedText } from "@vitarish/localization";
@@ -21,7 +20,6 @@ export function PlatformAdminAccessBoundary({
   const { isAuthenticated, isLoading, isError } = useAuthSession();
   const { hasAccess } = usePlatformAuthorization();
   const { t } = useLocalizedText();
-  const recordedAttempt = useRef(false);
   const isLoginRoute = pathname.startsWith(Routes.Login);
 
   useEffect(() => {
@@ -29,13 +27,6 @@ export function PlatformAdminAccessBoundary({
       router.replace(Routes.LoginPassword);
     }
   }, [isAuthenticated, isError, isLoading, isLoginRoute, router]);
-
-  useEffect(() => {
-    if (isAuthenticated && !hasAccess && !recordedAttempt.current) {
-      recordedAttempt.current = true;
-      void recordPlatformAuditAccessAttempt();
-    }
-  }, [hasAccess, isAuthenticated]);
 
   if (isLoginRoute) {
     return <>{children}</>;

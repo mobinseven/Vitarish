@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -142,7 +140,7 @@ public sealed class SecurityAuditReviewTests
     }
 
     [Fact]
-    public async Task Direct_review_lookups_record_allowed_and_denied_attempts()
+    public async Task Direct_review_lookups_do_not_record_allowed_or_denied_attempts()
     {
         DbContextOptions<AuditDbContext> options = CreateOptions();
         await using AuditDbContext context = CreateContext(options, "tenant-a");
@@ -154,26 +152,18 @@ public sealed class SecurityAuditReviewTests
 
         SecurityAuditQueryService authorized = new(
             context,
-            new TestRequestContext("tenant-a", ["tenant-a:" + IdentityDefinitions.TenantOwner], "review-allowed"),
-            auditWriter: new SecurityAuditWriter(context));
+            new TestRequestContext("tenant-a", ["tenant-a:" + IdentityDefinitions.TenantOwner]));
 
         (await authorized.GetByResourceAsync("account/42", CancellationToken.None)).Should().ContainSingle();
-        context.SecurityAuditEvents
-            .Where(item => item.IdempotencyKey == "review-allowed:audit-review")
-            .Select(item => item.Outcome)
-            .Should().ContainSingle(SecurityAuditOutcome.Succeeded);
+        (await context.SecurityAuditEvents.CountAsync()).Should().Be(1);
 
         SecurityAuditQueryService denied = new(
             context,
-            new TestRequestContext("tenant-a", requestId: "review-denied"),
-            auditWriter: new SecurityAuditWriter(context));
+            new TestRequestContext("tenant-a"));
 
         Func<Task> read = () => denied.GetByIdempotencyKeyAsync("existing", CancellationToken.None);
         await read.Should().ThrowAsync<UnauthorizedAccessException>();
-        context.SecurityAuditEvents
-            .Where(item => item.IdempotencyKey == "review-denied:audit-review")
-            .Select(item => item.Outcome)
-            .Should().ContainSingle(SecurityAuditOutcome.Denied);
+        (await context.SecurityAuditEvents.CountAsync()).Should().Be(1);
     }
 
     [Fact]
@@ -434,75 +424,81 @@ public sealed class SecurityAuditReviewTests
     }
 
     [Fact]
-    public async Task Platform_review_records_allowed_and_denied_attempts_without_replacing_results_or_leaking_scope()
+    public async Task Platform_and_tenant_review_queries_do_not_change_audit_state()
     {
         DbContextOptions<AuditDbContext> options = CreateOptions();
-        MultiTenantContext<TenantInfo> originalContext = CreateTenantContext("tenant-a");
-        TestTenantContextAccessor tenantContextAccessor = new(originalContext);
-        await using AuditDbContext context = new(options, new TestRequestContext("tenant-a"), tenantContextAccessor);
+        await using AuditDbContext context = CreateContext(options, SecurityAuditScopeCatalog.PlatformScopeId);
         await context.Database.EnsureCreatedAsync();
 
-        RecordingSecurityAuditWriter allowedWriter = new(throwStoreFailure: true);
-        SecurityAuditQueryService allowedService = new(
-            context,
-            new TestRequestContext(null, [IdentityDefinitions.PlatformAdmin]),
-            platformAttemptRecorder: new PlatformSecurityAuditAttemptRecorder(
-                allowedWriter,
-                new TestRequestContext(null, [IdentityDefinitions.PlatformAdmin]),
-                tenantContextAccessor));
+        SecurityAuditEvent existingReview = new()
+        {
+            Id = Guid.NewGuid(),
+            EventName = SecurityAuditEventCatalog.AuditReviewEvent,
+            EventCategory = SecurityAuditEventCatalog.ReviewCategory,
+            Outcome = SecurityAuditOutcome.Succeeded,
+            ActorKind = SecurityAuditActorKind.User,
+            ActorId = "platform-reviewer",
+            TenantId = SecurityAuditScopeCatalog.PlatformScopeId,
+            Resource = SecurityAuditScopeCatalog.PlatformResource,
+            Operation = SecurityAuditEventCatalog.AuditReviewOperation,
+            OccurredAt = new DateTime(2026, 9, 2, 7, 0, 0, DateTimeKind.Utc),
+            CorrelationId = "historical-review",
+            SourceBoundary = SecurityAuditEventCatalog.AuditReviewSourceBoundary,
+            SourceIpKind = SecurityAuditSourceKind.Unknown,
+            IdempotencyKey = "historical-review"
+        };
+        context.SecurityAuditEvents.Add(existingReview);
+        await context.SaveChangesAsync();
 
-        SecurityAuditPageReadDto allowedResult = await allowedService.QueryPlatformAsync(
+        SecurityAuditQueryService service = new(
+            context,
+            new TestRequestContext(SecurityAuditScopeCatalog.PlatformScopeId, [IdentityDefinitions.PlatformAdmin]));
+
+        SecurityAuditPageReadDto platformPage = await service.QueryPlatformAsync(
             new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10)),
             CancellationToken.None);
+        platformPage.TotalCount.Should().Be(1);
 
-        allowedResult.TotalCount.Should().Be(0);
-        allowedWriter.Events.Should().ContainSingle();
-        allowedWriter.Events.Single().TenantId.Should().Be(SecurityAuditScopeCatalog.PlatformScopeId);
-        allowedWriter.Events.Single().EventCategory.Should().Be(SecurityAuditEventCatalog.ReviewCategory);
-        allowedWriter.Events.Single().Outcome.Should().Be(SecurityAuditOutcome.Succeeded);
-        tenantContextAccessor.MultiTenantContext.Should().BeSameAs(originalContext);
+        await service.GetPlatformCatalogAsync(CancellationToken.None);
+        (await service.ExportPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10)),
+            CancellationToken.None)).Should().ContainSingle();
 
-        RecordingSecurityAuditWriter deniedWriter = new(throwStoreFailure: true);
-        TestRequestContext deniedRequest = new(null);
-        SecurityAuditQueryService deniedService = new(
-            context,
-            deniedRequest,
-            platformAttemptRecorder: new PlatformSecurityAuditAttemptRecorder(deniedWriter, deniedRequest, tenantContextAccessor));
+        (await service.QueryAsync(new SecurityAuditQuery(PageSize: 10), CancellationToken.None))
+            .TotalCount.Should().Be(0);
+        (await service.GetByResourceAsync(SecurityAuditScopeCatalog.PlatformResource, CancellationToken.None))
+            .Should().BeEmpty();
+        (await service.GetByIdempotencyKeyAsync("historical-review", CancellationToken.None))
+            .Should().BeNull();
+
+        (await context.SecurityAuditEvents.CountAsync()).Should().Be(1);
+        SecurityAuditEvent persistedReview = await context.SecurityAuditEvents.SingleAsync();
+        persistedReview.Id.Should().Be(existingReview.Id);
+        persistedReview.Outcome.Should().Be(SecurityAuditOutcome.Succeeded);
+        persistedReview.IdempotencyKey.Should().Be("historical-review");
+    }
+
+    [Fact]
+    public async Task Denied_platform_review_does_not_append_an_audit_event()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions();
+        await using AuditDbContext context = CreateContext(options, SecurityAuditScopeCatalog.PlatformScopeId);
+        await context.Database.EnsureCreatedAsync();
+        context.SecurityAuditEvents.Add(CreateEvent(
+            SecurityAuditScopeCatalog.PlatformScopeId,
+            "existing-event",
+            SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent,
+            new DateTime(2026, 9, 2, 7, 0, 0, DateTimeKind.Utc)));
+        await context.SaveChangesAsync();
+
+        SecurityAuditQueryService deniedService = new(context, new TestRequestContext(null));
 
         Func<Task> deniedRead = () => deniedService.QueryPlatformAsync(
             new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10)),
             CancellationToken.None);
 
         await deniedRead.Should().ThrowAsync<UnauthorizedAccessException>();
-        deniedWriter.Events.Should().ContainSingle();
-        deniedWriter.Events.Single().TenantId.Should().Be(SecurityAuditScopeCatalog.PlatformScopeId);
-        deniedWriter.Events.Single().Outcome.Should().Be(SecurityAuditOutcome.Denied);
-        tenantContextAccessor.MultiTenantContext.Should().BeSameAs(originalContext);
-    }
-
-    [Fact]
-    public async Task Platform_review_attempt_cancellation_is_not_swallowed_and_scope_is_restored()
-    {
-        MultiTenantContext<TenantInfo> originalContext = CreateTenantContext("tenant-a");
-        TestTenantContextAccessor tenantContextAccessor = new(originalContext);
-        using CancellationTokenSource cancellation = new();
-        cancellation.Cancel();
-        RecordingSecurityAuditWriter writer = new(throwCancellation: true);
-        PlatformSecurityAuditAttemptRecorder recorder = new(
-            writer,
-            new TestRequestContext(null, [IdentityDefinitions.PlatformAdmin]),
-            tenantContextAccessor);
-
-        Func<Task> record = () => recorder.RecordAsync(
-            SecurityAuditEventCatalog.AuditReviewEvent,
-            SecurityAuditEventCatalog.AuditReviewOperation,
-            SecurityAuditScopeCatalog.PlatformReviewIdempotencySuffix,
-            SecurityAuditOutcome.Succeeded,
-            cancellation.Token);
-
-        await record.Should().ThrowAsync<OperationCanceledException>();
-        writer.Events.Should().ContainSingle();
-        tenantContextAccessor.MultiTenantContext.Should().BeSameAs(originalContext);
+        (await context.SecurityAuditEvents.CountAsync()).Should().Be(1);
     }
 
     [Fact]
@@ -648,16 +644,6 @@ public sealed class SecurityAuditReviewTests
     private static AuditDbContext CreateContext(DbContextOptions<AuditDbContext> options, string? tenantId) =>
         new(options, new TestRequestContext(tenantId));
 
-    private static MultiTenantContext<TenantInfo> CreateTenantContext(string tenantId) => new()
-    {
-        TenantInfo = new TenantInfo
-        {
-            Id = tenantId,
-            Identifier = tenantId,
-            Name = tenantId
-        }
-    };
-
     private static DbContextOptions<AuditDbContext> CreateOptions() =>
         new DbContextOptionsBuilder<AuditDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
@@ -692,35 +678,6 @@ public sealed class SecurityAuditReviewTests
     private sealed class TestClientIpAddressAccessor(string? address) : IClientIpAddressAccessor
     {
         public string? ClientIpAddress { get; } = address;
-    }
-
-    private sealed class RecordingSecurityAuditWriter(bool throwStoreFailure = false, bool throwCancellation = false) : ISecurityAuditWriter
-    {
-        public List<SecurityAuditEvent> Events { get; } = [];
-
-        public Task<SecurityAuditWriteResult> WriteAsync(SecurityAuditEvent auditEvent, CancellationToken cancellationToken)
-        {
-            Events.Add(auditEvent);
-            if (throwCancellation)
-                throw new OperationCanceledException(cancellationToken);
-            if (throwStoreFailure)
-                throw new SecurityAuditStoreException("test store failure", new InvalidOperationException("test store failure"));
-            return Task.FromResult(SecurityAuditWriteResult.Recorded);
-        }
-    }
-
-    private sealed class TestTenantContextAccessor(IMultiTenantContext<TenantInfo> initialContext) :
-        IMultiTenantContextAccessor<TenantInfo>,
-        IMultiTenantContextSetter
-    {
-        public IMultiTenantContext<TenantInfo> MultiTenantContext { get; private set; } = initialContext;
-
-        IMultiTenantContext IMultiTenantContextAccessor.MultiTenantContext => MultiTenantContext;
-
-        IMultiTenantContext IMultiTenantContextSetter.MultiTenantContext
-        {
-            set => MultiTenantContext = (IMultiTenantContext<TenantInfo>)value;
-        }
     }
 
     private sealed class TestRequestContext(string? tenantId, string[]? roles = null, string? requestId = null) : IRequestContext

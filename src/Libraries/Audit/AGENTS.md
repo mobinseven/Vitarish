@@ -36,9 +36,12 @@ meaning and resource authorization remain with the initiating use case.
   and sort by actor, UTC date/time, and event type at minimum. Enforce
   platform/tenant scope in the authorized Application boundary; never return
   persistence entities, chain key material, or sensitive payloads.
-- **[MUST]** Audit every allowed and denied review/management attempt through a
-  recursion-safe owned path. Reading audit data must not mutate the queried
-  events or acknowledge unrelated notices.
+- **[MUST]** Review queries are side-effect-free, including denied reads; never
+  append a review-attempt event from an Audit query. Platform-admin login or
+  access-attempt auditing belongs to its authentication/access boundary.
+  Audit state-changing management commands through a recursion-safe path.
+  Reading audit data must not mutate queried events or acknowledge unrelated
+  notices.
 - **[MUST]** Preserve normalized source IP when known and represent anonymous
   and system actors explicitly. Do not synthesize an IP, actor, or payload.
 

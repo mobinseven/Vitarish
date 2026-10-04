@@ -10,15 +10,11 @@ internal sealed class SecurityAuditQueryService(
     AuditDbContext dbContext,
     Vitarish.Requests.Application.Abstractions.IRequestContext requestContext,
     IAuditStorageSizeReader? storageSizeReader = null,
-    IOptions<SecurityAuditOptions>? options = null,
-    ISecurityAuditWriter? auditWriter = null,
-    PlatformSecurityAuditAttemptRecorder? platformAttemptRecorder = null) : ISecurityAuditQueryService
+    IOptions<SecurityAuditOptions>? options = null) : ISecurityAuditQueryService
 {
     public async Task<SecurityAuditPageReadDto> QueryAsync(SecurityAuditQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
-        bool authorized = AuditAccessAuthorization.HasReviewAccess(requestContext);
-        await RecordReviewAttemptAsync(authorized, cancellationToken);
         AuditAccessAuthorization.DemandReviewAccess(requestContext);
 
         ValidateQuery(query);
@@ -31,13 +27,6 @@ internal sealed class SecurityAuditQueryService(
     public async Task<SecurityAuditPageReadDto> QueryPlatformAsync(SecurityAuditPlatformQuery request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        bool authorized = AuditAccessAuthorization.HasPlatformReviewAccess(requestContext);
-        await RecordPlatformAttemptAsync(
-            SecurityAuditEventCatalog.AuditReviewEvent,
-            SecurityAuditEventCatalog.AuditReviewOperation,
-            SecurityAuditScopeCatalog.PlatformReviewIdempotencySuffix,
-            authorized ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
-            cancellationToken);
         AuditAccessAuthorization.DemandPlatformReviewAccess(requestContext);
 
         ValidateQuery(request.Query);
@@ -51,13 +40,6 @@ internal sealed class SecurityAuditQueryService(
 
     public async Task<IReadOnlyList<SecurityAuditCatalogEntryReadDto>> GetPlatformCatalogAsync(CancellationToken cancellationToken)
     {
-        bool authorized = AuditAccessAuthorization.HasPlatformReviewAccess(requestContext);
-        await RecordPlatformAttemptAsync(
-            SecurityAuditEventCatalog.AuditReviewEvent,
-            SecurityAuditEventCatalog.AuditReviewOperation,
-            SecurityAuditScopeCatalog.PlatformReviewIdempotencySuffix,
-            authorized ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
-            cancellationToken);
         AuditAccessAuthorization.DemandPlatformReviewAccess(requestContext);
         IReadOnlyList<SecurityAuditCatalogEntryReadDto> catalog = SecurityAuditEventCatalog.Entries
             .Where(entry => entry.Applicable)
@@ -73,13 +55,6 @@ internal sealed class SecurityAuditQueryService(
     public async Task<IReadOnlyList<SecurityAuditEventReadDto>> ExportPlatformAsync(SecurityAuditPlatformQuery request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        bool authorized = AuditAccessAuthorization.HasPlatformReviewAccess(requestContext);
-        await RecordPlatformAttemptAsync(
-            SecurityAuditEventCatalog.ExportEvent,
-            SecurityAuditEventCatalog.ExportOperation,
-            SecurityAuditScopeCatalog.PlatformExportIdempotencySuffix,
-            authorized ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
-            cancellationToken);
         AuditAccessAuthorization.DemandPlatformReviewAccess(requestContext);
 
         ValidateQuery(request.Query);
@@ -120,8 +95,6 @@ internal sealed class SecurityAuditQueryService(
     public async Task<IReadOnlyList<SecurityAuditEventReadDto>> GetByResourceAsync(string resource, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(resource);
-        bool authorized = AuditAccessAuthorization.HasReviewAccess(requestContext);
-        await RecordReviewAttemptAsync(authorized, cancellationToken);
         AuditAccessAuthorization.DemandReviewAccess(requestContext);
 
         try
@@ -149,8 +122,6 @@ internal sealed class SecurityAuditQueryService(
     public async Task<SecurityAuditEventReadDto?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
-        bool authorized = AuditAccessAuthorization.HasReviewAccess(requestContext);
-        await RecordReviewAttemptAsync(authorized, cancellationToken);
         AuditAccessAuthorization.DemandReviewAccess(requestContext);
 
         try
@@ -207,47 +178,6 @@ internal sealed class SecurityAuditQueryService(
         }
     }
 
-    private async Task RecordReviewAttemptAsync(bool authorized, CancellationToken cancellationToken)
-    {
-        if (auditWriter is null || string.IsNullOrWhiteSpace(requestContext.TenantId))
-            return;
-
-        try
-        {
-            string requestId = requestContext.RequestId ?? Guid.NewGuid().ToString("N");
-            _ = await auditWriter.WriteAsync(new SecurityAuditEvent
-            {
-                EventName = SecurityAuditEventCatalog.AuditReviewEvent,
-                EventCategory = SecurityAuditEventCatalog.ReviewCategory,
-                Outcome = authorized ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
-                ActorId = requestContext.UserId,
-                TenantId = requestContext.TenantId,
-                Resource = requestContext.TenantId,
-                Operation = SecurityAuditEventCatalog.AuditReviewOperation,
-                OccurredAt = DateTime.UtcNow,
-                CorrelationId = requestId,
-                SourceBoundary = SecurityAuditEventCatalog.AuditReviewSourceBoundary,
-                IdempotencyKey = requestId + SecurityAuditEventCatalog.AuditReviewIdempotencySuffix
-            }, cancellationToken);
-        }
-        catch (SecurityAuditStoreException)
-        {
-            // AU-8 deliberately preserves the review result when its audit
-            // record cannot be stored; the writer has emitted the host error.
-        }
-    }
-
-    private async Task RecordPlatformAttemptAsync(
-        string eventName,
-        string operation,
-        string idempotencySuffix,
-        string outcome,
-        CancellationToken cancellationToken)
-    {
-        if (platformAttemptRecorder is not null)
-            await platformAttemptRecorder.RecordAsync(eventName, operation, idempotencySuffix, outcome, cancellationToken);
-    }
-
     private static void ValidateQuery(SecurityAuditQuery query)
     {
         if (query.Page < 1 || query.PageSize is < 1 or > 200)
@@ -285,6 +215,8 @@ internal sealed class SecurityAuditQueryService(
             result = result.Where(item => item.TenantId != SecurityAuditScopeCatalog.PlatformScopeId);
         if (!string.IsNullOrWhiteSpace(query.ActorId))
             result = result.Where(item => item.ActorId == query.ActorId);
+        if (!string.IsNullOrWhiteSpace(query.SubjectId))
+            result = result.Where(item => item.SubjectId == query.SubjectId);
         if (!string.IsNullOrWhiteSpace(query.EventId) && Guid.TryParse(query.EventId, out Guid eventId))
             result = result.Where(item => item.Id == eventId);
         if (!string.IsNullOrWhiteSpace(query.EventName))
@@ -352,6 +284,7 @@ internal sealed class SecurityAuditQueryService(
         SourceBoundary = item.SourceBoundary,
         SourceIpKind = item.SourceIpKind,
         SourceIpAddress = item.SourceIpAddress,
+        ClientInterfaceHost = item.ClientInterfaceHost,
         RedactedReason = item.RedactedReason
     };
 }

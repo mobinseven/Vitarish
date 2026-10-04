@@ -5,6 +5,7 @@ using Vitarish.Authentication.Application.Validation;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
+using Vitarish.Users.Domain.Security;
 
 namespace Vitarish.Authentication.Application.Handlers;
 
@@ -27,22 +28,34 @@ public sealed class BeginPasswordRecoveryHandler(
         if (!AuthenticationInputValidator.HasText(command.Contact) || command.Channel is not (PasswordRecoveryChannel.Email or PasswordRecoveryChannel.Sms))
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.InvalidInput, "A supported recovery channel and contact are required."));
 
+        // An SMS contact that cannot be converted behaves exactly like an unknown
+        // number: no directory lookup, no real challenge, the same public response.
+        string contact = command.Contact.Trim();
+        bool smsContactUsable = true;
+        if (command.Channel is PasswordRecoveryChannel.Sms)
+        {
+            if (UserPhoneNumberPolicy.TryNormalize(command.Contact, out string? normalizedPhone))
+                contact = normalizedPhone;
+            else
+                smsContactUsable = false;
+        }
+
         long startedAt = timeProvider.GetTimestamp();
         SecurityAccessPolicy securityPolicy = await securityPolicyProvider.GetAsync(cancellationToken);
         if (!securityPolicy.PermittedPreAuthenticationActions.Contains(PreAuthenticationAction.PasswordRecovery))
             return new AuthenticationResult<ChallengeResult>.Failure(new(AuthenticationFailureReason.NotAllowed, "Password recovery is not enabled."));
 
         AuthenticationMethod method = MethodFor(command.Channel);
-        IReadOnlyList<string> identifierKeys = attemptKeyFactory.IdentifierCandidates(method, command.Contact);
+        IReadOnlyList<string> identifierKeys = attemptKeyFactory.IdentifierCandidates(method, contact);
         bool denied = await IsDeniedAsync(identifierKeys, cancellationToken);
 
         AuthenticationUserDescriptor? user = null;
-        if (!denied)
+        if (!denied && smsContactUsable)
         {
             user = command.Channel switch
             {
-                PasswordRecoveryChannel.Email => await userDirectory.FindByEmailAsync(command.Contact.Trim(), cancellationToken),
-                PasswordRecoveryChannel.Sms => await userDirectory.FindByPhoneNumberAsync(command.Contact.Trim(), cancellationToken),
+                PasswordRecoveryChannel.Email => await userDirectory.FindByEmailAsync(contact, cancellationToken),
+                PasswordRecoveryChannel.Sms => await userDirectory.FindByPhoneNumberAsync(contact, cancellationToken),
                 _ => null
             };
 
@@ -60,18 +73,17 @@ public sealed class BeginPasswordRecoveryHandler(
         string userId = eligible ? user!.UserId : Guid.NewGuid().ToString("N");
         string destination = eligible ? registeredDestination! : string.Empty;
         AuthenticationChallengePolicy effectivePolicy = challengePolicy.WithMaximumAttempts(securityPolicy.FailedAttemptThreshold);
-        string tokenPurpose = effectivePolicy.TokenPurpose(purpose);
         DateTimeOffset now = timeProvider.GetUtcNow();
         AuthenticationChallenge challenge = command.Channel is PasswordRecoveryChannel.Email
-            ? effectivePolicy.CreateEmailPasswordRecoveryChallenge(userId, destination, tokenPurpose, now)
-            : effectivePolicy.CreatePhonePasswordRecoveryChallenge(userId, destination, tokenPurpose, now);
+            ? effectivePolicy.CreateEmailPasswordRecoveryChallenge(userId, destination, now)
+            : effectivePolicy.CreatePhonePasswordRecoveryChallenge(userId, destination, now);
         await challengeStore.SaveAsync(challenge, cancellationToken);
 
         if (eligible)
         {
             try
             {
-                string code = await codeGenerator.GenerateAsync(userId, tokenPurpose, cancellationToken);
+                string code = await codeGenerator.GenerateAsync(userId, challenge.TokenPurpose, cancellationToken);
                 if (command.Channel is PasswordRecoveryChannel.Email)
                     await emailSender.SendAsync(destination, code, purpose, cancellationToken);
                 else

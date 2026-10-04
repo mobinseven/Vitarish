@@ -31,11 +31,25 @@ public static class UsersApi
         _ = users.MapModuleGet(UsersApiRoutes.CheckEmail, CheckEmailAsync, "UsersCheckEmail", typeof(UserExistenceResponse)).RequireAuthorization(UsersAuthorizationPolicies.ReadSecurityState);
         _ = users.MapModuleGet(UsersApiRoutes.CheckPhone, CheckPhoneAsync, "UsersCheckPhone", typeof(UserExistenceResponse)).RequireAuthorization(UsersAuthorizationPolicies.ReadSecurityState);
         _ = users.MapModuleGet(UsersApiRoutes.CheckRole, CheckRoleAsync, "UsersCheckRole", typeof(UserRoleCheckResponse)).RequireAuthorization(UsersAuthorizationPolicies.ReadSecurityState);
-        _ = users.MapModulePost(UsersApiRoutes.CreateWithPhone, CreateWithPhoneAsync, "UsersCreateWithPhone", typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts);
-        _ = users.MapModulePost(UsersApiRoutes.CreateWithEmail, CreateWithEmailAsync, "UsersCreateWithEmail", typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts);
-        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithPhone, CreateWithPhoneAsync, "UsersAdministrationCreateWithPhone", typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts);
-        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithEmail, CreateWithEmailAsync, "UsersAdministrationCreateWithEmail", typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts);
-        _ = users.MapModulePut(UsersApiRoutes.SetEmail, SetEmailAsync, "UsersSetEmail", typeof(UsersCommandResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts);
+        _ = users.MapModulePost(UsersApiRoutes.CreateWithPhone, CreateWithPhoneAsync, UsersApiRoutes.CreateWithPhoneOperation, typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
+        _ = users.MapModulePost(UsersApiRoutes.CreateWithEmail, CreateWithEmailAsync, UsersApiRoutes.CreateWithEmailOperation, typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
+        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithPhone, CreateAdministrativeWithPhoneAsync, UsersApiRoutes.AdministrationCreateWithPhoneOperation, typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
+        _ = users.MapModulePost(UsersApiRoutes.AdministrationCreateWithEmail, CreateAdministrativeWithEmailAsync, UsersApiRoutes.AdministrationCreateWithEmailOperation, typeof(UserSummaryResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
+        _ = users.MapModulePut(UsersApiRoutes.ById, UpdateManagedUserAsync, UsersApiRoutes.AdministrationUpdateUserOperation, typeof(UsersCommandResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
+        _ = users.MapModuleGet(
+            $"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserSecurity}",
+            GetUserSecurityDetailsAsync,
+            UsersApiRoutes.AdministrationGetUserSecurityOperation,
+            typeof(UserSecurityDetailsResponse))
+            .RequireAuthorization(UsersAuthorizationPolicies.ReadSecurityState)
+            .Produces<UserSecurityDetailsResponse>(StatusCodes.Status503ServiceUnavailable);
+        _ = users.MapModulePut(UsersApiRoutes.SetEmail, SetEmailAsync, UsersApiRoutes.SetEmailOperation, typeof(UsersCommandResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
         _ = users.MapModulePost(UsersApiRoutes.AddRole, AddRoleAsync, "UsersAddRole", typeof(UsersCommandResponse)).RequireAuthorization(UsersAuthorizationPolicies.AssignGlobalRole)
             .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
         _ = users.MapModuleGet($"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserRoles}", ListTenantRolesAsync, "UsersAdministrationListTenantRoles", typeof(TenantRoleMembershipResponse[])).RequireAuthorization(UsersAuthorizationPolicies.ReadTenantRoles);
@@ -72,9 +86,11 @@ public static class UsersApi
             {
                 UsersCommandErrorCodes.Unauthorized => Results.Forbid(),
                 UsersCommandErrorCodes.TenantMemberNotFound => Results.NotFound(),
-                UsersCommandErrorCodes.ActiveSessionConflict => Results.Conflict(UsersCommandResponse.Failed([new UsersCommandError(result.ErrorCode, UsersCommandErrorCodes.ActiveSessionConflictDescription)])),
-                UsersCommandErrorCodes.TenantMemberConflict => Results.Conflict(UsersCommandResponse.Failed([new UsersCommandError(result.ErrorCode, UsersCommandErrorCodes.TenantMemberConflictDescription)])),
-                _ => Results.Conflict(UsersCommandResponse.Failed([new UsersCommandError(result.ErrorCode ?? UsersCommandErrorCodes.TenantMemberConflict, result.ErrorCode ?? UsersCommandErrorCodes.TenantMemberConflictDescription)]))
+                UsersCommandErrorCodes.InvalidContact => Results.BadRequest(UsersCommandResponse.Failed([UsersCommandErrorKinds.ForCode(UsersCommandErrorCodes.InvalidContact, UsersCommandErrorCodes.InvalidContactDescription)])),
+                UsersCommandErrorCodes.ActiveSessionConflict => Results.Conflict(UsersCommandResponse.Failed([UsersCommandErrorKinds.ForCode(result.ErrorCode, UsersCommandErrorCodes.ActiveSessionConflictDescription)])),
+                UsersCommandErrorCodes.TenantMemberConflict => Results.Conflict(UsersCommandResponse.Failed([UsersCommandErrorKinds.ForCode(result.ErrorCode, UsersCommandErrorCodes.TenantMemberConflictDescription)])),
+                UsersCommandErrorCodes.ContactIdentifierInUse => Results.Conflict(UsersCommandResponse.Failed([UsersCommandErrorKinds.ForCode(UsersCommandErrorCodes.ContactIdentifierInUse, UsersCommandErrorCodes.ContactIdentifierInUseDescription)])),
+                _ => Results.Conflict(UsersCommandResponse.Failed([UsersCommandErrorKinds.ForCode(result.ErrorCode ?? UsersCommandErrorCodes.TenantMemberConflict, result.ErrorCode ?? UsersCommandErrorCodes.TenantMemberConflictDescription)]))
             };
         }
 
@@ -90,8 +106,124 @@ public static class UsersApi
     private static async Task<IResult> CheckEmailAsync([AsParameters] CheckUserEmailInUseQueryParameters p, IUsersService service, CancellationToken ct) => Results.Ok(new UserExistenceResponse(await service.CheckUserEmailInUseAsync(p.Email, p.ExcludeUserId, ct)));
     private static async Task<IResult> CheckPhoneAsync([AsParameters] CheckUserPhoneNumberInUseQueryParameters p, IUsersService service, CancellationToken ct) => Results.Ok(new UserExistenceResponse(await service.CheckUserPhoneNumberInUseAsync(p.PhoneNumber, p.ExcludeUserId, ct)));
     private static async Task<IResult> CheckRoleAsync([AsParameters] CheckUserRoleQueryParameters p, IUsersService service, CancellationToken ct) => Results.Ok(new UserRoleCheckResponse(await service.CheckUserRoleAsync(p.UserId, p.RoleName, ct)));
-    private static async Task<IResult> CreateWithPhoneAsync(CreateUserWithPhoneRequest r, IUsersService service, CancellationToken ct) => await service.CreateUserWithPhoneAsync(new CreateUserWithPhoneCommand(r.PhoneNumber, r.FirstName, r.LastName, r.IdentificationCode, r.DateOfBirth, r.BirthCountryCode, r.BirthCity), ct) is { } user ? Results.Ok(ToSummary(user)) : Results.Conflict();
-    private static async Task<IResult> CreateWithEmailAsync(CreateUserWithEmailRequest r, IUsersService service, CancellationToken ct) => await service.CreateUserWithEmailAsync(new CreateUserWithEmailCommand(r.Email, r.FirstName, r.LastName, r.IdentificationCode, r.DateOfBirth, r.BirthCountryCode, r.BirthCity), ct) is { } user ? Results.Ok(ToSummary(user)) : Results.Conflict();
+    private static async Task<IResult> CreateWithPhoneAsync(CreateUserWithPhoneRequest r, IUsersService service, CancellationToken ct) => await service.CreateUserWithPhoneAsync(new CreateUserWithPhoneCommand(r.PhoneNumber, r.FirstName, r.LastName, r.IdentificationCode, r.DateOfBirth, r.BirthCountryCode, r.BirthCity), ct) is { } user ? Results.Ok(ToSummary(user)) : ContactInUseConflict();
+    private static async Task<IResult> CreateWithEmailAsync(CreateUserWithEmailRequest r, IUsersService service, CancellationToken ct) => await service.CreateUserWithEmailAsync(new CreateUserWithEmailCommand(r.Email, r.FirstName, r.LastName, r.IdentificationCode, r.DateOfBirth, r.BirthCountryCode, r.BirthCity), ct) is { } user ? Results.Ok(ToSummary(user)) : ContactInUseConflict();
+    private static async Task<IResult> CreateAdministrativeWithPhoneAsync(CreateUserWithPhoneRequest r, IUsersService service, CancellationToken ct) => await service.CreateUserWithPhoneAsync(new CreateUserWithPhoneCommand(r.PhoneNumber, r.FirstName, r.LastName, r.IdentificationCode, r.DateOfBirth, r.BirthCountryCode, r.BirthCity, RejectIfAlreadyExists: true), ct) is { } user ? Results.Ok(ToSummary(user)) : ContactInUseConflict();
+    private static async Task<IResult> CreateAdministrativeWithEmailAsync(CreateUserWithEmailRequest r, IUsersService service, CancellationToken ct) => await service.CreateUserWithEmailAsync(new CreateUserWithEmailCommand(r.Email, r.FirstName, r.LastName, r.IdentificationCode, r.DateOfBirth, r.BirthCountryCode, r.BirthCity, RejectIfAlreadyExists: true), ct) is { } user ? Results.Ok(ToSummary(user)) : ContactInUseConflict();
+    private static async Task<IResult> UpdateManagedUserAsync(string userId, UpdateManagedUserRequest request, ISender sender, CancellationToken ct)
+    {
+        IdentityResult result = await sender.Send(new UpdateManagedUserCommand(userId, request.Email, request.PhoneNumber, request.FirstName, request.LastName, request.Revision), ct);
+        if (!result.Succeeded)
+        {
+            UsersCommandError[] errors = result.Errors.Select(ToManagedUserError).ToArray();
+            if (result.Errors.Any(error => string.Equals(error.Code, nameof(UsersCommandFailureCode.UserNotFound), StringComparison.Ordinal)))
+                return Results.NotFound(UsersCommandResponse.Failed(errors));
+            if (result.Errors.Any(error => string.Equals(error.Code, nameof(UsersCommandFailureCode.ConcurrencyFailure), StringComparison.Ordinal)))
+                return Results.Conflict(UsersCommandResponse.Failed(errors));
+            if (result.Errors.Any(error => string.Equals(error.Code, nameof(UsersCommandFailureCode.Unauthorized), StringComparison.Ordinal)))
+                return Results.Forbid();
+            return Results.BadRequest(UsersCommandResponse.Failed(errors));
+        }
+
+        return Results.Ok(UsersCommandResponse.Success());
+    }
+
+    private static UsersCommandError ToManagedUserError(IdentityError error)
+    {
+        if (!Enum.TryParse(error.Code, out UsersCommandFailureCode failureCode) || !Enum.IsDefined(failureCode))
+            return UsersCommandErrorKinds.ForCode(error.Code, error.Description);
+
+        return failureCode switch
+        {
+            UsersCommandFailureCode.InvalidContact => new(UsersCommandErrorCodes.InvalidContact, UsersCommandErrorCodes.InvalidContactDescription, UsersCommandErrorKind.InvalidContact),
+            UsersCommandFailureCode.ContactIdentifierInUse => new(UsersCommandErrorCodes.ContactIdentifierInUse, UsersCommandErrorCodes.ContactIdentifierInUseDescription, UsersCommandErrorKind.ContactIdentifierInUse),
+            UsersCommandFailureCode.UserNotFound => new(UsersCommandErrorCodes.UserNotFound, UsersCommandErrorCodes.UserNotFoundDescription, UsersCommandErrorKind.UserNotFound),
+            UsersCommandFailureCode.ConcurrencyFailure => new(UsersCommandErrorCodes.ConcurrencyFailure, UsersCommandErrorCodes.ConcurrencyFailureDescription, UsersCommandErrorKind.ConcurrencyFailure),
+            UsersCommandFailureCode.Unauthorized => new(UsersCommandErrorCodes.Unauthorized, UsersCommandErrorCodes.UnauthorizedDescription, UsersCommandErrorKind.Unauthorized)
+        };
+    }
+
+    private static IResult ContactInUseConflict() =>
+        Results.Conflict(UsersCommandResponse.Failed(
+            [UsersCommandErrorKinds.ForCode(UsersCommandErrorCodes.ContactIdentifierInUse, UsersCommandErrorCodes.ContactIdentifierInUseDescription)]));
+    private static async Task<IResult> GetUserSecurityDetailsAsync(
+        string userId,
+        int page,
+        int pageSize,
+        ISender sender,
+        CancellationToken cancellationToken)
+    {
+        UserSecurityDetailsQueryResult details;
+        try
+        {
+            details = await sender.Send(new GetUserSecurityDetailsQuery(userId, page, pageSize), cancellationToken);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Results.Forbid();
+        }
+        catch (ArgumentException)
+        {
+            return Results.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid user security history query.", detail: "The requested page is invalid.");
+        }
+
+        if (!details.IsAuthorized)
+            return Results.Forbid();
+        if (details.User is null)
+            return Results.NotFound();
+
+        List<TenantRoleMembershipResponse> tenantRoles = details.AssignedRoles
+            .Select(ParseTenantRole)
+            .Where(role => role is not null)
+            .Select(role => role!)
+            .ToList();
+        HashSet<string> tenantRoleNames = details.AssignedRoles
+            .Where(TenantRoleDefinitions.IsTenantRoleName)
+            .ToHashSet(StringComparer.Ordinal);
+        string[] globalRoles = details.AssignedRoles
+            .Where(role => !tenantRoleNames.Contains(role))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        UserSecurityIdentityResponse identity = new(
+            details.User.Id,
+            details.User.UserName,
+            details.User.FirstName,
+            details.User.LastName,
+            details.User.Email,
+            details.User.PhoneNumber,
+            details.User.FullName,
+            details.User.ConcurrencyStamp);
+        UserSecurityDetailsResponse response = new(
+            identity,
+            globalRoles,
+            tenantRoles,
+            details.SecurityHistory is null ? null : MapUserSecurityHistory(details.SecurityHistory),
+            details.AuthenticationHistory is null ? null : MapUserSecurityHistory(details.AuthenticationHistory),
+            details.SecurityHistoryAvailable,
+            details.AuthenticationHistoryAvailable);
+
+        if (!details.SecurityHistoryAvailable || !details.AuthenticationHistoryAvailable)
+        {
+            return Results.Json(response, statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
+
+        return Results.Ok(response);
+    }
+
+    private static UserSecurityHistoryResponse MapUserSecurityHistory(UserSecurityHistoryResult history) => new(
+        history.Items.Select(item => new UserSecurityEventResponse(
+            item.EventName,
+            item.EventCategory,
+            item.Outcome,
+            item.ActorId,
+            item.Operation,
+            item.OccurredAt,
+            item.ClientInterfaceHost,
+            item.IsAuthenticationEvent,
+            item.RedactedReason)).ToArray(),
+        history.Page,
+        history.PageSize,
+        history.TotalCount);
     private static async Task<IResult> SetEmailAsync(string userId, SetUserEmailRequest r, IUsersService service, CancellationToken ct) => ToCommandResult(await service.SetUserEmailAsync(userId, r.Email, ct));
     private static async Task<IResult> AddRoleAsync(string userId, AddUserToRoleRequest r, IUsersService service, CancellationToken ct) { User? user = await service.GetUserAsync(userId, ct); if (user is null) { return Results.NotFound(); } return ToRoleCommandResult(await service.AddUserToRoleAsync(user, r.RoleName, ct)); }
     private static async Task<IResult> ListTenantRolesAsync(string userId, IUsersService service, CancellationToken ct)
@@ -111,7 +243,7 @@ public static class UsersApi
     private static async Task<IResult> ChangeTenantRoleAsync(string userId, Guid tenantId, string roleSuffix, ChangeTenantRoleRequest? request, IUsersService service, ITenantExistence tenants, bool grant, CancellationToken ct)
     {
         if (request is null || tenantId == Guid.Empty || !IsAllowedTenantRole(roleSuffix) || !string.Equals(request.RoleSuffix, roleSuffix, StringComparison.Ordinal))
-            return Results.BadRequest(UsersCommandResponse.Failed([new UsersCommandError(UsersCommandErrorCodes.InvalidTenantRole, UsersCommandErrorCodes.InvalidTenantRoleDescription)]));
+            return Results.BadRequest(UsersCommandResponse.Failed([UsersCommandErrorKinds.ForCode(UsersCommandErrorCodes.InvalidTenantRole, UsersCommandErrorCodes.InvalidTenantRoleDescription)]));
         if (!await tenants.ExistsAsync(tenantId, ct)) return Results.NotFound();
         User? user = await service.GetUserAsync(userId, ct);
         if (user is null) return Results.NotFound();
@@ -129,8 +261,8 @@ public static class UsersApi
 
     private static bool IsAllowedTenantRole(string roleSuffix) =>
         TenantRoleDefinitions.IsPermittedRoleSuffix(roleSuffix);
-    private static IResult ToCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : result.Errors.Any(error => error.Code == UsersCommandErrorCodes.ActiveSessionConflict) ? Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray())) : Results.BadRequest(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray()));
-    private static IResult ToRoleCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => new UsersCommandError(e.Code, e.Description)).ToArray()));
+    private static IResult ToCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : result.Errors.Any(error => error.Code == UsersCommandErrorCodes.ActiveSessionConflict) ? Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => UsersCommandErrorKinds.ForCode(e.Code, e.Description)).ToArray())) : Results.BadRequest(UsersCommandResponse.Failed(result.Errors.Select(e => UsersCommandErrorKinds.ForCode(e.Code, e.Description)).ToArray()));
+    private static IResult ToRoleCommandResult(IdentityResult result) => result.Succeeded ? Results.Ok(UsersCommandResponse.Success()) : Results.Conflict(UsersCommandResponse.Failed(result.Errors.Select(e => UsersCommandErrorKinds.ForCode(e.Code, e.Description)).ToArray()));
     private static UserSummaryResponse ToSummary(User user) => new(user.Id, user.UserName, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.IdentificationCode, user.DateOfBirth, user.BirthCountryCode, user.BirthCity, user.FullName);
     private static UserSummaryResponse ToSafeSummary(User user) => new(user.Id, user.UserName, user.FirstName, user.LastName, user.Email, user.PhoneNumber, null, null, null, null, user.FullName);
     private static TenantMemberResponse ToTenantMemberResponse(TenantMemberSummary member) => new(new UserSummaryResponse(member.Id, member.UserName, member.FirstName, member.LastName, member.Email, member.PhoneNumber, null, null, null, null, member.FullName), member.RoleSuffix);
