@@ -4,7 +4,7 @@ import { I18nAppLayout } from "@vitarish/localization";
 import { Providers } from "@/components/Providers";
 import { PlatformAdminAccessBoundary } from "@/components/PlatformAdminAccessBoundary";
 import { getMessages } from "@/localization/messages";
-import { contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
+import { ContentSecurityPolicyNonceMeta, contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
 import { vazirmatn } from "./fonts";
 import "./globals.css";
 
@@ -16,7 +16,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const nonce = contentSecurityPolicyNonce(headerStore);
   return <>
     <head>
-      <link rel="stylesheet" href="/fontawesome/css/all.min.css" /></head>
+      <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
+      <ContentSecurityPolicyNonceMeta nonce={nonce} /></head>
     <I18nAppLayout cookieHeader={headerStore.get("cookie")} acceptLanguageHeader={headerStore.get("accept-language")} getMessages={getMessages} htmlClassName={`${vazirmatn.variable} bg-background text-foreground`} bodyClassName="bg-background text-foreground font-sans antialiased">
       <header className="w-full">
         <picture>
