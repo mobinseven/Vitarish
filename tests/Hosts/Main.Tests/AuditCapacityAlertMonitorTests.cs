@@ -2,15 +2,18 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Vitarish.Audit.Application;
+using Vitarish.Audit.Domain;
 using Vitarish.Audit.Server;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.Options;
+using Vitarish.Modules.Base.Core.BackgroundJobs;
 
 namespace Main.Tests;
 
@@ -94,6 +97,194 @@ public sealed class AuditCapacityAlertMonitorTests
 
         messages.Verify(service => service.SendEmail(It.IsAny<Message>(), It.IsAny<CancellationToken>()), Times.Once);
         messages.Verify(service => service.SendSms(It.IsAny<Message>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Crossed_threshold_writes_one_catalogued_audit_record_recording_bytes_threshold_and_channels()
+    {
+        SequenceStorageSizeReader sizeReader = new(2048);
+        Mock<IMessagesService> messages = CreateMessagesService();
+        Mock<ISecurityAuditWriter> auditWriter = CreateAuditWriter();
+        using ServiceProvider services = CreateServices(sizeReader, messages.Object, auditWriter);
+        AuditCapacityAlertMonitor monitor = CreateMonitor(services, threshold: 1024);
+
+        await monitor.CheckOnceAsync(CancellationToken.None);
+
+        SecurityAuditEvent auditEvent = AuditEvents(auditWriter).Should().ContainSingle().Subject;
+        auditEvent.EventName.Should().Be(SecurityAuditEventCatalog.AuditStorageThresholdEvent);
+        auditEvent.EventCategory.Should().Be(SecurityAuditEventCatalog.SecurityFailureCategory);
+        auditEvent.Operation.Should().Be(SecurityAuditEventCatalog.AuditStorageThresholdOperation);
+        auditEvent.Outcome.Should().Be(SecurityAuditOutcome.Succeeded);
+        auditEvent.ActorKind.Should().Be(SecurityAuditActorKind.System);
+        auditEvent.ActorId.Should().BeNull();
+        auditEvent.TenantId.Should().Be(SecurityAuditScopeCatalog.PlatformScopeId);
+        auditEvent.Resource.Should().Be(SecurityAuditScopeCatalog.PlatformResource);
+        auditEvent.SourceBoundary.Should().Be(SecurityAuditEventCatalog.AuditStorageThresholdSourceBoundary);
+        auditEvent.SourceIpKind.Should().Be(SecurityAuditSourceKind.System);
+        auditEvent.SourceIpAddress.Should().BeNull();
+        auditEvent.OccurredAt.Kind.Should().Be(DateTimeKind.Utc);
+        auditEvent.CorrelationId.Should().Be(auditEvent.IdempotencyKey);
+        auditEvent.RedactedReason.Should().Be(SecurityAuditReasonCatalog.AuditStorageThreshold(
+            2048,
+            1024,
+            SecurityAuditReasonCatalog.NotificationChannelSucceeded,
+            SecurityAuditReasonCatalog.NotificationChannelSucceeded));
+    }
+
+    [Fact]
+    public async Task Crossed_threshold_records_partial_channel_failure_with_a_succeeded_outcome()
+    {
+        SequenceStorageSizeReader sizeReader = new(2048);
+        Mock<IMessagesService> messages = CreateMessagesService();
+        _ = messages.Setup(service => service.SendSms(It.IsAny<Message>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("private delivery detail"));
+        Mock<ISecurityAuditWriter> auditWriter = CreateAuditWriter();
+        using ServiceProvider services = CreateServices(sizeReader, messages.Object, auditWriter);
+        AuditCapacityAlertMonitor monitor = CreateMonitor(services, threshold: 1024);
+
+        await monitor.CheckOnceAsync(CancellationToken.None);
+
+        SecurityAuditEvent auditEvent = AuditEvents(auditWriter).Should().ContainSingle().Subject;
+        auditEvent.Outcome.Should().Be(SecurityAuditOutcome.Succeeded);
+        auditEvent.RedactedReason.Should().Be(SecurityAuditReasonCatalog.AuditStorageThreshold(
+            2048,
+            1024,
+            SecurityAuditReasonCatalog.NotificationChannelSucceeded,
+            SecurityAuditReasonCatalog.NotificationChannelFailed));
+    }
+
+    [Fact]
+    public async Task Crossed_threshold_without_recipients_records_a_failed_audit_outcome()
+    {
+        SequenceStorageSizeReader sizeReader = new(2048);
+        Mock<IMessagesService> messages = CreateMessagesService();
+        Mock<ISecurityAuditWriter> auditWriter = CreateAuditWriter();
+        using ServiceProvider services = CreateServices(sizeReader, messages.Object, auditWriter);
+        AuditCapacityAlertMonitor monitor = CreateMonitor(
+            services,
+            threshold: 1024,
+            emailRecipient: string.Empty,
+            smsRecipient: string.Empty);
+
+        await monitor.CheckOnceAsync(CancellationToken.None);
+
+        SecurityAuditEvent auditEvent = AuditEvents(auditWriter).Should().ContainSingle().Subject;
+        auditEvent.Outcome.Should().Be(SecurityAuditOutcome.Failed);
+        auditEvent.RedactedReason.Should().Be(SecurityAuditReasonCatalog.AuditStorageThresholdWithoutRecipients(2048, 1024));
+        messages.Verify(service => service.SendEmail(It.IsAny<Message>(), It.IsAny<CancellationToken>()), Times.Never);
+        messages.Verify(service => service.SendSms(It.IsAny<Message>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Audit_store_failure_is_logged_and_does_not_stop_the_monitor()
+    {
+        SequenceStorageSizeReader sizeReader = new(2048);
+        Mock<IMessagesService> messages = CreateMessagesService();
+        Mock<ISecurityAuditWriter> auditWriter = CreateAuditWriter();
+        _ = auditWriter.Setup(service => service.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new SecurityAuditStoreException("unavailable", new InvalidOperationException("private database detail")));
+        using ServiceProvider services = CreateServices(sizeReader, messages.Object, auditWriter);
+        List<string> logs = [];
+        AuditCapacityAlertMonitor monitor = CreateMonitor(
+            services,
+            threshold: 1024,
+            logger: new CapturingLogger<AuditCapacityAlertMonitor>(logs));
+
+        Func<Task> check = () => monitor.CheckOnceAsync(CancellationToken.None);
+
+        await check.Should().NotThrowAsync();
+        logs.Should().ContainSingle()
+            .Which.Should().Contain("Security audit recording failed")
+            .And.NotContain("private database detail");
+    }
+
+    [Fact]
+    public async Task Repeated_ticks_above_the_threshold_do_not_write_duplicate_audit_records()
+    {
+        SequenceStorageSizeReader sizeReader = new(2048, 4096);
+        Mock<IMessagesService> messages = CreateMessagesService();
+        Mock<ISecurityAuditWriter> auditWriter = CreateAuditWriter();
+        using ServiceProvider services = CreateServices(sizeReader, messages.Object, auditWriter);
+        AuditCapacityAlertMonitor monitor = CreateMonitor(services, threshold: 1024);
+
+        await monitor.CheckOnceAsync(CancellationToken.None);
+        await monitor.CheckOnceAsync(CancellationToken.None);
+
+        AuditEvents(auditWriter).Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task Threshold_crossing_uses_a_stable_idempotency_key_across_monitor_restarts()
+    {
+        SequenceStorageSizeReader firstReader = new(2048);
+        SequenceStorageSizeReader secondReader = new(2048);
+        Mock<IMessagesService> messages = CreateMessagesService();
+        Mock<ISecurityAuditWriter> auditWriter = CreateAuditWriter();
+
+        using (ServiceProvider firstServices = CreateServices(firstReader, messages.Object, auditWriter))
+        {
+            AuditCapacityAlertMonitor monitor = CreateMonitor(firstServices, threshold: 1024);
+            await monitor.CheckOnceAsync(CancellationToken.None);
+        }
+
+        using (ServiceProvider secondServices = CreateServices(secondReader, messages.Object, auditWriter))
+        {
+            AuditCapacityAlertMonitor monitor = CreateMonitor(secondServices, threshold: 1024);
+            await monitor.CheckOnceAsync(CancellationToken.None);
+        }
+
+        string[] keys = AuditEvents(auditWriter).Select(auditEvent => auditEvent.IdempotencyKey).ToArray();
+        keys.Should().HaveCount(2);
+        keys[0].Should().Be(keys[1]);
+        keys[0].Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task Failed_storage_check_writes_the_catalogued_security_failure_record()
+    {
+        SequenceStorageSizeReader sizeReader = new(() => throw new InvalidOperationException("private database detail"));
+        Mock<IMessagesService> messages = CreateMessagesService();
+        Mock<ISecurityAuditWriter> auditWriter = CreateAuditWriter();
+        using ServiceProvider services = CreateServices(sizeReader, messages.Object, auditWriter);
+        AuditCapacityAlertMonitor monitor = CreateMonitor(services, threshold: 1024);
+
+        await monitor.CheckOnceAsync(CancellationToken.None);
+
+        SecurityAuditEvent auditEvent = AuditEvents(auditWriter).Should().ContainSingle().Subject;
+        auditEvent.EventName.Should().Be(SecurityAuditEventCatalog.SecurityFailureEvent);
+        auditEvent.EventCategory.Should().Be(SecurityAuditEventCatalog.SecurityFailureCategory);
+        auditEvent.Operation.Should().Be(SecurityAuditEventCatalog.SecurityFailureOperation);
+        auditEvent.Outcome.Should().Be(SecurityAuditOutcome.Failed);
+        auditEvent.ActorKind.Should().Be(SecurityAuditActorKind.System);
+        auditEvent.ActorId.Should().BeNull();
+        auditEvent.TenantId.Should().Be(SecurityAuditScopeCatalog.PlatformScopeId);
+        auditEvent.SourceIpKind.Should().Be(SecurityAuditSourceKind.System);
+        auditEvent.RedactedReason.Should().Be(SecurityAuditReasonCatalog.AuditStoreUnavailable);
+        messages.Verify(service => service.SendEmail(
+            It.Is<Message>(message => message.Subject == "Audit storage check failed"),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Failed_storage_check_survives_an_audit_store_failure()
+    {
+        SequenceStorageSizeReader sizeReader = new(() => throw new InvalidOperationException("private database detail"));
+        Mock<IMessagesService> messages = CreateMessagesService();
+        Mock<ISecurityAuditWriter> auditWriter = CreateAuditWriter();
+        _ = auditWriter.Setup(service => service.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new SecurityAuditStoreException("unavailable", new InvalidOperationException("private database detail")));
+        using ServiceProvider services = CreateServices(sizeReader, messages.Object, auditWriter);
+        List<string> logs = [];
+        AuditCapacityAlertMonitor monitor = CreateMonitor(
+            services,
+            threshold: 1024,
+            logger: new CapturingLogger<AuditCapacityAlertMonitor>(logs));
+
+        Func<Task> check = () => monitor.CheckOnceAsync(CancellationToken.None);
+
+        await check.Should().NotThrowAsync();
+        logs.Should().Contain(message => message.Contains("Security audit recording failed", StringComparison.Ordinal));
+        logs.Should().NotContain(message => message.Contains("private database detail", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -213,23 +404,74 @@ public sealed class AuditCapacityAlertMonitorTests
         messages.Verify(service => service.SendSms(It.IsAny<Message>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    private static AuditCapacityAlertMonitor CreateMonitor(IServiceProvider services, long threshold) =>
+    private static AuditCapacityAlertMonitor CreateMonitor(
+        IServiceProvider services,
+        long threshold,
+        string emailRecipient = "admin@vitarish.com",
+        string smsRecipient = "+989120000000",
+        ILogger<AuditCapacityAlertMonitor>? logger = null) =>
         new(
             services.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new SecurityAuditOptions { CapacityWarningBytes = threshold }),
             Options.Create(new AuditCapacityAlertOptions
             {
-                EmailRecipient = "admin@vitarish.com",
-                SmsRecipient = "+989120000000"
+                EmailRecipient = emailRecipient,
+                SmsRecipient = smsRecipient
             }),
-            NullLogger<AuditCapacityAlertMonitor>.Instance);
+            logger ?? NullLogger<AuditCapacityAlertMonitor>.Instance);
 
-    private static ServiceProvider CreateServices(IAuditStorageSizeReader reader, IMessagesService messages)
+    private static ServiceProvider CreateServices(
+        IAuditStorageSizeReader reader,
+        IMessagesService messages,
+        Mock<ISecurityAuditWriter>? auditWriter = null)
     {
         ServiceCollection services = new();
         _ = services.AddSingleton(reader);
         _ = services.AddSingleton(messages);
+        _ = services.AddSingleton((auditWriter ?? CreateAuditWriter()).Object);
+        _ = services.AddSingleton<IBackgroundRequestContextWriter, TestBackgroundRequestContextWriter>();
         return services.BuildServiceProvider();
+    }
+
+    private static Mock<ISecurityAuditWriter> CreateAuditWriter()
+    {
+        Mock<ISecurityAuditWriter> auditWriter = new();
+        _ = auditWriter.Setup(writer => writer.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SecurityAuditWriteResult.Recorded);
+        return auditWriter;
+    }
+
+    private static SecurityAuditEvent[] AuditEvents(Mock<ISecurityAuditWriter> auditWriter) => auditWriter.Invocations
+        .Where(invocation => invocation.Method.Name == nameof(ISecurityAuditWriter.WriteAsync))
+        .Select(invocation => (SecurityAuditEvent)invocation.Arguments[0])
+        .ToArray();
+
+    private sealed class TestBackgroundRequestContextWriter : IBackgroundRequestContextWriter
+    {
+        public BackgroundRequestContext? Context { get; private set; }
+
+        public void SetContext(BackgroundRequestContext context) => Context = context;
+    }
+
+    private sealed class CapturingLogger<T>(List<string> messages) : ILogger<T>
+    {
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => NullScope.Instance;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+            => messages.Add(formatter(state, exception));
+
+        private sealed class NullScope : IDisposable
+        {
+            public static NullScope Instance { get; } = new();
+            public void Dispose() { }
+        }
     }
 
     private sealed class SignalingStorageSizeReader : IAuditStorageSizeReader

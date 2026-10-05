@@ -62,6 +62,24 @@ public sealed class SecurityAuditReviewTests
         SecurityAuditRedaction.Apply(SecurityAuditReasonCatalog.HttpStatus(401)).Should().Be("http_401");
         SecurityAuditRedaction.Apply(SecurityAuditReasonCatalog.Version(8)).Should().Be("version:8");
         SecurityAuditRedaction.Apply(SecurityAuditReasonCatalog.UserTimeoutMinutes(15)).Should().Be("user_timeout_minutes:15");
+        SecurityAuditRedaction.Apply(SecurityAuditReasonCatalog.AuditStorageThreshold(
+                4096,
+                1024,
+                SecurityAuditReasonCatalog.NotificationChannelSucceeded,
+                SecurityAuditReasonCatalog.NotificationChannelFailed))
+            .Should().Be("audit_storage_threshold:bytes=4096;threshold=1024;email=succeeded;sms=failed");
+        SecurityAuditRedaction.Apply(SecurityAuditReasonCatalog.AuditStorageThreshold(
+                4096,
+                1024,
+                SecurityAuditReasonCatalog.NotificationChannelNotAttempted,
+                SecurityAuditReasonCatalog.NotificationChannelNotAttempted))
+            .Should().Be("audit_storage_threshold:bytes=4096;threshold=1024;email=not_attempted;sms=not_attempted");
+        SecurityAuditRedaction.Apply(SecurityAuditReasonCatalog.AuditStorageThresholdWithoutRecipients(4096, 1024))
+            .Should().Be("audit_storage_threshold:bytes=4096;threshold=1024;recipients=not_configured");
+        SecurityAuditRedaction.Apply("audit_storage_threshold:bytes=4096;threshold=1024;email=succeeded")
+            .Should().Be(SecurityAuditRedaction.Replacement);
+        SecurityAuditRedaction.Apply("audit_storage_threshold:bytes=4096;threshold=0;email=succeeded;sms=succeeded")
+            .Should().Be(SecurityAuditRedaction.Replacement);
     }
 
     [Fact]
@@ -400,6 +418,78 @@ public sealed class SecurityAuditReviewTests
                 UncataloguedOnly: true),
             CancellationToken.None);
         await categoryWithUncatalogued.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task Platform_review_lists_the_catalogued_audit_storage_threshold_and_security_failure_records()
+    {
+        DbContextOptions<AuditDbContext> options = CreateOptions();
+        await using AuditDbContext context = CreateContext(options, SecurityAuditScopeCatalog.PlatformScopeId);
+        await context.Database.EnsureCreatedAsync();
+        DateTime occurredAt = new(2026, 10, 5, 8, 0, 0, DateTimeKind.Utc);
+
+        SecurityAuditWriter writer = new(context);
+        _ = await writer.WriteAsync(new SecurityAuditEvent
+        {
+            Id = Guid.NewGuid(),
+            EventName = SecurityAuditEventCatalog.AuditStorageThresholdEvent,
+            EventCategory = SecurityAuditEventCatalog.SecurityFailureCategory,
+            Outcome = SecurityAuditOutcome.Succeeded,
+            ActorKind = SecurityAuditActorKind.System,
+            TenantId = SecurityAuditScopeCatalog.PlatformScopeId,
+            Resource = SecurityAuditScopeCatalog.PlatformResource,
+            Operation = SecurityAuditEventCatalog.AuditStorageThresholdOperation,
+            OccurredAt = occurredAt,
+            CorrelationId = "audit-storage-threshold",
+            SourceBoundary = SecurityAuditEventCatalog.AuditStorageThresholdSourceBoundary,
+            SourceIpKind = SecurityAuditSourceKind.System,
+            RedactedReason = SecurityAuditReasonCatalog.AuditStorageThreshold(
+                4096,
+                1024,
+                SecurityAuditReasonCatalog.NotificationChannelSucceeded,
+                SecurityAuditReasonCatalog.NotificationChannelSucceeded),
+            IdempotencyKey = "audit-storage-threshold"
+        }, CancellationToken.None);
+        _ = await writer.WriteAsync(new SecurityAuditEvent
+        {
+            Id = Guid.NewGuid(),
+            EventName = SecurityAuditEventCatalog.SecurityFailureEvent,
+            EventCategory = SecurityAuditEventCatalog.SecurityFailureCategory,
+            Outcome = SecurityAuditOutcome.Failed,
+            ActorKind = SecurityAuditActorKind.System,
+            TenantId = SecurityAuditScopeCatalog.PlatformScopeId,
+            Resource = SecurityAuditScopeCatalog.PlatformResource,
+            Operation = SecurityAuditEventCatalog.SecurityFailureOperation,
+            OccurredAt = occurredAt.AddMinutes(1),
+            CorrelationId = "audit-storage-check-failure",
+            SourceBoundary = SecurityAuditEventCatalog.AuditStorageThresholdSourceBoundary,
+            SourceIpKind = SecurityAuditSourceKind.System,
+            RedactedReason = SecurityAuditReasonCatalog.AuditStoreUnavailable,
+            IdempotencyKey = "audit-storage-check-failure"
+        }, CancellationToken.None);
+
+        SecurityAuditQueryService service = new(
+            context,
+            new TestRequestContext(SecurityAuditScopeCatalog.PlatformScopeId, [IdentityDefinitions.PlatformAdmin]));
+
+        SecurityAuditPageReadDto platform = await service.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10)),
+            CancellationToken.None);
+        platform.TotalCount.Should().Be(2);
+        platform.Items.Select(item => item.EventName).Should().BeEquivalentTo(
+            [SecurityAuditEventCatalog.AuditStorageThresholdEvent, SecurityAuditEventCatalog.SecurityFailureEvent]);
+        platform.Items.Select(item => item.RedactedReason).Should().NotContain(SecurityAuditRedaction.Replacement);
+
+        SecurityAuditPageReadDto uncatalogued = await service.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(new SecurityAuditQuery(PageSize: 10), UncataloguedOnly: true),
+            CancellationToken.None);
+        uncatalogued.TotalCount.Should().Be(0);
+
+        SecurityAuditPageReadDto failureCategory = await service.QueryPlatformAsync(
+            new SecurityAuditPlatformQuery(
+                new SecurityAuditQuery(PageSize: 10, EventCategory: SecurityAuditEventCatalog.SecurityFailureCategory)),
+            CancellationToken.None);
+        failureCategory.TotalCount.Should().Be(2);
     }
 
     [Fact]

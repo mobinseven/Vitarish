@@ -9,7 +9,7 @@ public sealed class TenantBackgroundExecutor(
     IBackgroundTenantSource tenantSource,
     IServiceScopeFactory serviceScopeFactory)
 {
-    private const string BackgroundAuthority = "system";
+    public const string BackgroundAuthority = "system";
 
     /// <summary>
     /// Iterates all tenants and runs the provided action in a scoped context per tenant.
