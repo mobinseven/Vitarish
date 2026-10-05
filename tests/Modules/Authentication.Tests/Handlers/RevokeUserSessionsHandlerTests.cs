@@ -115,12 +115,49 @@ public sealed class RevokeUserSessionsHandlerTests
         sessions.Verify(item => item.RevokeActiveSessionsAsync("user-1", It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task A_retried_request_for_an_unknown_user_still_returns_not_found()
+    {
+        Mock<IAuthenticationUserDirectory> directory = new();
+        directory.Setup(item => item.FindByIdAsync("missing", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((AuthenticationUserDescriptor?)null);
+        Mock<IAuthenticationSessionRegistry> sessions = new();
+        RecordingAuditWriter audit = new();
+        RevokeUserSessionsHandler handler = new(directory.Object, sessions.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+
+        await FluentActions.Awaiting(() => handler.Handle("missing", CancellationToken.None)).Should().ThrowAsync<AuthenticationUserNotFoundException>();
+        await FluentActions.Awaiting(() => handler.Handle("missing", CancellationToken.None)).Should().ThrowAsync<AuthenticationUserNotFoundException>();
+
+        sessions.Verify(item => item.RevokeActiveSessionsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        audit.Events.Should().NotContain(item => item.Outcome == SecurityAuditOutcome.Succeeded);
+    }
+
+    [Fact]
+    public async Task A_failure_after_the_sessions_ended_is_never_recorded_as_denied()
+    {
+        Mock<IAuthenticationUserDirectory> directory = new();
+        directory.Setup(item => item.FindByIdAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Descriptor("user-1"));
+        Mock<IAuthenticationSessionRegistry> sessions = new();
+        sessions.Setup(item => item.RevokeActiveSessionsAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(2);
+        RecordingAuditWriter audit = new() { FailSucceededUpdates = true };
+        RevokeUserSessionsHandler handler = new(directory.Object, sessions.Object, audit, new TestRequestContext([IdentityDefinitions.PlatformAdmin]));
+
+        Func<Task> act = () => handler.Handle("user-1", CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        audit.Events.Should().NotContain(item => item.Outcome == SecurityAuditOutcome.Denied);
+    }
+
     private static AuthenticationUserDescriptor Descriptor(string userId) =>
         new(userId, "operator", null, null, null, null, null, false);
 
     private sealed class RecordingAuditWriter : ISecurityAuditWriter, ISecurityAuditOutcomeUpdater
     {
         public List<SecurityAuditEvent> Events { get; } = [];
+
+        public bool FailSucceededUpdates { get; init; }
 
         public Task<string?> GetOutcomeAsync(string tenantId, string idempotencyKey, CancellationToken cancellationToken) =>
             Task.FromResult(Events.LastOrDefault(item => item.IdempotencyKey == idempotencyKey)?.Outcome);
@@ -135,6 +172,8 @@ public sealed class RevokeUserSessionsHandlerTests
 
         public Task<SecurityAuditWriteResult> UpdateAsync(string tenantId, string idempotencyKey, string outcome, string? reason, CancellationToken cancellationToken)
         {
+            if (FailSucceededUpdates && outcome == SecurityAuditOutcome.Succeeded)
+                throw new InvalidOperationException("Simulated failure after the sessions were ended.");
             SecurityAuditEvent? pending = Events.LastOrDefault(item => item.IdempotencyKey == idempotencyKey && item.Outcome == SecurityAuditOutcome.Pending);
             if (pending is null)
                 return Task.FromResult(SecurityAuditWriteResult.AlreadyRecorded);

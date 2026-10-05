@@ -635,7 +635,9 @@ function EndUserSessionsDialog({ isOpen, isPending, onCancel, onConfirm, t }: {
         if (!open && !isPending) onCancel();
       },
       open: () => undefined,
-      close: onCancel,
+      close: () => {
+        if (!isPending) onCancel();
+      },
       toggle: () => {
         if (isOpen && !isPending) onCancel();
       },

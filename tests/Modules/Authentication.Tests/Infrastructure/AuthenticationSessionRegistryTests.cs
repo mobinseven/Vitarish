@@ -298,7 +298,58 @@ public sealed class AuthenticationSessionRegistryTests
         (await db.AuthenticationSessions.AsNoTracking().SingleAsync()).TerminationReason.Should().Be(AuthenticationSessionTerminationReason.AdministrativeRevocation);
     }
 
+    [Fact]
+    public async Task Administrative_revocation_retry_closes_audits_left_open_after_the_sessions_were_ended()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        OutcomeTrackingAuditWriter audit = new() { FailSucceededUpdates = true };
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db) = CreateRegistry(SecurityAccessPolicy.Default, clock, audit);
+        AuthenticationSession first = CreateSession("user-1", clock, TimeSpan.Zero);
+        AuthenticationSession second = CreateSession("user-1", clock, TimeSpan.FromMinutes(1));
+        db.AuthenticationSessions.AddRange(first, second);
+        await db.SaveChangesAsync();
+
+        await FluentActions.Awaiting(() => registry.RevokeActiveSessionsAsync("user-1", CancellationToken.None))
+            .Should().ThrowAsync<InvalidOperationException>();
+        (await db.AuthenticationSessions.AsNoTracking().CountAsync(session => session.TerminatedAt != null)).Should().Be(2);
+
+        audit.FailSucceededUpdates = false;
+        int retried = await registry.RevokeActiveSessionsAsync("user-1", CancellationToken.None);
+
+        retried.Should().Be(0);
+        audit.OutcomeOf(TerminationKey(first)).Should().Be(SecurityAuditOutcome.Succeeded);
+        audit.OutcomeOf(TerminationKey(second)).Should().Be(SecurityAuditOutcome.Succeeded);
+    }
+
+    [Fact]
+    public async Task Administrative_revocation_retry_resumes_its_own_pending_audits_for_sessions_still_active()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        OutcomeTrackingAuditWriter audit = new();
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db) = CreateRegistry(SecurityAccessPolicy.Default, clock, audit);
+        AuthenticationSession session = CreateSession("user-1", clock, TimeSpan.Zero);
+        db.AuthenticationSessions.Add(session);
+        await db.SaveChangesAsync();
+        audit.Seed(TerminationKey(session), SecurityAuditOutcome.Pending);
+
+        int ended = await registry.RevokeActiveSessionsAsync("user-1", CancellationToken.None);
+
+        ended.Should().Be(1);
+        (await db.AuthenticationSessions.AsNoTracking().SingleAsync()).TerminationReason.Should().Be(AuthenticationSessionTerminationReason.AdministrativeRevocation);
+        audit.OutcomeOf(TerminationKey(session)).Should().Be(SecurityAuditOutcome.Succeeded);
+    }
+
+    private static string TerminationKey(AuthenticationSession session) =>
+        $"{AuthenticationSecurityAuditEvents.SessionTerminated}:request-1:{session.Id:N}";
+
     private static (AuthenticationSessionRegistry Registry, AuthenticationDbContext Db, RecordingAuditWriter Audit) CreateRegistry(SecurityAccessPolicy policy, TimeProvider clock, string address = "127.0.0.1")
+    {
+        RecordingAuditWriter audit = new();
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db) = CreateRegistry(policy, clock, audit, address);
+        return (registry, db, audit);
+    }
+
+    private static (AuthenticationSessionRegistry Registry, AuthenticationDbContext Db) CreateRegistry(SecurityAccessPolicy policy, TimeProvider clock, ISecurityAuditWriter audit, string address = "127.0.0.1")
     {
         DbContextOptions<AuthenticationDbContext> options = new DbContextOptionsBuilder<AuthenticationDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
@@ -313,8 +364,7 @@ public sealed class AuthenticationSessionRegistryTests
         requestContext.SetupGet(context => context.UserId).Returns("admin-1");
         requestContext.SetupGet(context => context.RequestId).Returns("request-1");
         requestContext.SetupGet(context => context.TraceId).Returns("trace-1");
-        RecordingAuditWriter audit = new();
-        return (new AuthenticationSessionRegistry(db, policyProvider.Object, clientIp.Object, requestContext.Object, audit, clock), db, audit);
+        return (new AuthenticationSessionRegistry(db, policyProvider.Object, clientIp.Object, requestContext.Object, audit, clock), db);
     }
 
     private static AuthenticationSession CreateSession(string userId, TestTimeProvider clock, TimeSpan offset) => new()
@@ -339,6 +389,38 @@ public sealed class AuthenticationSessionRegistryTests
                 auditEvent.Outcome == SecurityAuditOutcome.Succeeded)
                 throw new SecurityAuditStoreException("offline", new InvalidOperationException());
             Events.Add(auditEvent);
+            return Task.FromResult(SecurityAuditWriteResult.Recorded);
+        }
+    }
+
+    /// <summary>Idempotent writer with outcome updates, like the production audit store.</summary>
+    private sealed class OutcomeTrackingAuditWriter : ISecurityAuditWriter, ISecurityAuditOutcomeUpdater
+    {
+        private readonly Dictionary<string, string> outcomes = new(StringComparer.Ordinal);
+
+        public bool FailSucceededUpdates { get; set; }
+
+        public void Seed(string idempotencyKey, string outcome) => outcomes[idempotencyKey] = outcome;
+
+        public string? OutcomeOf(string idempotencyKey) => outcomes.GetValueOrDefault(idempotencyKey);
+
+        public Task<SecurityAuditWriteResult> WriteAsync(SecurityAuditEvent auditEvent, CancellationToken cancellationToken)
+        {
+            if (!outcomes.TryAdd(auditEvent.IdempotencyKey, auditEvent.Outcome))
+                return Task.FromResult(SecurityAuditWriteResult.AlreadyRecorded);
+            return Task.FromResult(SecurityAuditWriteResult.Recorded);
+        }
+
+        public Task<string?> GetOutcomeAsync(string tenantId, string idempotencyKey, CancellationToken cancellationToken) =>
+            Task.FromResult(OutcomeOf(idempotencyKey));
+
+        public Task<SecurityAuditWriteResult> UpdateAsync(string tenantId, string idempotencyKey, string outcome, string? reason, CancellationToken cancellationToken)
+        {
+            if (FailSucceededUpdates && outcome == SecurityAuditOutcome.Succeeded)
+                throw new InvalidOperationException("Simulated failure after the sessions were ended.");
+            if (OutcomeOf(idempotencyKey) != SecurityAuditOutcome.Pending)
+                return Task.FromResult(SecurityAuditWriteResult.AlreadyRecorded);
+            outcomes[idempotencyKey] = outcome;
             return Task.FromResult(SecurityAuditWriteResult.Recorded);
         }
     }

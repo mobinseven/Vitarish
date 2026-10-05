@@ -292,6 +292,12 @@ public sealed class RevokeUserSessionsHandler(
             AuthenticationSecurityAuditEvents.SessionAdministrativeRevocation,
             userId,
             cancellationToken);
+        if (!userExists)
+        {
+            await CompleteDeniedAuditBestEffortAsync(operationKey, AuthenticationSecurityAuditEvents.UserPolicyTargetNotFoundReason, userId);
+            throw new AuthenticationUserNotFoundException();
+        }
+
         if (pending is SecurityAuditWriteResult.AlreadyRecorded)
         {
             if (auditWriter is ISecurityAuditOutcomeUpdater reconciliationUpdater)
@@ -303,33 +309,31 @@ public sealed class RevokeUserSessionsHandler(
                     return 0;
                 }
                 if (existingOutcome is SecurityAuditOutcome.Pending)
-                {
-                    int reconciled = await sessionRegistry.RevokeActiveSessionsAsync(userId, cancellationToken);
-                    await CompleteSucceededAuditAsync(operationKey, userId, cancellationToken);
-                    return reconciled;
-                }
+                    return await RevokeAndCompleteAsync(operationKey, userId, cancellationToken);
             }
 
             throw new InvalidOperationException("The user session revocation is already in progress or has a terminal non-success outcome.");
         }
 
-        if (!userExists)
-        {
-            await CompleteDeniedAuditBestEffortAsync(operationKey, AuthenticationSecurityAuditEvents.UserPolicyTargetNotFoundReason, userId);
-            throw new AuthenticationUserNotFoundException();
-        }
+        return await RevokeAndCompleteAsync(operationKey, userId, cancellationToken);
+    }
 
+    private async Task<int> RevokeAndCompleteAsync(string operationKey, string userId, CancellationToken cancellationToken)
+    {
+        int ended;
         try
         {
-            int ended = await sessionRegistry.RevokeActiveSessionsAsync(userId, cancellationToken);
-            await CompleteSucceededAuditAsync(operationKey, userId, cancellationToken);
-            return ended;
+            ended = await sessionRegistry.RevokeActiveSessionsAsync(userId, cancellationToken);
         }
         catch
         {
             await CompleteDeniedAuditBestEffortAsync(operationKey, AuthenticationSecurityAuditEvents.SessionAdministrativeRevocation, userId);
             throw;
         }
+
+        // Once sessions are ended the outcome is success; a failure to confirm it must never be recorded as Denied.
+        await CompleteSucceededAuditAsync(operationKey, userId, CancellationToken.None);
+        return ended;
     }
 
     private string BuildOperationKey(string userId) =>
