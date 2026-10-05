@@ -6,6 +6,10 @@
 }
 
 (security_headers) {
+    # NSMAIL-1 unsafe methods: TRACE and CONNECT have no product use; answer
+    # them at the ingress so no upstream ever sees them.
+    @unsafe_method method TRACE CONNECT
+    respond @unsafe_method 405
     # This ingress is the single owner of the NSMAIL-1 response headers. The
     # request CSP carries the per-request nonce read by the Next.js layouts.
     request_header Content-Security-Policy "{$VITARISH_CONTENT_SECURITY_POLICY}"
