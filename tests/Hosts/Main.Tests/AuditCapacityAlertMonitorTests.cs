@@ -214,7 +214,7 @@ public sealed class AuditCapacityAlertMonitorTests
     }
 
     [Fact]
-    public async Task Threshold_crossing_uses_a_stable_idempotency_key_across_monitor_restarts()
+    public async Task Each_alert_attempt_after_a_monitor_restart_is_recorded_separately()
     {
         SequenceStorageSizeReader firstReader = new(2048);
         SequenceStorageSizeReader secondReader = new(2048);
@@ -235,7 +235,7 @@ public sealed class AuditCapacityAlertMonitorTests
 
         string[] keys = AuditEvents(auditWriter).Select(auditEvent => auditEvent.IdempotencyKey).ToArray();
         keys.Should().HaveCount(2);
-        keys[0].Should().Be(keys[1]);
+        keys[0].Should().NotBe(keys[1]);
         keys[0].Should().NotBeNullOrWhiteSpace();
     }
 

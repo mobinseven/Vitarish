@@ -64,7 +64,7 @@ internal sealed class AuditCapacityAlertMonitor(
                 return;
 
             capacityAlertAttempted = true;
-            string idempotencyKey = ThresholdIdempotencyKey(storageBytes, threshold);
+            string idempotencyKey = ThresholdIdempotencyKey();
             AlertDeliveryResult delivery = await SendAlertAsync(
                 CapacityExceededSubject,
                 $"The audit table and indexes use {storageBytes} bytes, reaching the configured warning threshold of {threshold} bytes. Review audit capacity and PostgreSQL disk availability.",
@@ -250,8 +250,10 @@ internal sealed class AuditCapacityAlertMonitor(
         IdempotencyKey = idempotencyKey
     };
 
-    private static string ThresholdIdempotencyKey(long storageBytes, long threshold) =>
-        $"{SecurityAuditEventCatalog.AuditStorageThresholdOperation}:{threshold}:{storageBytes}";
+    // Each alert attempt is a distinct action (after a restart or from another replica it may
+    // deliver differently), so it gets its own record; one process attempts once per crossing.
+    private static string ThresholdIdempotencyKey() =>
+        $"{SecurityAuditEventCatalog.AuditStorageThresholdOperation}:{Guid.NewGuid():N}";
 
     private static string CheckFailureIdempotencyKey() =>
         $"{SecurityAuditEventCatalog.SecurityFailureOperation}:{SecurityAuditEventCatalog.AuditStorageThresholdOperation}:{Guid.NewGuid():N}";
