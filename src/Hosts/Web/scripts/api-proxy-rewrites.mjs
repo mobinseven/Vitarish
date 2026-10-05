@@ -11,11 +11,21 @@
  */
 export const apiProxyTargetEnvironmentKey = "VITARISH_API_PROXY_TARGET";
 export const apiProxyPathPrefix = "/api";
+const browserApiBaseEnvironmentKey = "NEXT_PUBLIC_API_BASE_URL";
 
 export async function apiProxyRewrites() {
   const target = process.env[apiProxyTargetEnvironmentKey]?.trim();
   if (!target) {
     return [];
+  }
+
+  // A leftover browser base URL (for example from an older .env.local) would send the
+  // browser straight to Main cross-site, where SameSite=Lax cookies are dropped.
+  if (process.env[browserApiBaseEnvironmentKey]?.trim()) {
+    throw new Error(
+      `${apiProxyTargetEnvironmentKey} is set, so ${browserApiBaseEnvironmentKey} must be empty: ` +
+        "the browser calls /api on its own origin. Remove it from .env.local or the environment.",
+    );
   }
 
   const origin = new URL(target).origin;
