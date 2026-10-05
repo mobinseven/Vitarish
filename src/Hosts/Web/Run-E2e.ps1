@@ -143,6 +143,7 @@ $childEnvironmentKeys = @(
     'VITARISH_E2E_WEB_ORIGIN',
     'VITARISH_E2E_PASSWORD',
     'NEXT_PUBLIC_API_BASE_URL',
+    'VITARISH_API_PROXY_TARGET',
     'VITARISH_E2E_USERNAME',
     'OPENAI_API_KEY',
     'AGENT_RUNTIME_SHARED_SECRET',
@@ -206,7 +207,8 @@ $e2eEnvironment['VITARISH_E2E_WEB_ORIGIN'] = $webOrigin
 $e2eEnvironment['VITARISH_E2E_PASSWORD'] = $password
 
 $appEnvironment = $baseEnvironment.Clone()
-$appEnvironment['NEXT_PUBLIC_API_BASE_URL'] = $apiOrigin
+$appEnvironment['NEXT_PUBLIC_API_BASE_URL'] = ''
+$appEnvironment['VITARISH_API_PROXY_TARGET'] = $apiOrigin
 $appEnvironment['VITARISH_E2E_USERNAME'] = 'e2e-owner'
 $appEnvironment['VITARISH_E2E_PASSWORD'] = $password
 

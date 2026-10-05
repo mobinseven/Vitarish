@@ -28,6 +28,12 @@ public sealed class AuthenticationCookieEvents(
         return Task.CompletedTask;
     }
 
+    public override Task SigningIn(CookieSigningInContext context)
+    {
+        context.Properties.IsPersistent = false;
+        return Task.CompletedTask;
+    }
+
     public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
     {
         string? sessionId = context.Principal?.FindFirst(AuthenticationSessionClaimTypes.SessionId)?.Value;

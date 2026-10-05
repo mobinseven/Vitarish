@@ -78,14 +78,17 @@ if ($AppName) {
 
 if (-not $ApiBaseUrl -and $selectedApp.Name -ne 'agent-runtime') {
     $defaultApiBaseUrl = 'https://localhost:7272'
-    $ApiBaseUrl = Read-Host "NEXT_PUBLIC_API_BASE_URL [$defaultApiBaseUrl]"
+    $ApiBaseUrl = Read-Host "Main API origin proxied at /api [$defaultApiBaseUrl]"
     if ([string]::IsNullOrWhiteSpace($ApiBaseUrl)) {
         $ApiBaseUrl = $defaultApiBaseUrl
     }
 }
 
 if (-not [string]::IsNullOrWhiteSpace($ApiBaseUrl)) {
-    $env:NEXT_PUBLIC_API_BASE_URL = $ApiBaseUrl
+    # The browser calls /api on the app's own origin, as in production; Next proxies it to
+    # Main (scripts/api-proxy-rewrites.mjs) so SameSite=Lax cookies stay first-party.
+    $env:NEXT_PUBLIC_API_BASE_URL = ''
+    $env:VITARISH_API_PROXY_TARGET = $ApiBaseUrl
 }
 
 if ($selectedApp.Name -eq 'agent-runtime') {

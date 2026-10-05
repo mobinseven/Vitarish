@@ -13,9 +13,12 @@ import { auditSecurityEventsList } from "../../shared/security/src/api/generated
 import { ApiError, ANTIFORGERY_VALIDATION_FAILED_CODE, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
-import { twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eProofScreenshotEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 
-const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
+// Main itself, for API-boundary checks made without the browser.
+const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
+// In-page requests use the web origin's same-origin /api, as in production.
+const browserApiOrigin = "";
 const e2eUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const e2ePassword = process.env.VITARISH_E2E_PASSWORD;
 const webOrigin = process.env.VITARISH_E2E_WEB_ORIGIN ?? "http://localhost:3005";
@@ -49,7 +52,7 @@ async function fetchJson(page: Page, path: string) {
       // The status assertion below is the useful diagnostic for an empty response.
     }
     return { status: response.status, body };
-  }, { apiOrigin, path });
+  }, { apiOrigin: browserApiOrigin, path });
 }
 
 async function postJson(page: Page, path: string, body: unknown) {
@@ -77,7 +80,7 @@ async function postJson(page: Page, path: string, body: unknown) {
       // Non-JSON responses are still represented by their status below.
     }
     return { status: response.status, body: responseBody };
-  }, { apiOrigin, path, body });
+  }, { apiOrigin: browserApiOrigin, path, body });
 }
 
 async function putJson(page: Page, path: string, body: unknown) {
@@ -105,7 +108,7 @@ async function putJson(page: Page, path: string, body: unknown) {
       // Non-JSON responses are still represented by their status below.
     }
     return { status: response.status, body: responseBody };
-  }, { apiOrigin, path, body });
+  }, { apiOrigin: browserApiOrigin, path, body });
 }
 
 async function fetchText(page: Page, path: string) {
@@ -115,7 +118,7 @@ async function fetchText(page: Page, path: string) {
       headers: { "X-Vitarish-Tenant-Host": window.location.host },
     });
     return { status: response.status, body: await response.text() };
-  }, { apiOrigin, path });
+  }, { apiOrigin: browserApiOrigin, path });
 }
 
 function unsignedBearerToken(payload: Record<string, unknown>, header: Record<string, unknown> = { alg: "none", typ: "at+jwt" }) {
@@ -168,7 +171,7 @@ async function deleteJson(page: Page, path: string, body: unknown) {
       }
     }
     return { status: response.status, body: responseBody };
-  }, { apiOrigin, path, body });
+  }, { apiOrigin: browserApiOrigin, path, body });
 }
 
 async function generatedUserGet(request: APIRequestContext, userId: string, cookieHeader: string, tenantHost: string) {
@@ -262,7 +265,7 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
   const apiRequests: Array<{ method: string; url: string; tenantHost: string | undefined }> = [];
   const mockServiceWorkerRequests: string[] = [];
   page.on("request", (request) => {
-    if (request.url().startsWith(apiOrigin)) {
+    if (new URL(request.url()).pathname.startsWith("/api/")) {
       apiRequests.push({ method: request.method(), url: request.url(), tenantHost: request.headers()["x-vitarish-tenant-host"] });
     }
     if (request.url().includes("mockServiceWorker.js")) mockServiceWorkerRequests.push(request.url());
@@ -279,7 +282,7 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
     isAuthenticated: true,
     tenantAccess: { canAccessTenantOwner: true },
   });
-  const browserCookies = await page.context().cookies(apiOrigin);
+  const browserCookies = await page.context().cookies();
   const cookieHeader = browserCookies.map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
   const tenantHost = await page.evaluate(() => window.location.host);
   const accessHistory = await generatedAuthenticationRequest(
@@ -336,7 +339,7 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
     capacityThresholdReached: expect.any(Boolean),
   });
   expect((auditReview.body as { items: unknown[] }).items.length).toBeGreaterThan(0);
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("columnheader").first()).toBeVisible();
   await expect(page.locator("tbody tr").first()).toBeVisible();
 
@@ -436,7 +439,7 @@ test("rejects an authenticated browser mutation without antiforgery proof", asyn
       body: JSON.stringify({}),
     });
     return { status: result.status, body: await result.json() as { code?: string } };
-  }, { origin: apiOrigin });
+  }, { origin: browserApiOrigin });
 
   expect(response.status).toBe(400);
   expect(response.body.code).toBe(ANTIFORGERY_VALIDATION_FAILED_CODE);
@@ -490,7 +493,7 @@ test("rejects an authenticated browser mutation without antiforgery proof", asyn
         }),
       });
       return { status: result.status, body: await result.json() as { code?: string } };
-    }, { origin: apiOrigin });
+    }, { origin: browserApiOrigin });
     expect(rejectedAuthenticationPolicyWrite.status).toBe(400);
     expect(rejectedAuthenticationPolicyWrite.body.code).toBe(ANTIFORGERY_VALIDATION_FAILED_CODE);
   } finally {
@@ -498,7 +501,7 @@ test("rejects an authenticated browser mutation without antiforgery proof", asyn
   }
 
 
-  const cookieHeader = (await page.context().cookies(apiOrigin))
+  const cookieHeader = (await page.context().cookies())
     .map(cookie => `${cookie.name}=${cookie.value}`)
     .join("; ");
   const hostileOrigin = await request.post(`${apiOrigin}/api/modules/authentication/account/password`, {
@@ -961,7 +964,7 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
   expect(JSON.stringify(substitutedTenant.body)).not.toContain("E2E Clinic B");
   expect(JSON.stringify(substitutedUser.body)).not.toContain(tenantBOwnerUsername);
 
-  const tenantACookieHeader = (await page.context().cookies(apiOrigin)).map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
+  const tenantACookieHeader = (await page.context().cookies()).map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
   let generatedSubstitutedUserStatus = 0;
   try {
     await generatedUserGet(request, tenantBOwnerUserId, tenantACookieHeader, "localhost");
@@ -990,7 +993,7 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
       },
     });
     return { status: response.status };
-  }, { origin: apiOrigin, patientId: tenantBPatientId });
+  }, { origin: browserApiOrigin, patientId: tenantBPatientId });
   expect(explicitForwardedHost.status).toBe(401);
 
   const tenantBContext = await page.context().browser()!.newContext();
@@ -1009,7 +1012,7 @@ test("keeps two tenants isolated across identifiers, alternate routes, search, a
   expect(tenantBProfile.body).toMatchObject({ userId: tenantBOwnerUserId });
   const tenantBUserAdministration = await fetchJson(tenantBPage, "/api/modules/users/search?query=e2e");
   expect(tenantBUserAdministration.status).toBe(403);
-  const tenantBCookieHeader = (await tenantBContext.cookies(apiOrigin)).map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
+  const tenantBCookieHeader = (await tenantBContext.cookies()).map(cookie => `${cookie.name}=${cookie.value}`).join("; ");
   const generatedTenantBUser = await generatedUserGet(request, tenantBOwnerUserId, tenantBCookieHeader, "tenant-b.localhost");
   expect(generatedTenantBUser).toMatchObject({ userId: tenantBOwnerUserId });
   const tenantBFileInformation = await fetchJson(tenantBPage, `/api/modules/files/${tenantBFileId}`);

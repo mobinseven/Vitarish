@@ -4,8 +4,12 @@ import { Routes } from "../../apps/private-practice-owner/src/app/routes";
 import { securityMessageCatalogs } from "../../shared/security/src/localization";
 import { dirname, resolve } from "node:path";
 import { mkdirSync } from "node:fs";
+import { twoHostE2eApiOriginEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 
-const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
+// Main itself, for API-boundary checks made without the browser.
+const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
+// In-page requests use the web origin's same-origin /api, as in production.
+const browserApiOrigin = "";
 const username = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const tenantUserUsername = "e2e-tenant-user";
 const password = process.env.VITARISH_E2E_PASSWORD;
@@ -34,7 +38,7 @@ async function get(page: Page, path: string): Promise<{ status: number; headers:
     let body: unknown = null;
     try { body = await response.json(); } catch { /* status is the assertion for empty responses */ }
     return { status: response.status, headers: Object.fromEntries(response.headers.entries()), body };
-  }, { origin: apiOrigin, requestPath: path, tenantHeader: TENANT_HOST_HEADER });
+  }, { origin: browserApiOrigin, requestPath: path, tenantHeader: TENANT_HOST_HEADER });
 }
 
 async function captureAuditEvidence(
@@ -151,14 +155,20 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
 
   test("HARD-03: authenticated session cookies are secure", async ({ page }) => {
     await login(page);
-    const authCookies = (await page.context().cookies(apiOrigin))
-      .filter((cookie) => !/xsrf|antiforgery/i.test(cookie.name));
-    expect(authCookies.length).toBeGreaterThan(0);
-    for (const cookie of authCookies) {
-      expect(cookie.secure).toBe(true);
-    }
-    const protectedCookies = authCookies.filter((cookie) => cookie.httpOnly);
-    expect(protectedCookies.length).toBeGreaterThan(0);
+    const cookies = await page.context().cookies();
+    const apiHost = new URL(apiOrigin).hostname;
+    const authCookie = cookies.find((cookie) => /identity\.application/i.test(cookie.name));
+    expect(authCookie, "the authentication cookie must be issued").toBeDefined();
+    expect(authCookie!.sameSite).toBe("Lax");
+    expect(authCookie!.expires).toBe(-1);
+    expect(authCookie!.secure).toBe(true);
+    expect(authCookie!.httpOnly).toBe(true);
+    expect(authCookie!.domain).toBe(apiHost);
+    const antiforgeryCookie = cookies.find((cookie) => /antiforgery/i.test(cookie.name));
+    expect(antiforgeryCookie, "the antiforgery cookie must be issued").toBeDefined();
+    expect(antiforgeryCookie!.sameSite).toBe("Lax");
+    expect(antiforgeryCookie!.secure).toBe(true);
+    expect(antiforgeryCookie!.httpOnly).toBe(true);
   });
 
   test.fixme("HARD-02: security headers are present on the exact release responses", async () => {
@@ -181,7 +191,7 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
         body: JSON.stringify({}),
       });
       return { status: result.status, body: await result.json() as { code?: string } };
-    }, { origin: apiOrigin, tenantHeader: TENANT_HOST_HEADER });
+    }, { origin: browserApiOrigin, tenantHeader: TENANT_HOST_HEADER });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe("AntiforgeryValidationFailed");
   });

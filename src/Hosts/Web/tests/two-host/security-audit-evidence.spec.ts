@@ -1,7 +1,7 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { twoHostE2eAuditEvidenceDirectoryEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 import {
@@ -9,7 +9,10 @@ import {
   localizePlatformAuditEvent,
 } from "../../shared/security/src/localization";
 
-const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
+// Main itself, for API-boundary checks made without the browser.
+const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
+// In-page requests use the web origin's same-origin /api, as in production.
+const browserApiOrigin = "";
 const platformOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const ownerOrigin = "";
@@ -83,7 +86,7 @@ async function login(page: Page, username: string, origin = "", clientIp = "198.
 
 async function platformAuditQuery(page: Page, event: AuditEventExpectation): Promise<AuditPage> {
   const result = await page.evaluate(async ({ origin, expected }) => {
-    const url = new URL("/api/audit/platform/security-events", origin);
+    const url = new URL("/api/audit/platform/security-events", origin || window.location.origin);
     url.search = new URLSearchParams({
       page: "1",
       pageSize: "25",
@@ -97,7 +100,7 @@ async function platformAuditQuery(page: Page, event: AuditEventExpectation): Pro
     }).toString();
     const response = await fetch(url, { credentials: "include" });
     return { status: response.status, body: await response.json() };
-  }, { origin: apiOrigin, expected: event });
+  }, { origin: browserApiOrigin, expected: event });
 
   expect(result.status).toBe(200);
   return result.body as AuditPage;
@@ -119,7 +122,7 @@ async function postJson(page: Page, path: string, body: unknown = null): Promise
       body: JSON.stringify(requestBody),
     });
     return { status: response.status, body: await response.json().catch(() => null) };
-  }, { origin: apiOrigin, requestPath: path, requestBody: body });
+  }, { origin: browserApiOrigin, requestPath: path, requestBody: body });
 }
 
 async function putJson(page: Page, path: string, body: unknown): Promise<{ status: number; body: unknown }> {
@@ -138,7 +141,7 @@ async function putJson(page: Page, path: string, body: unknown): Promise<{ statu
       body: JSON.stringify(requestBody),
     });
     return { status: response.status, body: await response.json().catch(() => null) };
-  }, { origin: apiOrigin, requestPath: path, requestBody: body });
+  }, { origin: browserApiOrigin, requestPath: path, requestBody: body });
 }
 
 async function deleteJson(page: Page, path: string, body: unknown = null): Promise<{ status: number; body: unknown }> {
@@ -157,7 +160,7 @@ async function deleteJson(page: Page, path: string, body: unknown = null): Promi
       body: JSON.stringify(requestBody),
     });
     return { status: response.status, body: await response.json().catch(() => null) };
-  }, { origin: apiOrigin, requestPath: path, requestBody: body });
+  }, { origin: browserApiOrigin, requestPath: path, requestBody: body });
 }
 
 async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: unknown }> {
@@ -184,7 +187,7 @@ async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: u
       body: form,
     });
     return { status: response.status, body: await response.json().catch(() => null) };
-  }, { origin: apiOrigin });
+  }, { origin: browserApiOrigin });
 }
 
 async function captureAuditEvidence(page: Page, event: AuditEventExpectation, filename: string): Promise<void> {
@@ -231,7 +234,7 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
 
 async function platformAuditCategoryQuery(page: Page, category: string, pageNumber: number): Promise<AuditPage & { page: number; pageSize: number; totalCount: number }> {
   const result = await page.evaluate(async ({ origin, eventCategory, page }) => {
-    const url = new URL("/api/audit/platform/security-events", origin);
+    const url = new URL("/api/audit/platform/security-events", origin || window.location.origin);
     url.search = new URLSearchParams({
       page: String(page),
       pageSize: "25",
@@ -242,7 +245,7 @@ async function platformAuditCategoryQuery(page: Page, category: string, pageNumb
     }).toString();
     const response = await fetch(url, { credentials: "include" });
     return { status: response.status, body: await response.json() };
-  }, { origin: apiOrigin, eventCategory: category, page: pageNumber });
+  }, { origin: browserApiOrigin, eventCategory: category, page: pageNumber });
 
   expect(result.status).toBe(200);
   return result.body as AuditPage & { page: number; pageSize: number; totalCount: number };
@@ -339,7 +342,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
         headers: { "X-Vitarish-Tenant-Host": window.location.host },
       });
       return { status: response.status, body: await response.json() as Array<{ user?: { id?: string; email?: string }; id?: string; email?: string }> };
-    }, apiOrigin);
+    }, browserApiOrigin);
     expect(tenantMembers.status).toBe(200);
     const memberId = tenantMembers.body.find(item => item.user?.email === contact || item.email === contact)?.user?.id ?? tenantMembers.body.find(item => item.user?.email === contact || item.email === contact)?.id;
     expect(memberId, "the newly provisioned member must expose its user identifier").toEqual(expect.any(String));
@@ -357,7 +360,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const accessHistory = await page.evaluate(async (origin) => {
       const response = await fetch(`${origin}/api/modules/authentication/access-history`, { credentials: "include" });
       return { status: response.status, body: await response.json().catch(() => null) };
-    }, apiOrigin);
+    }, browserApiOrigin);
     expect(accessHistory.status).toBe(200);
     expect((await postJson(page, "/api/modules/authentication/access-history/acknowledge")).status).toBe(200);
 
@@ -368,7 +371,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const currentPolicy = await administratorPage.evaluate(async (origin) => {
       const response = await fetch(`${origin}/api/modules/authentication/security/session-policy`, { credentials: "include" });
       return { status: response.status, body: await response.json() as { maximumConcurrentSessions: number; concurrentSessionsFunctionallyRequired: boolean; defaultInactivityTimeoutMinutes: number; allowedSessionStartCidrs: string[] | null; version: number } };
-    }, apiOrigin);
+    }, browserApiOrigin);
     expect(currentPolicy.status).toBe(200);
     const policy = currentPolicy.body;
     const rejectedPolicyUpdate = await putJson(administratorPage, "/api/modules/authentication/security/session-policy", {

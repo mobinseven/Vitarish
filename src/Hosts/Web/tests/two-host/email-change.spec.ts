@@ -2,9 +2,13 @@ import { expect, test, type Page } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
+import { twoHostE2eApiOriginEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
 
 const privatePracticeOrigin = process.env.VITARISH_E2E_WEB_ORIGIN ?? "http://localhost:3005";
-const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
+// Main itself, for API-boundary checks made without the browser.
+const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
+// In-page requests use the web origin's same-origin /api, as in production.
+const browserApiOrigin = "";
 const smtpCapturePath = process.env.VITARISH_E2E_SMTP_CAPTURE_PATH;
 const password = process.env.VITARISH_E2E_PASSWORD;
 const subjectUsername = process.env.VITARISH_E2E_EMAIL_CHANGE_USERNAME ?? "e2e-email-change-user";
@@ -51,7 +55,7 @@ async function readOwnProfileEmail(page: Page) {
       headers: { "X-Vitarish-Tenant-Host": window.location.host },
     });
     return response.json() as Promise<{ user?: { userId?: string } }>;
-  }, apiOrigin);
+  }, browserApiOrigin);
   const userId = session.user?.userId;
   expect(userId, "the authenticated session must expose the subject id").toBeTruthy();
   const profile = await page.evaluate(async ({ origin, subjectId }) => {
@@ -60,7 +64,7 @@ async function readOwnProfileEmail(page: Page) {
       headers: { "X-Vitarish-Tenant-Host": window.location.host },
     });
     return response.json() as Promise<{ email?: string }>;
-  }, { origin: apiOrigin, subjectId: userId! });
+  }, { origin: browserApiOrigin, subjectId: userId! });
   expect(profile.email).toBeTruthy();
   return profile.email!;
 }

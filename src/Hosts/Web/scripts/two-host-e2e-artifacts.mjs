@@ -1,3 +1,4 @@
+export const twoHostE2eApiOriginEnvironmentKey = "VITARISH_E2E_API_ORIGIN";
 export const twoHostE2eArtifactDirectoryEnvironmentKey = "VITARISH_E2E_ARTIFACT_DIRECTORY";
 export const twoHostE2eAuditEvidenceDirectoryEnvironmentKey = "VITARISH_E2E_AUDIT_EVIDENCE_DIRECTORY";
 export const twoHostE2eGrepEnvironmentKey = "VITARISH_E2E_GREP";

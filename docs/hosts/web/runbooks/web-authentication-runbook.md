@@ -39,7 +39,8 @@ Open http://localhost:3000. You should see the auth method selector.
 
 | Variable | Default | Description |
 |---|---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | `http://localhost:5000` | Base URL of the .NET authentication API |
+| `NEXT_PUBLIC_API_BASE_URL` | empty | Leave empty: the browser calls `/api` on its own origin |
+| `VITARISH_API_PROXY_TARGET` | `https://localhost:7272` | Local development only: Main origin that Next proxies `/api` to; requires `NODE_OPTIONS=--use-system-ca` |
 
 Copy `.env.example` to `.env.local` and adjust as needed.
 
@@ -81,7 +82,7 @@ Tests use MSW to mock the backend API. No running server needed.
 
 | Issue | Solution |
 |---|---|
-| `fetch failed` in hooks | Ensure the .NET host is running on `NEXT_PUBLIC_API_BASE_URL` |
+| `fetch failed` in hooks | Ensure the .NET host is running on `VITARISH_API_PROXY_TARGET` and Node trusts its certificate (`--use-system-ca`) |
 | Tenant is not resolved from the Web UI | Ensure requests go through the shared `apiFetch` boundary so `X-Vitarish-Tenant-Host` is forwarded |
 | `navigator.credentials` error | Passkey auth requires HTTPS (except localhost) |
 | CSRF errors on mutations | The `apiFetch` boundary auto-fetches antiforgery tokens; ensure the backend antiforgery endpoint is reachable |

@@ -1,3 +1,4 @@
 import type {NextConfig} from 'next';
-const nextConfig: NextConfig = {reactStrictMode: true, output: 'standalone'};
+import {apiProxyRewrites} from '../../scripts/api-proxy-rewrites.mjs';
+const nextConfig: NextConfig = {reactStrictMode: true, output: 'standalone', rewrites: apiProxyRewrites};
 export default nextConfig;
