@@ -194,7 +194,10 @@ test("authenticated platform administrator retains global search and membership 
 test("platform administrator ends a signed-in user's sessions and the user's next API call is rejected", async ({ page }) => {
   const browser = page.context().browser();
   expect(browser, "the two-host browser is required for an isolated user session").toBeTruthy();
-  const userContext = await browser!.newContext();
+  // Own PasswordLogin rate-limit partitions; the shared client IP is
+  // exhausted by the earlier login scenarios.
+  const userContext = await browser!.newContext({ extraHTTPHeaders: { "X-Forwarded-For": "198.51.100.230" } });
+  await page.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.231" });
   const userPage = await userContext.newPage();
   let failure: unknown;
   try {
