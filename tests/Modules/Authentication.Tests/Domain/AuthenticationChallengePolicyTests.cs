@@ -118,4 +118,24 @@ public class AuthenticationChallengePolicyTests
         challenge.RememberMe.Should().BeTrue();
         challenge.RequiresProfileCompletion.Should().BeTrue();
     }
+
+    [Fact]
+    public void CreatePasswordLoginOtpChallenge_allows_a_single_second_factor_attempt()
+    {
+        var challenge = AuthenticationChallengePolicy.Default.WithMaximumAttempts(5).CreatePasswordLoginOtpChallenge(
+            "user-1", "+1234567890", DateTimeOffset.UtcNow, rememberMe: false, requiresProfileCompletion: false);
+
+        challenge.IsSecondFactor.Should().BeTrue();
+        challenge.MaximumAttempts.Should().Be(1);
+    }
+
+    [Fact]
+    public void Single_factor_code_challenges_keep_the_configured_attempts()
+    {
+        var challenge = AuthenticationChallengePolicy.Default.WithMaximumAttempts(5).CreatePhoneLoginChallenge(
+            "user-1", "+1234567890", DateTimeOffset.UtcNow);
+
+        challenge.IsSecondFactor.Should().BeFalse();
+        challenge.MaximumAttempts.Should().Be(5);
+    }
 }

@@ -159,8 +159,7 @@ public sealed class LoginWithPasswordHandler(
                 continue;
             return new AuthenticationResult<LoginResult>.Failure(AttemptDenied(securityPolicy));
         }
-        AuthenticationChallengePolicy effectivePolicy = challengePolicy.WithMaximumAttempts(securityPolicy.FailedAttemptThreshold);
-        AuthenticationChallenge challenge = effectivePolicy.CreatePasswordLoginOtpChallenge(
+        AuthenticationChallenge challenge = challengePolicy.CreatePasswordLoginOtpChallenge(
             user.UserId,
             user.PhoneNumber,
             now,
