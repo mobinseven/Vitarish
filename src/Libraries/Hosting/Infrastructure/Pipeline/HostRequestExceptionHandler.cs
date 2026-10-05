@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +10,8 @@ namespace Vitarish.Hosting.Infrastructure.Pipeline;
 /// Maps client-triggered request failures to their correct 4xx problem responses,
 /// reports client cancellation without logging it as a server fault, and leaves
 /// genuine server faults on the default 500 path so bugs are not masked as 4xx.
+/// Request binding reports malformed bodies as <see cref="BadHttpRequestException"/>;
+/// a raw JSON or data-format exception comes from server code and stays a 500.
 /// </summary>
 public sealed class HostRequestExceptionHandler(
     IProblemDetailsService problemDetailsService,
@@ -68,8 +69,6 @@ public sealed class HostRequestExceptionHandler(
         statusCode = exception switch
         {
             BadHttpRequestException { StatusCode: >= StatusCodes.Status400BadRequest and < StatusCodes.Status500InternalServerError } badRequest => badRequest.StatusCode,
-            JsonException => StatusCodes.Status400BadRequest,
-            InvalidDataException => StatusCodes.Status400BadRequest,
             _ => 0
         };
         return statusCode != 0;

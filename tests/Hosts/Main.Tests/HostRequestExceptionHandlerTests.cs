@@ -35,36 +35,16 @@ public sealed class HostRequestExceptionHandlerTests
     }
 
     [Fact]
-    public async Task Malformed_form_data_failures_map_to_400_without_details_in_production()
+    public async Task Server_side_data_format_failures_stay_unhandled_so_they_are_not_masked_as_client_errors()
     {
         (HostRequestExceptionHandler handler, DefaultHttpContext context) = Create();
 
-        bool handled = await handler.TryHandleAsync(
-            context,
-            new InvalidDataException("internal-multipart-detail-that-must-not-leak"),
-            CancellationToken.None);
+        bool jsonHandled = await handler.TryHandleAsync(context, new JsonException("corrupt stored json"), CancellationToken.None);
+        bool dataHandled = await handler.TryHandleAsync(context, new InvalidDataException("corrupt stored data"), CancellationToken.None);
 
-        handled.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-        context.Response.ContentType.Should().StartWith("application/problem+json");
-        string body = await ReadBodyAsync(context);
-        body.Should().NotContain("internal-multipart-detail-that-must-not-leak");
-    }
-
-    [Fact]
-    public async Task Json_deserialization_failures_map_to_400_without_details_in_production()
-    {
-        (HostRequestExceptionHandler handler, DefaultHttpContext context) = Create();
-
-        bool handled = await handler.TryHandleAsync(
-            context,
-            new JsonException("internal-json-detail-that-must-not-leak"),
-            CancellationToken.None);
-
-        handled.Should().BeTrue();
-        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-        string body = await ReadBodyAsync(context);
-        body.Should().NotContain("internal-json-detail-that-must-not-leak");
+        jsonHandled.Should().BeFalse();
+        dataHandled.Should().BeFalse();
+        context.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
     }
 
     [Fact]
