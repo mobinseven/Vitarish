@@ -191,13 +191,38 @@ test("authenticated platform administrator retains global search and membership 
   await signOutThroughPublicApi(page);
 });
 
+async function endAllUserSessionsThroughUi(page: Page, username: string): Promise<number> {
+  await page.goto(`${platformOrigin}${PlatformRoutes.Users.Index}`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: "Users", exact: true })).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("textbox", { name: "Search users" }).fill(username);
+  await page.getByRole("button", { name: "Search" }).click();
+  const userRow = page.locator("tbody tr").filter({ hasText: username }).first();
+  await expect(userRow).toBeVisible({ timeout: 30_000 });
+  await userRow.getByRole("button", { name: "View user security details" }).click();
+  await expect(page.getByText("User ID", { exact: true })).toBeVisible({ timeout: 30_000 });
+
+  await page.getByRole("button", { name: "End all sessions" }).click();
+  const confirmation = page.getByRole("dialog");
+  await expect(confirmation).toHaveAccessibleName("End all sessions");
+  const [revocationResponse] = await Promise.all([
+    page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes("/sessions/revoke")),
+    confirmation.getByRole("button", { name: "End sessions" }).click(),
+  ]);
+  expect(revocationResponse.status()).toBe(200);
+  await expect(page.getByRole("status").filter({ hasText: "Active sessions ended" })).toBeVisible();
+  const revocation = await revocationResponse.json() as { endedSessions?: number | string };
+  return Number(revocation.endedSessions);
+}
+
 test("platform administrator ends a signed-in user's sessions and the user's next API call is rejected", async ({ page }) => {
   const browser = page.context().browser();
   expect(browser, "the two-host browser is required for an isolated user session").toBeTruthy();
-  // Own PasswordLogin rate-limit partitions; the shared client IP is
-  // exhausted by the earlier login scenarios.
-  const userContext = await browser!.newContext({ extraHTTPHeaders: { "X-Forwarded-For": "198.51.100.230" } });
-  await page.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.231" });
+  await login(page, platformUsername, platformOrigin);
+  // Earlier scenarios leave the owner signed in elsewhere while the evaluated
+  // concurrent-session limit is active; start from a known zero-session state.
+  await endAllUserSessionsThroughUi(page, ownerUsername);
+
+  const userContext = await browser!.newContext();
   const userPage = await userContext.newPage();
   let failure: unknown;
   try {
@@ -209,27 +234,7 @@ test("platform administrator ends a signed-in user's sessions and the user's nex
     });
     expect(signedInSession.status()).toBe(200);
 
-    await login(page, platformUsername, platformOrigin);
-    await page.goto(`${platformOrigin}${PlatformRoutes.Users.Index}`, { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "Users", exact: true })).toBeVisible({ timeout: 30_000 });
-    await page.getByRole("textbox", { name: "Search users" }).fill(ownerUsername);
-    await page.getByRole("button", { name: "Search" }).click();
-    const ownerRow = page.locator("tbody tr").filter({ hasText: ownerUsername }).first();
-    await expect(ownerRow).toBeVisible({ timeout: 30_000 });
-    await ownerRow.getByRole("button", { name: "View user security details" }).click();
-    await expect(page.getByText("User ID", { exact: true })).toBeVisible({ timeout: 30_000 });
-
-    await page.getByRole("button", { name: "End all sessions" }).click();
-    const confirmation = page.getByRole("dialog");
-    await expect(confirmation).toHaveAccessibleName("End all sessions");
-    const [revocationResponse] = await Promise.all([
-      page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes("/sessions/revoke")),
-      confirmation.getByRole("button", { name: "End sessions" }).click(),
-    ]);
-    expect(revocationResponse.status()).toBe(200);
-    const revocation = await revocationResponse.json() as { endedSessions?: number | string };
-    expect(Number(revocation.endedSessions)).toBeGreaterThanOrEqual(1);
-    await expect(page.getByRole("status").filter({ hasText: "Active sessions ended" })).toBeVisible();
+    expect(await endAllUserSessionsThroughUi(page, ownerUsername)).toBeGreaterThanOrEqual(1);
 
     const revokedSession = await userPage.request.get(`${apiOrigin}/api/modules/authentication/session`, {
       headers: { [TENANT_HOST_HEADER]: userTenantHost },
