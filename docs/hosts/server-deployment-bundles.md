@@ -149,7 +149,12 @@ with the workflow commit, run ID, selected services, and hashes of the deployed
 configuration and protected environment files. This identifies a
 configuration-only release even when it publishes no new image. The browser
 evidence command checks that record, the current file hashes, and each running
-container's exact Compose image reference before capture. The first successful
+container's exact Compose image reference before capture. It also asserts the
+ingress-owned NSMAIL-1 response headers (`Strict-Transport-Security`,
+`Cache-Control`, `Pragma`, `X-Content-Type-Options`, `X-Frame-Options`, and
+`X-XSS-Protection`) on a document, an API, and a `/_next/static/` asset
+response, and confirms the immutable asset keeps its upstream long-lived
+`Cache-Control`. The first successful
 production run and inspected host evidence must establish that the selected
 digests were pulled and that container plus HTTPS checks passed. A local
 architecture check or Compose render is not deployment evidence. Keep the

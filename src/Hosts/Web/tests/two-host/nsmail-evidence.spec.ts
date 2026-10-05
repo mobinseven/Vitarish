@@ -161,13 +161,14 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
     expect(protectedCookies.length).toBeGreaterThan(0);
   });
 
-  test.fixme("HARD-02: security headers are present on the exact release responses", async ({ page }) => {
-    await login(page);
-    const response = await page.goto("/home", { waitUntil: "domcontentloaded" });
-    expect(response?.status()).toBe(200);
-    const headers = response?.headers() ?? {};
-    expect(headers["x-content-type-options"]).toBe("nosniff");
-    expect(headers["content-security-policy"]).toBeTruthy();
+  test.fixme("HARD-02: security headers are present on the exact release responses", async () => {
+    // Strict-Transport-Security, Cache-Control, Pragma, X-Content-Type-Options,
+    // X-Frame-Options, and X-XSS-Protection are owned by
+    // src/Hosts/deployment/Caddyfile, which this two-host E2E topology does not
+    // run. The production deployment asserts them on document, /api/, and
+    // /_next/static/ responses through
+    // src/Hosts/Web/scripts/capture-production-browser-evidence.mjs, so this
+    // case stays skipped here without dropping its requirement trace.
   });
 
   test("HARD-05/HARD-06: state-changing requests require the trusted method and CSRF boundary", async ({ page }) => {

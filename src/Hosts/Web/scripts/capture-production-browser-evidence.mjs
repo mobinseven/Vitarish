@@ -148,6 +148,42 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 }
 
+const revalidatedCacheControl = "no-cache, no-store, must-revalidate";
+const revalidatedPragma = "no-cache";
+const staticAssetCacheControlMinimumAge = 31536000;
+const requiredSecurityHeaders = {
+  "strict-transport-security": "max-age=31536000",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+  "x-xss-protection": "1; mode=block",
+};
+
+function headerValue(headers, name) {
+  const value = headers?.[name];
+  return typeof value === "string" ? value.trim() : null;
+}
+
+function securityHeaderFailures(kind, headers) {
+  const failures = [];
+  for (const [name, expected] of Object.entries(requiredSecurityHeaders)) {
+    const actual = headerValue(headers, name);
+    if (actual !== expected) failures.push(`${name} is ${actual === null ? "missing" : `"${actual}"`}, expected "${expected}"`);
+  }
+  if (kind === "static") {
+    const cacheControl = headerValue(headers, "cache-control") ?? "";
+    const maxAge = /(?:^|,)\s*max-age=(\d+)/i.exec(cacheControl);
+    if (!/immutable/i.test(cacheControl) || !maxAge || Number(maxAge[1]) < staticAssetCacheControlMinimumAge || /no-store/i.test(cacheControl)) {
+      failures.push(`cache-control is "${cacheControl}", expected the upstream immutable max-age=${staticAssetCacheControlMinimumAge} value to be preserved`);
+    }
+  } else {
+    const cacheControl = headerValue(headers, "cache-control");
+    if (cacheControl !== revalidatedCacheControl) failures.push(`cache-control is ${cacheControl === null ? "missing" : `"${cacheControl}"`}, expected "${revalidatedCacheControl}"`);
+    const pragma = headerValue(headers, "pragma");
+    if (pragma !== revalidatedPragma) failures.push(`pragma is ${pragma === null ? "missing" : `"${pragma}"`}, expected "${revalidatedPragma}"`);
+  }
+  return failures;
+}
+
 function evidenceTable(title, headings, rows, capturedAtUtc) {
   const header = headings.map((heading) => `<th>${escapeHtml(heading)}</th>`).join("");
   const body = rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("");
@@ -185,6 +221,7 @@ for (const [stackName, services] of Object.entries(serviceState.stacks)) {
 const resolverRules = hosts.map(({ hostname }) => `MAP ${hostname} ${publicIngressIPv4}`).join(", ");
 const browser = await chromium.launch({ headless: true, args: [`--host-resolver-rules=${resolverRules}, EXCLUDE localhost`, "--no-proxy-server"] });
 const productionApiResults = [];
+const securityHeadersResults = [];
 const uiResults = [];
 try {
   for (const host of hosts) {
@@ -204,17 +241,21 @@ try {
       const pageTextLength = await page.locator("body").innerText().then((text) => text.trim().length);
       await page.screenshot({ path: resolve(runDirectory, screenshotName), fullPage: true });
       const api = await page.evaluate(async ({ profilePath, sessionPath }) => {
+        const staticAsset = document.querySelector('script[src*="/_next/static/"]')?.getAttribute("src")
+          ?? document.querySelector('link[rel="stylesheet"][href*="/_next/static/"]')?.getAttribute("href");
+        const staticAssetPath = staticAsset ? new URL(staticAsset, window.location.origin).pathname : null;
         const requests = [
           { name: "authentication-profile", path: profilePath, expectedStatus: 200 },
           { name: "authentication-session", path: sessionPath, expectedStatus: 401 },
+          ...(staticAssetPath ? [{ name: "immutable-static-asset", path: staticAssetPath, expectedStatus: 200 }] : []),
         ];
         const results = [];
         for (const request of requests) {
           try {
             const response = await fetch(request.path, { method: "GET", credentials: "omit", cache: "no-store", redirect: "manual" });
-            results.push({ ...request, status: response.status, tlsVerified: window.isSecureContext });
+            results.push({ ...request, status: response.status, tlsVerified: window.isSecureContext, headers: Object.fromEntries(response.headers.entries()) });
           } catch {
-            results.push({ ...request, status: null, tlsVerified: window.isSecureContext });
+            results.push({ ...request, status: null, tlsVerified: window.isSecureContext, headers: {} });
           }
         }
         return results;
@@ -227,12 +268,36 @@ try {
         requests: api.map(({ name, path, status, expectedStatus, tlsVerified }) => ({ name, path, status, expectedStatus, tlsVerified })),
       };
       productionApiResults.push(apiResult);
+      const profileRequest = api.find(({ name }) => name === "authentication-profile");
+      const staticAssetRequest = api.find(({ name }) => name === "immutable-static-asset");
+      const securityHeaderResponses = [
+        { kind: "document", path: new URL(url).pathname, status: uiStatus, headers: response?.headers() ?? {} },
+        { kind: "api", path: profileRequest?.path ?? authenticationRoutes.profile, status: profileRequest?.status ?? null, headers: profileRequest?.headers ?? {} },
+        { kind: "static", path: staticAssetRequest?.path ?? null, status: staticAssetRequest?.status ?? null, headers: staticAssetRequest?.headers ?? {} },
+      ];
+      const securityFailures = securityHeaderResponses.flatMap(({ kind, path, headers }) =>
+        securityHeaderFailures(kind, headers).map((message) => `${host.hostname} ${kind} response ${path ?? "(no /_next/static/ asset found)"}: ${message}`),
+      );
+      if (!staticAssetRequest) securityFailures.push(`${host.hostname}: no /_next/static/ asset was found on the document to verify immutable caching.`);
+      const securityHeaderSummary = securityHeaderResponses.map(({ kind, path, status, headers }) => ({
+        kind,
+        path,
+        status,
+        "cache-control": headerValue(headers, "cache-control"),
+        pragma: headerValue(headers, "pragma"),
+        "x-content-type-options": headerValue(headers, "x-content-type-options"),
+        "x-frame-options": headerValue(headers, "x-frame-options"),
+        "x-xss-protection": headerValue(headers, "x-xss-protection"),
+        "strict-transport-security": headerValue(headers, "strict-transport-security"),
+      }));
+      securityHeadersResults.push({ environment: host.environment, configuredHost: host.name, hostname: host.hostname, responses: securityHeaderSummary, result: securityFailures.length === 0 ? "PASS" : "FAIL" });
+      failures.push(...securityFailures);
       if (uiStatus === null || uiStatus < 200 || uiStatus >= 400) failures.push(`${host.hostname} UI returned HTTP ${uiStatus ?? "no response"}.`);
       if (pageTextLength === 0) failures.push(`${host.hostname} rendered no visible page text.`);
       if (cspViolationCount > 0) failures.push(`${host.hostname} reported ${cspViolationCount} Content Security Policy console violation(s).`);
       for (const request of apiResult.requests) if (request.status !== request.expectedStatus) failures.push(`${host.hostname} ${request.name} returned HTTP ${request.status ?? "no response"}, expected ${request.expectedStatus}.`);
       if (!apiResult.tlsVerified) failures.push(`${host.hostname} API request did not use a secure browser context.`);
-      console.log(`${host.environment} ${host.hostname}: UI ${uiStatus ?? "no response"}; profile ${api[0].status ?? "no response"}; session ${api[1].status ?? "no response"}`);
+      console.log(`${host.environment} ${host.hostname}: UI ${uiStatus ?? "no response"}; profile ${api[0].status ?? "no response"}; session ${api[1].status ?? "no response"}; static ${staticAssetRequest?.status ?? "no response"}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       failures.push(`${host.hostname}: ${message}`);
@@ -261,7 +326,36 @@ try {
   await apiScreenshotBrowser.close();
 }
 
-const manifest = { capturedAtUtc: capturedAt.toISOString(), commit: serviceState.commit, workflowRunId: serviceState.runId, publicIngressIPv4, remoteServiceStatus: basename(serviceStatePath), serviceStatusScreenshot: "service-status.png", uiResults, apiResults: productionApiResults, apiResultScreenshot: apiScreenshotPath, failures };
+let securityHeaderScreenshotPath = null;
+const securityHeaderBrowser = await chromium.launch({ headless: true });
+try {
+  const filename = "production-security-response-headers.png";
+  const page = await securityHeaderBrowser.newPage({ viewport: { width: 1700, height: 1100 } });
+  const rows = securityHeadersResults.flatMap(({ hostname, responses, result }) =>
+    responses.map((response) => [
+      hostname, `${response.kind} (${response.status ?? "no response"})`, response.path ?? "not found",
+      response["cache-control"] ?? "missing",
+      response.pragma ?? "missing",
+      response["x-content-type-options"] ?? "missing",
+      response["x-frame-options"] ?? "missing",
+      response["x-xss-protection"] ?? "missing",
+      response["strict-transport-security"] ?? "missing",
+      result,
+    ]),
+  );
+  await page.setContent(evidenceTable(
+    "Production NSMAIL-1 security and cache response headers",
+    ["Host", "Response", "Path", "Cache-Control", "Pragma", "X-Content-Type-Options", "X-Frame-Options", "X-XSS-Protection", "Strict-Transport-Security", "Result"],
+    rows,
+    capturedAt.toISOString()));
+  await page.screenshot({ path: resolve(runDirectory, filename), fullPage: true });
+  securityHeaderScreenshotPath = filename;
+  await page.close();
+} finally {
+  await securityHeaderBrowser.close();
+}
+
+const manifest = { capturedAtUtc: capturedAt.toISOString(), commit: serviceState.commit, workflowRunId: serviceState.runId, publicIngressIPv4, remoteServiceStatus: basename(serviceStatePath), serviceStatusScreenshot: "service-status.png", uiResults, apiResults: productionApiResults, apiResultScreenshot: apiScreenshotPath, securityHeaderResults: securityHeadersResults, securityHeaderScreenshot: securityHeaderScreenshotPath, failures };
 const manifestPath = resolve(runDirectory, "manifest.json");
 await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 console.log(`Evidence manifest: ${manifestPath}`);
