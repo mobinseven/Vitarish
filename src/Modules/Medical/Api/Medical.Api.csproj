@@ -6,4 +6,7 @@
     <ProjectReference Include="..\Application\Medical.Application.csproj" />
     <ProjectReference Include="..\..\Base\Core\Modules.Base.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Medical.Tests" />
+  </ItemGroup>
 </Project>

@@ -49,7 +49,7 @@ public static class HostingComposition
         _ = builder.Services.AddHttpContextAccessor();
         _ = builder.Services.AddSession(session => { session.IdleTimeout = TimeSpan.FromMinutes(2); session.Cookie.HttpOnly = true; session.Cookie.IsEssential = true; session.Cookie.SecurePolicy = CookieSecurePolicy.Always; });
         _ = builder.Services.AddControllers();
-        _ = builder.Services.AddProblemDetails();
+        _ = builder.AddHostRequestExceptionHandling();
         _ = builder.Services.AddAntiforgery(antiforgery => { antiforgery.HeaderName = "X-XSRF-TOKEN"; antiforgery.Cookie.HttpOnly = true; antiforgery.Cookie.IsEssential = true; antiforgery.Cookie.SameSite = SameSiteMode.None; antiforgery.Cookie.SecurePolicy = CookieSecurePolicy.Always; });
         _ = builder.Services.AddEndpointsApiExplorer();
         _ = builder.Services.AddLocalization();

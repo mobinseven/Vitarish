@@ -92,16 +92,7 @@ public static class IntelligenceApiEndpointMapping
 
         AgentConversationEndpointResult result = await endpoint.RunAsync(
             new(request.AgentKey, request.SubjectKind, request.SubjectId, request.Message, request.ConversationId), ct);
-        return result.Outcome switch
-        {
-            AgentConversationOutcome.Succeeded when result.AgentRunId is not null && result.ConversationId.HasValue && result.Result.HasValue =>
-                Results.Ok(new RunAgentConversationResponse(result.AgentRunId, result.ConversationId.Value.ToString("N"), result.Result.Value)),
-            AgentConversationOutcome.NotFound => Results.NotFound(new IntelligenceError(IntelligenceErrorCode.NotFound, "The agent conversation was not found.")),
-            AgentConversationOutcome.Busy => Results.Conflict(new IntelligenceError(IntelligenceErrorCode.Conflict, "The conversation is active.")),
-            AgentConversationOutcome.InvalidHistory => Results.Conflict(new IntelligenceError(IntelligenceErrorCode.InvalidHistory, "The conversation history is invalid.")),
-            AgentConversationOutcome.ProfileChanged => Results.Conflict(new IntelligenceError(IntelligenceErrorCode.Conflict, "The agent profile changed; start a new conversation.")),
-            _ => Results.Json(new IntelligenceError(IntelligenceErrorCode.UnexpectedFailure, "The agent conversation failed."), statusCode: StatusCodes.Status502BadGateway)
-        };
+        return IntelligenceAgentConversationResultMapper.ToHttpResult(result);
     }
 
     private static async Task<IResult> RespondAsync(ResponderRequest request, IResponder responder, CancellationToken ct)

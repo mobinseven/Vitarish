@@ -10,6 +10,16 @@ public static class LandingApiRoutes
 
 public sealed record SubmitLandingMessageRequest(string OwnerKey, string Message, string? ConversationId = null);
 public sealed record LandingConversationResponse(string ConversationId, string Message);
+public static class LandingErrorCodes
+{
+    public const string NotFound = "not_found";
+    public const string Busy = "busy";
+    public const string InvalidHistory = "invalid_history";
+    public const string Conflict = "conflict";
+    public const string Unavailable = "unavailable";
+    public const string Validation = "validation";
+}
+
 public sealed record LandingError(string Code, string Message);
 public sealed record LandingHostBindingResponse(string Hostname, Guid? TenantId);
 public sealed record SetLandingHostBindingRequest(Guid TenantId);
