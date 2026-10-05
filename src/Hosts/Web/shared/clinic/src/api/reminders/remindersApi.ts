@@ -1,6 +1,6 @@
 import { apiFetch } from "../client/apiFetch";
 
-const BASE = "/communications";
+const BASE = "/api/modules/communications";
 
 export interface ReminderReadDto {
   id: string;

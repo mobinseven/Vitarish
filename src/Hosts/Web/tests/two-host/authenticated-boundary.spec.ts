@@ -356,7 +356,7 @@ test("uses the real Web and Main hosts for an authenticated tenant-scoped reques
     postJson(page, "/api/modules/clinic/patients/count", {}),
     postJson(page, "/api/modules/appointments/reservations", { descriptor: {} }),
     postJson(page, "/api/modules/appointments/shifts", { descriptor: {} }),
-    postJson(page, "/communications/reminders/query", {}),
+    postJson(page, "/api/modules/communications/reminders/query", {}),
   ]);
   expect(patientCount.status).toBe(200);
   expect(patientCount.body).toBe(1);
@@ -739,7 +739,7 @@ test("allows intentional anonymous operations to reach their owning boundary", a
     requestToken: expect.any(String),
   });
 
-  const contact = await request.post(`${apiOrigin}/communications/contact-inquiries`, {
+  const contact = await request.post(`${apiOrigin}/api/modules/communications/contact-inquiries`, {
     data: {},
     headers: { "X-Vitarish-Tenant-Host": "app.localhost" },
     ignoreHTTPSErrors: true,
