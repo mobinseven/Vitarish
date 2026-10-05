@@ -19,6 +19,7 @@ public interface IAuthenticationSessionRegistry
     Task<(bool Exists, int? Minutes, long Version)> GetUserInactivityTimeoutStateAsync(string userId, CancellationToken cancellationToken);
     Task<long> SetUserInactivityTimeoutAsync(string userId, int? minutes, long expectedVersion, CancellationToken cancellationToken);
     Task RevokeSessionsExpiredByUserPolicyAsync(string userId, CancellationToken cancellationToken, int? inactivityTimeoutOverride = null);
+    Task<int> RevokeActiveSessionsAsync(string userId, CancellationToken cancellationToken);
     Task<SecurityAccessPolicyState> SavePolicyAndRevokeInvalidatedSessionsAsync(SecurityAccessPolicy policy, long expectedVersion, CancellationToken cancellationToken);
 }
 

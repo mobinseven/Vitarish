@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Button, Modal, Tooltip } from "@heroui/react";
 import {
   useAuthSession,
   useAuthenticationUserInactivityPolicyGet,
   useAuthenticationUserInactivityPolicyPut,
+  useAuthenticationUserSessionsRevoke,
   useUsersAddRole,
   usePlatformAuthorization,
   useTenantAuthorization,
@@ -353,6 +355,8 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const update = useUsersAdministrationUpdateUser();
   const inactivityPolicy = useAuthenticationUserInactivityPolicyGet(userId, { query: { enabled: userId.length > 0 } });
   const saveInactivityPolicy = useAuthenticationUserInactivityPolicyPut();
+  const revokeUserSessions = useAuthenticationUserSessionsRevoke();
+  const [confirmEndSessions, setConfirmEndSessions] = useState(false);
   const [page, setPage] = useState(1);
   const [tenantId, setTenantId] = useState("");
   const [roleSuffix, setRoleSuffix] = useState<TenantRoleSuffix>(tenantRoleSuffixes.user);
@@ -486,6 +490,21 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       onError: (error) => { const conflict = readHttpStatus(error) === 409; setInactivityConflict(conflict); setMessage(conflict ? t("users.management.inactivityConflict") : t("users.management.inactivityError")); },
     });
   };
+  const endUserSessions = () => {
+    revokeUserSessions.mutate({ userId }, {
+      onSuccess: async (result) => {
+        setConfirmEndSessions(false);
+        setMessage(t("users.management.sessionsEnded", { count: formatNumber(Number(result.endedSessions), locale) }));
+        await refreshSecurityDetails();
+      },
+      onError: (error) => {
+        setConfirmEndSessions(false);
+        setMessage(readHttpStatus(error) === 403
+          ? t("users.management.sessionsForbidden")
+          : t("users.management.sessionsError"));
+      },
+    });
+  };
   if (securityQuery.isLoading && !securityDetails) {
     return <main className="max-w-4xl space-y-6"><SurfaceHeader title={title} description={userId} /><p aria-live="polite">{t("users.management.loadingSecurity")}</p></main>;
   }
@@ -570,6 +589,18 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       </form>}
     </section>
 
+    <section className="space-y-3 rounded border p-4">
+      <h2 className="text-lg font-semibold">{t("users.management.sessionsTitle")}</h2>
+      <p className="text-sm text-muted">{t("users.management.sessionsDescription")}</p>
+      <Tooltip>
+        <Button variant="danger" isPending={revokeUserSessions.isPending} onPress={() => setConfirmEndSessions(true)}>
+          <Icon name="right-from-bracket" /> {t("users.management.endSessions")}
+        </Button>
+        <Tooltip.Content>{t("users.management.endSessions")}</Tooltip.Content>
+      </Tooltip>
+    </section>
+    <EndUserSessionsDialog isOpen={confirmEndSessions} isPending={revokeUserSessions.isPending} onCancel={() => setConfirmEndSessions(false)} onConfirm={endUserSessions} t={t} />
+
     <section className="space-y-4 rounded border p-4">
       <h2 className="text-lg font-semibold">{t("users.management.authenticationHistory")}</h2>
       <UserSecurityHistoryList history={authenticationHistory} available={authenticationHistoryAvailable} emptyMessage={t("users.management.authenticationHistoryEmpty")} t={t} locale={locale} />
@@ -588,6 +619,60 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
     </nav>}
     {message && <p role="status" aria-live="polite">{message}</p>}
   </main>;
+}
+
+function EndUserSessionsDialog({ isOpen, isPending, onCancel, onConfirm, t }: {
+  isOpen: boolean;
+  isPending: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  t: Translate;
+}) {
+  const state = useMemo(
+    () => ({
+      isOpen,
+      setOpen: (open: boolean) => {
+        if (!open && !isPending) onCancel();
+      },
+      open: () => undefined,
+      close: onCancel,
+      toggle: () => {
+        if (isOpen && !isPending) onCancel();
+      },
+    }),
+    [isOpen, isPending, onCancel],
+  );
+  if (!isOpen) return null;
+  return (
+    <Modal state={state}>
+      <Modal.Backdrop isDismissable={!isPending}>
+        <Modal.Container placement="center">
+          <Modal.Dialog>
+            <Modal.Header>
+              <Modal.Heading>{t("users.management.endSessionsDialogTitle")}</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body>
+              <p>{t("users.management.endSessionsConfirm")}</p>
+            </Modal.Body>
+            <Modal.Footer>
+              <Tooltip>
+                <Button variant="secondary" onPress={onCancel} isDisabled={isPending}>
+                  <Icon name="xmark" /> {t("users.management.cancel")}
+                </Button>
+                <Tooltip.Content>{t("users.management.cancel")}</Tooltip.Content>
+              </Tooltip>
+              <Tooltip>
+                <Button variant="danger" onPress={onConfirm} isPending={isPending}>
+                  <Icon name="right-from-bracket" /> {t("users.management.endSessionsConfirmAction")}
+                </Button>
+                <Tooltip.Content>{t("users.management.endSessionsConfirmAction")}</Tooltip.Content>
+              </Tooltip>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
+  );
 }
 
 function UserSecurityHistoryList({ history, available, emptyMessage, t, locale }: {

@@ -266,3 +266,185 @@ public sealed class ChangeUserInactivityTimeoutHandler(
         }
     }
 }
+
+public sealed class RevokeUserSessionsHandler(
+    IAuthenticationUserDirectory userDirectory,
+    IAuthenticationSessionRegistry sessionRegistry,
+    ISecurityAuditWriter auditWriter,
+    IRequestContext requestContext)
+{
+    public async Task<int> Handle(string userId, CancellationToken cancellationToken)
+    {
+        string operationKey = BuildOperationKey(userId);
+        if (!AuthenticationSecurityAuthorization.CanEndUserSessions(requestContext.User))
+        {
+            await WriteDeniedAuditBestEffortAsync(operationKey, AuthenticationSecurityAuditEvents.Unauthorized, userId);
+            throw new UnauthorizedAccessException("Only platform administrators may end a user's sessions.");
+        }
+        if (string.IsNullOrWhiteSpace(requestContext.TenantId))
+            throw new InvalidOperationException("A tenant context is required for session-termination auditing.");
+
+        bool userExists = !string.IsNullOrWhiteSpace(userId)
+            && await userDirectory.FindByIdAsync(userId, cancellationToken) is not null;
+        SecurityAuditWriteResult pending = await WriteAuditAsync(
+            SecurityAuditOutcome.Pending,
+            operationKey,
+            AuthenticationSecurityAuditEvents.SessionAdministrativeRevocation,
+            userId,
+            cancellationToken);
+        if (pending is SecurityAuditWriteResult.AlreadyRecorded)
+        {
+            if (auditWriter is ISecurityAuditOutcomeUpdater reconciliationUpdater)
+            {
+                string? existingOutcome = await reconciliationUpdater.GetOutcomeAsync(requestContext.TenantId, operationKey, cancellationToken);
+                if (existingOutcome is SecurityAuditOutcome.Succeeded)
+                {
+                    // The original request already ended every session it could; a replay must not double-report them.
+                    return 0;
+                }
+                if (existingOutcome is SecurityAuditOutcome.Pending)
+                {
+                    int reconciled = await sessionRegistry.RevokeActiveSessionsAsync(userId, cancellationToken);
+                    await CompleteSucceededAuditAsync(operationKey, userId, cancellationToken);
+                    return reconciled;
+                }
+            }
+
+            throw new InvalidOperationException("The user session revocation is already in progress or has a terminal non-success outcome.");
+        }
+
+        if (!userExists)
+        {
+            await CompleteDeniedAuditBestEffortAsync(operationKey, AuthenticationSecurityAuditEvents.UserPolicyTargetNotFoundReason, userId);
+            throw new AuthenticationUserNotFoundException();
+        }
+
+        try
+        {
+            int ended = await sessionRegistry.RevokeActiveSessionsAsync(userId, cancellationToken);
+            await CompleteSucceededAuditAsync(operationKey, userId, cancellationToken);
+            return ended;
+        }
+        catch
+        {
+            await CompleteDeniedAuditBestEffortAsync(operationKey, AuthenticationSecurityAuditEvents.SessionAdministrativeRevocation, userId);
+            throw;
+        }
+    }
+
+    private string BuildOperationKey(string userId) =>
+        $"{AuthenticationSecurityAuditEvents.SessionTerminated}:{requestContext.RequestId ?? Guid.NewGuid().ToString("N")}{AuthenticationSecurityAuditEvents.UserSessionsOperationSegment}{userId}";
+
+    private async Task<SecurityAuditWriteResult> WriteAuditAsync(string outcome, string operationKey, string? reason, string userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await auditWriter.WriteAsync(CreateAuditEvent(outcome, operationKey, reason, userId), cancellationToken);
+        }
+        catch (SecurityAuditStoreException)
+        {
+            // AU-8 preserves the session revocation when its initiating audit cannot be stored.
+            return SecurityAuditWriteResult.Recorded;
+        }
+    }
+
+    private async Task CompleteSucceededAuditAsync(string operationKey, string userId, CancellationToken cancellationToken)
+    {
+        if (auditWriter is ISecurityAuditOutcomeUpdater outcomeUpdater)
+        {
+            try
+            {
+                SecurityAuditWriteResult completed = await outcomeUpdater.UpdateAsync(
+                    requestContext.TenantId!,
+                    operationKey,
+                    SecurityAuditOutcome.Succeeded,
+                    AuthenticationSecurityAuditEvents.SessionAdministrativeRevocation,
+                    cancellationToken);
+                if (completed is SecurityAuditWriteResult.AlreadyRecorded &&
+                    await outcomeUpdater.GetOutcomeAsync(requestContext.TenantId!, operationKey, cancellationToken) is not SecurityAuditOutcome.Succeeded)
+                {
+                    throw new InvalidOperationException("The committed user session revocation has no confirmed successful audit outcome.");
+                }
+            }
+            catch (SecurityAuditStoreException)
+            {
+                // AU-8 preserves the committed session revocation when its terminal audit cannot be stored.
+            }
+            return;
+        }
+
+        try
+        {
+            _ = await auditWriter.WriteAsync(
+                CreateAuditEvent(
+                    SecurityAuditOutcome.Succeeded,
+                    operationKey + AuthenticationSecurityAuditEvents.CompletedKeySuffix,
+                    AuthenticationSecurityAuditEvents.SessionAdministrativeRevocation,
+                    userId),
+                cancellationToken);
+        }
+        catch (SecurityAuditStoreException)
+        {
+            // AU-8 preserves the committed session revocation when its terminal audit cannot be stored.
+        }
+    }
+
+    private async Task CompleteDeniedAuditBestEffortAsync(string operationKey, string reason, string userId)
+    {
+        try
+        {
+            if (auditWriter is ISecurityAuditOutcomeUpdater outcomeUpdater)
+            {
+                _ = await outcomeUpdater.UpdateAsync(
+                    requestContext.TenantId!,
+                    operationKey,
+                    SecurityAuditOutcome.Denied,
+                    reason,
+                    CancellationToken.None);
+                return;
+            }
+
+            _ = await auditWriter.WriteAsync(
+                CreateAuditEvent(
+                    SecurityAuditOutcome.Denied,
+                    operationKey + AuthenticationSecurityAuditEvents.CompletedKeySuffix,
+                    reason,
+                    userId),
+                CancellationToken.None);
+        }
+        catch
+        {
+            // The original operation failure remains authoritative; a pending audit is reconciled by a later retry.
+        }
+    }
+
+    private async Task WriteDeniedAuditBestEffortAsync(string operationKey, string reason, string userId)
+    {
+        if (string.IsNullOrWhiteSpace(requestContext.TenantId))
+            return;
+        try
+        {
+            _ = await auditWriter.WriteAsync(CreateAuditEvent(SecurityAuditOutcome.Denied, operationKey, reason, userId), CancellationToken.None);
+        }
+        catch
+        {
+            // The authorization failure remains authoritative; the transport policy already denied the request.
+        }
+    }
+
+    private SecurityAuditEvent CreateAuditEvent(string outcome, string idempotencyKey, string? reason, string userId) => new()
+    {
+        EventName = AuthenticationSecurityAuditEvents.SessionTerminated,
+        Outcome = outcome,
+        ActorId = requestContext.UserId,
+        SubjectId = userId,
+        TenantId = requestContext.TenantId!,
+        Resource = AuthenticationSecurityAuditEvents.Resource,
+        Operation = AuthenticationSecurityAuditEvents.SessionTerminatedOperation,
+        OccurredAt = DateTime.UtcNow,
+        CorrelationId = requestContext.TraceId ?? requestContext.RequestId ?? idempotencyKey,
+        SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
+        RedactedReason = reason,
+        IdempotencyKey = idempotencyKey
+    };
+}

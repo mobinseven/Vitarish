@@ -520,6 +520,30 @@ public sealed class AuthenticationSessionRegistry(
             await CompleteAuditAsync(AuthenticationSecurityAuditEvents.SessionTerminated, SecurityAuditOutcome.Succeeded, userId, AuthenticationSecurityAuditEvents.SessionUserPolicyExpired, AuthenticationSecurityAuditEvents.SessionTerminatedOperation, session.Id.ToString("N"), cancellationToken);
     }
 
+    public async Task<int> RevokeActiveSessionsAsync(string userId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            return 0;
+
+        string reason = AuthenticationSecurityAuditEvents.SessionTerminationReason(AuthenticationSessionTerminationReason.AdministrativeRevocation);
+        List<AuthenticationSession> sessions = await dbContext.AuthenticationSessions
+            .Where(session => session.UserId == userId && session.TerminatedAt == null)
+            .OrderBy(session => session.CreatedAt)
+            .ToListAsync(cancellationToken);
+        if (sessions.Count == 0)
+            return 0;
+
+        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
+        foreach (AuthenticationSession session in sessions)
+            await BeginTerminationAuditAsync(userId, reason, session.Id.ToString("N"), cancellationToken);
+        foreach (AuthenticationSession session in sessions)
+            Terminate(session, now, AuthenticationSessionTerminationReason.AdministrativeRevocation);
+        await SaveAsync(cancellationToken);
+        foreach (AuthenticationSession session in sessions)
+            await CompleteAuditAsync(AuthenticationSecurityAuditEvents.SessionTerminated, SecurityAuditOutcome.Succeeded, userId, reason, AuthenticationSecurityAuditEvents.SessionTerminatedOperation, session.Id.ToString("N"), cancellationToken);
+        return sessions.Count;
+    }
+
     public async Task<SecurityAccessPolicyState> SavePolicyAndRevokeInvalidatedSessionsAsync(
         SecurityAccessPolicy policy,
         long expectedVersion,

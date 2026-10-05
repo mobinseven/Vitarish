@@ -83,7 +83,7 @@ public sealed class SecurityAuditReviewTests
     }
 
     [Fact]
-    public void Catalog_covers_the_mandatory_event_categories_and_marks_optional_idle_termination_unavailable()
+    public void Catalog_covers_the_mandatory_event_categories_and_maps_administrator_session_termination()
     {
         SecurityAuditEventCatalog.Entries.Select(entry => entry.Category).Should().Contain(
             [
@@ -98,9 +98,9 @@ public sealed class SecurityAuditReviewTests
                 SecurityAuditEventCatalog.SessionCategory
             ]);
 
-        SecurityAuditCatalogEntry idleTermination = SecurityAuditEventCatalog.Entries
-            .Single(entry => entry.EventName == SecurityAuditEventCatalog.AdministratorIdleTerminationEvent);
-        idleTermination.Applicable.Should().BeFalse();
+        SecurityAuditCatalogEntry sessionTermination = SecurityAuditEventCatalog.Entries
+            .Single(entry => entry.EventName == SecurityAuditEventCatalog.SessionTerminatedEvent);
+        sessionTermination.ControlItems.Should().Contain(SecurityAuditControl.AdministratorIdleTermination);
         SecurityAuditEventCatalog.Find(SecurityAuditEventCatalog.EndpointMutationEvent, "any-operation")
             .Should().NotBeNull();
 
@@ -112,10 +112,10 @@ public sealed class SecurityAuditReviewTests
         }).Should().BeTrue();
         SecurityAuditEventCatalog.IsCatalogued(new SecurityAuditEvent
         {
-            EventName = SecurityAuditEventCatalog.AdministratorIdleTerminationEvent,
+            EventName = SecurityAuditEventCatalog.SessionTerminatedEvent,
             EventCategory = SecurityAuditEventCatalog.SessionCategory,
-            Operation = "session.terminate.idle"
-        }).Should().BeFalse();
+            Operation = SecurityAuditEventCatalog.SessionTerminatedOperation
+        }).Should().BeTrue();
         SecurityAuditEventCatalog.IsCatalogued(new SecurityAuditEvent
         {
             EventName = SecurityAuditEventCatalog.AuthenticationPasswordLoginEvent,
@@ -151,9 +151,9 @@ public sealed class SecurityAuditReviewTests
             .SelectMany(entry => entry.ControlItems)
             .ToHashSet();
 
-        covered.Should().Contain(Enum.GetValues<SecurityAuditControl>().Where(control => control is not SecurityAuditControl.AdministratorIdleTermination));
+        covered.Should().Contain(Enum.GetValues<SecurityAuditControl>());
         SecurityAuditEventCatalog.Entries
-            .Single(entry => entry.EventName == SecurityAuditEventCatalog.AdministratorIdleTerminationEvent)
+            .Single(entry => entry.EventName == SecurityAuditEventCatalog.SessionTerminatedEvent)
             .ControlItems.Should().Contain(SecurityAuditControl.AdministratorIdleTermination);
     }
 

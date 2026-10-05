@@ -41,6 +41,7 @@ export {
   useAuthenticationAuthenticationPolicyPut,
   useAuthenticationUserInactivityPolicyGet,
   useAuthenticationUserInactivityPolicyPut,
+  useAuthenticationUserSessionsRevoke,
   getAuthenticationSessionGetQueryKey,
   useAuthenticationProfileGet as useAuthenticationProfile,
   useAuthenticationLoginPassword,
@@ -67,6 +68,7 @@ export type {
   SecurityAuthenticationPolicyDto,
   ChangeUserInactivityTimeoutRequest,
   UserInactivityTimeoutDto,
+  UserSessionsRevocationDto,
 } from "./api/generated/authentication/model";
 export { AuthenticationSessionNoticeType } from "./api/generated/authentication/model";
 

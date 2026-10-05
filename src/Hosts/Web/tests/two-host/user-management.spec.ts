@@ -19,6 +19,7 @@ import {
 } from "../../scripts/two-host-e2e-artifacts.mjs";
 
 const platformOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://localhost:3006";
+const webOrigin = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3005";
 const password = process.env.VITARISH_E2E_PASSWORD;
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const platformUsername = process.env.VITARISH_E2E_USER_MANAGEMENT_PLATFORM_ADMIN_USERNAME ?? "e2e-user-management-admin";
@@ -188,6 +189,65 @@ test("authenticated platform administrator retains global search and membership 
   const passwordLoginEvent = authenticationHistory.getByRole("listitem").filter({ hasText: "Password login" }).first();
   await expect(passwordLoginEvent.getByText(new URL(platformOrigin).hostname, { exact: true })).toBeVisible();
   await signOutThroughPublicApi(page);
+});
+
+test("platform administrator ends a signed-in user's sessions and the user's next API call is rejected", async ({ page }) => {
+  const browser = page.context().browser();
+  expect(browser, "the two-host browser is required for an isolated user session").toBeTruthy();
+  const userContext = await browser!.newContext();
+  const userPage = await userContext.newPage();
+  let failure: unknown;
+  try {
+    await login(userPage, ownerUsername, webOrigin);
+    const userTenantHost = new URL(userPage.url()).host;
+    const signedInSession = await userPage.request.get(`${apiOrigin}/api/modules/authentication/session`, {
+      headers: { [TENANT_HOST_HEADER]: userTenantHost },
+      ignoreHTTPSErrors: true,
+    });
+    expect(signedInSession.status()).toBe(200);
+
+    await login(page, platformUsername, platformOrigin);
+    await page.goto(`${platformOrigin}${PlatformRoutes.Users.Index}`, { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "Users", exact: true })).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("textbox", { name: "Search users" }).fill(ownerUsername);
+    await page.getByRole("button", { name: "Search" }).click();
+    const ownerRow = page.locator("tbody tr").filter({ hasText: ownerUsername }).first();
+    await expect(ownerRow).toBeVisible({ timeout: 30_000 });
+    await ownerRow.getByRole("button", { name: "View user security details" }).click();
+    await expect(page.getByText("User ID", { exact: true })).toBeVisible({ timeout: 30_000 });
+
+    await page.getByRole("button", { name: "End all sessions" }).click();
+    const confirmation = page.getByRole("dialog");
+    await expect(confirmation).toHaveAccessibleName("End all sessions");
+    const [revocationResponse] = await Promise.all([
+      page.waitForResponse((response) => response.request().method() === "POST" && response.url().includes("/sessions/revoke")),
+      confirmation.getByRole("button", { name: "End sessions" }).click(),
+    ]);
+    expect(revocationResponse.status()).toBe(200);
+    const revocation = await revocationResponse.json() as { endedSessions?: number | string };
+    expect(Number(revocation.endedSessions)).toBeGreaterThanOrEqual(1);
+    await expect(page.getByRole("status").filter({ hasText: "Active sessions ended" })).toBeVisible();
+
+    const revokedSession = await userPage.request.get(`${apiOrigin}/api/modules/authentication/session`, {
+      headers: { [TENANT_HOST_HEADER]: userTenantHost },
+      ignoreHTTPSErrors: true,
+    });
+    expect(revokedSession.status()).toBe(401);
+  } catch (error) {
+    failure = error;
+  }
+
+  try {
+    await userContext.close();
+  } catch (cleanupError) {
+    if (failure) {
+      throw new AggregateError([failure, cleanupError], "The revoked-session scenario and its browser-context cleanup both failed.");
+    }
+    throw cleanupError;
+  }
+  if (failure) {
+    throw failure;
+  }
 });
 
 test("platform administrator manages profile-constrained authentication policy through Settings", async ({ page }) => {

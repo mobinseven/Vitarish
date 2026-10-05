@@ -26,7 +26,8 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
         AuthenticationRoutes.BasePath + AuthenticationRoutes.SessionNotices,
         AuthenticationRoutes.BasePath + AuthenticationRoutes.SessionNoticeAcknowledge,
         AuthenticationRoutes.BasePath + AuthenticationRoutes.SecuritySessionPolicy,
-        AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserInactivityPolicy
+        AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserInactivityPolicy,
+        AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserSessionsRevoke
     };
 
     [Theory]
@@ -258,5 +259,6 @@ public class ProtectedAuthenticationEndpointAuthorizationTests
     private static bool IsPlatformAdminProtectedRoute(string routePattern) =>
         routePattern is
             AuthenticationRoutes.BasePath + AuthenticationRoutes.SecuritySessionPolicy or
-            AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserInactivityPolicy;
+            AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserInactivityPolicy or
+            AuthenticationRoutes.BasePath + AuthenticationRoutes.SecurityUserSessionsRevoke;
 }

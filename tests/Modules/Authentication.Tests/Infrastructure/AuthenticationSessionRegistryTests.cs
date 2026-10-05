@@ -248,6 +248,56 @@ public sealed class AuthenticationSessionRegistryTests
         (await registry.HasActiveSessionAsync("user-1", CancellationToken.None)).Should().BeFalse();
     }
 
+    [Fact]
+    public async Task Administrative_revocation_ends_every_active_session_of_the_target_user_with_audit()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db, RecordingAuditWriter audit) = CreateRegistry(SecurityAccessPolicy.Default, clock);
+        AuthenticationSession first = CreateSession("user-1", clock, TimeSpan.Zero);
+        AuthenticationSession second = CreateSession("user-1", clock, TimeSpan.FromMinutes(1));
+        AuthenticationSession otherUser = CreateSession("user-2", clock, TimeSpan.Zero);
+        db.AuthenticationSessions.AddRange(first, second, otherUser);
+        await db.SaveChangesAsync();
+
+        int ended = await registry.RevokeActiveSessionsAsync("user-1", CancellationToken.None);
+
+        ended.Should().Be(2);
+        AuthenticationSession storedFirst = await db.AuthenticationSessions.AsNoTracking().SingleAsync(session => session.Id == first.Id);
+        AuthenticationSession storedSecond = await db.AuthenticationSessions.AsNoTracking().SingleAsync(session => session.Id == second.Id);
+        storedFirst.TerminationReason.Should().Be(AuthenticationSessionTerminationReason.AdministrativeRevocation);
+        storedSecond.TerminationReason.Should().Be(AuthenticationSessionTerminationReason.AdministrativeRevocation);
+        storedFirst.TerminatedAt.Should().Be(clock.UtcNow.UtcDateTime);
+        storedSecond.TerminatedAt.Should().Be(clock.UtcNow.UtcDateTime);
+        (await db.AuthenticationSessions.AsNoTracking().SingleAsync(session => session.Id == otherUser.Id)).TerminatedAt.Should().BeNull();
+        audit.Events.Should().OnlyContain(item =>
+            item.EventName == AuthenticationSecurityAuditEvents.SessionTerminated
+            && item.Operation == AuthenticationSecurityAuditEvents.SessionTerminatedOperation
+            && item.ActorId == "admin-1"
+            && item.SubjectId == "user-1"
+            && item.RedactedReason == AuthenticationSecurityAuditEvents.SessionAdministrativeRevocation);
+        audit.Events.Where(item => item.Outcome == SecurityAuditOutcome.Pending).Should().HaveCount(2);
+        audit.Events.Where(item => item.Outcome == SecurityAuditOutcome.Succeeded).Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task Administrative_revocation_is_idempotent_and_does_not_audit_an_empty_revocation()
+    {
+        TestTimeProvider clock = new(new DateTimeOffset(2026, 8, 30, 10, 0, 0, TimeSpan.Zero));
+        (AuthenticationSessionRegistry registry, AuthenticationDbContext db, RecordingAuditWriter audit) = CreateRegistry(SecurityAccessPolicy.Default, clock);
+        db.AuthenticationSessions.Add(CreateSession("user-1", clock, TimeSpan.Zero));
+        await db.SaveChangesAsync();
+
+        int first = await registry.RevokeActiveSessionsAsync("user-1", CancellationToken.None);
+        int second = await registry.RevokeActiveSessionsAsync("user-1", CancellationToken.None);
+        int unknownUser = await registry.RevokeActiveSessionsAsync("missing-user", CancellationToken.None);
+
+        first.Should().Be(1);
+        second.Should().Be(0);
+        unknownUser.Should().Be(0);
+        audit.Events.Should().HaveCount(2);
+        (await db.AuthenticationSessions.AsNoTracking().SingleAsync()).TerminationReason.Should().Be(AuthenticationSessionTerminationReason.AdministrativeRevocation);
+    }
+
     private static (AuthenticationSessionRegistry Registry, AuthenticationDbContext Db, RecordingAuditWriter Audit) CreateRegistry(SecurityAccessPolicy policy, TimeProvider clock, string address = "127.0.0.1")
     {
         DbContextOptions<AuthenticationDbContext> options = new DbContextOptionsBuilder<AuthenticationDbContext>()
@@ -260,11 +310,22 @@ public sealed class AuthenticationSessionRegistryTests
         clientIp.SetupGet(accessor => accessor.ClientIpAddress).Returns(address);
         Mock<IRequestContext> requestContext = new();
         requestContext.SetupGet(context => context.TenantId).Returns("tenant-1");
+        requestContext.SetupGet(context => context.UserId).Returns("admin-1");
         requestContext.SetupGet(context => context.RequestId).Returns("request-1");
         requestContext.SetupGet(context => context.TraceId).Returns("trace-1");
         RecordingAuditWriter audit = new();
         return (new AuthenticationSessionRegistry(db, policyProvider.Object, clientIp.Object, requestContext.Object, audit, clock), db, audit);
     }
+
+    private static AuthenticationSession CreateSession(string userId, TestTimeProvider clock, TimeSpan offset) => new()
+    {
+        Id = Guid.NewGuid(),
+        UserId = userId,
+        TenantId = "tenant-1",
+        CreatedAt = clock.UtcNow.UtcDateTime.Add(offset),
+        LastActivityAt = clock.UtcNow.UtcDateTime.Add(offset),
+        ClientIpAddress = "127.0.0.1"
+    };
 
     private sealed class RecordingAuditWriter : ISecurityAuditWriter
     {

@@ -12,6 +12,7 @@ const managedUserUpdate = vi.fn((_input: unknown, options?: { onSuccess?: () => 
 const platformPhoneCreate = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const globalRoleGrant = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
 const inactivityPolicySave = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
+const revokeSessions = vi.fn((_input: unknown, options?: { onSuccess?: (result: { endedSessions: number }) => void; onError?: (error: unknown) => void }) => options?.onSuccess?.({ endedSessions: 2 }));
 let securityDetailsQueryResponse: { data?: typeof userSecurityDetails; error: unknown; isLoading: boolean; isError: boolean; refetch: typeof refetch };
 const userSecurityDetails = {
   user: {
@@ -84,6 +85,7 @@ vi.mock("@vitarish/auth", () => ({
   useUsersAddRole: () => ({ isPending: false, mutate: globalRoleGrant }),
   useAuthenticationUserInactivityPolicyGet: () => ({ data: { version: 1, inactivityTimeoutMinutes: null }, isLoading: false, isError: false, refetch }),
   useAuthenticationUserInactivityPolicyPut: () => ({ isPending: false, mutate: inactivityPolicySave }),
+  useAuthenticationUserSessionsRevoke: () => ({ isPending: false, mutate: revokeSessions }),
   useUsersAdministrationCreateWithEmail: () => ({ isPending: false, mutate: vi.fn() }),
   useUsersAdministrationCreateWithPhone: () => ({ isPending: false, mutate: platformPhoneCreate }),
   useUsersAdministrationGrantTenantRole: () => ({ isPending: false, mutate: vi.fn() }),
@@ -247,6 +249,33 @@ describe("UserManagementSurface", () => {
     expect(screen.getByRole("status")).toHaveTextContent("This setting changed elsewhere. Reload it before saving again.");
     await user.click(screen.getByRole("button", { name: "Reload current inactivity setting" }));
     expect(refetch).toHaveBeenCalled();
+  });
+
+  it("ends every active session after confirmation and reports the ended count", async () => {
+    const user = userEvent.setup();
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.click(screen.getByRole("button", { name: "End all sessions" }));
+    expect(screen.getByRole("dialog")).toHaveAccessibleName("End all sessions");
+    await user.click(screen.getByRole("button", { name: "End sessions" }));
+
+    expect(revokeSessions).toHaveBeenCalledWith({ userId: "platform-user" }, expect.any(Object));
+    expect(refetch).toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent("Active sessions ended: 2");
+  });
+
+  it("reports a forbidden session-termination attempt without claiming success", async () => {
+    const user = userEvent.setup();
+    revokeSessions.mockImplementationOnce(
+      (_input: unknown, options?: { onError?: (error: unknown) => void }) => options?.onError?.({ status: 403 }),
+    );
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.click(screen.getByRole("button", { name: "End all sessions" }));
+    await user.click(screen.getByRole("button", { name: "End sessions" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("You do not have permission to end this user's sessions.");
+    expect(refetch).not.toHaveBeenCalled();
   });
 
   it("keeps user identity and roles visible when audit history returns 503", () => {
