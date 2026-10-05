@@ -36,6 +36,9 @@
     # excluded so the upstream long-lived immutable Cache-Control is preserved.
     @revalidated not path /_next/static/*
     header @revalidated {
+        # defer applies these after reverse_proxy, so they replace upstream
+        # values instead of being joined with them.
+        defer
         Cache-Control "no-cache, no-store, must-revalidate"
         Pragma "no-cache"
     }
