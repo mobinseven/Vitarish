@@ -17,7 +17,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 # system OpenSSL defaults that .NET uses on Linux, and prove it with real
 # handshakes; the build fails if the policy does not hold.
 COPY src/Hosts/Main/openssl-outbound-tls.cnf src/Hosts/Main/verify-outbound-tls.sh /tmp/
-RUN grep -q '^providers = provider_sect$' /etc/ssl/openssl.cnf \
+RUN if grep -q '^ssl_conf' /etc/ssl/openssl.cnf; then echo 'openssl.cnf already sets ssl_conf; merge the outbound TLS policy into it' >&2; exit 1; fi \
+    && grep -q '^providers = provider_sect$' /etc/ssl/openssl.cnf \
     && sed -i 's/^providers = provider_sect$/providers = provider_sect\nssl_conf = vitarish_ssl_sect/' /etc/ssl/openssl.cnf \
     && cat /tmp/openssl-outbound-tls.cnf >> /etc/ssl/openssl.cnf \
     && sh /tmp/verify-outbound-tls.sh \
