@@ -238,11 +238,14 @@ public sealed class PasswordRecoveryHandlerTests
         dependencies.EmailSender.Setup(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AuthenticationChallengePurpose>(), It.IsAny<CancellationToken>()))
             .Returns<string, string, AuthenticationChallengePurpose, CancellationToken>((_, _, _, deliveryToken) =>
             {
-                deliveryStarted.TrySetResult(deliveryToken);
                 return DeliverAsync();
                 async Task DeliverAsync()
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(3), clock, deliveryToken);
+                    // Signal only after the fake timer exists, so the test can
+                    // advance the clock without racing the registration.
+                    Task delivery = Task.Delay(TimeSpan.FromMinutes(3), clock, deliveryToken);
+                    deliveryStarted.TrySetResult(deliveryToken);
+                    await delivery;
                     delivered.SetResult();
                 }
             });

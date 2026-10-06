@@ -9,6 +9,12 @@ namespace Intelligence.Tests.Application;
 
 public sealed class LiveTranscriptionSessionTests
 {
+    /// <summary>
+    /// Safety net only: every wait is driven by a session signal, but a loaded
+    /// CI runner can schedule the continuation well after one second.
+    /// </summary>
+    private static readonly TimeSpan TestWaitTimeout = TimeSpan.FromSeconds(30);
+
     [Fact]
     public async Task Session_orders_final_segments_and_completes_only_after_explicit_stop()
     {
@@ -19,13 +25,13 @@ public sealed class LiveTranscriptionSessionTests
         ConcurrentQueue<LiveTranscriptionSegment> segments = new();
         LiveTranscriptionSession session = CreateSession(provider, segment => segments.Enqueue(segment));
 
-        (await session.Ready.WaitAsync(TimeSpan.FromSeconds(1))).Should().BeTrue();
+        (await session.Ready.WaitAsync(TestWaitTimeout)).Should().BeTrue();
         (await session.AcceptAudioAsync(new byte[] { 1 }, CancellationToken.None)).Accepted.Should().BeTrue();
         (await session.AcceptAudioAsync(new byte[] { 2 }, CancellationToken.None)).Accepted.Should().BeTrue();
 
         session.Completion.IsCompleted.Should().BeFalse();
         session.RequestStop();
-        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TimeSpan.FromSeconds(1));
+        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TestWaitTimeout);
 
         outcome.Kind.Should().Be(LiveTranscriptionOutcomeKind.Completed);
         segments.Should().Equal(
@@ -42,12 +48,12 @@ public sealed class LiveTranscriptionSessionTests
         LiveTranscriptionSettings settings = CreateSettings();
         settings.MaxFrameBytes = 1024;
         LiveTranscriptionSession session = CreateSession(provider, _ => { }, settings: settings);
-        (await session.Ready.WaitAsync(TimeSpan.FromSeconds(1))).Should().BeTrue();
+        (await session.Ready.WaitAsync(TestWaitTimeout)).Should().BeTrue();
 
         LiveTranscriptionAcceptResult accepted = await session.AcceptAudioAsync(
             new byte[1025],
             CancellationToken.None);
-        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TimeSpan.FromSeconds(1));
+        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TestWaitTimeout);
 
         accepted.Accepted.Should().BeFalse();
         accepted.Error!.Code.Should().Be(LiveTranscriptionErrorCode.FrameTooLarge);
@@ -65,14 +71,14 @@ public sealed class LiveTranscriptionSessionTests
         settings.MaxFrameBytes = 1024;
         settings.MaxTotalBytes = 1024;
         LiveTranscriptionSession session = CreateSession(provider, _ => { }, settings: settings);
-        (await session.Ready.WaitAsync(TimeSpan.FromSeconds(1))).Should().BeTrue();
+        (await session.Ready.WaitAsync(TestWaitTimeout)).Should().BeTrue();
 
         (await session.AcceptAudioAsync(new byte[600], CancellationToken.None)).Accepted
             .Should().BeTrue();
         LiveTranscriptionAcceptResult accepted = await session.AcceptAudioAsync(
             new byte[500],
             CancellationToken.None);
-        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TimeSpan.FromSeconds(1));
+        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TestWaitTimeout);
 
         accepted.Accepted.Should().BeFalse();
         accepted.Error!.Code.Should().Be(LiveTranscriptionErrorCode.PayloadTooLarge);
@@ -92,10 +98,10 @@ public sealed class LiveTranscriptionSessionTests
         };
         ConcurrentQueue<LiveTranscriptionSegment> segments = new();
         LiveTranscriptionSession session = CreateSession(provider, segment => segments.Enqueue(segment));
-        (await session.Ready.WaitAsync(TimeSpan.FromSeconds(1))).Should().BeTrue();
+        (await session.Ready.WaitAsync(TestWaitTimeout)).Should().BeTrue();
 
         _ = await session.AcceptAudioAsync(new byte[] { 1 }, CancellationToken.None);
-        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TimeSpan.FromSeconds(1));
+        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TestWaitTimeout);
 
         segments.Should().Equal(new LiveTranscriptionSegment(0, "confirmed"));
         outcome.Kind.Should().Be(LiveTranscriptionOutcomeKind.Failed);
@@ -112,10 +118,10 @@ public sealed class LiveTranscriptionSessionTests
             provider,
             _ => { },
             cancellationToken: cancellation.Token);
-        (await session.Ready.WaitAsync(TimeSpan.FromSeconds(1))).Should().BeTrue();
+        (await session.Ready.WaitAsync(TestWaitTimeout)).Should().BeTrue();
 
         cancellation.Cancel();
-        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TimeSpan.FromSeconds(1));
+        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TestWaitTimeout);
 
         outcome.Kind.Should().Be(LiveTranscriptionOutcomeKind.Canceled);
         provider.CancellationObserved.Should().BeTrue();
@@ -133,7 +139,7 @@ public sealed class LiveTranscriptionSessionTests
             _ => { },
             cancellationToken: cancellation.Token);
 
-        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TimeSpan.FromSeconds(1));
+        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TestWaitTimeout);
 
         outcome.Kind.Should().Be(LiveTranscriptionOutcomeKind.Canceled);
         (await session.Ready).Should().BeFalse();
@@ -144,17 +150,18 @@ public sealed class LiveTranscriptionSessionTests
     [Fact]
     public async Task Session_fails_deterministically_after_network_idle()
     {
-        FakeTimeProvider time = new();
+        SignalingFakeTimeProvider time = new();
         FakeTranscriptionProvider provider = new();
         LiveTranscriptionSettings settings = CreateSettings();
         settings.IdleTimeoutSeconds = 5;
         settings.MaxDurationSeconds = 10;
         settings.ProviderOperationTimeoutSeconds = 20;
         LiveTranscriptionSession session = CreateSession(provider, _ => { }, settings, time);
-        (await session.Ready.WaitAsync(TimeSpan.FromSeconds(1))).Should().BeTrue();
+        (await session.Ready.WaitAsync(TestWaitTimeout)).Should().BeTrue();
+        await time.WaitForTimerAsync(TimeSpan.FromSeconds(settings.IdleTimeoutSeconds));
 
         time.Advance(TimeSpan.FromSeconds(6));
-        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TimeSpan.FromSeconds(1));
+        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TestWaitTimeout);
 
         outcome.Kind.Should().Be(LiveTranscriptionOutcomeKind.Failed);
         outcome.Error!.Code.Should().Be(LiveTranscriptionErrorCode.IdleTimeout);
@@ -164,20 +171,20 @@ public sealed class LiveTranscriptionSessionTests
     [Fact]
     public async Task Session_fails_at_maximum_duration_even_when_audio_is_recent()
     {
-        FakeTimeProvider time = new();
+        SignalingFakeTimeProvider time = new();
         FakeTranscriptionProvider provider = new();
         LiveTranscriptionSettings settings = CreateSettings();
         settings.IdleTimeoutSeconds = 4;
         settings.MaxDurationSeconds = 5;
         settings.ProviderOperationTimeoutSeconds = 10;
         LiveTranscriptionSession session = CreateSession(provider, _ => { }, settings, time);
-        (await session.Ready.WaitAsync(TimeSpan.FromSeconds(1))).Should().BeTrue();
-        await Task.Yield();
+        (await session.Ready.WaitAsync(TestWaitTimeout)).Should().BeTrue();
+        await time.WaitForTimerAsync(TimeSpan.FromSeconds(settings.MaxDurationSeconds));
 
         time.Advance(TimeSpan.FromSeconds(3));
         _ = await session.AcceptAudioAsync(new byte[] { 1 }, CancellationToken.None);
         time.Advance(TimeSpan.FromSeconds(3));
-        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TimeSpan.FromSeconds(1));
+        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TestWaitTimeout);
 
         outcome.Kind.Should().Be(LiveTranscriptionOutcomeKind.Failed);
         outcome.Error!.Code.Should().Be(LiveTranscriptionErrorCode.DurationLimitExceeded);
@@ -196,7 +203,7 @@ public sealed class LiveTranscriptionSessionTests
         LiveTranscriptionSession session = CreateSession(provider, _ => { }, settings, time);
 
         time.Advance(TimeSpan.FromSeconds(6));
-        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TimeSpan.FromSeconds(1));
+        LiveTranscriptionOutcome outcome = await session.Completion.WaitAsync(TestWaitTimeout);
 
         outcome.Kind.Should().Be(LiveTranscriptionOutcomeKind.Failed);
         outcome.Error!.Code.Should().Be(LiveTranscriptionErrorCode.ProviderTimeout);
@@ -261,6 +268,49 @@ public sealed class LiveTranscriptionSessionTests
         ProviderOperationTimeoutSeconds = 35,
         ChannelCapacity = 2
     };
+
+    /// <summary>
+    /// Lets a test wait until the session has registered a fake timer, so the
+    /// clock is not advanced before the timer exists.
+    /// </summary>
+    private sealed class SignalingFakeTimeProvider : FakeTimeProvider
+    {
+        private readonly object _gate = new();
+        private readonly HashSet<TimeSpan> _scheduled = [];
+        private readonly List<(TimeSpan DueTime, TaskCompletionSource Completion)> _waiters = [];
+
+        public Task WaitForTimerAsync(TimeSpan dueTime)
+        {
+            lock (_gate)
+            {
+                if (_scheduled.Contains(dueTime))
+                    return Task.CompletedTask;
+
+                TaskCompletionSource completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                _waiters.Add((dueTime, completion));
+                return completion.Task;
+            }
+        }
+
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            ITimer timer = base.CreateTimer(callback, state, dueTime, period);
+            lock (_gate)
+            {
+                _ = _scheduled.Add(dueTime);
+                for (int index = _waiters.Count - 1; index >= 0; index--)
+                {
+                    if (_waiters[index].DueTime != dueTime)
+                        continue;
+
+                    _waiters[index].Completion.TrySetResult();
+                    _waiters.RemoveAt(index);
+                }
+            }
+
+            return timer;
+        }
+    }
 
     private sealed class FakeTranscriptionProvider : ITranscriptionProvider
     {
