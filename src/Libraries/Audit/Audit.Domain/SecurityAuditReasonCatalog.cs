@@ -51,6 +51,16 @@ public static class SecurityAuditReasonCatalog
     public const string TenantRoleStateUser = "tenant_user";
     public const string TenantRoleStateMultiple = "multiple";
     public const string UserTimeoutMinutesReasonPrefix = "user_timeout_minutes:";
+    public const string AuditStorageThresholdReasonPrefix = "audit_storage_threshold:";
+    public const string AuditStorageThresholdMeasuredBytesPrefix = "bytes=";
+    public const string AuditStorageThresholdLimitPrefix = "threshold=";
+    public const string AuditStorageThresholdEmailPrefix = "email=";
+    public const string AuditStorageThresholdSmsPrefix = "sms=";
+    public const string AuditStorageThresholdRecipientsPrefix = "recipients=";
+    public const string AuditStorageThresholdRecipientsNotConfigured = "not_configured";
+    public const string NotificationChannelNotAttempted = "not_attempted";
+    public const string NotificationChannelSucceeded = "succeeded";
+    public const string NotificationChannelFailed = "failed";
 
     private const string HttpStatusPrefix = "http_";
     private const string VersionPrefix = "version:";
@@ -130,12 +140,30 @@ public static class SecurityAuditReasonCatalog
         return $"{TenantRoleReplacementReasonPrefix}{TenantRoleReplacementBeforePrefix}{before}{TenantRoleReplacementAfterSeparator}{after}";
     }
 
+    public static string AuditStorageThreshold(long measuredBytes, long thresholdBytes, string emailOutcome, string smsOutcome)
+    {
+        ValidateStorageThreshold(measuredBytes, thresholdBytes);
+        if (!IsNotificationChannelOutcome(emailOutcome))
+            throw new ArgumentException("The email notification outcome is not a permitted redacted value.", nameof(emailOutcome));
+        if (!IsNotificationChannelOutcome(smsOutcome))
+            throw new ArgumentException("The SMS notification outcome is not a permitted redacted value.", nameof(smsOutcome));
+
+        return $"{AuditStorageThresholdReasonPrefix}{AuditStorageThresholdMeasuredBytesPrefix}{measuredBytes};{AuditStorageThresholdLimitPrefix}{thresholdBytes};{AuditStorageThresholdEmailPrefix}{emailOutcome};{AuditStorageThresholdSmsPrefix}{smsOutcome}";
+    }
+
+    public static string AuditStorageThresholdWithoutRecipients(long measuredBytes, long thresholdBytes)
+    {
+        ValidateStorageThreshold(measuredBytes, thresholdBytes);
+
+        return $"{AuditStorageThresholdReasonPrefix}{AuditStorageThresholdMeasuredBytesPrefix}{measuredBytes};{AuditStorageThresholdLimitPrefix}{thresholdBytes};{AuditStorageThresholdRecipientsPrefix}{AuditStorageThresholdRecipientsNotConfigured}";
+    }
+
     public static bool IsAllowed(string reason)
     {
         if (KnownReasons.Contains(reason))
             return true;
 
-        return IsHttpStatus(reason) || IsVersion(reason) || IsUserTimeoutMinutes(reason) || IsTenantRoleReplacement(reason);
+        return IsHttpStatus(reason) || IsVersion(reason) || IsUserTimeoutMinutes(reason) || IsTenantRoleReplacement(reason) || IsAuditStorageThreshold(reason);
     }
 
     private static bool IsHttpStatus(string reason)
@@ -182,6 +210,57 @@ public static class SecurityAuditReasonCatalog
     }
 
     private static bool IsTenantRoleState(string state) => state is TenantRoleStateNone or TenantRoleStateOwner or TenantRoleStateUser or TenantRoleStateMultiple;
+
+    private static bool IsAuditStorageThreshold(string reason)
+    {
+        if (!reason.StartsWith(AuditStorageThresholdReasonPrefix, StringComparison.Ordinal))
+            return false;
+
+        string[] segments = reason[AuditStorageThresholdReasonPrefix.Length..].Split(';');
+        if (segments.Length == 4)
+        {
+            return IsNonNegativeInteger(segments[0], AuditStorageThresholdMeasuredBytesPrefix) &&
+                   IsPositiveInteger(segments[1], AuditStorageThresholdLimitPrefix) &&
+                   IsNotificationChannelSegment(segments[2], AuditStorageThresholdEmailPrefix) &&
+                   IsNotificationChannelSegment(segments[3], AuditStorageThresholdSmsPrefix);
+        }
+
+        return segments.Length == 3 &&
+               IsNonNegativeInteger(segments[0], AuditStorageThresholdMeasuredBytesPrefix) &&
+               IsPositiveInteger(segments[1], AuditStorageThresholdLimitPrefix) &&
+               string.Equals(segments[2], AuditStorageThresholdRecipientsPrefix + AuditStorageThresholdRecipientsNotConfigured, StringComparison.Ordinal);
+    }
+
+    private static bool IsNotificationChannelSegment(string segment, string prefix)
+    {
+        string outcome = segment.StartsWith(prefix, StringComparison.Ordinal)
+            ? segment[prefix.Length..]
+            : string.Empty;
+
+        return IsNotificationChannelOutcome(outcome);
+    }
+
+    private static bool IsNotificationChannelOutcome(string outcome) =>
+        outcome is NotificationChannelNotAttempted or NotificationChannelSucceeded or NotificationChannelFailed;
+
+    private static bool IsPositiveInteger(string reason, string prefix)
+    {
+        string suffix = reason.StartsWith(prefix, StringComparison.Ordinal)
+            ? reason[prefix.Length..]
+            : string.Empty;
+
+        return suffix.Length > 0 && IsAsciiDigits(suffix) &&
+               long.TryParse(suffix, NumberStyles.None, CultureInfo.InvariantCulture, out long value) &&
+               value > 0;
+    }
+
+    private static void ValidateStorageThreshold(long measuredBytes, long thresholdBytes)
+    {
+        if (measuredBytes < 0)
+            throw new ArgumentOutOfRangeException(nameof(measuredBytes));
+        if (thresholdBytes <= 0)
+            throw new ArgumentOutOfRangeException(nameof(thresholdBytes));
+    }
 
     private static bool IsNonNegativeInteger(string reason, string prefix)
     {
