@@ -93,6 +93,8 @@ public sealed class LoginWithPasswordHandler(
                     signInResult.RequiresProfileCompletion)),
             PasswordSignInStatus.AccountDisabled =>
                 new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.AccountDisabled, "The account is disabled.")),
+            PasswordSignInStatus.NoAccess =>
+                new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.NoAccess, "The account has no access level.")),
             PasswordSignInStatus.InvalidCredentials or PasswordSignInStatus.UserNotFound =>
                 new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidCredentials, "Invalid credentials.")),
             PasswordSignInStatus.LockedOut =>

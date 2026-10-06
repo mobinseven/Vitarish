@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Vitarish.Authentication.Api.Mapping;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Contracts.Errors;
 using Vitarish.Authentication.Domain.Security;
 
 namespace Authentication.Tests.Api;
@@ -26,6 +27,7 @@ public class AuthenticationProblemHttpMapperTests
     [InlineData(AuthenticationFailureReason.ProviderFailure, StatusCodes.Status503ServiceUnavailable)]
     [InlineData(AuthenticationFailureReason.UnknownCredential, StatusCodes.Status400BadRequest)]
     [InlineData(AuthenticationFailureReason.InvalidCredential, StatusCodes.Status400BadRequest)]
+    [InlineData(AuthenticationFailureReason.NoAccess, StatusCodes.Status403Forbidden)]
     public void ToProblem_maps_reason_to_correct_status_code(AuthenticationFailureReason reason, int expectedStatus)
     {
         var failure = new AuthenticationFailure(reason, "test message");
@@ -35,5 +37,15 @@ public class AuthenticationProblemHttpMapperTests
         result.Should().NotBeNull();
         result.Should().BeOfType<ProblemHttpResult>();
         ((ProblemHttpResult)result).ProblemDetails.Status.Should().Be(expectedStatus);
+    }
+
+    [Fact]
+    public void ToProblem_maps_no_access_to_the_no_access_error_code()
+    {
+        var failure = new AuthenticationFailure(AuthenticationFailureReason.NoAccess, "test message");
+
+        var result = AuthenticationProblemHttpMapper.ToProblem(failure);
+
+        ((ProblemHttpResult)result).ProblemDetails.Extensions["code"].Should().Be(AuthenticationErrorCode.no_access.ToString());
     }
 }

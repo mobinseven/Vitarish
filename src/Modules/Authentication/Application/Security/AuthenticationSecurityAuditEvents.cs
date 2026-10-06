@@ -78,6 +78,7 @@ public static class AuthenticationSecurityAuditEvents
     public const string SecurityAttributesChangedOperation = SecurityAuditEventCatalog.SecurityAttributesChangedOperation;
     public const string AuthenticationFailed = SecurityAuditReasonCatalog.AuthenticationFailed;
     public const string FailureAccountDisabled = SecurityAuditReasonCatalog.AccountDisabled;
+    public const string FailureNoAccess = SecurityAuditReasonCatalog.NoAccess;
     public const string ParallelSessionEstablished = AuthenticationSessionNotice.ParallelSessionEstablishedNoticeType;
     public const string Unauthorized = SecurityAuditReasonCatalog.Unauthorized;
 
@@ -85,15 +86,19 @@ public static class AuthenticationSecurityAuditEvents
 
     /// <summary>
     /// Resolves the redacted audit reason for a completed sign-in attempt.
-    /// Only a verified credential may produce the distinct account-disabled
-    /// reason; wrong-credential failures keep the generic failure reason so
-    /// they cannot be used to discover a disabled account.
+    /// Only a verified credential may produce a distinct account-state reason
+    /// (disabled account or missing access level); wrong-credential failures
+    /// keep the generic failure reason so they cannot be used to discover an
+    /// account's state.
     /// </summary>
     public static string? FailureReason(AuthenticationResult<LoginResult>? result) =>
         result is AuthenticationResult<LoginResult>.Failure failure
-            ? failure.Error.Reason is AuthenticationFailureReason.AccountDisabled
-                ? FailureAccountDisabled
-                : AuthenticationFailed
+            ? failure.Error.Reason switch
+            {
+                AuthenticationFailureReason.AccountDisabled => FailureAccountDisabled,
+                AuthenticationFailureReason.NoAccess => FailureNoAccess,
+                _ => AuthenticationFailed
+            }
             : null;
 
     public static string SessionTerminationReason(AuthenticationSessionTerminationReason reason) => reason switch

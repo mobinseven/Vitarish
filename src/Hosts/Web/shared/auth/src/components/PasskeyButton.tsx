@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { usePasskeyLogin } from "../hooks/usePasskeyLogin";
+import { useAuthErrorDisplay } from "../hooks/useAuthErrorDisplay";
 import { useLocalizedText } from "@vitarish/localization";
 import { FaIcon, StatusAlert } from "@vitarish/ui";
 import type { AuthNavigationOptions } from "../hooks/navigation";
@@ -16,11 +17,12 @@ export function PasskeyButton({
   navigate,
   returnUrlSearchParams,
 }: PasskeyButtonProps) {
-  const { login, isLoading, errorMessage } = usePasskeyLogin({
+  const { login, isLoading, error, errorMessage } = usePasskeyLogin({
     navigate,
     returnUrlSearchParams,
   });
   const { t } = useLocalizedText();
+  const displayedError = useAuthErrorDisplay(error, errorMessage);
   const [userNameOrEmail, setUserNameOrEmail] = useState("");
 
   const handleLogin = useCallback(() => {
@@ -37,7 +39,7 @@ export function PasskeyButton({
 
   return (
     <Form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {errorMessage && <StatusAlert className="mb-4" message={errorMessage} />}
+      {displayedError && <StatusAlert className="mb-4" message={displayedError} />}
       <TextField name="username" isDisabled={isLoading}>
         <Label>{t("auth.login.usernameOrEmailOptionalLabel")}</Label>
         <Input

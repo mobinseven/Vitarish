@@ -196,6 +196,32 @@ public sealed class LoginWithPasswordHandlerTests
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task No_access_password_login_is_denied_with_its_own_audit_reason_and_no_session()
+    {
+        TestDependencies dependencies = CreateDependencies(new PasswordSignInResult(
+            PasswordSignInStatus.NoAccess,
+            "user-42",
+            RequiresProfileCompletion: false,
+            RequiresTwoFactor: false));
+
+        AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", false, "operation-42"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.NoAccess);
+        dependencies.SignIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+        dependencies.AuditWriter.Verify(x => x.WriteAsync(
+            It.Is<SecurityAuditEvent>(audit =>
+                audit.Outcome == SecurityAuditOutcome.Denied &&
+                audit.SubjectId == "user-42" &&
+                audit.RedactedReason == AuthenticationSecurityAuditEvents.FailureNoAccess &&
+                audit.RedactedReason != SecurityAuditReasonCatalog.AuthenticationFailed &&
+                audit.RedactedReason != SecurityAuditReasonCatalog.AccountDisabled),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     private static TestDependencies CreateDependencies(PasswordSignInResult signInResult, SecurityAccessPolicy? policy = null)
     {
         Mock<IAuthenticationSignInService> signIn = new();

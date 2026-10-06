@@ -8,6 +8,7 @@ using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Results;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
+using Vitarish.Users.Application.Authorization;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Authentication.Infrastructure;
@@ -37,6 +38,8 @@ public sealed class AspNetIdentitySignInService(
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidCredentials, "Cannot sign in an unknown user."));
         if (!user.IsEnabled)
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.AccountDisabled, "The account is disabled."));
+        if (!await HasAccessLevelAsync(user))
+            return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.NoAccess, "The account has no access level."));
 
         IAuthenticationSessionPreparation? preparation = null;
         preparation = await sessionRegistry.PrepareAsync(userId, cancellationToken);
@@ -85,7 +88,23 @@ public sealed class AspNetIdentitySignInService(
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.AccountDisabled, "The account is disabled."));
         }
 
+        // The account may also have lost its last role while the session was
+        // being committed. Role removal rejects active sessions; this re-check
+        // closes the other ordering, so neither can be missed.
+        if (!await HasAccessLevelAsync(user))
+        {
+            await sessionRegistry.RevokeAsync(established.SessionId!, AuthenticationSessionTerminationReason.SecurityAttributeChanged, CancellationToken.None);
+            await httpContextAccessor.HttpContext!.SignOutAsync(IdentityConstants.ApplicationScheme);
+            return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.NoAccess, "The account has no access level."));
+        }
+
         return AuthenticationSessionSignInResult.Success();
+    }
+
+    private async Task<bool> HasAccessLevelAsync(User user)
+    {
+        IList<string> roles = await userManager.GetRolesAsync(user);
+        return UserAccessLevelPolicy.HasAccessLevel(roles);
     }
 
     private Task<bool> IsAccountEnabledAsync(string userId, CancellationToken cancellationToken) =>
@@ -141,6 +160,10 @@ public sealed class AspNetIdentitySignInService(
         {
             if (!user.IsEnabled)
                 return new PasswordSignInResult(PasswordSignInStatus.AccountDisabled, user.Id, RequiresProfileCompletion(user));
+            // Like a disabled account, refuse right after the password verifies, before
+            // any second-factor code is sent.
+            if (!await HasAccessLevelAsync(user))
+                return new PasswordSignInResult(PasswordSignInStatus.NoAccess, user.Id, RequiresProfileCompletion(user));
             await ResetAsync(identifierKeys, cancellationToken);
             await ResetAsync(subjectKeys, cancellationToken);
             PasswordSignInResult successful = new(
@@ -208,6 +231,7 @@ public sealed class AspNetIdentitySignInService(
         AuthenticationFailureReason.LockedOut => PasswordSignInStatus.LockedOut,
         AuthenticationFailureReason.TooManyAttempts => PasswordSignInStatus.TooManyAttempts,
         AuthenticationFailureReason.AccountDisabled => PasswordSignInStatus.AccountDisabled,
+        AuthenticationFailureReason.NoAccess => PasswordSignInStatus.NoAccess,
         _ => PasswordSignInStatus.ProviderFailure
     };
 

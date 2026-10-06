@@ -137,6 +137,7 @@ export { AuthenticatedRedirectBoundary, SessionRedirect, resolveSessionRedirectT
 
 // Workflow hooks
 export { usePasswordLogin } from "./hooks/usePasswordLogin";
+export { useAuthErrorDisplay } from "./hooks/useAuthErrorDisplay";
 export { usePasswordRecovery } from "./hooks/usePasswordRecovery";
 export { usePhoneLogin } from "./hooks/usePhoneLogin";
 export type { PhoneLoginStep } from "./hooks/usePhoneLogin";
