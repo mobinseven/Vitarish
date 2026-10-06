@@ -67,6 +67,7 @@ public class FilesModule : Modules.Base.Core.Module, IFilesModule
         _ = services.AddScoped<IFileInformationService, FileInformationService>();
         _ = services.AddScoped<IFileMetadataAccess, FileMetadataAccess>();
         _ = services.AddScoped<IFileTransferAuthorization, FileTransferAuthorization>();
+        _ = services.AddScoped<IFileTransferLifecycle, FileTransferLifecycle>();
         _ = services.AddScoped<IInterceptor, FileIntegrityLifecycleInterceptor>();
 
         if (configureDbContext != null)

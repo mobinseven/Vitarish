@@ -43,5 +43,6 @@ public class SerializationTests
         FilesApiRoutes.ById.Should().Be("/{fileId:guid}");
         FilesApiRoutes.ContentById.Should().Be("/{fileId:guid}/content");
         FilesApiRoutes.Upload.Should().Be("/upload");
+        FilesApiRoutes.UploadContentField.Should().Be("content");
     }
 }
