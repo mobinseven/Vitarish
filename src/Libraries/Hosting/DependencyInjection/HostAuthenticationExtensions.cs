@@ -47,17 +47,11 @@ public static class HostAuthenticationExtensions
             options.Cookie = new()
             {
                 HttpOnly = true,
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Lax,
                 SecurePolicy = CookieSecurePolicy.Always
             };
             options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
             options.SlidingExpiration = true;
-            options.Events.OnSignedIn = (context) =>
-            {
-                context.Properties.IsPersistent = true;
-                context.Properties.AllowRefresh = true;
-                return Task.FromResult(0);
-            };
         });
 
         // Configure WebAuthn/FIDO2

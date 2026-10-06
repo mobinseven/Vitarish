@@ -28,6 +28,12 @@ public sealed class AuthenticationCookieEvents(
         return Task.CompletedTask;
     }
 
+    public override Task SigningIn(CookieSigningInContext context)
+    {
+        context.Properties.IsPersistent = false;
+        return Task.CompletedTask;
+    }
+
     public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
     {
         string? sessionId = context.Principal?.FindFirst(AuthenticationSessionClaimTypes.SessionId)?.Value;
@@ -40,6 +46,15 @@ public sealed class AuthenticationCookieEvents(
         {
             context.RejectPrincipal();
             return;
+        }
+
+        // Sliding renewal reuses the ticket's properties without calling SigningIn, so a
+        // ticket issued as persistent (for example before this policy) is reissued here
+        // as a browser-session cookie.
+        if (context.Properties.IsPersistent)
+        {
+            context.Properties.IsPersistent = false;
+            context.ShouldRenew = true;
         }
 
         if (validation.InactivityTimeoutMinutes is int inactivityTimeoutMinutes)

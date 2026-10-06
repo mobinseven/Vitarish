@@ -23,7 +23,7 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
 - Focused backend builds are inner-loop only.
 - Merge-level backend confidence requires `ModuleBuildProfile=All` or full solution build.
 - Run npm workspace commands from `src/Hosts/Web`.
-- `fetch failed` usually means the .NET host is not running at `NEXT_PUBLIC_API_BASE_URL`.
+- `fetch failed` usually means the .NET host is not running at `VITARISH_API_PROXY_TARGET`, or Node lacks `--use-system-ca` to trust its dev certificate. Local Web must call `/api` same-origin: SameSite=Lax cookies are dropped when an http web origin calls the https API directly.
 - OpenAPI mutation `403` usually means CSRF/antiforgery mismatch.
 - Wrong generated hooks often mean Orval points at the wrong spec.
 

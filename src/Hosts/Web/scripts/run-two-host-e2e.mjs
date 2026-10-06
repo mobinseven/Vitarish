@@ -6,7 +6,9 @@ import http from "node:http";
 import https from "node:https";
 import net from "node:net";
 import crypto from "node:crypto";
+import { apiProxyTargetEnvironmentKey } from "./api-proxy-rewrites.mjs";
 import {
+  twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eArtifactDirectoryEnvironmentKey,
   twoHostE2eGrepEnvironmentKey,
   twoHostE2eNextDistDirectoryEnvironmentKey,
@@ -263,6 +265,10 @@ function createEnvironment(overrides) {
   return { ...process.env, ...overrides };
 }
 
+function withSystemCa(nodeOptions = "") {
+  return /(^|\s)--use-system-ca(\s|$)/.test(nodeOptions) ? nodeOptions : `${nodeOptions} --use-system-ca`.trim();
+}
+
 async function run() {
   const configuredProofScreenshotPath = process.env[twoHostE2eProofScreenshotEnvironmentKey];
   const proofScreenshotPath = configuredProofScreenshotPath
@@ -281,7 +287,7 @@ async function run() {
     ASPNETCORE_URLS: mainOrigin,
     WebAuthn__Origins__0: webOrigin,
     WebAuthn__Origins__1: platformAdminOrigin,
-    VITARISH_E2E_API_ORIGIN: mainOrigin,
+    [twoHostE2eApiOriginEnvironmentKey]: mainOrigin,
     VITARISH_E2E_WEB_ORIGIN: webOrigin,
     VITARISH_E2E_PLATFORM_ADMIN_ORIGIN: platformAdminOrigin,
     VITARISH_E2E_PASSWORD: password,
@@ -296,8 +302,14 @@ async function run() {
     [twoHostE2eArtifactDirectoryEnvironmentKey]: artifactDirectory,
     [twoHostE2eProofScreenshotEnvironmentKey]: proofScreenshotPath,
   });
+  // The browser calls /api on its own web origin, as in production; Next proxies it to
+  // Main. Node trusts Main's local development certificate through the system store.
   const webEnvironment = createEnvironment({
-    NEXT_PUBLIC_API_BASE_URL: mainOrigin,
+    NEXT_PUBLIC_API_BASE_URL: "",
+    [apiProxyTargetEnvironmentKey]: mainOrigin,
+    [twoHostE2eApiOriginEnvironmentKey]: mainOrigin,
+    NODE_USE_SYSTEM_CA: "1",
+    NODE_OPTIONS: withSystemCa(process.env.NODE_OPTIONS),
     [twoHostE2eNextDistDirectoryEnvironmentKey]: appNextDistDirectory,
     VITARISH_E2E_USERNAME: "e2e-owner",
     VITARISH_E2E_EMAIL_CHANGE_USERNAME: "e2e-email-change-user",

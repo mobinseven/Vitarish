@@ -12,6 +12,7 @@ import { resetAntiforgeryToken, TENANT_HOST_HEADER } from "../../shared/api-clie
 import { UsersCommandErrorKind } from "../../shared/auth/src/users";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
 import {
+  twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eProofScreenshotEnvironmentKey,
   twoHostE2eSecurityPolicyScreenshotEnvironmentKey,
   twoHostE2eProofStorageStateEnvironmentKey,
@@ -21,7 +22,10 @@ const platformOrigin = process.env.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN ?? "http://l
 const password = process.env.VITARISH_E2E_PASSWORD;
 const ownerUsername = process.env.VITARISH_E2E_USERNAME ?? "e2e-owner";
 const platformUsername = process.env.VITARISH_E2E_USER_MANAGEMENT_PLATFORM_ADMIN_USERNAME ?? "e2e-user-management-admin";
-const apiOrigin = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://localhost:7272";
+// Main itself, for API-boundary checks made without the browser.
+const apiOrigin = process.env[twoHostE2eApiOriginEnvironmentKey] ?? "https://localhost:7272";
+// In-page requests use the web origin's same-origin /api, as in production.
+const browserApiOrigin = "";
 const execFileAsync = promisify(execFile);
 
 async function captureAuthenticatedScreenshot(page: Page, outputPath: string): Promise<void> {
@@ -103,7 +107,7 @@ async function putAuthenticationPolicy(page: Page, request: Record<string, unkno
       body: JSON.stringify(body),
     });
     return response.status;
-  }, { origin: apiOrigin, body: request, tenantHost: new URL(page.url()).host });
+  }, { origin: browserApiOrigin, body: request, tenantHost: new URL(page.url()).host });
 }
 
 async function login(page: Page, username: string, origin = ""): Promise<void> {
