@@ -163,7 +163,7 @@ export const enMessages = {
       confirmNewPassword: "Confirm New Password",
       changeAction: "Change Password",
       mismatch: "Passwords do not match",
-      tooShort: "Password must be at least 6 characters",
+      policyRejected: "The new password does not meet the security policy. Choose a stronger password.",
       changeFailed: "Failed to change password",
       changeSucceeded: "Password changed successfully",
     },

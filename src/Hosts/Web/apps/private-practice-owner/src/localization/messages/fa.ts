@@ -163,7 +163,7 @@ export const faMessages = {
       confirmNewPassword: "تأیید رمز عبور جدید",
       changeAction: "تغییر رمز عبور",
       mismatch: "رمزهای عبور مطابقت ندارند",
-      tooShort: "رمز عبور باید حداقل ۶ کاراکتر باشد",
+      policyRejected: "رمز عبور جدید با سیاست امنیتی سازگار نیست. رمز عبور قوی‌تری انتخاب کنید.",
       changeFailed: "تغییر رمز عبور انجام نشد",
       changeSucceeded: "رمز عبور با موفقیت تغییر کرد",
     },
