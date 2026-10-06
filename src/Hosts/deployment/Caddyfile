@@ -6,6 +6,15 @@
 }
 
 (security_headers) {
+    # NSMAIL-1 unsafe methods: TRACE and plain CONNECT have no product use;
+    # answer them at the ingress so no upstream sees them. Extended CONNECT
+    # (RFC 8441, carries :protocol) is how browsers open WebSockets over
+    # HTTP/2 and must still reach the /api WebSocket endpoints.
+    @unsafe_method {
+        method TRACE CONNECT
+        not header :protocol *
+    }
+    respond @unsafe_method 405
     # This ingress is the single owner of the NSMAIL-1 response headers. The
     # request CSP carries the per-request nonce read by the Next.js layouts.
     request_header Content-Security-Policy "{$VITARISH_CONTENT_SECURITY_POLICY}"
@@ -57,6 +66,10 @@
 (production_readiness) {
     # Expose Main readiness only on its public application host for origin-pinned release checks.
     handle /health/ready {
+        # handle runs before the site-wide unsafe-method guard, so readiness
+        # answers only GET/HEAD itself and never forwards other methods.
+        @readiness_unsafe_method not method GET HEAD
+        respond @readiness_unsafe_method 405
         reverse_proxy production-main:8080
     }
 }
