@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
@@ -20,6 +20,7 @@ const tenantUserUsername = "e2e-tenant-user";
 const platformAdminUsername = process.env.VITARISH_E2E_USER_MANAGEMENT_PLATFORM_ADMIN_USERNAME ?? "e2e-user-management-admin";
 const evidenceDirectory = resolve(process.env.VITARISH_NSMAIL_DOCUMENT_EVIDENCE_DIR ?? join(process.cwd(), "artifacts", "nsmail-document-evidence"));
 const usersText = usersMessageCatalogs.fa.users.management;
+const smtpCapturePath = process.env.VITARISH_E2E_SMTP_CAPTURE_PATH;
 
 test.describe.configure({ mode: "serial" });
 
@@ -49,13 +50,13 @@ async function signIn(page: Page, origin: string, username: string, loginPath: s
   expect(response.status()).toBe(200);
 }
 
-async function capture(page: Page, name: string): Promise<void> {
+async function capture(page: Page, name: string, fullPage = true): Promise<void> {
   mkdirSync(evidenceDirectory, { recursive: true });
   await page.waitForLoadState("networkidle").catch(() => undefined);
   // The two-host runner serves the apps in development mode; hide the framework's
   // development indicator so it never appears in product evidence.
   await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" }).catch(() => undefined);
-  await page.screenshot({ path: join(evidenceDirectory, `${name}.png`), fullPage: true });
+  await page.screenshot({ path: join(evidenceDirectory, `${name}.png`), fullPage });
 }
 
 async function openPage(page: Page, url: string, name: string): Promise<void> {
@@ -117,9 +118,15 @@ test.describe("NSMAIL document evidence", () => {
 
       await page.goto(`${webOrigin}${ClinicRoutes.Account.Password}`, { waitUntil: "domcontentloaded" });
       await expect(page.locator('input[name="newPassword"]')).toBeVisible({ timeout: 30_000 });
+      await page.locator('input[name="currentPassword"]').fill(password!);
       await page.locator('input[name="newPassword"]').fill("short");
       await page.locator('input[name="confirmPassword"]').fill("short");
-      await page.locator('button[type="submit"]').last().click();
+      const [policyResponse] = await Promise.all([
+        page.waitForResponse((candidate) => candidate.request().method() === "POST" && candidate.url().includes("/password")),
+        page.locator('button[type="submit"]').last().click(),
+      ]);
+      expect(policyResponse.status()).toBe(400);
+      await expect(page.locator('[data-slot="alert-content"]').first()).toBeVisible({ timeout: 30_000 });
       await capture(page, "password-policy-validation");
 
       const cookies = await context.cookies();
@@ -209,6 +216,102 @@ test.describe("NSMAIL document evidence", () => {
       );
     } finally {
       await tenantContext.close();
+    }
+  });
+
+  test("account status and access denial screens", async ({ browser }) => {
+    test.setTimeout(300_000);
+    const adminContext = await persianContext(browser, "198.51.100.244");
+    const admin = await adminContext.newPage();
+    const userContext = await persianContext(browser, "198.51.100.245");
+    const user = await userContext.newPage();
+    try {
+      await signIn(admin, platformOrigin, platformAdminUsername, PlatformRoutes.LoginPassword);
+      await openUserDetail(admin, tenantUserUsername);
+      await admin.getByRole("button", { name: usersText.endSessions }).click();
+      await admin.getByRole("dialog").getByRole("button", { name: usersText.endSessionsConfirmAction }).click();
+      await expect(admin.getByRole("dialog")).toBeHidden();
+      await admin.getByRole("button", { name: usersText.disableAccount }).click();
+      // A modal covers the viewport; a full-page capture would show the page behind it unmasked.
+      await capture(admin, "admin-disable-account-dialog", false);
+      await admin.getByRole("dialog").getByRole("button", { name: usersText.disableAccountConfirmAction }).click();
+      await expect(admin.getByText(usersText.accountDisabled).first()).toBeVisible({ timeout: 30_000 });
+      await capture(admin, "admin-account-disabled");
+
+      await user.goto(`${webOrigin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
+      await expect(user.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
+      await user.locator('input[name="username"]').fill(tenantUserUsername);
+      await user.locator('input[name="password"]').fill(password!);
+      const [disabledLogin] = await Promise.all([
+        user.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/password")),
+        user.locator('button[type="submit"]').click(),
+      ]);
+      expect(disabledLogin.status()).toBe(403);
+      await capture(user, "login-account-disabled");
+    } finally {
+      await admin.getByRole("button", { name: usersText.enableAccount }).click().catch(() => undefined);
+      await admin.getByRole("dialog").getByRole("button", { name: usersText.enableAccountConfirmAction }).click().catch(() => undefined);
+      await adminContext.close();
+      await userContext.close();
+    }
+
+    // Email-code sign-in creates a new account with no role or membership.
+    expect(smtpCapturePath, "VITARISH_E2E_SMTP_CAPTURE_PATH must be supplied by the two-host runner").toBeTruthy();
+    const newcomerContext = await persianContext(browser, "198.51.100.246");
+    const newcomer = await newcomerContext.newPage();
+    try {
+      await newcomer.goto(`${webOrigin}${ClinicRoutes.Login.Email}`, { waitUntil: "domcontentloaded" });
+      const email = newcomer.locator('input[type="email"]').first();
+      await expect(email).toBeVisible({ timeout: 30_000 });
+      await email.fill(`nsmail-no-access-${Date.now()}@example.test`);
+      const previous = existsSync(smtpCapturePath!) ? statSync(smtpCapturePath!).mtimeMs : 0;
+      await Promise.all([
+        newcomer.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/email/begin")),
+        newcomer.locator('button[type="submit"]').first().click(),
+      ]);
+      await expect.poll(() => existsSync(smtpCapturePath!) && statSync(smtpCapturePath!).mtimeMs > previous).toBe(true);
+      const code = /Your verification code is:\s*(?:<strong>)?([^<\s]+)/i.exec(readFileSync(smtpCapturePath!, "utf8"))?.[1];
+      expect(code).toEqual(expect.any(String));
+      await newcomer.locator('input[autocomplete="one-time-code"], input[name="code"]').first().fill(code!);
+      const [complete] = await Promise.all([
+        newcomer.waitForResponse((candidate) => candidate.url().endsWith("/api/modules/authentication/login/email/complete")),
+        newcomer.locator('button[type="submit"]').first().click(),
+      ]);
+      expect(complete.status()).toBe(403);
+      await capture(newcomer, "login-no-access");
+    } finally {
+      await newcomerContext.close();
+    }
+  });
+
+  test("audit records of idle expiry, administrator termination and disabled sign-in", async ({ browser }) => {
+    test.setTimeout(300_000);
+    const adminContext = await persianContext(browser, "198.51.100.247");
+    const admin = await adminContext.newPage();
+    const userContext = await persianContext(browser, "198.51.100.248");
+    const user = await userContext.newPage();
+    const inactivity = admin.getByLabel(usersText.inactivityTimeout);
+    try {
+      await signIn(admin, platformOrigin, platformAdminUsername, PlatformRoutes.LoginPassword);
+      await openUserDetail(admin, tenantUserUsername);
+      await inactivity.fill("1");
+      await admin.getByRole("button", { name: usersText.saveInactivity }).click();
+      await expect(admin.getByText(usersText.inactivitySaved)).toBeVisible({ timeout: 30_000 });
+
+      await signIn(user, webOrigin, tenantUserUsername, ClinicRoutes.Login.Password);
+      // Idle past the one-minute override; the next request ends the session.
+      await user.waitForTimeout(70_000);
+      const expired = await user.evaluate(async () => (await fetch("/api/modules/authentication/session", { credentials: "include" })).status);
+      expect(expired).toBe(401);
+    } finally {
+      await inactivity.fill("").catch(() => undefined);
+      await admin.getByRole("button", { name: usersText.saveInactivity }).click().catch(() => undefined);
+      await userContext.close();
+    }
+    try {
+      await openPage(admin, `${platformOrigin}${PlatformRoutes.Audit}`, "admin-audit-latest");
+    } finally {
+      await adminContext.close();
     }
   });
 });

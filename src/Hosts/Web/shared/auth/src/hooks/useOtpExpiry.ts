@@ -21,7 +21,7 @@ export function useOtpExpiry(expiresAt: string | null | undefined) {
   }, [expiresAt]);
 
   if (!now) {
-    return { remainingSeconds: null, isExpired: false, label: null };
+    return { remainingSeconds: null, isExpired: false, remaining: null };
   }
 
   return getOtpExpiryPresentation(expiresAt, now);

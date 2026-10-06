@@ -70,7 +70,7 @@ export default function PasswordChangePage() {
           />
         )}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <TextField name="currentPassword" type="password">
+          <TextField name="currentPassword" type="password" isRequired>
             <Label>{t("account.password.currentPassword")}</Label>
             <Input
               value={currentPassword}

@@ -37,6 +37,10 @@ const messages: MessageCatalog = {
       emailCodeResent: "A new code was sent to your email address.",
       phoneCodeResent: "A new code was sent to your phone number.",
     },
+    challenge: {
+      expiresIn: "Expires in {time}",
+      expired: "Code expired; request a new code",
+    },
     passkey: { signIn: "Sign in with passkey" },
   },
 };

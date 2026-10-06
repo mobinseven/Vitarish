@@ -111,7 +111,13 @@ export function OtpVerificationStep({
             {t("auth.otp.attemptsRemaining", { count: remainingAttempts })}
           </span>
         )}
-        {expiry.label && <span className="block text-xs">{expiry.label}</span>}
+        {expiry.remainingSeconds !== null && (
+          <span className="block text-xs">
+            {expiry.remaining === null
+              ? t("auth.challenge.expired")
+              : t("auth.challenge.expiresIn", { time: expiry.remaining })}
+          </span>
+        )}
       </p>
       <OtpCodeInput
         value={normalizedCode}

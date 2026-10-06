@@ -7,6 +7,10 @@ export const authMessageCatalogs = {
         disabled: "This account is disabled. Contact a platform administrator.",
         noAccess: "This account has no access level. Contact a platform administrator.",
       },
+      challenge: {
+        expiresIn: "Expires in {time}",
+        expired: "Code expired; request a new code",
+      },
       failures: {
         invalidCredentials: "Invalid username or password",
         lockedOut: "Account is locked. Please try again later",
@@ -55,6 +59,10 @@ export const authMessageCatalogs = {
       accountStatus: {
         disabled: "این حساب غیرفعال شده است. با مدیر پلتفرم تماس بگیرید.",
         noAccess: "این حساب سطح دسترسی ندارد. با مدیر پلتفرم تماس بگیرید.",
+      },
+      challenge: {
+        expiresIn: "اعتبار کد تا {time}",
+        expired: "کد منقضی شده است؛ کد جدید درخواست کنید",
       },
       failures: {
         invalidCredentials: "نام کاربری یا رمز عبور نادرست است",
