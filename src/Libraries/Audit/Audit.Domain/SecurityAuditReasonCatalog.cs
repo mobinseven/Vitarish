@@ -23,6 +23,7 @@ public static class SecurityAuditReasonCatalog
     public const string PolicyInvalidated = "policy_invalidated";
     public const string AwaitingMutationOutcome = "awaiting_mutation_outcome";
     public const string UserTimeoutDefault = "user_timeout_default";
+    public const string AccountDisabled = "account_disabled";
     public const string AuthenticationFailed = "authentication_failed";
     public const string AuthenticationLockout = "authentication_lockout";
     public const string MfaFailure = "mfa_failure";
@@ -86,6 +87,7 @@ public static class SecurityAuditReasonCatalog
         PolicyInvalidated,
         AwaitingMutationOutcome,
         UserTimeoutDefault,
+        AccountDisabled,
         AuthenticationFailed,
         AuthenticationLockout,
         MfaFailure,

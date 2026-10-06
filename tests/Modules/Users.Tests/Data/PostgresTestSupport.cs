@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Testcontainers.PostgreSql;
+using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Data;
 
 namespace Vitarish.Users.Tests.Data;
@@ -45,6 +47,29 @@ internal static class PostgresTestSupport
             .UseNpgsql(connectionString)
             .Options;
         return new UsersDbContext(options);
+    }
+
+    /// <summary>
+    /// A context for databases migrated only up to a migration that predates the
+    /// account status column, so seeding and verification match that schema.
+    /// The context type stays <see cref="UsersDbContext"/> so its migrations resolve.
+    /// </summary>
+    internal static UsersDbContext CreateContextWithoutAccountStatus(string connectionString)
+    {
+        DbContextOptions<UsersDbContext> options = new DbContextOptionsBuilder<UsersDbContext>()
+            .UseNpgsql(connectionString)
+            .ReplaceService<IModelCustomizer, ModelCustomizerWithoutAccountStatus>()
+            .Options;
+        return new UsersDbContext(options);
+    }
+
+    private sealed class ModelCustomizerWithoutAccountStatus(ModelCustomizerDependencies dependencies) : ModelCustomizer(dependencies)
+    {
+        public override void Customize(ModelBuilder modelBuilder, DbContext context)
+        {
+            base.Customize(modelBuilder, context);
+            _ = modelBuilder.Entity<User>().Ignore(user => user.IsEnabled);
+        }
     }
 
     internal static async Task ApplyAllMigrationsAsync(string connectionString)

@@ -32,11 +32,17 @@ public static class UsersSecurityAuditEvents
     public const string UserEditFailureOperation = SecurityAuditEventCatalog.UserEditFailureOperation;
     public const string UserSecurityAttributeChange = SecurityAuditEventCatalog.UserSecurityAttributeChangeEvent;
     public const string UserSecurityAttributeChangeOperation = SecurityAuditEventCatalog.UserSecurityAttributeChangeOperation;
+    public const string UserAccountDisabled = SecurityAuditEventCatalog.UserAccountDisabledEvent;
+    public const string UserAccountDisableOperation = SecurityAuditEventCatalog.UserAccountDisableOperation;
+    public const string UserAccountEnabled = SecurityAuditEventCatalog.UserAccountEnabledEvent;
+    public const string UserAccountEnableOperation = SecurityAuditEventCatalog.UserAccountEnableOperation;
     public const string UserCreationIdempotencySuffix = ":user-account-create";
     public const string UserCreationFailureIdempotencySuffix = ":user-account-create-failed";
     public const string UserEditIdempotencySuffix = ":user-account-edit";
     public const string UserEditFailureIdempotencySuffix = ":user-account-edit-failed";
     public const string UserSecurityAttributeChangeIdempotencySuffix = ":user-security-attributes-changed";
+    public const string UserAccountDisableIdempotencySuffix = ":user-account-disable";
+    public const string UserAccountEnableIdempotencySuffix = ":user-account-enable";
     public const string UserContactIdentifierChangedReason = SecurityAuditReasonCatalog.UserContactIdentifierChanged;
     public const string UnknownUserResource = "user/unknown";
     public const string IdentityPasswordSignInUser = SecurityAuditEventCatalog.AuthenticationIdentityPasswordSignInUserEvent;

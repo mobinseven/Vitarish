@@ -163,6 +163,52 @@ public sealed class CompletePasskeyLoginHandlerTests
         webAuthn.Verify(item => item.CompleteAsync("challenge-1", "credential", It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
+    [Fact]
+    public async Task Disabled_account_passkey_login_is_denied_with_its_own_audit_reason()
+    {
+        IAuthenticationAttemptKeyFactory keys = CreateKeys();
+        Mock<IWebAuthnAuthenticationService> webAuthn = new();
+        webAuthn.Setup(item => item.CompleteAsync("challenge-1", "credential", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new WebAuthnCompleteResult(true, "user-42", null));
+        Mock<IAuthenticationAttemptTracker> tracker = new();
+        tracker.Setup(item => item.IsDeniedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        Mock<IAuthenticationSecurityPolicyProvider> policy = new();
+        policy.Setup(item => item.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
+        Mock<IAuthenticationSignInService> signIn = new();
+        signIn.Setup(item => item.SignInAsync("user-42", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AuthenticationSessionSignInResult.Failed(
+                new AuthenticationFailure(AuthenticationFailureReason.AccountDisabled, "The account is disabled.")));
+        List<SecurityAuditEvent> events = [];
+        Mock<ISecurityAuditWriter> writer = new();
+        writer.Setup(item => item.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
+            .Callback<SecurityAuditEvent, CancellationToken>((audit, _) => events.Add(audit))
+            .ReturnsAsync(SecurityAuditWriteResult.Recorded);
+        Mock<IRequestContext> requestContext = new();
+        requestContext.SetupGet(item => item.TenantId).Returns("tenant-a");
+        requestContext.SetupGet(item => item.RequestId).Returns("passkey-request");
+        requestContext.SetupGet(item => item.TraceId).Returns("passkey-trace");
+
+        CompletePasskeyLoginHandler handler = new(
+            webAuthn.Object,
+            signIn.Object,
+            Mock.Of<IAuthenticationRedirectResolver>(),
+            policy.Object,
+            tracker.Object,
+            keys,
+            new AuthenticationAttemptAuditor(writer.Object, requestContext.Object, new TestAuthenticationUtcClock()));
+
+        AuthenticationResult<LoginResult> result = await handler.Handle(
+            new CompletePasskeyLoginCommand("challenge-1", "credential", "/home"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.AccountDisabled);
+        events.Should().ContainSingle(audit =>
+            audit.Outcome == SecurityAuditOutcome.Denied &&
+            audit.RedactedReason == SecurityAuditReasonCatalog.AccountDisabled);
+        events.Should().NotContain(audit => audit.RedactedReason == SecurityAuditReasonCatalog.AuthenticationFailed);
+    }
+
     private static IAuthenticationAttemptKeyFactory CreateKeys() => new AuthenticationAttemptKeyFactory(
         Options.Create(new AuthenticationAttemptKeyOptions
         {

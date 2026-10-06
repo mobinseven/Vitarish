@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LocalizationProvider } from "@vitarish/localization";
@@ -13,6 +13,8 @@ const platformPhoneCreate = vi.fn((_input: unknown, options?: { onSuccess?: () =
 const globalRoleGrant = vi.fn((_input: unknown, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
 const inactivityPolicySave = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 const revokeSessions = vi.fn((_input: unknown, options?: { onSuccess?: (result: { endedSessions: number }) => void; onError?: (error: unknown) => void }) => options?.onSuccess?.({ endedSessions: 2 }));
+const disableUser = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
+const enableUser = vi.fn((_input: unknown, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) => options?.onSuccess?.());
 let securityDetailsQueryResponse: { data?: typeof userSecurityDetails; error: unknown; isLoading: boolean; isError: boolean; refetch: typeof refetch };
 const userSecurityDetails = {
   user: {
@@ -24,6 +26,7 @@ const userSecurityDetails = {
     phoneNumber: null,
     fullName: "Platform User",
     revision: "server-revision-1",
+    isEnabled: true,
   },
   globalRoles: ["PlatformAdmin"],
   permittedGlobalRoles: ["PlatformAdmin"],
@@ -86,6 +89,8 @@ vi.mock("@vitarish/auth", () => ({
   useAuthenticationUserInactivityPolicyGet: () => ({ data: { version: 1, inactivityTimeoutMinutes: null }, isLoading: false, isError: false, refetch }),
   useAuthenticationUserInactivityPolicyPut: () => ({ isPending: false, mutate: inactivityPolicySave }),
   useAuthenticationUserSessionsRevoke: () => ({ isPending: false, mutate: revokeSessions }),
+  useUsersDisableUser: () => ({ isPending: false, mutate: disableUser }),
+  useUsersEnableUser: () => ({ isPending: false, mutate: enableUser }),
   useUsersAdministrationCreateWithEmail: () => ({ isPending: false, mutate: vi.fn() }),
   useUsersAdministrationCreateWithPhone: () => ({ isPending: false, mutate: platformPhoneCreate }),
   useUsersAdministrationGrantTenantRole: () => ({ isPending: false, mutate: vi.fn() }),
@@ -106,6 +111,13 @@ function renderSurface(mode: "tenant" | "platform", props: Partial<UserManagemen
       <UserManagementSurface mode={mode} {...props} />
     </LocalizationProvider>,
   );
+}
+
+function accountStatusSection(): HTMLElement {
+  const heading = screen.getByRole("heading", { name: "Account status" });
+  const section = heading.closest("section");
+  if (!section) throw new Error("The account status section is not rendered.");
+  return section;
 }
 
 describe("UserManagementSurface", () => {
@@ -276,6 +288,56 @@ describe("UserManagementSurface", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("You do not have permission to end this user's sessions.");
     expect(refetch).not.toHaveBeenCalled();
+  });
+
+  it("disables an enabled account only after confirmation and reports the new status", async () => {
+    const user = userEvent.setup();
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    expect(accountStatusSection()).toHaveTextContent("Enabled");
+    await user.click(screen.getByRole("button", { name: "Disable account" }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAccessibleName("Disable account");
+    await user.click(within(dialog).getByRole("button", { name: "Disable account" }));
+
+    expect(disableUser).toHaveBeenCalledWith({ userId: "platform-user" }, expect.any(Object));
+    expect(enableUser).not.toHaveBeenCalled();
+    expect(refetch).toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent("The account is disabled.");
+  });
+
+  it("points to ending sessions when a signed-in user cannot be disabled", async () => {
+    const user = userEvent.setup();
+    disableUser.mockImplementationOnce(
+      (_input: unknown, options?: { onError?: (error: unknown) => void }) => options?.onError?.({ status: 409 }),
+    );
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.click(screen.getByRole("button", { name: "Disable account" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Disable account" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("This user is signed in. End all sessions before disabling the account.");
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  it("enables a disabled account after confirmation without a session precondition", async () => {
+    const user = userEvent.setup();
+    securityDetailsQueryResponse.data = {
+      ...userSecurityDetails,
+      user: { ...userSecurityDetails.user, isEnabled: false },
+    };
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    expect(accountStatusSection()).toHaveTextContent("Disabled");
+    await user.click(screen.getByRole("button", { name: "Enable account" }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAccessibleName("Enable account");
+    await user.click(within(dialog).getByRole("button", { name: "Enable account" }));
+
+    expect(enableUser).toHaveBeenCalledWith({ userId: "platform-user" }, expect.any(Object));
+    expect(disableUser).not.toHaveBeenCalled();
+    expect(refetch).toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent("The account is enabled.");
   });
 
   it("keeps user identity and roles visible when audit history returns 503", () => {

@@ -34,6 +34,8 @@ public sealed class AspNetIdentitySignInService(
         User? user = await userManager.FindByIdAsync(userId);
         if (user is null)
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidCredentials, "Cannot sign in an unknown user."));
+        if (!user.IsEnabled)
+            return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.AccountDisabled, "The account is disabled."));
 
         IAuthenticationSessionPreparation? preparation = null;
         preparation = await sessionRegistry.PrepareAsync(userId, cancellationToken);
@@ -119,6 +121,8 @@ public sealed class AspNetIdentitySignInService(
         SignInResult result = await signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: false);
         if (result.Succeeded || result.RequiresTwoFactor)
         {
+            if (!user.IsEnabled)
+                return new PasswordSignInResult(PasswordSignInStatus.AccountDisabled, user.Id, RequiresProfileCompletion(user));
             await ResetAsync(identifierKeys, cancellationToken);
             await ResetAsync(subjectKeys, cancellationToken);
             PasswordSignInResult successful = new(
@@ -185,6 +189,7 @@ public sealed class AspNetIdentitySignInService(
         AuthenticationFailureReason.NotAllowed => PasswordSignInStatus.NotAllowed,
         AuthenticationFailureReason.LockedOut => PasswordSignInStatus.LockedOut,
         AuthenticationFailureReason.TooManyAttempts => PasswordSignInStatus.TooManyAttempts,
+        AuthenticationFailureReason.AccountDisabled => PasswordSignInStatus.AccountDisabled,
         _ => PasswordSignInStatus.ProviderFailure
     };
 

@@ -53,6 +53,22 @@ public sealed class UsersManagementAuthorizationAuditHandler(UsersManagementAudi
                     SecurityAuditReasonCatalog.Unauthorized,
                     cancellationToken);
                 break;
+            case UsersApiRoutes.DisableUserOperation when !string.IsNullOrWhiteSpace(userId):
+                await managementAudit.AccountStatusChangedAsync(
+                    userId,
+                    false,
+                    SecurityAuditOutcome.Denied,
+                    SecurityAuditReasonCatalog.Unauthorized,
+                    cancellationToken);
+                break;
+            case UsersApiRoutes.EnableUserOperation when !string.IsNullOrWhiteSpace(userId):
+                await managementAudit.AccountStatusChangedAsync(
+                    userId,
+                    true,
+                    SecurityAuditOutcome.Denied,
+                    SecurityAuditReasonCatalog.Unauthorized,
+                    cancellationToken);
+                break;
         }
     }
 

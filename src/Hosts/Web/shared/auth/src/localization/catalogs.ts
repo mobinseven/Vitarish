@@ -1,6 +1,9 @@
 export const authMessageCatalogs = {
   en: {
     auth: {
+      login: {
+        accountDisabled: "This account is disabled. Contact a platform administrator.",
+      },
       recovery: {
         forgotPasswordAction: "Forgot password?",
         title: "Reset your password",
@@ -32,6 +35,9 @@ export const authMessageCatalogs = {
   },
   fa: {
     auth: {
+      login: {
+        accountDisabled: "این حساب غیرفعال شده است. با مدیر پلتفرم تماس بگیرید.",
+      },
       recovery: {
         forgotPasswordAction: "رمز عبور را فراموش کرده‌اید؟",
         title: "بازنشانی رمز عبور",

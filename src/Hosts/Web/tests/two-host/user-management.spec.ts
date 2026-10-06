@@ -214,6 +214,84 @@ async function endAllUserSessionsThroughUi(page: Page, username: string): Promis
   return Number(revocation.endedSessions);
 }
 
+async function setAccountStatusThroughUi(page: Page, username: string, enabled: boolean): Promise<void> {
+  await page.goto(`${platformOrigin}${PlatformRoutes.Users.Index}`, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: "Users", exact: true })).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("textbox", { name: "Search users" }).fill(username);
+  await page.getByRole("button", { name: "Search" }).click();
+  const userRow = page.locator("tbody tr").filter({ hasText: username }).first();
+  await expect(userRow).toBeVisible({ timeout: 30_000 });
+  await userRow.getByRole("button", { name: "View user security details" }).click();
+  await expect(page.getByText("User ID", { exact: true })).toBeVisible({ timeout: 30_000 });
+
+  const actionName = enabled ? "Enable account" : "Disable account";
+  const accountStatus = page.locator("section").filter({
+    has: page.getByRole("heading", { name: "Account status", exact: true }),
+  });
+  await expect(accountStatus.getByText(enabled ? "Disabled" : "Enabled", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: actionName }).click();
+  const confirmation = page.getByRole("dialog");
+  await expect(confirmation).toHaveAccessibleName(actionName);
+  const [statusResponse] = await Promise.all([
+    page.waitForResponse((response) =>
+      response.request().method() === "POST" && response.url().endsWith(`/${enabled ? "enable" : "disable"}`)),
+    confirmation.getByRole("button", { name: actionName }).click(),
+  ]);
+  expect(statusResponse.status()).toBe(200);
+  await expect(page.getByRole("status").filter({ hasText: enabled ? "The account is enabled." : "The account is disabled." })).toBeVisible();
+  await expect(accountStatus.getByText(enabled ? "Enabled" : "Disabled", { exact: true })).toBeVisible();
+}
+
+test("platform administrator disables and re-enables a signed-out user's account", async ({ page }) => {
+  const browser = page.context().browser();
+  expect(browser, "the two-host browser is required for an isolated user session").toBeTruthy();
+  expect(password, "VITARISH_E2E_PASSWORD must be supplied by the disposable E2E environment").toBeTruthy();
+  // Own the PasswordLogin rate-limit partition; the shared client IP is
+  // exhausted by the earlier login scenarios.
+  await page.setExtraHTTPHeaders({ "X-Forwarded-For": "198.51.100.232" });
+  await login(page, platformUsername, platformOrigin);
+  // Earlier scenarios leave the owner signed in elsewhere while the evaluated
+  // concurrent-session limit is active; a disable needs a zero-session owner.
+  await endAllUserSessionsThroughUi(page, ownerUsername);
+  await setAccountStatusThroughUi(page, ownerUsername, false);
+
+  const userContext = await browser!.newContext({ extraHTTPHeaders: { "X-Forwarded-For": "198.51.100.233" } });
+  const userPage = await userContext.newPage();
+  let failure: unknown;
+  try {
+    await userPage.goto(`${webOrigin}${ClinicRoutes.Login.Password}`, { waitUntil: "domcontentloaded" });
+    await expect(userPage.locator("form")).toHaveAttribute("method", "post");
+    await expect(userPage.locator('button[type="submit"]')).toBeEnabled({ timeout: 30_000 });
+    await userPage.locator('input[name="username"]').fill(ownerUsername);
+    await userPage.locator('input[name="password"]').fill(password!);
+    const [disabledLogin] = await Promise.all([
+      userPage.waitForResponse((response) => response.url().endsWith("/api/modules/authentication/login/password")),
+      userPage.locator('button[type="submit"]').click(),
+    ]);
+    expect(disabledLogin.status()).toBe(403);
+    await expect(userPage.getByText("This account is disabled. Contact a platform administrator.")).toBeVisible();
+
+    await setAccountStatusThroughUi(page, ownerUsername, true);
+
+    await login(userPage, ownerUsername, webOrigin);
+    await signOutThroughPublicApi(userPage);
+  } catch (error) {
+    failure = error;
+  }
+
+  try {
+    await userContext.close();
+  } catch (cleanupError) {
+    if (failure) {
+      throw new AggregateError([failure, cleanupError], "The disabled-account scenario and its browser-context cleanup both failed.");
+    }
+    throw cleanupError;
+  }
+  if (failure) {
+    throw failure;
+  }
+});
+
 test("platform administrator ends a signed-in user's sessions and the user's next API call is rejected", async ({ page }) => {
   const browser = page.context().browser();
   expect(browser, "the two-host browser is required for an isolated user session").toBeTruthy();

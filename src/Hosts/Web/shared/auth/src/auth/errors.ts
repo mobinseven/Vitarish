@@ -17,6 +17,7 @@ export type AuthenticationErrorCode =
   | "provider_failure"
   | "unknown_credential"
   | "invalid_credential"
+  | "account_disabled"
   | "logout_context_unavailable";
 
 export interface AuthError {
@@ -64,6 +65,7 @@ export function getErrorMessage(error: AuthError): string {
     unauthorized: "Please sign in to continue",
     unknown_credential: "Passkey not recognized",
     invalid_credential: "Passkey verification failed",
+    account_disabled: "This account is disabled. Contact a platform administrator.",
     logout_context_unavailable: "Session context unavailable",
   };
 

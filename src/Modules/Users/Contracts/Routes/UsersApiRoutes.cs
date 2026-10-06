@@ -12,6 +12,8 @@ public static class UsersApiRoutes
     public const string CreateWithPhone = "/create/phone";
     public const string CreateWithEmail = "/create/email";
     public const string SetEmail = $"/{{{UserIdRouteValue}}}/email";
+    public const string DisableUser = $"/{{{UserIdRouteValue}}}/disable";
+    public const string EnableUser = $"/{{{UserIdRouteValue}}}/enable";
     public const string AddRole = $"/{{{UserIdRouteValue}}}/roles";
     public const string Administration = "/administration";
     public const string AdministrationCreateWithPhone = "/administration/create/phone";
@@ -19,6 +21,8 @@ public static class UsersApiRoutes
     public const string CreateWithPhoneOperation = "UsersCreateWithPhone";
     public const string CreateWithEmailOperation = "UsersCreateWithEmail";
     public const string SetEmailOperation = "UsersSetEmail";
+    public const string DisableUserOperation = "UsersDisableUser";
+    public const string EnableUserOperation = "UsersEnableUser";
     public const string AdministrationCreateWithPhoneOperation = "UsersAdministrationCreateWithPhone";
     public const string AdministrationCreateWithEmailOperation = "UsersAdministrationCreateWithEmail";
     public const string AdministrationUpdateUserOperation = "UsersAdministrationUpdateUser";

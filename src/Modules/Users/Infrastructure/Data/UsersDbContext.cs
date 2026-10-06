@@ -34,6 +34,8 @@ public class UsersDbContext(DbContextOptions<UsersDbContext> options) : Identity
                 .IsUnique()
                 .HasFilter("\"PhoneNumber\" IS NOT NULL")
                 .HasDatabaseName(UsersContactIdentifierIndexNames.PhoneNumberIndex);
+            // Existing accounts stay enabled when the additive status column is applied.
+            _ = entity.Property(user => user.IsEnabled).HasDefaultValue(true);
         });
 
         // Configure WebAuthnCredential entity

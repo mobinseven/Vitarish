@@ -1,6 +1,7 @@
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Application.Services;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Methods;
@@ -40,7 +41,12 @@ public sealed class CompletePhoneLoginHandler(IAuthenticationChallengeStore stor
         string? subjectId = result is AuthenticationResult<LoginResult>.Success success ? success.Value.UserId : knownUserId;
         try
         {
-            await attemptAuditor.RecordAsync(AuthenticationMethod.Phone, subjectId, result is AuthenticationResult<LoginResult>.Success, cancellationToken);
+            await attemptAuditor.RecordAsync(
+                AuthenticationMethod.Phone,
+                subjectId,
+                result is AuthenticationResult<LoginResult>.Success,
+                cancellationToken,
+                AuthenticationSecurityAuditEvents.FailureReason(result));
         }
         catch (OperationCanceledException)
         {

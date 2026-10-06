@@ -29,6 +29,12 @@ public class User : IdentityUser
     [PersonalData]
     public string? ProfileJson { get; set; }
 
+    /// <summary>
+    /// Administrative account status. A disabled account cannot sign in and
+    /// keeps its failed-attempt lockout state independent of this flag.
+    /// </summary>
+    public bool IsEnabled { get; set; } = true;
+
     [NotMapped]
     public Dictionary<string, string> ProfilePreferences
     {

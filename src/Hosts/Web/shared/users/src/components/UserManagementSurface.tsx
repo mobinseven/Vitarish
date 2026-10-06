@@ -17,6 +17,8 @@ import {
   useUsersAdministrationListTenantRoles,
   useUsersAdministrationRevokeTenantRole,
   useUsersAdministrationUpdateUser,
+  useUsersDisableUser,
+  useUsersEnableUser,
   useUsersListTenantMembers,
   useUsersProvisionTenantMember,
   useUsersSearchUsers,
@@ -356,7 +358,10 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   const inactivityPolicy = useAuthenticationUserInactivityPolicyGet(userId, { query: { enabled: userId.length > 0 } });
   const saveInactivityPolicy = useAuthenticationUserInactivityPolicyPut();
   const revokeUserSessions = useAuthenticationUserSessionsRevoke();
+  const disableUser = useUsersDisableUser();
+  const enableUser = useUsersEnableUser();
   const [confirmEndSessions, setConfirmEndSessions] = useState(false);
+  const [confirmAccountStatus, setConfirmAccountStatus] = useState<"disable" | "enable" | null>(null);
   const [page, setPage] = useState(1);
   const [tenantId, setTenantId] = useState("");
   const [roleSuffix, setRoleSuffix] = useState<TenantRoleSuffix>(tenantRoleSuffixes.user);
@@ -505,6 +510,28 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       },
     });
   };
+  const changeAccountStatus = (enabled: boolean) => {
+    const mutation = enabled ? enableUser : disableUser;
+    mutation.mutate({ userId }, {
+      onSuccess: async () => {
+        setConfirmAccountStatus(null);
+        setMessage(enabled ? t("users.management.accountEnabled") : t("users.management.accountDisabled"));
+        await refreshSecurityDetails();
+      },
+      onError: async (error) => {
+        setConfirmAccountStatus(null);
+        const status = readHttpStatus(error);
+        if (!enabled && status === 409) {
+          setMessage(t("users.management.accountDisableConflict"));
+          await refreshSecurityDetails();
+          return;
+        }
+        setMessage(status === 403
+          ? t("users.management.accountStatusForbidden")
+          : t("users.management.accountStatusError"));
+      },
+    });
+  };
   if (securityQuery.isLoading && !securityDetails) {
     return <main className="max-w-4xl space-y-6"><SurfaceHeader title={title} description={userId} /><p aria-live="polite">{t("users.management.loadingSecurity")}</p></main>;
   }
@@ -523,6 +550,7 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       <dl className="grid gap-3 sm:grid-cols-2">
         <div><dt className="text-sm text-muted">{t("users.management.userIdentifier")}</dt><dd className="break-all font-mono">{securityDetails.user.id}</dd></div>
         <div><dt className="text-sm text-muted">{t("users.management.name")}</dt><dd>{securityDetails.user.fullName ?? securityDetails.user.userName ?? t("users.management.notAvailable")}</dd></div>
+        <div><dt className="text-sm text-muted">{t("users.management.accountStatusTitle")}</dt><dd>{securityDetails.user.isEnabled ? t("users.management.accountStatusEnabled") : t("users.management.accountStatusDisabled")}</dd></div>
       </dl>
       <form className="grid gap-3 md:grid-cols-2" onSubmit={submitProfile}>
         <label>{t("users.management.emailContact")}
@@ -590,6 +618,22 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
     </section>
 
     <section className="space-y-3 rounded border p-4">
+      <h2 className="text-lg font-semibold">{t("users.management.accountStatusTitle")}</h2>
+      <p className="text-sm text-muted">{t("users.management.accountStatusDescription")}</p>
+      <p className="font-medium">{securityDetails.user.isEnabled ? t("users.management.accountStatusEnabled") : t("users.management.accountStatusDisabled")}</p>
+      <Tooltip>
+        <Button
+          variant={securityDetails.user.isEnabled ? "danger" : "secondary"}
+          isPending={disableUser.isPending || enableUser.isPending}
+          onPress={() => setConfirmAccountStatus(securityDetails.user.isEnabled ? "disable" : "enable")}
+        >
+          <Icon name={securityDetails.user.isEnabled ? "user-slash" : "user-check"} /> {securityDetails.user.isEnabled ? t("users.management.disableAccount") : t("users.management.enableAccount")}
+        </Button>
+        <Tooltip.Content>{securityDetails.user.isEnabled ? t("users.management.disableAccount") : t("users.management.enableAccount")}</Tooltip.Content>
+      </Tooltip>
+    </section>
+
+    <section className="space-y-3 rounded border p-4">
       <h2 className="text-lg font-semibold">{t("users.management.sessionsTitle")}</h2>
       <p className="text-sm text-muted">{t("users.management.sessionsDescription")}</p>
       <Tooltip>
@@ -600,6 +644,7 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       </Tooltip>
     </section>
     <EndUserSessionsDialog isOpen={confirmEndSessions} isPending={revokeUserSessions.isPending} onCancel={() => setConfirmEndSessions(false)} onConfirm={endUserSessions} t={t} />
+    <AccountStatusDialog action={confirmAccountStatus} isPending={disableUser.isPending || enableUser.isPending} onCancel={() => setConfirmAccountStatus(null)} onConfirm={() => changeAccountStatus(confirmAccountStatus === "enable")} t={t} />
 
     <section className="space-y-4 rounded border p-4">
       <h2 className="text-lg font-semibold">{t("users.management.authenticationHistory")}</h2>
@@ -668,6 +713,66 @@ function EndUserSessionsDialog({ isOpen, isPending, onCancel, onConfirm, t }: {
                   <Icon name="right-from-bracket" /> {t("users.management.endSessionsConfirmAction")}
                 </Button>
                 <Tooltip.Content>{t("users.management.endSessionsConfirmAction")}</Tooltip.Content>
+              </Tooltip>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
+    </Modal>
+  );
+}
+
+function AccountStatusDialog({ action, isPending, onCancel, onConfirm, t }: {
+  action: "disable" | "enable" | null;
+  isPending: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  t: Translate;
+}) {
+  const isOpen = action !== null;
+  const state = useMemo(
+    () => ({
+      isOpen,
+      setOpen: (open: boolean) => {
+        if (!open && !isPending) onCancel();
+      },
+      open: () => undefined,
+      close: () => {
+        if (!isPending) onCancel();
+      },
+      toggle: () => {
+        if (isOpen && !isPending) onCancel();
+      },
+    }),
+    [isOpen, isPending, onCancel],
+  );
+  if (!isOpen) return null;
+  const isEnable = action === "enable";
+  const title = isEnable ? t("users.management.enableAccountDialogTitle") : t("users.management.disableAccountDialogTitle");
+  const confirmAction = isEnable ? t("users.management.enableAccountConfirmAction") : t("users.management.disableAccountConfirmAction");
+  return (
+    <Modal state={state}>
+      <Modal.Backdrop isDismissable={!isPending}>
+        <Modal.Container placement="center">
+          <Modal.Dialog>
+            <Modal.Header>
+              <Modal.Heading>{title}</Modal.Heading>
+            </Modal.Header>
+            <Modal.Body>
+              <p>{isEnable ? t("users.management.enableAccountConfirm") : t("users.management.disableAccountConfirm")}</p>
+            </Modal.Body>
+            <Modal.Footer>
+              <Tooltip>
+                <Button variant="secondary" onPress={onCancel} isDisabled={isPending}>
+                  <Icon name="xmark" /> {t("users.management.cancel")}
+                </Button>
+                <Tooltip.Content>{t("users.management.cancel")}</Tooltip.Content>
+              </Tooltip>
+              <Tooltip>
+                <Button variant={isEnable ? "primary" : "danger"} onPress={onConfirm} isPending={isPending}>
+                  <Icon name={isEnable ? "user-check" : "user-slash"} /> {confirmAction}
+                </Button>
+                <Tooltip.Content>{confirmAction}</Tooltip.Content>
               </Tooltip>
             </Modal.Footer>
           </Modal.Dialog>
@@ -753,6 +858,7 @@ function isUserSecurityDetailsResponse(value: unknown, userId: string): value is
     && isOptionalString(user.phoneNumber)
     && isOptionalString(user.fullName)
     && isOptionalString(user.revision)
+    && typeof user.isEnabled === "boolean"
     && Array.isArray(details.globalRoles) && details.globalRoles.every((role) => typeof role === "string")
     && Array.isArray(details.permittedGlobalRoles) && details.permittedGlobalRoles.every((role) => typeof role === "string")
     && Array.isArray(details.tenantRoles) && details.tenantRoles.every(isTenantRoleMembership)

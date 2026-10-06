@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode } from "react";
+import { http, HttpResponse } from "msw";
+import { server } from "../server";
 import { LoginForm } from "../../components/LoginForm";
 import { LocalizationProvider } from "@vitarish/localization";
 
@@ -26,6 +28,7 @@ function wrapper({ children }: { children: ReactNode }) {
               passwordLabel: "Password",
               passwordPlaceholder: "Enter",
               signInAction: "Sign in",
+              accountDisabled: "This account is disabled. Contact a platform administrator.",
             },
             recovery: { forgotPasswordAction: "Forgot password?" },
           },
@@ -69,5 +72,32 @@ describe("LoginForm", () => {
     render(<LoginForm />, { wrapper });
 
     expect(screen.getByRole("button", { name: /sign in/i }).closest("form")).toHaveAttribute("method", "post");
+  });
+
+  it("shows the localized disabled-account message after a verified sign-in", async () => {
+    server.use(
+      http.post(
+        /\/api\/modules\/authentication\/login\/password(?:\?|$)/,
+        () =>
+          HttpResponse.json(
+            {
+              status: 403,
+              title: "AccountDisabled",
+              detail: "The account is disabled.",
+              code: "account_disabled",
+            },
+            { status: 403 },
+          ),
+      ),
+    );
+    render(<LoginForm />, { wrapper });
+
+    fireEvent.change(screen.getByLabelText(/username or email/i), { target: { value: "disabled@test.com" } });
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "password123" } });
+    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("This account is disabled. Contact a platform administrator.")).toBeInTheDocument();
+    });
   });
 });

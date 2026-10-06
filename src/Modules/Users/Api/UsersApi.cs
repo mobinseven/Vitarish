@@ -41,6 +41,15 @@ public static class UsersApi
             .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
         _ = users.MapModulePut(UsersApiRoutes.ById, UpdateManagedUserAsync, UsersApiRoutes.AdministrationUpdateUserOperation, typeof(UsersCommandResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts)
             .WithMetadata(new SecurityAuditHandledByApplicationMetadata());
+        _ = users.MapModulePost(UsersApiRoutes.DisableUser, DisableUserAsync, UsersApiRoutes.DisableUserOperation, typeof(UsersCommandResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+        _ = users.MapModulePost(UsersApiRoutes.EnableUser, EnableUserAsync, UsersApiRoutes.EnableUserOperation, typeof(UsersCommandResponse)).RequireAuthorization(UsersAuthorizationPolicies.ManageAccounts)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound);
         _ = users.MapModuleGet(
             $"{UsersApiRoutes.Administration}{UsersApiRoutes.AdministrationUserSecurity}",
             GetUserSecurityDetailsAsync,
@@ -128,6 +137,27 @@ public static class UsersApi
         return Results.Ok(UsersCommandResponse.Success());
     }
 
+    private static async Task<IResult> DisableUserAsync(string userId, ISender sender, CancellationToken ct) =>
+        ToAccountStatusResult(await sender.Send(new ChangeUserAccountStatusCommand(userId, Enabled: false), ct));
+
+    private static async Task<IResult> EnableUserAsync(string userId, ISender sender, CancellationToken ct) =>
+        ToAccountStatusResult(await sender.Send(new ChangeUserAccountStatusCommand(userId, Enabled: true), ct));
+
+    private static IResult ToAccountStatusResult(IdentityResult result)
+    {
+        if (result.Succeeded)
+            return Results.Ok(UsersCommandResponse.Success());
+
+        UsersCommandError[] errors = result.Errors.Select(error => UsersCommandErrorKinds.ForCode(error.Code, error.Description)).ToArray();
+        if (result.Errors.Any(error => string.Equals(error.Code, UsersCommandErrorCodes.UserNotFound, StringComparison.Ordinal)))
+            return Results.NotFound(UsersCommandResponse.Failed(errors));
+        if (result.Errors.Any(error => string.Equals(error.Code, UsersCommandErrorCodes.Unauthorized, StringComparison.Ordinal)))
+            return Results.Forbid();
+        if (result.Errors.Any(error => error.Code is UsersCommandErrorCodes.ActiveSessionConflict or UsersCommandErrorCodes.ConcurrencyFailure))
+            return Results.Conflict(UsersCommandResponse.Failed(errors));
+        return Results.BadRequest(UsersCommandResponse.Failed(errors));
+    }
+
     private static UsersCommandError ToManagedUserError(IdentityError error)
     {
         if (!Enum.TryParse(error.Code, out UsersCommandFailureCode failureCode) || !Enum.IsDefined(failureCode))
@@ -192,7 +222,8 @@ public static class UsersApi
             details.User.Email,
             details.User.PhoneNumber,
             details.User.FullName,
-            details.User.ConcurrencyStamp);
+            details.User.ConcurrencyStamp,
+            details.User.IsEnabled);
         UserSecurityDetailsResponse response = new(
             identity,
             globalRoles,
