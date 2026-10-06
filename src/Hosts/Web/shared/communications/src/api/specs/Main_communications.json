@@ -5,7 +5,7 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/communications/contact-inquiries": {
+    "/api/modules/communications/contact-inquiries": {
       "post": {
         "tags": [
           "Communications"
@@ -58,7 +58,7 @@
         }
       }
     },
-    "/communications/messages/email": {
+    "/api/modules/communications/messages/email": {
       "post": {
         "tags": [
           "Communications"
@@ -117,7 +117,7 @@
         }
       }
     },
-    "/communications/messages/sms": {
+    "/api/modules/communications/messages/sms": {
       "post": {
         "tags": [
           "Communications"
@@ -176,7 +176,7 @@
         }
       }
     },
-    "/communications/messages/sms-code": {
+    "/api/modules/communications/messages/sms-code": {
       "post": {
         "tags": [
           "Communications"
@@ -235,7 +235,7 @@
         }
       }
     },
-    "/communications/messages/sms-reminder": {
+    "/api/modules/communications/messages/sms-reminder": {
       "post": {
         "tags": [
           "Communications"
@@ -294,7 +294,7 @@
         }
       }
     },
-    "/communications/messages/sms/{messageId}/delivery-state": {
+    "/api/modules/communications/messages/sms/{messageId}/delivery-state": {
       "get": {
         "tags": [
           "Communications"
@@ -355,7 +355,7 @@
         }
       }
     },
-    "/communications/reminders/query": {
+    "/api/modules/communications/reminders/query": {
       "post": {
         "tags": [
           "Communications"
@@ -414,7 +414,7 @@
         }
       }
     },
-    "/communications/reminders": {
+    "/api/modules/communications/reminders": {
       "post": {
         "tags": [
           "Communications"
@@ -473,7 +473,7 @@
         }
       }
     },
-    "/communications/reminders/range": {
+    "/api/modules/communications/reminders/range": {
       "post": {
         "tags": [
           "Communications"
@@ -532,7 +532,7 @@
         }
       }
     },
-    "/communications/reminders/source/{sourceId}": {
+    "/api/modules/communications/reminders/source/{sourceId}": {
       "get": {
         "tags": [
           "Communications"
@@ -592,7 +592,7 @@
         }
       }
     },
-    "/communications/reminders/{id}": {
+    "/api/modules/communications/reminders/{id}": {
       "put": {
         "tags": [
           "Communications"
@@ -720,7 +720,7 @@
         }
       }
     },
-    "/communications/reminders/{id}/sent": {
+    "/api/modules/communications/reminders/{id}/sent": {
       "post": {
         "tags": [
           "Communications"
@@ -858,6 +858,12 @@
               "null",
               "boolean"
             ]
+          },
+          "sourceKind": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -893,6 +899,20 @@
           "remindAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "sourceKind": {
+            "type": "string",
+            "default": "manual"
+          },
+          "templatePurpose": {
+            "type": "string",
+            "default": ""
+          },
+          "templateVariablesJson": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -950,6 +970,24 @@
           "remindAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "sourceKind": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "templatePurpose": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "templateVariablesJson": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1011,33 +1049,20 @@
           },
           "isSent": {
             "type": "boolean"
-          }
-        }
-      },
-      "SubmitContactInquiryRequest": {
-        "required": [
-          "name",
-          "email",
-          "goal",
-          "need",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
           },
-          "email": {
-            "type": "string"
+          "sourceKind": {
+            "type": "string",
+            "default": "manual"
           },
-          "goal": {
-            "type": "string"
+          "templatePurpose": {
+            "type": "string",
+            "default": ""
           },
-          "need": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
+          "templateVariablesJson": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1125,6 +1150,33 @@
             "type": "string"
           },
           "body": {
+            "type": "string"
+          }
+        }
+      },
+      "SubmitContactInquiryRequest": {
+        "required": [
+          "name",
+          "email",
+          "goal",
+          "need",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "goal": {
+            "type": "string"
+          },
+          "need": {
+            "type": "string"
+          },
+          "message": {
             "type": "string"
           }
         }
