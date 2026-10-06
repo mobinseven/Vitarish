@@ -20,6 +20,12 @@ public static class HostIdentityServerExtensions
                 options.UserInteraction.LoginUrl = "/Account/Login";
                 options.UserInteraction.LogoutUrl = "/Account/SignOut";
                 options.Endpoints.EnableTokenRevocationEndpoint = true;
+                // No client uses OIDC session management (check_session_iframe). Its
+                // "idsrv.session" cookie must be readable by script (not HttpOnly) and
+                // defaults to SameSite=None, so keep the endpoint and cookie off; if the
+                // cookie is ever issued anyway, it is at least same-site.
+                options.Endpoints.EnableCheckSessionEndpoint = false;
+                options.Authentication.CheckSessionCookieSameSiteMode = SameSiteMode.Lax;
                 options.Events.RaiseSuccessEvents = true;
                 options.Events.RaiseFailureEvents = true;
                 options.Events.RaiseErrorEvents = true;

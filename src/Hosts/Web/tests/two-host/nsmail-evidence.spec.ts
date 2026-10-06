@@ -169,6 +169,8 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
     expect(antiforgeryCookie!.sameSite).toBe("Lax");
     expect(antiforgeryCookie!.secure).toBe(true);
     expect(antiforgeryCookie!.httpOnly).toBe(true);
+    // OIDC session management is off, so its script-readable session cookie is never issued.
+    expect(cookies.find((cookie) => cookie.name === "idsrv.session")).toBeUndefined();
   });
 
   test.fixme("HARD-02: security headers are present on the exact release responses", async () => {
