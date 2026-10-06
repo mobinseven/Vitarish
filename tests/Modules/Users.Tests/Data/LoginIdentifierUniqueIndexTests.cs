@@ -92,8 +92,9 @@ public sealed class LoginIdentifierUniqueIndexTests
             await seed.SaveChangesAsync();
         }
 
-        UpdateManagedUserCommandHandler first = CreateUpdateHandler(connectionString);
-        UpdateManagedUserCommandHandler second = CreateUpdateHandler(connectionString);
+        SaveBarrier barrier = new();
+        UpdateManagedUserCommandHandler first = CreateUpdateHandler(CreateBarrierContext(connectionString, barrier));
+        UpdateManagedUserCommandHandler second = CreateUpdateHandler(CreateBarrierContext(connectionString, barrier));
 
         IdentityResult[] results = await Task.WhenAll(
             first.Handle(new UpdateManagedUserCommand("user-a", null, "09123456789", null, null, "rev-user-a"), CancellationToken.None),
@@ -123,8 +124,9 @@ public sealed class LoginIdentifierUniqueIndexTests
             await seed.SaveChangesAsync();
         }
 
-        UpdateManagedUserCommandHandler first = CreateUpdateHandler(connectionString);
-        UpdateManagedUserCommandHandler second = CreateUpdateHandler(connectionString);
+        SaveBarrier barrier = new();
+        UpdateManagedUserCommandHandler first = CreateUpdateHandler(CreateBarrierContext(connectionString, barrier));
+        UpdateManagedUserCommandHandler second = CreateUpdateHandler(CreateBarrierContext(connectionString, barrier));
 
         IdentityResult[] results = await Task.WhenAll(
             first.Handle(new UpdateManagedUserCommand("user-a", "shared@example.test", null, null, null, "rev-user-a"), CancellationToken.None),
@@ -149,9 +151,16 @@ public sealed class LoginIdentifierUniqueIndexTests
         user.PhoneNumber = phoneNumber;
     }
 
-    private static UpdateManagedUserCommandHandler CreateUpdateHandler(string connectionString)
+    private static UsersDbContext CreateBarrierContext(string connectionString, SaveBarrier barrier)
     {
-        UsersDbContext dbContext = PostgresTestSupport.CreateContext(connectionString);
+        DbContextOptions<UsersDbContext> options = new DbContextOptionsBuilder<UsersDbContext>()
+            .UseNpgsql(connectionString)
+            .Options;
+        return new SaveBarrierDbContext(options, barrier);
+    }
+
+    private static UpdateManagedUserCommandHandler CreateUpdateHandler(UsersDbContext dbContext)
+    {
         Mock<ISecurityAuditWriter> auditWriter = new();
         auditWriter.Setup(value => value.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(SecurityAuditWriteResult.Recorded);
@@ -210,4 +219,34 @@ public sealed class LoginIdentifierUniqueIndexTests
         SecurityStamp = "security-" + id,
         ConcurrencyStamp = "rev-" + id
     };
+
+    /// <summary>
+    /// Holds the two competing updates until both have passed their
+    /// sign-in-identifier pre-checks, so the unique-index conflict is the only
+    /// way either loser can finish.
+    /// </summary>
+    private sealed class SaveBarrierDbContext(DbContextOptions<UsersDbContext> options, SaveBarrier barrier)
+        : UsersDbContext(options)
+    {
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            await barrier.ReachAsync(cancellationToken);
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    private sealed class SaveBarrier
+    {
+        private static readonly TimeSpan DeadlockGuard = TimeSpan.FromSeconds(30);
+
+        private readonly TaskCompletionSource _bothReached = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _arrived;
+
+        public Task ReachAsync(CancellationToken cancellationToken)
+        {
+            if (Interlocked.Increment(ref _arrived) >= 2)
+                _bothReached.TrySetResult();
+            return _bothReached.Task.WaitAsync(DeadlockGuard, cancellationToken);
+        }
+    }
 }
