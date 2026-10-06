@@ -67,6 +67,12 @@ public sealed class AuthenticationChallenge
     public bool RequiresProfileCompletion { get; }
     public int RemainingAttempts => Math.Max(0, MaximumAttempts - FailedAttempts);
 
+    /// <summary>
+    /// The second step of a sign-in. One wrong code ends it, and the user restarts
+    /// from the first factor (NSMAIL-1 FIA_UAU.5).
+    /// </summary>
+    public bool IsSecondFactor => Purpose is AuthenticationChallengePurpose.PasswordLoginOtp;
+
     public static AuthenticationChallenge Restore(
         AuthenticationChallengeId id,
         AuthenticationChallengePurpose purpose,

@@ -79,12 +79,10 @@ public sealed class InMemoryAuthenticationChallengeStoreTests
     public async Task TryRegisterFailureAsync_allows_only_the_configured_number_of_concurrent_failures()
     {
         InMemoryAuthenticationChallengeStore store = new();
-        AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
+        AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePhoneLoginChallenge(
             "user-42",
             "+989121234567",
-            DateTimeOffset.UtcNow,
-            rememberMe: false,
-            requiresProfileCompletion: false);
+            DateTimeOffset.UtcNow);
         await store.SaveAsync(challenge, CancellationToken.None);
 
         AuthenticationChallenge[] requests = Enumerable.Range(0, 32)

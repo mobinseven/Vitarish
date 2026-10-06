@@ -93,7 +93,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
     }
 
     [Fact]
-    public async Task Concurrent_invalid_codes_consume_only_the_configured_attempts()
+    public async Task Concurrent_invalid_codes_consume_only_the_single_second_factor_attempt()
     {
         InMemoryAuthenticationChallengeStore store = new();
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
@@ -125,16 +125,53 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             Enumerable.Range(0, 32).Select(_ => handler.Handle(command, CancellationToken.None)));
 
         results.Should().OnlyContain(result => result is AuthenticationResult<LoginResult>.Failure);
-        results.Count(result => result is AuthenticationResult<LoginResult>.Failure failure &&
-                               failure.Error.Reason == AuthenticationFailureReason.InvalidVerificationCode)
-            .Should().BeLessThanOrEqualTo(challenge.MaximumAttempts - 1);
-        results.Count(result => result is AuthenticationResult<LoginResult>.Failure failure &&
-                               failure.Error.Reason == AuthenticationFailureReason.LockedOut)
-            .Should().BeGreaterThan(0);
+        results.OfType<AuthenticationResult<LoginResult>.Failure>().Select(failure => failure.Error.Reason)
+            .Should().AllBeEquivalentTo(AuthenticationFailureReason.ChallengeAttemptsExhausted);
         (await store.GetAsync(challenge.Id, CancellationToken.None))!.Status
             .Should().Be(AuthenticationChallengeStatus.Exhausted);
         verifier.Verify(x => x.VerifyAsync("user-42", challenge.TokenPurpose, "000000", It.IsAny<CancellationToken>()),
-            Times.Exactly(challenge.MaximumAttempts));
+            Times.Once);
+        signIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task A_wrong_second_factor_code_ends_the_challenge_so_the_user_restarts_sign_in()
+    {
+        InMemoryAuthenticationChallengeStore store = new();
+        AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
+            "user-42", "+989121234567", DateTimeOffset.UtcNow, false, false);
+        await store.SaveAsync(challenge, CancellationToken.None);
+
+        Mock<IAuthenticationCodeVerifier> verifier = new();
+        verifier.Setup(x => x.VerifyAsync("user-42", challenge.TokenPurpose, "000000", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        verifier.Setup(x => x.VerifyAsync("user-42", challenge.TokenPurpose, "123456", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        Mock<IAuthenticationSignInService> signIn = new();
+        Mock<ISecurityAuditWriter> audit = new();
+        audit.Setup(x => x.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(SecurityAuditWriteResult.Recorded);
+        CompletePasswordLoginOtpHandler handler = new(
+            store,
+            verifier.Object,
+            signIn.Object,
+            new Mock<IAuthenticationRedirectResolver>().Object,
+            audit.Object,
+            new TestRequestContext(),
+            new InMemoryAuthenticationAttemptTracker(),
+            new TestSecurityPolicyProvider(),
+            CreateKeys(),
+            new TestAuthenticationUtcClock());
+
+        AuthenticationResult<LoginResult> wrongCode = await handler.Handle(new(challenge.Id.Value, "000000", "/home"), CancellationToken.None);
+        AuthenticationResult<LoginResult> correctCodeAfterwards = await handler.Handle(new(challenge.Id.Value, "123456", "/home"), CancellationToken.None);
+
+        wrongCode.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.ChallengeAttemptsExhausted);
+        correctCodeAfterwards.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.ChallengeAttemptsExhausted);
+        (await store.GetAsync(challenge.Id, CancellationToken.None))!.Status
+            .Should().Be(AuthenticationChallengeStatus.Exhausted);
         signIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 

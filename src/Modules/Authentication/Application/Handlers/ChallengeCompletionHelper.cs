@@ -41,13 +41,13 @@ internal static class ChallengeCompletionHelper
         AuthenticationFailureReason? validationError = challenge.ValidateAttempt(now, expectedPurpose);
         if (validationError is not null)
         {
-            AuthenticationFailureReason reason = MapFailureReason(validationError.Value, securityPolicy.FailedAttemptResponse);
+            AuthenticationFailureReason reason = ChallengeFailureReason(challenge, validationError.Value, securityPolicy.FailedAttemptResponse);
             return new AuthenticationResult<LoginResult>.Failure(new(reason, GetErrorMessage(reason)));
         }
 
         if (!await store.TryReserveAttemptAsync(challenge, cancellationToken))
             return new AuthenticationResult<LoginResult>.Failure(new(
-                MapFailureReason(AuthenticationFailureReason.ChallengeAttemptsExhausted, securityPolicy.FailedAttemptResponse),
+                ChallengeFailureReason(challenge, AuthenticationFailureReason.ChallengeAttemptsExhausted, securityPolicy.FailedAttemptResponse),
                 "Too many failed attempts."));
 
         string normalizedCode = NormalizeVerificationCode(code);
@@ -89,7 +89,7 @@ internal static class ChallengeCompletionHelper
                     GetErrorMessage(MapFailureReason(AuthenticationFailureReason.ChallengeAttemptsExhausted, securityPolicy.FailedAttemptResponse))));
             if (failedAttempts <= 0 || failedAttempts >= challenge.MaximumAttempts)
                 return new AuthenticationResult<LoginResult>.Failure(new(
-                    MapFailureReason(AuthenticationFailureReason.ChallengeAttemptsExhausted, securityPolicy.FailedAttemptResponse),
+                    ChallengeFailureReason(challenge, AuthenticationFailureReason.ChallengeAttemptsExhausted, securityPolicy.FailedAttemptResponse),
                     "Too many failed attempts."));
 
             return new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidVerificationCode, "Invalid verification code."));
@@ -140,6 +140,13 @@ internal static class ChallengeCompletionHelper
 
         return new string(normalized);
     }
+
+    // A used-up second-factor challenge only means "sign in again"; reporting it
+    // as a lockout would be false, and the account-wide threshold is checked above.
+    private static AuthenticationFailureReason ChallengeFailureReason(AuthenticationChallenge challenge, AuthenticationFailureReason reason, FailedAttemptResponse? response) =>
+        challenge.IsSecondFactor && reason is AuthenticationFailureReason.ChallengeAttemptsExhausted
+            ? reason
+            : MapFailureReason(reason, response);
 
     private static AuthenticationFailureReason MapFailureReason(AuthenticationFailureReason reason, FailedAttemptResponse? response) =>
         reason is AuthenticationFailureReason.ChallengeAttemptsExhausted && response is not null

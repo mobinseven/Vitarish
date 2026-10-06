@@ -83,12 +83,10 @@ public sealed class DistributedAuthenticationChallengeStoreTests
         }
     }
 
-    private static AuthenticationChallenge CreateChallenge() => AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
+    private static AuthenticationChallenge CreateChallenge() => AuthenticationChallengePolicy.Default.CreatePhoneLoginChallenge(
         "user-42",
         "+989121234567",
-        DateTimeOffset.UtcNow,
-        rememberMe: false,
-        requiresProfileCompletion: false);
+        DateTimeOffset.UtcNow);
 
     private static AuthenticationChallenge CreateRecoveryChallenge() => AuthenticationChallengePolicy.Default.CreateEmailPasswordRecoveryChallenge(
         "user-42",
