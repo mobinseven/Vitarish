@@ -305,7 +305,6 @@ const platformAuditIdentifierLabels = {
       "users.account.edited": "User edited",
       "users.account.edit-failed": "User edit failed",
       "users.security-attributes.changed": "User security attributes changed",
-      "security.session.administrator-idle-termination": "Administrator idle termination",
     },
   },
   fa: {
@@ -362,7 +361,6 @@ const platformAuditIdentifierLabels = {
       "users.account.edited": "ویرایش کاربر",
       "users.account.edit-failed": "ویرایش کاربر ناموفق بود",
       "users.security-attributes.changed": "تغییر ویژگی‌های امنیتی کاربر",
-      "security.session.administrator-idle-termination": "پایان نشست غیرفعال مدیر",
     },
   },
 } as const;

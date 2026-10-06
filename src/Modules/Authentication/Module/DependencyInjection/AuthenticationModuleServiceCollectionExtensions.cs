@@ -43,6 +43,7 @@ public static class AuthenticationModuleServiceCollectionExtensions
         services.AddScoped<AcknowledgeAuthenticationAccessHistoryHandler>();
         services.AddScoped<ChangeUserInactivityTimeoutHandler>();
         services.AddScoped<GetUserInactivityTimeoutHandler>();
+        services.AddScoped<RevokeUserSessionsHandler>();
         _ = services.AddAuthorization(options =>
         {
             options.AddPolicy(AuthenticationAuthorizationPolicies.ReadSessionPolicy, policy => policy.RequireRole(IdentityDefinitions.PlatformAdmin));

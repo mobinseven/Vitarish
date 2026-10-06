@@ -180,6 +180,28 @@ public static class AuthenticationSecurityEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        _ = group.MapModulePost(AuthenticationRoutes.SecurityUserSessionsRevoke, async (string userId, [Microsoft.AspNetCore.Mvc.FromServices] RevokeUserSessionsHandler handler, CancellationToken ct) =>
+        {
+            try
+            {
+                int ended = await handler.Handle(userId, ct);
+                return Results.Ok(new UserSessionsRevocationDto(ended));
+            }
+            catch (AuthenticationUserNotFoundException)
+            {
+                return Results.NotFound();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Results.Forbid();
+            }
+        }, AuthenticationSecurityOperationIds.UserSessionsRevoke, typeof(UserSessionsRevocationDto))
+            .RequireAuthorization(AuthenticationAuthorizationPolicies.ChangeUserInactivityPolicy)
+            .WithMetadata(new SecurityAuditHandledByApplicationMetadata())
+            .Produces<UserSessionsRevocationDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         return group;
     }
 

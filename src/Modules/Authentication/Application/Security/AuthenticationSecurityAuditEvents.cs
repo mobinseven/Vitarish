@@ -63,9 +63,11 @@ public static class AuthenticationSecurityAuditEvents
     public const string SessionReplaced = SecurityAuditReasonCatalog.ReplacedByNewSession;
     public const string SessionAcknowledged = SecurityAuditReasonCatalog.Acknowledged;
     public const string SessionUserPolicyExpired = SecurityAuditReasonCatalog.UserPolicyExpired;
+    public const string SessionAdministrativeRevocation = SecurityAuditReasonCatalog.AdministrativeRevocation;
     public const string SessionPolicyInvalidated = SecurityAuditReasonCatalog.PolicyInvalidated;
     public const string AwaitingMutationOutcome = SecurityAuditReasonCatalog.AwaitingMutationOutcome;
     public const string UserPolicyOperationSegment = ":user:";
+    public const string UserSessionsOperationSegment = ":user-sessions:";
     public const string UserTimeoutMinutesReasonPrefix = SecurityAuditReasonCatalog.UserTimeoutMinutesReasonPrefix;
     public const string UserTimeoutDefaultReason = SecurityAuditReasonCatalog.UserTimeoutDefault;
     public const string UserPolicyTargetNotFoundReason = SecurityAuditReasonCatalog.UserNotFound;

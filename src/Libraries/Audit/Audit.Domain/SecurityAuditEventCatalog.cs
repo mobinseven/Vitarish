@@ -119,7 +119,6 @@ public static class SecurityAuditEventCatalog
     public const string UserEditFailureOperation = UserEditOperation;
     public const string UserSecurityAttributeChangeEvent = "users.security-attributes.changed";
     public const string UserSecurityAttributeChangeOperation = "users.security-attributes.change";
-    public const string AdministratorIdleTerminationEvent = "security.session.administrator-idle-termination";
 
     public static IReadOnlyList<SecurityAuditCatalogEntry> Entries { get; } =
     [
@@ -150,7 +149,7 @@ public static class SecurityAuditEventCatalog
         new(ManagementCategory, ManagementEvent, "management.operation", Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.InactiveEntityOperation, SecurityAuditControl.GroupRoleMembershipChange]),
         new(SecurityFailureCategory, SecurityFailureEvent, SecurityFailureOperation, Controls: [SecurityAuditControl.SecurityFunctionFailure, SecurityAuditControl.SecurityCapabilityUnavailable, SecurityAuditControl.AuditStorageFailureAction]),
         new(SessionCategory, SessionEstablishedEvent, SessionEstablishedOperation, Controls: [SecurityAuditControl.SessionEstablishment, SecurityAuditControl.AuthenticationOutcome, SecurityAuditControl.ConcurrentSessionLimit]),
-        new(SessionCategory, SessionTerminatedEvent, SessionTerminatedOperation, Controls: [SecurityAuditControl.IdleSessionTermination, SecurityAuditControl.SecurityAdministration]),
+        new(SessionCategory, SessionTerminatedEvent, SessionTerminatedOperation, Controls: [SecurityAuditControl.IdleSessionTermination, SecurityAuditControl.SecurityAdministration, SecurityAuditControl.AdministratorIdleTermination]),
         new(SessionCategory, SessionAccessHistoryEvent, SessionAccessHistoryOperation, Controls: [SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.FailedSecurityRecordRead]),
         new(SessionCategory, SessionNoticeEvent, SessionNoticeOperation, Controls: [SecurityAuditControl.SecurityRecordRead, SecurityAuditControl.SecurityAttributeChange]),
         new(SessionCategory, SessionPolicyEvent, SessionPolicyOperation, Controls: [SecurityAuditControl.SecurityConfigurationChange, SecurityAuditControl.SecurityBehaviorChange]),
@@ -163,8 +162,7 @@ public static class SecurityAuditEventCatalog
         new(SecurityFailureCategory, UserCreationFailureEvent, UserCreationFailureOperation, Controls: [SecurityAuditControl.SecurityFunctionFailure, SecurityAuditControl.SecurityAdministration]),
         new(ManagementCategory, UserEditEvent, UserEditOperation, Controls: [SecurityAuditControl.SecurityAttributeChange, SecurityAuditControl.SecurityAdministration]),
         new(SecurityFailureCategory, UserEditFailureEvent, UserEditFailureOperation, Controls: [SecurityAuditControl.SecurityFunctionFailure, SecurityAuditControl.SecurityAdministration]),
-        new(SecurityAttributeCategory, UserSecurityAttributeChangeEvent, UserSecurityAttributeChangeOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
-        new(SessionCategory, AdministratorIdleTerminationEvent, "session.terminate.idle", false, "Optional administrator-initiated idle-session termination is not implemented.", [SecurityAuditControl.AdministratorIdleTermination])
+        new(SecurityAttributeCategory, UserSecurityAttributeChangeEvent, UserSecurityAttributeChangeOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange])
     ];
 
     public static SecurityAuditCatalogEntry? Find(string eventName, string operation) =>

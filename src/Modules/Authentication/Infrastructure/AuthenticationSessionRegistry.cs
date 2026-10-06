@@ -520,6 +520,35 @@ public sealed class AuthenticationSessionRegistry(
             await CompleteAuditAsync(AuthenticationSecurityAuditEvents.SessionTerminated, SecurityAuditOutcome.Succeeded, userId, AuthenticationSecurityAuditEvents.SessionUserPolicyExpired, AuthenticationSecurityAuditEvents.SessionTerminatedOperation, session.Id.ToString("N"), cancellationToken);
     }
 
+    public async Task<int> RevokeActiveSessionsAsync(string userId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            return 0;
+
+        string reason = AuthenticationSecurityAuditEvents.SessionTerminationReason(AuthenticationSessionTerminationReason.AdministrativeRevocation);
+        List<AuthenticationSession> allSessions = await dbContext.AuthenticationSessions
+            .Where(session => session.UserId == userId)
+            .OrderBy(session => session.CreatedAt)
+            .ToListAsync(cancellationToken);
+        // A retry of an attempt that committed but stopped before closing its per-session audits completes them here.
+        foreach (AuthenticationSession session in allSessions.Where(session => session.TerminatedAt is not null))
+            await ReconcilePendingTerminationAuditAsync(userId, reason, session.Id.ToString("N"), cancellationToken);
+        List<AuthenticationSession> sessions = allSessions.Where(session => session.TerminatedAt is null).ToList();
+        if (sessions.Count == 0)
+            return 0;
+
+        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
+        foreach (AuthenticationSession session in sessions)
+            await BeginTerminationAuditAsync(userId, reason, session.Id.ToString("N"), cancellationToken, resumePending: true);
+        foreach (AuthenticationSession session in sessions)
+            Terminate(session, now, AuthenticationSessionTerminationReason.AdministrativeRevocation);
+        await SaveAsync(cancellationToken);
+        // The sessions are ended; cancellation must not leave their terminal audits open.
+        foreach (AuthenticationSession session in sessions)
+            await CompleteAuditAsync(AuthenticationSecurityAuditEvents.SessionTerminated, SecurityAuditOutcome.Succeeded, userId, reason, AuthenticationSecurityAuditEvents.SessionTerminatedOperation, session.Id.ToString("N"), CancellationToken.None);
+        return sessions.Count;
+    }
+
     public async Task<SecurityAccessPolicyState> SavePolicyAndRevokeInvalidatedSessionsAsync(
         SecurityAccessPolicy policy,
         long expectedVersion,
@@ -791,7 +820,7 @@ public sealed class AuthenticationSessionRegistry(
         }
     }
 
-    private async Task BeginTerminationAuditAsync(string userId, string reason, string eventKey, CancellationToken cancellationToken)
+    private async Task BeginTerminationAuditAsync(string userId, string reason, string eventKey, CancellationToken cancellationToken, bool resumePending = false)
     {
         SecurityAuditWriteResult pending = await WriteAuditAsync(
             AuthenticationSecurityAuditEvents.SessionTerminated,
@@ -812,6 +841,9 @@ public sealed class AuthenticationSessionRegistry(
                 cancellationToken);
             if (existingOutcome is SecurityAuditOutcome.Succeeded or SecurityAuditOutcome.Denied or SecurityAuditOutcome.Failed)
                 throw new InvalidOperationException("The session-termination operation already has a terminal outcome while the session remains active.");
+            // The key carries the request id, so a Pending record here belongs to an earlier attempt of this same request.
+            if (resumePending && existingOutcome is SecurityAuditOutcome.Pending)
+                return;
         }
 
         throw new InvalidOperationException("The session-termination operation is already in progress or its terminal outcome is unconfirmed.");

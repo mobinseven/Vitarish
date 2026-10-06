@@ -9,4 +9,5 @@ public static partial class AuthenticationRoutes
     public const string SecuritySessionPolicy = "/security/session-policy";
     public const string SecurityAuthenticationPolicy = "/security/authentication-policy";
     public const string SecurityUserInactivityPolicy = "/security/users/{userId}/inactivity-timeout";
+    public const string SecurityUserSessionsRevoke = "/security/users/{userId}/sessions/revoke";
 }
