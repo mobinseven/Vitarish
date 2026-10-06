@@ -58,6 +58,19 @@ public sealed class TenantResolverTests
         Assert.Equal(tenantB.Id, (await resolver.ResolveAsync(context))!.Id);
     }
 
+    [Fact]
+    public async Task Invalid_tenant_header_does_not_fail_resolution()
+    {
+        await using PartiesDbContext db = CreateContext();
+        using MemoryCache cache = new(new MemoryCacheOptions());
+        TenantResolver resolver = new(db, cache);
+        DefaultHttpContext context = new();
+        context.Request.Host = new HostString("localhost");
+        context.Request.Headers[TenantResolver.TenantHostHeaderName] = "invalid host:::not-a-host";
+
+        Assert.Null(await resolver.ResolveAsync(context));
+    }
+
     private static Tenant AddTenant(PartiesDbContext db, string host, string name)
     {
         Tenant tenant = new() { Id = Guid.NewGuid(), OwnerId = Guid.NewGuid(), Name = name, AppId = name };

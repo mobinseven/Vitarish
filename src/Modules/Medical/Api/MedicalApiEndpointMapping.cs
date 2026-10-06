@@ -150,8 +150,36 @@ public static class MedicalApiEndpointMapping
     private static async Task<IResult> SearchMedicalServicesAsync(SearchMedicalServicesRequest request, IMedicalQueryService service, CancellationToken ct) => Ok((await service.SearchMedicalServicesAsync(request.Text, request.Category, request.Specialty, request.ActiveOnly, request.AsOfDate, request.Limit, ct)).Select(ToContract).ToArray());
     private static async Task<IResult> GetMedicalServiceAsync(Guid serviceId, GetMedicalServiceRequest? request, IMedicalQueryService service, CancellationToken ct) => OkOrNotFound(ToContract(await service.GetMedicalServiceAsync(serviceId, request?.AsOfDate, ct)));
     private static async Task<IResult> ResolveServiceCodeAsync(ResolveServiceCodeRequest request, IMedicalQueryService service, CancellationToken ct) => OkOrNotFound(ToContract(await service.ResolveServiceCodeAsync(request.SystemKey, request.Code, request.ReleaseId, request.AsOfDate, ct)));
-    private static async Task<IResult> GetServiceValuationAsync(GetServiceValuationRequest request, IMedicalQueryService service, CancellationToken ct) => OkOrNotFound(ToContract(await service.GetServiceValuationAsync(request.ServiceCodeId, request.Year, request.Locality, request.FacilityIndicator is null ? null : Enum.Parse<DE.FacilityIndicator>(request.FacilityIndicator, true), request.AsOfDate, ct)));
-    private static async Task<IResult> GetCodeMapsAsync(GetCodeMapsRequest request, IMedicalQueryService service, CancellationToken ct) => Ok((await service.GetCodeMapsAsync(request.SourceCodeId, request.TargetSystemKey, request.MappingType is null ? null : Enum.Parse<DE.MappingType>(request.MappingType.ToString(), true), request.AsOfDate, ct)).Select(ToContract).ToArray());
+    internal static async Task<IResult> GetServiceValuationAsync(GetServiceValuationRequest request, IMedicalQueryService service, CancellationToken ct)
+    {
+        DE.FacilityIndicator? facilityIndicator = null;
+        if (request.FacilityIndicator is not null)
+        {
+            if (!Enum.TryParse(request.FacilityIndicator, true, out DE.FacilityIndicator parsedFacilityIndicator) || !Enum.IsDefined(parsedFacilityIndicator))
+            {
+                return Results.BadRequest(new MedicalError(MedicalErrorCode.ValidationFailure, "Invalid facility indicator."));
+            }
+
+            facilityIndicator = parsedFacilityIndicator;
+        }
+
+        return OkOrNotFound(ToContract(await service.GetServiceValuationAsync(request.ServiceCodeId, request.Year, request.Locality, facilityIndicator, request.AsOfDate, ct)));
+    }
+    internal static async Task<IResult> GetCodeMapsAsync(GetCodeMapsRequest request, IMedicalQueryService service, CancellationToken ct)
+    {
+        DE.MappingType? mappingType = null;
+        if (request.MappingType is not null)
+        {
+            if (!Enum.TryParse(request.MappingType, true, out DE.MappingType parsedMappingType) || !Enum.IsDefined(parsedMappingType))
+            {
+                return Results.BadRequest(new MedicalError(MedicalErrorCode.ValidationFailure, "Invalid mapping type."));
+            }
+
+            mappingType = parsedMappingType;
+        }
+
+        return Ok((await service.GetCodeMapsAsync(request.SourceCodeId, request.TargetSystemKey, mappingType, request.AsOfDate, ct)).Select(ToContract).ToArray());
+    }
     private static async Task<IResult> GetImportBatchAsync(Guid importBatchId, IMedicalQueryService service, CancellationToken ct) => OkOrNotFound(ToContract(await service.GetImportBatchAsync(importBatchId, ct)));
 
     private static async Task<IResult> RegisterCodeSystemAsync(RegisterCodeSystemCommand request, IMediator mediator, CancellationToken ct) => Command(await mediator.Send(new A.RegisterCodeSystemCommand(request.SystemKey, request.DisplayName, request.Authority, (DE.CodeSystemCategory)request.Category, request.CanonicalUri, request.Description), ct));
@@ -320,5 +348,5 @@ public static class MedicalApiEndpointMapping
             _ => MedicalCredentialStatus.Invalid
         }
     };
-    public static IResult ToHttpFailure(MedicalError error) => error.Code switch { MedicalErrorCode.ValidationFailure => Results.BadRequest(error), MedicalErrorCode.Unauthorized => Results.Unauthorized(), MedicalErrorCode.Forbidden => Results.Forbid(), MedicalErrorCode.NotFound => Results.NotFound(error), MedicalErrorCode.Conflict => Results.Conflict(error), MedicalErrorCode.ProviderUnavailable => Results.StatusCode(StatusCodes.Status503ServiceUnavailable), MedicalErrorCode.Timeout => Results.StatusCode(StatusCodes.Status504GatewayTimeout), MedicalErrorCode.ProviderRejected => Results.UnprocessableEntity(error), MedicalErrorCode.CredentialInvalid or MedicalErrorCode.CredentialExpired or MedicalErrorCode.CredentialRevoked => Results.BadRequest(error), _ => Results.Problem(error.Message) };
+    public static IResult ToHttpFailure(MedicalError error) => error.Code switch { MedicalErrorCode.ValidationFailure => Results.BadRequest(error), MedicalErrorCode.Unauthorized => Results.Unauthorized(), MedicalErrorCode.Forbidden => Results.Forbid(), MedicalErrorCode.NotFound => Results.NotFound(error), MedicalErrorCode.Conflict => Results.Conflict(error), MedicalErrorCode.ProviderUnavailable => Results.StatusCode(StatusCodes.Status503ServiceUnavailable), MedicalErrorCode.Timeout => Results.StatusCode(StatusCodes.Status504GatewayTimeout), MedicalErrorCode.ProviderRejected => Results.UnprocessableEntity(error), MedicalErrorCode.CredentialInvalid or MedicalErrorCode.CredentialExpired or MedicalErrorCode.CredentialRevoked => Results.BadRequest(error), MedicalErrorCode.Cancellation => Results.StatusCode(StatusCodes.Status499ClientClosedRequest), _ => Results.Problem(error.Message) };
 }

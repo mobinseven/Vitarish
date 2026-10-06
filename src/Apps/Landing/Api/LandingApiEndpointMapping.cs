@@ -63,14 +63,19 @@ public static class LandingApiEndpointMapping
         string session = GetOrCreateSession(context, protection);
         Guid? conversationId = request.ConversationId is null ? null : Guid.Parse(request.ConversationId);
         LandingConversationResult result = await sender.Send(new RunLandingConversation(requestTenantId.Value.ToString("D"), session, request.OwnerKey, request.Message.Trim(), conversationId), ct);
-        return result.Outcome switch
-        {
-            AgentConversationOutcome.Succeeded when result.ConversationId.HasValue && !string.IsNullOrWhiteSpace(result.Message) => Results.Ok(new LandingConversationResponse(result.ConversationId.Value.ToString("N"), result.Message)),
-            AgentConversationOutcome.NotFound => Results.NotFound(new LandingError("not_found", "The conversation was not found.")),
-            AgentConversationOutcome.Busy => Results.Conflict(new LandingError("busy", "The conversation is already processing a message.")),
-            _ => Results.Json(new LandingError("unavailable", "The assistant is temporarily unavailable."), statusCode: StatusCodes.Status503ServiceUnavailable)
-        };
+        return ToHttpResult(result);
     }
+
+    public static IResult ToHttpResult(LandingConversationResult result) => result.Outcome switch
+    {
+        AgentConversationOutcome.Succeeded when result.ConversationId.HasValue && !string.IsNullOrWhiteSpace(result.Message) => Results.Ok(new LandingConversationResponse(result.ConversationId.Value.ToString("N"), result.Message)),
+        AgentConversationOutcome.NotFound => Results.NotFound(new LandingError(LandingErrorCodes.NotFound, "The conversation was not found.")),
+        AgentConversationOutcome.Busy => Results.Conflict(new LandingError(LandingErrorCodes.Busy, "The conversation is already processing a message.")),
+        AgentConversationOutcome.HistoryLimitExceeded => Results.Conflict(new LandingError(LandingErrorCodes.InvalidHistory, "The conversation history has reached its supported limit; start a new conversation.")),
+        AgentConversationOutcome.InvalidHistory => Results.Conflict(new LandingError(LandingErrorCodes.InvalidHistory, "The conversation history is invalid.")),
+        AgentConversationOutcome.ProfileChanged => Results.Conflict(new LandingError(LandingErrorCodes.Conflict, "The assistant configuration changed; start a new conversation.")),
+        _ => Results.Json(new LandingError(LandingErrorCodes.Unavailable, "The assistant is temporarily unavailable."), statusCode: StatusCodes.Status503ServiceUnavailable)
+    };
 
     private static async Task<IResult> DeleteAsync(Guid conversationId, string ownerKey, HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, IDataProtectionProvider protection, ISender sender, CancellationToken ct)
     {
@@ -78,7 +83,7 @@ public static class LandingApiEndpointMapping
         Guid? requestTenantId = await ResolveBoundTenantAsync(context, options, parties, ct);
         if (requestTenantId is null || session is null || conversationId == Guid.Empty || !OwnerKeys.Contains(ownerKey)) return Results.NotFound();
         AgentConversationOutcome result = await sender.Send(new DeleteLandingConversation(requestTenantId.Value.ToString("D"), session, ownerKey, conversationId), ct);
-        return result switch { AgentConversationOutcome.Succeeded => Results.NoContent(), AgentConversationOutcome.Busy => Results.Conflict(new LandingError("busy", "The conversation is already processing a message.")), _ => Results.NotFound() };
+        return result switch { AgentConversationOutcome.Succeeded => Results.NoContent(), AgentConversationOutcome.Busy => Results.Conflict(new LandingError(LandingErrorCodes.Busy, "The conversation is already processing a message.")), _ => Results.NotFound() };
     }
 
     private static async Task<Guid?> ResolveBoundTenantAsync(HttpContext context, IOptions<LandingPlatformOptions> options, IPartiesService parties, CancellationToken ct)
@@ -92,7 +97,7 @@ public static class LandingApiEndpointMapping
     }
 
     private static bool Valid(string ownerKey, string message) => OwnerKeys.Contains(ownerKey) && !string.IsNullOrWhiteSpace(message) && message.Trim().Length <= 2_000;
-    private static IResult Invalid() => Results.BadRequest(new LandingError("validation", "A valid page and message of at most 2,000 characters are required."));
+    private static IResult Invalid() => Results.BadRequest(new LandingError(LandingErrorCodes.Validation, "A valid page and message of at most 2,000 characters are required."));
     private static string GetOrCreateSession(HttpContext context, IDataProtectionProvider provider)
     {
         string? current = ReadSession(context, provider); if (current is not null) return current;
