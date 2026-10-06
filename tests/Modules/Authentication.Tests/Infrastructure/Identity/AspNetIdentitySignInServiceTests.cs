@@ -1,3 +1,7 @@
+using Vitarish.Authentication.Domain.Sessions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -197,6 +201,62 @@ public sealed class AspNetIdentitySignInServiceTests
         result.RequiresTwoFactor.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task A_disable_that_lands_after_the_status_check_revokes_the_new_session()
+    {
+        User staleEnabledUser = CreateUser(isEnabled: true);
+        User storedUser = CreateUser(isEnabled: false);
+        storedUser.Id = staleEnabledUser.Id;
+        await using AccountStatusContext statusContext = new();
+        _ = statusContext.Users.Add(storedUser);
+        _ = await statusContext.SaveChangesAsync();
+
+        Mock<IUserStore<User>> userStore = new();
+        Mock<UserManager<User>> userManager = CreateUserManager(userStore);
+        userManager.Setup(manager => manager.FindByIdAsync(staleEnabledUser.Id)).ReturnsAsync(staleEnabledUser);
+        userManager.SetupGet(manager => manager.Users).Returns(statusContext.Users);
+        Mock<SignInManager<User>> signInManager = CreateSignInManager(userManager.Object);
+        signInManager.Setup(manager => manager.CreateUserPrincipalAsync(staleEnabledUser))
+            .ReturnsAsync(new ClaimsPrincipal(new ClaimsIdentity("test")));
+        Mock<IAuthenticationSessionPreparation> preparation = new();
+        preparation.SetupGet(value => value.Result).Returns(new AuthenticationSessionEstablishmentResult(true, "session-1", null, null, 30));
+        Mock<IAuthenticationSessionRegistry> sessionRegistry = new();
+        sessionRegistry.Setup(registry => registry.PrepareAsync(staleEnabledUser.Id, It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
+        Mock<IAuthenticationService> authentication = new();
+        DefaultHttpContext httpContext = new()
+        {
+            RequestServices = new ServiceCollection().AddSingleton(authentication.Object).BuildServiceProvider()
+        };
+
+        AspNetIdentitySignInService service = CreateService(
+            userManager,
+            signInManager,
+            new Mock<IAuthenticationAttemptTracker>(),
+            sessionRegistry,
+            new Mock<IAuthenticationAttemptKeyFactory>(),
+            new HttpContextAccessor { HttpContext = httpContext });
+
+        AuthenticationSessionSignInResult result = await service.SignInAsync(staleEnabledUser.Id, rememberMe: false, CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Failure!.Reason.Should().Be(AuthenticationFailureReason.AccountDisabled);
+        preparation.Verify(value => value.CompleteAsync(It.IsAny<CancellationToken>()), Times.Once);
+        sessionRegistry.Verify(
+            registry => registry.RevokeAsync("session-1", AuthenticationSessionTerminationReason.SecurityAttributeChanged, It.IsAny<CancellationToken>()),
+            Times.Once);
+        authentication.Verify(
+            value => value.SignOutAsync(httpContext, IdentityConstants.ApplicationScheme, It.IsAny<AuthenticationProperties?>()),
+            Times.Once);
+    }
+
+    private sealed class AccountStatusContext : DbContext
+    {
+        public DbSet<User> Users => Set<User>();
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
+            optionsBuilder.UseInMemoryDatabase(Guid.NewGuid().ToString("N"));
+    }
+
     private static User CreateUser(bool isEnabled) => new()
     {
         Id = "managed-user",
@@ -228,7 +288,8 @@ public sealed class AspNetIdentitySignInServiceTests
         Mock<SignInManager<User>> signInManager,
         Mock<IAuthenticationAttemptTracker> attemptTracker,
         Mock<IAuthenticationSessionRegistry> sessionRegistry,
-        Mock<IAuthenticationAttemptKeyFactory> attemptKeyFactory)
+        Mock<IAuthenticationAttemptKeyFactory> attemptKeyFactory,
+        IHttpContextAccessor? httpContextAccessor = null)
     {
         Mock<IAuthenticationSecurityPolicyProvider> policyProvider = new();
         policyProvider.Setup(provider => provider.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
@@ -241,7 +302,7 @@ public sealed class AspNetIdentitySignInServiceTests
             new UnknownPasswordVerifier(new PasswordHasher<User>()),
             attemptKeyFactory.Object,
             sessionRegistry.Object,
-            new HttpContextAccessor());
+            httpContextAccessor ?? new HttpContextAccessor());
     }
 
     private static Mock<UserManager<User>> CreateUserManager(Mock<IUserStore<User>> userStore) => new(

@@ -138,6 +138,29 @@ internal sealed class ChangeUserAccountStatusCommandHandler(
                 : result;
         }
 
+        // A sign-in may have completed between the session check and the save. Sign-in
+        // re-checks the status after creating its session; this re-check covers the
+        // other ordering. Disabling never revokes sessions as a side effect, so undo it.
+        if (!request.Enabled && await activeSessionQuery.HasActiveSessionAsync(user.Id, CancellationToken.None))
+        {
+            user.IsEnabled = true;
+            user.ConcurrencyStamp = Guid.NewGuid().ToString("N");
+            IdentityResult restored = await userManager.UpdateAsync(user);
+            await managementAudit.AccountStatusChangedAsync(
+                user.Id,
+                request.Enabled,
+                restored.Succeeded ? SecurityAuditOutcome.Denied : SecurityAuditOutcome.Failed,
+                SecurityAuditReasonCatalog.ActiveSessionConflict,
+                CancellationToken.None);
+            if (!restored.Succeeded)
+                throw new InvalidOperationException("A sign-in raced the account disable and the account could not be re-enabled.");
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = UsersCommandErrorCodes.ActiveSessionConflict,
+                Description = UsersCommandErrorCodes.ActiveSessionConflictDescription
+            });
+        }
+
         await managementAudit.AccountStatusChangedAsync(
             user.Id,
             request.Enabled,

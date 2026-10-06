@@ -275,6 +275,9 @@ test("platform administrator disables and re-enables a signed-out user's account
 
     await login(userPage, ownerUsername, webOrigin);
     await signOutThroughPublicApi(userPage);
+    // Release the administrator session too; the concurrent-session limit is
+    // active and the following scenarios sign the same administrator in again.
+    await signOutThroughPublicApi(page);
   } catch (error) {
     failure = error;
   }

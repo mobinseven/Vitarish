@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -73,8 +74,25 @@ public sealed class AspNetIdentitySignInService(
             if (preparation is not null)
                 await preparation.DisposeAsync();
         }
+
+        // An administrator may have disabled the account after the check above. The
+        // disable command re-checks for sessions after saving; this re-check after the
+        // session is committed closes the other ordering, so neither can be missed.
+        if (!await IsAccountEnabledAsync(userId, cancellationToken))
+        {
+            await sessionRegistry.RevokeAsync(established.SessionId!, AuthenticationSessionTerminationReason.SecurityAttributeChanged, CancellationToken.None);
+            await httpContextAccessor.HttpContext!.SignOutAsync(IdentityConstants.ApplicationScheme);
+            return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.AccountDisabled, "The account is disabled."));
+        }
+
         return AuthenticationSessionSignInResult.Success();
     }
+
+    private Task<bool> IsAccountEnabledAsync(string userId, CancellationToken cancellationToken) =>
+        userManager.Users.AsNoTracking()
+            .Where(candidate => candidate.Id == userId)
+            .Select(candidate => candidate.IsEnabled)
+            .SingleOrDefaultAsync(cancellationToken);
 
     public async Task SignOutAsync(CancellationToken cancellationToken)
     {

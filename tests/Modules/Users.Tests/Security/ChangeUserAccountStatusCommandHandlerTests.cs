@@ -51,7 +51,8 @@ public sealed class ChangeUserAccountStatusCommandHandlerTests
         disabled.ActorId.Should().Be("platform-admin");
         disabled.SubjectId.Should().Be(ManagedUserId);
         disabled.RedactedReason.Should().BeNull();
-        activeSessions.Verify(query => query.HasActiveSessionAsync(ManagedUserId, It.IsAny<CancellationToken>()), Times.Once);
+        // Checked before the save and again after it, to catch a sign-in that raced the disable.
+        activeSessions.Verify(query => query.HasActiveSessionAsync(ManagedUserId, It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
     [Fact]
@@ -78,6 +79,26 @@ public sealed class ChangeUserAccountStatusCommandHandlerTests
         denied.ActorId.Should().Be("platform-admin");
         denied.SubjectId.Should().Be(ManagedUserId);
         denied.RedactedReason.Should().Be(SecurityAuditReasonCatalog.ActiveSessionConflict);
+    }
+
+    [Fact]
+    public async Task A_sign_in_that_lands_between_the_session_check_and_the_save_undoes_the_disable()
+    {
+        await using TestUsersDbContext dbContext = await CreateDbContextWithManagedUserAsync();
+        Mock<IAuthenticationActiveSessionQuery> activeSessions = new();
+        activeSessions.SetupSequence(query => query.HasActiveSessionAsync(ManagedUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false)
+            .ReturnsAsync(true);
+        Mock<ISecurityAuditWriter> auditWriter = AuditWriter();
+        ChangeUserAccountStatusCommandHandler handler = CreateHandler(dbContext, auditWriter, activeSessions, isPlatformAdministrator: true);
+
+        IdentityResult result = await handler.Handle(new ChangeUserAccountStatusCommand(ManagedUserId, Enabled: false), CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Errors.Should().ContainSingle(error => error.Code == UsersCommandErrorCodes.ActiveSessionConflict);
+        (await dbContext.Users.AsNoTracking().SingleAsync(user => user.Id == ManagedUserId)).IsEnabled.Should().BeTrue();
+        AuditEvents(auditWriter).Should().ContainSingle(audit =>
+            audit.Outcome == SecurityAuditOutcome.Denied && audit.RedactedReason == SecurityAuditReasonCatalog.ActiveSessionConflict);
     }
 
     [Fact]

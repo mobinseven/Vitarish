@@ -28,8 +28,8 @@ function wrapper({ children }: { children: ReactNode }) {
               passwordLabel: "Password",
               passwordPlaceholder: "Enter",
               signInAction: "Sign in",
-              accountDisabled: "This account is disabled. Contact a platform administrator.",
             },
+            accountStatus: { disabled: "This account is disabled. Contact a platform administrator." },
             recovery: { forgotPasswordAction: "Forgot password?" },
           },
         }}

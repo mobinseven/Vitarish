@@ -1,8 +1,10 @@
 export const authMessageCatalogs = {
   en: {
     auth: {
-      login: {
-        accountDisabled: "This account is disabled. Contact a platform administrator.",
+      // Not under "login": apps merge this catalog one level deep into their own
+      // auth section, so a shared "login" object would replace their sign-in labels.
+      accountStatus: {
+        disabled: "This account is disabled. Contact a platform administrator.",
       },
       recovery: {
         forgotPasswordAction: "Forgot password?",
@@ -35,8 +37,8 @@ export const authMessageCatalogs = {
   },
   fa: {
     auth: {
-      login: {
-        accountDisabled: "این حساب غیرفعال شده است. با مدیر پلتفرم تماس بگیرید.",
+      accountStatus: {
+        disabled: "این حساب غیرفعال شده است. با مدیر پلتفرم تماس بگیرید.",
       },
       recovery: {
         forgotPasswordAction: "رمز عبور را فراموش کرده‌اید؟",

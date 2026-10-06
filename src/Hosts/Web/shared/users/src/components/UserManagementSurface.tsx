@@ -521,8 +521,13 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       onError: async (error) => {
         setConfirmAccountStatus(null);
         const status = readHttpStatus(error);
-        if (!enabled && status === 409) {
+        if (!enabled && hasUsersCommandFailure(error, UsersCommandErrorKind.ActiveSessionConflict)) {
           setMessage(t("users.management.accountDisableConflict"));
+          await refreshSecurityDetails();
+          return;
+        }
+        if (status === 409) {
+          setMessage(t("users.management.editConflict"));
           await refreshSecurityDetails();
           return;
         }

@@ -1,3 +1,4 @@
+import { UsersCommandErrorKind } from "@vitarish/auth/users";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -309,7 +310,10 @@ describe("UserManagementSurface", () => {
   it("points to ending sessions when a signed-in user cannot be disabled", async () => {
     const user = userEvent.setup();
     disableUser.mockImplementationOnce(
-      (_input: unknown, options?: { onError?: (error: unknown) => void }) => options?.onError?.({ status: 409 }),
+      (_input: unknown, options?: { onError?: (error: unknown) => void }) => options?.onError?.({
+        status: 409,
+        problem: { status: 409, errors: [{ code: "ActiveSessionConflict", failureCode: UsersCommandErrorKind.ActiveSessionConflict }] },
+      }),
     );
     renderSurface("platform", { platformView: "detail", userId: "platform-user" });
 
@@ -317,6 +321,25 @@ describe("UserManagementSurface", () => {
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Disable account" }));
 
     expect(screen.getByRole("status")).toHaveTextContent("This user is signed in. End all sessions before disabling the account.");
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  it("reports a concurrent edit, not a signed-in user, when disabling hits a concurrency conflict", async () => {
+    const user = userEvent.setup();
+    disableUser.mockImplementationOnce(
+      (_input: unknown, options?: { onError?: (error: unknown) => void }) => options?.onError?.({
+        status: 409,
+        problem: { status: 409, errors: [{ code: "ConcurrencyFailure", failureCode: UsersCommandErrorKind.ConcurrencyFailure }] },
+      }),
+    );
+    renderSurface("platform", { platformView: "detail", userId: "platform-user" });
+
+    await user.click(screen.getByRole("button", { name: "Disable account" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Disable account" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "This account changed elsewhere. The details were reloaded; review them and save again.",
+    );
     expect(refetch).toHaveBeenCalled();
   });
 

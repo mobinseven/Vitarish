@@ -23,7 +23,7 @@ export function LoginForm({
     returnUrlSearchParams,
   });
   const { t } = useLocalizedText();
-  const displayedError = error?.code === "account_disabled" ? t("auth.login.accountDisabled") : errorMessage;
+  const displayedError = error?.code === "account_disabled" ? t("auth.accountStatus.disabled") : errorMessage;
   const [userNameOrEmail, setUserNameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otpCode, setOtpCode] = useState("");
