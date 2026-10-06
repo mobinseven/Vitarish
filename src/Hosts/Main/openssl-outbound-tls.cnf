@@ -1,0 +1,14 @@
+# Outbound TLS client policy for the Main image (NSMAIL-1 FCS_TLSC_EXT.1.1 and 1.4).
+# .NET on Linux uses these OpenSSL defaults for every TLS client that sets no
+# cipher policy of its own (HttpClient and the MailKit SMTP client). Main has no
+# inbound TLS; the ingress terminates it with its own policy.
+# Appended to /etc/ssl/openssl.cnf by the Dockerfile; [openssl_init] points here.
+
+[vitarish_ssl_sect]
+system_default = vitarish_tls_client_sect
+
+[vitarish_tls_client_sect]
+MinProtocol = TLSv1.2
+CipherString = ECDHE+AESGCM:!aNULL
+Ciphersuites = TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256
+Groups = P-256:P-384:P-521
