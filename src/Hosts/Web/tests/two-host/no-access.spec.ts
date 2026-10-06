@@ -46,7 +46,10 @@ test("an account with no role or tenant membership is told it has no access afte
     ]);
     expect(completeResponse.status()).toBe(403);
     await expect(completeResponse.json()).resolves.toMatchObject({ code: "no_access" });
-    await expect(page.getByText("This account has no access level. Contact a platform administrator.")).toBeVisible();
+    // The code step shows every error both as an alert and on the code field.
+    const noAccessMessage = page.getByText("This account has no access level. Contact a platform administrator.");
+    await expect(noAccessMessage).toHaveCount(2);
+    await expect(noAccessMessage.first()).toBeVisible();
   } catch (error) {
     failure = error;
   }
