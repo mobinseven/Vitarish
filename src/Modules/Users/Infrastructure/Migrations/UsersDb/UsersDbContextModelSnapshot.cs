@@ -254,6 +254,11 @@ namespace Vitarish.Users.Infrastructure.Migrations.UsersDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("LastName")
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");

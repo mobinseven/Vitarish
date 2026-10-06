@@ -18,11 +18,12 @@ export function LoginForm({
   navigate,
   returnUrlSearchParams,
 }: LoginFormProps) {
-  const { login, completeOtp, requiresOtp, isLoading, errorMessage } = usePasswordLogin({
+  const { login, completeOtp, requiresOtp, isLoading, error, errorMessage } = usePasswordLogin({
     navigate,
     returnUrlSearchParams,
   });
   const { t } = useLocalizedText();
+  const displayedError = error?.code === "account_disabled" ? t("auth.accountStatus.disabled") : errorMessage;
   const [userNameOrEmail, setUserNameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otpCode, setOtpCode] = useState("");
@@ -54,7 +55,7 @@ export function LoginForm({
       onSubmit={requiresOtp ? handleOtpSubmit : handleSubmit}
       className="flex flex-col gap-4"
     >
-      {errorMessage && <StatusAlert className="mb-4" message={errorMessage} />}
+      {displayedError && <StatusAlert className="mb-4" message={displayedError} />}
       {!requiresOtp && (
         <TextField name="username" isRequired isDisabled={isLoading}>
           <Label>{t("auth.login.usernameOrEmailLabel")}</Label>

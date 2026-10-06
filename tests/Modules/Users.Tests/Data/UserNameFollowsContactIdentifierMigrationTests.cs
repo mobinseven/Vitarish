@@ -20,7 +20,7 @@ public sealed class UserNameFollowsContactIdentifierMigrationTests
         await container.StartAsync();
         string connectionString = await PostgresTestSupport.CreateDatabaseAsync(container);
 
-        await using UsersDbContext context = PostgresTestSupport.CreateContext(connectionString);
+        await using UsersDbContext context = PostgresTestSupport.CreateContextWithoutAccountStatus(connectionString);
         IMigrator migrator = context.GetService<IMigrator>();
         string[] migrations = context.Database.GetMigrations().ToArray();
         int index = Array.FindIndex(migrations, migration => migration.EndsWith(MigrationId, StringComparison.Ordinal));
@@ -41,7 +41,7 @@ public sealed class UserNameFollowsContactIdentifierMigrationTests
 
         await migrator.MigrateAsync(migrations[index]);
 
-        await using UsersDbContext verification = PostgresTestSupport.CreateContext(connectionString);
+        await using UsersDbContext verification = PostgresTestSupport.CreateContextWithoutAccountStatus(connectionString);
         (await verification.Users.SingleAsync(user => user.Id == "stale-email")).Should().Match<User>(user =>
             user.UserName == "new@example.test" && user.NormalizedUserName == "NEW@EXAMPLE.TEST");
         (await verification.Users.SingleAsync(user => user.Id == "stale-phone")).UserName.Should().Be("+989123456700");
@@ -73,7 +73,7 @@ public sealed class UserNameFollowsContactIdentifierMigrationTests
 
     private static async Task<Dictionary<string, (string UserName, string? NormalizedUserName)>> SnapshotAsync(string connectionString)
     {
-        await using UsersDbContext context = PostgresTestSupport.CreateContext(connectionString);
+        await using UsersDbContext context = PostgresTestSupport.CreateContextWithoutAccountStatus(connectionString);
         List<User> users = await context.Users.AsNoTracking()
             .OrderBy(user => user.Id)
             .ToListAsync();

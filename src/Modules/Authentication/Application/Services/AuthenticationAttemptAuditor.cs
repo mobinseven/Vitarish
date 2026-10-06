@@ -16,7 +16,8 @@ public sealed class AuthenticationAttemptAuditor(
         AuthenticationMethod method,
         string? subjectId,
         bool succeeded,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? failureReason = null)
     {
         (string eventName, string operation) = method switch
         {
@@ -42,7 +43,7 @@ public sealed class AuthenticationAttemptAuditor(
                 OccurredAt = clock.UtcNow,
                 CorrelationId = requestContext.TraceId ?? requestKey,
                 SourceBoundary = AuthenticationSecurityAuditEvents.SourceBoundary,
-                RedactedReason = succeeded ? null : SecurityAuditReasonCatalog.AuthenticationFailed,
+                RedactedReason = succeeded ? null : failureReason ?? SecurityAuditReasonCatalog.AuthenticationFailed,
                 IdempotencyKey = requestKey + AuthenticationSecurityAuditEvents.AuthenticationAttemptIdempotencySuffix + operation
             }, cancellationToken);
         }

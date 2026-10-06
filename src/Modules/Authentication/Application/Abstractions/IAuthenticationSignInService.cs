@@ -25,7 +25,8 @@ public enum PasswordSignInStatus
     RequiresTwoFactor,
     UserNotFound,
     ProviderFailure,
-    TooManyAttempts
+    TooManyAttempts,
+    AccountDisabled
 }
 
 public sealed record AuthenticationSessionSignInResult(bool Succeeded, AuthenticationFailure? Failure)

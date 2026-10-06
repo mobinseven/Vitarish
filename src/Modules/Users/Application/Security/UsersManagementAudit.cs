@@ -71,6 +71,22 @@ public sealed class UsersManagementAudit(
             reason ?? SecurityAuditReasonCatalog.MutationRejected,
             cancellationToken);
 
+    public Task AccountStatusChangedAsync(
+        string? userId,
+        bool enabled,
+        string outcome,
+        string? reason,
+        CancellationToken cancellationToken) =>
+        WriteAsync(
+            enabled ? UsersSecurityAuditEvents.UserAccountEnabled : UsersSecurityAuditEvents.UserAccountDisabled,
+            enabled ? UsersSecurityAuditEvents.UserAccountEnableOperation : UsersSecurityAuditEvents.UserAccountDisableOperation,
+            enabled ? UsersSecurityAuditEvents.UserAccountEnableIdempotencySuffix : UsersSecurityAuditEvents.UserAccountDisableIdempotencySuffix,
+            userId,
+            SecurityAuditEventCatalog.ManagementCategory,
+            outcome,
+            reason,
+            cancellationToken);
+
     public Task SecurityAttributeChangedAsync(string userId, string outcome, string reason, CancellationToken cancellationToken) =>
         WriteAsync(
             UsersSecurityAuditEvents.UserSecurityAttributeChange,

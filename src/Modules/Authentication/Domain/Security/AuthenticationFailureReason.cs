@@ -17,5 +17,6 @@ public enum AuthenticationFailureReason
     Unauthorized,
     ProviderFailure,
     UnknownCredential,
-    InvalidCredential
+    InvalidCredential,
+    AccountDisabled
 }

@@ -8,6 +8,7 @@ using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Handlers;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Domain.Challenges;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
@@ -169,6 +170,30 @@ public sealed class LoginWithPasswordHandlerTests
             It.Is<SecurityAuditEvent>(audit => audit.Outcome == SecurityAuditOutcome.Denied && audit.RedactedReason == "password_login_disabled"),
             It.IsAny<CancellationToken>()), Times.Once);
         dependencies.SignIn.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Account_disabled_password_login_is_denied_with_its_own_audit_reason_and_no_session()
+    {
+        TestDependencies dependencies = CreateDependencies(new PasswordSignInResult(
+            PasswordSignInStatus.AccountDisabled,
+            "user-42",
+            RequiresProfileCompletion: false,
+            RequiresTwoFactor: false));
+
+        AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", false, "operation-42"),
+            CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.AccountDisabled);
+        dependencies.SignIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+        dependencies.AuditWriter.Verify(x => x.WriteAsync(
+            It.Is<SecurityAuditEvent>(audit =>
+                audit.Outcome == SecurityAuditOutcome.Denied &&
+                audit.SubjectId == "user-42" &&
+                audit.RedactedReason == AuthenticationSecurityAuditEvents.FailureAccountDisabled),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private static TestDependencies CreateDependencies(PasswordSignInResult signInResult, SecurityAccessPolicy? policy = null)

@@ -28,6 +28,7 @@ public static class AuthenticationProblemHttpMapper
             AuthenticationFailureReason.ProviderFailure => (StatusCodes.Status503ServiceUnavailable, AuthenticationErrorCode.provider_failure),
             AuthenticationFailureReason.UnknownCredential => (StatusCodes.Status400BadRequest, AuthenticationErrorCode.unknown_credential),
             AuthenticationFailureReason.InvalidCredential => (StatusCodes.Status400BadRequest, AuthenticationErrorCode.invalid_credential),
+            AuthenticationFailureReason.AccountDisabled => (StatusCodes.Status403Forbidden, AuthenticationErrorCode.account_disabled),
             _ => (StatusCodes.Status500InternalServerError, AuthenticationErrorCode.invalid_input)
         };
 

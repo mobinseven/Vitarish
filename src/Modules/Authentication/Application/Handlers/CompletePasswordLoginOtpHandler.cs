@@ -79,7 +79,7 @@ public sealed class CompletePasswordLoginOtpHandler(
                 result is AuthenticationResult<LoginResult>.Success ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
                 completedKey,
                 result is AuthenticationResult<LoginResult>.Success success ? success.Value.UserId : knownUserId,
-                result is AuthenticationResult<LoginResult>.Failure ? AuthenticationSecurityAuditEvents.AuthenticationFailed : null), cancellationToken);
+                AuthenticationSecurityAuditEvents.FailureReason(result)), cancellationToken);
         }
         catch (SecurityAuditStoreException)
         {

@@ -153,13 +153,8 @@ public sealed class PhoneNumberNormalizationMigrationTests
         ConcurrencyStamp = concurrencyStamp
     };
 
-    private static UsersDbContext CreateContext(string connectionString)
-    {
-        DbContextOptions<UsersDbContext> options = new DbContextOptionsBuilder<UsersDbContext>()
-            .UseNpgsql(connectionString)
-            .Options;
-        return new UsersDbContext(options);
-    }
+    private static UsersDbContext CreateContext(string connectionString) =>
+        PostgresTestSupport.CreateContextWithoutAccountStatus(connectionString);
 
     private static async Task<string> CreateFreshDatabaseAsync(PostgreSqlContainer container)
     {

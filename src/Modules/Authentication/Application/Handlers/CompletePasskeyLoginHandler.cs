@@ -1,6 +1,7 @@
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Application.Commands;
 using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Application.Security;
 using Vitarish.Authentication.Application.Services;
 using Vitarish.Authentication.Domain.Methods;
 using Vitarish.Authentication.Domain.Security;
@@ -40,7 +41,12 @@ public sealed class CompletePasskeyLoginHandler(
         string? subjectId = result is AuthenticationResult<LoginResult>.Success success ? success.Value.UserId : knownUserId;
         try
         {
-            await attemptAuditor.RecordAsync(AuthenticationMethod.Passkey, subjectId, result is AuthenticationResult<LoginResult>.Success, cancellationToken);
+            await attemptAuditor.RecordAsync(
+                AuthenticationMethod.Passkey,
+                subjectId,
+                result is AuthenticationResult<LoginResult>.Success,
+                cancellationToken,
+                AuthenticationSecurityAuditEvents.FailureReason(result));
         }
         catch (OperationCanceledException)
         {

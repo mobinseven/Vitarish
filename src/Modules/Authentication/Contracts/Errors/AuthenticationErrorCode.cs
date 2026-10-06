@@ -18,5 +18,6 @@ public enum AuthenticationErrorCode
     provider_failure,
     unknown_credential,
     invalid_credential,
+    account_disabled,
     logout_context_unavailable
 }

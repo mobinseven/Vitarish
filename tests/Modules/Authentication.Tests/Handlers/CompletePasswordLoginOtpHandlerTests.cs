@@ -175,6 +175,27 @@ public sealed class CompletePasswordLoginOtpHandlerTests
         signIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Fact]
+    public async Task Disabled_account_completion_is_denied_with_its_own_audit_reason()
+    {
+        TestDependencies dependencies = CreateDependencies();
+        dependencies.SignIn
+            .Setup(x => x.SignInAsync("user-42", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AuthenticationSessionSignInResult.Failed(
+                new AuthenticationFailure(AuthenticationFailureReason.AccountDisabled, "The account is disabled.")));
+        List<SecurityAuditEvent> events = [];
+        CompletePasswordLoginOtpHandler handler = dependencies.CreateHandler(new RecordingWriter(events));
+
+        AuthenticationResult<LoginResult> result = await handler.Handle(Command(), CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.AccountDisabled);
+        events[^1].Outcome.Should().Be(SecurityAuditOutcome.Denied);
+        events[^1].SubjectId.Should().Be("user-42");
+        events[^1].RedactedReason.Should().Be(SecurityAuditReasonCatalog.AccountDisabled);
+        events.Should().NotContain(audit => audit.RedactedReason == SecurityAuditReasonCatalog.AuthenticationFailed);
+    }
+
     private static CompletePasswordLoginOtpCommand Command() => new("challenge-42", "123456", "/home");
 
     private static TestDependencies CreateDependencies()

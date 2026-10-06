@@ -117,6 +117,10 @@ public static class SecurityAuditEventCatalog
     public const string UserEditOperation = "users.account.edit";
     public const string UserEditFailureEvent = "users.account.edit-failed";
     public const string UserEditFailureOperation = UserEditOperation;
+    public const string UserAccountDisabledEvent = "users.account.disabled";
+    public const string UserAccountDisableOperation = "users.account.disable";
+    public const string UserAccountEnabledEvent = "users.account.enabled";
+    public const string UserAccountEnableOperation = "users.account.enable";
     public const string UserSecurityAttributeChangeEvent = "users.security-attributes.changed";
     public const string UserSecurityAttributeChangeOperation = "users.security-attributes.change";
 
@@ -162,7 +166,9 @@ public static class SecurityAuditEventCatalog
         new(SecurityFailureCategory, UserCreationFailureEvent, UserCreationFailureOperation, Controls: [SecurityAuditControl.SecurityFunctionFailure, SecurityAuditControl.SecurityAdministration]),
         new(ManagementCategory, UserEditEvent, UserEditOperation, Controls: [SecurityAuditControl.SecurityAttributeChange, SecurityAuditControl.SecurityAdministration]),
         new(SecurityFailureCategory, UserEditFailureEvent, UserEditFailureOperation, Controls: [SecurityAuditControl.SecurityFunctionFailure, SecurityAuditControl.SecurityAdministration]),
-        new(SecurityAttributeCategory, UserSecurityAttributeChangeEvent, UserSecurityAttributeChangeOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange])
+        new(SecurityAttributeCategory, UserSecurityAttributeChangeEvent, UserSecurityAttributeChangeOperation, Controls: [SecurityAuditControl.SecurityAttributeAssignment, SecurityAuditControl.SecurityAttributeChange]),
+        new(ManagementCategory, UserAccountDisabledEvent, UserAccountDisableOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange]),
+        new(ManagementCategory, UserAccountEnabledEvent, UserAccountEnableOperation, Controls: [SecurityAuditControl.SecurityAdministration, SecurityAuditControl.SecurityAttributeChange])
     ];
 
     public static SecurityAuditCatalogEntry? Find(string eventName, string operation) =>

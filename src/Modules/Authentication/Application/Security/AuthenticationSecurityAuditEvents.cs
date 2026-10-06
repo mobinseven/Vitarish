@@ -1,3 +1,5 @@
+using Vitarish.Authentication.Application.Results;
+using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Domain.Sessions;
 using Vitarish.Audit.Domain;
 
@@ -75,10 +77,24 @@ public static class AuthenticationSecurityAuditEvents
     public const string SecurityAttributesChanged = SecurityAuditEventCatalog.SecurityAttributesChangedEvent;
     public const string SecurityAttributesChangedOperation = SecurityAuditEventCatalog.SecurityAttributesChangedOperation;
     public const string AuthenticationFailed = SecurityAuditReasonCatalog.AuthenticationFailed;
+    public const string FailureAccountDisabled = SecurityAuditReasonCatalog.AccountDisabled;
     public const string ParallelSessionEstablished = AuthenticationSessionNotice.ParallelSessionEstablishedNoticeType;
     public const string Unauthorized = SecurityAuditReasonCatalog.Unauthorized;
 
     public static string UserTimeoutMinutesReason(int minutes) => SecurityAuditReasonCatalog.UserTimeoutMinutes(minutes);
+
+    /// <summary>
+    /// Resolves the redacted audit reason for a completed sign-in attempt.
+    /// Only a verified credential may produce the distinct account-disabled
+    /// reason; wrong-credential failures keep the generic failure reason so
+    /// they cannot be used to discover a disabled account.
+    /// </summary>
+    public static string? FailureReason(AuthenticationResult<LoginResult>? result) =>
+        result is AuthenticationResult<LoginResult>.Failure failure
+            ? failure.Error.Reason is AuthenticationFailureReason.AccountDisabled
+                ? FailureAccountDisabled
+                : AuthenticationFailed
+            : null;
 
     public static string SessionTerminationReason(AuthenticationSessionTerminationReason reason) => reason switch
     {

@@ -91,6 +91,8 @@ public sealed class LoginWithPasswordHandler(
                     signInResult.UserId!,
                     await redirects.ResolveAsync(command.ReturnUrl, signInResult.RequiresProfileCompletion, signInResult.UserId, cancellationToken),
                     signInResult.RequiresProfileCompletion)),
+            PasswordSignInStatus.AccountDisabled =>
+                new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.AccountDisabled, "The account is disabled.")),
             PasswordSignInStatus.InvalidCredentials or PasswordSignInStatus.UserNotFound =>
                 new AuthenticationResult<LoginResult>.Failure(new(AuthenticationFailureReason.InvalidCredentials, "Invalid credentials.")),
             PasswordSignInStatus.LockedOut =>
@@ -112,7 +114,7 @@ public sealed class LoginWithPasswordHandler(
                 result is AuthenticationResult<LoginResult>.Success ? SecurityAuditOutcome.Succeeded : SecurityAuditOutcome.Denied,
                 completedKey,
                 signInResult.UserId,
-                result is AuthenticationResult<LoginResult>.Failure ? AuthenticationSecurityAuditEvents.AuthenticationFailed : null), cancellationToken);
+                AuthenticationSecurityAuditEvents.FailureReason(result)), cancellationToken);
         }
         catch (SecurityAuditStoreException)
         {
