@@ -29,7 +29,10 @@ function wrapper({ children }: { children: ReactNode }) {
               passwordPlaceholder: "Enter",
               signInAction: "Sign in",
             },
-            accountStatus: { disabled: "This account is disabled. Contact a platform administrator." },
+            accountStatus: {
+              disabled: "This account is disabled. Contact a platform administrator.",
+              noAccess: "This account has no access level. Contact a platform administrator.",
+            },
             recovery: { forgotPasswordAction: "Forgot password?" },
           },
         }}
@@ -98,6 +101,33 @@ describe("LoginForm", () => {
 
     await waitFor(() => {
       expect(screen.getByText("This account is disabled. Contact a platform administrator.")).toBeInTheDocument();
+    });
+  });
+
+  it("shows the localized no-access message after a verified sign-in", async () => {
+    server.use(
+      http.post(
+        /\/api\/modules\/authentication\/login\/password(?:\?|$)/,
+        () =>
+          HttpResponse.json(
+            {
+              status: 403,
+              title: "NoAccess",
+              detail: "The account has no access level.",
+              code: "no_access",
+            },
+            { status: 403 },
+          ),
+      ),
+    );
+    render(<LoginForm />, { wrapper });
+
+    fireEvent.change(screen.getByLabelText(/username or email/i), { target: { value: "noaccess@test.com" } });
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "password123" } });
+    fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("This account has no access level. Contact a platform administrator.")).toBeInTheDocument();
     });
   });
 });

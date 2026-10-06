@@ -26,7 +26,8 @@ public enum PasswordSignInStatus
     UserNotFound,
     ProviderFailure,
     TooManyAttempts,
-    AccountDisabled
+    AccountDisabled,
+    NoAccess
 }
 
 public sealed record AuthenticationSessionSignInResult(bool Succeeded, AuthenticationFailure? Failure)

@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { Button, Form } from "@heroui/react";
 import { usePhoneLogin } from "../hooks/usePhoneLogin";
+import { useAuthErrorDisplay } from "../hooks/useAuthErrorDisplay";
 import { useLocalizedText } from "@vitarish/localization";
 import { MobileNumberField, StatusAlert } from "@vitarish/ui";
 import type { AuthNavigationOptions } from "../hooks/navigation";
@@ -32,6 +33,7 @@ export function PhoneOtpForm({
     expiresAt,
   } = usePhoneLogin({ navigate, returnUrlSearchParams });
   const { t } = useLocalizedText();
+  const displayedError = useAuthErrorDisplay(error, errorMessage);
   const [phoneInput, setPhoneInput] = useState("");
   const [code, setCode] = useState("");
   const invalidPhoneNumber = error?.status === 400;
@@ -54,7 +56,7 @@ export function PhoneOtpForm({
         onReset={reset}
         onResend={resend}
         isLoading={isLoading}
-        errorMessage={errorMessage}
+        errorMessage={displayedError}
         statusMessage={statusCode ? t(statusCode) : null}
         remainingAttempts={remainingAttempts}
         expiresAt={expiresAt}
@@ -66,7 +68,7 @@ export function PhoneOtpForm({
 
   return (
     <Form onSubmit={handlePhoneSubmit} className="flex flex-col gap-4">
-      {errorMessage && !invalidPhoneNumber && <StatusAlert className="mb-4" message={errorMessage} />}
+      {displayedError && !invalidPhoneNumber && <StatusAlert className="mb-4" message={displayedError} />}
       <MobileNumberField
         name="phone"
         label={t("auth.otp.phoneLabel")}

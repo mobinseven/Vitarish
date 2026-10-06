@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { useEmailLogin } from "../hooks/useEmailLogin";
+import { useAuthErrorDisplay } from "../hooks/useAuthErrorDisplay";
 import { useLocalizedText } from "@vitarish/localization";
 import { StatusAlert } from "@vitarish/ui";
 import type { AuthNavigationOptions } from "../hooks/navigation";
@@ -25,12 +26,14 @@ export function EmailOtpForm({
     resend,
     reset,
     isLoading,
+    error,
     errorMessage,
     statusCode,
     remainingAttempts,
     expiresAt,
   } = useEmailLogin({ navigate, returnUrlSearchParams });
   const { t } = useLocalizedText();
+  const displayedError = useAuthErrorDisplay(error, errorMessage);
   const [emailInput, setEmailInput] = useState("");
   const [code, setCode] = useState("");
 
@@ -52,7 +55,7 @@ export function EmailOtpForm({
         onReset={reset}
         onResend={resend}
         isLoading={isLoading}
-        errorMessage={errorMessage}
+        errorMessage={displayedError}
         statusMessage={statusCode ? t(statusCode) : null}
         remainingAttempts={remainingAttempts}
         expiresAt={expiresAt}
@@ -64,7 +67,7 @@ export function EmailOtpForm({
 
   return (
     <Form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
-      {errorMessage && <StatusAlert className="mb-4" message={errorMessage} />}
+      {displayedError && <StatusAlert className="mb-4" message={displayedError} />}
       <TextField name="email" type="email" isRequired isDisabled={isLoading}>
         <Label>{t("auth.otp.emailLabel")}</Label>
         <Input

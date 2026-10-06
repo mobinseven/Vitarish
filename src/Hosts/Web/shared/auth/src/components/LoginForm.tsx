@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { TextField, Label, Input, Button, Form } from "@heroui/react";
 import { usePasswordLogin } from "../hooks/usePasswordLogin";
+import { useAuthErrorDisplay } from "../hooks/useAuthErrorDisplay";
 import { useLocalizedText } from "@vitarish/localization";
 import { StatusAlert } from "@vitarish/ui";
 import type { AuthNavigationOptions } from "../hooks/navigation";
@@ -23,7 +24,7 @@ export function LoginForm({
     returnUrlSearchParams,
   });
   const { t } = useLocalizedText();
-  const displayedError = error?.code === "account_disabled" ? t("auth.accountStatus.disabled") : errorMessage;
+  const displayedError = useAuthErrorDisplay(error, errorMessage);
   const [userNameOrEmail, setUserNameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otpCode, setOtpCode] = useState("");

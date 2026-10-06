@@ -29,6 +29,7 @@ describe("parseAuthError", () => {
 describe("getErrorMessage", () => {
   it("returns known message for recognized codes", () => {
     expect(getErrorMessage({ code: "locked_out", message: "", status: 0 })).toContain("locked");
+    expect(getErrorMessage({ code: "no_access", message: "", status: 0 })).toContain("no access level");
   });
 
   it("falls back to error message for unknown codes", () => {

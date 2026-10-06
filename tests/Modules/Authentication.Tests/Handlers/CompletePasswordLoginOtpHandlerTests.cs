@@ -196,6 +196,29 @@ public sealed class CompletePasswordLoginOtpHandlerTests
         events.Should().NotContain(audit => audit.RedactedReason == SecurityAuditReasonCatalog.AuthenticationFailed);
     }
 
+    [Fact]
+    public async Task No_access_completion_is_denied_with_its_own_audit_reason()
+    {
+        TestDependencies dependencies = CreateDependencies();
+        dependencies.SignIn
+            .Setup(x => x.SignInAsync("user-42", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AuthenticationSessionSignInResult.Failed(
+                new AuthenticationFailure(AuthenticationFailureReason.NoAccess, "The account has no access level.")));
+        List<SecurityAuditEvent> events = [];
+        CompletePasswordLoginOtpHandler handler = dependencies.CreateHandler(new RecordingWriter(events));
+
+        AuthenticationResult<LoginResult> result = await handler.Handle(Command(), CancellationToken.None);
+
+        result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
+            .Which.Error.Reason.Should().Be(AuthenticationFailureReason.NoAccess);
+        events[^1].Outcome.Should().Be(SecurityAuditOutcome.Denied);
+        events[^1].SubjectId.Should().Be("user-42");
+        events[^1].RedactedReason.Should().Be(SecurityAuditReasonCatalog.NoAccess);
+        events.Should().NotContain(audit =>
+            audit.RedactedReason == SecurityAuditReasonCatalog.AuthenticationFailed ||
+            audit.RedactedReason == SecurityAuditReasonCatalog.AccountDisabled);
+    }
+
     private static CompletePasswordLoginOtpCommand Command() => new("challenge-42", "123456", "/home");
 
     private static TestDependencies CreateDependencies()

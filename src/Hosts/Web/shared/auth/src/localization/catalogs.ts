@@ -5,6 +5,7 @@ export const authMessageCatalogs = {
       // auth section, so a shared "login" object would replace their sign-in labels.
       accountStatus: {
         disabled: "This account is disabled. Contact a platform administrator.",
+        noAccess: "This account has no access level. Contact a platform administrator.",
       },
       recovery: {
         forgotPasswordAction: "Forgot password?",
@@ -39,6 +40,7 @@ export const authMessageCatalogs = {
     auth: {
       accountStatus: {
         disabled: "این حساب غیرفعال شده است. با مدیر پلتفرم تماس بگیرید.",
+        noAccess: "این حساب سطح دسترسی ندارد. با مدیر پلتفرم تماس بگیرید.",
       },
       recovery: {
         forgotPasswordAction: "رمز عبور را فراموش کرده‌اید؟",

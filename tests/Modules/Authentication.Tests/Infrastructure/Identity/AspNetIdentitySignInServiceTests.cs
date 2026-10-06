@@ -249,6 +249,150 @@ public sealed class AspNetIdentitySignInServiceTests
             Times.Once);
     }
 
+    [Fact]
+    public async Task Session_sign_in_rejects_an_account_without_an_access_level_before_preparing_a_session()
+    {
+        User user = CreateUser(isEnabled: true);
+        Mock<IUserStore<User>> userStore = new();
+        Mock<UserManager<User>> userManager = CreateUserManager(userStore);
+        userManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
+        userManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(Array.Empty<string>());
+        Mock<IAuthenticationSessionRegistry> sessionRegistry = new();
+
+        AspNetIdentitySignInService service = CreateService(
+            userManager,
+            CreateSignInManager(userManager.Object),
+            new Mock<IAuthenticationAttemptTracker>(),
+            sessionRegistry,
+            new Mock<IAuthenticationAttemptKeyFactory>());
+
+        AuthenticationSessionSignInResult result = await service.SignInAsync(user.Id, rememberMe: false, CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Failure!.Reason.Should().Be(AuthenticationFailureReason.NoAccess);
+        sessionRegistry.Verify(
+            registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Password_sign_in_reports_missing_access_only_after_the_password_verifies()
+    {
+        User user = CreateUser(isEnabled: true);
+        Mock<IUserStore<User>> userStore = new();
+        Mock<UserManager<User>> userManager = CreateUserManager(userStore);
+        userManager.Setup(manager => manager.FindByNameAsync(user.UserName!)).ReturnsAsync(user);
+        userManager.Setup(manager => manager.FindByEmailAsync(user.Email!)).ReturnsAsync(user);
+        userManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
+        userManager.Setup(manager => manager.IsLockedOutAsync(user)).ReturnsAsync(false);
+        userManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(Array.Empty<string>());
+        Mock<SignInManager<User>> signInManager = CreateSignInManager(userManager.Object);
+        signInManager
+            .Setup(manager => manager.CheckPasswordSignInAsync(user, "correct-password", false))
+            .ReturnsAsync(SignInResult.Success);
+        Mock<IAuthenticationSessionRegistry> sessionRegistry = new();
+
+        AspNetIdentitySignInService service = CreateService(
+            userManager,
+            signInManager,
+            CreateAttemptTracker(),
+            sessionRegistry,
+            CreateAttemptKeyFactory(user));
+
+        PasswordSignInResult result = await service.PasswordSignInAsync(user.UserName!, "correct-password", rememberMe: false, CancellationToken.None);
+
+        result.Status.Should().Be(PasswordSignInStatus.NoAccess);
+        result.UserId.Should().Be(user.Id);
+        sessionRegistry.Verify(
+            registry => registry.PrepareAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Wrong_credentials_for_an_account_without_access_are_indistinguishable_from_an_account_with_access()
+    {
+        User user = CreateUser(isEnabled: true);
+        Mock<IUserStore<User>> userStore = new();
+        Mock<UserManager<User>> userManager = CreateUserManager(userStore);
+        userManager.Setup(manager => manager.FindByNameAsync(user.UserName!)).ReturnsAsync(user);
+        userManager.Setup(manager => manager.FindByEmailAsync(user.Email!)).ReturnsAsync(user);
+        userManager.Setup(manager => manager.IsLockedOutAsync(user)).ReturnsAsync(false);
+        Mock<SignInManager<User>> signInManager = CreateSignInManager(userManager.Object);
+        signInManager
+            .Setup(manager => manager.CheckPasswordSignInAsync(user, "wrong-password", false))
+            .ReturnsAsync(SignInResult.Failed);
+        Mock<IAuthenticationAttemptTracker> attemptTracker = CreateAttemptTracker();
+        attemptTracker
+            .Setup(tracker => tracker.RegisterFailureAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+
+        AspNetIdentitySignInService service = CreateService(
+            userManager,
+            signInManager,
+            attemptTracker,
+            new Mock<IAuthenticationSessionRegistry>(),
+            CreateAttemptKeyFactory(user));
+
+        userManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(Array.Empty<string>());
+        PasswordSignInResult noAccessResult = await service.PasswordSignInAsync(user.UserName!, "wrong-password", rememberMe: false, CancellationToken.None);
+        userManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(new List<string> { IdentityDefinitions.PlatformAdmin });
+        PasswordSignInResult accessResult = await service.PasswordSignInAsync(user.UserName!, "wrong-password", rememberMe: false, CancellationToken.None);
+
+        noAccessResult.Status.Should().Be(PasswordSignInStatus.InvalidCredentials);
+        accessResult.Status.Should().Be(noAccessResult.Status);
+    }
+
+    [Fact]
+    public async Task Access_lost_after_the_status_check_revokes_the_new_session()
+    {
+        User staleAccessUser = CreateUser(isEnabled: true);
+        User storedUser = CreateUser(isEnabled: true);
+        storedUser.Id = staleAccessUser.Id;
+        await using AccountStatusContext statusContext = new();
+        _ = statusContext.Users.Add(storedUser);
+        _ = await statusContext.SaveChangesAsync();
+
+        Mock<IUserStore<User>> userStore = new();
+        Mock<UserManager<User>> userManager = CreateUserManager(userStore);
+        userManager.Setup(manager => manager.FindByIdAsync(staleAccessUser.Id)).ReturnsAsync(staleAccessUser);
+        userManager.SetupGet(manager => manager.Users).Returns(statusContext.Users);
+        userManager.SetupSequence(manager => manager.GetRolesAsync(staleAccessUser))
+            .ReturnsAsync(new List<string> { IdentityDefinitions.PlatformAdmin })
+            .ReturnsAsync(Array.Empty<string>());
+        Mock<SignInManager<User>> signInManager = CreateSignInManager(userManager.Object);
+        signInManager.Setup(manager => manager.CreateUserPrincipalAsync(staleAccessUser))
+            .ReturnsAsync(new ClaimsPrincipal(new ClaimsIdentity("test")));
+        Mock<IAuthenticationSessionPreparation> preparation = new();
+        preparation.SetupGet(value => value.Result).Returns(new AuthenticationSessionEstablishmentResult(true, "session-1", null, null, 30));
+        Mock<IAuthenticationSessionRegistry> sessionRegistry = new();
+        sessionRegistry.Setup(registry => registry.PrepareAsync(staleAccessUser.Id, It.IsAny<CancellationToken>())).ReturnsAsync(preparation.Object);
+        Mock<IAuthenticationService> authentication = new();
+        DefaultHttpContext httpContext = new()
+        {
+            RequestServices = new ServiceCollection().AddSingleton(authentication.Object).BuildServiceProvider()
+        };
+
+        AspNetIdentitySignInService service = CreateService(
+            userManager,
+            signInManager,
+            new Mock<IAuthenticationAttemptTracker>(),
+            sessionRegistry,
+            new Mock<IAuthenticationAttemptKeyFactory>(),
+            new HttpContextAccessor { HttpContext = httpContext });
+
+        AuthenticationSessionSignInResult result = await service.SignInAsync(staleAccessUser.Id, rememberMe: false, CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Failure!.Reason.Should().Be(AuthenticationFailureReason.NoAccess);
+        preparation.Verify(value => value.CompleteAsync(It.IsAny<CancellationToken>()), Times.Once);
+        sessionRegistry.Verify(
+            registry => registry.RevokeAsync("session-1", AuthenticationSessionTerminationReason.SecurityAttributeChanged, It.IsAny<CancellationToken>()),
+            Times.Once);
+        authentication.Verify(
+            value => value.SignOutAsync(httpContext, IdentityConstants.ApplicationScheme, It.IsAny<AuthenticationProperties?>()),
+            Times.Once);
+    }
+
     private sealed class AccountStatusContext : DbContext
     {
         public DbSet<User> Users => Set<User>();
@@ -305,16 +449,22 @@ public sealed class AspNetIdentitySignInServiceTests
             httpContextAccessor ?? new HttpContextAccessor());
     }
 
-    private static Mock<UserManager<User>> CreateUserManager(Mock<IUserStore<User>> userStore) => new(
-        userStore.Object,
-        Options.Create(new IdentityOptions()),
-        Mock.Of<IPasswordHasher<User>>(),
-        Array.Empty<IUserValidator<User>>(),
-        Array.Empty<IPasswordValidator<User>>(),
-        Mock.Of<ILookupNormalizer>(),
-        new IdentityErrorDescriber(),
-        Mock.Of<IServiceProvider>(),
-        NullLogger<UserManager<User>>.Instance);
+    private static Mock<UserManager<User>> CreateUserManager(Mock<IUserStore<User>> userStore)
+    {
+        Mock<UserManager<User>> userManager = new(
+            userStore.Object,
+            Options.Create(new IdentityOptions()),
+            Mock.Of<IPasswordHasher<User>>(),
+            Array.Empty<IUserValidator<User>>(),
+            Array.Empty<IPasswordValidator<User>>(),
+            Mock.Of<ILookupNormalizer>(),
+            new IdentityErrorDescriber(),
+            Mock.Of<IServiceProvider>(),
+            NullLogger<UserManager<User>>.Instance);
+        userManager.Setup(manager => manager.GetRolesAsync(It.IsAny<User>()))
+            .ReturnsAsync(new List<string> { IdentityDefinitions.PlatformAdmin });
+        return userManager;
+    }
 
     private static Mock<SignInManager<User>> CreateSignInManager(UserManager<User> userManager) => new(
         userManager,
