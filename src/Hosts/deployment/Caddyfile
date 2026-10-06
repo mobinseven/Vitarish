@@ -65,13 +65,11 @@
 
 (production_readiness) {
     # Expose Main readiness only on its public application host for origin-pinned release checks.
-    # GET/HEAD only: handle runs before respond, so other methods must fall
-    # through to the unsafe-method guard instead of reaching Main.
-    @readiness {
-        path /health/ready
-        method GET HEAD
-    }
-    handle @readiness {
+    handle /health/ready {
+        # handle runs before the site-wide unsafe-method guard, so readiness
+        # answers only GET/HEAD itself and never forwards other methods.
+        @readiness_unsafe_method not method GET HEAD
+        respond @readiness_unsafe_method 405
         reverse_proxy production-main:8080
     }
 }
