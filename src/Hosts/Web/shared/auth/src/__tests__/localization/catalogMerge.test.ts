@@ -21,3 +21,14 @@ describe("shared auth message catalogs", () => {
     },
   );
 });
+
+describe("sign-in failure messages", () => {
+  it("are defined for every locale with the same keys, and Persian text is Persian", () => {
+    const englishKeys = Object.keys(authMessageCatalogs.en.auth.failures).sort();
+    expect(englishKeys.length).toBeGreaterThan(0);
+    expect(Object.keys(authMessageCatalogs.fa.auth.failures).sort()).toEqual(englishKeys);
+    for (const message of Object.values(authMessageCatalogs.fa.auth.failures)) {
+      expect(message).toMatch(/[؀-ۿ]/);
+    }
+  });
+});
