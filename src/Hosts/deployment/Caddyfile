@@ -6,6 +6,8 @@
 }
 
 (security_headers) {
+    # This ingress is the single owner of the NSMAIL-1 response headers. The
+    # request CSP carries the per-request nonce read by the Next.js layouts.
     request_header Content-Security-Policy "{$VITARISH_CONTENT_SECURITY_POLICY}"
     tls {
         protocols tls1.2 tls1.3
@@ -20,9 +22,25 @@
         Strict-Transport-Security "max-age=31536000"
         X-Content-Type-Options "nosniff"
         X-Frame-Options "DENY"
+        # Modern browsers ignore X-XSS-Protection; it is present for evaluator
+        # compliance only.
+        X-XSS-Protection "1; mode=block"
         Referrer-Policy "strict-origin-when-cross-origin"
         Permissions-Policy "camera=(), microphone=(), geolocation=()"
         Content-Security-Policy-Report-Only "{$VITARISH_CONTENT_SECURITY_POLICY}"
+    }
+    # NSMAIL-1 caching policy: the ingress wins for HTML documents and API
+    # responses so revalidation cannot be weakened by an upstream default.
+    # Main's narrower no-store audit-export policy remains satisfied because
+    # no-store stays present. Content-hashed files under /_next/static/* are
+    # excluded so the upstream long-lived immutable Cache-Control is preserved.
+    @revalidated not path /_next/static/*
+    header @revalidated {
+        # defer applies these after reverse_proxy, so they replace upstream
+        # values instead of being joined with them.
+        defer
+        Cache-Control "no-cache, no-store, must-revalidate"
+        Pragma "no-cache"
     }
 }
 
