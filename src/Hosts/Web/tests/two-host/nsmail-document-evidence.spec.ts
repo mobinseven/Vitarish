@@ -56,6 +56,10 @@ async function capture(page: Page, name: string, fullPage = true): Promise<void>
   // The two-host runner serves the apps in development mode; hide the framework's
   // development indicator so it never appears in product evidence.
   await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" }).catch(() => undefined);
+  // Let enter transitions (for example a dialog fading in) settle; endless spinners are ignored.
+  await page.evaluate(() => Promise.all(document.getAnimations()
+    .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+    .map((animation) => animation.finished.catch(() => undefined))));
   await page.screenshot({ path: join(evidenceDirectory, `${name}.png`), fullPage });
 }
 
