@@ -216,6 +216,12 @@ async function downloadEvidenceFile(page: Page, fileId: string): Promise<number>
   }, { origin: browserApiOrigin, fileId, tenantHostHeader: TENANT_HOST_HEADER });
 }
 
+// The two-host runner serves the apps in development mode; keep the framework's
+// development indicator out of product evidence.
+async function hideDevelopmentIndicator(page: Page): Promise<void> {
+  await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" }).catch(() => undefined);
+}
+
 async function captureAuditEvidence(page: Page, event: AuditEventExpectation, filename: string): Promise<void> {
   const visibleCategory = localizePlatformAuditCategory(locale, event.category, event.category);
   const visibleEvent = localizePlatformAuditEvent(locale, event.name, event.name);
@@ -255,6 +261,7 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   await expect(firstRow.getByText(localizeSecurityAuditOutcome(locale, event.outcome, event.outcome), { exact: true })).toBeVisible();
 
   mkdirSync(evidenceDirectory, { recursive: true });
+  await hideDevelopmentIndicator(page);
   await page.screenshot({ path: join(evidenceDirectory, filename), fullPage: true });
 }
 
@@ -306,6 +313,7 @@ async function captureAllAuthenticationCatalogEvidence(page: Page): Promise<void
   expect(firstPage.items.every((item) => item.eventCategory === category)).toBe(true);
   await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 30_000 });
   mkdirSync(evidenceDirectory, { recursive: true });
+  await hideDevelopmentIndicator(page);
   await page.screenshot({
     path: join(evidenceDirectory, "authentication-catalog-page-1.png"),
     fullPage: true,
