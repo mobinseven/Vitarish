@@ -61,6 +61,31 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
 - generated OpenAPI clients/specs/hooks/query keys/mocks
 - ADRs under `docs/architecture/decisions`
 
+## E2E-only switches
+
+### Rare audit-event triggers
+
+- Status: active E2E proof infrastructure.
+- Added date: 2026-10-07.
+- Owning module/doc: E2E host (`src/Hosts/E2e`), two-host security-audit evidence.
+- What: the E2E host compiles Main's `AuditCapacityAlertMonitor`,
+  `AuditCapacityAlertServiceCollectionExtensions`, and `AuditCapacityAlertOptions`
+  as linked source in `src/Hosts/E2e/E2e.csproj` and registers the real monitor,
+  while `E2eAuditStorageSizeReader` replaces the production storage-size reader.
+  The reader reports zero except during `POST /api/e2e/audit-evidence/storage-threshold/check`,
+  which sets `E2eAuditCapacitySimulation` to report `CapacityWarningBytes + 1` for one
+  real `CheckOnceAsync` and then clears it, so `security.audit.storage-threshold` is written
+  on demand and no other screen shows the capacity warning. The other E2E-only
+  `/api/e2e/audit-evidence` endpoints run the real Files integrity verification and
+  tamper the E2E in-memory stored object so `security.data.integrity-verification`
+  gets both a succeeded and a failed record. All of them require the platform-admin policy.
+- Remove condition: remove the linked monitor, the reader replacement, and the
+  trigger endpoints when the normal two-host flow can produce both events.
+- Lesson for Codex: these switches exist only in the E2E host; Main has no
+  threshold or integrity trigger. The monitor alerts once per exceeded period, so a
+  second threshold check in the same host run within the 15-minute interval writes
+  no new event.
+
 ## Temporary workarounds
 
 Use dated entries only. Each entry must include:

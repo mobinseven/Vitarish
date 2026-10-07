@@ -5,7 +5,7 @@ real two-host evidence suite. A procedure is valid only when it performs the
 public action, verifies the durable record, opens the platform audit surface,
 and retains the matching unblurred audit-grid screenshot.
 
-Current report: 16 controls have executable evidence procedures; 8 controls are
+Current report: 18 controls have executable evidence procedures; 6 controls are
 explicitly excluded with a product-backed reason. Several controls are
 represented by one event because the authoritative catalog assigns that event
 to more than one control.
@@ -16,9 +16,9 @@ to more than one control.
 | 2 Failed security-record read | Anonymous platform audit read is rejected by authorization middleware | Existing boundary denial assertion; no durable event screenshot | Excluded: authorization short-circuits before `SecurityAuditQueryService`, so no denied audit-read event is emitted |
 | 3 Security-record read | `auditReview` and access-history acknowledgement | `audit-review.png`, `access-history.png` | Covered for audit/access-history paths |
 | 4 Security-configuration change | `sessionPolicy` security session-policy PUT | `session-policy.png` | Covered by `authentication.security-access-policy` |
-| 5 Audit-storage threshold action | Trigger configured capacity threshold | None | No deterministic public trigger |
+| 5 Audit-storage threshold action | The E2E host runs the real Main capacity monitor against an E2E storage-size adapter that reports the configured threshold crossed | `audit-storage-threshold.png` | Covered by the E2E-only threshold composition; pending fresh focused run |
 | 6 Audit-storage failure action | Inject audit-store failure through an E2E adapter | None | Requires named failure-injection adapter |
-| 7 User-data integrity verification | Public file upload/download invokes integrity verification internally | None | Excluded: no public durable integrity-verification event; only import/export events are emitted |
+| 7 User-data integrity verification | Upload a valid PNG through the public upload endpoint, run the real Files verification, tamper the E2E-stored object, and verify again | `integrity-verification.png`, `integrity-verification-failed.png` | Covered by the E2E-only `/api/e2e/audit-evidence` trigger; pending fresh focused run |
 | 8 Authentication-mechanism use | Password login and real email-OTP action | `password-login-succeeded.png`, `password-login-denied.png` | Covered for password; email-OTP action is exercised but has no catalogued durable event, and passkey has no dedicated durable event |
 | 9 Authentication outcome | Successful and denied password login | `password-login-succeeded.png`, `password-login-denied.png` | Covered for implemented password path |
 | 10 Password verification | Successful password login and password change | `password-login-succeeded.png`, `password-change.png` | Covered for implemented password paths |
@@ -37,7 +37,7 @@ to more than one control.
 | 23 Idle-session termination | Advance the E2E clock past inactivity timeout | None | Requires clock-control adapter or deterministic timeout procedure |
 | 24 Administrator idle termination | Administrator terminates another user’s idle session | None | Excluded: catalog marks feature not implemented |
 
-The eight excluded controls are 2, 5, 6, 7, 13, 20, 23, and 24. They remain
+The six excluded controls are 2, 6, 13, 20, 23, and 24. They remain
 visible here so omission cannot be mistaken for coverage. The suite is complete
 only when the focused run produces every listed screenshot in one fresh
 disposable run and the canonical two-host suite is reviewed for unrelated

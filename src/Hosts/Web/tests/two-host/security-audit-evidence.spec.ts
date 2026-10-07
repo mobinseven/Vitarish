@@ -56,9 +56,18 @@ const auditEvents = {
   accessHistory: { controls: [1, 3, 17], category: "session", name: "authentication.access-history", operation: "access-history" },
   sessionPolicy: { controls: [1, 4, 16, 17], category: "authentication", name: "authentication.security-access-policy", operation: "Authentication_SecurityAccessPolicy_Change" },
   securityFunctionFailure: { controls: [19], category: "security-failure", name: "security.failure", operation: "security.failure" },
+  auditStorageThreshold: { controls: [5], category: "security-failure", name: "security.audit.storage-threshold", operation: "audit.storage.threshold" },
+  integrityVerification: { controls: [7], category: "import-export", name: "security.data.integrity-verification", operation: "data.integrity.verify" },
   tenantRoleReplacement: { controls: [11, 17, 18], category: "management", name: "users.tenant-role-replacement", operation: "Users_ReplaceTenantRole" },
   dataImport: { controls: [14], category: "import-export", name: "security.data.import", operation: "data.import" },
 } as const;
+
+// E2E-host-only triggers mapped by src/Hosts/E2e; they run the real Files
+// verification service and corrupt the E2E in-memory stored object.
+const e2eAuditEvidenceBase = "/api/e2e/audit-evidence";
+const storageThresholdCheckPath = `${e2eAuditEvidenceBase}/storage-threshold/check`;
+const integrityVerificationPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/integrity-verification`;
+const integrityTamperPath = (fileId: string) => `${e2eAuditEvidenceBase}/files/${fileId}/tamper`;
 
 type AuditEventExpectation = (typeof auditEvents)[keyof typeof auditEvents] & { outcome: string };
 type AuditPage = { items: Array<{ id?: string; eventName?: string; eventCategory?: string; operation?: string; outcome?: string; actorId?: string; actorKind?: string; tenantId?: string; subjectId?: string; resource?: string; redactedReason?: string }>; totalCount: number };
@@ -165,17 +174,21 @@ async function deleteJson(page: Page, path: string, body: unknown = null): Promi
   }, { origin: browserApiOrigin, requestPath: path, requestBody: body });
 }
 
+// A 1x1 transparent PNG. The Files upload boundary accepts only supported
+// media types and validates the content signature, not just the declared type.
+const evidenceFilePngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
 async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: unknown }> {
-  return page.evaluate(async ({ origin }) => {
+  return page.evaluate(async ({ origin, base64 }) => {
     const antiforgeryResponse = await fetch(`${origin}/api/modules/authentication/antiforgery`, { credentials: "include" });
     const antiforgery = await antiforgeryResponse.json() as { headerName: string; requestToken: string };
-    const content = new TextEncoder().encode(`e2e-audit-import-${crypto.randomUUID()}`);
+    const content = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
     const digest = await crypto.subtle.digest("SHA-256", content);
     const checksum = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, "0")).join("");
     const form = new FormData();
-    form.append("content", new Blob([content], { type: "text/plain" }), "audit-evidence.txt");
-    form.append("fileName", "audit-evidence.txt");
-    form.append("contentType", "text/plain");
+    form.append("content", new Blob([content], { type: "image/png" }), "audit-evidence.png");
+    form.append("fileName", "audit-evidence.png");
+    form.append("contentType", "image/png");
     form.append("size", String(content.byteLength));
     form.append("checksum", checksum);
     const response = await fetch(`${origin}/api/modules/files/upload`, {
@@ -189,7 +202,7 @@ async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: u
       body: form,
     });
     return { status: response.status, body: await response.json().catch(() => null) };
-  }, { origin: browserApiOrigin });
+  }, { origin: browserApiOrigin, base64: evidenceFilePngBase64 });
 }
 
 async function downloadEvidenceFile(page: Page, fileId: string): Promise<number> {
@@ -201,6 +214,12 @@ async function downloadEvidenceFile(page: Page, fileId: string): Promise<number>
     await response.arrayBuffer();
     return response.status;
   }, { origin: browserApiOrigin, fileId, tenantHostHeader: TENANT_HOST_HEADER });
+}
+
+// The two-host runner serves the apps in development mode; keep the framework's
+// development indicator out of product evidence.
+async function hideDevelopmentIndicator(page: Page): Promise<void> {
+  await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" }).catch(() => undefined);
 }
 
 async function captureAuditEvidence(page: Page, event: AuditEventExpectation, filename: string): Promise<void> {
@@ -216,7 +235,7 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   )).toBe(true);
   expect(records.items.every((item) =>
     ["user", "anonymous", "system"].includes(item.actorKind ?? "")
-    && (item.actorKind === "anonymous" || Boolean(item.actorId))
+    && (item.actorKind !== "user" || Boolean(item.actorId))
     && Boolean(item.tenantId)
     && Boolean(item.resource),
   )).toBe(true);
@@ -229,7 +248,7 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   await page.getByRole("option", { name: visibleEvent, exact: true }).click();
   await page.getByRole("button", { name: uiText.allOperations }).click();
   await page.getByRole("option", { name: event.operation, exact: true }).click();
-  await page.getByLabel(uiText.outcome).fill(event.outcome);
+  await page.getByRole("textbox", { name: uiText.outcome, exact: true }).fill(event.outcome);
   const response = page.waitForResponse((candidate) =>
     candidate.url().includes("/api/audit/platform/security-events") && candidate.request().method() === "GET",
   );
@@ -242,6 +261,7 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   await expect(firstRow.getByText(localizeSecurityAuditOutcome(locale, event.outcome, event.outcome), { exact: true })).toBeVisible();
 
   mkdirSync(evidenceDirectory, { recursive: true });
+  await hideDevelopmentIndicator(page);
   await page.screenshot({ path: join(evidenceDirectory, filename), fullPage: true });
 }
 
@@ -293,6 +313,7 @@ async function captureAllAuthenticationCatalogEvidence(page: Page): Promise<void
   expect(firstPage.items.every((item) => item.eventCategory === category)).toBe(true);
   await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 30_000 });
   mkdirSync(evidenceDirectory, { recursive: true });
+  await hideDevelopmentIndicator(page);
   await page.screenshot({
     path: join(evidenceDirectory, "authentication-catalog-page-1.png"),
     fullPage: true,
@@ -468,6 +489,38 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     expect(await download.path()).toBeTruthy();
     await captureAuditEvidence(administratorPage, { ...auditEvents.auditExport, outcome: "succeeded" }, "audit-export.png");
     await captureAllAuthenticationCatalogEvidence(administratorPage);
+
+    // The threshold monitor and the Files integrity-verification background job
+    // are paths a normal two-host run does not produce. The E2E host runs one
+    // real monitor check while its storage-size adapter reports the threshold
+    // exceeded, and exposes E2E-only triggers for the real Files verification
+    // service, so both catalogued events have durable evidence in this run.
+    const thresholdEvent = { ...auditEvents.auditStorageThreshold, outcome: "failed" };
+    expect((await postJson(administratorPage, storageThresholdCheckPath)).status).toBe(204);
+    await expect.poll(
+      async () => (await platformAuditQuery(administratorPage, thresholdEvent)).items.length,
+      { timeout: 60_000 },
+    ).toBeGreaterThan(0);
+    await captureAuditEvidence(administratorPage, thresholdEvent, "audit-storage-threshold.png");
+
+    const verifiedIntegrityEvent = { ...auditEvents.integrityVerification, outcome: "succeeded" };
+    expect((await postJson(administratorPage, integrityVerificationPath(uploadedFileId!))).status).toBe(204);
+    await expect.poll(
+      async () => (await platformAuditQuery(administratorPage, verifiedIntegrityEvent)).items.length,
+      { timeout: 30_000 },
+    ).toBeGreaterThan(0);
+    await captureAuditEvidence(administratorPage, verifiedIntegrityEvent, "integrity-verification.png");
+
+    const failedIntegrityEvent = { ...auditEvents.integrityVerification, outcome: "failed" };
+    expect((await postJson(administratorPage, integrityTamperPath(uploadedFileId!))).status).toBe(204);
+    expect((await postJson(administratorPage, integrityVerificationPath(uploadedFileId!))).status).toBe(204);
+    await expect.poll(
+      async () => (await platformAuditQuery(administratorPage, failedIntegrityEvent)).items.length,
+      { timeout: 30_000 },
+    ).toBeGreaterThan(0);
+    const failedIntegrityRecords = await platformAuditQuery(administratorPage, failedIntegrityEvent);
+    expect(failedIntegrityRecords.items.every((item) => item.redactedReason === "integrity_validation_failed")).toBe(true);
+    await captureAuditEvidence(administratorPage, failedIntegrityEvent, "integrity-verification-failed.png");
   } finally {
     await administratorPage.close();
     await administratorContext.close();
