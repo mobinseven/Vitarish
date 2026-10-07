@@ -161,6 +161,22 @@ architecture check or Compose render is not deployment evidence. Keep the
 workflow run URL, release-plan artifact, commit SHA, changed service set, and
 resulting container health as release evidence.
 
+The same command captures transport and hardening evidence for every configured
+production hostname in the run directory and records it in `manifest.json`:
+the TLS protocol and cipher scan (`tls-scan.png`), the certificate presented by
+the TLS 1.3 handshake (`certificate.png`), the plain HTTP to HTTPS redirect
+(`http-redirect.png`), the ingress method guard for TRACE and CONNECT
+(`unsafe-methods.png`), a TCP connect scan of the public ingress address
+(`port-scan.png`), and server time synchronisation read over the SSH target
+(`time-sync.png`). The checks expect TLS 1.0 and 1.1 plus the listed weak TLS
+1.2 ciphers to be rejected, TLS 1.2 and 1.3 to be accepted, the certificate to
+be authorized by the system trust store, hostname-matched, and valid for at
+least 14 more days, a redirect to the same host over HTTPS, HTTP 405 for
+unsafe methods, only TCP 22, 80, and 443 open, and `NTPSynchronized=yes` with a
+clock difference under 5 seconds from the runner. When the runner's TLS client
+cannot offer a legacy protocol or weak cipher, the table records it as not
+testable from this client instead of claiming rejection.
+
 ## Checks and two-host feedback
 
 Run the repository security baseline and its positive/negative fixtures with:

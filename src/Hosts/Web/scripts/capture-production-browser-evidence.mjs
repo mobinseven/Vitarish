@@ -6,6 +6,25 @@ import { isIPv4 } from "node:net";
 import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
+import {
+  certificateHandshakeProtocol,
+  collectRemoteTimeSync,
+  evaluateCertificate,
+  evaluateHttpRedirect,
+  evaluatePortScan,
+  evaluateTimeSync,
+  evaluateTlsScan,
+  evaluateUnsafeMethods,
+  expectedNtpSynchronized,
+  httpRedirectSuccessStatuses,
+  maximumClockDifferenceSeconds,
+  probeHttpRedirect,
+  probeTlsProtocols,
+  probeUnsafeMethods,
+  scanTcpPorts,
+  summarizeCertificate,
+  summarizeTimeSync,
+} from "./production-evidence-checks.mjs";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(scriptDirectory, "..");
@@ -15,7 +34,10 @@ const remoteDeploymentRoot = /^deployment=(\/[A-Za-z0-9/-]+)$/m.exec(deploymentC
 const stateFileName = /^state="\$deployment\/([A-Za-z0-9._-]+)"$/m.exec(deploymentCommand)?.[1];
 if (!remoteDeploymentRoot || !stateFileName) throw new Error("Production deployment state contract could not be resolved from its owner.");
 const authenticationRoutesPath = resolve(deploymentRoot, "..", "..", "Modules", "Authentication", "Contracts", "Routes", "AuthenticationRoutes.cs");
-const usage = "Usage: node scripts/capture-production-browser-evidence.mjs PUBLIC_INGRESS_IPV4 SSH_TARGET COMMIT_SHA [SHARED_ENVIRONMENT_PATH] [OUTPUT_ROOT]";
+const usage = [
+  "Usage: node scripts/capture-production-browser-evidence.mjs PUBLIC_INGRESS_IPV4 SSH_TARGET COMMIT_SHA [SHARED_ENVIRONMENT_PATH] [OUTPUT_ROOT]",
+  "Captures UI, API, security-header, TLS protocol/cipher, certificate, HTTP-redirect, unsafe-method, ingress port, and server time-sync evidence for the deployed commit.",
+].join("\n");
 if (process.argv[2] === "--help") {
   console.log(usage);
   process.exit(0);
@@ -151,6 +173,12 @@ function escapeHtml(value) {
 const revalidatedCacheControl = "no-cache, no-store, must-revalidate";
 const revalidatedPragma = "no-cache";
 const staticAssetCacheControlMinimumAge = 31536000;
+const tlsScanScreenshotName = "tls-scan.png";
+const certificateScreenshotName = "certificate.png";
+const httpRedirectScreenshotName = "http-redirect.png";
+const unsafeMethodScreenshotName = "unsafe-methods.png";
+const portScanScreenshotName = "port-scan.png";
+const timeSyncScreenshotName = "time-sync.png";
 const requiredSecurityHeaders = {
   "strict-transport-security": "max-age=31536000",
   "x-content-type-options": "nosniff",
@@ -188,6 +216,19 @@ function evidenceTable(title, headings, rows, capturedAtUtc) {
   const header = headings.map((heading) => `<th>${escapeHtml(heading)}</th>`).join("");
   const body = rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("");
   return `<!doctype html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:0;padding:36px;background:#f4f6f8;color:#17212b;font:15px/1.5 Arial,sans-serif}main{max-width:1320px;margin:0 auto;background:#fff;border:1px solid #d8dee5;border-radius:12px;padding:28px}h1{font-size:25px;margin:0 0 6px}p{color:#526170;margin:0 0 22px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 12px;border-bottom:1px solid #e4e8ed;overflow-wrap:anywhere}th{background:#edf1f5;font-weight:700}</style></head><body><main><h1>${escapeHtml(title)}</h1><p>Captured ${escapeHtml(capturedAtUtc)} · Commit ${escapeHtml(commitArgument)}</p><table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></main></body></html>`;
+}
+
+async function captureEvidenceTable(filename, title, headings, rows, viewportWidth = 1500) {
+  const evidenceBrowser = await chromium.launch({ headless: true });
+  try {
+    const page = await evidenceBrowser.newPage({ viewport: { width: viewportWidth, height: 1100 } });
+    await page.setContent(evidenceTable(title, headings, rows, capturedAt.toISOString()));
+    await page.screenshot({ path: resolve(runDirectory, filename), fullPage: true });
+    await page.close();
+  } finally {
+    await evidenceBrowser.close();
+  }
+  return filename;
 }
 
 const expectedHosts = sharedEnvironmentArgument ? await readHosts(resolve(sharedEnvironmentArgument)) : null;
@@ -355,7 +396,173 @@ try {
   await securityHeaderBrowser.close();
 }
 
-const manifest = { capturedAtUtc: capturedAt.toISOString(), commit: serviceState.commit, workflowRunId: serviceState.runId, publicIngressIPv4, remoteServiceStatus: basename(serviceStatePath), serviceStatusScreenshot: "service-status.png", uiResults, apiResults: productionApiResults, apiResultScreenshot: apiScreenshotPath, securityHeaderResults: securityHeadersResults, securityHeaderScreenshot: securityHeaderScreenshotPath, failures };
+const tlsScanResults = [];
+const certificateResults = [];
+const httpRedirectResults = [];
+const unsafeMethodResults = [];
+for (const host of hosts) {
+  try {
+    const attempts = await probeTlsProtocols({ host: publicIngressIPv4, servername: host.hostname });
+    const tlsEvaluation = evaluateTlsScan(host.hostname, attempts);
+    tlsScanResults.push({ environment: host.environment, configuredHost: host.name, hostname: host.hostname, wildcardProbe: host.wildcard, attempts: tlsEvaluation.attempts });
+    failures.push(...tlsEvaluation.failures);
+
+    const tls13Attempt = attempts.find(({ expectedProtocol }) => expectedProtocol === certificateHandshakeProtocol);
+    const certificateEvaluation = evaluateCertificate(host.hostname, summarizeCertificate(host.hostname, tls13Attempt));
+    certificateResults.push({ environment: host.environment, configuredHost: host.name, hostname: host.hostname, wildcardProbe: host.wildcard, ...certificateEvaluation.certificate });
+    failures.push(...certificateEvaluation.failures);
+
+    const redirectProbe = await probeHttpRedirect({ host: publicIngressIPv4, hostname: host.hostname });
+    const redirectEvaluation = evaluateHttpRedirect(host.hostname, redirectProbe);
+    httpRedirectResults.push({ environment: host.environment, configuredHost: host.name, hostname: host.hostname, wildcardProbe: host.wildcard, requestUrl: `http://${host.hostname}/`, ...redirectEvaluation.redirect });
+    failures.push(...redirectEvaluation.failures);
+
+    const methodProbes = await probeUnsafeMethods({ host: publicIngressIPv4, servername: host.hostname, paths: ["/", authenticationRoutes.profile] });
+    const methodEvaluation = evaluateUnsafeMethods(host.hostname, methodProbes);
+    unsafeMethodResults.push({ environment: host.environment, configuredHost: host.name, hostname: host.hostname, wildcardProbe: host.wildcard, requests: methodEvaluation.requests, note: methodEvaluation.note });
+    failures.push(...methodEvaluation.failures);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    failures.push(`${host.hostname} transport and hardening evidence capture failed: ${message}`);
+    console.error(`Transport and hardening evidence capture failed for ${host.hostname}: ${message}`);
+  }
+}
+
+let portScanResults = [];
+try {
+  const portScanEvaluation = evaluatePortScan(publicIngressIPv4, await scanTcpPorts({ host: publicIngressIPv4 }));
+  portScanResults = portScanEvaluation.ports;
+  failures.push(...portScanEvaluation.failures);
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  failures.push(`Ingress port scan of ${publicIngressIPv4} failed: ${message}`);
+  console.error(`Ingress port scan failed: ${message}`);
+}
+
+let timeSyncResult;
+try {
+  const timeSyncEvaluation = evaluateTimeSync(summarizeTimeSync(collectRemoteTimeSync({ sshTarget })));
+  timeSyncResult = { sshTarget, ...timeSyncEvaluation };
+  failures.push(...timeSyncEvaluation.failures);
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  const syncFailure = `Remote server time synchronisation could not be read: ${message}`;
+  timeSyncResult = { sshTarget, result: "FAIL", failures: [syncFailure] };
+  failures.push(syncFailure);
+}
+
+const tlsScanScreenshot = await captureEvidenceTable(
+  tlsScanScreenshotName,
+  "Production TLS protocol and cipher scan",
+  ["Host", "Probe", "Client offer", "Expected", "Observed", "Negotiated protocol", "Negotiated cipher", "Result"],
+  tlsScanResults.flatMap(({ hostname, attempts }) => attempts.map((attempt) => [
+    hostname,
+    attempt.probe,
+    attempt.offered,
+    attempt.expected,
+    attempt.accepted ? "accepted" : attempt.clientCannotOffer ? "not testable from this client" : "rejected",
+    attempt.negotiatedProtocol ?? "n/a",
+    attempt.cipher ?? "n/a",
+    attempt.result,
+  ])),
+);
+
+const certificateScreenshot = await captureEvidenceTable(
+  certificateScreenshotName,
+  "Production TLS certificate evidence",
+  ["Host", "Subject CN", "Subject alternative names", "Issuer", "Valid from", "Valid to", "Expires in (days)", "Key", "Signature algorithm", "Chain authorized", "Hostname match", "Result"],
+  certificateResults.map((certificate) => [
+    certificate.hostname,
+    certificate.subjectCommonName ?? "not available",
+    certificate.subjectAlternativeNames ?? "not reported",
+    certificate.issuer ?? "not available",
+    certificate.validFrom ?? "unknown",
+    certificate.validTo ?? "unknown",
+    certificate.expiresInDays === null ? "unknown" : `${certificate.expiresInDays}`,
+    certificate.key ?? "unknown",
+    certificate.signatureAlgorithm ?? "unknown",
+    certificate.authorized ? "verified against the system trust store" : `not verified${certificate.authorizationError ? ` (${certificate.authorizationError})` : ""}`,
+    certificate.hostnameMatches ? "match" : "mismatch",
+    certificate.result,
+  ]),
+  1900,
+);
+
+const httpRedirectScreenshot = await captureEvidenceTable(
+  httpRedirectScreenshotName,
+  "Production plain HTTP to HTTPS redirect",
+  ["Host", "Plain HTTP request", "Observed status", "Location", "Expected", "Result"],
+  httpRedirectResults.map((redirect) => [
+    redirect.hostname,
+    redirect.requestUrl,
+    redirect.status === null || redirect.status === undefined ? "no response" : `${redirect.status}`,
+    redirect.location ?? redirect.errorMessage ?? "missing",
+    `${httpRedirectSuccessStatuses.join("/")} to https://${redirect.hostname}/`,
+    redirect.result,
+  ]),
+);
+
+const unsafeMethodScreenshot = await captureEvidenceTable(
+  unsafeMethodScreenshotName,
+  "Production ingress unsafe-method guard",
+  ["Host", "Request", "Method", "Observed status", "Expected", "Result", "Note"],
+  unsafeMethodResults.flatMap(({ hostname, requests }) => requests.map((request) => [
+    hostname,
+    request.path,
+    request.method,
+    request.omitted ? "omitted" : request.status === null || request.status === undefined ? "no response" : `${request.status}`,
+    `${request.expectedStatus}`,
+    request.result,
+    request.note ?? "",
+  ])),
+);
+
+const portScanScreenshot = await captureEvidenceTable(
+  portScanScreenshotName,
+  "Production public ingress port scan",
+  ["Address", "Port", "State", "Expectation", "Result", "Detail"],
+  portScanResults.map((port) => [
+    publicIngressIPv4,
+    `${port.port}`,
+    port.state,
+    port.expected,
+    port.result,
+    port.errorCode ?? "",
+  ]),
+);
+
+const clockDifference = timeSyncResult.clockDifferenceSeconds;
+const clockDifferenceWithinTolerance = Number.isFinite(clockDifference) && Math.abs(clockDifference) < maximumClockDifferenceSeconds;
+const timeSyncRows = [
+  [
+    "NTP synchronised",
+    timeSyncResult.ntpSynchronized ?? "unknown",
+    expectedNtpSynchronized,
+    timeSyncResult.ntpSynchronized === expectedNtpSynchronized ? "PASS" : "FAIL",
+    [
+      timeSyncResult.timezone ? `timezone ${timeSyncResult.timezone}` : null,
+      timeSyncResult.timeUsec ? `TimeUSec ${timeSyncResult.timeUsec}` : null,
+      timeSyncResult.syncSource ? `source ${timeSyncResult.syncSource}` : null,
+      timeSyncResult.syncServer ? `server ${timeSyncResult.syncServer}` : null,
+      timeSyncResult.syncOffset ? `offset ${timeSyncResult.syncOffset}` : null,
+    ].filter(Boolean).join("; ") || "not reported",
+  ],
+  [
+    "Clock difference (server - runner)",
+    Number.isFinite(clockDifference) ? `${clockDifference} s` : "unknown",
+    `absolute difference under ${maximumClockDifferenceSeconds} s`,
+    clockDifferenceWithinTolerance ? "PASS" : "FAIL",
+    timeSyncResult.serverTimeUtc ? `server ${timeSyncResult.serverTimeUtc}; runner ${timeSyncResult.runnerTimeUtc}` : "server time could not be read",
+  ],
+];
+const timeSyncScreenshot = await captureEvidenceTable(
+  timeSyncScreenshotName,
+  "Production server time synchronisation",
+  ["Item", "Observed", "Expected", "Result", "Detail"],
+  timeSyncRows,
+);
+
+const manifest = { capturedAtUtc: capturedAt.toISOString(), commit: serviceState.commit, workflowRunId: serviceState.runId, publicIngressIPv4, remoteServiceStatus: basename(serviceStatePath), serviceStatusScreenshot: "service-status.png", uiResults, apiResults: productionApiResults, apiResultScreenshot: apiScreenshotPath, securityHeaderResults: securityHeadersResults, securityHeaderScreenshot: securityHeaderScreenshotPath, tlsScanResults, tlsScanScreenshot, certificateResults, certificateScreenshot, httpRedirectResults, httpRedirectScreenshot, unsafeMethodResults, unsafeMethodScreenshot, portScanResults, portScanScreenshot, timeSyncResult, timeSyncScreenshot, failures };
 const manifestPath = resolve(runDirectory, "manifest.json");
 await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 console.log(`Evidence manifest: ${manifestPath}`);
