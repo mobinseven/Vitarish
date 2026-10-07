@@ -242,7 +242,7 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   await page.getByRole("option", { name: visibleEvent, exact: true }).click();
   await page.getByRole("button", { name: uiText.allOperations }).click();
   await page.getByRole("option", { name: event.operation, exact: true }).click();
-  await page.getByLabel(uiText.outcome).fill(event.outcome);
+  await page.getByRole("textbox", { name: uiText.outcome, exact: true }).fill(event.outcome);
   const response = page.waitForResponse((candidate) =>
     candidate.url().includes("/api/audit/platform/security-events") && candidate.request().method() === "GET",
   );
