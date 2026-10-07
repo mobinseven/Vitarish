@@ -19,4 +19,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Main\Infrastructure\BackgroundJobs\AuditCapacityAlertMonitor.cs" Link="Infrastructure\Main\AuditCapacityAlertMonitor.cs" />
+    <Compile Include="..\Main\Infrastructure\BackgroundJobs\AuditCapacityAlertServiceCollectionExtensions.cs" Link="Infrastructure\Main\AuditCapacityAlertServiceCollectionExtensions.cs" />
+    <Compile Include="..\Main\Infrastructure\Options\AuditCapacityAlertOptions.cs" Link="Infrastructure\Main\AuditCapacityAlertOptions.cs" />
+  </ItemGroup>
 </Project>

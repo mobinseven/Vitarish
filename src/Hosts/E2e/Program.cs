@@ -9,6 +9,7 @@ using Vitarish.Clinic.Infrastructure.Data;
 using Vitarish.Hosting.Infrastructure.Options;
 using Vitarish.Modules.Base.Core.Platform.Idempotency;
 using Vitarish.Files.Application.Abstractions;
+using Vitarish.E2e.Infrastructure.Audit;
 using Vitarish.E2e.Infrastructure.Storage;
 using Vitarish.E2e.Infrastructure.Events;
 using Vitarish.Clinic.Application.Events;
@@ -16,7 +17,9 @@ using Vitarish.Clinic.Application.Assistant.Actions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Infrastructure;
+using Vitarish.Audit.Application;
 using Vitarish.Audit.Server;
+using Vitarish.Main.Infrastructure.BackgroundJobs;
 
 const string apiOriginKey = "VITARISH_E2E_API_ORIGIN";
 const string webOriginKey = "VITARISH_E2E_WEB_ORIGIN";
@@ -87,6 +90,9 @@ _ = builder.Services.AddSingleton(
     typeof(IOperationReceiptStore<>),
     typeof(E2eInMemoryOperationReceiptStore<>));
 builder.Services.Replace(ServiceDescriptor.Singleton<IObjectStorageService, E2eObjectStorageService>());
+_ = builder.Services.AddSingleton<E2eAuditCapacitySimulation>();
+builder.Services.Replace(ServiceDescriptor.Transient<IAuditStorageSizeReader, E2eAuditStorageSizeReader>());
+_ = builder.Services.AddAuditCapacityAlertMonitoring(builder.Environment, openApiGeneration: false);
 builder.Services.AddSingleton<Hangfire.IBackgroundJobClient, E2eBackgroundJobClient>();
 builder.Services.Replace(ServiceDescriptor.Singleton<IClinicalEventProposalStore, E2eClinicalEventProposalStore>());
 builder.Services.Replace(ServiceDescriptor.Singleton<IAssistantActionStore, E2eAssistantActionStore>());
@@ -107,6 +113,7 @@ _ = app.UseHostingPipeline(securityConfiguration);
 _ = app.MapModuleEndpoints();
 _ = app.MapSecurityAuditApi();
 _ = app.MapAppEndpoints();
+_ = app.MapE2eAuditEvidenceEndpoints();
 
 await E2eFixtureSeeder.SeedAsync(app.Services, password, CancellationToken.None);
 app.Run();
