@@ -107,3 +107,11 @@ Use dated entries only. Each entry must include:
 - Owning module/doc: E2E host (`src/Hosts/E2e`), two-host Web tests.
 - Remove condition: an E2E fake `ISmsProvider` outer adapter exists at E2E composition and the Persian-digit change-phone scenario passes in the two-host suite.
 - Lesson for Codex: `BeginChangePhoneHandler` sends the SMS synchronously, so without a fake SMS provider every phone-change begin fails with `ProviderFailure`. The conversion itself is covered by `PhoneNumberFormatHandlerTests.Phone_change_converts_a_local_format_number_before_the_challenge_and_sms`. Do not add a production test-mode branch to unblock this.
+
+### Production registry hosts pinned in /etc/hosts
+
+- Status: active workaround.
+- Added date: 2026-10-07.
+- Owning module/doc: production server operations; `src/Hosts/deployment`.
+- Remove condition: the hosting provider's resolver returns GitHub's real addresses for `ghcr.io` and `pkg-containers.githubusercontent.com` (check with `getent hosts ghcr.io` after removing the block), then delete the `# BEGIN registry-pin` … `# END registry-pin` block from the server's `/etc/hosts`.
+- Lesson for Codex: the provider resolver answers both names with a proxy address (125.125.125.125). curl and openssl get through it, but Docker's TLS client fails, so image pulls and the deploy fail with TLS errors that look like registry outages. If pulls start failing again, compare `getent hosts ghcr.io` with `dig +short ghcr.io @1.1.1.1`; GitHub may have moved the pinned addresses.

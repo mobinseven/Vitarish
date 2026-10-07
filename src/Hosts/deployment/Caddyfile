@@ -28,6 +28,10 @@
     }
     encode gzip
     header {
+        # The ingress owns these response headers. defer applies them after
+        # reverse_proxy so they replace an upstream value (Main also sends HSTS
+        # when it requires HTTPS) instead of being sent twice.
+        defer
         Strict-Transport-Security "max-age=31536000"
         X-Content-Type-Options "nosniff"
         X-Frame-Options "DENY"
