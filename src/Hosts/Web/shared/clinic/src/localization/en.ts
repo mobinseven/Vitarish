@@ -541,6 +541,9 @@ export const clinicEnMessages = {
         retry: "Retry upload",
         uploadFailed:
           "The file could not be uploaded. It is still ready to retry.",
+        fileTypeNotAllowed:
+          "This file type is not accepted. Accepted types: {types}.",
+        fileTooLarge: "The file is too large. Files can be up to {size}.",
       },
       access: {
         title: "Access & Roles",

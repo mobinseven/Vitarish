@@ -535,6 +535,9 @@ export const clinicFaMessages = {
         retry: "تلاش مجدد",
         uploadFailed:
           "بارگذاری فایل انجام نشد. فایل برای تلاش دوباره حفظ شده است.",
+        fileTypeNotAllowed:
+          "این نوع فایل پذیرفته نمی‌شود. انواع مجاز: {types}.",
+        fileTooLarge: "حجم فایل زیاد است. حداکثر حجم مجاز {size} است.",
       },
       access: {
         title: "دسترسی و نقش‌ها",

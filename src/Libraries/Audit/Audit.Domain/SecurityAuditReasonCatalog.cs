@@ -32,6 +32,8 @@ public static class SecurityAuditReasonCatalog
     public const string AuthenticationProviderFailure = "authentication_provider_failure";
     public const string TenantContextMissing = "tenant_context_missing";
     public const string IntegrityValidationFailed = "integrity_validation_failed";
+    public const string ContentTypeNotAllowed = "content_type_not_allowed";
+    public const string ContentTooLarge = "content_too_large";
     public const string Unauthorized = "unauthorized";
     public const string UserLogout = "user_logout";
     public const string SecurityAttributeChanged = "security_attribute_changed";
@@ -97,6 +99,8 @@ public static class SecurityAuditReasonCatalog
         AuthenticationProviderFailure,
         TenantContextMissing,
         IntegrityValidationFailed,
+        ContentTypeNotAllowed,
+        ContentTooLarge,
         Unauthorized,
         UserLogout,
         SecurityAttributeChanged,

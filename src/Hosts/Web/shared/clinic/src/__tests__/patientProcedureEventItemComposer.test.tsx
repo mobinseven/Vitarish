@@ -1,12 +1,25 @@
 import type { ReactNode } from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PatientProcedureEventItemComposer } from "../components/patients/procedures/PatientProcedureEventItemComposer";
 import { clinicMessageCatalogs, LocalizationProvider } from "../localization";
 
 const mutations = vi.hoisted(() => ({
   createFile: vi.fn(),
   createNote: vi.fn(),
+}));
+
+const uploadPolicy = {
+  maximumContentBytes: 512 * 1024 * 1024,
+  formats: [
+    { mediaType: "image/png", extensions: [".png"] },
+    { mediaType: "application/pdf", extensions: [".pdf"] },
+  ],
+};
+
+vi.mock("@vitarish/sea", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@vitarish/sea")>()),
+  useFileUploadPolicy: () => ({ data: uploadPolicy }),
 }));
 
 vi.mock("@vitarish/intelligence", () => ({
@@ -57,12 +70,63 @@ function Wrapper({ children }: { children: ReactNode }) {
   );
 }
 
+afterEach(cleanup);
+
 beforeEach(() => {
   mutations.createFile.mockReset();
   mutations.createNote.mockReset();
 });
 
 describe("patient procedure event item composer", () => {
+  it("limits the picker to the accepted formats", () => {
+    const { container } = render(
+      <PatientProcedureEventItemComposer eventId="event-1" />,
+      { wrapper: Wrapper },
+    );
+
+    expect(container.querySelector('input[type="file"]')).toHaveAttribute(
+      "accept",
+      ".png,image/png,.pdf,application/pdf",
+    );
+  });
+
+  it("refuses a selected file of another type and names the accepted types", () => {
+    const { container } = render(
+      <PatientProcedureEventItemComposer eventId="event-1" />,
+      { wrapper: Wrapper },
+    );
+
+    fireEvent.change(container.querySelector('input[type="file"]')!, {
+      target: { files: [new File(["MZ"], "setup.exe")] },
+    });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "This file type is not accepted. Accepted types: PNG and PDF.",
+    );
+    expect(screen.queryByRole("button", { name: "Remove" })).toBeNull();
+  });
+
+  it("explains an upload the server rejects as too large and drops the file", async () => {
+    const { FileUploadRejectedError } = await import("@vitarish/sea");
+    mutations.createFile.mockRejectedValue(
+      new FileUploadRejectedError("tooLarge", uploadPolicy.maximumContentBytes),
+    );
+    const { container } = render(
+      <PatientProcedureEventItemComposer eventId="event-1" />,
+      { wrapper: Wrapper },
+    );
+    fireEvent.change(container.querySelector('input[type="file"]')!, {
+      target: { files: [new File(["png"], "walk.png", { type: "image/png" })] },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "The file is too large. Files can be up to 512 MB.",
+    );
+    expect(screen.queryByRole("button", { name: "Remove" })).toBeNull();
+  });
+
   it("clears a successful note while retaining a failed file for retry", async () => {
     mutations.createNote.mockResolvedValue(undefined);
     mutations.createFile.mockRejectedValue(new Error("upload failed"));

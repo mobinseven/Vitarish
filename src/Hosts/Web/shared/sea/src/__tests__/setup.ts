@@ -22,3 +22,18 @@ if (!window.URL.createObjectURL) {
     value: () => "blob:vitest",
   });
 }
+
+// jsdom's Blob predates Blob.arrayBuffer(), which every supported browser provides.
+if (!Blob.prototype.arrayBuffer) {
+  Object.defineProperty(Blob.prototype, "arrayBuffer", {
+    writable: true,
+    value(this: Blob): Promise<ArrayBuffer> {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as ArrayBuffer);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(this);
+      });
+    },
+  });
+}

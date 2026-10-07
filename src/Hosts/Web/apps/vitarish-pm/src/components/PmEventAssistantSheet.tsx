@@ -10,10 +10,18 @@ import {
   useConversationController,
 } from "@vitarish/intelligence";
 import {
+  checkFileForUpload,
+  fileUploadAccept,
+  FileUploadRejectedError,
   toSeaFileAttachment,
   useCreateSeaFileAttachment,
+  useFileUploadPolicy,
 } from "@vitarish/sea";
-import { useLocalizedText } from "@vitarish/localization";
+import {
+  formatFileSize,
+  formatList,
+  useLocalizedText,
+} from "@vitarish/localization";
 import { FaIcon } from "@vitarish/ui";
 import {
   ProjectManagementMessageParts,
@@ -55,6 +63,8 @@ export function PmEventAssistantSheet({
   >([]);
   const [actions, setActions] = React.useState<Action[]>([]);
   const [files, setFiles] = React.useState<File[]>([]);
+  const [rejection, setRejection] =
+    React.useState<FileUploadRejectedError | null>(null);
   const [resetPending, setResetPending] = React.useState(false);
   const [conversationId, setConversationId] = React.useState<string | null>(
     null,
@@ -62,6 +72,7 @@ export function PmEventAssistantSheet({
   const restoredOnOpen = React.useRef(false);
   const fileInput = React.useRef<HTMLInputElement>(null);
   const upload = useCreateSeaFileAttachment();
+  const { data: uploadPolicy } = useFileUploadPolicy();
   const deleteConversation = React.useCallback(
     (conversationId: string) =>
       projectManagementDeleteEventConversation(eventId, conversationId),
@@ -199,10 +210,34 @@ export function PmEventAssistantSheet({
       current.map((item) => (item.actionId === actionId ? action : item)),
     );
   };
+  const selectFiles = (selected: File[]) => {
+    const accepted: File[] = [];
+    let firstRejection: FileUploadRejectedError | null = null;
+    for (const candidate of selected) {
+      const rejected = uploadPolicy
+        ? checkFileForUpload(uploadPolicy, candidate)
+        : undefined;
+      if (rejected) {
+        firstRejection ??= rejected;
+        continue;
+      }
+      accepted.push(candidate);
+    }
+    setRejection(firstRejection);
+    setFiles(accepted);
+  };
   const confirmUpload = async () => {
     for (const file of files) {
-      await upload.mutateAsync(await toSeaFileAttachment(eventId, file));
-      setFiles((current) => current.filter((selected) => selected !== file));
+      try {
+        await upload.mutateAsync(
+          await toSeaFileAttachment(eventId, file, uploadPolicy),
+        );
+        setFiles((current) => current.filter((selected) => selected !== file));
+      } catch (error) {
+        if (!(error instanceof FileUploadRejectedError)) throw error;
+        setRejection(error);
+        setFiles((current) => current.filter((selected) => selected !== file));
+      }
     }
   };
   return (
@@ -335,7 +370,7 @@ export function PmEventAssistantSheet({
                       )
                       .join("\n")}
                   </p>
-                  {upload.isError && (
+                  {upload.isError && !rejection && (
                     <p className="mt-2 text-sm text-danger" role="alert">
                       {t("common.states.error")}
                     </p>
@@ -354,6 +389,29 @@ export function PmEventAssistantSheet({
                   </Tooltip>
                 </div>
               )}
+              {rejection && (
+                <p className="text-sm text-danger" role="alert">
+                  {rejection.reason === "tooLarge"
+                    ? t("pm.fileTooLarge", {
+                        size: formatFileSize(
+                          rejection.maximumContentBytes,
+                          locale,
+                        ),
+                      })
+                    : t("pm.fileTypeNotAllowed", {
+                        types: uploadPolicy
+                          ? formatList(
+                              uploadPolicy.formats.flatMap((format) =>
+                                format.extensions.map((extension) =>
+                                  extension.slice(1).toUpperCase(),
+                                ),
+                              ),
+                              locale,
+                            )
+                          : "",
+                      })}
+                </p>
+              )}
             </Sheet.Body>
             <Sheet.Footer className="flex-col items-stretch gap-2">
               <input
@@ -361,8 +419,11 @@ export function PmEventAssistantSheet({
                 className="sr-only"
                 type="file"
                 multiple
+                accept={
+                  uploadPolicy ? fileUploadAccept(uploadPolicy) : undefined
+                }
                 onChange={(event) =>
-                  setFiles(Array.from(event.target.files ?? []))
+                  selectFiles(Array.from(event.target.files ?? []))
                 }
               />
               <AgentConversationComposer

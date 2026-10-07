@@ -207,6 +207,62 @@
         }
       }
     },
+    "/api/modules/files/upload-policy": {
+      "get": {
+        "tags": [
+          "Files"
+        ],
+        "operationId": "FilesGetUploadPolicy",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileUploadPolicyResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/modules/files/upload": {
       "post": {
         "tags": [
@@ -217,7 +273,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/IFormFile"
+                "$ref": "#/components/schemas/FileUploadForm"
               }
             }
           },
@@ -262,6 +318,26 @@
           },
           "409": {
             "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload Too Large",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Media Type",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -630,6 +706,90 @@
                 "$ref": "#/components/schemas/FileDimensionsDto"
               }
             ]
+          }
+        }
+      },
+      "FileUploadForm": {
+        "required": [
+          "content",
+          "fileName",
+          "contentType",
+          "checksum"
+        ],
+        "type": "object",
+        "properties": {
+          "content": {
+            "$ref": "#/components/schemas/IFormFile"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "size": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "checksum": {
+            "type": "string"
+          },
+          "thumbnail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "tag": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "FileUploadFormatResponse": {
+        "required": [
+          "mediaType",
+          "extensions"
+        ],
+        "type": "object",
+        "properties": {
+          "mediaType": {
+            "type": "string"
+          },
+          "extensions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "FileUploadPolicyResponse": {
+        "required": [
+          "maximumContentBytes",
+          "formats"
+        ],
+        "type": "object",
+        "properties": {
+          "maximumContentBytes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "formats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileUploadFormatResponse"
+            }
           }
         }
       },

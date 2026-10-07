@@ -11,5 +11,7 @@ public enum FilesErrorCode
     Canceled,
     Transport,
     Deserialization,
-    Unexpected
+    Unexpected,
+    UnsupportedContentType,
+    ContentTooLarge
 }

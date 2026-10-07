@@ -76,7 +76,15 @@ export { SeaLoadingState, SeaErrorState, SeaEmptyState } from "./components/stat
 
 // Attachment hooks
 export { useSeaEventAttachments, useSeaEventAttachmentCount } from "./hooks/attachments/useSeaAttachments";
-export { toSeaFileAttachment } from "./api/attachments/seaAttachmentFile";
+export {
+  checkFileForUpload,
+  fileUploadAccept,
+  FileUploadRejectedError,
+  toSeaFileAttachment,
+} from "./api/attachments/seaAttachmentFile";
+export type { FileUploadRejectionReason } from "./api/attachments/seaAttachmentFile";
+export { useFileUploadPolicy } from "./hooks/attachments/useFileUploadPolicy";
+export type { FileUploadPolicyResponse } from "./api/generated/files/model";
 export {
   isStoredSeaAttachmentContent,
   loadStoredSeaAttachmentContent,
