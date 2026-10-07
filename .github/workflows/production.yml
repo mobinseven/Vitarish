@@ -248,6 +248,8 @@ jobs:
         run: |
           npm run lint:layout
           npm run test:layout-lint
+      - name: Validate production evidence checks
+        run: npm run test:production-evidence
 
   authentication_web:
     name: Shared authentication checks

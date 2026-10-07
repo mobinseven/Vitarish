@@ -37,6 +37,7 @@
     "validate:localization": "node scripts/validate-localization.mjs",
     "lint:layout": "node scripts/lint-layout.mjs",
     "test:layout-lint": "node --test scripts/layout-policy.test.mjs",
+    "test:production-evidence": "node --test scripts/production-evidence-checks.test.mjs",
     "validate:web-ui-boundary": "node scripts/validate-web-ui-boundary.mjs",
     "validate:app-boundaries": "node scripts/validate-web-app-boundaries.mjs",
     "validate:docs:app-boundaries": "dotnet run --project ../../../tools/architecture -- app-experience"
