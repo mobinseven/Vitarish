@@ -14,6 +14,7 @@
     <ProjectReference Include="..\..\..\src\Modules\Files\Client\Files.Client.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Files\Domain\Files.Domain.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Files\Infrastructure\Files.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Files\Api\Files.Api.csproj" />
   </ItemGroup>
 
 </Project>

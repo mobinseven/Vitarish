@@ -6,4 +6,5 @@ public static class FilesApiRoutes
     public const string ById = "/{fileId:guid}";
     public const string ContentById = "/{fileId:guid}/content";
     public const string Upload = "/upload";
+    public const string UploadPolicy = "/upload-policy";
 }

@@ -9,6 +9,12 @@ import {
 } from "@heroui-pro/react";
 import { FaIcon } from "@vitarish/ui";
 import {
+  checkFileForUpload,
+  fileUploadAccept,
+  FileUploadRejectedError,
+  useFileUploadPolicy,
+} from "@vitarish/sea";
+import {
   appendConfirmedTranscript,
   LiveDictation,
   useLiveDictation,
@@ -17,7 +23,11 @@ import {
   useCreatePatientProcedureEventItemFile,
   useCreatePatientProcedureEventItemText,
 } from "../../../hooks/patients/procedures/usePatientProcedureEventItemMutations";
-import { useLocalizedText } from "../../../localization";
+import {
+  formatFileSize,
+  formatList,
+  useLocalizedText,
+} from "../../../localization";
 
 interface PatientProcedureEventItemComposerProps {
   eventId: string;
@@ -29,6 +39,10 @@ export function PatientProcedureEventItemComposer({
   const { t, locale } = useLocalizedText();
   const createNote = useCreatePatientProcedureEventItemText();
   const createFile = useCreatePatientProcedureEventItemFile();
+  const { data: uploadPolicy } = useFileUploadPolicy();
+  const [rejection, setRejection] = useState<FileUploadRejectedError | null>(
+    null,
+  );
   const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const fileRef = useRef<File | null>(null);
@@ -49,7 +63,14 @@ export function PatientProcedureEventItemComposer({
     [previewUrl],
   );
 
-  const selectFile = (nextFile?: File) => {
+  const selectFile = (selectedFile?: File) => {
+    // A dropped file bypasses the picker filter, so check it against the policy too.
+    const rejected =
+      selectedFile && uploadPolicy
+        ? checkFileForUpload(uploadPolicy, selectedFile)
+        : undefined;
+    setRejection(rejected ?? null);
+    const nextFile = rejected ? undefined : selectedFile;
     fileRef.current = nextFile ?? null;
     setFile(nextFile ?? null);
     setFileFailed(false);
@@ -94,8 +115,16 @@ export function PatientProcedureEventItemComposer({
           setFile(null);
           setPreviewUrl(undefined);
         }
-      } catch {
-        setFileFailed(true);
+      } catch (error) {
+        if (error instanceof FileUploadRejectedError) {
+          // The file can never be accepted, so it is not kept for a retry.
+          setRejection(error);
+          fileRef.current = null;
+          setFile(null);
+          setPreviewUrl(undefined);
+        } else {
+          setFileFailed(true);
+        }
       }
     }
   };
@@ -112,6 +141,7 @@ export function PatientProcedureEventItemComposer({
         onValueChange={setNote}
       >
         <ChatAttachmentInput
+          accept={uploadPolicy ? fileUploadAccept(uploadPolicy) : undefined}
           multiple={false}
           onFilesSelected={(files) => selectFile(files?.[0])}
         >
@@ -189,7 +219,30 @@ export function PatientProcedureEventItemComposer({
           {t("clinic.procedures.items.saveFailed")}
         </p>
       ) : null}
-      {createFile.isError || fileFailed ? (
+      {rejection ? (
+        <p
+          className="text-danger mx-auto mt-2 w-full max-w-4xl text-sm"
+          role="alert"
+        >
+          {rejection.reason === "tooLarge"
+            ? t("clinic.procedures.items.fileTooLarge", {
+                size: formatFileSize(rejection.maximumContentBytes, locale),
+              })
+            : t("clinic.procedures.items.fileTypeNotAllowed", {
+                types: uploadPolicy
+                  ? formatList(
+                      uploadPolicy.formats.flatMap((format) =>
+                        format.extensions.map((extension) =>
+                          extension.slice(1).toUpperCase(),
+                        ),
+                      ),
+                      locale,
+                    )
+                  : "",
+              })}
+        </p>
+      ) : null}
+      {(createFile.isError && !rejection) || fileFailed ? (
         <p
           className="text-danger mx-auto mt-2 w-full max-w-4xl text-sm"
           role="alert"

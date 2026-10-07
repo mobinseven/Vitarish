@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Security.Cryptography;
 using System.Threading.Channels;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,7 +27,15 @@ public static class FilesApiEndpointMapping
         _ = group.MapModuleGet(FilesApiRoutes.ById, GetFileInformationAsync, "FilesGetFileInformation", typeof(C.FileInformationDto));
         _ = group.MapModulePost("/search", FindFilesAsync, "FilesFindFiles", typeof(C.FileInformationDto[]));
         _ = group.MapModulePost(string.Empty, CreateFileRecordAsync, "FilesCreateFileRecord", typeof(C.FileInformationDto));
-        _ = group.MapModulePost(FilesApiRoutes.Upload, UploadFileAsync, "FilesUploadFile", typeof(FileUploadResponse), profile: ModuleEndpointProfile.MultipartUpload).DisableAntiforgery();
+        _ = group.MapModuleGet(FilesApiRoutes.UploadPolicy, GetUploadPolicy, "FilesGetUploadPolicy", typeof(FileUploadPolicyResponse));
+        _ = group.MapModulePost(FilesApiRoutes.Upload, UploadFileAsync, "FilesUploadFile", typeof(FileUploadResponse), profile: ModuleEndpointProfile.MultipartUpload)
+            .Accepts<FileUploadForm>(ModuleEndpointOpenApiConventions.MultipartFormData)
+            .ProducesProblem(StatusCodes.Status413PayloadTooLarge)
+            .ProducesProblem(StatusCodes.Status415UnsupportedMediaType)
+            // Kestrel and the form reader stop a body above the multipart ceiling instead of their smaller defaults.
+            .WithMetadata(new RequestSizeLimitAttribute(D.FileTransferPolicy.MaximumMultipartRequestBytes))
+            .WithFormOptions(multipartBodyLengthLimit: D.FileTransferPolicy.MaximumMultipartRequestBytes)
+            .DisableAntiforgery();
         _ = group.MapModuleGet(FilesApiRoutes.ContentById, DownloadFileAsync, "FilesDownloadFile", successStatusCode: StatusCodes.Status200OK, profile: ModuleEndpointProfile.BinaryDownload, contentType: ModuleEndpointOpenApiConventions.BinaryStream);
         _ = group.MapModuleHead(FilesApiRoutes.ContentById, DownloadFileAsync, "FilesDownloadFileHead", successStatusCode: StatusCodes.Status200OK, contentType: ModuleEndpointOpenApiConventions.BinaryStream);
         return endpoints;
@@ -59,6 +68,10 @@ public static class FilesApiEndpointMapping
             : Results.Ok(ToContract(file));
     }
 
+    private static IResult GetUploadPolicy() => Results.Ok(new FileUploadPolicyResponse(
+        D.FileTransferPolicy.MaximumContentBytes,
+        [.. D.FileTransferPolicy.UploadFormats.Select(format => new FileUploadFormatResponse(format.MediaType, format.Extensions))]));
+
     private static async Task<IResult> UploadFileAsync(
         HttpRequest httpRequest,
         IFilesService filesService,
@@ -74,12 +87,21 @@ public static class FilesApiEndpointMapping
 
         if (httpRequest.ContentLength is > D.FileTransferPolicy.MaximumMultipartRequestBytes)
         {
-            await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
-            return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "Multipart request exceeds the maximum supported size."));
+            return await RejectTooLargeAsync(transferAudit).ConfigureAwait(false);
         }
 
-        IFormCollection form = await httpRequest.ReadFormAsync(cancellationToken).ConfigureAwait(false);
-        IFormFile? content = form.Files.GetFile("content");
+        IFormCollection form;
+        try
+        {
+            form = await httpRequest.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is InvalidDataException or BadHttpRequestException { StatusCode: StatusCodes.Status413PayloadTooLarge })
+        {
+            // A body without a declared length is stopped by the request or multipart limit while it is read.
+            return await RejectTooLargeAsync(transferAudit).ConfigureAwait(false);
+        }
+
+        IFormFile? content = form.Files.GetFile(FileUploadRequest.ContentFieldName);
         if (content is null || content.Length <= 0)
         {
             await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
@@ -88,8 +110,7 @@ public static class FilesApiEndpointMapping
 
         if (content.Length > D.FileTransferPolicy.MaximumContentBytes)
         {
-            await RecordUploadRejectionAsync(transferAudit).ConfigureAwait(false);
-            return Results.BadRequest(new FilesError(FilesErrorCode.Validation, "File content exceeds the maximum supported size."));
+            return await RejectTooLargeAsync(transferAudit).ConfigureAwait(false);
         }
 
         FileUploadRequest uploadRequest = ReadUploadRequest(form, content);
@@ -103,6 +124,14 @@ public static class FilesApiEndpointMapping
         }
 
         uploadRequest = uploadRequest with { ContentType = declaredContentType };
+        if (!D.FileTransferPolicy.TryResolveUploadFormat(declaredContentType, uploadRequest.FileName, out D.FileUploadFormat format) ||
+            !await HasFormatSignatureAsync(content, format, cancellationToken).ConfigureAwait(false))
+        {
+            await transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.ContentTypeNotAllowed, CancellationToken.None).ConfigureAwait(false);
+            return Results.Json(
+                new FilesError(FilesErrorCode.UnsupportedContentType, "This file type is not accepted.", StatusCodes.Status415UnsupportedMediaType),
+                statusCode: StatusCodes.Status415UnsupportedMediaType);
+        }
 
         if (!await transferAuthorization.CanUploadAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -178,6 +207,22 @@ public static class FilesApiEndpointMapping
                 CryptographicOperations.ZeroMemory(unreadChunk);
             }
         }
+    }
+
+    private static async Task<IResult> RejectTooLargeAsync(IFileTransferAudit transferAudit)
+    {
+        await transferAudit.RecordImportAsync(null, SecurityAuditOutcome.Denied, SecurityAuditReasonCatalog.ContentTooLarge, CancellationToken.None).ConfigureAwait(false);
+        return Results.Json(
+            new FilesError(FilesErrorCode.ContentTooLarge, "File content exceeds the maximum supported size.", StatusCodes.Status413PayloadTooLarge),
+            statusCode: StatusCodes.Status413PayloadTooLarge);
+    }
+
+    private static async Task<bool> HasFormatSignatureAsync(IFormFile content, D.FileUploadFormat format, CancellationToken cancellationToken)
+    {
+        byte[] header = new byte[D.FileTransferPolicy.SignatureProbeBytes];
+        await using Stream probe = content.OpenReadStream();
+        int read = await probe.ReadAtLeastAsync(header, header.Length, throwOnEndOfStream: false, cancellationToken).ConfigureAwait(false);
+        return D.FileTransferPolicy.MatchesSignature(format, header.AsSpan(0, read));
     }
 
     private static Task RecordUploadRejectionAsync(IFileTransferAudit transferAudit) =>

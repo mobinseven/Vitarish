@@ -34,6 +34,16 @@ public class Attachment : EventItem
             });
     }
 
+    /// <summary>
+    /// New file content goes through the Files upload, which enforces the accepted formats and size; a file
+    /// attachment keeps only the uploaded file's identifier. Existing inline content stays readable, so this
+    /// applies to content being written, not to rebuilding stored attachments.
+    /// </summary>
+    public static EntityResult ValidateNewContent(AttachmentKind kind, string? content) =>
+        kind == AttachmentKind.File && !Guid.TryParse(content, out _)
+            ? EntityResult.Failure(EntityError.Validation("A file attachment must reference an uploaded file.", nameof(Content)))
+            : EntityResult.Success();
+
     public static EntityResult ValidateNew(AttachmentKind kind, string? fileName)
     {
         if (!IsFileNameValid(fileName))

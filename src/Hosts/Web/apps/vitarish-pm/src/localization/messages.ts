@@ -246,6 +246,9 @@ const pm = {
   assistantWorking: "Working…",
   assistantNoResponse: "No response was returned.",
   fileUnknownType: "unknown type",
+  fileTypeNotAllowed:
+    "This file type is not accepted. Accepted types: {types}.",
+  fileTooLarge: "The file is too large. Files can be up to {size}.",
   attachmentTarget: "Target event ID",
   replacementAttachment: "Replacement attachment ID",
   replacementOptional: "Optional",
@@ -314,6 +317,9 @@ const faPmOverrides = {
   attachmentTargetRequired:
     "شناسه معتبر رویداد مقصد و پیوست جایگزین را وارد کنید.",
   attachmentUploadFailed: "تغییر پیوست انجام نشد.",
+  fileTypeNotAllowed:
+    "این نوع فایل پذیرفته نمی‌شود. انواع مجاز: {types}.",
+  fileTooLarge: "حجم فایل زیاد است. حداکثر حجم مجاز {size} است.",
   cards: {
     project: "پروژه",
     procedure: "فرایند",

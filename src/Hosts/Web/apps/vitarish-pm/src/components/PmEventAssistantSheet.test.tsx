@@ -13,6 +13,17 @@ const confirmAction = vi.fn();
 const toSeaFileAttachment = vi.fn();
 const uploadMutation = vi.fn();
 const uploadMutationAsync = vi.fn();
+const useFileUploadPolicy = vi.fn();
+const checkFileForUpload = vi.fn();
+const fileUploadAccept = vi.fn();
+
+const uploadPolicy = {
+  maximumContentBytes: 512 * 1024 * 1024,
+  formats: [
+    { mediaType: "image/png", extensions: [".png"] },
+    { mediaType: "application/pdf", extensions: [".pdf"] },
+  ],
+};
 
 vi.mock("@heroui/react", () => ({
   Button: ({
@@ -54,18 +65,35 @@ vi.mock("@heroui-pro/react", () => {
   };
 });
 vi.mock("@vitarish/localization", () => ({
-  useLocalizedText: () => ({ t: (key: string) => key }),
+  formatFileSize: (bytes: number) => `${bytes} B`,
+  formatList: (values: readonly string[]) => values.join(", "),
+  useLocalizedText: () => ({ t: (key: string) => key, locale: "en" }),
 }));
 vi.mock("@vitarish/ui", () => ({ FaIcon: () => null }));
-vi.mock("@vitarish/sea", () => ({
-  toSeaFileAttachment: (...args: unknown[]) => toSeaFileAttachment(...args),
-  useCreateSeaFileAttachment: () => ({
-    mutate: uploadMutation,
-    mutateAsync: uploadMutationAsync,
-    isPending: false,
-    isError: false,
-  }),
-}));
+vi.mock("@vitarish/sea", () => {
+  class FileUploadRejectedError extends Error {
+    constructor(
+      readonly reason: "typeNotAllowed" | "tooLarge",
+      readonly maximumContentBytes: number,
+    ) {
+      super(reason);
+      this.name = "FileUploadRejectedError";
+    }
+  }
+  return {
+    toSeaFileAttachment: (...args: unknown[]) => toSeaFileAttachment(...args),
+    useCreateSeaFileAttachment: () => ({
+      mutate: uploadMutation,
+      mutateAsync: uploadMutationAsync,
+      isPending: false,
+      isError: false,
+    }),
+    useFileUploadPolicy: () => useFileUploadPolicy(),
+    checkFileForUpload: (...args: unknown[]) => checkFileForUpload(...args),
+    fileUploadAccept: (...args: unknown[]) => fileUploadAccept(...args),
+    FileUploadRejectedError,
+  };
+});
 vi.mock("@vitarish/intelligence", async () => {
   const actual = await vi.importActual<any>("@vitarish/intelligence");
   const AgentConversationComposer = ({
@@ -151,6 +179,11 @@ describe("PmEventAssistantSheet", () => {
     toSeaFileAttachment.mockReset();
     uploadMutation.mockReset();
     uploadMutationAsync.mockReset();
+    useFileUploadPolicy.mockReset().mockReturnValue({ data: uploadPolicy });
+    checkFileForUpload.mockReset().mockReturnValue(undefined);
+    fileUploadAccept
+      .mockReset()
+      .mockReturnValue(".png,image/png,.pdf,application/pdf");
   });
   it("submits only the current event as the conversation subject and renders server action review", async () => {
     seedAction();
@@ -251,6 +284,74 @@ describe("PmEventAssistantSheet", () => {
     renderSheet();
     await userEvent.click(screen.getByRole("button", { name: "pm.assistant" }));
     expect(screen.queryByText(/brief\.pdf/)).not.toBeInTheDocument();
+  });
+
+  it("limits the picker to the formats the upload policy accepts", async () => {
+    fileUploadAccept.mockReturnValue("image/png,.png,application/pdf,.pdf");
+    renderSheet();
+    await userEvent.click(screen.getByRole("button", { name: "pm.assistant" }));
+    expect(document.querySelector('input[type="file"]')).toHaveAttribute(
+      "accept",
+      "image/png,.png,application/pdf,.pdf",
+    );
+    expect(fileUploadAccept).toHaveBeenCalledWith(uploadPolicy);
+  });
+
+  it("drops a selected file the upload policy rejects and names the accepted types", async () => {
+    const { FileUploadRejectedError } = await import("@vitarish/sea");
+    checkFileForUpload.mockReturnValue(
+      new FileUploadRejectedError(
+        "typeNotAllowed",
+        uploadPolicy.maximumContentBytes,
+      ),
+    );
+    renderSheet();
+    await userEvent.click(screen.getByRole("button", { name: "pm.assistant" }));
+    const rejected = new File(["MZ"], "scan.exe");
+    fireEvent.change(document.querySelector('input[type="file"]')!, {
+      target: { files: [rejected] },
+    });
+    expect(checkFileForUpload).toHaveBeenCalledWith(uploadPolicy, rejected);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "pm.fileTypeNotAllowed",
+    );
+    expect(screen.queryByText(/scan\.exe/)).not.toBeInTheDocument();
+    expect(uploadMutationAsync).not.toHaveBeenCalled();
+  });
+
+  it("explains a server rejection and drops the file", async () => {
+    const { FileUploadRejectedError } = await import("@vitarish/sea");
+    toSeaFileAttachment.mockResolvedValue({
+      eventId: "event-1",
+      content: "file-1",
+      contentType: "image/png",
+      size: 4,
+      kind: 1,
+      fileName: "scan.png",
+    });
+    uploadMutationAsync.mockRejectedValue(
+      new FileUploadRejectedError("tooLarge", uploadPolicy.maximumContentBytes),
+    );
+    renderSheet();
+    await userEvent.click(screen.getByRole("button", { name: "pm.assistant" }));
+    const selected = new File(["png"], "scan.png", { type: "image/png" });
+    fireEvent.change(document.querySelector('input[type="file"]')!, {
+      target: { files: [selected] },
+    });
+    expect(await screen.findByText(/scan\.png/)).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("button", { name: "pm.assistantUpload" }),
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "pm.fileTooLarge",
+    );
+    expect(screen.queryByText(/scan\.png/)).not.toBeInTheDocument();
+    expect(toSeaFileAttachment).toHaveBeenCalledWith(
+      "event-1",
+      selected,
+      uploadPolicy,
+    );
+    expect(uploadMutationAsync).toHaveBeenCalledTimes(1);
   });
 
   it("requires confirmation before deleting the event conversation", async () => {

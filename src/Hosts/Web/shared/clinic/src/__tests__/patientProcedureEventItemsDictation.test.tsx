@@ -52,6 +52,11 @@ vi.mock(
   }),
 );
 
+vi.mock("@vitarish/sea", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@vitarish/sea")>()),
+  useFileUploadPolicy: () => ({ data: undefined }),
+}));
+
 vi.mock("@vitarish/intelligence", () => ({
   appendConfirmedTranscript: (current: string, segment: string) =>
     current ? `${current} ${segment.trim()}` : segment.trim(),

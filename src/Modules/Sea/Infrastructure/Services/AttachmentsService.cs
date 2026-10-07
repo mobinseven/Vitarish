@@ -35,6 +35,12 @@ internal sealed class AttachmentsService(
         AttachmentKind kind,
         CancellationToken cancellationToken)
     {
+        EntityResult newContent = Attachment.ValidateNewContent(kind, content);
+        if (newContent.IsFailure)
+        {
+            return EntityResult<AttachmentReadDto>.Failure([.. newContent.Errors]);
+        }
+
         EntityResult<Attachment> attachment = Attachment.Create(
             eventId, content, contentType, contentThumbnail, size, kind, fileName);
         return attachment.IsFailure
@@ -49,6 +55,12 @@ internal sealed class AttachmentsService(
         List<Attachment> entities = new(attachments.Count);
         foreach (AttachmentWriteDto item in attachments)
         {
+            EntityResult newContent = Attachment.ValidateNewContent(item.Kind, item.Content);
+            if (newContent.IsFailure)
+            {
+                return EntityResult<IReadOnlyList<AttachmentReadDto>>.Failure([.. newContent.Errors]);
+            }
+
             EntityResult<Attachment> attachment = Attachment.Create(
                 item.EventId,
                 item.Content,
@@ -76,7 +88,7 @@ internal sealed class AttachmentsService(
         CancellationToken cancellationToken)
     {
         Attachment? entity = (await GetEntityAsync(attachmentId, cancellationToken)).GetValueOrDefault();
-        if (entity is null || entity.EventId != eventId)
+        if (entity is null || entity.EventId != eventId || Attachment.ValidateNewContent(entity.Kind, content).IsFailure)
         {
             return null;
         }

@@ -260,7 +260,13 @@ export async function apiFetch<T>(urlOrConfig: string | OrvalConfig, options: Ap
     signal = config.signal ?? (options.signal as AbortSignal | undefined);
     responseType = options.responseType ?? "json";
     if (config.params) url = appendParams(url, config.params);
-    if (config.data !== undefined) body = JSON.stringify(config.data);
+    if (config.data instanceof FormData) {
+      // The browser must write the multipart boundary itself, so drop any bare multipart content type.
+      body = config.data;
+      baseHeaders.delete("Content-Type");
+    } else if (config.data !== undefined) {
+      body = JSON.stringify(config.data);
+    }
   } else {
     url = urlOrConfig;
     method = options.method?.toUpperCase() ?? "GET";
@@ -275,7 +281,7 @@ export async function apiFetch<T>(urlOrConfig: string | OrvalConfig, options: Ap
       responseType === "blob" ? "application/octet-stream" : responseType === "text" ? "text/plain" : "application/json",
     );
   }
-  if (!baseHeaders.has("Content-Type") && body) baseHeaders.set("Content-Type", "application/json");
+  if (!baseHeaders.has("Content-Type") && body && !(body instanceof FormData)) baseHeaders.set("Content-Type", "application/json");
   applyTenantHostHeader(baseHeaders);
   if (isUnsafeMethod(method)) applyRequestIdHeader(baseHeaders);
 

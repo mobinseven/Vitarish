@@ -80,6 +80,7 @@ vi.mock(
 vi.mock("@vitarish/sea", () => ({
   isStoredSeaAttachmentContent: () => false,
   loadStoredSeaAttachmentContent: vi.fn(),
+  useFileUploadPolicy: () => ({ data: undefined }),
   useSeaEventCapabilities: () => ({
     data: { canWrite: true },
     isLoading: false,

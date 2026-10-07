@@ -31,7 +31,7 @@ public sealed class FilesClient(HttpClient httpClient) : AuthenticatedModuleApiC
         if (!string.IsNullOrWhiteSpace(request.Tag)) form.Add(new StringContent(request.Tag), nameof(FileUploadRequest.Tag));
         StreamContent fileContent = new(content);
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(string.IsNullOrWhiteSpace(request.ContentType) ? "application/octet-stream" : request.ContentType);
-        form.Add(fileContent, "content", request.FileName);
+        form.Add(fileContent, FileUploadRequest.ContentFieldName, request.FileName);
 
         using HttpRequestMessage httpRequest = new(HttpMethod.Post, FilesApiRoutes.Base + FilesApiRoutes.Upload) { Content = form };
         ModuleApiClientResult<HttpResponseMessage> sent = await SendRawAsync(httpRequest, cancellationToken).ConfigureAwait(false);

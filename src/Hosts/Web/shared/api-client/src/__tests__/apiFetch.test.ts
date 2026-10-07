@@ -86,6 +86,22 @@ describe("apiFetch antiforgery", () => {
     expect(fetchMock.mock.calls[1][1].headers.get(tenantHostHeader)).toBe("tenant-a.example.test");
   });
 
+  it("sends generated multipart uploads as form data with the browser's boundary", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ headerName: "X-XSRF-TOKEN", requestToken: "token" }))
+      .mockResolvedValueOnce(jsonResponse({ ok: true }));
+    vi.stubGlobal("fetch", fetchMock);
+    const form = new FormData();
+    form.append("content", new Blob(["png"], { type: "image/png" }), "scan.png");
+
+    await apiFetch({ url: "/api/modules/files/upload", method: "POST", headers: { "Content-Type": "multipart/form-data" }, data: form });
+
+    const [, init] = fetchMock.mock.calls[1];
+    expect(init.body).toBe(form);
+    expect(init.headers.has("Content-Type")).toBe(false);
+  });
+
   it("shares one bootstrap call across concurrent unsafe requests", async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(jsonResponse({ requestToken: "shared" }))
