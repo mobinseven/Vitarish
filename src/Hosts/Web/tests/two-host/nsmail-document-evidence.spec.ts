@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
+import { clinicMessageCatalogs } from "../../shared/clinic/src/localization/catalogs";
 import { localeCookieName } from "../../shared/localization/src/localeCookie";
 import { usersMessageCatalogs } from "../../shared/users/src/localization/catalogs";
 import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
@@ -21,6 +22,30 @@ const platformAdminUsername = process.env.VITARISH_E2E_USER_MANAGEMENT_PLATFORM_
 const evidenceDirectory = resolve(process.env.VITARISH_NSMAIL_DOCUMENT_EVIDENCE_DIR ?? join(process.cwd(), "artifacts", "nsmail-document-evidence"));
 const usersText = usersMessageCatalogs.fa.users.management;
 const smtpCapturePath = process.env.VITARISH_E2E_SMTP_CAPTURE_PATH;
+const clinicText = clinicMessageCatalogs.fa.clinic;
+const procedureItemsText = clinicText.procedures.items;
+const newVisitText = clinicText.patient.quickActions.newVisit;
+const newVisitDialogText = clinicText.procedures.visits.dialog;
+// The alert is the localized refusal followed by the accepted types; matching its
+// opening proves the picker policy rejected the file.
+const rejectedTypeMessage = procedureItemsText.fileTypeNotAllowed.split("{types}")[0].trim();
+// E2eFixtureSeeder seeds this patient for tenant A; it has no procedure or event yet.
+const fixturePatientId = "2d7a3eb9-1d47-4c63-9a45-19d7e6a0fb18";
+// A real 1x1 PNG, so the allowlist's declared type, extension and leading signature all pass.
+const pngBytes = [
+  0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+  0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+  0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+  0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+  0x89, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x44, 0x41,
+  0x54, 0x78, 0xDA, 0x63, 0x64, 0x60, 0xF8, 0x5F,
+  0x0F, 0x00, 0x02, 0x87, 0x01, 0x80, 0xEB, 0x47,
+  0xBA, 0x92, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45,
+  0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+];
+// The leading MZ bytes of a Windows executable; the composer rejects the .exe
+// extension against the upload policy before anything is sent.
+const executableBytes = [0x4D, 0x5A, 0x90, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00];
 
 test.describe.configure({ mode: "serial" });
 
@@ -316,6 +341,64 @@ test.describe("NSMAIL document evidence", () => {
       await openPage(admin, `${platformOrigin}${PlatformRoutes.Audit}`, "admin-audit-latest");
     } finally {
       await adminContext.close();
+    }
+  });
+
+  test("clinic procedure attachment upload checks", async ({ browser }) => {
+    test.setTimeout(300_000);
+    const context = await persianContext(browser, "198.51.100.249");
+    const page = await context.newPage();
+    try {
+      await signIn(page, webOrigin, ownerUsername, ClinicRoutes.Login.Password);
+
+      // The fixture patient (seeded as its procedure project); opening the overview creates its
+      // "Visits" procedure, and the new-visit action creates the event the composer belongs to.
+      const patientId = fixturePatientId;
+      await page.goto(`${webOrigin}${ClinicRoutes.Clinic.Patients.Detail(patientId)}`, { waitUntil: "domcontentloaded" });
+      const newVisit = page.getByRole("button", { name: newVisitText }).first();
+      await expect(newVisit).toBeEnabled({ timeout: 30_000 });
+      await newVisit.click();
+
+      const dialog = page.getByRole("dialog");
+      await expect(dialog.getByRole("heading", { name: newVisitDialogText.title })).toBeVisible({ timeout: 30_000 });
+      const [eventCreation] = await Promise.all([
+        page.waitForResponse((candidate) => candidate.request().method() === "POST" && candidate.url().endsWith("/api/modules/sea/events/after")),
+        dialog.getByRole("button", { name: newVisitDialogText.create }).click(),
+      ]);
+      expect(eventCreation.status()).toBe(200);
+      const createdEvent = (await eventCreation.json()) as { entityId?: string };
+      expect(createdEvent.entityId).toEqual(expect.any(String));
+      await expect(page).toHaveURL(new RegExp(`/patients/${patientId}/procedures/[^/]+/events/[^/]+$`), { timeout: 30_000 });
+
+      // The composer mounts only when the event grants write, and its picker filter
+      // comes from the server's upload policy, so the accept attribute proves both.
+      const fileInput = page.locator('input[type="file"]');
+      await expect(fileInput).toHaveAttribute("accept", /image\/png/, { timeout: 30_000 });
+
+      await fileInput.setInputFiles({
+        name: "setup.exe",
+        mimeType: "application/x-msdownload",
+        buffer: Buffer.from(executableBytes),
+      });
+      const rejectionAlert = page.getByRole("alert").filter({ hasText: rejectedTypeMessage });
+      await expect(rejectionAlert).toBeVisible({ timeout: 30_000 });
+      await rejectionAlert.scrollIntoViewIfNeeded();
+      await capture(page, "upload-type-rejected", false);
+
+      await fileInput.setInputFiles({
+        name: "scan.png",
+        mimeType: "image/png",
+        buffer: Buffer.from(pngBytes),
+      });
+      const [upload] = await Promise.all([
+        page.waitForResponse((candidate) => candidate.request().method() === "POST" && candidate.url().endsWith("/api/modules/files/upload")),
+        page.getByRole("button", { name: procedureItemsText.send, exact: true }).click(),
+      ]);
+      expect(upload.status()).toBe(200);
+      await expect(page.getByRole("button", { name: `${procedureItemsText.preview} scan.png` })).toBeVisible({ timeout: 30_000 });
+      await capture(page, "upload-accepted");
+    } finally {
+      await context.close();
     }
   });
 });

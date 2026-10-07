@@ -15,6 +15,7 @@ using Vitarish.Communications.Domain.Enums;
 using Vitarish.Communications.Infrastructure.Data;
 using Vitarish.Clinic.Domain.Models;
 using Vitarish.Clinic.Infrastructure.Data;
+using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Files.Domain.Entities;
 using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Application.Abstractions;
@@ -207,6 +208,21 @@ internal static class E2eFixtureSeeder
                 CreatedAt = DateTime.UtcNow
             });
             _ = await clinic.SaveChangesAsync(cancellationToken);
+        }
+
+        // In the product a patient is a procedure project; the clinic patient view is derived from it.
+        // The in-memory E2E store cannot refresh that view, so seed the project the view row stands for.
+        SeaDbContext sea = scope.ServiceProvider.GetRequiredService<SeaDbContext>();
+        if (!await sea.Projects.AnyAsync(project => project.Id == patientId, cancellationToken))
+        {
+            _ = sea.Projects.Add(new Vitarish.Sea.Domain.Entities.Project
+            {
+                Id = patientId,
+                Name = PatientName,
+                IdentificationCode = "E2E-0001",
+                Template = false
+            });
+            _ = await sea.SaveChangesAsync(cancellationToken);
         }
 
         DateOnly today = DateOnly.FromDateTime(DateTime.Now);
