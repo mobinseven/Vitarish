@@ -21,19 +21,21 @@ internal static class E2eAuditEvidenceEndpoints
     private const string StorageThresholdCheckRoute = "/storage-threshold/check";
     private const string IntegrityVerificationRoute = "/files/{fileId:guid}/integrity-verification";
     private const string IntegrityTamperRoute = "/files/{fileId:guid}/tamper";
+    private const string StorageThresholdCheckOperation = "E2eAuditEvidenceCheckStorageThreshold";
+    private const string IntegrityVerificationOperation = "E2eAuditEvidenceVerifyFileIntegrity";
+    private const string IntegrityTamperOperation = "E2eAuditEvidenceTamperStoredFile";
 
     public static IEndpointRouteBuilder MapE2eAuditEvidenceEndpoints(this IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
         RouteGroupBuilder group = endpoints
-            .MapGroup(BaseRoute)
-            .RequireAuthorization(IdentityDefinitions.PlatformAdmin)
-            .WithMetadata(new ModuleEndpointAntiforgeryMetadata());
+            .MapProtectedModuleGroup(BaseRoute, requireTenantAccess: false)
+            .RequireAuthorization(IdentityDefinitions.PlatformAdmin);
 
-        _ = group.MapPost(StorageThresholdCheckRoute, CheckStorageAboveThresholdAsync);
-        _ = group.MapPost(IntegrityVerificationRoute, VerifyFileIntegrityAsync);
-        _ = group.MapPost(IntegrityTamperRoute, TamperFileObjectAsync);
+        _ = group.MapModulePost(StorageThresholdCheckRoute, CheckStorageAboveThresholdAsync, StorageThresholdCheckOperation, successStatusCode: StatusCodes.Status204NoContent);
+        _ = group.MapModulePost(IntegrityVerificationRoute, VerifyFileIntegrityAsync, IntegrityVerificationOperation, successStatusCode: StatusCodes.Status204NoContent);
+        _ = group.MapModulePost(IntegrityTamperRoute, TamperFileObjectAsync, IntegrityTamperOperation, successStatusCode: StatusCodes.Status204NoContent);
         return endpoints;
     }
 
