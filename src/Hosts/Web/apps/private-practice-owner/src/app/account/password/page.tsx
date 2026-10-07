@@ -8,6 +8,7 @@ import {
   AccountSurface,
   AccountWidget,
 } from "@/components/account/AccountSurface";
+import { ApiError } from "@vitarish/api-client";
 import { useAccountPasswordChange } from "@vitarish/account";
 import { StatusAlert } from "@vitarish/ui";
 import { localizeApiError, useLocalizedText } from "@/localization";
@@ -33,18 +34,17 @@ export default function PasswordChangePage() {
         return;
       }
 
-      if (newPassword.length < 6) {
-        setError(t("account.password.tooShort"));
-        return;
-      }
-
       try {
         await changePassword(currentPassword, newPassword);
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
       } catch (err: unknown) {
-        setError(localizeApiError(err, t));
+        // The server owns the password policy; a 400 here is its policy rejection
+        // (a wrong current password is a 401).
+        setError(err instanceof ApiError && err.status === 400
+          ? t("account.password.policyRejected")
+          : localizeApiError(err, t));
       }
     },
     [
@@ -70,7 +70,7 @@ export default function PasswordChangePage() {
           />
         )}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <TextField name="currentPassword" type="password">
+          <TextField name="currentPassword" type="password" isRequired>
             <Label>{t("account.password.currentPassword")}</Label>
             <Input
               value={currentPassword}

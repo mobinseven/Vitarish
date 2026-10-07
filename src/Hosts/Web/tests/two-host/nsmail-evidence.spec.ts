@@ -229,6 +229,7 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
 
     await page.goto(Routes.Account.Password, { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Change Password", exact: true })).toBeVisible({ timeout: 30_000 });
+    await page.locator('input[name="currentPassword"]').fill(password!);
     await page.locator('input[name="newPassword"]').fill("short");
     await page.locator('input[name="confirmPassword"]').fill("different");
     await page.getByRole("button", { name: "Change Password" }).click();

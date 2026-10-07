@@ -10,7 +10,7 @@ import { authenticationLogoutPost } from "../../shared/auth/src/api/generated/au
 import type { SecurityAuthenticationPolicyDto } from "../../shared/auth/src/api/generated/authentication/model";
 import { resetAntiforgeryToken, TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { UsersCommandErrorKind } from "../../shared/auth/src/users";
-import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../../shared/security/src/localization";
+import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizeSecurityAuditOutcome } from "../../shared/security/src/localization";
 import {
   twoHostE2eApiOriginEnvironmentKey,
   twoHostE2eProofScreenshotEnvironmentKey,
@@ -139,7 +139,7 @@ async function reviewUserAuditEvent(page: Page, category: string, eventName: str
   await expect(row).toBeVisible({ timeout: 30_000 });
   await expect(row.getByText(localizePlatformAuditEvent("en", eventName, eventName), { exact: true })).toBeVisible();
   await expect(row.getByText(operation, { exact: true })).toBeVisible();
-  await expect(row.getByText("succeeded", { exact: true })).toBeVisible();
+  await expect(row.getByText(localizeSecurityAuditOutcome("en", "succeeded", "succeeded"), { exact: true })).toBeVisible();
 }
 
 test("authenticated clinic owner manages tenant staff through the shared surface", async ({ page }) => {

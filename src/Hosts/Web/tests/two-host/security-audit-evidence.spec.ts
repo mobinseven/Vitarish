@@ -2,11 +2,13 @@ import { expect, test, type APIRequestContext, type Page } from "@playwright/tes
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { twoHostE2eApiOriginEnvironmentKey, twoHostE2eAuditEvidenceDirectoryEnvironmentKey } from "../../scripts/two-host-e2e-artifacts.mjs";
+import { TENANT_HOST_HEADER } from "../../shared/api-client/src/apiFetch";
 import { Routes as ClinicRoutes } from "../../apps/private-practice-owner/src/app/routes";
 import { Routes as PlatformRoutes } from "../../apps/platform-admin/src/app/routes";
 import {
   localizePlatformAuditCategory,
   localizePlatformAuditEvent,
+  localizeSecurityAuditOutcome,
 } from "../../shared/security/src/localization";
 
 // Main itself, for API-boundary checks made without the browser.
@@ -190,6 +192,17 @@ async function uploadEvidenceFile(page: Page): Promise<{ status: number; body: u
   }, { origin: browserApiOrigin });
 }
 
+async function downloadEvidenceFile(page: Page, fileId: string): Promise<number> {
+  return page.evaluate(async ({ origin, fileId, tenantHostHeader }) => {
+    const response = await fetch(`${origin}/api/modules/files/${fileId}/content`, {
+      credentials: "include",
+      headers: { [tenantHostHeader]: window.location.host },
+    });
+    await response.arrayBuffer();
+    return response.status;
+  }, { origin: browserApiOrigin, fileId, tenantHostHeader: TENANT_HOST_HEADER });
+}
+
 async function captureAuditEvidence(page: Page, event: AuditEventExpectation, filename: string): Promise<void> {
   const visibleCategory = localizePlatformAuditCategory(locale, event.category, event.category);
   const visibleEvent = localizePlatformAuditEvent(locale, event.name, event.name);
@@ -226,7 +239,7 @@ async function captureAuditEvidence(page: Page, event: AuditEventExpectation, fi
   await expect(firstRow).toBeVisible({ timeout: 30_000 });
   await expect(firstRow.getByText(visibleEvent, { exact: true }).first()).toBeVisible();
   await expect(firstRow.getByText(event.operation, { exact: true }).last()).toBeVisible();
-  await expect(firstRow.getByText(event.outcome, { exact: true })).toBeVisible();
+  await expect(firstRow.getByText(localizeSecurityAuditOutcome(locale, event.outcome, event.outcome), { exact: true })).toBeVisible();
 
   mkdirSync(evidenceDirectory, { recursive: true });
   await page.screenshot({ path: join(evidenceDirectory, filename), fullPage: true });
@@ -356,6 +369,11 @@ test("real actions create visible platform security-audit evidence", async ({ pa
 
     const uploaded = await uploadEvidenceFile(page);
     expect(uploaded.status).toBe(200);
+    // Information export is audited where user data leaves the system: the file download.
+    // Audit review and its CSV are queries and record nothing.
+    const uploadedFileId = (uploaded.body as { file?: { id?: string } } | null)?.file?.id;
+    expect(uploadedFileId).toBeTruthy();
+    expect(await downloadEvidenceFile(page, uploadedFileId!)).toBe(200);
 
     const accessHistory = await page.evaluate(async (origin) => {
       const response = await fetch(`${origin}/api/modules/authentication/access-history`, { credentials: "include" });

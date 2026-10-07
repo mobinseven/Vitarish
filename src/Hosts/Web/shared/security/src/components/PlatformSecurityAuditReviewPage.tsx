@@ -6,7 +6,7 @@ import { ApiError } from "@vitarish/api-client";
 import { dateValueToIsoDate, formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, toLocalizedDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
 import { FaIcon, LoadingSpinner  } from "@vitarish/ui";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { localizePlatformAuditCategory, localizePlatformAuditEvent } from "../localization";
+import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizeSecurityAuditOutcome } from "../localization";
 import {
   auditPlatformSecurityEventsExport,
   useAuditPlatformSecurityEventCatalogGet,
@@ -536,7 +536,7 @@ export function PlatformSecurityAuditReviewPage({
       header: t("security.platformAudit.outcome"),
       accessorKey: "outcome",
       minWidth: 110,
-       cell: (item) => <Chip color={auditOutcomeColor(item.outcome)} size="sm" variant="soft"><Chip.Label>{displayValue(item.outcome, t("security.platformAudit.notAvailable"))}</Chip.Label></Chip>,
+       cell: (item) => <Chip color={auditOutcomeColor(item.outcome)} size="sm" variant="soft"><Chip.Label>{localizeSecurityAuditOutcome(locale, item.outcome, t("security.platformAudit.notAvailable"))}</Chip.Label></Chip>,
     },
     {
       id: "sourceIpAddress",
@@ -863,7 +863,7 @@ function PlatformAuditDetailSheet({
                     <DetailField label={t("security.platformAudit.event")} value={localizePlatformAuditEvent(locale, event.eventName, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.category")} value={localizePlatformAuditCategory(locale, event.eventCategory, t("security.platformAudit.uncatalogued"))} />
                     <DetailField label={t("security.platformAudit.operation")} value={displayValue(event.operation, t("security.platformAudit.notAvailable"))} />
-                    <DetailField label={t("security.platformAudit.outcome")} value={displayValue(event.outcome, t("security.platformAudit.notAvailable"))} />
+                    <DetailField label={t("security.platformAudit.outcome")} value={localizeSecurityAuditOutcome(locale, event.outcome, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.actorKind")} value={displayValue(event.actorKind, t("security.platformAudit.notAvailable"))} />
                     <DetailField label={t("security.platformAudit.actor")} value={displayValue(event.actorId, t("security.platformAudit.unknownActor"))} />
                     <DetailField label={t("security.platformAudit.subject")} value={displayValue(event.subjectId, t("security.platformAudit.notAvailable"))} />
