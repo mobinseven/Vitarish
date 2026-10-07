@@ -47,7 +47,15 @@ internal static class E2eAuditEvidenceEndpoints
         simulation.ThresholdExceeded = true;
         try
         {
-            await monitor.CheckOnceAsync(cancellationToken).ConfigureAwait(false);
+            // The monitor normally runs on its own timer with no ambient request; do not let this
+            // request's HTTP context flow into its background scope.
+            Task check;
+            using (ExecutionContext.SuppressFlow())
+            {
+                check = Task.Run(() => monitor.CheckOnceAsync(cancellationToken), cancellationToken);
+            }
+
+            await check.ConfigureAwait(false);
         }
         finally
         {
