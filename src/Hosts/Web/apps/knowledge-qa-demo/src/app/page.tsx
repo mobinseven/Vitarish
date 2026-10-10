@@ -1,3 +1,5 @@
+"use client";
+
 import { Surface } from "@heroui/react";
 import Link from "next/link";
 import { Routes } from "@/app/routes";

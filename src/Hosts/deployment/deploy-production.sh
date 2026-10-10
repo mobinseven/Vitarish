@@ -35,7 +35,7 @@ from pathlib import Path
 plan = json.loads(Path(sys.argv[1]).read_text())
 services = plan.get('services')
 images = plan.get('images')
-allowed = {'main', 'private-practice-owner', 'patients', 'platform-admin', 'pm', 'knowledge-qa', 'landing', 'agent-runtime', 'caddy'}
+allowed = {'main', 'private-practice-owner', 'patients', 'platform-admin', 'pm', 'landing', 'agent-runtime', 'caddy'}
 if (plan.get('commit') != sys.argv[3] or plan.get('runId') != sys.argv[4] or
     not isinstance(services, list) or not services or len(services) != len(set(services)) or not set(services) <= allowed or
     not isinstance(images, list) or not re.fullmatch(r'/[A-Za-z0-9/_-]+', plan.get('readinessPath', ''))):
@@ -195,7 +195,7 @@ probe_route() {
   rm -f "$headers"
 }
 if selected caddy || ((${#services[@]} == 9)); then
-  for variable in VITARISH_PRODUCTION_PUBLIC_HOST VITARISH_PRODUCTION_PATIENTS_HOST VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST VITARISH_PRODUCTION_PM_HOST VITARISH_PRODUCTION_KNOWLEDGE_QA_HOST VITARISH_PRODUCTION_LANDING_HOST; do probe_route "$variable"; done
+  for variable in VITARISH_PRODUCTION_PUBLIC_HOST VITARISH_PRODUCTION_PATIENTS_HOST VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST VITARISH_PRODUCTION_PM_HOST VITARISH_PRODUCTION_LANDING_HOST; do probe_route "$variable"; done
 else
   for service in "${attempted_apps[@]}"; do
     case $service in
@@ -203,7 +203,6 @@ else
       patients) probe_route VITARISH_PRODUCTION_PATIENTS_HOST ;;
       platform-admin) probe_route VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST ;;
       pm) probe_route VITARISH_PRODUCTION_PM_HOST ;;
-      knowledge-qa) probe_route VITARISH_PRODUCTION_KNOWLEDGE_QA_HOST ;;
       landing) probe_route VITARISH_PRODUCTION_LANDING_HOST ;;
     esac
   done

@@ -40,8 +40,8 @@ test("workflow path rules exclude classified source changes before selecting the
   assert.equal(matchesUnknownSource(ownerPath), false);
   assert.equal(matchesUnknownSource(unknownPath), true);
   assert.deepEqual(selectProductionMatrix("push", { main: true, web_all: true, unknown_source: matchesUnknownSource(mainPath) }).images,
-    ["main", "private-practice-owner", "patients", "platform-admin", "pm", "knowledge-qa", "landing", "agent-runtime"]);
-  assert.equal(selectProductionMatrix("push", { unknown_source: matchesUnknownSource(unknownPath) }).services.length, 9);
+    ["main", "private-practice-owner", "patients", "platform-admin", "pm", "landing", "agent-runtime"]);
+  assert.equal(selectProductionMatrix("push", { unknown_source: matchesUnknownSource(unknownPath) }).services.length, 8);
 });
 
 test("configuration-only deployments remain eligible when publishing is skipped", () => {
@@ -63,7 +63,7 @@ test("deployment script changes select every production service without publishi
   assert.deepEqual(selected.images, []);
   assert.deepEqual(selected.services, [
     "main", "private-practice-owner", "patients", "platform-admin", "pm",
-    "knowledge-qa", "landing", "agent-runtime", "caddy",
+    "landing", "agent-runtime", "caddy",
   ]);
 });
 
@@ -107,8 +107,9 @@ test("an isolated Web app change selects only that app's tests, image, and servi
 test("a shared authentication change selects every consuming app with shared auth checks", () => {
   const selected = selectProductionMatrix("push", { web_auth: true, web_landing: true });
   assert.equal(selected.web.length, authConsumerWorkspaces.length + 1);
-  assert.equal(selected.images.length, authConsumerWorkspaces.length + 1);
-  assert.equal(selected.services.length, authConsumerWorkspaces.length + 1);
+  // The knowledge QA demo is checked but never deployed.
+  assert.equal(selected.images.length, authConsumerWorkspaces.length);
+  assert.equal(selected.services.length, authConsumerWorkspaces.length);
   assert.deepEqual(selected.web.map(({ workspace }) => workspace).sort(), [...authConsumerWorkspaces, "vitarish-landing"].sort());
   assert.match(workflow, /authentication_web:[\s\S]*?env:\r?\n          HEROUI_AUTH_TOKEN: \$\{\{ secrets\.HEROUI_AUTH_TOKEN \}\}/);
   assert.match(workflow, /npm ci/);
@@ -119,7 +120,7 @@ test("a shared authentication change selects every consuming app with shared aut
 test("an authentication-only change selects every consuming app and shared auth", () => {
   const selected = selectProductionMatrix("push", { web_auth: true });
   assert.equal(selected.web.length, 5);
-  assert.equal(selected.images.length, 5);
+  assert.equal(selected.images.length, 4);
 });
 
 test("a shared Web change selects all Web consumers", () => {
@@ -127,14 +128,14 @@ test("a shared Web change selects all Web consumers", () => {
   assert.equal(selected.web.length, 7);
   assert.equal(selected.images.includes("main"), false);
   assert.equal(selected.images.includes("caddy"), false);
-  assert.equal(selected.images.length, 7);
+  assert.equal(selected.images.length, 6);
 });
 
 test("an API contract change selects Main and every Web consumer", () => {
   const selected = selectProductionMatrix("pull_request", { dotnet: true, main: true, web_all: true });
   assert.equal(selected.web.length, 7);
   assert.equal(selected.images[0], "main");
-  assert.equal(selected.images.length, 8);
+  assert.equal(selected.images.length, 7);
 });
 
 test("a Caddy change selects only the Caddy image and ingress service", () => {
@@ -157,7 +158,7 @@ test("an unclassified source change falls back to the broad matrix", () => {
   assert.equal(selected.web.length, 7);
   assert.equal(selected.images.includes("main"), true);
   assert.equal(selected.images.includes("caddy"), true);
-  assert.equal(selected.services.length, 9);
+  assert.equal(selected.services.length, 8);
 });
 
 test("a Compose change updates service configuration without publishing new images", () => {
@@ -165,7 +166,7 @@ test("a Compose change updates service configuration without publishing new imag
   assert.equal(selected.images.length, 0);
   assert.deepEqual(selected.services, [
     "main", "private-practice-owner", "patients", "platform-admin", "pm",
-    "knowledge-qa", "landing", "agent-runtime", "caddy",
+    "landing", "agent-runtime", "caddy",
   ]);
 });
 
@@ -180,8 +181,8 @@ test("manual dispatch selects the full test suite without requesting a deploy", 
   const selected = selectProductionMatrix("workflow_dispatch", {});
   assert.equal(selected.full_suite, true);
   assert.equal(selected.web.length, 7);
-  assert.equal(selected.images.length, 9);
-  assert.equal(selected.services.length, 9);
+  assert.equal(selected.images.length, 8);
+  assert.equal(selected.services.length, 8);
 });
 
 test("workflow and policy edits run workflow checks without product matrices", () => {
@@ -189,4 +190,14 @@ test("workflow and policy edits run workflow checks without product matrices", (
   assert.deepEqual(selected.web, []);
   assert.deepEqual(selected.images, []);
   assert.deepEqual(selected.services, []);
+});
+
+test("the knowledge QA demo is checked in CI but never published or deployed", () => {
+  const selected = selectProductionMatrix("push", { web_qa: true });
+  assert.deepEqual(selected.web.map(({ workspace }) => workspace), ["knowledge-qa-demo"]);
+  assert.deepEqual(selected.images, []);
+  assert.deepEqual(selected.services, []);
+  const broad = selectProductionMatrix("workflow_dispatch", {});
+  assert.equal(broad.images.includes("knowledge-qa"), false);
+  assert.equal(broad.services.includes("knowledge-qa"), false);
 });
