@@ -13,7 +13,7 @@ import {
   TextField,
 } from "@heroui/react";
 import { EmptyState } from "@heroui-pro/react";
-import { FaIcon, HeaderIcon } from "@vitarish/ui";
+import { FaIcon, HeaderIcon, contextColorClassName } from "@vitarish/ui";
 import { useLocalizedText } from "../../localization";
 import {
   medicalGetAvailableProviders,
@@ -243,9 +243,9 @@ export function PrescriptionTemplateWorkspace() {
     >
       <header className="flex items-end justify-between gap-4">
         <div className="flex items-center gap-4">
-          <HeaderIcon icon="prescription" level="page" />
+          <HeaderIcon context="prescription" icon="prescription" level="page" />
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[.16em] text-accent">
+            <p className={`${contextColorClassName("prescription")} text-xs font-semibold uppercase tracking-[.16em] text-tint-soft-foreground`}>
               {t("prescriptionTemplates.settingsLabel")}
             </p>
             <h1 className="mt-2 text-3xl font-semibold">

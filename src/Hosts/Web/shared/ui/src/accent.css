@@ -93,33 +93,19 @@
   }
 
   /*
-   * Sign-in methods: each method keeps one hue so a returning user recognizes
-   * their usual choice by color before reading. No semantic theme role fits:
-   * success, warning, and danger would signal status, and the theme has a
-   * single accent. Tiles are solid mid-tone hues that hold contrast with a white
-   * icon in both modes; the hover tint mixes the hue with the host surface.
+   * Sign-in methods: each method keeps one identity color (see hue-roles.css)
+   * so a returning user recognizes their usual choice by color before reading.
+   * The hover tint mixes the hue with the host surface.
    * Applied through signInMethodClassName().
    */
-  .vitarish-sign-in-method--password {
-    --sign-in-method: oklch(56% 0.17 258);
-  }
-
-  .vitarish-sign-in-method--phone {
-    --sign-in-method: oklch(56% 0.14 150);
-  }
-
-  .vitarish-sign-in-method--email {
-    --sign-in-method: oklch(55% 0.19 300);
-  }
-
-  .vitarish-sign-in-method--passkey {
-    --sign-in-method: oklch(60% 0.17 45);
+  [class*="vitarish-sign-in-method--"] {
+    --sign-in-method: var(--tint);
   }
 
   [class*="vitarish-sign-in-method--"] .vitarish-sign-in-method__tile {
     background-color: var(--sign-in-method);
     box-shadow: 0 4px 10px color-mix(in oklab, var(--sign-in-method) 28%, transparent);
-    color: white;
+    color: var(--tint-foreground);
   }
 
   @media (hover: hover) {

@@ -53,7 +53,7 @@ export function AdvancedSearchForm({
     <Surface className="flex flex-col gap-6 rounded-3xl p-6">
       <div className="flex flex-col items-start gap-1">
         <div className="flex items-center gap-3">
-          <HeaderIcon icon="magnifying-glass" />
+          <HeaderIcon context="patient-record" icon="magnifying-glass" />
           <div className="min-w-0">
             <h2 className="text-lg font-semibold text-foreground">{t("clinic.patient.advancedSearch.title")}</h2>
           </div>

@@ -32,7 +32,7 @@ export function PatientProcedureActions({
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-4">
-            <HeaderIcon icon="stethoscope" level="page" />
+            <HeaderIcon context="visit" icon="stethoscope" level="page" />
             <div className="min-w-0">
               <h1 className="text-2xl font-bold">{procedure.name}</h1>
             </div>

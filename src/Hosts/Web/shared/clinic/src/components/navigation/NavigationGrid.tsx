@@ -1,7 +1,7 @@
 "use client";
 
 import { ItemCard } from "@heroui-pro/react";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, contextColorClassName, type BusinessContext } from "@vitarish/ui";
 import type { NavigationIntent } from "../../navigation";
 
 export interface NavigationItem {
@@ -9,6 +9,7 @@ export interface NavigationItem {
   description: string;
   intent: NavigationIntent;
   icon: string;
+  context: BusinessContext;
 }
 
 interface NavigationGridProps {
@@ -28,13 +29,13 @@ export function NavigationGrid({ items, onNavigate }: NavigationGridProps) {
           onClick={() => onNavigate?.(item.intent)}
         >
           <ItemCard
-            className="h-full bg-surface transition-colors hover:bg-accent-soft"
+            className={`${contextColorClassName(item.context)} h-full bg-surface transition-colors hover:bg-tint-soft`}
           >
-            <ItemCard.Icon className="bg-accent-soft">
+            <ItemCard.Icon className="bg-tint-soft">
               <FaIcon
                 icon={item.icon}
                 aria-hidden="true"
-                className="text-lg text-accent"
+                className="text-lg text-tint-soft-foreground"
               />
             </ItemCard.Icon>
             <ItemCard.Content>

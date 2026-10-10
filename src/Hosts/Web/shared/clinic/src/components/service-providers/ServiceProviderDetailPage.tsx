@@ -49,7 +49,7 @@ export function ServiceProviderDetailPage({
             {t("common.actions.previous")}
           </Button>
           <div className="flex items-center gap-4">
-            <HeaderIcon icon="user-doctor" level="page" />
+            <HeaderIcon context="catalog" icon="user-doctor" level="page" />
             <div className="min-w-0">
               <h1 className="text-2xl font-bold">
                 {editing ? t("clinic.serviceProviders.editTitle") : item.name}

@@ -9,7 +9,7 @@ import {
   TextField,
 } from "@heroui/react";
 import { useEffect, useState } from "react";
-import { FaIcon, actionRoleClassName } from "@vitarish/ui";
+import { FaIcon, actionRoleClassName, contextColorClassName } from "@vitarish/ui";
 import { useCreatePatientProcedureEvent } from "../../../hooks/patients/procedures/usePatientProcedureEventMutations";
 import { formatDate, useLocalizedText } from "../../../localization";
 
@@ -68,7 +68,7 @@ export function PatientVisitEventDialog({
         <Modal.Dialog>
           <Modal.CloseTrigger />
           <Modal.Header>
-            <Modal.Icon className="bg-accent-soft text-accent-soft-foreground">
+            <Modal.Icon className={`${contextColorClassName("visit")} bg-tint-soft text-tint-soft-foreground`}>
               <FaIcon icon="calendar-plus" aria-hidden="true" />
             </Modal.Icon>
             <Modal.Heading>

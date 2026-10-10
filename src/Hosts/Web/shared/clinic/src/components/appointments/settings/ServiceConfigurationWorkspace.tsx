@@ -10,6 +10,8 @@ import {
   LoadingStateSurface as ClinicLoadingState,
   HeaderIcon,
   actionRoleClassName,
+  contextColorClassName,
+  type BusinessContext,
 } from "@vitarish/ui";
 import type { NavigationIntent } from "../../../navigation";
 import { formatNumber, useLocalizedText } from "../../../localization/index";
@@ -105,7 +107,7 @@ export function ServiceConfigurationWorkspace({
     <section className="flex flex-col gap-6" aria-labelledby="workspace-title">
       <header>
         <div className="flex items-center gap-4">
-          <HeaderIcon icon="sliders" level="page" />
+          <HeaderIcon context="scheduling" icon="sliders" level="page" />
           <div className="min-w-0">
             <h1 id="workspace-title" className="text-2xl font-bold">
               {t("clinic.appointments.settings.title")}
@@ -122,6 +124,7 @@ export function ServiceConfigurationWorkspace({
         <SummaryCard
           count={summary.types}
           icon="tags"
+          context="catalog"
           label={t("clinic.serviceTypes.title")}
           isActive={activeSection === "types"}
           onClick={() => setActiveSection("types")}
@@ -129,6 +132,7 @@ export function ServiceConfigurationWorkspace({
         <SummaryCard
           count={summary.services}
           icon="briefcase-medical"
+          context="catalog"
           label={t("clinic.services.title")}
           isActive={activeSection === "services"}
           onClick={() => setActiveSection("services")}
@@ -136,6 +140,7 @@ export function ServiceConfigurationWorkspace({
         <SummaryCard
           count={summary.providers}
           icon="user-doctor"
+          context="catalog"
           label={t("clinic.serviceProviders.title")}
           isActive={activeSection === "providers"}
           onClick={() => setActiveSection("providers")}
@@ -143,6 +148,7 @@ export function ServiceConfigurationWorkspace({
         <SummaryCard
           count={summary.shifts}
           icon="clock"
+          context="scheduling"
           label={t("clinic.appointments.shifts.title")}
           isActive={activeSection === "shifts"}
           onClick={() => setActiveSection("shifts")}
@@ -244,12 +250,14 @@ export function ServiceConfigurationWorkspace({
 
 // Summary card component
 function SummaryCard({
+  context,
   count,
   icon,
   label,
   isActive,
   onClick,
 }: {
+  context: BusinessContext;
   count: number;
   icon: string;
   label: string;
@@ -265,10 +273,10 @@ function SummaryCard({
       className={`flex items-center gap-4 rounded-2xl p-4 text-start transition-colors ${
         isActive
           ? "bg-accent text-accent-foreground shadow-lg shadow-accent/30"
-          : "bg-surface hover:bg-accent-soft"
+          : `${contextColorClassName(context)} bg-surface hover:bg-tint-soft`
       }`}
     >
-      <HeaderIcon icon={icon} tone={isActive ? "inverse" : "accent"} />
+      {isActive ? <HeaderIcon icon={icon} tone="inverse" /> : <HeaderIcon icon={icon} context={context} />}
       <span className="flex flex-col">
         <span className="text-2xl font-bold tabular-nums">{formatNumber(count, locale)}</span>
         <span className={`text-sm ${isActive ? "text-accent-foreground/85" : "text-muted"}`}>{label}</span>
@@ -321,7 +329,7 @@ function ServiceTypesSection({
     <Surface className="flex flex-col gap-6 rounded-3xl p-6">
       <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <HeaderIcon icon="tags" />
+          <HeaderIcon context="catalog" icon="tags" />
           <div className="min-w-0">
             <h2 className="text-lg font-semibold text-foreground">{t("clinic.serviceTypes.title")}</h2>
           </div>
@@ -460,7 +468,7 @@ function ServicesSection({
     <Surface className="flex flex-col gap-6 rounded-3xl p-6">
       <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <HeaderIcon icon="briefcase-medical" />
+          <HeaderIcon context="catalog" icon="briefcase-medical" />
           <div className="min-w-0">
             <h2 className="text-lg font-semibold text-foreground">{t("clinic.services.title")}</h2>
           </div>
@@ -605,7 +613,7 @@ function ProvidersSection({
     <Surface className="flex flex-col gap-6 rounded-3xl p-6">
       <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <HeaderIcon icon="user-doctor" />
+          <HeaderIcon context="catalog" icon="user-doctor" />
           <div className="min-w-0">
             <h2 className="text-lg font-semibold text-foreground">{t("clinic.serviceProviders.title")}</h2>
           </div>
@@ -754,7 +762,7 @@ function ShiftsSection({
     <Surface className="flex flex-col gap-6 rounded-3xl p-6">
       <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <HeaderIcon icon="clock" />
+          <HeaderIcon context="scheduling" icon="clock" />
           <div className="min-w-0">
             <h2 className="text-lg font-semibold text-foreground">{t("clinic.appointments.shifts.title")}</h2>
           </div>

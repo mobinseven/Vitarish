@@ -48,7 +48,7 @@ export function PatientEditPage({
         <Card.Content>
           <header>
             <div className="flex items-center gap-4">
-              <HeaderIcon icon="user-pen" level="page" />
+              <HeaderIcon context="patient-record" icon="user-pen" level="page" />
               <div className="min-w-0">
                 <h1 id="clinic-patient-edit-title" className="text-2xl font-bold">
                   {t("clinic.patient.edit.title")}

@@ -75,7 +75,7 @@ export { actionRoleClassName } from "./actions/actionRole";
 export type { ActionRole } from "./actions/actionRole";
 export { businessContexts, contextColorClassName } from "./color/businessContext";
 export type { BusinessContext } from "./color/businessContext";
-export { identityColorClassName, identitySlots } from "./color/identityColor";
+export { identityColorClassName, identitySlotForId, identitySlots } from "./color/identityColor";
 export type { IdentitySlot } from "./color/identityColor";
 export { HeaderIcon } from "./icons/HeaderIcon";
 export type { HeaderIconLevel, HeaderIconProps, HeaderIconTone } from "./icons/HeaderIcon";

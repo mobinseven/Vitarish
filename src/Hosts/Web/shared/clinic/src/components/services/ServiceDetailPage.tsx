@@ -73,7 +73,7 @@ export function ServiceDetailPage({
             {t("common.actions.previous")}
           </Button>
           <div className="flex items-center gap-4">
-            <HeaderIcon icon="briefcase-medical" level="page" />
+            <HeaderIcon context="catalog" icon="briefcase-medical" level="page" />
             <div className="min-w-0">
               <h1 className="text-2xl font-bold">
                 {editing ? t("clinic.services.editTitle") : service.name}

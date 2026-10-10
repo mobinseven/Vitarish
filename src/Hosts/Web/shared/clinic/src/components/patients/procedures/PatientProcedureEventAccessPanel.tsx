@@ -21,7 +21,7 @@ export function PatientProcedureEventAccessPanel({
     <Surface className="flex flex-col gap-6 rounded-3xl p-6">
       <div className="flex flex-col items-start gap-1">
         <div className="flex items-center gap-3">
-          <HeaderIcon icon="key" />
+          <HeaderIcon context="visit" icon="key" />
           <div className="min-w-0">
             <h2 className="text-lg font-semibold text-foreground">{t("clinic.procedures.access.title")}</h2>
           </div>

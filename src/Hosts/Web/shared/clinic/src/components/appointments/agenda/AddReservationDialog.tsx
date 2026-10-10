@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Chip, Modal } from "@heroui/react";
 
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, contextColorClassName } from "@vitarish/ui";
 import { formatDate, useLocalizedText } from "../../../localization/index";
 import {
   useCreateReservation,
@@ -167,7 +167,7 @@ export function AddReservationDialog({
 
                   {selectedPatientId ? (
                     <div className="flex items-center gap-2">
-                      <Chip size="sm" variant="soft" color="accent">
+                      <Chip size="sm" variant="soft" className={`${contextColorClassName("patient-record")} bg-tint-soft text-tint-soft-foreground`}>
                         <FaIcon
                           icon="user"
                           aria-hidden="true"

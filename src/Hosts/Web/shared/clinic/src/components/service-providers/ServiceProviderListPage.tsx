@@ -29,7 +29,7 @@ export function ServiceProviderListPage() {
     >
       <header>
         <div className="flex items-center gap-4">
-          <HeaderIcon icon="user-doctor" level="page" />
+          <HeaderIcon context="catalog" icon="user-doctor" level="page" />
           <div className="min-w-0">
             <h1 id="clinic-service-providers-title" className="text-2xl font-bold">
               {t("clinic.serviceProviders.title")}

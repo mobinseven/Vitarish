@@ -15,3 +15,12 @@ export type IdentitySlot = (typeof identitySlots)[number];
 export function identityColorClassName(slot: IdentitySlot): string {
   return `vitarish-tint vitarish-identity--${slot}`;
 }
+
+/** Stable identity slot for a record ID, so a record keeps its color everywhere. */
+export function identitySlotForId(id: string): IdentitySlot {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < id.length; index++) {
+    hash = Math.imul(hash ^ id.charCodeAt(index), 0x01000193);
+  }
+  return identitySlots[(hash >>> 0) % identitySlots.length];
+}

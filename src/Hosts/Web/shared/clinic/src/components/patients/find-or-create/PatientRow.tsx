@@ -1,7 +1,7 @@
 "use client";
 
 import { ItemCard, PressableFeedback } from "@heroui-pro/react";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, contextColorClassName } from "@vitarish/ui";
 import type {
   PatientSortBy,
   PatientViewDto,
@@ -39,7 +39,7 @@ export function PatientRow({
 
   return (
     <ItemCard<"button">
-      className="relative w-full cursor-pointer overflow-hidden text-start transition-colors hover:bg-accent-soft"
+      className={`${contextColorClassName("patient-record")} relative w-full cursor-pointer overflow-hidden text-start transition-colors hover:bg-tint-soft`}
       render={(props) => (
         <button
           type="button"
@@ -55,7 +55,7 @@ export function PatientRow({
       variant={variant}
     >
       <PressableFeedback.Highlight />
-      <ItemCard.Icon className="bg-accent/10">
+      <ItemCard.Icon className="bg-tint-soft text-tint-soft-foreground">
         <FaIcon icon="user" />
       </ItemCard.Icon>
       <ItemCard.Content>

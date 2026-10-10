@@ -29,7 +29,7 @@ export function ServiceTypeListPage() {
     >
       <header>
         <div className="flex items-center gap-4">
-          <HeaderIcon icon="tags" level="page" />
+          <HeaderIcon context="catalog" icon="tags" level="page" />
           <div className="min-w-0">
             <h1 id="clinic-service-types-title" className="text-2xl font-bold">
               {t("clinic.serviceTypes.title")}

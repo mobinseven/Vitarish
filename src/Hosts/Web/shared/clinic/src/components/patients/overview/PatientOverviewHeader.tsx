@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, Card } from "@heroui/react";
-import { FaIcon, RevealHeader } from "@vitarish/ui";
+import { FaIcon, RevealHeader, identityColorClassName, identitySlotForId } from "@vitarish/ui";
 import type { PatientViewDto } from "../../../models/patients/patientSearchModels";
 import { formatDate, type SupportedLocale } from "../../../localization";
 import { useLocalizedText } from "../../../localization";
@@ -50,17 +50,19 @@ export function PatientOverviewHeader({ patient }: PatientOverviewHeaderProps) {
   const dateOfBirth = formatPatientDate(patient.dateOfBirth, locale);
   const gender = formatEnum(patient.gender);
 
+  const patientAvatarClassName = identityColorClassName(identitySlotForId(patient.id ?? displayName));
+
   return (
     <Card variant="transparent">
       <Card.Header className="flex flex-col items-center gap-4 px-4 py-5 text-center sm:flex-row sm:text-left">
         <Avatar
-          color="accent"
+          className={patientAvatarClassName}
           size="lg"
           variant="soft"
           role="img"
           aria-label={displayName}
         >
-          <Avatar.Fallback className="text-lg font-semibold">
+          <Avatar.Fallback className="bg-tint-soft text-lg font-semibold text-tint-soft-foreground">
             <FaIcon icon="user" />
           </Avatar.Fallback>
         </Avatar>
@@ -86,13 +88,13 @@ export function PatientOverviewHeader({ patient }: PatientOverviewHeaderProps) {
         compactContent={
           <div className="flex min-h-14 items-center gap-3 border-b border-border bg-background/95 px-4 shadow-sm backdrop-blur">
             <Avatar
-              color="accent"
+              className={patientAvatarClassName}
               size="sm"
               variant="soft"
               role="img"
               aria-label={displayName}
             >
-              <Avatar.Fallback>
+              <Avatar.Fallback className="bg-tint-soft text-tint-soft-foreground">
                 <FaIcon icon="user" />
               </Avatar.Fallback>
             </Avatar>

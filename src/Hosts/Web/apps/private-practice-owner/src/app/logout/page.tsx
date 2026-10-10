@@ -21,7 +21,7 @@ export default function LogoutPage() {
       <Card className="w-full max-w-md">
         <Card.Header className="flex flex-col items-start gap-1">
           <div className="flex items-center gap-4">
-            <HeaderIcon icon="arrow-right-from-bracket" level="page" />
+            <HeaderIcon context="general" icon="arrow-right-from-bracket" level="page" />
             <div className="min-w-0">
               <h1 className="text-2xl font-bold">{t("auth.logout.title")}</h1>
               <p className="text-sm text-muted">{t("auth.logout.description")}</p>

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { Agenda, Segment, useAgenda, Widget } from "@heroui-pro/react";
 import { Button } from "@heroui/react";
+import { contextColorClassName } from "@vitarish/ui";
 import {
   createCalendar,
   getDayOfWeek,
@@ -167,7 +168,7 @@ export function AppointmentsAgenda({
   });
 
   return (
-    <Widget>
+    <Widget className={contextColorClassName("scheduling")}>
       <Widget.Content className="p-0">
         <Agenda {...agenda}>
           <Agenda.Header>

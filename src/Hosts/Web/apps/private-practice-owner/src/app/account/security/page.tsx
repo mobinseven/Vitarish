@@ -32,7 +32,7 @@ export default function AccountSecurityPage() {
       <div className="space-y-6">
         <div>
           <div className="flex items-center gap-4">
-            <HeaderIcon icon="shield-halved" level="page" />
+            <HeaderIcon context="general" icon="shield-halved" level="page" />
             <div className="min-w-0">
               <h1 className="text-xl font-semibold text-foreground">{t("account.security.title")}</h1>
               <p className="mt-2 text-sm text-foreground-muted">{t("account.security.description")}</p>
@@ -43,7 +43,7 @@ export default function AccountSecurityPage() {
         <Surface className="flex flex-col gap-6 rounded-3xl p-6" role="region" aria-labelledby="access-history-heading">
           <div className="flex flex-col items-start gap-1">
             <div className="flex items-center gap-3">
-              <HeaderIcon icon="clock-rotate-left" />
+              <HeaderIcon context="general" icon="clock-rotate-left" />
               <div className="min-w-0">
                 <h2 className="text-lg font-semibold text-foreground" id="access-history-heading">
                   {t("account.security.accessHistory")}
@@ -72,7 +72,7 @@ export default function AccountSecurityPage() {
         <Surface className="flex flex-col gap-6 rounded-3xl p-6" role="region" aria-labelledby="session-notices-heading">
           <div className="flex flex-col items-start gap-1">
             <div className="flex items-center gap-3">
-              <HeaderIcon icon="bell" />
+              <HeaderIcon context="general" icon="bell" />
               <div className="min-w-0">
                 <h2 className="text-lg font-semibold text-foreground" id="session-notices-heading">
                   {t("account.security.notices")}

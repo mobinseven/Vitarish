@@ -17,14 +17,6 @@
 @source "../../../../shared/users/src/**/*.{ts,tsx}";
 
 @theme inline {
-  --color-red: var(--red);
-  --color-red-foreground: var(--red-foreground);
-  --color-red-soft: var(--red-soft);
-  --color-red-soft-foreground: var(--red-soft-foreground);
-  --color-green: var(--green);
-  --color-green-foreground: var(--green-foreground);
-  --color-green-soft: var(--green-soft);
-  --color-green-soft-foreground: var(--green-soft-foreground);
   --color-highlight: var(--highlight);
   --color-highlight-foreground: var(--highlight-foreground);
   --color-highlight-soft: var(--highlight-soft);
@@ -276,14 +268,6 @@ html[dir="rtl"] body {
 
 :root,
 [data-theme="light"] {
-  --red: oklch(66.37% 0.2357 359.39);
-  --red-foreground: oklch(99% 0.01 350);
-  --red-soft: oklch(93.21% 0.0422 343.07);
-  --red-soft-foreground: oklch(52% 0.18 359.39);
-  --green: oklch(61.32% 0.146 155.8);
-  --green-foreground: oklch(99% 0.01 140);
-  --green-soft: oklch(94.55% 0.0444 163.85);
-  --green-soft-foreground: oklch(46% 0.12 155.8);
   /* Highlight is reserved for the primary review action; accent is reserved for navigation and focus. */
   --highlight: oklch(66.37% 0.2357 359.39);
   --highlight-foreground: oklch(99% 0.01 350);
@@ -296,14 +280,6 @@ html[dir="rtl"] body {
 }
 
 [data-theme="dark"] {
-  --red: oklch(76% 0.2 359.39);
-  --red-foreground: oklch(20% 0.04 353);
-  --red-soft: oklch(35% 0.095 359.39);
-  --red-soft-foreground: oklch(90% 0.07 359.39);
-  --green: oklch(76% 0.15 155.8);
-  --green-foreground: oklch(19% 0.035 155.8);
-  --green-soft: oklch(35% 0.08 155.8);
-  --green-soft-foreground: oklch(91% 0.075 155.8);
   --highlight: oklch(78% 0.2 359.39);
   --highlight-foreground: oklch(20% 0.04 359.39);
   --highlight-soft: oklch(35% 0.095 359.39);

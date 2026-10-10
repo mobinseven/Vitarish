@@ -27,7 +27,7 @@ export function PatientCreatePage({ onNavigate }: PatientCreatePageProps) {
     >
       <header>
         <div className="flex items-center gap-4">
-          <HeaderIcon icon="user-plus" level="page" />
+          <HeaderIcon context="patient-record" icon="user-plus" level="page" />
           <div className="min-w-0">
             <h1 id="clinic-patient-create-title" className="text-2xl font-bold">
               {t("clinic.patients.newPatient")}

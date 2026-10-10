@@ -37,7 +37,7 @@ export function OwnerShiftOccurrencePage({
           {t("common.actions.previous")}
         </Button>
         <div className="flex items-center gap-4">
-          <HeaderIcon icon="clock" level="page" />
+          <HeaderIcon context="scheduling" icon="clock" level="page" />
           <div className="min-w-0">
             <h1 className="text-2xl font-bold">
               {query.data.startTime} - {query.data.endTime}

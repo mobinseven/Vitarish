@@ -4,7 +4,7 @@ import { Button, Chip } from "@heroui/react";
 import { ItemCard, PressableFeedback } from "@heroui-pro/react";
 import { useCallback, useState } from "react";
 
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, contextColorClassName } from "@vitarish/ui";
 import { useLocalizedText } from "../../localization/index";
 import { PatientFindOrCreate } from "../patients/find-or-create/PatientFindOrCreate";
 import type { ShiftReservationReadDto } from "../../api/generated/appointments/model";
@@ -102,7 +102,7 @@ export function PatientCheckInWizard({
       {step === "select-shift" && selectedPatientId && (
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <Chip size="sm" variant="soft" color="accent">
+            <Chip size="sm" variant="soft" className={`${contextColorClassName("patient-record")} bg-tint-soft text-tint-soft-foreground`}>
               <FaIcon icon="user" aria-hidden="true" className="mr-1" />
               {patientName || t("clinic.checkIn.patientSelected")}
             </Chip>

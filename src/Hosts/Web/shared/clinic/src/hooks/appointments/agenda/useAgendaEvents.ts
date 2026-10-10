@@ -56,7 +56,7 @@ function shiftColor(available: number, total: number): string {
   const ratio = available / total;
   if (ratio <= 0) return "var(--danger)";
   if (ratio <= 0.3) return "var(--warning)";
-  return "var(--accent)";
+  return "var(--tint)";
 }
 
 function expandShiftsToEvents(
@@ -84,7 +84,7 @@ function expandShiftsToEvents(
             : formatCapacityValue(shift.totalSeats, shift.totalSeats);
           const capColor = cap
             ? shiftColor(cap.availableSeats, cap.totalSeats)
-            : "var(--accent)";
+            : "var(--tint)";
 
           const serviceName = shift.serviceId ? serviceMap.get(shift.serviceId) : null;
           const providerName = shift.serviceProviderId ? providerMap.get(shift.serviceProviderId) : null;
@@ -169,7 +169,7 @@ function reservationColor(status: number): string {
   switch (status) {
     case 1: return "var(--success)";
     case 0: return "var(--warning)";
-    case 6: return "var(--accent)";
+    case 6: return "var(--success)";
     case 7: return "var(--default)";
     default: return "var(--danger)";
   }

@@ -64,7 +64,7 @@ export function OwnerShiftDetailPage({
             {t("common.actions.previous")}
           </Button>
           <div className="flex items-center gap-4">
-            <HeaderIcon icon="clock" level="page" />
+            <HeaderIcon context="scheduling" icon="clock" level="page" />
             <div className="min-w-0">
               <h1 id="clinic-owner-shift-title" className="text-2xl font-bold">
                 {day} {shift.startTime} - {shift.endTime}

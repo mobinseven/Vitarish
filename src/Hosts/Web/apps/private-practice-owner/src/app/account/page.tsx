@@ -63,7 +63,7 @@ export default function AccountSettingsPage() {
       <Surface className="flex flex-col gap-6 rounded-3xl p-6">
         <div>
           <div className="flex items-center gap-3">
-            <HeaderIcon icon="user-gear" />
+            <HeaderIcon context="general" icon="user-gear" />
             <div className="min-w-0">
               <h2 className="text-lg font-semibold text-foreground">
                 {t("account.settings")}
@@ -91,7 +91,7 @@ export default function AccountSettingsPage() {
                   <FaIcon
                     icon={item.icon}
                     aria-hidden="true"
-                    className="text-lg text-accent"
+                    className="text-lg text-muted"
                   />
                 </ItemCard.Icon>
                 <ItemCard.Content className="gap-1">

@@ -9,7 +9,7 @@ export function StatisticsDashboard() {
     <div className="flex flex-col gap-6">
       <div>
         <div className="flex items-center gap-4">
-          <HeaderIcon icon="chart-line" level="page" />
+          <HeaderIcon context="general" icon="chart-line" level="page" />
           <div className="min-w-0">
             <h1 className="text-2xl font-bold">{t("clinic.statistics.title")}</h1>
             <p className="text-sm text-muted">

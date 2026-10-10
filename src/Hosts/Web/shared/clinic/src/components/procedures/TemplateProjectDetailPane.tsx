@@ -11,7 +11,7 @@ import {
   TextField,
   Tooltip,
 } from "@heroui/react";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, contextColorClassName } from "@vitarish/ui";
 import { ItemCard, ItemCardGroup } from "@heroui-pro/react";
 import {
   useCreateSeaEvent,
@@ -291,7 +291,7 @@ export function TemplateProjectDetailPane({
                   variant="ghost"
                   className="h-auto w-full justify-start gap-3 p-4 text-start"
                 >
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-lg font-semibold text-accent">
+                  <span className={`${contextColorClassName("visit")} flex size-10 shrink-0 items-center justify-center rounded-full bg-tint-soft text-lg font-semibold text-tint-soft-foreground`}>
                     {i + 1}
                   </span>
                   <span className="min-w-0 flex-1">

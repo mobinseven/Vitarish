@@ -43,7 +43,7 @@ export function UserReservationsList({
     <div className="flex flex-col gap-6">
       <div>
         <div className="flex items-center gap-4">
-          <HeaderIcon icon="calendar-check" level="page" />
+          <HeaderIcon context="scheduling" icon="calendar-check" level="page" />
           <div className="min-w-0">
             <h1 className="text-2xl font-bold">
               {t("clinic.userAppointments.reservations.title")}

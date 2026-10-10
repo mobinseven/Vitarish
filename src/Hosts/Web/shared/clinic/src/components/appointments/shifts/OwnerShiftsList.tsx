@@ -41,7 +41,7 @@ export function OwnerShiftsList({ onNavigate }: OwnerShiftsListProps) {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <HeaderIcon icon="clock" level="page" />
+          <HeaderIcon context="scheduling" icon="clock" level="page" />
           <div className="min-w-0">
             <h1 className="text-2xl font-bold">
               {t("clinic.appointments.shifts.title")}

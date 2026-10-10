@@ -51,7 +51,7 @@ export function InsuranceProviderSettingsPage() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <div>
         <div className="flex items-center gap-4">
-          <HeaderIcon icon="shield-heart" level="page" />
+          <HeaderIcon context="insurance" icon="shield-heart" level="page" />
           <div className="min-w-0">
             <h1 className="text-2xl font-bold">
               {t("clinic.settings.insurance.title")}

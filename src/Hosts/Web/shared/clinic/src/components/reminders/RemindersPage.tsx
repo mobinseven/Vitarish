@@ -23,7 +23,7 @@ export function RemindersPage() {
     <section className="flex flex-col gap-6">
       <header>
         <div className="flex items-center gap-4">
-          <HeaderIcon icon="bell" level="page" />
+          <HeaderIcon context="communication" icon="bell" level="page" />
           <div className="min-w-0">
             <h1 className="text-2xl font-bold">{t("clinic.reminders.title")}</h1>
             <p className="text-sm text-muted">

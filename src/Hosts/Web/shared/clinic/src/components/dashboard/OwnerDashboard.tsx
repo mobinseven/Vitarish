@@ -21,36 +21,42 @@ export function OwnerDashboard({ onNavigate }: OwnerDashboardProps) {
       description: t("clinic.dashboard.sections.patients.description"),
       intent: { kind: "patientIndex" },
       icon: "users",
+      context: "patient-record",
     },
     {
       title: t("clinic.dashboard.sections.checkIn.title"),
       description: t("clinic.dashboard.sections.checkIn.description"),
       intent: { kind: "checkIn" },
       icon: "clipboard-check",
+      context: "check-in",
     },
     {
       title: t("clinic.dashboard.sections.appointments.title"),
       description: t("clinic.dashboard.sections.appointments.description"),
       intent: { kind: "ownerReservationIndex" },
       icon: "calendar",
+      context: "scheduling",
     },
     {
       title: t("clinic.dashboard.sections.reminders.title"),
       description: t("clinic.dashboard.sections.reminders.description"),
       intent: { kind: "reminders" },
       icon: "bell",
+      context: "communication",
     },
     {
       title: t("clinic.dashboard.sections.settings.title"),
       description: t("clinic.dashboard.sections.settings.description"),
       intent: { kind: "clinicSettings" },
       icon: "gear",
+      context: "general",
     },
     {
       title: t("clinic.dashboard.sections.statistics.title"),
       description: t("clinic.dashboard.sections.statistics.description"),
       intent: { kind: "clinicStatistics" },
       icon: "chart-bar",
+      context: "general",
     },
   ];
 
@@ -58,7 +64,7 @@ export function OwnerDashboard({ onNavigate }: OwnerDashboardProps) {
     <div className="flex flex-col gap-6">
       <div>
         <div className="flex items-center gap-4">
-          <HeaderIcon icon="gauge" level="page" />
+          <HeaderIcon context="general" icon="gauge" level="page" />
           <div className="min-w-0">
             <h1 className="text-2xl font-bold">{t("clinic.dashboard.title")}</h1>
             <p className="text-sm text-muted">

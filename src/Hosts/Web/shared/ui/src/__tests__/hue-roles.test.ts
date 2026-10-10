@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { businessContexts, contextColorClassName } from "../color/businessContext";
-import { identityColorClassName, identitySlots } from "../color/identityColor";
+import { identityColorClassName, identitySlotForId, identitySlots } from "../color/identityColor";
 
 const css = readFileSync(resolve(process.cwd(), "src/hue-roles.css"), "utf8");
 
@@ -35,6 +35,12 @@ describe("hue roles", () => {
   it("builds class names the stylesheet defines", () => {
     expect(contextColorClassName("visit")).toBe("vitarish-tint vitarish-context--visit");
     expect(identityColorClassName(3)).toBe("vitarish-tint vitarish-identity--3");
+  });
+
+  it("gives a record ID the same identity slot every time and spreads IDs across slots", () => {
+    const ids = Array.from({ length: 64 }, (_, index) => `record-${index}`);
+    expect(ids.map(identitySlotForId)).toEqual(ids.map(identitySlotForId));
+    expect(new Set(ids.map(identitySlotForId)).size).toBe(identitySlots.length);
   });
 
   it("keeps context hues out of the status bands and away from the brand accent", () => {
