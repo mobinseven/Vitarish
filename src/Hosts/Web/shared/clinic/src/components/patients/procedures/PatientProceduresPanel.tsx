@@ -110,7 +110,7 @@ export function PatientProceduresPanel({
                             {procedure.name}
                           </span>
                           {procedure.newItems > 0 ? (
-                            <Chip size="sm" color="default" variant="soft">
+                            <Chip size="sm" color="danger" variant="soft">
                               {t(
                                 "clinic.procedures.progressAtGlance.newEvidence",
                                 { count: procedure.newItems },
