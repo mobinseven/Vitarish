@@ -20,6 +20,7 @@ import {
   useLocalizedText,
   type SupportedLocale,
 } from "@vitarish/localization";
+import { contextColorClassName, type BusinessContext } from "../color/businessContext";
 import { FaIcon } from "../icons/FaIcon";
 import { RevealHeader } from "../layout/RevealHeader";
 
@@ -30,6 +31,8 @@ export interface DashboardNavigationItem {
   href: string;
   icon: string;
   label: string;
+  /** Business context the destination belongs to; colors the item's icon. Children inherit it. */
+  context?: BusinessContext;
   badge?: string;
   children?: readonly DashboardNavigationItem[];
   exactMatch?: boolean;
@@ -570,6 +573,7 @@ function DashboardFrameSidebarNavItem({
 }: DashboardFrameSidebarNavItemProps) {
   return (
     <Sidebar.MenuItem
+      className={item.context ? contextColorClassName(item.context) : undefined}
       href={item.children?.length ? undefined : item.href}
       id={getSidebarItemId(idPrefix, item)}
       isCurrent={isSidebarItemCurrent(currentPath, item)}

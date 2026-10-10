@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 import {
   DashboardFrame,
+  type BusinessContext,
   type DashboardContentMode,
   type DashboardIdentity,
   type DashboardMobileNavigation,
@@ -23,6 +24,7 @@ export interface DashboardShellItem {
   href: string;
   icon: string;
   labelKey: MessageKey;
+  context?: BusinessContext;
   badgeKey?: MessageKey;
   children?: readonly DashboardShellItem[];
   exactMatch?: boolean;
@@ -163,6 +165,7 @@ function toNavigationItem(
     href: item.href,
     icon: item.icon,
     label: t(item.labelKey),
+    context: item.context,
     badge: item.badgeKey ? t(item.badgeKey) : undefined,
     children: item.children?.map((child) => toNavigationItem(child, t)),
     exactMatch: item.exactMatch,

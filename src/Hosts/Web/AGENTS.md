@@ -30,8 +30,8 @@ Applies to every `apps/*` and `shared/*` package.
   `section` through its `render` prop or give it an explicit region role.
 - Give page headers a `HeaderIcon level="page"` and section headers a
   `HeaderIcon` from `@vitarish/ui` before the heading, in a flex row with the
-  title block. Tables and the dashboard sidebar take their accent color from
-  `@vitarish/ui/accent.css`; do not recolor them per page.
+  title block. Tables and the dashboard sidebar take their colors from
+  `@vitarish/ui`; do not recolor them per page.
 - Inside a section surface, group with spacing, a separator, or
   `Surface variant="secondary"` tiles; do not nest section surfaces to fake
   hierarchy.

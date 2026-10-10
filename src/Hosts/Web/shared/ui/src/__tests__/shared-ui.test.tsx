@@ -14,6 +14,7 @@ import {
   DashboardFrame,
   EmptyStateSurface,
   ErrorStateSurface,
+  HeaderIcon,
   LoadingStateSurface,
   LoginPanel,
   OptionSelector,
@@ -247,5 +248,55 @@ describe("@vitarish/ui presentation components", () => {
     expect(
       screen.getByRole("link", { name: "Skip to main content" }),
     ).toHaveAttribute("href", "#vitarish-dashboard-main");
+  });
+
+  it("tints navigation items with their business context", () => {
+    const { container } = render(
+      <DashboardFrame
+        contentMode="page"
+        currentPath="/"
+        identity={{
+          accountHref: "/account",
+          accountLabel: "Account",
+          initials: "TU",
+          label: "Test User",
+          subtitle: "Account",
+        }}
+        navigate={vi.fn()}
+        mobileNavigation="none"
+        navigationGroups={[
+          {
+            label: "Main",
+            items: [
+              { href: "/patients", icon: "users", label: "Patients", context: "patient-record" },
+              { href: "/help", icon: "circle-question", label: "Help" },
+            ],
+          },
+        ]}
+        navigationLabel="Dashboard navigation"
+        skipLinkLabel="Skip to main content"
+        title="Home"
+      >
+        <div>Dashboard content</div>
+      </DashboardFrame>,
+    );
+
+    const items = container.querySelectorAll(".sidebar__menu-item");
+    expect(items[0]).toHaveClass("vitarish-tint", "vitarish-context--patient-record");
+    expect(items[1]).not.toHaveClass("vitarish-tint");
+  });
+
+  it("paints a header icon with its business context instead of a tone", () => {
+    const { container } = render(
+      <>
+        <HeaderIcon icon="users" level="page" context="patient-record" />
+        <HeaderIcon icon="triangle-exclamation" tone="warning" />
+      </>,
+    );
+
+    const [contextIcon, toneIcon] = container.querySelectorAll("span[aria-hidden]");
+    expect(contextIcon).toHaveClass("vitarish-context--patient-record", "bg-tint", "text-tint-foreground");
+    expect(contextIcon).not.toHaveClass("bg-accent");
+    expect(toneIcon).toHaveClass("bg-warning-soft", "text-warning");
   });
 });

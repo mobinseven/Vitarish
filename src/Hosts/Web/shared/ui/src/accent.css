@@ -1,29 +1,28 @@
 /*
- * Theme-accent chrome shared by every dashboard host. Colors come only from the
- * host theme's semantic tokens, so each app follows its own accent in light and
- * dark mode. Layered as components so page utilities can still override them.
+ * Chrome colors shared by every dashboard host. Colors come from the host
+ * theme's semantic tokens and the hue roles, so each app follows its own theme
+ * in light and dark mode. Layered as components so page utilities can still
+ * override them.
  */
 @layer components {
-  /* The navigation chrome is colored only from the host theme's accent tokens. */
-  .vitarish-dashboard-sidebar,
-  .vitarish-dashboard-sidebar-mobile {
-    background-color: color-mix(in oklab, var(--accent) 18%, var(--surface));
-  }
-
+  /*
+   * The navigation chrome stays neutral. Item icons take their business
+   * context's tint (see hue-roles.css); only the current item is accent.
+   */
   :is(.vitarish-dashboard-sidebar, .vitarish-dashboard-sidebar-mobile) .sidebar__menu-header {
-    color: var(--accent-soft-foreground);
+    color: var(--muted);
     font-weight: 600;
   }
 
   :is(.vitarish-dashboard-sidebar, .vitarish-dashboard-sidebar-mobile) .sidebar__menu-icon {
-    color: var(--accent);
+    color: var(--tint, var(--muted));
   }
 
   @media (hover: hover) {
     :is(.vitarish-dashboard-sidebar, .vitarish-dashboard-sidebar-mobile)
       .sidebar__menu-item:is(:hover, [data-hovered="true"]):not([data-current="true"])
       .sidebar__menu-item-content {
-      background-color: var(--accent-soft);
+      background-color: var(--tint-soft, var(--default));
     }
   }
 

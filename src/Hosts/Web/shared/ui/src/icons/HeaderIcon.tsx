@@ -1,4 +1,5 @@
 import React from "react";
+import { contextColorClassName, type BusinessContext } from "../color/businessContext";
 import { FaIcon } from "./FaIcon";
 
 /** Semantic theme color a header icon tile is painted with; `inverse` sits on an accent fill. */
@@ -7,16 +8,24 @@ export type HeaderIconTone = "accent" | "success" | "warning" | "danger" | "inve
 /** `page` marks a page header with a solid tile; `section` marks a section header with a soft tile. */
 export type HeaderIconLevel = "page" | "section";
 
-export interface HeaderIconProps {
+interface HeaderIconBaseProps {
   icon: string;
   level?: HeaderIconLevel;
-  tone?: HeaderIconTone;
   className?: string;
 }
+
+/** A header icon is painted either by the business context it heads or by a theme tone. */
+export type HeaderIconProps = HeaderIconBaseProps &
+  ({ context: BusinessContext; tone?: never } | { context?: never; tone?: HeaderIconTone });
 
 const levelClassNames: Record<HeaderIconLevel, string> = {
   page: "size-14 rounded-2xl text-2xl shadow-lg",
   section: "size-10 rounded-xl text-base",
+};
+
+const contextClassNames: Record<HeaderIconLevel, string> = {
+  page: "bg-tint text-tint-foreground shadow-tint/30",
+  section: "bg-tint-soft text-tint-soft-foreground",
 };
 
 const toneClassNames: Record<HeaderIconLevel, Record<HeaderIconTone, string>> = {
@@ -36,12 +45,16 @@ const toneClassNames: Record<HeaderIconLevel, Record<HeaderIconTone, string>> = 
   },
 };
 
-/** Decorative theme-colored icon tile placed before a page or section heading. */
-export function HeaderIcon({ icon, level = "section", tone = "accent", className }: HeaderIconProps) {
+/** Decorative colored icon tile placed before a page or section heading. */
+export function HeaderIcon({ icon, level = "section", context, tone = "accent", className }: HeaderIconProps) {
+  const colorClassName = context
+    ? `${contextColorClassName(context)} ${contextClassNames[level]}`
+    : toneClassNames[level][tone];
+
   return (
     <span
       aria-hidden="true"
-      className={`flex shrink-0 items-center justify-center ${levelClassNames[level]} ${toneClassNames[level][tone]} ${className ?? ""}`.trim()}
+      className={`flex shrink-0 items-center justify-center ${levelClassNames[level]} ${colorClassName} ${className ?? ""}`.trim()}
     >
       <FaIcon icon={icon} aria-hidden="true" />
     </span>
