@@ -1,6 +1,7 @@
 import { HttpResponse, http, type RequestHandler } from "msw";
 import { parseLocaleCookie } from "@vitarish/localization";
 import { createMockStore } from "./mockStore";
+import { isMockAnonymousSession } from "./mockSession";
 
 export type MockScenario = "ready" | "empty" | "loading" | "error";
 export type MockHandlerFactory = (scenario: MockScenario) => readonly RequestHandler[];
@@ -79,6 +80,14 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
     http.get(/\/api\/modules\/authentication\/session(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
+      if (isMockAnonymousSession(request.headers.get("cookie"))) {
+        return HttpResponse.json({
+          isAuthenticated: false,
+          user: null,
+          canAccessPlatformAdmin: false,
+          tenantAccess: { canAccessTenantOwner: false, canAccessTenantUser: false },
+        });
+      }
       const isPersian = isPersianRequest(request);
       return HttpResponse.json({
         isAuthenticated: true,
@@ -94,6 +103,11 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
         tenantAccess: { canAccessTenantOwner: true, canAccessTenantUser: true },
       });
     }),
+    http.get(/\/api\/modules\/authentication\/profile(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json({ allowPasswordlessPhoneLogin: true, allowPasswordlessEmailLogin: true, allowPasskeyLogin: true });
+    }),
     http.get(/\/api\/modules\/journey\/current(?:\?|$)/, async () => {
       await withDelay();
       return HttpResponse.json({ step: { destinationUrl: "/home", destinationKind: "UserHome", nonBlockingGates: [] } });
@@ -108,7 +122,8 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       if (activeScenario === "error") return unavailable();
       return new HttpResponse(auditCsv(filteredAuditEvents(request)), { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": "attachment; filename=security-audit-events.csv" } });
     }),
-    http.get(/\/api\/audit\/platform\/security-events(?:\?|$)/, async ({ request }) => {
+    // Tenant and platform audit lists share the paged result shape.
+    http.get(/\/api\/audit\/(?:platform\/)?security-events(?:\?|$)/, async ({ request }) => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
       const query = new URL(request.url).searchParams;
