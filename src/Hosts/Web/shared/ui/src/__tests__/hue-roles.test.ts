@@ -56,6 +56,20 @@ describe("hue roles", () => {
     }
   });
 
+  it("keeps every pair of context hues at least 25 degrees apart", () => {
+    const hued = [...contextRoles].filter(([, role]) => role.chroma !== 0);
+    for (const [first, firstRole] of hued) {
+      for (const [second, secondRole] of hued) {
+        if (first >= second) continue;
+        const distance = Math.abs(firstRole.hue - secondRole.hue) % 360;
+        expect(
+          Math.min(distance, 360 - distance),
+          `${first} (${firstRole.hue}) and ${second} (${secondRole.hue})`,
+        ).toBeGreaterThanOrEqual(25);
+      }
+    }
+  });
+
   it.each([
     ["light", lightFamily],
     ["dark", darkFamily],
