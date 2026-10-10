@@ -106,7 +106,7 @@ export function LoginForm({
         </Button>
       )}
       {!requiresOtp && forgotPasswordHref && (
-        <a className="self-end text-sm text-primary underline-offset-4 hover:underline" href={forgotPasswordHref}>
+        <a className="self-end text-sm text-accent underline-offset-4 hover:underline" href={forgotPasswordHref}>
           {t("auth.recovery.forgotPasswordAction")}
         </a>
       )}

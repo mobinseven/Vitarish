@@ -61,7 +61,7 @@ describe("OtpVerificationStep", () => {
 
     const destination = screen.getByText("user@example.test");
     expect(destination).toHaveAttribute("dir", "ltr");
-    expect(destination.parentElement).toHaveTextContent("Code sent to user@example.test.");
+    expect(destination.parentElement).toHaveTextContent("We sent a verification code to user@example.test");
     expect(screen.getByText(/3 attempts remaining/i)).toBeInTheDocument();
     expect(screen.getByText(/expires in/i)).toBeInTheDocument();
     expect(
@@ -163,5 +163,35 @@ describe("OtpVerificationStep", () => {
       />,
     );
     expect(screen.getAllByText("Too many requests").length).toBeGreaterThan(0);
+  });
+
+  it("ends the code step once when the account itself is refused", async () => {
+    const onReset = vi.fn();
+    renderStep({
+      code: "123456",
+      errorMessage: "This account has no access level.",
+      errorCode: "no_access",
+      onReset,
+      changeDestinationLabel: "Use a different email",
+    });
+
+    expect(screen.getAllByText("This account has no access level.")).toHaveLength(1);
+    expect(screen.queryByLabelText(/code/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /verify/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /resend code/i })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /use a different email/i }));
+    expect(onReset).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a rejected code only on the code field", () => {
+    renderStep({
+      code: "123456",
+      errorMessage: "Invalid verification code",
+      errorCode: "invalid_verification_code",
+    });
+
+    expect(screen.getAllByText("Invalid verification code")).toHaveLength(1);
+    expect(screen.getByLabelText(/code/i)).toHaveAttribute("aria-invalid", "true");
   });
 });

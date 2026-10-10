@@ -1,10 +1,15 @@
 "use client";
 
-import { Button, Form } from "@heroui/react";
+import { Button, Form, Tooltip } from "@heroui/react";
 import { useCallback, useEffect, useRef } from "react";
 import { useOtpCodeCapture } from "../hooks/useOtpCodeCapture";
 import { useOtpExpiry } from "../hooks/useOtpExpiry";
 import { normalizeOtpCode } from "../auth/otpCode";
+import {
+  isAccountAccessError,
+  isVerificationCodeError,
+  type AuthenticationErrorCode,
+} from "../auth/errors";
 import { useLocalizedText } from "@vitarish/localization";
 import { OtpCodeInput } from "./OtpCodeInput";
 import { StatusAlert } from "@vitarish/ui";
@@ -18,6 +23,8 @@ interface OtpVerificationStepProps {
   onResend: () => void;
   isLoading: boolean;
   errorMessage?: string | null;
+  /** Decides where `errorMessage` appears: on the code field, as an alert, or as the end of the step. */
+  errorCode?: AuthenticationErrorCode | null;
   statusMessage?: string | null;
   remainingAttempts?: number | string;
   expiresAt?: string | null;
@@ -35,6 +42,7 @@ export function OtpVerificationStep({
   onResend,
   isLoading,
   errorMessage,
+  errorCode,
   statusMessage,
   remainingAttempts,
   expiresAt,
@@ -50,6 +58,9 @@ export function OtpVerificationStep({
   const normalizedCode = normalizeOtpCode(code, expectedLength);
   const canVerify =
     normalizedCode.length === expectedLength && !expiry.isExpired && !isLoading;
+  const isAccountBlocked = Boolean(errorMessage) && isAccountAccessError(errorCode);
+  const codeErrorMessage = isVerificationCodeError(errorCode) ? errorMessage : null;
+  const alertMessage = codeErrorMessage ? null : errorMessage;
 
   const handleCapturedCode = useCallback(
     (capturedCode: string) => {
@@ -76,7 +87,7 @@ export function OtpVerificationStep({
   );
 
   useOtpCodeCapture({
-    enabled: !isLoading && !expiry.isExpired,
+    enabled: !isLoading && !expiry.isExpired && !isAccountBlocked,
     expectedLength,
     onCode: handleCapturedCode,
   });
@@ -96,67 +107,127 @@ export function OtpVerificationStep({
     [canVerify, normalizedCode, onVerify],
   );
 
+  const showsAttempts = remainingAttempts !== undefined && remainingAttempts !== null;
+  const showsExpiry = expiry.remainingSeconds !== null;
+
+  if (isAccountBlocked) {
+    return (
+      <div className="flex flex-col gap-6">
+        {errorMessage && <StatusAlert message={errorMessage} />}
+        <StepAction
+          icon="fa-light fa-pen-to-square"
+          label={resetLabel}
+          variant="secondary"
+          onPress={onReset}
+        />
+      </div>
+    );
+  }
+
   return (
-    <Form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {errorMessage && <StatusAlert className="mb-4" message={errorMessage} />}
+    <Form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      {alertMessage && <StatusAlert message={alertMessage} />}
       {statusMessage && !errorMessage && (
-        <StatusAlert className="mb-4" message={statusMessage} />
+        <StatusAlert type="success" message={statusMessage} />
       )}
-      <p className="text-sm text-muted">
-        {t("auth.otp.codeSentToPrefix")}
-        <span dir="ltr">{destinationLabel}</span>
-        {t("auth.otp.codeSentToSuffix")}
-        {remainingAttempts !== undefined && remainingAttempts !== null && (
-          <span className="block text-xs">
-            {t("auth.otp.attemptsRemaining", { count: remainingAttempts })}
-          </span>
+      <div className="flex flex-col gap-2">
+        <p className="flex flex-col items-start gap-0.5 text-sm text-muted">
+          {t("auth.otp.codeSentLabel")}{" "}
+          <bdi dir="ltr" className="max-w-full truncate font-medium text-foreground">
+            {destinationLabel}
+          </bdi>
+        </p>
+        {(showsAttempts || showsExpiry) && (
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
+            {showsAttempts && (
+              <span className="inline-flex items-center gap-1.5">
+                <i className="fa-light fa-shield-check" aria-hidden="true" />
+                {t("auth.otp.attemptsRemaining", { count: remainingAttempts })}
+              </span>
+            )}
+            {showsExpiry && (
+              <span className="inline-flex items-center gap-1.5">
+                <i className="fa-light fa-clock" aria-hidden="true" />
+                {expiry.remaining === null
+                  ? t("auth.challenge.expired")
+                  : t("auth.challenge.expiresIn", { time: expiry.remaining })}
+              </span>
+            )}
+          </p>
         )}
-        {expiry.remainingSeconds !== null && (
-          <span className="block text-xs">
-            {expiry.remaining === null
-              ? t("auth.challenge.expired")
-              : t("auth.challenge.expiresIn", { time: expiry.remaining })}
-          </span>
-        )}
-      </p>
+      </div>
       <OtpCodeInput
         value={normalizedCode}
         onChange={onCodeChange}
         isDisabled={isLoading || expiry.isExpired}
-        isInvalid={Boolean(errorMessage) || expiry.isExpired}
+        isInvalid={Boolean(codeErrorMessage) || expiry.isExpired}
         errorMessage={
           expiry.isExpired
             ? t("auth.otp.codeExpired")
-            : (errorMessage ?? undefined)
+            : (codeErrorMessage ?? undefined)
         }
         expectedLength={expectedLength}
       />
-      <Button
-        type="submit"
-        isPending={isLoading}
-        isDisabled={!canVerify}
-        className="w-full"
-      >
-        {t("auth.otp.verifyAction")}
-      </Button>
-      <Button
-        type="button"
-        variant="tertiary"
-        onPress={onResend}
-        isDisabled={isLoading}
-        className="w-full"
-      >
-        {t("auth.otp.resendAction")}
-      </Button>
-      <Button
-        type="button"
-        variant="tertiary"
-        onPress={onReset}
-        isDisabled={isLoading}
-        className="w-full"
-      >
-        {resetLabel}
-      </Button>
+      <div className="flex flex-col gap-3">
+        <StepAction
+          type="submit"
+          icon="fa-light fa-check"
+          label={t("auth.otp.verifyAction")}
+          isPending={isLoading}
+          isDisabled={!canVerify}
+        />
+        <StepAction
+          icon="fa-light fa-rotate-right"
+          label={t("auth.otp.resendAction")}
+          variant="tertiary"
+          isDisabled={isLoading}
+          onPress={onResend}
+        />
+        <StepAction
+          icon="fa-light fa-pen-to-square"
+          label={resetLabel}
+          variant="tertiary"
+          isDisabled={isLoading}
+          onPress={onReset}
+        />
+      </div>
     </Form>
+  );
+}
+
+interface StepActionProps {
+  icon: string;
+  label: string;
+  type?: "button" | "submit";
+  variant?: "primary" | "secondary" | "tertiary";
+  isPending?: boolean;
+  isDisabled?: boolean;
+  onPress?: () => void;
+}
+
+function StepAction({
+  icon,
+  label,
+  type = "button",
+  variant = "primary",
+  isPending,
+  isDisabled,
+  onPress,
+}: StepActionProps) {
+  return (
+    <Tooltip>
+      <Button
+        type={type}
+        variant={variant}
+        isPending={isPending}
+        isDisabled={isDisabled}
+        onPress={onPress}
+        className="w-full"
+      >
+        <i className={icon} aria-hidden="true" />
+        <span className="truncate">{label}</span>
+      </Button>
+      <Tooltip.Content>{label}</Tooltip.Content>
+    </Tooltip>
   );
 }

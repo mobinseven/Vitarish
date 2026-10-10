@@ -93,6 +93,7 @@ export const enMessages = {
       verifyAction: "Verify Code",
       resendAction: "Resend Code",
       codeSentTo: "Code sent to {destination}",
+      codeSentLabel: "We sent a verification code to",
       codeSentToPrefix: "Code sent to ",
       codeSentToSuffix: ".",
       attemptsRemaining: "{count} attempts remaining",
