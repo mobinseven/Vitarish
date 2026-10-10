@@ -71,8 +71,7 @@ services:
       Cors__AllowedOrigins__1: https://${VITARISH_PRODUCTION_PATIENTS_HOST:?VITARISH_PRODUCTION_PATIENTS_HOST is required}
       Cors__AllowedOrigins__2: https://${VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST:?VITARISH_PRODUCTION_PLATFORM_ADMIN_HOST is required}
       Cors__AllowedOrigins__3: https://${VITARISH_PRODUCTION_PM_HOST:?VITARISH_PRODUCTION_PM_HOST is required}
-      Cors__AllowedOrigins__4: https://${VITARISH_PRODUCTION_KNOWLEDGE_QA_HOST:?VITARISH_PRODUCTION_KNOWLEDGE_QA_HOST is required}
-      Cors__AllowedOrigins__5: https://${VITARISH_PRODUCTION_LANDING_HOST:?VITARISH_PRODUCTION_LANDING_HOST is required}
+      Cors__AllowedOrigins__4: https://${VITARISH_PRODUCTION_LANDING_HOST:?VITARISH_PRODUCTION_LANDING_HOST is required}
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -112,12 +111,6 @@ services:
     expose: [3004]
     healthcheck: *node-healthcheck
     networks: { application: {}, proxy: { aliases: [production-pm] } }
-  knowledge-qa:
-    <<: *app-runtime
-    image: "${VITARISH_PRODUCTION_KNOWLEDGE_QA_WEB_IMAGE:?VITARISH_PRODUCTION_KNOWLEDGE_QA_WEB_IMAGE is required}"
-    expose: [3001]
-    healthcheck: *node-healthcheck
-    networks: { application: {}, proxy: { aliases: [production-knowledge-qa] } }
   landing:
     <<: *app-runtime
     image: "${VITARISH_PRODUCTION_LANDING_WEB_IMAGE:?VITARISH_PRODUCTION_LANDING_WEB_IMAGE is required}"

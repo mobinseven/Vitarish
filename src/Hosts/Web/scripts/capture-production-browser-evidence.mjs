@@ -61,8 +61,8 @@ function parseHosts(configuredHosts) {
       }
       return { name, environment: "production", hostname, configuredHost, wildcard };
     });
-  if (hosts.length !== 8) {
-    throw new Error(`Expected 8 configured production host entries; found ${hosts.length}.`);
+  if (hosts.length !== 7) {
+    throw new Error(`Expected 7 configured production host entries; found ${hosts.length}.`);
   }
   if (hosts.filter(({ wildcard }) => wildcard).length !== 2) {
     throw new Error("Expected both configured production wildcard host probes.");

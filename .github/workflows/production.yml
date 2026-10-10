@@ -349,7 +349,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: src/Hosts/Web
-          file: src/Hosts/Web/apps/${{ matrix.image == 'pm' && 'vitarish-pm' || matrix.image == 'knowledge-qa' && 'knowledge-qa-demo' || matrix.image == 'landing' && 'vitarish-landing' || matrix.image }}/Dockerfile
+          file: src/Hosts/Web/apps/${{ matrix.image == 'pm' && 'vitarish-pm' || matrix.image == 'landing' && 'vitarish-landing' || matrix.image }}/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/vitarish/${{ matrix.image }}:${{ github.sha }}
           cache-from: type=gha,scope=${{ matrix.image }}

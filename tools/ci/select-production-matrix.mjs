@@ -10,14 +10,15 @@ const webConsumers = [
   { service: "patients", image: "patients", workspace: "patients", filter: "web_patients", authConsumer: true },
   { service: "platform-admin", image: "platform-admin", workspace: "platform-admin", filter: platformAdminFilter, authConsumer: true },
   { service: "pm", image: "pm", workspace: "vitarish-pm", filter: "web_pm", authConsumer: true },
-  { service: "knowledge-qa", image: "knowledge-qa", workspace: "knowledge-qa-demo", filter: "web_qa", authConsumer: true },
+  // Checked in CI but not deployed: the knowledge QA demo is opted out of production.
+  { service: "knowledge-qa", image: "knowledge-qa", workspace: "knowledge-qa-demo", filter: "web_qa", authConsumer: true, deploy: false },
   { service: "landing", image: "landing", workspace: "vitarish-landing", filter: "web_landing" },
   { service: "agent-runtime", image: "agent-runtime", workspace: "agent-runtime", filter: "web_agent" },
 ];
 
 const sharedComposeConsumers = [
   "main", "private-practice-owner", "patients", "platform-admin", "pm",
-  "knowledge-qa", "landing", "agent-runtime", "caddy",
+  "landing", "agent-runtime", "caddy",
 ];
 
 export function selectProductionMatrix(eventName, filters) {
@@ -28,7 +29,8 @@ export function selectProductionMatrix(eventName, filters) {
     filters[consumer.filter] === true || (authChanged && consumer.authConsumer));
   const allWebConsumers = broad || filters.web_all === true;
   const webTests = webConsumers.filter((consumer) => allWebConsumers || selectedConsumers.includes(consumer));
-  const webImages = webConsumers.filter((consumer) => allWebConsumers || selectedConsumers.includes(consumer));
+  const webImages = webConsumers.filter((consumer) =>
+    consumer.deploy !== false && (allWebConsumers || selectedConsumers.includes(consumer)));
   const main = broad || filters.main === true || filters.dotnet === true;
   const caddyImage = broad || filters.caddy === true;
   const caddyService = caddyImage || filters.caddy_config === true;

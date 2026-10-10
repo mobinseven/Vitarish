@@ -181,10 +181,13 @@ internal static class SecurityBaselineCheck
             violations.Add(DeploymentViolation(workflowPath, "WebImageBuildInputsMissing", "Use BuildKit cache and the existing Web build credential for Web image builds."));
 
         string[] routeNames = ["PUBLIC", "PATIENTS", "PLATFORM_ADMIN", "PM", "KNOWLEDGE_QA", "LANDING"];
+        // The knowledge QA demo runs in the test environment only; it is opted out of production.
+        const string testOnlyRoute = "KNOWLEDGE_QA";
+        const string testOnlyService = "knowledge-qa";
         string[] environmentPrefixes = ["TEST", "PRODUCTION"];
         foreach (string prefix in environmentPrefixes)
         {
-            foreach (string route in routeNames)
+            foreach (string route in routeNames.Where(route => prefix == "TEST" || route != testOnlyRoute))
             {
                 string variable = $"{prefix}_{route}_HOST";
                 if (!ingress.Contains(variable, StringComparison.Ordinal) || !caddy.Contains("{$" + variable + "}", StringComparison.Ordinal))
@@ -205,7 +208,8 @@ internal static class SecurityBaselineCheck
                 violations.Add(DeploymentViolation(examplePath, "MutableImageReference", "The committed environment contract must not suggest a mutable latest image."));
             if (Regex.IsMatch(compose, @"(?im)^\s*ports:\s*"))
                 violations.Add(DeploymentViolation(composePath, "PublishedEnvironmentPort", "Environment services must be reachable through the shared ingress only."));
-            foreach (string service in new[] { "main", "private-practice-owner", "patients", "platform-admin", "pm", "knowledge-qa", "landing", "agent-runtime", "postgres", "redis", "aistor", "elasticsearch" })
+            foreach (string service in new[] { "main", "private-practice-owner", "patients", "platform-admin", "pm", testOnlyService, "landing", "agent-runtime", "postgres", "redis", "aistor", "elasticsearch" }
+                .Where(service => environment == "test" || service != testOnlyService))
             {
                 if (!Regex.IsMatch(compose, $@"(?m)^\s{{2}}{Regex.Escape(service)}:\s*$"))
                     violations.Add(DeploymentViolation(composePath, "RequiredServiceMissing", $"Declare the {service} service in the {environment} bundle."));
@@ -229,7 +233,8 @@ internal static class SecurityBaselineCheck
                 if (!Regex.IsMatch(compose, $@"(?ms)^\s{{2}}{Regex.Escape(dependency)}:\s*.*?^\s{{4}}healthcheck:\s*"))
                     violations.Add(DeploymentViolation(composePath, "HealthcheckMissing", $"The {dependency} service must define a readiness healthcheck."));
             }
-            foreach (string applicationService in new[] { "main", "private-practice-owner", "patients", "platform-admin", "pm", "knowledge-qa", "landing", "agent-runtime" })
+            foreach (string applicationService in new[] { "main", "private-practice-owner", "patients", "platform-admin", "pm", testOnlyService, "landing", "agent-runtime" }
+                .Where(service => environment == "test" || service != testOnlyService))
             {
                 if (!Regex.IsMatch(compose, $@"(?ms)^\s{{2}}{Regex.Escape(applicationService)}:\s*.*?^\s{{4}}healthcheck:\s*"))
                     violations.Add(DeploymentViolation(composePath, "HealthcheckMissing", $"The {applicationService} service must define a readiness healthcheck."));
@@ -264,7 +269,7 @@ internal static class SecurityBaselineCheck
                 !Regex.IsMatch(compose, @"(?m)^        target: /minio\.license\s*$") ||
                 !Regex.IsMatch(compose, @"(?m)^        read_only: true\s*$"))
                 violations.Add(DeploymentViolation(composePath, "AistorLicenseMountUnsafe", "Mount the licensed AIStor file read-only at its required container path."));
-            foreach (string route in routeNames)
+            foreach (string route in routeNames.Where(route => environment == "test" || route != testOnlyRoute))
             {
                 string variable = $"VITARISH_{environment.ToUpperInvariant()}_{route}_HOST";
                 if (!compose.Contains(variable, StringComparison.Ordinal) || !caddy.Contains("{$" + variable["VITARISH_".Length..] + "}", StringComparison.Ordinal))
@@ -286,9 +291,10 @@ internal static class SecurityBaselineCheck
                 ["PATIENTS"] = [$"{environment}-patients:3001"],
                 ["PLATFORM_ADMIN"] = [$"{environment}-platform-admin:3003"],
                 ["PM"] = [$"{environment}-pm:3004"],
-                ["KNOWLEDGE_QA"] = [$"{environment}-knowledge-qa:3001"],
                 ["LANDING"] = [$"{environment}-landing:3002"],
             };
+            if (environment == "test")
+                routeTargets[testOnlyRoute] = [$"{environment}-{testOnlyService}:3001"];
             foreach ((string route, string[] targets) in routeTargets)
             {
                 string variable = $"{environmentPrefix}_{route}_HOST";
@@ -313,7 +319,8 @@ internal static class SecurityBaselineCheck
         foreach (string environment in environmentPrefixes)
         {
             string apiImport = environment.ToLowerInvariant() + "_api";
-            if (Regex.Matches(caddy, @"(?m)^\s+import " + Regex.Escape(apiImport) + @"\s*$").Count != 8 ||
+            int applicationHosts = environment == "TEST" ? 8 : 7;
+            if (Regex.Matches(caddy, @"(?m)^\s+import " + Regex.Escape(apiImport) + @"\s*$").Count != applicationHosts ||
                 !Regex.IsMatch(caddy, @"(?ms)^\(" + Regex.Escape(apiImport) + @"\)\s*\{\s*@api path /api/\*\s*reverse_proxy @api " + environment.ToLowerInvariant() + @"-main:8080\s*\}"))
                 violations.Add(DeploymentViolation(caddyPath, "ApiRouteCoverageMissing", $"Route same-origin API requests from all application hosts to {environment.ToLowerInvariant()} Main."));
         }

@@ -114,9 +114,6 @@ http://{$PRODUCTION_PLATFORM_ADMIN_HOST} {
 http://{$PRODUCTION_PM_HOST} {
     redir https://{$PRODUCTION_PM_HOST}{uri} 308
 }
-http://{$PRODUCTION_KNOWLEDGE_QA_HOST} {
-    redir https://{$PRODUCTION_KNOWLEDGE_QA_HOST}{uri} 308
-}
 http://{$PRODUCTION_LANDING_HOST} {
     redir https://{$PRODUCTION_LANDING_HOST}{uri} 308
 }
@@ -188,11 +185,6 @@ https://{$PRODUCTION_PM_HOST} {
     import security_headers
     import production_api
     reverse_proxy production-pm:3004
-}
-https://{$PRODUCTION_KNOWLEDGE_QA_HOST} {
-    import security_headers
-    import production_api
-    reverse_proxy production-knowledge-qa:3001
 }
 https://{$PRODUCTION_LANDING_HOST} {
     import security_headers
