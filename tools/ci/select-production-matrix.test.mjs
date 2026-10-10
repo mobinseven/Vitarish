@@ -51,7 +51,7 @@ test("configuration-only deployments remain eligible when publishing is skipped"
 
 test("publishes selected images when unrelated test matrices are skipped", () => {
   assert.match(workflow, /publish:\r?\n[\s\S]*?needs: \[changes\]/);
-  assert.match(workflow, /publish:\r?\n[\s\S]*?if: \$\{\{ github\.event_name == 'push'[^\n]*needs\.changes\.outputs\.image_matrix != '\[\]'[^\n]*&& !cancelled\(\) \}\}/);
+  assert.match(workflow, /publish:\r?\n[\s\S]*?if: \$\{\{ github\.event_name == 'workflow_dispatch'[^\n]*needs\.changes\.outputs\.image_matrix != '\[\]'[^\n]*&& !cancelled\(\) \}\}/);
   assert.match(workflow, /deploy_production:\r?\n[\s\S]*?needs: \[changes, required, publish\][\s\S]*?needs\.required\.result == 'success'/);
 });
 
@@ -114,7 +114,7 @@ test("a shared authentication change selects every consuming app with shared aut
   assert.match(workflow, /authentication_web:[\s\S]*?env:\r?\n          HEROUI_AUTH_TOKEN: \$\{\{ secrets\.HEROUI_AUTH_TOKEN \}\}/);
   assert.match(workflow, /npm ci/);
   assert.match(workflow, /authentication_web:[\s\S]*?if: \$\{\{ contains\(needs\.changes\.outputs\.filters, 'web_auth'\) \}\}/);
-  assert.match(workflow, /needs: \[changes, dotnet, web, web_shared_tests, web_shared_validators, authentication_web, security\]/);
+  assert.match(workflow, /needs: \[changes, dotnet, web, web_shared_tests, authentication_web, security\]/);
 });
 
 test("an authentication-only change selects every consuming app and shared auth", () => {
@@ -123,9 +123,11 @@ test("an authentication-only change selects every consuming app and shared auth"
   assert.equal(selected.images.length, 4);
 });
 
-test("a shared Web change selects all Web consumers", () => {
+test("a shared Web change checks every workspace once in the shared Web job", () => {
   const selected = selectProductionMatrix("push", { web_all: true });
-  assert.equal(selected.web.length, 7);
+  assert.deepEqual(selected.web, []);
+  assert.match(workflow, /web_shared_tests:\r?\n[\s\S]*?if: \$\{\{ needs\.changes\.outputs\.web_all == 'true' \|\| needs\.changes\.outputs\.unknown_source == 'true' \|\| needs\.changes\.outputs\.full_suite == 'true' \}\}[\s\S]*?run: npm run typecheck\r?\n[\s\S]*?run: npm run test\r?\n/);
+  assert.match(workflow, /^  web:\r?\n[\s\S]*?if: \$\{\{ needs\.changes\.outputs\.web_matrix != '\[\]' \}\}/m);
   assert.equal(selected.images.includes("main"), false);
   assert.equal(selected.images.includes("caddy"), false);
   assert.equal(selected.images.length, 6);
@@ -133,7 +135,7 @@ test("a shared Web change selects all Web consumers", () => {
 
 test("an API contract change selects Main and every Web consumer", () => {
   const selected = selectProductionMatrix("pull_request", { dotnet: true, main: true, web_all: true });
-  assert.equal(selected.web.length, 7);
+  assert.deepEqual(selected.web, []);
   assert.equal(selected.images[0], "main");
   assert.equal(selected.images.length, 7);
 });
@@ -155,7 +157,7 @@ test("a Caddyfile-only change deploys ingress configuration without publishing a
 
 test("an unclassified source change falls back to the broad matrix", () => {
   const selected = selectProductionMatrix("pull_request", { unknown_source: true });
-  assert.equal(selected.web.length, 7);
+  assert.deepEqual(selected.web, []);
   assert.equal(selected.images.includes("main"), true);
   assert.equal(selected.images.includes("caddy"), true);
   assert.equal(selected.services.length, 8);
@@ -177,12 +179,25 @@ test("a test Compose change runs checks without selecting production services", 
   assert.deepEqual(selected.services, []);
 });
 
-test("manual dispatch selects the full test suite without requesting a deploy", () => {
+test("a release without a deployed commit selects the full suite and every image", () => {
   const selected = selectProductionMatrix("workflow_dispatch", {});
   assert.equal(selected.full_suite, true);
-  assert.equal(selected.web.length, 7);
+  assert.deepEqual(selected.web, []);
   assert.equal(selected.images.length, 8);
   assert.equal(selected.services.length, 8);
+});
+
+test("a release selects only the changes since the deployed commit", () => {
+  const selected = selectProductionMatrix("workflow_dispatch", { web_owner: true }, "a".repeat(40));
+  assert.equal(selected.full_suite, false);
+  assert.deepEqual(selected.web.map(({ workspace }) => workspace), ["private-practice-owner"]);
+  assert.deepEqual(selected.images, ["private-practice-owner"]);
+  assert.deepEqual(selected.services, ["private-practice-owner"]);
+  assert.deepEqual(selectProductionMatrix("workflow_dispatch", {}, "a".repeat(40)).services, []);
+  assert.match(workflow, /base: \$\{\{ steps\.deployed\.outputs\.sha \}\}/);
+  assert.match(workflow, /DEPLOYED_BASE: \$\{\{ steps\.deployed\.outputs\.sha \}\}/);
+  assert.match(workflow, /deploy_production:\r?\n[\s\S]*?if: \$\{\{ always\(\) && !cancelled\(\) && github\.event_name == 'workflow_dispatch' && github\.ref == 'refs\/heads\/main'/);
+  assert.match(workflow, /^  cancel-in-progress: \$\{\{ github\.event_name != 'workflow_dispatch' \}\}$/m);
 });
 
 test("workflow and policy edits run workflow checks without product matrices", () => {

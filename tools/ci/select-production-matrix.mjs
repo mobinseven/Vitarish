@@ -21,8 +21,10 @@ const sharedComposeConsumers = [
   "landing", "agent-runtime", "caddy",
 ];
 
-export function selectProductionMatrix(eventName, filters) {
-  const fullSuite = eventName === "workflow_dispatch";
+// A manual release selects the changes since the deployed commit; without a
+// usable deployed commit it falls back to the full suite and every image.
+export function selectProductionMatrix(eventName, filters, deployedBase = "") {
+  const fullSuite = eventName === "workflow_dispatch" && !deployedBase;
   const broad = fullSuite || filters.unknown_source === true;
   const authChanged = filters[webAuthFilter] === true;
   const selectedConsumers = webConsumers.filter((consumer) =>
@@ -47,7 +49,9 @@ export function selectProductionMatrix(eventName, filters) {
   if (filters.compose === true || filters.deploy_script === true) services = [...sharedComposeConsumers];
 
   return {
-    web: webTests.map(({ image, workspace, service }) => ({ image, workspace, service })),
+    // The shared Web job typechecks and tests every workspace, so per-app jobs
+    // would only repeat it.
+    web: allWebConsumers ? [] : webTests.map(({ image, workspace, service }) => ({ image, workspace, service })),
     images,
     services,
     full_suite: fullSuite,
@@ -67,7 +71,7 @@ if (process.env.GITHUB_OUTPUT && resolve(process.argv[1] ?? "") === fileURLToPat
     throw new Error("Changed path filters must be a JSON array of names.");
   }
   const filters = Object.fromEntries(changedFilters.map((name) => [name, true]));
-  const selected = selectProductionMatrix(process.env.EVENT_NAME, filters);
+  const selected = selectProductionMatrix(process.env.EVENT_NAME, filters, process.env.DEPLOYED_BASE ?? "");
   const outputs = {
     web: JSON.stringify(selected.web),
     images: JSON.stringify(selected.images),

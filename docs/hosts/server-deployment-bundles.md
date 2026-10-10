@@ -2,13 +2,20 @@
 
 `.github/workflows/production.yml` is the single production CI/CD workflow. It
 uses job-level path filters while the workflow itself remains unfiltered, so a
-required check always reaches a completed state. Pull requests to `main` run
-checks for affected consumers and cannot publish or deploy. A push to `main`
-runs those checks and publishes only affected images in parallel as
+required check always reaches a completed state. Pull requests to `main` and
+pushes to `main` run checks for affected consumers and cannot publish or
+deploy; draft pull requests skip checks until marked ready, and a newer push or
+PR update cancels in-flight checks. A release is a manual dispatch of the
+workflow on `main`. It selects the changes since the commit of the newest
+successful `production` GitHub deployment, runs the affected checks, publishes
+only affected images in parallel as
 `ghcr.io/<owner>/vitarish/<app>:<full-commit-sha>`, resolves the registry digests
 published by that run, then deploys those immutable references only after every
-check passed. Manual dispatch runs the full .NET, Web, security, and
-Compose checks; it never publishes or deploys. There are no scheduled runs.
+check passed. A failed release does not move that base, so the next release
+selects its changes again. Without a successful deployment that is an ancestor
+of the dispatched commit, a release runs the full .NET, Web, security, and
+Compose checks and publishes and deploys every service. Releases are never
+cancelled by later pushes. There are no scheduled runs.
 
 The workflow maps isolated Web app changes to that app, shared Web changes to
 all Web apps, .NET changes to Main and the .NET suite, and API contract changes
