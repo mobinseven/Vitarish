@@ -1,6 +1,7 @@
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDefaultMockHandlers, resolveMockScenario } from "./mockHandlers";
+import { mockAnonymousSessionValue, mockSessionCookieName } from "./mockSession";
 
 const server = setupServer(...createDefaultMockHandlers("ready"));
 
@@ -13,6 +14,24 @@ describe("mock preview handlers", () => {
   it("uses ready for an invalid scenario", () => {
     expect(resolveMockScenario("unexpected")).toBe("ready");
     expect(resolveMockScenario("empty")).toBe("empty");
+  });
+
+  it("answers as a signed-out visitor when the mock session cookie asks for it", async () => {
+    const session = await fetch("https://mock.example.test/api/modules/authentication/session", {
+      headers: { cookie: `${mockSessionCookieName}=${mockAnonymousSessionValue}` },
+    });
+
+    await expect(session.json()).resolves.toMatchObject({ isAuthenticated: false, user: null });
+  });
+
+  it("enables every sign-in method in the authentication profile", async () => {
+    const profile = await fetch("https://mock.example.test/api/modules/authentication/profile");
+
+    await expect(profile.json()).resolves.toEqual({
+      allowPasswordlessPhoneLogin: true,
+      allowPasswordlessEmailLogin: true,
+      allowPasskeyLogin: true,
+    });
   });
 
   it("returns a session and antiforgery token through the normal HTTP boundary", async () => {
