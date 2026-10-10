@@ -57,6 +57,7 @@ export function PhoneOtpForm({
         onResend={resend}
         isLoading={isLoading}
         errorMessage={displayedError}
+        errorCode={error?.code}
         statusMessage={statusCode ? t(statusCode) : null}
         remainingAttempts={remainingAttempts}
         expiresAt={expiresAt}

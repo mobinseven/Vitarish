@@ -28,6 +28,19 @@ export interface AuthError {
   challengeId?: string;
 }
 
+/** The entered verification code was rejected; the message belongs on the code field. */
+export function isVerificationCodeError(code: AuthenticationErrorCode | null | undefined): boolean {
+  return code === "invalid_verification_code";
+}
+
+/**
+ * The server refused the account itself, so retrying or resending the code cannot
+ * succeed; a sign-in surface ends the code step and offers another identity instead.
+ */
+export function isAccountAccessError(code: AuthenticationErrorCode | null | undefined): boolean {
+  return code === "no_access" || code === "account_disabled" || code === "locked_out";
+}
+
 export function parseAuthError(error: unknown): AuthError {
   if (error instanceof ApiError) {
     return {

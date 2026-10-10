@@ -46,10 +46,14 @@ test("an account with no role or tenant membership is told it has no access afte
     ]);
     expect(completeResponse.status()).toBe(403);
     await expect(completeResponse.json()).resolves.toMatchObject({ code: "no_access" });
-    // The code step shows every error both as an alert and on the code field.
+    // The code was accepted; the account itself is refused, so the code step ends
+    // with one alert and offers only another identity.
     const noAccessMessage = page.getByText("This account has no access level. Contact a platform administrator.");
-    await expect(noAccessMessage).toHaveCount(2);
-    await expect(noAccessMessage.first()).toBeVisible();
+    await expect(noAccessMessage).toHaveCount(1);
+    await expect(noAccessMessage).toBeVisible();
+    await expect(page.getByLabel("Verification Code")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Verify Code", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Use a different email", exact: true })).toBeVisible();
   } catch (error) {
     failure = error;
   }

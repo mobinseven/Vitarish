@@ -41,7 +41,7 @@ export function OtpCodeInput({
         pattern={`[0-9]{${expectedLength}}`}
         inputMode="numeric"
         autoComplete="one-time-code"
-        className="text-center text-lg tracking-[0.5em]"
+        className="text-center text-lg tracking-[0.5em] placeholder:text-sm placeholder:tracking-normal"
       />
       {isInvalid && errorMessage && <FieldError>{errorMessage}</FieldError>}
     </TextField>

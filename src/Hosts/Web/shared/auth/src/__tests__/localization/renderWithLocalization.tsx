@@ -24,6 +24,7 @@ const messages: MessageCatalog = {
       resendAction: "Resend code",
       differentDestinationAction: "Use a different destination",
       codeSentTo: "Code sent to {destination}",
+      codeSentLabel: "We sent a verification code to",
       codeSentToPrefix: "Code sent to ",
       codeSentToSuffix: ".",
       attemptsRemaining: "{count} attempts remaining",
