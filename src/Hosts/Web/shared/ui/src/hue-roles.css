@@ -7,8 +7,11 @@
  *
  * Context hues stay out of the status bands (danger ~0-30, warning ~55-75,
  * success ~145-170) and away from the brand accent (~182). A context hue never
- * signals status. hue-roles.test.ts checks both rules and the contrast of
- * every family member.
+ * signals status. Contexts shown on the same page (sidebar, settings grid,
+ * patient page) take hues far apart on the wheel; content, which appears on
+ * its own, sits between the closest neighbours. hue-roles.test.ts checks the
+ * bands, a minimum spacing between context hues, and the contrast of every
+ * family member.
  */
 @theme inline {
   --color-tint: var(--tint);
@@ -34,39 +37,39 @@
 
   /* Business contexts, in the order of businessContexts. */
   .vitarish-context--patient-record {
-    --tint-hue: 250;
+    --tint-hue: 292;
   }
 
   .vitarish-context--visit {
-    --tint-hue: 300;
+    --tint-hue: 234;
   }
 
   .vitarish-context--prescription {
-    --tint-hue: 335;
+    --tint-hue: 42;
   }
 
   .vitarish-context--check-in {
-    --tint-hue: 220;
+    --tint-hue: 205;
   }
 
   .vitarish-context--scheduling {
-    --tint-hue: 275;
+    --tint-hue: 138;
   }
 
   .vitarish-context--communication {
-    --tint-hue: 45;
+    --tint-hue: 80;
   }
 
   .vitarish-context--content {
-    --tint-hue: 120;
+    --tint-hue: 263;
   }
 
   .vitarish-context--catalog {
-    --tint-hue: 95;
+    --tint-hue: 350;
   }
 
   .vitarish-context--insurance {
-    --tint-hue: 350;
+    --tint-hue: 321;
   }
 
   .vitarish-context--general {
