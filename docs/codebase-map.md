@@ -245,6 +245,8 @@ For API-to-React work, follow
 [`docs/runbooks/openapi-to-react-client.md`](runbooks/openapi-to-react-client.md).
 For route topology, outer route layout, and scroll ownership, follow the scoped
 [`src/Hosts/Web/AGENTS.md`](../src/Hosts/Web/AGENTS.md) rules.
+For Web color meanings, follow the
+[Web color roles convention](hosts/web/color-roles.md).
 
 ## 9. Generated and high-care areas
 

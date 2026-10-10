@@ -5,20 +5,9 @@
 
 ## Color conventions
 
-- Prefer HeroUI semantic color and surface tokens over arbitrary named colors,
-  hex values, or one-off utility colors. Use the component's semantic color
-  props and the existing theme tokens so light mode, dark mode, contrast, and
-  status meaning stay consistent.
-- When a colorful design genuinely needs a new color or palette role that the
-  existing tokens cannot express, first review and follow the [HeroUI color
-  convention](https://heroui.com/en/docs/react/getting-started/colors). Add
-  the smallest justified theme token or semantic role at the shared theme
-  owner, document why the existing tokens are insufficient, and reuse that
-  owner everywhere; do not introduce local ad-hoc colors in a feature.
-- Treat new colors as exceptional: decorative variety alone is not sufficient
-  justification. Confirm the color has a clear product or semantic purpose,
-  works in both themes, and preserves readable contrast and meaningful status
-  semantics before adding it.
+- **[MUST]** Follow the [Web color roles
+  convention](../../../docs/hosts/web/color-roles.md) for every color in
+  feature code.
 
 ## Surface conventions
 

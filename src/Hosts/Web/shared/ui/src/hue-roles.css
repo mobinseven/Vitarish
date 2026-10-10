@@ -1,0 +1,109 @@
+/*
+ * Hue roles: business-context and identity colors. Every role is one hue run
+ * through the same tint family, so all hues carry the same visual weight and
+ * contrast in light and dark mode. Classes come from contextColorClassName()
+ * and identityColorClassName(); hosts may retune the family values in their
+ * theme but must not add, remove, or rename roles.
+ *
+ * Context hues stay out of the status bands (danger ~0-30, warning ~55-75,
+ * success ~145-170) and away from the brand accent (~182). A context hue never
+ * signals status. hue-roles.test.ts checks both rules and the contrast of
+ * every family member.
+ */
+@theme inline {
+  --color-tint: var(--tint);
+  --color-tint-foreground: var(--tint-foreground);
+  --color-tint-soft: var(--tint-soft);
+  --color-tint-soft-foreground: var(--tint-soft-foreground);
+}
+
+@layer components {
+  .vitarish-tint {
+    --tint: oklch(52% calc(0.13 * var(--tint-chroma, 1)) var(--tint-hue));
+    --tint-foreground: oklch(99% calc(0.01 * var(--tint-chroma, 1)) var(--tint-hue));
+    --tint-soft: oklch(95% calc(0.035 * var(--tint-chroma, 1)) var(--tint-hue));
+    --tint-soft-foreground: oklch(45% calc(0.12 * var(--tint-chroma, 1)) var(--tint-hue));
+  }
+
+  :is(.dark, [data-theme="dark"]) .vitarish-tint {
+    --tint: oklch(72% calc(0.13 * var(--tint-chroma, 1)) var(--tint-hue));
+    --tint-foreground: oklch(20% calc(0.03 * var(--tint-chroma, 1)) var(--tint-hue));
+    --tint-soft: oklch(30% calc(0.05 * var(--tint-chroma, 1)) var(--tint-hue));
+    --tint-soft-foreground: oklch(85% calc(0.09 * var(--tint-chroma, 1)) var(--tint-hue));
+  }
+
+  /* Business contexts, in the order of businessContexts. */
+  .vitarish-context--patient-record {
+    --tint-hue: 250;
+  }
+
+  .vitarish-context--visit {
+    --tint-hue: 300;
+  }
+
+  .vitarish-context--prescription {
+    --tint-hue: 335;
+  }
+
+  .vitarish-context--check-in {
+    --tint-hue: 220;
+  }
+
+  .vitarish-context--scheduling {
+    --tint-hue: 275;
+  }
+
+  .vitarish-context--communication {
+    --tint-hue: 45;
+  }
+
+  .vitarish-context--content {
+    --tint-hue: 120;
+  }
+
+  .vitarish-context--catalog {
+    --tint-hue: 95;
+  }
+
+  .vitarish-context--insurance {
+    --tint-hue: 318;
+  }
+
+  .vitarish-context--general {
+    --tint-hue: 0;
+    --tint-chroma: 0;
+  }
+
+  /* Identity slots, most distinct first. */
+  .vitarish-identity--0 {
+    --tint-hue: 250;
+  }
+
+  .vitarish-identity--1 {
+    --tint-hue: 45;
+  }
+
+  .vitarish-identity--2 {
+    --tint-hue: 120;
+  }
+
+  .vitarish-identity--3 {
+    --tint-hue: 300;
+  }
+
+  .vitarish-identity--4 {
+    --tint-hue: 220;
+  }
+
+  .vitarish-identity--5 {
+    --tint-hue: 335;
+  }
+
+  .vitarish-identity--6 {
+    --tint-hue: 95;
+  }
+
+  .vitarish-identity--7 {
+    --tint-hue: 275;
+  }
+}
