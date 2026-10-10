@@ -28,6 +28,14 @@ export const enMessages = {
       unknown: "Unknown",
     },
   },
+  colorLegend: {
+    title: "Color palette",
+    palette: "Palette",
+    actions: "Action roles",
+    status: "Status",
+    headerIcons: "Header icons",
+    brandAction: "Primary action",
+  },
   layoutFixture: {
     navigationGroupLabel: "Layout fixture",
     navigationItemLabel: "Responsive layout",

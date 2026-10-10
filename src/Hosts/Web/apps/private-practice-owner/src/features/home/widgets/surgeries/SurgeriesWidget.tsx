@@ -14,7 +14,9 @@ import { formatDate, formatDateTime, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarMonthRange } from "../../calendarMonthRange";
 import styles from "../HomeWidgets.module.css";
-import { actionRoleClassName } from "@vitarish/ui";
+import {
+  actionRoleClassName,
+} from "@vitarish/ui";
 
 export function SurgeriesWidget() {
   const { t, locale } = useLocalizedText();
@@ -39,7 +41,7 @@ export function SurgeriesWidget() {
         <header className="min-h-40 px-5 py-6 text-white sm:min-h-44 sm:px-6">
           <i
             aria-hidden="true"
-            className="fa-light fa-scissors text-2xl text-blue-500"
+            className="fa-light fa-scissors text-2xl text-foreground"
           />
           <h2 className="mt-8 text-2xl font-semibold">
             {t("home.dashboard.surgeries")}
@@ -129,7 +131,7 @@ export function SurgeriesWidget() {
                       className="flex items-center gap-3 py-3"
                       key={row.surgeryId}
                     >
-                      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-blue-50 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                      <span className={`grid size-9 shrink-0 place-items-center rounded-full bg-default text-xs font-semibold text-foreground`}>
                         {name.trim().slice(0, 2).toUpperCase()}
                       </span>
                       <div className="min-w-0 flex-1">
@@ -138,7 +140,7 @@ export function SurgeriesWidget() {
                           {row.surgeryName}
                         </p>
                       </div>
-                      <time className="shrink-0 text-end text-xs font-semibold text-blue-600 dark:text-blue-400">
+                      <time className="shrink-0 text-end text-xs font-semibold text-foreground">
                         {formatDateTime(row.scheduledAt, locale, {
                           dateStyle: "medium",
                           timeStyle: "short",
@@ -152,7 +154,7 @@ export function SurgeriesWidget() {
           <footer className="mt-auto flex gap-3 border-t border-separator pt-4">
             <Tooltip>
               <Button
-                className={`${actionRoleClassName("open")} min-w-0 flex-1 border-blue-400/60 text-blue-600`}
+                className={`${actionRoleClassName("open")} min-w-0 flex-1`}
                 variant="outline"
                 onPress={() => router.push(Routes.Clinic.Patients.Index)}
               >
@@ -165,7 +167,7 @@ export function SurgeriesWidget() {
             </Tooltip>
             <Tooltip>
               <Button
-                className={`${actionRoleClassName("create")} min-w-0 flex-1 bg-blue-600 text-white`}
+                className={`${actionRoleClassName("create")} min-w-0 flex-1`}
                 variant="primary"
                 onPress={() => router.push(Routes.Clinic.Patients.New)}
               >

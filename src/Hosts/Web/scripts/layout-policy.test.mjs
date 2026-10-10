@@ -33,7 +33,13 @@ test("invalid fixture reports every policy rule with actionable source locations
       "legacy-outer-container",
       "layout-css-import",
       "hand-rolled-surface",
+      "raw-color",
     ])
+  );
+  assert.equal(
+    result.diagnostics.filter((diagnostic) => diagnostic.rule === "raw-color").length,
+    3,
+    "color policy must detect palette utilities, arbitrary color values, and CSS color literals"
   );
   assert.equal(
     result.diagnostics.filter((diagnostic) => diagnostic.rule === "hand-rolled-surface").length,
@@ -92,6 +98,18 @@ test("production layout policy scans clinic, SEA, and every private-practice sou
   assert.deepEqual(result.diagnostics, []);
 });
 
+test("color policy covers the migrated packages and leaves host theme files to their owner", () => {
+  const webRoot = resolve(scriptDirectory, "..");
+  const config = createProductionLayoutPolicyConfig(webRoot);
+
+  assert.ok(config.colorIncludeRoots.includes("apps/private-practice-owner/src"));
+  assert.ok(config.colorIncludeRoots.includes("shared/clinic/src"));
+  assert.ok(config.owners["raw-color"].includes("apps/private-practice-owner/src/app/theme.css"));
+  for (const root of config.colorIncludeRoots) {
+    assert.ok(config.includeRoots.includes(root), `${root} must also be scanned by the policy`);
+  }
+});
+
 test("surface policy scans every Web app and shared package source root", () => {
   const webRoot = resolve(scriptDirectory, "..");
   const config = createProductionLayoutPolicyConfig(webRoot);
@@ -109,6 +127,7 @@ function createFixtureConfig(name) {
     rootDir: resolve(fixturesRoot, name),
     includeRoots: ["app"],
     surfaceIncludeRoots: ["app"],
+    colorIncludeRoots: ["app"],
     excludePrefixes: [],
     owners: {},
     expectedGlobalStylesheets: ["app/globals.css"],

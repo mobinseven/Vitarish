@@ -1,29 +1,24 @@
 /*
- * Theme-accent chrome shared by every dashboard host. Colors come only from the
- * host theme's semantic tokens, so each app follows its own accent in light and
+ * Chrome colors shared by every dashboard host. Colors come only from the host
+ * theme's semantic tokens, so each app follows its own palette in light and
  * dark mode. Layered as components so page utilities can still override them.
  */
 @layer components {
-  /* The navigation chrome is colored only from the host theme's accent tokens. */
-  .vitarish-dashboard-sidebar,
-  .vitarish-dashboard-sidebar-mobile {
-    background-color: color-mix(in oklab, var(--accent) 18%, var(--surface));
-  }
-
+  /* The navigation chrome is neutral; only the current item takes the accent. */
   :is(.vitarish-dashboard-sidebar, .vitarish-dashboard-sidebar-mobile) .sidebar__menu-header {
-    color: var(--accent-soft-foreground);
+    color: var(--muted);
     font-weight: 600;
   }
 
   :is(.vitarish-dashboard-sidebar, .vitarish-dashboard-sidebar-mobile) .sidebar__menu-icon {
-    color: var(--accent);
+    color: var(--muted);
   }
 
   @media (hover: hover) {
     :is(.vitarish-dashboard-sidebar, .vitarish-dashboard-sidebar-mobile)
       .sidebar__menu-item:is(:hover, [data-hovered="true"]):not([data-current="true"])
       .sidebar__menu-item-content {
-      background-color: var(--accent-soft);
+      background-color: var(--default);
     }
   }
 
@@ -94,27 +89,12 @@
   }
 
   /*
-   * Sign-in methods: each method keeps one hue so a returning user recognizes
-   * their usual choice by color before reading. No semantic theme role fits:
-   * success, warning, and danger would signal status, and the theme has a
-   * single accent. Tiles are solid mid-tone hues that hold contrast with a white
-   * icon in both modes; the hover tint mixes the hue with the host surface.
-   * Applied through signInMethodClassName().
+   * Sign-in methods: tiles are neutral; the icon and label tell methods apart.
+   * The tile holds contrast with a white icon in both modes; the hover tint
+   * mixes it with the host surface. Applied through signInMethodClassName().
    */
-  .vitarish-sign-in-method--password {
-    --sign-in-method: oklch(56% 0.17 258);
-  }
-
-  .vitarish-sign-in-method--phone {
-    --sign-in-method: oklch(56% 0.14 150);
-  }
-
-  .vitarish-sign-in-method--email {
-    --sign-in-method: oklch(55% 0.19 300);
-  }
-
-  .vitarish-sign-in-method--passkey {
-    --sign-in-method: oklch(60% 0.17 45);
+  [class*="vitarish-sign-in-method--"] {
+    --sign-in-method: var(--muted);
   }
 
   [class*="vitarish-sign-in-method--"] .vitarish-sign-in-method__tile {

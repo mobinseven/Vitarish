@@ -167,7 +167,7 @@ export function AddReservationDialog({
 
                   {selectedPatientId ? (
                     <div className="flex items-center gap-2">
-                      <Chip size="sm" variant="soft" color="accent">
+                      <Chip size="sm" variant="soft" color="default">
                         <FaIcon
                           icon="user"
                           aria-hidden="true"

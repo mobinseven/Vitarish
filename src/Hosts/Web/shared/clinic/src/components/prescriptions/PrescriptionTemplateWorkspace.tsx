@@ -245,7 +245,7 @@ export function PrescriptionTemplateWorkspace() {
         <div className="flex items-center gap-4">
           <HeaderIcon icon="prescription" level="page" />
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[.16em] text-accent">
+            <p className="text-xs font-semibold uppercase tracking-[.16em] text-muted">
               {t("prescriptionTemplates.settingsLabel")}
             </p>
             <h1 className="mt-2 text-3xl font-semibold">

@@ -36,14 +36,14 @@ const statusKeys: Record<number, MessageKey> = {
 
 const statusColors: Record<
   number,
-  "warning" | "success" | "danger" | "default" | "accent"
+  "warning" | "success" | "danger" | "default"
 > = {
   0: "warning",
   1: "success",
   2: "danger",
   3: "danger",
   4: "default",
-  5: "accent",
+  5: "default",
   6: "success",
   7: "success",
 };
@@ -165,7 +165,7 @@ export function ReservationDetailDialog({
                         )}
                       </Chip>
                       {reservation.isHold && (
-                        <Chip size="sm" variant="soft" color="accent">
+                        <Chip size="sm" variant="soft" color="default">
                           {t("clinic.fields.hold")}
                         </Chip>
                       )}

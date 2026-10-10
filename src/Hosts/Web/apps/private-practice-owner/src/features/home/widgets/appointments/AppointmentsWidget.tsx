@@ -10,6 +10,9 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useClinicListDashboardAppointments } from "@vitarish/clinic";
+import {
+  actionRoleClassName,
+} from "@vitarish/ui";
 import { formatDate, formatDateTime, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarMonthRange } from "../../calendarMonthRange";
@@ -38,7 +41,7 @@ export function AppointmentsWidget() {
         <header className="min-h-40 px-5 py-6 text-white sm:min-h-44 sm:px-6">
           <i
             aria-hidden="true"
-            className="fa-light fa-calendar-days text-2xl text-red"
+            className="fa-light fa-calendar-days text-2xl text-foreground"
           />
           <h2 className="mt-8 text-2xl font-semibold">
             {t("home.dashboard.appointments")}
@@ -130,7 +133,7 @@ export function AppointmentsWidget() {
                       className="flex items-center gap-3 py-3"
                       key={row.reservationId}
                     >
-                      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-red-soft text-xs font-semibold text-red-soft-foreground">
+                      <span className={`grid size-9 shrink-0 place-items-center rounded-full bg-default text-xs font-semibold text-foreground`}>
                         {name.trim().slice(0, 2).toUpperCase()}
                       </span>
                       <div className="min-w-0 flex-1">
@@ -142,7 +145,7 @@ export function AppointmentsWidget() {
                             })}
                         </p>
                       </div>
-                      <time className="shrink-0 text-end text-xs font-semibold text-red">
+                      <time className="shrink-0 text-end text-xs font-semibold text-foreground">
                         {row.startTime
                           ? formatDateTime(
                               `${row.date}T${row.startTime}`,
@@ -163,7 +166,7 @@ export function AppointmentsWidget() {
           <footer className="mt-auto flex gap-3 border-t border-separator pt-4">
             <Tooltip>
               <Button
-                className="min-w-0 flex-1 border-red/60 text-red"
+                className={`${actionRoleClassName("open")} min-w-0 flex-1`}
                 variant="outline"
                 onPress={() =>
                   router.push(Routes.Clinic.Appointments.Reservations.Index)
@@ -178,7 +181,7 @@ export function AppointmentsWidget() {
             </Tooltip>
             <Tooltip>
               <Button
-                className="min-w-0 flex-1 bg-red text-red-foreground"
+                className={`${actionRoleClassName("create")} min-w-0 flex-1`}
                 variant="primary"
                 onPress={() =>
                   router.push(Routes.Clinic.Appointments.Reservations.Index)

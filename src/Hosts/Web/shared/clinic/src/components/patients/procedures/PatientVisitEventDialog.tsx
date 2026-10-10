@@ -68,7 +68,7 @@ export function PatientVisitEventDialog({
         <Modal.Dialog>
           <Modal.CloseTrigger />
           <Modal.Header>
-            <Modal.Icon className="bg-accent-soft text-accent-soft-foreground">
+            <Modal.Icon className="bg-surface-secondary text-foreground">
               <FaIcon icon="calendar-plus" aria-hidden="true" />
             </Modal.Icon>
             <Modal.Heading>

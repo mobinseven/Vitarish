@@ -28,13 +28,13 @@ export function NavigationGrid({ items, onNavigate }: NavigationGridProps) {
           onClick={() => onNavigate?.(item.intent)}
         >
           <ItemCard
-            className="h-full bg-surface transition-colors hover:bg-accent-soft"
+            className="h-full bg-surface transition-colors hover:bg-default"
           >
-            <ItemCard.Icon className="bg-accent-soft">
+            <ItemCard.Icon className="bg-surface-secondary">
               <FaIcon
                 icon={item.icon}
                 aria-hidden="true"
-                className="text-lg text-accent"
+                className="text-lg text-foreground"
               />
             </ItemCard.Icon>
             <ItemCard.Content>

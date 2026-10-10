@@ -246,6 +246,8 @@ For API-to-React work, follow
 [`docs/runbooks/openapi-to-react-client.md`](runbooks/openapi-to-react-client.md).
 For route topology, outer route layout, and scroll ownership, follow the scoped
 [`src/Hosts/Web/AGENTS.md`](../src/Hosts/Web/AGENTS.md) rules.
+For Web colors, follow the
+[Web color convention](hosts/web/color-roles.md).
 For Web color meanings, follow the
 [Web color roles convention](hosts/web/color-roles.md).
 
@@ -323,9 +325,10 @@ npm run test:theme-mode
 ```
 
 `npm run screenshots:private-practice-owner` captures the private-practice-owner
-sign-in pages (signed out) and its main signed-in pages (dashboard, patients,
-patient profile, audit) against the mock API for each mock scenario, locale,
-light/dark theme, and desktop/mobile viewport. Narrow a run with
+sign-in pages (signed out), its main signed-in pages (dashboard, patients,
+patient profile, audit), and the test-only color legend against the mock API
+for each mock scenario, locale, light/dark theme, and desktop/mobile viewport.
+Narrow a run with
 `-- --scenarios ready -- --project desktop-light --grep "<name>"`; images land in
 `src/Hosts/Web/artifacts/private-practice-owner-screenshots/<scenario>/<locale>-<project>/`.
 

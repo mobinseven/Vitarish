@@ -91,7 +91,7 @@ export default function AccountSettingsPage() {
                   <FaIcon
                     icon={item.icon}
                     aria-hidden="true"
-                    className="text-lg text-accent"
+                    className="text-lg text-muted"
                   />
                 </ItemCard.Icon>
                 <ItemCard.Content className="gap-1">

@@ -265,10 +265,10 @@ function SummaryCard({
       className={`flex items-center gap-4 rounded-2xl p-4 text-start transition-colors ${
         isActive
           ? "bg-accent text-accent-foreground shadow-lg shadow-accent/30"
-          : "bg-surface hover:bg-accent-soft"
+          : "bg-surface hover:bg-default"
       }`}
     >
-      <HeaderIcon icon={icon} tone={isActive ? "inverse" : "accent"} />
+      <HeaderIcon icon={icon} tone={isActive ? "inverse" : "neutral"} />
       <span className="flex flex-col">
         <span className="text-2xl font-bold tabular-nums">{formatNumber(count, locale)}</span>
         <span className={`text-sm ${isActive ? "text-accent-foreground/85" : "text-muted"}`}>{label}</span>

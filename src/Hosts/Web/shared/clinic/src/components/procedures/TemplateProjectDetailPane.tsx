@@ -291,7 +291,7 @@ export function TemplateProjectDetailPane({
                   variant="ghost"
                   className="h-auto w-full justify-start gap-3 p-4 text-start"
                 >
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-lg font-semibold text-accent">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-secondary text-lg font-semibold text-foreground">
                     {i + 1}
                   </span>
                   <span className="min-w-0 flex-1">

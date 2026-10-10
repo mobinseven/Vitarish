@@ -14,6 +14,7 @@ import {
   DashboardFrame,
   EmptyStateSurface,
   ErrorStateSurface,
+  HeaderIcon,
   LoadingStateSurface,
   LoginPanel,
   OptionSelector,
@@ -247,5 +248,19 @@ describe("@vitarish/ui presentation components", () => {
     expect(
       screen.getByRole("link", { name: "Skip to main content" }),
     ).toHaveAttribute("href", "#vitarish-dashboard-main");
+  });
+
+  it("paints header icons neutral unless a status tone is given", () => {
+    const { container } = render(
+      <>
+        <HeaderIcon icon="users" level="page" />
+        <HeaderIcon icon="triangle-exclamation" tone="warning" />
+      </>,
+    );
+
+    const [neutralIcon, statusIcon] = container.querySelectorAll("span[aria-hidden]");
+    expect(neutralIcon).toHaveClass("bg-surface", "text-foreground");
+    expect(neutralIcon).not.toHaveClass("bg-accent");
+    expect(statusIcon).toHaveClass("bg-warning-soft", "text-warning");
   });
 });

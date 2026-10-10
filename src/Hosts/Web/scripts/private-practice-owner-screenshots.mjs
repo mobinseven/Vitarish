@@ -8,6 +8,8 @@ import { createRequire } from "node:module";
 import { rm } from "node:fs/promises";
 import path from "node:path";
 
+import { layoutTestFixturesEnvironment } from "./layout-test-fixtures.mjs";
+
 const app = "@vitarish/private-practice-owner";
 const appUrl = "http://127.0.0.1:3000";
 const allScenarios = ["ready", "empty", "loading", "error"];
@@ -47,7 +49,7 @@ for (const scenario of scenarios) {
   console.log(`\n== ${scenario}: starting mock server`);
   const server = spawn(process.execPath, ["scripts/mock-app-server.mjs", app, "--scenario", scenario], {
     detached: !isWindows,
-    env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1" },
+    env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1", ...layoutTestFixturesEnvironment },
     stdio: "ignore",
   });
   try {

@@ -4,6 +4,9 @@ import { Button, Card, Surface, Tooltip } from "@heroui/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useInsuranceProviderCredentials } from "@vitarish/clinic";
+import {
+  actionRoleClassName,
+} from "@vitarish/ui";
 import { useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import styles from "../HomeWidgets.module.css";
@@ -26,7 +29,7 @@ export function InsuranceWidget() {
         <header className="min-h-40 px-5 py-6 text-white sm:min-h-44 sm:px-6">
           <i
             aria-hidden="true"
-            className="fa-light fa-shield-check text-2xl text-green"
+            className="fa-light fa-shield-check text-2xl text-foreground"
           />
           <h2 className="mt-8 text-2xl font-semibold">
             {t("home.dashboard.insurance")}
@@ -87,7 +90,7 @@ export function InsuranceWidget() {
                       className="flex items-center gap-3 py-4"
                       key={row.credentialId ?? label}
                     >
-                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-green-soft text-xs font-bold text-green-soft-foreground">
+                      <span className={`grid size-9 shrink-0 place-items-center rounded-xl bg-default text-xs font-bold text-foreground`}>
                         {label.slice(0, 2).toUpperCase()}
                       </span>
                       <span className="min-w-0 flex-1 truncate text-sm font-semibold">
@@ -130,7 +133,7 @@ export function InsuranceWidget() {
           <footer className="mt-auto border-t border-separator pt-4">
             <Tooltip>
               <Button
-                className="w-full bg-green-soft text-green-soft-foreground"
+                className={`${actionRoleClassName("open")} w-full`}
                 variant="secondary"
                 onPress={() =>
                   router.push(Routes.Clinic.Settings.PrescriptionTemplates)

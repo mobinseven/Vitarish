@@ -27,10 +27,21 @@ import { formatNumber, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarDayRange } from "../calendarDayRange";
 import styles from "./HomeDashboard.module.css";
-import { HeaderIcon } from "@vitarish/ui";
+import {
+  HeaderIcon,
+  actionRoleClassName,
+} from "@vitarish/ui";
 
 type SortMode = "time" | "patient";
-type StatusColor = "accent" | "default" | "danger" | "success" | "warning";
+type StatusColor = "default" | "danger" | "success" | "warning";
+
+/** A patient avatar carries its reservation's status color, so the row reads at a glance. */
+const statusAvatarClassNames: Record<StatusColor, string> = {
+  default: "bg-surface-secondary text-foreground",
+  danger: "bg-danger-soft text-danger",
+  success: "bg-success-soft text-success",
+  warning: "bg-warning-soft text-warning",
+};
 type FilterOption = { value: string; label: string };
 
 const patientIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -192,7 +203,7 @@ export function HomeDashboard() {
                       aria-label={t("home.dashboard.activeFilterCount", {
                         count: formatNumber(activeFilterCount, locale),
                       })}
-                      color="accent"
+                      color="default"
                       size="sm"
                       variant="soft"
                     >
@@ -441,7 +452,7 @@ export function HomeDashboard() {
                         key={row.reservationId}
                       >
                         <div className="flex min-w-0 items-center gap-3">
-                          <span className={`${styles.avatar} grid size-10 shrink-0 place-items-center rounded-full text-sm font-semibold`}>
+                          <span className={`${statusAvatarClassNames[status.color]} grid size-10 shrink-0 place-items-center rounded-full text-sm font-semibold`}>
                             {getInitials(patientLabel)}
                           </span>
                           <div className="min-w-0">
@@ -459,19 +470,19 @@ export function HomeDashboard() {
                         </Chip>
                         <div className={styles.actions}>
                           <Tooltip>
-                            <Button className={`${styles.primary} ${styles.actionButton}`} size="sm" variant="primary" onPress={() => openPatient(row.patientId)}>
+                            <Button className={`${actionRoleClassName("open")} ${styles.actionButton}`} size="sm" variant="primary" onPress={() => openPatient(row.patientId)}>
                               {t("home.dashboard.viewProfile")}
                             </Button>
                             <Tooltip.Content>{t("home.dashboard.viewProfile")}</Tooltip.Content>
                           </Tooltip>
                           <Tooltip>
-                            <Button className={`${styles.secondary} ${styles.actionButton}`} size="sm" variant="outline" onPress={() => openPatient(row.patientId)}>
+                            <Button className={`${actionRoleClassName("edit")} ${styles.actionButton}`} size="sm" variant="outline" onPress={() => openPatient(row.patientId)}>
                               {t("home.dashboard.newPrescription")}
                             </Button>
                             <Tooltip.Content>{t("home.dashboard.newPrescription")}</Tooltip.Content>
                           </Tooltip>
                           <Tooltip>
-                            <Button className={`${styles.tertiary} ${styles.actionButton}`} size="sm" variant="ghost" onPress={() => openPatient(row.patientId)}>
+                            <Button className={`${actionRoleClassName("create")} ${styles.actionButton}`} size="sm" variant="ghost" onPress={() => openPatient(row.patientId)}>
                               {t("home.dashboard.newNote")}
                             </Button>
                             <Tooltip.Content>{t("home.dashboard.newNote")}</Tooltip.Content>
@@ -565,7 +576,7 @@ function getStatusMeta(
     case 4:
       return { color: "warning", label: t("clinic.reservationStatus.expired") };
     case 5:
-      return { color: "accent", label: t("clinic.reservationStatus.waitlisted") };
+      return { color: "default", label: t("clinic.reservationStatus.waitlisted") };
     case 6:
       return { color: "success", label: t("clinic.reservationStatus.present") };
     case 7:

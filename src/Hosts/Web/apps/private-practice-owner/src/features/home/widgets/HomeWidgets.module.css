@@ -21,8 +21,8 @@
   height: 3rem;
   place-items: center;
   border-radius: 1rem;
-  background: rgb(255 255 255 / 0.9);
-  box-shadow: 0 12px 24px rgb(15 23 42 / 0.12);
+  background: var(--surface);
+  box-shadow: 0 12px 24px color-mix(in oklab, var(--foreground) 12%, transparent);
 }
 
 :global([data-direction="rtl"]) .widget > img {

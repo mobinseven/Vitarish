@@ -33,7 +33,7 @@ export function PatientProcedureHeader({
     <Card variant="transparent">
       <Card.Header className="flex flex-col items-center gap-4 px-4 py-5 text-center sm:flex-row sm:text-left">
         <Avatar
-          color="accent"
+          color="default"
           size="lg"
           variant="soft"
           role="img"
@@ -58,7 +58,7 @@ export function PatientProcedureHeader({
         compactContent={
           <div className="flex min-h-14 items-center gap-3 border-b border-border bg-background/95 px-4 shadow-sm backdrop-blur">
             <Avatar
-              color="accent"
+              color="default"
               size="sm"
               variant="soft"
               role="img"
