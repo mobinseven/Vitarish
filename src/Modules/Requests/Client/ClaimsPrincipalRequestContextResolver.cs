@@ -40,9 +40,6 @@ public sealed class ClaimsPrincipalRequestContextResolver : IRequestContextResol
         {
             return Failed(RequestContextFailureKind.InvalidClaimValue, "Owner or tenant identifier claims are not valid GUID values.");
         }
-        {
-            return Failed(RequestContextFailureKind.InvalidClaimValue, "One or more identifier claims are not valid GUID values.");
-        }
 
         RequestContextDto context = new(
             Read(principal, RequestContextClaimTypes.RequestId),
