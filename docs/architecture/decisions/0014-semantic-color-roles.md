@@ -86,9 +86,9 @@ shared meaning.
 
 ## Validation / Enforcement
 
-- `npm run lint:layout` rejects color literals, Tailwind palette color
-  utilities, and accent tokens outside the brand role in the feature code of
-  migrated packages.
+- `npm run lint:layout` rejects color literals and Tailwind palette color
+  utilities in the feature code of migrated packages. A rule cannot tell
+  whether an accent use is the brand role, so code review checks that.
 - A test checks that the registry and stylesheet agree, that context hues
   avoid the status and brand bands, and every role family's `foreground` on
   `base` and `soft-foreground` on `soft` in both modes (WCAG AA, 4.5:1 for
