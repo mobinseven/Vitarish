@@ -7,6 +7,7 @@ import {
   ErrorStateSurface as ClinicErrorState,
   FaIcon,
   LoadingStateSurface as ClinicLoadingState,
+  actionRoleClassName,
 } from "@vitarish/ui";
 import { usePatientDetail } from "../../../hooks/patients/usePatientDetail";
 import {
@@ -74,7 +75,7 @@ export function PatientOverviewPage({
         <Card.Content>
           <div className="flex flex-wrap gap-3">
             <div className="hidden flex-wrap gap-3 md:flex">
-              <Button
+              <Button className={actionRoleClassName("edit")}
                 variant="outline"
                 onPress={() => onNavigate({ kind: "patientEdit", patientId })}
               >
@@ -82,14 +83,14 @@ export function PatientOverviewPage({
                 {t("clinic.patient.quickActions.edit")}
               </Button>
 
-              <Button
+              <Button className={actionRoleClassName("edit")}
                 variant="primary"
                 onPress={() => setIsPrescriptionOpen(true)}
               >
                 <FaIcon icon="prescription-bottle-medical" aria-hidden="true" />
                 {t("clinic.patient.quickActions.prescription")}
               </Button>
-              <Button
+              <Button className={actionRoleClassName("create")}
                 variant="primary"
                 onPress={openNewVisit}
                 isDisabled={!visitsProcedure}

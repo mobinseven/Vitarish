@@ -41,6 +41,18 @@ async function get(page: Page, path: string): Promise<{ status: number; headers:
   }, { origin: browserApiOrigin, requestPath: path, tenantHeader: TENANT_HOST_HEADER });
 }
 
+// The audit date filters are segmented date pickers: type the date into the month
+// segment and let the field advance through day and year (en-US order).
+async function fillAuditDate(page: Page, label: string, isoDate: string | undefined): Promise<void> {
+  if (!isoDate) {
+    await expect(page.getByRole("spinbutton", { name: `year, ${label}` })).toHaveAttribute("aria-valuetext", "Empty");
+    return;
+  }
+  const [year, month, day] = isoDate.split("-");
+  await page.getByRole("spinbutton", { name: `month, ${label}` }).click();
+  await page.keyboard.type(`${month}${day}${year}`);
+}
+
 async function captureAuditEvidence(
   page: Page,
   filename: string,
@@ -49,8 +61,8 @@ async function captureAuditEvidence(
   await page.getByLabel("Actor").fill("");
   await page.getByLabel("Event type").fill(filters.eventName ?? "");
   await page.getByLabel("Category").fill(filters.eventCategory ?? "");
-  await page.getByLabel("From date").fill(filters.fromDate ?? "");
-  await page.getByLabel("To date").fill(filters.toDate ?? "");
+  await fillAuditDate(page, "From date", filters.fromDate);
+  await fillAuditDate(page, "To date", filters.toDate);
   const auditRequest = page.waitForResponse(
     (response) => response.url().includes("/api/audit/security-events") && response.request().method() === "GET",
     { timeout: 15_000 },

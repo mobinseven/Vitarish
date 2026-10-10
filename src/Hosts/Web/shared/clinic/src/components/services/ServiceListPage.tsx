@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   ErrorStateSurface as ClinicErrorState,
   LoadingStateSurface as ClinicLoadingState,
+  HeaderIcon,
 } from "@vitarish/ui";
 import { useLocalizedText } from "../../localization/index";
 import { ServiceDeleteDialog } from "./ServiceDeleteDialog";
@@ -30,10 +31,15 @@ export function ServiceListPage() {
       aria-labelledby="clinic-services-title"
     >
       <header>
-        <h1 id="clinic-services-title" className="text-2xl font-bold">
-          {t("clinic.services.title")}
-        </h1>
-        <p className="text-sm text-muted">{t("clinic.services.description")}</p>
+        <div className="flex items-center gap-4">
+          <HeaderIcon icon="briefcase-medical" level="page" />
+          <div className="min-w-0">
+            <h1 id="clinic-services-title" className="text-2xl font-bold">
+              {t("clinic.services.title")}
+            </h1>
+            <p className="text-sm text-muted">{t("clinic.services.description")}</p>
+          </div>
+        </div>
       </header>
       {services.isLoading ? (
         <ClinicLoadingState label={t("common.states.loading")} />

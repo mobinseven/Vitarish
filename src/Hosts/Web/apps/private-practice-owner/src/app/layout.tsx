@@ -2,9 +2,11 @@ import type { Viewport } from "next";
 import { headers } from "next/headers";
 import { Providers } from "@/components/providers/AppProviders";
 import { ContentSecurityPolicyNonceMeta, contentSecurityPolicyNonce } from "@vitarish/ui/content-security-policy";
+import { ThemePaletteClassScript } from "@vitarish/ui/theme-palette";
 import { InitialPageLoader } from "@/components/loading/InitialPageLoader";
 import { getMessages, I18nAppLayout, localizedMetadata } from "@/localization";
-import { vazirmatn } from "./fonts";
+import { applicationFontVariables } from "./fonts";
+import { themePaletteClasses } from "./theme";
 import "./globals.css";
 
 export const metadata = localizedMetadata(
@@ -27,12 +29,13 @@ export default async function RootLayout({
       <head>
         <link rel="stylesheet" href="/fontawesome/css/all.min.css" />
         <ContentSecurityPolicyNonceMeta nonce={nonce} />
+        <ThemePaletteClassScript classes={themePaletteClasses} nonce={nonce} />
       </head>
       <I18nAppLayout
         cookieHeader={headerStore.get("cookie")}
         acceptLanguageHeader={headerStore.get("accept-language")}
         getMessages={getMessages}
-        htmlClassName={`${vazirmatn.variable} bg-background text-foreground`}
+        htmlClassName={`${applicationFontVariables} bg-background text-foreground`}
         vibrantPalette
         bodyClassName="bg-background text-foreground font-sans antialiased"
       >

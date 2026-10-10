@@ -1,3 +1,4 @@
+import { existsSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
@@ -31,7 +32,13 @@ test("invalid fixture reports every policy rule with actionable source locations
       "direct-applayout",
       "legacy-outer-container",
       "layout-css-import",
+      "hand-rolled-surface",
     ])
+  );
+  assert.equal(
+    result.diagnostics.filter((diagnostic) => diagnostic.rule === "hand-rolled-surface").length,
+    2,
+    "surface policy must detect border and background surfaces, including template and variant classes"
   );
   assert.equal(
     result.diagnostics.filter(
@@ -85,10 +92,23 @@ test("production layout policy scans clinic, SEA, and every private-practice sou
   assert.deepEqual(result.diagnostics, []);
 });
 
+test("surface policy scans every Web app and shared package source root", () => {
+  const webRoot = resolve(scriptDirectory, "..");
+  const config = createProductionLayoutPolicyConfig(webRoot);
+  const packageRoots = ["apps", "shared"].flatMap((group) =>
+    readdirSync(resolve(webRoot, group), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && existsSync(resolve(webRoot, group, entry.name, "src")))
+      .map((entry) => `${group}/${entry.name}/src`)
+  );
+
+  assert.deepEqual([...config.surfaceIncludeRoots].sort(), packageRoots.sort());
+});
+
 function createFixtureConfig(name) {
   return {
     rootDir: resolve(fixturesRoot, name),
     includeRoots: ["app"],
+    surfaceIncludeRoots: ["app"],
     excludePrefixes: [],
     owners: {},
     expectedGlobalStylesheets: ["app/globals.css"],

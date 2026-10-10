@@ -4,6 +4,7 @@ import type { NavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization/index";
 import { ShiftEditor } from "./ShiftEditor";
 import { useCreateShift } from "../../../hooks/appointments/shifts/useOwnerShifts";
+import { HeaderIcon } from "@vitarish/ui";
 export interface OwnerShiftCreatePageProps {
   onNavigate: (intent: NavigationIntent) => void;
 }
@@ -15,9 +16,14 @@ export function OwnerShiftCreatePage({
   return (
     <section className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-bold">
-          {t("clinic.appointments.shifts.createTitle")}
-        </h1>
+        <div className="flex items-center gap-4">
+          <HeaderIcon icon="clock" level="page" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold">
+              {t("clinic.appointments.shifts.createTitle")}
+            </h1>
+          </div>
+        </div>
       </header>
       <ShiftEditor
         initialValue={{

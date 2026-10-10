@@ -14,6 +14,7 @@ import {
   ErrorStateSurface as ClinicErrorState,
   FaIcon,
   LoadingStateSurface as ClinicLoadingState,
+  actionRoleClassName,
 } from "@vitarish/ui";
 import { getDateCalendar, useLocalizedText } from "../../../localization";
 import { useOwnerReservations } from "../../../hooks/appointments/reservations/useOwnerReservations";
@@ -89,7 +90,7 @@ export function PatientReservationsPanel({
           <p className="text-sm text-muted">
             {t("clinic.patient.reservations.emptyHint")}
           </p>
-          <Button variant="primary" onPress={onCreateReservation}>
+          <Button className={actionRoleClassName("create")} variant="primary" onPress={onCreateReservation}>
             <FaIcon icon="plus" aria-hidden="true" />
             {t("common.actions.create")}
           </Button>

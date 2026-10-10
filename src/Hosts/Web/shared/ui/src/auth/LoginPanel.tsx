@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Suspense } from "react";
-import { Card, Link } from "@heroui/react";
+import { Card, Link, Separator } from "@heroui/react";
 import { StandaloneCenteredPage } from "../layout";
 
 export interface LoginPanelProps {
@@ -24,12 +24,12 @@ export function LoginPanel({
 }: LoginPanelProps) {
   return (
     <StandaloneCenteredPage>
-      <Card className="w-full max-w-md">
-        <Card.Header className="flex flex-col items-start gap-1">
-          <h1 className="text-2xl font-bold">{title}</h1>
+      <Card className="w-full max-w-md gap-6 p-6 sm:p-8">
+        <Card.Header className="flex flex-col items-start gap-1.5">
+          <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
           <p className="text-sm text-muted">{subtitle}</p>
         </Card.Header>
-        <Card.Content className="flex flex-col gap-4">
+        <Card.Content className="flex flex-col gap-6">
           <Suspense
             fallback={
               <div
@@ -41,8 +41,9 @@ export function LoginPanel({
             {children}
           </Suspense>
           {backHref && backLabel ? (
-            <div className="flex flex-col items-center gap-2 text-sm">
-              <Link href={backHref} className="text-sm">
+            <div className="flex flex-col items-center gap-4">
+              <Separator />
+              <Link href={backHref} className="text-sm text-muted">
                 {backLabel}
               </Link>
             </div>

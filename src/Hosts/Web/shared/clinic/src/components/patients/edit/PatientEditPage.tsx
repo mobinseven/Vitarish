@@ -3,6 +3,7 @@
 import {
   ErrorStateSurface as ClinicErrorState,
   LoadingStateSurface as ClinicLoadingState,
+  HeaderIcon,
 } from "@vitarish/ui";
 import { ApiError } from "@vitarish/api-client";
 import type { NavigationIntent } from "../../../navigation";
@@ -46,12 +47,17 @@ export function PatientEditPage({
       <Card>
         <Card.Content>
           <header>
-            <h1 id="clinic-patient-edit-title" className="text-2xl font-bold">
-              {t("clinic.patient.edit.title")}
-            </h1>
-            <p className="text-sm text-muted">
-              {t("clinic.patient.edit.description")}
-            </p>
+            <div className="flex items-center gap-4">
+              <HeaderIcon icon="user-pen" level="page" />
+              <div className="min-w-0">
+                <h1 id="clinic-patient-edit-title" className="text-2xl font-bold">
+                  {t("clinic.patient.edit.title")}
+                </h1>
+                <p className="text-sm text-muted">
+                  {t("clinic.patient.edit.description")}
+                </p>
+              </div>
+            </div>
           </header>
           {mutation.error ? <ClinicErrorState title={errorTitle} /> : null}
           <PatientProfileForm

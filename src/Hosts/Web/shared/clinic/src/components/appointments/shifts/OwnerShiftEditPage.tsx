@@ -4,6 +4,7 @@ import { useLocalizedText } from "../../../localization/index";
 import {
   ErrorStateSurface as ClinicErrorState,
   LoadingStateSurface as ClinicLoadingState,
+  HeaderIcon,
 } from "@vitarish/ui";
 import { ShiftEditor } from "./ShiftEditor";
 import {
@@ -30,9 +31,14 @@ export function OwnerShiftEditPage({
   const shift = query.data;
   return (
     <section className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold">
-        {t("clinic.appointments.shifts.editTitle")}
-      </h1>
+      <div className="flex items-center gap-4">
+        <HeaderIcon icon="clock" level="page" />
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold">
+            {t("clinic.appointments.shifts.editTitle")}
+          </h1>
+        </div>
+      </div>
       <ShiftEditor
         initialValue={{
           dayOfWeek: shift.dayOfWeek,

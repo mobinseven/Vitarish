@@ -21,7 +21,7 @@ export type MarketingAction = {
 
 const actionClasses = (tone: MarketingAction["tone"]) => cx(
   "inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-  tone === "primary" && "bg-primary text-primary-foreground hover:opacity-90",
+  tone === "primary" && "bg-accent text-accent-foreground hover:opacity-90",
   tone === "secondary" && "bg-surface-secondary text-foreground hover:bg-surface-tertiary",
   tone === "outline" && "border border-default bg-transparent text-foreground hover:bg-surface-secondary",
   tone === "quiet" && "text-foreground hover:bg-surface-secondary",
@@ -151,7 +151,7 @@ function HeroHeaderContent({ children, className, ...props }: HTMLAttributes<HTM
 }
 
 function HeroHeaderEyebrow({ children, className, ...props }: HTMLAttributes<HTMLParagraphElement> & { children: ReactNode }) {
-  return <p {...props} className={cx("text-sm font-semibold tracking-[0.12em] text-primary", className)}>{children}</p>;
+  return <p {...props} className={cx("text-sm font-semibold tracking-[0.12em] text-accent", className)}>{children}</p>;
 }
 
 function HeroHeaderTitle({ children, className, ...props }: HTMLAttributes<HTMLHeadingElement> & { children: ReactNode }) {
@@ -222,7 +222,7 @@ export function MarketingSection({ children, id, className, ...props }: HTMLAttr
 export function MarketingSectionHeading({ eyebrow, title, description, className }: { eyebrow?: ReactNode; title: ReactNode; description?: ReactNode; className?: string }) {
   return (
     <div className={cx("max-w-2xl", className)}>
-      {eyebrow && <p className="text-sm font-semibold tracking-[0.12em] text-primary">{eyebrow}</p>}
+      {eyebrow && <p className="text-sm font-semibold tracking-[0.12em] text-accent">{eyebrow}</p>}
       <h2 className="mt-3 text-balance text-3xl font-semibold tracking-[-0.025em] sm:text-4xl">{title}</h2>
       {description && <p className="mt-4 text-lg leading-relaxed text-muted">{description}</p>}
     </div>
@@ -252,7 +252,7 @@ function PricingCardRoot({ className, ...props }: ComponentProps<typeof Card>) {
 }
 
 function PricingCardBadge({ children, className, ...props }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
-  return <div {...props} className={cx("mb-4 inline-flex w-fit items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary", className)}>{children}</div>;
+  return <div {...props} className={cx("mb-4 inline-flex w-fit items-center rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent", className)}>{children}</div>;
 }
 
 function PricingCardPrice({ children, className, ...props }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
@@ -268,7 +268,7 @@ function PricingCardFeatures({ children, className, ...props }: HTMLAttributes<H
 }
 
 function PricingCardFeature({ children, icon, className, ...props }: HTMLAttributes<HTMLLIElement> & { children: ReactNode; icon?: ReactNode }) {
-  return <li {...props} className={cx("flex items-start gap-3 text-sm text-muted", className)}>{icon && <span aria-hidden="true" className="mt-0.5 shrink-0 text-primary">{icon}</span>}<span>{children}</span></li>;
+  return <li {...props} className={cx("flex items-start gap-3 text-sm text-muted", className)}>{icon && <span aria-hidden="true" className="mt-0.5 shrink-0 text-accent">{icon}</span>}<span>{children}</span></li>;
 }
 
 export const PricingCard = Object.assign(PricingCardRoot, {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Button, Modal, Tooltip } from "@heroui/react";
+import { useEffect, useMemo, useState, type ComponentProps, type FormEvent } from "react";
+import { Alert, Button, Modal, Surface, Tooltip } from "@heroui/react";
 import {
   useAuthSession,
   useAuthenticationUserInactivityPolicyGet,
@@ -29,7 +29,7 @@ import { tenantRoleSuffixes, UsersCommandErrorKind } from "@vitarish/auth/users"
 import type { TenantRoleSuffix } from "@vitarish/auth/users";
 import { formatDateTime, formatNumber, useLocalizedText } from "@vitarish/localization";
 import { localizePlatformAuditEvent, localizeSecurityAuditOutcome } from "@vitarish/security/localization";
-import { MobileNumberField } from "@vitarish/ui";
+import { HeaderIcon, MobileNumberField } from "@vitarish/ui";
 
 export type UserManagementMode = "tenant" | "platform";
 export type UserManagementPlatformView = "directory" | "create" | "detail";
@@ -151,11 +151,29 @@ type MembershipQuery = {
   refetch: () => Promise<unknown>;
 };
 
+function renderSection(props: ComponentProps<"div">) {
+  return <section {...props} />;
+}
+
+/*
+ * Native form controls stay native (form submission and option semantics), but
+ * take HeroUI's field tokens and button classes so they match the design system.
+ */
+const nativeFieldClassName =
+  "mt-1 w-full rounded-(--field-radius) bg-(--field-background) px-3 py-2 text-(--field-foreground) shadow-field outline-none focus-visible:ring-2 focus-visible:ring-(--focus)";
+const nativePrimaryButtonClassName = "button button--md button--primary";
+const nativeLinkButtonClassName = "button button--sm button--ghost text-accent";
+const nativeSecondaryButtonClassName = "button button--md button--secondary";
+const nativeDangerButtonClassName = "button button--md button--danger-soft";
+
 function SurfaceHeader({ title, description }: { title: string; description?: string }) {
   return (
-    <header>
-      <h1 className="text-2xl font-semibold">{title}</h1>
-      {description && <p className="mt-2 text-muted">{description}</p>}
+    <header className="flex items-center gap-4">
+      <HeaderIcon icon="users" level="page" />
+      <div className="min-w-0">
+        <h1 className="text-2xl font-semibold">{title}</h1>
+        {description && <p className="mt-2 text-muted">{description}</p>}
+      </div>
     </header>
   );
 }
@@ -235,11 +253,19 @@ function TenantUserManagement({
   return (
     <main className="space-y-6">
       <SurfaceHeader title={title} description={description} />
-      <section className="rounded border p-4">
-        <h2 className="text-lg font-semibold">{t("users.management.addMember")}</h2>
-        <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={submit}>
+      <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
+        <div className="flex flex-col items-start gap-1">
+          <div className="flex items-center gap-3">
+            <HeaderIcon icon="user-plus" />
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold text-foreground">{t("users.management.addMember")}</h2>
+            </div>
+          </div>
+        </div>
+        <div>
+        <form className="grid gap-3 md:grid-cols-2" onSubmit={submit}>
           <label>{t("users.management.contactType")}
-            <select className="mt-1 w-full rounded border p-2" value={contactType} onChange={(event) => { setContactType(event.target.value as "email" | "phone"); setContactFieldError(undefined); }}>
+            <select className={nativeFieldClassName} value={contactType} onChange={(event) => { setContactType(event.target.value as "email" | "phone"); setContactFieldError(undefined); }}>
               <option value="email">{t("users.management.emailContact")}</option>
               <option value="phone">{t("users.management.phoneContact")}</option>
             </select>
@@ -247,7 +273,7 @@ function TenantUserManagement({
           <div>
             {contactType === "email" ? (
               <label>{t("users.management.emailContact")}
-                <input className="mt-1 w-full rounded border p-2" required value={contact} onChange={(event) => setContact(event.target.value)} />
+                <input className={nativeFieldClassName} required value={contact} onChange={(event) => setContact(event.target.value)} />
               </label>
             ) : (
               <MobileNumberField
@@ -261,30 +287,39 @@ function TenantUserManagement({
             )}
           </div>
           <label>{t("users.management.firstName")} <span className="text-muted">({t("users.management.optional")})</span>
-            <input className="mt-1 w-full rounded border p-2" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
+            <input className={nativeFieldClassName} value={firstName} onChange={(event) => setFirstName(event.target.value)} />
           </label>
           <label>{t("users.management.lastName")} <span className="text-muted">({t("users.management.optional")})</span>
-            <input className="mt-1 w-full rounded border p-2" value={lastName} onChange={(event) => setLastName(event.target.value)} />
+            <input className={nativeFieldClassName} value={lastName} onChange={(event) => setLastName(event.target.value)} />
           </label>
-          <button className="inline-flex w-fit items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={provision.isPending} title={t("users.management.addMember")}>
+          <button className={`${nativePrimaryButtonClassName} w-fit`} disabled={provision.isPending} title={t("users.management.addMember")}>
             <Icon name="user-plus" /> {provision.isPending ? t("users.management.adding") : t("users.management.addMember")}
           </button>
         </form>
-      </section>
+        </div>
+      </Surface>
       {message && <p role="status" aria-live="polite">{message}</p>}
+      <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="id-badge" />
+          <h2 className="text-lg font-semibold text-foreground">{t("users.management.memberships")}</h2>
+        </div>
+        <div>
       {isLoading && <p aria-live="polite">{t("users.management.loading")}</p>}
-      {isError && <div role="alert"><p className="text-danger">{t("users.management.error")}</p><button className="inline-flex items-center gap-2 underline" onClick={onRetry} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button></div>}
+      {isError && <div role="alert"><p className="text-danger">{t("users.management.error")}</p><button className={nativeLinkButtonClassName} onClick={onRetry} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button></div>}
       {!isLoading && !isError && members.length === 0 && <p className="text-muted">{t("users.management.empty")}</p>}
       {!isLoading && !isError && members.length > 0 && <ul className="space-y-3" aria-label={t("users.management.memberships")}>
         {members.map((member) => {
           const isOwner = member.roleSuffix === tenantRoleSuffixes.owner;
           const displayName = member.user.fullName ?? member.user.userName ?? member.user.email ?? member.user.phoneNumber ?? member.user.id;
-          return <li className="flex flex-wrap items-center justify-between gap-3 rounded border p-4" key={member.user.id}>
+          return <li className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface-secondary p-4" key={member.user.id}>
             <div><p className="font-medium">{displayName}</p><p className="text-sm text-muted">{isOwner ? t("users.management.owner") : t("users.management.staff")}{member.user.email ? ` · ${member.user.email}` : ""}{member.user.phoneNumber ? <> · <span dir="ltr">{member.user.phoneNumber}</span></> : ""}</p></div>
-            {!isOwner && <button className="inline-flex items-center gap-2 rounded border px-3 py-2 text-danger" disabled={remove.isPending} onClick={() => removeMember(member.user.id)} title={t("users.management.remove")}><Icon name="user-minus" />{t("users.management.remove")}</button>}
+            {!isOwner && <button className={nativeDangerButtonClassName} disabled={remove.isPending} onClick={() => removeMember(member.user.id)} title={t("users.management.remove")}><Icon name="user-minus" />{t("users.management.remove")}</button>}
           </li>;
         })}
       </ul>}
+        </div>
+      </Surface>
     </main>
   );
 }
@@ -297,20 +332,22 @@ function PlatformUserDirectory({
   selectedUserId: string; onSelect: (id: string) => void; onOpenUserDetails?: (id: string) => void; memberships: MembershipQuery; isLoading: boolean; isError: boolean; onRetry: () => void; t: Translate;
 }) {
   return <main className="space-y-6"><SurfaceHeader title={title} description={description} />
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6"><div className="space-y-4">
     <form className="flex gap-3" onSubmit={(event) => { event.preventDefault(); onSearch(); }}>
       <label className="sr-only" htmlFor="user-management-search">{t("users.management.searchLabel")}</label>
-      <input id="user-management-search" className="min-w-0 flex-1 rounded border px-3 py-2" value={input} onChange={(event) => onInputChange(event.target.value)} placeholder={t("users.management.searchPlaceholder")} />
-      <button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" title={t("users.management.search")}><Icon name="magnifying-glass" />{t("users.management.search")}</button>
+      <input id="user-management-search" className={`${nativeFieldClassName} mt-0 min-w-0 flex-1`} value={input} onChange={(event) => onInputChange(event.target.value)} placeholder={t("users.management.searchPlaceholder")} />
+      <button className={nativePrimaryButtonClassName} title={t("users.management.search")}><Icon name="magnifying-glass" />{t("users.management.search")}</button>
     </form>
     {isLoading && <p aria-live="polite">{t("users.management.loading")}</p>}
-    {isError && <div role="alert"><p className="text-danger">{t("users.management.error")}</p><button className="inline-flex items-center gap-2 underline" onClick={onRetry} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button></div>}
+    {isError && <div role="alert"><p className="text-danger">{t("users.management.error")}</p><button className={nativeLinkButtonClassName} onClick={onRetry} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button></div>}
     {!isLoading && !isError && users.length === 0 && <p className="text-muted">{t("users.management.empty")}</p>}
-    {users.length > 0 && <div className="grid gap-6 lg:grid-cols-[1fr_1fr]"><div className="overflow-x-auto"><table className="w-full text-left"><thead><tr><th>{t("users.management.name")}</th><th>{t("users.management.email")}</th><th>{t("users.management.phone")}</th><th><span className="sr-only">{t("users.management.userDetails")}</span></th></tr></thead><tbody>{users.map((user) => <tr className="border-t" key={user.id} onClick={() => onSelect(user.id)}><td className="py-3">{user.fullName ?? user.userName ?? user.id}</td><td>{user.email ?? "—"}</td><td><span dir="ltr">{user.phoneNumber ?? "—"}</span></td><td><button className="inline-flex items-center gap-2 rounded border px-3 py-2" type="button" onClick={(event) => { event.stopPropagation(); onOpenUserDetails?.(user.id); }} title={t("users.management.userDetails")} aria-label={t("users.management.userDetails")}><Icon name="user-gear" /></button></td></tr>)}</tbody></table></div><MembershipList userId={selectedUserId} memberships={memberships} t={t} /></div>}
+    </div></Surface>
+    {users.length > 0 && <div className="grid gap-6 lg:grid-cols-[1fr_1fr]"><Surface className="flex flex-col gap-6 rounded-3xl p-6"><div className="overflow-x-auto"><table className="w-full text-left"><thead><tr><th>{t("users.management.name")}</th><th>{t("users.management.email")}</th><th>{t("users.management.phone")}</th><th><span className="sr-only">{t("users.management.userDetails")}</span></th></tr></thead><tbody>{users.map((user) => <tr className="border-t" key={user.id} onClick={() => onSelect(user.id)}><td className="py-3">{user.fullName ?? user.userName ?? user.id}</td><td>{user.email ?? "—"}</td><td><span dir="ltr">{user.phoneNumber ?? "—"}</span></td><td><button className={nativeSecondaryButtonClassName} type="button" onClick={(event) => { event.stopPropagation(); onOpenUserDetails?.(user.id); }} title={t("users.management.userDetails")} aria-label={t("users.management.userDetails")}><Icon name="user-gear" /></button></td></tr>)}</tbody></table></div></Surface><MembershipList userId={selectedUserId} memberships={memberships} t={t} /></div>}
   </main>;
 }
 
 function MembershipList({ userId, memberships, t }: { userId: string; memberships: MembershipQuery; t: Translate }) {
-  return <section><h2 className="text-lg font-semibold">{t("users.management.memberships")}</h2>{!userId && <p className="mt-2 text-muted">{t("users.management.selectUser")}</p>}{userId && memberships.isLoading && <p className="mt-2">{t("users.management.membershipLoading")}</p>}{userId && memberships.isError && <p className="mt-2 text-danger">{t("users.management.membershipError")}</p>}{userId && !memberships.isLoading && !memberships.isError && !memberships.data?.length && <p className="mt-2 text-muted">{t("users.management.noMemberships")}</p>}{!!memberships.data?.length && <ul className="mt-3 space-y-2">{memberships.data.map((membership) => <li className="rounded border p-3" key={`${membership.tenantId}:${membership.roleSuffix}`}><div>{t("users.management.tenant")}: {membership.tenantId}</div><div>{t("users.management.role")}: {membership.roleSuffix}</div></li>)}</ul>}</section>;
+  return <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}><div className="flex items-center gap-3"><HeaderIcon icon="id-badge" /><h2 className="text-lg font-semibold text-foreground">{t("users.management.memberships")}</h2></div><div>{!userId && <p className="mt-2 text-muted">{t("users.management.selectUser")}</p>}{userId && memberships.isLoading && <p className="mt-2">{t("users.management.membershipLoading")}</p>}{userId && memberships.isError && <p className="mt-2 text-danger">{t("users.management.membershipError")}</p>}{userId && !memberships.isLoading && !memberships.isError && !memberships.data?.length && <p className="mt-2 text-muted">{t("users.management.noMemberships")}</p>}{!!memberships.data?.length && <ul className="mt-3 space-y-2">{memberships.data.map((membership) => <li className="rounded-2xl bg-surface-secondary p-3" key={`${membership.tenantId}:${membership.roleSuffix}`}><div>{t("users.management.tenant")}: {membership.tenantId}</div><div>{t("users.management.role")}: {membership.roleSuffix}</div></li>)}</ul>}</div></Surface>;
 }
 
 function PlatformCreateUser({ title, t }: { title: string; t: Translate }) {
@@ -346,7 +383,7 @@ function PlatformCreateUser({ title, t }: { title: string; t: Translate }) {
     if (contactType === "email") email.mutate({ data: { email: contact.trim(), firstName: firstName.trim(), lastName: lastName.trim() } }, { onSuccess, onError });
     else phone.mutate({ data: { phoneNumber: contact.trim(), firstName: firstName.trim(), lastName: lastName.trim() } }, { onSuccess, onError });
   };
-  return <main className="max-w-2xl space-y-5"><SurfaceHeader title={title} /><form className="space-y-4" onSubmit={submit}><label className="block">{t("users.management.contactType")}<select className="mt-1 w-full rounded border p-2" value={contactType} onChange={(event) => { setContactType(event.target.value as "email" | "phone"); setContactFieldError(undefined); }}><option value="email">{t("users.management.emailContact")}</option><option value="phone">{t("users.management.phoneContact")}</option></select></label><div>{contactType === "email" ? <label className="block">{t("users.management.emailContact")}<input className="mt-1 w-full rounded border p-2" required value={contact} onChange={(event) => setContact(event.target.value)} /></label> : <MobileNumberField label={t("users.management.phoneContact")} hint={t("users.management.phoneContactHint")} value={contact} onChange={(value) => { setContact(value); setContactFieldError(undefined); }} isRequired error={contactFieldError} />}</div><label className="block">{t("users.management.firstName")}<input className="mt-1 w-full rounded border p-2" value={firstName} onChange={(event) => setFirstName(event.target.value)} /></label><label className="block">{t("users.management.lastName")}<input className="mt-1 w-full rounded border p-2" value={lastName} onChange={(event) => setLastName(event.target.value)} /></label><button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={pending} title={t("users.management.createUser")}><Icon name="user-plus" />{pending ? t("users.management.adding") : t("users.management.createUser")}</button></form>{message && <p role="status">{message}</p>}</main>;
+  return <main className="max-w-2xl space-y-5"><SurfaceHeader title={title} /><Surface className="flex flex-col gap-6 rounded-3xl p-6"><div><form className="space-y-4" onSubmit={submit}><label className="block">{t("users.management.contactType")}<select className={nativeFieldClassName} value={contactType} onChange={(event) => { setContactType(event.target.value as "email" | "phone"); setContactFieldError(undefined); }}><option value="email">{t("users.management.emailContact")}</option><option value="phone">{t("users.management.phoneContact")}</option></select></label><div>{contactType === "email" ? <label className="block">{t("users.management.emailContact")}<input className={nativeFieldClassName} required value={contact} onChange={(event) => setContact(event.target.value)} /></label> : <MobileNumberField label={t("users.management.phoneContact")} hint={t("users.management.phoneContactHint")} value={contact} onChange={(value) => { setContact(value); setContactFieldError(undefined); }} isRequired error={contactFieldError} />}</div><label className="block">{t("users.management.firstName")}<input className={nativeFieldClassName} value={firstName} onChange={(event) => setFirstName(event.target.value)} /></label><label className="block">{t("users.management.lastName")}<input className={nativeFieldClassName} value={lastName} onChange={(event) => setLastName(event.target.value)} /></label><button className={nativePrimaryButtonClassName} disabled={pending} title={t("users.management.createUser")}><Icon name="user-plus" />{pending ? t("users.management.adding") : t("users.management.createUser")}</button></form></div></Surface>{message && <p role="status">{message}</p>}</main>;
 }
 
 function PlatformUserDetail({ title, userId, memberships, t }: { title: string; userId: string; memberships: MembershipQuery; t: Translate }) {
@@ -542,16 +579,24 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
   }
 
   if (!securityDetails) {
-    return <main className="max-w-4xl space-y-6"><SurfaceHeader title={title} description={userId} /><div role="alert"><p className="text-danger">{t("users.management.securityDetailsError")}</p><button className="inline-flex items-center gap-2 underline" onClick={() => securityQuery.refetch()} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button></div></main>;
+    return <main className="max-w-4xl space-y-6"><SurfaceHeader title={title} description={userId} /><div role="alert"><p className="text-danger">{t("users.management.securityDetailsError")}</p><button className={nativeLinkButtonClassName} onClick={() => securityQuery.refetch()} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button></div></main>;
   }
 
   return <main className="max-w-5xl space-y-6">
     <SurfaceHeader title={title} description={securityDetails.user.fullName ?? securityDetails.user.userName ?? undefined} />
-    {historyUnavailable && <p className="rounded border border-warning p-3" role="status">{t("users.management.historyUnavailable")}</p>}
-    {securityQuery.isError && <button className="inline-flex items-center gap-2 underline" onClick={() => securityQuery.refetch()} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button>}
+    {historyUnavailable && <Alert status="warning" role="status"><Alert.Indicator /><Alert.Content><Alert.Title>{t("users.management.historyUnavailable")}</Alert.Title></Alert.Content></Alert>}
+    {securityQuery.isError && <button className={nativeLinkButtonClassName} onClick={() => securityQuery.refetch()} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button>}
 
-    <section className="space-y-3 rounded border p-4">
-      <h2 className="text-lg font-semibold">{t("users.management.profile")}</h2>
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
+      <div className="flex flex-col items-start gap-1">
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="user" />
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-foreground">{t("users.management.profile")}</h2>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-3">
       <dl className="grid gap-3 sm:grid-cols-2">
         <div><dt className="text-sm text-muted">{t("users.management.userIdentifier")}</dt><dd className="break-all font-mono">{securityDetails.user.id}</dd></div>
         <div><dt className="text-sm text-muted">{t("users.management.name")}</dt><dd>{securityDetails.user.fullName ?? securityDetails.user.userName ?? t("users.management.notAvailable")}</dd></div>
@@ -559,7 +604,7 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       </dl>
       <form className="grid gap-3 md:grid-cols-2" onSubmit={submitProfile}>
         <label>{t("users.management.emailContact")}
-          <input className="mt-1 w-full rounded border p-2" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+          <input className={nativeFieldClassName} type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
         </label>
         <MobileNumberField
           label={t("users.management.phoneContact")}
@@ -572,58 +617,85 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
           error={phoneFieldError}
         />
         <label>{t("users.management.firstName")}
-          <input className="mt-1 w-full rounded border p-2" autoComplete="given-name" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
+          <input className={nativeFieldClassName} autoComplete="given-name" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
         </label>
         <label>{t("users.management.lastName")}
-          <input className="mt-1 w-full rounded border p-2" autoComplete="family-name" value={lastName} onChange={(event) => setLastName(event.target.value)} />
+          <input className={nativeFieldClassName} autoComplete="family-name" value={lastName} onChange={(event) => setLastName(event.target.value)} />
         </label>
-        <button className="inline-flex w-fit items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={update.isPending} title={t("users.management.saveChanges")}>
+        <button className={`${nativePrimaryButtonClassName} w-fit`} disabled={update.isPending} title={t("users.management.saveChanges")}>
           <Icon name="floppy-disk" />{update.isPending ? t("users.management.savingChanges") : t("users.management.saveChanges")}
         </button>
       </form>
-    </section>
+      </div>
+    </Surface>
 
-    <section className="space-y-3 rounded border p-4">
-      <h2 className="text-lg font-semibold">{t("users.management.globalRoles")}</h2>
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
+      <div className="flex flex-col items-start gap-1">
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="user-shield" />
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-foreground">{t("users.management.globalRoles")}</h2>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-3">
       {securityDetails.globalRoles.length === 0
         ? <p className="text-muted">{t("users.management.noRoles")}</p>
-        : <ul className="flex flex-wrap gap-2">{securityDetails.globalRoles.map((role) => <li className="rounded border px-3 py-1" key={role}>{role}</li>)}</ul>}
+        : <ul className="flex flex-wrap gap-2">{securityDetails.globalRoles.map((role) => <li className="rounded-xl bg-surface-secondary px-3 py-1" key={role}>{role}</li>)}</ul>}
       <form className="flex flex-wrap items-end gap-3 border-t pt-4" onSubmit={submitGlobalRole}>
-        <label className="min-w-56 flex-1">{t("users.management.globalRoleToGrant")}<select className="mt-1 w-full rounded border p-2" value={globalRole} onChange={(event) => setGlobalRole(event.target.value)}><option value="">{t("users.management.selectGlobalRole")}</option>{securityDetails.permittedGlobalRoles.filter((role) => !securityDetails.globalRoles.includes(role)).map((role) => <option key={role} value={role}>{role}</option>)}</select></label>
-        <button className="inline-flex items-center gap-2 rounded border px-3 py-2" disabled={!globalRole || grantGlobalRole.isPending} title={t("users.management.grantGlobalRole")}><Icon name="user-check" />{t("users.management.grantGlobalRole")}</button>
+        <label className="min-w-56 flex-1">{t("users.management.globalRoleToGrant")}<select className={nativeFieldClassName} value={globalRole} onChange={(event) => setGlobalRole(event.target.value)}><option value="">{t("users.management.selectGlobalRole")}</option>{securityDetails.permittedGlobalRoles.filter((role) => !securityDetails.globalRoles.includes(role)).map((role) => <option key={role} value={role}>{role}</option>)}</select></label>
+        <button className={nativeSecondaryButtonClassName} disabled={!globalRole || grantGlobalRole.isPending} title={t("users.management.grantGlobalRole")}><Icon name="user-check" />{t("users.management.grantGlobalRole")}</button>
       </form>
       <p className="text-sm text-muted">{t("users.management.globalRoleRevokeGap")}</p>
       <h3 className="pt-2 font-medium">{t("users.management.memberships")}</h3>
       {memberships.isLoading && <p aria-live="polite">{t("users.management.membershipLoading")}</p>}
       {memberships.isError && <p className="text-danger">{t("users.management.membershipError")}</p>}
       {!memberships.isLoading && !memberships.isError && tenantRoles.length === 0 && <p className="text-muted">{t("users.management.noMemberships")}</p>}
-      {tenantRoles.map((membership) => <div className="mt-2 flex flex-wrap items-center justify-between gap-3 rounded border p-3" key={`${membership.tenantId}:${membership.roleSuffix}`}>
+      {tenantRoles.map((membership) => <div className="mt-2 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface-secondary p-3" key={`${membership.tenantId}:${membership.roleSuffix}`}>
         <span>{t("users.management.tenant")}: {membership.tenantId} · {t("users.management.role")}: {membership.roleSuffix}</span>
         <button className="inline-flex items-center gap-2 text-danger" disabled={revoke.isPending || memberships.isError} onClick={() => revokeRole(membership.tenantId, membership.roleSuffix)} title={t("users.management.revoke")}><Icon name="user-minus" />{t("users.management.revoke")}</button>
       </div>)}
       <form className="space-y-3 border-t pt-4" onSubmit={submit}>
         <h3 className="font-medium">{t("users.management.grant")}</h3>
-        <label className="block">{t("users.management.tenantId")}<input className="mt-1 w-full rounded border p-2" required value={tenantId} onChange={(event) => setTenantId(event.target.value)} /></label>
-        <label className="block">{t("users.management.roleToGrant")}<select className="mt-1 rounded border p-2" value={roleSuffix} onChange={(event) => setRoleSuffix(event.target.value === tenantRoleSuffixes.owner ? tenantRoleSuffixes.owner : tenantRoleSuffixes.user)}><option value={tenantRoleSuffixes.user}>{tenantRoleSuffixes.user}</option><option value={tenantRoleSuffixes.owner}>{tenantRoleSuffixes.owner}</option></select></label>
-        <button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={grant.isPending || !tenantId.trim()} title={t("users.management.grant")}><Icon name="user-check" />{t("users.management.grant")}</button>
+        <label className="block">{t("users.management.tenantId")}<input className={nativeFieldClassName} required value={tenantId} onChange={(event) => setTenantId(event.target.value)} /></label>
+        <label className="block">{t("users.management.roleToGrant")}<select className={`${nativeFieldClassName} w-auto`} value={roleSuffix} onChange={(event) => setRoleSuffix(event.target.value === tenantRoleSuffixes.owner ? tenantRoleSuffixes.owner : tenantRoleSuffixes.user)}><option value={tenantRoleSuffixes.user}>{tenantRoleSuffixes.user}</option><option value={tenantRoleSuffixes.owner}>{tenantRoleSuffixes.owner}</option></select></label>
+        <button className={nativePrimaryButtonClassName} disabled={grant.isPending || !tenantId.trim()} title={t("users.management.grant")}><Icon name="user-check" />{t("users.management.grant")}</button>
       </form>
-    </section>
+      </div>
+    </Surface>
 
-    <section className="space-y-3 rounded border p-4">
-      <h2 className="text-lg font-semibold">{t("users.management.inactivityPolicyTitle")}</h2>
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
+      <div className="flex flex-col items-start gap-1">
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="hourglass-half" />
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-foreground">{t("users.management.inactivityPolicyTitle")}</h2>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-3">
       {inactivityPolicy.isLoading && <p aria-live="polite">{t("users.management.inactivityLoading")}</p>}
-      {inactivityPolicy.isError && <div role="alert"><p className="text-danger">{t("users.management.inactivityError")}</p><button className="inline-flex items-center gap-2 underline" onClick={() => inactivityPolicy.refetch()} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button></div>}
+      {inactivityPolicy.isError && <div role="alert"><p className="text-danger">{t("users.management.inactivityError")}</p><button className={nativeLinkButtonClassName} onClick={() => inactivityPolicy.refetch()} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button></div>}
       {inactivityPolicy.data && <form className="space-y-3" onSubmit={submitInactivityPolicy}>
         <p className="text-sm text-muted">{t("users.management.inactivityDescription")}</p>
-        <label className="block">{t("users.management.inactivityTimeout")}<input className="mt-1 w-full rounded border p-2" type="number" min={1} max={30} value={inactivityTimeout} onChange={(event) => setInactivityTimeout(event.target.value)} /></label>
+        <label className="block">{t("users.management.inactivityTimeout")}<input className={nativeFieldClassName} type="number" min={1} max={30} value={inactivityTimeout} onChange={(event) => setInactivityTimeout(event.target.value)} /></label>
         <p className="text-sm text-muted">{t("users.management.inactivityInheritHint")}</p>
-        <button className="inline-flex items-center gap-2 rounded border px-3 py-2" disabled={saveInactivityPolicy.isPending} title={t("users.management.saveInactivity")}><Icon name="floppy-disk" />{t("users.management.saveInactivity")}</button>
-        {inactivityConflict && <button className="inline-flex items-center gap-2 underline" onClick={() => inactivityPolicy.refetch()} title={t("users.management.reloadInactivity")}><Icon name="arrow-rotate-right" />{t("users.management.reloadInactivity")}</button>}
+        <button className={nativeSecondaryButtonClassName} disabled={saveInactivityPolicy.isPending} title={t("users.management.saveInactivity")}><Icon name="floppy-disk" />{t("users.management.saveInactivity")}</button>
+        {inactivityConflict && <button className={nativeLinkButtonClassName} onClick={() => inactivityPolicy.refetch()} title={t("users.management.reloadInactivity")}><Icon name="arrow-rotate-right" />{t("users.management.reloadInactivity")}</button>}
       </form>}
-    </section>
+      </div>
+    </Surface>
 
-    <section className="space-y-3 rounded border p-4">
-      <h2 className="text-lg font-semibold">{t("users.management.accountStatusTitle")}</h2>
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
+      <div className="flex flex-col items-start gap-1">
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="toggle-on" />
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-foreground">{t("users.management.accountStatusTitle")}</h2>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-3">
       <p className="text-sm text-muted">{t("users.management.accountStatusDescription")}</p>
       <p className="font-medium">{securityDetails.user.isEnabled ? t("users.management.accountStatusEnabled") : t("users.management.accountStatusDisabled")}</p>
       <Tooltip>
@@ -636,10 +708,19 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
         </Button>
         <Tooltip.Content>{securityDetails.user.isEnabled ? t("users.management.disableAccount") : t("users.management.enableAccount")}</Tooltip.Content>
       </Tooltip>
-    </section>
+      </div>
+    </Surface>
 
-    <section className="space-y-3 rounded border p-4">
-      <h2 className="text-lg font-semibold">{t("users.management.sessionsTitle")}</h2>
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
+      <div className="flex flex-col items-start gap-1">
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="laptop" />
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-foreground">{t("users.management.sessionsTitle")}</h2>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-3">
       <p className="text-sm text-muted">{t("users.management.sessionsDescription")}</p>
       <Tooltip>
         <Button variant="danger" isPending={revokeUserSessions.isPending} onPress={() => setConfirmEndSessions(true)}>
@@ -647,24 +728,43 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
         </Button>
         <Tooltip.Content>{t("users.management.endSessions")}</Tooltip.Content>
       </Tooltip>
-    </section>
+      </div>
+    </Surface>
     <EndUserSessionsDialog isOpen={confirmEndSessions} isPending={revokeUserSessions.isPending} onCancel={() => setConfirmEndSessions(false)} onConfirm={endUserSessions} t={t} />
     <AccountStatusDialog action={confirmAccountStatus} isPending={disableUser.isPending || enableUser.isPending} onCancel={() => setConfirmAccountStatus(null)} onConfirm={() => changeAccountStatus(confirmAccountStatus === "enable")} t={t} />
 
-    <section className="space-y-4 rounded border p-4">
-      <h2 className="text-lg font-semibold">{t("users.management.authenticationHistory")}</h2>
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
+      <div className="flex flex-col items-start gap-1">
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="right-to-bracket" />
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-foreground">{t("users.management.authenticationHistory")}</h2>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-4">
       <UserSecurityHistoryList history={authenticationHistory} available={authenticationHistoryAvailable} emptyMessage={t("users.management.authenticationHistoryEmpty")} t={t} locale={locale} />
-    </section>
-    <section className="space-y-4 rounded border p-4">
-      <h2 className="text-lg font-semibold">{t("users.management.securityHistory")}</h2>
+      </div>
+    </Surface>
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6" render={renderSection}>
+      <div className="flex flex-col items-start gap-1">
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="shield-halved" />
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-foreground">{t("users.management.securityHistory")}</h2>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-4">
       <UserSecurityHistoryList history={securityHistory} available={securityHistoryAvailable} emptyMessage={t("users.management.securityHistoryEmpty")} t={t} locale={locale} />
-    </section>
+      </div>
+    </Surface>
 
     {totalPages > 1 && <nav className="flex flex-wrap items-center justify-between gap-3" aria-label={t("users.management.securityHistory")}>
       <p className="text-sm text-muted">{t("users.management.pageSummary", { page: formatNumber(page, locale), totalPages: formatNumber(totalPages, locale) })}</p>
       <div className="flex gap-3">
-        {page > 1 && <button className="inline-flex items-center gap-2 rounded border px-3 py-2" onClick={() => setPage(1)} title={t("users.management.newestEvents")}><Icon name="arrow-up" />{t("users.management.newestEvents")}</button>}
-        {page < totalPages && <button className="inline-flex items-center gap-2 rounded border px-3 py-2" onClick={() => setPage((current) => current + 1)} title={t("users.management.loadOlderEvents")}><Icon name="arrow-down" />{t("users.management.loadOlderEvents")}</button>}
+        {page > 1 && <button className={nativeSecondaryButtonClassName} onClick={() => setPage(1)} title={t("users.management.newestEvents")}><Icon name="arrow-up" />{t("users.management.newestEvents")}</button>}
+        {page < totalPages && <button className={nativeSecondaryButtonClassName} onClick={() => setPage((current) => current + 1)} title={t("users.management.loadOlderEvents")}><Icon name="arrow-down" />{t("users.management.loadOlderEvents")}</button>}
       </div>
     </nav>}
     {message && <p role="status" aria-live="polite">{message}</p>}
@@ -804,10 +904,10 @@ function UserSecurityHistoryList({ history, available, emptyMessage, t, locale }
     return <p className="text-muted">{history.totalCount === 0 ? emptyMessage : t("users.management.noEventsOnPage")}</p>;
   }
 
-  return <ol className="space-y-3">{history.items.map((item, index) => <li className="rounded border p-3" key={`${item.occurredAt}:${item.operation}:${index}`}>
+  return <ol className="space-y-3">{history.items.map((item, index) => <li className="rounded-2xl bg-surface-secondary p-3" key={`${item.occurredAt}:${item.operation}:${index}`}>
     <div className="flex flex-wrap items-start justify-between gap-2">
       <p className="font-medium">{localizePlatformAuditEvent(locale, item.eventName, item.eventName)}</p>
-      <span className="rounded border px-2 py-1 text-sm">{localizeSecurityAuditOutcome(locale, item.outcome, item.outcome)}</span>
+      <span className="rounded-full bg-accent-soft px-2 py-1 text-sm text-accent-soft-foreground">{localizeSecurityAuditOutcome(locale, item.outcome, item.outcome)}</span>
     </div>
     <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
       <div><dt className="text-muted">{t("users.management.eventTimeUtc")}</dt><dd>{formatDateTime(item.occurredAt, locale, { timeZone: "UTC" })}</dd></div>

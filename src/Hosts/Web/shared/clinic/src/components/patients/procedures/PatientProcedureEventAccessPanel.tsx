@@ -1,6 +1,7 @@
 "use client";
 
-import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/ui";
+import { Surface } from "@heroui/react";
+import { EmptyStateSurface as ClinicEmptyState, HeaderIcon } from "@vitarish/ui";
 import { usePatientProcedureEventAccess } from "../../../hooks/patients/procedures/usePatientProcedureEventAccess";
 import { useLocalizedText } from "../../../localization/index";
 
@@ -17,10 +18,15 @@ export function PatientProcedureEventAccessPanel({
   if (isLoading) return null;
 
   return (
-    <section className="rounded-medium border border-divider p-4">
-      <header className="mb-3">
-        <h2>{t("clinic.procedures.access.title")}</h2>
-      </header>
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6">
+      <div className="flex flex-col items-start gap-1">
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="key" />
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-foreground">{t("clinic.procedures.access.title")}</h2>
+          </div>
+        </div>
+      </div>
       <div>
         {!access ||
         (access.readRoles.length === 0 && access.writeRoles.length === 0) ? (
@@ -64,6 +70,6 @@ export function PatientProcedureEventAccessPanel({
           </div>
         )}
       </div>
-    </section>
+    </Surface>
   );
 }

@@ -1,6 +1,6 @@
 import { Button } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
-import { EmptyStateSurface as ClinicEmptyState } from "@vitarish/ui";
+import { EmptyStateSurface as ClinicEmptyState, actionRoleClassName } from "@vitarish/ui";
 import { useLocalizedText } from "../../localization/index";
 
 export interface ServiceProviderListItem {
@@ -37,7 +37,7 @@ export function ServiceProviderList({
           <ListView.ItemAction>
             <Button
               variant="ghost"
-              className="text-danger"
+              className={`${actionRoleClassName("remove")} text-danger`}
               onPress={() => onDelete(item.id)}
             >
               {t("common.actions.delete")}

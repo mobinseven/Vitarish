@@ -1,7 +1,11 @@
 "use client";
 import { useState } from "react";
 import { Button } from "@heroui/react";
-import { DetailGrid } from "@vitarish/ui";
+import {
+  DetailGrid,
+  HeaderIcon,
+  actionRoleClassName,
+} from "@vitarish/ui";
 import type { NavigationIntent } from "../../../navigation";
 import {
   formatDateTime,
@@ -59,12 +63,17 @@ export function OwnerShiftDetailPage({
           >
             {t("common.actions.previous")}
           </Button>
-          <h1 id="clinic-owner-shift-title" className="text-2xl font-bold">
-            {day} {shift.startTime} - {shift.endTime}
-          </h1>
+          <div className="flex items-center gap-4">
+            <HeaderIcon icon="clock" level="page" />
+            <div className="min-w-0">
+              <h1 id="clinic-owner-shift-title" className="text-2xl font-bold">
+                {day} {shift.startTime} - {shift.endTime}
+              </h1>
+            </div>
+          </div>
         </div>
         <div className="flex gap-2">
-          <Button
+          <Button className={actionRoleClassName("edit")}
             variant="ghost"
             onPress={() => onNavigate({ kind: "ownerShiftEdit", shiftId })}
           >

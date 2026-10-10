@@ -9,10 +9,12 @@
     "./marketing": "./src/marketing.tsx",
     "./layout": "./src/layout/index.ts",
     "./layout.css": "./src/layout.css",
-    "./content-security-policy": "./src/contentSecurityPolicyNonce.tsx"
+    "./content-security-policy": "./src/contentSecurityPolicyNonce.tsx",
+    "./theme-palette": "./src/themePaletteClass.tsx"
   },
   "sideEffects": [
-    "./src/layout.css"
+    "./src/layout.css",
+    "./src/accent.css"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",

@@ -27,6 +27,7 @@ import { formatNumber, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarDayRange } from "../calendarDayRange";
 import styles from "./HomeDashboard.module.css";
+import { HeaderIcon } from "@vitarish/ui";
 
 type SortMode = "time" | "patient";
 type StatusColor = "accent" | "default" | "danger" | "success" | "warning";
@@ -128,9 +129,14 @@ export function HomeDashboard() {
     <div className={`${styles.root} relative flex min-h-full flex-col gap-5 overflow-hidden px-4 py-5 sm:px-6 lg:px-8 lg:py-6`}>
       <header className="relative z-10 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            {t("home.dashboard.reviewBrowserTitle")}
-          </h1>
+          <div className="flex items-center gap-4">
+            <HeaderIcon icon="house" level="page" />
+            <div className="min-w-0">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                {t("home.dashboard.reviewBrowserTitle")}
+              </h1>
+            </div>
+          </div>
         </div>
       </header>
 

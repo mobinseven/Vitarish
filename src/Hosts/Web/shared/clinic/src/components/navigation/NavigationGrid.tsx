@@ -28,10 +28,9 @@ export function NavigationGrid({ items, onNavigate }: NavigationGridProps) {
           onClick={() => onNavigate?.(item.intent)}
         >
           <ItemCard
-            className="h-full transition-colors hover:bg-surface-secondary"
-            variant="outline"
+            className="h-full bg-surface transition-colors hover:bg-accent-soft"
           >
-            <ItemCard.Icon>
+            <ItemCard.Icon className="bg-accent-soft">
               <FaIcon
                 icon={item.icon}
                 aria-hidden="true"

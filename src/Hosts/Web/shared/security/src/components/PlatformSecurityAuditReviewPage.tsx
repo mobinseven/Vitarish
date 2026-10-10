@@ -1,12 +1,14 @@
 "use client";
 
-import { Alert, Button, Calendar, Checkbox, Chip, DateField, DatePicker, Input, Label, ListBox, Select, Spinner, Surface, TextField, Tooltip } from "@heroui/react";
+import { Alert, Button, Checkbox, Chip, Input, Label, ListBox, Select, Spinner, Surface, TextField, Tooltip } from "@heroui/react";
 import { DataGrid, Sheet, type DataGridColumn } from "@heroui-pro/react";
 import { ApiError } from "@vitarish/api-client";
-import { dateValueToIsoDate, formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, toLocalizedDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
+import { formatDateTime, formatNumber, localizeApiError, parseIsoDateValue, useLocalizedText, type SupportedLocale } from "@vitarish/localization";
 import { FaIcon, LoadingSpinner  } from "@vitarish/ui";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { localizePlatformAuditCategory, localizePlatformAuditEvent, localizeSecurityAuditOutcome } from "../localization";
+import { AuditDateFilter } from "./AuditDateFilter";
+import { auditOutcomeColor } from "./auditOutcomeColor";
 import {
   auditPlatformSecurityEventsExport,
   useAuditPlatformSecurityEventCatalogGet,
@@ -74,21 +76,6 @@ function activeFilterColor(key: AuditFilterKey): ActiveFilterChip["color"] {
     case "category":
     case "eventName":
       return "accent";
-    default:
-      return "default";
-  }
-}
-
-function auditOutcomeColor(outcome: string | null | undefined): AuditChipColor {
-  switch (outcome?.trim().toLowerCase()) {
-    case "succeeded":
-      return "success";
-    case "failed":
-    case "denied":
-      return "danger";
-    case "pending":
-    case "started":
-      return "warning";
     default:
       return "default";
   }
@@ -202,73 +189,6 @@ function FilterSelect({
           </ListBox>
         </Select.Popover>
       </Select>
-    </div>
-  );
-}
-
-function DateFilter({
-  label,
-  value,
-  onChange,
-  onClear,
-  clearLabel,
-  locale,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  onClear: () => void;
-  clearLabel: string;
-  locale: SupportedLocale;
-}) {
-  const dateValue = toLocalizedDateValue(parseIsoDateValue(value), locale);
-
-  return (
-    <div className="flex min-w-0 items-end gap-2">
-      <DatePicker
-        className="min-w-0 flex-1"
-        granularity="day"
-        value={dateValue}
-        onChange={(nextValue) => onChange(dateValueToIsoDate(nextValue))}
-      >
-        <Label>{label}</Label>
-        <DateField.Group fullWidth variant="secondary">
-          <DateField.Input>{(segment) => <DateField.Segment segment={segment} />}</DateField.Input>
-          <DateField.Suffix>
-            <DatePicker.Trigger aria-label={label}>
-              <DatePicker.TriggerIndicator />
-            </DatePicker.Trigger>
-          </DateField.Suffix>
-        </DateField.Group>
-        <DatePicker.Popover className="w-[24rem] max-w-[calc(100vw-2rem)]">
-          <Calendar aria-label={label} className="mx-auto w-full max-w-none">
-            <Calendar.Header>
-              <Calendar.Heading />
-              <Calendar.NavButton slot="previous" />
-              <Calendar.NavButton slot="next" />
-            </Calendar.Header>
-            <Calendar.Grid>
-              <Calendar.GridHeader>
-                {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
-              </Calendar.GridHeader>
-              <Calendar.GridBody>{(date) => <Calendar.Cell date={date} />}</Calendar.GridBody>
-            </Calendar.Grid>
-          </Calendar>
-        </DatePicker.Popover>
-      </DatePicker>
-      <Tooltip>
-        <Button
-          aria-label={clearLabel}
-          isDisabled={!value}
-          isIconOnly
-          type="button"
-          variant="ghost"
-          onPress={onClear}
-        >
-          <FaIcon icon="xmark" aria-hidden="true" />
-        </Button>
-        <Tooltip.Content>{clearLabel}</Tooltip.Content>
-      </Tooltip>
     </div>
   );
 }
@@ -551,7 +471,7 @@ export function PlatformSecurityAuditReviewPage({
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-8 px-4 pb-8 pt-8 sm:px-6 sm:pt-10 lg:px-8">
       <header className="flex flex-col gap-5 pb-2 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-3xl">
-          <div className="mb-3 flex items-center gap-3 text-primary">
+          <div className="mb-3 flex items-center gap-3 text-accent">
             <FaIcon icon="shield-halved" aria-hidden="true" className="text-xl" />
             <span className="text-xs font-semibold uppercase tracking-[0.18em]">{t("security.platformAudit.eyebrow")}</span>
           </div>
@@ -683,8 +603,8 @@ export function PlatformSecurityAuditReviewPage({
                 </Checkbox.Content>
               </Checkbox>
             </div>
-            <div className="min-w-0 lg:col-span-3"><DateFilter label={t("security.platformAudit.fromDate")} value={draftFilters.fromDate} onChange={(value) => updateDraft("fromDate", value)} onClear={() => updateDraft("fromDate", "")} clearLabel={t("security.platformAudit.clearDate")} locale={locale} /></div>
-            <div className="min-w-0 lg:col-span-3"><DateFilter label={t("security.platformAudit.toDate")} value={draftFilters.toDate} onChange={(value) => updateDraft("toDate", value)} onClear={() => updateDraft("toDate", "")} clearLabel={t("security.platformAudit.clearDate")} locale={locale} /></div>
+            <div className="min-w-0 lg:col-span-3"><AuditDateFilter label={t("security.platformAudit.fromDate")} value={draftFilters.fromDate} onChange={(value) => updateDraft("fromDate", value)} onClear={() => updateDraft("fromDate", "")} clearLabel={t("security.platformAudit.clearDate")} locale={locale} /></div>
+            <div className="min-w-0 lg:col-span-3"><AuditDateFilter label={t("security.platformAudit.toDate")} value={draftFilters.toDate} onChange={(value) => updateDraft("toDate", value)} onClear={() => updateDraft("toDate", "")} clearLabel={t("security.platformAudit.clearDate")} locale={locale} /></div>
             <div className="flex min-w-0 items-end gap-2 md:col-span-2 lg:col-span-3">
               <FilterSelect
                 label={t("security.platformAudit.sortBy")}
@@ -845,7 +765,7 @@ function PlatformAuditDetailSheet({
           <Sheet.Dialog className="flex h-full max-h-screen flex-col">
             <Sheet.Header>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">{t("security.platformAudit.detailEyebrow")}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">{t("security.platformAudit.detailEyebrow")}</p>
                 <Sheet.Heading className="mt-2">{t("security.platformAudit.detailTitle")}</Sheet.Heading>
               </div>
               <Tooltip>

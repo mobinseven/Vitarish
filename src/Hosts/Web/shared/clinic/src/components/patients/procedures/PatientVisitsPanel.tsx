@@ -2,7 +2,7 @@
 
 import { Button, Spinner } from "@heroui/react";
 import { useEffect } from "react";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, actionRoleClassName } from "@vitarish/ui";
 import { usePatientProcedures } from "../../../hooks/patients/procedures/usePatientProcedures";
 import { usePatientProcedureEvents } from "../../../hooks/patients/procedures/usePatientProcedureEvents";
 import { patientVisitsProcedureName } from "../../../hooks/patients/procedures/useEnsurePatientVisitsProcedure";
@@ -46,7 +46,7 @@ export function PatientVisitsPanel({
         <p className="text-sm text-muted">
           {t("clinic.procedures.visits.description")}
         </p>
-        <Button size="sm" variant="primary" onPress={onNewVisit}>
+        <Button className={actionRoleClassName("create")} size="sm" variant="primary" onPress={onNewVisit}>
           <FaIcon icon="plus" aria-hidden="true" />
           {t("clinic.procedures.visits.new")}
         </Button>

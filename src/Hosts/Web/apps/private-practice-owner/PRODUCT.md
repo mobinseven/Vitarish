@@ -46,3 +46,9 @@ The product is called Vitarish. It should communicate a modern, AI-native produc
 ## Accessibility & Inclusion
 
 The product must remain usable in both English and Persian, including right-to-left presentation where applicable. Simplicity is an inclusion requirement: avoid unnecessary steps, dense navigation hierarchies, and complex forms.
+
+## Product Context
+
+- Design system: Private Practice App (HeroUI Pro saved design system)
+- Logo: https://api.heroui.pro/api/theme-assets/9c3d6c3d-f212-4961-8292-4239bcc24a82/a40e5d0c-9307-4ff9-8191-c5de898d5dcf.png
+- Mark: https://api.heroui.pro/api/theme-assets/9c3d6c3d-f212-4961-8292-4239bcc24a82/aa47e647-b8b2-492e-8e3a-293b4b938d72.png

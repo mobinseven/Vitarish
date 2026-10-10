@@ -316,6 +316,7 @@ npm run validate:web-ui-boundary
 npm run validate:app-boundaries
 npm run lint:layout
 npm run test:layout-lint
+npm run test:theme-mode
 ```
 
 Use the owning package's `generate:api` script after an OpenAPI change. Do not

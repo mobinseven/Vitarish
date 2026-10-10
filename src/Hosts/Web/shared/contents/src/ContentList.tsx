@@ -1,5 +1,5 @@
 "use client";
-import { Button, Tooltip } from "@heroui/react";
+import { Button, Surface, Tooltip } from "@heroui/react";
 import { useContentItems } from "./useContents";
 import type { ContentItem, ContentStatus, ContentsClient } from "./types";
 
@@ -54,13 +54,10 @@ export function ContentList({
       ) : (
         <div className="grid gap-3">
           {query.data?.map((item) => (
-            <article
-              key={item.id}
-              className="rounded-xl border border-default-200 p-4"
-            >
-              <div className="flex items-center justify-between gap-4">
+            <Surface className="flex flex-col gap-6 rounded-3xl p-6" key={item.id}>
+              <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="font-semibold">{item.title}</h2>
+                  <h2 className="text-lg font-semibold text-foreground">{item.title}</h2>
                   <p className="text-sm text-muted">
                     {item.canonicalPath} · {text.status(item.status)} ·{" "}
                     {text.updated(formatDate(item.updatedAt ?? item.createdAt))}
@@ -81,7 +78,7 @@ export function ContentList({
                   <Tooltip.Content arrowBoundaryOffset={0}>{text.edit}</Tooltip.Content>
                 </Tooltip>
               </div>
-            </article>
+            </Surface>
           ))}
         </div>
       )}

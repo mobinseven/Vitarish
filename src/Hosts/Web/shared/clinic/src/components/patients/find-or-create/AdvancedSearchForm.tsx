@@ -7,6 +7,7 @@ import {
   DatePicker,
   Input,
   Label,
+  Surface,
   TextField,
 } from "@heroui/react";
 import {
@@ -16,6 +17,7 @@ import {
 
 import type { AdvancedSearchCriteria } from "../../../models/patients/patientSearchModels";
 import { useLocalizedText } from "../../../localization/index";
+import { HeaderIcon } from "@vitarish/ui";
 
 interface AdvancedSearchFormProps {
   onSearch: (criteria: AdvancedSearchCriteria) => void;
@@ -48,10 +50,15 @@ export function AdvancedSearchForm({
   const hasValues = name || identificationCode || dateOfBirth || phone || email;
 
   return (
-    <section className="rounded-medium border border-divider p-4">
-      <header className="mb-3">
-        <h2>{t("clinic.patient.advancedSearch.title")}</h2>
-      </header>
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6">
+      <div className="flex flex-col items-start gap-1">
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="magnifying-glass" />
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-foreground">{t("clinic.patient.advancedSearch.title")}</h2>
+          </div>
+        </div>
+      </div>
       <div className="flex flex-col gap-4">
         <TextField>
           <Label>{t("clinic.patient.advancedSearch.nameLabel")}</Label>
@@ -113,6 +120,6 @@ export function AdvancedSearchForm({
           )}
         </div>
       </div>
-    </section>
+    </Surface>
   );
 }

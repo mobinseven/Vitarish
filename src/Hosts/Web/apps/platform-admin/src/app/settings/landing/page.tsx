@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Surface } from "@heroui/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePlatformAuthorization } from "@vitarish/auth";
 import {
@@ -49,38 +50,46 @@ export default function LandingSettingsPage() {
     {binding.isLoading && <p>{t("admin.landing.loading")}</p>}
     {binding.isError && <div><p className="text-danger">{t("admin.landing.error")}</p><button className="underline" onClick={() => binding.refetch()}>{t("admin.landing.retry")}</button></div>}
     {binding.data && <>
-      <dl className="space-y-3 rounded border p-4">
-        <div><dt className="font-semibold">{t("admin.landing.hostname")}</dt><dd>{binding.data.hostname}</dd></div>
-        <div><dt className="font-semibold">{t("admin.landing.tenant")}</dt><dd>{binding.data.tenantId ?? t("admin.landing.unbound")}</dd></div>
-      </dl>
-      <form className="space-y-3 rounded border p-4" onSubmit={event => {
-        event.preventDefault();
-        const submittedTarget = targetRef.current;
-        if (!submittedTarget || !window.confirm(t("admin.landing.confirmation"))) return;
-        setMessage("");
-        mutation.mutate({ data: { tenantId: submittedTarget } }, {
-          onSuccess: result => {
-            if (targetRef.current !== submittedTarget) return;
-            revalidateAffectedQueries(result.previousTenantId, result.tenantId);
-            setMessage(result.changed ? t("admin.landing.success") : t("admin.landing.noop"));
-          },
-          onError: () => {
-            if (targetRef.current === submittedTarget) setMessage(t("admin.landing.mutationError"));
-          },
-        });
-      }}>
-        <label className="block">{t("admin.landing.target")}
-          <select className="mt-1 w-full rounded border p-2" value={target} onChange={event => selectTarget(event.target.value)}>
-            <option value="">{t("admin.landing.selectTarget")}</option>
-            {tenants.data?.map(tenant => <option key={tenant.id} value={tenant.id}>{tenant.name ?? tenant.id} ({tenant.id})</option>)}
-          </select>
-        </label>
-        {tenants.isLoading && <p>{t("admin.tenants.loading")}</p>}
-        {tenants.isError && <p className="text-danger">{t("admin.tenants.error")}</p>}
-        <p className="text-warning">{t("admin.landing.warning")}</p>
-        <button className="rounded bg-primary px-4 py-2 text-primary-foreground" disabled={mutation.isPending || !target}>{t("admin.landing.confirm")}</button>
-        {message && <p role="status">{message}</p>}
-      </form>
+      <Surface className="flex flex-col gap-6 rounded-3xl p-6">
+        <div>
+          <dl className="space-y-3">
+            <div><dt className="font-semibold">{t("admin.landing.hostname")}</dt><dd>{binding.data.hostname}</dd></div>
+            <div><dt className="font-semibold">{t("admin.landing.tenant")}</dt><dd>{binding.data.tenantId ?? t("admin.landing.unbound")}</dd></div>
+          </dl>
+        </div>
+      </Surface>
+      <Surface className="flex flex-col gap-6 rounded-3xl p-6">
+        <div>
+          <form className="space-y-3" onSubmit={event => {
+            event.preventDefault();
+            const submittedTarget = targetRef.current;
+            if (!submittedTarget || !window.confirm(t("admin.landing.confirmation"))) return;
+            setMessage("");
+            mutation.mutate({ data: { tenantId: submittedTarget } }, {
+              onSuccess: result => {
+                if (targetRef.current !== submittedTarget) return;
+                revalidateAffectedQueries(result.previousTenantId, result.tenantId);
+                setMessage(result.changed ? t("admin.landing.success") : t("admin.landing.noop"));
+              },
+              onError: () => {
+                if (targetRef.current === submittedTarget) setMessage(t("admin.landing.mutationError"));
+              },
+            });
+          }}>
+            <label className="block">{t("admin.landing.target")}
+              <select className="mt-1 w-full rounded border p-2" value={target} onChange={event => selectTarget(event.target.value)}>
+                <option value="">{t("admin.landing.selectTarget")}</option>
+                {tenants.data?.map(tenant => <option key={tenant.id} value={tenant.id}>{tenant.name ?? tenant.id} ({tenant.id})</option>)}
+              </select>
+            </label>
+            {tenants.isLoading && <p>{t("admin.tenants.loading")}</p>}
+            {tenants.isError && <p className="text-danger">{t("admin.tenants.error")}</p>}
+            <p className="text-warning">{t("admin.landing.warning")}</p>
+            <button className="rounded bg-primary px-4 py-2 text-primary-foreground" disabled={mutation.isPending || !target}>{t("admin.landing.confirm")}</button>
+            {message && <p role="status">{message}</p>}
+          </form>
+        </div>
+      </Surface>
     </>}
   </main>;
 }

@@ -1,10 +1,10 @@
 "use client";
 
-import { Button, Card, Chip, ListBox, Select, Spinner } from "@heroui/react";
+import { Alert, Button, Card, Chip, ListBox, Select, Spinner } from "@heroui/react";
 import { Sheet } from "@heroui-pro/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, actionRoleClassName } from "@vitarish/ui";
 import { medicalGetPatientPrescriptionDashboard, medicalGetPrescription, medicalListPatientPrescriptions } from "../../../api/generated/medical/medical";
 import type { PrescriptionSummaryDto } from "../../../api/generated/medical/model";
 import { useLocalizedText } from "../../../localization";
@@ -35,11 +35,11 @@ export function PatientPrescriptionDashboard({ patientId, onNewPrescription }: {
             <h2 className="text-xl font-semibold">{dashboard.data?.totalCount ?? 0} {t("clinic.prescriptionFeed.title")}</h2>
             <p className="text-sm text-muted">{dashboard.data?.attentionCount ?? dashboard.data?.attentionQueue?.length ?? 0} {t("clinic.prescriptionFeed.attentionTitle")}</p>
           </div>
-          <Button variant="primary" onPress={onNewPrescription}><FaIcon icon="prescription-bottle-medical" aria-hidden="true" />{t("clinic.patient.quickActions.prescription")}</Button>
+          <Button className={actionRoleClassName("edit")} variant="primary" onPress={onNewPrescription}><FaIcon icon="prescription-bottle-medical" aria-hidden="true" />{t("clinic.patient.quickActions.prescription")}</Button>
         </div>
-        {dashboard.isLoading || history.isLoading ? <div className="flex justify-center py-8"><Spinner /></div> : dashboard.isError || history.isError ? <div className="flex items-center justify-between rounded-lg border border-danger/30 p-4"><span>{t("clinic.prescriptionFeed.unavailable")}</span><Button variant="outline" onPress={() => { void dashboard.refetch(); void history.refetch(); }}>{t("clinic.prescriptionFeed.retry")}</Button></div> : (
+        {dashboard.isLoading || history.isLoading ? <div className="flex justify-center py-8"><Spinner /></div> : dashboard.isError || history.isError ? <Alert status="danger"><Alert.Indicator /><Alert.Content><Alert.Title>{t("clinic.prescriptionFeed.unavailable")}</Alert.Title><Alert.Description><Button variant="outline" onPress={() => { void dashboard.refetch(); void history.refetch(); }}>{t("clinic.prescriptionFeed.retry")}</Button></Alert.Description></Alert.Content></Alert> : (
           <div className="space-y-3">
-            {(dashboard.data?.attentionQueue?.length ?? 0) > 0 ? <section className="rounded-lg border border-warning/30 bg-warning/5 p-3"><h3 className="font-semibold">{t("clinic.prescriptionFeed.attentionTitle")}</h3><div className="mt-2 space-y-2">{dashboard.data?.attentionQueue?.map((item) => <div key={item.id} className="flex items-center justify-between gap-3 text-sm"><span>{item.itemDisplayNames?.join(", ") || t("clinic.prescriptionFeed.unnamedItem")}</span><Chip size="sm" variant="soft">{String(item.status ?? "")}</Chip></div>)}</div></section> : null}
+            {(dashboard.data?.attentionQueue?.length ?? 0) > 0 ? <Alert status="warning"><Alert.Indicator /><Alert.Content><Alert.Title>{t("clinic.prescriptionFeed.attentionTitle")}</Alert.Title><div className="mt-2 space-y-2">{dashboard.data?.attentionQueue?.map((item) => <div key={item.id} className="flex items-center justify-between gap-3 text-sm"><span>{item.itemDisplayNames?.join(", ") || t("clinic.prescriptionFeed.unnamedItem")}</span><Chip size="sm" variant="soft">{String(item.status ?? "")}</Chip></div>)}</div></Alert.Content></Alert> : null}
             <h3 className="font-semibold">{t("clinic.prescriptionFeed.detailsTitle")}</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <Select aria-label={t("clinic.prescriptionFeed.allProviders")} placeholder={t("clinic.prescriptionFeed.allProviders")} selectedKey={selectValue(provider)} onSelectionChange={(key) => setProvider(key === "all-providers" ? "" : String(key ?? ""))}>

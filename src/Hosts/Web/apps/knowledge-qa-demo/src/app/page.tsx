@@ -1,3 +1,4 @@
+import { Surface } from "@heroui/react";
 import Link from "next/link";
 import { Routes } from "@/app/routes";
 import { getMessages } from "@/localization/messages";
@@ -15,8 +16,8 @@ export default function HomePage() {
     <PublicDocumentShell>
       <StandaloneDocumentPage className="flex items-center py-16">
         <PageContainer width="reading">
-          <section className="w-full rounded-3xl border border-default bg-surface p-8 text-center shadow-sm sm:p-12">
-            <header className="flex flex-col items-center gap-4">
+          <Surface className="flex w-full flex-col gap-6 rounded-3xl p-8 text-center sm:p-12">
+            <div className="flex flex-col items-center gap-4">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
                 {messages.eyebrow}
               </p>
@@ -26,8 +27,8 @@ export default function HomePage() {
               <p className="max-w-2xl text-base text-muted sm:text-lg">
                 {messages.description}
               </p>
-            </header>
-            <div className="flex justify-center pt-8">
+            </div>
+            <div className="flex flex-row justify-center pt-8">
               <Link
                 className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 href={Routes.Login}
@@ -35,7 +36,7 @@ export default function HomePage() {
                 {messages.loginAction}
               </Link>
             </div>
-          </section>
+          </Surface>
         </PageContainer>
       </StandaloneDocumentPage>
     </PublicDocumentShell>

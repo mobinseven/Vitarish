@@ -7,6 +7,7 @@ import {
   EmptyStateSurface as ClinicEmptyState,
   ErrorStateSurface as ClinicErrorState,
   LoadingStateSurface as ClinicLoadingState,
+  HeaderIcon,
 } from "@vitarish/ui";
 import { useOwnerReservations } from "../../../hooks/appointments/reservations/useOwnerReservations";
 import { useLocalizedText, type MessageKey } from "../../../localization/index";
@@ -41,9 +42,14 @@ export function OwnerReservationsList({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
-          {t("clinic.appointments.reservations.title")}
-        </h1>
+        <div className="flex items-center gap-4">
+          <HeaderIcon icon="calendar-check" level="page" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold">
+              {t("clinic.appointments.reservations.title")}
+            </h1>
+          </div>
+        </div>
       </div>
 
       {isLoading && <ClinicLoadingState label={t("common.states.loading")} />}

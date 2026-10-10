@@ -2,10 +2,19 @@
 @import "@heroui/styles";
 @import "@heroui-pro/react/css";
 @import "@vitarish/ui/layout.css";
-@import "@heroui-pro/react/themes/glass";
+@import "./theme.css";
 
+@source "../../../../shared/account/src/**/*.{ts,tsx}";
+@source "../../../../shared/auth/src/**/*.{ts,tsx}";
 @source "../../../../shared/clinic/src/**/*.{ts,tsx}";
+@source "../../../../shared/contents/src/**/*.{ts,tsx}";
+@source "../../../../shared/intelligence/src/**/*.{ts,tsx}";
+@source "../../../../shared/journey/src/**/*.{ts,tsx}";
+@source "../../../../shared/knowledge/src/**/*.{ts,tsx}";
+@source "../../../../shared/sea/src/**/*.{ts,tsx}";
+@source "../../../../shared/security/src/**/*.{ts,tsx}";
 @source "../../../../shared/ui/src/**/*.{ts,tsx}";
+@source "../../../../shared/users/src/**/*.{ts,tsx}";
 
 @theme inline {
   --color-red: var(--red);
@@ -255,42 +264,9 @@ html.glass-dark {
     radial-gradient(circle at 12% 92%, oklch(68% 0.22 125 / 32%), transparent 17rem);
 } */
 
-:root,
-.glass-light,
-.default,
-[data-theme="light"],
-[data-theme="default"],
-.glass-dark,
-[data-theme="dark"] {
-  /* Border Radius */
-  --field-radius: 0.5rem;
-
-  /* Font Sizes */
-  --text-xs: 0.8125rem;
-  --text-xs--line-height: calc(1 / 0.8125);
-  --text-sm: 0.9375rem;
-  --text-sm--line-height: calc(1.25 / 0.9375);
-  --text-base: 1.0625rem;
-  --text-base--line-height: calc(1.5 / 1.0625);
-  --text-lg: 1.1875rem;
-  --text-lg--line-height: calc(1.75 / 1.1875);
-  --text-xl: 1.375rem;
-  --text-xl--line-height: calc(1.75 / 1.375);
-  --text-2xl: 1.5625rem;
-  --text-2xl--line-height: calc(2 / 1.5625);
-  --text-3xl: 1.9375rem;
-  --text-3xl--line-height: calc(2.25 / 1.9375);
-  --text-4xl: 2.375rem;
-  --text-4xl--line-height: calc(2.5 / 2.375);
-  --text-5xl: 3.125rem;
-  --text-6xl: 3.875rem;
-  --text-7xl: 4.75rem;
-  --text-8xl: 6.375rem;
-  --text-9xl: 8.5rem;
-}
-
+/* RTL documents use Parastoo regardless of the theme's Latin font (./fonts.ts). */
 html[dir="rtl"] {
-  --font-sans: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
+  --font-sans: var(--font-parastoo), Tahoma, Arial, sans-serif;
   font-family: var(--font-sans);
 }
 
@@ -299,27 +275,7 @@ html[dir="rtl"] body {
 }
 
 :root,
-.glass-light,
-.default,
-[data-theme="light"],
-[data-theme="default"] {
-  /* Palette sampled from the clinical dashboard reference. */
-  --default: oklch(99.7% 0 0);
-  --default-foreground: oklch(28.76% 0.118 265.14);
-  --background: oklch(96.46% 0.016 286.1);
-  --foreground: oklch(28.76% 0.118 265.14);
-  --muted: oklch(55.69% 0.0767 271.27);
-  --sidebar-background: oklch(98.27% 0.0026 286.35);
-  --surface: oklch(99.7% 0 0);
-  --surface-secondary: oklch(98.27% 0.0026 286.35);
-  --surface-tertiary: oklch(96.38% 0.0058 264.53);
-  --accent: oklch(38.57% 0.1258 264.63);
-  --accent-foreground: oklch(99% 0.005 265);
-  --success: oklch(61.32% 0.146 155.8);
-  --warning: oklch(75.35% 0.1645 57.1);
-  --danger: oklch(63% 0.22 20);
-  --border: oklch(96.38% 0.0058 264.53);
-  --separator: oklch(96.38% 0.0058 264.53);
+[data-theme="light"] {
   --red: oklch(66.37% 0.2357 359.39);
   --red-foreground: oklch(99% 0.01 350);
   --red-soft: oklch(93.21% 0.0422 343.07);
@@ -339,16 +295,7 @@ html[dir="rtl"] body {
   --support-soft-foreground: oklch(48% 0.18 290.08);
 }
 
-.glass-dark,
 [data-theme="dark"] {
-  color-scheme: dark;
-  /* Theme Colors */
-  --default: oklch(27.27% 0.0000 263.28);
-  --background: oklch(30.92% 0.0000 263.28);
-  --success: oklch(76% 0.15 155.8);
-  --warning: oklch(82% 0.15 57.1);
-  --danger: oklch(72% 0.19 20);
-  --border: oklch(28.09% 0.0000 263.28);
   --red: oklch(76% 0.2 359.39);
   --red-foreground: oklch(20% 0.04 353);
   --red-soft: oklch(35% 0.095 359.39);

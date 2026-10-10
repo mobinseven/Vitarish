@@ -10,6 +10,7 @@ export const layoutRuleIds = [
   "direct-applayout",
   "legacy-outer-container",
   "layout-css-import",
+  "hand-rolled-surface",
 ];
 
 const layoutRuleIdSet = new Set(layoutRuleIds);
@@ -38,11 +39,22 @@ const ruleGuidance = {
     reason: "Each app must import the shared layout stylesheet exactly once at its global root.",
     preferred: `Import ${layoutStylesheetImport} once from the app's root globals.css.`,
   },
+  "hand-rolled-surface": {
+    reason:
+      "Content sections must not recreate a surface from rounded, border or background, and padding utilities.",
+    preferred:
+      'Use a section surface: <Surface className="flex flex-col gap-6 rounded-3xl p-6"> with an h2 section header (see PlatformSecurityAuditReviewPage).',
+  },
 };
 
 const viewportUtilityPattern =
   /(?:^|\s)(?:(?:h|min-h|max-h|size)-(?:screen|svh|dvh|lvh)|(?:h|min-h|max-h|size)-\[[^\]]*100(?:s|d|l)?vh[^\]]*\])(?=\s|$)/;
 const viewportCssPattern = /\b100(?:s|d|l)?vh\b/i;
+const sectioningElements = new Set(["section", "article", "aside", "form"]);
+const surfaceRoundedPattern = /^rounded(?!-none$)(?:-.+)?$/;
+const surfaceBorderPattern = /^border(?:-(?![tbselrxy](?:-|$)|0$|none$|hidden$).+)?$/;
+const surfaceBackgroundPattern = /^bg-(?!transparent$|none$).+$/;
+const surfacePaddingPattern = /^p[xy]?-.+$/;
 const legacyContainerTokenSets = [
   ["mx-auto", "max-w-[1200px]", "px-6"],
   ["mx-auto", "max-w-7xl", "px-5", "pb-10", "pt-4"],
@@ -51,6 +63,11 @@ const legacyContainerTokenSets = [
 export function createProductionLayoutPolicyConfig(webRoot) {
   return {
     rootDir: webRoot,
+    surfaceIncludeRoots: discoverPackageSourceRoots(webRoot),
+    surfaceExcludePrefixes: [
+      // Layout geometry harness for the contextual-aside visual snapshot, not product UI.
+      "apps/private-practice-owner/src/app/layout-fixture/",
+    ],
     includeRoots: [
       "apps/private-practice-owner/src",
       "apps/knowledge-qa-demo/src",
@@ -70,6 +87,7 @@ export function createProductionLayoutPolicyConfig(webRoot) {
       "direct-applayout": ["shared/ui/src/shell/DashboardFrame.tsx"],
       "legacy-outer-container": [],
       "layout-css-import": [],
+      "hand-rolled-surface": [],
     },
     expectedGlobalStylesheets: [
       "apps/private-practice-owner/src/app/globals.css",
@@ -137,6 +155,10 @@ export function lintLayoutPolicy(config) {
   const owners = normalizeOwners(config.owners ?? {});
   const excluded = (config.excludePrefixes ?? []).map(normalizePath);
   const files = collectSourceFiles(rootDir, config.includeRoots, excluded);
+  const surfaceFiles = collectSourceFiles(rootDir, config.surfaceIncludeRoots ?? [], [
+    ...excluded,
+    ...(config.surfaceExcludePrefixes ?? []).map(normalizePath),
+  ]).filter(isSurfacePolicySource);
   const diagnostics = [];
   const stylesheetImports = new Map();
 
@@ -149,6 +171,12 @@ export function lintLayoutPolicy(config) {
     } else if (file.endsWith(".css")) {
       lintCssSource({ diagnostics, owners, path, source, stylesheetImports });
     }
+  }
+
+  for (const file of surfaceFiles) {
+    const path = normalizePath(relative(rootDir, file));
+    if (isOwner(owners, "hand-rolled-surface", path)) continue;
+    lintSurfaceSource({ diagnostics, path, source: readFileSync(file, "utf8") });
   }
 
   lintStylesheetOwnership({
@@ -175,7 +203,7 @@ export function lintLayoutPolicy(config) {
 
   return {
     diagnostics: activeDiagnostics.sort(compareDiagnostics),
-    scannedFiles: files.length,
+    scannedFiles: new Set([...files, ...surfaceFiles]).size,
     suppressed,
   };
 }
@@ -242,6 +270,73 @@ function lintTypeScriptSource({ diagnostics, owners, path, source }) {
   }
 
   visit(sourceFile);
+}
+
+function lintSurfaceSource({ diagnostics, path, source }) {
+  const sourceFile = ts.createSourceFile(
+    path,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
+
+  function visit(node) {
+    if (
+      (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) &&
+      ts.isIdentifier(node.tagName) &&
+      sectioningElements.has(node.tagName.text)
+    ) {
+      const classAttribute = node.attributes.properties.find(
+        (attribute) =>
+          ts.isJsxAttribute(attribute) && attribute.name.getText() === "className"
+      );
+      if (
+        classAttribute?.initializer &&
+        isHandRolledSurface(collectClassTokens(classAttribute.initializer))
+      ) {
+        addTypeScriptDiagnostic(
+          diagnostics,
+          sourceFile,
+          path,
+          "hand-rolled-surface",
+          node.tagName
+        );
+      }
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+}
+
+function collectClassTokens(initializer) {
+  const tokens = new Set();
+
+  function visit(node) {
+    const value = getLiteralText(node);
+    if (value !== null) {
+      for (const token of value.split(/\s+/)) {
+        if (token) tokens.add(token.slice(token.lastIndexOf(":") + 1));
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(initializer);
+  return tokens;
+}
+
+function isHandRolledSurface(tokens) {
+  const values = [...tokens];
+  return (
+    values.some((token) => surfaceRoundedPattern.test(token)) &&
+    values.some((token) => surfacePaddingPattern.test(token)) &&
+    values.some(
+      (token) => surfaceBorderPattern.test(token) || surfaceBackgroundPattern.test(token)
+    )
+  );
 }
 
 function lintCssSource({ diagnostics, owners, path, source, stylesheetImports }) {
@@ -404,6 +499,27 @@ function collectSourceFiles(rootDir, includeRoots, excluded) {
       }
     }
   }
+}
+
+function discoverPackageSourceRoots(webRoot) {
+  return ["apps", "shared"].flatMap((group) => {
+    const groupRoot = resolve(webRoot, group);
+    if (!existsSync(groupRoot)) return [];
+    return readdirSync(groupRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => `${group}/${entry.name}/src`)
+      .filter((sourceRoot) => existsSync(resolve(webRoot, sourceRoot)))
+      .sort();
+  });
+}
+
+function isSurfacePolicySource(file) {
+  const path = normalizePath(file);
+  return (
+    path.endsWith(".tsx") &&
+    !path.includes("/__tests__/") &&
+    !/\.(?:test|spec|stories)\.tsx$/.test(path)
+  );
 }
 
 function readExceptions(rootDir, exceptionsPath) {

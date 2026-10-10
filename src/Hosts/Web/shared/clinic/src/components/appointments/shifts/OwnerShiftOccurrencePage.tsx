@@ -6,6 +6,7 @@ import {
   EmptyStateSurface as ClinicEmptyState,
   ErrorStateSurface as ClinicErrorState,
   LoadingStateSurface as ClinicLoadingState,
+  HeaderIcon,
 } from "@vitarish/ui";
 import { useOwnerShiftDetail } from "../../../hooks/appointments/shifts/useOwnerShifts";
 export interface OwnerShiftOccurrencePageProps {
@@ -35,10 +36,15 @@ export function OwnerShiftOccurrencePage({
         >
           {t("common.actions.previous")}
         </Button>
-        <h1 className="text-2xl font-bold">
-          {query.data.startTime} - {query.data.endTime}
-        </h1>
-        <p className="text-sm text-muted">{occurrenceDate}</p>
+        <div className="flex items-center gap-4">
+          <HeaderIcon icon="clock" level="page" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold">
+              {query.data.startTime} - {query.data.endTime}
+            </h1>
+            <p className="text-sm text-muted">{occurrenceDate}</p>
+          </div>
+        </div>
       </header>
       <ClinicEmptyState
         title={t("clinic.appointments.shifts.occurrenceComingSoon")}

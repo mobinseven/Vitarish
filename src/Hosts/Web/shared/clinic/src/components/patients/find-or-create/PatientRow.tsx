@@ -39,7 +39,7 @@ export function PatientRow({
 
   return (
     <ItemCard<"button">
-      className="relative w-full cursor-pointer overflow-hidden text-start"
+      className="relative w-full cursor-pointer overflow-hidden text-start transition-colors hover:bg-accent-soft"
       render={(props) => (
         <button
           type="button"

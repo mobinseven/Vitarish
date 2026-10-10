@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Button } from "@heroui/react";
 import { useLogout } from "@vitarish/auth";
-import { StatusAlert } from "@vitarish/ui";
+import { StatusAlert, HeaderIcon } from "@vitarish/ui";
 import { StandaloneCenteredPage } from "@vitarish/ui/layout";
 import { useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
@@ -20,8 +20,13 @@ export default function LogoutPage() {
     <StandaloneCenteredPage>
       <Card className="w-full max-w-md">
         <Card.Header className="flex flex-col items-start gap-1">
-          <h1 className="text-2xl font-bold">{t("auth.logout.title")}</h1>
-          <p className="text-sm text-muted">{t("auth.logout.description")}</p>
+          <div className="flex items-center gap-4">
+            <HeaderIcon icon="arrow-right-from-bracket" level="page" />
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold">{t("auth.logout.title")}</h1>
+              <p className="text-sm text-muted">{t("auth.logout.description")}</p>
+            </div>
+          </div>
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {contextStatus === "already-signed-out" && (

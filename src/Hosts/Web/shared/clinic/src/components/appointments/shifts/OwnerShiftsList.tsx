@@ -8,6 +8,8 @@ import {
   EmptyStateSurface as ClinicEmptyState,
   ErrorStateSurface as ClinicErrorState,
   LoadingStateSurface as ClinicLoadingState,
+  HeaderIcon,
+  actionRoleClassName,
 } from "@vitarish/ui";
 import { useOwnerShifts } from "../../../hooks/appointments/shifts/useOwnerShifts";
 import { useLocalizedText, type MessageKey } from "../../../localization/index";
@@ -38,10 +40,15 @@ export function OwnerShiftsList({ onNavigate }: OwnerShiftsListProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
-          {t("clinic.appointments.shifts.title")}
-        </h1>
-        <Button
+        <div className="flex items-center gap-4">
+          <HeaderIcon icon="clock" level="page" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold">
+              {t("clinic.appointments.shifts.title")}
+            </h1>
+          </div>
+        </div>
+        <Button className={actionRoleClassName("create")}
           variant="primary"
           onPress={() => onNavigate?.({ kind: "ownerShiftCreate" })}
         >

@@ -1,9 +1,10 @@
-import { Hanken_Grotesk, IBM_Plex_Mono, Vazirmatn } from "next/font/google";
+import { Cairo, IBM_Plex_Mono, Michroma } from "next/font/google";
 
-export const hankenGrotesk = Hanken_Grotesk({
+export const michroma = Michroma({
   display: "swap",
   subsets: ["latin"],
-  variable: "--font-hanken-grotesk",
+  variable: "--font-michroma",
+  weight: "400",
 });
 
 export const ibmPlexMono = IBM_Plex_Mono({
@@ -13,14 +14,14 @@ export const ibmPlexMono = IBM_Plex_Mono({
   weight: ["400", "500", "600", "700"],
 });
 
-export const vazirmatn = Vazirmatn({
+export const cairo = Cairo({
   display: "swap",
   subsets: ["arabic"],
-  variable: "--font-vazirmatn",
+  variable: "--font-cairo",
 });
 
 export const applicationFontVariables = [
-  hankenGrotesk.variable,
+  michroma.variable,
   ibmPlexMono.variable,
-  vazirmatn.variable,
+  cairo.variable,
 ].join(" ");

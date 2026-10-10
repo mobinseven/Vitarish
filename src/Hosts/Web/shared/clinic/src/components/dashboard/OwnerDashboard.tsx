@@ -6,6 +6,7 @@ import {
 } from "../navigation/NavigationGrid";
 import type { NavigationIntent } from "../../navigation";
 import { useLocalizedText } from "../../localization/index";
+import { HeaderIcon } from "@vitarish/ui";
 
 interface OwnerDashboardProps {
   onNavigate?: (intent: NavigationIntent) => void;
@@ -56,10 +57,15 @@ export function OwnerDashboard({ onNavigate }: OwnerDashboardProps) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">{t("clinic.dashboard.title")}</h1>
-        <p className="text-sm text-muted">
-          {t("clinic.dashboard.description")}
-        </p>
+        <div className="flex items-center gap-4">
+          <HeaderIcon icon="gauge" level="page" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold">{t("clinic.dashboard.title")}</h1>
+            <p className="text-sm text-muted">
+              {t("clinic.dashboard.description")}
+            </p>
+          </div>
+        </div>
       </div>
 
       <NavigationGrid items={sections} onNavigate={onNavigate} />

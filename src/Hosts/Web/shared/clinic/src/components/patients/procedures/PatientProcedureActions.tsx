@@ -2,7 +2,7 @@
 
 import { useState, type Key } from "react";
 import { Button, Dropdown, Label, Separator } from "@heroui/react";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, HeaderIcon } from "@vitarish/ui";
 import { useLocalizedText } from "../../../localization/index";
 import { PatientProcedureForm } from "./PatientProcedureForm";
 import { PatientProcedureDeleteDialog } from "./PatientProcedureDeleteDialog";
@@ -31,7 +31,12 @@ export function PatientProcedureActions({
     <>
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{procedure.name}</h1>
+          <div className="flex items-center gap-4">
+            <HeaderIcon icon="stethoscope" level="page" />
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold">{procedure.name}</h1>
+            </div>
+          </div>
           {procedure.description && (
             <p className="text-sm text-muted mt-1">{procedure.description}</p>
           )}

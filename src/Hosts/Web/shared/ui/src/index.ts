@@ -1,9 +1,9 @@
 export { AuthMethodList } from "./auth/AuthMethodList";
 export type { AuthMethodListItem, AuthMethodListProps } from "./auth/AuthMethodList";
-export { ImageActionCard } from "./cards/ImageActionCard";
-export type { ImageActionCardProps } from "./cards/ImageActionCard";
 export { LoginPanel } from "./auth/LoginPanel";
 export type { LoginPanelProps } from "./auth/LoginPanel";
+export { signInMethodClassName, signInMethodTileClassName } from "./auth/signInMethod";
+export type { SignInMethod } from "./auth/signInMethod";
 export {
   CenteredRegion,
   ContainedPage,
@@ -71,6 +71,10 @@ export { IconButton } from "./shell/IconButton";
 export type { IconButtonProps } from "./shell/IconButton";
 export {FaIcon} from "./icons/FaIcon";
 export type {FaIconProps} from "./icons/FaIcon";
+export { actionRoleClassName } from "./actions/actionRole";
+export type { ActionRole } from "./actions/actionRole";
+export { HeaderIcon } from "./icons/HeaderIcon";
+export type { HeaderIconLevel, HeaderIconProps, HeaderIconTone } from "./icons/HeaderIcon";
 export { ViewportReveal } from "./motion/ViewportReveal";
 export type { ViewportRevealProps } from "./motion/ViewportReveal";
 export {

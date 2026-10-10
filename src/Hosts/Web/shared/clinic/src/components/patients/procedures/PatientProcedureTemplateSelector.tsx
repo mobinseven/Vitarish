@@ -12,7 +12,7 @@ import {
   TextField,
   Tooltip,
 } from "@heroui/react";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, actionRoleClassName } from "@vitarish/ui";
 import {
   EmptyStateSurface as ClinicEmptyState,
   LoadingStateSurface as ClinicLoadingState,
@@ -230,7 +230,7 @@ export function PatientProcedureTemplateSelector({
                   >
                     {t("common.actions.cancel")}
                   </Button>
-                  <Button
+                  <Button className={actionRoleClassName("create")}
                     variant="primary"
                     onPress={handleCreate}
                     isDisabled={!customName.trim()}

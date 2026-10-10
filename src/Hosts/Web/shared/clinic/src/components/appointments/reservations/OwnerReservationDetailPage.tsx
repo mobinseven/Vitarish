@@ -1,7 +1,11 @@
 "use client";
 import { useState } from "react";
 import { Button } from "@heroui/react";
-import { DetailGrid, type DetailGridItem } from "@vitarish/ui";
+import {
+  DetailGrid,
+  type DetailGridItem,
+  HeaderIcon,
+} from "@vitarish/ui";
 import type { NavigationIntent } from "../../../navigation";
 import {
   formatDateTime,
@@ -109,9 +113,14 @@ export function OwnerReservationDetailPage({
           >
             {t("common.actions.previous")}
           </Button>
-          <h1 className="text-2xl font-bold">
-            {t("clinic.appointments.reservations.detailTitle")}
-          </h1>
+          <div className="flex items-center gap-4">
+            <HeaderIcon icon="calendar-check" level="page" />
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold">
+                {t("clinic.appointments.reservations.detailTitle")}
+              </h1>
+            </div>
+          </div>
         </div>
         <Button variant="danger" onPress={() => setDeleting(true)}>
           {t("common.actions.delete")}
