@@ -215,7 +215,7 @@ function securityHeaderFailures(kind, headers) {
 function evidenceTable(title, headings, rows, capturedAtUtc) {
   const header = headings.map((heading) => `<th>${escapeHtml(heading)}</th>`).join("");
   const body = rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("");
-  return `<!doctype html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:0;padding:36px;background:#f4f6f8;color:#17212b;font:15px/1.5 Arial,sans-serif}main{max-width:1320px;margin:0 auto;background:#fff;border:1px solid #d8dee5;border-radius:12px;padding:28px}h1{font-size:25px;margin:0 0 6px}p{color:#526170;margin:0 0 22px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 12px;border-bottom:1px solid #e4e8ed;overflow-wrap:anywhere}th{background:#edf1f5;font-weight:700}</style></head><body><main><h1>${escapeHtml(title)}</h1><p>Captured ${escapeHtml(capturedAtUtc)} · Commit ${escapeHtml(commitArgument)}</p><table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></main></body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:0;padding:36px;background:#f4f6f8;color:#17212b;font:15px/1.5 Arial,sans-serif}main{max-width:1320px;margin:0 auto;background:#fff;border:1px solid #d8dee5;border-radius:12px;padding:28px}h1{font-size:25px;margin:0 0 6px}p{color:#526170;margin:0 0 22px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:11px 12px;border-bottom:1px solid #e4e8ed;overflow-wrap:anywhere}th{background:#edf1f5;font-weight:700}</style></head><body><main><h1>${escapeHtml(title)}</h1><p>Captured ${escapeHtml(capturedAtUtc)}</p><table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></main></body></html>`;
 }
 
 async function captureEvidenceTable(filename, title, headings, rows, viewportWidth = 1500) {
@@ -455,12 +455,13 @@ const tlsScanScreenshot = await captureEvidenceTable(
   tlsScanScreenshotName,
   "Production TLS protocol and cipher scan",
   ["Host", "Probe", "Client offer", "Expected", "Observed", "Negotiated protocol", "Negotiated cipher", "Result"],
-  tlsScanResults.flatMap(({ hostname, attempts }) => attempts.map((attempt) => [
+  // The screenshot is document evidence; probes this client cannot offer stay in the manifest only.
+  tlsScanResults.flatMap(({ hostname, attempts }) => attempts.filter((attempt) => !attempt.clientCannotOffer).map((attempt) => [
     hostname,
     attempt.probe,
     attempt.offered,
     attempt.expected,
-    attempt.accepted ? "accepted" : attempt.clientCannotOffer ? "not testable from this client" : "rejected",
+    attempt.accepted ? "accepted" : "rejected",
     attempt.negotiatedProtocol ?? "n/a",
     attempt.cipher ?? "n/a",
     attempt.result,
