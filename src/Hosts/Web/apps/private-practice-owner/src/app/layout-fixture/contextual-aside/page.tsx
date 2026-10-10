@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { requireTestFixtureRoutes } from "../../testFixtureRoutes";
 
 import { ContextualAsideLayoutFixture } from "./ContextualAsideLayoutFixture";
 
@@ -11,9 +11,7 @@ interface ContextualAsideFixturePageProps {
 export default async function ContextualAsideFixturePage({
   searchParams,
 }: ContextualAsideFixturePageProps) {
-  if (process.env.VITARISH_LAYOUT_TEST_FIXTURES !== "1") {
-    notFound();
-  }
+  requireTestFixtureRoutes();
 
   const { aside } = await searchParams;
   return <ContextualAsideLayoutFixture defaultAsideOpen={aside === "open"} />;

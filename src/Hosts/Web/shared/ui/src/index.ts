@@ -71,7 +71,7 @@ export { IconButton } from "./shell/IconButton";
 export type { IconButtonProps } from "./shell/IconButton";
 export {FaIcon} from "./icons/FaIcon";
 export type {FaIconProps} from "./icons/FaIcon";
-export { actionRoleClassName } from "./actions/actionRole";
+export { actionRoleClassName, actionRoles } from "./actions/actionRole";
 export type { ActionRole } from "./actions/actionRole";
 export { businessContexts, contextColorClassName } from "./color/businessContext";
 export type { BusinessContext } from "./color/businessContext";

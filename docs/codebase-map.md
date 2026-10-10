@@ -322,9 +322,10 @@ npm run test:theme-mode
 ```
 
 `npm run screenshots:private-practice-owner` captures the private-practice-owner
-sign-in pages (signed out) and its main signed-in pages (dashboard, patients,
-patient profile, audit) against the mock API for each mock scenario, locale,
-light/dark theme, and desktop/mobile viewport. Narrow a run with
+sign-in pages (signed out), its main signed-in pages (dashboard, patients,
+patient profile, audit), and the test-only color legend against the mock API
+for each mock scenario, locale, light/dark theme, and desktop/mobile viewport.
+Narrow a run with
 `-- --scenarios ready -- --project desktop-light --grep "<name>"`; images land in
 `src/Hosts/Web/artifacts/private-practice-owner-screenshots/<scenario>/<locale>-<project>/`.
 

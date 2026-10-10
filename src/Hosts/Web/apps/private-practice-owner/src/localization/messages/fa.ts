@@ -28,6 +28,14 @@ export const faMessages = {
       unknown: "نامشخص",
     },
   },
+  colorLegend: {
+    title: "نقش‌های رنگ",
+    contexts: "زمینه‌های کسب‌وکار",
+    identity: "هویت",
+    actions: "نقش‌های اقدام",
+    statusAndBrand: "وضعیت و برند",
+    brandAction: "اقدام اصلی",
+  },
   layoutFixture: {
     navigationGroupLabel: "نمونه چیدمان",
     navigationItemLabel: "چیدمان واکنش‌گرا",

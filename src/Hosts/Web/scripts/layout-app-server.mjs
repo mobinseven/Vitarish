@@ -4,6 +4,8 @@ import { spawn } from "node:child_process";
 import { cpSync, existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 
+import { layoutTestFixturesEnvironment } from "./layout-test-fixtures.mjs";
+
 const workspace = process.argv[2];
 const appConfigurations = new Map([
   ["@vitarish/private-practice-owner", { directory: "private-practice-owner", port: "3000" }],
@@ -21,7 +23,7 @@ const environment = {
   ...process.env,
   NEXT_PUBLIC_API_BASE_URL: "http://127.0.0.1:4100",
   NEXT_TELEMETRY_DISABLED: "1",
-  VITARISH_LAYOUT_TEST_FIXTURES: "1",
+  ...layoutTestFixturesEnvironment,
 };
 
 if (process.env.VITARISH_LAYOUT_SKIP_BUILD !== "1") {

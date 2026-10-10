@@ -48,6 +48,15 @@ utilities: `bg-tint`, `text-tint-foreground`, `bg-tint-soft`,
 - Host theme files may retune role values; they may not add, remove, or
   rename roles.
 
+## Checks
+
+- `npm run lint:layout` rejects Tailwind palette colors, arbitrary color
+  values, and color literals in the feature code of migrated packages. The
+  rule's `colorIncludeRoots` lists them; add a package when it migrates. Host
+  theme files are exempt.
+- `npm run screenshots:private-practice-owner` captures `/color-legend`, which
+  renders every role in light and dark mode.
+
 ## Adding a role
 
 Add the entry to its vocabulary in `@vitarish/ui` and give it a value in the

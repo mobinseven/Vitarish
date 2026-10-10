@@ -8,6 +8,8 @@ export function ValidPage() {
         <h2 className="text-lg font-semibold text-foreground">Title</h2>
         <section className="space-y-3">
           <div className="rounded-lg bg-surface-secondary p-3">Tile</div>
+          <span className="vitarish-tint vitarish-context--visit bg-tint-soft text-tint-soft-foreground">Role</span>
+          <span className="text-white text-danger hover:bg-default">Theme and image text</span>
         </section>
         <form className="border-t pt-4">Form</form>
       </Surface>

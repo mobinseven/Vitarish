@@ -28,6 +28,14 @@ export const enMessages = {
       unknown: "Unknown",
     },
   },
+  colorLegend: {
+    title: "Color roles",
+    contexts: "Business contexts",
+    identity: "Identity",
+    actions: "Action roles",
+    statusAndBrand: "Status and brand",
+    brandAction: "Primary action",
+  },
   layoutFixture: {
     navigationGroupLabel: "Layout fixture",
     navigationItemLabel: "Responsive layout",
