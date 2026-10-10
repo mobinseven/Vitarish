@@ -196,8 +196,9 @@ to `shared/ui` only when it satisfies the promotion rules in
 
 `src/Hosts/deployment` is the server Compose entry point for Main, Web apps,
 dependencies, and shared ingress. `.github/workflows/production.yml` filters
-affected consumers, runs PR checks, publishes selected full-SHA GHCR images on
-`main`, and deploys their verified registry digests over the `production` GitHub
+affected consumers, runs PR and `main` push checks, and, on a manual dispatch on
+`main`, publishes the full-SHA GHCR images changed since the last successful
+deployment and deploys their verified registry digests over the `production` GitHub
 Environment's pinned SSH secrets. The remote `src/Hosts/deployment/deploy-production.sh`
 validates protected server env files, starts missing dependencies on a fresh
 host, and gates reference updates on container health and HTTPS probes. Its
@@ -245,6 +246,8 @@ For API-to-React work, follow
 [`docs/runbooks/openapi-to-react-client.md`](runbooks/openapi-to-react-client.md).
 For route topology, outer route layout, and scroll ownership, follow the scoped
 [`src/Hosts/Web/AGENTS.md`](../src/Hosts/Web/AGENTS.md) rules.
+For Web color meanings, follow the
+[Web color roles convention](hosts/web/color-roles.md).
 
 ## 9. Generated and high-care areas
 

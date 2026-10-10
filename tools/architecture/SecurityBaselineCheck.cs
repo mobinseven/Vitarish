@@ -131,14 +131,14 @@ internal static class SecurityBaselineCheck
             !Regex.IsMatch(workflow, @"(?ms)^permissions:\r?\n  contents: read\r?\n  pull-requests: read\s*$") ||
             publishStart < 0 || deployStart <= publishStart || packageWrite <= publishStart || packageWrite >= deployStart ||
             !Regex.IsMatch(workflow[publishStart..deployStart], @"(?ms)^    permissions:\r?\n      contents: read\r?\n      packages: write\s*$"))
-            violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowPermissionsInvalid", "Keep PR permissions read-only and grant package write only to publication on main pushes."));
-        if (!Regex.IsMatch(workflow, @"(?ms)^  publish:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes\].*?^    if: \$\{\{ github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.changes\.outputs\.image_matrix != '\[\]'.*?&& !cancelled\(\) \}\}") ||
-            !Regex.IsMatch(workflow, @"(?ms)^  deploy_production:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required, publish\].*?^    if: \$\{\{ always\(\) && !cancelled\(\) && github\.event_name == 'push'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?needs\.publish\.result == 'success'.*?\}\}") ||
+            violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowPermissionsInvalid", "Keep PR permissions read-only and grant package write only to publication in manual main releases."));
+        if (!Regex.IsMatch(workflow, @"(?ms)^  publish:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes\].*?^    if: \$\{\{ github\.event_name == 'workflow_dispatch'.*?github\.ref == 'refs/heads/main'.*?needs\.changes\.outputs\.image_matrix != '\[\]'.*?&& !cancelled\(\) \}\}") ||
+            !Regex.IsMatch(workflow, @"(?ms)^  deploy_production:\r?\n(?:(?!^  [a-z_]+:).)*?^    needs: \[changes, required, publish\].*?^    if: \$\{\{ always\(\) && !cancelled\(\) && github\.event_name == 'workflow_dispatch'.*?github\.ref == 'refs/heads/main'.*?needs\.required\.result == 'success'.*?needs\.publish\.result == 'success'.*?\}\}") ||
             !HasCompleteRequiredCheckDependencies(workflow) ||
             !Regex.IsMatch(workflow, @"(?ms)^  required:\r?\n(?:(?!^  [a-z_]+:).)*?^    if: \$\{\{ always\(\) \}\}") ||
             !workflow.Contains("contains(needs.*.result, 'failure')", StringComparison.Ordinal) ||
             !workflow.Contains("contains(needs.*.result, 'cancelled')", StringComparison.Ordinal))
-            violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowTestGateMissing", "Publish immutable commit-SHA images on main pushes and deploy over SSH only when every affected check and the publication for this run succeeded."));
+            violations.Add(DeploymentViolation(workflowPath, "ProductionWorkflowTestGateMissing", "Publish immutable commit-SHA images in manual main releases and deploy over SSH only when every affected check and the publication for this run succeeded."));
         if (!workflow.Contains("environment: production", StringComparison.Ordinal) ||
             !workflow.Contains("secrets.PRODUCTION_SSH_HOST", StringComparison.Ordinal) ||
             !workflow.Contains("secrets.PRODUCTION_SSH_USER", StringComparison.Ordinal) ||

@@ -3,6 +3,7 @@ name: Production CI/CD
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
   workflow_dispatch:
@@ -11,14 +12,22 @@ permissions:
   contents: read
   pull-requests: read
 
+# A newer push or PR update supersedes in-flight checks. Releases are never
+# cancelled and queue in their own group.
 concurrency:
-  group: production-cicd-${{ github.ref }}
-  cancel-in-progress: false
+  group: production-cicd-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   changes:
     name: Detect affected consumers
+    if: ${{ github.event.pull_request.draft != true }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+      deployments: read
     outputs:
       filters: ${{ steps.filter.outputs.changes }}
       dotnet: ${{ steps.filter.outputs.dotnet }}
@@ -43,14 +52,24 @@ jobs:
       readiness_path: ${{ steps.matrix.outputs.readiness_path }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ github.event_name == 'workflow_dispatch' && '0' || '1' }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Resolve the deployed production commit
+        id: deployed
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEPLOYMENT_ENVIRONMENT: production
+        run: node tools/ci/resolve-deployed-base.mjs
       - name: Filter changed paths
         id: filter
-        if: ${{ github.event_name != 'workflow_dispatch' }}
+        if: ${{ github.event_name != 'workflow_dispatch' || steps.deployed.outputs.sha != '' }}
         uses: dorny/paths-filter@v4
         with:
+          base: ${{ steps.deployed.outputs.sha }}
           predicate-quantifier: some-with-excludes
           filters: |
             dotnet:
@@ -138,6 +157,7 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           CHANGED_FILTERS: ${{ steps.filter.outputs.changes }}
+          DEPLOYED_BASE: ${{ steps.deployed.outputs.sha }}
         run: |
           node tools/ci/select-production-matrix.mjs
       - name: Verify path selection and release identity
@@ -148,11 +168,14 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.dotnet == 'true' || needs.changes.outputs.main == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.full_suite == 'true' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
       - name: Build solution
         run: dotnet build Vitarish.slnx -p:OpenApiGenerateDocumentsOnBuild=false
       - name: Test solution
@@ -161,8 +184,9 @@ jobs:
   web:
     name: Web checks (${{ matrix.workspace }})
     needs: changes
-    if: ${{ needs.changes.outputs.web_matrix != '[]' || needs.changes.outputs.full_suite == 'true' }}
+    if: ${{ needs.changes.outputs.web_matrix != '[]' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
     strategy:
@@ -188,35 +212,11 @@ jobs:
         run: npm run test --workspace @vitarish/${{ matrix.workspace }} --if-present
 
   web_shared_tests:
-    name: Shared Web typechecks and tests
+    name: Shared Web typechecks, tests, and boundary checks
     needs: changes
     if: ${{ needs.changes.outputs.web_all == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.full_suite == 'true' }}
     runs-on: ubuntu-latest
-    env:
-      HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
-    defaults:
-      run:
-        working-directory: src/Hosts/Web
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: src/Hosts/Web/package-lock.json
-      - run: npm ci
-      - name: Generate API clients
-        run: npm run generate:api --workspaces --if-present
-      - name: Typecheck all Web workspaces
-        run: npm run typecheck
-      - name: Test all Web workspaces
-        run: npm run test
-
-  web_shared_validators:
-    name: Shared Web boundary checks
-    needs: changes
-    if: ${{ needs.changes.outputs.web_all == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.full_suite == 'true' }}
-    runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       HEROUI_AUTH_TOKEN: ${{ secrets.HEROUI_AUTH_TOKEN }}
     defaults:
@@ -235,6 +235,10 @@ jobs:
       - run: npm ci
       - name: Generate API clients
         run: npm run generate:api --workspaces --if-present
+      - name: Typecheck all Web workspaces
+        run: npm run typecheck
+      - name: Test all Web workspaces
+        run: npm run test
       - name: Validate Web UI and app boundaries
         run: |
           npm run validate:web-ui-boundary
@@ -256,6 +260,7 @@ jobs:
     needs: changes
     if: ${{ contains(needs.changes.outputs.filters, 'web_auth') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: src/Hosts/Web
@@ -281,11 +286,14 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.deployment == 'true' || needs.changes.outputs.security_tools == 'true' || needs.changes.outputs.dotnet == 'true' || needs.changes.outputs.main == 'true' || needs.changes.outputs.unknown_source == 'true' || needs.changes.outputs.workflow == 'true' || needs.changes.outputs.full_suite == 'true' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
       - name: Run security baseline and regression fixtures
         run: |
           dotnet run --project tools/architecture -- security-baseline
@@ -300,8 +308,9 @@ jobs:
   required:
     name: Required CI checks
     if: ${{ always() }}
-    needs: [changes, dotnet, web, web_shared_tests, web_shared_validators, authentication_web, security]
+    needs: [changes, dotnet, web, web_shared_tests, authentication_web, security]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Fail when an executed check failed
         if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
@@ -309,15 +318,17 @@ jobs:
       - name: Checks passed or no relevant paths changed
         run: echo "Required checks completed."
 
-  # Images are pushed only under the immutable commit-SHA tag, and publication
-  # runs in parallel with the checks. deploy_production still requires both the
-  # required check gate and publish, so nothing is deployed unless every check
-  # passed and the images for this commit were published.
+  # Releases are manual dispatches on main. Images are pushed only under the
+  # immutable commit-SHA tag, and publication runs in parallel with the checks.
+  # deploy_production still requires both the required check gate and publish,
+  # so nothing is deployed unless every check passed and the images for this
+  # commit were published.
   publish:
     name: Publish affected SHA images
     needs: [changes]
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.image_matrix != '[]' && !cancelled() }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && needs.changes.outputs.image_matrix != '[]' && !cancelled() }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -377,8 +388,9 @@ jobs:
   deploy_production:
     name: Deploy affected production services
     needs: [changes, required, publish]
-    if: ${{ always() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.deploy_services != '[]' && needs.required.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped') }}
+    if: ${{ always() && !cancelled() && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && needs.changes.outputs.deploy_services != '[]' && needs.required.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     environment: production
     permissions:
       contents: read
