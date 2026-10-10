@@ -225,7 +225,7 @@ function AttachmentItem({
           <p className="text-sm whitespace-pre-wrap">{attachment.content}</p>
         ) : (
           <a
-            className="text-sm font-medium text-primary underline-offset-2 hover:underline"
+            className="text-sm font-medium text-accent underline-offset-2 hover:underline"
             href={fileHref ?? "#"}
             target="_blank"
             rel="noreferrer"

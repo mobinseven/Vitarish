@@ -1,12 +1,14 @@
 "use client";
 
-import { Alert, Button, Card, Dropdown, Input, Label, Spinner, TextField, Tooltip } from "@heroui/react";
-import { FaIcon } from "@vitarish/ui";
+import { Alert, Button, Chip, Dropdown, Input, Label, Spinner, Surface, TextField, Tooltip } from "@heroui/react";
+import { FaIcon, HeaderIcon } from "@vitarish/ui";
 import { useMemo, useState } from "react";
 import { useAuditSecurityEventsList } from "../api/generated/audit/audit";
 import type { AuditSecurityEventsListParams } from "../api/generated/audit/model";
 import { formatDateTime, formatNumber, localizeApiError, useLocalizedText } from "@vitarish/localization";
 import { localizeSecurityAuditOutcome } from "../localization";
+import { AuditDateFilter } from "./AuditDateFilter";
+import { auditOutcomeColor } from "./auditOutcomeColor";
 
 const pageSize = 25;
 // OpenAPI currently emits the C# SecurityAuditSortField enum as an integer.
@@ -90,10 +92,13 @@ export function SecurityAuditReviewPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 pt-8">
-      <div>
-        <h1 className="text-2xl font-bold">{t("security.audit.title")}</h1>
-        <p className="text-sm text-muted">{t("security.audit.description")}</p>
-      </div>
+      <header className="flex items-center gap-4">
+        <HeaderIcon icon="shield-halved" level="page" />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">{t("security.audit.title")}</h1>
+          <p className="text-sm text-muted">{t("security.audit.description")}</p>
+        </div>
+      </header>
 
       {result?.capacityThresholdReached ? (
         <Alert status="warning">
@@ -104,12 +109,14 @@ export function SecurityAuditReviewPage() {
         </Alert>
       ) : null}
 
-      <Card>
-        <Card.Header>
-          <Card.Title>{t("security.audit.filtersTitle")}</Card.Title>
-          <Card.Description>{t("security.audit.filtersDescription")}</Card.Description>
-        </Card.Header>
-        <Card.Content>
+      <Surface className="flex flex-col gap-6 rounded-3xl p-6">
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="filter" />
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">{t("security.audit.filtersTitle")}</h2>
+            <p className="text-sm text-muted">{t("security.audit.filtersDescription")}</p>
+          </div>
+        </div>
           <form className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" onSubmit={applyFilters}>
             <TextField value={actorId} onChange={setActorId}>
               <Label>{t("security.audit.actor")}</Label>
@@ -123,21 +130,15 @@ export function SecurityAuditReviewPage() {
               <Label>{t("security.audit.eventCategory")}</Label>
               <Input />
             </TextField>
-            <TextField value={fromDate} onChange={setFromDate}>
-              <Label>{t("security.audit.fromDate")}</Label>
-              <Input type="date" />
-            </TextField>
-            <TextField value={toDate} onChange={setToDate}>
-              <Label>{t("security.audit.toDate")}</Label>
-              <Input type="date" />
-            </TextField>
-            <div className="flex items-end gap-2">
+            <AuditDateFilter label={t("security.audit.fromDate")} value={fromDate} onChange={setFromDate} onClear={() => setFromDate("")} clearLabel={t("security.audit.clearDate")} locale={locale} />
+            <AuditDateFilter label={t("security.audit.toDate")} value={toDate} onChange={setToDate} onClear={() => setToDate("")} clearLabel={t("security.audit.clearDate")} locale={locale} />
+            <div className="flex flex-wrap items-end gap-2">
               <Tooltip>
                 <Dropdown>
-                  <Dropdown.Trigger aria-label={t("security.audit.sortBy")} className="flex-1">
-                    <FaIcon icon="arrow-down-a-z" aria-hidden="true" />
+                  <Button aria-label={t("security.audit.sortBy")} className="flex-1" variant="secondary">
+                    <FaIcon icon="arrow-down-a-z" aria-hidden="true" className="text-accent" />
                     <span className="truncate">{sortLabel(sortBy, t)}</span>
-                  </Dropdown.Trigger>
+                  </Button>
                   <Dropdown.Popover>
                     <Dropdown.Menu aria-label={t("security.audit.sortBy")} onAction={(key) => {
                       const nextSort = Number(key) as AuditSortField;
@@ -181,18 +182,18 @@ export function SecurityAuditReviewPage() {
               </Tooltip>
             </div>
           </form>
-        </Card.Content>
-      </Card>
+      </Surface>
 
-      <Card>
-        <Card.Header className="flex-row items-start justify-between gap-3">
-          <div>
-            <Card.Title>{t("security.audit.eventsTitle")}</Card.Title>
-            <Card.Description>{t("security.audit.eventsCount", { count: formatNumber(totalCount, locale) })}</Card.Description>
+      <Surface className="flex flex-col gap-6 rounded-3xl p-6">
+        <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <HeaderIcon icon="list-check" tone="success" />
+            <h2 className="text-lg font-semibold text-foreground">{t("security.audit.eventsTitle")}</h2>
           </div>
-          <FaIcon icon="shield-halved" className="text-primary" aria-hidden="true" />
-        </Card.Header>
-        <Card.Content>
+          <Chip color="accent" variant="soft">
+            <Chip.Label>{t("security.audit.eventsCount", { count: formatNumber(totalCount, locale) })}</Chip.Label>
+          </Chip>
+        </div>
           {query.isPending ? (
             <div className="flex justify-center py-10"><Spinner aria-label={t("security.audit.loading")} /></div>
           ) : query.isError ? (
@@ -205,34 +206,40 @@ export function SecurityAuditReviewPage() {
             </Alert>
           ) : result?.items.length ? (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left text-sm">
-                <thead className="border-b text-xs text-muted">
+              <table className="w-full min-w-[760px] text-start text-sm">
+                <thead className="bg-accent-soft text-xs text-accent-soft-foreground">
                   <tr>
-                    <th className="px-3 py-3 font-medium">{t("security.audit.eventName")}</th>
-                    <th className="px-3 py-3 font-medium">{t("security.audit.actor")}</th>
-                    <th className="px-3 py-3 font-medium">{t("security.audit.outcome")}</th>
-                    <th className="px-3 py-3 font-medium">{t("security.audit.sourceIp")}</th>
-                    <th className="px-3 py-3 font-medium">{t("security.audit.occurredAt")}</th>
+                    <th className="px-3 py-3 text-start font-semibold first:rounded-s-xl last:rounded-e-xl">{t("security.audit.eventName")}</th>
+                    <th className="px-3 py-3 text-start font-semibold first:rounded-s-xl last:rounded-e-xl">{t("security.audit.actor")}</th>
+                    <th className="px-3 py-3 text-start font-semibold first:rounded-s-xl last:rounded-e-xl">{t("security.audit.outcome")}</th>
+                    <th className="px-3 py-3 text-start font-semibold first:rounded-s-xl last:rounded-e-xl">{t("security.audit.sourceIp")}</th>
+                    <th className="px-3 py-3 text-start font-semibold first:rounded-s-xl last:rounded-e-xl">{t("security.audit.occurredAt")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {result.items.map((item) => (
-                    <tr key={item.id} className="border-b last:border-0">
-                      <td className="px-3 py-3 font-medium">{item.eventName ?? "—"}</td>
-                      <td className="px-3 py-3">{item.actorId ?? item.actorKind ?? t("security.audit.unknownActor")}</td>
-                      <td className="px-3 py-3">{outcomeLabel(item.outcome, locale)}</td>
-                      <td className="px-3 py-3">{item.sourceIpAddress ?? item.sourceIpKind ?? "—"}</td>
-                      <td className="px-3 py-3 whitespace-nowrap">{item.occurredAt ? formatDateTime(item.occurredAt, locale) : "—"}</td>
+                    <tr key={item.id} className="border-b border-separator transition-colors last:border-0 hover:bg-surface-secondary">
+                      <td className="px-3 py-3 font-mono text-xs font-medium text-accent"><span dir="ltr">{item.eventName ?? "—"}</span></td>
+                      <td className="px-3 py-3 text-foreground">{item.actorId ?? item.actorKind ?? t("security.audit.unknownActor")}</td>
+                      <td className="px-3 py-3">
+                        <Chip color={auditOutcomeColor(item.outcome)} size="sm" variant="soft">
+                          <Chip.Label>{outcomeLabel(item.outcome, locale)}</Chip.Label>
+                        </Chip>
+                      </td>
+                      <td className="px-3 py-3 font-mono text-xs text-muted"><span dir="ltr">{item.sourceIpAddress ?? item.sourceIpKind ?? "—"}</span></td>
+                      <td className="px-3 py-3 whitespace-nowrap text-muted">{item.occurredAt ? formatDateTime(item.occurredAt, locale) : "—"}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           ) : (
-            <p className="rounded-lg border border-dashed p-8 text-center text-muted">{t("security.audit.empty")}</p>
+            <Surface variant="secondary" className="flex flex-col items-center gap-3 rounded-2xl p-8 text-center text-muted">
+              <FaIcon icon="magnifying-glass" className="text-2xl text-accent" aria-hidden="true" />
+              <p>{t("security.audit.empty")}</p>
+            </Surface>
           )}
-        </Card.Content>
-        <Card.Footer className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <span className="text-sm text-muted">{t("security.audit.page", { page: formatNumber(page, locale), totalPages: formatNumber(totalPages, locale) })}</span>
           <div className="flex gap-2">
             <Tooltip>
@@ -250,8 +257,8 @@ export function SecurityAuditReviewPage() {
               <Tooltip.Content>{t("security.audit.next")}</Tooltip.Content>
             </Tooltip>
           </div>
-        </Card.Footer>
-      </Card>
+        </div>
+      </Surface>
     </div>
   );
 }

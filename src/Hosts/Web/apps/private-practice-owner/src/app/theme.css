@@ -1,0 +1,138 @@
+/*
+ * Active HeroUI theme for this host: the "Private Practice App" saved design
+ * system on the base theme. Follow "Theme conventions" in the Web AGENTS.md to
+ * change it; keep the theme in ./theme.ts in sync with the selectors below.
+ */
+
+/* Design system export: start (paste verbatim, do not edit) */
+/*
+ * HeroUI Pro Theme
+ * Add this to your globals.css after importing @heroui/styles
+ * Only includes variables customized from the selected theme
+ * @see https://heroui.com/docs/react/getting-started/theming
+ */
+
+/*
+ * Font: Inter
+ * Load this font in your app:
+ * <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+ */
+/*
+ * Vibrant Palette: Add data-vibrant-palette="true" to your <html> element
+ * for more saturated soft foreground colors (less accessible contrast).
+ * Example: <html data-vibrant-palette="true">
+ */
+
+:root,
+.light,
+.default,
+[data-theme="light"],
+[data-theme="default"],
+.dark,
+[data-theme="dark"] {
+  /* Border Radius */
+  --radius: 0.25rem;
+  --field-radius: 0.25rem;
+
+  /* Spacing */
+  --spacing: 0.265625rem;
+
+  /* Misc */
+  --disabled-opacity: 0.15;
+
+  /* Font Sizes */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: calc(1 / 0.8125);
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: calc(1.25 / 0.9375);
+  --text-base: 1.0625rem;
+  --text-base--line-height: calc(1.5 / 1.0625);
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: calc(1.75 / 1.1875);
+  --text-xl: 1.375rem;
+  --text-xl--line-height: calc(1.75 / 1.375);
+  --text-2xl: 1.5625rem;
+  --text-2xl--line-height: calc(2 / 1.5625);
+  --text-3xl: 1.9375rem;
+  --text-3xl--line-height: calc(2.25 / 1.9375);
+  --text-4xl: 2.375rem;
+  --text-4xl--line-height: calc(2.5 / 2.375);
+  --text-5xl: 3.125rem;
+  --text-6xl: 3.875rem;
+  --text-7xl: 4.75rem;
+  --text-8xl: 6.375rem;
+  --text-9xl: 8.5rem;
+}
+
+:root,
+.light,
+.default,
+[data-theme="light"],
+[data-theme="default"] {
+  /* Theme Colors */
+  --background: oklch(97.28% 0.0053 95.29);
+  --muted: oklch(55.17% 0.0150 181.63);
+  --scrollbar: oklch(87.10% 0.0075 181.63);
+  --surface-secondary: oklch(95.24% 0.0112 181.63);
+  --surface-tertiary: oklch(93.73% 0.0112 181.63);
+  --default: oklch(100.00% 0.0001 263.28);
+  --accent: oklch(71.05% 0.1276 181.63);
+  --accent-foreground: var(--white);
+  --success: var(--color-emerald-400, #00D492);
+  --success-foreground: var(--white);
+  --warning: oklch(78.19% 0.1609 63.67);
+  --warning-foreground: var(--white);
+  --danger: oklch(65.32% 0.2363 17.08);
+  --field-border: oklch(90.00% 0.0075 181.63);
+  --border: var(--accent-soft);
+  --separator: oklch(92.00% 0.0075 181.63);
+  --focus: oklch(71.05% 0.1276 181.63);
+  --border-secondary: color-mix(in oklab, var(--separator-secondary) 50%, transparent);
+  --border-tertiary: color-mix(in oklab, var(--separator-tertiary) 50%, transparent);
+  --accent-hover: color-mix(in oklab, oklch(71.05% 0.1276 181.63) 90%, oklch(15% 0.0255 181.63) 10%);
+  --accent-soft: color-mix(in oklab, oklch(71.05% 0.1276 181.63) 15%, transparent);
+
+  /* Shadows */
+  --surface-shadow: none;
+  --overlay-shadow: none;
+}
+
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+  /* Theme Colors */
+  --background: oklch(11.85% 0.0052 196.58);
+  --muted: oklch(70.50% 0.0150 181.63);
+  --scrollbar: oklch(70.50% 0.0075 181.63);
+  --surface: oklch(21.03% 0.0150 181.63);
+  --surface-secondary: oklch(25.70% 0.0112 181.63);
+  --surface-tertiary: oklch(27.21% 0.0112 181.63);
+  --overlay: oklch(21.03% 0.0150 181.63);
+  --default: oklch(27.56% 0.0074 182.63);
+  --accent: oklch(71.05% 0.1276 181.63);
+  --accent-foreground: var(--white);
+  --success: var(--color-emerald-400, #00D492);
+  --success-foreground: var(--white);
+  --warning: oklch(82.03% 0.1409 67.68);
+  --warning-foreground: var(--white);
+  --danger: oklch(59.40% 0.1997 15.97);
+  --field-background: oklch(21.03% 0.0150 181.63);
+  --field-border: oklch(28.00% 0.0075 181.63);
+  --segment: oklch(39.64% 0.0075 181.63);
+  --border: oklch(27.97% 0.0073 182.64);
+  --separator: oklch(25.00% 0.0075 181.63);
+  --focus: oklch(71.05% 0.1276 181.63);
+  --border-secondary: color-mix(in oklab, var(--separator-secondary) 50%, transparent);
+  --border-tertiary: color-mix(in oklab, var(--separator-tertiary) 50%, transparent);
+  --accent-hover: color-mix(in oklab, oklch(71.05% 0.1276 181.63) 90%, oklch(15% 0.0255 181.63) 10%);
+  --accent-soft: color-mix(in oklab, oklch(71.05% 0.1276 181.63) 15%, transparent);
+
+  /* Shadows */
+  --overlay-shadow: none;
+}
+/* Design system export: end */
+
+/* Host adaptations: fonts are loaded by next/font in ./fonts.ts, not the export's link. */
+:root {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}

@@ -111,7 +111,7 @@ function AttachmentPreviewDialog({
               {t("clinic.procedures.items.closePreview")}
             </Button>
             <a
-              className="bg-primary text-primary-foreground inline-flex min-h-9 items-center gap-2 rounded-xl px-4 text-sm font-medium no-underline"
+              className="bg-accent text-accent-foreground inline-flex min-h-9 items-center gap-2 rounded-xl px-4 text-sm font-medium no-underline"
               download={fileName}
               href={src}
             >

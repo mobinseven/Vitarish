@@ -1,8 +1,10 @@
 "use client";
 
+import { Surface } from "@heroui/react";
 import {
   EmptyStateSurface as ClinicEmptyState,
   LoadingStateSurface as ClinicLoadingState,
+  HeaderIcon,
 } from "@vitarish/ui";
 import { PatientRow } from "./PatientRow";
 import type { PatientViewDto } from "../../../models/patients/patientSearchModels";
@@ -36,14 +38,19 @@ export function AdvancedSearchResults({
   }
 
   return (
-    <section className="rounded-medium border border-divider p-4">
-      <header className="mb-3">
-        <h2>
-          {t("clinic.patient.advancedSearch.resultsCount", {
-            count: String(results.length),
-          })}
-        </h2>
-      </header>
+    <Surface className="flex flex-col gap-6 rounded-3xl p-6">
+      <div className="flex flex-col items-start gap-1">
+        <div className="flex items-center gap-3">
+          <HeaderIcon icon="list" />
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-foreground">
+              {t("clinic.patient.advancedSearch.resultsCount", {
+                count: String(results.length),
+              })}
+            </h2>
+          </div>
+        </div>
+      </div>
       <div className="flex flex-col gap-1">
         {results.map((patient) => (
           <PatientRow
@@ -53,6 +60,6 @@ export function AdvancedSearchResults({
           />
         ))}
       </div>
-    </section>
+    </Surface>
   );
 }

@@ -69,6 +69,8 @@ export interface DashboardFrameProps {
   navigate: (href: string) => void;
   onAsideOpenChange?: (open: boolean) => void;
   skipLinkLabel: string;
+  /** Brand mark shown above the sidebar identity; hidden in the collapsed rail. */
+  sidebarBrand?: ReactNode;
   sidebarSupplement?: ReactNode;
   title: ReactNode;
   footerLabel?: string;
@@ -94,6 +96,7 @@ export function DashboardFrame({
   navigate,
   onAsideOpenChange,
   skipLinkLabel,
+  sidebarBrand,
   sidebarSupplement,
   title,
   toolbar,
@@ -169,6 +172,7 @@ export function DashboardFrame({
             navigationGroups={navigationGroups}
             navigationLabel={navigationLabel}
             onNavigate={navigate}
+            sidebarBrand={sidebarBrand}
             sidebarSupplement={sidebarSupplement}
           />
         }
@@ -310,6 +314,8 @@ interface DashboardFrameSidebarProps {
   navigationGroups: readonly DashboardNavigationGroup[];
   navigationLabel: string;
   onNavigate: (href: string) => void;
+  /** Brand mark shown above the sidebar identity; hidden in the collapsed rail. */
+  sidebarBrand?: ReactNode;
   sidebarSupplement?: ReactNode;
 }
 
@@ -347,6 +353,7 @@ function DashboardFrameSidebarContents({
   navigationGroups,
   navigationLabel,
   onNavigate,
+  sidebarBrand,
   sidebarSupplement,
 }: DashboardFrameSidebarContentsProps) {
   const requiredExpandedKeys = useMemo(
@@ -389,6 +396,11 @@ function DashboardFrameSidebarContents({
   return (
     <>
       <Sidebar.Header>
+        {sidebarBrand ? (
+          <div data-sidebar="label" data-vitarish-layout="dashboard-sidebar-brand">
+            {sidebarBrand}
+          </div>
+        ) : null}
         <div data-vitarish-layout="dashboard-sidebar-header-row">
           <Button
             fullWidth
@@ -399,7 +411,7 @@ function DashboardFrameSidebarContents({
             data-vitarish-layout="dashboard-sidebar-identity"
           >
             <Avatar className="size-8 shrink-0">
-              <Avatar.Fallback>{identity.initials}</Avatar.Fallback>
+              <Avatar.Fallback className="bg-accent text-accent-foreground">{identity.initials}</Avatar.Fallback>
             </Avatar>
             <div className="flex min-w-0 flex-col" data-sidebar="label">
               <span className="text-foreground truncate text-sm font-medium leading-tight">

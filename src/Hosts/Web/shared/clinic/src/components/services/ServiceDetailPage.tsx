@@ -1,7 +1,12 @@
 "use client";
 import { useState } from "react";
 import { Button } from "@heroui/react";
-import { DetailGrid, type DetailGridItem } from "@vitarish/ui";
+import {
+  DetailGrid,
+  type DetailGridItem,
+  HeaderIcon,
+  actionRoleClassName,
+} from "@vitarish/ui";
 import type { NavigationIntent } from "../../navigation";
 import { formatDateTime, useLocalizedText } from "../../localization";
 import {
@@ -67,13 +72,18 @@ export function ServiceDetailPage({
           >
             {t("common.actions.previous")}
           </Button>
-          <h1 className="text-2xl font-bold">
-            {editing ? t("clinic.services.editTitle") : service.name}
-          </h1>
+          <div className="flex items-center gap-4">
+            <HeaderIcon icon="briefcase-medical" level="page" />
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold">
+                {editing ? t("clinic.services.editTitle") : service.name}
+              </h1>
+            </div>
+          </div>
         </div>
         <div className="flex gap-2">
           {!editing ? (
-            <Button variant="ghost" onPress={() => setEditing(true)}>
+            <Button className={actionRoleClassName("edit")} variant="ghost" onPress={() => setEditing(true)}>
               {t("common.actions.edit")}
             </Button>
           ) : null}

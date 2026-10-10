@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, Tooltip } from "@heroui/react";
+import { Button, Card, Surface, Tooltip } from "@heroui/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useInsuranceProviderCredentials } from "@vitarish/clinic";
@@ -35,98 +35,98 @@ export function InsuranceWidget() {
             {t("home.dashboard.insuranceDescription")}
           </p>
         </header>
-        <section className={`${styles.surface} relative z-10 -mt-4 mx-1 flex flex-1 flex-col rounded-3xl bg-background/95 p-4 backdrop-blur-xl sm:p-5`}>
-          {context.isLoading || credentials.isLoading ? (
-            <p className="py-6 text-sm text-muted" aria-live="polite">
-              {t("home.dashboard.loadingProviders")}
-            </p>
-          ) : context.error || credentials.error ? (
-            <div
-              className="flex items-center justify-between gap-3 py-6"
-              role="alert"
-            >
-              <span className="text-sm text-danger">
-                {t("home.dashboard.providersLoadFailed")}
-              </span>
-              <Tooltip>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onPress={() => {
-                    if (context.error) void context.refetch();
-                    else void credentials.refetch();
-                  }}
-                >
-                  <i aria-hidden="true" className="fa-light fa-rotate-right" />
-                  {t("home.dashboard.retry")}
-                </Button>
-                <Tooltip.Content>{t("home.dashboard.retry")}</Tooltip.Content>
-              </Tooltip>
-            </div>
-          ) : rows.length === 0 ? (
-            <p className="py-6 text-sm text-muted">
-              {t("home.dashboard.noProviders")}
-            </p>
-          ) : (
-            <div className="divide-y divide-separator">
-              {rows.map((row) => {
-                const label =
-                  row.providerKey?.trim() || t("home.dashboard.provider");
-                const active = row.status === 1;
-                const disabled =
-                  row.status === 3 || row.status === 4 || row.status === 5;
-                const action = active
-                  ? t("home.dashboard.addPrescription")
-                  : disabled
-                    ? t("home.dashboard.providerUnavailable")
-                    : row.status === 0
-                      ? t("home.dashboard.setupProvider")
-                      : t("home.dashboard.reconnectProvider");
-                return (
-                  <div
-                    className="flex items-center gap-3 py-4"
-                    key={row.credentialId ?? label}
+        <Surface className={`${styles.surface} relative z-10 -mt-4 mx-1 flex flex-1 flex-col rounded-3xl p-4 backdrop-blur-xl sm:p-5`}>
+            {context.isLoading || credentials.isLoading ? (
+              <p className="py-6 text-sm text-muted" aria-live="polite">
+                {t("home.dashboard.loadingProviders")}
+              </p>
+            ) : context.error || credentials.error ? (
+              <div
+                className="flex items-center justify-between gap-3 py-6"
+                role="alert"
+              >
+                <span className="text-sm text-danger">
+                  {t("home.dashboard.providersLoadFailed")}
+                </span>
+                <Tooltip>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onPress={() => {
+                      if (context.error) void context.refetch();
+                      else void credentials.refetch();
+                    }}
                   >
-                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-green-soft text-xs font-bold text-green-soft-foreground">
-                      {label.slice(0, 2).toUpperCase()}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-sm font-semibold">
-                      {label}
-                    </span>
-                    <Tooltip>
-                      <Button
-                        isDisabled={disabled}
-                        size="sm"
-                        variant="outline"
-                        onPress={() =>
-                          router.push(
-                            active
-                              ? Routes.Clinic.Settings.PrescriptionTemplates
-                              : Routes.Clinic.Settings.Insurance,
-                          )
-                        }
-                      >
-                        <i
-                          aria-hidden="true"
-                          className={
-                            active
-                              ? "fa-light fa-file-prescription"
-                              : "fa-light fa-rotate-right"
+                    <i aria-hidden="true" className="fa-light fa-rotate-right" />
+                    {t("home.dashboard.retry")}
+                  </Button>
+                  <Tooltip.Content>{t("home.dashboard.retry")}</Tooltip.Content>
+                </Tooltip>
+              </div>
+            ) : rows.length === 0 ? (
+              <p className="py-6 text-sm text-muted">
+                {t("home.dashboard.noProviders")}
+              </p>
+            ) : (
+              <div className="divide-y divide-separator">
+                {rows.map((row) => {
+                  const label =
+                    row.providerKey?.trim() || t("home.dashboard.provider");
+                  const active = row.status === 1;
+                  const disabled =
+                    row.status === 3 || row.status === 4 || row.status === 5;
+                  const action = active
+                    ? t("home.dashboard.addPrescription")
+                    : disabled
+                      ? t("home.dashboard.providerUnavailable")
+                      : row.status === 0
+                        ? t("home.dashboard.setupProvider")
+                        : t("home.dashboard.reconnectProvider");
+                  return (
+                    <div
+                      className="flex items-center gap-3 py-4"
+                      key={row.credentialId ?? label}
+                    >
+                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-green-soft text-xs font-bold text-green-soft-foreground">
+                        {label.slice(0, 2).toUpperCase()}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+                        {label}
+                      </span>
+                      <Tooltip>
+                        <Button
+                          isDisabled={disabled}
+                          size="sm"
+                          variant="outline"
+                          onPress={() =>
+                            router.push(
+                              active
+                                ? Routes.Clinic.Settings.PrescriptionTemplates
+                                : Routes.Clinic.Settings.Insurance,
+                            )
                           }
-                        />
-                        {action}
-                      </Button>
-                      <Tooltip.Content>
-                        {disabled
-                          ? t("home.dashboard.providerUnavailableExplanation")
-                          : action}
-                      </Tooltip.Content>
-                    </Tooltip>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                        >
+                          <i
+                            aria-hidden="true"
+                            className={
+                              active
+                                ? "fa-light fa-file-prescription"
+                                : "fa-light fa-rotate-right"
+                            }
+                          />
+                          {action}
+                        </Button>
+                        <Tooltip.Content>
+                          {disabled
+                            ? t("home.dashboard.providerUnavailableExplanation")
+                            : action}
+                        </Tooltip.Content>
+                      </Tooltip>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           <footer className="mt-auto border-t border-separator pt-4">
             <Tooltip>
               <Button
@@ -144,7 +144,7 @@ export function InsuranceWidget() {
               </Tooltip.Content>
             </Tooltip>
           </footer>
-        </section>
+        </Surface>
       </div>
     </Card>
   );

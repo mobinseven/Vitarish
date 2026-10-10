@@ -1,6 +1,9 @@
 "use client";
 import { Button } from "@heroui/react";
-import { DetailGrid } from "@vitarish/ui";
+import {
+  DetailGrid,
+  HeaderIcon,
+} from "@vitarish/ui";
 import type { NavigationIntent } from "../../../navigation";
 import {
   formatDateTime,
@@ -48,9 +51,14 @@ export function UserShiftDetailPage({
         >
           {t("common.actions.previous")}
         </Button>
-        <h1 className="text-2xl font-bold">
-          {day} {shift.startTime} - {shift.endTime}
-        </h1>
+        <div className="flex items-center gap-4">
+          <HeaderIcon icon="clock" level="page" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold">
+              {day} {shift.startTime} - {shift.endTime}
+            </h1>
+          </div>
+        </div>
       </header>
       <DetailGrid
         items={[

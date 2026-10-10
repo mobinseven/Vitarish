@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
 import { MockApiBootstrap } from "@vitarish/mock-runtime";
+import { themeModeAttribute } from "@vitarish/ui/theme-palette";
 import { richSeaHandlers } from "./richSeaHandlers";
 
 export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
@@ -22,7 +23,7 @@ export function Providers({ children, nonce }: { children: ReactNode; nonce?: st
     <MockApiBootstrap handlers={handlers}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider
-          attribute="data-theme"
+          attribute={themeModeAttribute}
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange

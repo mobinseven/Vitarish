@@ -1,7 +1,7 @@
 "use client";
 
 import { Command, EmptyState } from "@heroui-pro/react";
-import { Kbd, Button } from "@heroui/react";
+import { Kbd, Button, Tooltip } from "@heroui/react";
 import { FaIcon } from "@vitarish/ui";
 import { useCommandPalette } from "./hooks/useCommandPalette";
 import { useLocalizedText } from "@/localization";
@@ -13,17 +13,21 @@ export function CommandPalette() {
 
   return (
     <>
-      <Button variant="secondary" onPress={() => setOpen(true)}>
-        {t("commandPalette.open")}{" "}
-        <Kbd>
-          <Kbd.Abbr keyValue="command">
-            <FaIcon icon="command" />
-          </Kbd.Abbr>
-          <Kbd.Content>
-            <span className="text-[0.875rem]">K</span>
-          </Kbd.Content>
-        </Kbd>
-      </Button>
+      <Tooltip>
+        <Button variant="secondary" onPress={() => setOpen(true)}>
+          <FaIcon icon="magnifying-glass" aria-hidden="true" className="text-accent" />
+          {t("commandPalette.open")}
+          <Kbd dir="ltr">
+            <Kbd.Abbr keyValue="command">
+              <FaIcon icon="command" aria-hidden="true" />
+            </Kbd.Abbr>
+            <Kbd.Content>
+              <span className="text-[0.875rem]">K</span>
+            </Kbd.Content>
+          </Kbd>
+        </Button>
+        <Tooltip.Content>{t("commandPalette.open")}</Tooltip.Content>
+      </Tooltip>
       <Command>
         <Command.Backdrop isOpen={isOpen} onOpenChange={setOpen}>
           <Command.Container size="md">

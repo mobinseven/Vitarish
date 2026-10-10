@@ -9,7 +9,7 @@ import {
   TextField,
 } from "@heroui/react";
 import { useEffect, useState } from "react";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, actionRoleClassName } from "@vitarish/ui";
 import { useCreatePatientProcedureEvent } from "../../../hooks/patients/procedures/usePatientProcedureEventMutations";
 import { formatDate, useLocalizedText } from "../../../localization";
 
@@ -112,7 +112,7 @@ export function PatientVisitEventDialog({
             >
               {t("common.actions.cancel")}
             </Button>
-            <Button
+            <Button className={actionRoleClassName("create")}
               variant="primary"
               onPress={submit}
               isPending={createEvent.isPending}

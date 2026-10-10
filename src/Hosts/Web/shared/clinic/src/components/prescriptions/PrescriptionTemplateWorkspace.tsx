@@ -8,11 +8,12 @@ import {
   ListBox,
   SearchField,
   Select,
+  Surface,
   TextArea,
   TextField,
 } from "@heroui/react";
 import { EmptyState } from "@heroui-pro/react";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, HeaderIcon } from "@vitarish/ui";
 import { useLocalizedText } from "../../localization";
 import {
   medicalGetAvailableProviders,
@@ -241,16 +242,19 @@ export function PrescriptionTemplateWorkspace() {
       dir={direction}
     >
       <header className="flex items-end justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[.16em] text-accent">
-            {t("prescriptionTemplates.settingsLabel")}
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold">
-            {t("prescriptionTemplates.title")}
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted">
-            {t("prescriptionTemplates.description")}
-          </p>
+        <div className="flex items-center gap-4">
+          <HeaderIcon icon="prescription" level="page" />
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[.16em] text-accent">
+              {t("prescriptionTemplates.settingsLabel")}
+            </p>
+            <h1 className="mt-2 text-3xl font-semibold">
+              {t("prescriptionTemplates.title")}
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm text-muted">
+              {t("prescriptionTemplates.description")}
+            </p>
+          </div>
         </div>
         <Button onPress={save} isPending={saving} variant="primary">
           <FaIcon icon="floppy-disk" aria-hidden="true" />
@@ -263,192 +267,197 @@ export function PrescriptionTemplateWorkspace() {
         </p>
       )}
       <div className="grid min-h-0 flex-1 gap-5 lg:grid-cols-[18rem_1fr]">
-        <aside className="overflow-y-auto rounded-2xl border border-separator p-3">
-          <Button
-            className="mb-3 w-full"
-            variant="secondary"
-            onPress={() => {
-              setDraft({
-                name: t("prescriptionTemplates.newTemplateName"),
-                description: "",
-                items: [],
-              });
-              setSelectedId(undefined);
-            }}
-          >
-            {t("prescriptionTemplates.newTemplate")}
-          </Button>
-          {templates.map((item) => (
+        <Surface className="flex min-h-0 flex-col gap-6 rounded-3xl p-6" role="complementary">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <Button
-              key={item.id}
-              className="mb-1 w-full justify-start text-start"
-              variant={item.id === selectedId ? "primary" : "ghost"}
-              onPress={() => setSelectedId(item.id)}
-            >
-              {item.name}
-              <span className="ms-auto text-xs">{item.itemCount ?? 0}</span>
-            </Button>
-          ))}
-        </aside>
-        <section className="min-h-0 overflow-y-auto rounded-2xl border border-separator p-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <TextField
-              value={draft.name}
-              onChange={(value) => setDraft({ ...draft, name: value })}
-            >
-              <Label>{t("prescriptionTemplates.name")}</Label>
-              <Input />
-            </TextField>
-            <TextField
-              value={draft.description}
-              onChange={(value) => setDraft({ ...draft, description: value })}
-            >
-              <Label>{t("prescriptionTemplates.descriptionLabel")}</Label>
-              <TextArea />
-            </TextField>
-          </div>
-          <div className="mt-6 rounded-xl border border-separator p-4">
-            <Label>{t("prescriptionTemplates.provider")}</Label>
-            <select
-              aria-label={t("prescriptionTemplates.provider")}
-              value={providerKey}
-              onChange={(event) => {
-                setProviderKey(event.target.value);
-                setResults([]);
+              className="mb-3 w-full"
+              variant="secondary"
+              onPress={() => {
+                setDraft({
+                  name: t("prescriptionTemplates.newTemplateName"),
+                  description: "",
+                  items: [],
+                });
+                setSelectedId(undefined);
               }}
-              className="mt-1 w-full rounded-lg border border-separator bg-surface p-2"
             >
-              {providers.map((provider) => (
-                <option key={provider.key} value={provider.key}>
-                  {provider.name}
-                </option>
-              ))}
-            </select>
-            <SearchField className="mt-3" value={query} onChange={search}>
-              <Label>{t("prescriptionTemplates.catalogSearch")}</Label>
-              <SearchField.Group>
-                <SearchField.SearchIcon />
-                <SearchField.Input
-                  placeholder={t(
-                    "prescriptionTemplates.catalogSearchPlaceholder",
-                  )}
-                />
-                <SearchField.ClearButton />
-              </SearchField.Group>
-            </SearchField>
-            <div
-              role="status"
-              aria-live="polite"
-              className="mt-2 text-sm text-muted"
-            >
-              {status === "loading"
-                ? t("prescriptionTemplates.searching")
-                : status === "error"
-                  ? t("prescriptionTemplates.searchFailed")
-                  : status === "unavailable"
-                    ? t("prescriptionTemplates.catalogUnavailable")
-                    : status === "empty"
-                      ? t("prescriptionTemplates.catalogEmpty")
-                      : ""}
+              {t("prescriptionTemplates.newTemplate")}
+            </Button>
+            {templates.map((item) => (
+              <Button
+                key={item.id}
+                className="mb-1 w-full justify-start text-start"
+                variant={item.id === selectedId ? "primary" : "ghost"}
+                onPress={() => setSelectedId(item.id)}
+              >
+                {item.name}
+                <span className="ms-auto text-xs">{item.itemCount ?? 0}</span>
+              </Button>
+            ))}
+          </div>
+        </Surface>
+        <Surface className="flex min-h-0 flex-col gap-6 rounded-3xl p-6">
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField
+                value={draft.name}
+                onChange={(value) => setDraft({ ...draft, name: value })}
+              >
+                <Label>{t("prescriptionTemplates.name")}</Label>
+                <Input />
+              </TextField>
+              <TextField
+                value={draft.description}
+                onChange={(value) => setDraft({ ...draft, description: value })}
+              >
+                <Label>{t("prescriptionTemplates.descriptionLabel")}</Label>
+                <TextArea />
+              </TextField>
             </div>
-            {results.length > 0 && (
-              <ListBox aria-label={t("prescriptionTemplates.catalogResults")}>
-                {results.map((result) => (
-                  <ListBox.Item
-                    key={`${result.providerKey}:${result.referenceCode}`}
-                    id={result.referenceCode}
-                    textValue={`${result.displayName} ${result.referenceCode}`}
-                    onAction={() => add(result)}
-                  >
-                    {result.displayName}
-                    <span className="ms-auto text-xs text-muted">
-                      {result.referenceCode} ·{" "}
-                      {t(
-                        `prescriptionTemplates.categories.${categoryKeys[result.prescriptionCategory] ?? "service"}`,
-                      )}
-                    </span>
-                  </ListBox.Item>
+            <Surface className="mt-6 rounded-xl p-4" variant="secondary">
+              <Label>{t("prescriptionTemplates.provider")}</Label>
+              <select
+                aria-label={t("prescriptionTemplates.provider")}
+                value={providerKey}
+                onChange={(event) => {
+                  setProviderKey(event.target.value);
+                  setResults([]);
+                }}
+                className="mt-1 w-full rounded-lg border border-separator bg-surface p-2"
+              >
+                {providers.map((provider) => (
+                  <option key={provider.key} value={provider.key}>
+                    {provider.name}
+                  </option>
                 ))}
-              </ListBox>
-            )}
-          </div>
-          <div className="mt-6 space-y-3">
-            {draft.items.length === 0 ? (
-              <EmptyState>
-                <EmptyState.Title>
-                  {t("prescriptionTemplates.emptyItems")}
-                </EmptyState.Title>
-                <EmptyState.Description>
-                  {t("prescriptionTemplates.addFromCatalog")}
-                </EmptyState.Description>
-              </EmptyState>
-            ) : (
-              draft.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-xl border border-separator p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-semibold">{item.name}</p>
-                      <p className="text-sm text-muted">
-                        {item.code} ·{" "}
+              </select>
+              <SearchField className="mt-3" value={query} onChange={search}>
+                <Label>{t("prescriptionTemplates.catalogSearch")}</Label>
+                <SearchField.Group>
+                  <SearchField.SearchIcon />
+                  <SearchField.Input
+                    placeholder={t(
+                      "prescriptionTemplates.catalogSearchPlaceholder",
+                    )}
+                  />
+                  <SearchField.ClearButton />
+                </SearchField.Group>
+              </SearchField>
+              <div
+                role="status"
+                aria-live="polite"
+                className="mt-2 text-sm text-muted"
+              >
+                {status === "loading"
+                  ? t("prescriptionTemplates.searching")
+                  : status === "error"
+                    ? t("prescriptionTemplates.searchFailed")
+                    : status === "unavailable"
+                      ? t("prescriptionTemplates.catalogUnavailable")
+                      : status === "empty"
+                        ? t("prescriptionTemplates.catalogEmpty")
+                        : ""}
+              </div>
+              {results.length > 0 && (
+                <ListBox aria-label={t("prescriptionTemplates.catalogResults")}>
+                  {results.map((result) => (
+                    <ListBox.Item
+                      key={`${result.providerKey}:${result.referenceCode}`}
+                      id={result.referenceCode}
+                      textValue={`${result.displayName} ${result.referenceCode}`}
+                      onAction={() => add(result)}
+                    >
+                      {result.displayName}
+                      <span className="ms-auto text-xs text-muted">
+                        {result.referenceCode} ·{" "}
                         {t(
-                          `prescriptionTemplates.categories.${categoryKeys[item.category] ?? "service"}`,
+                          `prescriptionTemplates.categories.${categoryKeys[result.prescriptionCategory] ?? "service"}`,
                         )}
-                      </p>
-                      <p className="text-xs text-muted">
-                        {t("prescriptionTemplates.identityLocked")}
-                      </p>
+                      </span>
+                    </ListBox.Item>
+                  ))}
+                </ListBox>
+              )}
+            </Surface>
+            <div className="mt-6 space-y-3">
+              {draft.items.length === 0 ? (
+                <EmptyState>
+                  <EmptyState.Title>
+                    {t("prescriptionTemplates.emptyItems")}
+                  </EmptyState.Title>
+                  <EmptyState.Description>
+                    {t("prescriptionTemplates.addFromCatalog")}
+                  </EmptyState.Description>
+                </EmptyState>
+              ) : (
+                draft.items.map((item) => (
+                  <Surface
+                    key={item.id}
+                    className="rounded-xl p-4"
+                    variant="secondary"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold">{item.name}</p>
+                        <p className="text-sm text-muted">
+                          {item.code} ·{" "}
+                          {t(
+                            `prescriptionTemplates.categories.${categoryKeys[item.category] ?? "service"}`,
+                          )}
+                        </p>
+                        <p className="text-xs text-muted">
+                          {t("prescriptionTemplates.identityLocked")}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        onPress={() =>
+                          setDraft({
+                            ...draft,
+                            items: draft.items.filter(
+                              (entry) => entry.id !== item.id,
+                            ),
+                          })
+                        }
+                      >
+                        {t("prescriptionTemplates.changeIdentity")}
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      onPress={() =>
-                        setDraft({
-                          ...draft,
-                          items: draft.items.filter(
-                            (entry) => entry.id !== item.id,
-                          ),
-                        })
-                      }
-                    >
-                      {t("prescriptionTemplates.changeIdentity")}
-                    </Button>
-                  </div>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    <TextField
-                      value={item.dosage}
-                      onChange={(value) =>
-                        updateItem(item.id, { dosage: value })
-                      }
-                    >
-                      <Label>{t("prescriptionTemplates.dosage")}</Label>
-                      <Input />
-                    </TextField>
-                    <TextField
-                      value={item.quantity}
-                      onChange={(value) =>
-                        updateItem(item.id, { quantity: value })
-                      }
-                    >
-                      <Label>{t("prescriptionTemplates.quantity")}</Label>
-                      <Input inputMode="numeric" />
-                    </TextField>
-                    <TextField
-                      value={item.duration}
-                      onChange={(value) =>
-                        updateItem(item.id, { duration: value })
-                      }
-                    >
-                      <Label>{t("prescriptionTemplates.duration")}</Label>
-                      <Input inputMode="numeric" />
-                    </TextField>
-                  </div>
-                </div>
-              ))
-            )}
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      <TextField
+                        value={item.dosage}
+                        onChange={(value) =>
+                          updateItem(item.id, { dosage: value })
+                        }
+                      >
+                        <Label>{t("prescriptionTemplates.dosage")}</Label>
+                        <Input />
+                      </TextField>
+                      <TextField
+                        value={item.quantity}
+                        onChange={(value) =>
+                          updateItem(item.id, { quantity: value })
+                        }
+                      >
+                        <Label>{t("prescriptionTemplates.quantity")}</Label>
+                        <Input inputMode="numeric" />
+                      </TextField>
+                      <TextField
+                        value={item.duration}
+                        onChange={(value) =>
+                          updateItem(item.id, { duration: value })
+                        }
+                      >
+                        <Label>{t("prescriptionTemplates.duration")}</Label>
+                        <Input inputMode="numeric" />
+                      </TextField>
+                    </div>
+                  </Surface>
+                ))
+              )}
+            </div>
           </div>
-        </section>
+        </Surface>
       </div>
     </div>
   );

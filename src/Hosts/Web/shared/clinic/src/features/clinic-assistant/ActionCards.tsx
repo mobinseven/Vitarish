@@ -40,7 +40,7 @@ function ReviewField({
     <div
       className={
         clinicianAuthored
-          ? "rounded-md border-s-4 border-primary bg-primary/5 p-2"
+          ? "rounded-md border-s-4 border-accent bg-accent/5 p-2"
           : "min-w-0"
       }
     >

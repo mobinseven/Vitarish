@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { Alert, Surface } from "@heroui/react";
 import { useAuthenticationAuthenticationPolicyGet, useAuthenticationAuthenticationPolicyPut, useAuthenticationSessionPolicyGet, useAuthenticationSessionPolicyPut } from "@vitarish/auth";
 import { usePlatformAuthorization } from "@vitarish/auth";
 import type { ChangeSecurityAuthenticationPolicyRequest, ChangeSecuritySessionPolicyRequest } from "@vitarish/auth";
@@ -105,40 +106,62 @@ export default function SecuritySettingsPage() {
 
   return <main className="mx-auto max-w-3xl space-y-6 p-6">
     <header><h1 className="text-2xl font-semibold">{t("admin.securityPolicy.title")}</h1><p className="mt-2 text-muted">{t("admin.securityPolicy.description")}</p></header>
-    <section className="space-y-4 rounded border p-4">
-      <h2 className="text-lg font-semibold">{t("admin.securityPolicy.authenticationTitle")}</h2>
-      <p role="note" className="rounded border border-warning p-3">{t("admin.securityPolicy.authenticationImpact", { minimum: authenticationPolicy.data!.mandatoryPasswordMinimumLength })}</p>
-      <form className="space-y-4" onSubmit={submitAuthentication}>
-        <label className="block">{t("admin.securityPolicy.minimumPasswordLength")}<input className="mt-1 w-full rounded border p-2" type="number" min={authenticationPolicy.data!.mandatoryPasswordMinimumLength} required value={authenticationDraft.minimumPasswordLength} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, minimumPasswordLength: Number(event.target.value) })} /></label>
-        <fieldset className="space-y-2"><legend className="font-medium">{t("admin.securityPolicy.passwordCategories")}</legend>
-          {([["requirePasswordLowercase", "lowercase"], ["requirePasswordUppercase", "uppercase"], ["requirePasswordNumber", "number"], ["requirePasswordSpecialCharacter", "special"]] as const).map(([field, label]) => <label className="flex items-center gap-2" key={field}><input type="checkbox" checked={authenticationDraft[field]} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, [field]: event.target.checked })} />{t(`admin.securityPolicy.password.${label}`)}</label>)}
-        </fieldset>
-        <label className="block">{t("admin.securityPolicy.failedThreshold")}<input className="mt-1 w-full rounded border p-2" type="number" min={1} required value={authenticationDraft.failedAttemptThreshold} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptThreshold: Number(event.target.value) })} /></label>
-        <label className="block">{t("admin.securityPolicy.denialDuration")}<input className="mt-1 w-full rounded border p-2" type="number" min={1} required value={authenticationDraft.failedAttemptDenialDurationSeconds} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptDenialDurationSeconds: Number(event.target.value) })} /></label>
-        <label className="block">{t("admin.securityPolicy.failureResponse")}<select className="mt-1 w-full rounded border p-2" required value={authenticationDraft.failedAttemptResponse} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptResponse: event.target.value })}>{authenticationPolicy.data!.availableFailedAttemptResponses.map((response) => <option key={response} value={response}>{t(`admin.securityPolicy.response.${response}`)}</option>)}</select></label>
-        <fieldset className="space-y-2"><legend className="font-medium">{t("admin.securityPolicy.mechanisms")}</legend>
-          {authenticationPolicy.data!.availableAuthenticationMechanisms.map((mechanism) => { const required = authenticationPolicy.data!.requiredAuthenticationMechanisms.includes(mechanism); return <label className="flex items-center gap-2" key={mechanism}><input type="checkbox" checked={authenticationDraft.enabledAuthenticationMechanisms.includes(mechanism)} disabled={required} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, enabledAuthenticationMechanisms: event.target.checked ? [...authenticationDraft.enabledAuthenticationMechanisms, mechanism] : authenticationDraft.enabledAuthenticationMechanisms.filter((item) => item !== mechanism) })} />{t(`admin.securityPolicy.mechanism.${mechanism}`)}{required && <span className="text-muted">({t("admin.securityPolicy.required")})</span>}</label>; })}
-        </fieldset>
-        <fieldset className="space-y-2"><legend className="font-medium">{t("admin.securityPolicy.preAuthenticationActions")}</legend>
-          {authenticationPolicy.data!.availablePreAuthenticationActions.map((action) => { const required = authenticationPolicy.data!.requiredPreAuthenticationActions.includes(action); return <label className="flex items-center gap-2" key={action}><input type="checkbox" checked={authenticationDraft.permittedPreAuthenticationActions.includes(action)} disabled={required} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, permittedPreAuthenticationActions: event.target.checked ? [...authenticationDraft.permittedPreAuthenticationActions, action] : authenticationDraft.permittedPreAuthenticationActions.filter((item) => item !== action) })} />{t(`admin.securityPolicy.preAuthenticationAction.${action}`)}{required && <span className="text-muted">({t("admin.securityPolicy.required")})</span>}</label>; })}
-        </fieldset>
-        <button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={saveAuthenticationPolicy.isPending} title={t("admin.securityPolicy.saveAuthentication")}><i aria-hidden="true" className="fa-light fa-floppy-disk" />{saveAuthenticationPolicy.isPending ? t("admin.securityPolicy.saving") : t("admin.securityPolicy.saveAuthentication")}</button>
-      </form>
-      {authenticationMessage && <p role="status" aria-live="polite">{authenticationMessage}</p>}
-      {saveAuthenticationPolicy.isError && statusOf(saveAuthenticationPolicy.error) === 409 && <button className="inline-flex items-center gap-2 underline" onClick={() => authenticationPolicy.refetch()} title={t("admin.securityPolicy.reload")}><i aria-hidden="true" className="fa-light fa-rotate-right" />{t("admin.securityPolicy.reload")}</button>}
-    </section>
-    <section className="space-y-4 rounded border p-4">
-      <h2 className="text-lg font-semibold">{t("admin.securityPolicy.sessionTitle")}</h2>
-      <p role="note" className="rounded border border-warning p-3">{t("admin.securityPolicy.sessionImpact")}</p>
-      <form className="space-y-4" onSubmit={submit}>
-        <label className="block">{t("admin.securityPolicy.maximumSessions")}<input className="mt-1 w-full rounded border p-2" type="number" required value={draft.maximumConcurrentSessions} onChange={(event) => setDraft({ ...draft, maximumConcurrentSessions: Number(event.target.value) })} /></label>
-        <label className="flex items-center gap-2"><input type="checkbox" checked={draft.concurrentSessionsFunctionallyRequired} onChange={(event) => setDraft({ ...draft, concurrentSessionsFunctionallyRequired: event.target.checked })} />{t("admin.securityPolicy.concurrentSessionsRequired")}</label>
-        <label className="block">{t("admin.securityPolicy.defaultIdleMinutes")}<input className="mt-1 w-full rounded border p-2" type="number" required value={draft.defaultInactivityTimeoutMinutes} onChange={(event) => setDraft({ ...draft, defaultInactivityTimeoutMinutes: Number(event.target.value) })} /></label>
-        <label className="block">{t("admin.securityPolicy.allowedCidrs")}<textarea className="mt-1 min-h-28 w-full rounded border p-2 font-mono" value={(draft.allowedSessionStartCidrs ?? []).join("\n")} onChange={(event) => setDraft({ ...draft, allowedSessionStartCidrs: event.target.value.split(/\r?\n/).map((cidr) => cidr.trim()).filter(Boolean) })} /></label>
-        <button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={save.isPending} title={t("admin.securityPolicy.save")}><i aria-hidden="true" className="fa-light fa-floppy-disk" />{save.isPending ? t("admin.securityPolicy.saving") : t("admin.securityPolicy.save")}</button>
-      </form>
-      {sessionMessage && <p role="status" aria-live="polite">{sessionMessage}</p>}
-      {save.isError && statusOf(save.error) === 409 && <button className="inline-flex items-center gap-2 underline" onClick={() => policy.refetch()} title={t("admin.securityPolicy.reload")}><i aria-hidden="true" className="fa-light fa-rotate-right" />{t("admin.securityPolicy.reload")}</button>}
-    </section>
+    <Surface className="rounded-3xl p-6">
+      <section className="flex flex-col gap-6">
+        <div className="flex flex-col items-start gap-1">
+          <h2 className="text-lg font-semibold text-foreground">{t("admin.securityPolicy.authenticationTitle")}</h2>
+        </div>
+        <div className="space-y-4">
+          <Alert status="warning">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>{t("admin.securityPolicy.authenticationImpact", { minimum: authenticationPolicy.data!.mandatoryPasswordMinimumLength })}</Alert.Title>
+            </Alert.Content>
+          </Alert>
+          <form className="space-y-4" onSubmit={submitAuthentication}>
+            <label className="block">{t("admin.securityPolicy.minimumPasswordLength")}<input className="mt-1 w-full rounded border p-2" type="number" min={authenticationPolicy.data!.mandatoryPasswordMinimumLength} required value={authenticationDraft.minimumPasswordLength} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, minimumPasswordLength: Number(event.target.value) })} /></label>
+            <fieldset className="space-y-2"><legend className="font-medium">{t("admin.securityPolicy.passwordCategories")}</legend>
+              {([["requirePasswordLowercase", "lowercase"], ["requirePasswordUppercase", "uppercase"], ["requirePasswordNumber", "number"], ["requirePasswordSpecialCharacter", "special"]] as const).map(([field, label]) => <label className="flex items-center gap-2" key={field}><input type="checkbox" checked={authenticationDraft[field]} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, [field]: event.target.checked })} />{t(`admin.securityPolicy.password.${label}`)}</label>)}
+            </fieldset>
+            <label className="block">{t("admin.securityPolicy.failedThreshold")}<input className="mt-1 w-full rounded border p-2" type="number" min={1} required value={authenticationDraft.failedAttemptThreshold} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptThreshold: Number(event.target.value) })} /></label>
+            <label className="block">{t("admin.securityPolicy.denialDuration")}<input className="mt-1 w-full rounded border p-2" type="number" min={1} required value={authenticationDraft.failedAttemptDenialDurationSeconds} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptDenialDurationSeconds: Number(event.target.value) })} /></label>
+            <label className="block">{t("admin.securityPolicy.failureResponse")}<select className="mt-1 w-full rounded border p-2" required value={authenticationDraft.failedAttemptResponse} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, failedAttemptResponse: event.target.value })}>{authenticationPolicy.data!.availableFailedAttemptResponses.map((response) => <option key={response} value={response}>{t(`admin.securityPolicy.response.${response}`)}</option>)}</select></label>
+            <fieldset className="space-y-2"><legend className="font-medium">{t("admin.securityPolicy.mechanisms")}</legend>
+              {authenticationPolicy.data!.availableAuthenticationMechanisms.map((mechanism) => { const required = authenticationPolicy.data!.requiredAuthenticationMechanisms.includes(mechanism); return <label className="flex items-center gap-2" key={mechanism}><input type="checkbox" checked={authenticationDraft.enabledAuthenticationMechanisms.includes(mechanism)} disabled={required} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, enabledAuthenticationMechanisms: event.target.checked ? [...authenticationDraft.enabledAuthenticationMechanisms, mechanism] : authenticationDraft.enabledAuthenticationMechanisms.filter((item) => item !== mechanism) })} />{t(`admin.securityPolicy.mechanism.${mechanism}`)}{required && <span className="text-muted">({t("admin.securityPolicy.required")})</span>}</label>; })}
+            </fieldset>
+            <fieldset className="space-y-2"><legend className="font-medium">{t("admin.securityPolicy.preAuthenticationActions")}</legend>
+              {authenticationPolicy.data!.availablePreAuthenticationActions.map((action) => { const required = authenticationPolicy.data!.requiredPreAuthenticationActions.includes(action); return <label className="flex items-center gap-2" key={action}><input type="checkbox" checked={authenticationDraft.permittedPreAuthenticationActions.includes(action)} disabled={required} onChange={(event) => setAuthenticationDraft({ ...authenticationDraft, permittedPreAuthenticationActions: event.target.checked ? [...authenticationDraft.permittedPreAuthenticationActions, action] : authenticationDraft.permittedPreAuthenticationActions.filter((item) => item !== action) })} />{t(`admin.securityPolicy.preAuthenticationAction.${action}`)}{required && <span className="text-muted">({t("admin.securityPolicy.required")})</span>}</label>; })}
+            </fieldset>
+            <button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={saveAuthenticationPolicy.isPending} title={t("admin.securityPolicy.saveAuthentication")}><i aria-hidden="true" className="fa-light fa-floppy-disk" />{saveAuthenticationPolicy.isPending ? t("admin.securityPolicy.saving") : t("admin.securityPolicy.saveAuthentication")}</button>
+          </form>
+          {authenticationMessage && <p role="status" aria-live="polite">{authenticationMessage}</p>}
+          {saveAuthenticationPolicy.isError && statusOf(saveAuthenticationPolicy.error) === 409 && <button className="inline-flex items-center gap-2 underline" onClick={() => authenticationPolicy.refetch()} title={t("admin.securityPolicy.reload")}><i aria-hidden="true" className="fa-light fa-rotate-right" />{t("admin.securityPolicy.reload")}</button>}
+        </div>
+      </section>
+    </Surface>
+    <Surface className="rounded-3xl p-6">
+      <section className="flex flex-col gap-6">
+        <div className="flex flex-col items-start gap-1">
+          <h2 className="text-lg font-semibold text-foreground">{t("admin.securityPolicy.sessionTitle")}</h2>
+        </div>
+        <div className="space-y-4">
+          <Alert status="warning">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>{t("admin.securityPolicy.sessionImpact")}</Alert.Title>
+            </Alert.Content>
+          </Alert>
+          <form className="space-y-4" onSubmit={submit}>
+            <label className="block">{t("admin.securityPolicy.maximumSessions")}<input className="mt-1 w-full rounded border p-2" type="number" required value={draft.maximumConcurrentSessions} onChange={(event) => setDraft({ ...draft, maximumConcurrentSessions: Number(event.target.value) })} /></label>
+            <label className="flex items-center gap-2"><input type="checkbox" checked={draft.concurrentSessionsFunctionallyRequired} onChange={(event) => setDraft({ ...draft, concurrentSessionsFunctionallyRequired: event.target.checked })} />{t("admin.securityPolicy.concurrentSessionsRequired")}</label>
+            <label className="block">{t("admin.securityPolicy.defaultIdleMinutes")}<input className="mt-1 w-full rounded border p-2" type="number" required value={draft.defaultInactivityTimeoutMinutes} onChange={(event) => setDraft({ ...draft, defaultInactivityTimeoutMinutes: Number(event.target.value) })} /></label>
+            <label className="block">{t("admin.securityPolicy.allowedCidrs")}<textarea className="mt-1 min-h-28 w-full rounded border p-2 font-mono" value={(draft.allowedSessionStartCidrs ?? []).join("\n")} onChange={(event) => setDraft({ ...draft, allowedSessionStartCidrs: event.target.value.split(/\r?\n/).map((cidr) => cidr.trim()).filter(Boolean) })} /></label>
+            <button className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" disabled={save.isPending} title={t("admin.securityPolicy.save")}><i aria-hidden="true" className="fa-light fa-floppy-disk" />{save.isPending ? t("admin.securityPolicy.saving") : t("admin.securityPolicy.save")}</button>
+          </form>
+          {sessionMessage && <p role="status" aria-live="polite">{sessionMessage}</p>}
+          {save.isError && statusOf(save.error) === 409 && <button className="inline-flex items-center gap-2 underline" onClick={() => policy.refetch()} title={t("admin.securityPolicy.reload")}><i aria-hidden="true" className="fa-light fa-rotate-right" />{t("admin.securityPolicy.reload")}</button>}
+        </div>
+      </section>
+    </Surface>
   </main>;
 }

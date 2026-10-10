@@ -4,6 +4,7 @@
 @import "@vitarish/ui/layout.css";
 @import "@heroui-pro/react/themes/glass";
 
+@source "../../../../shared/auth/src/**/*.{ts,tsx}";
 @source "../../../../shared/clinic/src/**/*.{ts,tsx}";
 
 :root {

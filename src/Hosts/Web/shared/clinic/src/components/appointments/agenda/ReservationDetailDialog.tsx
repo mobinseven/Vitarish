@@ -7,6 +7,7 @@ import {
   FaIcon,
   ErrorStateSurface as ClinicErrorState,
   LoadingStateSurface as ClinicLoadingState,
+  actionRoleClassName,
 } from "@vitarish/ui";
 import {
   formatDate,
@@ -237,7 +238,7 @@ export function ReservationDetailDialog({
                       {t("clinic.appointments.agenda.viewPatient")}
                     </Button>
                   )}
-                  <Button
+                  <Button className={actionRoleClassName("remove")}
                     variant="ghost"
                     size="sm"
                     onPress={() => setDeleting(true)}

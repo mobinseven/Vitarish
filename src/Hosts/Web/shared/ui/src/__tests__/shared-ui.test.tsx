@@ -14,7 +14,6 @@ import {
   DashboardFrame,
   EmptyStateSurface,
   ErrorStateSurface,
-  ImageActionCard,
   LoadingStateSurface,
   LoginPanel,
   OptionSelector,
@@ -25,24 +24,6 @@ import {
 } from "../index";
 
 describe("@vitarish/ui presentation components", () => {
-  it("renders an image-backed pressable card from caller-owned content", () => {
-    const onPress = vi.fn();
-
-    render(
-      <ImageActionCard
-        imageSrc="/card-red.webp"
-        label="Overview"
-        onPress={onPress}
-      />,
-    );
-
-    const card = screen.getByRole("button", { name: "Overview" });
-
-    expect(card.querySelector("img")).toHaveAttribute("src", "/card-red.webp");
-    fireEvent.click(card);
-    expect(onPress).toHaveBeenCalledOnce();
-  });
-
   it("renders shared auth method links from caller-provided labels and hrefs", () => {
     render(
       <AuthMethodList

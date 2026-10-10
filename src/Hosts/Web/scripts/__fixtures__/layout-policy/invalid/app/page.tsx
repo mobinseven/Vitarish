@@ -9,6 +9,8 @@ export function InvalidPage() {
       <div className={`mx-auto max-w-[1200px] px-6 ${conditionalClass}`}>
         Template content
       </div>
+      <section className="space-y-3 rounded border p-4">Bordered section</section>
+      <form className={`rounded-xl ${conditionalClass} bg-surface-secondary sm:p-6`}>Background form</form>
     </AppLayout>
   );
 }

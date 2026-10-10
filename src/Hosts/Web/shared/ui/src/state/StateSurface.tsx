@@ -1,7 +1,7 @@
 "use client";
 
 import React, { type ReactNode } from "react";
-import { Spinner } from "@heroui/react";
+import { Alert, Spinner } from "@heroui/react";
 import { EmptyState } from "@heroui-pro/react/empty-state";
 
 export interface LoadingStateSurfaceProps {
@@ -18,7 +18,6 @@ export interface MessageStateSurfaceProps {
 
 const neutralStateClassName =
   "rounded-lg border border-dashed border-border bg-surface-secondary";
-const dangerStateClassName = "rounded-lg border border-danger/20 bg-danger/5";
 
 export function LoadingStateSurface({
   className = "",
@@ -46,18 +45,14 @@ export function ErrorStateSurface({
   title,
 }: MessageStateSurfaceProps) {
   return (
-    <EmptyState
-      className={`${dangerStateClassName} ${className}`.trim()}
-      size="sm"
-    >
-      <EmptyState.Header>
-        <EmptyState.Title className="text-danger">{title}</EmptyState.Title>
-        {description ? (
-          <EmptyState.Description>{description}</EmptyState.Description>
-        ) : null}
-      </EmptyState.Header>
-      {children ? <EmptyState.Content>{children}</EmptyState.Content> : null}
-    </EmptyState>
+    <Alert className={className || undefined} status="danger">
+      <Alert.Indicator />
+      <Alert.Content>
+        <Alert.Title>{title}</Alert.Title>
+        {description ? <Alert.Description>{description}</Alert.Description> : null}
+        {children}
+      </Alert.Content>
+    </Alert>
   );
 }
 

@@ -11,7 +11,7 @@ import {
   TextField,
   Tooltip,
 } from "@heroui/react";
-import { FaIcon } from "@vitarish/ui";
+import { FaIcon, HeaderIcon } from "@vitarish/ui";
 import { useEffect, useState } from "react";
 import { useLocalizedText } from "../../../localization";
 import {
@@ -50,12 +50,17 @@ export function InsuranceProviderSettingsPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">
-          {t("clinic.settings.insurance.title")}
-        </h1>
-        <p className="text-sm text-muted">
-          {t("clinic.settings.insurance.description")}
-        </p>
+        <div className="flex items-center gap-4">
+          <HeaderIcon icon="shield-heart" level="page" />
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold">
+              {t("clinic.settings.insurance.title")}
+            </h1>
+            <p className="text-sm text-muted">
+              {t("clinic.settings.insurance.description")}
+            </p>
+          </div>
+        </div>
       </div>
 
       {context.isError || credentials.isError ? (

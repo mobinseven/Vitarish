@@ -20,6 +20,35 @@
   works in both themes, and preserves readable contrast and meaningful status
   semantics before adding it.
 
+## Surface conventions
+
+Applies to every `apps/*` and `shared/*` package.
+
+- **[MUST]** Place each titled content block of a page (a form, table, list,
+  detail group, or settings group under its own heading) in a section surface:
+  `<Surface className="flex flex-col gap-6 rounded-3xl p-6">` whose first
+  child is the section header, an `h2` with
+  `text-lg font-semibold text-foreground` and an optional
+  `text-sm text-muted` description. A header with actions uses
+  `flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between`.
+  Only the page header may sit directly on the page background.
+  `PlatformSecurityAuditReviewPage` in `shared/security` is the reference
+  composition.
+- **[MUST]** Do not recreate a surface from rounded, border or background, and
+  padding utilities on a `section`, `article`, `aside`, or `form`.
+  `npm run lint:layout` enforces this as `hand-rolled-surface` across all Web
+  packages. When a section landmark is needed, render the `Surface` as a
+  `section` through its `render` prop or give it an explicit region role.
+- Give page headers a `HeaderIcon level="page"` and section headers a
+  `HeaderIcon` from `@vitarish/ui` before the heading, in a flex row with the
+  title block. Tables and the dashboard sidebar take their accent color from
+  `@vitarish/ui/accent.css`; do not recolor them per page.
+- Inside a section surface, group with spacing, a separator, or
+  `Surface variant="secondary"` tiles; do not nest section surfaces to fake
+  hierarchy.
+- Use HeroUI `Alert` for status, warning, and error blocks instead of colored
+  bordered boxes.
+
 ## Global stylesheet conventions
 
 - **[MUST]** Global stylesheet files, including `app/globals.css`, may define
@@ -49,6 +78,24 @@
   load only its required subsets and weights. A new role or different font
   family requires an explicit product/design need.
 
+## Theme conventions
+
+- **[MUST]** A host's HeroUI theme has two owners in `src/app`: `theme.css`,
+  imported once by `globals.css`, and `theme.ts`, which selects the theme
+  with `themePaletteClassesFor` from `@vitarish/ui/theme-palette`. The root
+  layout renders `ThemePaletteClassScript` with those classes, and next-themes
+  keeps owning the `data-theme` mode. App-level tokens, element defaults, and
+  the RTL font stay in `globals.css`.
+- To change the theme, replace only the content between the
+  `Design system export` markers in `theme.css` with the saved design system's
+  `css` export, verbatim. For a Pro theme, put its
+  `@import "@heroui-pro/react/themes/<name>";` first in `theme.css`. Set the
+  same theme in `theme.ts`. Load the export's fonts through `fonts.ts` and map
+  them under the host adaptations in `theme.css`, never through the export's
+  `<link>` comment. Regenerate the host `DESIGN.md` from the `design` export,
+  keeping its local sections. Then run `npm run test:theme-mode` when the host
+  has that proof.
+
 ## Named values
 
 - **[MUST]** Reuse the authoritative owner for route and intent values, API
@@ -75,6 +122,10 @@
 ## Button conventions
 
 - **[MUST]** All buttons must have localized tooltips and icons. so in mobile view they can be shrunk to icon and tooltips to avoid confusing users.
+- Color an action by what it does, never per page: pass
+  `actionRoleClassName("open" | "edit" | "create" | "remove")` from
+  `@vitarish/ui` to the Button. Keep `variant="danger"` for destructive
+  confirmations.
 
 ## Web test quality
 

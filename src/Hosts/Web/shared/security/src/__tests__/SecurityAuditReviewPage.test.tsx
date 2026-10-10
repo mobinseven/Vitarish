@@ -1,4 +1,5 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LocalizationProvider } from "@vitarish/localization";
 import { securityMessageCatalogs } from "../localization";
@@ -49,7 +50,8 @@ describe("SecurityAuditReviewPage", () => {
     expect(screen.queryByRole("button", { name: /delete|edit|update/i })).not.toBeInTheDocument();
   });
 
-  it("sends localized filters and sort direction to the server query", () => {
+  it("sends localized filters and sort direction to the server query", async () => {
+    const user = userEvent.setup();
     vi.mocked(useAuditSecurityEventsList).mockReturnValue({
       data: { items: [], page: 1, pageSize: 25, totalCount: 0, capacityThresholdReached: false },
       isPending: false,
@@ -65,7 +67,9 @@ describe("SecurityAuditReviewPage", () => {
     );
 
     fireEvent.change(screen.getByLabelText("Actor"), { target: { value: "user-2" } });
-    fireEvent.change(screen.getByLabelText("From date"), { target: { value: "2026-09-01" } });
+    const [firstDateSegment] = within(screen.getByRole("group", { name: "From date" })).getAllByRole("spinbutton");
+    await user.click(firstDateSegment);
+    await user.keyboard("09012026");
     fireEvent.click(screen.getByRole("button", { name: "Apply filters" }));
     fireEvent.click(screen.getByRole("button", { name: "Descending" }));
 

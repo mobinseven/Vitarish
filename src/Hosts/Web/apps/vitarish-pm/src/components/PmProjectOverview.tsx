@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Chip, Tooltip } from "@heroui/react";
+import { Button, Chip, Surface, Tooltip } from "@heroui/react";
 import { Widget } from "@heroui-pro/react";
 import { KPI } from "@heroui-pro/react/kpi";
 import { KPIGroup } from "@heroui-pro/react/kpi-group";
@@ -69,47 +69,48 @@ export function PmProjectOverview({ projectId }: { projectId: string }) {
         </Tooltip>
       </header>
 
-      <section
-        aria-labelledby="project-statistics-title"
-        className="rounded-xl bg-surface-secondary/70 p-4 sm:p-5"
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <h2 id="project-statistics-title" className="text-sm font-semibold">
+      <Surface className="flex flex-col gap-6 rounded-3xl p-6" role="region" aria-labelledby="project-statistics-title">
+        <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold text-foreground"
+            id="project-statistics-title"
+          >
             {t("sea.projects.stats")}
           </h2>
           <span className="text-xs text-muted">
             {procedures.length} {t("sea.stats.procedures")}
           </span>
         </div>
-        {stats ? (
-          <KPIGroup
-            orientation="horizontal"
-            className="grid grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-5"
-          >
-            <Metric
-              label={t("sea.stats.procedures")}
-              value={stats.procedures}
-            />
-            <Metric label={t("sea.stats.events")} value={stats.events} />
-            <Metric
-              label={t("sea.stats.committedEvents")}
-              value={stats.committedEvents}
-              tone="success"
-            />
-            <Metric
-              label={t("sea.stats.eventItems")}
-              value={stats.eventItems}
-            />
-            <Metric
-              label={t("sea.stats.newItems")}
-              value={stats.newItems}
-              tone={stats.newItems > 0 ? "warning" : undefined}
-            />
-          </KPIGroup>
-        ) : (
-          <p className="text-sm text-muted">{t("sea.stats.emptyState")}</p>
-        )}
-      </section>
+        <div>
+          {stats ? (
+            <KPIGroup
+              orientation="horizontal"
+              className="grid grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-5"
+            >
+              <Metric
+                label={t("sea.stats.procedures")}
+                value={stats.procedures}
+              />
+              <Metric label={t("sea.stats.events")} value={stats.events} />
+              <Metric
+                label={t("sea.stats.committedEvents")}
+                value={stats.committedEvents}
+                tone="success"
+              />
+              <Metric
+                label={t("sea.stats.eventItems")}
+                value={stats.eventItems}
+              />
+              <Metric
+                label={t("sea.stats.newItems")}
+                value={stats.newItems}
+                tone={stats.newItems > 0 ? "warning" : undefined}
+              />
+            </KPIGroup>
+          ) : (
+            <p className="text-sm text-muted">{t("sea.stats.emptyState")}</p>
+          )}
+        </div>
+      </Surface>
 
       <section
         className="flex flex-col gap-3"

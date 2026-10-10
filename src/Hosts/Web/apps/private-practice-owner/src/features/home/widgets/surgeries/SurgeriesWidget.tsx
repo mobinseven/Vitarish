@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Calendar, Card, Tooltip } from "@heroui/react";
+import { Button, Calendar, Card, Surface, Tooltip } from "@heroui/react";
 import {
   getLocalTimeZone,
   today,
@@ -14,6 +14,7 @@ import { formatDate, formatDateTime, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarMonthRange } from "../../calendarMonthRange";
 import styles from "../HomeWidgets.module.css";
+import { actionRoleClassName } from "@vitarish/ui";
 
 export function SurgeriesWidget() {
   const { t, locale } = useLocalizedText();
@@ -47,111 +48,111 @@ export function SurgeriesWidget() {
             {t("home.dashboard.surgeriesDescription")}
           </p>
         </header>
-        <section className={`${styles.surface} relative z-10 -mt-4 mx-1 flex flex-1 flex-col rounded-3xl bg-background/95 p-4 backdrop-blur-xl sm:p-5`}>
-          <Calendar
-            aria-label={t("home.dashboard.surgeriesCalendarLabel")}
-            focusedValue={focusedDate}
-            value={selectedDate}
-            onChange={setSelectedDate}
-            onFocusChange={setFocusedDate}
-            weeksInMonth={6}
-            className="w-full"
-          >
-            <Calendar.Header>
-              <Calendar.Heading />
-              <div className="flex gap-1">
-                <Calendar.NavButton
-                  className="h-6 w-auto min-w-fit px-1.5 text-xs"
-                  slot="previous"
-                >
-                  {t("common.actions.previous")}
-                </Calendar.NavButton>
-                <Calendar.NavButton
-                  className="h-6 w-auto min-w-fit px-1.5 text-xs"
-                  slot="next"
-                >
-                  {t("common.actions.next")}
-                </Calendar.NavButton>
-              </div>
-            </Calendar.Header>
-            <Calendar.Grid>
-              <Calendar.GridHeader>
-                {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
-              </Calendar.GridHeader>
-              <Calendar.GridBody>
-                {(date) => <Calendar.Cell date={date} />}
-              </Calendar.GridBody>
-            </Calendar.Grid>
-          </Calendar>
-          <p className="mt-3 text-xs text-muted">
-            {selectedDate
-              ? formatDate(selectedDate.toDate(getLocalTimeZone()), locale, {
-                  dateStyle: "medium",
-                })
-              : t("home.dashboard.surgeriesCalendarLabel")}
-          </p>
-          {query.isLoading ? (
-            <p className="py-6 text-sm text-muted" aria-live="polite">
-              {t("home.dashboard.loadingSurgeries")}
-            </p>
-          ) : query.error ? (
-            <div
-              className="flex items-center justify-between gap-3 py-6"
-              role="alert"
+        <Surface className={`${styles.surface} relative z-10 -mt-4 mx-1 flex flex-1 flex-col rounded-3xl p-4 backdrop-blur-xl sm:p-5`}>
+            <Calendar
+              aria-label={t("home.dashboard.surgeriesCalendarLabel")}
+              focusedValue={focusedDate}
+              value={selectedDate}
+              onChange={setSelectedDate}
+              onFocusChange={setFocusedDate}
+              weeksInMonth={6}
+              className="w-full"
             >
-              <span className="text-sm text-danger">
-                {t("home.dashboard.surgeriesLoadFailed")}
-              </span>
-              <Tooltip>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onPress={() => query.refetch()}
-                >
-                  <i aria-hidden="true" className="fa-light fa-rotate-right" />
-                  {t("home.dashboard.retry")}
-                </Button>
-                <Tooltip.Content>{t("home.dashboard.retry")}</Tooltip.Content>
-              </Tooltip>
-            </div>
-          ) : rows.length === 0 ? (
-            <p className="py-6 text-sm text-muted">
-              {t("home.dashboard.noSurgeries")}
-            </p>
-          ) : (
-            <div className="divide-y divide-separator">
-              {rows.map((row) => {
-                const fallbackName = `${t("home.dashboard.patient")} ${row.patientId.slice(0, 8)}`;
-                const name = row.patientDisplayName?.trim() || fallbackName;
-                return (
-                  <div
-                    className="flex items-center gap-3 py-3"
-                    key={row.surgeryId}
+              <Calendar.Header>
+                <Calendar.Heading />
+                <div className="flex gap-1">
+                  <Calendar.NavButton
+                    className="h-6 w-auto min-w-fit px-1.5 text-xs"
+                    slot="previous"
                   >
-                    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-blue-50 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                      {name.trim().slice(0, 2).toUpperCase()}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">{name}</p>
-                      <p className="truncate text-xs text-muted">
-                        {row.surgeryName}
-                      </p>
+                    {t("common.actions.previous")}
+                  </Calendar.NavButton>
+                  <Calendar.NavButton
+                    className="h-6 w-auto min-w-fit px-1.5 text-xs"
+                    slot="next"
+                  >
+                    {t("common.actions.next")}
+                  </Calendar.NavButton>
+                </div>
+              </Calendar.Header>
+              <Calendar.Grid>
+                <Calendar.GridHeader>
+                  {(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+                </Calendar.GridHeader>
+                <Calendar.GridBody>
+                  {(date) => <Calendar.Cell date={date} />}
+                </Calendar.GridBody>
+              </Calendar.Grid>
+            </Calendar>
+            <p className="mt-3 text-xs text-muted">
+              {selectedDate
+                ? formatDate(selectedDate.toDate(getLocalTimeZone()), locale, {
+                    dateStyle: "medium",
+                  })
+                : t("home.dashboard.surgeriesCalendarLabel")}
+            </p>
+            {query.isLoading ? (
+              <p className="py-6 text-sm text-muted" aria-live="polite">
+                {t("home.dashboard.loadingSurgeries")}
+              </p>
+            ) : query.error ? (
+              <div
+                className="flex items-center justify-between gap-3 py-6"
+                role="alert"
+              >
+                <span className="text-sm text-danger">
+                  {t("home.dashboard.surgeriesLoadFailed")}
+                </span>
+                <Tooltip>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onPress={() => query.refetch()}
+                  >
+                    <i aria-hidden="true" className="fa-light fa-rotate-right" />
+                    {t("home.dashboard.retry")}
+                  </Button>
+                  <Tooltip.Content>{t("home.dashboard.retry")}</Tooltip.Content>
+                </Tooltip>
+              </div>
+            ) : rows.length === 0 ? (
+              <p className="py-6 text-sm text-muted">
+                {t("home.dashboard.noSurgeries")}
+              </p>
+            ) : (
+              <div className="divide-y divide-separator">
+                {rows.map((row) => {
+                  const fallbackName = `${t("home.dashboard.patient")} ${row.patientId.slice(0, 8)}`;
+                  const name = row.patientDisplayName?.trim() || fallbackName;
+                  return (
+                    <div
+                      className="flex items-center gap-3 py-3"
+                      key={row.surgeryId}
+                    >
+                      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-blue-50 text-xs font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                        {name.trim().slice(0, 2).toUpperCase()}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">{name}</p>
+                        <p className="truncate text-xs text-muted">
+                          {row.surgeryName}
+                        </p>
+                      </div>
+                      <time className="shrink-0 text-end text-xs font-semibold text-blue-600 dark:text-blue-400">
+                        {formatDateTime(row.scheduledAt, locale, {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </time>
                     </div>
-                    <time className="shrink-0 text-end text-xs font-semibold text-blue-600 dark:text-blue-400">
-                      {formatDateTime(row.scheduledAt, locale, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                    </time>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
           <footer className="mt-auto flex gap-3 border-t border-separator pt-4">
             <Tooltip>
               <Button
-                className="min-w-0 flex-1 border-blue-400/60 text-blue-600"
+                className={`${actionRoleClassName("open")} min-w-0 flex-1 border-blue-400/60 text-blue-600`}
                 variant="outline"
                 onPress={() => router.push(Routes.Clinic.Patients.Index)}
               >
@@ -164,7 +165,7 @@ export function SurgeriesWidget() {
             </Tooltip>
             <Tooltip>
               <Button
-                className="min-w-0 flex-1 bg-blue-600 text-white"
+                className={`${actionRoleClassName("create")} min-w-0 flex-1 bg-blue-600 text-white`}
                 variant="primary"
                 onPress={() => router.push(Routes.Clinic.Patients.New)}
               >
@@ -176,7 +177,7 @@ export function SurgeriesWidget() {
               </Tooltip.Content>
             </Tooltip>
           </footer>
-        </section>
+        </Surface>
       </div>
     </Card>
   );

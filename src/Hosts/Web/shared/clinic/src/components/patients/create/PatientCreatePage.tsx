@@ -1,6 +1,6 @@
 "use client";
 
-import { ErrorStateSurface as ClinicErrorState } from "@vitarish/ui";
+import { ErrorStateSurface as ClinicErrorState, HeaderIcon } from "@vitarish/ui";
 import { ApiError } from "@vitarish/api-client";
 import type { NavigationIntent } from "../../../navigation";
 import { useLocalizedText } from "../../../localization/index";
@@ -26,12 +26,17 @@ export function PatientCreatePage({ onNavigate }: PatientCreatePageProps) {
       aria-labelledby="clinic-patient-create-title"
     >
       <header>
-        <h1 id="clinic-patient-create-title" className="text-2xl font-bold">
-          {t("clinic.patients.newPatient")}
-        </h1>
-        <p className="text-sm text-muted">
-          {t("clinic.patients.createPatient")}
-        </p>
+        <div className="flex items-center gap-4">
+          <HeaderIcon icon="user-plus" level="page" />
+          <div className="min-w-0">
+            <h1 id="clinic-patient-create-title" className="text-2xl font-bold">
+              {t("clinic.patients.newPatient")}
+            </h1>
+            <p className="text-sm text-muted">
+              {t("clinic.patients.createPatient")}
+            </p>
+          </div>
+        </div>
       </header>
       {mutation.error ? <ClinicErrorState title={errorTitle} /> : null}
       <PatientProfileForm

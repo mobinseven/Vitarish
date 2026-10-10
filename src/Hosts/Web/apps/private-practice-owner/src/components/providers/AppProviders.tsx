@@ -5,8 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
 import { MockApiBootstrap } from "@vitarish/mock-runtime";
-
-const themeModeOptions = ["light", "dark"] as const;
+import { themeModeAttribute } from "@vitarish/ui/theme-palette";
+import { themeModeOptions, themePreferenceStorageKey } from "./themeMode";
 
 export function Providers({ children, nonce }: { children: ReactNode; nonce?: string }) {
   const [queryClient] = useState(
@@ -21,7 +21,8 @@ export function Providers({ children, nonce }: { children: ReactNode; nonce?: st
   return (
     <MockApiBootstrap><QueryClientProvider client={queryClient}>
       <ThemeProvider
-        attribute="data-theme"
+        attribute={themeModeAttribute}
+        storageKey={themePreferenceStorageKey}
         defaultTheme="system"
         themes={[...themeModeOptions]}
         enableSystem
