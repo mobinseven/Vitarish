@@ -69,6 +69,23 @@ public sealed class AuthenticationCookieEventsTests
     }
 
     [Fact]
+    public async Task An_active_session_renews_the_cookie_well_before_half_the_idle_expiry()
+    {
+        CookieValidatePrincipalContext context = ValidationContext(new AuthenticationProperties
+        {
+            IsPersistent = true,
+            IssuedUtc = Now.AddDays(-1),
+            ExpiresUtc = Now.AddDays(-1).AddMinutes(20160)
+        });
+
+        await Events(new AuthenticationSessionValidationResult(true, 20160)).ValidatePrincipal(context);
+
+        context.ShouldRenew.Should().BeTrue();
+        context.Properties.IssuedUtc.Should().Be(Now);
+        context.Properties.ExpiresUtc.Should().Be(Now.AddMinutes(20160));
+    }
+
+    [Fact]
     public async Task A_ticket_window_longer_than_the_effective_idle_expiry_is_shortened()
     {
         CookieValidatePrincipalContext context = ValidationContext(new AuthenticationProperties

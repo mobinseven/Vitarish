@@ -25,6 +25,16 @@ namespace Vitarish.Authentication.Infrastructure.Migrations.AuthenticationDb
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            // Builds before this migration accept idle expiries of at most 30 minutes.
+            migrationBuilder.Sql("""
+                UPDATE "Authentication"."SecurityAccessPolicies"
+                SET "DefaultInactivityTimeoutMinutes" = 30, "Version" = "Version" + 1
+                WHERE "DefaultInactivityTimeoutMinutes" > 30;
+                UPDATE "Authentication"."AuthenticationUserSessionPolicies"
+                SET "InactivityTimeoutMinutes" = 30, "Version" = "Version" + 1
+                WHERE "InactivityTimeoutMinutes" > 30;
+                """);
+
             migrationBuilder.AlterColumn<int>(
                 name: "DefaultInactivityTimeoutMinutes",
                 schema: "Authentication",

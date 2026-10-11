@@ -61,6 +61,10 @@ public sealed class AuthenticationCookieEvents(
 
         // Renewal keeps the ticket's issued-to-expiry window, so the window must equal the
         // effective idle expiry: never outliving it, and growing when an administrator raises it.
+        // The registry touches the session on every request, so the cookie is also renewed once
+        // a hundredth of the window has passed; the framework's half-window sliding renewal alone
+        // would let the cookie expire after as little as half the idle expiry. An issue time in
+        // the future (clock skew) is reissued from now.
         if (validation.InactivityTimeoutMinutes is int inactivityTimeoutMinutes)
         {
             DateTimeOffset now = timeProvider.GetUtcNow();
@@ -68,7 +72,8 @@ public sealed class AuthenticationCookieEvents(
             if (context.Properties.IssuedUtc is not DateTimeOffset issued ||
                 context.Properties.ExpiresUtc is not DateTimeOffset expires ||
                 expires - issued != window ||
-                expires > now + window)
+                issued > now ||
+                now - issued >= window / 100)
             {
                 context.Properties.IssuedUtc = now;
                 context.Properties.ExpiresUtc = now + window;
