@@ -22,7 +22,9 @@ A host without chroma tokens falls back to neutral.
 
 The owner app's chroma colors come from
 [this palette](https://coolors.co/palette/ff99c8-fec8c3-fcf6bd-d0f4de-a9def9-e4c1f9).
-They are pastels with dark text, so one set serves light and dark mode.
+They are pastels, so one set serves light and dark mode. Each color's text is
+its own hue, as light and as chromatic as sRGB allows while keeping 4.8:1
+contrast. Every pair has the same contrast, and the text is clearly tinted.
 
 | Token | Color | Assigned to |
 |---|---|---|
@@ -82,6 +84,9 @@ color (mint or cream) and is added to the table above.
   color literals in the feature code of migrated packages. The rule's
   `colorIncludeRoots` lists them; add a package when it migrates. Host theme
   files are exempt.
+- The owner app's chroma contrast test checks every chroma color against its
+  `-foreground` token at WCAG AA (4.5:1). Retuning a color or its text must
+  keep it passing.
 - `npm run screenshots:private-practice-owner` captures `/color-legend`, which
   renders the palette, button kinds, operation colors, status colors, and
   header icons in light and dark mode.

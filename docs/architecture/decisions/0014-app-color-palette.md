@@ -52,8 +52,8 @@ purposes separates them by layout: sections, headings, and panes.
   two stay free for future meanings.
 - Generic buttons become neutral, so the operations on hub pages stand out and
   users learn them by color.
-- The owner app's chroma colors are pastels with dark text in both modes,
-  which keeps one value set that reads on light and dark backgrounds.
+- The owner app's chroma colors are pastels whose text is the same hue,
+  darkened, in both modes. One value set reads on light and dark backgrounds.
 - Header icons, sidebar icons, and avatars become neutral; avatars show a
   status color when their record has a status.
 - Owner app and `shared/clinic` adopt first. Other hosts keep their current
@@ -84,6 +84,8 @@ Accent keeps meaning everything, and each new color stays a one-off decision.
 - `npm run lint:layout` rejects Tailwind palette color utilities and color
   literals in the feature code of migrated packages. Correct use of accent and
   chroma classes is checked in review.
+- A contrast test checks every chroma color against its text color at WCAG
+  AA (4.5:1).
 - The owner screenshot suite captures `/color-legend`, which renders the
   palette, button kinds, operation colors, status colors, and header icons in
   both modes.
