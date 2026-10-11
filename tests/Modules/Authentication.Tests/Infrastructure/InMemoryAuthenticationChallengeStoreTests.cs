@@ -15,7 +15,6 @@ public sealed class InMemoryAuthenticationChallengeStoreTests
             "user-42",
             "+989121234567",
             DateTimeOffset.UtcNow,
-            rememberMe: false,
             requiresProfileCompletion: false);
         await store.SaveAsync(challenge, CancellationToken.None);
 
@@ -32,7 +31,6 @@ public sealed class InMemoryAuthenticationChallengeStoreTests
                 challenge.FailedAttempts,
                 challenge.Status,
                 challenge.CompletedAt,
-                challenge.RememberMe,
                 challenge.RequiresProfileCompletion))
             .ToArray();
 
@@ -98,7 +96,6 @@ public sealed class InMemoryAuthenticationChallengeStoreTests
                 challenge.FailedAttempts,
                 challenge.Status,
                 challenge.CompletedAt,
-                challenge.RememberMe,
                 challenge.RequiresProfileCompletion))
             .ToArray();
 

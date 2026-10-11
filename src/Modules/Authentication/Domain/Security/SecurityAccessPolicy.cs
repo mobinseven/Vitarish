@@ -11,7 +11,7 @@ public sealed record SecurityAccessPolicy(
     IReadOnlySet<PreAuthenticationAction> PermittedPreAuthenticationActions,
     int MaximumConcurrentSessions = 1,
     bool ConcurrentSessionsFunctionallyRequired = false,
-    int DefaultInactivityTimeoutMinutes = 30,
+    int DefaultInactivityTimeoutMinutes = SessionInactivityTimeout.DefaultMinutes,
     IReadOnlySet<string>? AllowedSessionStartCidrs = null)
 {
     public static SecurityAccessPolicy Default { get; } = ForProfile(AuthenticationProfilePolicy.Default);
@@ -39,8 +39,8 @@ public sealed record SecurityAccessPolicy(
             throw new ArgumentOutOfRangeException(nameof(MaximumConcurrentSessions), "The concurrent-session maximum must be between 1 and 3.");
         if (MaximumConcurrentSessions > 1 && !ConcurrentSessionsFunctionallyRequired)
             throw new ArgumentException("Concurrent sessions require a recorded functional need.", nameof(ConcurrentSessionsFunctionallyRequired));
-        if (DefaultInactivityTimeoutMinutes is < 1 or > 30)
-            throw new ArgumentOutOfRangeException(nameof(DefaultInactivityTimeoutMinutes), "The default inactivity timeout must be between 1 and 30 minutes.");
+        if (!SessionInactivityTimeout.IsWithinBounds(DefaultInactivityTimeoutMinutes))
+            throw SessionInactivityTimeout.OutOfBounds(nameof(DefaultInactivityTimeoutMinutes));
         if (AllowedSessionStartCidrs is not null)
         {
             foreach (string cidr in AllowedSessionStartCidrs)

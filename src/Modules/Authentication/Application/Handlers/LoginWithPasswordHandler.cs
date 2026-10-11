@@ -76,14 +76,14 @@ public sealed class LoginWithPasswordHandler(
 
         PasswordSignInResult signInResult = profilePolicy.UsePhoneOtpForTwoFactorAccounts
             ? await signInService.CheckPasswordSignInAsync(command.UserNameOrEmail, command.Password, cancellationToken)
-            : await signInService.PasswordSignInAsync(command.UserNameOrEmail, command.Password, command.RememberMe, cancellationToken);
+            : await signInService.PasswordSignInAsync(command.UserNameOrEmail, command.Password, cancellationToken);
 
         AuthenticationResult<LoginResult> result = signInResult.Status switch
         {
             PasswordSignInStatus.Succeeded when profilePolicy.UsePhoneOtpForTwoFactorAccounts && signInResult.RequiresTwoFactor =>
-                await IssuePhoneOtpChallengeAsync(signInResult, command.RememberMe, cancellationToken),
+                await IssuePhoneOtpChallengeAsync(signInResult, cancellationToken),
             PasswordSignInStatus.RequiresTwoFactor when profilePolicy.UsePhoneOtpForTwoFactorAccounts =>
-                await IssuePhoneOtpChallengeAsync(signInResult, command.RememberMe, cancellationToken),
+                await IssuePhoneOtpChallengeAsync(signInResult, cancellationToken),
             PasswordSignInStatus.Succeeded when profilePolicy.UsePhoneOtpForTwoFactorAccounts =>
                 await CompletePasswordOnlyLoginAsync(signInResult, command, cancellationToken),
             PasswordSignInStatus.Succeeded =>
@@ -145,7 +145,6 @@ public sealed class LoginWithPasswordHandler(
 
     private async Task<AuthenticationResult<LoginResult>> IssuePhoneOtpChallengeAsync(
         PasswordSignInResult signInResult,
-        bool rememberMe,
         CancellationToken cancellationToken)
     {
         AuthenticationUserDescriptor? user = await userDirectory.FindByIdAsync(signInResult.UserId!, cancellationToken);
@@ -167,7 +166,6 @@ public sealed class LoginWithPasswordHandler(
             user.UserId,
             user.PhoneNumber,
             now,
-            rememberMe,
             signInResult.RequiresProfileCompletion);
         string code = await codeGenerator.GenerateAsync(user.UserId, challenge.TokenPurpose, cancellationToken);
         await challengeStore.SaveAsync(challenge, cancellationToken);
@@ -204,7 +202,7 @@ public sealed class LoginWithPasswordHandler(
         LoginWithPasswordCommand command,
         CancellationToken cancellationToken)
     {
-        AuthenticationSessionSignInResult session = await signInService.SignInAsync(signInResult.UserId!, command.RememberMe, cancellationToken);
+        AuthenticationSessionSignInResult session = await signInService.SignInAsync(signInResult.UserId!, cancellationToken);
         if (session is not null && !session.Succeeded)
             return new AuthenticationResult<LoginResult>.Failure(session.Failure!);
         return new AuthenticationResult<LoginResult>.Success(new(

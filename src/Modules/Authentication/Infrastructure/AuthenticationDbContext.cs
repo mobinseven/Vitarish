@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Entities.Server.Infrastructure;
+using Vitarish.Authentication.Domain.Security;
 using Vitarish.Authentication.Domain.Sessions;
 
 namespace Vitarish.Authentication.Infrastructure;
@@ -26,7 +27,7 @@ public sealed class AuthenticationDbContext(DbContextOptions<AuthenticationDbCon
             _ = entity.Property(policy => policy.PermittedPreAuthenticationActions).IsRequired().HasMaxLength(512);
             _ = entity.Property(policy => policy.MaximumConcurrentSessions).HasDefaultValue(1);
             _ = entity.Property(policy => policy.ConcurrentSessionsFunctionallyRequired).HasDefaultValue(false);
-            _ = entity.Property(policy => policy.DefaultInactivityTimeoutMinutes).HasDefaultValue(30);
+            _ = entity.Property(policy => policy.DefaultInactivityTimeoutMinutes).HasDefaultValue(SessionInactivityTimeout.DefaultMinutes);
             _ = entity.Property(policy => policy.Version).IsConcurrencyToken();
         });
         _ = modelBuilder.Entity<AuthenticationSession>(entity =>

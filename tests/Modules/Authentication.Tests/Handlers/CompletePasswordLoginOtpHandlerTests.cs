@@ -32,7 +32,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Success>();
         events.Select(x => x.Outcome).Should().ContainInOrder(SecurityAuditOutcome.Started, SecurityAuditOutcome.Succeeded);
         events[^1].EventName.Should().Be("authentication.password.login.otp");
-        dependencies.SignIn.Verify(x => x.SignInAsync("user-42", false, It.IsAny<CancellationToken>()), Times.Once);
+        dependencies.SignIn.Verify(x => x.SignInAsync("user-42", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
         AuthenticationResult<LoginResult> result = await handler.Handle(Command(), CancellationToken.None);
 
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Success>();
-        dependencies.SignIn.Verify(x => x.SignInAsync("user-42", false, It.IsAny<CancellationToken>()), Times.Once);
+        dependencies.SignIn.Verify(x => x.SignInAsync("user-42", It.IsAny<CancellationToken>()), Times.Once);
         dependencies.SignIn.Verify(x => x.SignOutAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -57,7 +57,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
     {
         InMemoryAuthenticationChallengeStore store = new();
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
-            "user-42", "+989121234567", DateTimeOffset.UtcNow, false, false);
+            "user-42", "+989121234567", DateTimeOffset.UtcNow, false);
         await store.SaveAsync(challenge, CancellationToken.None);
 
         Mock<IAuthenticationCodeVerifier> verifier = new();
@@ -89,7 +89,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
         results.OfType<AuthenticationResult<LoginResult>.Success>().Should().ContainSingle();
         results.OfType<AuthenticationResult<LoginResult>.Failure>().Single().Error.Reason
             .Should().Be(AuthenticationFailureReason.ChallengeAlreadyUsed);
-        signIn.Verify(x => x.SignInAsync("user-42", false, It.IsAny<CancellationToken>()), Times.Once);
+        signIn.Verify(x => x.SignInAsync("user-42", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
     {
         InMemoryAuthenticationChallengeStore store = new();
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
-            "user-42", "+989121234567", DateTimeOffset.UtcNow, false, false);
+            "user-42", "+989121234567", DateTimeOffset.UtcNow, false);
         await store.SaveAsync(challenge, CancellationToken.None);
 
         Mock<IAuthenticationCodeVerifier> verifier = new();
@@ -131,7 +131,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             .Should().Be(AuthenticationChallengeStatus.Exhausted);
         verifier.Verify(x => x.VerifyAsync("user-42", challenge.TokenPurpose, "000000", It.IsAny<CancellationToken>()),
             Times.Once);
-        signIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+        signIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
     {
         InMemoryAuthenticationChallengeStore store = new();
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
-            "user-42", "+989121234567", DateTimeOffset.UtcNow, false, false);
+            "user-42", "+989121234567", DateTimeOffset.UtcNow, false);
         await store.SaveAsync(challenge, CancellationToken.None);
 
         Mock<IAuthenticationCodeVerifier> verifier = new();
@@ -172,7 +172,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
             .Which.Error.Reason.Should().Be(AuthenticationFailureReason.ChallengeAttemptsExhausted);
         (await store.GetAsync(challenge.Id, CancellationToken.None))!.Status
             .Should().Be(AuthenticationChallengeStatus.Exhausted);
-        signIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+        signIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
     {
         TestDependencies dependencies = CreateDependencies();
         dependencies.SignIn
-            .Setup(x => x.SignInAsync("user-42", false, It.IsAny<CancellationToken>()))
+            .Setup(x => x.SignInAsync("user-42", It.IsAny<CancellationToken>()))
             .ReturnsAsync(AuthenticationSessionSignInResult.Failed(
                 new AuthenticationFailure(AuthenticationFailureReason.AccountDisabled, "The account is disabled.")));
         List<SecurityAuditEvent> events = [];
@@ -201,7 +201,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
     {
         TestDependencies dependencies = CreateDependencies();
         dependencies.SignIn
-            .Setup(x => x.SignInAsync("user-42", false, It.IsAny<CancellationToken>()))
+            .Setup(x => x.SignInAsync("user-42", It.IsAny<CancellationToken>()))
             .ReturnsAsync(AuthenticationSessionSignInResult.Failed(
                 new AuthenticationFailure(AuthenticationFailureReason.NoAccess, "The account has no access level.")));
         List<SecurityAuditEvent> events = [];
@@ -225,7 +225,7 @@ public sealed class CompletePasswordLoginOtpHandlerTests
     {
         Mock<IAuthenticationChallengeStore> store = new();
         AuthenticationChallenge challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
-            "user-42", "+989121234567", DateTimeOffset.UtcNow, false, false);
+            "user-42", "+989121234567", DateTimeOffset.UtcNow, false);
         store.Setup(x => x.GetAsync(It.IsAny<AuthenticationChallengeId>(), It.IsAny<CancellationToken>())).ReturnsAsync(challenge);
         store.Setup(x => x.TryReserveAttemptAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
         store.Setup(x => x.TryConsumeAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);

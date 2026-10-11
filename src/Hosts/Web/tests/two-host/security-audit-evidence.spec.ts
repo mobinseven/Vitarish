@@ -416,7 +416,7 @@ test("real actions create visible platform security-audit evidence", async ({ pa
     const rejectedPolicyUpdate = await putJson(administratorPage, "/api/modules/authentication/security/session-policy", {
       maximumConcurrentSessions: policy.maximumConcurrentSessions,
       concurrentSessionsFunctionallyRequired: policy.concurrentSessionsFunctionallyRequired,
-      defaultInactivityTimeoutMinutes: 31,
+      defaultInactivityTimeoutMinutes: 129601,
       allowedSessionStartCidrs: policy.allowedSessionStartCidrs,
       expectedVersion: policy.version,
     });

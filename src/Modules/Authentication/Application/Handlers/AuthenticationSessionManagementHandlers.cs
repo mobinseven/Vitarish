@@ -56,8 +56,8 @@ public sealed class ChangeUserInactivityTimeoutHandler(
     {
         if (!AuthenticationSecurityAuthorization.CanChangeUserInactivityPolicy(requestContext.User))
             throw new UnauthorizedAccessException("Only platform administrators may change inactivity policy.");
-        if (minutes is < 1 or > 30)
-            throw new ArgumentOutOfRangeException(nameof(minutes), "The inactivity timeout must be between 1 and 30 minutes.");
+        if (minutes is int value && !SessionInactivityTimeout.IsWithinBounds(value))
+            throw SessionInactivityTimeout.OutOfBounds(nameof(minutes));
         if (expectedVersion < 0)
             throw new ArgumentOutOfRangeException(nameof(expectedVersion), "The expected inactivity policy version cannot be negative.");
         if (string.IsNullOrWhiteSpace(requestContext.TenantId))

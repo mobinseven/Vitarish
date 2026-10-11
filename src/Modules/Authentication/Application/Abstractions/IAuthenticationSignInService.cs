@@ -4,9 +4,9 @@ using Vitarish.Authentication.Application.Results;
 
 public interface IAuthenticationSignInService
 {
-    Task<PasswordSignInResult> PasswordSignInAsync(string login, string password, bool rememberMe, CancellationToken cancellationToken);
+    Task<PasswordSignInResult> PasswordSignInAsync(string login, string password, CancellationToken cancellationToken);
     Task<PasswordSignInResult> CheckPasswordSignInAsync(string login, string password, CancellationToken cancellationToken);
-    Task<AuthenticationSessionSignInResult> SignInAsync(string userId, bool rememberMe, CancellationToken cancellationToken);
+    Task<AuthenticationSessionSignInResult> SignInAsync(string userId, CancellationToken cancellationToken);
     Task SignOutAsync(CancellationToken cancellationToken);
 }
 

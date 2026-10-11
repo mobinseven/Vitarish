@@ -23,13 +23,13 @@ public sealed class AspNetIdentitySignInService(
     IAuthenticationSessionRegistry sessionRegistry,
     IHttpContextAccessor httpContextAccessor) : IAuthenticationSignInService
 {
-    public Task<PasswordSignInResult> PasswordSignInAsync(string login, string password, bool rememberMe, CancellationToken cancellationToken) =>
-        SignInCoreAsync(login, password, rememberMe, cancellationToken, signIn: true);
+    public Task<PasswordSignInResult> PasswordSignInAsync(string login, string password, CancellationToken cancellationToken) =>
+        SignInCoreAsync(login, password, cancellationToken, signIn: true);
 
     public Task<PasswordSignInResult> CheckPasswordSignInAsync(string login, string password, CancellationToken cancellationToken) =>
-        SignInCoreAsync(login, password, false, cancellationToken, signIn: false);
+        SignInCoreAsync(login, password, cancellationToken, signIn: false);
 
-    public async Task<AuthenticationSessionSignInResult> SignInAsync(string userId, bool rememberMe, CancellationToken cancellationToken)
+    public async Task<AuthenticationSessionSignInResult> SignInAsync(string userId, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(userId))
             return AuthenticationSessionSignInResult.Failed(new(AuthenticationFailureReason.InvalidInput, "User ID cannot be empty."));
@@ -54,14 +54,15 @@ public sealed class AspNetIdentitySignInService(
             ClaimsPrincipal principal = await signInManager.CreateUserPrincipalAsync(user);
             ClaimsIdentity identity = (ClaimsIdentity)principal.Identity!;
             identity.AddClaim(new Claim(AuthenticationSessionClaimTypes.SessionId, established.SessionId!));
+            DateTimeOffset issuedUtc = DateTimeOffset.UtcNow;
             await httpContextAccessor.HttpContext!.SignInAsync(
                 IdentityConstants.ApplicationScheme,
                 principal,
                 new AuthenticationProperties
                 {
-                    IsPersistent = rememberMe,
                     AllowRefresh = true,
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(established.InactivityTimeoutMinutes!.Value)
+                    IssuedUtc = issuedUtc,
+                    ExpiresUtc = issuedUtc.AddMinutes(established.InactivityTimeoutMinutes!.Value)
                 });
             await preparation.CompleteAsync(cancellationToken);
         }
@@ -121,7 +122,7 @@ public sealed class AspNetIdentitySignInService(
         await signInManager.SignOutAsync();
     }
 
-    private async Task<PasswordSignInResult> SignInCoreAsync(string login, string password, bool rememberMe, CancellationToken cancellationToken, bool signIn)
+    private async Task<PasswordSignInResult> SignInCoreAsync(string login, string password, CancellationToken cancellationToken, bool signIn)
     {
         if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
             return new PasswordSignInResult(PasswordSignInStatus.InvalidCredentials, null, false);
@@ -173,7 +174,7 @@ public sealed class AspNetIdentitySignInService(
                 user.TwoFactorEnabled);
             if (signIn && successful.Status == PasswordSignInStatus.Succeeded)
             {
-                AuthenticationSessionSignInResult session = await SignInAsync(user.Id, rememberMe, cancellationToken);
+                AuthenticationSessionSignInResult session = await SignInAsync(user.Id, cancellationToken);
                 if (!session.Succeeded)
                     return successful with { Status = StatusForSessionFailure(session.Failure) };
             }

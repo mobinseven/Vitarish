@@ -65,7 +65,7 @@ public sealed class DisabledAccountContactLoginAuditTests
     private static Mock<IAuthenticationSignInService> DisabledSignIn()
     {
         Mock<IAuthenticationSignInService> signIn = new();
-        signIn.Setup(item => item.SignInAsync("user-42", false, It.IsAny<CancellationToken>()))
+        signIn.Setup(item => item.SignInAsync("user-42", It.IsAny<CancellationToken>()))
             .ReturnsAsync(AuthenticationSessionSignInResult.Failed(
                 new AuthenticationFailure(AuthenticationFailureReason.AccountDisabled, "The account is disabled.")));
         return signIn;

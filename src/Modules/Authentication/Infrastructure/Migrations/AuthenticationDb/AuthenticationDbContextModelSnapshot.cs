@@ -163,7 +163,7 @@ namespace Vitarish.Authentication.Infrastructure.Migrations.AuthenticationDb
                     b.Property<int>("DefaultInactivityTimeoutMinutes")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(30);
+                        .HasDefaultValue(20160);
 
                     b.Property<string>("EnabledAuthenticationMechanisms")
                         .IsRequired()

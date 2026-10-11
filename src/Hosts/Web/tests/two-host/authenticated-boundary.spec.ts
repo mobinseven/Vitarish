@@ -542,7 +542,6 @@ test("rejects invalid password authentication without creating a session", async
       userNameOrEmail: "unknown-e2e-user@example.test",
       password: "wrong-password-not-a-secret",
       returnUrl: null,
-      rememberMe: false,
     },
     headers: { "X-Vitarish-Tenant-Host": "localhost" },
     ignoreHTTPSErrors: true,
@@ -574,7 +573,6 @@ test("normalizes unsafe authentication return URLs at the real API boundary", as
         userNameOrEmail: e2eUsername,
         password: e2ePassword,
         returnUrl,
-        rememberMe: false,
       },
       headers: {
         "X-Vitarish-Tenant-Host": "localhost",
@@ -1529,7 +1527,6 @@ test("locks the disposable platform-admin account after repeated real password f
         userNameOrEmail: lockoutPlatformAdminUsername,
         password: "E2E-Lockout-Wrong-Password",
         returnUrl: null,
-        rememberMe: false,
       },
       headers: {
         "X-Forwarded-For": lockoutClientIp,

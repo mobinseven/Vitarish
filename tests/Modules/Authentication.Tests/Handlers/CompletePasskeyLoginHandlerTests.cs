@@ -175,7 +175,7 @@ public sealed class CompletePasskeyLoginHandlerTests
         Mock<IAuthenticationSecurityPolicyProvider> policy = new();
         policy.Setup(item => item.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
         Mock<IAuthenticationSignInService> signIn = new();
-        signIn.Setup(item => item.SignInAsync("user-42", false, It.IsAny<CancellationToken>()))
+        signIn.Setup(item => item.SignInAsync("user-42", It.IsAny<CancellationToken>()))
             .ReturnsAsync(AuthenticationSessionSignInResult.Failed(
                 new AuthenticationFailure(AuthenticationFailureReason.AccountDisabled, "The account is disabled.")));
         List<SecurityAuditEvent> events = [];
@@ -221,7 +221,7 @@ public sealed class CompletePasskeyLoginHandlerTests
         Mock<IAuthenticationSecurityPolicyProvider> policy = new();
         policy.Setup(item => item.GetAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SecurityAccessPolicy.Default);
         Mock<IAuthenticationSignInService> signIn = new();
-        signIn.Setup(item => item.SignInAsync("user-42", false, It.IsAny<CancellationToken>()))
+        signIn.Setup(item => item.SignInAsync("user-42", It.IsAny<CancellationToken>()))
             .ReturnsAsync(AuthenticationSessionSignInResult.Failed(
                 new AuthenticationFailure(AuthenticationFailureReason.NoAccess, "The account has no access level.")));
         List<SecurityAuditEvent> events = [];
