@@ -5,7 +5,6 @@ import {
   DetailGrid,
   type DetailGridItem,
   HeaderIcon,
-  actionRoleClassName,
 } from "@vitarish/ui";
 import type { NavigationIntent } from "../../navigation";
 import { formatDateTime, useLocalizedText } from "../../localization";
@@ -83,7 +82,7 @@ export function ServiceDetailPage({
         </div>
         <div className="flex gap-2">
           {!editing ? (
-            <Button className={actionRoleClassName("edit")} variant="ghost" onPress={() => setEditing(true)}>
+            <Button variant="ghost" onPress={() => setEditing(true)}>
               {t("common.actions.edit")}
             </Button>
           ) : null}

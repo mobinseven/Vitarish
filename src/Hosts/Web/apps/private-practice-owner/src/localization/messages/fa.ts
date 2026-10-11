@@ -31,10 +31,12 @@ export const faMessages = {
   colorLegend: {
     title: "پالت رنگ",
     palette: "پالت",
-    actions: "نقش‌های اقدام",
+    actions: "دکمه‌ها",
     status: "وضعیت",
     headerIcons: "آیکون‌های سرصفحه",
-    brandAction: "اقدام اصلی",
+    brandAction: "ذخیره (سایر فرم‌ها)",
+    genericAction: "اقدام عمومی",
+    removeAction: "حذف",
   },
   layoutFixture: {
     navigationGroupLabel: "نمونه چیدمان",

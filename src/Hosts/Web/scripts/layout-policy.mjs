@@ -50,7 +50,7 @@ const ruleGuidance = {
     reason:
       "Feature code must color through a registered role, not a palette color or color literal.",
     preferred:
-      "Use a palette token (accent, highlight, support), a status token, or actionRoleClassName (docs/hosts/web/color-roles.md).",
+      "Use a palette token (neutral, accent, chroma), a status token, or a button class from the owner (docs/hosts/web/color-roles.md).",
   },
 };
 

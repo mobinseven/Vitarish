@@ -24,7 +24,7 @@ vi.mock("@vitarish/clinic", async () => {
 import { HomeDashboard } from "@/features/home/components/HomeDashboard";
 
 describe("HomeDashboard", () => {
-  it("renders server-owned appointments and opens the patient profile", async () => {
+  it("renders server-owned appointments and opens the patient profile or its quick actions", async () => {
     mocks.appointments.mockReturnValue({
       data: [
         {
@@ -58,6 +58,16 @@ describe("HomeDashboard", () => {
 
     await user.click(screen.getByRole("button", { name: "View profile" }));
     expect(mocks.push).toHaveBeenCalledWith("/patients/12345678-1234-1234-1234-123456789012");
+
+    await user.click(screen.getByRole("button", { name: "New prescription" }));
+    expect(mocks.push).toHaveBeenLastCalledWith(
+      "/patients/12345678-1234-1234-1234-123456789012?action=prescription",
+    );
+
+    await user.click(screen.getByRole("button", { name: "New note" }));
+    expect(mocks.push).toHaveBeenLastCalledWith(
+      "/patients/12345678-1234-1234-1234-123456789012?action=newVisit",
+    );
   });
 
   it("opens a month view and moves the appointment query by one day", async () => {

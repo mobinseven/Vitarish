@@ -111,10 +111,9 @@ Applies to every `apps/*` and `shared/*` package.
 ## Button conventions
 
 - **[MUST]** All buttons must have localized tooltips and icons. so in mobile view they can be shrunk to icon and tooltips to avoid confusing users.
-- Color an action by what it does, never per page: pass
-  `actionRoleClassName("open" | "edit" | "create" | "remove")` from
-  `@vitarish/ui` to the Button. Keep `variant="danger"` for destructive
-  confirmations.
+- Color a button by what it does, never per page, following the [Web color
+  convention](../../../docs/hosts/web/color-roles.md#buttons). Keep
+  `variant="danger"` for destructive confirmations.
 
 ## Web test quality
 

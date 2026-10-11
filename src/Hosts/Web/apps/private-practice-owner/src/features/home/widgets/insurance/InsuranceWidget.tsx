@@ -4,9 +4,6 @@ import { Button, Card, Surface, Tooltip } from "@heroui/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useInsuranceProviderCredentials } from "@vitarish/clinic";
-import {
-  actionRoleClassName,
-} from "@vitarish/ui";
 import { useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import styles from "../HomeWidgets.module.css";
@@ -133,8 +130,8 @@ export function InsuranceWidget() {
           <footer className="mt-auto border-t border-separator pt-4">
             <Tooltip>
               <Button
-                className={`${actionRoleClassName("open")} w-full`}
-                variant="secondary"
+                className="w-full"
+                variant="tertiary"
                 onPress={() =>
                   router.push(Routes.Clinic.Settings.PrescriptionTemplates)
                 }

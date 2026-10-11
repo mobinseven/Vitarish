@@ -81,7 +81,7 @@ export function PatientProcedureFocusedLane({
       <div className="mt-5 flex flex-wrap items-center gap-2">
         <Button
           size="sm"
-          variant="primary"
+          variant="tertiary"
           onPress={() =>
             onNavigate?.({
               kind: "patientProcedureDetail",

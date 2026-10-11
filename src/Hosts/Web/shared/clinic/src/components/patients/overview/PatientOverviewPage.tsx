@@ -1,20 +1,19 @@
 "use client";
 
 import { Button, Card, Tabs, Tooltip } from "@heroui/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Widget } from "@heroui-pro/react";
 import {
   ErrorStateSurface as ClinicErrorState,
   FaIcon,
   LoadingStateSurface as ClinicLoadingState,
-  actionRoleClassName,
 } from "@vitarish/ui";
 import { usePatientDetail } from "../../../hooks/patients/usePatientDetail";
 import {
   patientVisitsProcedureName,
   useEnsurePatientVisitsProcedure,
 } from "../../../hooks/patients/procedures/useEnsurePatientVisitsProcedure";
-import { useLocalizedText } from "../../../localization";
+import { useLocalizedText, type MessageKey } from "../../../localization";
 import type { NavigationIntent } from "../../../navigation";
 import { PatientProceduresPanel } from "../procedures/PatientProceduresPanel";
 import { PatientVisitsPanel } from "../procedures/PatientVisitsPanel";
@@ -25,15 +24,37 @@ import { PatientProfileCard } from "./PatientProfileCard";
 import { PatientPrescriptionSubmissionSheet } from "../prescriptions/PatientPrescriptionSubmissionSheet";
 import { PatientPrescriptionDashboard, patientPrescriptionHistoryQueryKey } from "../prescriptions/PatientPrescriptionDashboard";
 import { useQueryClient } from "@tanstack/react-query";
+import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
+
+/** Quick actions another page can ask the patient page to open on arrival. */
+export const patientQuickActions = ["prescription", "newVisit"] as const;
+
+export type PatientQuickAction = (typeof patientQuickActions)[number];
+
+interface PatientQuickActionButton {
+  id: string;
+  labelKey: MessageKey;
+  icon: string;
+  variant: "outline" | "primary";
+  className?: string;
+  onPress: () => void;
+  isDisabled?: boolean;
+}
 
 export interface PatientOverviewPageProps {
   patientId: string;
   onNavigate: (intent: NavigationIntent) => void;
+  /** Opens this quick action once the patient is ready. */
+  initialAction?: PatientQuickAction;
+  /** Called once the initial action has opened, so the caller can forget it. */
+  onInitialActionHandled?: () => void;
 }
 
 export function PatientOverviewPage({
   patientId,
   onNavigate,
+  initialAction,
+  onInitialActionHandled,
 }: PatientOverviewPageProps) {
   const { t } = useLocalizedText();
   const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
@@ -48,6 +69,15 @@ export function PatientOverviewPage({
   const openNewVisit = () => {
     if (visitsProcedure) setIsNewVisitOpen(true);
   };
+  const handledInitialAction = useRef(false);
+  useEffect(() => {
+    if (!initialAction || handledInitialAction.current || !patient) return;
+    if (initialAction === "prescription") setIsPrescriptionOpen(true);
+    else if (visitsProcedure) setIsNewVisitOpen(true);
+    else return;
+    handledInitialAction.current = true;
+    onInitialActionHandled?.();
+  }, [initialAction, onInitialActionHandled, patient, visitsProcedure]);
   if (isLoading) {
     return <ClinicLoadingState label={t("clinic.patient.detail.loading")} />;
   }
@@ -65,6 +95,41 @@ export function PatientOverviewPage({
     );
   }
 
+  const quickActions: readonly PatientQuickActionButton[] = [
+    {
+      id: "edit",
+      labelKey: "clinic.patient.quickActions.edit",
+      icon: "pen",
+      variant: "outline",
+      onPress: () => onNavigate({ kind: "patientEdit", patientId }),
+    },
+    {
+      id: "prescription",
+      labelKey: "clinic.patient.quickActions.prescription",
+      icon: "prescription-bottle-medical",
+      variant: "primary",
+      className: clinicOperationButtonClassName("prescription"),
+      onPress: () => setIsPrescriptionOpen(true),
+    },
+    {
+      id: "newVisit",
+      labelKey: "clinic.patient.quickActions.newVisit",
+      icon: "calendar-plus",
+      variant: "primary",
+      className: clinicOperationButtonClassName("visit"),
+      onPress: openNewVisit,
+      isDisabled: !visitsProcedure,
+    },
+    {
+      id: "checkIn",
+      labelKey: "clinic.patient.quickActions.checkIn",
+      icon: "calendar-check",
+      variant: "primary",
+      className: clinicOperationButtonClassName("appointment"),
+      onPress: () => onNavigate({ kind: "checkIn" }),
+    },
+  ];
+
   return (
     <section
       className="mx-auto flex w-full max-w-6xl flex-col gap-4"
@@ -74,73 +139,21 @@ export function PatientOverviewPage({
       <Card variant="transparent">
         <Card.Content>
           <div className="flex flex-wrap gap-3">
-            <div className="hidden flex-wrap gap-3 md:flex">
-              <Button className={actionRoleClassName("edit")}
-                variant="outline"
-                onPress={() => onNavigate({ kind: "patientEdit", patientId })}
-              >
-                <FaIcon icon="pen" aria-hidden="true" />
-                {t("clinic.patient.quickActions.edit")}
-              </Button>
-
-              <Button className={actionRoleClassName("edit")}
-                variant="primary"
-                onPress={() => setIsPrescriptionOpen(true)}
-              >
-                <FaIcon icon="prescription-bottle-medical" aria-hidden="true" />
-                {t("clinic.patient.quickActions.prescription")}
-              </Button>
-              <Button className={actionRoleClassName("create")}
-                variant="primary"
-                onPress={openNewVisit}
-                isDisabled={!visitsProcedure}
-              >
-                <FaIcon icon="calendar-plus" aria-hidden="true" />
-                {t("clinic.patient.quickActions.newVisit")}
-              </Button>
-            </div>
-            <div className="flex gap-3 md:hidden">
-              <Tooltip>
+            {quickActions.map((action) => (
+              <Tooltip key={action.id}>
                 <Button
-                  isIconOnly
-                  aria-label={t("clinic.patient.quickActions.edit")}
-                  variant="outline"
-                  onPress={() => onNavigate({ kind: "patientEdit", patientId })}
+                  className={action.className}
+                  aria-label={t(action.labelKey)}
+                  variant={action.variant}
+                  onPress={action.onPress}
+                  isDisabled={action.isDisabled}
                 >
-                  <FaIcon icon="pen" aria-hidden="true" />
+                  <FaIcon icon={action.icon} aria-hidden="true" />
+                  <span className="hidden md:inline">{t(action.labelKey)}</span>
                 </Button>
-                <Tooltip.Content>
-                  {t("clinic.patient.quickActions.edit")}
-                </Tooltip.Content>
+                <Tooltip.Content>{t(action.labelKey)}</Tooltip.Content>
               </Tooltip>
-              <Tooltip>
-                <Button
-                  isIconOnly
-                  aria-label={t("clinic.patient.quickActions.newVisit")}
-                  variant="primary"
-                  onPress={openNewVisit}
-                  isDisabled={!visitsProcedure}
-                >
-                  <FaIcon icon="calendar-plus" aria-hidden="true" />
-                </Button>
-                <Tooltip.Content>
-                  {t("clinic.patient.quickActions.newVisit")}
-                </Tooltip.Content>
-              </Tooltip>
-              <Tooltip>
-                <Button
-                  isIconOnly
-                  aria-label={t("clinic.patient.quickActions.checkIn")}
-                  variant="primary"
-                  onPress={() => onNavigate({ kind: "checkIn" })}
-                >
-                  <FaIcon icon="calendar-check" aria-hidden="true" />
-                </Button>
-                <Tooltip.Content>
-                  {t("clinic.patient.quickActions.checkIn")}
-                </Tooltip.Content>
-              </Tooltip>
-            </div>
+            ))}
           </div>
         </Card.Content>
       </Card>

@@ -31,10 +31,12 @@ export const enMessages = {
   colorLegend: {
     title: "Color palette",
     palette: "Palette",
-    actions: "Action roles",
+    actions: "Buttons",
     status: "Status",
     headerIcons: "Header icons",
-    brandAction: "Primary action",
+    brandAction: "Save (other forms)",
+    genericAction: "Generic action",
+    removeAction: "Remove",
   },
   layoutFixture: {
     navigationGroupLabel: "Layout fixture",

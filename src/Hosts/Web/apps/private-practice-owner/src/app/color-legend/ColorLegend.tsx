@@ -2,20 +2,23 @@
 
 import type { ReactNode } from "react";
 import { Button, Chip, Surface } from "@heroui/react";
-import { HeaderIcon, actionRoleClassName, actionRoles } from "@vitarish/ui";
+import { clinicOperationButtonClassName, clinicOperations } from "@vitarish/clinic";
+import { HeaderIcon, removeButtonClassName } from "@vitarish/ui";
 import { useLocalizedText } from "@/localization";
 
 const paletteSwatches = [
   { name: "neutral", className: "bg-surface-secondary text-foreground" },
   { name: "accent", className: "bg-accent text-accent-foreground" },
-  { name: "highlight", className: "bg-highlight text-highlight-foreground" },
-  { name: "support", className: "bg-support text-support-foreground" },
+  { name: "chroma-primary", className: "bg-chroma-primary text-chroma-primary-foreground" },
+  { name: "chroma-secondary", className: "bg-chroma-secondary text-chroma-secondary-foreground" },
+  { name: "chroma-tertiary", className: "bg-chroma-tertiary text-chroma-tertiary-foreground" },
+  { name: "chroma-quaternary", className: "bg-chroma-quaternary text-chroma-quaternary-foreground" },
 ] as const;
 
 const statusColors = ["success", "warning", "danger", "default"] as const;
 const headerIconTones = ["neutral", "success", "warning", "danger"] as const;
 
-/** Renders the app palette, action roles, and status colors for screenshot review. */
+/** Renders the app palette, operation colors, and status colors for screenshot review. */
 export function ColorLegend() {
   const { t } = useLocalizedText();
 
@@ -28,7 +31,7 @@ export function ColorLegend() {
           {paletteSwatches.map((swatch) => (
             <span
               key={swatch.name}
-              className={`${swatch.className} grid h-16 w-32 place-items-center rounded-2xl text-sm font-semibold`}
+              className={`${swatch.className} grid h-16 w-40 place-items-center rounded-2xl text-sm font-semibold`}
             >
               {swatch.name}
             </span>
@@ -38,11 +41,13 @@ export function ColorLegend() {
 
       <LegendSection title={t("colorLegend.actions")}>
         <div className="flex flex-wrap gap-3">
-          {actionRoles.map((role) => (
-            <Button key={role} className={actionRoleClassName(role)}>
-              {role}
+          {clinicOperations.map((operation) => (
+            <Button key={operation} className={clinicOperationButtonClassName(operation)}>
+              {operation}
             </Button>
           ))}
+          <Button variant="tertiary">{t("colorLegend.genericAction")}</Button>
+          <Button className={removeButtonClassName}>{t("colorLegend.removeAction")}</Button>
           <Button variant="primary">{t("colorLegend.brandAction")}</Button>
         </div>
       </LegendSection>

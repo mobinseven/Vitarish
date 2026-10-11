@@ -17,14 +17,14 @@
 @source "../../../../shared/users/src/**/*.{ts,tsx}";
 
 @theme inline {
-  --color-highlight: var(--highlight);
-  --color-highlight-foreground: var(--highlight-foreground);
-  --color-highlight-soft: var(--highlight-soft);
-  --color-highlight-soft-foreground: var(--highlight-soft-foreground);
-  --color-support: var(--support);
-  --color-support-foreground: var(--support-foreground);
-  --color-support-soft: var(--support-soft);
-  --color-support-soft-foreground: var(--support-soft-foreground);
+  --color-chroma-primary: var(--chroma-primary);
+  --color-chroma-primary-foreground: var(--chroma-primary-foreground);
+  --color-chroma-secondary: var(--chroma-secondary);
+  --color-chroma-secondary-foreground: var(--chroma-secondary-foreground);
+  --color-chroma-tertiary: var(--chroma-tertiary);
+  --color-chroma-tertiary-foreground: var(--chroma-tertiary-foreground);
+  --color-chroma-quaternary: var(--chroma-quaternary);
+  --color-chroma-quaternary-foreground: var(--chroma-quaternary-foreground);
 }
 /* 
 @theme inline {
@@ -266,26 +266,17 @@ html[dir="rtl"] body {
   font-family: var(--font-sans);
 }
 
-:root,
-[data-theme="light"] {
-  /* Highlight is reserved for the primary review action; accent is reserved for navigation and focus. */
-  --highlight: oklch(66.37% 0.2357 359.39);
-  --highlight-foreground: oklch(99% 0.01 350);
-  --highlight-soft: oklch(93.21% 0.0422 343.07);
-  --highlight-soft-foreground: oklch(52% 0.18 359.39);
-  --support: oklch(54.69% 0.2645 290.08);
-  --support-foreground: oklch(99% 0.01 290);
-  --support-soft: oklch(96.06% 0.0219 300.21);
-  --support-soft-foreground: oklch(48% 0.18 290.08);
-}
-
-[data-theme="dark"] {
-  --highlight: oklch(78% 0.2 359.39);
-  --highlight-foreground: oklch(20% 0.04 359.39);
-  --highlight-soft: oklch(35% 0.095 359.39);
-  --highlight-soft-foreground: oklch(91% 0.075 359.39);
-  --support: oklch(76% 0.18 290.08);
-  --support-foreground: oklch(20% 0.04 290.08);
-  --support-soft: oklch(35% 0.1 290.08);
-  --support-soft-foreground: oklch(92% 0.075 290.08);
+:root {
+  /*
+   * Chroma colors (docs/hosts/web/color-roles.md). Each color carries white
+   * text, so one set serves light and dark mode.
+   */
+  --chroma-primary: oklch(56% 0.15 250);
+  --chroma-primary-foreground: oklch(100% 0 0);
+  --chroma-secondary: oklch(40% 0.23 270);
+  --chroma-secondary-foreground: oklch(100% 0 0);
+  --chroma-tertiary: oklch(45% 0.15 315);
+  --chroma-tertiary-foreground: oklch(100% 0 0);
+  --chroma-quaternary: oklch(59% 0.23 330);
+  --chroma-quaternary-foreground: oklch(100% 0 0);
 }

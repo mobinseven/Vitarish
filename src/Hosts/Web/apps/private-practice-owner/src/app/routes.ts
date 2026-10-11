@@ -1,4 +1,5 @@
 import { AuthenticationWebRoutes } from "@vitarish/auth/routes";
+import type { PatientQuickAction } from "@vitarish/clinic";
 
 /** Centralized route definitions for the React web host.
  *  Equivalent to Blazor's AppRoutes class.
@@ -60,7 +61,10 @@ export const Routes = {
     Patients: {
       Index: "/patients",
       New: "/patients/new",
-      Detail: (patientId: string) => `/patients/${patientId}` as const,
+      Detail: (patientId: string, quickAction?: PatientQuickAction) =>
+        quickAction
+          ? (`/patients/${patientId}?${PatientDetailSearchParams.QuickAction}=${quickAction}` as const)
+          : (`/patients/${patientId}` as const),
       Edit: (patientId: string) => `/patients/${patientId}/edit` as const,
       Procedure: (patientId: string, procedureId: string) =>
         `/patients/${patientId}/procedures/${procedureId}` as const,
@@ -118,4 +122,10 @@ export const Routes = {
       Detail: (shiftId: string) => `/appointments/shifts/${shiftId}` as const,
     },
   },
+} as const;
+
+/** Search parameters the patient detail route understands. */
+export const PatientDetailSearchParams = {
+  /** A patient quick action to open on arrival. */
+  QuickAction: "action",
 } as const;

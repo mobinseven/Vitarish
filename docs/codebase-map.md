@@ -248,8 +248,6 @@ For route topology, outer route layout, and scroll ownership, follow the scoped
 [`src/Hosts/Web/AGENTS.md`](../src/Hosts/Web/AGENTS.md) rules.
 For Web colors, follow the
 [Web color convention](hosts/web/color-roles.md).
-For Web color meanings, follow the
-[Web color roles convention](hosts/web/color-roles.md).
 
 ## 9. Generated and high-care areas
 

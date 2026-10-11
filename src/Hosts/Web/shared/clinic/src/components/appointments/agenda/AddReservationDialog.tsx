@@ -11,6 +11,7 @@ import {
 } from "../../../hooks/appointments/reservations/useOwnerReservations";
 import { PatientFindOrCreate } from "../../patients/find-or-create/PatientFindOrCreate";
 import type { ShiftReadDto } from "../../../api/appointments/appointmentsApi";
+import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface AddReservationDialogProps {
   isOpen: boolean;
@@ -204,6 +205,7 @@ export function AddReservationDialog({
                 {t("common.actions.cancel")}
               </Button>
               <Button
+                className={clinicOperationButtonClassName("appointment")}
                 variant="primary"
                 onPress={handleBook}
                 isDisabled={

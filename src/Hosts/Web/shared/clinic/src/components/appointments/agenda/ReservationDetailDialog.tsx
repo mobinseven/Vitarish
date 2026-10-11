@@ -7,7 +7,7 @@ import {
   FaIcon,
   ErrorStateSurface as ClinicErrorState,
   LoadingStateSurface as ClinicLoadingState,
-  actionRoleClassName,
+  removeButtonClassName,
 } from "@vitarish/ui";
 import {
   formatDate,
@@ -22,6 +22,7 @@ import {
   useDeleteReservation,
 } from "../../../hooks/appointments/reservations/useOwnerReservations";
 import { ReservationDeleteDialog } from "../reservations/ReservationDeleteDialog";
+import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 const statusKeys: Record<number, MessageKey> = {
   0: "clinic.reservationStatus.pending",
@@ -238,7 +239,7 @@ export function ReservationDetailDialog({
                       {t("clinic.appointments.agenda.viewPatient")}
                     </Button>
                   )}
-                  <Button className={actionRoleClassName("remove")}
+                  <Button className={removeButtonClassName}
                     variant="ghost"
                     size="sm"
                     onPress={() => setDeleting(true)}
@@ -255,6 +256,7 @@ export function ReservationDetailDialog({
                     <>
                       <div className="h-4 w-px bg-divider" />
                       <Button
+                        className={clinicOperationButtonClassName("appointment")}
                         variant="primary"
                         size="sm"
                         onPress={handleConfirm}

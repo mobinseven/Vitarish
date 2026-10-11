@@ -9,14 +9,11 @@ import {
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useClinicListDashboardSurgeries } from "@vitarish/clinic";
+import { useClinicListDashboardSurgeries, clinicOperationButtonClassName } from "@vitarish/clinic";
 import { formatDate, formatDateTime, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarMonthRange } from "../../calendarMonthRange";
 import styles from "../HomeWidgets.module.css";
-import {
-  actionRoleClassName,
-} from "@vitarish/ui";
 
 export function SurgeriesWidget() {
   const { t, locale } = useLocalizedText();
@@ -154,7 +151,7 @@ export function SurgeriesWidget() {
           <footer className="mt-auto flex gap-3 border-t border-separator pt-4">
             <Tooltip>
               <Button
-                className={`${actionRoleClassName("open")} min-w-0 flex-1`}
+                className="min-w-0 flex-1"
                 variant="outline"
                 onPress={() => router.push(Routes.Clinic.Patients.Index)}
               >
@@ -167,7 +164,7 @@ export function SurgeriesWidget() {
             </Tooltip>
             <Tooltip>
               <Button
-                className={`${actionRoleClassName("create")} min-w-0 flex-1`}
+                className={`${clinicOperationButtonClassName("procedure")} min-w-0 flex-1`}
                 variant="primary"
                 onPress={() => router.push(Routes.Clinic.Patients.New)}
               >

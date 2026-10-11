@@ -22,15 +22,16 @@ import {
 } from "@internationalized/date";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useClinicListDashboardAppointments } from "@vitarish/clinic";
+import {
+  clinicOperationButtonClassName,
+  useClinicListDashboardAppointments,
+  type PatientQuickAction,
+} from "@vitarish/clinic";
 import { formatNumber, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarDayRange } from "../calendarDayRange";
 import styles from "./HomeDashboard.module.css";
-import {
-  HeaderIcon,
-  actionRoleClassName,
-} from "@vitarish/ui";
+import { FaIcon, HeaderIcon } from "@vitarish/ui";
 
 type SortMode = "time" | "patient";
 type StatusColor = "default" | "danger" | "success" | "warning";
@@ -127,9 +128,9 @@ export function HomeDashboard() {
     setSelectedServiceIds([]);
   }
 
-  function openPatient(patientId: string | null) {
+  function openPatient(patientId: string | null, quickAction?: PatientQuickAction) {
     if (patientId && patientIdPattern.test(patientId)) {
-      router.push(Routes.Clinic.Patients.Detail(patientId));
+      router.push(Routes.Clinic.Patients.Detail(patientId, quickAction));
       return;
     }
 
@@ -470,19 +471,22 @@ export function HomeDashboard() {
                         </Chip>
                         <div className={styles.actions}>
                           <Tooltip>
-                            <Button className={`${actionRoleClassName("open")} ${styles.actionButton}`} size="sm" variant="primary" onPress={() => openPatient(row.patientId)}>
+                            <Button className={styles.actionButton} size="sm" variant="tertiary" onPress={() => openPatient(row.patientId)}>
+                              <FaIcon icon="user" aria-hidden="true" />
                               {t("home.dashboard.viewProfile")}
                             </Button>
                             <Tooltip.Content>{t("home.dashboard.viewProfile")}</Tooltip.Content>
                           </Tooltip>
                           <Tooltip>
-                            <Button className={`${actionRoleClassName("edit")} ${styles.actionButton}`} size="sm" variant="outline" onPress={() => openPatient(row.patientId)}>
+                            <Button className={`${clinicOperationButtonClassName("prescription")} ${styles.actionButton}`} size="sm" variant="primary" onPress={() => openPatient(row.patientId, "prescription")}>
+                              <FaIcon icon="prescription-bottle-medical" aria-hidden="true" />
                               {t("home.dashboard.newPrescription")}
                             </Button>
                             <Tooltip.Content>{t("home.dashboard.newPrescription")}</Tooltip.Content>
                           </Tooltip>
                           <Tooltip>
-                            <Button className={`${actionRoleClassName("create")} ${styles.actionButton}`} size="sm" variant="ghost" onPress={() => openPatient(row.patientId)}>
+                            <Button className={`${clinicOperationButtonClassName("visit")} ${styles.actionButton}`} size="sm" variant="primary" onPress={() => openPatient(row.patientId, "newVisit")}>
+                              <FaIcon icon="calendar-plus" aria-hidden="true" />
                               {t("home.dashboard.newNote")}
                             </Button>
                             <Tooltip.Content>{t("home.dashboard.newNote")}</Tooltip.Content>

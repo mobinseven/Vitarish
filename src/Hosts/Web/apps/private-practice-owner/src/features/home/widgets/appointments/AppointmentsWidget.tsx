@@ -9,10 +9,7 @@ import {
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useClinicListDashboardAppointments } from "@vitarish/clinic";
-import {
-  actionRoleClassName,
-} from "@vitarish/ui";
+import { useClinicListDashboardAppointments, clinicOperationButtonClassName } from "@vitarish/clinic";
 import { formatDate, formatDateTime, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarMonthRange } from "../../calendarMonthRange";
@@ -166,7 +163,7 @@ export function AppointmentsWidget() {
           <footer className="mt-auto flex gap-3 border-t border-separator pt-4">
             <Tooltip>
               <Button
-                className={`${actionRoleClassName("open")} min-w-0 flex-1`}
+                className="min-w-0 flex-1"
                 variant="outline"
                 onPress={() =>
                   router.push(Routes.Clinic.Appointments.Reservations.Index)
@@ -181,7 +178,7 @@ export function AppointmentsWidget() {
             </Tooltip>
             <Tooltip>
               <Button
-                className={`${actionRoleClassName("create")} min-w-0 flex-1`}
+                className={`${clinicOperationButtonClassName("appointment")} min-w-0 flex-1`}
                 variant="primary"
                 onPress={() =>
                   router.push(Routes.Clinic.Appointments.Reservations.Index)
