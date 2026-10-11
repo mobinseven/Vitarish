@@ -17,22 +17,18 @@
 @source "../../../../shared/users/src/**/*.{ts,tsx}";
 
 @theme inline {
-  --color-red: var(--red);
-  --color-red-foreground: var(--red-foreground);
-  --color-red-soft: var(--red-soft);
-  --color-red-soft-foreground: var(--red-soft-foreground);
-  --color-green: var(--green);
-  --color-green-foreground: var(--green-foreground);
-  --color-green-soft: var(--green-soft);
-  --color-green-soft-foreground: var(--green-soft-foreground);
-  --color-highlight: var(--highlight);
-  --color-highlight-foreground: var(--highlight-foreground);
-  --color-highlight-soft: var(--highlight-soft);
-  --color-highlight-soft-foreground: var(--highlight-soft-foreground);
-  --color-support: var(--support);
-  --color-support-foreground: var(--support-foreground);
-  --color-support-soft: var(--support-soft);
-  --color-support-soft-foreground: var(--support-soft-foreground);
+  --color-chroma-primary: var(--chroma-primary);
+  --color-chroma-primary-foreground: var(--chroma-primary-foreground);
+  --color-chroma-secondary: var(--chroma-secondary);
+  --color-chroma-secondary-foreground: var(--chroma-secondary-foreground);
+  --color-chroma-tertiary: var(--chroma-tertiary);
+  --color-chroma-tertiary-foreground: var(--chroma-tertiary-foreground);
+  --color-chroma-quaternary: var(--chroma-quaternary);
+  --color-chroma-quaternary-foreground: var(--chroma-quaternary-foreground);
+  --color-chroma-quinary: var(--chroma-quinary);
+  --color-chroma-quinary-foreground: var(--chroma-quinary-foreground);
+  --color-chroma-senary: var(--chroma-senary);
+  --color-chroma-senary-foreground: var(--chroma-senary-foreground);
 }
 /* 
 @theme inline {
@@ -274,42 +270,24 @@ html[dir="rtl"] body {
   font-family: var(--font-sans);
 }
 
-:root,
-[data-theme="light"] {
-  --red: oklch(66.37% 0.2357 359.39);
-  --red-foreground: oklch(99% 0.01 350);
-  --red-soft: oklch(93.21% 0.0422 343.07);
-  --red-soft-foreground: oklch(52% 0.18 359.39);
-  --green: oklch(61.32% 0.146 155.8);
-  --green-foreground: oklch(99% 0.01 140);
-  --green-soft: oklch(94.55% 0.0444 163.85);
-  --green-soft-foreground: oklch(46% 0.12 155.8);
-  /* Highlight is reserved for the primary review action; accent is reserved for navigation and focus. */
-  --highlight: oklch(66.37% 0.2357 359.39);
-  --highlight-foreground: oklch(99% 0.01 350);
-  --highlight-soft: oklch(93.21% 0.0422 343.07);
-  --highlight-soft-foreground: oklch(52% 0.18 359.39);
-  --support: oklch(54.69% 0.2645 290.08);
-  --support-foreground: oklch(99% 0.01 290);
-  --support-soft: oklch(96.06% 0.0219 300.21);
-  --support-soft-foreground: oklch(48% 0.18 290.08);
-}
-
-[data-theme="dark"] {
-  --red: oklch(76% 0.2 359.39);
-  --red-foreground: oklch(20% 0.04 353);
-  --red-soft: oklch(35% 0.095 359.39);
-  --red-soft-foreground: oklch(90% 0.07 359.39);
-  --green: oklch(76% 0.15 155.8);
-  --green-foreground: oklch(19% 0.035 155.8);
-  --green-soft: oklch(35% 0.08 155.8);
-  --green-soft-foreground: oklch(91% 0.075 155.8);
-  --highlight: oklch(78% 0.2 359.39);
-  --highlight-foreground: oklch(20% 0.04 359.39);
-  --highlight-soft: oklch(35% 0.095 359.39);
-  --highlight-soft-foreground: oklch(91% 0.075 359.39);
-  --support: oklch(76% 0.18 290.08);
-  --support-foreground: oklch(20% 0.04 290.08);
-  --support-soft: oklch(35% 0.1 290.08);
-  --support-soft-foreground: oklch(92% 0.075 290.08);
+:root {
+  /*
+   * Chroma colors (docs/hosts/web/color-roles.md), from the palette
+   * https://coolors.co/palette/ff99c8-fec8c3-fcf6bd-d0f4de-a9def9-e4c1f9.
+   * Pastels carry dark text, so one set serves light and dark mode. Each text
+   * color is the background's hue, as light and as chromatic as sRGB allows
+   * while keeping 4.8:1 contrast; the chroma contrast test enforces WCAG AA.
+   */
+  --chroma-primary: #a9def9;
+  --chroma-secondary: #fec8c3;
+  --chroma-tertiary: #e4c1f9;
+  --chroma-quaternary: #ff99c8;
+  --chroma-quinary: #d0f4de;
+  --chroma-senary: #fcf6bd;
+  --chroma-primary-foreground: oklch(46% 0.09 231);
+  --chroma-secondary-foreground: oklch(48.5% 0.195 25);
+  --chroma-tertiary-foreground: oklch(47.7% 0.235 313);
+  --chroma-quaternary-foreground: oklch(41.6% 0.17 351);
+  --chroma-quinary-foreground: oklch(49.8% 0.11 159);
+  --chroma-senary-foreground: oklch(52.7% 0.11 103);
 }

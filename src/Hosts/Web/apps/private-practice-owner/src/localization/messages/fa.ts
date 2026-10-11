@@ -28,6 +28,16 @@ export const faMessages = {
       unknown: "نامشخص",
     },
   },
+  colorLegend: {
+    title: "پالت رنگ",
+    palette: "پالت",
+    actions: "دکمه‌ها",
+    status: "وضعیت",
+    headerIcons: "آیکون‌های سرصفحه",
+    brandAction: "ذخیره (سایر فرم‌ها)",
+    genericAction: "اقدام عمومی",
+    removeAction: "حذف",
+  },
   layoutFixture: {
     navigationGroupLabel: "نمونه چیدمان",
     navigationItemLabel: "چیدمان واکنش‌گرا",

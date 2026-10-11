@@ -1,29 +1,24 @@
 /*
- * Theme-accent chrome shared by every dashboard host. Colors come only from the
- * host theme's semantic tokens, so each app follows its own accent in light and
+ * Chrome colors shared by every dashboard host. Colors come only from the host
+ * theme's semantic tokens, so each app follows its own palette in light and
  * dark mode. Layered as components so page utilities can still override them.
  */
 @layer components {
-  /* The navigation chrome is colored only from the host theme's accent tokens. */
-  .vitarish-dashboard-sidebar,
-  .vitarish-dashboard-sidebar-mobile {
-    background-color: color-mix(in oklab, var(--accent) 18%, var(--surface));
-  }
-
+  /* The navigation chrome is neutral; only the current item takes the accent. */
   :is(.vitarish-dashboard-sidebar, .vitarish-dashboard-sidebar-mobile) .sidebar__menu-header {
-    color: var(--accent-soft-foreground);
+    color: var(--muted);
     font-weight: 600;
   }
 
   :is(.vitarish-dashboard-sidebar, .vitarish-dashboard-sidebar-mobile) .sidebar__menu-icon {
-    color: var(--accent);
+    color: var(--muted);
   }
 
   @media (hover: hover) {
     :is(.vitarish-dashboard-sidebar, .vitarish-dashboard-sidebar-mobile)
       .sidebar__menu-item:is(:hover, [data-hovered="true"]):not([data-current="true"])
       .sidebar__menu-item-content {
-      background-color: var(--accent-soft);
+      background-color: var(--default);
     }
   }
 
@@ -59,33 +54,49 @@
   }
 
   /*
-   * Action roles: the same kind of action always has the same color, so users
-   * learn it at a glance. Hosts without highlight/support tokens fall back to
-   * accent. Applied through actionRoleClassName() from @vitarish/ui.
+   * Chroma buttons: operation buttons take a host chroma color. Hosts without
+   * the chroma tokens fall back to the neutral default. Applied through
+   * chromaButtonClassName() from @vitarish/ui.
    */
-  .button.vitarish-action--open {
-    --button-bg: var(--highlight, var(--accent));
-    --button-fg: var(--highlight-foreground, var(--accent-foreground));
+  .button.vitarish-chroma-button--primary {
+    --button-bg: var(--chroma-primary, var(--default));
+    --button-fg: var(--chroma-primary-foreground, var(--default-foreground));
   }
 
-  .button.vitarish-action--edit {
-    --button-bg: var(--support, var(--accent));
-    --button-fg: var(--support-foreground, var(--accent-foreground));
+  .button.vitarish-chroma-button--secondary {
+    --button-bg: var(--chroma-secondary, var(--default));
+    --button-fg: var(--chroma-secondary-foreground, var(--default-foreground));
   }
 
-  .button.vitarish-action--create {
-    --button-bg: var(--accent);
-    --button-fg: var(--accent-foreground);
+  .button.vitarish-chroma-button--tertiary {
+    --button-bg: var(--chroma-tertiary, var(--default));
+    --button-fg: var(--chroma-tertiary-foreground, var(--default-foreground));
   }
 
-  .button:is(.vitarish-action--open, .vitarish-action--edit, .vitarish-action--create) {
+  .button.vitarish-chroma-button--quaternary {
+    --button-bg: var(--chroma-quaternary, var(--default));
+    --button-fg: var(--chroma-quaternary-foreground, var(--default-foreground));
+  }
+
+  .button.vitarish-chroma-button--quinary {
+    --button-bg: var(--chroma-quinary, var(--default));
+    --button-fg: var(--chroma-quinary-foreground, var(--default-foreground));
+  }
+
+  .button.vitarish-chroma-button--senary {
+    --button-bg: var(--chroma-senary, var(--default));
+    --button-fg: var(--chroma-senary-foreground, var(--default-foreground));
+  }
+
+  .button[class*="vitarish-chroma-button--"] {
     --button-bg-hover: color-mix(in oklab, var(--button-bg) 88%, var(--button-fg) 12%);
     --button-bg-pressed: var(--button-bg-hover);
     border-color: transparent;
     box-shadow: 0 4px 10px color-mix(in oklab, var(--button-bg) 22%, transparent);
   }
 
-  .button.vitarish-action--remove {
+  /* Destructive buttons. Applied through removeButtonClassName from @vitarish/ui. */
+  .button.vitarish-remove-button {
     --button-bg: var(--danger-soft);
     --button-bg-hover: var(--danger-soft-hover, var(--danger-soft));
     --button-bg-pressed: var(--button-bg-hover);
@@ -94,38 +105,44 @@
   }
 
   /*
-   * Sign-in methods: each method keeps one hue so a returning user recognizes
-   * their usual choice by color before reading. No semantic theme role fits:
-   * success, warning, and danger would signal status, and the theme has a
-   * single accent. Tiles are solid mid-tone hues that hold contrast with a white
-   * icon in both modes; the hover tint mixes the hue with the host surface.
-   * Applied through signInMethodClassName().
+   * Sign-in methods: each method keeps one host chroma color so a returning
+   * user finds their usual choice before reading; hosts without the chroma colors
+   * fall back to neutral. The icon takes the color's foreground; the hover tint
+   * overlays the color on whatever surface the card uses. Applied through
+   * signInMethodClassName().
    */
   .vitarish-sign-in-method--password {
-    --sign-in-method: oklch(56% 0.17 258);
+    --sign-in-method: var(--chroma-primary, var(--muted));
+    --sign-in-method-foreground: var(--chroma-primary-foreground, white);
   }
 
   .vitarish-sign-in-method--phone {
-    --sign-in-method: oklch(56% 0.14 150);
+    --sign-in-method: var(--chroma-secondary, var(--muted));
+    --sign-in-method-foreground: var(--chroma-secondary-foreground, white);
   }
 
   .vitarish-sign-in-method--email {
-    --sign-in-method: oklch(55% 0.19 300);
+    --sign-in-method: var(--chroma-tertiary, var(--muted));
+    --sign-in-method-foreground: var(--chroma-tertiary-foreground, white);
   }
 
   .vitarish-sign-in-method--passkey {
-    --sign-in-method: oklch(60% 0.17 45);
+    --sign-in-method: var(--chroma-quaternary, var(--muted));
+    --sign-in-method-foreground: var(--chroma-quaternary-foreground, white);
   }
 
   [class*="vitarish-sign-in-method--"] .vitarish-sign-in-method__tile {
     background-color: var(--sign-in-method);
     box-shadow: 0 4px 10px color-mix(in oklab, var(--sign-in-method) 28%, transparent);
-    color: white;
+    color: var(--sign-in-method-foreground);
   }
 
   @media (hover: hover) {
     [class*="vitarish-sign-in-method--"]:is(:hover, [data-hovered="true"]) {
-      background-color: color-mix(in oklab, var(--sign-in-method) 7%, var(--surface));
+      background-image: linear-gradient(
+        color-mix(in oklab, var(--sign-in-method) 10%, transparent),
+        color-mix(in oklab, var(--sign-in-method) 10%, transparent)
+      );
     }
   }
 }

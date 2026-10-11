@@ -59,7 +59,7 @@ export function PracticePrinciplesShowcase() {
                   <Disclosure.Heading>
                     <Button
                       slot="trigger"
-                      variant="secondary"
+                      variant="tertiary"
                       className={cn(
                         "h-14 w-full justify-start rounded-full px-5 text-start transition-colors duration-300",
                         isSelected && "bg-foreground text-background",

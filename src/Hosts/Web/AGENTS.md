@@ -5,20 +5,9 @@
 
 ## Color conventions
 
-- Prefer HeroUI semantic color and surface tokens over arbitrary named colors,
-  hex values, or one-off utility colors. Use the component's semantic color
-  props and the existing theme tokens so light mode, dark mode, contrast, and
-  status meaning stay consistent.
-- When a colorful design genuinely needs a new color or palette role that the
-  existing tokens cannot express, first review and follow the [HeroUI color
-  convention](https://heroui.com/en/docs/react/getting-started/colors). Add
-  the smallest justified theme token or semantic role at the shared theme
-  owner, document why the existing tokens are insufficient, and reuse that
-  owner everywhere; do not introduce local ad-hoc colors in a feature.
-- Treat new colors as exceptional: decorative variety alone is not sufficient
-  justification. Confirm the color has a clear product or semantic purpose,
-  works in both themes, and preserves readable contrast and meaningful status
-  semantics before adding it.
+- **[MUST]** Follow the [Web color
+  convention](../../../docs/hosts/web/color-roles.md) for every color in
+  feature code.
 
 ## Surface conventions
 
@@ -41,8 +30,8 @@ Applies to every `apps/*` and `shared/*` package.
   `section` through its `render` prop or give it an explicit region role.
 - Give page headers a `HeaderIcon level="page"` and section headers a
   `HeaderIcon` from `@vitarish/ui` before the heading, in a flex row with the
-  title block. Tables and the dashboard sidebar take their accent color from
-  `@vitarish/ui/accent.css`; do not recolor them per page.
+  title block. Tables and the dashboard sidebar take their colors from
+  `@vitarish/ui`; do not recolor them per page.
 - Inside a section surface, group with spacing, a separator, or
   `Surface variant="secondary"` tiles; do not nest section surfaces to fake
   hierarchy.
@@ -122,10 +111,9 @@ Applies to every `apps/*` and `shared/*` package.
 ## Button conventions
 
 - **[MUST]** All buttons must have localized tooltips and icons. so in mobile view they can be shrunk to icon and tooltips to avoid confusing users.
-- Color an action by what it does, never per page: pass
-  `actionRoleClassName("open" | "edit" | "create" | "remove")` from
-  `@vitarish/ui` to the Button. Keep `variant="danger"` for destructive
-  confirmations.
+- Color a button by what it does, never per page, following the [Web color
+  convention](../../../docs/hosts/web/color-roles.md#buttons). Keep
+  `variant="danger"` for destructive confirmations.
 
 ## Web test quality
 

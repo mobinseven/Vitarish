@@ -102,7 +102,7 @@ export function PatientCheckInWizard({
       {step === "select-shift" && selectedPatientId && (
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <Chip size="sm" variant="soft" color="accent">
+            <Chip size="sm" variant="soft" color="default">
               <FaIcon icon="user" aria-hidden="true" className="mr-1" />
               {patientName || t("clinic.checkIn.patientSelected")}
             </Chip>

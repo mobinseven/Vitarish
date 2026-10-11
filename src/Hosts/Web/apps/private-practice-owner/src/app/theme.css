@@ -136,3 +136,10 @@
 :root {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
+
+/* Host adaptation: the light page background is Tailwind mist-100; dark keeps the export's value. */
+:root:not([data-theme="dark"]),
+[data-theme="light"],
+[data-theme="default"] {
+  --background: oklch(96.3% 0.002 197.1);
+}

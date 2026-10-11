@@ -23,7 +23,7 @@ export function LandingNavbar() {
           <Navbar.Content>
             <Button
               size="sm"
-              variant="secondary"
+              variant="tertiary"
               onPress={() =>
                 router.push(
                   isAuthenticated ? Routes.Clinic.Index : Routes.Login.Index,

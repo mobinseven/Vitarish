@@ -30,6 +30,7 @@ import {
   useLocalizedText,
 } from "../../../localization";
 import type { ProcedureEventPluginItem } from "./eventFeedPlugins";
+import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 const statusKeys = [
   "draft",
@@ -511,6 +512,7 @@ export function PrescriptionEventFeedItem({
                           </Tooltip>
                           <Tooltip>
                             <Button
+                              className={clinicOperationButtonClassName("prescription")}
                               variant="primary"
                               isPending={isSaving}
                               isDisabled={
@@ -530,7 +532,7 @@ export function PrescriptionEventFeedItem({
                     ) : canEdit ? (
                       <Tooltip>
                         <Button
-                          variant="secondary"
+                          variant="tertiary"
                           onPress={() => setIsEditing(true)}
                         >
                           <FaIcon icon="pen" aria-hidden="true" />

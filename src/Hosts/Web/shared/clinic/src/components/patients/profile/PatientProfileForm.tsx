@@ -227,7 +227,7 @@ export function PatientProfileForm({
               <Button
                 type="button"
                 isIconOnly
-                variant="secondary"
+                variant="tertiary"
                 aria-label={t("clinic.patient.tags.add")}
                 onPress={addTag}
               >

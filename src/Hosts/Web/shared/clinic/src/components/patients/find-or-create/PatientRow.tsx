@@ -39,7 +39,7 @@ export function PatientRow({
 
   return (
     <ItemCard<"button">
-      className="relative w-full cursor-pointer overflow-hidden text-start transition-colors hover:bg-accent-soft"
+      className="relative w-full cursor-pointer overflow-hidden text-start transition-colors hover:bg-default"
       render={(props) => (
         <button
           type="button"
@@ -55,7 +55,7 @@ export function PatientRow({
       variant={variant}
     >
       <PressableFeedback.Highlight />
-      <ItemCard.Icon className="bg-accent/10">
+      <ItemCard.Icon className="bg-surface-secondary">
         <FaIcon icon="user" />
       </ItemCard.Icon>
       <ItemCard.Content>

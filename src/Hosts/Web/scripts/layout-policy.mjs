@@ -11,6 +11,7 @@ export const layoutRuleIds = [
   "legacy-outer-container",
   "layout-css-import",
   "hand-rolled-surface",
+  "raw-color",
 ];
 
 const layoutRuleIdSet = new Set(layoutRuleIds);
@@ -45,6 +46,12 @@ const ruleGuidance = {
     preferred:
       'Use a section surface: <Surface className="flex flex-col gap-6 rounded-3xl p-6"> with an h2 section header (see PlatformSecurityAuditReviewPage).',
   },
+  "raw-color": {
+    reason:
+      "Feature code must color through a registered role, not a palette color or color literal.",
+    preferred:
+      "Use a palette token (neutral, accent, chroma), a status token, or a button class from the owner (docs/hosts/web/color-roles.md).",
+  },
 };
 
 const viewportUtilityPattern =
@@ -55,6 +62,11 @@ const surfaceRoundedPattern = /^rounded(?!-none$)(?:-.+)?$/;
 const surfaceBorderPattern = /^border(?:-(?![tbselrxy](?:-|$)|0$|none$|hidden$).+)?$/;
 const surfaceBackgroundPattern = /^bg-(?!transparent$|none$).+$/;
 const surfacePaddingPattern = /^p[xy]?-.+$/;
+const paletteColorUtilityPattern =
+  /^-?(?:bg|text|border(?:-[xytrblse])?|ring|ring-offset|outline|decoration|divide|fill|stroke|shadow|inset-shadow|drop-shadow|from|via|to|accent|caret|placeholder)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}(?:\/.+)?$/;
+const arbitraryColorUtilityPattern =
+  /\[(?:[^\]]*[_(,])?(?:#[0-9a-f]{3,8}|(?:rgba?|hsla?|oklch|oklab|lab|lch|hwb|color)\()/i;
+const cssColorLiteralPattern = /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab|lab|lch|hwb|color)\(/i;
 const legacyContainerTokenSets = [
   ["mx-auto", "max-w-[1200px]", "px-6"],
   ["mx-auto", "max-w-7xl", "px-5", "pb-10", "pt-4"],
@@ -81,6 +93,15 @@ export function createProductionLayoutPolicyConfig(webRoot) {
     excludePrefixes: [
       "shared/ui/src/__tests__/",
     ],
+    // Packages migrated to the color roles (ADR-0014); add a package when it migrates.
+    colorIncludeRoots: [
+      "apps/private-practice-owner/src",
+      "shared/clinic/src",
+    ],
+    colorExcludePrefixes: [
+      // Scroll-reveal harness with a drawn device mockup, not product UI.
+      "apps/private-practice-owner/src/app/viewport-reveal-test/",
+    ],
     owners: {
       "raw-main": ["shared/ui/src/layout/LayoutPrimitives.tsx"],
       "raw-viewport": ["shared/ui/src/layout.css"],
@@ -88,6 +109,11 @@ export function createProductionLayoutPolicyConfig(webRoot) {
       "legacy-outer-container": [],
       "layout-css-import": [],
       "hand-rolled-surface": [],
+      // Host theme files own the theme's token values.
+      "raw-color": [
+        "apps/private-practice-owner/src/app/globals.css",
+        "apps/private-practice-owner/src/app/theme.css",
+      ],
     },
     expectedGlobalStylesheets: [
       "apps/private-practice-owner/src/app/globals.css",
@@ -161,15 +187,22 @@ export function lintLayoutPolicy(config) {
   ]).filter(isSurfacePolicySource);
   const diagnostics = [];
   const stylesheetImports = new Map();
+  const colorRoots = (config.colorIncludeRoots ?? []).map(normalizePath);
+  const colorExcluded = (config.colorExcludePrefixes ?? []).map(normalizePath);
+  const isColorPolicyPath = (path) =>
+    !isOwner(owners, "raw-color", path) &&
+    colorRoots.some((root) => path.startsWith(`${root}/`)) &&
+    !colorExcluded.some((prefix) => path.startsWith(prefix));
 
   for (const file of files) {
     const path = normalizePath(relative(rootDir, file));
     const source = readFileSync(file, "utf8");
+    const checkColor = isColorPolicyPath(path);
 
     if (file.endsWith(".tsx") || file.endsWith(".ts")) {
-      lintTypeScriptSource({ diagnostics, owners, path, source });
+      lintTypeScriptSource({ checkColor, diagnostics, owners, path, source });
     } else if (file.endsWith(".css")) {
-      lintCssSource({ diagnostics, owners, path, source, stylesheetImports });
+      lintCssSource({ checkColor, diagnostics, owners, path, source, stylesheetImports });
     }
   }
 
@@ -208,7 +241,7 @@ export function lintLayoutPolicy(config) {
   };
 }
 
-function lintTypeScriptSource({ diagnostics, owners, path, source }) {
+function lintTypeScriptSource({ checkColor, diagnostics, owners, path, source }) {
   const sourceFile = ts.createSourceFile(
     path,
     source,
@@ -249,6 +282,10 @@ function lintTypeScriptSource({ diagnostics, owners, path, source }) {
         }
 
         const tokens = new Set(value.split(/\s+/).filter(Boolean));
+        if (checkColor && [...tokens].some(isRawColorUtility)) {
+          addTypeScriptDiagnostic(diagnostics, sourceFile, path, "raw-color", node);
+        }
+
         if (
           legacyContainerTokenSets.some((required) =>
             required.every((token) => tokens.has(token))
@@ -311,6 +348,11 @@ function lintSurfaceSource({ diagnostics, path, source }) {
   visit(sourceFile);
 }
 
+function isRawColorUtility(token) {
+  const utility = token.slice(token.lastIndexOf(":") + 1).replace(/^!/, "");
+  return paletteColorUtilityPattern.test(utility) || arbitraryColorUtilityPattern.test(utility);
+}
+
 function collectClassTokens(initializer) {
   const tokens = new Set();
 
@@ -339,12 +381,15 @@ function isHandRolledSurface(tokens) {
   );
 }
 
-function lintCssSource({ diagnostics, owners, path, source, stylesheetImports }) {
+function lintCssSource({ checkColor, diagnostics, owners, path, source, stylesheetImports }) {
   const root = postcss.parse(source, { from: path });
 
   root.walkDecls((declaration) => {
     if (viewportCssPattern.test(declaration.value) && !isOwner(owners, "raw-viewport", path)) {
       addCssDiagnostic(diagnostics, path, "raw-viewport", declaration);
+    }
+    if (checkColor && cssColorLiteralPattern.test(declaration.value)) {
+      addCssDiagnostic(diagnostics, path, "raw-color", declaration);
     }
   });
 

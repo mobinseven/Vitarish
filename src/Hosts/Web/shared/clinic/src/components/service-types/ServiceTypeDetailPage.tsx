@@ -4,7 +4,6 @@ import { Button } from "@heroui/react";
 import {
   DetailGrid,
   HeaderIcon,
-  actionRoleClassName,
 } from "@vitarish/ui";
 import type { NavigationIntent } from "../../navigation";
 import { formatDateTime, useLocalizedText } from "../../localization";
@@ -59,7 +58,7 @@ export function ServiceTypeDetailPage({
         </div>
         <div className="flex gap-2">
           {!editing ? (
-            <Button className={actionRoleClassName("edit")} variant="ghost" onPress={() => setEditing(true)}>
+            <Button variant="ghost" onPress={() => setEditing(true)}>
               {t("common.actions.edit")}
             </Button>
           ) : null}

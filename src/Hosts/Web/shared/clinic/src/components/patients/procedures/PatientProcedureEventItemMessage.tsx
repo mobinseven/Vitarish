@@ -107,7 +107,7 @@ function AttachmentPreviewDialog({
             </dl>
           </Modal.Body>
           <Modal.Footer>
-            <Button slot="close" variant="secondary">
+            <Button slot="close" variant="tertiary">
               {t("clinic.procedures.items.closePreview")}
             </Button>
             <a

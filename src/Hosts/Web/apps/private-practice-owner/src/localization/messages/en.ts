@@ -28,6 +28,16 @@ export const enMessages = {
       unknown: "Unknown",
     },
   },
+  colorLegend: {
+    title: "Color palette",
+    palette: "Palette",
+    actions: "Buttons",
+    status: "Status",
+    headerIcons: "Header icons",
+    brandAction: "Save (other forms)",
+    genericAction: "Generic action",
+    removeAction: "Remove",
+  },
   layoutFixture: {
     navigationGroupLabel: "Layout fixture",
     navigationItemLabel: "Responsive layout",

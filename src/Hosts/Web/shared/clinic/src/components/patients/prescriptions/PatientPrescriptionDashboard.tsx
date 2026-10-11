@@ -4,10 +4,11 @@ import { Alert, Button, Card, Chip, ListBox, Select, Spinner } from "@heroui/rea
 import { Sheet } from "@heroui-pro/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { FaIcon, actionRoleClassName } from "@vitarish/ui";
+import { FaIcon } from "@vitarish/ui";
 import { medicalGetPatientPrescriptionDashboard, medicalGetPrescription, medicalListPatientPrescriptions } from "../../../api/generated/medical/medical";
 import type { PrescriptionSummaryDto } from "../../../api/generated/medical/model";
 import { useLocalizedText } from "../../../localization";
+import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 export const patientPrescriptionHistoryQueryKey = (patientId: string) => ["medical", "patient-prescriptions", patientId];
 
@@ -35,7 +36,7 @@ export function PatientPrescriptionDashboard({ patientId, onNewPrescription }: {
             <h2 className="text-xl font-semibold">{dashboard.data?.totalCount ?? 0} {t("clinic.prescriptionFeed.title")}</h2>
             <p className="text-sm text-muted">{dashboard.data?.attentionCount ?? dashboard.data?.attentionQueue?.length ?? 0} {t("clinic.prescriptionFeed.attentionTitle")}</p>
           </div>
-          <Button className={actionRoleClassName("edit")} variant="primary" onPress={onNewPrescription}><FaIcon icon="prescription-bottle-medical" aria-hidden="true" />{t("clinic.patient.quickActions.prescription")}</Button>
+          <Button className={clinicOperationButtonClassName("prescription")} variant="primary" onPress={onNewPrescription}><FaIcon icon="prescription-bottle-medical" aria-hidden="true" />{t("clinic.patient.quickActions.prescription")}</Button>
         </div>
         {dashboard.isLoading || history.isLoading ? <div className="flex justify-center py-8"><Spinner /></div> : dashboard.isError || history.isError ? <Alert status="danger"><Alert.Indicator /><Alert.Content><Alert.Title>{t("clinic.prescriptionFeed.unavailable")}</Alert.Title><Alert.Description><Button variant="outline" onPress={() => { void dashboard.refetch(); void history.refetch(); }}>{t("clinic.prescriptionFeed.retry")}</Button></Alert.Description></Alert.Content></Alert> : (
           <div className="space-y-3">

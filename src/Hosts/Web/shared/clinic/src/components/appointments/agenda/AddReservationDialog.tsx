@@ -11,6 +11,7 @@ import {
 } from "../../../hooks/appointments/reservations/useOwnerReservations";
 import { PatientFindOrCreate } from "../../patients/find-or-create/PatientFindOrCreate";
 import type { ShiftReadDto } from "../../../api/appointments/appointmentsApi";
+import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface AddReservationDialogProps {
   isOpen: boolean;
@@ -167,7 +168,7 @@ export function AddReservationDialog({
 
                   {selectedPatientId ? (
                     <div className="flex items-center gap-2">
-                      <Chip size="sm" variant="soft" color="accent">
+                      <Chip size="sm" variant="soft" color="default">
                         <FaIcon
                           icon="user"
                           aria-hidden="true"
@@ -200,10 +201,11 @@ export function AddReservationDialog({
               )}
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onPress={handleClose}>
+              <Button variant="tertiary" onPress={handleClose}>
                 {t("common.actions.cancel")}
               </Button>
               <Button
+                className={clinicOperationButtonClassName("appointment")}
                 variant="primary"
                 onPress={handleBook}
                 isDisabled={

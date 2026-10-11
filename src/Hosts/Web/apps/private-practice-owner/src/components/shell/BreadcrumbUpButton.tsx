@@ -36,7 +36,7 @@ export function BreadcrumbUpButton({ navGroups }: BreadcrumbUpButtonProps) {
       <Button
         aria-label={t("appShell.navigation.up")}
         isIconOnly
-        variant="secondary"
+        variant="tertiary"
         onPress={() => navigate(href)}
       >
         <FaIcon icon={direction === "rtl" ? "level-up-alt" : "level-up-alt"} />

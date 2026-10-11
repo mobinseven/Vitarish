@@ -23,7 +23,7 @@ export function InsuranceProviderAuthorizationCallbackPage({
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-4 py-12">
       {complete.isPending || complete.isIdle ? (
-        <Alert status="accent">
+        <Alert status="default">
           <Alert.Indicator>
             <Spinner size="sm" />
           </Alert.Indicator>

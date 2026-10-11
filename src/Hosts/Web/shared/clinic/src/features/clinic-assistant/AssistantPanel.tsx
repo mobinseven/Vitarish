@@ -281,7 +281,7 @@ export function AssistantPanel({
             <Modal.Header><Modal.Heading>{t("clinic.clinicAssistant.actions.resetTitle")}</Modal.Heading></Modal.Header>
             <Modal.Body><p>{t("clinic.clinicAssistant.actions.resetDescription")}</p>{resetError ? <p role="alert" className="text-danger">{t("clinic.clinicAssistant.actions.resetError")}</p> : null}</Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onPress={() => setConfirmReset(false)}>{t("common.actions.cancel")}</Button>
+              <Button variant="tertiary" onPress={() => setConfirmReset(false)}>{t("common.actions.cancel")}</Button>
               <Button variant="danger" onPress={() => void resetConversation()}>{t("common.actions.delete")}</Button>
             </Modal.Footer>
           </Modal.Dialog></Modal.Container>

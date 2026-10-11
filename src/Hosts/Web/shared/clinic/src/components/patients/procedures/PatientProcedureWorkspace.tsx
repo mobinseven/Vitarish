@@ -59,7 +59,7 @@ export function PatientProcedureWorkspace({
             <ErrorStateSurface title={t("clinic.procedures.failedToLoad")}>
               <Button
                 size="sm"
-                variant="secondary"
+                variant="tertiary"
                 onPress={() => void eventsQuery.refetch()}
               >
                 {t("common.actions.retry")}

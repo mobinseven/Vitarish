@@ -1,8 +1,4 @@
-/**
- * A way to sign in. Each method keeps one color on every host so users find
- * their usual choice by color instead of rereading labels. The colors are
- * owned by `accent.css`.
- */
+/** A way to sign in. Tile colors are owned by `accent.css`. */
 export type SignInMethod = "password" | "phone" | "email" | "passkey";
 
 /** Class name that paints a sign-in method's icon tile and hover tint with its color. */

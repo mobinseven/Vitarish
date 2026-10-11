@@ -11,6 +11,8 @@ type ScreenshotPage = { name: string; path: string; session: Session };
 
 const signedOut = (name: string, pagePath: string): ScreenshotPage => ({ name, path: pagePath, session: "signed-out" });
 const signedIn = (name: string, pagePath: string): ScreenshotPage => ({ name, path: pagePath, session: "signed-in" });
+// Test-only fixture route; served when the fixture flag is on.
+const colorLegendPath = "/color-legend";
 const { Clinic } = Routes;
 const { Patients, Settings } = Clinic;
 
@@ -25,6 +27,7 @@ const pages: ScreenshotPage[] = [
   signedIn("patients", Patients.Index),
   signedIn("patient", Patients.Detail(ids.patient)),
   signedIn("settings-audit", Settings.Audit),
+  signedIn("color-legend", colorLegendPath),
 ];
 
 const scenario = process.env.VITARISH_SCREENSHOT_SCENARIO ?? "ready";

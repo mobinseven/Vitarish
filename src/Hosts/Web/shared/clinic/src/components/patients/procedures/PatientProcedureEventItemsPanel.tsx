@@ -146,7 +146,7 @@ export function PatientProcedureEventItemsPanel({
               <Tooltip>
                 <Button
                   size="sm"
-                  variant="secondary"
+                  variant="tertiary"
                   onPress={() => void query.refetch()}
                 >
                   <FaIcon icon="arrow-rotate-right" aria-hidden="true" />

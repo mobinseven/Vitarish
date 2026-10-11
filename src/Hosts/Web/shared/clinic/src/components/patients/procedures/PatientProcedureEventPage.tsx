@@ -51,7 +51,7 @@ export function PatientProcedureEventPage({
   if (eventsQuery.error || eventIndex < 0) {
     return (
       <ErrorStateSurface title={t("clinic.procedures.eventNotFound")}>
-        <Button size="sm" variant="secondary" onPress={returnToProcedure}>
+        <Button size="sm" variant="tertiary" onPress={returnToProcedure}>
           {t("clinic.procedures.returnToProcedure")}
         </Button>
       </ErrorStateSurface>

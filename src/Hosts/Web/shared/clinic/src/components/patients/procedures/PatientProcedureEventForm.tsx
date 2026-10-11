@@ -7,6 +7,7 @@ import {
   useUpdatePatientProcedureEvent,
 } from "../../../hooks/patients/procedures/usePatientProcedureEventMutations";
 import { useLocalizedText } from "../../../localization/index";
+import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface PatientProcedureEventFormProps {
   procedureId: string;
@@ -105,13 +106,14 @@ export function PatientProcedureEventForm({
             </Modal.Body>
             <Modal.Footer>
               <Button
-                variant="secondary"
+                variant="tertiary"
                 onPress={onClose}
                 isDisabled={isPending}
               >
                 {t("common.actions.cancel")}
               </Button>
               <Button
+                className={clinicOperationButtonClassName("procedure")}
                 variant="primary"
                 onPress={handleSubmit}
                 isDisabled={!title.trim()}

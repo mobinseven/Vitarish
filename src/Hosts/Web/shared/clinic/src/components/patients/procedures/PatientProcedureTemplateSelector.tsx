@@ -12,7 +12,7 @@ import {
   TextField,
   Tooltip,
 } from "@heroui/react";
-import { FaIcon, actionRoleClassName } from "@vitarish/ui";
+import { FaIcon } from "@vitarish/ui";
 import {
   EmptyStateSurface as ClinicEmptyState,
   LoadingStateSurface as ClinicLoadingState,
@@ -21,6 +21,7 @@ import { usePatientProcedureTemplates } from "../../../hooks/patients/procedures
 import { useCreatePatientProcedure } from "../../../hooks/patients/procedures/usePatientProcedureMutations";
 import { useLocalizedText } from "../../../localization/index";
 import type { SeaProcedureReadDto } from "@vitarish/sea";
+import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface PatientProcedureTemplateSelectorProps {
   patientId: string;
@@ -224,13 +225,13 @@ export function PatientProcedureTemplateSelector({
               {selectedProcedure ? (
                 <>
                   <Button
-                    variant="secondary"
+                    variant="tertiary"
                     onPress={() => setSelectedProcedure(null)}
                     isDisabled={createMutation.isPending}
                   >
                     {t("common.actions.cancel")}
                   </Button>
-                  <Button className={actionRoleClassName("create")}
+                  <Button className={clinicOperationButtonClassName("procedure")}
                     variant="primary"
                     onPress={handleCreate}
                     isDisabled={!customName.trim()}
@@ -240,7 +241,7 @@ export function PatientProcedureTemplateSelector({
                   </Button>
                 </>
               ) : (
-                <Button variant="secondary" onPress={onClose}>
+                <Button variant="tertiary" onPress={onClose}>
                   {t("common.actions.cancel")}
                 </Button>
               )}

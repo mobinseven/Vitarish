@@ -4,7 +4,6 @@ import { Button } from "@heroui/react";
 import {
   DetailGrid,
   HeaderIcon,
-  actionRoleClassName,
 } from "@vitarish/ui";
 import type { NavigationIntent } from "../../../navigation";
 import {
@@ -21,6 +20,7 @@ import {
   useDeleteShift,
   useOwnerShiftDetail,
 } from "../../../hooks/appointments/shifts/useOwnerShifts";
+import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 const dayKeys = [
   "clinic.weekdays.sunday",
   "clinic.weekdays.monday",
@@ -73,7 +73,7 @@ export function OwnerShiftDetailPage({
           </div>
         </div>
         <div className="flex gap-2">
-          <Button className={actionRoleClassName("edit")}
+          <Button className={clinicOperationButtonClassName("appointment")}
             variant="ghost"
             onPress={() => onNavigate({ kind: "ownerShiftEdit", shiftId })}
           >

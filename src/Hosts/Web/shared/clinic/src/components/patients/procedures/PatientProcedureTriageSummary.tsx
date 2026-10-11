@@ -16,7 +16,7 @@ export function PatientProcedureTriageSummary({
 
   if (!triage) return null;
 
-  const signals: { label: string; color: "warning" | "accent" | "danger" }[] =
+  const signals: { label: string; color: "warning" | "danger" }[] =
     [];
   if (triage.incompleteProcedures > 0) {
     signals.push({
@@ -27,7 +27,7 @@ export function PatientProcedureTriageSummary({
   if (triage.newEvidence > 0) {
     signals.push({
       label: `${triage.newEvidence} ${t("clinic.procedures.triage.newEvidence")}`,
-      color: "accent",
+      color: "danger",
     });
   }
   if (triage.pendingReminders > 0) {

@@ -14,8 +14,8 @@ export function CommandPalette() {
   return (
     <>
       <Tooltip>
-        <Button variant="secondary" onPress={() => setOpen(true)}>
-          <FaIcon icon="magnifying-glass" aria-hidden="true" className="text-accent" />
+        <Button variant="tertiary" onPress={() => setOpen(true)}>
+          <FaIcon icon="magnifying-glass" aria-hidden="true" />
           {t("commandPalette.open")}
           <Kbd dir="ltr">
             <Kbd.Abbr keyValue="command">
@@ -80,7 +80,7 @@ export function CommandPalette() {
                             {cmd.shortcut.split(" ").map((key, index) => (
                               <kbd
                                 key={`${key}-${index}`}
-                                className="bg-default flex size-5 items-center justify-center rounded text-[11px] text-zinc-500 dark:text-zinc-400"
+                                className="bg-default flex size-5 items-center justify-center rounded text-[11px] text-muted"
                               >
                                 {key}
                               </kbd>

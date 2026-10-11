@@ -53,7 +53,7 @@ export default function LogoutPage() {
             {t("auth.logout.title")}
           </Button>
           <Button
-            variant="secondary"
+            variant="tertiary"
             onPress={() => window.history.back()}
             isDisabled={isLoading || isContextLoading}
             className="w-full"

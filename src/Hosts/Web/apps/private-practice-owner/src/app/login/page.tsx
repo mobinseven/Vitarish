@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment } from "react";
-import { Separator } from "@heroui/react";
-import { ItemCard, ItemCardGroup } from "@heroui-pro/react";
+import { ItemCard } from "@heroui-pro/react";
 import {
   FaIcon,
   LoginPanel,
@@ -66,27 +64,28 @@ export default function LoginPage() {
       title={t("auth.login.brandTitle")}
       subtitle={t("auth.login.accountSubtitle")}
     >
-      <ItemCardGroup layout="list" variant="outline">
-        {enabledMethods.map((method, index) => (
-          <Fragment key={method.id}>
-            {index > 0 && <Separator />}
-            <ItemCard<"a">
-              className={`cursor-pointer transition-colors ${signInMethodClassName(method.id)}`}
-              render={(props) => <Link href={method.href} {...props} />}
+      <div className="flex flex-col gap-3">
+        {enabledMethods.map((method) => (
+          <ItemCard<"a">
+            key={method.id}
+            variant="secondary"
+            className={`w-full cursor-pointer transition-colors ${signInMethodClassName(method.id)}`}
+            render={(props) => <Link href={method.href} {...props} />}
+          >
+            <ItemCard.Icon
+              className={`size-12 shrink-0 rounded-xl ${signInMethodTileClassName}`}
             >
-              <ItemCard.Icon
-                className={`size-12 shrink-0 rounded-xl ${signInMethodTileClassName}`}
-              >
-                <FaIcon icon={method.icon} size="xl" aria-hidden="true" />
-              </ItemCard.Icon>
-              <ItemCard.Content>
-                <ItemCard.Title>{t(method.labelKey)}</ItemCard.Title>
-                <ItemCard.Description>{t(method.descriptionKey)}</ItemCard.Description>
-              </ItemCard.Content>
-            </ItemCard>
-          </Fragment>
+              <FaIcon icon={method.icon} size="xl" aria-hidden="true" />
+            </ItemCard.Icon>
+            <ItemCard.Content>
+              <ItemCard.Title>{t(method.labelKey)}</ItemCard.Title>
+              <ItemCard.Description className="max-w-full whitespace-normal">
+                {t(method.descriptionKey)}
+              </ItemCard.Description>
+            </ItemCard.Content>
+          </ItemCard>
         ))}
-      </ItemCardGroup>
+      </div>
     </LoginPanel>
   );
 }

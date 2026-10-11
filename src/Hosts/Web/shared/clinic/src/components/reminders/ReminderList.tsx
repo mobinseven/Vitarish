@@ -1,6 +1,6 @@
 import { Button } from "@heroui/react";
 import { ListView } from "@heroui-pro/react";
-import { EmptyStateSurface as ClinicEmptyState, actionRoleClassName } from "@vitarish/ui";
+import { EmptyStateSurface as ClinicEmptyState, removeButtonClassName } from "@vitarish/ui";
 import {
   formatDateTime,
   useLocalizedText,
@@ -67,7 +67,7 @@ export function ReminderList({
               ) : null}
               <Button
                 variant="ghost"
-                className={`${actionRoleClassName("remove")} text-danger`}
+                className={`${removeButtonClassName} text-danger`}
                 size="sm"
                 onPress={() => onDelete(reminder.id)}
               >

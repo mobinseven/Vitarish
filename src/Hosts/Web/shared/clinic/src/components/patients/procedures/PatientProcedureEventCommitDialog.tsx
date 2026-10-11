@@ -31,7 +31,7 @@ export function PatientProcedureEventCommitDialog({
         <AlertDialog.Container placement="center">
           <AlertDialog.Dialog>
             <AlertDialog.Header>
-              <AlertDialog.Icon status={isCommitted ? "success" : "accent"} />
+              <AlertDialog.Icon status={isCommitted ? "success" : "default"} />
               <AlertDialog.Heading>
                 {t(
                   isCommitted
@@ -52,7 +52,7 @@ export function PatientProcedureEventCommitDialog({
             </AlertDialog.Body>
             <AlertDialog.Footer>
               <Button
-                variant="secondary"
+                variant="tertiary"
                 onPress={onClose}
                 isDisabled={isPending}
               >

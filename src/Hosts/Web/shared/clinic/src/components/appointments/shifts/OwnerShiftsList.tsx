@@ -9,10 +9,10 @@ import {
   ErrorStateSurface as ClinicErrorState,
   LoadingStateSurface as ClinicLoadingState,
   HeaderIcon,
-  actionRoleClassName,
 } from "@vitarish/ui";
 import { useOwnerShifts } from "../../../hooks/appointments/shifts/useOwnerShifts";
 import { useLocalizedText, type MessageKey } from "../../../localization/index";
+import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 const dayNameKeys = [
   "clinic.weekdays.sunday",
@@ -48,7 +48,7 @@ export function OwnerShiftsList({ onNavigate }: OwnerShiftsListProps) {
             </h1>
           </div>
         </div>
-        <Button className={actionRoleClassName("create")}
+        <Button className={clinicOperationButtonClassName("appointment")}
           variant="primary"
           onPress={() => onNavigate?.({ kind: "ownerShiftCreate" })}
         >

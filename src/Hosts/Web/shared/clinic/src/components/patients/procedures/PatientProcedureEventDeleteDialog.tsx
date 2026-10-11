@@ -49,7 +49,7 @@ export function PatientProcedureEventDeleteDialog({
             </AlertDialog.Body>
             <AlertDialog.Footer>
               <Button
-                variant="secondary"
+                variant="tertiary"
                 onPress={onClose}
                 isDisabled={deleteMutation.isPending}
               >

@@ -12,7 +12,8 @@ export {
 export { DashboardPage } from "./components/dashboard/DashboardPage";
 export { CheckInPage } from "./components/check-in/CheckInPage";
 export { PatientListPage } from "./components/patients/list/PatientListPage";
-export { PatientOverviewPage } from "./components/patients/overview/PatientOverviewPage";
+export { PatientOverviewPage, patientQuickActions } from "./components/patients/overview/PatientOverviewPage";
+export type { PatientQuickAction } from "./components/patients/overview/PatientOverviewPage";
 export {
   AssistantPanel,
   AssistantHeader,
@@ -81,3 +82,5 @@ export { ServiceTypeListPage } from "./components/service-types/ServiceTypeListP
 export { ServiceTypeDetailPage } from "./components/service-types/ServiceTypeDetailPage";
 export { ServiceProviderListPage } from "./components/service-providers/ServiceProviderListPage";
 export { ServiceProviderDetailPage } from "./components/service-providers/ServiceProviderDetailPage";
+export { clinicOperationButtonClassName, clinicOperations } from "./components/operations/clinicOperation";
+export type { ClinicOperation } from "./components/operations/clinicOperation";

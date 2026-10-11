@@ -196,7 +196,7 @@ describe("clinic assistant review", () => {
     expect(screen.getByText("Consultation")).toBeInTheDocument();
     expect(screen.getByText("Medicine")).toBeInTheDocument();
     expect(screen.getByText("Clinician diagnosis").parentElement).toHaveClass(
-      "border-accent",
+      "border-s-4",
     );
   });
 

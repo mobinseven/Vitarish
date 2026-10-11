@@ -18,6 +18,7 @@ import type { NavigationIntent } from "../../../navigation";
 import { PatientProcedureTemplateSelector } from "./PatientProcedureTemplateSelector";
 import { PatientProcedureFocusedLane } from "./PatientProcedureFocusedLane";
 import { PatientProcedureProgress } from "./PatientProcedureProgress";
+import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface PatientProceduresPanelProps {
   patientId: string;
@@ -54,6 +55,7 @@ export function PatientProceduresPanel({
         <Tooltip>
           <Button
             size="sm"
+            className={clinicOperationButtonClassName("procedure")}
             variant="primary"
             onPress={() => setShowTemplateSelector(true)}
           >
@@ -110,7 +112,7 @@ export function PatientProceduresPanel({
                             {procedure.name}
                           </span>
                           {procedure.newItems > 0 ? (
-                            <Chip size="sm" color="accent" variant="soft">
+                            <Chip size="sm" color="danger" variant="soft">
                               {t(
                                 "clinic.procedures.progressAtGlance.newEvidence",
                                 { count: procedure.newItems },

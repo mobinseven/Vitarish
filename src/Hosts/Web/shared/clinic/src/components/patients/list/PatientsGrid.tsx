@@ -128,7 +128,7 @@ export function PatientsGrid({
               <Button
                 size="sm"
                 aria-label={t("clinic.patients.sortBy")}
-                variant="secondary"
+                variant="tertiary"
               >
                 <FaIcon icon="arrow-down-a-z" aria-hidden="true" />
                 <span className="hidden md:inline">
@@ -273,7 +273,7 @@ function TagFilter({
           type="button"
           isIconOnly
           size="sm"
-          variant="secondary"
+          variant="tertiary"
           aria-label={t("clinic.patient.tags.addFilter")}
           onPress={addTag}
         >
