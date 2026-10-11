@@ -26,7 +26,7 @@ Each app has one small palette, used the same way on every page:
 - **Neutral** for surfaces, text, icons, and generic buttons.
 - **Accent** for the current navigation item, focus, and the save button of
   forms that are not a clinical operation.
-- **Four chroma colors** (`chroma-primary` to `chroma-quaternary`) that a
+- **Six chroma colors** (`chroma-primary` to `chroma-senary`) that a
   feature package gives a fixed meaning. `@vitarish/clinic` assigns one to
   each clinical operation (visit and note, procedure, prescription,
   appointment). An operation keeps its color on every page, on both the
@@ -47,12 +47,13 @@ purposes separates them by layout: sections, headings, and panes.
 
 ## Consequences
 
-- Pages use at most neutral, accent, four chroma colors, and status, and the
-  palette can be retuned in one theme file.
+- Pages use only neutral, accent, the chroma colors, and status, and the
+  palette can be retuned in one theme file. Four chroma colors are assigned;
+  two stay free for future meanings.
 - Generic buttons become neutral, so the operations on hub pages stand out and
   users learn them by color.
-- Chroma colors carry white text in both modes, which keeps one value set but
-  makes the deepest colors less vivid on dark backgrounds.
+- The owner app's chroma colors are pastels with dark text in both modes,
+  which keeps one value set that reads on light and dark backgrounds.
 - Header icons, sidebar icons, and avatars become neutral; avatars show a
   status color when their record has a status.
 - Owner app and `shared/clinic` adopt first. Other hosts keep their current

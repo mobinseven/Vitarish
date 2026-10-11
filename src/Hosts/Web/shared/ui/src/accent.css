@@ -78,6 +78,16 @@
     --button-fg: var(--chroma-quaternary-foreground, var(--default-foreground));
   }
 
+  .button.vitarish-chroma-button--quinary {
+    --button-bg: var(--chroma-quinary, var(--default));
+    --button-fg: var(--chroma-quinary-foreground, var(--default-foreground));
+  }
+
+  .button.vitarish-chroma-button--senary {
+    --button-bg: var(--chroma-senary, var(--default));
+    --button-fg: var(--chroma-senary-foreground, var(--default-foreground));
+  }
+
   .button[class*="vitarish-chroma-button--"] {
     --button-bg-hover: color-mix(in oklab, var(--button-bg) 88%, var(--button-fg) 12%);
     --button-bg-pressed: var(--button-bg-hover);
@@ -97,30 +107,34 @@
   /*
    * Sign-in methods: each method keeps one host chroma color so a returning
    * user finds their usual choice before reading; hosts without the chroma colors
-   * fall back to neutral. The colors carry a white icon; the hover tint
+   * fall back to neutral. The icon takes the color's foreground; the hover tint
    * overlays the color on whatever surface the card uses. Applied through
    * signInMethodClassName().
    */
   .vitarish-sign-in-method--password {
     --sign-in-method: var(--chroma-primary, var(--muted));
+    --sign-in-method-foreground: var(--chroma-primary-foreground, white);
   }
 
   .vitarish-sign-in-method--phone {
     --sign-in-method: var(--chroma-secondary, var(--muted));
+    --sign-in-method-foreground: var(--chroma-secondary-foreground, white);
   }
 
   .vitarish-sign-in-method--email {
     --sign-in-method: var(--chroma-tertiary, var(--muted));
+    --sign-in-method-foreground: var(--chroma-tertiary-foreground, white);
   }
 
   .vitarish-sign-in-method--passkey {
     --sign-in-method: var(--chroma-quaternary, var(--muted));
+    --sign-in-method-foreground: var(--chroma-quaternary-foreground, white);
   }
 
   [class*="vitarish-sign-in-method--"] .vitarish-sign-in-method__tile {
     background-color: var(--sign-in-method);
     box-shadow: 0 4px 10px color-mix(in oklab, var(--sign-in-method) 28%, transparent);
-    color: white;
+    color: var(--sign-in-method-foreground);
   }
 
   @media (hover: hover) {

@@ -13,6 +13,8 @@ const paletteSwatches = [
   { name: "chroma-secondary", className: "bg-chroma-secondary text-chroma-secondary-foreground" },
   { name: "chroma-tertiary", className: "bg-chroma-tertiary text-chroma-tertiary-foreground" },
   { name: "chroma-quaternary", className: "bg-chroma-quaternary text-chroma-quaternary-foreground" },
+  { name: "chroma-quinary", className: "bg-chroma-quinary text-chroma-quinary-foreground" },
+  { name: "chroma-senary", className: "bg-chroma-senary text-chroma-senary-foreground" },
 ] as const;
 
 const statusColors = ["success", "warning", "danger", "default"] as const;

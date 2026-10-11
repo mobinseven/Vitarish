@@ -25,6 +25,10 @@
   --color-chroma-tertiary-foreground: var(--chroma-tertiary-foreground);
   --color-chroma-quaternary: var(--chroma-quaternary);
   --color-chroma-quaternary-foreground: var(--chroma-quaternary-foreground);
+  --color-chroma-quinary: var(--chroma-quinary);
+  --color-chroma-quinary-foreground: var(--chroma-quinary-foreground);
+  --color-chroma-senary: var(--chroma-senary);
+  --color-chroma-senary-foreground: var(--chroma-senary-foreground);
 }
 /* 
 @theme inline {
@@ -268,15 +272,21 @@ html[dir="rtl"] body {
 
 :root {
   /*
-   * Chroma colors (docs/hosts/web/color-roles.md). Each color carries white
-   * text, so one set serves light and dark mode.
+   * Chroma colors (docs/hosts/web/color-roles.md), from the palette
+   * https://coolors.co/palette/ff99c8-fec8c3-fcf6bd-d0f4de-a9def9-e4c1f9.
+   * Pastels carry dark text, so one set serves light and dark mode.
    */
-  --chroma-primary: oklch(56% 0.15 250);
-  --chroma-primary-foreground: oklch(100% 0 0);
-  --chroma-secondary: oklch(40% 0.23 270);
-  --chroma-secondary-foreground: oklch(100% 0 0);
-  --chroma-tertiary: oklch(45% 0.15 315);
-  --chroma-tertiary-foreground: oklch(100% 0 0);
-  --chroma-quaternary: oklch(59% 0.23 330);
-  --chroma-quaternary-foreground: oklch(100% 0 0);
+  --chroma-primary: #a9def9;
+  --chroma-secondary: #fec8c3;
+  --chroma-tertiary: #e4c1f9;
+  --chroma-quaternary: #ff99c8;
+  --chroma-quinary: #d0f4de;
+  --chroma-senary: #fcf6bd;
+  --chroma-foreground: oklch(24% 0.02 280);
+  --chroma-primary-foreground: var(--chroma-foreground);
+  --chroma-secondary-foreground: var(--chroma-foreground);
+  --chroma-tertiary-foreground: var(--chroma-foreground);
+  --chroma-quaternary-foreground: var(--chroma-foreground);
+  --chroma-quinary-foreground: var(--chroma-foreground);
+  --chroma-senary-foreground: var(--chroma-foreground);
 }

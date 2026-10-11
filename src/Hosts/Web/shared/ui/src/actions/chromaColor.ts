@@ -2,7 +2,14 @@
  * The host theme's chroma colors: vivid colors beyond accent. Feature packages
  * give each color its meaning; the values are owned by the host theme.
  */
-export const chromaColors = ["primary", "secondary", "tertiary", "quaternary"] as const;
+export const chromaColors = [
+  "primary",
+  "secondary",
+  "tertiary",
+  "quaternary",
+  "quinary",
+  "senary",
+] as const;
 
 export type ChromaColor = (typeof chromaColors)[number];
 

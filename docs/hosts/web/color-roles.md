@@ -14,12 +14,24 @@ Decision and rationale:
 |---|---|---|
 | Neutral | `surface`, `default`, `foreground`, `muted` | Surfaces, text, header and sidebar icons, avatars, tiles, generic buttons |
 | Accent | `accent` | Current navigation item, focus, and the save button of forms that are not a clinical operation |
-| Chroma | `chroma-primary`, `chroma-secondary`, `chroma-tertiary`, `chroma-quaternary` | Colors a feature package gives a fixed meaning, such as clinical operations and sign-in methods |
+| Chroma | `chroma-primary` to `chroma-senary` | Colors a feature package gives a fixed meaning, such as clinical operations and sign-in methods |
 | Status | `success`, `warning`, `danger` | Only where something has that status |
 
 Each host theme owns the values; change them there, never in feature code.
-Chroma colors carry white text, so one set serves light and dark mode. A host
-without chroma tokens falls back to neutral.
+A host without chroma tokens falls back to neutral.
+
+The owner app's chroma colors come from
+[this palette](https://coolors.co/palette/ff99c8-fec8c3-fcf6bd-d0f4de-a9def9-e4c1f9).
+They are pastels with dark text, so one set serves light and dark mode.
+
+| Token | Color | Assigned to |
+|---|---|---|
+| `chroma-primary` | Sky `#A9DEF9` | Visit |
+| `chroma-secondary` | Peach `#FEC8C3` | Procedure |
+| `chroma-tertiary` | Lavender `#E4C1F9` | Prescription |
+| `chroma-quaternary` | Pink `#FF99C8` | Appointment |
+| `chroma-quinary` | Mint `#D0F4DE` | Unassigned |
+| `chroma-senary` | Cream `#FCF6BD` | Unassigned |
 
 ## Buttons
 
@@ -61,8 +73,8 @@ color on hub pages such as the dashboard and patient profile.
 
 A new clinical operation or another fixed set of meanings takes the existing
 chroma colors through its own owner, as sign-in methods do. A meaning that
-would appear on the same page as the clinical operations needs a decision
-first, because four chroma colors are what one page can tell apart.
+appears on the same page as the clinical operations takes an unassigned
+color (mint or cream) and is added to the table above.
 
 ## Checks
 
