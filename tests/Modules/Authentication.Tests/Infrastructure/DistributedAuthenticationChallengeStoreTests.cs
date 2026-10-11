@@ -105,7 +105,6 @@ public sealed class DistributedAuthenticationChallengeStoreTests
         challenge.FailedAttempts,
         challenge.Status,
         challenge.CompletedAt,
-        challenge.RememberMe,
         challenge.RequiresProfileCompletion);
 
     private sealed class DockerFactAttribute : FactAttribute

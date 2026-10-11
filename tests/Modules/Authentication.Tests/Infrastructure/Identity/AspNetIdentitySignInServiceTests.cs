@@ -78,7 +78,7 @@ public sealed class AspNetIdentitySignInServiceTests
             sessionRegistry.Object,
             new HttpContextAccessor());
 
-        PasswordSignInResult result = await service.PasswordSignInAsync(user.UserName!, "unused-password", false, CancellationToken.None);
+        PasswordSignInResult result = await service.PasswordSignInAsync(user.UserName!, "unused-password", CancellationToken.None);
 
         result.Status.Should().Be(expectedStatus);
     }
@@ -99,7 +99,7 @@ public sealed class AspNetIdentitySignInServiceTests
             sessionRegistry,
             new Mock<IAuthenticationAttemptKeyFactory>());
 
-        AuthenticationSessionSignInResult result = await service.SignInAsync(user.Id, rememberMe: false, CancellationToken.None);
+        AuthenticationSessionSignInResult result = await service.SignInAsync(user.Id, CancellationToken.None);
 
         result.Succeeded.Should().BeFalse();
         result.Failure!.Reason.Should().Be(AuthenticationFailureReason.AccountDisabled);
@@ -131,7 +131,7 @@ public sealed class AspNetIdentitySignInServiceTests
             sessionRegistry,
             CreateAttemptKeyFactory(user));
 
-        PasswordSignInResult result = await service.PasswordSignInAsync(user.UserName!, "correct-password", rememberMe: false, CancellationToken.None);
+        PasswordSignInResult result = await service.PasswordSignInAsync(user.UserName!, "correct-password", CancellationToken.None);
 
         result.Status.Should().Be(PasswordSignInStatus.AccountDisabled);
         result.UserId.Should().Be(user.Id);
@@ -165,9 +165,9 @@ public sealed class AspNetIdentitySignInServiceTests
             new Mock<IAuthenticationSessionRegistry>(),
             CreateAttemptKeyFactory(user));
 
-        PasswordSignInResult disabledResult = await service.PasswordSignInAsync(user.UserName!, "wrong-password", rememberMe: false, CancellationToken.None);
+        PasswordSignInResult disabledResult = await service.PasswordSignInAsync(user.UserName!, "wrong-password", CancellationToken.None);
         user.IsEnabled = true;
-        PasswordSignInResult enabledResult = await service.PasswordSignInAsync(user.UserName!, "wrong-password", rememberMe: false, CancellationToken.None);
+        PasswordSignInResult enabledResult = await service.PasswordSignInAsync(user.UserName!, "wrong-password", CancellationToken.None);
 
         disabledResult.Status.Should().Be(PasswordSignInStatus.InvalidCredentials);
         enabledResult.Status.Should().Be(disabledResult.Status);
@@ -236,7 +236,7 @@ public sealed class AspNetIdentitySignInServiceTests
             new Mock<IAuthenticationAttemptKeyFactory>(),
             new HttpContextAccessor { HttpContext = httpContext });
 
-        AuthenticationSessionSignInResult result = await service.SignInAsync(staleEnabledUser.Id, rememberMe: false, CancellationToken.None);
+        AuthenticationSessionSignInResult result = await service.SignInAsync(staleEnabledUser.Id, CancellationToken.None);
 
         result.Succeeded.Should().BeFalse();
         result.Failure!.Reason.Should().Be(AuthenticationFailureReason.AccountDisabled);
@@ -266,7 +266,7 @@ public sealed class AspNetIdentitySignInServiceTests
             sessionRegistry,
             new Mock<IAuthenticationAttemptKeyFactory>());
 
-        AuthenticationSessionSignInResult result = await service.SignInAsync(user.Id, rememberMe: false, CancellationToken.None);
+        AuthenticationSessionSignInResult result = await service.SignInAsync(user.Id, CancellationToken.None);
 
         result.Succeeded.Should().BeFalse();
         result.Failure!.Reason.Should().Be(AuthenticationFailureReason.NoAccess);
@@ -299,7 +299,7 @@ public sealed class AspNetIdentitySignInServiceTests
             sessionRegistry,
             CreateAttemptKeyFactory(user));
 
-        PasswordSignInResult result = await service.PasswordSignInAsync(user.UserName!, "correct-password", rememberMe: false, CancellationToken.None);
+        PasswordSignInResult result = await service.PasswordSignInAsync(user.UserName!, "correct-password", CancellationToken.None);
 
         result.Status.Should().Be(PasswordSignInStatus.NoAccess);
         result.UserId.Should().Be(user.Id);
@@ -334,9 +334,9 @@ public sealed class AspNetIdentitySignInServiceTests
             CreateAttemptKeyFactory(user));
 
         userManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(Array.Empty<string>());
-        PasswordSignInResult noAccessResult = await service.PasswordSignInAsync(user.UserName!, "wrong-password", rememberMe: false, CancellationToken.None);
+        PasswordSignInResult noAccessResult = await service.PasswordSignInAsync(user.UserName!, "wrong-password", CancellationToken.None);
         userManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(new List<string> { IdentityDefinitions.PlatformAdmin });
-        PasswordSignInResult accessResult = await service.PasswordSignInAsync(user.UserName!, "wrong-password", rememberMe: false, CancellationToken.None);
+        PasswordSignInResult accessResult = await service.PasswordSignInAsync(user.UserName!, "wrong-password", CancellationToken.None);
 
         noAccessResult.Status.Should().Be(PasswordSignInStatus.InvalidCredentials);
         accessResult.Status.Should().Be(noAccessResult.Status);
@@ -380,7 +380,7 @@ public sealed class AspNetIdentitySignInServiceTests
             new Mock<IAuthenticationAttemptKeyFactory>(),
             new HttpContextAccessor { HttpContext = httpContext });
 
-        AuthenticationSessionSignInResult result = await service.SignInAsync(staleAccessUser.Id, rememberMe: false, CancellationToken.None);
+        AuthenticationSessionSignInResult result = await service.SignInAsync(staleAccessUser.Id, CancellationToken.None);
 
         result.Succeeded.Should().BeFalse();
         result.Failure!.Reason.Should().Be(AuthenticationFailureReason.NoAccess);

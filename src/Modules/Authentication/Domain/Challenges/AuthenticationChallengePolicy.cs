@@ -30,8 +30,8 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
     public AuthenticationChallenge CreatePhoneLoginChallenge(string userId, string phoneNumber, DateTimeOffset now) =>
         CreateChallenge(AuthenticationChallengePurpose.PhoneLogin, userId, phoneNumber, now);
 
-    public AuthenticationChallenge CreatePasswordLoginOtpChallenge(string userId, string phoneNumber, DateTimeOffset now, bool rememberMe, bool requiresProfileCompletion) =>
-        CreateChallenge(AuthenticationChallengePurpose.PasswordLoginOtp, userId, phoneNumber, now, rememberMe, requiresProfileCompletion, SecondFactorMaximumAttempts);
+    public AuthenticationChallenge CreatePasswordLoginOtpChallenge(string userId, string phoneNumber, DateTimeOffset now, bool requiresProfileCompletion) =>
+        CreateChallenge(AuthenticationChallengePurpose.PasswordLoginOtp, userId, phoneNumber, now, requiresProfileCompletion, SecondFactorMaximumAttempts);
 
     public AuthenticationChallenge CreateEmailLoginChallenge(string userId, string email, DateTimeOffset now) =>
         CreateChallenge(AuthenticationChallengePurpose.EmailLogin, userId, email, now);
@@ -51,7 +51,7 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
     public AuthenticationChallenge CreatePasskeyLoginChallenge(string userIdOrLoginHint, string challengeReference, DateTimeOffset now) =>
         CreateChallenge(AuthenticationChallengePurpose.PasskeyLogin, userIdOrLoginHint, challengeReference, now);
 
-    private AuthenticationChallenge CreateChallenge(AuthenticationChallengePurpose purpose, string userId, string destination, DateTimeOffset now, bool rememberMe = false, bool requiresProfileCompletion = false, int? maximumAttempts = null)
+    private AuthenticationChallenge CreateChallenge(AuthenticationChallengePurpose purpose, string userId, string destination, DateTimeOffset now, bool requiresProfileCompletion = false, int? maximumAttempts = null)
     {
         AuthenticationChallengeId challengeId = new(Guid.NewGuid().ToString("N"));
         return new(
@@ -63,7 +63,6 @@ public sealed record AuthenticationChallengePolicy(TimeSpan Lifetime, int Maximu
             now,
             now.Add(Lifetime),
             maximumAttempts ?? MaximumAttempts,
-            rememberMe,
             requiresProfileCompletion);
     }
 

@@ -71,6 +71,32 @@ public sealed class SecurityAccessPolicyTests
     }
 
     [Fact]
+    public void Default_idle_expiry_is_fourteen_days()
+    {
+        SecurityAccessPolicy.Default.DefaultInactivityTimeoutMinutes.Should().Be(20160);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(129600)]
+    public void Idle_expiry_accepts_one_minute_through_ninety_days(int minutes)
+    {
+        Action act = () => (SecurityAccessPolicy.Default with { DefaultInactivityTimeoutMinutes = minutes }).ValidateConfiguration();
+
+        act.Should().NotThrow();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(129601)]
+    public void Idle_expiry_outside_one_minute_through_ninety_days_is_rejected(int minutes)
+    {
+        Action act = () => (SecurityAccessPolicy.Default with { DefaultInactivityTimeoutMinutes = minutes }).ValidateConfiguration();
+
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
     public void Challenge_policy_can_use_the_persisted_attempt_threshold()
     {
         AuthenticationChallengePolicy policy = new(TimeSpan.FromMinutes(5), 3);

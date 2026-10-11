@@ -109,13 +109,12 @@ public class AuthenticationChallengePolicyTests
     }
 
     [Fact]
-    public void CreatePasswordLoginOtpChallenge_preserves_session_and_profile_state()
+    public void CreatePasswordLoginOtpChallenge_preserves_profile_state()
     {
         var challenge = AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
-            "user-1", "+1234567890", DateTimeOffset.UtcNow, rememberMe: true, requiresProfileCompletion: true);
+            "user-1", "+1234567890", DateTimeOffset.UtcNow, requiresProfileCompletion: true);
 
         challenge.Purpose.Should().Be(AuthenticationChallengePurpose.PasswordLoginOtp);
-        challenge.RememberMe.Should().BeTrue();
         challenge.RequiresProfileCompletion.Should().BeTrue();
     }
 
@@ -123,7 +122,7 @@ public class AuthenticationChallengePolicyTests
     public void CreatePasswordLoginOtpChallenge_allows_a_single_second_factor_attempt()
     {
         var challenge = AuthenticationChallengePolicy.Default.WithMaximumAttempts(5).CreatePasswordLoginOtpChallenge(
-            "user-1", "+1234567890", DateTimeOffset.UtcNow, rememberMe: false, requiresProfileCompletion: false);
+            "user-1", "+1234567890", DateTimeOffset.UtcNow, requiresProfileCompletion: false);
 
         challenge.IsSecondFactor.Should().BeTrue();
         challenge.MaximumAttempts.Should().Be(1);

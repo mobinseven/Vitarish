@@ -1416,10 +1416,6 @@
               "null",
               "string"
             ]
-          },
-          "rememberMe": {
-            "type": "boolean",
-            "default": false
           }
         }
       },

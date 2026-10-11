@@ -172,7 +172,10 @@ test.describe("NSMAIL-1 evidence execution coverage", () => {
     const authCookie = cookies.find((cookie) => /identity\.application/i.test(cookie.name));
     expect(authCookie, "the authentication cookie must be issued").toBeDefined();
     expect(authCookie!.sameSite).toBe("Lax");
-    expect(authCookie!.expires).toBe(-1);
+    // Persistent across browser restarts, but never past the 90-day idle-expiry maximum.
+    const nowSeconds = Date.now() / 1000;
+    expect(authCookie!.expires).toBeGreaterThan(nowSeconds);
+    expect(authCookie!.expires).toBeLessThanOrEqual(nowSeconds + 90 * 24 * 60 * 60);
     expect(authCookie!.secure).toBe(true);
     expect(authCookie!.httpOnly).toBe(true);
     expect(authCookie!.domain).toBe(apiHost);

@@ -137,7 +137,7 @@ public sealed class SecurityAccessPolicyRecord
     public string PermittedPreAuthenticationActions { get; set; } = string.Empty;
     public int MaximumConcurrentSessions { get; set; } = 1;
     public bool ConcurrentSessionsFunctionallyRequired { get; set; }
-    public int DefaultInactivityTimeoutMinutes { get; set; } = 30;
+    public int DefaultInactivityTimeoutMinutes { get; set; } = SessionInactivityTimeout.DefaultMinutes;
     // The persisted column name remains stable while its values now contain normalized CIDRs.
     public string? AllowedSessionStartIpAddresses { get; set; }
     public long Version { get; set; }

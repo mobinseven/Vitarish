@@ -678,7 +678,7 @@ function PlatformUserDetail({ title, userId, memberships, t }: { title: string; 
       {inactivityPolicy.isError && <div role="alert"><p className="text-danger">{t("users.management.inactivityError")}</p><button className={nativeLinkButtonClassName} onClick={() => inactivityPolicy.refetch()} title={t("users.management.retry")}><Icon name="arrow-rotate-right" />{t("users.management.retry")}</button></div>}
       {inactivityPolicy.data && <form className="space-y-3" onSubmit={submitInactivityPolicy}>
         <p className="text-sm text-muted">{t("users.management.inactivityDescription")}</p>
-        <label className="block">{t("users.management.inactivityTimeout")}<input className={nativeFieldClassName} type="number" min={1} max={30} value={inactivityTimeout} onChange={(event) => setInactivityTimeout(event.target.value)} /></label>
+        <label className="block">{t("users.management.inactivityTimeout")}<input className={nativeFieldClassName} type="number" min={1} value={inactivityTimeout} onChange={(event) => setInactivityTimeout(event.target.value)} /></label>
         <p className="text-sm text-muted">{t("users.management.inactivityInheritHint")}</p>
         <button className={nativeSecondaryButtonClassName} disabled={saveInactivityPolicy.isPending} title={t("users.management.saveInactivity")}><Icon name="floppy-disk" />{t("users.management.saveInactivity")}</button>
         {inactivityConflict && <button className={nativeLinkButtonClassName} onClick={() => inactivityPolicy.refetch()} title={t("users.management.reloadInactivity")}><Icon name="arrow-rotate-right" />{t("users.management.reloadInactivity")}</button>}

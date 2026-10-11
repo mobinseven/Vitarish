@@ -32,13 +32,13 @@ public sealed class LoginWithPasswordHandlerTests
             RequiresTwoFactor: true));
 
         AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
-            new LoginWithPasswordCommand("user-42", "password", "/dashboard", true, "operation-42"),
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
             CancellationToken.None);
 
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
             .Which.Error.Reason.Should().Be(AuthenticationFailureReason.AdditionalStepRequired);
         dependencies.SignIn.Verify(x => x.CheckPasswordSignInAsync("user-42", "password", It.IsAny<CancellationToken>()), Times.Once);
-        dependencies.SignIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+        dependencies.SignIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         dependencies.PhoneSender.Verify(x => x.SendAsync("+989121234567", "123456", AuthenticationChallengePurpose.PasswordLoginOtp, It.IsAny<CancellationToken>()), Times.Once);
         dependencies.ChallengeStore.Verify(x => x.SaveAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -53,13 +53,13 @@ public sealed class LoginWithPasswordHandlerTests
             RequiresTwoFactor: false));
 
         AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
-            new LoginWithPasswordCommand("user-42", "password", "/dashboard", true, "operation-42"),
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
             CancellationToken.None);
 
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Success>()
             .Which.Value.Should().Be(new LoginResult("user-42", "/dashboard", false));
         dependencies.SignIn.Verify(x => x.CheckPasswordSignInAsync("user-42", "password", It.IsAny<CancellationToken>()), Times.Once);
-        dependencies.SignIn.Verify(x => x.SignInAsync("user-42", true, It.IsAny<CancellationToken>()), Times.Once);
+        dependencies.SignIn.Verify(x => x.SignInAsync("user-42", It.IsAny<CancellationToken>()), Times.Once);
         dependencies.PhoneSender.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AuthenticationChallengePurpose>(), It.IsAny<CancellationToken>()), Times.Never);
         dependencies.ChallengeStore.Verify(x => x.SaveAsync(It.IsAny<AuthenticationChallenge>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -74,13 +74,13 @@ public sealed class LoginWithPasswordHandlerTests
             RequiresTwoFactor: true));
 
         AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
-            new LoginWithPasswordCommand("user-42", "password", "/dashboard", false, "operation-42"),
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
             CancellationToken.None);
 
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
             .Which.Error.Reason.Should().Be(AuthenticationFailureReason.AdditionalStepRequired);
         dependencies.PhoneSender.Verify(x => x.SendAsync("+989121234567", "123456", AuthenticationChallengePurpose.PasswordLoginOtp, It.IsAny<CancellationToken>()), Times.Once);
-        dependencies.SignIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+        dependencies.SignIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public sealed class LoginWithPasswordHandlerTests
         dependencies.AttemptTracker.Setup(x => x.IsDeniedAsync(attemptKey, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
-            new LoginWithPasswordCommand("user-42", "password", "/dashboard", false, "operation-42"),
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
             CancellationToken.None);
 
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
@@ -117,7 +117,7 @@ public sealed class LoginWithPasswordHandlerTests
             .ThrowsAsync(new SecurityAuditStoreException("offline", new InvalidOperationException()));
 
         AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
-            new LoginWithPasswordCommand("user-42", "password", "/dashboard", false, "operation-42"),
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
             CancellationToken.None);
 
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
@@ -138,7 +138,7 @@ public sealed class LoginWithPasswordHandlerTests
             .ThrowsAsync(new OperationCanceledException());
 
         await Assert.ThrowsAsync<OperationCanceledException>(() => dependencies.Handler.Handle(
-            new LoginWithPasswordCommand("user-42", "password", "/dashboard", false, "operation-42"),
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
             CancellationToken.None));
 
         dependencies.ChallengeStore.Verify(x => x.ReplaceAsync(
@@ -161,7 +161,7 @@ public sealed class LoginWithPasswordHandlerTests
             policy);
 
         AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
-            new LoginWithPasswordCommand("user-42", "password", "/dashboard", false, "operation-42"),
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
             CancellationToken.None);
 
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
@@ -182,12 +182,12 @@ public sealed class LoginWithPasswordHandlerTests
             RequiresTwoFactor: false));
 
         AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
-            new LoginWithPasswordCommand("user-42", "password", "/dashboard", false, "operation-42"),
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
             CancellationToken.None);
 
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
             .Which.Error.Reason.Should().Be(AuthenticationFailureReason.AccountDisabled);
-        dependencies.SignIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+        dependencies.SignIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         dependencies.AuditWriter.Verify(x => x.WriteAsync(
             It.Is<SecurityAuditEvent>(audit =>
                 audit.Outcome == SecurityAuditOutcome.Denied &&
@@ -206,12 +206,12 @@ public sealed class LoginWithPasswordHandlerTests
             RequiresTwoFactor: false));
 
         AuthenticationResult<LoginResult> result = await dependencies.Handler.Handle(
-            new LoginWithPasswordCommand("user-42", "password", "/dashboard", false, "operation-42"),
+            new LoginWithPasswordCommand("user-42", "password", "/dashboard", "operation-42"),
             CancellationToken.None);
 
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
             .Which.Error.Reason.Should().Be(AuthenticationFailureReason.NoAccess);
-        dependencies.SignIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+        dependencies.SignIn.Verify(x => x.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         dependencies.AuditWriter.Verify(x => x.WriteAsync(
             It.Is<SecurityAuditEvent>(audit =>
                 audit.Outcome == SecurityAuditOutcome.Denied &&
@@ -235,7 +235,7 @@ public sealed class LoginWithPasswordHandlerTests
         Mock<IAuthenticationChallengeStore> challengeStore = new();
         challengeStore.Setup(x => x.GetAsync(It.IsAny<AuthenticationChallengeId>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(AuthenticationChallengePolicy.Default.CreatePasswordLoginOtpChallenge(
-                "user-42", "+989121234567", DateTimeOffset.UtcNow, false, false));
+                "user-42", "+989121234567", DateTimeOffset.UtcNow, false));
         Mock<IAuthenticationUserDirectory> userDirectory = new();
         userDirectory.Setup(x => x.FindByIdAsync("user-42", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new AuthenticationUserDescriptor("user-42", "user-42", null, "Given", "Family", null, "+989121234567", false));

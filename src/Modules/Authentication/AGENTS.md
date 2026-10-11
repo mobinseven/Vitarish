@@ -41,9 +41,12 @@ Hosting composition are not alternate policy owners.
   maximum of 2 or 3 requires a recorded functional need, and every new
   parallel session creates a durable notice for every previously active
   session. Do not wait for the maximum or replacement event to notify.
-- **[MUST]** Default idle expiry is 30 minutes. Authorized administrators may
-  set global or per-user values only from 1 through 30 minutes. Resolve one
-  effective value server-side; cookie/sliding expiration must not outlive it.
+- **[MUST]** Default idle expiry is 14 days. Authorized administrators may
+  set global or per-user values only from 1 minute through 90 days
+  (`SessionInactivityTimeout` owns the bounds). Resolve one effective value
+  server-side; cookie/sliding expiration must not outlive it. The
+  authentication cookie is persistent (no "remember me" choice): sign-out,
+  revocation, and idle expiry end a session, not closing the browser.
 - **[MUST]** Missing, revoked, expired, wrong-tenant, disallowed-IP, or
   policy-invalid sessions fail closed on protected cookie requests. Username,
   assigned-role, authorization-affecting-claim, and user-deletion mutations

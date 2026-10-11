@@ -92,6 +92,22 @@ public sealed class ChangeUserInactivityTimeoutHandlerTests
             && item.RedactedReason == AuthenticationSecurityAuditEvents.UserPolicyTargetNotFoundReason);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(129601)]
+    public async Task Override_outside_one_minute_through_ninety_days_is_rejected_before_any_effect(int minutes)
+    {
+        Mock<IAuthenticationSessionRegistry> sessions = new();
+        Mock<ISecurityAuditWriter> auditWriter = new();
+        ChangeUserInactivityTimeoutHandler handler = new(sessions.Object, auditWriter.Object, new TestRequestContext(), Mock.Of<IAuthenticationSecurityPolicyProvider>(), Mock.Of<IAuthenticationUserDirectory>());
+
+        Func<Task> act = () => handler.Handle("user-1", minutes, 0, CancellationToken.None);
+
+        await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
+        auditWriter.Verify(item => item.WriteAsync(It.IsAny<SecurityAuditEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+        sessions.Verify(item => item.SetUserInactivityTimeoutAsync(It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     [Fact]
     public async Task Successful_change_persists_the_timeout_and_completes_audit()
     {

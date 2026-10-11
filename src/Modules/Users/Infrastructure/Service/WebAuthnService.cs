@@ -294,7 +294,7 @@ public class WebAuthnService(
         {
             throw new InvalidOperationException("User associated with credential not found.");
         }
-        AuthenticationSessionSignInResult signIn = await signInService.SignInAsync(credential.UserId, rememberMe: true, cancellationToken: ct);
+        AuthenticationSessionSignInResult signIn = await signInService.SignInAsync(credential.UserId, cancellationToken: ct);
         if (!signIn.Succeeded)
             throw new InvalidOperationException(signIn.Failure?.Message ?? "WebAuthn sign-in could not establish an authentication session.");
 

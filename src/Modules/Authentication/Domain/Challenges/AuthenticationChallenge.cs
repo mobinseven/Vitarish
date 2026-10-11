@@ -13,9 +13,8 @@ public sealed class AuthenticationChallenge
         DateTimeOffset createdAt,
         DateTimeOffset expiresAt,
         int maximumAttempts,
-        bool rememberMe = false,
         bool requiresProfileCompletion = false)
-        : this(id, purpose, userId, destination, tokenPurpose, createdAt, expiresAt, maximumAttempts, 0, AuthenticationChallengeStatus.Pending, null, rememberMe, requiresProfileCompletion)
+        : this(id, purpose, userId, destination, tokenPurpose, createdAt, expiresAt, maximumAttempts, 0, AuthenticationChallengeStatus.Pending, null, requiresProfileCompletion)
     {
     }
 
@@ -31,7 +30,6 @@ public sealed class AuthenticationChallenge
         int failedAttempts,
         AuthenticationChallengeStatus status,
         DateTimeOffset? completedAt,
-        bool rememberMe,
         bool requiresProfileCompletion)
     {
         if (maximumAttempts < 1) throw new ArgumentOutOfRangeException(nameof(maximumAttempts), "Maximum attempts must be at least one.");
@@ -48,7 +46,6 @@ public sealed class AuthenticationChallenge
         FailedAttempts = failedAttempts;
         Status = status;
         CompletedAt = completedAt;
-        RememberMe = rememberMe;
         RequiresProfileCompletion = requiresProfileCompletion;
     }
 
@@ -63,7 +60,6 @@ public sealed class AuthenticationChallenge
     public int FailedAttempts { get; private set; }
     public AuthenticationChallengeStatus Status { get; private set; }
     public DateTimeOffset? CompletedAt { get; private set; }
-    public bool RememberMe { get; }
     public bool RequiresProfileCompletion { get; }
     public int RemainingAttempts => Math.Max(0, MaximumAttempts - FailedAttempts);
 
@@ -85,8 +81,7 @@ public sealed class AuthenticationChallenge
         int failedAttempts,
         AuthenticationChallengeStatus status,
         DateTimeOffset? completedAt,
-        bool rememberMe = false,
-        bool requiresProfileCompletion = false) => new(id, purpose, userId, destination, tokenPurpose, createdAt, expiresAt, maximumAttempts, failedAttempts, status, completedAt, rememberMe, requiresProfileCompletion);
+        bool requiresProfileCompletion = false) => new(id, purpose, userId, destination, tokenPurpose, createdAt, expiresAt, maximumAttempts, failedAttempts, status, completedAt, requiresProfileCompletion);
 
     public bool CanAttempt(DateTimeOffset now) => Status == AuthenticationChallengeStatus.Pending && now < ExpiresAt && RemainingAttempts > 0;
 

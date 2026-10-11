@@ -82,7 +82,7 @@ public sealed class NoAccessContactLoginAuditTests
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
             .Which.Error.Reason.Should().Be(AuthenticationFailureReason.InvalidVerificationCode);
         signIn.Verify(
-            item => item.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+            item => item.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -102,14 +102,14 @@ public sealed class NoAccessContactLoginAuditTests
         result.Should().BeOfType<AuthenticationResult<LoginResult>.Failure>()
             .Which.Error.Reason.Should().Be(AuthenticationFailureReason.InvalidVerificationCode);
         signIn.Verify(
-            item => item.SignInAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+            item => item.SignInAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
     private static Mock<IAuthenticationSignInService> NoAccessSignIn()
     {
         Mock<IAuthenticationSignInService> signIn = new();
-        signIn.Setup(item => item.SignInAsync("user-42", false, It.IsAny<CancellationToken>()))
+        signIn.Setup(item => item.SignInAsync("user-42", It.IsAny<CancellationToken>()))
             .ReturnsAsync(AuthenticationSessionSignInResult.Failed(
                 new AuthenticationFailure(AuthenticationFailureReason.NoAccess, "The account has no access level.")));
         return signIn;

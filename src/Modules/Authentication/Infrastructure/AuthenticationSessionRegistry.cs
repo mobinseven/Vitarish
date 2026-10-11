@@ -451,8 +451,8 @@ public sealed class AuthenticationSessionRegistry(
 
     public async Task<long> SetUserInactivityTimeoutAsync(string userId, int? minutes, long expectedVersion, CancellationToken cancellationToken)
     {
-        if (minutes is < 1 or > 30)
-            throw new ArgumentOutOfRangeException(nameof(minutes), "The inactivity timeout must be between 1 and 30 minutes.");
+        if (minutes is int value && !SessionInactivityTimeout.IsWithinBounds(value))
+            throw SessionInactivityTimeout.OutOfBounds(nameof(minutes));
         if (expectedVersion < 0)
             throw new ArgumentOutOfRangeException(nameof(expectedVersion), "The expected inactivity policy version cannot be negative.");
         AuthenticationUserSessionPolicyRecord? record = await dbContext.AuthenticationUserSessionPolicies.SingleOrDefaultAsync(item => item.UserId == userId, cancellationToken);

@@ -32,7 +32,6 @@ export function usePasswordLogin({ navigate = ignoreAuthNavigation, returnUrlSea
         const data: Omit<PasswordLoginRequest, "returnUrl"> & Partial<Pick<PasswordLoginRequest, "returnUrl">> = {
           userNameOrEmail,
           password,
-          rememberMe: false,
           ...(finalReturnUrl ? { returnUrl: finalReturnUrl } : {}),
         };
 

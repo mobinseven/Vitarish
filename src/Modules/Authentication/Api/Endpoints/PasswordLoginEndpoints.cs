@@ -16,7 +16,7 @@ public static class PasswordLoginEndpoints
     {
         group.MapModulePost("/login/password", async (PasswordLoginRequest request, [Microsoft.AspNetCore.Mvc.FromServices] LoginWithPasswordHandler handler, CancellationToken ct) =>
         {
-            var r = await handler.Handle(new LoginWithPasswordCommand(request.UserNameOrEmail, request.Password, request.ReturnUrl, request.RememberMe), ct);
+            var r = await handler.Handle(new LoginWithPasswordCommand(request.UserNameOrEmail, request.Password, request.ReturnUrl), ct);
             return r is AuthenticationResult<LoginResult>.Success s
                 ? Results.Ok(AuthenticationEndpointMapper.ToDto(s.Value))
                 : AuthenticationProblemHttpMapper.ToProblem(((AuthenticationResult<LoginResult>.Failure)r).Error);

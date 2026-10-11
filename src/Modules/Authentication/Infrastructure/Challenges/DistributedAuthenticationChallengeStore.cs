@@ -208,7 +208,6 @@ public sealed class DistributedAuthenticationChallengeStore(IDistributedCache ca
         int FailedAttempts,
         AuthenticationChallengeStatus Status,
         DateTimeOffset? CompletedAt,
-        bool RememberMe = false,
         bool RequiresProfileCompletion = false)
     {
         public static AuthenticationChallengeSnapshot FromChallenge(AuthenticationChallenge challenge) => new(
@@ -223,7 +222,6 @@ public sealed class DistributedAuthenticationChallengeStore(IDistributedCache ca
             challenge.FailedAttempts,
             challenge.Status,
             challenge.CompletedAt,
-            challenge.RememberMe,
             challenge.RequiresProfileCompletion);
 
         public AuthenticationChallenge ToChallenge() => AuthenticationChallenge.Restore(
@@ -238,7 +236,6 @@ public sealed class DistributedAuthenticationChallengeStore(IDistributedCache ca
             FailedAttempts,
             Status,
             CompletedAt,
-            RememberMe,
             RequiresProfileCompletion);
     }
 }
