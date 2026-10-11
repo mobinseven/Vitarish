@@ -532,7 +532,7 @@ export function PrescriptionEventFeedItem({
                     ) : canEdit ? (
                       <Tooltip>
                         <Button
-                          variant="secondary"
+                          variant="tertiary"
                           onPress={() => setIsEditing(true)}
                         >
                           <FaIcon icon="pen" aria-hidden="true" />

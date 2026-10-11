@@ -225,7 +225,7 @@ export function PatientProcedureTemplateSelector({
               {selectedProcedure ? (
                 <>
                   <Button
-                    variant="secondary"
+                    variant="tertiary"
                     onPress={() => setSelectedProcedure(null)}
                     isDisabled={createMutation.isPending}
                   >
@@ -241,7 +241,7 @@ export function PatientProcedureTemplateSelector({
                   </Button>
                 </>
               ) : (
-                <Button variant="secondary" onPress={onClose}>
+                <Button variant="tertiary" onPress={onClose}>
                   {t("common.actions.cancel")}
                 </Button>
               )}

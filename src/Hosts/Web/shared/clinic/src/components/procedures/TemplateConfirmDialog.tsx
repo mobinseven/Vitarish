@@ -39,7 +39,7 @@ export function TemplateConfirmDialog({
             <AlertDialog.Footer>
               <Tooltip>
                 <Button
-                  variant="secondary"
+                  variant="tertiary"
                   isDisabled={isPending}
                   onPress={onClose}
                 >

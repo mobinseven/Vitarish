@@ -14,7 +14,7 @@ export function CommandPalette() {
   return (
     <>
       <Tooltip>
-        <Button variant="secondary" onPress={() => setOpen(true)}>
+        <Button variant="tertiary" onPress={() => setOpen(true)}>
           <FaIcon icon="magnifying-glass" aria-hidden="true" />
           {t("commandPalette.open")}
           <Kbd dir="ltr">

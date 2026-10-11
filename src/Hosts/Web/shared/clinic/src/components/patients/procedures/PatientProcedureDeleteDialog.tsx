@@ -63,7 +63,7 @@ export function PatientProcedureDeleteDialog({
             </Modal.Body>
             <Modal.Footer>
               <Button
-                variant="secondary"
+                variant="tertiary"
                 onPress={onClose}
                 isDisabled={deleteMutation.isPending}
               >

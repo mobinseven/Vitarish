@@ -201,7 +201,7 @@ export function AddReservationDialog({
               )}
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onPress={handleClose}>
+              <Button variant="tertiary" onPress={handleClose}>
                 {t("common.actions.cancel")}
               </Button>
               <Button

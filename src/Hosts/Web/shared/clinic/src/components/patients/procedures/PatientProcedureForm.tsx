@@ -103,7 +103,7 @@ export function PatientProcedureForm({
             </Modal.Body>
             <Modal.Footer>
               <Button
-                variant="secondary"
+                variant="tertiary"
                 onPress={onClose}
                 isDisabled={isPending}
               >

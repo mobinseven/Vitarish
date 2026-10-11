@@ -150,7 +150,7 @@ export function PatientProcedureEventTimeline({
                         <Button
                           slot="trigger"
                           style={{ textWrap: "wrap" }}
-                          variant="secondary"
+                          variant="tertiary"
                         >
                           {event.title}
                           {event.isCommitted ? (

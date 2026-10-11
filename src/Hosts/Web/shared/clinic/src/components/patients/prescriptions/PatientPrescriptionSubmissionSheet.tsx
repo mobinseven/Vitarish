@@ -246,7 +246,7 @@ export function PatientPrescriptionSubmissionSheet({
                         <Button
                           key={template.id}
                           size="sm"
-                          variant="secondary"
+                          variant="tertiary"
                           onPress={() =>
                             template.id && void applyTemplate(template.id)
                           }

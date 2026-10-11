@@ -97,8 +97,9 @@
   /*
    * Sign-in methods: each method keeps one host chroma color so a returning
    * user finds their usual choice before reading; hosts without the chroma colors
-   * fall back to neutral. The colors carry a white icon; the hover tint mixes
-   * the color with the host surface. Applied through signInMethodClassName().
+   * fall back to neutral. The colors carry a white icon; the hover tint
+   * overlays the color on whatever surface the card uses. Applied through
+   * signInMethodClassName().
    */
   .vitarish-sign-in-method--password {
     --sign-in-method: var(--chroma-primary, var(--muted));
@@ -124,7 +125,10 @@
 
   @media (hover: hover) {
     [class*="vitarish-sign-in-method--"]:is(:hover, [data-hovered="true"]) {
-      background-color: color-mix(in oklab, var(--sign-in-method) 7%, var(--surface));
+      background-image: linear-gradient(
+        color-mix(in oklab, var(--sign-in-method) 10%, transparent),
+        color-mix(in oklab, var(--sign-in-method) 10%, transparent)
+      );
     }
   }
 }

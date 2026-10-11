@@ -107,7 +107,7 @@ export function PatientVisitEventDialog({
           </Modal.Body>
           <Modal.Footer>
             <Button
-              variant="secondary"
+              variant="tertiary"
               onPress={() => onOpenChange(false)}
               isDisabled={createEvent.isPending}
             >

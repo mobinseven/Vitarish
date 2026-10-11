@@ -271,7 +271,7 @@ export function PrescriptionTemplateWorkspace() {
           <div className="min-h-0 flex-1 overflow-y-auto">
             <Button
               className="mb-3 w-full"
-              variant="secondary"
+              variant="tertiary"
               onPress={() => {
                 setDraft({
                   name: t("prescriptionTemplates.newTemplateName"),

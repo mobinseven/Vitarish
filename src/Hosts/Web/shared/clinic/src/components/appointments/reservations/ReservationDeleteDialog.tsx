@@ -49,7 +49,7 @@ export function ReservationDeleteDialog({
             </Modal.Body>
             <Modal.Footer>
               <Button
-                variant="secondary"
+                variant="tertiary"
                 onPress={onCancel}
                 isDisabled={isPending}
               >

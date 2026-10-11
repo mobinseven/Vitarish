@@ -52,7 +52,7 @@ export function PatientProcedureEventCommitDialog({
             </AlertDialog.Body>
             <AlertDialog.Footer>
               <Button
-                variant="secondary"
+                variant="tertiary"
                 onPress={onClose}
                 isDisabled={isPending}
               >
