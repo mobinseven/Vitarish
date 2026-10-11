@@ -264,9 +264,9 @@ html.glass-dark {
     radial-gradient(circle at 12% 92%, oklch(68% 0.22 125 / 32%), transparent 17rem);
 } */
 
-/* RTL documents use Parastoo regardless of the theme's Latin font (./fonts.ts). */
+/* RTL documents use Vazirmatn regardless of the theme's Latin font (./fonts.ts). */
 html[dir="rtl"] {
-  --font-sans: var(--font-parastoo), Tahoma, Arial, sans-serif;
+  --font-sans: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
   font-family: var(--font-sans);
 }
 
