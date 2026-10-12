@@ -10,6 +10,7 @@ const artifactDirectory = process.env[twoHostE2eArtifactDirectoryEnvironmentKey]
 export default defineConfig({
   timeout: 120_000,
   testDir: "./tests/two-host",
+  globalSetup: "./tests/two-host/global-setup.ts",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
