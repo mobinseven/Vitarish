@@ -22,6 +22,7 @@ import {
   useDeleteReservation,
 } from "../../../hooks/appointments/reservations/useOwnerReservations";
 import { ReservationDeleteDialog } from "../reservations/ReservationDeleteDialog";
+import { reservationStatusChipProps } from "../reservations/reservationStatusChip";
 import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 const statusKeys: Record<number, MessageKey> = {
@@ -35,19 +36,6 @@ const statusKeys: Record<number, MessageKey> = {
   7: "clinic.reservationStatus.completed",
 };
 
-const statusColors: Record<
-  number,
-  "warning" | "success" | "danger" | "default"
-> = {
-  0: "warning",
-  1: "success",
-  2: "danger",
-  3: "danger",
-  4: "default",
-  5: "default",
-  6: "success",
-  7: "success",
-};
 
 interface ReservationDetailDialogProps {
   isOpen: boolean;
@@ -155,11 +143,7 @@ export function ReservationDetailDialog({
                   <div className="flex flex-col gap-4">
                     {/* Status chip */}
                     <div className="flex items-center gap-2">
-                      <Chip
-                        size="sm"
-                        variant="soft"
-                        color={statusColors[reservation.status] ?? "default"}
-                      >
+                      <Chip size="sm" {...reservationStatusChipProps(reservation.status)}>
                         {t(
                           statusKeys[reservation.status] ??
                             "common.values.unknown",

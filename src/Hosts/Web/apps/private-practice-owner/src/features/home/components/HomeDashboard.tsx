@@ -25,6 +25,8 @@ import { useRouter } from "next/navigation";
 import {
   clinicOperationButtonClassName,
   patientTagClassName,
+  reservationStatusChipProps,
+  reservationStatuses,
   useClinicListDashboardAppointments,
   type PatientQuickAction,
 } from "@vitarish/clinic";
@@ -35,15 +37,9 @@ import styles from "./HomeDashboard.module.css";
 import { FaIcon, HeaderIcon } from "@vitarish/ui";
 
 type SortMode = "time" | "patient";
-type StatusColor = "default" | "danger" | "success" | "warning";
+const defaultSortMode: SortMode = "time";
 
 /** A patient avatar carries its reservation's status color, so the row reads at a glance. */
-const statusAvatarClassNames: Record<StatusColor, string> = {
-  default: "bg-surface-secondary text-foreground",
-  danger: "bg-danger-soft text-danger",
-  success: "bg-success-soft text-success",
-  warning: "bg-warning-soft text-warning",
-};
 type FilterOption = { value: string; label: string };
 
 const patientIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -55,10 +51,11 @@ export function HomeDashboard() {
     today(getLocalTimeZone()),
   );
   const [search, setSearch] = useState("");
-  const [sortMode, setSortMode] = useState<SortMode>("time");
+  const [sortMode, setSortMode] = useState<SortMode>(defaultSortMode);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const range = useMemo(() => calendarDayRange(focusedDate), [focusedDate]);
+  const isTodayFocused = focusedDate.compare(today(getLocalTimeZone())) === 0;
   const query = useClinicListDashboardAppointments(range);
   const rows = query.data ?? [];
   const statusOptions = useMemo<FilterOption[]>(() => {
@@ -66,7 +63,7 @@ export function HomeDashboard() {
       .sort((left, right) => left - right)
       .map((status) => ({
         value: String(status),
-        label: getStatusMeta(status, t).label,
+        label: getStatusLabel(status, t),
       }));
   }, [rows, t]);
   const serviceOptions = useMemo<FilterOption[]>(() => {
@@ -173,9 +170,9 @@ export function HomeDashboard() {
             <div className="flex flex-wrap items-center gap-2" aria-label={t("home.dashboard.controlsLabel")}>
               <Tooltip>
                 <Button
-                  className="min-w-0"
+                  className={`${sortMode === defaultSortMode ? "" : styles.activeControl} min-w-0`}
                   size="sm"
-                  variant="outline"
+                  variant="secondary"
                   onPress={() => setSortMode((current) => (current === "time" ? "patient" : "time"))}
                 >
                   <i aria-hidden="true" className="fa-light fa-arrow-down-a-z" />
@@ -194,9 +191,9 @@ export function HomeDashboard() {
               <Popover>
                 <Button
                   aria-label={t("home.dashboard.filters")}
-                  className="min-w-0"
+                  className={`${activeFilterCount > 0 ? styles.activeControl : ""} min-w-0`}
                   size="sm"
-                  variant={activeFilterCount > 0 ? "secondary" : "outline"}
+                  variant="secondary"
                 >
                   <i aria-hidden="true" className="fa-light fa-filter" title={t("home.dashboard.filters")} />
                   <span className="hidden sm:inline">{t("home.dashboard.filters")}</span>
@@ -205,9 +202,9 @@ export function HomeDashboard() {
                       aria-label={t("home.dashboard.activeFilterCount", {
                         count: formatNumber(activeFilterCount, locale),
                       })}
-                      color="default"
+                      color="accent"
                       size="sm"
-                      variant="soft"
+                      variant="primary"
                     >
                       <Chip.Label>{formatNumber(activeFilterCount, locale)}</Chip.Label>
                     </Chip>
@@ -322,11 +319,29 @@ export function HomeDashboard() {
                 }}
               >
                 <Label className="sr-only">{t("home.dashboard.datePickerLabel")}</Label>
-                <DateField.Group className="h-full" fullWidth>
+                <DateField.Group className={`${isTodayFocused ? "" : styles.offTodayDate} h-full`} fullWidth>
                   <DateField.Input>
                     {(segment) => <DateField.Segment segment={segment} />}
                   </DateField.Input>
                   <DateField.Suffix>
+                    {isTodayFocused ? (
+                      <Chip className="me-1" color="accent" size="sm" variant="soft">
+                        <Chip.Label>{t("home.dashboard.today")}</Chip.Label>
+                      </Chip>
+                    ) : (
+                      <Tooltip>
+                        <Button
+                          className={`${styles.activeControl} me-1`}
+                          size="sm"
+                          variant="outline"
+                          onPress={() => setFocusedDate(today(getLocalTimeZone()))}
+                        >
+                          <i aria-hidden="true" className="fa-light fa-calendar-day" />
+                          {t("home.dashboard.today")}
+                        </Button>
+                        <Tooltip.Content>{t("home.dashboard.backToToday")}</Tooltip.Content>
+                      </Tooltip>
+                    )}
                     <DatePicker.Trigger aria-label={t("home.dashboard.openDatePicker")}>
                       <DatePicker.TriggerIndicator>
                         <i aria-hidden="true" className="fa-light fa-calendar-days" />
@@ -446,7 +461,7 @@ export function HomeDashboard() {
                 <div className="divide-y divide-separator/70">
                   {visibleRows.map((row) => {
                     const patientLabel = getPatientLabel(row.patientDisplayName, t);
-                    const status = getStatusMeta(row.status, t);
+                    const statusLabel = getStatusLabel(row.status, t);
 
                     return (
                       <div
@@ -454,8 +469,9 @@ export function HomeDashboard() {
                         key={row.reservationId}
                       >
                         <div className="flex min-w-0 items-center gap-3">
-                          <span className={`${statusAvatarClassNames[status.color]} grid size-10 shrink-0 place-items-center rounded-full text-sm font-semibold`}>
-                            {getInitials(patientLabel)}
+                          {/* An icon, not initials: two letters of a name can spell an unintended word. */}
+                          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-secondary text-muted" aria-hidden="true">
+                            <FaIcon icon="user" />
                           </span>
                           <div className="flex min-w-0 flex-col gap-1">
                             <p className="truncate text-sm font-semibold text-foreground">{patientLabel}</p>
@@ -477,10 +493,7 @@ export function HomeDashboard() {
                             {getServiceLabel(row.serviceDisplayName, locale, t)}
                           </p>
                         </div>
-                        <Chip className={`${styles.statusChip} w-fit`} color={status.color} size="sm" variant="soft">
-                          <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
-                          <Chip.Label>{status.label}</Chip.Label>
-                        </Chip>
+                        <StatusChip status={row.status} label={statusLabel} />
                         <div className={styles.actions}>
                           <Tooltip>
                             <Button className={styles.actionButton} size="sm" variant="tertiary" onPress={() => openPatient(row.patientId)}>
@@ -490,14 +503,14 @@ export function HomeDashboard() {
                             <Tooltip.Content>{t("home.dashboard.viewProfile")}</Tooltip.Content>
                           </Tooltip>
                           <Tooltip>
-                            <Button className={`${clinicOperationButtonClassName("prescription")} ${styles.actionButton}`} size="sm" variant="primary" onPress={() => openPatient(row.patientId, "prescription")}>
+                            <Button className={`${clinicOperationButtonClassName("prescription")} ${styles.actionButton}`} size="sm" variant="secondary" onPress={() => openPatient(row.patientId, "prescription")}>
                               <FaIcon icon="prescription-bottle-medical" aria-hidden="true" />
                               {t("home.dashboard.newPrescription")}
                             </Button>
                             <Tooltip.Content>{t("home.dashboard.newPrescription")}</Tooltip.Content>
                           </Tooltip>
                           <Tooltip>
-                            <Button className={`${clinicOperationButtonClassName("visit")} ${styles.actionButton}`} size="sm" variant="primary" onPress={() => openPatient(row.patientId, "newVisit")}>
+                            <Button className={`${clinicOperationButtonClassName("visit")} ${styles.actionButton}`} size="sm" variant="secondary" onPress={() => openPatient(row.patientId, "newVisit")}>
                               <FaIcon icon="calendar-plus" aria-hidden="true" />
                               {t("home.dashboard.newNote")}
                             </Button>
@@ -566,38 +579,33 @@ function getServiceLabel(
   return service;
 }
 
-function getInitials(label: string) {
-  const initials = label
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("");
-
-  return initials || "—";
+function getStatusLabel(status: number, t: (key: string) => string): string {
+  switch (status) {
+    case reservationStatuses.pending:
+      return t("clinic.reservationStatus.pending");
+    case reservationStatuses.confirmed:
+      return t("clinic.reservationStatus.confirmed");
+    case reservationStatuses.cancelled:
+    case reservationStatuses.rejected:
+      return t("clinic.reservationStatus.cancelled");
+    case reservationStatuses.expired:
+      return t("clinic.reservationStatus.expired");
+    case reservationStatuses.waitlisted:
+      return t("clinic.reservationStatus.waitlisted");
+    case reservationStatuses.present:
+      return t("clinic.reservationStatus.present");
+    case reservationStatuses.completed:
+      return t("clinic.reservationStatus.completed");
+    default:
+      return t("home.dashboard.unknownStatus");
+  }
 }
 
-function getStatusMeta(
-  status: number,
-  t: (key: string) => string,
-): { color: StatusColor; label: string } {
-  switch (status) {
-    case 0:
-      return { color: "warning", label: t("clinic.reservationStatus.pending") };
-    case 1:
-      return { color: "success", label: t("clinic.reservationStatus.confirmed") };
-    case 2:
-    case 3:
-      return { color: "danger", label: t("clinic.reservationStatus.cancelled") };
-    case 4:
-      return { color: "warning", label: t("clinic.reservationStatus.expired") };
-    case 5:
-      return { color: "default", label: t("clinic.reservationStatus.waitlisted") };
-    case 6:
-      return { color: "success", label: t("clinic.reservationStatus.present") };
-    case 7:
-      return { color: "success", label: t("clinic.reservationStatus.completed") };
-    default:
-      return { color: "default", label: t("home.dashboard.unknownStatus") };
-  }
+function StatusChip({ status, label }: { status: number; label: string }) {
+  const chip = reservationStatusChipProps(status);
+  return (
+    <Chip {...chip} className={`${chip.className ?? ""} ${styles.statusChip} w-fit`} size="sm">
+      <Chip.Label>{label}</Chip.Label>
+    </Chip>
+  );
 }

@@ -52,10 +52,15 @@ purposes separates them by layout: sections, headings, and panes.
   two stay free for future meanings.
 - Generic buttons become neutral, so the operations on hub pages stand out and
   users learn them by color.
-- The owner app's chroma colors are pastels whose text is the same hue,
-  darkened, in both modes. One value set reads on light and dark backgrounds.
-- Header icons, sidebar icons, and avatars become neutral; avatars show a
-  status color when their record has a status.
+- The owner app's chroma colors are deep tones at the accent's lightness with
+  white text, so operation buttons are filled like the accent button and one
+  value set reads in both modes. A first pastel set made filled buttons look
+  cheap and glared in dark mode; neutral buttons with only a colored icon tile
+  read as two separate controls.
+- Chips of every kind (status, patient tag) use HeroUI's soft recipe, so
+  elements of the same kind look alike whatever their source.
+- Header icons, sidebar icons, and avatars become neutral. Avatars show an
+  icon, never initials, which can spell an unintended word.
 - Owner app and `shared/clinic` adopt first. Other hosts keep their current
   colors until migrated; the lint rule covers only migrated packages.
 

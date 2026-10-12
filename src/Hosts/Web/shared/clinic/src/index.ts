@@ -85,3 +85,5 @@ export { ServiceProviderDetailPage } from "./components/service-providers/Servic
 export { clinicOperationButtonClassName, clinicOperations } from "./components/operations/clinicOperation";
 export type { ClinicOperation } from "./components/operations/clinicOperation";
 export { patientTagClassName } from "./components/patients/tags/patientTagColor";
+export { reservationStatusChipProps, reservationStatuses } from "./components/appointments/reservations/reservationStatusChip";
+export type { ReservationStatusChipProps } from "./components/appointments/reservations/reservationStatusChip";

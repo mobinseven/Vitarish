@@ -3,7 +3,7 @@
 Status: Active  
 Owner: Platform host: Web
 Scope: Every Web app and shared package under `src/Hosts/Web`
-Last reviewed: 2026-10-11
+Last reviewed: 2026-10-12
 
 Decision and rationale:
 [ADR-0014](../../architecture/decisions/0014-app-color-palette.md).
@@ -13,33 +13,53 @@ Decision and rationale:
 | Color | Token | Use |
 |---|---|---|
 | Neutral | `surface`, `default`, `foreground`, `muted` | Surfaces, text, header and sidebar icons, avatars, tiles, generic buttons |
-| Accent | `accent` | Current navigation item, focus, and the save button of forms that are not a clinical operation |
+| Accent | `accent` | Current navigation item, focus, the save button of forms that are not a clinical operation, and a control whose state narrows what a list shows (soft accent) |
 | Chroma | `chroma-primary` to `chroma-senary` | Colors a feature package gives a fixed meaning, such as clinical operations and sign-in methods |
 | Status | `success`, `warning`, `danger` | Only where something has that status |
+
+A control whose state narrows what a list shows, such as active filters, a
+non-default sort, or a day other than today, takes the soft accent while that
+state is on, and is neutral otherwise. Its count badge is solid accent.
 
 Each host theme owns the values; change them there, never in feature code.
 A host without chroma tokens falls back to neutral.
 
-The owner app's chroma colors come from
-[this palette](https://coolors.co/palette/ff99c8-fec8c3-fcf6bd-d0f4de-a9def9-e4c1f9).
-They are pastels, so one set serves light and dark mode. Each color's text is
-its own hue, as light and as chromatic as sRGB allows while keeping 4.8:1
-contrast. Every pair has the same contrast, and the text is clearly tinted.
+The owner app's chroma colors are deep tones at the accent's OKLCH lightness
+(52%), each as chromatic as sRGB allows up to a shared cap, so they fill a
+button as the accent does and none outweighs another. They carry white text,
+so one set serves light and dark mode, as the accent does.
 
 | Token | Color | Assigned to |
 |---|---|---|
-| `chroma-primary` | Sky `#A9DEF9` | Visit |
-| `chroma-secondary` | Peach `#FEC8C3` | Procedure |
-| `chroma-tertiary` | Lavender `#E4C1F9` | Prescription |
-| `chroma-quaternary` | Pink `#FF99C8` | Unassigned (too close to the pink accent) |
-| `chroma-quinary` | Mint `#D0F4DE` | Appointment |
-| `chroma-senary` | Cream `#FCF6BD` | Unassigned |
+| `chroma-primary` | Blue `oklch(52% 0.14 250)` | Visit |
+| `chroma-secondary` | Burnt orange `oklch(52% 0.14 45)` | Procedure |
+| `chroma-tertiary` | Violet `oklch(52% 0.16 300)` | Prescription |
+| `chroma-quaternary` | Rose `oklch(52% 0.16 350)` | Unassigned (too close to the pink accent) |
+| `chroma-quinary` | Green `oklch(52% 0.11 160)` | Appointment |
+| `chroma-senary` | Ochre `oklch(52% 0.1 85)` | Unassigned |
 
 Patient tags are the exception to one meaning per color: tags are defined by
 users, so `patientTagClassName` in `@vitarish/clinic` picks one of all six
 chroma colors from the tag text. A tag keeps its color on every page, which
 helps users spot it; the color carries no other meaning, and the tag text is
-always shown.
+always shown. Tags are soft chips, mixed as HeroUI mixes its soft status chips
+(15% fill, text in the chip's own hue), so tags and status chips look alike.
+
+Reservation status chips are soft chips colored through
+`reservationStatusChipProps` in `@vitarish/clinic`. Each status a user acts on
+has its own color, so statuses shown together never share one; statuses that
+need no attention stay neutral. Statuses reuse operation chroma colors because
+a soft chip and a filled button are different kinds of element.
+
+| Status | Color |
+|---|---|
+| Pending | `warning` |
+| Confirmed | `success` |
+| Present | `accent` |
+| Completed | `chroma-primary` |
+| Waitlisted | `chroma-tertiary` |
+| Expired | `danger` |
+| Cancelled, rejected | Neutral |
 
 ## Buttons
 
@@ -59,6 +79,11 @@ Clinical operations, owned by `@vitarish/clinic`:
 | `prescription` | Prescriptions | `chroma-tertiary` |
 | `appointment` | Reservations, check-in, shifts, booking setup | `chroma-quinary` |
 
+In dense repeated rows, such as the dashboard visit list, give the operation
+button `variant="secondary"`: it keeps the neutral fill and only the text takes
+the operation's chroma. The dashboard's sort and filter controls likewise use
+`secondary` for accent text.
+
 An operation keeps its color on every page, so repeat visitors find it by
 color on hub pages such as the dashboard and patient profile.
 
@@ -71,8 +96,13 @@ color on hub pages such as the dashboard and patient profile.
   chroma color directly in feature code; ask its owner for a class.
 - Header icons and sidebar icons are neutral. `HeaderIcon` takes a status
   `tone` only when the section's content has that status.
-- Avatars and record tiles are neutral, and show their record's status color
-  when it has one.
+- Patient and user avatars are neutral and show an icon, never initials: two
+  letters of a name can spell an unintended word. A record's status shows in
+  its status chip. Record tiles are neutral, and show their record's status
+  color when it has one.
+- Elements of the same kind share one look whatever their source: every soft
+  chip uses HeroUI's soft recipe, and every filled button follows the accent
+  button.
 - A colored element never carries meaning alone: pair it with an icon or text.
 - A page that serves several purposes separates them by layout (sections,
   headings, panes), not by color.

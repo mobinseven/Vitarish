@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { Button, Chip, Surface } from "@heroui/react";
 import { clinicOperationButtonClassName, clinicOperations } from "@vitarish/clinic";
-import { HeaderIcon, removeButtonClassName } from "@vitarish/ui";
+import { FaIcon, HeaderIcon, removeButtonClassName } from "@vitarish/ui";
 import { useLocalizedText } from "@/localization";
 
 const paletteSwatches = [
@@ -45,6 +45,7 @@ export function ColorLegend() {
         <div className="flex flex-wrap gap-3">
           {clinicOperations.map((operation) => (
             <Button key={operation} className={clinicOperationButtonClassName(operation)}>
+              <FaIcon icon="circle" aria-hidden="true" />
               {operation}
             </Button>
           ))}
