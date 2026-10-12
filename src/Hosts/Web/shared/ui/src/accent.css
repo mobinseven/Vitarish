@@ -59,40 +59,54 @@
    * chromaButtonClassName() from @vitarish/ui.
    */
   .button.vitarish-chroma-button--primary {
-    --button-bg: var(--chroma-primary, var(--default));
-    --button-fg: var(--chroma-primary-foreground, var(--default-foreground));
+    --chroma-button: var(--chroma-primary, var(--default));
+    --chroma-button-foreground: var(--chroma-primary-foreground, var(--default-foreground));
   }
 
   .button.vitarish-chroma-button--secondary {
-    --button-bg: var(--chroma-secondary, var(--default));
-    --button-fg: var(--chroma-secondary-foreground, var(--default-foreground));
+    --chroma-button: var(--chroma-secondary, var(--default));
+    --chroma-button-foreground: var(--chroma-secondary-foreground, var(--default-foreground));
   }
 
   .button.vitarish-chroma-button--tertiary {
-    --button-bg: var(--chroma-tertiary, var(--default));
-    --button-fg: var(--chroma-tertiary-foreground, var(--default-foreground));
+    --chroma-button: var(--chroma-tertiary, var(--default));
+    --chroma-button-foreground: var(--chroma-tertiary-foreground, var(--default-foreground));
   }
 
   .button.vitarish-chroma-button--quaternary {
-    --button-bg: var(--chroma-quaternary, var(--default));
-    --button-fg: var(--chroma-quaternary-foreground, var(--default-foreground));
+    --chroma-button: var(--chroma-quaternary, var(--default));
+    --chroma-button-foreground: var(--chroma-quaternary-foreground, var(--default-foreground));
   }
 
   .button.vitarish-chroma-button--quinary {
-    --button-bg: var(--chroma-quinary, var(--default));
-    --button-fg: var(--chroma-quinary-foreground, var(--default-foreground));
+    --chroma-button: var(--chroma-quinary, var(--default));
+    --chroma-button-foreground: var(--chroma-quinary-foreground, var(--default-foreground));
   }
 
   .button.vitarish-chroma-button--senary {
-    --button-bg: var(--chroma-senary, var(--default));
-    --button-fg: var(--chroma-senary-foreground, var(--default-foreground));
+    --chroma-button: var(--chroma-senary, var(--default));
+    --chroma-button-foreground: var(--chroma-senary-foreground, var(--default-foreground));
   }
 
   .button[class*="vitarish-chroma-button--"] {
+    --button-bg: var(--chroma-button);
+    --button-fg: var(--chroma-button-foreground);
     --button-bg-hover: color-mix(in oklab, var(--button-bg) 88%, var(--button-fg) 12%);
     --button-bg-pressed: var(--button-bg-hover);
     border-color: transparent;
     box-shadow: 0 4px 10px color-mix(in oklab, var(--button-bg) 22%, transparent);
+  }
+
+  /*
+   * The secondary variant keeps HeroUI's neutral fill and colors only the
+   * text, mixed like the chroma chip text so it stays readable in both modes.
+   */
+  .button--secondary[class*="vitarish-chroma-button--"] {
+    --button-bg: var(--default);
+    --button-bg-hover: var(--default-hover);
+    --button-bg-pressed: var(--default-hover);
+    --button-fg: color-mix(in oklab, var(--chroma-button) 80%, var(--foreground) 30%);
+    box-shadow: none;
   }
 
   /*

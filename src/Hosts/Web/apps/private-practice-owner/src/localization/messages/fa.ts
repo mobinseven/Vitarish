@@ -547,6 +547,8 @@ export const faMessages = {
       controlsLabel: "کنترل‌های نوبت‌ها",
       searchPlaceholder: "جستجو بر اساس نام بیمار، خدمت یا شناسه...",
       datePickerLabel: "تاریخ نوبت",
+      today: "امروز",
+      backToToday: "برگشت به امروز",
       openDatePicker: "باز کردن انتخابگر تاریخ",
       previousMonth: "ماه قبل",
       nextMonth: "ماه بعد",

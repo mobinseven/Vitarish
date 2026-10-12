@@ -11,8 +11,26 @@
   box-shadow: var(--surface-shadow);
 }
 
+/* The controls read as one toolbar band above the table. */
 .header {
-  background: var(--surface);
+  background: var(--surface-secondary);
+}
+
+/*
+ * A control whose state narrows the list (active filters, a non-default sort,
+ * a day other than today) takes the soft accent (docs/hosts/web/color-roles.md).
+ */
+.activeControl {
+  --button-bg: var(--accent-soft);
+  --button-bg-hover: var(--accent-soft-hover);
+  --button-bg-pressed: var(--accent-soft-hover);
+  --button-fg: var(--accent-soft-foreground);
+  border-color: transparent;
+}
+
+.offTodayDate {
+  background-color: var(--accent-soft);
+  color: var(--accent-soft-foreground);
 }
 
 .headerIcon {

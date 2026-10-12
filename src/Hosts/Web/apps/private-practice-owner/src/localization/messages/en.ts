@@ -557,6 +557,8 @@ export const enMessages = {
       controlsLabel: "Appointment controls",
       searchPlaceholder: "Search by patient, service, or identifier...",
       datePickerLabel: "Appointment date",
+      today: "Today",
+      backToToday: "Back to today",
       openDatePicker: "Open date picker",
       previousMonth: "Previous month",
       nextMonth: "Next month",

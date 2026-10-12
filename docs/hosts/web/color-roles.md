@@ -13,9 +13,13 @@ Decision and rationale:
 | Color | Token | Use |
 |---|---|---|
 | Neutral | `surface`, `default`, `foreground`, `muted` | Surfaces, text, header and sidebar icons, avatars, tiles, generic buttons |
-| Accent | `accent` | Current navigation item, focus, and the save button of forms that are not a clinical operation |
+| Accent | `accent` | Current navigation item, focus, the save button of forms that are not a clinical operation, and a control whose state narrows what a list shows (soft accent) |
 | Chroma | `chroma-primary` to `chroma-senary` | Colors a feature package gives a fixed meaning, such as clinical operations and sign-in methods |
 | Status | `success`, `warning`, `danger` | Only where something has that status |
+
+A control whose state narrows what a list shows, such as active filters, a
+non-default sort, or a day other than today, takes the soft accent while that
+state is on, and is neutral otherwise. Its count badge is solid accent.
 
 Each host theme owns the values; change them there, never in feature code.
 A host without chroma tokens falls back to neutral.
@@ -41,6 +45,22 @@ helps users spot it; the color carries no other meaning, and the tag text is
 always shown. Tags are soft chips, mixed as HeroUI mixes its soft status chips
 (15% fill, text in the chip's own hue), so tags and status chips look alike.
 
+Reservation status chips are soft chips colored through
+`reservationStatusChipProps` in `@vitarish/clinic`. Each status a user acts on
+has its own color, so statuses shown together never share one; statuses that
+need no attention stay neutral. Statuses reuse operation chroma colors because
+a soft chip and a filled button are different kinds of element.
+
+| Status | Color |
+|---|---|
+| Pending | `warning` |
+| Confirmed | `success` |
+| Present | `accent` |
+| Completed | `chroma-primary` |
+| Waitlisted | `chroma-tertiary` |
+| Expired | `danger` |
+| Cancelled, rejected | Neutral |
+
 ## Buttons
 
 | Kind | Examples | Color | Class |
@@ -58,6 +78,11 @@ Clinical operations, owned by `@vitarish/clinic`:
 | `procedure` | Procedures, procedure events, procedure templates, surgeries | `chroma-secondary` |
 | `prescription` | Prescriptions | `chroma-tertiary` |
 | `appointment` | Reservations, check-in, shifts, booking setup | `chroma-quinary` |
+
+In dense repeated rows, such as the dashboard visit list, give the operation
+button `variant="secondary"`: it keeps the neutral fill and only the text takes
+the operation's chroma. The dashboard's sort and filter controls likewise use
+`secondary` for accent text.
 
 An operation keeps its color on every page, so repeat visitors find it by
 color on hub pages such as the dashboard and patient profile.
