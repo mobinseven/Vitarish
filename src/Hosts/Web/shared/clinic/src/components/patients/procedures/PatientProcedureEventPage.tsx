@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Card } from "@heroui/react";
+import { useSeaEventCapabilities } from "@vitarish/sea";
 import { ErrorStateSurface, LoadingStateSurface } from "@vitarish/ui";
 import { usePatientProcedureDetail } from "../../../hooks/patients/procedures/usePatientProcedureDetail";
 import { usePatientProcedureEvents } from "../../../hooks/patients/procedures/usePatientProcedureEvents";
@@ -9,6 +10,7 @@ import { useLocalizedText } from "../../../localization";
 import type { ProcedureEventViewer } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 import type { NavigationIntent } from "../../../navigation";
 import { PatientOverviewHeader } from "../overview/PatientOverviewHeader";
+import { PatientProcedureEventAccessPanel } from "./PatientProcedureEventAccessPanel";
 import { PatientProcedureEventDetailPanel } from "./PatientProcedureEventDetailPanel";
 
 export interface PatientProcedureEventPageProps {
@@ -30,6 +32,7 @@ export function PatientProcedureEventPage({
   const patientQuery = usePatientDetail(patientId);
   const procedureQuery = usePatientProcedureDetail(procedureId);
   const eventsQuery = usePatientProcedureEvents(procedureId);
+  const capabilitiesQuery = useSeaEventCapabilities(eventId);
   const returnToProcedure = () =>
     onNavigate({ kind: "patientProcedureDetail", patientId, procedureId });
 
@@ -58,8 +61,6 @@ export function PatientProcedureEventPage({
     );
   }
 
-  const event = events[eventIndex];
-
   return (
     <section className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col gap-6">
       {patientQuery.data ? (
@@ -74,11 +75,16 @@ export function PatientProcedureEventPage({
                 patientId={patientId}
                 eventId={eventId}
                 procedureId={procedureId}
+                procedureName={procedureQuery.data.name}
                 viewer={viewer}
                 onDeleted={returnToProcedure}
               />
             </Card.Content>
           </Card>
+
+          {capabilitiesQuery.data?.isElevated ? (
+            <PatientProcedureEventAccessPanel eventId={eventId} />
+          ) : null}
         </>
       ) : null}
     </section>

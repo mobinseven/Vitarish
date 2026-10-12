@@ -83,21 +83,23 @@ export function RoutineStepEditorPane({
           )}
         />
       </TextField>
-      <Tooltip>
-        <Button
-          isIconOnly
-          aria-label={t("clinic.procedures.templateManagement.pending")}
-          isDisabled={busy}
-          onPress={() => update.mutate({ id: event.id, title, description })}
-        >
-          <PressableFeedback.Ripple />
-          <FaIcon icon="floppy-disk" aria-hidden="true" />
-        </Button>
-        <Tooltip.Content>
-          {t("clinic.procedures.templateManagement.pending")}
-        </Tooltip.Content>
-      </Tooltip>
-      <div className="flex gap-2">
+      <div
+        role="toolbar"
+        aria-label={t("clinic.procedures.templateManagement.stepEditor")}
+        className="flex flex-wrap items-center gap-2"
+      >
+        <Tooltip>
+          <Button
+            isIconOnly
+            aria-label={t("common.actions.save")}
+            isDisabled={busy}
+            onPress={() => update.mutate({ id: event.id, title, description })}
+          >
+            <PressableFeedback.Ripple />
+            <FaIcon icon="floppy-disk" aria-hidden="true" />
+          </Button>
+          <Tooltip.Content>{t("common.actions.save")}</Tooltip.Content>
+        </Tooltip>
         <Tooltip>
           <Button
             isIconOnly
@@ -124,44 +126,45 @@ export function RoutineStepEditorPane({
             {t("clinic.procedures.templateManagement.moveStepDown")}
           </Tooltip.Content>
         </Tooltip>
+        <Tooltip>
+          <Button
+            isIconOnly
+            aria-label={t("clinic.procedures.templateManagement.addStep")}
+            isDisabled={busy}
+            onPress={() =>
+              create.mutate({
+                previousEventId: event.id,
+                data: {
+                  procedureId: event.procedureId,
+                  projectId: event.projectId,
+                  title: t("clinic.procedures.templateManagement.stepTitle"),
+                  description: "",
+                },
+              })
+            }
+          >
+            <FaIcon icon="plus" aria-hidden="true" />
+          </Button>
+          <Tooltip.Content>
+            {t("clinic.procedures.templateManagement.addStep")}
+          </Tooltip.Content>
+        </Tooltip>
+        <Tooltip>
+          <Button
+            isIconOnly
+            className="ms-auto"
+            aria-label={t("clinic.procedures.templateManagement.deleteStep")}
+            variant="danger"
+            isDisabled={busy}
+            onPress={() => setConfirmDelete(true)}
+          >
+            <FaIcon icon="trash" aria-hidden="true" />
+          </Button>
+          <Tooltip.Content>
+            {t("clinic.procedures.templateManagement.deleteStep")}
+          </Tooltip.Content>
+        </Tooltip>
       </div>
-      <Tooltip>
-        <Button
-          isIconOnly
-          aria-label={t("clinic.procedures.templateManagement.addStep")}
-          isDisabled={busy}
-          onPress={() =>
-            create.mutate({
-              previousEventId: event.id,
-              data: {
-                procedureId: event.procedureId,
-                projectId: event.projectId,
-                title: t("clinic.procedures.templateManagement.stepTitle"),
-                description: "",
-              },
-            })
-          }
-        >
-          <FaIcon icon="plus" aria-hidden="true" />
-        </Button>
-        <Tooltip.Content>
-          {t("clinic.procedures.templateManagement.addStep")}
-        </Tooltip.Content>
-      </Tooltip>
-      <Tooltip>
-        <Button
-          isIconOnly
-          aria-label={t("clinic.procedures.templateManagement.deleteStep")}
-          variant="danger"
-          isDisabled={busy}
-          onPress={() => setConfirmDelete(true)}
-        >
-          <FaIcon icon="trash" aria-hidden="true" />
-        </Button>
-        <Tooltip.Content>
-          {t("clinic.procedures.templateManagement.deleteStep")}
-        </Tooltip.Content>
-      </Tooltip>
       {confirmDelete && (
         <TemplateConfirmDialog
           title={t("clinic.procedures.templateManagement.deleteStep")}

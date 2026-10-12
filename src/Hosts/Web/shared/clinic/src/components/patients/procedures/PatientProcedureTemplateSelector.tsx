@@ -163,7 +163,9 @@ export function PatientProcedureTemplateSelector({
                                 </span>
                                 <span className="mt-1 block text-sm text-muted">
                                   {t(
-                                    "clinic.procedures.templates.procedureCount",
+                                    group.procedures.length === 1
+                                      ? "clinic.procedures.templates.procedureCount.one"
+                                      : "clinic.procedures.templates.procedureCount.other",
                                     { count: group.procedures.length },
                                   )}
                                 </span>

@@ -688,6 +688,9 @@ export const faMessages = {
     culture: {
       label: "زبان",
     },
+    settings: {
+      label: "تنظیمات",
+    },
   },
   metadata: {
     root: {

@@ -175,6 +175,7 @@ export function PatientOverviewPage({
                 patientId={patientId}
                 onVisibilityChange={setHasVisits}
                 onNewVisit={openNewVisit}
+                onNavigate={onNavigate}
               />
             </Widget.Content>
           </Widget>
@@ -265,6 +266,7 @@ export function PatientOverviewPage({
                     patientId={patientId}
                     onVisibilityChange={setHasVisits}
                     onNewVisit={openNewVisit}
+                    onNavigate={onNavigate}
                   />
                 </div>
               ) : null}
