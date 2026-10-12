@@ -211,9 +211,16 @@ jobs:
       - name: Generate API clients
         run: npm run generate:api --workspaces --if-present
       - name: Typecheck affected workspace
+        if: ${{ matrix.checks }}
         run: npm run typecheck --workspace @vitarish/${{ matrix.workspace }} --if-present
       - name: Test affected workspace
+        if: ${{ matrix.checks }}
         run: npm run test --workspace @vitarish/${{ matrix.workspace }} --if-present
+      - name: Build affected deployed app
+        if: ${{ matrix.build }}
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+        run: npm run build --workspace @vitarish/${{ matrix.workspace }}
 
   web_shared_tests:
     name: Shared Web typechecks, tests, and boundary checks
