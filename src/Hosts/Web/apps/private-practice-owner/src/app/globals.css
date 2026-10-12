@@ -272,22 +272,22 @@ html[dir="rtl"] body {
 
 :root {
   /*
-   * Chroma colors (docs/hosts/web/color-roles.md), from the palette
-   * https://coolors.co/palette/ff99c8-fec8c3-fcf6bd-d0f4de-a9def9-e4c1f9.
-   * Pastels carry dark text, so one set serves light and dark mode. Each text
-   * color is the background's hue, as light and as chromatic as sRGB allows
-   * while keeping 4.8:1 contrast; the chroma contrast test enforces WCAG AA.
+   * Chroma colors (docs/hosts/web/color-roles.md): deep tones at the accent's
+   * OKLCH lightness, each as chromatic as sRGB allows up to a shared cap, so
+   * they fill buttons as the accent does and none outweighs another. White
+   * text keeps one set readable in light and dark mode; the chroma contrast
+   * test enforces WCAG AA for every pair.
    */
-  --chroma-primary: #a9def9;
-  --chroma-secondary: #fec8c3;
-  --chroma-tertiary: #e4c1f9;
-  --chroma-quaternary: #ff99c8;
-  --chroma-quinary: #d0f4de;
-  --chroma-senary: #fcf6bd;
-  --chroma-primary-foreground: oklch(46% 0.09 231);
-  --chroma-secondary-foreground: oklch(48.5% 0.195 25);
-  --chroma-tertiary-foreground: oklch(47.7% 0.235 313);
-  --chroma-quaternary-foreground: oklch(41.6% 0.17 351);
-  --chroma-quinary-foreground: oklch(49.8% 0.11 159);
-  --chroma-senary-foreground: oklch(52.7% 0.11 103);
+  --chroma-primary: oklch(52% 0.14 250);
+  --chroma-secondary: oklch(52% 0.14 45);
+  --chroma-tertiary: oklch(52% 0.16 300);
+  --chroma-quaternary: oklch(52% 0.16 350);
+  --chroma-quinary: oklch(52% 0.11 160);
+  --chroma-senary: oklch(52% 0.1 85);
+  --chroma-primary-foreground: #ffffff;
+  --chroma-secondary-foreground: #ffffff;
+  --chroma-tertiary-foreground: #ffffff;
+  --chroma-quaternary-foreground: #ffffff;
+  --chroma-quinary-foreground: #ffffff;
+  --chroma-senary-foreground: #ffffff;
 }

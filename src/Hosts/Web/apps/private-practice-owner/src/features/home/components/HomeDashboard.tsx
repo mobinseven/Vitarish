@@ -38,12 +38,6 @@ type SortMode = "time" | "patient";
 type StatusColor = "default" | "danger" | "success" | "warning";
 
 /** A patient avatar carries its reservation's status color, so the row reads at a glance. */
-const statusAvatarClassNames: Record<StatusColor, string> = {
-  default: "bg-surface-secondary text-foreground",
-  danger: "bg-danger-soft text-danger",
-  success: "bg-success-soft text-success",
-  warning: "bg-warning-soft text-warning",
-};
 type FilterOption = { value: string; label: string };
 
 const patientIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -454,8 +448,9 @@ export function HomeDashboard() {
                         key={row.reservationId}
                       >
                         <div className="flex min-w-0 items-center gap-3">
-                          <span className={`${statusAvatarClassNames[status.color]} grid size-10 shrink-0 place-items-center rounded-full text-sm font-semibold`}>
-                            {getInitials(patientLabel)}
+                          {/* An icon, not initials: two letters of a name can spell an unintended word. */}
+                          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-secondary text-muted" aria-hidden="true">
+                            <FaIcon icon="user" />
                           </span>
                           <div className="flex min-w-0 flex-col gap-1">
                             <p className="truncate text-sm font-semibold text-foreground">{patientLabel}</p>
@@ -564,17 +559,6 @@ function getServiceLabel(
     if (service === "Follow-up visit") return t("home.dashboard.followUpVisit");
   }
   return service;
-}
-
-function getInitials(label: string) {
-  const initials = label
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("");
-
-  return initials || "—";
 }
 
 function getStatusMeta(

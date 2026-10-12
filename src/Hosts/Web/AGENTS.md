@@ -8,6 +8,11 @@
 - **[MUST]** Follow the [Web color
   convention](../../../docs/hosts/web/color-roles.md) for every color in
   feature code.
+- **[MUST]** Elements of the same kind share one look whatever their source
+  or meaning: every soft chip (status, tag, chroma) uses HeroUI's soft recipe
+  (15% fill, text in the chip's own hue), and every filled button follows the
+  accent button. A new colored variant reuses the existing recipe; do not
+  write a parallel one.
 
 ## Surface conventions
 
