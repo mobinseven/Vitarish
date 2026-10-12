@@ -24,6 +24,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   clinicOperationButtonClassName,
+  patientTagClassName,
   useClinicListDashboardAppointments,
   type PatientQuickAction,
 } from "@vitarish/clinic";
@@ -456,8 +457,19 @@ export function HomeDashboard() {
                           <span className={`${statusAvatarClassNames[status.color]} grid size-10 shrink-0 place-items-center rounded-full text-sm font-semibold`}>
                             {getInitials(patientLabel)}
                           </span>
-                          <div className="min-w-0">
+                          <div className="flex min-w-0 flex-col gap-1">
                             <p className="truncate text-sm font-semibold text-foreground">{patientLabel}</p>
+                            {row.patientTags.length > 0 ? (
+                              <ul aria-label={t("home.dashboard.patientTagsLabel")} className="flex flex-wrap gap-1">
+                                {row.patientTags.map((tag) => (
+                                  <li key={tag}>
+                                    <Chip className={patientTagClassName(tag)} size="sm">
+                                      <Chip.Label>{tag}</Chip.Label>
+                                    </Chip>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : null}
                           </div>
                         </div>
                         <div className="min-w-0">

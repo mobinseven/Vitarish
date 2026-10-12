@@ -1,4 +1,4 @@
-import { chromaButtonClassName, type ChromaColor } from "@vitarish/ui";
+import { chromaButtonClassName, type ChromaColor } from "@vitarish/ui/chroma";
 
 /**
  * The clinical operations users start from hub pages. Each keeps one chroma
@@ -9,7 +9,7 @@ const clinicOperationColors = {
   visit: "primary",
   procedure: "secondary",
   prescription: "tertiary",
-  appointment: "quaternary",
+  appointment: "quinary",
 } as const satisfies Record<string, ChromaColor>;
 
 export type ClinicOperation = keyof typeof clinicOperationColors;

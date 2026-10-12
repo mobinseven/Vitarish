@@ -3053,7 +3053,8 @@
           "date",
           "startTime",
           "timeZone",
-          "status"
+          "status",
+          "patientTags"
         ],
         "type": "object",
         "properties": {
@@ -3105,6 +3106,12 @@
           },
           "status": {
             "$ref": "#/components/schemas/ReservationStatus"
+          },
+          "patientTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

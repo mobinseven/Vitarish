@@ -146,7 +146,7 @@ public static class ClinicApiEndpointMapping
         => Results.Ok((await toolchain.GetUpcomingAsync(cancellationToken)).Select(ToContract).ToArray());
 
     private static Task<IResult> ListDashboardAppointmentsAsync([AsParameters] DashboardDateRangeRequest request, [FromServices] IClinicDashboardQueries queries, CancellationToken cancellationToken)
-        => ListDashboardAsync(request, queries.ListAppointmentsAsync, values => values.Select(value => new DashboardAppointmentResponse(value.ReservationId, value.PatientId, value.PatientDisplayName, value.ServiceId, value.ServiceDisplayName, value.Date, value.StartTime, value.TimeZone, (Vitarish.Appointments.Contracts.Enums.ReservationStatus)value.Status)).ToArray(), cancellationToken);
+        => ListDashboardAsync(request, queries.ListAppointmentsAsync, values => values.Select(value => new DashboardAppointmentResponse(value.ReservationId, value.PatientId, value.PatientDisplayName, value.ServiceId, value.ServiceDisplayName, value.Date, value.StartTime, value.TimeZone, (Vitarish.Appointments.Contracts.Enums.ReservationStatus)value.Status, value.PatientTags)).ToArray(), cancellationToken);
 
     private static Task<IResult> ListDashboardSurgeriesAsync([AsParameters] DashboardDateRangeRequest request, [FromServices] IClinicDashboardQueries queries, CancellationToken cancellationToken)
         => ListDashboardAsync(request, queries.ListSurgeriesAsync, values => values.Select(value => new DashboardSurgeryResponse(value.SurgeryId, value.PatientId, value.PatientDisplayName, value.SurgeryName, value.Status, value.ScheduledAt)).ToArray(), cancellationToken);

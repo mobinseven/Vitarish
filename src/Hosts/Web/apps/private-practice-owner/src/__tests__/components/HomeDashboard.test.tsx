@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import { parseDate } from "@internationalized/date";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithLocalization } from "../localization/renderWithLocalization";
@@ -37,6 +37,7 @@ describe("HomeDashboard", () => {
           serviceDisplayName: "Consultation",
           startTime: "09:30:00",
           timeZone: "UTC",
+          patientTags: ["VIP", "Diabetes"],
         },
       ],
       isLoading: false,
@@ -53,6 +54,8 @@ describe("HomeDashboard", () => {
     expect(screen.getAllByRole("button", { name: "New prescription", hidden: true })).toHaveLength(1);
     expect(screen.getAllByRole("button", { name: "New note", hidden: true })).toHaveLength(1);
     expect(screen.getByText("Confirmed")).toBeInTheDocument();
+    const tags = screen.getByRole("list", { name: "Patient tags" });
+    expect(within(tags).getAllByRole("listitem").map((item) => item.textContent)).toEqual(["VIP", "Diabetes"]);
     expect(screen.queryByText("Time")).not.toBeInTheDocument();
     expect(screen.queryByText("Schedule is current")).not.toBeInTheDocument();
 
@@ -122,6 +125,7 @@ describe("HomeDashboard", () => {
           serviceDisplayName: "Consultation",
           startTime: "09:30:00",
           timeZone: "UTC",
+          patientTags: [],
         },
         {
           reservationId: "reservation-pending",
@@ -133,6 +137,7 @@ describe("HomeDashboard", () => {
           serviceDisplayName: "Follow-up visit",
           startTime: "10:30:00",
           timeZone: "UTC",
+          patientTags: [],
         },
         {
           reservationId: "reservation-completed",
@@ -144,6 +149,7 @@ describe("HomeDashboard", () => {
           serviceDisplayName: "Follow-up visit",
           startTime: "11:30:00",
           timeZone: "UTC",
+          patientTags: [],
         },
       ],
       isLoading: false,

@@ -564,6 +564,7 @@ export const faMessages = {
       patientIdUnavailable: "شناسه بیمار ثبت نشده",
       patientRecord: "پرونده بیمار",
       serviceUnavailable: "خدمت ثبت نشده",
+      patientTagsLabel: "برچسب‌های بیمار",
       initialConsultation: "ویزیت اولیه",
       followUpVisit: "ویزیت پیگیری",
       unknownStatus: "وضعیت نامشخص",

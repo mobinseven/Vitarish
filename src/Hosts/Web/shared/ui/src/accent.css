@@ -95,6 +95,37 @@
     box-shadow: 0 4px 10px color-mix(in oklab, var(--button-bg) 22%, transparent);
   }
 
+  /* Chroma chips: a chip takes a host chroma color. Applied through chromaChipClassName(). */
+  .chip.vitarish-chroma-chip--primary {
+    --chip-bg: var(--chroma-primary, var(--default));
+    --chip-fg: var(--chroma-primary-foreground, var(--default-foreground));
+  }
+
+  .chip.vitarish-chroma-chip--secondary {
+    --chip-bg: var(--chroma-secondary, var(--default));
+    --chip-fg: var(--chroma-secondary-foreground, var(--default-foreground));
+  }
+
+  .chip.vitarish-chroma-chip--tertiary {
+    --chip-bg: var(--chroma-tertiary, var(--default));
+    --chip-fg: var(--chroma-tertiary-foreground, var(--default-foreground));
+  }
+
+  .chip.vitarish-chroma-chip--quaternary {
+    --chip-bg: var(--chroma-quaternary, var(--default));
+    --chip-fg: var(--chroma-quaternary-foreground, var(--default-foreground));
+  }
+
+  .chip.vitarish-chroma-chip--quinary {
+    --chip-bg: var(--chroma-quinary, var(--default));
+    --chip-fg: var(--chroma-quinary-foreground, var(--default-foreground));
+  }
+
+  .chip.vitarish-chroma-chip--senary {
+    --chip-bg: var(--chroma-senary, var(--default));
+    --chip-fg: var(--chroma-senary-foreground, var(--default-foreground));
+  }
+
   /* Destructive buttons. Applied through removeButtonClassName from @vitarish/ui. */
   .button.vitarish-remove-button {
     --button-bg: var(--danger-soft);

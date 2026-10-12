@@ -1,11 +1,13 @@
 "use client";
 
+import { Chip } from "@heroui/react";
 import { ItemCard, PressableFeedback } from "@heroui-pro/react";
 import { FaIcon } from "@vitarish/ui";
 import type {
   PatientSortBy,
   PatientViewDto,
 } from "../../../models/patients/patientSearchModels";
+import { patientTagClassName } from "../tags/patientTagColor";
 import { useLocalizedText, formatDate } from "../../../localization/index";
 
 interface PatientRowProps {
@@ -66,9 +68,9 @@ export function PatientRow({
         {patient.tags?.length ? (
           <div className="mt-2 flex flex-wrap gap-1">
             {patient.tags.map((tag) => (
-              <span key={tag} className="rounded-full bg-surface-secondary px-2 py-0.5 text-xs text-muted">
+              <Chip key={tag} className={patientTagClassName(tag)} size="sm">
                 {tag}
-              </span>
+              </Chip>
             ))}
           </div>
         ) : null}

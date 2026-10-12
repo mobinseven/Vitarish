@@ -3,130 +3,130 @@ name: "Private Practice App"
 colors:
   dark:
     backdrop: "rgba(0, 0, 0, 0.6)"
-    background: "#040606"
+    background: "#060606"
     foreground: "#FCFCFC"
-    muted: "#96A3A0"
-    overlay: "#111B19"
-    surface: "#111B19"
-    surface-secondary: "#1E2524"
-    surface-tertiary: "#212927"
-    accent: "#00BBA7"
-    accent-foreground: "#FFFFFF"
-    accent-hover: "#40C2B0"
-    accent-soft: "rgba(0, 187, 167, 0.12)"
-    accent-soft-foreground: "#70CDBE"
-    danger: "#DB3654"
-    success: "#00D492"
-    warning: "#FFB155"
-    border: "#252A29"
-    default: "#242928"
-    focus: "#00BBA7"
+    muted: "#A0A0A0"
+    overlay: "#181818"
+    surface: "#181818"
+    surface-secondary: "#232323"
+    surface-tertiary: "#272727"
+    accent: "#C6005C"
+    accent-foreground: "#FCFCFC"
+    accent-hover: "#CF356B"
+    accent-soft: "rgba(198, 0, 92, 0.12)"
+    accent-soft-foreground: "#DD6385"
+    danger: "#D13B85"
+    success: "#009966"
+    warning: "#E17100"
+    border: "#292929"
+    default: "#272727"
+    focus: "#C6005C"
     link: "#FCFCFC"
-    scrollbar: "#9BA1A0"
-    segment: "#434847"
-    separator: "#1E2322"
-    field-background: "#111B19"
-    field-background-hover: "#151F1D"
-    field-border: "#252A29"
-    field-border-focus: "#505453"
-    field-border-hover: "#383C3B"
+    scrollbar: "#A0A0A0"
+    segment: "#474747"
+    separator: "#222222"
+    field-background: "#181818"
+    field-background-hover: "#1C1C1C"
+    field-border: "#292929"
+    field-border-focus: "#535353"
+    field-border-hover: "#3B3B3B"
     field-foreground: "#FCFCFC"
-    field-placeholder: "#96A3A0"
+    field-placeholder: "#A0A0A0"
     black: "#000000"
-    chart-1: "#007060"
-    chart-2: "#009583"
-    chart-3: "#00BBA7"
-    chart-4: "#4FE2CD"
-    chart-5: "#7EFFF4"
+    chart-1: "#70001E"
+    chart-2: "#9B003C"
+    chart-3: "#C6005C"
+    chart-4: "#F2437F"
+    chart-5: "#FF6DA3"
     eclipse: "#18181B"
     snow: "#FCFCFC"
     white: "#FFFFFF"
-    accent-soft-hover: "rgba(0, 187, 167, 0.16)"
+    accent-soft-hover: "rgba(198, 0, 92, 0.16)"
     background-inverse: "#FCFCFC"
-    background-secondary: "#090D0D"
-    background-tertiary: "#111414"
-    border-secondary: "rgba(136, 136, 136, 0.5)"
-    border-tertiary: "rgba(136, 136, 136, 0.5)"
+    background-secondary: "#0D0D0D"
+    background-tertiary: "#141414"
+    border-secondary: "#434343"
+    border-tertiary: "#5C5C5C"
     danger-foreground: "#FCFCFC"
-    danger-hover: "#E15064"
-    danger-soft: "rgba(219, 54, 84, 0.15)"
-    danger-soft-foreground: "#EB7580"
-    danger-soft-hover: "rgba(219, 54, 84, 0.2)"
+    danger-hover: "#D85390"
+    danger-soft: "rgba(209, 59, 133, 0.15)"
+    danger-soft-foreground: "#E376A4"
+    danger-soft-hover: "rgba(209, 59, 133, 0.2)"
     default-foreground: "#FCFCFC"
-    default-hover: "#2B302F"
-    default-soft: "rgba(36, 41, 40, 0.5)"
+    default-hover: "#2E2E2E"
+    default-soft: "rgba(39, 39, 39, 0.5)"
     default-soft-foreground: "#FCFCFC"
-    default-soft-hover: "rgba(36, 41, 40, 0.6)"
-    field-focus: "#111B19"
+    default-soft-hover: "rgba(39, 39, 39, 0.6)"
+    field-focus: "#181818"
     overlay-foreground: "#FCFCFC"
     segment-foreground: "#FCFCFC"
-    separator-secondary: "#2E3735"
-    separator-tertiary: "#363F3D"
-    success-foreground: "#FFFFFF"
-    success-hover: "#45D99D"
-    success-soft: "rgba(0, 212, 146, 0.12)"
-    success-soft-foreground: "#75E0AF"
-    success-soft-hover: "rgba(0, 212, 146, 0.16)"
+    separator-secondary: "#343434"
+    separator-tertiary: "#3C3C3C"
+    success-foreground: "#FCFCFC"
+    success-hover: "#37A374"
+    success-soft: "rgba(0, 153, 102, 0.12)"
+    success-soft-foreground: "#65B48D"
+    success-soft-hover: "rgba(0, 153, 102, 0.16)"
     surface-foreground: "#FCFCFC"
-    surface-hover: "#202A28"
+    surface-hover: "#272727"
     surface-secondary-foreground: "#FCFCFC"
     surface-tertiary-foreground: "#FCFCFC"
-    warning-foreground: "#FFFFFF"
-    warning-hover: "#FFB96A"
-    warning-soft: "rgba(255, 177, 85, 0.12)"
-    warning-soft-foreground: "#FFC689"
-    warning-soft-hover: "rgba(255, 177, 85, 0.16)"
+    warning-foreground: "#FCFCFC"
+    warning-hover: "#E58035"
+    warning-soft: "rgba(225, 113, 0, 0.12)"
+    warning-soft-foreground: "#EC9962"
+    warning-soft-hover: "rgba(225, 113, 0, 0.16)"
   light:
     backdrop: "rgba(0, 0, 0, 0.5)"
-    background: "#F7F6F2"
+    background: "#FCFCFC"
     foreground: "#18181B"
-    muted: "#697573"
+    muted: "#727272"
     overlay: "#FFFFFF"
     surface: "#FFFFFF"
-    surface-secondary: "#E8F2F0"
-    surface-tertiary: "#E3EDEB"
-    accent: "#00BBA7"
-    accent-foreground: "#FFFFFF"
-    accent-hover: "#40C2B0"
-    accent-soft: "rgba(0, 187, 167, 0.15)"
-    accent-soft-foreground: "#258579"
-    danger: "#FF3159"
-    success: "#00D492"
-    warning: "#FE9E32"
-    border: "#00BBA7"
+    surface-secondary: "#EFEFEF"
+    surface-tertiary: "#EAEAEA"
+    accent: "#C6005C"
+    accent-foreground: "#FCFCFC"
+    accent-hover: "#CF356B"
+    accent-soft: "rgba(198, 0, 92, 0.15)"
+    accent-soft-foreground: "#8F1E47"
+    danger: "#E7000B"
+    success: "#009966"
+    warning: "#E17100"
+    border: "#DEDEDE"
     default: "#FFFFFF"
-    focus: "#00BBA7"
+    focus: "#C6005C"
     link: "#18181B"
-    scrollbar: "#CFD6D5"
+    scrollbar: "#D4D4D4"
     segment: "#FFFFFF"
-    separator: "#DFE6E5"
+    separator: "#E4E4E4"
     field-background: "#FFFFFF"
     field-background-hover: "#F9F9F9"
-    field-border: "#D9E0DE"
-    field-border-focus: "#A8ADAC"
-    field-border-hover: "#C3C9C8"
+    field-border: "#DEDEDE"
+    field-border-focus: "#ABABAC"
+    field-border-hover: "#C7C7C8"
     field-foreground: "#18181B"
-    field-placeholder: "#697573"
+    field-placeholder: "#727272"
     black: "#000000"
-    chart-1: "#007060"
-    chart-2: "#009583"
-    chart-3: "#00BBA7"
-    chart-4: "#4FE2CD"
-    chart-5: "#7EFFF4"
+    chart-1: "#70001E"
+    chart-2: "#9B003C"
+    chart-3: "#C6005C"
+    chart-4: "#F2437F"
+    chart-5: "#FF6DA3"
     eclipse: "#18181B"
     snow: "#FCFCFC"
     white: "#FFFFFF"
-    accent-soft-hover: "rgba(0, 187, 167, 0.2)"
+    accent-soft-hover: "rgba(198, 0, 92, 0.2)"
     background-inverse: "#18181B"
-    background-secondary: "#EDECE8"
-    background-tertiary: "#E3E2DF"
-    border-secondary: "rgba(136, 136, 136, 0.5)"
-    border-tertiary: "rgba(136, 136, 136, 0.5)"
+    background-secondary: "#F2F2F2"
+    background-tertiary: "#E7E7E8"
+    border-secondary: "#C6C6C7"
+    border-tertiary: "#A8A8A9"
     danger-foreground: "#FCFCFC"
-    danger-hover: "#FF5169"
-    danger-soft: "rgba(255, 49, 89, 0.15)"
-    danger-soft-foreground: "#A53242"
-    danger-soft-hover: "rgba(255, 49, 89, 0.2)"
+    danger-hover: "#ED3C31"
+    danger-soft: "rgba(231, 0, 11, 0.15)"
+    danger-soft-foreground: "#97241F"
+    danger-soft-hover: "rgba(231, 0, 11, 0.2)"
     default-foreground: "#18181B"
     default-hover: "#F4F4F5"
     default-soft: "rgba(255, 255, 255, 0.5)"
@@ -137,113 +137,113 @@ colors:
     segment-foreground: "#18181B"
     separator-secondary: "#D8D8D8"
     separator-tertiary: "#CDCDCE"
-    success-foreground: "#FFFFFF"
-    success-hover: "#45D99D"
-    success-soft: "rgba(0, 212, 146, 0.15)"
-    success-soft-foreground: "#2A7D5C"
-    success-soft-hover: "rgba(0, 212, 146, 0.2)"
+    success-foreground: "#FCFCFC"
+    success-hover: "#37A374"
+    success-soft: "rgba(0, 153, 102, 0.15)"
+    success-soft-foreground: "#225E45"
+    success-soft-hover: "rgba(0, 153, 102, 0.2)"
     surface-foreground: "#18181B"
     surface-hover: "#EAEAEA"
     surface-secondary-foreground: "#18181B"
     surface-tertiary-foreground: "#18181B"
-    warning-foreground: "#FFFFFF"
-    warning-hover: "#FFA850"
-    warning-soft: "rgba(254, 158, 50, 0.15)"
-    warning-soft-foreground: "#8A5C31"
-    warning-soft-hover: "rgba(254, 158, 50, 0.2)"
+    warning-foreground: "#FCFCFC"
+    warning-hover: "#E58035"
+    warning-soft: "rgba(225, 113, 0, 0.15)"
+    warning-soft-foreground: "#7C4724"
+    warning-soft-hover: "rgba(225, 113, 0, 0.2)"
 typography:
   xs:
     fontFamily: "Inter"
-    fontSize: "13px"
+    fontSize: "12px"
     lineHeight: "16px"
   sm:
     fontFamily: "Inter"
-    fontSize: "15px"
+    fontSize: "14px"
     lineHeight: "20px"
   base:
     fontFamily: "Inter"
-    fontSize: "17px"
+    fontSize: "16px"
     lineHeight: "24px"
   lg:
     fontFamily: "Inter"
-    fontSize: "19px"
+    fontSize: "18px"
     lineHeight: "28px"
   xl:
     fontFamily: "Inter"
-    fontSize: "22px"
+    fontSize: "20px"
     lineHeight: "28px"
   2xl:
     fontFamily: "Inter"
-    fontSize: "25px"
+    fontSize: "24px"
     lineHeight: "32px"
   3xl:
     fontFamily: "Inter"
-    fontSize: "31px"
+    fontSize: "30px"
     lineHeight: "36px"
   4xl:
     fontFamily: "Inter"
-    fontSize: "38px"
+    fontSize: "36px"
     lineHeight: "40px"
   5xl:
     fontFamily: "Inter"
-    fontSize: "50px"
-    lineHeight: "50px"
+    fontSize: "48px"
+    lineHeight: "48px"
   6xl:
     fontFamily: "Inter"
-    fontSize: "62px"
-    lineHeight: "62px"
+    fontSize: "60px"
+    lineHeight: "60px"
   7xl:
     fontFamily: "Inter"
-    fontSize: "76px"
-    lineHeight: "76px"
+    fontSize: "72px"
+    lineHeight: "72px"
   8xl:
     fontFamily: "Inter"
-    fontSize: "102px"
-    lineHeight: "102px"
+    fontSize: "96px"
+    lineHeight: "96px"
   9xl:
     fontFamily: "Inter"
-    fontSize: "136px"
-    lineHeight: "136px"
+    fontSize: "128px"
+    lineHeight: "128px"
 spacing:
-  base: "4.25px"
+  base: "4px"
   fieldBorderWidth: "0px"
 rounded:
-  field: "4px"
-  radius: "4px"
+  field: "12px"
+  radius: "8px"
 elevation:
   field: "0 2px 4px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.06), 0 0 1px 0 rgba(0, 0, 0, 0.06)"
-  overlay: "none"
+  overlay: "0 1px 4px 0 rgba(0, 0, 0, 0.04), 0 -2px 6px 0 rgba(0, 0, 0, 0.02), 0 6px 14px 0 rgba(0, 0, 0, 0.05)"
   surface: "none"
 components:
   button-danger:
-    backgroundColor: "#FF3159"
+    backgroundColor: "#E7000B"
     component: "Button variant=\"danger\""
     textColor: "#FCFCFC"
   button-primary:
-    backgroundColor: "#00BBA7"
+    backgroundColor: "#C6005C"
     component: "Button variant=\"primary\""
-    textColor: "#FFFFFF"
+    textColor: "#FCFCFC"
   card:
     backgroundColor: "#FFFFFF"
     component: "Card"
     shadow: "none"
   chart:
-    series1: "#007060"
-    series2: "#009583"
-    series3: "#00BBA7"
-    series4: "#4FE2CD"
-    series5: "#7EFFF4"
+    series1: "#70001E"
+    series2: "#9B003C"
+    series3: "#C6005C"
+    series4: "#F2437F"
+    series5: "#FF6DA3"
   field:
     backgroundColor: "#FFFFFF"
-    borderColor: "#D9E0DE"
+    borderColor: "#DEDEDE"
     borderWidth: "0px"
-    radius: "4px"
+    radius: "12px"
     shadow: "0 2px 4px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.06), 0 0 1px 0 rgba(0, 0, 0, 0.06)"
     textColor: "#18181B"
   overlay:
     backgroundColor: "#FFFFFF"
     component: "Modal, Popover, Dropdown, Sheet"
-    shadow: "none"
+    shadow: "0 1px 4px 0 rgba(0, 0, 0, 0.04), 0 -2px 6px 0 rgba(0, 0, 0, 0.02), 0 6px 14px 0 rgba(0, 0, 0, 0.05)"
     textColor: "#18181B"
 ---
 
@@ -255,97 +255,97 @@ Use semantic HeroUI tokens and Tailwind utilities in product code. The raw value
 | Token | Light | Dark | Formula / source | HeroUI variable | Tailwind / component equivalent | Purpose |
 | --- | --- | --- | --- | --- | --- | --- |
 | `backdrop` | `rgba(0, 0, 0, 0.5)` | `rgba(0, 0, 0, 0.6)` | `Light: oklch(0% 0 0 / 0.5); Dark: oklch(0% 0 0 / 0.6)` | `--backdrop` | Modal, drawer, and overlay backdrops | Semi-transparent overlay rendered behind modals, drawers, and alert dialogs. |
-| `background` | `#F7F6F2` | `#040606` | `Light: oklch(97.28% 0.0053 95.29); Dark: oklch(11.85% 0.0052 196.58)` | `--background` | `bg-background` | Page-level base canvas. The foundational background of the interface. |
+| `background` | `#FCFCFC` | `#060606` | `Light: = snow; Dark: oklch(12.21% 0.0000 263.28)` | `--background` | `bg-background` | Page-level base canvas. The foundational background of the interface. |
 | `foreground` | `#18181B` | `#FCFCFC` | `Light: = eclipse; Dark: = snow` | `--foreground` | `text-foreground` | Primary text and icon color. Optimized for readability on backgrounds and surfaces. |
-| `muted` | `#697573` | `#96A3A0` | `Light: oklch(55.17% 0.0150 181.63); Dark: oklch(70.50% 0.0150 181.63)` | `--muted` | `text-muted` | Secondary text color for less prominent content like placeholders and captions. |
-| `overlay` | `#FFFFFF` | `#111B19` | `Light: = white; Dark: oklch(21.03% 0.0150 181.63)` | `--overlay` | `bg-overlay text-overlay-foreground` for floating panels | Background for modals, popovers, and floating panels. |
-| `surface` | `#FFFFFF` | `#111B19` | `Light: = white; Dark: oklch(21.03% 0.0150 181.63)` | `--surface` | `bg-surface text-surface-foreground` for cards and panels | Container background for cards, panels, modals, and dropdowns. |
-| `surface-secondary` | `#E8F2F0` | `#1E2524` | `Light: oklch(95.24% 0.0112 181.63); Dark: oklch(25.70% 0.0112 181.63)` | `--surface-secondary` | `bg-surface-secondary` for subdued nested surfaces | Secondary surface for nested containers and layered panels. |
-| `surface-tertiary` | `#E3EDEB` | `#212927` | `Light: oklch(93.73% 0.0112 181.63); Dark: oklch(27.21% 0.0112 181.63)` | `--surface-tertiary` | `bg-surface-tertiary` for low-emphasis nested surfaces | Tertiary surface for deeper nesting levels. |
-| `accent` | `#00BBA7` | `#00BBA7` | `oklch(71.05% 0.1276 181.63)` | `--accent` | `Button variant="primary"` or `bg-accent text-accent-foreground` | Primary brand color. Used for key actions, highlights, and moments of emphasis. |
-| `accent-foreground` | `#FFFFFF` | `#FFFFFF` | `= white` | `--accent-foreground` | `text-accent-foreground` on accent surfaces | Text/icon color on accent backgrounds. Optimized for contrast and readability. |
-| `accent-hover` | `#40C2B0` | `#40C2B0` | `accent / 90% + accent-foreground / 10%` | `--accent-hover` | Prefer HeroUI hover states; use `bg-accent-hover` only for custom surfaces | Accent hover state. Derived automatically from accent and accent-foreground. |
-| `accent-soft` | `rgba(0, 187, 167, 0.15)` | `rgba(0, 187, 167, 0.12)` | `Light: accent / 15% + transparent; Dark: accent / 12% + transparent` | `--accent-soft` | `bg-accent-soft text-accent-soft-foreground` for selected or soft emphasis | Subtle accent background. A low-opacity tint for soft emphasis and selections. |
-| `accent-soft-foreground` | `#258579` | `#70CDBE` | `Light: accent / 70% + foreground / 30%; Dark: accent / 80% + foreground / 30%` | `--accent-soft-foreground` | Prefer the HeroUI token for accent-soft-foreground. | Text color on accent-soft backgrounds. Mixed from accent and foreground for accessible contrast. |
-| `danger` | `#FF3159` | `#DB3654` | `Light: oklch(65.32% 0.2363 17.08); Dark: oklch(59.40% 0.1997 15.97)` | `--danger` | `Button variant="danger"` or `text-danger` for destructive states | Represents destructive, irreversible, or critical actions and states. |
-| `success` | `#00D492` | `#00D492` | `= emerald-400` | `--success` | `text-success` or HeroUI success status components | Communicates positive outcomes, confirmations, and completion states. |
-| `warning` | `#FE9E32` | `#FFB155` | `Light: oklch(78.19% 0.1609 63.67); Dark: oklch(82.03% 0.1409 67.68)` | `--warning` | `text-warning` for caution states | Indicates caution or actions that require attention but are not destructive. |
-| `border` | `#00BBA7` | `#252A29` | `Light: = accent-soft; Dark: oklch(27.97% 0.0073 182.64)` | `--border` | `border-border` | Default border color for containers and interactive elements. |
-| `default` | `#FFFFFF` | `#242928` | `Light: oklch(100.00% 0.0001 263.28); Dark: oklch(27.56% 0.0074 182.63)` | `--default` | `bg-default text-default-foreground` for neutral controls | Neutral interactive background. Used for chips, tags, and secondary controls. |
-| `focus` | `#00BBA7` | `#00BBA7` | `= accent` | `--focus` | Keyboard focus rings | Focus ring color for keyboard navigation indicators. |
+| `muted` | `#727272` | `#A0A0A0` | `Light: oklch(55.17% 0.0000 4.80); Dark: oklch(70.50% 0.0000 4.80)` | `--muted` | `text-muted` | Secondary text color for less prominent content like placeholders and captions. |
+| `overlay` | `#FFFFFF` | `#181818` | `Light: = white; Dark: oklch(21.03% 0.0000 4.80)` | `--overlay` | `bg-overlay text-overlay-foreground` for floating panels | Background for modals, popovers, and floating panels. |
+| `surface` | `#FFFFFF` | `#181818` | `Light: = white; Dark: oklch(21.03% 0.0000 4.80)` | `--surface` | `bg-surface text-surface-foreground` for cards and panels | Container background for cards, panels, modals, and dropdowns. |
+| `surface-secondary` | `#EFEFEF` | `#232323` | `Light: oklch(95.24% 0.0000 4.80); Dark: oklch(25.70% 0.0000 4.80)` | `--surface-secondary` | `bg-surface-secondary` for subdued nested surfaces | Secondary surface for nested containers and layered panels. |
+| `surface-tertiary` | `#EAEAEA` | `#272727` | `Light: oklch(93.73% 0.0000 4.80); Dark: oklch(27.21% 0.0000 4.80)` | `--surface-tertiary` | `bg-surface-tertiary` for low-emphasis nested surfaces | Tertiary surface for deeper nesting levels. |
+| `accent` | `#C6005C` | `#C6005C` | `= pink-700` | `--accent` | `Button variant="primary"` or `bg-accent text-accent-foreground` | Primary brand color. Used for key actions, highlights, and moments of emphasis. |
+| `accent-foreground` | `#FCFCFC` | `#FCFCFC` | `= snow` | `--accent-foreground` | `text-accent-foreground` on accent surfaces | Text/icon color on accent backgrounds. Optimized for contrast and readability. |
+| `accent-hover` | `#CF356B` | `#CF356B` | `accent / 90% + accent-foreground / 10%` | `--accent-hover` | Prefer HeroUI hover states; use `bg-accent-hover` only for custom surfaces | Accent hover state. Derived automatically from accent and accent-foreground. |
+| `accent-soft` | `rgba(198, 0, 92, 0.15)` | `rgba(198, 0, 92, 0.12)` | `Light: accent / 15% + transparent; Dark: accent / 12% + transparent` | `--accent-soft` | `bg-accent-soft text-accent-soft-foreground` for selected or soft emphasis | Subtle accent background. A low-opacity tint for soft emphasis and selections. |
+| `accent-soft-foreground` | `#8F1E47` | `#DD6385` | `Light: accent / 70% + foreground / 30%; Dark: accent / 80% + foreground / 30%` | `--accent-soft-foreground` | Prefer the HeroUI token for accent-soft-foreground. | Text color on accent-soft backgrounds. Mixed from accent and foreground for accessible contrast. |
+| `danger` | `#E7000B` | `#D13B85` | `Light: = red-600; Dark: oklch(59.45% 0.1967 354.70)` | `--danger` | `Button variant="danger"` or `text-danger` for destructive states | Represents destructive, irreversible, or critical actions and states. |
+| `success` | `#009966` | `#009966` | `= emerald-600` | `--success` | `text-success` or HeroUI success status components | Communicates positive outcomes, confirmations, and completion states. |
+| `warning` | `#E17100` | `#E17100` | `= amber-600` | `--warning` | `text-warning` for caution states | Indicates caution or actions that require attention but are not destructive. |
+| `border` | `#DEDEDE` | `#292929` | `Light: oklch(90.00% 0.0000 4.80); Dark: oklch(28.00% 0.0000 4.80)` | `--border` | `border-border` | Default border color for containers and interactive elements. |
+| `default` | `#FFFFFF` | `#272727` | `Light: = white; Dark: oklch(27.27% 0.0000 263.28)` | `--default` | `bg-default text-default-foreground` for neutral controls | Neutral interactive background. Used for chips, tags, and secondary controls. |
+| `focus` | `#C6005C` | `#C6005C` | `= accent` | `--focus` | Keyboard focus rings | Focus ring color for keyboard navigation indicators. |
 | `link` | `#18181B` | `#FCFCFC` | `= foreground` | `--link` | Link text color | Text color for interactive links. |
-| `scrollbar` | `#CFD6D5` | `#9BA1A0` | `Light: oklch(87.10% 0.0075 181.63); Dark: oklch(70.50% 0.0075 181.63)` | `--scrollbar` | Scrollbar thumb color | Scrollbar thumb color. |
-| `segment` | `#FFFFFF` | `#434847` | `Light: = white; Dark: oklch(39.64% 0.0075 181.63)` | `--segment` | Segmented controls | Background for segmented controls. |
-| `separator` | `#DFE6E5` | `#1E2322` | `Light: oklch(92.00% 0.0075 181.63); Dark: oklch(25.00% 0.0075 181.63)` | `--separator` | `border-separator` or HeroUI `Separator` | Divider color for structuring content with subtle boundaries. |
-| `field-background` | `#FFFFFF` | `#111B19` | `Light: = white; Dark: oklch(21.03% 0.0150 181.63)` | `--field-background` | Use HeroUI field components rather than custom backgrounds | Background for text inputs, selects, and interactive fields. |
-| `field-background-hover` | `#F9F9F9` | `#151F1D` | `field-background / 90% + field-foreground / 2%` | `--field-background-hover` | Prefer the HeroUI token for field-background-hover. | Hover state for form field backgrounds. |
-| `field-border` | `#D9E0DE` | `#252A29` | `Light: oklch(90.00% 0.0075 181.63); Dark: oklch(28.00% 0.0075 181.63)` | `--field-border` | Use HeroUI field components or `border-field-border` for custom fields | Border color for form fields. Transparent by default. |
-| `field-border-focus` | `#A8ADAC` | `#505453` | `field-border / 74% + field-foreground / 22%` | `--field-border-focus` | Prefer the HeroUI token for field-border-focus. | Focus state for form field borders. |
-| `field-border-hover` | `#C3C9C8` | `#383C3B` | `field-border / 88% + field-foreground / 10%` | `--field-border-hover` | Prefer the HeroUI token for field-border-hover. | Hover state for form field borders. |
+| `scrollbar` | `#D4D4D4` | `#A0A0A0` | `Light: oklch(87.10% 0.0000 4.80); Dark: oklch(70.50% 0.0000 4.80)` | `--scrollbar` | Scrollbar thumb color | Scrollbar thumb color. |
+| `segment` | `#FFFFFF` | `#474747` | `Light: = white; Dark: oklch(39.64% 0.0000 4.80)` | `--segment` | Segmented controls | Background for segmented controls. |
+| `separator` | `#E4E4E4` | `#222222` | `Light: oklch(92.00% 0.0000 4.80); Dark: oklch(25.00% 0.0000 4.80)` | `--separator` | `border-separator` or HeroUI `Separator` | Divider color for structuring content with subtle boundaries. |
+| `field-background` | `#FFFFFF` | `#181818` | `Light: = white; Dark: oklch(21.03% 0.0000 4.80)` | `--field-background` | Use HeroUI field components rather than custom backgrounds | Background for text inputs, selects, and interactive fields. |
+| `field-background-hover` | `#F9F9F9` | `#1C1C1C` | `field-background / 90% + field-foreground / 2%` | `--field-background-hover` | Prefer the HeroUI token for field-background-hover. | Hover state for form field backgrounds. |
+| `field-border` | `#DEDEDE` | `#292929` | `Light: oklch(90.00% 0.0000 4.80); Dark: oklch(28.00% 0.0000 4.80)` | `--field-border` | Use HeroUI field components or `border-field-border` for custom fields | Border color for form fields. Transparent by default. |
+| `field-border-focus` | `#ABABAC` | `#535353` | `field-border / 74% + field-foreground / 22%` | `--field-border-focus` | Prefer the HeroUI token for field-border-focus. | Focus state for form field borders. |
+| `field-border-hover` | `#C7C7C8` | `#3B3B3B` | `field-border / 88% + field-foreground / 10%` | `--field-border-hover` | Prefer the HeroUI token for field-border-hover. | Hover state for form field borders. |
 | `field-foreground` | `#18181B` | `#FCFCFC` | `var(--foreground)` | `--field-foreground` | Field text color | Text color inside form fields. |
-| `field-placeholder` | `#697573` | `#96A3A0` | `= muted` | `--field-placeholder` | Field placeholder text color | Placeholder text color in form fields. |
+| `field-placeholder` | `#727272` | `#A0A0A0` | `= muted` | `--field-placeholder` | Field placeholder text color | Placeholder text color in form fields. |
 | `black` | `#000000` | `#000000` | `oklch(0% 0 0)` | `--black` | Prefer the HeroUI token for black. | Pure black. Used as a base primitive for dark theme foreground elements. |
-| `chart-1` | `#007060` | `#007060` | `oklch(from var(--accent) calc(l - 0.24) c h)` | `--chart-1` | First chart series color | Chart series color 1. Darkest accent-derived shade for multi-series visualizations. |
-| `chart-2` | `#009583` | `#009583` | `oklch(from var(--accent) calc(l - 0.12) c h)` | `--chart-2` | Second chart series color | Chart series color 2. Mid-dark accent-derived shade. |
-| `chart-3` | `#00BBA7` | `#00BBA7` | `= accent` | `--chart-3` | Primary chart series color, aligned with accent | Chart series color 3. Equal to accent — the brand baseline. |
-| `chart-4` | `#4FE2CD` | `#4FE2CD` | `oklch(from var(--accent) calc(l + 0.12) c h)` | `--chart-4` | Fourth chart series color | Chart series color 4. Mid-light accent-derived tint. |
-| `chart-5` | `#7EFFF4` | `#7EFFF4` | `oklch(from var(--accent) calc(l + 0.24) c h)` | `--chart-5` | Fifth chart series color | Chart series color 5. Lightest accent-derived tint. |
+| `chart-1` | `#70001E` | `#70001E` | `oklch(from var(--accent) calc(l - 0.24) c h)` | `--chart-1` | First chart series color | Chart series color 1. Darkest accent-derived shade for multi-series visualizations. |
+| `chart-2` | `#9B003C` | `#9B003C` | `oklch(from var(--accent) calc(l - 0.12) c h)` | `--chart-2` | Second chart series color | Chart series color 2. Mid-dark accent-derived shade. |
+| `chart-3` | `#C6005C` | `#C6005C` | `= accent` | `--chart-3` | Primary chart series color, aligned with accent | Chart series color 3. Equal to accent — the brand baseline. |
+| `chart-4` | `#F2437F` | `#F2437F` | `oklch(from var(--accent) calc(l + 0.12) c h)` | `--chart-4` | Fourth chart series color | Chart series color 4. Mid-light accent-derived tint. |
+| `chart-5` | `#FF6DA3` | `#FF6DA3` | `oklch(from var(--accent) calc(l + 0.24) c h)` | `--chart-5` | Fifth chart series color | Chart series color 5. Lightest accent-derived tint. |
 | `eclipse` | `#18181B` | `#18181B` | `oklch(21.03% 0.0059 285.89)` | `--eclipse` | Prefer the HeroUI token for eclipse. | Near-black neutral. Slightly softer than pure black for dark surfaces. |
 | `snow` | `#FCFCFC` | `#FCFCFC` | `oklch(99.11% 0 0)` | `--snow` | Prefer the HeroUI token for snow. | Off-white neutral. Slightly softer than pure white for backgrounds. |
 | `white` | `#FFFFFF` | `#FFFFFF` | `oklch(100% 0 0)` | `--white` | Prefer the HeroUI token for white. | Pure white. Used as a base primitive for light theme surfaces and backgrounds. |
-| `accent-soft-hover` | `rgba(0, 187, 167, 0.2)` | `rgba(0, 187, 167, 0.16)` | `Light: accent / 20% + transparent; Dark: accent / 16% + transparent` | `--accent-soft-hover` | Prefer the HeroUI token for accent-soft-hover. | Hover state for accent-soft backgrounds. |
+| `accent-soft-hover` | `rgba(198, 0, 92, 0.2)` | `rgba(198, 0, 92, 0.16)` | `Light: accent / 20% + transparent; Dark: accent / 16% + transparent` | `--accent-soft-hover` | Prefer the HeroUI token for accent-soft-hover. | Hover state for accent-soft backgrounds. |
 | `background-inverse` | `#18181B` | `#FCFCFC` | `= foreground` | `--background-inverse` | Prefer the HeroUI token for background-inverse. | Inverted background, matches the foreground color. |
-| `background-secondary` | `#EDECE8` | `#090D0D` | `background / 96% + foreground / 4%` | `--background-secondary` | Prefer the HeroUI token for background-secondary. | Slightly tinted background for subtle contrast against the base canvas. |
-| `background-tertiary` | `#E3E2DF` | `#111414` | `background / 92% + foreground / 8%` | `--background-tertiary` | Prefer the HeroUI token for background-tertiary. | More prominently tinted background for layered sections. |
-| `border-secondary` | `rgba(136, 136, 136, 0.5)` | `rgba(136, 136, 136, 0.5)` | `separator-secondary / 50% + transparent` | `--border-secondary` | Prefer the HeroUI token for border-secondary. | Medium-contrast border for stronger visual separation. |
-| `border-tertiary` | `rgba(136, 136, 136, 0.5)` | `rgba(136, 136, 136, 0.5)` | `separator-tertiary / 50% + transparent` | `--border-tertiary` | Prefer the HeroUI token for border-tertiary. | High-contrast border for maximum definition. |
+| `background-secondary` | `#F2F2F2` | `#0D0D0D` | `background / 96% + foreground / 4%` | `--background-secondary` | Prefer the HeroUI token for background-secondary. | Slightly tinted background for subtle contrast against the base canvas. |
+| `background-tertiary` | `#E7E7E8` | `#141414` | `background / 92% + foreground / 8%` | `--background-tertiary` | Prefer the HeroUI token for background-tertiary. | More prominently tinted background for layered sections. |
+| `border-secondary` | `#C6C6C7` | `#434343` | `surface / 78% + surface-foreground / 22%` | `--border-secondary` | Prefer the HeroUI token for border-secondary. | Medium-contrast border for stronger visual separation. |
+| `border-tertiary` | `#A8A8A9` | `#5C5C5C` | `surface / 66% + surface-foreground / 34%` | `--border-tertiary` | Prefer the HeroUI token for border-tertiary. | High-contrast border for maximum definition. |
 | `danger-foreground` | `#FCFCFC` | `#FCFCFC` | `= snow` | `--danger-foreground` | Prefer the HeroUI token for danger-foreground. | Text/icon color on danger backgrounds. |
-| `danger-hover` | `#FF5169` | `#E15064` | `danger / 90% + danger-foreground / 10%` | `--danger-hover` | Prefer the HeroUI token for danger-hover. | Hover state for danger backgrounds. |
-| `danger-soft` | `rgba(255, 49, 89, 0.15)` | `rgba(219, 54, 84, 0.15)` | `danger / 15% + transparent` | `--danger-soft` | Prefer the HeroUI token for danger-soft. | Subtle danger background for soft emphasis. |
-| `danger-soft-foreground` | `#A53242` | `#EB7580` | `Light: danger / 70% + foreground / 40%; Dark: danger / 80% + foreground / 30%` | `--danger-soft-foreground` | Prefer the HeroUI token for danger-soft-foreground. | Text color on danger-soft backgrounds. |
-| `danger-soft-hover` | `rgba(255, 49, 89, 0.2)` | `rgba(219, 54, 84, 0.2)` | `danger / 20% + transparent` | `--danger-soft-hover` | Prefer the HeroUI token for danger-soft-hover. | Hover state for danger-soft backgrounds. |
+| `danger-hover` | `#ED3C31` | `#D85390` | `danger / 90% + danger-foreground / 10%` | `--danger-hover` | Prefer the HeroUI token for danger-hover. | Hover state for danger backgrounds. |
+| `danger-soft` | `rgba(231, 0, 11, 0.15)` | `rgba(209, 59, 133, 0.15)` | `danger / 15% + transparent` | `--danger-soft` | Prefer the HeroUI token for danger-soft. | Subtle danger background for soft emphasis. |
+| `danger-soft-foreground` | `#97241F` | `#E376A4` | `Light: danger / 70% + foreground / 40%; Dark: danger / 80% + foreground / 30%` | `--danger-soft-foreground` | Prefer the HeroUI token for danger-soft-foreground. | Text color on danger-soft backgrounds. |
+| `danger-soft-hover` | `rgba(231, 0, 11, 0.2)` | `rgba(209, 59, 133, 0.2)` | `danger / 20% + transparent` | `--danger-soft-hover` | Prefer the HeroUI token for danger-soft-hover. | Hover state for danger-soft backgrounds. |
 | `default-foreground` | `#18181B` | `#FCFCFC` | `Light: = eclipse; Dark: = snow` | `--default-foreground` | Prefer the HeroUI token for default-foreground. | Text/icon color on default backgrounds. |
-| `default-hover` | `#F4F4F5` | `#2B302F` | `default / 96% + default-foreground / 4%` | `--default-hover` | Prefer the HeroUI token for default-hover. | Hover state for default backgrounds. |
-| `default-soft` | `rgba(255, 255, 255, 0.5)` | `rgba(36, 41, 40, 0.5)` | `default / 50% + transparent` | `--default-soft` | Prefer the HeroUI token for default-soft. | Subtle default background for neutral soft emphasis. |
+| `default-hover` | `#F4F4F5` | `#2E2E2E` | `default / 96% + default-foreground / 4%` | `--default-hover` | Prefer the HeroUI token for default-hover. | Hover state for default backgrounds. |
+| `default-soft` | `rgba(255, 255, 255, 0.5)` | `rgba(39, 39, 39, 0.5)` | `default / 50% + transparent` | `--default-soft` | Prefer the HeroUI token for default-soft. | Subtle default background for neutral soft emphasis. |
 | `default-soft-foreground` | `#18181B` | `#FCFCFC` | `= default-foreground` | `--default-soft-foreground` | Prefer the HeroUI token for default-soft-foreground. | Text color on default-soft backgrounds. |
-| `default-soft-hover` | `rgba(255, 255, 255, 0.6)` | `rgba(36, 41, 40, 0.6)` | `default / 60% + transparent` | `--default-soft-hover` | Prefer the HeroUI token for default-soft-hover. | Hover state for default-soft backgrounds. |
-| `field-focus` | `#FFFFFF` | `#111B19` | `= field-background` | `--field-focus` | Prefer the HeroUI token for field-focus. | Background for form fields in focus state. |
+| `default-soft-hover` | `rgba(255, 255, 255, 0.6)` | `rgba(39, 39, 39, 0.6)` | `default / 60% + transparent` | `--default-soft-hover` | Prefer the HeroUI token for default-soft-hover. | Hover state for default-soft backgrounds. |
+| `field-focus` | `#FFFFFF` | `#181818` | `= field-background` | `--field-focus` | Prefer the HeroUI token for field-focus. | Background for form fields in focus state. |
 | `overlay-foreground` | `#18181B` | `#FCFCFC` | `= foreground` | `--overlay-foreground` | Prefer the HeroUI token for overlay-foreground. | Text/icon color on overlay backgrounds. |
 | `segment-foreground` | `#18181B` | `#FCFCFC` | `Light: = eclipse; Dark: = foreground` | `--segment-foreground` | Prefer the HeroUI token for segment-foreground. | Text color on segmented controls. |
-| `separator-secondary` | `#D8D8D8` | `#2E3735` | `surface / 85% + surface-foreground / 15%` | `--separator-secondary` | Prefer the HeroUI token for separator-secondary. | Medium-contrast divider for visible section breaks. |
-| `separator-tertiary` | `#CDCDCE` | `#363F3D` | `surface / 81% + surface-foreground / 19%` | `--separator-tertiary` | Prefer the HeroUI token for separator-tertiary. | High-contrast divider for strong visual separation. |
-| `success-foreground` | `#FFFFFF` | `#FFFFFF` | `= white` | `--success-foreground` | Prefer the HeroUI token for success-foreground. | Text/icon color on success backgrounds. |
-| `success-hover` | `#45D99D` | `#45D99D` | `success / 90% + success-foreground / 10%` | `--success-hover` | Prefer the HeroUI token for success-hover. | Hover state for success backgrounds. |
-| `success-soft` | `rgba(0, 212, 146, 0.15)` | `rgba(0, 212, 146, 0.12)` | `Light: success / 15% + transparent; Dark: success / 12% + transparent` | `--success-soft` | Prefer the HeroUI token for success-soft. | Subtle success background for soft emphasis. |
-| `success-soft-foreground` | `#2A7D5C` | `#75E0AF` | `Light: success / 80% + foreground / 60%; Dark: success / 80% + foreground / 30%` | `--success-soft-foreground` | Prefer the HeroUI token for success-soft-foreground. | Text color on success-soft backgrounds. |
-| `success-soft-hover` | `rgba(0, 212, 146, 0.2)` | `rgba(0, 212, 146, 0.16)` | `Light: success / 20% + transparent; Dark: success / 16% + transparent` | `--success-soft-hover` | Prefer the HeroUI token for success-soft-hover. | Hover state for success-soft backgrounds. |
+| `separator-secondary` | `#D8D8D8` | `#343434` | `surface / 85% + surface-foreground / 15%` | `--separator-secondary` | Prefer the HeroUI token for separator-secondary. | Medium-contrast divider for visible section breaks. |
+| `separator-tertiary` | `#CDCDCE` | `#3C3C3C` | `surface / 81% + surface-foreground / 19%` | `--separator-tertiary` | Prefer the HeroUI token for separator-tertiary. | High-contrast divider for strong visual separation. |
+| `success-foreground` | `#FCFCFC` | `#FCFCFC` | `= snow` | `--success-foreground` | Prefer the HeroUI token for success-foreground. | Text/icon color on success backgrounds. |
+| `success-hover` | `#37A374` | `#37A374` | `success / 90% + success-foreground / 10%` | `--success-hover` | Prefer the HeroUI token for success-hover. | Hover state for success backgrounds. |
+| `success-soft` | `rgba(0, 153, 102, 0.15)` | `rgba(0, 153, 102, 0.12)` | `Light: success / 15% + transparent; Dark: success / 12% + transparent` | `--success-soft` | Prefer the HeroUI token for success-soft. | Subtle success background for soft emphasis. |
+| `success-soft-foreground` | `#225E45` | `#65B48D` | `Light: success / 80% + foreground / 60%; Dark: success / 80% + foreground / 30%` | `--success-soft-foreground` | Prefer the HeroUI token for success-soft-foreground. | Text color on success-soft backgrounds. |
+| `success-soft-hover` | `rgba(0, 153, 102, 0.2)` | `rgba(0, 153, 102, 0.16)` | `Light: success / 20% + transparent; Dark: success / 16% + transparent` | `--success-soft-hover` | Prefer the HeroUI token for success-soft-hover. | Hover state for success-soft backgrounds. |
 | `surface-foreground` | `#18181B` | `#FCFCFC` | `= foreground` | `--surface-foreground` | Prefer the HeroUI token for surface-foreground. | Text/icon color on surface containers. |
-| `surface-hover` | `#EAEAEA` | `#202A28` | `surface / 92% + surface-foreground / 8%` | `--surface-hover` | Prefer the HeroUI token for surface-hover. | Hover state for surface containers. |
+| `surface-hover` | `#EAEAEA` | `#272727` | `surface / 92% + surface-foreground / 8%` | `--surface-hover` | Prefer the HeroUI token for surface-hover. | Hover state for surface containers. |
 | `surface-secondary-foreground` | `#18181B` | `#FCFCFC` | `= foreground` | `--surface-secondary-foreground` | Prefer the HeroUI token for surface-secondary-foreground. | Text color on secondary surfaces. |
 | `surface-tertiary-foreground` | `#18181B` | `#FCFCFC` | `= foreground` | `--surface-tertiary-foreground` | Prefer the HeroUI token for surface-tertiary-foreground. | Text color on tertiary surfaces. |
-| `warning-foreground` | `#FFFFFF` | `#FFFFFF` | `= white` | `--warning-foreground` | Prefer the HeroUI token for warning-foreground. | Text/icon color on warning backgrounds. |
-| `warning-hover` | `#FFA850` | `#FFB96A` | `warning / 90% + warning-foreground / 10%` | `--warning-hover` | Prefer the HeroUI token for warning-hover. | Hover state for warning backgrounds. |
-| `warning-soft` | `rgba(254, 158, 50, 0.15)` | `rgba(255, 177, 85, 0.12)` | `Light: warning / 15% + transparent; Dark: warning / 12% + transparent` | `--warning-soft` | Prefer the HeroUI token for warning-soft. | Subtle warning background for soft emphasis. |
-| `warning-soft-foreground` | `#8A5C31` | `#FFC689` | `Light: warning / 80% + foreground / 70%; Dark: warning / 80% + foreground / 30%` | `--warning-soft-foreground` | Prefer the HeroUI token for warning-soft-foreground. | Text color on warning-soft backgrounds. |
-| `warning-soft-hover` | `rgba(254, 158, 50, 0.2)` | `rgba(255, 177, 85, 0.16)` | `Light: warning / 20% + transparent; Dark: warning / 16% + transparent` | `--warning-soft-hover` | Prefer the HeroUI token for warning-soft-hover. | Hover state for warning-soft backgrounds. |
+| `warning-foreground` | `#FCFCFC` | `#FCFCFC` | `= snow` | `--warning-foreground` | Prefer the HeroUI token for warning-foreground. | Text/icon color on warning backgrounds. |
+| `warning-hover` | `#E58035` | `#E58035` | `warning / 90% + warning-foreground / 10%` | `--warning-hover` | Prefer the HeroUI token for warning-hover. | Hover state for warning backgrounds. |
+| `warning-soft` | `rgba(225, 113, 0, 0.15)` | `rgba(225, 113, 0, 0.12)` | `Light: warning / 15% + transparent; Dark: warning / 12% + transparent` | `--warning-soft` | Prefer the HeroUI token for warning-soft. | Subtle warning background for soft emphasis. |
+| `warning-soft-foreground` | `#7C4724` | `#EC9962` | `Light: warning / 80% + foreground / 70%; Dark: warning / 80% + foreground / 30%` | `--warning-soft-foreground` | Prefer the HeroUI token for warning-soft-foreground. | Text color on warning-soft backgrounds. |
+| `warning-soft-hover` | `rgba(225, 113, 0, 0.2)` | `rgba(225, 113, 0, 0.16)` | `Light: warning / 20% + transparent; Dark: warning / 16% + transparent` | `--warning-soft-hover` | Prefer the HeroUI token for warning-soft-hover. | Hover state for warning-soft backgrounds. |
 
 ## Typography
 Use the generated font and text scale through HeroUI components and Tailwind text utilities. The raw values below are normalized to px for design handoff.
 | Token | Font family | Font size | Line height | HeroUI variable | Tailwind equivalent |
 | --- | --- | --- | --- | --- | --- |
-| `xs` | Inter | `13px` | `16px` | `--text-xs` | `text-xs` |
-| `sm` | Inter | `15px` | `20px` | `--text-sm` | `text-sm` |
-| `base` | Inter | `17px` | `24px` | `--text-base` | `text-base` |
-| `lg` | Inter | `19px` | `28px` | `--text-lg` | `text-lg` |
-| `xl` | Inter | `22px` | `28px` | `--text-xl` | `text-xl` |
-| `2xl` | Inter | `25px` | `32px` | `--text-2xl` | `text-2xl` |
-| `3xl` | Inter | `31px` | `36px` | `--text-3xl` | `text-3xl` |
-| `4xl` | Inter | `38px` | `40px` | `--text-4xl` | `text-4xl` |
-| `5xl` | Inter | `50px` | `50px` | `--text-5xl` | `text-5xl` |
-| `6xl` | Inter | `62px` | `62px` | `--text-6xl` | `text-6xl` |
-| `7xl` | Inter | `76px` | `76px` | `--text-7xl` | `text-7xl` |
-| `8xl` | Inter | `102px` | `102px` | `--text-8xl` | `text-8xl` |
-| `9xl` | Inter | `136px` | `136px` | `--text-9xl` | `text-9xl` |
+| `xs` | Inter | `12px` | `16px` | `--text-xs` | `text-xs` |
+| `sm` | Inter | `14px` | `20px` | `--text-sm` | `text-sm` |
+| `base` | Inter | `16px` | `24px` | `--text-base` | `text-base` |
+| `lg` | Inter | `18px` | `28px` | `--text-lg` | `text-lg` |
+| `xl` | Inter | `20px` | `28px` | `--text-xl` | `text-xl` |
+| `2xl` | Inter | `24px` | `32px` | `--text-2xl` | `text-2xl` |
+| `3xl` | Inter | `30px` | `36px` | `--text-3xl` | `text-3xl` |
+| `4xl` | Inter | `36px` | `40px` | `--text-4xl` | `text-4xl` |
+| `5xl` | Inter | `48px` | `48px` | `--text-5xl` | `text-5xl` |
+| `6xl` | Inter | `60px` | `60px` | `--text-6xl` | `text-6xl` |
+| `7xl` | Inter | `72px` | `72px` | `--text-7xl` | `text-7xl` |
+| `8xl` | Inter | `96px` | `96px` | `--text-8xl` | `text-8xl` |
+| `9xl` | Inter | `128px` | `128px` | `--text-9xl` | `text-9xl` |
 ### Font and Letter Spacing
 
 | Token | Raw value | Formula / source | HeroUI variable | Tailwind / component equivalent | Purpose |
@@ -368,7 +368,7 @@ Layout should use Tailwind v4 spacing utilities and HeroUI component structure. 
 
 | Token | Raw value | Formula / source | HeroUI variable | Tailwind / component equivalent | Purpose |
 | --- | --- | --- | --- | --- | --- |
-| `spacing` | `4.25px` |  | `--spacing` | Prefer Tailwind spacing utilities like `gap-4`, `p-6`, `px-8`, and `space-y-4`. | Base spacing unit used by the generated Tailwind spacing scale. |
+| `spacing` | `4px` |  | `--spacing` | Prefer Tailwind spacing utilities like `gap-4`, `p-6`, `px-8`, and `space-y-4`. | Base spacing unit used by the generated Tailwind spacing scale. |
 | `field border width` | `0px` |  | `--border-width-field` | Prefer HeroUI field components; use this only for custom field implementations. | Border width used by form fields and field-like cells. |
 | `field border width alias` | `0px` |  | `--field-border-width` | Prefer `--border-width-field` for new CSS. | Compatibility alias for field border width. |
 
@@ -379,8 +379,8 @@ Depth comes from HeroUI surface and overlay tokens. Prefer built-in component sh
 | Token | Raw value | Formula / source | HeroUI variable | Tailwind / component equivalent | Purpose |
 | --- | --- | --- | --- | --- | --- |
 | `surface shadow` | `none` |  | `--surface-shadow` | Prefer HeroUI surfaces and `shadow-surface`; avoid stacking extra custom shadows. | Elevation shadow for cards and resting surfaces. |
-| `overlay shadow` | `none` |  | `--overlay-shadow` | Prefer HeroUI overlay components and `shadow-overlay`. | Elevation shadow for floating layers such as popovers, menus, modals, and sheets. |
-| `field shadow` | `0 2px 4px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.06), 0 0 1px 0 rgba(0, 0, 0, 0.06)` |  | `--field-shadow` | Prefer HeroUI field components. | Subtle elevation treatment for inputs and field-like controls. |
+| `overlay shadow` | `0 1px 4px 0 rgba(0, 0, 0, 0.04), 0 -2px 6px 0 rgba(0, 0, 0, 0.02), 0 6px 14px 0 rgba(0, 0, 0, 0.05)` |  | `--overlay-shadow` | Prefer HeroUI overlay components and `shadow-overlay`. | Elevation shadow for floating layers such as popovers, menus, modals, and sheets. |
+| `field shadow` | `Light: 0 2px 4px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.06), 0 0 1px 0 rgba(0, 0, 0, 0.06); Dark: 0 0 0 0 transparent inset` |  | `--field-shadow` | Prefer HeroUI field components. | Subtle elevation treatment for inputs and field-like controls. |
 
 ## Shapes
 Use HeroUI's default rounded shape language and Tailwind radius utilities. Custom components should match the same radius scale rather than introducing unrelated corner values.
@@ -388,8 +388,8 @@ Use HeroUI's default rounded shape language and Tailwind radius utilities. Custo
 
 | Token | Raw value | Formula / source | HeroUI variable | Tailwind / component equivalent | Purpose |
 | --- | --- | --- | --- | --- | --- |
-| `radius` | `4px` |  | `--radius` | Prefer Tailwind radius utilities like `rounded-lg`, `rounded-xl`, and `rounded-2xl`. | Global corner radius basis for surfaces, buttons, and container shapes. |
-| `field radius` | `4px` |  | `--field-radius` | Prefer HeroUI field components so this radius is applied automatically. | Corner radius basis for inputs, selects, text areas, and other form controls. |
+| `radius` | `8px` |  | `--radius` | Prefer Tailwind radius utilities like `rounded-lg`, `rounded-xl`, and `rounded-2xl`. | Global corner radius basis for surfaces, buttons, and container shapes. |
+| `field radius` | `12px` |  | `--field-radius` | Prefer HeroUI field components so this radius is applied automatically. | Corner radius basis for inputs, selects, text areas, and other form controls. |
 
 ## Components
 - **Buttons:** Use HeroUI Button semantic variants. Primary actions use `variant="primary"`; alternatives use `secondary`, `tertiary`, `outline`, or `ghost`; destructive actions use `danger` or `danger-soft`.

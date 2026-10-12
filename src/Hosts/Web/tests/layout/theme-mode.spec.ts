@@ -44,14 +44,14 @@ test.describe("private practice owner theme mode", () => {
         paletteClasses: [themePaletteClasses[expected]],
         colorScheme: expected,
         background: expect.any(String),
-        highlight: expect.any(String),
+        foreground: expect.any(String),
       });
       expect(hydrated).toEqual(firstPaint);
       expect(hydrationErrors).toEqual([]);
     });
   }
 
-  test("light and dark resolve to different theme and app palettes", async ({ page }) => {
+  test("light and dark resolve to different background and text colors", async ({ page }) => {
     await seedPreference(page, "light");
     await page.goto(themeModePath, { waitUntil: "networkidle" });
     const light = await readThemeState(page);
@@ -61,7 +61,7 @@ test.describe("private practice owner theme mode", () => {
     const dark = await readThemeState(page);
 
     expect(dark.background).not.toBe(light.background);
-    expect(dark.highlight).not.toBe(light.highlight);
+    expect(dark.foreground).not.toBe(light.foreground);
   });
 
   test("follows a preference change made in another tab without a reload", async ({ page, context }) => {
@@ -120,7 +120,7 @@ async function readThemeState(page: Page) {
         paletteClasses: Object.values(paletteClasses).filter((name) => root.classList.contains(name)),
         colorScheme: style.colorScheme,
         background: style.getPropertyValue("--background").trim(),
-        highlight: style.getPropertyValue("--highlight").trim(),
+        foreground: style.getPropertyValue("--foreground").trim(),
       };
     },
     [themeModeAttribute, themePaletteClasses] as const,

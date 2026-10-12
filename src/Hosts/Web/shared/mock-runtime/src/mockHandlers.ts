@@ -151,6 +151,8 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       const date = new URL(request.url).searchParams.get("dateFrom") ?? "2026-01-01";
       const isPersian = isPersianRequest(request);
       const localizedPatientNames = ["آدا لاولیس", "گریس هاپر", "کاترین جانسون", "ماری کوری"];
+      const patientTags = [["VIP"], [], ["Follow-up", "Diabetes"], ["Allergy"]];
+      const localizedPatientTags = [["ویژه"], [], ["پیگیری", "دیابت"], ["حساسیت"]];
       const schedule = [
         { patient: store.patients[0], startTime: "09:30:00", status: 1 },
         { patient: store.patients[1], startTime: "11:00:00", status: 0 },
@@ -171,6 +173,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
           startTime,
           timeZone: "UTC",
           status,
+          patientTags: (isPersian ? localizedPatientTags : patientTags)[index],
         })),
       );
     }),

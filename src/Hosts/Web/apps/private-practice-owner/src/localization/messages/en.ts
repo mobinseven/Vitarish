@@ -574,6 +574,7 @@ export const enMessages = {
       patientIdUnavailable: "Patient identifier unavailable",
       patientRecord: "Patient record",
       serviceUnavailable: "Service unavailable",
+      patientTagsLabel: "Patient tags",
       initialConsultation: "Initial consultation",
       followUpVisit: "Follow-up visit",
       unknownStatus: "Unknown status",

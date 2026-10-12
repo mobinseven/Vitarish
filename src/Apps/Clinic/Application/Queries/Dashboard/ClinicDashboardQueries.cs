@@ -2,6 +2,7 @@ using Vitarish.Appointments.Application.Abstractions;
 using Vitarish.Appointments.Domain.Dto;
 using Vitarish.Appointments.Domain.Enums;
 using Vitarish.Clinic.Application.Abstractions;
+using Vitarish.Clinic.Domain.Models;
 using Vitarish.Clinic.Domain.Surgery;
 using Vitarish.Entities.Contracts.Models;
 using Vitarish.Entities.Server.Abstractions;
@@ -20,7 +21,7 @@ public sealed record DashboardDateRange(DateOnly DateFrom, DateOnly DateTo, int 
     }
 }
 
-public sealed record DashboardAppointmentReadModel(Guid ReservationId, string? PatientId, string? PatientDisplayName, Guid? ServiceId, string? ServiceDisplayName, DateOnly Date, TimeOnly? StartTime, string? TimeZone, ReservationStatus Status);
+public sealed record DashboardAppointmentReadModel(Guid ReservationId, string? PatientId, string? PatientDisplayName, Guid? ServiceId, string? ServiceDisplayName, DateOnly Date, TimeOnly? StartTime, string? TimeZone, ReservationStatus Status, IReadOnlyList<string> PatientTags);
 public sealed record DashboardSurgeryReadModel(Guid SurgeryId, Guid PatientId, string? PatientDisplayName, string SurgeryName, string Status, DateTimeOffset ScheduledAt);
 
 public interface IClinicDashboardQueries
@@ -49,7 +50,7 @@ public sealed class ClinicDashboardQueries(
 
         Dictionary<Guid, ShiftReadDto?> shiftById = [];
         Dictionary<Guid, ServiceReadDto?> serviceById = [];
-        Dictionary<Guid, string?> patientById = [];
+        Dictionary<Guid, PatientView?> patientById = [];
         List<DashboardAppointmentReadModel> result = [];
         foreach (ReservationReadDto reservation in reservationResult.Value ?? [])
         {
@@ -70,18 +71,18 @@ public sealed class ClinicDashboardQueries(
             }
 
             string? patientId = null;
-            string? patientName = null;
+            PatientView? patient = null;
             if (Guid.TryParse(reservation.ReservingPartyId, out Guid parsedPatientId))
             {
                 patientId = parsedPatientId.ToString();
-                if (!patientById.TryGetValue(parsedPatientId, out patientName))
+                if (!patientById.TryGetValue(parsedPatientId, out patient))
                 {
-                    patientName = (await patients.FindByIdAsync(parsedPatientId, cancellationToken))?.Name;
-                    patientById[parsedPatientId] = patientName;
+                    patient = await patients.FindByIdAsync(parsedPatientId, cancellationToken);
+                    patientById[parsedPatientId] = patient;
                 }
             }
 
-            result.Add(new(reservation.Id, patientId, patientName, shift?.ServiceId, service?.Name, reservation.Date, shift?.StartTime, shift?.TimeZone, reservation.Status));
+            result.Add(new(reservation.Id, patientId, patient?.Name, shift?.ServiceId, service?.Name, reservation.Date, shift?.StartTime, shift?.TimeZone, reservation.Status, patient?.Tags ?? []));
         }
 
         return result
