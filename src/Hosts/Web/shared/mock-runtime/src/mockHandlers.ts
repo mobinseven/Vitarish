@@ -2,6 +2,7 @@ import { HttpResponse, http, type RequestHandler } from "msw";
 import { parseLocaleCookie } from "@vitarish/localization";
 import { createMockStore } from "./mockStore";
 import { isMockAnonymousSession } from "./mockSession";
+import { createSeaMockHandlers } from "./mockSeaHandlers";
 
 export type MockScenario = "ready" | "empty" | "loading" | "error";
 export type MockHandlerFactory = (scenario: MockScenario) => readonly RequestHandler[];
@@ -382,15 +383,7 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       }
       return HttpResponse.json({ succeeded: true, entityId: "mock-appointment-entity" });
     }),
-    http.all(/\/api\/modules\/sea\/.+/, async ({ request }) => {
-      await withDelay();
-      if (activeScenario === "error") return unavailable();
-      if (request.method !== "GET") {
-        const body = await request.json().catch(() => null) as Record<string, unknown> | null;
-        return HttpResponse.json({ ...(body ?? {}), id: typeof body?.id === "string" ? body.id : "mock-sea-entity" }, { status: 201 });
-      }
-      return HttpResponse.json([]);
-    }),
+    ...createSeaMockHandlers({ store, isUnavailable: activeScenario === "error", withDelay, unavailable, notFound }),
     http.post(/\/api\/modules\/medical\/providers\/available(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();
@@ -466,6 +459,12 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       await withDelay();
       if (activeScenario === "error") return unavailable();
       return HttpResponse.json(activeScenario === "empty" ? [] : [{ id: "mock-template", name: "Routine acute visit" }]);
+    }),
+    // No prescriptions have been submitted in the mock practice.
+    http.post(/\/api\/modules\/medical\/prescriptions\/history(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json([]);
     }),
     http.post(/\/api\/modules\/medical\/prescriptions\/[^/]+\/items(?:\?|$)/, async () => {
       await withDelay();

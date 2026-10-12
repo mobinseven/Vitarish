@@ -27,6 +27,9 @@ const pages: ScreenshotPage[] = [
   signedIn("patients", Patients.Index),
   signedIn("patient", Patients.Detail(ids.patient)),
   signedIn("settings-audit", Settings.Audit),
+  signedIn("sea-procedure-templates", Settings.ProcedureTemplates),
+  signedIn("sea-procedure", Patients.Procedure(ids.patient, ids.seaProcedure)),
+  signedIn("sea-procedure-event", Patients.ProcedureEvent(ids.patient, ids.seaProcedure, ids.seaEvent)),
   signedIn("color-legend", colorLegendPath),
 ];
 

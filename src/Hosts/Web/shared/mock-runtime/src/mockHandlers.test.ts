@@ -245,4 +245,22 @@ describe("mock preview handlers", () => {
     await expect(capabilities.json()).resolves.toMatchObject({ available: false, languages: ["en-US", "fa-IR"] });
     await expect(agent.json()).resolves.toMatchObject({ agentRunId: "mock-agent-run", conversationId: "mock-agent-conversation" });
   });
+
+  it("keeps SEA event order and derives procedure progress from its events and items", async () => {
+    const sea = "https://mock.example.test/api/modules/sea";
+    const post = (path: string, body?: unknown) => fetch(`${sea}/${path}`, { method: "POST", body: JSON.stringify(body ?? {}) }).then((response) => response.json());
+    const procedure = await post("procedures", { projectId: "mock-patient-grace", name: "Check-up" });
+    const first = await post("events/after", { projectId: "mock-patient-grace", procedureId: procedure.entityId, title: "Examination" });
+    const second = await post(`events/after/${first.entityId}`, { projectId: "mock-patient-grace", procedureId: procedure.entityId, title: "Cleaning" });
+
+    await post(`events/${first.entityId}/commit`);
+    await post("attachments/text", { eventId: first.entityId, content: "Gums healthy.", contentType: "text/plain", size: 13, kind: 0 });
+
+    const events = await fetch(`${sea}/procedures/${procedure.entityId}/events`).then((response) => response.json());
+    const detail = await fetch(`${sea}/procedures/${procedure.entityId}`).then((response) => response.json());
+    expect(events.map((event: { title: string; previousEventId: string | null; isCommitted: boolean }) => [event.title, event.previousEventId, event.isCommitted]))
+      .toEqual([["Examination", null, true], ["Cleaning", first.entityId, false]]);
+    expect(second).toMatchObject({ succeeded: true });
+    expect(detail.stats).toMatchObject({ events: 2, committedEvents: 1, eventItems: 1, state: "Half" });
+  });
 });
