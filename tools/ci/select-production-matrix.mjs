@@ -48,10 +48,23 @@ export function selectProductionMatrix(eventName, filters, deployedBase = "") {
   ];
   if (filters.compose === true || filters.deploy_script === true) services = [...sharedComposeConsumers];
 
+  // The shared Web job typechecks and tests every workspace, so per-app jobs
+  // then only build. Typechecks and tests miss server/client module boundary
+  // errors that only `next build` reports, so every selected deployed app is
+  // built; a release builds them in its image publish instead.
+  const buildDeployedApps = eventName !== "workflow_dispatch";
+  const web = webTests
+    .map(({ image, workspace, service, deploy }) => ({
+      image,
+      workspace,
+      service,
+      checks: !allWebConsumers,
+      build: buildDeployedApps && deploy !== false,
+    }))
+    .filter(({ checks, build }) => checks || build);
+
   return {
-    // The shared Web job typechecks and tests every workspace, so per-app jobs
-    // would only repeat it.
-    web: allWebConsumers ? [] : webTests.map(({ image, workspace, service }) => ({ image, workspace, service })),
+    web,
     images,
     services,
     full_suite: fullSuite,

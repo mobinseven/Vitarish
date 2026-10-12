@@ -19,6 +19,15 @@ const unknownSourceRules = /^            unknown_source:\r?\n((?:              -
 const deployScriptRules = /^            deploy_script:\r?\n((?:              - .*\r?\n)+)/m.exec(workflow)?.[1]
   ?.trim().split(/\r?\n/).map((line) => line.trim().slice(3).replace(/^'|'$/g, ""));
 
+const deployedWorkspaces = [
+  "agent-runtime", "patients", "platform-admin", "private-practice-owner", "vitarish-landing", "vitarish-pm",
+];
+
+function assertBuildsDeployedAppsOnly(selected) {
+  assert.deepEqual(selected.web.map(({ workspace }) => workspace).sort(), deployedWorkspaces);
+  assert.ok(selected.web.every(({ checks, build }) => checks === false && build === true));
+}
+
 function matchesUnknownSource(path) {
   assert.match(workflow, /^          predicate-quantifier: some-with-excludes$/m);
   assert.ok(unknownSourceRules?.length, "unknown_source filter is missing");
@@ -97,9 +106,12 @@ test("production ingress forwards the Main readiness contract to the private Mai
   assert.match(caddyfile, /https:\/\/\{\$PRODUCTION_PUBLIC_HOST\}\s*\{[^}]*import production_readiness/s);
 });
 
-test("an isolated Web app change selects only that app's tests, image, and service", () => {
+test("an isolated Web app change selects only that app's tests, build, image, and service", () => {
   const selected = selectProductionMatrix("pull_request", { web_owner: true });
-  assert.deepEqual(selected.web.map(({ workspace }) => workspace), ["private-practice-owner"]);
+  assert.deepEqual(selected.web.map(({ workspace, checks, build }) => ({ workspace, checks, build })), [
+    { workspace: "private-practice-owner", checks: true, build: true },
+  ]);
+  assert.match(workflow, /^  web:\r?\n[\s\S]*?- name: Typecheck affected workspace\r?\n        if: \$\{\{ matrix\.checks \}\}[\s\S]*?- name: Test affected workspace\r?\n        if: \$\{\{ matrix\.checks \}\}[\s\S]*?- name: Build affected deployed app\r?\n        if: \$\{\{ matrix\.build \}\}[\s\S]*?run: npm run build --workspace @vitarish\/\$\{\{ matrix\.workspace \}\}\r?\n/m);
   assert.deepEqual(selected.images, ["private-practice-owner"]);
   assert.deepEqual(selected.services, ["private-practice-owner"]);
 });
@@ -123,9 +135,9 @@ test("an authentication-only change selects every consuming app and shared auth"
   assert.equal(selected.images.length, 4);
 });
 
-test("a shared Web change checks every workspace once in the shared Web job", () => {
+test("a shared Web change checks every workspace once and builds every deployed app", () => {
   const selected = selectProductionMatrix("push", { web_all: true });
-  assert.deepEqual(selected.web, []);
+  assertBuildsDeployedAppsOnly(selected);
   assert.match(workflow, /web_shared_tests:\r?\n[\s\S]*?if: \$\{\{ needs\.changes\.outputs\.web_all == 'true' \|\| needs\.changes\.outputs\.unknown_source == 'true' \|\| needs\.changes\.outputs\.full_suite == 'true' \}\}[\s\S]*?run: npm run typecheck\r?\n[\s\S]*?run: npm run test\r?\n/);
   assert.match(workflow, /^  web:\r?\n[\s\S]*?if: \$\{\{ needs\.changes\.outputs\.web_matrix != '\[\]' \}\}/m);
   assert.equal(selected.images.includes("main"), false);
@@ -135,7 +147,7 @@ test("a shared Web change checks every workspace once in the shared Web job", ()
 
 test("an API contract change selects Main and every Web consumer", () => {
   const selected = selectProductionMatrix("pull_request", { dotnet: true, main: true, web_all: true });
-  assert.deepEqual(selected.web, []);
+  assertBuildsDeployedAppsOnly(selected);
   assert.equal(selected.images[0], "main");
   assert.equal(selected.images.length, 7);
 });
@@ -157,7 +169,7 @@ test("a Caddyfile-only change deploys ingress configuration without publishing a
 
 test("an unclassified source change falls back to the broad matrix", () => {
   const selected = selectProductionMatrix("pull_request", { unknown_source: true });
-  assert.deepEqual(selected.web, []);
+  assertBuildsDeployedAppsOnly(selected);
   assert.equal(selected.images.includes("main"), true);
   assert.equal(selected.images.includes("caddy"), true);
   assert.equal(selected.services.length, 8);
@@ -190,7 +202,10 @@ test("a release without a deployed commit selects the full suite and every image
 test("a release selects only the changes since the deployed commit", () => {
   const selected = selectProductionMatrix("workflow_dispatch", { web_owner: true }, "a".repeat(40));
   assert.equal(selected.full_suite, false);
-  assert.deepEqual(selected.web.map(({ workspace }) => workspace), ["private-practice-owner"]);
+  // The release's image publish builds the app, so the check job does not.
+  assert.deepEqual(selected.web.map(({ workspace, checks, build }) => ({ workspace, checks, build })), [
+    { workspace: "private-practice-owner", checks: true, build: false },
+  ]);
   assert.deepEqual(selected.images, ["private-practice-owner"]);
   assert.deepEqual(selected.services, ["private-practice-owner"]);
   assert.deepEqual(selectProductionMatrix("workflow_dispatch", {}, "a".repeat(40)).services, []);
@@ -209,7 +224,9 @@ test("workflow and policy edits run workflow checks without product matrices", (
 
 test("the knowledge QA demo is checked in CI but never published or deployed", () => {
   const selected = selectProductionMatrix("push", { web_qa: true });
-  assert.deepEqual(selected.web.map(({ workspace }) => workspace), ["knowledge-qa-demo"]);
+  assert.deepEqual(selected.web.map(({ workspace, checks, build }) => ({ workspace, checks, build })), [
+    { workspace: "knowledge-qa-demo", checks: true, build: false },
+  ]);
   assert.deepEqual(selected.images, []);
   assert.deepEqual(selected.services, []);
   const broad = selectProductionMatrix("workflow_dispatch", {});
