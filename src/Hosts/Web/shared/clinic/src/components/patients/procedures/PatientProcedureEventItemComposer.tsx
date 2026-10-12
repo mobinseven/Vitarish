@@ -167,6 +167,7 @@ export function PatientProcedureEventItemComposer({
                     </PromptInput.Attachments>
                   ) : null}
                   <PromptInput.TextArea
+                    className="text-base"
                     aria-label={t("clinic.procedures.items.noteLabel")}
                     placeholder={t(
                       "clinic.procedures.items.composerPlaceholder",
@@ -180,7 +181,7 @@ export function PatientProcedureEventItemComposer({
                         <PromptInput.Action
                           {...triggerProps}
                           aria-label={t("clinic.procedures.items.chooseFile")}
-                          tooltip={t("clinic.procedures.items.chooseFile")}
+                          tooltip={`${t("clinic.procedures.items.chooseFile")}. ${t("clinic.procedures.items.oneFile")}`}
                         >
                           <FaIcon
                             icon="paperclip"
@@ -207,13 +208,10 @@ export function PatientProcedureEventItemComposer({
             )}
           />
         </ChatAttachmentInput>
-        <PromptInput.Footer>
-          {t("clinic.procedures.items.oneFile")}
-        </PromptInput.Footer>
       </PromptInput>
       {createNote.isError ? (
         <p
-          className="text-danger mx-auto mt-2 w-full max-w-4xl text-sm"
+          className="text-danger mx-auto mt-2 w-full max-w-4xl text-base"
           role="alert"
         >
           {t("clinic.procedures.items.saveFailed")}
@@ -221,7 +219,7 @@ export function PatientProcedureEventItemComposer({
       ) : null}
       {rejection ? (
         <p
-          className="text-danger mx-auto mt-2 w-full max-w-4xl text-sm"
+          className="text-danger mx-auto mt-2 w-full max-w-4xl text-base"
           role="alert"
         >
           {rejection.reason === "tooLarge"
@@ -244,7 +242,7 @@ export function PatientProcedureEventItemComposer({
       ) : null}
       {(createFile.isError && !rejection) || fileFailed ? (
         <p
-          className="text-danger mx-auto mt-2 w-full max-w-4xl text-sm"
+          className="text-danger mx-auto mt-2 w-full max-w-4xl text-base"
           role="alert"
         >
           {t("clinic.procedures.items.uploadFailed")}

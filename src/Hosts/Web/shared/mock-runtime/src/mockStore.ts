@@ -1,3 +1,4 @@
+import { tenantRoleSuffixes } from "@vitarish/auth/users";
 import { RoleType } from "@vitarish/sea/api/generated/sea/model";
 
 export type MockOwner = { id: string; name: string; description?: string };
@@ -122,6 +123,8 @@ export const mockFixtureIds = {
   seaTemplateProcedure: "mock-sea-template-procedure",
   seaProcedure: "mock-sea-procedure",
   seaEvent: "mock-sea-event",
+  clinician: "mock-user-amini",
+  assistant: "mock-user-karimi",
 } as const;
 
 // SEA records keep the server's read shape minus stats and event order, which the
@@ -135,14 +138,15 @@ export type MockSeaRole = MockSeaTracked & { name: string };
 export type MockSeaEventRole = MockSeaTracked & { eventId: string; roleId: string; type: RoleType };
 
 const mockSeaUser = "mock-user";
-const tracked = (id: string, createdAt: string): MockSeaTracked => ({ id, createdAt, createdBy: mockSeaUser, updatedAt: null, isDeleted: false });
+const tracked = (id: string, createdAt: string, createdBy = mockSeaUser): MockSeaTracked => ({ id, createdAt, createdBy, updatedAt: null, isDeleted: false });
 // A small non-icon illustration so the attachment preview renders without the Files module.
 const mockSeaImage = `data:image/svg+xml;utf8,${encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='320' height='200'><rect width='320' height='200' fill='#1f2937'/><ellipse cx='160' cy='100' rx='110' ry='60' fill='#e5e7eb' opacity='.85'/><rect x='70' y='80' width='180' height='40' rx='16' fill='#9ca3af'/></svg>")}`;
 
 function createMockSeaRecords() {
   const { patient, seaTemplateProject, seaTemplateProcedure, seaProcedure, seaEvent } = mockFixtureIds;
-  const textNote = (id: string, eventId: string, content: string, createdAt: string): MockSeaAttachment => (
-    { ...tracked(id, createdAt), eventId, fileName: null, content, contentType: "text/plain", size: content.length, kind: 0 }
+  const { clinician, assistant } = mockFixtureIds;
+  const textNote = (id: string, eventId: string, content: string, createdAt: string, author = mockSeaUser): MockSeaAttachment => (
+    { ...tracked(id, createdAt, author), eventId, fileName: null, content, contentType: "text/plain", size: content.length, kind: 0 }
   );
   const step = (id: string, procedureId: string, projectId: string, title: string, description: string, createdAt: string, committedAt: string | null = null): MockSeaEvent => (
     { ...tracked(id, createdAt), projectId, procedureId, title, description, committedAt, committedBy: committedAt ? mockSeaUser : "", isCommitted: committedAt !== null }
@@ -169,9 +173,11 @@ function createMockSeaRecords() {
       step("mock-sea-event-fitting", seaProcedure, patient, "Aligner fitting", "Fit the first aligner set and explain wear.", "2026-02-10T10:01:00.000Z"),
     ] as MockSeaEvent[],
     attachments: [
-      textNote("mock-sea-note-1", "mock-sea-event-assessment", "Mild crowding on the lower incisors; no pain reported.", "2026-02-03T09:20:00.000Z"),
-      { ...tracked("mock-sea-file-1", "2026-02-03T09:30:00.000Z"), eventId: "mock-sea-event-assessment", fileName: "bite-photo.svg", content: mockSeaImage, contentType: "image/svg+xml", size: mockSeaImage.length, kind: 1 },
-      textNote("mock-sea-note-2", seaEvent, "Upper arch scanned. Lower arch scan scheduled for the next visit.", "2026-02-10T10:20:00.000Z"),
+      textNote("mock-sea-note-1", "mock-sea-event-assessment", "Mild crowding on the lower incisors; no pain reported.", "2026-02-03T09:20:00.000Z", clinician),
+      { ...tracked("mock-sea-file-1", "2026-02-03T09:30:00.000Z", assistant), eventId: "mock-sea-event-assessment", fileName: "bite-photo.svg", content: mockSeaImage, contentType: "image/svg+xml", size: mockSeaImage.length, kind: 1 },
+      textNote("mock-sea-note-2", seaEvent, "Upper arch scanned. Lower arch scan scheduled for the next visit.", "2026-02-10T10:20:00.000Z", clinician),
+      textNote("mock-sea-note-4", seaEvent, "The patient asked whether the lower scan can be done on Saturday morning.", "2026-02-10T10:35:00.000Z", assistant),
+      textNote("mock-sea-note-5", seaEvent, "Saturday works. Please book 9:30.", "2026-02-10T10:50:00.000Z"),
       textNote("mock-sea-note-3", "mock-sea-visit-1", "Patient prefers morning appointments.", "2026-02-01T09:30:00.000Z"),
     ] as MockSeaAttachment[],
     roles: [
@@ -195,8 +201,16 @@ export function createMockStore(scenario: "ready" | "empty") {
     owners: scenario === "empty" ? [] as MockOwner[] : [{ id: "mock-owner", name: "Mock Practice", description: "Deterministic mock owner." }],
     tenants: scenario === "empty" ? [] as MockTenant[] : [{ id: "mock-tenant", name: "Mock Tenant", appId: "private-practice-owner", ownerId: "mock-owner" }],
     indicators: scenario === "empty" ? [] as MockIndicator[] : [{ id: "mock-indicator", tenantId: "mock-tenant", value: "mock.localhost", method: 1, status: 3, isPrimary: true }],
-    users: scenario === "empty" ? [] as MockUser[] : [{ userId: "mock-user", fullName: "Mock User", userName: "mock.user", email: "mock.user@example.test" }],
-    memberships: scenario === "empty" ? [] as Array<MockMembership & { userId: string }>: [{ userId: "mock-user", tenantId: "mock-tenant", roleSuffix: "Owner" }],
+    users: scenario === "empty" ? [] as MockUser[] : [
+      { userId: "mock-user", fullName: "Mock User", userName: "mock.user", email: "mock.user@example.test" },
+      { userId: mockFixtureIds.clinician, fullName: "Dr. Sara Amini", userName: "sara.amini", email: "sara.amini@example.test" },
+      { userId: mockFixtureIds.assistant, fullName: "Reza Karimi", userName: "reza.karimi", email: "reza.karimi@example.test" },
+    ],
+    memberships: scenario === "empty" ? [] as Array<MockMembership & { userId: string }>: [
+      { userId: "mock-user", tenantId: "mock-tenant", roleSuffix: "Owner" },
+      { userId: mockFixtureIds.clinician, tenantId: "mock-tenant", roleSuffix: tenantRoleSuffixes.user },
+      { userId: mockFixtureIds.assistant, tenantId: "mock-tenant", roleSuffix: tenantRoleSuffixes.user },
+    ],
     patients: scenario === "empty" ? [] as MockPatient[] : [
       { id: mockFixtureIds.patient, tenantId: "mock-tenant", name: "Ada Lovelace", firstName: "Ada", lastName: "Lovelace", identificationCode: "mock-ada-001", phone: "+10000000001", email: "ada@example.test", dateOfBirth: "1990-12-10", createdAt: "2026-01-01T00:00:00.000Z", isDeleted: false },
       { id: "mock-patient-grace", tenantId: "mock-tenant", name: "Grace Hopper", firstName: "Grace", lastName: "Hopper", identificationCode: "mock-grace-002", phone: "+10000000002", email: "grace@example.test", dateOfBirth: "1985-12-09", createdAt: "2026-01-02T00:00:00.000Z", isDeleted: false },

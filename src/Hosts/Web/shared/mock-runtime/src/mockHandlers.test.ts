@@ -100,7 +100,7 @@ describe("mock preview handlers", () => {
 
     await expect(owners.json()).resolves.toMatchObject([{ id: "mock-owner" }]);
     await expect(tenants.json()).resolves.toMatchObject([{ id: "mock-tenant" }]);
-    await expect(users.json()).resolves.toMatchObject([{ userId: "mock-user" }]);
+    await expect(users.json()).resolves.toMatchObject([{ userId: "mock-user" }, { userId: "mock-user-amini" }, { userId: "mock-user-karimi" }]);
   });
 
   it("returns platform detail and membership fixtures", async () => {

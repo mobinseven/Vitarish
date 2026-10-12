@@ -284,6 +284,17 @@ export function createDefaultMockHandlers(activeScenario: MockScenario): Request
       if (activeScenario === "error") return unavailable();
       return HttpResponse.json(store.memberships.filter((membership) => membership.userId === "mock-user").map(({ userId: _userId, ...membership }) => membership));
     }),
+    http.get(/\/api\/modules\/users\/tenant-members(?:\?|$)/, async () => {
+      await withDelay();
+      if (activeScenario === "error") return unavailable();
+      return HttpResponse.json(store.memberships.flatMap(({ userId, roleSuffix }) => {
+        const user = store.users.find((candidate) => candidate.userId === userId);
+        return user ? [{
+          roleSuffix,
+          user: { id: user.userId, userName: user.userName, fullName: user.fullName, firstName: null, lastName: null, email: user.email ?? null, phoneNumber: null, identificationCode: null, dateOfBirth: null, birthCountryCode: null, birthCity: null },
+        }] : [];
+      }));
+    }),
     http.get(/\/api\/modules\/users\/search(?:\?|$)/, async () => {
       await withDelay();
       if (activeScenario === "error") return unavailable();

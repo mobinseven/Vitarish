@@ -10,16 +10,19 @@ import type { NavigationIntent } from "../../../navigation";
 import { PatientProcedureActions } from "./PatientProcedureActions";
 import { PatientProcedureEventTimeline } from "./PatientProcedureEventTimeline";
 import { PatientProcedureHeader } from "./PatientProcedureHeader";
+import type { ProcedureEventViewer } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 
 interface PatientProcedureWorkspaceProps {
   patientId: string;
   procedureId: string;
+  viewer?: ProcedureEventViewer;
   onNavigate: (intent: NavigationIntent) => void;
 }
 
 export function PatientProcedureWorkspace({
   patientId,
   procedureId,
+  viewer,
   onNavigate,
 }: PatientProcedureWorkspaceProps) {
   const { t } = useLocalizedText();
@@ -70,6 +73,7 @@ export function PatientProcedureWorkspace({
               patientId={patientId}
               events={events}
               procedureId={procedureId}
+              viewer={viewer}
             />
           )}
         </Card.Content>

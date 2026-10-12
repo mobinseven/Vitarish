@@ -1,24 +1,32 @@
 import type { ReactNode } from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PatientProceduresPanel } from "../components/patients/procedures/PatientProceduresPanel";
 import { LocalizationProvider, clinicMessageCatalogs } from "../localization";
 
 const hooks = vi.hoisted(() => ({
   usePatientProcedures: vi.fn(),
-  usePatientProcedureTriage: vi.fn(),
   usePatientProcedureEvents: vi.fn(),
+  useProcedureEventAuthorNames: vi.fn(),
 }));
 
 vi.mock("../hooks/patients/procedures/usePatientProcedures", () => ({
   usePatientProcedures: hooks.usePatientProcedures,
 }));
-vi.mock("../hooks/patients/procedures/usePatientProcedureTriage", () => ({
-  usePatientProcedureTriage: hooks.usePatientProcedureTriage,
-}));
 vi.mock("../hooks/patients/procedures/usePatientProcedureEvents", () => ({
   usePatientProcedureEvents: hooks.usePatientProcedureEvents,
 }));
+vi.mock("../hooks/patients/procedures/useProcedureEventAuthorNames", () => ({
+  useProcedureEventAuthorNames: hooks.useProcedureEventAuthorNames,
+}));
+
+const procedures = clinicMessageCatalogs.en.clinic.procedures;
 
 function Wrapper({ children }: { children: ReactNode }) {
   return (
@@ -30,147 +38,131 @@ function Wrapper({ children }: { children: ReactNode }) {
 
 afterEach(cleanup);
 
+const procedure = (
+  id: string,
+  name: string,
+  eventCount: number,
+  committedEventCount: number,
+) => ({
+  id,
+  projectId: "patient-1",
+  name,
+  eventCount,
+  committedEventCount,
+  eventItemCount: 0,
+  newItems: 0,
+  createdAt: "2026-07-20T08:00:00Z",
+});
+
 describe("PatientProceduresPanel", () => {
-  it("expands the usual single procedure into an at-a-glance workflow", async () => {
+  it("shows every procedure at once with its progress and newest update", () => {
     hooks.usePatientProcedures.mockReturnValue({
       data: [
-        {
-          id: "procedure-1",
-          projectId: "patient-1",
-          name: "Skin renewal",
-          description: "Five-step protocol",
-          eventCount: 5,
-          committedEventCount: 4,
-          eventItemCount: 2,
-          newItems: 1,
-          lastActivity: "2026-07-24T08:00:00Z",
-          createdAt: "2026-07-20T08:00:00Z",
-        },
+        procedure("procedure-1", "Skin renewal", 5, 4),
+        procedure("procedure-2", "Scar care", 3, 0),
       ],
       isLoading: false,
       error: null,
     });
-    hooks.usePatientProcedureTriage.mockReturnValue({
-      data: {
-        totalProcedures: 1,
-        incompleteProcedures: 1,
-        newEvidence: 1,
-        pendingReminders: 0,
-      },
-    });
-    hooks.usePatientProcedureEvents.mockReturnValue({
-      data: [
-        {
-          id: "event-1",
-          procedureId: "procedure-1",
-          projectId: "patient-1",
-          title: "Initial assessment",
-          isCommitted: true,
-          attachments: [
-            {
-              id: "item-1",
-              eventId: "event-1",
-              type: "note",
-              content: "Healing is on track",
-              authorName: "Dr. Ali",
-              createdAt: "2026-07-24T08:00:00Z",
-            },
-          ],
-          itemCount: 1,
-          position: 0,
-          createdAt: "2026-07-20T08:00:00Z",
-        },
-        {
-          id: "event-2",
-          procedureId: "procedure-1",
-          projectId: "patient-1",
-          title: "Follow-up",
-          isCommitted: false,
-          attachments: [],
-          itemCount: 0,
-          position: 1,
-          createdAt: "2026-07-21T08:00:00Z",
-        },
-      ],
-      isLoading: false,
-      error: null,
-    });
-
-    const onNavigate = vi.fn();
-    render(
-      <PatientProceduresPanel patientId="patient-1" onNavigate={onNavigate} />,
-      { wrapper: Wrapper },
+    hooks.useProcedureEventAuthorNames.mockReturnValue(
+      new Map([["user-ali", "Dr. Ali"]]),
     );
-
-    expect(
-      screen.getByRole("button", { name: /Skin renewal/ }),
-    ).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText("Five-step protocol")).toBeInTheDocument();
-    expect(screen.getByText("4/5 events")).toBeInTheDocument();
-    expect(screen.getByText(/Initial assessment/)).toBeInTheDocument();
-    expect(screen.getByText("Healing is on track")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Open procedure" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Manage reminders" }),
-    ).toBeInTheDocument();
-  });
-
-  it("keeps multiple procedures comparable and expands the selected lane", async () => {
-    hooks.usePatientProcedures.mockReturnValue({
-      data: [
-        {
-          id: "procedure-1",
-          projectId: "patient-1",
-          name: "Skin renewal",
-          eventCount: 5,
-          committedEventCount: 4,
-          eventItemCount: 2,
-          newItems: 0,
-          createdAt: "2026-07-20T08:00:00Z",
-        },
-        {
-          id: "procedure-2",
-          projectId: "patient-1",
-          name: "Scar care",
-          eventCount: 3,
-          committedEventCount: 1,
-          eventItemCount: 0,
-          newItems: 0,
-          createdAt: "2026-07-21T08:00:00Z",
-        },
-      ],
-      isLoading: false,
-      error: null,
-    });
-    hooks.usePatientProcedureTriage.mockReturnValue({
-      data: {
-        totalProcedures: 2,
-        incompleteProcedures: 2,
-        newEvidence: 0,
-        pendingReminders: 0,
-      },
-    });
-    hooks.usePatientProcedureEvents.mockReturnValue({
-      data: [],
-      isLoading: false,
-      error: null,
-    });
+    hooks.usePatientProcedureEvents.mockImplementation(
+      (procedureId: string) => ({
+        data:
+          procedureId === "procedure-1"
+            ? [
+                {
+                  id: "event-1",
+                  procedureId,
+                  projectId: "patient-1",
+                  title: "Initial assessment",
+                  isCommitted: true,
+                  attachments: [
+                    {
+                      id: "item-1",
+                      eventId: "event-1",
+                      type: "note",
+                      content: "Older note",
+                      authorId: "user-ali",
+                      createdAt: "2026-07-22T08:00:00Z",
+                    },
+                    {
+                      id: "item-2",
+                      eventId: "event-1",
+                      type: "note",
+                      content: "Healing is on track",
+                      authorId: "user-ali",
+                      createdAt: "2026-07-24T08:00:00Z",
+                    },
+                  ],
+                  itemCount: 2,
+                  position: 0,
+                  createdAt: "2026-07-20T08:00:00Z",
+                },
+              ]
+            : [],
+        isLoading: false,
+        error: null,
+      }),
+    );
 
     render(
       <PatientProceduresPanel patientId="patient-1" onNavigate={vi.fn()} />,
       { wrapper: Wrapper },
     );
 
-    const first = screen.getByRole("button", { name: /Skin renewal/ });
-    const second = screen.getByRole("button", { name: /Scar care/ });
-    expect(first).toHaveAttribute("aria-expanded", "true");
-    expect(second).toHaveAttribute("aria-expanded", "false");
+    const rows = within(
+      screen.getByRole("list", { name: procedures.title }),
+    ).getAllByRole("listitem");
+    expect(rows).toHaveLength(2);
+    expect(
+      within(rows[0]).getByRole("heading", { name: "Skin renewal" }),
+    ).toBeVisible();
+    expect(within(rows[0]).getByText("4/5 events")).toBeVisible();
+    expect(within(rows[0]).getByText("Healing is on track")).toBeVisible();
+    expect(within(rows[0]).queryByText("Older note")).toBeNull();
+    expect(
+      within(rows[0]).getByText(/Dr\. Ali · Initial assessment/),
+    ).toBeVisible();
+    expect(
+      within(rows[1]).getByRole("heading", { name: "Scar care" }),
+    ).toBeVisible();
+    expect(
+      within(rows[1]).getByText(procedures.progressAtGlance.noActivity),
+    ).toBeVisible();
+  });
 
-    fireEvent.click(second);
+  it("opens the chosen procedure", () => {
+    hooks.usePatientProcedures.mockReturnValue({
+      data: [
+        procedure("procedure-1", "Skin renewal", 5, 4),
+        procedure("procedure-2", "Scar care", 3, 1),
+      ],
+      isLoading: false,
+      error: null,
+    });
+    hooks.useProcedureEventAuthorNames.mockReturnValue(new Map());
+    hooks.usePatientProcedureEvents.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+    });
+    const onNavigate = vi.fn();
 
-    expect(first).toHaveAttribute("aria-expanded", "false");
-    expect(second).toHaveAttribute("aria-expanded", "true");
+    render(
+      <PatientProceduresPanel patientId="patient-1" onNavigate={onNavigate} />,
+      { wrapper: Wrapper },
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: `${procedures.open}: Scar care` }),
+    );
+
+    expect(onNavigate).toHaveBeenCalledWith({
+      kind: "patientProcedureDetail",
+      patientId: "patient-1",
+      procedureId: "procedure-2",
+    });
   });
 });

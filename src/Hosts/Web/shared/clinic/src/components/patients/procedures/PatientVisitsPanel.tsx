@@ -60,7 +60,7 @@ export function PatientVisitsPanel({
           {[...eventsQuery.data].reverse().map((visit) => (
             <li key={visit.id} className="flex items-center justify-between gap-3 py-3">
               <div className="min-w-0">
-                <p className="truncate font-medium text-foreground">{visit.title}</p>
+                <p dir="auto" className="truncate font-medium text-foreground">{visit.title}</p>
                 <p className="text-sm text-muted">
                   {formatDate(visit.createdAt, locale, { dateStyle: "medium" })}
                 </p>

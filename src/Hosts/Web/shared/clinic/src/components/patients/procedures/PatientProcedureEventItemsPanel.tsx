@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { Fragment, useEffect, useId, useState } from "react";
 import { Button, Tooltip } from "@heroui/react";
 import { ChatConversation, EmptyState } from "@heroui-pro/react";
 import { FaIcon } from "@vitarish/ui";
 import { useDeletePatientProcedureEventItem } from "../../../hooks/patients/procedures/usePatientProcedureEventItemMutations";
 import { usePatientProcedureEventItems } from "../../../hooks/patients/procedures/usePatientProcedureEventItems";
-import { useLocalizedText } from "../../../localization";
+import { useProcedureEventAuthorNames } from "../../../hooks/patients/procedures/useProcedureEventAuthorNames";
+import { formatDate, useLocalizedText } from "../../../localization";
 import type {
   EventItemSummary,
   ProcedureEventViewer,
@@ -66,7 +67,8 @@ export function PatientProcedureEventItemsPanel({
   canWrite,
   viewer,
 }: PatientProcedureEventItemsPanelProps) {
-  const { t } = useLocalizedText();
+  const { t, locale } = useLocalizedText();
+  const authorNames = useProcedureEventAuthorNames();
   const eventContext = context ?? {
     patientId: "",
     procedureId: "",
@@ -128,11 +130,11 @@ export function PatientProcedureEventItemsPanel({
       <ChatConversation className="min-h-0 flex-1">
         <ChatConversation.Content
           aria-label={t("clinic.procedures.items.title")}
-          className="max-w-4xl flex-col gap-6 px-2 py-6 sm:px-4"
+          className="max-w-4xl flex-col justify-end gap-3 px-2 py-4 sm:px-4"
           role="feed"
         >
           {isLoading && feed.length === 0 ? (
-            <p className="text-muted text-center text-sm">
+            <p className="text-muted text-center text-base">
               {t("common.states.loading")}
             </p>
           ) : query.error ? (
@@ -140,7 +142,7 @@ export function PatientProcedureEventItemsPanel({
               className="flex flex-col items-center gap-3 py-10"
               role="alert"
             >
-              <p className="text-danger m-0 text-sm">
+              <p className="text-danger m-0 text-base">
                 {t("clinic.procedures.items.loadFailed")}
               </p>
               <Tooltip>
@@ -168,29 +170,67 @@ export function PatientProcedureEventItemsPanel({
             </EmptyState>
           ) : (
             feed.map((item, index) => {
+              const previous = feed[index - 1];
+              const day = formatDate(item.createdAt, locale, {
+                dateStyle: "long",
+              });
+              const daySeparator =
+                !previous ||
+                formatDate(previous.createdAt, locale, {
+                  dateStyle: "long",
+                }) !== day ? (
+                  <div
+                    key={`day:${item.id}`}
+                    role="separator"
+                    aria-label={day}
+                    className="text-muted flex items-center gap-3 text-sm"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="bg-separator h-px flex-1"
+                    />
+                    <span>{day}</span>
+                    <span
+                      aria-hidden="true"
+                      className="bg-separator h-px flex-1"
+                    />
+                  </div>
+                ) : null;
               if (item.kind === "plugin") {
                 const plugin = patientProcedureEventFeedPlugins.find(
                   (candidate) => candidate.id === item.payload.pluginId,
                 );
                 if (!plugin) return null;
                 const Renderer = plugin.Renderer;
-                return <Renderer key={item.id} item={item.payload as never} />;
+                return (
+                  <Fragment key={item.id}>
+                    {daySeparator}
+                    <Renderer item={item.payload as never} />
+                  </Fragment>
+                );
               }
-              const previous = feed[index - 1];
               const showAuthor =
+                daySeparator !== null ||
                 previous?.kind !== "sea" ||
                 (previous.payload.authorId ?? previous.payload.id) !==
                   (item.payload.authorId ?? item.payload.id);
               return (
-                <PatientProcedureEventItemMessage
-                  key={item.id}
-                  canWrite={canWrite}
-                  isDeleting={remove.isPending}
-                  item={item.payload}
-                  showAuthor={showAuthor}
-                  viewer={viewer}
-                  onDelete={() => remove.mutate(item.payload.id)}
-                />
+                <Fragment key={item.id}>
+                  {daySeparator}
+                  <PatientProcedureEventItemMessage
+                    authorName={
+                      item.payload.authorId
+                        ? authorNames.get(item.payload.authorId)
+                        : undefined
+                    }
+                    canWrite={canWrite}
+                    isDeleting={remove.isPending}
+                    item={item.payload}
+                    showAuthor={showAuthor}
+                    viewer={viewer}
+                    onDelete={() => remove.mutate(item.payload.id)}
+                  />
+                </Fragment>
               );
             })
           )}

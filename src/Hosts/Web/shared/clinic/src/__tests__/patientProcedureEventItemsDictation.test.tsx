@@ -21,6 +21,9 @@ const dictation = vi.hoisted(() => ({
   stop: vi.fn(async () => undefined),
 }));
 
+vi.mock("../hooks/patients/procedures/useProcedureEventAuthorNames", () => ({
+  useProcedureEventAuthorNames: () => new Map<string, string>(),
+}));
 vi.mock("../hooks/patients/procedures/usePatientProcedureEventItems", () => ({
   usePatientProcedureEventItems: () => ({
     data: [],

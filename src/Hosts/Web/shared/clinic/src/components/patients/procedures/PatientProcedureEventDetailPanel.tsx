@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button, Chip, Tooltip } from "@heroui/react";
 import { useSeaEventCapabilities } from "@vitarish/sea";
-import { DetailGrid, FaIcon, HeaderIcon, type DetailGridItem } from "@vitarish/ui";
+import { FaIcon, HeaderIcon } from "@vitarish/ui";
 import { formatDateTime, useLocalizedText } from "../../../localization";
 import { PatientProcedureEventCommitDialog } from "./PatientProcedureEventCommitDialog";
 import { PatientProcedureEventItemsPanel } from "./PatientProcedureEventItemsPanel";
@@ -41,21 +41,10 @@ export function PatientProcedureEventDetailPanel({
   const commitLabel = t(
     event.isCommitted ? "clinic.procedures.events.reopen" : "clinic.procedures.events.commit",
   );
-  const details: DetailGridItem[] = [
-    {
-      label: t("clinic.fields.created"),
-      value: formatDateTime(event.createdAt, locale),
-    },
+  const dates = [
+    `${t("clinic.fields.created")}: ${formatDateTime(event.createdAt, locale)}`,
     ...(event.committedAt
-      ? [
-          {
-            label: t("clinic.fields.committedAt"),
-            value: formatDateTime(event.committedAt, locale),
-          },
-        ]
-      : []),
-    ...(event.description
-      ? [{ label: t("clinic.fields.description"), value: event.description }]
+      ? [`${t("clinic.fields.committedAt")}: ${formatDateTime(event.committedAt, locale)}`]
       : []),
   ];
   return (
@@ -96,7 +85,12 @@ export function PatientProcedureEventDetailPanel({
           </Tooltip>
         ) : null}
       </div>
-      <DetailGrid items={details} />
+      <div className="flex flex-col gap-1">
+        {event.description ? (
+          <p dir="auto" className="text-foreground m-0 text-base leading-relaxed">{event.description}</p>
+        ) : null}
+        <p className="text-muted m-0 text-sm">{dates.join(" · ")}</p>
+      </div>
       <PatientProcedureEventItemsPanel
         context={{ patientId, procedureId, eventId }}
         canWrite={canWrite}

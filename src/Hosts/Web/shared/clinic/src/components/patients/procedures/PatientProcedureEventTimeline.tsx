@@ -28,6 +28,7 @@ import { PatientProcedureEventAttachmentMiniView } from "./PatientProcedureEvent
 import { PatientProcedureEventItemsPanel } from "./PatientProcedureEventItemsPanel";
 import { useLocalizedText } from "../../../localization";
 import type { ClinicalEventSummary } from "../../../models/patients/procedures/PatientProcedureEventModels";
+import type { ProcedureEventViewer } from "../../../models/patients/procedures/PatientProcedureEventItemModels";
 import {
   useMovePatientProcedureEventDown,
   useMovePatientProcedureEventUp,
@@ -37,17 +38,20 @@ interface PatientProcedureEventTimelineProps {
   patientId?: string;
   procedureId: string;
   events: ClinicalEventSummary[];
+  viewer?: ProcedureEventViewer;
 }
 
 function EventAttachmentsDrawer({
   patientId,
   procedureId,
   eventId,
+  viewer,
   onClose,
 }: {
   patientId: string;
   procedureId: string;
   eventId?: string;
+  viewer?: ProcedureEventViewer;
   onClose: () => void;
 }) {
   const { t } = useLocalizedText();
@@ -81,6 +85,7 @@ function EventAttachmentsDrawer({
                   procedureId,
                   eventId: eventId ?? "",
                 }}
+                viewer={viewer}
               />
             </Sheet.Body>
           </Sheet.Dialog>
@@ -94,6 +99,7 @@ export function PatientProcedureEventTimeline({
   patientId = "",
   procedureId,
   events,
+  viewer,
 }: PatientProcedureEventTimelineProps) {
   const { t } = useLocalizedText();
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
@@ -237,6 +243,7 @@ export function PatientProcedureEventTimeline({
                       {event.attachments?.length ? (
                         <PatientProcedureEventAttachmentMiniView
                           items={event.attachments}
+                          viewer={viewer}
                         />
                       ) : null}
                       <div className="space-y-3">
@@ -345,6 +352,7 @@ export function PatientProcedureEventTimeline({
         patientId={patientId}
         procedureId={procedureId}
         eventId={attachmentsEventId}
+        viewer={viewer}
         onClose={() => setAttachmentsEventId(undefined)}
       />
     </div>
