@@ -44,6 +44,8 @@ const platformAdminOrigin = "http://localhost:3006";
 const smtpCapturePath = resolve(artifactDirectory, "e2e-smtp-capture.eml");
 const smtpPort = 2525;
 const readinessProbeTimeoutMs = 5000;
+// next dev compiles the first page while it starts, into a new build folder each run.
+const nextDevReadinessTimeoutMs = 300_000;
 
 mkdirSync(resolve(artifactRoot, "runs"), { recursive: true });
 mkdirSync(artifactDirectory);
@@ -350,8 +352,8 @@ async function run() {
   );
 
   await waitForHttp("E2e", main, `${mainOrigin}/api/modules/authentication/antiforgery`);
-  await waitForHttp("Private Practice Owner", web, `${webOrigin}/`);
-  await waitForHttp("Platform Admin", platformAdmin, `${platformAdminOrigin}/`);
+  await waitForHttp("Private Practice Owner", web, `${webOrigin}/`, nextDevReadinessTimeoutMs);
+  await waitForHttp("Platform Admin", platformAdmin, `${platformAdminOrigin}/`, nextDevReadinessTimeoutMs);
 
   webEnvironment.PLAYWRIGHT_PLATFORM_ADMIN_ORIGIN = platformAdminOrigin;
 
