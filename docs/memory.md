@@ -54,6 +54,7 @@ Do not duplicate AGENTS.md, architecture.md, ADRs, runbooks, or module docs.
 - Orval output is generated.
 - Tailwind only generates utilities from a Web host's `@source` globs; it does not scan linked `shared/*` packages. When a host starts rendering a shared package, add that package to the host's `globals.css` `@source` list, or its utility classes silently produce no CSS. HeroUI v3 also has no `primary` color: `bg-primary`/`text-primary` render nothing, so use `accent`.
 - `apiFetch` is a shared Web transport package concern; generated React clients are feature package concerns after ADR-0008 migration. Intelligence Web generation and realtime dictation are owned by `src/Hosts/Web/shared/intelligence`; do not reintroduce them in `clinic-web`. Other legacy app-bound generated output can exist until its feature package is extracted.
+- A feature package module without `"use client"` that imports the `@vitarish/ui` root barrel breaks `next build` for any Server Component route importing that package (`client-only` error through HeroUI). Plain class-name helpers come from a server-safe subpath such as `@vitarish/ui/chroma`; vitest and `tsc` do not catch this, only `next build` does.
 - Date input and localization validators enforce repo-specific React rules.
 - `docs/docs.csproj` is for Visual Studio browsing only.
 

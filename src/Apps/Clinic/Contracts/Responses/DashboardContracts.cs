@@ -13,7 +13,8 @@ public sealed record DashboardAppointmentResponse(
     DateOnly Date,
     TimeOnly? StartTime,
     string? TimeZone,
-    ReservationStatus Status);
+    ReservationStatus Status,
+    IReadOnlyList<string> PatientTags);
 
 public sealed record DashboardSurgeryResponse(
     Guid SurgeryId,

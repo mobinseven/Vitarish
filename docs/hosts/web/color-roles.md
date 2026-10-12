@@ -31,9 +31,15 @@ contrast. Every pair has the same contrast, and the text is clearly tinted.
 | `chroma-primary` | Sky `#A9DEF9` | Visit |
 | `chroma-secondary` | Peach `#FEC8C3` | Procedure |
 | `chroma-tertiary` | Lavender `#E4C1F9` | Prescription |
-| `chroma-quaternary` | Pink `#FF99C8` | Appointment |
-| `chroma-quinary` | Mint `#D0F4DE` | Unassigned |
+| `chroma-quaternary` | Pink `#FF99C8` | Unassigned (too close to the pink accent) |
+| `chroma-quinary` | Mint `#D0F4DE` | Appointment |
 | `chroma-senary` | Cream `#FCF6BD` | Unassigned |
+
+Patient tags are the exception to one meaning per color: tags are defined by
+users, so `patientTagClassName` in `@vitarish/clinic` picks one of all six
+chroma colors from the tag text. A tag keeps its color on every page, which
+helps users spot it; the color carries no other meaning, and the tag text is
+always shown.
 
 ## Buttons
 
@@ -51,7 +57,7 @@ Clinical operations, owned by `@vitarish/clinic`:
 | `visit` | Visits and notes | `chroma-primary` |
 | `procedure` | Procedures, procedure events, procedure templates, surgeries | `chroma-secondary` |
 | `prescription` | Prescriptions | `chroma-tertiary` |
-| `appointment` | Reservations, check-in, shifts, booking setup | `chroma-quaternary` |
+| `appointment` | Reservations, check-in, shifts, booking setup | `chroma-quinary` |
 
 An operation keeps its color on every page, so repeat visitors find it by
 color on hub pages such as the dashboard and patient profile.
@@ -76,7 +82,7 @@ color on hub pages such as the dashboard and patient profile.
 A new clinical operation or another fixed set of meanings takes the existing
 chroma colors through its own owner, as sign-in methods do. A meaning that
 appears on the same page as the clinical operations takes an unassigned
-color (mint or cream) and is added to the table above.
+color (cream) and is added to the table above.
 
 ## Checks
 

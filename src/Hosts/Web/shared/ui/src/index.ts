@@ -71,7 +71,7 @@ export { IconButton } from "./shell/IconButton";
 export type { IconButtonProps } from "./shell/IconButton";
 export {FaIcon} from "./icons/FaIcon";
 export type {FaIconProps} from "./icons/FaIcon";
-export { chromaButtonClassName, chromaColors, removeButtonClassName } from "./actions/chromaColor";
+export { chromaButtonClassName, chromaChipClassName, chromaColors, removeButtonClassName } from "./actions/chromaColor";
 export type { ChromaColor } from "./actions/chromaColor";
 export { HeaderIcon } from "./icons/HeaderIcon";
 export type { HeaderIconLevel, HeaderIconProps, HeaderIconTone } from "./icons/HeaderIcon";

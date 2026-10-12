@@ -10,7 +10,8 @@
     "./layout": "./src/layout/index.ts",
     "./layout.css": "./src/layout.css",
     "./content-security-policy": "./src/contentSecurityPolicyNonce.tsx",
-    "./theme-palette": "./src/themePaletteClass.tsx"
+    "./theme-palette": "./src/themePaletteClass.tsx",
+    "./chroma": "./src/actions/chromaColor.ts"
   },
   "sideEffects": [
     "./src/layout.css",

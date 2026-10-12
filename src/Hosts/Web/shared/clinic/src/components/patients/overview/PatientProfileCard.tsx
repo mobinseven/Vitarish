@@ -4,6 +4,7 @@ import { Card, Chip, Description, Label } from "@heroui/react";
 import type { ReactNode } from "react";
 import { FaIcon } from "@vitarish/ui";
 import type { PatientViewDto } from "../../../models/patients/patientSearchModels";
+import { patientTagClassName } from "../tags/patientTagColor";
 import {
   formatDate,
   type SupportedLocale,
@@ -111,7 +112,7 @@ export function PatientProfileCard({ patient }: PatientProfileCardProps) {
           </Card.Header>
           <Card.Content>
             <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => <Chip key={tag} size="sm" variant="soft">{tag}</Chip>)}
+              {tags.map((tag) => <Chip key={tag} className={patientTagClassName(tag)} size="sm">{tag}</Chip>)}
             </div>
           </Card.Content>
         </Card>

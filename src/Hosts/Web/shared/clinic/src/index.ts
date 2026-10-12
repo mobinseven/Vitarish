@@ -84,3 +84,4 @@ export { ServiceProviderListPage } from "./components/service-providers/ServiceP
 export { ServiceProviderDetailPage } from "./components/service-providers/ServiceProviderDetailPage";
 export { clinicOperationButtonClassName, clinicOperations } from "./components/operations/clinicOperation";
 export type { ClinicOperation } from "./components/operations/clinicOperation";
+export { patientTagClassName } from "./components/patients/tags/patientTagColor";

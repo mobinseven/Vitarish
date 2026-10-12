@@ -61,7 +61,7 @@ public sealed class ClinicDashboardQueriesTests
         shifts.Setup(value => value.GetAsync(missingShiftId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<ShiftReadDto>.Failure(EntityError.NotFound("shift missing")));
         patients.Setup(value => value.FindByIdAsync(patientId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new PatientView { Id = patientId, Name = "Patient One" });
+            .ReturnsAsync(new PatientView { Id = patientId, Name = "Patient One", Tags = ["vip", "follow-up"] });
 
         ClinicDashboardQueries query = new(reservations.Object, shifts.Object, services.Object, surgeries.Object, patients.Object);
 
@@ -70,6 +70,8 @@ public sealed class ClinicDashboardQueriesTests
 
         result.Select(value => value.ReservationId).Should().Equal(earlyReservationId, lateReservationId);
         result[0].PatientDisplayName.Should().Be("Patient One");
+        result[0].PatientTags.Should().Equal("vip", "follow-up");
+        result[1].PatientTags.Should().BeEmpty();
         result[1].PatientId.Should().BeNull();
         result.All(value => value.StartTime is null && value.ServiceDisplayName is null).Should().BeTrue();
         shifts.Verify(value => value.GetAsync(missingShiftId, It.IsAny<CancellationToken>()), Times.Once);
