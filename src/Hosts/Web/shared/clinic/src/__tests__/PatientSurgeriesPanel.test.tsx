@@ -36,6 +36,8 @@ function makeSurgery(overrides: Partial<Surgery> = {}): Surgery {
     scheduledAt: "2026-07-16T08:00:00.000Z",
     team: [],
     tools: [],
+    personsToNotify: [],
+    contacts: [],
     reminderPolicies: [],
     concurrencyToken: "token-1",
     createdAt: "2026-07-01T08:00:00.000Z",

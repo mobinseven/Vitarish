@@ -504,6 +504,46 @@ public sealed class SurgeryToolchainTests
         entries.Where(entry => entry.Surgery.Id != plannedId).Select(entry => entry.PatientDisplayName).Should().OnlyContain(name => name == null);
     }
 
+    [Fact]
+    public async Task Get_reads_the_stored_surgery_rather_than_the_view()
+    {
+        Guid surgeryId = Guid.NewGuid();
+        Guid patientId = Guid.NewGuid();
+        Mock<IProjectObjectService> projectObjects = new();
+        projectObjects.Setup(value => value.GetAsync(surgeryId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Read(surgeryId, patientId, SurgeryStatus.Planned, Now.AddHours(1)));
+
+        await using InMemoryClinicDbContext db = CreateContext();
+        db.PatientViews.Add(new PatientView { Id = patientId, TenantId = TenantId, Name = "Patient One" });
+        await db.SaveChangesAsync();
+        SurgeryToolchain toolchain = CreateToolchain(projectObjects, new Mock<IRemindersService>(), db);
+
+        SurgeryCalendarEntry? entry = await toolchain.GetAsync(surgeryId, CancellationToken.None);
+
+        entry.Should().NotBeNull();
+        entry!.Surgery.Id.Should().Be(surgeryId);
+        entry.Surgery.Status.Should().Be(SurgeryStatus.Planned);
+        entry.PatientDisplayName.Should().Be("Patient One");
+    }
+
+    [Fact]
+    public async Task Get_returns_null_for_a_deleted_or_foreign_object()
+    {
+        Guid surgeryId = Guid.NewGuid();
+        Guid patientId = Guid.NewGuid();
+        Mock<IProjectObjectService> projectObjects = new();
+        projectObjects.Setup(value => value.GetAsync(surgeryId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Read(surgeryId, patientId, SurgeryStatus.Planned, Now.AddHours(1)) with { DeletedAt = Now.UtcDateTime });
+        projectObjects.Setup(value => value.GetAsync(patientId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Read(patientId, patientId, SurgeryStatus.Planned, Now.AddHours(1)) with { ObjectType = "vitarish.patient" });
+
+        await using InMemoryClinicDbContext db = CreateContext();
+        SurgeryToolchain toolchain = CreateToolchain(projectObjects, new Mock<IRemindersService>(), db);
+
+        (await toolchain.GetAsync(surgeryId, CancellationToken.None)).Should().BeNull();
+        (await toolchain.GetAsync(patientId, CancellationToken.None)).Should().BeNull();
+    }
+
     private static Mock<IOperationReceiptStore<SurgeryCreateOperation>> PermissiveOperations()
     {
         Mock<IOperationReceiptStore<SurgeryCreateOperation>> operations = new();

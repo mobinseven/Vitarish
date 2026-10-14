@@ -24,7 +24,7 @@ internal sealed class GetPatientViewsHandler(
 
         IQueryable<PatientView> query = queryShape.CreateQuery(dbContext, request.Tags);
         query = queryShape.ApplyFilters(query, tenantId, request.Search, request.Template);
-        query = queryShape.ApplySort(query, request.SortBy, request.Descending, dbContext, timeProvider.GetUtcNow());
+        query = queryShape.ApplySort(query, request.SortBy, request.Descending, dbContext, tenantId, timeProvider.GetUtcNow());
 
         if (request.Skip is > 0)
         {
@@ -40,7 +40,7 @@ internal sealed class GetPatientViewsHandler(
             .ToListAsync(cancellationToken);
 
         await statsLoader.LoadAsync(patients, cancellationToken);
-        await surgeryDatesLoader.LoadAsync(patients, cancellationToken);
+        await surgeryDatesLoader.LoadAsync(patients, tenantId, cancellationToken);
 
         return patients;
     }

@@ -98,7 +98,6 @@ internal sealed class SeaPatientDirectory(
         }
 
         PatientWriteDto updated = existing.ToPatientWrite();
-        updated.Metadata.Remove(PatientLegacyMetadataKeys.DateOfSurgery);
         updated.IdentificationCode = patient.IdentificationCode;
         updated.Name = patient.Name;
         updated.Template = patient.Template;

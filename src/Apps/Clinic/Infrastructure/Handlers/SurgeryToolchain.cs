@@ -79,14 +79,14 @@ internal sealed class SurgeryToolchain(
     public async Task<SurgeryCalendarEntry?> GetAsync(Guid id, CancellationToken cancellationToken)
     {
         string tenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant context is required.");
-        var row = await (from surgery in dbContext.SurgeryViews.AsNoTracking()
-                         join patient in dbContext.PatientViews.AsNoTracking()
-                             on new { surgery.TenantId, Id = surgery.PatientId } equals new { patient.TenantId, Id = patient.Id } into matches
-                         from patient in matches.DefaultIfEmpty()
-                         where surgery.TenantId == tenantId && surgery.Id == id
-                         select new { Surgery = surgery, PatientName = patient == null ? null : patient.Name })
+        ProjectObjectReadDto? current = await projectObjects.GetAsync(id, cancellationToken);
+        if (current is null || current.DeletedAt is not null) return null;
+        if (current.ObjectType != SurgeryObjectTypes.ObjectType || current.OwnerEntityType != SurgeryObjectTypes.OwnerEntityType) return null;
+        string? patientName = await dbContext.PatientViews.AsNoTracking()
+            .Where(patient => patient.TenantId == tenantId && patient.Id == current.OwnerEntityId)
+            .Select(patient => patient.Name)
             .FirstOrDefaultAsync(cancellationToken);
-        return row is null ? null : new SurgeryCalendarEntry(ToRead(row.Surgery), row.PatientName);
+        return new SurgeryCalendarEntry(ToRead(current), patientName);
     }
 
     public async Task<IReadOnlyList<SurgeryConflict>> FindConflictsAsync(SurgeryConflictProbe probe, CancellationToken cancellationToken)

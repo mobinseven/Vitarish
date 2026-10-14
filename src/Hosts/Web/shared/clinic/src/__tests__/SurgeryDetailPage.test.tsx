@@ -70,6 +70,8 @@ function makeSurgery(overrides: Partial<Surgery> = {}): Surgery {
     scheduledAt: new Date().toISOString(),
     team: [],
     tools: [],
+    personsToNotify: [],
+    contacts: [],
     reminderPolicies: [],
     concurrencyToken: "token-1",
     createdAt: new Date().toISOString(),

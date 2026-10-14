@@ -20,6 +20,12 @@ export interface SurgeryReminderPolicy {
   textBody: string;
 }
 
+export interface SurgeryContact {
+  name: string;
+  destination: string;
+  channel: string;
+}
+
 export interface Surgery {
   id: string;
   patientId: string;
@@ -33,6 +39,8 @@ export interface Surgery {
   location?: string;
   team: SurgeryTeamMember[];
   tools: string[];
+  personsToNotify: string[];
+  contacts: SurgeryContact[];
   reminderPolicies: SurgeryReminderPolicy[];
   concurrencyToken: string;
   createdAt: string;

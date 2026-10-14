@@ -7,7 +7,7 @@ namespace Vitarish.Clinic.Infrastructure.Handlers;
 /// <summary>Fills <see cref="PatientView.LastSurgeryAt"/> and <see cref="PatientView.NextSurgeryAt"/> for a page of patients.</summary>
 internal sealed class PatientSurgeryDatesLoader(ClinicDbContext dbContext, TimeProvider timeProvider)
 {
-    public async Task LoadAsync(IReadOnlyList<PatientView> patients, CancellationToken cancellationToken)
+    public async Task LoadAsync(IReadOnlyList<PatientView> patients, string tenantId, CancellationToken cancellationToken)
     {
         if (patients.Count == 0)
         {
@@ -17,13 +17,13 @@ internal sealed class PatientSurgeryDatesLoader(ClinicDbContext dbContext, TimeP
         Guid[] patientIds = [.. patients.Select(patient => patient.Id)];
         DateTimeOffset now = timeProvider.GetUtcNow();
 
-        Dictionary<Guid, DateTimeOffset> last = await PatientSurgeryDates.LastCandidates(dbContext, now)
+        Dictionary<Guid, DateTimeOffset> last = await PatientSurgeryDates.LastCandidates(dbContext, tenantId, now)
             .AsNoTracking()
             .Where(surgery => patientIds.Contains(surgery.PatientId))
             .GroupBy(surgery => surgery.PatientId)
             .Select(group => new { PatientId = group.Key, At = group.Max(surgery => surgery.ScheduledAt) })
             .ToDictionaryAsync(item => item.PatientId, item => item.At, cancellationToken);
-        Dictionary<Guid, DateTimeOffset> next = await PatientSurgeryDates.NextCandidates(dbContext, now)
+        Dictionary<Guid, DateTimeOffset> next = await PatientSurgeryDates.NextCandidates(dbContext, tenantId, now)
             .AsNoTracking()
             .Where(surgery => patientIds.Contains(surgery.PatientId))
             .GroupBy(surgery => surgery.PatientId)

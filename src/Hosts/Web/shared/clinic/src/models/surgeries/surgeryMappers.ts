@@ -2,6 +2,7 @@ import type {
   SurgeryCalendarEntryResponse,
   SurgeryCatalogDto,
   SurgeryConflictResponse,
+  SurgeryContactDto,
   SurgeryCreateRequest,
   SurgeryReminderPolicyDto,
   SurgeryResponse,
@@ -17,6 +18,7 @@ import {
   type Surgery,
   type SurgeryConflict,
   type SurgeryConflictReason,
+  type SurgeryContact,
   type SurgeryReminderPolicy,
   type SurgerySettings,
   type SurgeryStatus,
@@ -75,6 +77,10 @@ function mapTeamMember(dto: SurgeryTeamMemberDto): SurgeryTeamMember {
   return { userId: dto.userId, displayName: dto.displayName, role: dto.role };
 }
 
+function mapContact(dto: SurgeryContactDto): SurgeryContact {
+  return { name: dto.name, destination: dto.destination, channel: dto.channel };
+}
+
 export function mapSurgeryResponse(dto: SurgeryResponse): Surgery {
   return {
     id: dto.id,
@@ -87,6 +93,8 @@ export function mapSurgeryResponse(dto: SurgeryResponse): Surgery {
     location: dto.location ?? undefined,
     team: dto.team.map(mapTeamMember),
     tools: [...dto.tools],
+    personsToNotify: [...dto.personsToNotify],
+    contacts: dto.contacts.map(mapContact),
     reminderPolicies: dto.reminderPolicies.map(mapReminderPolicy),
     concurrencyToken: dto.concurrencyToken,
     createdAt: dto.createdAt,
@@ -144,8 +152,6 @@ type SurgeryRequestCoreFields = Pick<
   | "status"
   | "scheduledAt"
   | "tools"
-  | "personsToNotify"
-  | "contacts"
   | "reminderPolicies"
   | "durationMinutes"
   | "location"
@@ -183,8 +189,6 @@ function buildCoreFields(
     status: surgeryStatuses.planned,
     scheduledAt,
     tools: [...values.tools],
-    personsToNotify: [],
-    contacts: [],
     reminderPolicies: values.reminderPolicies.map((policy) => ({
       name: policy.name,
       minutesBefore: policy.minutesBefore,
@@ -202,6 +206,8 @@ export function buildSurgeryCreateRequest(
 ): SurgeryCreateRequest {
   return {
     ...buildCoreFields(values, context.timeZone),
+    personsToNotify: [],
+    contacts: [],
     idempotencyKey: context.idempotencyKey,
     team: buildTeam(values.team, context.staff),
   };
@@ -214,6 +220,8 @@ export function buildSurgeryWriteRequest(
 ): SurgeryWriteRequest {
   return {
     ...buildCoreFields(values, context.timeZone),
+    personsToNotify: [...surgery.personsToNotify],
+    contacts: surgery.contacts.map((contact) => ({ ...contact })),
     concurrencyToken: surgery.concurrencyToken,
     team: buildTeam(values.team, context.staff),
   };

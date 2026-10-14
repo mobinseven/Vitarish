@@ -18,6 +18,7 @@ namespace Vitarish.Clinic.Tests.Infrastructure;
 public sealed class PatientSurgeryDatesTests
 {
     private const string TenantId = "tenant-1";
+    private const string OtherTenantId = "tenant-2";
     private static readonly DateTimeOffset Now = new(2026, 6, 1, 12, 0, 0, TimeSpan.Zero);
     private static readonly Guid WithBoth = Guid.Parse("00000000-0000-0000-0000-00000000000a");
     private static readonly Guid OnlyCancelled = Guid.Parse("00000000-0000-0000-0000-00000000000b");
@@ -35,18 +36,18 @@ public sealed class PatientSurgeryDatesTests
             .Options;
         using ClinicDbContext context = new(options, new TestRequestContext(), new HttpContextAccessor());
 
-        string sql = CreateShape().ApplySort(context.PatientViews.AsNoTracking(), sortBy, descending, context, Now).ToQueryString();
+        string sql = CreateShape().ApplySort(context.PatientViews.AsNoTracking(), sortBy, descending, context, TenantId, Now).ToQueryString();
 
         sql.Should().Contain("mv_PatientSurgeries").And.Contain("ORDER BY");
     }
 
     [Fact]
-    public async Task Loader_sets_the_last_non_cancelled_and_next_planned_surgery_per_patient()
+    public async Task Loader_sets_the_last_non_cancelled_and_next_planned_surgery_per_patient_within_the_tenant()
     {
         await using TestClinicDbContext context = await SeedAsync();
         List<PatientView> patients = await context.PatientViews.OrderBy(patient => patient.Id).ToListAsync();
 
-        await new PatientSurgeryDatesLoader(context, new FakeTimeProvider(Now)).LoadAsync(patients, CancellationToken.None);
+        await new PatientSurgeryDatesLoader(context, new FakeTimeProvider(Now)).LoadAsync(patients, TenantId, CancellationToken.None);
 
         PatientView both = patients.Single(patient => patient.Id == WithBoth);
         both.LastSurgeryAt.Should().Be(Now.AddDays(-3));
@@ -65,7 +66,7 @@ public sealed class PatientSurgeryDatesTests
         await using TestClinicDbContext context = await SeedAsync();
 
         List<Guid> ordered = await CreateShape()
-            .ApplySort(context.PatientViews, PatientSortBy.NextSurgery, false, context, Now)
+            .ApplySort(context.PatientViews, PatientSortBy.NextSurgery, false, context, TenantId, Now)
             .Select(patient => patient.Id)
             .ToListAsync();
 
@@ -92,15 +93,17 @@ public sealed class PatientSurgeryDatesTests
             Surgery(WithBoth, SurgeryStatus.Planned, Now.AddDays(5)),
             Surgery(OnlyCancelled, SurgeryStatus.Cancelled, Now.AddDays(-2)),
             Surgery(OnlyCancelled, SurgeryStatus.Cancelled, Now.AddDays(4)),
-            Surgery(OnlyUpcoming, SurgeryStatus.Planned, Now.AddDays(1)));
+            Surgery(OnlyUpcoming, SurgeryStatus.Planned, Now.AddDays(1)),
+            Surgery(OnlyCancelled, SurgeryStatus.Planned, Now.AddDays(-4), OtherTenantId),
+            Surgery(OnlyCancelled, SurgeryStatus.Planned, Now.AddDays(3), OtherTenantId));
         await context.SaveChangesAsync();
         return context;
     }
 
-    private static SurgeryView Surgery(Guid patientId, SurgeryStatus status, DateTimeOffset scheduledAt) => new()
+    private static SurgeryView Surgery(Guid patientId, SurgeryStatus status, DateTimeOffset scheduledAt, string tenantId = TenantId) => new()
     {
         Id = Guid.NewGuid(),
-        TenantId = TenantId,
+        TenantId = tenantId,
         PatientId = patientId,
         ObjectType = SurgeryObjectTypes.ObjectType,
         Status = status.ToString(),

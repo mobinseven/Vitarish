@@ -9,6 +9,7 @@ import {
   HeaderIcon,
   LoadingStateSurface,
 } from "@vitarish/ui";
+import { ApiError } from "../../api/client/apiFetch";
 import { localizeApiError, useLocalizedText } from "../../localization/index";
 import {
   emptySurgeryPlanForm,
@@ -71,7 +72,7 @@ export function SurgeryPlanPage({
   const { t, direction } = useLocalizedText();
   const canPlan = useCanPlanSurgeries();
   const timeZone = getLocalTimeZone();
-  const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const [patientId, setPatientId] = useState(initialPatientId ?? "");
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -92,6 +93,8 @@ export function SurgeryPlanPage({
 
   const handleError = useCallback(
     (error: unknown) => {
+      // The server answered, so the next submit is a new request; a network failure keeps the key so a retry stays idempotent.
+      if (error instanceof ApiError) setIdempotencyKey(crypto.randomUUID());
       if (isSurgeryConflictError(error)) {
         setSubmitError(t("clinic.surgeries.errors.conflict"));
         if (mode === "edit") void surgeryQuery.refetch();

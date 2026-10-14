@@ -66,6 +66,7 @@ internal sealed class PatientViewQueryShape(EntitySearchPatternFactory searchPat
         PatientSortBy? sortBy,
         bool descending,
         ClinicDbContext dbContext,
+        string tenantId,
         DateTimeOffset now)
     {
         sortBy ??= PatientSortBy.Name;
@@ -114,8 +115,8 @@ internal sealed class PatientViewQueryShape(EntitySearchPatternFactory searchPat
                 .ThenBy(patient => patient.LastName ?? patient.Name)
                 .ThenBy(patient => patient.FirstName)
                 .ThenBy(patient => patient.Id),
-            (PatientSortBy.LastSurgery, _) => OrderBySurgeryDate(query, PatientSurgeryDates.LastKey(dbContext, now), descending),
-            (PatientSortBy.NextSurgery, _) => OrderBySurgeryDate(query, PatientSurgeryDates.NextKey(dbContext, now), descending),
+            (PatientSortBy.LastSurgery, _) => OrderBySurgeryDate(query, PatientSurgeryDates.LastKey(dbContext, tenantId, now), descending),
+            (PatientSortBy.NextSurgery, _) => OrderBySurgeryDate(query, PatientSurgeryDates.NextKey(dbContext, tenantId, now), descending),
             (PatientSortBy.CreatedAt, true) => query
                 .OrderByDescending(patient => patient.CreatedAt)
                 .ThenByDescending(patient => patient.LastName ?? patient.Name)

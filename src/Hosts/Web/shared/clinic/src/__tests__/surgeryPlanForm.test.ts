@@ -7,6 +7,10 @@ import {
   validateSurgeryPlanForm,
   type SurgeryPlanFormValues,
 } from "../models/surgeries/surgeryPlanForm";
+import {
+  buildSurgeryCreateRequest,
+  buildSurgeryWriteRequest,
+} from "../models/surgeries/surgeryMappers";
 import type { Surgery, SurgeryType } from "../models/surgeries/surgeryModels";
 
 const typeFixture: SurgeryType = {
@@ -114,6 +118,8 @@ describe("scheduledInstant", () => {
       scheduledAt: instant!,
       team: [],
       tools: [],
+      personsToNotify: [],
+      contacts: [],
       reminderPolicies: [],
       concurrencyToken: "token-1",
       createdAt: instant!,
@@ -124,5 +130,50 @@ describe("scheduledInstant", () => {
     expect(restored.scheduledDate).toBe("2026-05-01");
     expect(restored.scheduledTime).toBe("09:30");
     expect(scheduledInstant(restored, "Asia/Tehran")).toBe(instant);
+  });
+});
+
+describe("surgery request builders", () => {
+  function storedSurgery(): Surgery {
+    return {
+      id: "surgery-1",
+      patientId: "patient-1",
+      catalogId: typeFixture.id,
+      name: "Knee replacement",
+      status: "Planned",
+      scheduledAt: "2026-05-01T09:00:00.000Z",
+      team: [],
+      tools: [],
+      personsToNotify: ["person-1"],
+      contacts: [
+        { name: "Alice", destination: "alice@example.com", channel: "Email" },
+      ],
+      reminderPolicies: [],
+      concurrencyToken: "token-1",
+      createdAt: "2026-05-01T09:00:00.000Z",
+    };
+  }
+
+  it("keeps the stored contacts and persons to notify when editing", () => {
+    const request = buildSurgeryWriteRequest(storedSurgery(), validValues(), {
+      timeZone: "UTC",
+      staff: [],
+    });
+
+    expect(request.personsToNotify).toEqual(["person-1"]);
+    expect(request.contacts).toEqual([
+      { name: "Alice", destination: "alice@example.com", channel: "Email" },
+    ]);
+  });
+
+  it("sends empty contacts and persons to notify when creating", () => {
+    const request = buildSurgeryCreateRequest(validValues(), {
+      idempotencyKey: "key-1",
+      timeZone: "UTC",
+      staff: [],
+    });
+
+    expect(request.personsToNotify).toEqual([]);
+    expect(request.contacts).toEqual([]);
   });
 });

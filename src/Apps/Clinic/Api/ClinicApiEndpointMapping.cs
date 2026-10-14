@@ -461,6 +461,11 @@ public static class ClinicApiEndpointMapping
             throw new ArgumentException("Surgery collections cannot be null.");
         }
 
+        if (request.Team is not null && request.Team.Any(member => member is null || string.IsNullOrWhiteSpace(member.UserId) || string.IsNullOrWhiteSpace(member.Role)))
+        {
+            throw new ArgumentException("Each team member needs a user and a role.");
+        }
+
         return request;
     }
 
@@ -470,6 +475,11 @@ public static class ClinicApiEndpointMapping
         if (request.Tools is null || request.PersonsToNotify is null || request.Contacts is null || request.ReminderPolicies is null)
         {
             throw new ArgumentException("Surgery collections cannot be null.");
+        }
+
+        if (request.Team is not null && request.Team.Any(member => member is null || string.IsNullOrWhiteSpace(member.UserId) || string.IsNullOrWhiteSpace(member.Role)))
+        {
+            throw new ArgumentException("Each team member needs a user and a role.");
         }
 
         return request;

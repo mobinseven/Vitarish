@@ -172,7 +172,7 @@ export function SurgeryCalendarPage({ onNavigate }: SurgeryCalendarPageProps) {
         {canPlan ? (
           <Tooltip>
             <Button
-              variant="tertiary"
+              variant="primary"
               onPress={() => onNavigate({ kind: "surgeryNew" })}
             >
               <FaIcon icon="plus" aria-hidden="true" />
