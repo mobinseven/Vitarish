@@ -75,6 +75,15 @@ need no attention stay neutral.
 | Expired | `danger` |
 | Cancelled, rejected | Neutral |
 
+Surgery status chips follow the same rule through `surgeryStatusChipProps` in
+`@vitarish/clinic`, matching the reservation statuses of the same meaning.
+
+| Status | Color |
+|---|---|
+| Planned | `success` |
+| Completed | `chroma-primary` |
+| Cancelled | Neutral |
+
 ## Buttons
 
 | Kind | Examples | Color | Class |
