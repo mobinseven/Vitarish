@@ -27,7 +27,7 @@ public sealed class GetPatientFactualOverviewTool(ISender sender) : ClinicPatien
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         PatientView? patient = await PatientAsync(context, cancellationToken);
-        return Result(call, patient is null ? new ClinicPatientOverviewResponse(false) : new ClinicPatientOverviewResponse(true, SourceTime(patient), new(patient.Name, patient.DateOfBirth, patient.VisitReason, !string.IsNullOrWhiteSpace(patient.Allergies), !string.IsNullOrWhiteSpace(patient.CurrentMedications), patient.DateOfSurgery)));
+        return Result(call, patient is null ? new ClinicPatientOverviewResponse(false) : new ClinicPatientOverviewResponse(true, SourceTime(patient), new(patient.Name, patient.DateOfBirth, patient.VisitReason, !string.IsNullOrWhiteSpace(patient.Allergies), !string.IsNullOrWhiteSpace(patient.CurrentMedications))));
     }
 }
 public abstract class ClinicPatientReadTool(ISender sender) : IClinicalEventsAssistantTool
@@ -63,6 +63,6 @@ public sealed class GetPatientRecordedClinicalFactsTool(ISender sender) : Clinic
     public override async Task<AgentToolResult> ExecuteAsync(AgentToolCall call, AgentExecutionContext context, CancellationToken cancellationToken = default)
     {
         PatientView? patient = await PatientAsync(context, cancellationToken);
-        return Result(call, patient is null ? new ClinicPatientFactsResponse(false) : new ClinicPatientFactsResponse(true, SourceTime(patient), new(patient.VisitReason, patient.Allergies, patient.CurrentMedications, patient.ClinicalNotes, patient.DateOfSurgery)));
+        return Result(call, patient is null ? new ClinicPatientFactsResponse(false) : new ClinicPatientFactsResponse(true, SourceTime(patient), new(patient.VisitReason, patient.Allergies, patient.CurrentMedications, patient.ClinicalNotes)));
     }
 }

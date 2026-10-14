@@ -14,7 +14,6 @@ public sealed record PatientFindOrCreateRequest(
     string? Phone,
     string? Email,
     DateTime? DateOfBirth = null,
-    DateTime? DateOfSurgery = null,
     Gender? Gender = null,
     string? PlaceOfBirth = null,
     string? Address = null,
@@ -39,7 +38,6 @@ public sealed record PatientUpdateRequest(
     string? Phone,
     string? Email,
     DateTime? DateOfBirth = null,
-    DateTime? DateOfSurgery = null,
     Gender? Gender = null,
     string? PlaceOfBirth = null,
     string? Address = null,
@@ -86,7 +84,6 @@ public sealed class PatientViewDto
     public string? FirstName { get; init; }
     public string? LastName { get; init; }
     public DateTime? DateOfBirth { get; init; }
-    public DateTime? DateOfSurgery { get; init; }
     public Gender Gender { get; init; }
     public string? PlaceOfBirth { get; init; }
     public string? Address { get; init; }
@@ -106,4 +103,6 @@ public sealed class PatientViewDto
     public string? EmergencyContactName { get; init; }
     public string? EmergencyContactPhone { get; init; }
     public StatsReadDto? Stats { get; init; }
+    public DateTimeOffset? LastSurgeryAt { get; init; }
+    public DateTimeOffset? NextSurgeryAt { get; init; }
 }

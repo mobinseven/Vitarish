@@ -16,5 +16,7 @@ internal sealed class E2eClinicDbContext(
     {
         base.OnModelCreating(modelBuilder);
         _ = modelBuilder.Entity<PatientView>().HasKey(patient => patient.Id);
+        _ = modelBuilder.Entity<SurgeryView>().HasKey(surgery => surgery.Id);
+        _ = modelBuilder.Entity<SurgerySuggestionView>().HasKey(suggestion => new { suggestion.TenantId, suggestion.Kind, suggestion.Value });
     }
 }

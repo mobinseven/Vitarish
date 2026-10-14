@@ -594,6 +594,505 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicCreateSurgeryCatalog",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SurgeryCatalogWriteRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurgeryCatalogDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/surgeries/catalogs/{id}": {
+      "put": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicUpdateSurgeryCatalog",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SurgeryCatalogUpdateRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurgeryCatalogDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/surgeries/catalogs/{id}/delete": {
+      "post": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicDeleteSurgeryCatalog",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SurgeryCatalogDeleteRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/surgeries/catalogs/default": {
+      "post": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicEnsureDefaultSurgeryCatalog",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SurgeryCatalogWriteRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurgeryCatalogDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/surgeries/settings": {
+      "get": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicGetSurgerySettings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurgerySettingsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicUpdateSurgerySettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SurgerySettingsUpdateRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurgerySettingsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/surgeries/settings/default": {
+      "post": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicEnsureDefaultSurgerySettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SurgerySettingsWriteRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurgerySettingsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/modules/clinic/surgeries": {
@@ -612,6 +1111,396 @@
                   "items": {
                     "$ref": "#/components/schemas/SurgeryResponse"
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/surgeries/calendar": {
+      "get": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicListSurgeryCalendar",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurgeryCalendarEntryResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/surgeries/conflicts": {
+      "get": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicFindSurgeryConflicts",
+        "parameters": [
+          {
+            "name": "scheduledAt",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "durationMinutes",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamUserIds",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "excludeSurgeryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurgeryConflictResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/surgeries/suggestions": {
+      "get": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicGetSurgerySuggestions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurgerySuggestionsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/modules/clinic/surgeries/{id}": {
+      "get": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicGetSurgery",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurgeryCalendarEntryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Clinic"
+        ],
+        "operationId": "ClinicUpdateSurgery",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SurgeryWriteRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurgeryResponse"
                 }
               }
             }
@@ -702,97 +1591,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/DashboardAppointmentResponse"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/modules/clinic/dashboard/surgeries": {
-      "get": {
-        "tags": [
-          "Clinic"
-        ],
-        "operationId": "ClinicListDashboardSurgeries",
-        "parameters": [
-          {
-            "name": "dateFrom",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "date"
-            }
-          },
-          {
-            "name": "dateTo",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "date"
-            }
-          },
-          {
-            "name": "take",
-            "in": "query",
-            "schema": {
-              "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DashboardSurgeryResponse"
                   }
                 }
               }
@@ -988,12 +1786,12 @@
         }
       }
     },
-    "/api/modules/clinic/surgeries/{id}": {
-      "put": {
+    "/api/modules/clinic/surgeries/{id}/cancel": {
+      "post": {
         "tags": [
           "Clinic"
         ],
-        "operationId": "ClinicUpdateSurgery",
+        "operationId": "ClinicCancelSurgery",
         "parameters": [
           {
             "name": "id",
@@ -1014,7 +1812,7 @@
                     "type": "null"
                   },
                   {
-                    "$ref": "#/components/schemas/SurgeryWriteRequest"
+                    "$ref": "#/components/schemas/SurgeryCancelRequest"
                   }
                 ]
               }
@@ -1071,12 +1869,12 @@
         }
       }
     },
-    "/api/modules/clinic/surgeries/{id}/cancel": {
+    "/api/modules/clinic/surgeries/{id}/complete": {
       "post": {
         "tags": [
           "Clinic"
         ],
-        "operationId": "ClinicCancelSurgery",
+        "operationId": "ClinicCompleteSurgery",
         "parameters": [
           {
             "name": "id",
@@ -1097,7 +1895,7 @@
                     "type": "null"
                   },
                   {
-                    "$ref": "#/components/schemas/SurgeryCancelRequest"
+                    "$ref": "#/components/schemas/SurgeryCompleteRequest"
                   }
                 ]
               }
@@ -3115,43 +3913,6 @@
           }
         }
       },
-      "DashboardSurgeryResponse": {
-        "required": [
-          "surgeryId",
-          "patientId",
-          "patientDisplayName",
-          "surgeryName",
-          "status",
-          "scheduledAt"
-        ],
-        "type": "object",
-        "properties": {
-          "surgeryId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "patientId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "patientDisplayName": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "surgeryName": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "scheduledAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
       "Education": {
         "enum": [
           "Unspecified",
@@ -3241,13 +4002,6 @@
             ]
           },
           "dateOfBirth": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "dateOfSurgery": {
             "type": [
               "null",
               "string"
@@ -3490,6 +4244,8 @@
           "DateOfSurgery",
           "CreatedAt",
           "UpdatedAt",
+          "LastSurgery",
+          "NextSurgery",
           null
         ],
         "default": "Name"
@@ -3535,13 +4291,6 @@
             ]
           },
           "dateOfBirth": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
-          "dateOfSurgery": {
             "type": [
               "null",
               "string"
@@ -3771,13 +4520,6 @@
             ],
             "format": "date-time"
           },
-          "dateOfSurgery": {
-            "type": [
-              "null",
-              "string"
-            ],
-            "format": "date-time"
-          },
           "gender": {
             "$ref": "#/components/schemas/Gender"
           },
@@ -3893,6 +4635,20 @@
                 "$ref": "#/components/schemas/StatsReadDto"
               }
             ]
+          },
+          "lastSurgeryAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "nextSurgeryAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -4180,7 +4936,37 @@
           }
         }
       },
+      "SurgeryCalendarEntryResponse": {
+        "required": [
+          "surgery",
+          "patientDisplayName"
+        ],
+        "type": "object",
+        "properties": {
+          "surgery": {
+            "$ref": "#/components/schemas/SurgeryResponse"
+          },
+          "patientDisplayName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SurgeryCancelRequest": {
+        "required": [
+          "concurrencyToken"
+        ],
+        "type": "object",
+        "properties": {
+          "concurrencyToken": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SurgeryCatalogDeleteRequest": {
         "required": [
           "concurrencyToken"
         ],
@@ -4197,8 +4983,9 @@
           "id",
           "name",
           "tools",
-          "personsToNotify",
-          "reminderPolicies"
+          "defaultTeamRoles",
+          "reminderPolicies",
+          "concurrencyToken"
         ],
         "type": "object",
         "properties": {
@@ -4214,7 +5001,7 @@
               "type": "string"
             }
           },
-          "personsToNotify": {
+          "defaultTeamRoles": {
             "type": "array",
             "items": {
               "type": "string"
@@ -4224,6 +5011,116 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/SurgeryReminderPolicyDto"
+            }
+          },
+          "concurrencyToken": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SurgeryCatalogUpdateRequest": {
+        "required": [
+          "name",
+          "tools",
+          "defaultTeamRoles",
+          "reminderPolicies",
+          "concurrencyToken"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "defaultTeamRoles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reminderPolicies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurgeryReminderPolicyDto"
+            }
+          },
+          "concurrencyToken": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SurgeryCatalogWriteRequest": {
+        "required": [
+          "name",
+          "tools",
+          "defaultTeamRoles",
+          "reminderPolicies"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "defaultTeamRoles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reminderPolicies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurgeryReminderPolicyDto"
+            }
+          }
+        }
+      },
+      "SurgeryCompleteRequest": {
+        "required": [
+          "concurrencyToken"
+        ],
+        "type": "object",
+        "properties": {
+          "concurrencyToken": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SurgeryConflictResponse": {
+        "required": [
+          "entry",
+          "reasons",
+          "sharedTeamUserIds"
+        ],
+        "type": "object",
+        "properties": {
+          "entry": {
+            "$ref": "#/components/schemas/SurgeryCalendarEntryResponse"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sharedTeamUserIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           }
         }
@@ -4300,6 +5197,30 @@
           },
           "idempotencyKey": {
             "type": "string"
+          },
+          "durationMinutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "location": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "team": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SurgeryTeamMemberDto"
+            }
           }
         }
       },
@@ -4346,7 +5267,10 @@
           "reminderPolicies",
           "concurrencyToken",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "durationMinutes",
+          "location",
+          "team"
         ],
         "type": "object",
         "properties": {
@@ -4415,6 +5339,122 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "durationMinutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "location": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "team": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurgeryTeamMemberDto"
+            }
+          }
+        }
+      },
+      "SurgerySettingsDto": {
+        "required": [
+          "cancellationSubject",
+          "cancellationTextBody",
+          "concurrencyToken"
+        ],
+        "type": "object",
+        "properties": {
+          "cancellationSubject": {
+            "type": "string"
+          },
+          "cancellationTextBody": {
+            "type": "string"
+          },
+          "concurrencyToken": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SurgerySettingsUpdateRequest": {
+        "required": [
+          "cancellationSubject",
+          "cancellationTextBody",
+          "concurrencyToken"
+        ],
+        "type": "object",
+        "properties": {
+          "cancellationSubject": {
+            "type": "string"
+          },
+          "cancellationTextBody": {
+            "type": "string"
+          },
+          "concurrencyToken": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SurgerySettingsWriteRequest": {
+        "required": [
+          "cancellationSubject",
+          "cancellationTextBody"
+        ],
+        "type": "object",
+        "properties": {
+          "cancellationSubject": {
+            "type": "string"
+          },
+          "cancellationTextBody": {
+            "type": "string"
+          }
+        }
+      },
+      "SurgerySuggestionsResponse": {
+        "required": [
+          "locations",
+          "roles"
+        ],
+        "type": "object",
+        "properties": {
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SurgeryTeamMemberDto": {
+        "required": [
+          "userId",
+          "displayName",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
           }
         }
       },
@@ -4472,6 +5512,30 @@
           "concurrencyToken": {
             "type": "string",
             "format": "uuid"
+          },
+          "durationMinutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "location": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "team": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SurgeryTeamMemberDto"
+            }
           }
         }
       }

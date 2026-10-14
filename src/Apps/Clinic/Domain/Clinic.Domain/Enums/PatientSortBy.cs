@@ -9,7 +9,8 @@ public enum PatientSortBy
     Template,
     IdentificationCode,
     DateOfBirth,
-    DateOfSurgery,
     CreatedAt,
-    UpdatedAt
+    UpdatedAt,
+    LastSurgery,
+    NextSurgery
 }

@@ -11,7 +11,9 @@ internal sealed class GetPatientViewsHandler(
     ClinicDbContext dbContext,
     IRequestContext requestContext,
     PatientViewQueryShape queryShape,
-    PatientViewStatsLoader statsLoader) : IRequestHandler<GetPatientsQuery, IReadOnlyList<PatientView>>
+    PatientViewStatsLoader statsLoader,
+    PatientSurgeryDatesLoader surgeryDatesLoader,
+    TimeProvider timeProvider) : IRequestHandler<GetPatientsQuery, IReadOnlyList<PatientView>>
 {
     private const int DefaultTake = 100;
     private const int MaximumTake = 1000;
@@ -22,7 +24,7 @@ internal sealed class GetPatientViewsHandler(
 
         IQueryable<PatientView> query = queryShape.CreateQuery(dbContext, request.Tags);
         query = queryShape.ApplyFilters(query, tenantId, request.Search, request.Template);
-        query = queryShape.ApplySort(query, request.SortBy, request.Descending);
+        query = queryShape.ApplySort(query, request.SortBy, request.Descending, dbContext, timeProvider.GetUtcNow());
 
         if (request.Skip is > 0)
         {
@@ -38,6 +40,7 @@ internal sealed class GetPatientViewsHandler(
             .ToListAsync(cancellationToken);
 
         await statsLoader.LoadAsync(patients, cancellationToken);
+        await surgeryDatesLoader.LoadAsync(patients, cancellationToken);
 
         return patients;
     }

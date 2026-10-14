@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Vitarish.Hosting;
 using Vitarish.E2e.Infrastructure.Fixtures;
 using Vitarish.E2e.Infrastructure.Data;
@@ -17,6 +18,7 @@ using Vitarish.Clinic.Application.Assistant.Actions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Authentication.Application.Abstractions;
 using Vitarish.Authentication.Infrastructure;
+using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Server;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
@@ -27,6 +29,7 @@ const string platformWebOriginKey = "VITARISH_E2E_PLATFORM_ADMIN_ORIGIN";
 const string platformCorsOriginKey = "Cors:AllowedOrigins:2";
 const string platformWebAuthnOriginKey = "WebAuthn:Origins:1";
 const string passwordKey = "VITARISH_E2E_PASSWORD";
+const string surgeryMaterializedViewRefresherTypeName = "SurgeryMaterializedViewRefresher";
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 if (!builder.Environment.EnvironmentName.Equals("E2E", StringComparison.Ordinal))
@@ -79,6 +82,8 @@ void configureInMemory(DbContextOptionsBuilder options)
         databaseNames[contextType] = databaseName;
     }
     options.UseInMemoryDatabase(databaseName);
+    // The in-memory store has no transactions; workflows that open one (e.g. reminder replacement) run without it here.
+    options.ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
 }
 
 await builder.RegisterHosting(new HostingCompositionOptions(
@@ -96,6 +101,13 @@ _ = builder.Services.AddAuditCapacityAlertMonitoring(builder.Environment, openAp
 builder.Services.AddSingleton<Hangfire.IBackgroundJobClient, E2eBackgroundJobClient>();
 builder.Services.Replace(ServiceDescriptor.Singleton<IClinicalEventProposalStore, E2eClinicalEventProposalStore>());
 builder.Services.Replace(ServiceDescriptor.Singleton<IAssistantActionStore, E2eAssistantActionStore>());
+
+ServiceDescriptor? productionSurgeryViewRefresher = builder.Services.SingleOrDefault(descriptor =>
+    descriptor.ServiceType == typeof(IProjectObjectMaterializedViewRefresher)
+    && descriptor.ImplementationType?.Name == surgeryMaterializedViewRefresherTypeName);
+if (productionSurgeryViewRefresher is not null)
+    _ = builder.Services.Remove(productionSurgeryViewRefresher);
+_ = builder.Services.AddTransient<IProjectObjectMaterializedViewRefresher, E2eSurgeryViewRefresher>();
 
 _ = builder.Services.AddScoped<ClinicDbContext>(services =>
     new E2eClinicDbContext(

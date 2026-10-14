@@ -10,6 +10,8 @@ namespace Vitarish.Clinic.Infrastructure.Serializers;
 [JsonSerializable(typeof(SurgeryWriteModel))]
 [JsonSerializable(typeof(SurgeryReadModel))]
 [JsonSerializable(typeof(SurgeryContact))]
+[JsonSerializable(typeof(SurgeryTeamMember))]
+[JsonSerializable(typeof(IReadOnlyList<SurgeryTeamMember>))]
 [JsonSerializable(typeof(SurgeryReminderPolicy))]
 [JsonSerializable(typeof(SurgeryReminderTemplateVariables))]
 internal sealed partial class SurgeryJsonSerializerContext : JsonSerializerContext;

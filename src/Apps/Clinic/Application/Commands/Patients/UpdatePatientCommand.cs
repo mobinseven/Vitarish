@@ -12,7 +12,6 @@ public sealed record UpdatePatientCommand(
     string? Phone,
     string? Email,
     DateTime? DateOfBirth,
-    DateTime? DateOfSurgery,
     Gender? Gender,
     string? PlaceOfBirth,
     string? Address,
