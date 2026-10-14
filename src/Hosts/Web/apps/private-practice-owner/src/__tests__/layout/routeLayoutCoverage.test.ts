@@ -30,6 +30,32 @@ describe("private-practice route layout coverage", () => {
     expect(existsSync(pagePath)).toBe(true);
     expect(existsSync(resolve(appRoot, "(owner)", "(clinic-workspace)", "layout.tsx"))).toBe(true);
   });
+
+  it("assigns the surgery routes to their owning clinic layouts", () => {
+    for (const segments of [
+      ["surgeries", "page.tsx"],
+      ["surgeries", "new", "page.tsx"],
+      ["surgeries", "[surgeryId]", "page.tsx"],
+      ["surgeries", "[surgeryId]", "edit", "page.tsx"],
+    ]) {
+      expect(existsSync(resolve(appRoot, "(owner)", "(clinic-page)", ...segments))).toBe(true);
+    }
+    expect(existsSync(resolve(appRoot, "(owner)", "(clinic-page)", "layout.tsx"))).toBe(true);
+
+    expect(
+      existsSync(
+        resolve(
+          appRoot,
+          "(owner)",
+          "(clinic-workspace)",
+          "settings",
+          "surgery-types",
+          "page.tsx",
+        ),
+      ),
+    ).toBe(true);
+    expect(existsSync(resolve(appRoot, "(owner)", "(clinic-workspace)", "layout.tsx"))).toBe(true);
+  });
 });
 
 function collectPageFiles(directory: string): string[] {

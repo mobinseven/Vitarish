@@ -4,10 +4,7 @@ export {
   useInsuranceProviderCredentials,
   useInsuranceProviderSetup,
 } from "./hooks/settings/insurance/useInsuranceProviderSetup";
-export {
-  useClinicListDashboardAppointments,
-  useClinicListDashboardSurgeries,
-} from "./api/generated/clinic/clinic";
+export { useClinicListDashboardAppointments } from "./api/generated/clinic/clinic";
 
 export { DashboardPage } from "./components/dashboard/DashboardPage";
 export { CheckInPage } from "./components/check-in/CheckInPage";
@@ -76,6 +73,18 @@ export { InsuranceProviderSettingsPage } from "./components/settings/insurance/I
 export { InsuranceProviderAuthorizationCallbackPage } from "./components/settings/insurance/InsuranceProviderAuthorizationCallbackPage";
 export { StatisticsPage } from "./components/statistics/StatisticsPage";
 export { RemindersPage } from "./components/reminders/RemindersPage";
+export { SurgeryCalendarPage } from "./components/surgeries/SurgeryCalendarPage";
+export { SurgeryPlanPage } from "./components/surgeries/SurgeryPlanPage";
+export { SurgeryDetailPage } from "./components/surgeries/SurgeryDetailPage";
+export { SurgeryTypeManagementPanel } from "./components/surgeries/SurgeryTypeManagementPanel";
+export { PatientSurgeriesPanel } from "./components/surgeries/PatientSurgeriesPanel";
+export { SurgeryList } from "./components/surgeries/SurgeryList";
+export { SurgeryStatusChip } from "./components/surgeries/SurgeryStatusChip";
+export { useCanPlanSurgeries } from "./hooks/surgeries/useCanPlanSurgeries";
+export { useSurgeryCalendar } from "./hooks/surgeries/useSurgeryCalendar";
+export { surgeryCalendarRange, surgeryDayKey } from "./models/surgeries/surgeryCalendarRange";
+export { surgeryStatuses } from "./models/surgeries/surgeryModels";
+export type { Surgery, SurgeryStatus } from "./models/surgeries/surgeryModels";
 export { ServiceListPage } from "./components/services/ServiceListPage";
 export { ServiceDetailPage } from "./components/services/ServiceDetailPage";
 export { ServiceTypeListPage } from "./components/service-types/ServiceTypeListPage";

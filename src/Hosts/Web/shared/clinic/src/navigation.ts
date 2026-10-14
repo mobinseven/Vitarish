@@ -26,6 +26,11 @@ export type NavigationIntent =
   | { kind: "clinicStatistics" }
   | { kind: "procedureTemplateManagement" }
   | { kind: "prescriptionTemplateManagement" }
+  | { kind: "surgeryIndex" }
+  | { kind: "surgeryNew"; patientId?: string }
+  | { kind: "surgeryDetail"; surgeryId: string }
+  | { kind: "surgeryEdit"; surgeryId: string }
+  | { kind: "surgeryTypeManagement" }
   | { kind: "reminders" }
   | { kind: "serviceIndex" }
   | { kind: "serviceDetail"; serviceId: string }

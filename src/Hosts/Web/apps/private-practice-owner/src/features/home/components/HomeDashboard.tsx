@@ -33,6 +33,7 @@ import { formatNumber, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarDayRange } from "../calendarDayRange";
 import styles from "./HomeDashboard.module.css";
+import { SurgeriesWidget } from "../widgets/surgeries/SurgeriesWidget";
 import { FaIcon, HeaderIcon } from "@vitarish/ui";
 
 type SortMode = "time" | "patient";
@@ -135,8 +136,8 @@ export function HomeDashboard() {
   }
 
   return (
-    <div className={`${styles.root} relative flex min-h-full flex-col gap-5 overflow-hidden px-4 py-5 sm:px-6 lg:px-8 lg:py-6`}>
-      <header className="relative z-10 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+    <div className={`${styles.root} relative flex min-h-full flex-col gap-5 overflow-hidden px-4 py-5 sm:px-6 lg:px-8 lg:py-6 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_24rem] 2xl:content-start 2xl:items-start`}>
+      <header className="relative z-10 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between 2xl:col-span-2">
         <div>
           <div className="flex items-center gap-4">
             <HeaderIcon icon="house" level="page" />
@@ -525,6 +526,7 @@ export function HomeDashboard() {
           )}
         </Card.Content>
       </Card>
+      <SurgeriesWidget />
     </div>
   );
 }
