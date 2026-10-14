@@ -18,7 +18,6 @@ import {
 import type { PatientViewDto } from "../../../models/patients/patientSearchModels";
 import { useLocalizedText } from "../../../localization";
 import { prescriptionEventFeedQueryKey } from "../procedures/eventFeedPlugins";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface Props {
   patient: PatientViewDto;
@@ -318,7 +317,6 @@ export function PatientPrescriptionSubmissionSheet({
             </Sheet.Body>
             <Sheet.Footer>
               <Button
-                className={clinicOperationButtonClassName("prescription")}
                 variant="primary"
                 isDisabled={!prescriptionId || isWorking}
                 isPending={isWorking}

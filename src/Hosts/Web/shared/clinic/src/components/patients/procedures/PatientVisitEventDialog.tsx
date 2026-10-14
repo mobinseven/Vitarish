@@ -12,7 +12,6 @@ import { useEffect, useState } from "react";
 import { FaIcon } from "@vitarish/ui";
 import { useCreatePatientProcedureEvent } from "../../../hooks/patients/procedures/usePatientProcedureEventMutations";
 import { formatDate, useLocalizedText } from "../../../localization";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface PatientVisitEventDialogProps {
   patientId: string;
@@ -113,7 +112,7 @@ export function PatientVisitEventDialog({
             >
               {t("common.actions.cancel")}
             </Button>
-            <Button className={clinicOperationButtonClassName("visit")}
+            <Button
               variant="primary"
               onPress={submit}
               isPending={createEvent.isPending}

@@ -54,59 +54,13 @@
   }
 
   /*
-   * Chroma buttons: operation buttons take a host chroma color. Hosts without
-   * the chroma tokens fall back to the neutral default. Applied through
-   * chromaButtonClassName() from @vitarish/ui.
+   * Section header bands: a widget's frame, which holds its header, takes a
+   * light tint of the host anchor so each section reads as its own block while
+   * the content keeps the plain surface. Hosts without an anchor keep the
+   * widget's own frame color.
    */
-  .button.vitarish-chroma-button--primary {
-    --chroma-button: var(--chroma-primary, var(--default));
-    --chroma-button-foreground: var(--chroma-primary-foreground, var(--default-foreground));
-  }
-
-  .button.vitarish-chroma-button--secondary {
-    --chroma-button: var(--chroma-secondary, var(--default));
-    --chroma-button-foreground: var(--chroma-secondary-foreground, var(--default-foreground));
-  }
-
-  .button.vitarish-chroma-button--tertiary {
-    --chroma-button: var(--chroma-tertiary, var(--default));
-    --chroma-button-foreground: var(--chroma-tertiary-foreground, var(--default-foreground));
-  }
-
-  .button.vitarish-chroma-button--quaternary {
-    --chroma-button: var(--chroma-quaternary, var(--default));
-    --chroma-button-foreground: var(--chroma-quaternary-foreground, var(--default-foreground));
-  }
-
-  .button.vitarish-chroma-button--quinary {
-    --chroma-button: var(--chroma-quinary, var(--default));
-    --chroma-button-foreground: var(--chroma-quinary-foreground, var(--default-foreground));
-  }
-
-  .button.vitarish-chroma-button--senary {
-    --chroma-button: var(--chroma-senary, var(--default));
-    --chroma-button-foreground: var(--chroma-senary-foreground, var(--default-foreground));
-  }
-
-  .button[class*="vitarish-chroma-button--"] {
-    --button-bg: var(--chroma-button);
-    --button-fg: var(--chroma-button-foreground);
-    --button-bg-hover: color-mix(in oklab, var(--button-bg) 88%, var(--button-fg) 12%);
-    --button-bg-pressed: var(--button-bg-hover);
-    border-color: transparent;
-    box-shadow: 0 4px 10px color-mix(in oklab, var(--button-bg) 22%, transparent);
-  }
-
-  /*
-   * The secondary variant keeps HeroUI's neutral fill and colors only the
-   * text, mixed like the chroma chip text so it stays readable in both modes.
-   */
-  .button--secondary[class*="vitarish-chroma-button--"] {
-    --button-bg: var(--default);
-    --button-bg-hover: var(--default-hover);
-    --button-bg-pressed: var(--default-hover);
-    --button-fg: color-mix(in oklab, var(--chroma-button) 80%, var(--foreground) 30%);
-    box-shadow: none;
+  .widget {
+    background-color: color-mix(in oklab, var(--anchor, var(--surface-secondary)) 7%, var(--surface));
   }
 
   /*

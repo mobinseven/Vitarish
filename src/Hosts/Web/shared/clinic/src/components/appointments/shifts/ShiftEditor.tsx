@@ -4,7 +4,6 @@ import { Button, Input, Label, TextField } from "@heroui/react";
 import { NativeSelect } from "@heroui-pro/react";
 import { NumberStepper } from "@heroui-pro/react/number-stepper";
 import { useLocalizedText, type MessageKey } from "../../../localization/index";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 const dayKeys = [
   "clinic.weekdays.sunday",
@@ -112,7 +111,7 @@ export function ShiftEditor({
         <Button variant="ghost" onPress={onCancel} isDisabled={isPending}>
           {t("common.actions.cancel")}
         </Button>
-        <Button className={clinicOperationButtonClassName("appointment")} variant="primary" type="submit" isPending={isPending}>
+        <Button variant="primary" type="submit" isPending={isPending}>
           {t("common.actions.save")}
         </Button>
       </div>

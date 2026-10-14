@@ -23,7 +23,6 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  clinicOperationButtonClassName,
   patientTagClassName,
   reservationStatusChipProps,
   reservationStatuses,
@@ -503,14 +502,14 @@ export function HomeDashboard() {
                             <Tooltip.Content>{t("home.dashboard.viewProfile")}</Tooltip.Content>
                           </Tooltip>
                           <Tooltip>
-                            <Button className={`${clinicOperationButtonClassName("prescription")} ${styles.actionButton}`} size="sm" variant="secondary" onPress={() => openPatient(row.patientId, "prescription")}>
+                            <Button className={styles.actionButton} size="sm" variant="tertiary" onPress={() => openPatient(row.patientId, "prescription")}>
                               <FaIcon icon="prescription-bottle-medical" aria-hidden="true" />
                               {t("home.dashboard.newPrescription")}
                             </Button>
                             <Tooltip.Content>{t("home.dashboard.newPrescription")}</Tooltip.Content>
                           </Tooltip>
                           <Tooltip>
-                            <Button className={`${clinicOperationButtonClassName("visit")} ${styles.actionButton}`} size="sm" variant="secondary" onPress={() => openPatient(row.patientId, "newVisit")}>
+                            <Button className={styles.actionButton} size="sm" variant="tertiary" onPress={() => openPatient(row.patientId, "newVisit")}>
                               <FaIcon icon="calendar-plus" aria-hidden="true" />
                               {t("home.dashboard.newNote")}
                             </Button>

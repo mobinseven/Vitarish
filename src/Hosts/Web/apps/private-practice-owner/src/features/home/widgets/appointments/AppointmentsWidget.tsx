@@ -9,7 +9,7 @@ import {
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useClinicListDashboardAppointments, clinicOperationButtonClassName } from "@vitarish/clinic";
+import { useClinicListDashboardAppointments } from "@vitarish/clinic";
 import { formatDate, formatDateTime, useLocalizedText } from "@/localization";
 import { Routes } from "@/app/routes";
 import { calendarMonthRange } from "../../calendarMonthRange";
@@ -178,8 +178,8 @@ export function AppointmentsWidget() {
             </Tooltip>
             <Tooltip>
               <Button
-                className={`${clinicOperationButtonClassName("appointment")} min-w-0 flex-1`}
-                variant="primary"
+                className="min-w-0 flex-1"
+                variant="tertiary"
                 onPress={() =>
                   router.push(Routes.Clinic.Appointments.Reservations.Index)
                 }

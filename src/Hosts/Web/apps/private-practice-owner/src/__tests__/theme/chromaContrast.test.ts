@@ -63,3 +63,12 @@ describe("owner chroma colors", () => {
     expect(contrastRatio(background, foreground)).toBeGreaterThanOrEqual(minimumContrast);
   });
 });
+
+describe("owner anchor color", () => {
+  it("keeps hero band text readable at WCAG AA", () => {
+    const background = parseColor(tokenValue("--anchor"));
+    const foreground = parseColor(tokenValue("--anchor-foreground"));
+
+    expect(contrastRatio(background, foreground)).toBeGreaterThanOrEqual(minimumContrast);
+  });
+});

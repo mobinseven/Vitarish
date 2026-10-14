@@ -13,11 +13,6 @@ export const chromaColors = [
 
 export type ChromaColor = (typeof chromaColors)[number];
 
-/** Class name that paints a HeroUI Button with a chroma color. */
-export function chromaButtonClassName(color: ChromaColor): string {
-  return `vitarish-chroma-button--${color}`;
-}
-
 /** Class name that paints a HeroUI Chip with a chroma color. */
 export function chromaChipClassName(color: ChromaColor): string {
   return `vitarish-chroma-chip--${color}`;

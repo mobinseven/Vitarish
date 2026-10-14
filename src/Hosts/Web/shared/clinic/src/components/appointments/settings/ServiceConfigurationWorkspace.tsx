@@ -36,7 +36,6 @@ import {
   useCreateShift,
   useDeleteShift,
 } from "../../../hooks/appointments/shifts/useOwnerShifts";
-import { clinicOperationButtonClassName } from "../../operations/clinicOperation";
 
 interface ServiceConfigurationWorkspaceProps {
   onNavigate: (intent: NavigationIntent) => void;
@@ -327,8 +326,8 @@ function ServiceTypesSection({
             <h2 className="text-lg font-semibold text-foreground">{t("clinic.serviceTypes.title")}</h2>
           </div>
         </div>
-        <Button className={clinicOperationButtonClassName("appointment")}
-          variant="primary"
+        <Button
+          variant="tertiary"
           onPress={() => setCreating(true)}
           isDisabled={creating || isCreating}
         >
@@ -379,7 +378,7 @@ function ServiceTypesSection({
                 {editingId !== item.id && (
                   <ListView.ItemAction>
                     <div className="flex gap-2">
-                      <Button className={clinicOperationButtonClassName("appointment")}
+                      <Button
                         variant="ghost"
                         onPress={() => setEditingId(item.id)}
                       >
@@ -466,8 +465,8 @@ function ServicesSection({
             <h2 className="text-lg font-semibold text-foreground">{t("clinic.services.title")}</h2>
           </div>
         </div>
-        <Button className={clinicOperationButtonClassName("appointment")}
-          variant="primary"
+        <Button
+          variant="tertiary"
           onPress={() => setCreating(true)}
           isDisabled={creating || isCreating}
         >
@@ -530,7 +529,7 @@ function ServicesSection({
                 {editingId !== item.id && (
                   <ListView.ItemAction>
                     <div className="flex gap-2">
-                      <Button className={clinicOperationButtonClassName("appointment")}
+                      <Button
                         variant="ghost"
                         onPress={() => setEditingId(item.id)}
                       >
@@ -611,8 +610,8 @@ function ProvidersSection({
             <h2 className="text-lg font-semibold text-foreground">{t("clinic.serviceProviders.title")}</h2>
           </div>
         </div>
-        <Button className={clinicOperationButtonClassName("appointment")}
-          variant="primary"
+        <Button
+          variant="tertiary"
           onPress={() => setCreating(true)}
           isDisabled={creating || isCreating}
         >
@@ -660,7 +659,7 @@ function ProvidersSection({
                 {editingId !== item.id && (
                   <ListView.ItemAction>
                     <div className="flex gap-2">
-                      <Button className={clinicOperationButtonClassName("appointment")}
+                      <Button
                         variant="ghost"
                         onPress={() => setEditingId(item.id)}
                       >
@@ -760,8 +759,8 @@ function ShiftsSection({
             <h2 className="text-lg font-semibold text-foreground">{t("clinic.appointments.shifts.title")}</h2>
           </div>
         </div>
-        <Button className={clinicOperationButtonClassName("appointment")}
-          variant="primary"
+        <Button
+          variant="tertiary"
           onPress={() => setCreating(true)}
           isDisabled={creating || isCreating}
         >
@@ -874,7 +873,7 @@ function InlineEditor({
           <Button variant="ghost" onPress={onCancel} isDisabled={isPending}>
             {t("common.actions.cancel")}
           </Button>
-          <Button className={clinicOperationButtonClassName("appointment")} variant="primary" type="submit" isPending={isPending}>
+          <Button variant="primary" type="submit" isPending={isPending}>
             {t("common.actions.save")}
           </Button>
         </div>
@@ -946,7 +945,7 @@ function ServiceEditor({
           <Button variant="ghost" onPress={onCancel} isDisabled={isPending}>
             {t("common.actions.cancel")}
           </Button>
-          <Button className={clinicOperationButtonClassName("appointment")} variant="primary" type="submit" isPending={isPending}>
+          <Button variant="primary" type="submit" isPending={isPending}>
             {t("common.actions.save")}
           </Button>
         </div>
@@ -1089,7 +1088,7 @@ function ShiftEditor({
           <Button variant="ghost" onPress={onCancel} isDisabled={isPending}>
             {t("common.actions.cancel")}
           </Button>
-          <Button className={clinicOperationButtonClassName("appointment")} variant="primary" type="submit" isPending={isPending}>
+          <Button variant="primary" type="submit" isPending={isPending}>
             {t("common.actions.save")}
           </Button>
         </div>

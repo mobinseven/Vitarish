@@ -51,8 +51,8 @@ export function PatientOverviewHeader({ patient }: PatientOverviewHeaderProps) {
   const gender = formatEnum(patient.gender);
 
   return (
-    <Card variant="transparent">
-      <Card.Header className="flex flex-col items-center gap-4 px-4 py-5 text-center sm:flex-row sm:text-left">
+    <Card className="rounded-3xl bg-anchor text-anchor-foreground">
+      <Card.Header className="flex flex-col items-center gap-4 px-4 py-6 text-center sm:flex-row sm:px-6 sm:text-left">
         <Avatar
           color="default"
           size="lg"
@@ -60,17 +60,17 @@ export function PatientOverviewHeader({ patient }: PatientOverviewHeaderProps) {
           role="img"
           aria-label={displayName}
         >
-          <Avatar.Fallback className="text-lg font-semibold">
+          <Avatar.Fallback className="bg-anchor-foreground/15 text-lg font-semibold text-anchor-foreground">
             <FaIcon icon="user" />
           </Avatar.Fallback>
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">
+            <h1 className="text-2xl font-semibold text-anchor-foreground sm:text-3xl">
               {displayName}
             </h1>
           </div>
-          <div className="mt-2 flex flex-wrap justify-center gap-x-3 gap-y-1 text-sm text-muted sm:justify-start">
+          <div className="mt-2 flex flex-wrap justify-center gap-x-3 gap-y-1 text-sm text-anchor-foreground/75 sm:justify-start">
             {patient.identificationCode ? (
               <span>
                 {t("clinic.patient.fields.identificationCode")}:{" "}

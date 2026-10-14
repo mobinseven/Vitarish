@@ -82,8 +82,6 @@ export { ServiceTypeListPage } from "./components/service-types/ServiceTypeListP
 export { ServiceTypeDetailPage } from "./components/service-types/ServiceTypeDetailPage";
 export { ServiceProviderListPage } from "./components/service-providers/ServiceProviderListPage";
 export { ServiceProviderDetailPage } from "./components/service-providers/ServiceProviderDetailPage";
-export { clinicOperationButtonClassName, clinicOperations } from "./components/operations/clinicOperation";
-export type { ClinicOperation } from "./components/operations/clinicOperation";
 export { patientTagClassName } from "./components/patients/tags/patientTagColor";
 export { reservationStatusChipProps, reservationStatuses } from "./components/appointments/reservations/reservationStatusChip";
 export type { ReservationStatusChipProps } from "./components/appointments/reservations/reservationStatusChip";
